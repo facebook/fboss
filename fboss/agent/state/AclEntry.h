@@ -117,7 +117,8 @@ struct AclEntryFields : public ThriftyFields {
         lookupClassNeighbor == acl.lookupClassNeighbor &&
         lookupClassRoute == acl.lookupClassRoute &&
         packetLookupResult == acl.packetLookupResult &&
-        etherType == acl.etherType && vlanID == acl.vlanID;
+        etherType == acl.etherType && vlanID == acl.vlanID &&
+        enabled == acl.enabled;
   }
 
   static void checkFollyDynamic(const folly::dynamic& json);

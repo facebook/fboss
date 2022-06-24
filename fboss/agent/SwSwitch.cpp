@@ -1748,10 +1748,18 @@ void SwSwitch::applyConfig(
           XLOG(WARN) << "Current platform doesn't have QsfpCache. "
                      << "No need to build TransceiverMap";
         }
-        auto newState = rib_
-            ? applyThriftConfig(
-                  originalState, &newConfig, getPlatform(), &routeUpdater)
-            : applyThriftConfig(originalState, &newConfig, getPlatform());
+        auto newState = rib_ ? applyThriftConfig(
+                                   originalState,
+                                   &newConfig,
+                                   getPlatform(),
+                                   &routeUpdater,
+                                   aclNexthopHandler_.get())
+                             : applyThriftConfig(
+                                   originalState,
+                                   &newConfig,
+                                   getPlatform(),
+                                   (RoutingInformationBase*)nullptr,
+                                   aclNexthopHandler_.get());
 
         if (newState && !isValidStateUpdate(StateDelta(state, newState))) {
           throw FbossError("Invalid config passed in, skipping");

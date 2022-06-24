@@ -16,11 +16,13 @@
 #include <optional>
 #include <string>
 
+#include "fboss/agent/AclNexthopHandler.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/LoadBalancerConfigApplier.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
+#include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/normalization/Normalizer.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -127,17 +129,24 @@ class ThriftConfigApplier {
       const std::shared_ptr<SwitchState>& orig,
       const cfg::SwitchConfig* config,
       const Platform* platform,
-      RoutingInformationBase* rib)
-      : orig_(orig), cfg_(config), platform_(platform), rib_(rib) {}
+      RoutingInformationBase* rib,
+      AclNexthopHandler* aclNexthopHandler)
+      : orig_(orig),
+        cfg_(config),
+        platform_(platform),
+        rib_(rib),
+        aclNexthopHandler_(aclNexthopHandler) {}
   ThriftConfigApplier(
       const std::shared_ptr<SwitchState>& orig,
       const cfg::SwitchConfig* config,
       const Platform* platform,
-      RouteUpdateWrapper* routeUpdater)
+      RouteUpdateWrapper* routeUpdater,
+      AclNexthopHandler* aclNexthopHandler)
       : orig_(orig),
         cfg_(config),
         platform_(platform),
-        routeUpdater_(routeUpdater) {}
+        routeUpdater_(routeUpdater),
+        aclNexthopHandler_(aclNexthopHandler) {}
 
   std::shared_ptr<SwitchState> run();
 
@@ -279,7 +288,8 @@ class ThriftConfigApplier {
   std::shared_ptr<AclEntry> createAcl(
       const cfg::AclEntry* config,
       int priority,
-      const MatchAction* action = nullptr);
+      const MatchAction* action = nullptr,
+      bool enable = true);
   std::shared_ptr<AclEntry> updateAcl(
       cfg::AclStage aclStage,
       const cfg::AclEntry& acl,
@@ -287,7 +297,8 @@ class ThriftConfigApplier {
       int* numExistingProcessed,
       bool* changed,
       std::optional<std::string> tableName,
-      const MatchAction* action = nullptr);
+      const MatchAction* action = nullptr,
+      bool enable = true);
   // check the acl provided by config is valid
   void checkAcl(const cfg::AclEntry* config) const;
   std::shared_ptr<QosPolicyMap> updateQosPolicies();
@@ -362,6 +373,7 @@ class ThriftConfigApplier {
   const Platform* platform_{nullptr};
   RoutingInformationBase* rib_{nullptr};
   RouteUpdateWrapper* routeUpdater_{nullptr};
+  AclNexthopHandler* aclNexthopHandler_{nullptr};
 
   struct VlanIpInfo {
     VlanIpInfo(uint8_t mask, MacAddress mac, InterfaceID intf)
@@ -2192,9 +2204,18 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
         if (auto toCpuAction = mta.action()->toCpuAction()) {
           matchAction.setToCpuAction(*toCpuAction);
         }
+        bool enableAcl = true;
         if (auto redirectToNextHop = mta.action()->redirectToNextHop()) {
           matchAction.setRedirectToNextHop(
               std::make_pair(*redirectToNextHop, MatchAction::NextHopSet()));
+          if (aclNexthopHandler_) {
+            aclNexthopHandler_->resolveActionNexthops(matchAction);
+          }
+          if (!matchAction.getRedirectToNextHop().value().second.size()) {
+            XLOG(DBG2)
+                << "Setting newly configured ACL as disabled since no nexthops are available";
+            enableAcl = false;
+          }
         }
 
         auto acl = updateAcl(
@@ -2204,7 +2225,8 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
             &numExistingProcessed,
             &changed,
             tableName,
-            &matchAction);
+            &matchAction,
+            enableAcl);
 
         if (acl->getAclAction().has_value()) {
           const auto& inMirror = acl->getAclAction().value().getIngressMirror();
@@ -2272,7 +2294,8 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
     int* numExistingProcessed,
     bool* changed,
     std::optional<std::string> tableName,
-    const MatchAction* action) {
+    const MatchAction* action,
+    bool enable) {
   std::shared_ptr<AclEntry> origAcl;
 
   if (FLAGS_enable_acl_table_group) { // multiple acl tables implementation
@@ -2290,7 +2313,7 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
   }
 
   auto newAcl =
-      createAcl(&acl, priority, action); // new always comes from config
+      createAcl(&acl, priority, action, enable); // new always comes from config
 
   if (origAcl) {
     ++(*numExistingProcessed);
@@ -2366,7 +2389,8 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry* config) const {
 shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
     const cfg::AclEntry* config,
     int priority,
-    const MatchAction* action) {
+    const MatchAction* action,
+    bool enable) {
   checkAcl(config);
   auto newAcl = make_shared<AclEntry>(priority, *config->name());
   newAcl->setActionType(*config->actionType());
@@ -2436,6 +2460,7 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   if (auto vlanID = config->vlanID()) {
     newAcl->setVlanID(*vlanID);
   }
+  newAcl->setEnabled(enable);
   return newAcl;
 }
 
@@ -3443,17 +3468,22 @@ shared_ptr<SwitchState> applyThriftConfig(
     const shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
-    RoutingInformationBase* rib) {
+    RoutingInformationBase* rib,
+    AclNexthopHandler* aclNexthopHandler) {
   cfg::SwitchConfig emptyConfig;
-  return ThriftConfigApplier(state, config, platform, rib).run();
+  return ThriftConfigApplier(state, config, platform, rib, aclNexthopHandler)
+      .run();
 }
 shared_ptr<SwitchState> applyThriftConfig(
     const shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
     const Platform* platform,
-    RouteUpdateWrapper* routeUpdater) {
+    RouteUpdateWrapper* routeUpdater,
+    AclNexthopHandler* aclNexthopHandler) {
   cfg::SwitchConfig emptyConfig;
-  return ThriftConfigApplier(state, config, platform, routeUpdater).run();
+  return ThriftConfigApplier(
+             state, config, platform, routeUpdater, aclNexthopHandler)
+      .run();
 }
 
 } // namespace facebook::fboss

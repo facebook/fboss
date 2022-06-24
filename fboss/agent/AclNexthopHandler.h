@@ -14,12 +14,12 @@ class AclNexthopHandler : public StateObserver {
   ~AclNexthopHandler() override;
 
   void stateUpdated(const StateDelta& delta) override;
+  void resolveActionNexthops(MatchAction& action);
 
  private:
   std::shared_ptr<SwitchState> handleUpdate(
       const std::shared_ptr<SwitchState>& state);
   std::shared_ptr<AclMap> updateAcls(std::shared_ptr<SwitchState>& newState);
-  void resolveActionNexthops(MatchAction& action);
   AclEntry* FOLLY_NULLABLE updateAcl(
       const std::shared_ptr<AclEntry>& origAclEntry,
       std::shared_ptr<SwitchState>& newState);

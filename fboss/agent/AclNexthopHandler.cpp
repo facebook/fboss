@@ -122,6 +122,7 @@ AclEntry* FOLLY_NULLABLE AclNexthopHandler::updateAcl(
     // Disable acl if there are no nexthops available
     if (action.getRedirectToNextHop().has_value() &&
         !action.getRedirectToNextHop().value().second.size()) {
+      XLOG(DBG2) << "Disabling acl as no resolved nexthops are available";
       newAclEntry->setEnabled(false);
     }
     return ((newAclEntry->getAclAction().value().getRedirectToNextHop() !=
