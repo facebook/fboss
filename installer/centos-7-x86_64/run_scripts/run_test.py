@@ -22,11 +22,15 @@ from argparse import ArgumentParser
 #  ./run_test.py sai --config $confFile --filter=HwOlympicQosSchedulerTest* # some dataplane tests
 #  ./run_test.py sai --config $confFile --sdk_logging /root/all_replayer_logs # ALL tests with SAI replayer logging
 
+#  ./run_test.py sai --config $confFile --skip-known-bad-tests $knownBadTestsFile --file HwRouteScaleTest.turboFabricScaleTest # skip running known bad tests
+#  ./run_test.py sai --config $confFile --skip-known-bad-tests $knownBadTestsFile # skip running known bad tests
+
 
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"
 OPT_ARG_CONFIG_FILE = "--config"
 OPT_ARG_SDK_LOGGING = "--sdk_logging"
+OPT_ARG_SKIP_KNOWN_BAD_TESTS = "--skip-known-bad-tests"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
@@ -78,6 +82,18 @@ class TestRunner(abc.ABC):
             run_test_result = (line[:idx] + test_prefix + line[idx:]).encode("utf-8")
         return run_test_result
 
+    def _get_known_bad_test_regex(self):
+        if not args.skip_known_bad_tests or not os.path.isfile(
+            args.skip_known_bad_tests
+        ):
+            return None
+
+        with open(args.skip_known_bad_tests) as f:
+            lines = f.readlines()
+            lines = [line.strip().strip('"') for line in lines]
+        known_bad_tests = "|".join(lines)
+        return re.compile(known_bad_tests)
+
     def _parse_list_test_output(self, output):
         ret = []
         class_name = None
@@ -100,7 +116,13 @@ class TestRunner(abc.ABC):
             func_name = line.strip()
             ret.append("%s.%s" % (class_name, func_name))
 
-        return ret
+        known_bad_test_regex = self._get_known_bad_test_regex()
+
+        return (
+            [test for test in ret if not known_bad_test_regex.match(test)]
+            if known_bad_test_regex
+            else ret
+        )
 
     def _parse_gtest_run_output(self, test_output):
         test_summary = []
@@ -289,13 +311,21 @@ if __name__ == "__main__":
             + "=./share/bcm-configs/WEDGE100+RSW-bcm.conf"
         ),
     )
-
     ap.add_argument(
         OPT_ARG_SDK_LOGGING,
         type=str,
         help=(
             "Enable SDK logging (e.g. SAI replayer for sai tests"
             "and store the logs in the supplied directory)"
+        ),
+    )
+    ap.add_argument(
+        OPT_ARG_SKIP_KNOWN_BAD_TESTS,
+        type=str,
+        help=(
+            "skip running known bad tests specified in a file e.g. "
+            + OPT_ARG_SKIP_KNOWN_BAD_TESTS
+            + "=path-to-known-bad-tests-file"
         ),
     )
 
