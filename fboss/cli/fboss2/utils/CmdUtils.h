@@ -232,7 +232,12 @@ auto arrayToTuple(const std::array<T, M>& v) {
 // returns tuple(value) if TargetT == std::monostate, otherwise empty tuple()
 template <typename TargetT, typename T>
 auto tupleValueIfNotMonostate(const T& value) {
+  // backward compatibility
   if constexpr (std::is_same_v<TargetT, std::monostate>) {
+    return std::make_tuple();
+  }
+  // BaseObjectArgType indicates OBJECT_ARG_TYPE_ID_NONE
+  else if constexpr (std::is_same_v<TargetT, BaseObjectArgType>) {
     return std::make_tuple();
   } else {
     return std::make_tuple(value);
