@@ -203,7 +203,21 @@ class PortState : public BaseObjectArgType {
 
 class FsdbPath : public BaseObjectArgType {
  public:
-  /* implicit */ FsdbPath(std::vector<std::string> v) : BaseObjectArgType(v) {}
+  // Get raw fsdb path from command args
+  // return: vector of path names separated by `/`
+  // Eg: fsdbPath = {"agent/config"} | data_: {"agent", "config"}
+  /* implicit */ FsdbPath(std::vector<std::string> fsdbPath) {
+    if (fsdbPath.size() > 1) {
+      throw std::invalid_argument(folly::to<std::string>(
+          "Unexpected path '",
+          folly::join<std::string, std::vector<std::string>>(" ", fsdbPath),
+          "', expecting a single path"));
+    }
+    if (fsdbPath.size() == 1) {
+      folly::split("/", fsdbPath[0], data_);
+    }
+    // if there is no input, the default value will be given inside each command
+  }
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_PATH;
 };
@@ -216,9 +230,6 @@ const folly::IPAddress getIPFromHost(const std::string& hostname);
 const std::string getOobNameFromHost(const std::string& host);
 std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName);
 std::vector<std::string> getHostsFromFile(const std::string& filename);
-std::vector<std::string> getFsdbPath(
-    const std::vector<std::string>& path,
-    std::string defaultPath);
 long getEpochFromDuration(const int64_t& duration);
 timeval splitFractionalSecondsFromTimer(const long& timer);
 const std::string parseTimeToTimeStamp(const long& timeToParse);

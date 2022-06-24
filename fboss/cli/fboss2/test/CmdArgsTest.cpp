@@ -1,8 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <fboss/cli/fboss2/utils/CmdUtils.h>
-#include "fboss/cli/fboss2/CmdHandler.h"
-
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <memory>
 #include <stdexcept>
@@ -10,6 +9,7 @@
 #include <tuple>
 #include <variant>
 #include <vector>
+#include "fboss/cli/fboss2/CmdHandler.h"
 
 using namespace ::testing;
 
@@ -92,6 +92,18 @@ TEST(CmdArgsTest, PortList) {
   ASSERT_THROW(utils::PortList({"eth1/5/"}), std::invalid_argument);
   ASSERT_THROW(utils::PortList({"eth1//1"}), std::invalid_argument);
   ASSERT_THROW(utils::PortList({"eth/5/1"}), std::invalid_argument);
+}
+
+TEST(CmdArgsTest, FsdbPath) {
+  // test valid arguments
+  ASSERT_NO_THROW(utils::FsdbPath({"agent/config"}));
+
+  // test parsed results
+  auto fsdbPath = utils::FsdbPath({"agent/config"});
+  EXPECT_THAT(fsdbPath.data(), ElementsAre("agent", "config"));
+
+  // test invalid arguments
+  ASSERT_THROW(utils::FsdbPath({"agent", "config"}), std::invalid_argument);
 }
 
 } // namespace facebook::fboss
