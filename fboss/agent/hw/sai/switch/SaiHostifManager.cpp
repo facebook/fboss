@@ -538,12 +538,8 @@ void SaiHostifManager::setQosPolicy() {
    * Once the longer term fix is available to BRCM-SAI, this diff will be
    * reverted.
    */
-  auto asicType = platform_->getAsic()->getAsicType();
-  auto tcToQueueAdapterKey =
-      (asicType == HwAsic::AsicType::ASIC_TYPE_TRIDENT2 ||
-       asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK ||
-       asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3 ||
-       asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4)
+  auto tcToQueueAdapterKey = (platform_->getAsic()->getAsicVendor() ==
+                              HwAsic::AsicVendor::ASIC_VENDOR_BCM)
       ? SAI_NULL_OBJECT_ID
       : globalTcToQueueQosMap_->adapterKey();
   setCpuQosPolicy(
