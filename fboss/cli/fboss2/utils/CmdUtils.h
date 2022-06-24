@@ -13,6 +13,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <folly/IPAddress.h>
 #include <folly/String.h>
+#include <re2/re2.h>
 #include <string>
 #include <variant>
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
@@ -101,9 +102,26 @@ class IPV6List : public BaseObjectArgType {
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST;
 };
 
+/**
+ * Whether input port name conforms to the required pattern
+ * 'moduleNum/port/subport' For example, eth1/5/3 will be parsed to four parts:
+ * eth(module name), 1(module number), 5(port number), 3(subport number). Error
+ * will be thrown if the port name is not valid.
+ */
 class PortList : public BaseObjectArgType {
  public:
-  /* implicit */ PortList(std::vector<std::string> v) : BaseObjectArgType(v) {}
+  /* implicit */ PortList() : BaseObjectArgType() {}
+  /* implicit */ PortList(std::vector<std::string> v) : BaseObjectArgType(v) {
+    static const RE2 exp("([a-z]+)(\\d+)/(\\d+)/(\\d)");
+    for (auto const& port : v) {
+      if (!RE2::FullMatch(port, exp)) {
+        throw std::invalid_argument(folly::to<std::string>(
+            "Invalid port name: ",
+            port,
+            "\nPort name must match 'moduleNum/port/subport' pattern"));
+      }
+    }
+  }
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;

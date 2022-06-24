@@ -80,4 +80,18 @@ TEST(CmdArgsTest, doTypingTemplating) {
                 std::tuple_element_t<1, decltype(typedArgs)>>);
 }
 
+TEST(CmdArgsTest, PortList) {
+  // port name must conform to the required pattern 'moduleNum/port/subport'
+
+  // test valid arguments
+  ASSERT_NO_THROW(utils::PortList({"eth1/5/1"}));
+
+  // test invalid arguments
+  ASSERT_THROW(utils::PortList({"eth1"}), std::invalid_argument);
+  ASSERT_THROW(utils::PortList({"eth1/5"}), std::invalid_argument);
+  ASSERT_THROW(utils::PortList({"eth1/5/"}), std::invalid_argument);
+  ASSERT_THROW(utils::PortList({"eth1//1"}), std::invalid_argument);
+  ASSERT_THROW(utils::PortList({"eth/5/1"}), std::invalid_argument);
+}
+
 } // namespace facebook::fboss

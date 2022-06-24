@@ -18,9 +18,8 @@ namespace facebook::fboss {
 struct CmdShowPortQueueTraits : public BaseCommandTraits {
   using ParentCmd = CmdShowPort;
   // This command will inherit port list from its parent (ShowPort)
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
-  using ObjectArgType = std::monostate;
+  // BaseObjectArgType indicates that there is no args input
+  using ObjectArgType = utils::BaseObjectArgType;
   using RetType = std::map<int32_t, facebook::fboss::PortInfoThrift>;
 };
 
@@ -32,7 +31,7 @@ class CmdShowPortQueue
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const std::vector<std::string>& queriedPorts) {
+      const utils::PortList& queriedPorts) {
     RetType portEntries;
 
     auto client =
@@ -46,7 +45,7 @@ class CmdShowPortQueue
 
     RetType retVal;
     for (auto const& [portId, portInfo] : portEntries) {
-      for (auto const& queriedPort : queriedPorts) {
+      for (auto const& queriedPort : queriedPorts.data()) {
         if (portInfo.get_name() == queriedPort) {
           retVal.insert(std::make_pair(portId, portInfo));
         }
