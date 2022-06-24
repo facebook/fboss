@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/CmdSubcommands.h"
+#include <fboss/cli/fboss2/utils/CmdUtils.h>
 #include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
@@ -79,6 +80,13 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
           args,
           "name(s) of PRBS component, one or multiple of "
           "asic/xphy_system/xphy_line/transceiver_system/transceiver_line");
+    } else if (
+        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_AS_SEQUENCE) {
+      subCmd->add_option("sequence", args, "AS sequence");
+    } else if (
+        cmd.argType ==
+        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_LOCAL_PREFERENCE) {
+      subCmd->add_option("preference", args, "Local preference num");
     } else if (
         cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_STATE) {
       subCmd->add_option(
