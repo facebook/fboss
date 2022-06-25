@@ -57,8 +57,8 @@ class OperPathToPublisherRoot {
   std::string publisherRoot(const std::vector<ExtendedOperPath>& paths) const {
     if (paths.size() == 0) {
       FsdbException e;
-      e.message_ref() = "Empty path";
-      e.errorCode_ref() = FsdbErrorCode::INVALID_PATH;
+      e.message() = "Empty path";
+      e.errorCode() = FsdbErrorCode::INVALID_PATH;
       throw e;
     }
 
@@ -68,9 +68,8 @@ class OperPathToPublisherRoot {
       if (root) {
         if (*root != currRoot) {
           FsdbException e;
-          e.message_ref() =
-              "Extended subscription spans multiple publisher roots";
-          e.errorCode_ref() = FsdbErrorCode::INVALID_PATH;
+          e.message() = "Extended subscription spans multiple publisher roots";
+          e.errorCode() = FsdbErrorCode::INVALID_PATH;
           throw e;
         }
       } else {
@@ -85,8 +84,8 @@ class OperPathToPublisherRoot {
   void checkPath(PathIter begin, PathIter end) const {
     if (begin == end) {
       FsdbException e;
-      e.message_ref() = "Empty path";
-      e.errorCode_ref() = FsdbErrorCode::INVALID_PATH;
+      e.message() = "Empty path";
+      e.errorCode() = FsdbErrorCode::INVALID_PATH;
       throw e;
     }
   }
@@ -102,9 +101,9 @@ class OperPathToPublisherRoot {
     auto& elem = *begin;
     if (elem.getType() != OperPathElem::Type::raw) {
       FsdbException e;
-      e.message_ref() =
+      e.message() =
           "Cannot support wildcard types as first element of extended path";
-      e.errorCode_ref() = FsdbErrorCode::INVALID_PATH;
+      e.errorCode() = FsdbErrorCode::INVALID_PATH;
       throw e;
     }
   }
