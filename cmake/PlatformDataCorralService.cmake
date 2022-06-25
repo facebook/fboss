@@ -11,14 +11,14 @@ add_library(data_corral_service_lib
   fboss/platform/data_corral_service/ChassisManager.cpp
   fboss/platform/data_corral_service/oss/ChassisManager.cpp
   fboss/platform/data_corral_service/darwin/DarwinChassisManager.cpp
-  fboss/platform/data_corral_service/darwin/DarwinFanModule.cpp
-  fboss/platform/data_corral_service/darwin/DarwinPemModule.cpp
-  fboss/platform/data_corral_service/darwin/DarwinRackmonModule.cpp
+  fboss/platform/data_corral_service/darwin/DarwinPlatformConfig.cpp
+  fboss/platform/data_corral_service/darwin/DarwinFruModule.cpp
 )
 
 target_link_libraries(data_corral_service_lib
   log_thrift_call
   product_info
+  common_file_utils
   weutil_lib
   platform_utils
   data_corral_service_cpp2

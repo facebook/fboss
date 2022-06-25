@@ -47,7 +47,7 @@ class ChassisManager {
   }
 
   void init() {
-    initFruModules();
+    initModules();
     startThread();
     auto func = [this]() { refreshFruModules(); };
     monitor_ = std::make_unique<ChassisMonitor>(refreshInterval_, &evb_, func);
@@ -55,13 +55,13 @@ class ChassisManager {
 
   void initThread();
 
-  virtual void initFruModules() {
-    // populate fruModules_;
+  virtual void initModules() {
+    // populate fruModules and system level settings
   }
 
   virtual void refreshFruModules() {
     for (auto& fruModule : fruModules_) {
-      fruModule->refresh();
+      fruModule.second->refresh();
     }
     programChassis();
   }
@@ -94,7 +94,7 @@ class ChassisManager {
 
  protected:
   int refreshInterval_;
-  std::vector<std::unique_ptr<FruModule>> fruModules_;
+  std::unordered_map<std::string, std::unique_ptr<FruModule>> fruModules_;
   std::unique_ptr<std::thread> thread_;
   folly::EventBase evb_;
   std::unique_ptr<ChassisMonitor> monitor_;

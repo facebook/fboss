@@ -17,6 +17,24 @@ struct DataCorralFruidReadResponse {
   1: list<FruIdData> fruidData;
 }
 
+// module attribute and the corresponding sysfs path
+struct AttributeConfig {
+  1: string name;
+  2: string path;
+}
+
+// Platform config info of a fru module
+struct FruConfig {
+  1: string name;
+  2: list<AttributeConfig> attributes;
+}
+
+// Platform config info of the whole chassis
+struct DataCorralPlatformConfig {
+  1: list<FruConfig> fruModules;
+  2: list<AttributeConfig> chassisAttributes;
+}
+
 service DataCorralServiceThrift {
   // if parameter "uncached" is true, then fruid should read from
   // flash/eeprom instead of cached value

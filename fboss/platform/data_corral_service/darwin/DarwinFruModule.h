@@ -6,12 +6,14 @@
 
 namespace facebook::fboss::platform::data_corral_service {
 
-class DarwinFanModule : public FruModule {
+class DarwinFruModule : public FruModule {
  public:
-  explicit DarwinFanModule(int id) : FruModule(id) {}
+  explicit DarwinFruModule(std::string id) : FruModule(id) {}
   void refresh() override;
-  void init() override;
-  std::string getName() override;
+  void init(std::vector<AttributeConfig>& attrs) override;
+
+ private:
+  std::string presentPath_;
 };
 
 } // namespace facebook::fboss::platform::data_corral_service
