@@ -52,13 +52,13 @@ class resolve_arg_types {
   using is_monostate = std::is_same<T, std::monostate>;
   // Implementation for newly added argument type class
   template <typename T>
-  using is_basetype = std::is_same<T, utils::BaseObjectArgType>;
+  using is_nonetype = std::is_same<T, utils::NoneArgType>;
 
  public:
-  // filter out std::monostate and utils::BaseObjectArgType
+  // filter out std::monostate and utils::NoneArgType
   using filtered_type = std::conditional_t<
       !is_monostate<typename Cmd::Traits::ObjectArgType>::value &&
-          !is_basetype<typename Cmd::Traits::ObjectArgType>::value,
+          !is_nonetype<typename Cmd::Traits::ObjectArgType>::value,
       appended_type,
       typename parent::filtered_type>;
   // Used at run time to determine which index args we need and which to get rid

@@ -18,8 +18,8 @@ namespace facebook::fboss {
 struct CmdShowPortQueueTraits : public BaseCommandTraits {
   using ParentCmd = CmdShowPort;
   // This command will inherit port list from its parent (ShowPort)
-  // BaseObjectArgType indicates that there is no args input
-  using ObjectArgType = utils::BaseObjectArgType;
+  // NoneArgType indicates that there is no args input
+  using ObjectArgType = utils::NoneArgType;
   using RetType = std::map<int32_t, facebook::fboss::PortInfoThrift>;
 };
 

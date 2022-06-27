@@ -13,15 +13,19 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <folly/IPAddress.h>
 #include <folly/String.h>
+#include <folly/gen/Base.h>
 #include <re2/re2.h>
 #include <string>
 #include <variant>
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
+#include "fboss/cli/fboss2/utils/PrbsUtils.h"
+#include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
 namespace facebook::fboss::utils {
 
 enum class ObjectArgTypeId : uint8_t {
-  OBJECT_ARG_TYPE_ID_NONE = 0,
+  OBJECT_ARG_TYPE_ID_UNINITIALIZE = 0,
+  OBJECT_ARG_TYPE_ID_NONE,
   OBJECT_ARG_TYPE_ID_COMMUNITY_LIST,
   OBJECT_ARG_TYPE_ID_IP_LIST, // IPv4 and/or IPv6
   OBJECT_ARG_TYPE_ID_IPV6_LIST,
@@ -37,6 +41,7 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_LOCAL_PREFERENCE
 };
 
+template <typename T>
 class BaseObjectArgType {
  public:
   BaseObjectArgType() {}
@@ -45,7 +50,7 @@ class BaseObjectArgType {
   using const_iterator = typename std::vector<std::string>::const_iterator;
   using size_type = typename std::vector<std::string>::size_type;
 
-  const std::vector<std::string> data() const {
+  const std::vector<T> data() const {
     return data_;
   }
 
@@ -74,11 +79,20 @@ class BaseObjectArgType {
     return data_.empty();
   }
 
-  std::vector<std::string> data_;
+  std::vector<T> data_;
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE;
+};
+
+class NoneArgType : public BaseObjectArgType<std::string> {
+ public:
+  /* implicit */ NoneArgType(std::vector<std::string> v)
+      : BaseObjectArgType(v) {}
+
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
 };
 
-class CommunityList : public BaseObjectArgType {
+class CommunityList : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ CommunityList(std::vector<std::string> v)
       : BaseObjectArgType(v) {}
@@ -87,14 +101,14 @@ class CommunityList : public BaseObjectArgType {
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_COMMUNITY_LIST;
 };
 
-class IPList : public BaseObjectArgType {
+class IPList : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ IPList(std::vector<std::string> v) : BaseObjectArgType(v) {}
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;
 };
 
-class IPV6List : public BaseObjectArgType {
+class IPV6List : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ IPV6List(std::vector<std::string> v) : BaseObjectArgType(v) {}
 
@@ -108,7 +122,7 @@ class IPV6List : public BaseObjectArgType {
  * eth(module name), 1(module number), 5(port number), 3(subport number). Error
  * will be thrown if the port name is not valid.
  */
-class PortList : public BaseObjectArgType {
+class PortList : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ PortList() : BaseObjectArgType() {}
   /* implicit */ PortList(std::vector<std::string> v) : BaseObjectArgType(v) {
@@ -127,14 +141,14 @@ class PortList : public BaseObjectArgType {
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
 };
 
-class Message : public BaseObjectArgType {
+class Message : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ Message(std::vector<std::string> v) : BaseObjectArgType(v) {}
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
 };
 
-class PeerIdList : public BaseObjectArgType {
+class PeerIdList : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ PeerIdList(std::vector<std::string> v)
       : BaseObjectArgType(v) {}
@@ -143,7 +157,7 @@ class PeerIdList : public BaseObjectArgType {
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PEERID_LIST;
 };
 
-class DebugLevel : public BaseObjectArgType {
+class DebugLevel : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ DebugLevel(std::vector<std::string> v)
       : BaseObjectArgType(v) {}
@@ -152,23 +166,25 @@ class DebugLevel : public BaseObjectArgType {
       ObjectArgTypeId::OBJECT_ARG_TYPE_DEBUG_LEVEL;
 };
 
-class PrbsComponent : public BaseObjectArgType {
+class PrbsComponent : public BaseObjectArgType<phy::PrbsComponent> {
  public:
-  /* implicit */ PrbsComponent(std::vector<std::string> v)
-      : BaseObjectArgType(v) {}
+  /* implicit */ PrbsComponent(std::vector<std::string> components) {
+    // existing helper function from PrbsUtils.h
+    data_ = prbsComponents(components, false /* returnAllIfEmpty */);
+  }
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT;
 };
 
-class PrbsState : public BaseObjectArgType {
+class PrbsState : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ PrbsState(std::vector<std::string> v) : BaseObjectArgType(v) {}
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_STATE;
 };
 
-class PortState : public BaseObjectArgType {
+class PortState : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ PortState(std::vector<std::string> v) : BaseObjectArgType(v) {
     if (v.empty()) {
@@ -201,7 +217,7 @@ class PortState : public BaseObjectArgType {
   }
 };
 
-class FsdbPath : public BaseObjectArgType {
+class FsdbPath : public BaseObjectArgType<std::string> {
  public:
   // Get raw fsdb path from command args
   // return: vector of path names separated by `/`
@@ -265,8 +281,8 @@ auto tupleValueIfNotMonostate(const T& value) {
   if constexpr (std::is_same_v<TargetT, std::monostate>) {
     return std::make_tuple();
   }
-  // BaseObjectArgType indicates OBJECT_ARG_TYPE_ID_NONE
-  else if constexpr (std::is_same_v<TargetT, BaseObjectArgType>) {
+  // NoneArgType indicates OBJECT_ARG_TYPE_ID_NONE
+  else if constexpr (std::is_same_v<TargetT, NoneArgType>) {
     return std::make_tuple();
   } else {
     return std::make_tuple(value);
