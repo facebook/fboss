@@ -67,6 +67,58 @@ CmdGlobalOptions::UnionList createValidInput() {
   return filterUnion;
 }
 
+// checking if thrift reflections are being properly generated from the thrift
+// struct. This is done to check if more fields from thrift struct are being
+// correctly validated.
+CmdGlobalOptions::UnionList createValidInputOtherFields() {
+  CmdGlobalOptions::FilterTerm filterTerm1 = {
+      "linkState", CmdGlobalOptions::FilterOp::EQ, "Up"};
+  CmdGlobalOptions::FilterTerm filterTerm2 = {
+      "id", CmdGlobalOptions::FilterOp::EQ, "12"};
+  CmdGlobalOptions::FilterTerm filterTerm3 = {
+      "adminState", CmdGlobalOptions::FilterOp::NEQ, "Disabled"};
+  CmdGlobalOptions::FilterTerm filterTerm4 = {
+      "tcvrID", CmdGlobalOptions::FilterOp::NEQ, "20"};
+  CmdGlobalOptions::FilterTerm filterTerm5 = {
+      "tcvrPresent", CmdGlobalOptions::FilterOp::NEQ, "yes"};
+  CmdGlobalOptions::FilterTerm filterTerm6 = {
+      "speed", CmdGlobalOptions::FilterOp::NEQ, "100mbps"};
+
+  CmdGlobalOptions::IntersectionList intersectList1 = {
+      filterTerm1, filterTerm4};
+  CmdGlobalOptions::IntersectionList intersectList2 = {filterTerm2};
+  CmdGlobalOptions::IntersectionList intersectList3 = {
+      filterTerm3, filterTerm5};
+  CmdGlobalOptions::IntersectionList intersectList4 = {filterTerm6};
+  CmdGlobalOptions::UnionList filterUnion = {
+      intersectList1, intersectList2, intersectList3, intersectList4};
+  return filterUnion;
+}
+
+CmdGlobalOptions::UnionList createInvalidValueOtherFields() {
+  CmdGlobalOptions::FilterTerm filterTerm1 = {
+      "linkState", CmdGlobalOptions::FilterOp::EQ, "Up"};
+  CmdGlobalOptions::FilterTerm filterTerm2 = {
+      "id", CmdGlobalOptions::FilterOp::EQ, "12"};
+  CmdGlobalOptions::FilterTerm filterTerm3 = {
+      "adminState", CmdGlobalOptions::FilterOp::NEQ, "Disabled"};
+  CmdGlobalOptions::FilterTerm filterTerm4 = {
+      "tcvrID", CmdGlobalOptions::FilterOp::NEQ, "my_id_12"};
+  CmdGlobalOptions::FilterTerm filterTerm5 = {
+      "tcvrPresent", CmdGlobalOptions::FilterOp::NEQ, "yes"};
+  CmdGlobalOptions::FilterTerm filterTerm6 = {
+      "speed", CmdGlobalOptions::FilterOp::NEQ, "100mbps"};
+
+  CmdGlobalOptions::IntersectionList intersectList1 = {
+      filterTerm1, filterTerm2, filterTerm3};
+  CmdGlobalOptions::IntersectionList intersectList2 = {
+      filterTerm4, filterTerm5};
+  CmdGlobalOptions::IntersectionList intersectList3 = {filterTerm6};
+  CmdGlobalOptions::UnionList filterUnion = {
+      intersectList1, intersectList2, intersectList3};
+  return filterUnion;
+}
+
 class FilterValidatorFixture : public CmdHandlerTestBase {
  public:
   void SetUp() override {
@@ -162,4 +214,19 @@ TEST_F(FilterValidatorFixture, validInputParsing) {
   EXPECT_EQ(std::get<2>(filterTerm3), "12");
 }
 
+TEST_F(FilterValidatorFixture, otherFieldsValidityTest1) {
+  auto otherFieldsValidInput = createValidInputOtherFields();
+  auto errCode = CmdGlobalOptions::getInstance()->isValid(
+      CmdShowPort().getValidFilters(), otherFieldsValidInput);
+
+  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::EOK);
+}
+
+TEST_F(FilterValidatorFixture, otherFieldsValidityTest2) {
+  auto otherFieldsInvalidValueTypeInput = createInvalidValueOtherFields();
+  auto errCode = CmdGlobalOptions::getInstance()->isValid(
+      CmdShowPort().getValidFilters(), otherFieldsInvalidValueTypeInput);
+
+  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::TYPE_ERROR);
+}
 } // namespace facebook::fboss
