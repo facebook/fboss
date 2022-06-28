@@ -98,6 +98,18 @@ struct PortFields {
   29: optional list<phy.PinConfig> linePinConfigs;
 }
 
+struct SystemPortFields {
+  1: i64 portId;
+  2: i64 attached_switch_id;
+  3: string portName; // switchId::portName
+  4: i64 attached_core_index;
+  5: i64 attached_core_port_index;
+  6: i64 speedMbps;
+  7: i64 numVoqs;
+  9: bool enabled;
+  10: optional string qosPolicy;
+}
+
 struct TransceiverSpecFields {
   1: required i16 id;
   2: optional double cableLength;
@@ -299,4 +311,5 @@ struct SwitchState {
   17: Address.BinaryAddress dhcpV4ReplySrc;
   18: Address.BinaryAddress dhcpV6ReplySrc;
   19: optional switch_config.PfcWatchdogRecoveryAction pfcWatchdogRecoveryAction;
+  20: map<i64, SystemPortFields> systemPortMap;
 }
