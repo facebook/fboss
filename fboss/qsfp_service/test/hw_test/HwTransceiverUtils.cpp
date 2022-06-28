@@ -152,10 +152,12 @@ void HwTransceiverUtils::verify100gProfile(
           *mediaId.media()->extendedSpecificationComplianceCode_ref();
       EXPECT_TRUE(
           specComplianceCode == ExtendedSpecComplianceCode::CWDM4_100G ||
-          specComplianceCode == ExtendedSpecComplianceCode::FR1_100G);
+          specComplianceCode == ExtendedSpecComplianceCode::FR1_100G ||
+          specComplianceCode == ExtendedSpecComplianceCode::CR4_100G);
       EXPECT_TRUE(
           mediaId.code() == MediaInterfaceCode::CWDM4_100G ||
-          mediaId.code() == MediaInterfaceCode::FR1_100G);
+          mediaId.code() == MediaInterfaceCode::FR1_100G ||
+          mediaId.code() == MediaInterfaceCode::CR4_100G);
     } else if (mgmtInterface == TransceiverManagementInterface::CMIS) {
       EXPECT_EQ(
           *mediaId.media()->smfCode_ref(), SMFMediaInterfaceCode::CWDM4_100G);
