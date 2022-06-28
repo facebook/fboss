@@ -179,8 +179,42 @@ class PrbsComponent : public BaseObjectArgType<phy::PrbsComponent> {
 
 class PrbsState : public BaseObjectArgType<std::string> {
  public:
-  /* implicit */ PrbsState(std::vector<std::string> v) : BaseObjectArgType(v) {}
+  /* implicit */ PrbsState(std::vector<std::string> args)
+      : BaseObjectArgType(args) {
+    if (args.empty()) {
+      throw std::invalid_argument(
+          "Incomplete command, expecting state <PRBSXX>");
+    }
+    auto state = folly::gen::from(args) |
+        folly::gen::mapped([](const std::string& s) {
+                   return boost::to_upper_copy(s);
+                 }) |
+        folly::gen::as<std::vector>();
+    enabled = (state[0] != "OFF");
+    if (enabled) {
+      polynomial = apache::thrift::util::enumValueOrThrow<
+          facebook::fboss::prbs::PrbsPolynomial>(state[0]);
+    }
+    if (state.size() <= 1) {
+      // None of the generator or checker args are passed, therefore set both
+      // the generator and checker
+      generator = enabled;
+      checker = enabled;
+    } else {
+      std::unordered_set<std::string> stateSet(state.begin() + 1, state.end());
+      if (stateSet.find("GENERATOR") != stateSet.end()) {
+        generator = enabled;
+      }
+      if (stateSet.find("CHECKER") != stateSet.end()) {
+        checker = enabled;
+      }
+    }
+  }
 
+  bool enabled;
+  facebook::fboss::prbs::PrbsPolynomial polynomial;
+  std::optional<bool> generator;
+  std::optional<bool> checker;
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_STATE;
 };
 

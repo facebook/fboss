@@ -15,49 +15,11 @@
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
-namespace {
-class PrbsState {
- public:
-  explicit PrbsState(const std::vector<std::string>& args) {
-    auto state = folly::gen::from(args) |
-        folly::gen::mapped([](const std::string& s) {
-                   return boost::to_upper_copy(s);
-                 }) |
-        folly::gen::as<std::vector>();
-    enabled = (state[0] != "OFF");
-    if (enabled) {
-      polynomial = apache::thrift::util::enumValueOrThrow<
-          facebook::fboss::prbs::PrbsPolynomial>(state[0]);
-    }
-    if (state.size() <= 1) {
-      // None of the generator or checker args are passed, therefore set both
-      // the generator and checker
-      generator = enabled;
-      checker = enabled;
-    } else {
-      std::unordered_set<std::string> stateSet(state.begin() + 1, state.end());
-      if (stateSet.find("GENERATOR") != stateSet.end()) {
-        generator = enabled;
-      }
-      if (stateSet.find("CHECKER") != stateSet.end()) {
-        checker = enabled;
-      }
-    }
-  }
-  bool enabled;
-  facebook::fboss::prbs::PrbsPolynomial polynomial;
-  std::optional<bool> generator;
-  std::optional<bool> checker;
-};
-} // namespace
-
 namespace facebook::fboss {
 
 struct CmdSetInterfacePrbsStateTraits : public BaseCommandTraits {
   using ParentCmd = CmdSetInterfacePrbs;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_STATE;
-  using ObjectArgType = std::vector<std::string>;
+  using ObjectArgType = utils::PrbsState;
   using RetType = std::string;
 };
 
@@ -67,30 +29,21 @@ class CmdSetInterfacePrbsState : public CmdHandler<
  public:
   RetType queryClient(
       const HostInfo& hostInfo,
-      const std::vector<std::string>& queriedIfs,
-      const std::vector<std::string>& components,
-      const ObjectArgType& args) {
-    if (args.empty()) {
-      throw std::runtime_error(
-          "Incomplete command, expecting 'show interface <interface_list> prbs <prbs_component> state <PRBSXX> [generator [checker]]'");
-    }
-    PrbsState state(args);
+      const utils::PortList& queriedIfs,
+      const utils::PrbsComponent& components,
+      const ObjectArgType& state) {
     // Setting PRBS state flaps the link, therefore only do it on the
     // requested components and not all if none are passed in the command
-    return createModel(
-        hostInfo,
-        queriedIfs,
-        prbsComponents(components, false /* returnAllIfEmpty */),
-        state);
+    return createModel(hostInfo, queriedIfs, components, state);
   }
 
   RetType createModel(
       const HostInfo& hostInfo,
-      const std::vector<std::string>& queriedIfs,
-      const std::vector<phy::PrbsComponent>& components,
-      const PrbsState& state) {
+      const utils::PortList& queriedIfs,
+      const utils::PrbsComponent& components,
+      const ObjectArgType& state) {
     for (const auto& intf : queriedIfs) {
-      for (const auto& component : components) {
+      for (const auto& component : components.data()) {
         setPrbsState(hostInfo, intf, component, state);
       }
     }
@@ -101,7 +54,7 @@ class CmdSetInterfacePrbsState : public CmdHandler<
       const HostInfo& hostInfo,
       const std::string& interfaceName,
       const phy::PrbsComponent& component,
-      const PrbsState& state) {
+      const ObjectArgType& state) {
     if (component == phy::PrbsComponent::TRANSCEIVER_LINE ||
         component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
         component == phy::PrbsComponent::GB_LINE ||

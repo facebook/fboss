@@ -17,9 +17,7 @@ namespace facebook::fboss {
 
 struct CmdSetInterfacePrbsTraits : public BaseCommandTraits {
   using ParentCmd = CmdSetInterface;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT;
-  using ObjectArgType = std::vector<std::string>;
+  using ObjectArgType = utils::PrbsComponent;
   using RetType = std::string;
 };
 
@@ -28,7 +26,7 @@ class CmdSetInterfacePrbs
  public:
   RetType queryClient(
       const HostInfo& /* hostInfo */,
-      const std::vector<std::string>& /* queriedIfs */,
+      const utils::PortList& /* queriedIfs */,
       const ObjectArgType& /* components */) {
     throw std::runtime_error(
         "Incomplete command, please use one the subcommands");
