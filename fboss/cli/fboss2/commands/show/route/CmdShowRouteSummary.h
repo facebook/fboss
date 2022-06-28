@@ -14,13 +14,12 @@
 #include <cstdint>
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
 #include "fboss/cli/fboss2/commands/show/route/gen-cpp2/model_types.h"
 
 namespace facebook::fboss {
 
 struct CmdShowRouteSummaryTraits : public BaseCommandTraits {
-  using ParentCmd = CmdShowRoute;
+  using ParentCmd = void;
   using ObjectArgType = utils::NoneArgType;
   using RetType = cli::ShowRouteSummaryModel;
 };
@@ -28,9 +27,7 @@ struct CmdShowRouteSummaryTraits : public BaseCommandTraits {
 class CmdShowRouteSummary
     : public CmdHandler<CmdShowRouteSummary, CmdShowRouteSummaryTraits> {
  public:
-  RetType queryClient(
-      const HostInfo& hostInfo,
-      const utils::IPList& /* unused */) {
+  RetType queryClient(const HostInfo& hostInfo) {
     std::vector<facebook::fboss::UnicastRoute> entries;
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);

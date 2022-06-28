@@ -9,7 +9,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
-#include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
+#include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 #include "nettools/common/TestUtils.h"
@@ -173,7 +173,7 @@ cli::ShowRouteModel createRouteModel() {
   return model;
 }
 
-class CmdShowRouteTestFixture : public CmdHandlerTestBase {
+class CmdShowRouteDetailsTestFixture : public CmdHandlerTestBase {
  public:
   std::vector<facebook::fboss::RouteDetails> routeEntries;
   cli::ShowRouteModel normalizedModel;
@@ -185,21 +185,21 @@ class CmdShowRouteTestFixture : public CmdHandlerTestBase {
   }
 };
 
-TEST_F(CmdShowRouteTestFixture, queryClient) {
+TEST_F(CmdShowRouteDetailsTestFixture, queryClient) {
   setupMockedAgentServer();
   EXPECT_CALL(getMockAgent(), getRouteTableDetails(_))
       .WillOnce(Invoke([&](auto& entries) { entries = routeEntries; }));
 
-  auto cmd = CmdShowRoute();
-  CmdShowRouteTraits::ObjectArgType queriedEntries;
+  auto cmd = CmdShowRouteDetails();
+  CmdShowRouteDetailsTraits::ObjectArgType queriedEntries;
   auto model = cmd.queryClient(localhost(), queriedEntries);
 
   EXPECT_THRIFT_EQ(model, normalizedModel);
 }
 
-TEST_F(CmdShowRouteTestFixture, printOutput) {
+TEST_F(CmdShowRouteDetailsTestFixture, printOutput) {
   std::stringstream ss;
-  CmdShowRoute().printOutput(normalizedModel, ss);
+  CmdShowRouteDetails().printOutput(normalizedModel, ss);
 
   std::string output = ss.str();
   std::string expectOutput = R"(

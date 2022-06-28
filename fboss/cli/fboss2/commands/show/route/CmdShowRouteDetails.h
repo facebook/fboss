@@ -20,12 +20,14 @@
 
 namespace facebook::fboss {
 
-struct CmdShowRouteTraits : public BaseCommandTraits {
+struct CmdShowRouteDetailsTraits : public BaseCommandTraits {
+  using ParentCmd = void;
   using ObjectArgType = utils::IPList;
   using RetType = cli::ShowRouteModel;
 };
 
-class CmdShowRoute : public CmdHandler<CmdShowRoute, CmdShowRouteTraits> {
+class CmdShowRouteDetails
+    : public CmdHandler<CmdShowRouteDetails, CmdShowRouteDetailsTraits> {
  public:
   RetType queryClient(
       const HostInfo& hostInfo,

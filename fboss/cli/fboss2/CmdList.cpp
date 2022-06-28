@@ -44,7 +44,7 @@
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
-#include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
+#include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
 #include "fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
@@ -162,10 +162,12 @@ const CommandTree& kCommandTree() {
 
       {"show",
        "route",
-       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST,
        "Show route information",
-       commandHandler<CmdShowRoute>,
-       {{"summary",
+       {{"details",
+         utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST,
+         "Show details of the route table",
+         commandHandler<CmdShowRouteDetails>},
+        {"summary",
          utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
          "Print a summary of routing tables",
          commandHandler<CmdShowRouteSummary>}}},
