@@ -16,9 +16,10 @@
 
 using namespace facebook::fboss;
 
-std::unique_ptr<SystemPort> makeSysPort(
-    const std::optional<std::string>& qosPolicy) {
-  auto sysPort = std::make_unique<SystemPort>(SystemPortID(1));
+std::shared_ptr<SystemPort> makeSysPort(
+    const std::optional<std::string>& qosPolicy,
+    int64_t sysPortId = 1) {
+  auto sysPort = std::make_shared<SystemPort>(SystemPortID(sysPortId));
   sysPort->setSwitchId(SwitchID(1));
   sysPort->setPortName("sysPort1");
   sysPort->setCoreIndex(42);
@@ -43,4 +44,37 @@ TEST(SystemPort, SerDeserSystemPortNoQos) {
   auto serialized = sysPort->toFollyDynamic();
   auto sysPortBack = SystemPort::fromFollyDynamic(serialized);
   EXPECT_TRUE(*sysPort == *sysPortBack);
+}
+
+TEST(SystemPort, SerDeserSwitchState) {
+  auto state = std::make_shared<SwitchState>();
+
+  auto sysPort1 = makeSysPort("olympic", 1);
+  auto sysPort2 = makeSysPort("olympic", 2);
+
+  state->addSystemPort(sysPort1);
+  state->addSystemPort(sysPort2);
+
+  auto serialized = state->toFollyDynamic();
+  auto stateBack = SwitchState::fromFollyDynamic(serialized);
+
+  // Check all systemPorts should be there
+  for (auto sysPortID : {SystemPortID(1), SystemPortID(2)}) {
+    EXPECT_TRUE(
+        *state->getSystemPorts()->getSystemPort(sysPortID) ==
+        *stateBack->getSystemPorts()->getSystemPort(sysPortID));
+  }
+}
+
+TEST(SystemPort, AddRemove) {
+  auto state = std::make_shared<SwitchState>();
+
+  auto sysPort1 = makeSysPort("olympic", 1);
+  auto sysPort2 = makeSysPort("olympic", 2);
+
+  state->addSystemPort(sysPort1);
+  state->addSystemPort(sysPort2);
+  state->getSystemPorts()->removeSystemPort(SystemPortID(1));
+  EXPECT_EQ(state->getSystemPorts()->getSystemPortIf(SystemPortID(1)), nullptr);
+  EXPECT_NE(state->getSystemPorts()->getSystemPortIf(SystemPortID(2)), nullptr);
 }

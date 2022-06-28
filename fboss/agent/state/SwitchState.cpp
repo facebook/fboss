@@ -475,6 +475,20 @@ void SwitchState::resetTransceivers(
   writableFields()->transceivers.swap(transceivers);
 }
 
+void SwitchState::addSystemPort(const std::shared_ptr<SystemPort>& systemPort) {
+  auto* fields = writableFields();
+  // For ease-of-use, automatically clone the SystemPortMap if we are still
+  // pointing to a published map.
+  if (fields->systemPorts->isPublished()) {
+    fields->systemPorts = fields->systemPorts->clone();
+  }
+  fields->systemPorts->addSystemPort(systemPort);
+}
+
+void SwitchState::resetSystemPorts(std::shared_ptr<SystemPortMap> systemPorts) {
+  writableFields()->systemPorts.swap(systemPorts);
+}
+
 std::shared_ptr<AclTableMap> SwitchState::getAclTablesForStage(
     cfg::AclStage aclStage) const {
   if (getAclTableGroups() &&

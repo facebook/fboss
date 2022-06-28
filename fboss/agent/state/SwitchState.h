@@ -432,6 +432,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs);
   void addTransceiver(const std::shared_ptr<TransceiverSpec>& transceiver);
   void resetTransceivers(std::shared_ptr<TransceiverMap> transceivers);
+  void addSystemPort(const std::shared_ptr<SystemPort>& systemPort);
   void resetSystemPorts(std::shared_ptr<SystemPortMap> systemPorts);
 
   void publish() override {
