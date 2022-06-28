@@ -55,6 +55,7 @@ add_library(state
   fboss/agent/state/StateUtils.cpp
   fboss/agent/state/SwitchSettings.cpp
   fboss/agent/state/SystemPort.cpp
+  fboss/agent/state/SystemPortMap.cpp
   fboss/agent/state/QcmConfig.cpp
   fboss/agent/state/SwitchState.cpp
   fboss/agent/state/Transceiver.cpp
