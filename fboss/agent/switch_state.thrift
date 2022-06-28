@@ -100,10 +100,10 @@ struct PortFields {
 
 struct SystemPortFields {
   1: i64 portId;
-  2: i64 attached_switch_id;
+  2: i64 switchId;
   3: string portName; // switchId::portName
-  4: i64 attached_core_index;
-  5: i64 attached_core_port_index;
+  4: i64 coreIndex;
+  5: i64 corePortIndex;
   6: i64 speedMbps;
   7: i64 numVoqs;
   9: bool enabled;
