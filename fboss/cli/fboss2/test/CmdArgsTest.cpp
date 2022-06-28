@@ -85,6 +85,17 @@ TEST(CmdArgsTest, PortList) {
 
   // test valid arguments
   ASSERT_NO_THROW(utils::PortList({"eth1/5/1"}));
+  ASSERT_NO_THROW(utils::PortList({"eth1/5/1", "eth1/5/2"}));
+
+  // test port data
+  auto twoPorts = utils::PortList({"eth1/5/1", "eth1/5/2"});
+  EXPECT_THAT(twoPorts.data(), ElementsAre("eth1/5/1", "eth1/5/2"));
+
+  auto duplicatePorts = utils::PortList({"eth1/5/1", "eth1/5/1"});
+  EXPECT_THAT(duplicatePorts.data(), ElementsAre("eth1/5/1"));
+
+  auto multiPorts = utils::PortList({"eth1/5/1", "eth1/5/9", "eth1/5/1"});
+  EXPECT_THAT(multiPorts.data(), ElementsAre("eth1/5/1", "eth1/5/9"));
 
   // test invalid arguments
   ASSERT_THROW(utils::PortList({"eth1"}), std::invalid_argument);

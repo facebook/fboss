@@ -125,9 +125,9 @@ class IPV6List : public BaseObjectArgType<std::string> {
 class PortList : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ PortList() : BaseObjectArgType() {}
-  /* implicit */ PortList(std::vector<std::string> v) : BaseObjectArgType(v) {
+  /* implicit */ PortList(std::vector<std::string> ports) {
     static const RE2 exp("([a-z]+)(\\d+)/(\\d+)/(\\d)");
-    for (auto const& port : v) {
+    for (auto const& port : ports) {
       if (!RE2::FullMatch(port, exp)) {
         throw std::invalid_argument(folly::to<std::string>(
             "Invalid port name: ",
@@ -135,6 +135,9 @@ class PortList : public BaseObjectArgType<std::string> {
             "\nPort name must match 'moduleNum/port/subport' pattern"));
       }
     }
+    // deduplicate ports while ensuring order
+    std::set<std::string> uniquePorts(ports.begin(), ports.end());
+    data_ = std::vector<std::string>(uniquePorts.begin(), uniquePorts.end());
   }
 
   const static ObjectArgTypeId id =
