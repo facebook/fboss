@@ -28,3 +28,19 @@ target_link_libraries(fsdb_pub_sub
   FBThrift::thriftcpp2
   fb303::fb303
 )
+
+add_library(fsdb_syncer
+  fboss/fsdb/client/FsdbComponentSyncer.cpp
+  fboss/fsdb/client/FsdbSyncManager.cpp
+)
+
+target_link_libraries(fsdb_syncer
+  fsdb_common_cpp2
+  fsdb_flags
+  fsdb_oper_cpp2
+  fsdb_stream_client
+  fsdb_pub_sub
+  Folly::folly
+  FBThrift::thriftcpp2
+  fb303::fb303
+)
