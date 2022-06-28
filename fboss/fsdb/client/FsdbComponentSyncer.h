@@ -27,6 +27,10 @@ class FsdbComponentSyncer {
 
   void publishPath(OperState&& data, bool initialSync = false);
 
+  void registerSyncManager(FsdbSyncManager* syncManager) {
+    syncManager_ = syncManager;
+  }
+
   virtual void start() {
     readyForPublishing_.store(true);
   }
@@ -87,6 +91,7 @@ class FsdbComponentSyncer {
 
  private:
   std::vector<std::string> basePath_;
+  FsdbSyncManager* syncManager_;
   std::atomic<bool> readyForPublishing_{false};
 };
 
