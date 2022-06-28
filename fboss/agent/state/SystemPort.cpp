@@ -10,7 +10,8 @@
 #include "fboss/agent/state/SystemPort.h"
 
 namespace facebook::fboss {
-SystemPortFields fromThrift(const state::SystemPortFields& systemPortThrift) {
+SystemPortFields SystemPortFields::fromThrift(
+    const state::SystemPortFields& systemPortThrift) {
   SystemPortFields sysPort(SystemPortID(*systemPortThrift.portId()));
   sysPort.data = systemPortThrift;
   return sysPort;
