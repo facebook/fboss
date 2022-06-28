@@ -25,10 +25,19 @@ void FsdbSyncManager::start() {
           statePublisherStateChanged(oldState, newState);
         });
   }
+  if (FLAGS_publish_stats_to_fsdb) {
+    fsdbPubSubMgr_->createStatPathPublisher(
+        statsPath_, [this](auto oldState, auto newState) {
+          statsPublisherStateChanged(oldState, newState);
+        });
+  }
 }
 
 void FsdbSyncManager::stop() {
   for (const auto& updater : stateSyncers_) {
+    updater->stop();
+  }
+  for (const auto& updater : statSyncers_) {
     updater->stop();
   }
   fsdbPubSubMgr_.reset();
@@ -41,10 +50,24 @@ void FsdbSyncManager::registerStateSyncer(FsdbComponentSyncer* syncer) {
   syncer->registerSyncManager(this);
 }
 
+void FsdbSyncManager::registerStatsSyncer(FsdbComponentSyncer* syncer) {
+  CHECK(!started);
+  statSyncers_.push_back(syncer);
+  syncer->registerSyncManager(this);
+}
+
 void FsdbSyncManager::statePublisherStateChanged(
     FsdbStreamClient::State oldState,
     FsdbStreamClient::State newState) {
   for (const auto& syncer : stateSyncers_) {
+    syncer->publisherStateChanged(oldState, newState);
+  }
+}
+
+void FsdbSyncManager::statsPublisherStateChanged(
+    FsdbStreamClient::State oldState,
+    FsdbStreamClient::State newState) {
+  for (const auto& syncer : statSyncers_) {
     syncer->publisherStateChanged(oldState, newState);
   }
 }

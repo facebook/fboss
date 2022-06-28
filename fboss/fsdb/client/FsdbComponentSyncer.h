@@ -17,8 +17,9 @@ class FsdbSyncManager;
 
 class FsdbComponentSyncer {
  public:
-  explicit FsdbComponentSyncer(std::vector<std::string>&& basePath)
-      : basePath_(std::move(basePath)) {}
+  FsdbComponentSyncer(std::vector<std::string>&& basePath, bool isStats)
+      : basePath_(std::move(basePath)), isStats_(isStats) {}
+
   virtual ~FsdbComponentSyncer() {
     CHECK(!readyForPublishing_.load());
   }
@@ -91,6 +92,7 @@ class FsdbComponentSyncer {
 
  private:
   std::vector<std::string> basePath_;
+  bool isStats_;
   FsdbSyncManager* syncManager_;
   std::atomic<bool> readyForPublishing_{false};
 };
@@ -101,7 +103,8 @@ class FsdbStateComponentSyncer : public FsdbComponentSyncer {
   FsdbStateComponentSyncer(
       folly::EventBase* evb,
       std::vector<std::string>&& basePath)
-      : FsdbComponentSyncer(std::move(basePath)), evb_(evb) {
+      : FsdbComponentSyncer(std::move(basePath), false /* isStats */),
+        evb_(evb) {
     CHECK(evb);
   }
 
@@ -129,5 +132,15 @@ class FsdbStateComponentSyncer : public FsdbComponentSyncer {
 
  private:
   folly::EventBase* evb_;
+};
+
+class FsdbStatsComponentSyncer : public FsdbComponentSyncer {
+ public:
+  explicit FsdbStatsComponentSyncer(std::vector<std::string>&& basePath)
+      : FsdbComponentSyncer(std::move(basePath), true /* isStats */) {}
+
+  void publisherStateChanged(
+      FsdbStreamClient::State oldState,
+      FsdbStreamClient::State newState) override;
 };
 } // namespace facebook::fboss::fsdb

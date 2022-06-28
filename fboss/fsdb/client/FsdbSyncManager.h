@@ -29,6 +29,7 @@ class FsdbSyncManager {
   void stop();
 
   void registerStateSyncer(FsdbComponentSyncer* syncer);
+  void registerStatsSyncer(FsdbComponentSyncer* syncer);
 
   // Convinence publish apis
   void publishState(OperDelta&& pubUnit) {
@@ -37,14 +38,25 @@ class FsdbSyncManager {
   void publishState(OperState&& pubUnit) {
     fsdbPubSubMgr_->publishState(std::move(pubUnit));
   }
+  void publishStat(OperDelta&& pubUnit) {
+    fsdbPubSubMgr_->publishStat(std::move(pubUnit));
+  }
+  void publishStat(OperState&& pubUnit) {
+    fsdbPubSubMgr_->publishStat(std::move(pubUnit));
+  }
 
  private:
   void statePublisherStateChanged(
       FsdbStreamClient::State oldState,
       FsdbStreamClient::State newState);
 
+  void statsPublisherStateChanged(
+      FsdbStreamClient::State oldState,
+      FsdbStreamClient::State newState);
+
   std::unique_ptr<FsdbPubSubManager> fsdbPubSubMgr_;
   std::vector<FsdbComponentSyncer*> stateSyncers_;
+  std::vector<FsdbComponentSyncer*> statSyncers_;
   std::vector<std::string> statePath_;
   std::vector<std::string> statsPath_;
   bool started = false;
