@@ -160,6 +160,14 @@ template void CmdHandler<CmdSetInterfacePrbs, CmdSetInterfacePrbsTraits>::run();
 template void
 CmdHandler<CmdSetInterfacePrbsState, CmdSetInterfacePrbsStateTraits>::run();
 
+template bool CmdHandler<CmdShowPort, CmdShowPortTraits>::isFilterable();
+
+template const std::unordered_map<
+    std::string_view,
+    std::shared_ptr<CmdGlobalOptions::BaseTypeVerifier>>
+CmdHandler<CmdShowPort, CmdShowPortTraits>::getValidFiltersGeneric<
+    cli::PortEntry>();
+
 static bool hasRun = false;
 
 template <typename CmdTypeT, typename CmdTypeTraits>
@@ -235,4 +243,94 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   }
 }
 
+/* Logic: We consider a thrift struct to be filterable only if it is of type
+  list and has a single element in it that is another thrift struct.
+  The idea is that the outer thrift struct (which corresponds to the RetType()
+  in the cmd traits) should contain a list of the actual displayable thrift
+  entry. For instance, the ShowPortModel struct has only one elelent that is a
+  list of PortEntry struct. This makes it filterable.
+  */
+template <typename CmdTypeT, typename CmdTypeTraits>
+bool CmdHandler<CmdTypeT, CmdTypeTraits>::isFilterable() {
+  int numFields = 0;
+  bool filterable = true;
+  apache::thrift::for_each_field(
+      RetType(), [&](const ThriftField& meta, auto&& /*field_ref*/) {
+        const auto& fieldType = *meta.type();
+        const auto& thriftBaseType = fieldType.getType();
+
+        if (thriftBaseType != ThriftType::Type::t_list) {
+          filterable = false;
+        }
+        numFields += 1;
+      });
+
+  if (numFields != 1) {
+    filterable = false;
+  }
+  return filterable;
+}
+
+/* Logic: We first check if this thrift struct is filterable at all. If it is,
+ we constuct a filter map that contains filterable fields. For now, only
+ primitive fields will be added to the filter map and considered filterable.
+ */
+template <typename CmdTypeT, typename CmdTypeTraits>
+template <typename CmdThriftStructType>
+const typename CmdHandler<CmdTypeT, CmdTypeTraits>::ValidFilterMapType
+CmdHandler<CmdTypeT, CmdTypeTraits>::getValidFiltersGeneric() {
+  if (!CmdHandler<CmdTypeT, CmdTypeTraits>::isFilterable()) {
+    return {};
+  }
+  ValidFilterMapType filterMap;
+
+  apache::thrift::for_each_field(
+      CmdThriftStructType(),
+      [&filterMap](const ThriftField& meta, auto&& /*field_ref*/) {
+        const auto& fieldType = *meta.type();
+        const auto& thriftBaseType = fieldType.getType();
+
+        // we are only supporting filtering on primitive typed keys for now.
+        // This will be expanded as we proceed.
+        if (thriftBaseType == ThriftType::Type::t_primitive) {
+          const auto& thriftType = fieldType.get_t_primitive();
+          switch (thriftType) {
+            case ThriftPrimitiveType::THRIFT_STRING_TYPE:
+              // TODO(surabhi236): fill up the acceptedVals vector instead of
+              // passing empty
+              filterMap[*meta.name()] =
+                  std::make_shared<CmdGlobalOptions::TypeVerifier<std::string>>(
+                      *meta.name(), std::vector<std::string>{});
+              break;
+
+            case ThriftPrimitiveType::THRIFT_I16_TYPE:
+              filterMap[*meta.name()] =
+                  std::make_shared<CmdGlobalOptions::TypeVerifier<int16_t>>(
+                      *meta.name());
+              break;
+
+            case ThriftPrimitiveType::THRIFT_I32_TYPE:
+              filterMap[*meta.name()] =
+                  std::make_shared<CmdGlobalOptions::TypeVerifier<int32_t>>(
+                      *meta.name());
+              break;
+
+            case ThriftPrimitiveType::THRIFT_I64_TYPE:
+              filterMap[*meta.name()] =
+                  std::make_shared<CmdGlobalOptions::TypeVerifier<int64_t>>(
+                      *meta.name());
+              break;
+
+            case ThriftPrimitiveType::THRIFT_BYTE_TYPE:
+              filterMap[*meta.name()] =
+                  std::make_shared<CmdGlobalOptions::TypeVerifier<std::byte>>(
+                      *meta.name());
+              break;
+
+            default:;
+          }
+        }
+      });
+  return filterMap;
+}
 } // namespace facebook::fboss
