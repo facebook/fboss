@@ -103,6 +103,7 @@ class CommunityList : public BaseObjectArgType<std::string> {
 
 class IPList : public BaseObjectArgType<std::string> {
  public:
+  /* implicit */ IPList() : BaseObjectArgType() {}
   /* implicit */ IPList(std::vector<std::string> v) : BaseObjectArgType(v) {}
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;

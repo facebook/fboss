@@ -4,6 +4,14 @@ struct ShowRouteModel {
   1: list<RouteEntry> routeEntries;
 }
 
+struct ShowRouteSummaryModel {
+  1: i32 numV4Routes;
+  2: i32 numV6Small;
+  3: i32 numV6Big;
+  4: i32 numV6;
+  5: i32 hwEntriesUsed;
+}
+
 struct MplsActionInfo {
   1: string action;
   2: optional i32 swapLabel;

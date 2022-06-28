@@ -11,6 +11,7 @@
 #pragma once
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
+#include <fboss/cli/fboss2/utils/CmdUtils.h>
 #include <folly/String.h>
 #include <cstdint>
 #include "fboss/agent/if/gen-cpp2/common_types.h"
@@ -20,9 +21,7 @@
 namespace facebook::fboss {
 
 struct CmdShowRouteTraits : public BaseCommandTraits {
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;
-  using ObjectArgType = std::vector<std::string>;
+  using ObjectArgType = utils::IPList;
   using RetType = cli::ShowRouteModel;
 };
 

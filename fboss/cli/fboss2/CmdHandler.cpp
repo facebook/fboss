@@ -44,6 +44,7 @@
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
+#include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
 #include "fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
@@ -153,6 +154,7 @@ template void
 CmdHandler<CmdShowInterfaceStatus, CmdShowInterfaceStatusTraits>::run();
 template void CmdHandler<CmdBounceInterface, CmdBounceInterfaceTraits>::run();
 template void CmdHandler<CmdShowRoute, CmdShowRouteTraits>::run();
+template void CmdHandler<CmdShowRouteSummary, CmdShowRouteSummaryTraits>::run();
 template void CmdHandler<CmdSetPort, CmdSetPortTraits>::run();
 template void CmdHandler<CmdSetPortState, CmdSetPortStateTraits>::run();
 template void CmdHandler<CmdSetInterface, CmdSetInterfaceTraits>::run();
