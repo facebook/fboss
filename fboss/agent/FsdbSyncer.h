@@ -36,6 +36,12 @@ class FsdbSyncer : public StateObserver {
 
   void stop();
 
+  // Paths
+  static std::vector<std::string> getAgentStatePath();
+  static std::vector<std::string> getAgentStatsPath();
+  static std::vector<std::string> getAgentSwitchStatePath();
+  static std::vector<std::string> getAgentSwitchConfigPath();
+
  private:
   void fsdbStatePublisherStateChanged(
       fsdb::FsdbStreamClient::State oldState,
@@ -45,10 +51,6 @@ class FsdbSyncer : public StateObserver {
       fsdb::FsdbStreamClient::State newState);
 
   void publishDeltas(std::vector<fsdb::OperDeltaUnit>&& deltas);
-
-  // Paths
-  std::vector<std::string> getAgentStatePath() const;
-  std::vector<std::string> getAgentStatsPath() const;
 
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;

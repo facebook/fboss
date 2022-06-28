@@ -12,12 +12,19 @@
 
 namespace facebook::fboss {
 
-std::vector<std::string> FsdbSyncer::getAgentStatePath() const {
-  return {};
+std::vector<std::string> FsdbSyncer::getAgentStatePath() {
+  return {"agent"};
 }
 
-std::vector<std::string> FsdbSyncer::getAgentStatsPath() const {
-  return {};
+std::vector<std::string> FsdbSyncer::getAgentSwitchStatePath() {
+  return {"agent", "switchState"};
 }
 
+std::vector<std::string> FsdbSyncer::getAgentSwitchConfigPath() {
+  return {"agent", "config", "sw"};
+}
+
+std::vector<std::string> FsdbSyncer::getAgentStatsPath() {
+  return {"agent"};
+}
 } // namespace facebook::fboss
