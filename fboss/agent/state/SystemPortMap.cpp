@@ -33,6 +33,18 @@ void SystemPortMap::removeSystemPort(SystemPortID id) {
   removeNodeIf(id);
 }
 
+SystemPortMap* SystemPortMap::modify(std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  SwitchState::modify(state);
+  auto newSystemPorts = clone();
+  auto* ptr = newSystemPorts.get();
+  (*state)->resetSystemPorts(std::move(newSystemPorts));
+  return ptr;
+}
 FBOSS_INSTANTIATE_NODE_MAP(SystemPortMap, SystemPortMapTraits);
 
 } // namespace facebook::fboss

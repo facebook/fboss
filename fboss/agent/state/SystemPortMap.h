@@ -43,6 +43,7 @@ class SystemPortMap
   void addSystemPort(const std::shared_ptr<SystemPort>& systemPort);
   void updateSystemPort(const std::shared_ptr<SystemPort>& systemPort);
   void removeSystemPort(SystemPortID id);
+  SystemPortMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()

@@ -78,3 +78,11 @@ TEST(SystemPort, AddRemove) {
   EXPECT_EQ(state->getSystemPorts()->getSystemPortIf(SystemPortID(1)), nullptr);
   EXPECT_NE(state->getSystemPorts()->getSystemPortIf(SystemPortID(2)), nullptr);
 }
+
+TEST(SystemPort, Modify) {
+  auto state = std::make_shared<SwitchState>();
+  auto origSysPorts = state->getSystemPorts();
+  EXPECT_EQ(origSysPorts.get(), origSysPorts->modify(&state));
+  state->publish();
+  EXPECT_NE(origSysPorts.get(), origSysPorts->modify(&state));
+}
