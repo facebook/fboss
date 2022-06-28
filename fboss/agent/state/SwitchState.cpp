@@ -64,6 +64,7 @@ constexpr auto kBufferPoolCfgs = "bufferPoolConfigs";
 constexpr auto kFibs = "fibs";
 constexpr auto kTransceivers = "transceivers";
 constexpr auto kAclTableGroups = "aclTableGroups";
+constexpr auto kSystemPorts = "systemPorts";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
@@ -89,7 +90,8 @@ SwitchStateFields::SwitchStateFields()
       fibs(make_shared<ForwardingInformationBaseMap>()),
       labelFib(make_shared<LabelForwardingInformationBase>()),
       switchSettings(make_shared<SwitchSettings>()),
-      transceivers(make_shared<TransceiverMap>()) {}
+      transceivers(make_shared<TransceiverMap>()),
+      systemPorts(make_shared<SystemPortMap>()) {}
 
 state::SwitchState SwitchStateFields::toThrift() const {
   auto state = state::SwitchState();
@@ -97,6 +99,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
   state.vlanMap() = vlans->toThrift();
   state.aclMap() = acls->toThrift();
   state.transceiverMap() = transceivers->toThrift();
+  state.systemPortMap() = systemPorts->toThrift();
   if (bufferPoolCfgs) {
     state.bufferPoolCfgMap() = bufferPoolCfgs->toThrift();
   }
@@ -158,6 +161,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
   if (auto pfcWatchdogRecoveryAction = state.pfcWatchdogRecoveryAction()) {
     fields.pfcWatchdogRecoveryAction = *pfcWatchdogRecoveryAction;
   }
+  fields.systemPorts = SystemPortMap::fromThrift(*state.systemPortMap());
   return fields;
 }
 
@@ -170,8 +174,8 @@ bool SwitchStateFields::operator==(const SwitchStateFields& other) const {
     bufferPoolCfgsSame = false;
   }
   return bufferPoolCfgsSame &&
-      std::tie(*ports, *vlans, *acls) ==
-      std::tie(*other.ports, *other.vlans, *other.acls);
+      std::tie(*ports, *vlans, *acls, *systemPorts) ==
+      std::tie(*other.ports, *other.vlans, *other.acls, *other.systemPorts);
 }
 
 folly::dynamic SwitchStateFields::toFollyDynamic() const {
@@ -204,6 +208,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   if (aclTableGroups) {
     switchState[kAclTableGroups] = aclTableGroups->toFollyDynamic();
   }
+  switchState[kSystemPorts] = systemPorts->toFollyDynamic();
   return switchState;
 }
 
@@ -278,6 +283,10 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
   if (swJson.find(kAclTableGroups) != swJson.items().end()) {
     switchState.aclTableGroups =
         AclTableGroupMap::fromFollyDynamic(swJson[kAclTableGroups]);
+  }
+  if (const auto& values = swJson.find(kSystemPorts);
+      values != swJson.items().end()) {
+    switchState.systemPorts = SystemPortMap::fromFollyDynamic(values->second);
   }
 
   // TODO verify that created state here is internally consistent t4155406

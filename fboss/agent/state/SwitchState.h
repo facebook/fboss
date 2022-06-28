@@ -35,6 +35,7 @@
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/SwitchSettings.h"
+#include "fboss/agent/state/SystemPortMap.h"
 #include "fboss/agent/state/TransceiverMap.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/types.h"
@@ -72,6 +73,7 @@ struct SwitchStateFields : public ThriftyFields {
     fn(labelFib.get());
     fn(switchSettings.get());
     fn(transceivers.get());
+    fn(systemPorts.get());
   }
 
   state::SwitchState toThrift() const;
@@ -107,6 +109,7 @@ struct SwitchStateFields : public ThriftyFields {
   std::shared_ptr<QcmCfg> qcmCfg;
   std::shared_ptr<BufferPoolCfgMap> bufferPoolCfgs;
   std::shared_ptr<TransceiverMap> transceivers;
+  std::shared_ptr<SystemPortMap> systemPorts;
 
   VlanID defaultVlan{0};
 
@@ -391,6 +394,9 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   const std::shared_ptr<TransceiverMap>& getTransceivers() const {
     return getFields()->transceivers;
   }
+  const std::shared_ptr<SystemPortMap>& getSystemPorts() const {
+    return getFields()->systemPorts;
+  }
 
   /*
    * The following functions modify the static state.
@@ -426,6 +432,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs);
   void addTransceiver(const std::shared_ptr<TransceiverSpec>& transceiver);
   void resetTransceivers(std::shared_ptr<TransceiverMap> transceivers);
+  void resetSystemPorts(std::shared_ptr<SystemPortMap> systemPorts);
 
   void publish() override {
     using BaseT = NodeBaseT<SwitchState, SwitchStateFields>;
