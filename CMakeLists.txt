@@ -790,6 +790,7 @@ if (NOT SAI_ONLY)
       fboss/agent/state/StateDelta.cpp
       fboss/agent/state/StateUtils.cpp
       fboss/agent/state/SwitchState.cpp
+      fboss/agent/state/SystemPort.cpp
       fboss/agent/state/Transceiver.cpp
       fboss/agent/state/TransceiverMap.cpp
       fboss/agent/state/Vlan.cpp
