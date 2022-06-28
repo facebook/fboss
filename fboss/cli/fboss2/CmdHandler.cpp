@@ -296,11 +296,10 @@ CmdHandler<CmdTypeT, CmdTypeTraits>::getValidFiltersGeneric() {
           const auto& thriftType = fieldType.get_t_primitive();
           switch (thriftType) {
             case ThriftPrimitiveType::THRIFT_STRING_TYPE:
-              // TODO(surabhi236): fill up the acceptedVals vector instead of
-              // passing empty
               filterMap[*meta.name()] =
                   std::make_shared<CmdGlobalOptions::TypeVerifier<std::string>>(
-                      *meta.name(), std::vector<std::string>{});
+                      *meta.name(),
+                      CmdTypeT().acceptedFilterValuesMap[*meta.name()]);
               break;
 
             case ThriftPrimitiveType::THRIFT_I16_TYPE:

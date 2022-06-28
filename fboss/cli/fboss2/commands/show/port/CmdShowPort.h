@@ -36,6 +36,10 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
  public:
   using ObjectArgType = CmdShowPortTraits::ObjectArgType;
   using RetType = CmdShowPortTraits::RetType;
+  std::unordered_map<std::string, std::vector<std::string>>
+      acceptedFilterValuesMap = {
+          {"linkState", {"Up", "Down"}},
+          {"adminState", {"Enabled", "Disabled"}}};
 
   RetType queryClient(
       const HostInfo& hostInfo,
@@ -63,16 +67,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
   }
 
   const ValidFilterMapType getValidFilters() {
-    // TODO(surabhi236): replace with thrift generated map.
-
-    return {
-        {"linkState",
-         std::make_shared<CmdGlobalOptions::TypeVerifier<std::string>>(
-             "linkState", std::vector<std::string>{"Up", "Down"})},
-        {"adminState",
-         std::make_shared<CmdGlobalOptions::TypeVerifier<std::string>>(
-             "adminState", std::vector<std::string>{"Enabled", "Disabled"})},
-        {"id", std::make_shared<CmdGlobalOptions::TypeVerifier<int>>("id")}};
+    return CmdHandler::getValidFiltersGeneric<cli::PortEntry>();
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
