@@ -424,18 +424,26 @@ void verifyCoppInvariantHelper(
     PortID srcPort) {
   auto vlanId = utility::firstVlanID(swState);
   auto intf = swState->getInterfaces()->getInterfaceInVlan(vlanId);
-  auto destIp = intf->getAddresses().begin()->first;
+  for (auto& destIp : intf->getAddresses()) {
+    if (destIp.first.isLinkLocal()) {
+      // three elements in the address vector: ipv4, ipv6 and a link local one
+      // if the address qualifies as link local, it will loop back to the queue
+      // again, adding an extra packet to the queue and failing the verification
+      // thus, we skip the last one and only send BGP packets to v4 and v6 addr
+      continue;
+    }
+    sendAndVerifyPkts(
+        hwSwitch,
+        swState,
+        destIp.first,
+        utility::kBgpPort,
+        utility::getCoppHighPriQueueId(hwAsic),
+        srcPort);
+  }
   sendAndVerifyPkts(
       hwSwitch,
       swState,
-      destIp,
-      utility::kBgpPort,
-      utility::getCoppHighPriQueueId(hwAsic),
-      srcPort);
-  sendAndVerifyPkts(
-      hwSwitch,
-      swState,
-      destIp,
+      intf->getAddresses().begin()->first,
       utility::kNonSpecialPort2,
       utility::kCoppMidPriQueueId,
       srcPort);
