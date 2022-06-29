@@ -155,6 +155,11 @@ DeltaValue<QosPolicy> StateDelta::getDefaultDataPlaneQosPolicyDelta() const {
       new_->getDefaultDataPlaneQosPolicy());
 }
 
+NodeMapDelta<SystemPortMap> StateDelta::getSystemPortsDelta() const {
+  return NodeMapDelta<SystemPortMap>(
+      old_->getSystemPorts().get(), new_->getSystemPorts().get());
+}
+
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
   // Leverage the folly::dynamic printing facilities
   folly::dynamic diff = folly::dynamic::object;
@@ -206,5 +211,6 @@ template class NodeMapDelta<
 template class NodeMapDelta<ForwardingInformationBaseV4>;
 template class NodeMapDelta<ForwardingInformationBaseV6>;
 template class NodeMapDelta<LabelForwardingInformationBase>;
+template class NodeMapDelta<SystemPortMap>;
 
 } // namespace facebook::fboss
