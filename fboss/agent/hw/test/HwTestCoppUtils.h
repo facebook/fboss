@@ -164,6 +164,7 @@ void sendPktAndVerifyCpuQueue(
 void sendAndVerifyPkts(
     HwSwitch* hwSwitch,
     std::shared_ptr<SwitchState> swState,
+    const folly::IPAddress& destIp,
     uint16_t destPort,
     uint8_t queueId,
     PortID srcPort);

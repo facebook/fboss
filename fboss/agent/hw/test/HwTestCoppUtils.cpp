@@ -395,6 +395,7 @@ uint64_t getCpuQueueWatermarkBytes(HwPortStats& hwPortStats, int queueId) {
 void sendAndVerifyPkts(
     HwSwitch* hwSwitch,
     std::shared_ptr<SwitchState> swState,
+    const folly::IPAddress& destIp,
     uint16_t destPort,
     uint8_t queueId,
     PortID srcPort) {
@@ -402,14 +403,12 @@ void sendAndVerifyPkts(
     auto vlanId = utility::firstVlanID(swState);
     auto intf = swState->getInterfaces()->getInterfaceInVlan(vlanId);
     auto intfMac = intf->getMac();
-    utility::getInterfaceMac(swState, vlanId);
-    auto dstIp = intf->getAddresses().begin()->first;
     utility::sendTcpPkts(
         hwSwitch,
         1 /*numPktsToSend*/,
         vlanId,
         intfMac,
-        dstIp,
+        destIp,
         utility::kNonSpecialPort1,
         destPort,
         srcPort);
@@ -423,15 +422,20 @@ void verifyCoppInvariantHelper(
     const HwAsic* hwAsic,
     std::shared_ptr<SwitchState> swState,
     PortID srcPort) {
+  auto vlanId = utility::firstVlanID(swState);
+  auto intf = swState->getInterfaces()->getInterfaceInVlan(vlanId);
+  auto destIp = intf->getAddresses().begin()->first;
   sendAndVerifyPkts(
       hwSwitch,
       swState,
+      destIp,
       utility::kBgpPort,
       utility::getCoppHighPriQueueId(hwAsic),
       srcPort);
   sendAndVerifyPkts(
       hwSwitch,
       swState,
+      destIp,
       utility::kNonSpecialPort2,
       utility::kCoppMidPriQueueId,
       srcPort);
