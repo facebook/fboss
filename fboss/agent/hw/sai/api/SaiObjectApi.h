@@ -51,7 +51,8 @@ uint32_t getObjectCount(sai_object_id_t switch_id) {
   uint32_t count = 0;
   sai_status_t status =
       sai_get_object_count(switch_id, SaiObjectTraits::ObjectType, &count);
-  saiCheckError(status, "Failed to get object count");
+  saiCheckError(
+      status, SaiObjectTraits::SaiApiT::ApiType, "Failed to get object count");
   return count;
 }
 

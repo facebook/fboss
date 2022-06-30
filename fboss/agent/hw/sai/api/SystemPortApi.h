@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 
+#include <folly/hash/Hash.h>
 #include <folly/logging/xlog.h>
 
 #include <optional>
@@ -24,6 +25,9 @@ extern "C" {
 #include <sai.h>
 }
 
+bool operator==(
+    const sai_system_port_config_t& lhs,
+    const sai_system_port_config_t& rhs);
 namespace facebook::fboss {
 
 class SystemPortApi;
@@ -102,5 +106,23 @@ class SystemPortApi : public SaiApi<SystemPortApi> {
   sai_port_api_t* api_;
   friend class SaiApi<SystemPortApi>;
 };
-
 } // namespace facebook::fboss
+
+namespace std {
+template <>
+struct hash<facebook::fboss::SaiSystemPortTraits::Attributes::ConfigInfo> {
+  size_t operator()(
+      const facebook::fboss::SaiSystemPortTraits::Attributes::ConfigInfo& key)
+      const {
+    const auto& val = key.value();
+    return folly::hash::hash_combine(
+        val.port_id,
+        val.attached_switch_id,
+        val.attached_core_index,
+        val.attached_core_port_index,
+        val.speed,
+        val.num_voq);
+  }
+};
+
+} // namespace std

@@ -181,6 +181,10 @@ sai_status_t sai_get_object_count(
       *count = fs->macsecFlowManager.map().size();
       break;
     }
+    case SAI_OBJECT_TYPE_SYSTEM_PORT: {
+      *count = fs->systemPortManager.map().size();
+      break;
+    }
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -504,6 +508,12 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_MACSEC_FLOW: {
       for (const auto& ob : fs->macsecFlowManager.map()) {
         object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_SYSTEM_PORT: {
+      for (const auto& s : fs->systemPortManager.map()) {
+        object_list[i++].key.object_id = s.second.id;
       }
       break;
     }

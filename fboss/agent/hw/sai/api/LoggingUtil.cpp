@@ -110,6 +110,8 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
       return "debug_counter";
     case SAI_API_MACSEC:
       return "macsec";
+    case SAI_API_SYSTEM_PORT:
+      return "system_port";
     default:
       throw FbossError("api type invalid: ", apiType);
   }
@@ -215,6 +217,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "macsec-sc";
     case SAI_OBJECT_TYPE_MACSEC_FLOW:
       return "macsec-flow";
+    case SAI_OBJECT_TYPE_SYSTEM_PORT:
+      return "system-port";
     default:
       throw FbossError("object type invalid: ", objectType);
   }

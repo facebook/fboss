@@ -556,6 +556,7 @@ class SaiStore {
       SaiObjectStore<SaiCounterTraits>,
 #endif
       SaiObjectStore<SaiDebugCounterTraits>,
+      SaiObjectStore<SaiSystemPortTraits>,
       SaiObjectStore<SaiPortTraits>,
       SaiObjectStore<SaiVlanTraits>,
       SaiObjectStore<SaiVlanMemberTraits>,

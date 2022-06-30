@@ -163,6 +163,10 @@ const SwitchApi& SaiApiTable::switchApi() const {
   return getApi<SwitchApi>();
 }
 
+const SystemPortApi& SaiApiTable::systemPortApi() const {
+  return getApi<SystemPortApi>();
+}
+
 const VirtualRouterApi& SaiApiTable::virtualRouterApi() const {
   return getApi<VirtualRouterApi>();
 }
