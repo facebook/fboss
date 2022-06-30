@@ -50,9 +50,6 @@ class SaiSystemPortManager {
     addSystemPort(newSystemPort);
   }
 
-  SaiSystemPortTraits::CreateAttributes attributesFromSwSystemPort(
-      const std::shared_ptr<SystemPort>& swSystemPort) const;
-
   const SaiSystemPortHandle* getSystemPortHandle(SystemPortID swId) const;
   SaiSystemPortHandle* getSystemPortHandle(SystemPortID swId);
   Handles::const_iterator begin() const {
@@ -63,6 +60,9 @@ class SaiSystemPortManager {
   }
 
  private:
+  SaiSystemPortTraits::CreateAttributes attributesFromSwSystemPort(
+      const std::shared_ptr<SystemPort>& swSystemPort) const;
+
   SaiSystemPortHandle* getSystemPortHandleImpl(SystemPortID swId) const;
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

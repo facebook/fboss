@@ -28,6 +28,23 @@ SaiSystemPortManager::SaiSystemPortManager(
     SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
+SaiSystemPortTraits::CreateAttributes
+SaiSystemPortManager::attributesFromSwSystemPort(
+    const std::shared_ptr<SystemPort>& swSystemPort) const {
+  sai_system_port_config_t config{
+      .port_id = static_cast<uint32_t>(swSystemPort->getID()),
+      .attached_switch_id = static_cast<uint32_t>(swSystemPort->getSwitchId()),
+      .attached_core_index =
+          static_cast<uint32_t>(swSystemPort->getCoreIndex()),
+      .attached_core_port_index =
+          static_cast<uint32_t>(swSystemPort->getCorePortIndex()),
+      .speed = static_cast<uint32_t>(swSystemPort->getSpeedMbps()),
+      .num_voq = static_cast<uint32_t>(swSystemPort->getNumVoqs()),
+  };
+  // TODO - honor the qos config
+  return SaiSystemPortTraits::CreateAttributes{
+      config, swSystemPort->getEnabled(), std::nullopt};
+}
 SystemPortSaiId SaiSystemPortManager::addSystemPort(
     const std::shared_ptr<SystemPort>& /*swSystemPort*/) {
   // TODO
