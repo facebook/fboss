@@ -36,6 +36,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSamplePacketManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSchedulerManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
 #include "fboss/agent/hw/sai/switch/SaiUnsupportedFeatureManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
@@ -78,6 +79,8 @@ void SaiManagerTable::createSaiTableManagers(
   mirrorManager_ = std::make_unique<SaiMirrorManager>(saiStore, this, platform);
   portManager_ = std::make_unique<SaiPortManager>(
       saiStore, this, platform, concurrentIndices);
+  systemPortManager_ =
+      std::make_unique<SaiSystemPortManager>(saiStore, this, platform);
   qosMapManager_ = std::make_unique<SaiQosMapManager>(saiStore, this, platform);
   macsecManager_ = std::make_unique<SaiMacsecManager>(saiStore, this);
   virtualRouterManager_ =
@@ -147,6 +150,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // dependency with mirror and can be removed.
   mirrorManager_.reset();
   macsecManager_.reset();
+  systemPortManager_.reset();
   portManager_.reset();
   // Hash manager is going away, reset hashes
   switchManager_->resetHashes();

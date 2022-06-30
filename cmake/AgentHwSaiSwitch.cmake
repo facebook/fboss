@@ -33,6 +33,7 @@ set(SAI_SWITCH_SRC
   fboss/agent/hw/sai/switch/SaiSchedulerManager.cpp
   fboss/agent/hw/sai/switch/SaiSwitch.cpp
   fboss/agent/hw/sai/switch/SaiSwitchManager.cpp
+  fboss/agent/hw/sai/switch/SaiSystemPortManager.cpp
   fboss/agent/hw/sai/switch/SaiVlanManager.cpp
   fboss/agent/hw/sai/switch/SaiVirtualRouterManager.cpp
   fboss/agent/hw/sai/switch/SaiWredManager.cpp
