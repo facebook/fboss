@@ -28,7 +28,7 @@ class SaiStore;
 using SaiSystemPort = SaiObject<SaiSystemPortTraits>;
 
 struct SaiSystemPortHandle {
-  std::shared_ptr<SaiSystemPort> port;
+  std::shared_ptr<SaiSystemPort> systemPort;
 };
 
 class SaiSystemPortManager {
@@ -50,8 +50,12 @@ class SaiSystemPortManager {
     addSystemPort(newSystemPort);
   }
 
-  const SaiSystemPortHandle* getSystemPortHandle(SystemPortID swId) const;
-  SaiSystemPortHandle* getSystemPortHandle(SystemPortID swId);
+  const SaiSystemPortHandle* getSystemPortHandle(SystemPortID swId) const {
+    return getSystemPortHandleImpl(swId);
+  }
+  SaiSystemPortHandle* getSystemPortHandle(SystemPortID swId) {
+    return getSystemPortHandleImpl(swId);
+  }
   Handles::const_iterator begin() const {
     return handles_.begin();
   }

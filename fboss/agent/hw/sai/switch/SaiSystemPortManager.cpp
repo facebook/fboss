@@ -45,11 +45,30 @@ SaiSystemPortManager::attributesFromSwSystemPort(
   return SaiSystemPortTraits::CreateAttributes{
       config, swSystemPort->getEnabled(), std::nullopt};
 }
+
 SystemPortSaiId SaiSystemPortManager::addSystemPort(
-    const std::shared_ptr<SystemPort>& /*swSystemPort*/) {
-  // TODO
-  SystemPortSaiId portSaiId;
-  return portSaiId;
+    const std::shared_ptr<SystemPort>& swSystemPort) {
+  auto systemPortHandle = getSystemPortHandle(swSystemPort->getID());
+  if (systemPortHandle) {
+    throw FbossError(
+        "Attempted to add systemPort which already exists: ",
+        swSystemPort->getID(),
+        " SAI id: ",
+        systemPortHandle->systemPort->adapterKey());
+  }
+  SaiSystemPortTraits::CreateAttributes attributes =
+      attributesFromSwSystemPort(swSystemPort);
+
+  auto handle = std::make_unique<SaiSystemPortHandle>();
+
+  auto& systemPortStore = saiStore_->get<SaiSystemPortTraits>();
+  SaiSystemPortTraits::AdapterHostKey systemPortKey{
+      GET_ATTR(SystemPort, ConfigInfo, attributes)};
+  auto saiSystemPort = systemPortStore.setObject(
+      systemPortKey, attributes, swSystemPort->getID());
+  handle->systemPort = saiSystemPort;
+  handles_.emplace(swSystemPort->getID(), std::move(handle));
+  return saiSystemPort->adapterKey();
 }
 
 void SaiSystemPortManager::removeSystemPort(
