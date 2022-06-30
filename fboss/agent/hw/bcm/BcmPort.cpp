@@ -2275,7 +2275,10 @@ bool BcmPort::pfcWatchdogNeedsReprogramming(const std::shared_ptr<Port>& port) {
     newPfcDeadlockDetectionTimer =
         utility::getAdjustedPfcDeadlockDetectionTimerValue(
             *pfcWatchdog.detectionTimeMsecs());
-    newPfcDeadlockRecoveryTimer = *pfcWatchdog.recoveryTimeMsecs();
+    auto asicType = hw_->getPlatform()->getAsic()->getAsicType();
+    newPfcDeadlockRecoveryTimer =
+        utility::getAdjustedPfcDeadlockRecoveryTimerValue(
+            asicType, *pfcWatchdog.recoveryTimeMsecs());
     pfcWatchdogEnabledInSw = 1;
   }
 
@@ -2331,19 +2334,22 @@ void BcmPort::setPfcCosqDeadlockControl(
     const bcm_cosq_pfc_deadlock_control_t control,
     const int value,
     const std::string& controlStr) {
+  XLOG(DBG2) << "Set PFC deadlock control " << controlStr << " with " << value
+             << " for port " << port_ << " cosq " << pri;
   auto rv =
       bcm_cosq_pfc_deadlock_control_set(unit_, port_, pri, control, value);
   bcmCheckError(
       rv, "Failed to set ", controlStr, " for port  ", port_, " cosq ", pri);
-  XLOG(DBG2) << "Set PFC deadlock control " << controlStr << " with " << value
-             << " for port " << port_ << " cosq " << pri;
 }
 
 void BcmPort::programPfcWatchdog(const std::shared_ptr<Port>& swPort) {
   // Initialize to default params which has PFC watchdog disabled
-  int pfcDeadlockRecoveryTimer{0};
+  auto asicType = hw_->getPlatform()->getAsic()->getAsicType();
+  int pfcDeadlockRecoveryTimer =
+      utility::getDefaultPfcDeadlockRecoveryTimer(asicType);
   int pfcDeadlockRecoveryAction{bcmSwitchPFCDeadlockActionTransmit};
-  int pfcDeadlockDetectionTimer{0};
+  int pfcDeadlockDetectionTimer =
+      utility::getDefaultPfcDeadlockDetectionTimer(asicType);
   int pfcDeadlockTimerGranularity{bcmCosqPFCDeadlockTimerInterval1MiliSecond};
   int pfcDeadlockDetectionAndRecoveryEnable{0};
 
@@ -2403,7 +2409,9 @@ void BcmPort::programPfcWatchdog(const std::shared_ptr<Port>& swPort) {
     pfcDeadlockTimerGranularity =
         utility::getPfcDeadlockDetectionTimerGranularity(
             pfcDeadlockDetectionTimer);
-    pfcDeadlockRecoveryTimer = *pfcWd.recoveryTimeMsecs();
+    pfcDeadlockRecoveryTimer =
+        utility::getAdjustedPfcDeadlockRecoveryTimerValue(
+            asicType, *pfcWd.recoveryTimeMsecs());
 
     switch (*pfcWd.recoveryAction()) {
       case cfg::PfcWatchdogRecoveryAction::DROP:

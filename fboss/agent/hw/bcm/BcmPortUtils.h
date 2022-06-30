@@ -56,4 +56,13 @@ std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>> getCorePinMapping(
 int getPfcDeadlockDetectionTimerGranularity(int timerMsec);
 
 int getAdjustedPfcDeadlockDetectionTimerValue(int timerMsec);
+
+int getAdjustedPfcDeadlockRecoveryTimerValue(
+    HwAsic::AsicType type,
+    int timerMsec);
+
+int getDefaultPfcDeadlockDetectionTimer(HwAsic::AsicType type);
+
+int getDefaultPfcDeadlockRecoveryTimer(HwAsic::AsicType type);
+
 } // namespace facebook::fboss::utility

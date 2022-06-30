@@ -19,8 +19,6 @@
 using namespace facebook::fboss;
 
 namespace {
-constexpr int kDefaultPfcDeadlockRecoveryTimer = 0;
-constexpr int kDefaultPfcDeadlockDetectionTimer = 0;
 constexpr int kDefaultPfcDeadlockDetectionAndRecoveryEnable = 0;
 constexpr int kDefaultPfcDeadlockTimerGranularity =
     bcmCosqPFCDeadlockTimerInterval1MiliSecond;
@@ -153,6 +151,7 @@ class BcmPfcTests : public BcmTest {
       std::map<bcm_cosq_pfc_deadlock_control_t, int>& watchdogPrams,
       bool watchdogEnabled,
       const cfg::PfcWatchdog& watchdogConfig) {
+    auto asicType = getAsic()->getAsicType();
     if (watchdogEnabled) {
       int configuredDetectionTime = *watchdogConfig.detectionTimeMsecs();
       watchdogPrams[bcmCosqPFCDeadlockTimerGranularity] =
@@ -162,15 +161,16 @@ class BcmPfcTests : public BcmTest {
           utility::getAdjustedPfcDeadlockDetectionTimerValue(
               configuredDetectionTime);
       watchdogPrams[bcmCosqPFCDeadlockRecoveryTimer] =
-          *watchdogConfig.recoveryTimeMsecs();
+          utility::getAdjustedPfcDeadlockRecoveryTimerValue(
+              asicType, *watchdogConfig.recoveryTimeMsecs());
       watchdogPrams[bcmCosqPFCDeadlockDetectionAndRecoveryEnable] = 1;
     } else {
       watchdogPrams[bcmCosqPFCDeadlockTimerGranularity] =
           kDefaultPfcDeadlockTimerGranularity;
       watchdogPrams[bcmCosqPFCDeadlockDetectionTimer] =
-          kDefaultPfcDeadlockDetectionTimer;
+          utility::getDefaultPfcDeadlockDetectionTimer(asicType);
       watchdogPrams[bcmCosqPFCDeadlockRecoveryTimer] =
-          kDefaultPfcDeadlockRecoveryTimer;
+          utility::getDefaultPfcDeadlockRecoveryTimer(asicType);
       watchdogPrams[bcmCosqPFCDeadlockDetectionAndRecoveryEnable] =
           kDefaultPfcDeadlockDetectionAndRecoveryEnable;
     }

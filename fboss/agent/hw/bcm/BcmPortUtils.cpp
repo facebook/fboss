@@ -19,7 +19,12 @@
 
 namespace {
 constexpr int kPfcDeadlockDetectionTimerLimit = 15;
-}
+constexpr int kPfcDeadlockRecoveryTimerLimit = 15;
+constexpr int kDefaultTh3PfcDeadlockRecoveryTimer = 0;
+constexpr int kDefaultTh3PfcDeadlockDetectionTimer = 0;
+constexpr int kDefaultTh4PfcDeadlockRecoveryTimer = 100;
+constexpr int kDefaultTh4PfcDeadlockDetectionTimer = 1;
+} // namespace
 
 namespace facebook::fboss {
 
@@ -314,6 +319,49 @@ int getAdjustedPfcDeadlockDetectionTimerValue(int deadlockDetectionTimeMsec) {
     adjustedDeadlockDetectionTimer = 100 * kPfcDeadlockDetectionTimerLimit;
   }
   return adjustedDeadlockDetectionTimer;
+}
+
+int getAdjustedPfcDeadlockRecoveryTimerValue(
+    HwAsic::AsicType type,
+    int timerMsec) {
+  if (type == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    // should be in multiples of 100ms, min 100ms, max 1500ms
+    int adjustedDeadlockRecoveryTimer{0};
+    if (timerMsec / 100 == 0) {
+      adjustedDeadlockRecoveryTimer = 100;
+    } else if (timerMsec / 100 <= kPfcDeadlockRecoveryTimerLimit) {
+      adjustedDeadlockRecoveryTimer = 100 * (timerMsec / 100);
+    } else {
+      adjustedDeadlockRecoveryTimer = 100 * kPfcDeadlockRecoveryTimerLimit;
+    }
+    return adjustedDeadlockRecoveryTimer;
+  }
+  // No adjustment neeeded for TH3
+  return timerMsec;
+}
+
+int getDefaultPfcDeadlockDetectionTimer(HwAsic::AsicType type) {
+  if (type == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    return kDefaultTh4PfcDeadlockDetectionTimer;
+  } else if (type == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    return kDefaultTh3PfcDeadlockDetectionTimer;
+  } else if (type == HwAsic::AsicType::ASIC_TYPE_FAKE) {
+    return 0;
+  }
+  throw FbossError(
+      "Platform type ", type, " does not support pfc watchdog detection");
+}
+
+int getDefaultPfcDeadlockRecoveryTimer(HwAsic::AsicType type) {
+  if (type == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    return kDefaultTh4PfcDeadlockRecoveryTimer;
+  } else if (type == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    return kDefaultTh3PfcDeadlockRecoveryTimer;
+  } else if (type == HwAsic::AsicType::ASIC_TYPE_FAKE) {
+    return 0;
+  }
+  throw FbossError(
+      "Platform type ", type, " does not support pfc watchdog recovery");
 }
 
 } // namespace facebook::fboss::utility
