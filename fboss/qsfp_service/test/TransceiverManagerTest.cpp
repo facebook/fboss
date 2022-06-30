@@ -85,4 +85,28 @@ TEST_F(TransceiverManagerTest, warmBootTest) {
   EXPECT_TRUE(transceiverManager_->canWarmBoot());
 }
 
+ACTION(ThrowFbossError) {
+  throw FbossError("Mock FbossError");
+}
+TEST_F(TransceiverManagerTest, getInterfacePhyInfo) {
+  std::map<std::string, phy::PhyInfo> phyInfos;
+  // Test a valid interface
+  transceiverManager_->getInterfacePhyInfo(phyInfos, "eth1/1/1");
+  EXPECT_TRUE(phyInfos.find("eth1/1/1") != phyInfos.end());
+  // Simulate an exception from xphyInfo and confirm that the map doesn't
+  // include that interface's key
+  EXPECT_CALL(*transceiverManager_, getXphyInfo(PortID(5)))
+      .Times(1)
+      .WillRepeatedly(ThrowFbossError());
+  transceiverManager_->getInterfacePhyInfo(phyInfos, "eth1/2/1");
+  EXPECT_EQ(phyInfos.size(), 1);
+  // We still expect the previous interface to exist in the map
+  EXPECT_TRUE(phyInfos.find("eth1/1/1") != phyInfos.end());
+
+  // Test an invalid interface
+  EXPECT_THROW(
+      transceiverManager_->getInterfacePhyInfo(phyInfos, "no_such_interface"),
+      FbossError);
+}
+
 } // namespace facebook::fboss

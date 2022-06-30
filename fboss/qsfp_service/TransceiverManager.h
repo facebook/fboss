@@ -283,6 +283,10 @@ class TransceiverManager {
 
   void publishLinkSnapshots(std::string portName);
 
+  void getInterfacePhyInfo(
+      std::map<std::string, phy::PhyInfo>& phyInfos,
+      const std::string& portName);
+
   time_t getLastDownTime(TransceiverID id) const;
 
   static std::string forceColdBootFileName();

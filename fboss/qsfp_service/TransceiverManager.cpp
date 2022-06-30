@@ -1191,6 +1191,22 @@ time_t TransceiverManager::getLastDownTime(TransceiverID id) const {
   return tcvrIt->second->getLastDownTime();
 }
 
+void TransceiverManager::getInterfacePhyInfo(
+    std::map<std::string, phy::PhyInfo>& phyInfos,
+    const std::string& portName) {
+  auto portIDOpt = getPortIDByPortName(portName);
+  if (!portIDOpt) {
+    throw FbossError(
+        "Unrecoginized portName:", portName, ", can't find port id");
+  }
+  try {
+    phyInfos[portName] = getXphyInfo(*portIDOpt);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "Fetching PhyInfo for " << portName << " failed with "
+              << ex.what();
+  }
+}
+
 void TransceiverManager::publishLinkSnapshots(std::string portName) {
   auto portIDOpt = getPortIDByPortName(portName);
   if (!portIDOpt) {

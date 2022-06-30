@@ -38,6 +38,7 @@ class MockWedgeManager : public WedgeManager {
     return std::make_unique<MockTransceiverI2CApi>();
   }
 
+  MOCK_METHOD1(getXphyInfo, phy::PhyInfo(PortID));
   MOCK_METHOD0(clearAllTransceiverReset, void());
   MOCK_METHOD1(triggerQsfpHardReset, void(int));
   MOCK_METHOD1(verifyEepromChecksums, bool(TransceiverID));
