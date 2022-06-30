@@ -296,6 +296,13 @@ const SaiPortManager& SaiManagerTable::portManager() const {
   return *portManager_;
 }
 
+SaiSystemPortManager& SaiManagerTable::systemPortManager() {
+  return *systemPortManager_;
+}
+const SaiSystemPortManager& SaiManagerTable::systemPortManager() const {
+  return *systemPortManager_;
+}
+
 SaiQueueManager& SaiManagerTable::queueManager() {
   return *queueManager_;
 }

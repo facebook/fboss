@@ -48,6 +48,7 @@
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTxPacket.h"
 #include "fboss/agent/hw/sai/switch/SaiUnsupportedFeatureManager.h"
@@ -499,6 +500,13 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
   // update switch settings first
   processSwitchSettingsChanged(delta, lockPolicy);
 
+  // Remove system ports (which may depend on local ports
+  // before removing ports)
+  processRemovedDelta(
+      delta.getSystemPortsDelta(),
+      managerTable_->systemPortManager(),
+      lockPolicy,
+      &SaiSystemPortManager::removeSystemPort);
   processRemovedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
@@ -509,11 +517,21 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       managerTable_->portManager(),
       lockPolicy,
       &SaiPortManager::changePort);
+  processChangedDelta(
+      delta.getSystemPortsDelta(),
+      managerTable_->systemPortManager(),
+      lockPolicy,
+      &SaiSystemPortManager::changeSystemPort);
   processAddedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
       lockPolicy,
       &SaiPortManager::addPort);
+  processAddedDelta(
+      delta.getSystemPortsDelta(),
+      managerTable_->systemPortManager(),
+      lockPolicy,
+      &SaiSystemPortManager::addSystemPort);
   processDelta(
       delta.getVlansDelta(),
       managerTable_->vlanManager(),
