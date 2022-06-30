@@ -391,6 +391,18 @@ int __real_bcm_cosq_control_set(
     bcm_cosq_control_t type,
     int arg);
 
+int __real_bcm_cosq_port_profile_get(
+    int unit,
+    bcm_gport_t port,
+    bcm_cosq_profile_type_t profile_type,
+    int* profile_id);
+
+int __real_bcm_cosq_port_profile_set(
+    int unit,
+    bcm_gport_t port,
+    bcm_cosq_profile_type_t profile_type,
+    int profile_id);
+
 int __real_bcm_cosq_gport_bandwidth_set(
     int unit,
     bcm_gport_t gport,
@@ -2310,6 +2322,24 @@ int __wrap_bcm_cosq_control_set(
     bcm_cosq_control_t type,
     int arg) {
   CALL_WRAPPERS_RV(bcm_cosq_control_set(unit, port, cosq, type, arg));
+}
+
+int __wrap_bcm_cosq_port_profile_get(
+    int unit,
+    bcm_gport_t port,
+    bcm_cosq_profile_type_t profile_type,
+    int* profile_id) {
+  CALL_WRAPPERS_RV(
+      bcm_cosq_port_profile_get(unit, port, profile_type, profile_id));
+}
+
+int __wrap_bcm_cosq_port_profile_set(
+    int unit,
+    bcm_gport_t port,
+    bcm_cosq_profile_type_t profile_type,
+    int profile_id) {
+  CALL_WRAPPERS_RV(
+      bcm_cosq_port_profile_set(unit, port, profile_type, profile_id));
 }
 
 int __wrap_bcm_cosq_gport_bandwidth_set(

@@ -131,6 +131,8 @@ BcmMmuState BcmYamlConfig::getMmuState() const {
       return BcmMmuState::MMU_LOSSY;
     } else if (*mode == "LOSSLESS") {
       return BcmMmuState::MMU_LOSSLESS;
+    } else if (*mode == "LOSSY_AND_LOSSLESS") {
+      return BcmMmuState::MMU_LOSSY_AND_LOSSLESS;
     }
   }
   return BcmMmuState::UNKNOWN;

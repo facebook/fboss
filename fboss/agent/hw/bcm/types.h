@@ -26,5 +26,10 @@ using BcmEgressQueueTrafficCounterStats = std::unordered_map<
     cfg::StreamType,
     std::unordered_map<int, BcmTrafficCounterStats>>;
 
-enum class BcmMmuState { UNKNOWN, MMU_LOSSLESS, MMU_LOSSY };
+enum class BcmMmuState {
+  UNKNOWN,
+  MMU_LOSSLESS,
+  MMU_LOSSY,
+  MMU_LOSSY_AND_LOSSLESS
+};
 } // namespace facebook::fboss

@@ -738,6 +738,18 @@ class BcmSdkInterface {
       bcm_cosq_control_t type,
       int* arg) = 0;
 
+  virtual int bcm_cosq_port_profile_get(
+      int unit,
+      bcm_gport_t port,
+      bcm_cosq_profile_type_t profile_type,
+      int* profile_id) = 0;
+
+  virtual int bcm_cosq_port_profile_set(
+      int unit,
+      bcm_gport_t port,
+      bcm_cosq_profile_type_t profile_type,
+      int profile_id) = 0;
+
   virtual int
   bcm_l3_egress_get(int unit, bcm_if_t intf, bcm_l3_egress_t* egr) = 0;
 

@@ -39,6 +39,7 @@
 #include "fboss/agent/hw/bcm/BcmPortResourceBuilder.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
+#include "fboss/agent/hw/bcm/BcmQosUtils.h"
 #include "fboss/agent/hw/bcm/BcmSdkVer.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
@@ -675,6 +676,9 @@ void BcmPort::program(const shared_ptr<Port>& port) {
 
   if (hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     setPfc(port);
+    if (!isMmuLossy()) {
+      setCosqProfile(getDefaultProfileId());
+    }
     ingressBufferManager_->programIngressBuffers(port);
   }
 
@@ -2476,6 +2480,28 @@ void BcmPort::programPfc(const int enableTxPfc, const int enableRxPfc) {
 
   XLOG(DBG3) << "Successfully enabled pfc on port: " << port_
              << " , TX/RX = " << logHelper(enableTxPfc, enableRxPfc);
+}
+
+void BcmPort::setCosqProfile(const int profileId) {
+  int curProfileId;
+  int rv = bcm_cosq_port_profile_get(
+      unit_, port_, bcmCosqProfileIntPriToPGMap, &curProfileId);
+  bcmCheckError(
+      rv, "failed to get bcmCosqProfileIntPriToPGMap for port ", port_);
+  if (profileId == curProfileId) {
+    XLOG(DBG3)
+        << "port " << port_
+        << " is already programmed with bcmCosqProfileIntPriToPGMap profile id: "
+        << profileId;
+  } else {
+    XLOG(DBG3) << "program port " << port_
+               << " to use new bcmCosqProfileIntPriToPGMap profile id "
+               << profileId << " from current profile id " << curProfileId;
+    rv = bcm_cosq_port_profile_set(
+        unit_, port_, bcmCosqProfileIntPriToPGMap, profileId);
+    bcmCheckError(
+        rv, "failed to set bcmCosqProfileIntPriToPGMap for port ", port_);
+  }
 }
 
 void BcmPort::setPfc(const std::shared_ptr<Port>& swPort) {

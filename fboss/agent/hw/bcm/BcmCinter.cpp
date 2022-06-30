@@ -1104,6 +1104,18 @@ int BcmCinter::bcm_cosq_control_set(
   return 0;
 }
 
+int BcmCinter::bcm_cosq_port_profile_set(
+    int unit,
+    bcm_gport_t port,
+    bcm_cosq_profile_type_t profile_type,
+    int profile_id) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_cosq_port_profile_set(",
+      makeParamStr(unit, port, profile_type, profile_id),
+      ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_cosq_gport_bandwidth_set(
     int unit,
     bcm_gport_t gport,

@@ -320,6 +320,7 @@ class BcmPort {
    */
   bool setFEC(const std::shared_ptr<Port>& swPort);
   void setPause(const std::shared_ptr<Port>& swPort);
+  void setCosqProfile(const int profileId);
   void setPfc(const std::shared_ptr<Port>& swPort);
   void programPfc(const int enableTxPfc, const int enableRxPfc);
   bool pfcWatchdogNeedsReprogramming(const std::shared_ptr<Port>& port);

@@ -310,6 +310,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_cos_queue_t cosq,
       bcm_cosq_control_t type,
       int arg) override;
+  int bcm_cosq_port_profile_set(
+      int unit,
+      bcm_gport_t port,
+      bcm_cosq_profile_type_t profile_type,
+      int profile_id) override;
   int bcm_cosq_gport_bandwidth_set(
       int unit,
       bcm_gport_t gport,
@@ -1050,6 +1055,13 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_cos_queue_t /* cosq */,
       bcm_cosq_control_t /* type */,
       int* /* arg */) override {
+    return 0;
+  }
+  int bcm_cosq_port_profile_get(
+      int /*unit*/,
+      bcm_gport_t /*port*/,
+      bcm_cosq_profile_type_t /*profile_type*/,
+      int* /**profile_id*/) override {
     return 0;
   }
   int bcm_port_pause_get(
