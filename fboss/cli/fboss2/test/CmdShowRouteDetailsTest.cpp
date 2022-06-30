@@ -105,9 +105,9 @@ std::vector<RouteDetails> createRouteEntries() {
   return routeEntries;
 }
 
-cli::ShowRouteModel createRouteModel() {
-  cli::ShowRouteModel model;
-  cli::RouteEntry entry1, entry2;
+cli::ShowRouteDetailsModel createRouteModel() {
+  cli::ShowRouteDetailsModel model;
+  cli::RouteDetailEntry entry1, entry2;
 
   // entry1
   entry1.ip() = "2401:db00::";
@@ -176,7 +176,7 @@ cli::ShowRouteModel createRouteModel() {
 class CmdShowRouteDetailsTestFixture : public CmdHandlerTestBase {
  public:
   std::vector<facebook::fboss::RouteDetails> routeEntries;
-  cli::ShowRouteModel normalizedModel;
+  cli::ShowRouteDetailsModel normalizedModel;
 
   void SetUp() override {
     CmdHandlerTestBase::SetUp();

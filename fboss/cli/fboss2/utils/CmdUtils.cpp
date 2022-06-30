@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include "folly/Conv.h"
 
 #include <folly/logging/LogConfig.h>
@@ -174,6 +175,47 @@ std::vector<int32_t> getPortIDList(
     }
   }
   return portIDList;
+}
+
+std::string getAddrStr(network::thrift::BinaryAddress addr) {
+  auto ip = *addr.addr();
+  char ipBuff[INET6_ADDRSTRLEN];
+  if (ip.size() == 16) {
+    inet_ntop(
+        AF_INET6,
+        &((struct in_addr*)ip.c_str())->s_addr,
+        ipBuff,
+        INET6_ADDRSTRLEN);
+  } else if (ip.size() == 4) {
+    inet_ntop(
+        AF_INET,
+        &((struct in_addr*)ip.c_str())->s_addr,
+        ipBuff,
+        INET_ADDRSTRLEN);
+  } else {
+    return "invalid";
+  }
+  return std::string(ipBuff);
+}
+
+std::string getAdminDistanceStr(AdminDistance adminDistance) {
+  switch (adminDistance) {
+    case AdminDistance::DIRECTLY_CONNECTED:
+      return "DIRECTLY_CONNECTED";
+    case AdminDistance::STATIC_ROUTE:
+      return "STATIC_ROUTE";
+    case AdminDistance::OPENR:
+      return "OPENR";
+    case AdminDistance::EBGP:
+      return "EBGP";
+    case AdminDistance::IBGP:
+      return "IBGP";
+    case AdminDistance::MAX_ADMIN_DISTANCE:
+      return "MAX_ADMIN_DISTANCE";
+  }
+  throw std::runtime_error(
+      "Unsupported AdminDistance: " +
+      std::to_string(static_cast<int>(adminDistance)));
 }
 
 } // namespace facebook::fboss::utils

@@ -293,7 +293,8 @@ const std::string formatBandwidth(const unsigned long& bandwidth);
 std::vector<int32_t> getPortIDList(
     const std::vector<std::string>& ifList,
     std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries);
-
+std::string getAddrStr(network::thrift::BinaryAddress addr);
+std::string getAdminDistanceStr(AdminDistance adminDistance);
 void setLogLevel(std::string logLevelStr);
 
 void logUsage(const std::string& cmdName);
