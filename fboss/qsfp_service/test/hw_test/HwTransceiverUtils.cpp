@@ -10,6 +10,7 @@
 #include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
@@ -118,6 +119,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       break;
 
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER:
+    case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER:
       verifyCopper100gProfile(transceiver, mediaInterfaces);
       break;
 
