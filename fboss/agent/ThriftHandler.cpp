@@ -2381,4 +2381,21 @@ void ThriftHandler::publishLinkSnapshots(
   }
 }
 
+void ThriftHandler::getInterfacePhyInfo(
+    std::map<std::string, phy::PhyInfo>& phyInfos,
+    std::unique_ptr<std::vector<std::string>> portNames) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  std::vector<PortID> portIDs;
+  for (const auto& portName : *portNames) {
+    portIDs.push_back(
+        sw_->getPlatform()->getPlatformMapping()->getPortID(portName));
+  }
+  auto portPhyInfo = sw_->getIPhyInfo(portIDs);
+  for (const auto& portName : *portNames) {
+    phyInfos[portName] =
+        portPhyInfo[sw_->getPlatform()->getPlatformMapping()->getPortID(
+            portName)];
+  }
+}
+
 } // namespace facebook::fboss

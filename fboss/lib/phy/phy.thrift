@@ -352,4 +352,7 @@ service FbossCommonPhyCtrl extends fb303.FacebookService {
   void publishLinkSnapshots(1: list<string> portNames) throws (
     1: fboss.FbossBaseError error,
   );
+  map<string, PhyInfo> getInterfacePhyInfo(1: list<string> portNames) throws (
+    1: fboss.FbossBaseError error,
+  );
 }
