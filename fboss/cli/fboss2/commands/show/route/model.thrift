@@ -1,5 +1,9 @@
 namespace cpp2 facebook.fboss.cli
 
+struct ShowRouteModel {
+  1: list<RouteEntry> routeEntries;
+}
+
 struct ShowRouteDetailsModel {
   1: list<RouteDetailEntry> routeEntries;
 }
@@ -28,6 +32,11 @@ struct NextHopInfo {
 
 struct ClientAndNextHops {
   1: i32 clientId;
+  2: list<NextHopInfo> nextHops;
+}
+
+struct RouteEntry {
+  1: string networkAddress;
   2: list<NextHopInfo> nextHops;
 }
 
