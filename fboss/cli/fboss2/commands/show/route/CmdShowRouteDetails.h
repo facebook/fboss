@@ -73,6 +73,7 @@ class CmdShowRouteDetails
 
       out << fmt::format("  Admin Distance: {}\n", entry.get_adminDistance());
       out << fmt::format("  Counter Id: {}\n", entry.get_counterID());
+      out << fmt::format("  Class Id: {}\n", entry.get_classID());
     }
   }
 
@@ -143,10 +144,49 @@ class CmdShowRouteDetails
         routeDetails.counterID() =
             counterIDPtr == nullptr ? "None" : *counterIDPtr;
 
+        auto classIDPtr = entry.get_classID();
+        routeDetails.classID() =
+            classIDPtr == nullptr ? "None" : getClassID(*classIDPtr);
         model.routeEntries()->push_back(routeDetails);
       }
     }
     return model;
+  }
+
+  std::string getClassID(cfg::AclLookupClass classID) {
+    int classId = static_cast<int>(classID);
+    switch (classID) {
+      case cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4:
+        return fmt::format("DST_CLASS_L3_LOCAL_IP4({})", classId);
+      case cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6:
+        return fmt::format("DST_CLASS_L3_LOCAL_IP6({})", classId);
+      case cfg::AclLookupClass::CLASS_DROP:
+        return fmt::format("CLASS_DROP({})", classId);
+      case cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0:
+        return fmt::format("CLASS_QUEUE_PER_HOST_QUEUE_0({})", classId);
+      case cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1:
+        return fmt::format("CLASS_QUEUE_PER_HOST_QUEUE_1({})", classId);
+      case cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_2:
+        return fmt::format("CLASS_QUEUE_PER_HOST_QUEUE_2({})", classId);
+      case cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3:
+        return fmt::format("CLASS_QUEUE_PER_HOST_QUEUE_3({})", classId);
+      case cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_4:
+        return fmt::format("CLASS_QUEUE_PER_HOST_QUEUE_4({})", classId);
+      case cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_5:
+        return fmt::format("CLASS_QUEUE_PER_HOST_QUEUE_5({})", classId);
+      case cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_6:
+        return fmt::format("CLASS_QUEUE_PER_HOST_QUEUE_6({})", classId);
+      case cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_7:
+        return fmt::format("CLASS_QUEUE_PER_HOST_QUEUE_7({})", classId);
+      case cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_8:
+        return fmt::format("CLASS_QUEUE_PER_HOST_QUEUE_8({})", classId);
+      case cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_9:
+        return fmt::format("CLASS_QUEUE_PER_HOST_QUEUE_9({})", classId);
+      case cfg::AclLookupClass::DST_CLASS_L3_DPR:
+        return fmt::format("DST_CLASS_L3_DPR({})", classId);
+    }
+    throw std::runtime_error(
+        "Unsupported ClassID: " + std::to_string(static_cast<int>(classID)));
   }
 };
 

@@ -70,6 +70,7 @@ std::vector<RouteDetails> createRouteEntries() {
   nextHop1_2.weight() = 1;
   nextHop1_2.mplsAction() = mplsAction1_2;
   routeEntry1.nextHops()->emplace_back(nextHop1_2);
+  routeEntry1.classID() = cfg::AclLookupClass::DST_CLASS_L3_DPR;
 
   // routeEntry2
   folly::IPAddressV4 ip2_1("176.161.6.0");
@@ -143,6 +144,7 @@ cli::ShowRouteDetailsModel createRouteModel() {
 
   entry1.nextHops()->emplace_back(nextHopInfo1_2);
   entry1.counterID() = "None";
+  entry1.classID() = "DST_CLASS_L3_DPR(20)";
 
   // entry 2
   entry2.ip() = "176.161.6.0";
@@ -167,6 +169,7 @@ cli::ShowRouteDetailsModel createRouteModel() {
 
   entry2.nextHops()->emplace_back(nextHopInfo2_2);
   entry2.counterID() = "counter0";
+  entry2.classID() = "None";
 
   model.routeEntries() = {entry1, entry2};
 
@@ -211,6 +214,7 @@ Network Address: 2401:db00::/32
     2401:db00:e32f:8fc::2 dev Port-Channel304 weight 1 MPLS -> PUSH : {2,3}
   Admin Distance: None
   Counter Id: None
+  Class Id: DST_CLASS_L3_DPR(20)
 
 Network Address: 176.161.6.0/32 (connected)
   Nexthops from client 1
@@ -220,6 +224,7 @@ Network Address: 176.161.6.0/32 (connected)
     (i/f 0) 240.161.6.0
   Admin Distance: DIRECTLY_CONNECTED
   Counter Id: counter0
+  Class Id: None
 )";
   EXPECT_EQ(output, expectOutput);
 }
