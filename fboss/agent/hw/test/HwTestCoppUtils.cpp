@@ -57,6 +57,7 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
     case HwAsic::AsicType::ASIC_TYPE_GARONNE:
       return 7;
     case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
       throw FbossError(
           "AsicType ", hwAsic->getAsicType(), " doesn't support queue feature");
   }
@@ -75,6 +76,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
     case HwAsic::AsicType::ASIC_TYPE_GARONNE:
       return cfg::ToCpuAction::COPY;
     case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
       throw FbossError(
           "AsicType ", hwAsic->getAsicType(), " doesn't support cpu action");
   }
