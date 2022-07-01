@@ -318,7 +318,8 @@ HwTrunkStats HwSwitchEnsemble::getLatestAggregatePortStats(
 void HwSwitchEnsemble::setupEnsemble(
     std::unique_ptr<Platform> platform,
     std::unique_ptr<HwLinkStateToggler> linkToggler,
-    std::unique_ptr<std::thread> thriftThread) {
+    std::unique_ptr<std::thread> thriftThread,
+    const HwSwitchEnsembleInitInfo* /*initInfo*/) {
   platform_ = std::move(platform);
   linkToggler_ = std::move(linkToggler);
 

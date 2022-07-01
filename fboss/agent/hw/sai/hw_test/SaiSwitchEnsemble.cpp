@@ -158,7 +158,10 @@ void SaiSwitchEnsemble::init(
         createThriftThread(static_cast<SaiSwitch*>(platform->getHwSwitch()));
   }
   setupEnsemble(
-      std::move(platform), std::move(linkToggler), std::move(thriftThread));
+      std::move(platform),
+      std::move(linkToggler),
+      std::move(thriftThread),
+      info);
   auto hw = static_cast<SaiSwitch*>(getHwSwitch());
   diagShell_ = std::make_unique<DiagShell>(hw);
   diagCmdServer_ = std::make_unique<DiagCmdServer>(hw, diagShell_.get());

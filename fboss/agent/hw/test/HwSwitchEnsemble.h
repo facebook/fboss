@@ -227,7 +227,8 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void setupEnsemble(
       std::unique_ptr<Platform> platform,
       std::unique_ptr<HwLinkStateToggler> linkToggler,
-      std::unique_ptr<std::thread> thriftThread);
+      std::unique_ptr<std::thread> thriftThread,
+      const HwSwitchEnsembleInitInfo* info);
   uint32_t getHwSwitchFeatures() const;
   bool haveFeature(Feature feature) {
     return featuresDesired_.find(feature) != featuresDesired_.end();

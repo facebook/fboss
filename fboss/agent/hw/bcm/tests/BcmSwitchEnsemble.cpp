@@ -239,7 +239,10 @@ void BcmSwitchEnsemble::init(
         createThriftThread(static_cast<BcmSwitch*>(platform->getHwSwitch()));
   }
   setupEnsemble(
-      std::move(platform), std::move(linkToggler), std::move(thriftThread));
+      std::move(platform),
+      std::move(linkToggler),
+      std::move(thriftThread),
+      info);
   getPlatform()->initLEDs(getHwSwitch()->getUnit());
 }
 
