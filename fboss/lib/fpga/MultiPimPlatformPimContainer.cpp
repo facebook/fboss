@@ -32,6 +32,8 @@ std::string MultiPimPlatformPimContainer::getPimTypeStr(
       return "ELBERT_8DD";
     case PimType::SANDIA_8DD:
       return "SANDIA_8DD";
+    case PimType::SANDIA_16Q:
+      return "SANDIA_16Q";
   };
   throw FbossError("Unrecognized pimType:", pimType);
 }
@@ -54,6 +56,8 @@ MultiPimPlatformPimContainer::getPimTypeFromStr(const std::string& pimTypeStr) {
     return MultiPimPlatformPimContainer::PimType::ELBERT_8DD;
   } else if (pimTypeStr == "SANDIA_8DD") {
     return MultiPimPlatformPimContainer::PimType::SANDIA_8DD;
+  } else if (pimTypeStr == "SANDIA_16Q") {
+    return MultiPimPlatformPimContainer::PimType::SANDIA_16Q;
   }
   throw FbossError("Unrecognized pimType:", pimTypeStr);
 }

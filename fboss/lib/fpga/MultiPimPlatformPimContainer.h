@@ -28,6 +28,7 @@ class MultiPimPlatformPimContainer {
     ELBERT_16Q,
     ELBERT_8DD,
     SANDIA_8DD,
+    SANDIA_16Q,
   };
   static std::string getPimTypeStr(PimType pimType);
   static PimType getPimTypeFromStr(const std::string& pimTypeStr);
