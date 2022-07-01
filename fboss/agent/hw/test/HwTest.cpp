@@ -85,6 +85,7 @@ void HwTest::SetUp() {
   folly::SingletonVault::singleton()->reenableInstances();
   HwSwitchEnsemble::HwSwitchEnsembleInitInfo initInfo;
   initInfo.overrideTransceiverInfo = overrideTransceiverInfo();
+  std::tie(initInfo.switchId, initInfo.switchType) = getSwitchIdAndType();
   // Set watermark stats update interval to 0 so we always refresh BST stats
   // in each updateStats call
   FLAGS_update_watermark_stats_interval_s = 0;
