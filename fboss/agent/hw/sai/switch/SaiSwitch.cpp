@@ -982,6 +982,7 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
     phyChip.type() = getPlatform()->getAsic()->getDataPlanePhyChipType();
     phyParams.phyChip() = phyChip;
     phyParams.linkState() = managerTable_->portManager().isUp(swPort);
+    phyParams.line()->side() = phy::Side::LINE;
     // Update PMD Info
     auto eyeStatus = managerTable_->portManager().getPortEyeValues(
         portHandle->port->adapterKey());

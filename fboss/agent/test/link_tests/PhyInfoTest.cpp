@@ -87,6 +87,8 @@ void validatePhyInfo(
 
   {
     SCOPED_TRACE("line side");
+    EXPECT_EQ(prev.line()->side(), phy::Side::LINE);
+    EXPECT_EQ(curr.line()->side(), phy::Side::LINE);
     checkPmd(prev.line()->get_pmd());
     checkPmd(curr.line()->get_pmd());
   }
@@ -95,6 +97,8 @@ void validatePhyInfo(
     if (auto sysInfo = prev.system()) {
       checkPmd(sysInfo->get_pmd());
       EXPECT_TRUE(curr.system());
+      EXPECT_EQ(prev.system()->side(), phy::Side::SYSTEM);
+      EXPECT_EQ(curr.system()->side(), phy::Side::SYSTEM);
       checkPmd(apache::thrift::can_throw(curr.system())->get_pmd());
     }
     // TODO: Expect system side info always on XPHY when every XPHY supports
