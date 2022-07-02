@@ -25,7 +25,7 @@ std::unique_ptr<QsfpConfig> QsfpConfig::fromDefaultFile() {
     return fromFile(FLAGS_qsfp_config);
   } catch (const FbossError& err) {
     XLOG(WARN) << " Can't get qsfp config from " << FLAGS_qsfp_config << ": "
-               << *err.message_ref() << ". Switch back to use "
+               << *err.message() << ". Switch back to use "
                << FLAGS_qsfp_config_current;
     return fromFile(FLAGS_qsfp_config_current);
   }
