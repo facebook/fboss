@@ -319,11 +319,17 @@ void HwSwitchEnsemble::setupEnsemble(
     std::unique_ptr<Platform> platform,
     std::unique_ptr<HwLinkStateToggler> linkToggler,
     std::unique_ptr<std::thread> thriftThread,
-    const HwSwitchEnsembleInitInfo* /*initInfo*/) {
+    const HwSwitchEnsembleInitInfo* initInfo) {
   platform_ = std::move(platform);
   linkToggler_ = std::move(linkToggler);
 
-  auto hwInitResult = getHwSwitch()->init(this, true /*failHwCallsOnWarmboot*/);
+  CHECK(initInfo);
+  auto hwInitResult = getHwSwitch()->init(
+      this,
+      true /*failHwCallsOnWarmboot*/,
+      initInfo->switchType,
+      initInfo->switchId);
+
   programmedState_ = hwInitResult.switchState;
   routingInformationBase_ = std::move(hwInitResult.rib);
   // HwSwitch::init() returns an unpublished programmedState_.  SwSwitch is

@@ -219,12 +219,14 @@ void BcmSwitchEnsemble::init(
   } else {
     BcmAPI::init(cfg);
   }
+  CHECK(info);
+  if (info->switchType != cfg::SwitchType::NPU) {
+    throw FbossError("Only NPU switch type supported in BCM tests");
+  }
   // TODO pass agent config to platform init
   platform->init(std::move(agentConfig), getHwSwitchFeatures());
-  if (info) {
-    if (auto tcvr = info->overrideTransceiverInfo) {
-      platform->setOverrideTransceiverInfo(*tcvr);
-    }
+  if (auto tcvr = info->overrideTransceiverInfo) {
+    platform->setOverrideTransceiverInfo(*tcvr);
   }
 
   std::unique_ptr<HwLinkStateToggler> linkToggler;
