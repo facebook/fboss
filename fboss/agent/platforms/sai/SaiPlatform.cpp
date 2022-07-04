@@ -336,12 +336,15 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   std::optional<SaiSwitchTraits::Attributes::SwitchId> switchId;
   std::optional<SaiSwitchTraits::Attributes::MaxSystemCores> cores;
   std::optional<SaiSwitchTraits::Attributes::SysPortConfigList> sysPortConfigs;
-  if (swType == cfg::SwitchType::VOQ) {
-    switchType = SAI_SWITCH_TYPE_VOQ;
+  if (swType == cfg::SwitchType::VOQ || swType == cfg::SwitchType::FABRIC) {
+    switchType = swType == cfg::SwitchType::VOQ ? SAI_SWITCH_TYPE_VOQ
+                                                : SAI_SWITCH_TYPE_FABRIC;
     cores = getAsic()->getNumCores();
     switchId = swId.value_or(0);
-    sysPortConfigs = SaiSwitchTraits::Attributes::SysPortConfigList{
-        getInternalSystemPortConfig()};
+    if (swType == cfg::SwitchType::VOQ) {
+      sysPortConfigs = SaiSwitchTraits::Attributes::SysPortConfigList{
+          getInternalSystemPortConfig()};
+    }
   }
 
   return {
