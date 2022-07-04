@@ -25,8 +25,8 @@ static TPacketException createTPacketException(
     TPacketErrorCode code,
     const std::string& msg) {
   TPacketException ex;
-  ex.code_ref() = code;
-  ex.msg_ref() = msg;
+  ex.code() = code;
+  ex.msg() = msg;
   return ex;
 }
 
