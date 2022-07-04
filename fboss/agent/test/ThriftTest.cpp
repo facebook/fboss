@@ -1091,10 +1091,10 @@ TEST_F(ThriftTest, syncFibIsHwProtected) {
         try {
           handler.syncFib(10, std::move(newRoutes));
         } catch (const FbossFibUpdateError& fibError) {
-          EXPECT_EQ(fibError.vrf2failedAddUpdatePrefixes_ref()->size(), 1);
-          auto itr = fibError.vrf2failedAddUpdatePrefixes_ref()->find(0);
+          EXPECT_EQ(fibError.vrf2failedAddUpdatePrefixes()->size(), 1);
+          auto itr = fibError.vrf2failedAddUpdatePrefixes()->find(0);
           EXPECT_EQ(itr->second.size(), 1);
-          itr = fibError.vrf2failedDeletePrefixes_ref()->find(0);
+          itr = fibError.vrf2failedDeletePrefixes()->find(0);
           EXPECT_EQ(itr->second.size(), 1);
           throw;
         }
@@ -1115,8 +1115,8 @@ TEST_F(ThriftTest, addUnicastRoutesIsHwProtected) {
           handler.addUnicastRoutes(10, std::move(newRoutes));
 
         } catch (const FbossFibUpdateError& fibError) {
-          EXPECT_EQ(fibError.vrf2failedAddUpdatePrefixes_ref()->size(), 1);
-          auto itr = fibError.vrf2failedAddUpdatePrefixes_ref()->find(0);
+          EXPECT_EQ(fibError.vrf2failedAddUpdatePrefixes()->size(), 1);
+          auto itr = fibError.vrf2failedAddUpdatePrefixes()->find(0);
           EXPECT_EQ(itr->second.size(), 1);
           throw;
         }
@@ -1181,8 +1181,8 @@ TEST_F(ThriftTest, syncMplsFibIsHwProtected) {
         try {
           handler.syncMplsFib(10, std::move(newRoutes));
         } catch (const FbossFibUpdateError& fibError) {
-          EXPECT_EQ(fibError.failedAddUpdateMplsLabels_ref()->size(), 1);
-          EXPECT_EQ(*fibError.failedAddUpdateMplsLabels_ref()->begin(), 101);
+          EXPECT_EQ(fibError.failedAddUpdateMplsLabels()->size(), 1);
+          EXPECT_EQ(*fibError.failedAddUpdateMplsLabels()->begin(), 101);
           throw;
         }
       },
@@ -1202,8 +1202,8 @@ TEST_F(ThriftTest, addMplsRoutesIsHwProtected) {
         try {
           handler.addMplsRoutes(10, std::move(newRoutes));
         } catch (const FbossFibUpdateError& fibError) {
-          EXPECT_EQ(fibError.failedAddUpdateMplsLabels_ref()->size(), 1);
-          EXPECT_EQ(*fibError.failedAddUpdateMplsLabels_ref()->begin(), 101);
+          EXPECT_EQ(fibError.failedAddUpdateMplsLabels()->size(), 1);
+          EXPECT_EQ(*fibError.failedAddUpdateMplsLabels()->begin(), 101);
           throw;
         }
       },
@@ -1241,10 +1241,10 @@ TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
           handler.addUnicastRoutes(
               10, std::make_unique<std::vector<UnicastRoute>>(routes));
         } catch (const FbossFibUpdateError& fibError) {
-          EXPECT_EQ(fibError.vrf2failedAddUpdatePrefixes_ref()->size(), 1);
-          auto itr = fibError.vrf2failedAddUpdatePrefixes_ref()->find(0);
+          EXPECT_EQ(fibError.vrf2failedAddUpdatePrefixes()->size(), 1);
+          auto itr = fibError.vrf2failedAddUpdatePrefixes()->find(0);
           EXPECT_EQ(itr->second.size(), 1);
-          itr = fibError.vrf2failedDeletePrefixes_ref()->find(0);
+          itr = fibError.vrf2failedDeletePrefixes()->find(0);
           EXPECT_EQ(itr->second.size(), 0);
           throw;
         }
