@@ -62,13 +62,13 @@ class CmdSetInterfacePrbsState : public CmdHandler<
       auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
       prbs::InterfacePrbsState prbsState;
       if (state.enabled) {
-        prbsState.polynomial_ref() = state.polynomial;
+        prbsState.polynomial() = state.polynomial;
       }
       if (state.generator.has_value()) {
-        prbsState.generatorEnabled_ref() = *state.generator;
+        prbsState.generatorEnabled() = *state.generator;
       }
       if (state.checker.has_value()) {
-        prbsState.checkerEnabled_ref() = *state.checker;
+        prbsState.checkerEnabled() = *state.checker;
       }
       qsfpClient->sync_setInterfacePrbs(interfaceName, component, prbsState);
     } else if (component == phy::PrbsComponent::ASIC) {
