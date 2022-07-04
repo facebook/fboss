@@ -330,7 +330,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();
     for (auto nhIp : redirectNexthopIps) {
       cfg::RedirectNextHop nhop;
-      nhop.ip_ref() = nhIp;
+      nhop.ip() = nhIp;
       cfgRedirectToNextHop.redirectNextHops()->push_back(nhop);
     }
     auto redirectToNextHop = MatchAction::RedirectToNextHopAction();

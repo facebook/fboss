@@ -385,7 +385,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedTransaction(
   try {
     return stateChanged(delta);
   } catch (const FbossError& e) {
-    XLOG(WARNING) << " Transaction failed with error : " << *e.message_ref()
+    XLOG(WARNING) << " Transaction failed with error : " << *e.message()
                   << " attempting rollback";
     rollback(delta.oldState());
   }
@@ -829,7 +829,7 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
     hwResourceStats_.hw_table_stats_stale() = false;
   } catch (const SaiApiError& e) {
     XLOG(ERR) << " Failed to get resource usage hwResourceStats_: "
-              << *e.message_ref();
+              << *e.message();
     hwResourceStats_.hw_table_stats_stale() = true;
   }
 }

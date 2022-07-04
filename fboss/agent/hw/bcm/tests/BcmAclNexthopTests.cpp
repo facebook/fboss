@@ -61,7 +61,7 @@ class BcmAclNexthopTest : public BcmTest {
 
     auto redirect = cfg::RedirectToNextHopAction();
     cfg::RedirectNextHop nhop;
-    nhop.ip_ref() = nexthopIp;
+    nhop.ip() = nexthopIp;
     redirect.redirectNextHops()->push_back(nhop);
     auto action = cfg::MatchAction();
     action.redirectToNextHop() = redirect;
