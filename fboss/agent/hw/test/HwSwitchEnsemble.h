@@ -121,7 +121,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
     return getPlatform()->getAsic();
   }
   virtual void init(
-      const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* /*info*/) = 0;
+      const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& /*info*/) = 0;
 
   void packetReceived(std::unique_ptr<RxPacket> pkt) noexcept override;
   void linkStateChanged(
@@ -228,7 +228,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       std::unique_ptr<Platform> platform,
       std::unique_ptr<HwLinkStateToggler> linkToggler,
       std::unique_ptr<std::thread> thriftThread,
-      const HwSwitchEnsembleInitInfo* info);
+      const HwSwitchEnsembleInitInfo& info);
   uint32_t getHwSwitchFeatures() const;
   bool haveFeature(Feature feature) {
     return featuresDesired_.find(feature) != featuresDesired_.end();

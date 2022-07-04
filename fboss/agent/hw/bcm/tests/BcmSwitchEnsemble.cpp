@@ -138,7 +138,7 @@ void BcmSwitchEnsemble::runDiagCommand(
 }
 
 void BcmSwitchEnsemble::init(
-    const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* info) {
+    const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info) {
   auto platform = createTestPlatform();
   auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());
   std::unique_ptr<AgentConfig> agentConfig;
@@ -219,13 +219,12 @@ void BcmSwitchEnsemble::init(
   } else {
     BcmAPI::init(cfg);
   }
-  CHECK(info);
-  if (info->switchType != cfg::SwitchType::NPU) {
+  if (info.switchType != cfg::SwitchType::NPU) {
     throw FbossError("Only NPU switch type supported in BCM tests");
   }
   // TODO pass agent config to platform init
   platform->init(std::move(agentConfig), getHwSwitchFeatures());
-  if (auto tcvr = info->overrideTransceiverInfo) {
+  if (auto tcvr = info.overrideTransceiverInfo) {
     platform->setOverrideTransceiverInfo(*tcvr);
   }
 

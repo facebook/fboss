@@ -60,7 +60,7 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
 
   void runDiagCommand(const std::string& input, std::string& output) override;
 
-  void init(const HwSwitchEnsemble::HwSwitchEnsembleInitInfo* info) override;
+  void init(const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info) override;
   void gracefulExit() override;
 
   bool isSai() const override {

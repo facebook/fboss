@@ -27,6 +27,7 @@ namespace facebook::fboss {
 
 std::unique_ptr<HwSwitchEnsemble> createHwEnsemble(
     const HwSwitchEnsemble::Features& featuresDesired,
-    HwSwitchEnsemble::HwSwitchEnsembleInitInfo* info = nullptr);
+    const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info =
+        HwSwitchEnsemble::HwSwitchEnsembleInitInfo{});
 
 } // namespace facebook::fboss
