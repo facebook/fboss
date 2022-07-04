@@ -179,6 +179,7 @@ add_fbthrift_cpp_library(
 
 add_library(hw_switch_test
   fboss/agent/hw/test/HwEcmpTests.cpp
+  fboss/agent/hw/test/HwFabricSwitchTests.cpp
   fboss/agent/hw/test/HwFlexPortTests.cpp
   fboss/agent/hw/test/HwEcmpTrunkTests.cpp
   fboss/agent/hw/test/HwLabelEdgeRouteTest.cpp
