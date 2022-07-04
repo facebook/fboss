@@ -270,7 +270,7 @@ MultiPimPlatformPort::MultiPimPlatformPort(
   // config with the format ethX/Y/1, X is the pim number and Y is the
   // transceiver number in general.
   // We can also add pim_id as a new field in the cfg::PlatformPortEntry
-  auto portName = *entry.mapping_ref()->name_ref();
+  auto portName = *entry.mapping()->name();
   int pimID = 0;
   int transceiverID = 0;
   re2::RE2 portNameRe(kFbossPortNameRegex);

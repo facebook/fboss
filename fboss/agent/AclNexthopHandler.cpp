@@ -69,8 +69,8 @@ void AclNexthopHandler::resolveActionNexthops(MatchAction& action) {
     }
   };
   for (auto& nhIpStruct : *redirect.value().first.redirectNextHops()) {
-    auto nhIp = folly::IPAddress(*nhIpStruct.ip_ref());
-    auto intfID = nhIpStruct.intfID_ref();
+    auto nhIp = folly::IPAddress(*nhIpStruct.ip());
+    auto intfID = nhIpStruct.intfID();
     if (nhIp.isV4()) {
       const auto route = sw_->longestMatch<folly::IPAddressV4>(
           sw_->getState(), nhIp.asV4(), RouterID(0));
