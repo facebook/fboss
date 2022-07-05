@@ -57,11 +57,6 @@ DEFINE_bool(
     true,
     "Skip all xphy programming in wedge_agent");
 
-DEFINE_int32(
-    gearbox_stat_interval,
-    200,
-    "Interval to collect gearbox statistics (seconds)");
-
 namespace facebook::fboss {
 
 Platform::Platform(
