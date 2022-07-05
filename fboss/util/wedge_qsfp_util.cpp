@@ -302,14 +302,26 @@ struct ModulePartInfo_s modulePartInfo[] = {
   {{'F','T','C','C','1','1','1','2','E','1','P','L','L','-','F','B'}, 64},
   // Finisar 400G module info
   {{'F','T','C','D','4','3','1','3','E','2','P','C','L',0x20,0x20,0x20}, 64},
-  // LR4 module info
+  // Finisar 400G module info
+  {{'F','T','C','D','4','3','1','3','E','2','P','C','L','-','F','B'}, 64},
+  // Finisar 400G module info
+  {{'F','T','C','D','4','3','1','3','E','2','P','C','L','F','B','1'}, 64},
+  // Finisar 400G module info
+  {{'F','T','C','D','4','3','1','3','E','2','P','C','L','F','B','2'}, 64},
+  // Finisar 400G module info
+  {{'F','T','C','D','4','3','1','3','E','2','P','C','L','F','B','3'}, 64},
+  // Finisar 400G LR4 module info
   {{'F','T','C','D','4','3','2','3','E','2','P','C','L',0x20,0x20,0x20}, 64},
   // Innolight 200G module info
   {{'T','-','F','X','4','F','N','T','-','H','F','B',0x20,0x20,0x20,0x20}, 48},
   // Innolight 200G module info
   {{'T','-','F','X','4','F','N','T','-','H','F','P',0x20,0x20,0x20,0x20}, 48},
+  // Innolight 200G module info
+  {{'T','-','F','X','4','F','N','T','-','H','F','S',0x20,0x20,0x20,0x20}, 48},
   // Innolight 400G module info
-  {{'T','-','D','Q','4','C','N','T','-','N','F','B',0x20,0x20,0x20,0x20}, 48}
+  {{'T','-','D','Q','4','C','N','T','-','N','F','B',0x20,0x20,0x20,0x20}, 48},
+  // Innolight 400G module info
+  {{'T','-','D','Q','4','C','N','T','-','N','F','2',0x20,0x20,0x20,0x20}, 48}
 };
 // clang-format on
 constexpr uint8_t kNumModuleInfo =
