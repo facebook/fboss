@@ -55,6 +55,8 @@ FBOSS_STRONG_TYPE(sai_object_id_t, TamReportSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamEventActionSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamEventSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, TamSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, TunnelSaiId);
+FBOSS_STRONG_TYPE(sai_object_id_t, TunnelTermSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, MacsecSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, MacsecPortSaiId);
 FBOSS_STRONG_TYPE(sai_object_id_t, MacsecSASaiId);
