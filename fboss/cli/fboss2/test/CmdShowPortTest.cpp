@@ -156,6 +156,7 @@ cli::ShowPortModel createPortModel() {
 
   cli::PortEntry entry1, entry2, entry3, entry4, entry5, entry6;
   entry1.id() = 1;
+  entry1.hwLogicalPortId() = 1;
   entry1.name() = "eth1/5/1";
   entry1.adminState() = "Enabled";
   entry1.linkState() = "Down";
@@ -165,6 +166,7 @@ cli::ShowPortModel createPortModel() {
   entry1.tcvrPresent() = "Present";
 
   entry2.id() = 2;
+  entry2.hwLogicalPortId() = 2;
   entry2.name() = "eth1/5/2";
   entry2.adminState() = "Disabled";
   entry2.linkState() = "Down";
@@ -174,6 +176,7 @@ cli::ShowPortModel createPortModel() {
   entry2.tcvrPresent() = "Present";
 
   entry3.id() = 3;
+  entry3.hwLogicalPortId() = 3;
   entry3.name() = "eth1/5/3";
   entry3.adminState() = "Enabled";
   entry3.linkState() = "Up";
@@ -183,6 +186,7 @@ cli::ShowPortModel createPortModel() {
   entry3.tcvrPresent() = "Absent";
 
   entry4.id() = 8;
+  entry4.hwLogicalPortId() = 8;
   entry4.name() = "fab402/9/1";
   entry4.adminState() = "Enabled";
   entry4.linkState() = "Up";
@@ -192,6 +196,7 @@ cli::ShowPortModel createPortModel() {
   entry4.tcvrPresent() = "Absent";
 
   entry5.id() = 7;
+  entry5.hwLogicalPortId() = 7;
   entry5.name() = "eth1/10/2";
   entry5.adminState() = "Enabled";
   entry5.linkState() = "Up";
@@ -201,6 +206,7 @@ cli::ShowPortModel createPortModel() {
   entry5.tcvrPresent() = "Present";
 
   entry6.id() = 9;
+  entry6.hwLogicalPortId() = 9;
   entry6.name() = "eth1/4/1";
   entry6.adminState() = "Enabled";
   entry6.linkState() = "Up";
@@ -273,14 +279,14 @@ TEST_F(CmdShowPortTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput =
-      " ID  Name        AdminState  LinkState  Transceiver  TcvrID  Speed  ProfileID                       \n"
-      "-------------------------------------------------------------------------------------------------------------\n"
-      " 9   eth1/4/1    Enabled     Up         Present      5       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL \n"
-      " 1   eth1/5/1    Enabled     Down       Present      0       100G   PROFILE_100G_4_NRZ_CL91_COPPER  \n"
-      " 2   eth1/5/2    Disabled    Down       Present      1       25G    PROFILE_25G_1_NRZ_CL74_COPPER   \n"
-      " 3   eth1/5/3    Enabled     Up         Absent       2       100G   PROFILE_100G_4_NRZ_CL91_COPPER  \n"
-      " 7   eth1/10/2   Enabled     Up         Present      4       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL \n"
-      " 8   fab402/9/1  Enabled     Up         Absent       3       100G   PROFILE_100G_4_NRZ_NOFEC_COPPER \n\n";
+      " ID  Name        AdminState  LinkState  Transceiver  TcvrID  Speed  ProfileID                        HwLogicalPortId \n"
+      "-------------------------------------------------------------------------------------------------------------------------------\n"
+      " 9   eth1/4/1    Enabled     Up         Present      5       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL  9               \n"
+      " 1   eth1/5/1    Enabled     Down       Present      0       100G   PROFILE_100G_4_NRZ_CL91_COPPER   1               \n"
+      " 2   eth1/5/2    Disabled    Down       Present      1       25G    PROFILE_25G_1_NRZ_CL74_COPPER    2               \n"
+      " 3   eth1/5/3    Enabled     Up         Absent       2       100G   PROFILE_100G_4_NRZ_CL91_COPPER   3               \n"
+      " 7   eth1/10/2   Enabled     Up         Present      4       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL  7               \n"
+      " 8   fab402/9/1  Enabled     Up         Absent       3       100G   PROFILE_100G_4_NRZ_NOFEC_COPPER  8               \n\n";
 
   EXPECT_EQ(output, expectOutput);
 }

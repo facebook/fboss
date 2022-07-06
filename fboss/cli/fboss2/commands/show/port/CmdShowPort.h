@@ -80,7 +80,8 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
          "Transceiver",
          "TcvrID",
          "Speed",
-         "ProfileID"});
+         "ProfileID",
+         "HwLogicalPortId"});
 
     for (auto const& portInfo : model.get_portEntries()) {
       table.addRow({
@@ -92,6 +93,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
           folly::to<std::string>(portInfo.get_tcvrID()),
           portInfo.get_speed(),
           portInfo.get_profileId(),
+          folly::to<std::string>(portInfo.get_hwLogicalPortId()),
       });
     }
 
@@ -240,6 +242,8 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         portDetails.linkState() = operState;
         portDetails.speed() = getSpeedGbps(portInfo.get_speedMbps());
         portDetails.profileId() = portInfo.get_profileID();
+        // TODO: Replace with HwLogicalPortId
+        portDetails.hwLogicalPortId() = portInfo.get_portId();
         if (auto tcvrId = portInfo.transceiverIdx()) {
           const auto transceiverId = tcvrId->get_transceiverId();
           portDetails.tcvrID() = transceiverId;

@@ -13,4 +13,5 @@ struct PortEntry {
   6: string profileId;
   7: i32 tcvrID;
   8: string tcvrPresent;
+  9: i32 hwLogicalPortId;
 }
