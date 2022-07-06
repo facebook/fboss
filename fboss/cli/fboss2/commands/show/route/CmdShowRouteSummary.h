@@ -14,12 +14,13 @@
 #include <cstdint>
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
 #include "fboss/cli/fboss2/commands/show/route/gen-cpp2/model_types.h"
 
 namespace facebook::fboss {
 
 struct CmdShowRouteSummaryTraits : public BaseCommandTraits {
-  using ParentCmd = void;
+  using ParentCmd = CmdShowRoute;
   using ObjectArgType = utils::NoneArgType;
   using RetType = cli::ShowRouteSummaryModel;
 };
