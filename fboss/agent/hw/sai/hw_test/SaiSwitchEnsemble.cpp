@@ -160,6 +160,7 @@ void SaiSwitchEnsemble::init(
       std::move(linkToggler),
       std::move(thriftThread),
       info);
+  getPlatform()->initLEDs();
   auto hw = static_cast<SaiSwitch*>(getHwSwitch());
   diagShell_ = std::make_unique<DiagShell>(hw);
   diagCmdServer_ = std::make_unique<DiagCmdServer>(hw, diagShell_.get());
