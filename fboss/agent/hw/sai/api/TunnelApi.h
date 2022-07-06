@@ -21,8 +21,37 @@ struct SaiTunnelTraits {
   using SaiApiT = TunnelApi;
   struct Attributes {
     using EnumType = sai_tunnel_attr_t;
+    using Type = SaiAttribute<EnumType, SAI_TUNNEL_ATTR_TYPE, sai_int32_t>;
+    using UnderlayInterface = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_ATTR_UNDERLAY_INTERFACE,
+        SaiObjectIdT>;
+    using OverlayInterface =
+        SaiAttribute<EnumType, SAI_TUNNEL_ATTR_OVERLAY_INTERFACE, SaiObjectIdT>;
+    using DecapTtlMode =
+        SaiAttribute<EnumType, SAI_TUNNEL_ATTR_DECAP_TTL_MODE, sai_int32_t>;
+    using DecapDscpMode =
+        SaiAttribute<EnumType, SAI_TUNNEL_ATTR_DECAP_DSCP_MODE, sai_int32_t>;
+    using DecapEcnMode =
+        SaiAttribute<EnumType, SAI_TUNNEL_ATTR_DECAP_ECN_MODE, sai_int32_t>;
   };
+  using AdapterKey = TunnelSaiId;
+  using CreateAttributes = std::tuple<
+      Attributes::Type,
+      Attributes::UnderlayInterface,
+      Attributes::OverlayInterface,
+      std::optional<Attributes::DecapTtlMode>,
+      std::optional<Attributes::DecapDscpMode>,
+      std::optional<Attributes::DecapEcnMode>>;
+  using AdapterHostKey = CreateAttributes;
 };
+
+SAI_ATTRIBUTE_NAME(Tunnel, Type);
+SAI_ATTRIBUTE_NAME(Tunnel, UnderlayInterface);
+SAI_ATTRIBUTE_NAME(Tunnel, OverlayInterface);
+SAI_ATTRIBUTE_NAME(Tunnel, DecapTtlMode);
+SAI_ATTRIBUTE_NAME(Tunnel, DecapDscpMode);
+SAI_ATTRIBUTE_NAME(Tunnel, DecapEcnMode);
 
 struct SaiTunnelTermTraits {
   static constexpr sai_object_type_t ObjectType =
