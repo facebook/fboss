@@ -8,4 +8,4 @@ Features
    :maxdepth: 2
    :glob:
 
-   */*/index
+   */index
