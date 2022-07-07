@@ -17,9 +17,16 @@ void DarwinFruModule::init(std::vector<AttributeConfig>& attrs) {
 }
 
 void DarwinFruModule::refresh() {
-  XLOG(DBG4) << "refresh " << getFruId() << " present state is "
-             << facebook::fboss::readSysfs(presentPath_) << " after reading "
-             << presentPath_;
+  std::string presence = facebook::fboss::readSysfs(presentPath_);
+  try {
+    isPresent_ = (std::stoi(presence) > 0);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << "failed to parse present state from " << presentPath_
+              << " where the value is " << presence;
+    throw;
+  }
+  XLOG(DBG4) << "refresh " << getFruId() << " present state is " << isPresent_
+             << " after reading " << presentPath_;
 }
 
 } // namespace facebook::fboss::platform::data_corral_service
