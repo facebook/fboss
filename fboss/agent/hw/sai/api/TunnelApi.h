@@ -59,8 +59,58 @@ struct SaiTunnelTermTraits {
   using SaiApiT = TunnelApi;
   struct Attributes {
     using EnumType = sai_tunnel_term_table_entry_attr_t;
+    using Type = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_TYPE,
+        sai_int32_t>;
+    using EntryAttrVrId = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_VR_ID,
+        SaiObjectIdT>;
+    using DstIp = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_DST_IP,
+        folly::IPAddress>;
+    using DstIpMask = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_DST_IP_MASK,
+        folly::IPAddress>;
+    using SrcIp = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_SRC_IP,
+        folly::IPAddress>;
+    using SrcIpMask = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_SRC_IP_MASK,
+        folly::IPAddress>;
+    using TunnelType = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_TUNNEL_TYPE,
+        sai_int32_t>;
+    using ActionTunnelId = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_ACTION_TUNNEL_ID,
+        SaiObjectIdT>;
   };
+  using AdapterKey = TunnelTermSaiId;
+  using CreateAttributes = std::tuple<
+      Attributes::Type,
+      Attributes::EntryAttrVrId,
+      Attributes::DstIp,
+      Attributes::SrcIp,
+      Attributes::TunnelType,
+      Attributes::ActionTunnelId>;
+  using AdapterHostKey = CreateAttributes;
 };
+
+SAI_ATTRIBUTE_NAME(TunnelTerm, Type);
+SAI_ATTRIBUTE_NAME(TunnelTerm, EntryAttrVrId);
+SAI_ATTRIBUTE_NAME(TunnelTerm, DstIp);
+SAI_ATTRIBUTE_NAME(TunnelTerm, DstIpMask);
+SAI_ATTRIBUTE_NAME(TunnelTerm, SrcIp);
+SAI_ATTRIBUTE_NAME(TunnelTerm, SrcIpMask);
+SAI_ATTRIBUTE_NAME(TunnelTerm, TunnelType);
+SAI_ATTRIBUTE_NAME(TunnelTerm, ActionTunnelId);
 
 class TunnelApi : public SaiApi<TunnelApi> {
  public:
