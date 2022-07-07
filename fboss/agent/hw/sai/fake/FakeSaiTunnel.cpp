@@ -6,7 +6,6 @@
 namespace {
 
 using facebook::fboss::FakeSai;
-using facebook::fboss::FakeTunnel;
 
 sai_status_t create_tunnel_fn(
     sai_object_id_t* /* tunnel_id */,
