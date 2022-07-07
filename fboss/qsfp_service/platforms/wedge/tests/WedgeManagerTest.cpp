@@ -441,4 +441,85 @@ TEST_F(WedgeManagerTest, pauseRemediationSetGetTest) {
   }
 }
 
+/*
+ * This test sets the pause remediate timers for 2 set of ports. It attempt
+ * the remediation on these ports and verifies that they adhere to the pause
+ * timers
+ */
+TEST_F(WedgeManagerTest, pauseRemediationTimerTest) {
+  auto portNameMap = transceiverManager_->getPortNameToModuleMap();
+
+  // List of transceiver names
+  std::vector<std::string> portNames1{"eth1/1/1", "eth1/2/1"};
+  std::vector<std::string> portNames2{"eth1/3/1", "eth1/4/1"};
+
+  // Set module pause remediation time as 125 seconds and 130 seconds for two
+  // set of ports respectively
+  transceiverManager_->setPauseRemediation(
+      125, std::make_unique<std::vector<std::string>>(portNames1));
+  transceiverManager_->setPauseRemediation(
+      130, std::make_unique<std::vector<std::string>>(portNames2));
+
+  // This Lambda attempts the remediation on the module and check if there was
+  // a rediation performed on the module
+  auto attemptAndCheckRemediate = [this](TransceiverID xcvr) {
+    transceiverManager_->tryRemediateTransceiver(xcvr);
+
+    // A successful remediation will increment module's remediationCount_,
+    // this needs to be updated in cache
+    transceiverManager_->refreshStateMachines();
+
+    std::map<int32_t, TransceiverInfo> transInfo;
+    std::vector<int32_t> xcvrList{xcvr};
+    transceiverManager_->getTransceiversInfo(
+        transInfo, std::make_unique<std::vector<int32_t>>(xcvrList));
+    if (transInfo.find(xcvr) != transInfo.end()) {
+      auto remediateCount = transInfo[xcvr].remediationCounter().value();
+      XLOG(INFO) << "Module " << xcvr
+                 << " remediate count = " << remediateCount;
+      if (remediateCount > 0) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // For first 120 seconds, the remediation is disallowed so wait till that
+  // much time
+  /* sleep override */
+  std::this_thread::sleep_for(std::chrono::seconds(120));
+
+  // Check that remediation could not be done on all 4 modules
+  EXPECT_FALSE(
+      attemptAndCheckRemediate(TransceiverID(portNameMap.at("eth1/1/1"))));
+  EXPECT_FALSE(
+      attemptAndCheckRemediate(TransceiverID(portNameMap.at("eth1/2/1"))));
+  EXPECT_FALSE(
+      attemptAndCheckRemediate(TransceiverID(portNameMap.at("eth1/3/1"))));
+  EXPECT_FALSE(
+      attemptAndCheckRemediate(TransceiverID(portNameMap.at("eth1/4/1"))));
+
+  // Wait for 6 seconds and try again. This time the remediation should be
+  // performed on first set of module but not on second set of modules
+  /* sleep override */
+  std::this_thread::sleep_for(std::chrono::seconds(6));
+  EXPECT_TRUE(
+      attemptAndCheckRemediate(TransceiverID(portNameMap.at("eth1/1/1"))));
+  EXPECT_TRUE(
+      attemptAndCheckRemediate(TransceiverID(portNameMap.at("eth1/2/1"))));
+  EXPECT_FALSE(
+      attemptAndCheckRemediate(TransceiverID(portNameMap.at("eth1/3/1"))));
+  EXPECT_FALSE(
+      attemptAndCheckRemediate(TransceiverID(portNameMap.at("eth1/4/1"))));
+
+  // Wait for 5 seconds and try again. This time the remediation should be
+  // allowed on second set of modules also
+  /* sleep override */
+  std::this_thread::sleep_for(std::chrono::seconds(5));
+  EXPECT_TRUE(
+      attemptAndCheckRemediate(TransceiverID(portNameMap.at("eth1/3/1"))));
+  EXPECT_TRUE(
+      attemptAndCheckRemediate(TransceiverID(portNameMap.at("eth1/4/1"))));
+}
+
 } // namespace facebook::fboss
