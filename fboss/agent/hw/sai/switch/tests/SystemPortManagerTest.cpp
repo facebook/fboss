@@ -48,3 +48,25 @@ TEST_F(SystemPortManagerTest, addSystemPort) {
       saiId, SaiSystemPortTraits::Attributes::ConfigInfo());
   EXPECT_EQ(configInfo.port_id, 1);
 }
+
+TEST_F(SystemPortManagerTest, addTwoSystemPort) {
+  SystemPortSaiId saiId = saiManagerTable->systemPortManager().addSystemPort(
+      makeSystemPort(std::nullopt));
+  auto configInfo = saiApiTable->systemPortApi().getAttribute(
+      saiId, SaiSystemPortTraits::Attributes::ConfigInfo());
+  EXPECT_EQ(configInfo.port_id, 1);
+  SystemPortSaiId saiId2 = saiManagerTable->systemPortManager().addSystemPort(
+      makeSystemPort(std::nullopt, 2));
+  auto configInfo2 = saiApiTable->systemPortApi().getAttribute(
+      saiId2, SaiSystemPortTraits::Attributes::ConfigInfo());
+  EXPECT_EQ(configInfo2.port_id, 2);
+}
+
+TEST_F(SystemPortManagerTest, addDupSystemPort) {
+  saiManagerTable->systemPortManager().addSystemPort(
+      makeSystemPort(std::nullopt));
+  EXPECT_THROW(
+      saiManagerTable->systemPortManager().addSystemPort(
+          makeSystemPort(std::nullopt)),
+      FbossError);
+}
