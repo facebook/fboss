@@ -158,7 +158,9 @@ std::string getLocalTime(std::time_t t);
 void setPauseRemediation(
     folly::EventBase& evb,
     std::vector<std::string> portList);
-void doGetRemediationUntilTime(folly::EventBase& evb);
+void doGetRemediationUntilTime(
+    folly::EventBase& evb,
+    std::vector<std::string> portList);
 
 void printChannelMonitor(
     unsigned int index,

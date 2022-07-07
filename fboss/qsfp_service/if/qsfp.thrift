@@ -67,7 +67,7 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
    * it may cause some confusion for debugging. This function is to tell
    * what is the currently pause remediation expiration time set to.
    */
-  i32 getRemediationUntilTime();
+  map<string, i32> getRemediationUntilTime(1: list<string> portList);
 
   /*
   * Perform a raw register read for the specified transceivers

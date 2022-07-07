@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
 
   if (FLAGS_get_remediation_until_time) {
     try {
-      doGetRemediationUntilTime(evb);
+      doGetRemediationUntilTime(evb, portNames);
       return EX_OK;
     } catch (const std::exception& ex) {
       fprintf(
@@ -141,6 +141,7 @@ int main(int argc, char* argv[]) {
           ex.what());
       return EX_SOFTWARE;
     }
+    return EX_OK;
   }
 
   auto busAndError = getTransceiverAPI();

@@ -1030,12 +1030,18 @@ void setPauseRemediation(
   }
 }
 
-void doGetRemediationUntilTime(folly::EventBase& evb) {
+void doGetRemediationUntilTime(
+    folly::EventBase& evb,
+    std::vector<std::string> portList) {
   auto client = getQsfpClient(evb);
-  auto remediationUntilEpoch = client->sync_getRemediationUntilTime();
-  printf(
-      "RemediationUntil time is set to : %s",
-      getLocalTime(remediationUntilEpoch).c_str());
+  std::map<std::string, int32_t> info;
+  client->sync_getRemediationUntilTime(info, portList);
+  for (auto infoItr : info) {
+    printf(
+        "RemediationUntil time for port %s is set to : %s",
+        infoItr.first.c_str(),
+        getLocalTime(infoItr.second).c_str());
+  }
 }
 
 void printChannelMonitor(
