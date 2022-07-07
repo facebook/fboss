@@ -9,7 +9,7 @@
  */
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
-#include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SystemPort.h"
 #include "fboss/agent/types.h"
 
@@ -69,4 +69,17 @@ TEST_F(SystemPortManagerTest, addDupSystemPort) {
       saiManagerTable->systemPortManager().addSystemPort(
           makeSystemPort(std::nullopt)),
       FbossError);
+}
+
+TEST_F(SystemPortManagerTest, addSystemPortViaSwitchState) {
+  std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
+  auto state = programmedState->clone();
+  state->addSystemPort(swSystemPort);
+  applyNewState(state);
+  auto handle =
+      saiManagerTable->systemPortManager().getSystemPortHandle(SystemPortID(1));
+  EXPECT_NE(handle, nullptr);
+  auto configInfo =
+      GET_ATTR(SystemPort, ConfigInfo, handle->systemPort->attributes());
+  EXPECT_EQ(configInfo.port_id, 1);
 }
