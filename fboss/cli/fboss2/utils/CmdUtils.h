@@ -11,6 +11,7 @@
 
 #include <CLI/CLI.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <fboss/lib/phy/gen-cpp2/phy_types.h>
 #include <folly/IPAddress.h>
 #include <folly/String.h>
 #include <folly/gen/Base.h>
@@ -38,7 +39,8 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_PORT_STATE,
   OBJECT_ARG_TYPE_FSDB_PATH,
   OBJECT_ARG_TYPE_AS_SEQUENCE,
-  OBJECT_ARG_TYPE_LOCAL_PREFERENCE
+  OBJECT_ARG_TYPE_LOCAL_PREFERENCE,
+  OBJECT_ARG_TYPE_PHY_CHIP_TYPE
 };
 
 template <typename T>
@@ -179,6 +181,30 @@ class PrbsComponent : public BaseObjectArgType<phy::PrbsComponent> {
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT;
+};
+
+class PhyChipType : public BaseObjectArgType<phy::DataPlanePhyChipType> {
+ public:
+  /* implicit */ PhyChipType(std::vector<std::string> chipTypes) {
+    if (chipTypes.empty()) {
+      iphyIncluded = true;
+      xphyIncluded = true;
+    } else {
+      if (std::find(chipTypes.begin(), chipTypes.end(), "asic") !=
+          chipTypes.end()) {
+        iphyIncluded = true;
+      }
+      if (std::find(chipTypes.begin(), chipTypes.end(), "xphy") !=
+          chipTypes.end()) {
+        xphyIncluded = true;
+      }
+    }
+  }
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_PHY_CHIP_TYPE;
+  bool iphyIncluded{false};
+  bool xphyIncluded{false};
 };
 
 class PrbsState : public BaseObjectArgType<std::string> {

@@ -81,6 +81,12 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
           "name(s) of PRBS component, one or multiple of "
           "asic/xphy_system/xphy_line/transceiver_system/transceiver_line");
     } else if (
+        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PHY_CHIP_TYPE) {
+      subCmd->add_option(
+          "phyChipType",
+          args,
+          "phy chip type(s), one or multiple of asic/xphy");
+    } else if (
         cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_AS_SEQUENCE) {
       subCmd->add_option("sequence", args, "AS sequence");
     } else if (

@@ -33,6 +33,7 @@
 #include "fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h"
 #include "fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
+#include "fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.h"
 #include "fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h"
 #include "fboss/cli/fboss2/commands/show/interface/prbs/CmdShowInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/show/interface/prbs/capabilities/CmdShowInterfacePrbsCapabilities.h"
@@ -132,6 +133,10 @@ const CommandTree& kCommandTree() {
             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
             "Show Interface Status",
             commandHandler<CmdShowInterfaceStatus>},
+           {"phy",
+            utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PHY_CHIP_TYPE,
+            "Show Phy info for asic and/or xphy",
+            commandHandler<CmdShowInterfacePhy>},
            {"phymap",
             utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
             "Show External Phy Port Map",
