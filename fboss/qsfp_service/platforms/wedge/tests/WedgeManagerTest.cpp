@@ -403,4 +403,42 @@ TEST_F(
   // and all ports are down
   verify(false /* isPortUp */);
 }
+
+/*
+ * This test sets the module level and the global level pause remediation timer
+ * and then verifieis these timer values
+ */
+TEST_F(WedgeManagerTest, pauseRemediationSetGetTest) {
+  auto portNameMap = transceiverManager_->getPortNameToModuleMap();
+
+  // List of transceiver names
+  std::vector<std::string> portNames{"eth1/1/1", "eth1/2/1"};
+  for (auto port : portNames) {
+    XLOG(INFO) << "Performing pause remediation set and get test on ports "
+               << port << " module id " << portNameMap.at(port);
+  }
+
+  // Set the global pause remediation time for 5 seconds
+  // And also set module pause remediation time as 10 seconds
+  transceiverManager_->setPauseRemediation(5, nullptr);
+  transceiverManager_->setPauseRemediation(
+      10, std::make_unique<std::vector<std::string>>(portNames));
+
+  // Get the global pause remediation time and verify
+  std::map<std::string, int32_t> info;
+  transceiverManager_->getPauseRemediationUntil(info, nullptr);
+  auto now = std::time(nullptr);
+  EXPECT_LE(now, info["all"]);
+  EXPECT_LE(info["all"], now + 5);
+
+  // Get the module level pause remediation time and verify
+  info.clear();
+  transceiverManager_->getPauseRemediationUntil(
+      info, std::make_unique<std::vector<std::string>>(portNames));
+  for (auto& portName : portNames) {
+    EXPECT_LE(now, info[portName]);
+    EXPECT_LE(info[portName], now + 10);
+  }
+}
+
 } // namespace facebook::fboss

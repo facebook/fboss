@@ -1633,7 +1633,7 @@ void TransceiverManager::setPauseRemediation(
       auto it =
           lockedTransceivers->find(TransceiverID(portNameToModule_.at(port)));
       if (it != lockedTransceivers->end()) {
-        return it->second->setModulePauseRemediation(timeout);
+        it->second->setModulePauseRemediation(timeout);
       }
     }
   }
