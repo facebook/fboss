@@ -88,8 +88,6 @@ class QsfpModule : public Transceiver {
 
   std::string getNameString() const;
 
-  TransceiverPresenceDetectionStatus detectPresenceLocked();
-
   virtual void refresh() override;
   folly::Future<folly::Unit> futureRefresh() override;
 
@@ -525,6 +523,8 @@ class QsfpModule : public Transceiver {
 
   void refreshLocked();
   virtual void updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus);
+
+  TransceiverPresenceDetectionStatus detectPresenceLocked();
 
   /*
    * Try to remediate such Transceiver if needed.

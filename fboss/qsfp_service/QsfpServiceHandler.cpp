@@ -108,7 +108,7 @@ void QsfpServiceHandler::getRemediationUntilTime(
     std::map<std::string, int32_t>& info,
     std::unique_ptr<std::vector<std::string>> portList) {
   auto log = LOG_THRIFT_CALL(INFO);
-  manager_->getPauseRemediationUntil();
+  manager_->getPauseRemediationUntil(info, std::move(portList));
 }
 
 void QsfpServiceHandler::readTransceiverRegister(

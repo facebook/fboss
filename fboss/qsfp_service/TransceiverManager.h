@@ -93,10 +93,9 @@ class TransceiverManager {
   void setPauseRemediation(
       int32_t timeout,
       std::unique_ptr<std::vector<std::string>> portList);
-  time_t getPauseRemediationUntil() {
-    return pauseRemediationUntil_;
-  }
-
+  void getPauseRemediationUntil(
+      std::map<std::string, int32_t>& info,
+      std::unique_ptr<std::vector<std::string>> portList);
   /* Virtual function to return the i2c transactions stats in a platform.
    * This will be overridden by derived classes which are platform specific
    * and has the platform specific implementation for this counter

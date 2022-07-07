@@ -576,8 +576,10 @@ bool QsfpModule::shouldRemediateLocked() {
   }
 
   auto now = std::time(nullptr);
-  bool remediationEnabled =
-      (now > getTransceiverManager()->getPauseRemediationUntil()) &&
+  std::map<std::string, int32_t> remediatePausedInfo;
+  getTransceiverManager()->getPauseRemediationUntil(
+      remediatePausedInfo, nullptr);
+  bool remediationEnabled = (now > remediatePausedInfo["all"]) &&
       (now > getModulePauseRemediationUntil());
   // Rather than immediately attempting to remediate a module,
   // we would like to introduce a bit delay to de-couple the consequences
