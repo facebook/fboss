@@ -39,6 +39,8 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     return createLassenWedgeManager();
   } else if (mode == PlatformMode::ELBERT) {
     return createElbertWedgeManager();
+  } else if (mode == PlatformMode::SANDIA) {
+    return createSandiaWedgeManager();
   } else if (
       mode == PlatformMode::FUJI || mode == PlatformMode::MINIPACK ||
       mode == PlatformMode::WEDGE400 || mode == PlatformMode::WEDGE400C ||

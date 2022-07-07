@@ -43,5 +43,9 @@ bool isElbert8DD() {
   return false;
 }
 
+std::unique_ptr<WedgeManager> createSandiaWedgeManager() {
+  return std::unique_ptr<WedgeManager>{};
+}
+
 } // namespace fboss
 } // namespace facebook
