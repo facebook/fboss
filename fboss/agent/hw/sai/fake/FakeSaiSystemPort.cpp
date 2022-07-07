@@ -40,7 +40,8 @@ sai_status_t create_system_port_fn(
         break;
     }
   }
-  fs->systemPortManager.create(config, switch_id, adminState, qosToTcMapId);
+  *id =
+      fs->systemPortManager.create(config, switch_id, adminState, qosToTcMapId);
   return SAI_STATUS_SUCCESS;
 }
 
