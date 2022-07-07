@@ -184,26 +184,33 @@ class CmdShowInterfacePhy
       const utils::PortList& queriedIfs,
       const utils::PhyChipType& phyChipType) {
     RetType model;
-    // Process IPHY first if it is requested. We want to display phy data
-    // starting from IPHY then XPHY
-    if (phyChipType.iphyIncluded) {
-      auto agentClient =
-          utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-      std::map<std::string, phy::PhyInfo> phyInfo;
-      agentClient->sync_getInterfacePhyInfo(phyInfo, queriedIfs.data());
-      for (auto& interfacePhyInfo : phyInfo) {
-        model.phyInfo_ref()[interfacePhyInfo.first].insert(
-            {phy::DataPlanePhyChipType::IPHY, interfacePhyInfo.second});
+    try {
+      if (phyChipType.iphyIncluded) {
+        auto agentClient =
+            utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
+                hostInfo);
+        std::map<std::string, phy::PhyInfo> phyInfo;
+        agentClient->sync_getInterfacePhyInfo(phyInfo, queriedIfs.data());
+        for (auto& interfacePhyInfo : phyInfo) {
+          model.phyInfo_ref()[interfacePhyInfo.first].insert(
+              {phy::DataPlanePhyChipType::IPHY, interfacePhyInfo.second});
+        }
       }
+    } catch (apache::thrift::transport::TTransportException& e) {
+      std::cerr << "Cannot connect to wedge_agent\n";
     }
-    if (phyChipType.xphyIncluded) {
-      auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
-      std::map<std::string, phy::PhyInfo> phyInfo;
-      qsfpClient->sync_getInterfacePhyInfo(phyInfo, queriedIfs.data());
-      for (auto& interfacePhyInfo : phyInfo) {
-        model.phyInfo_ref()[interfacePhyInfo.first].insert(
-            {phy::DataPlanePhyChipType::XPHY, interfacePhyInfo.second});
+    try {
+      if (phyChipType.xphyIncluded) {
+        auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
+        std::map<std::string, phy::PhyInfo> phyInfo;
+        qsfpClient->sync_getInterfacePhyInfo(phyInfo, queriedIfs.data());
+        for (auto& interfacePhyInfo : phyInfo) {
+          model.phyInfo_ref()[interfacePhyInfo.first].insert(
+              {phy::DataPlanePhyChipType::XPHY, interfacePhyInfo.second});
+        }
       }
+    } catch (apache::thrift::transport::TTransportException& e) {
+      std::cerr << "Cannot connect to qsfp_service\n";
     }
     return model;
   }
