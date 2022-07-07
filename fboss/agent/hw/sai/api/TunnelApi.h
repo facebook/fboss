@@ -122,6 +122,46 @@ class TunnelApi : public SaiApi<TunnelApi> {
   }
 
  private:
+  sai_status_t _create(
+      TunnelSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_tunnel(rawSaiId(id), switch_id, count, attr_list);
+  }
+  sai_status_t _remove(TunnelSaiId key) const {
+    return api_->remove_tunnel(key);
+  }
+  sai_status_t _getAttribute(TunnelSaiId key, sai_attribute_t* attr) const {
+    return api_->get_tunnel_attribute(key, 1, attr);
+  }
+  sai_status_t _setAttribute(TunnelSaiId key, const sai_attribute_t* attr)
+      const {
+    return api_->set_tunnel_attribute(key, attr);
+  }
+
+  sai_status_t _create(
+      TunnelTermSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_tunnel_term_table_entry(
+        rawSaiId(id), switch_id, count, attr_list);
+  }
+
+  sai_status_t _remove(TunnelTermSaiId id) const {
+    return api_->remove_tunnel_term_table_entry(id);
+  }
+
+  sai_status_t _getAttribute(TunnelTermSaiId key, sai_attribute_t* attr) const {
+    return api_->get_tunnel_term_table_entry_attribute(key, 1, attr);
+  }
+
+  sai_status_t _setAttribute(TunnelTermSaiId key, const sai_attribute_t* attr)
+      const {
+    return api_->set_tunnel_term_table_entry_attribute(key, attr);
+  }
+
   sai_tunnel_api_t* api_;
   friend class SaiApi<TunnelApi>;
 };
