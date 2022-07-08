@@ -19,9 +19,10 @@ using namespace facebook::fboss;
 
 std::shared_ptr<SystemPort> makeSystemPort(
     const std::optional<std::string>& qosPolicy,
-    int64_t sysPortId = 1) {
+    int64_t sysPortId = 1,
+    int64_t switchId = 1) {
   auto sysPort = std::make_shared<SystemPort>(SystemPortID(sysPortId));
-  sysPort->setSwitchId(SwitchID(1));
+  sysPort->setSwitchId(SwitchID(switchId));
   sysPort->setPortName("sysPort1");
   sysPort->setCoreIndex(42);
   sysPort->setCorePortIndex(24);
@@ -82,4 +83,19 @@ TEST_F(SystemPortManagerTest, addSystemPortViaSwitchState) {
   auto configInfo =
       GET_ATTR(SystemPort, ConfigInfo, handle->systemPort->attributes());
   EXPECT_EQ(configInfo.port_id, 1);
+}
+
+TEST_F(SystemPortManagerTest, changeSystemPort) {
+  std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
+  saiManagerTable->systemPortManager().addSystemPort(swSystemPort);
+  auto swSystemPort2 = makeSystemPort(std::nullopt, 1, 0);
+  saiManagerTable->systemPortManager().changeSystemPort(
+      swSystemPort, swSystemPort2);
+  auto handle =
+      saiManagerTable->systemPortManager().getSystemPortHandle(SystemPortID(1));
+  EXPECT_NE(handle, nullptr);
+  auto configInfo =
+      GET_ATTR(SystemPort, ConfigInfo, handle->systemPort->attributes());
+  EXPECT_EQ(configInfo.port_id, 1);
+  EXPECT_EQ(configInfo.attached_switch_id, 0);
 }
