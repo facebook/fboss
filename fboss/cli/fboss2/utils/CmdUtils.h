@@ -33,6 +33,7 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_PORT_LIST,
   OBJECT_ARG_TYPE_ID_MESSAGE,
   OBJECT_ARG_TYPE_ID_PEERID_LIST, // BGP peer id
+  OBJECT_ARG_TYPE_ID_VIP_INJECTOR_ID,
   OBJECT_ARG_TYPE_DEBUG_LEVEL,
   OBJECT_ARG_TYPE_PRBS_COMPONENT,
   OBJECT_ARG_TYPE_PRBS_STATE,
@@ -60,6 +61,9 @@ class BaseObjectArgType {
     return data_[index];
   }
 
+  const std::string& operator[](int index) const {
+    return data_[index];
+  }
   iterator begin() {
     return data_.begin();
   }
@@ -152,6 +156,15 @@ class Message : public BaseObjectArgType<std::string> {
   /* implicit */ Message(std::vector<std::string> v) : BaseObjectArgType(v) {}
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
+};
+
+class VipInjectorID : public BaseObjectArgType<std::string> {
+ public:
+  /* implicit */ VipInjectorID(std::vector<std::string> v)
+      : BaseObjectArgType(v) {}
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_ID_VIP_INJECTOR_ID;
 };
 
 class PeerIdList : public BaseObjectArgType<std::string> {

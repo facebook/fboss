@@ -121,6 +121,10 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
           "Fsdb path to set - some examples \n"
           "'agent' -> fsdb stats\n"
           "'agent/config' -> fsdb state\n");
+    } else if (
+        cmd.argType ==
+        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_VIP_INJECTOR_ID) {
+      subCmd->add_option("injector", args, "Injector");
     }
   }
   return subCmd;
