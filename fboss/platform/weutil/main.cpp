@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <folly/init/Init.h>
+#include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
@@ -15,9 +16,11 @@
 using namespace facebook::fboss::platform::helpers;
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss;
+using namespace facebook;
 
 DEFINE_bool(json, false, "output in JSON format");
 
+FOLLY_INIT_LOGGING_CONFIG(".=FATAL; default:async=true");
 /*
  * This utility program will output Chassis info for Darwin
  */
