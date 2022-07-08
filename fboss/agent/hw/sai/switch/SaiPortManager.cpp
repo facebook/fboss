@@ -649,7 +649,7 @@ const std::vector<sai_stat_id_t>& SaiPortManager::fecStatIds(
   }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_FEC_COUNTERS) &&
       utility::isReedSolomonFec(getFECMode(portId))) {
-#if defined(SAI_VERSION_7_2_0_0_ODP)
+#if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_0_EA_ODP)
     ids.push_back(SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES);
     ids.push_back(SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES);
 #endif
@@ -829,7 +829,7 @@ void SaiPortManager::programSerdes(
      * needs to create a new serdes object without knowing the serdes Id or
      * reloading the object to sai store.
      */
-#if !defined(SAI_VERSION_7_2_0_0_ODP)
+#if !defined(SAI_VERSION_7_2_0_0_ODP) && !defined(SAI_VERSION_8_0_EA_ODP)
     // serdes is not yet programmed or reloaded from adapter
     std::optional<SaiPortTraits::Attributes::SerdesId> serdesAttr{};
     auto serdesId = SaiApiTable::getInstance()->portApi().getAttribute(

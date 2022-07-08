@@ -7,7 +7,8 @@
 #include <folly/String.h>
 
 extern "C" {
-#if !defined(SAI_VERSION_5_1_0_3_ODP) && !defined(SAI_VERSION_7_2_0_0_ODP)
+#if !defined(SAI_VERSION_5_1_0_3_ODP) && !defined(SAI_VERSION_7_2_0_0_ODP) && \
+    !defined(SAI_VERSION_8_0_EA_ODP)
 #include <experimental/saiexperimentalswitch.h>
 #include <experimental/saitamextensions.h>
 #else
