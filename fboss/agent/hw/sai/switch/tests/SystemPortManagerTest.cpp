@@ -119,3 +119,29 @@ TEST_F(SystemPortManagerTest, changeSystemPortViaSwitchState) {
   EXPECT_EQ(configInfo.port_id, 1);
   EXPECT_EQ(configInfo.attached_switch_id, 0);
 }
+
+TEST_F(SystemPortManagerTest, removeSystemPort) {
+  std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
+  SystemPortSaiId saiId =
+      saiManagerTable->systemPortManager().addSystemPort(swSystemPort);
+
+  saiManagerTable->systemPortManager().removeSystemPort(swSystemPort);
+  EXPECT_THROW(
+      saiApiTable->systemPortApi().getAttribute(
+          saiId, SaiSystemPortTraits::Attributes::ConfigInfo()),
+      std::exception);
+}
+
+TEST_F(SystemPortManagerTest, removeSystemPortViaSwitchState) {
+  std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
+  auto state = programmedState->clone();
+  state->addSystemPort(swSystemPort);
+  applyNewState(state);
+  auto newState = state->clone();
+  auto sysPorts = newState->getSystemPorts()->modify(&newState);
+  sysPorts->removeNode(swSystemPort->getID());
+  applyNewState(newState);
+  auto handle =
+      saiManagerTable->systemPortManager().getSystemPortHandle(SystemPortID(1));
+  EXPECT_EQ(handle, nullptr);
+}
