@@ -99,3 +99,23 @@ TEST_F(SystemPortManagerTest, changeSystemPort) {
   EXPECT_EQ(configInfo.port_id, 1);
   EXPECT_EQ(configInfo.attached_switch_id, 0);
 }
+
+TEST_F(SystemPortManagerTest, changeSystemPortViaSwitchState) {
+  std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
+  auto state = programmedState->clone();
+  state->addSystemPort(swSystemPort);
+  applyNewState(state);
+  auto newState = state->clone();
+  auto sysPorts = newState->getSystemPorts()->modify(&newState);
+  auto newSysPort = sysPorts->getNodeIf(SystemPortID(1))->clone();
+  newSysPort->setSwitchId(SwitchID(0));
+  sysPorts->updateNode(newSysPort);
+  applyNewState(newState);
+  auto handle =
+      saiManagerTable->systemPortManager().getSystemPortHandle(SystemPortID(1));
+  EXPECT_NE(handle, nullptr);
+  auto configInfo =
+      GET_ATTR(SystemPort, ConfigInfo, handle->systemPort->attributes());
+  EXPECT_EQ(configInfo.port_id, 1);
+  EXPECT_EQ(configInfo.attached_switch_id, 0);
+}
