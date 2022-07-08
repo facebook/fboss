@@ -21,4 +21,5 @@ struct AclEntry {
   14: string dstMac;
   15: byte lookupClassL2;
   16: string actionType;
+  17: bool enabled;
 }

@@ -551,6 +551,7 @@ struct AclEntryThrift {
   20: optional byte lookupClass;
   21: string actionType;
   22: optional byte lookupClassL2;
+  23: optional bool enabled;
 }
 
 struct ClientInformation {
