@@ -183,6 +183,10 @@ const TamApi& SaiApiTable::tamApi() const {
   return getApi<TamApi>();
 }
 
+const TunnelApi& SaiApiTable::tunnelApi() const {
+  return getApi<TunnelApi>();
+}
+
 const LagApi& SaiApiTable::lagApi() const {
   return getApi<LagApi>();
 }

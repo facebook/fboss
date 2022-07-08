@@ -34,6 +34,7 @@
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/api/SystemPortApi.h"
 #include "fboss/agent/hw/sai/api/TamApi.h"
+#include "fboss/agent/hw/sai/api/TunnelApi.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/api/VlanApi.h"
 #include "fboss/agent/hw/sai/api/WredApi.h"
@@ -115,6 +116,8 @@ class SaiApiTable {
 
   const TamApi& tamApi() const;
 
+  const TunnelApi& tunnelApi() const;
+
   const LagApi& lagApi() const;
 
   const MacsecApi& macsecApi() const;
@@ -166,6 +169,7 @@ class SaiApiTable {
       std::unique_ptr<VlanApi>,
       std::unique_ptr<WredApi>,
       std::unique_ptr<TamApi>,
+      std::unique_ptr<TunnelApi>,
       std::unique_ptr<LagApi>,
       std::unique_ptr<MacsecApi>>
       apis_;
