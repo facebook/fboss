@@ -12,9 +12,17 @@ import shutil
 
    Sample invocation:
 
+   # Generate known bad regexes for SAI
+
    ./generate_known_bad_tests.py \
     $HOME/configerator/materialized_configs/neteng/netcastle/test_config/team_test_configs/sai_test.materialized_JSON \
     $HOME/fbsource/fbcode/fboss/sai_known_bad_tests
+
+   # Generate known bad regexes for native SDK
+
+   ./generate_known_bad_tests.py \
+    $HOME/configerator/materialized_configs/neteng/netcastle/test_config/team_test_configs/fboss_bcm.materialized_JSON \
+    $HOME/fbsource/fbcode/fboss/bcm_known_bad_tests
 """
 
 
@@ -61,9 +69,8 @@ class GenerateKnownBadTests:
     def run(self):
         self._cleanup()
         all_known_bad_regexes = self._get_all_known_bad_regexes()
-        all_brcm_test_types = [k for k in all_known_bad_regexes.keys() if "brcm" in k]
 
-        for test_type in all_brcm_test_types:
+        for test_type in all_known_bad_regexes.keys():
             known_bad_regexes = [
                 val["test_name_regex"] for val in all_known_bad_regexes[test_type]
             ]
