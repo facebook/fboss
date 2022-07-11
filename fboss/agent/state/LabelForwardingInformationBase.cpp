@@ -72,7 +72,8 @@ LabelForwardingInformationBase::fromFollyDynamicOldFormat(folly::dynamic json) {
   for (const auto& clientEntry : labelNextHopsByClient) {
     entry->update(clientEntry.first, clientEntry.second);
   }
-  entry->setResolved(LabelNextHopEntry::fromFollyDynamic(json[kLabelNextHop]));
+  entry->setResolved(
+      LabelNextHopEntry::fromFollyDynamicLegacy(json[kLabelNextHop]));
   return entry;
 }
 
@@ -80,7 +81,7 @@ folly::dynamic LabelForwardingInformationBase::toFollyDynamicOldFormat(
     std::shared_ptr<LabelForwardingEntry> entry) {
   folly::dynamic json = folly::dynamic::object;
   json[kIncomingLabel] = static_cast<int>(entry->getID().value());
-  json[kLabelNextHop] = entry->getForwardInfo().toFollyDynamic();
+  json[kLabelNextHop] = entry->getForwardInfo().toFollyDynamicLegacy();
   json[kLabelNextHopsByClient] = entry->getEntryForClients().toFollyDynamic();
   return json;
 }

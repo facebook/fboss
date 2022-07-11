@@ -12,6 +12,7 @@ include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/if/common.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "common/network/if/Address.thrift"
+include "fboss/agent/if/ctrl.thrift"
 
 struct VlanInfo {
   1: bool tagged;
@@ -289,6 +290,14 @@ struct RoutePrefix {
   1: bool v6;
   2: Address.BinaryAddress prefix;
   3: byte mask;
+}
+
+struct RouteNextHopEntry {
+  1: ctrl.AdminDistance adminDistance;
+  2: ctrl.RouteForwardAction action;
+  3: optional string counterID;
+  4: optional switch_config.AclLookupClass classID;
+  5: list<common.NextHopThrift> nexthops;
 }
 
 struct SwitchState {

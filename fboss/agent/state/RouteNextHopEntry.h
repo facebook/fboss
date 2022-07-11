@@ -14,15 +14,18 @@
 #include <folly/dynamic.h>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteTypes.h"
+#include "fboss/agent/state/Thrifty.h"
 
 DECLARE_uint32(ecmp_width);
 DECLARE_bool(optimized_ucmp);
 
 namespace facebook::fboss {
 
-class RouteNextHopEntry {
+class RouteNextHopEntry
+    : public AnotherThriftyFields<state::RouteNextHopEntry, RouteNextHopEntry> {
  public:
   using Action = RouteForwardAction;
   using NextHopSet = boost::container::flat_set<NextHop>;
@@ -88,12 +91,13 @@ class RouteNextHopEntry {
   /*
    * Serialize to folly::dynamic
    */
-  folly::dynamic toFollyDynamic() const;
+  folly::dynamic toFollyDynamicLegacy() const;
 
   /*
    * Deserialize from folly::dynamic
    */
-  static RouteNextHopEntry fromFollyDynamic(const folly::dynamic& entryJson);
+  static RouteNextHopEntry fromFollyDynamicLegacy(
+      const folly::dynamic& entryJson);
 
   // Methods to manipulate this object
   bool isDrop() const {
@@ -141,6 +145,11 @@ class RouteNextHopEntry {
       std::vector<uint64_t>& nhWeights,
       uint64_t normalizedPathCount);
 
+  state::RouteNextHopEntry toThrift() const;
+  static RouteNextHopEntry fromThrift(const state::RouteNextHopEntry& prefix);
+  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
+
  private:
   void normalize(
       std::vector<NextHopWeight>& scaledWeights,
@@ -174,7 +183,9 @@ namespace util {
 /**
  * Convert thrift representation of nexthops to RouteNextHops.
  */
-RouteNextHopSet toRouteNextHopSet(std::vector<NextHopThrift> const& nhts);
+RouteNextHopSet toRouteNextHopSet(
+    std::vector<NextHopThrift> const& nhts,
+    bool allowV6NonLinkLocal = false);
 
 /**
  * Convert RouteNextHops to thrift representaion of nexthops

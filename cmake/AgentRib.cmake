@@ -19,6 +19,7 @@ target_link_libraries(standalone_rib
   label_forwarding_action
   state_utils
   Folly::folly
+  switch_state_cpp2
 )
 
 add_library(network_to_route_map

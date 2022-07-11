@@ -29,7 +29,7 @@ folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
   for (auto const& row : map_) {
     int clientid = static_cast<int>(row.first);
     const auto& entry = row.second;
-    obj[folly::to<std::string>(clientid)] = entry.toFollyDynamic();
+    obj[folly::to<std::string>(clientid)] = entry.toFollyDynamicLegacy();
   }
   return obj;
 }
@@ -40,7 +40,7 @@ RouteNextHopsMulti RouteNextHopsMulti::fromFollyDynamic(
   for (const auto& pair : json.items()) {
     nh.update(
         ClientID(pair.first.asInt()),
-        RouteNextHopEntry::fromFollyDynamic(pair.second));
+        RouteNextHopEntry::fromFollyDynamicLegacy(pair.second));
   }
   return nh;
 }

@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
@@ -361,4 +362,53 @@ TEST(RouteNextHopEntry, OptimizedUcmpDiscardMultipleLowWeights) {
   for (const auto& nhop : normalizedNextHops) {
     EXPECT_EQ(nhop.weight(), expectedWeights[nhop.addr()]);
   }
+}
+
+TEST(RouteNextHopEntry, Thrift) {
+  RouteNextHopEntry drop0(
+      RouteNextHopEntry::Action::DROP,
+      facebook::fboss::AdminDistance::STATIC_ROUTE,
+      "counter_drop",
+      cfg::AclLookupClass::CLASS_DROP);
+  RouteNextHopEntry drop1(
+      RouteNextHopEntry::Action::DROP,
+      facebook::fboss::AdminDistance::STATIC_ROUTE,
+      "counter_drop");
+  RouteNextHopEntry drop2(
+      RouteNextHopEntry::Action::DROP,
+      facebook::fboss::AdminDistance::STATIC_ROUTE,
+      std::nullopt,
+      cfg::AclLookupClass::CLASS_DROP);
+
+  RouteNextHopEntry cpu0(
+      RouteNextHopEntry::Action::TO_CPU,
+      facebook::fboss::AdminDistance::STATIC_ROUTE,
+      "counter_cpu",
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  RouteNextHopSet nhops;
+  std::vector<ResolvedNextHop> nexthopsVector{};
+  nexthopsVector.emplace_back(nextHopAddr1, InterfaceID(1), 50);
+  nexthopsVector.emplace_back(nextHopAddr2, InterfaceID(2), 50);
+  nexthopsVector.emplace_back(nextHopAddr3, InterfaceID(3), 1);
+  nexthopsVector.emplace_back(nextHopAddr4, InterfaceID(4), 1);
+  nexthopsVector.emplace_back(nextHopAddr5, InterfaceID(5), 1);
+  nexthopsVector.emplace_back(nextHopAddr6, InterfaceID(6), 1);
+  nexthopsVector.emplace_back(nextHopAddr7, InterfaceID(7), 1);
+  nexthopsVector.emplace_back(nextHopAddr8, InterfaceID(8), 1);
+
+  nhops.insert(std::begin(nexthopsVector), std::end(nexthopsVector));
+  RouteNextHopEntry nhops0(nhops, kDefaultAdminDistance);
+  RouteNextHopEntry nhops1(
+      ResolvedNextHop(nextHopAddr1, InterfaceID(1), 50),
+      kDefaultAdminDistance,
+      "counter0",
+      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+
+  validateThriftyMigration<RouteNextHopEntry, true>(drop0);
+  validateThriftyMigration<RouteNextHopEntry, true>(drop1);
+  validateThriftyMigration<RouteNextHopEntry, true>(drop2);
+  validateThriftyMigration<RouteNextHopEntry, true>(cpu0);
+  validateThriftyMigration<RouteNextHopEntry, true>(nhops0);
+  validateThriftyMigration<RouteNextHopEntry, true>(nhops1);
 }

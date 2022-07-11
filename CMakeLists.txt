@@ -247,6 +247,7 @@ add_fbthrift_cpp_library(
   DEPENDS
     switch_config_cpp2
     phy_cpp2
+    ctrl_cpp2
 )
 add_fbthrift_cpp_library(
   prbs_cpp2

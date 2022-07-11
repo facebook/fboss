@@ -15,6 +15,7 @@
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <iterator>
 #include <numeric>
 #include "folly/IPAddress.h"
 
@@ -48,12 +49,16 @@ namespace facebook::fboss {
 
 namespace util {
 
-RouteNextHopSet toRouteNextHopSet(std::vector<NextHopThrift> const& nhs) {
+RouteNextHopSet toRouteNextHopSet(
+    std::vector<NextHopThrift> const& nhs,
+    bool allowV6NonLinkLocal) {
   RouteNextHopSet rnhs;
+  std::vector<NextHop> nexthops;
   rnhs.reserve(nhs.size());
   for (auto const& nh : nhs) {
-    rnhs.emplace(fromThrift(nh));
+    nexthops.emplace_back(fromThrift(nh, allowV6NonLinkLocal));
   }
+  rnhs.insert(std::begin(nexthops), std::end(nexthops));
   return rnhs;
 }
 
@@ -184,7 +189,7 @@ NextHopWeight totalWeight(const RouteNextHopEntry::NextHopSet& nhops) {
   return result;
 }
 
-folly::dynamic RouteNextHopEntry::toFollyDynamic() const {
+folly::dynamic RouteNextHopEntry::toFollyDynamicLegacy() const {
   folly::dynamic entry = folly::dynamic::object;
   entry[kAction] = forwardActionStr(action_);
   folly::dynamic nhops = folly::dynamic::array;
@@ -202,7 +207,7 @@ folly::dynamic RouteNextHopEntry::toFollyDynamic() const {
   return entry;
 }
 
-RouteNextHopEntry RouteNextHopEntry::fromFollyDynamic(
+RouteNextHopEntry RouteNextHopEntry::fromFollyDynamicLegacy(
     const folly::dynamic& entryJson) {
   Action action = str2ForwardAction(entryJson[kAction].asString());
   auto it = entryJson.find(kAdminDistance);
@@ -684,6 +689,87 @@ void RouteNextHopEntry::normalizeNextHopWeightsToMaxPaths(
     // we should allocate all underflow slots
     CHECK_EQ(underflow, 0);
   }
+}
+
+state::RouteNextHopEntry RouteNextHopEntry::toThrift() const {
+  state::RouteNextHopEntry thriftEntry{};
+  thriftEntry.adminDistance() = adminDistance_;
+  thriftEntry.action() = action_;
+  if (counterID_) {
+    thriftEntry.counterID() = *counterID_;
+  }
+  if (classID_) {
+    thriftEntry.classID() = *classID_;
+  }
+  thriftEntry.nexthops() = util::fromRouteNextHopSet(nhopSet_);
+  return thriftEntry;
+}
+
+RouteNextHopEntry RouteNextHopEntry::fromThrift(
+    const state::RouteNextHopEntry& entry) {
+  const auto& nhops = *entry.nexthops();
+  std::optional<std::string> counterID{};
+  std::optional<cfg::AclLookupClass> classID{};
+  if (entry.counterID()) {
+    counterID = *entry.counterID();
+  }
+  if (entry.classID()) {
+    classID = *entry.classID();
+  }
+  if (nhops.empty()) {
+    return RouteNextHopEntry(
+        *entry.action(), *entry.adminDistance(), counterID, classID);
+  }
+  return RouteNextHopEntry(
+      util::toRouteNextHopSet(nhops, true),
+      *entry.adminDistance(),
+      counterID,
+      classID);
+}
+
+folly::dynamic RouteNextHopEntry::migrateToThrifty(folly::dynamic const& dyn) {
+  folly::dynamic newDyn = dyn;
+  auto action = dyn[kAction].asString();
+  newDyn[kAction] = folly::to<int>(str2ForwardAction(action));
+  RouteNextHopSet nhops{};
+  std::vector<NextHop> nexthops{};
+  for (auto& nhop : dyn[kNexthops]) {
+    nexthops.emplace_back(util::nextHopFromFollyDynamic(nhop));
+  }
+  nhops.insert(std::begin(nexthops), std::end(nexthops));
+  folly::dynamic nhopsDynamic = folly::dynamic::array;
+  auto nhopsThrift = util::fromRouteNextHopSet(nhops);
+  for (auto& nhop : nhopsThrift) {
+    std::string jsonStr;
+    apache::thrift::SimpleJSONSerializer::serialize(nhop, &jsonStr);
+    nhopsDynamic.push_back(folly::parseJson(jsonStr));
+  }
+  newDyn[kNexthops] = nhopsDynamic;
+  return newDyn;
+}
+
+void RouteNextHopEntry::migrateFromThrifty(folly::dynamic& dyn) {
+  auto action = static_cast<RouteForwardAction>(dyn[kAction].asInt());
+  dyn[kAction] = forwardActionStr(action);
+  folly::dynamic nhopsDynamic = folly::dynamic::array;
+  if (dyn.find(kNexthops) != dyn.items().end()) {
+    std::vector<NextHopThrift> nhopsThrift{};
+
+    for (auto& nhop : dyn[kNexthops]) {
+      auto jsonStr = folly::toJson(nhop);
+      auto inBuf =
+          folly::IOBuf::wrapBufferAsValue(jsonStr.data(), jsonStr.size());
+      auto nhopThrift =
+          apache::thrift::SimpleJSONSerializer::deserialize<NextHopThrift>(
+              folly::io::Cursor{&inBuf});
+      nhopsThrift.push_back(nhopThrift);
+    }
+    auto nhops = util::toRouteNextHopSet(nhopsThrift, true);
+    for (auto& nhop : nhops) {
+      nhopsDynamic.push_back(nhop.toFollyDynamic());
+    }
+  }
+  dyn[kNexthops] = nhopsDynamic;
 }
 
 } // namespace facebook::fboss

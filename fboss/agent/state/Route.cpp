@@ -39,7 +39,7 @@ folly::dynamic RouteFields<AddrT>::toFollyDynamic() const {
   folly::dynamic routeFields = folly::dynamic::object;
   routeFields[kPrefix] = prefix.toFollyDynamicLegacy();
   routeFields[kNextHopsMulti] = nexthopsmulti.toFollyDynamic();
-  routeFields[kFwdInfo] = fwd.toFollyDynamic();
+  routeFields[kFwdInfo] = fwd.toFollyDynamicLegacy();
   routeFields[kFlags] = flags;
   if (classID.has_value()) {
     routeFields[kClassID] = static_cast<int>(classID.value());
@@ -54,7 +54,7 @@ RouteFields<AddrT> RouteFields<AddrT>::fromFollyDynamic(
   RouteFields<AddrT> rt(Prefix::fromFollyDynamicLegacy(routeJson[kPrefix]));
   rt.nexthopsmulti =
       RouteNextHopsMulti::fromFollyDynamic(routeJson[kNextHopsMulti]);
-  rt.fwd = RouteNextHopEntry::fromFollyDynamic(routeJson[kFwdInfo]);
+  rt.fwd = RouteNextHopEntry::fromFollyDynamicLegacy(routeJson[kFwdInfo]);
   rt.flags = routeJson[kFlags].asInt();
   if (routeJson.find(kClassID) != routeJson.items().end()) {
     rt.classID = cfg::AclLookupClass(routeJson[kClassID].asInt());
