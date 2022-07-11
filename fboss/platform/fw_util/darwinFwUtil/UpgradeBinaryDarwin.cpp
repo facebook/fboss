@@ -335,7 +335,7 @@ int UpgradeBinaryDarwin::parseCommandLine(
           toLower(std::string(argv[2])),
           std::string(argv[3]),
           chip,
-          "/etc/bios_spi_layout");
+          "/tmp/bios_spi_layout");
     } else if (toLower(std::string(argv[1])) == std::string("fan_cpld")) {
       // TODO: Upgrade the fan_cpld through I2C
       std::cout << "upgrade not supported for fan_cpld yet" << std::endl;
