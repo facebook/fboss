@@ -12,16 +12,53 @@
 
 #include <folly/IPAddress.h>
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/RouteNextHopsMulti.h"
 #include "fboss/agent/state/RouteTypes.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_set.hpp>
 
 namespace facebook::fboss {
+
+template <typename AddrT>
+struct RouteFields;
+
+template <typename AddrT>
+struct RouteTraits {};
+
+template <>
+struct RouteTraits<folly::IPAddressV4> {
+  using PrefixType = folly::IPAddressV4;
+  using ThriftFields = state::RouteFields;
+  using RouteFieldsType = RouteFields<folly::IPAddressV4>;
+};
+
+template <>
+struct RouteTraits<folly::IPAddressV6> {
+  using PrefixType = folly::IPAddressV6;
+  using ThriftFields = state::RouteFields;
+  using RouteFieldsType = RouteFields<folly::IPAddressV6>;
+};
+
+template <>
+struct RouteTraits<LabelID> {
+  using PrefixType = LabelID;
+  using ThriftFields = state::LabelForwardingEntryFields;
+  using RouteFieldsType = RouteFields<LabelID>;
+};
+
+template <typename AddrT>
+using RouteTraitsIfNotLabel =
+    std::enable_if_t<!std::is_same_v<AddrT, LabelID>, RouteTraits<AddrT>>;
+
+template <typename AddrT>
+using RouteTraitsIfLabel =
+    std::enable_if_t<std::is_same_v<AddrT, LabelID>, RouteTraits<LabelID>>;
 
 /**
  * RouteFields<> Class
@@ -29,9 +66,11 @@ namespace facebook::fboss {
  * Temporarily need this class when using NodeMap to store the routes
  */
 template <typename AddrT>
-struct RouteFields {
+struct RouteFields : ThriftyFields {
   using Prefix = std::
       conditional_t<std::is_same_v<LabelID, AddrT>, Label, RoutePrefix<AddrT>>;
+  using ThriftFields = typename RouteTraits<AddrT>::ThriftFields;
+
   explicit RouteFields(const Prefix& prefix);
   RouteFields(const Prefix& prefix, ClientID clientId, RouteNextHopEntry entry)
       : RouteFields(prefix) {
@@ -89,6 +128,75 @@ struct RouteFields {
     return nexthopsmulti;
   }
 
+  template <typename AddrType = AddrT>
+  ThriftFields _toThrift(RouteTraitsIfNotLabel<AddrType>) const {
+    ThriftFields fields{};
+    fields.prefix() = prefix.toThrift();
+    fields.nexthopsmulti() = nexthopsmulti.toThrift();
+    fields.fwd() = fwd.toThrift();
+    fields.flags() = flags;
+    if (classID) {
+      fields.classID() = *classID;
+    }
+    return fields;
+  }
+
+  template <typename AddrType = AddrT>
+  ThriftFields _toThrift(RouteTraitsIfLabel<AddrType>) const {
+    ThriftFields fields{};
+    fields.label() = prefix.toThrift();
+    fields.nexthopsmulti() = nexthopsmulti.toThrift();
+    fields.fwd() = fwd.toThrift();
+    fields.flags() = flags;
+    if (classID) {
+      fields.classID() = *classID;
+    }
+    return fields;
+  }
+
+  ThriftFields toThrift() const {
+    return _toThrift(RouteTraits<AddrT>{});
+  }
+
+  template <typename AddrType = AddrT>
+  static RouteFields<AddrType> _fromThrift(
+      ThriftFields const& fields,
+      RouteTraitsIfNotLabel<AddrType>) {
+    auto prefix = Prefix::fromThrift(*fields.prefix());
+    auto nexthopsmulti =
+        RouteNextHopsMulti::fromThrift(*fields.nexthopsmulti());
+    auto fwd = RouteNextHopEntry::fromThrift(*fields.fwd());
+    auto flags = *fields.flags();
+    std::optional<cfg::AclLookupClass> classID{};
+    if (fields.classID()) {
+      classID = *fields.classID();
+    }
+    return RouteFields<AddrType>(prefix, nexthopsmulti, fwd, flags, classID);
+  }
+
+  template <typename AddrType = AddrT>
+  static RouteFields<AddrType> _fromThrift(
+      ThriftFields const& fields,
+      RouteTraitsIfLabel<AddrType>) {
+    auto prefix = Prefix::fromThrift(*fields.label());
+    auto nexthopsmulti =
+        RouteNextHopsMulti::fromThrift(*fields.nexthopsmulti());
+    auto fwd = RouteNextHopEntry::fromThrift(*fields.fwd());
+    auto flags = *fields.flags();
+    std::optional<cfg::AclLookupClass> classID{};
+    if (fields.classID()) {
+      classID = *fields.classID();
+    }
+    return RouteFields<AddrType>(prefix, nexthopsmulti, fwd, flags, classID);
+  }
+
+  static RouteFields fromThrift(ThriftFields const& thriftFields) {
+    return _fromThrift<AddrT>(thriftFields, RouteTraits<AddrT>{});
+  }
+
+  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
+
  private:
   /**
    * Bit definition for RouteFields<>::flags
@@ -134,6 +242,19 @@ struct RouteFields {
   void clearForwardInFlags() {
     flags &= ~(RESOLVED | PROCESSING | CONNECTED | UNRESOLVABLE);
   }
+
+  // private constructor for thrift to fields
+  RouteFields(
+      const Prefix& argsPrefix,
+      const RouteNextHopsMulti& argsNexthopsmulti,
+      const RouteNextHopEntry& argsFwd,
+      uint32_t argsFlags,
+      std::optional<cfg::AclLookupClass> argsClassID)
+      : prefix(argsPrefix),
+        nexthopsmulti(argsNexthopsmulti),
+        fwd(argsFwd),
+        flags(argsFlags),
+        classID(argsClassID) {}
 
  public:
   std::string str() const;
@@ -200,27 +321,33 @@ struct RouteFields {
 
 /// Route<> Class
 template <typename AddrT>
-class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
+class Route : public ThriftyBaseT<
+                  typename RouteTraits<AddrT>::ThriftFields,
+                  Route<AddrT>,
+                  RouteFields<AddrT>> {
  public:
-  typedef NodeBaseT<Route<AddrT>, RouteFields<AddrT>> RouteBase;
-  typedef typename RouteFields<AddrT>::Prefix Prefix;
-  typedef RouteForwardAction Action;
+  using RouteBase = ThriftyBaseT<
+      typename RouteTraits<AddrT>::ThriftFields,
+      Route<AddrT>,
+      RouteFields<AddrT>>;
+  using Prefix = typename RouteFields<AddrT>::Prefix;
+  using Action = RouteForwardAction;
   using Addr = AddrT;
 
   // Constructor for a route
   Route(const Prefix& prefix, ClientID clientId, RouteNextHopEntry entry)
       : RouteBase(prefix, clientId, std::move(entry)) {}
 
-  static std::shared_ptr<Route<AddrT>> fromFollyDynamic(
+  static std::shared_ptr<Route<AddrT>> fromFollyDynamicLegacy(
       const folly::dynamic& json);
 
-  folly::dynamic toFollyDynamic() const override {
+  folly::dynamic toFollyDynamicLegacy() const {
     return RouteBase::getFields()->toFollyDynamicLegacy();
   }
 
   static std::shared_ptr<Route<AddrT>> fromJson(
       const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
+    return fromFollyDynamicLegacy(folly::parseJson(jsonStr));
   }
 
   RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const {
@@ -349,7 +476,10 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
   Route& operator=(const Route&) = delete;
 
   // Inherit the constructors required for clone()
-  using NodeBaseT<Route<AddrT>, RouteFields<AddrT>>::NodeBaseT;
+  using ThriftyBaseT<
+      typename RouteTraits<AddrT>::ThriftFields,
+      Route<AddrT>,
+      RouteFields<AddrT>>::ThriftyBaseT;
   friend class CloneAllocator;
 };
 

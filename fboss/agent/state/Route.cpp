@@ -14,6 +14,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "folly/IPAddressV4.h"
 
@@ -148,6 +149,47 @@ void RouteFields<AddrT>::delEntryForClient(ClientID clientId) {
   nexthopsmulti.delEntryForClient(clientId);
 }
 
+template <typename AddrT>
+folly::dynamic RouteFields<AddrT>::migrateToThrifty(folly::dynamic const& dyn) {
+  folly::dynamic newDyn = folly::dynamic::object;
+  if constexpr (std::is_same_v<AddrT, LabelID>) {
+    newDyn["label"] =
+        RouteFields<AddrT>::Prefix::migrateToThrifty(dyn[kPrefix]);
+  } else {
+    newDyn["prefix"] =
+        RouteFields<AddrT>::Prefix::migrateToThrifty(dyn[kPrefix]);
+  }
+  newDyn["nexthopsmulti"] =
+      RouteNextHopsMulti::migrateToThrifty(dyn[kNextHopsMulti]);
+  newDyn["fwd"] = RouteNextHopEntry::migrateToThrifty(dyn[kFwdInfo]);
+  newDyn["flags"] = dyn[kFlags].asInt();
+  if (dyn.find(kClassID) != dyn.items().end()) {
+    newDyn["classID"] = dyn[kClassID].asInt();
+  }
+  return newDyn;
+}
+
+template <typename AddrT>
+void RouteFields<AddrT>::migrateFromThrifty(folly::dynamic& dyn) {
+  folly::dynamic newDyn = folly::dynamic::object;
+  if constexpr (std::is_same_v<AddrT, LabelID>) {
+    newDyn[kPrefix] = dyn["label"];
+  } else {
+    newDyn[kPrefix] = dyn["prefix"];
+  }
+  RouteFields<AddrT>::Prefix::migrateFromThrifty(newDyn[kPrefix]);
+  newDyn[kNextHopsMulti] = dyn["nexthopsmulti"];
+  newDyn[kFwdInfo] = dyn["fwd"];
+
+  RouteNextHopsMulti::migrateFromThrifty(newDyn[kNextHopsMulti]);
+  RouteNextHopEntry::migrateFromThrifty(newDyn[kFwdInfo]);
+  newDyn[kFlags] = dyn["flags"].asInt();
+  if (dyn.find("classID") != dyn.items().end()) {
+    newDyn[kClassID] = dyn["classID"].asInt();
+  }
+  dyn = newDyn;
+}
+
 template struct RouteFields<folly::IPAddressV4>;
 template struct RouteFields<folly::IPAddressV6>;
 template struct RouteFields<LabelID>;
@@ -158,7 +200,7 @@ bool Route<AddrT>::isSame(const Route<AddrT>* rt) const {
 }
 
 template <typename AddrT>
-std::shared_ptr<Route<AddrT>> Route<AddrT>::fromFollyDynamic(
+std::shared_ptr<Route<AddrT>> Route<AddrT>::fromFollyDynamicLegacy(
     const folly::dynamic& routeJson) {
   return std::make_shared<Route<AddrT>>(
       RouteFields<AddrT>::fromFollyDynamicLegacy(routeJson));
