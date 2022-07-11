@@ -51,12 +51,12 @@ class RouteNextHopsMulti {
   ClientID lowestAdminDistanceClientId_;
 
  public:
-  folly::dynamic toFollyDynamic() const;
-  static RouteNextHopsMulti fromFollyDynamic(const folly::dynamic& json);
+  folly::dynamic toFollyDynamicLegacy() const;
+  static RouteNextHopsMulti fromFollyDynamicLegacy(const folly::dynamic& json);
 
-  std::vector<ClientAndNextHops> toThrift() const;
+  std::vector<ClientAndNextHops> toThriftLegacy() const;
 
-  std::string str() const;
+  std::string strLegacy() const;
   void update(ClientID clientid, RouteNextHopEntry nhe);
 
   void clear() {

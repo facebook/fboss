@@ -2229,7 +2229,7 @@ void ThriftHandler::getMplsRouteDetails(
                          ->getLabelForwardingInformationBase()
                          ->getLabelForwardingEntry(topLabel);
   mplsRouteDetail.topLabel() = entry->getID().value();
-  mplsRouteDetail.nextHopMulti() = entry->getEntryForClients().toThrift();
+  mplsRouteDetail.nextHopMulti() = entry->getEntryForClients().toThriftLegacy();
   const auto& fwd = entry->getForwardInfo();
   for (const auto& nh : fwd.getNextHopSet()) {
     mplsRouteDetail.nextHops()->push_back(nh.toThrift());

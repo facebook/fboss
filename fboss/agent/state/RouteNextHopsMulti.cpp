@@ -23,7 +23,7 @@ namespace facebook::fboss {
 // RouteNextHop Class
 //
 
-folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
+folly::dynamic RouteNextHopsMulti::toFollyDynamicLegacy() const {
   // Store the clientid->RouteNextHopEntry map as a dynamic::object
   folly::dynamic obj = folly::dynamic::object();
   for (auto const& row : map_) {
@@ -34,7 +34,7 @@ folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
   return obj;
 }
 
-RouteNextHopsMulti RouteNextHopsMulti::fromFollyDynamic(
+RouteNextHopsMulti RouteNextHopsMulti::fromFollyDynamicLegacy(
     const folly::dynamic& json) {
   RouteNextHopsMulti nh;
   for (const auto& pair : json.items()) {
@@ -45,7 +45,7 @@ RouteNextHopsMulti RouteNextHopsMulti::fromFollyDynamic(
   return nh;
 }
 
-std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
+std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy() const {
   std::vector<ClientAndNextHops> list;
   for (const auto& srcPair : map_) {
     ClientAndNextHops destPair;
@@ -58,7 +58,7 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThrift() const {
   return list;
 }
 
-std::string RouteNextHopsMulti::str() const {
+std::string RouteNextHopsMulti::strLegacy() const {
   std::string ret = "";
   for (auto const& row : map_) {
     ClientID clientid = row.first;

@@ -38,7 +38,7 @@ template <typename AddrT>
 folly::dynamic RouteFields<AddrT>::toFollyDynamic() const {
   folly::dynamic routeFields = folly::dynamic::object;
   routeFields[kPrefix] = prefix.toFollyDynamicLegacy();
-  routeFields[kNextHopsMulti] = nexthopsmulti.toFollyDynamic();
+  routeFields[kNextHopsMulti] = nexthopsmulti.toFollyDynamicLegacy();
   routeFields[kFwdInfo] = fwd.toFollyDynamicLegacy();
   routeFields[kFlags] = flags;
   if (classID.has_value()) {
@@ -53,7 +53,7 @@ RouteFields<AddrT> RouteFields<AddrT>::fromFollyDynamic(
     const folly::dynamic& routeJson) {
   RouteFields<AddrT> rt(Prefix::fromFollyDynamicLegacy(routeJson[kPrefix]));
   rt.nexthopsmulti =
-      RouteNextHopsMulti::fromFollyDynamic(routeJson[kNextHopsMulti]);
+      RouteNextHopsMulti::fromFollyDynamicLegacy(routeJson[kNextHopsMulti]);
   rt.fwd = RouteNextHopEntry::fromFollyDynamicLegacy(routeJson[kFwdInfo]);
   rt.flags = routeJson[kFlags].asInt();
   if (routeJson.find(kClassID) != routeJson.items().end()) {
@@ -87,7 +87,7 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
   }
 
   // Add the multi-nexthops
-  rd.nextHopMulti() = nexthopsmulti.toThrift();
+  rd.nextHopMulti() = nexthopsmulti.toThriftLegacy();
   rd.isConnected() = isConnected();
   // add counter id
   if (fwd.getCounterID().has_value()) {
@@ -117,7 +117,7 @@ template <typename AddrT>
 std::string RouteFields<AddrT>::str() const {
   std::string ret;
   ret = folly::to<string>(prefix, '@');
-  ret.append(nexthopsmulti.str());
+  ret.append(nexthopsmulti.strLegacy());
   ret.append(" State:");
   if (isConnected()) {
     ret.append("C");
