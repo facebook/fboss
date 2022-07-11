@@ -35,7 +35,7 @@ bool RouteFields<AddrT>::operator==(const RouteFields& rf) const {
 }
 
 template <typename AddrT>
-folly::dynamic RouteFields<AddrT>::toFollyDynamic() const {
+folly::dynamic RouteFields<AddrT>::toFollyDynamicLegacy() const {
   folly::dynamic routeFields = folly::dynamic::object;
   routeFields[kPrefix] = prefix.toFollyDynamicLegacy();
   routeFields[kNextHopsMulti] = nexthopsmulti.toFollyDynamicLegacy();
@@ -49,7 +49,7 @@ folly::dynamic RouteFields<AddrT>::toFollyDynamic() const {
 }
 
 template <typename AddrT>
-RouteFields<AddrT> RouteFields<AddrT>::fromFollyDynamic(
+RouteFields<AddrT> RouteFields<AddrT>::fromFollyDynamicLegacy(
     const folly::dynamic& routeJson) {
   RouteFields<AddrT> rt(Prefix::fromFollyDynamicLegacy(routeJson[kPrefix]));
   rt.nexthopsmulti =
@@ -161,7 +161,7 @@ template <typename AddrT>
 std::shared_ptr<Route<AddrT>> Route<AddrT>::fromFollyDynamic(
     const folly::dynamic& routeJson) {
   return std::make_shared<Route<AddrT>>(
-      RouteFields<AddrT>::fromFollyDynamic(routeJson));
+      RouteFields<AddrT>::fromFollyDynamicLegacy(routeJson));
 }
 
 template <typename AddrT>

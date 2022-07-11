@@ -46,12 +46,12 @@ struct RouteFields {
   /*
    * Serialize to folly::dynamic
    */
-  folly::dynamic toFollyDynamic() const;
+  folly::dynamic toFollyDynamicLegacy() const;
 
   /*
    * Deserialize from folly::dynamic
    */
-  static RouteFields fromFollyDynamic(const folly::dynamic& routeJson);
+  static RouteFields fromFollyDynamicLegacy(const folly::dynamic& routeJson);
 
   RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const;
   bool isHostRoute() const {
@@ -215,7 +215,7 @@ class Route : public NodeBaseT<Route<AddrT>, RouteFields<AddrT>> {
       const folly::dynamic& json);
 
   folly::dynamic toFollyDynamic() const override {
-    return RouteBase::getFields()->toFollyDynamic();
+    return RouteBase::getFields()->toFollyDynamicLegacy();
   }
 
   static std::shared_ptr<Route<AddrT>> fromJson(
