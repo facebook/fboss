@@ -11,6 +11,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/StateUtils.h"
 
 namespace {
@@ -149,6 +150,52 @@ std::pair<ClientID, const RouteNextHopEntry*> RouteNextHopsMulti::getBestEntry()
     // Throw an exception if the map is empty. Shall not happen
     throw FbossError("Unexpected empty RouteNextHopsMulti");
   }
+}
+
+state::RouteNextHopsMulti RouteNextHopsMulti::toThrift() const {
+  state::RouteNextHopsMulti thriftMulti{};
+  thriftMulti.lowestAdminDistanceClientId() = lowestAdminDistanceClientId_;
+  for (auto entry : map_) {
+    thriftMulti.client2NextHopEntry()->emplace(
+        entry.first, entry.second.toThrift());
+  }
+  return thriftMulti;
+}
+
+RouteNextHopsMulti RouteNextHopsMulti::fromThrift(
+    const state::RouteNextHopsMulti& multi) {
+  RouteNextHopsMulti routeNextHopMulti{};
+  routeNextHopMulti.lowestAdminDistanceClientId_ =
+      *multi.lowestAdminDistanceClientId();
+  for (auto entry : *multi.client2NextHopEntry()) {
+    routeNextHopMulti.map_.emplace(
+        entry.first, RouteNextHopEntry::fromThrift(entry.second));
+  }
+  return routeNextHopMulti;
+}
+
+folly::dynamic RouteNextHopsMulti::migrateToThrifty(folly::dynamic const& dyn) {
+  folly::dynamic newDyn = folly::dynamic::dynamic::object;
+  folly::dynamic client2NextHopEntryDyn = folly::dynamic::object;
+  auto multi = fromFollyDynamicLegacy(dyn);
+  for (auto [key, value] : dyn.items()) {
+    client2NextHopEntryDyn[key] = RouteNextHopEntry::migrateToThrifty(value);
+  }
+  newDyn["client2NextHopEntry"] = client2NextHopEntryDyn;
+  newDyn["lowestAdminDistanceClientId"] =
+      static_cast<int>(multi.lowestAdminDistanceClientId_);
+  return newDyn;
+}
+
+void RouteNextHopsMulti::migrateFromThrifty(folly::dynamic& dyn) {
+  for (auto [key, value] : dyn["client2NextHopEntry"].items()) {
+    auto clientID = key.asString();
+    auto multiDynamic = value;
+    RouteNextHopEntry::migrateFromThrifty(multiDynamic);
+    dyn[clientID] = multiDynamic;
+  }
+  dyn.erase("client2NextHopEntry");
+  dyn.erase("lowestAdminDistanceClientId");
 }
 
 } // namespace facebook::fboss

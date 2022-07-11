@@ -300,6 +300,11 @@ struct RouteNextHopEntry {
   5: list<common.NextHopThrift> nexthops;
 }
 
+struct RouteNextHopsMulti {
+  1: ctrl.ClientID lowestAdminDistanceClientId;
+  2: map<ctrl.ClientID, RouteNextHopEntry> client2NextHopEntry;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;

@@ -15,8 +15,10 @@
 
 #include <boost/container/flat_map.hpp>
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -44,13 +46,20 @@ using ClientToNHopMap = std::map<ClientID, RouteNextHopEntry>;
 /**
  * Map form clientId -> RouteNextHopEntry
  */
-class RouteNextHopsMulti {
+class RouteNextHopsMulti : public AnotherThriftyFields<
+                               state::RouteNextHopsMulti,
+                               RouteNextHopsMulti> {
  protected:
   ClientID findLowestAdminDistance();
   ClientToNHopMap map_;
   ClientID lowestAdminDistanceClientId_;
 
  public:
+  state::RouteNextHopsMulti toThrift() const;
+  static RouteNextHopsMulti fromThrift(const state::RouteNextHopsMulti& prefix);
+  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
+
   folly::dynamic toFollyDynamicLegacy() const;
   static RouteNextHopsMulti fromFollyDynamicLegacy(const folly::dynamic& json);
 

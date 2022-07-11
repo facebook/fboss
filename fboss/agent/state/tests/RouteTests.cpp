@@ -152,6 +152,35 @@ TEST(Route, serializeRouteNextHopsMulti) {
   EXPECT_TRUE(nhm1 == nhm2);
 }
 
+TEST(Route, RouteNextHopsMultiThrift) {
+  RouteNextHopsMulti nhm1;
+  nhm1.update(CLIENT_A, RouteNextHopEntry(newNextHops(3, "1.1.1."), DISTANCE));
+  nhm1.update(CLIENT_B, RouteNextHopEntry(newNextHops(1, "2.2.2."), DISTANCE));
+  nhm1.update(CLIENT_C, RouteNextHopEntry(newNextHops(4, "3.3.3."), DISTANCE));
+  nhm1.update(CLIENT_D, RouteNextHopEntry(RouteForwardAction::DROP, DISTANCE));
+  nhm1.update(
+      CLIENT_E, RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
+  nhm1.update(
+      CLIENT_A,
+      RouteNextHopEntry(
+          newNextHops(4, "4.4.1."),
+          DISTANCE,
+          RouteCounterID("testcounter0"),
+          cfg::AclLookupClass::DST_CLASS_L3_DPR));
+  nhm1.update(
+      CLIENT_A,
+      RouteNextHopEntry(
+          newNextHops(4, "4.4.2."), DISTANCE, RouteCounterID("testcounter1")));
+  nhm1.update(
+      CLIENT_A,
+      RouteNextHopEntry(
+          newNextHops(4, "4.4.3."),
+          DISTANCE,
+          std::nullopt,
+          cfg::AclLookupClass::DST_CLASS_L3_DPR));
+  validateThriftyMigration<RouteNextHopsMulti, true>(nhm1);
+}
+
 // Test priority ranking of nexthop lists within a RouteNextHopsMulti.
 TEST(Route, listRanking) {
   auto list00 = newNextHops(3, "0.0.0.");
