@@ -150,10 +150,10 @@ sai_status_t sai_get_object_count(
       *count = fs->tamManager.map().size();
       break;
     case SAI_OBJECT_TYPE_TUNNEL:
-      *count = fs->tamEventManager.map().size();
+      *count = fs->tunnelManager.map().size();
       break;
     case SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY:
-      *count = fs->tamManager.map().size();
+      *count = fs->tunnelTermManager.map().size();
       break;
     case SAI_OBJECT_TYPE_MIRROR_SESSION:
       *count = fs->mirrorManager.map().size();
