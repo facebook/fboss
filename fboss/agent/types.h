@@ -19,6 +19,13 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
+namespace facebook::fboss {
+template <typename>
+struct is_fboss_key_object_type {
+  static constexpr bool value = false;
+};
+} // namespace facebook::fboss
+
 #define FBOSS_STRONG_TYPE(primitive, new_type)                                \
   namespace facebook::fboss {                                                 \
                                                                               \

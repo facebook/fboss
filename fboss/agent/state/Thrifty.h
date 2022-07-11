@@ -10,6 +10,7 @@
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/NodeMap.h"
 
@@ -223,6 +224,7 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
   using NodeMapT<NodeMap, TraitsT>::NodeMapT;
 
   using ThriftType = typename ThriftyTraitsT::NodeContainer;
+  using KeyType = typename TraitsT::KeyType;
 
   static std::shared_ptr<NodeMap> fromThrift(
       const typename ThriftyTraitsT::NodeContainer& map) {
@@ -295,8 +297,22 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
     folly::dynamic newItems = folly::dynamic::object;
     for (auto& item : dyn[kEntries]) {
       if (ThriftyUtils::nodeNeedsMigration(item)) {
-        newItems[item[ThriftyTraitsT::getThriftKeyName()].asString()] =
-            TraitsT::Node::Fields::migrateToThrifty(item);
+        auto& legacyKey = item[ThriftyTraitsT::getThriftKeyName()];
+        if (legacyKey.isNull() or legacyKey.isArray()) {
+          throw FbossError("key of map is null or array");
+        }
+        std::string key{};
+        if constexpr (!is_fboss_key_object_type<KeyType>::value) {
+          key = legacyKey.asString();
+        } else {
+          static_assert(
+              is_fboss_key_object_type<KeyType>::value,
+              "key is not an object type");
+          // in cases where key is actually an object we need to convert this to
+          // proper string representation
+          key = KeyType::fromFollyDynamicLegacy(legacyKey).str();
+        }
+        newItems[key] = TraitsT::Node::Fields::migrateToThrifty(item);
       } else {
         newItems[item[ThriftyTraitsT::getThriftKeyName()].asString()] = item;
       }

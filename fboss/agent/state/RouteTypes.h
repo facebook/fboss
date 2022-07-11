@@ -17,6 +17,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
+#include "folly/IPAddressV4.h"
 
 namespace facebook::fboss {
 
@@ -67,6 +68,16 @@ struct RoutePrefix
     return !operator==(p2);
   }
   typedef AddrT AddressT;
+};
+
+template <>
+struct is_fboss_key_object_type<RoutePrefix<folly::IPAddressV4>> {
+  static constexpr bool value = true;
+};
+
+template <>
+struct is_fboss_key_object_type<RoutePrefix<folly::IPAddressV6>> {
+  static constexpr bool value = true;
 };
 
 struct Label : public AnotherThriftyFields<state::Label, Label> {
@@ -122,6 +133,11 @@ struct Label : public AnotherThriftyFields<state::Label, Label> {
   bool operator!=(const Label& p) const {
     return !operator==(p);
   }
+};
+
+template <>
+struct is_fboss_key_object_type<Label> {
+  static constexpr bool value = true;
 };
 
 typedef RoutePrefix<folly::IPAddressV4> RoutePrefixV4;
