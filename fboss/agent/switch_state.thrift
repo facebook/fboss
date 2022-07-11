@@ -305,6 +305,26 @@ struct RouteNextHopsMulti {
   2: map<ctrl.ClientID, RouteNextHopEntry> client2NextHopEntry;
 }
 
+struct RouteFields {
+  1: RoutePrefix prefix;
+  2: RouteNextHopsMulti nexthopsmulti;
+  3: RouteNextHopEntry fwd;
+  4: i32 flags;
+  5: optional switch_config.AclLookupClass classID;
+}
+
+struct Label {
+  1: i32 value;
+}
+
+struct LabelForwardingEntryFields {
+  1: Label label;
+  2: RouteNextHopsMulti nexthopsmulti;
+  3: RouteNextHopEntry fwd;
+  4: i32 flags;
+  5: optional switch_config.AclLookupClass classID;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
