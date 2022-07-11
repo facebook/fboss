@@ -440,3 +440,8 @@ TEST(LabelFIBTests, oneLabelManyClients) {
   // 7) next hop for 5002 label is now the one informed by bgp
   EXPECT_EQ(entryToAdd5002Bgp->getForwardInfo(), entry5002->getForwardInfo());
 }
+
+TEST(LabelFIBTests, LabelThrifty) {
+  Label label(0xacacacac);
+  validateThriftyMigration<Label, true>(label);
+}

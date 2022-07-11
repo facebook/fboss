@@ -69,7 +69,7 @@ struct RoutePrefix
   typedef AddrT AddressT;
 };
 
-struct Label {
+struct Label : public AnotherThriftyFields<state::Label, Label> {
   LabelID label;
   Label() : label(0) {}
   /* implicit */ Label(LabelID labelVal) : label(labelVal) {}
@@ -82,23 +82,27 @@ struct Label {
     return label;
   }
 
+  state::Label toThrift() const {
+    state::Label thriftLabel{};
+    thriftLabel.value() = label;
+    return thriftLabel;
+  }
+  static Label fromThrift(const state::Label& thriftLabel) {
+    return *thriftLabel.value();
+  }
+  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
+
   /*
    * Serialize to folly::dynamic
    */
-  folly::dynamic toFollyDynamic() const;
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    return toFollyDynamic();
-  }
+  folly::dynamic toFollyDynamicLegacy() const;
 
   /*
    * Deserialize from folly::dynamic
    */
-  static Label fromFollyDynamic(const folly::dynamic& prefixJson);
 
-  static Label fromFollyDynamicLegacy(const folly::dynamic& prefixJson) {
-    return fromFollyDynamic(prefixJson);
-  }
+  static Label fromFollyDynamicLegacy(const folly::dynamic& prefixJson);
 
   static Label fromString(std::string str) {
     Label lbl;

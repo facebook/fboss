@@ -116,7 +116,7 @@ std::ostream& operator<<(std::ostream& os, const RouteForwardAction& action) {
   return os;
 }
 
-folly::dynamic Label::toFollyDynamic() const {
+folly::dynamic Label::toFollyDynamicLegacy() const {
   folly::dynamic pfx = folly::dynamic::object;
   pfx[kLabel] = static_cast<int32_t>(label);
   return pfx;
@@ -162,10 +162,20 @@ void RoutePrefix<AddrT>::migrateFromThrifty(folly::dynamic& dyn) {
   dyn.erase("v6");
 }
 
-Label Label::fromFollyDynamic(const folly::dynamic& prefixJson) {
+Label Label::fromFollyDynamicLegacy(const folly::dynamic& prefixJson) {
   Label lbl;
   lbl.label = static_cast<int32_t>(prefixJson[kLabel].asInt());
   return lbl;
+}
+
+folly::dynamic Label::migrateToThrifty(folly::dynamic const& dyn) {
+  folly::dynamic newDyn = dyn;
+  ThriftyUtils::renameField(newDyn, std::string(kLabel), "value");
+  return newDyn;
+}
+
+void Label::migrateFromThrifty(folly::dynamic& dyn) {
+  ThriftyUtils::renameField(dyn, "value", std::string(kLabel));
 }
 
 template class RoutePrefix<folly::IPAddressV4>;
