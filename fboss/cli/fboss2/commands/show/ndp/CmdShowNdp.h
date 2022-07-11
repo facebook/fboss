@@ -28,6 +28,7 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
  public:
   using ObjectArgType = CmdShowNdpTraits::ObjectArgType;
   using RetType = CmdShowNdpTraits::RetType;
+  static constexpr bool ALLOW_FILTERING = true;
 
   RetType queryClient(
       const HostInfo& hostInfo,

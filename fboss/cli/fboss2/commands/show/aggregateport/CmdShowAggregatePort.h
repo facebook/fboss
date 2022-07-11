@@ -27,6 +27,8 @@ struct CmdShowAggregatePortTraits : public BaseCommandTraits {
 class CmdShowAggregatePort
     : public CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits> {
  public:
+  static constexpr bool ALLOW_FILTERING = true;
+
   RetType queryClient(
       const HostInfo& hostInfo,
       const ObjectArgType& queriedPorts) {

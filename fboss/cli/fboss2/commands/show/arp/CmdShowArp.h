@@ -26,6 +26,8 @@ struct CmdShowArpTraits : public BaseCommandTraits {
 
 class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
  public:
+  static constexpr bool ALLOW_FILTERING = true;
+
   RetType queryClient(const HostInfo& hostInfo) {
     std::vector<facebook::fboss::ArpEntryThrift> entries;
     std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
