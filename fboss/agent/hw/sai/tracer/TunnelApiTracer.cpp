@@ -21,7 +21,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _TunnelMap{
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _TunnelTermMap{
     SAI_ATTR_MAP(TunnelTerm, Type),
-    SAI_ATTR_MAP(TunnelTerm, EntryAttrVrId),
+    SAI_ATTR_MAP(TunnelTerm, VrId),
     SAI_ATTR_MAP(TunnelTerm, DstIp),
     SAI_ATTR_MAP(TunnelTerm, DstIpMask),
     SAI_ATTR_MAP(TunnelTerm, SrcIp),

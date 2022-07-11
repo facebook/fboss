@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <optional>
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
 extern "C" {
@@ -11,11 +12,57 @@ extern "C" {
 namespace facebook::fboss {
 
 class FakeSaiTunnel {
-  FakeSaiTunnel() {}
+ public:
+  FakeSaiTunnel(
+      sai_tunnel_type_t type,
+      sai_object_id_t underlay,
+      sai_object_id_t overlay,
+      std::optional<sai_tunnel_ttl_mode_t> ttl,
+      std::optional<sai_tunnel_dscp_mode_t> dscp,
+      std::optional<sai_tunnel_decap_ecn_mode_t> ecn)
+      : type(type),
+        underlay(underlay),
+        overlay(overlay),
+        ttlMode(ttl),
+        dscpMode(dscp),
+        ecnMode(ecn) {}
+  sai_object_id_t id;
+  sai_tunnel_type_t type;
+  sai_object_id_t underlay;
+  sai_object_id_t overlay;
+  std::optional<sai_tunnel_ttl_mode_t> ttlMode;
+  std::optional<sai_tunnel_dscp_mode_t> dscpMode;
+  std::optional<sai_tunnel_decap_ecn_mode_t> ecnMode;
 };
 
 class FakeSaiTunnelTerm {
-  FakeSaiTunnelTerm() {}
+ public:
+  FakeSaiTunnelTerm(
+      sai_tunnel_term_table_entry_type_t type,
+      sai_object_id_t vrId,
+      sai_ip_address_t dstIp,
+      sai_ip_address_t srcIp,
+      sai_tunnel_type_t tunnelType,
+      sai_object_id_t tunnelId,
+      std::optional<sai_ip_address_t> dstIpMask,
+      std::optional<sai_ip_address_t> srcIpMask)
+      : type(type),
+        vrId(vrId),
+        dstIp(dstIp),
+        srcIp(srcIp),
+        tunnelType(tunnelType),
+        tunnelId(tunnelId),
+        dstIpMask(dstIpMask),
+        srcIpMask(srcIpMask) {}
+  sai_object_id_t id;
+  sai_tunnel_term_table_entry_type_t type;
+  sai_object_id_t vrId;
+  sai_ip_address_t dstIp;
+  sai_ip_address_t srcIp;
+  sai_tunnel_type_t tunnelType;
+  sai_object_id_t tunnelId;
+  std::optional<sai_ip_address_t> dstIpMask;
+  std::optional<sai_ip_address_t> srcIpMask;
 };
 
 using FakeTunnelManager = FakeManager<sai_object_id_t, FakeSaiTunnel>;

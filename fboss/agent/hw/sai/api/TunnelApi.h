@@ -63,7 +63,7 @@ struct SaiTunnelTermTraits {
         EnumType,
         SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_TYPE,
         sai_int32_t>;
-    using EntryAttrVrId = SaiAttribute<
+    using VrId = SaiAttribute<
         EnumType,
         SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_VR_ID,
         SaiObjectIdT>;
@@ -95,16 +95,18 @@ struct SaiTunnelTermTraits {
   using AdapterKey = TunnelTermSaiId;
   using CreateAttributes = std::tuple<
       Attributes::Type,
-      Attributes::EntryAttrVrId,
+      Attributes::VrId,
       Attributes::DstIp,
       Attributes::SrcIp,
       Attributes::TunnelType,
-      Attributes::ActionTunnelId>;
+      Attributes::ActionTunnelId,
+      std::optional<Attributes::DstIpMask>,
+      std::optional<Attributes::SrcIpMask>>;
   using AdapterHostKey = CreateAttributes;
 };
 
 SAI_ATTRIBUTE_NAME(TunnelTerm, Type);
-SAI_ATTRIBUTE_NAME(TunnelTerm, EntryAttrVrId);
+SAI_ATTRIBUTE_NAME(TunnelTerm, VrId);
 SAI_ATTRIBUTE_NAME(TunnelTerm, DstIp);
 SAI_ATTRIBUTE_NAME(TunnelTerm, DstIpMask);
 SAI_ATTRIBUTE_NAME(TunnelTerm, SrcIp);
