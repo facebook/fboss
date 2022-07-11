@@ -37,6 +37,11 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
     return createModel(entries, portEntries);
   }
 
+  std::unordered_map<std::string, std::vector<std::string>>
+  getAcceptedFilterValues() {
+    return {{"state", {"REACHABLE", "UNREACHABLE"}}};
+  }
+
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     constexpr auto fmtString = "{:<22}{:<19}{:<12}{:<19}{:<14}{:<9}{:<12}\n";
 

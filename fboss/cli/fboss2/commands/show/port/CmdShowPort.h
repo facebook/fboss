@@ -36,10 +36,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
  public:
   using ObjectArgType = CmdShowPortTraits::ObjectArgType;
   using RetType = CmdShowPortTraits::RetType;
-  std::unordered_map<std::string, std::vector<std::string>>
-      acceptedFilterValuesMap = {
-          {"linkState", {"Up", "Down"}},
-          {"adminState", {"Enabled", "Disabled"}}};
+  static constexpr bool ALLOW_FILTERING = true;
 
   RetType queryClient(
       const HostInfo& hostInfo,
@@ -66,8 +63,10 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     return createModel(portEntries, transceiverEntries, queriedPorts.data());
   }
 
-  const ValidFilterMapType getValidFilters() {
-    return CmdHandler::getValidFiltersGeneric<cli::PortEntry>();
+  std::unordered_map<std::string, std::vector<std::string>>
+  getAcceptedFilterValues() {
+    return {
+        {"linkState", {"Up", "Down"}}, {"adminState", {"Enabled", "Disabled"}}};
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {

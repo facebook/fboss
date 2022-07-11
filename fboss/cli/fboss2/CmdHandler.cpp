@@ -52,6 +52,7 @@
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "folly/futures/Future.h"
 #include "thrift/lib/cpp2/protocol/Serializer.h"
 
@@ -59,6 +60,36 @@
 #include <folly/logging/xlog.h>
 #include <future>
 #include <iostream>
+
+#include "fboss/cli/fboss2/commands/show/acl/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/aggregateport/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/arp/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/interface/counters/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/interface/counters/mka/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/interface/errors/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/interface/flaps/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/interface/phy/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/interface/phymap/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/interface/prbs/capabilities/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/interface/prbs/state/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/interface/prbs/stats/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/interface/status/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/interface/traffic/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/lldp/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/mac/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/ndp/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/route/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/transceiver/gen-cpp2/model_visitation.h"
+
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/if/gen-cpp2/fboss_types.h"
+#include "fboss/agent/if/gen-cpp2/fboss_visitation.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_visitation.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_visitation.h"
+#include "fboss/lib/phy/gen-cpp2/prbs_visitation.h"
 
 template <typename CmdTypeT>
 void printTabular(
@@ -169,13 +200,46 @@ template void CmdHandler<CmdSetInterfacePrbs, CmdSetInterfacePrbsTraits>::run();
 template void
 CmdHandler<CmdSetInterfacePrbsState, CmdSetInterfacePrbsStateTraits>::run();
 
+template bool CmdHandler<CmdShowAcl, CmdShowAclTraits>::isFilterable();
+template bool
+CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::isFilterable();
+template bool CmdHandler<CmdShowArp, CmdShowArpTraits>::isFilterable();
+template bool CmdHandler<CmdShowLldp, CmdShowLldpTraits>::isFilterable();
+template bool CmdHandler<CmdShowNdp, CmdShowNdpTraits>::isFilterable();
 template bool CmdHandler<CmdShowPort, CmdShowPortTraits>::isFilterable();
-
-template const std::unordered_map<
-    std::string_view,
-    std::shared_ptr<CmdGlobalOptions::BaseTypeVerifier>>
-CmdHandler<CmdShowPort, CmdShowPortTraits>::getValidFiltersGeneric<
-    cli::PortEntry>();
+template bool
+CmdHandler<CmdShowPortQueue, CmdShowPortQueueTraits>::isFilterable();
+template bool
+CmdHandler<CmdShowInterface, CmdShowInterfaceTraits>::isFilterable();
+template bool CmdHandler<
+    CmdShowInterfaceCounters,
+    CmdShowInterfaceCountersTraits>::isFilterable();
+template bool CmdHandler<
+    CmdShowInterfaceCountersMKA,
+    CmdShowInterfaceCountersMKATraits>::isFilterable();
+template bool CmdHandler<CmdShowInterfaceErrors, CmdShowInterfaceErrorsTraits>::
+    isFilterable();
+template bool
+CmdHandler<CmdShowInterfaceFlaps, CmdShowInterfaceFlapsTraits>::isFilterable();
+template bool
+CmdHandler<CmdShowInterfacePrbs, CmdShowInterfacePrbsTraits>::isFilterable();
+template bool CmdHandler<
+    CmdShowInterfacePrbsCapabilities,
+    CmdShowInterfacePrbsCapabilitiesTraits>::isFilterable();
+template bool CmdHandler<
+    CmdShowInterfacePrbsState,
+    CmdShowInterfacePrbsStateTraits>::isFilterable();
+template bool CmdHandler<
+    CmdShowInterfacePrbsStats,
+    CmdShowInterfacePrbsStatsTraits>::isFilterable();
+template bool CmdHandler<CmdShowInterfacePhymap, CmdShowInterfacePhymapTraits>::
+    isFilterable();
+template bool CmdHandler<
+    CmdShowInterfaceTraffic,
+    CmdShowInterfaceTrafficTraits>::isFilterable();
+template bool CmdHandler<CmdShowSdkDump, CmdShowSdkDumpTraits>::isFilterable();
+template bool
+CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::isFilterable();
 
 static bool hasRun = false;
 
@@ -214,7 +278,7 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   }
 
   if (!parsedFilters.empty()) {
-    const auto& validFilters = impl().getValidFilters();
+    const auto& validFilters = getValidFilters();
     const auto& errorCode =
         CmdGlobalOptions::getInstance()->isValid(validFilters, parsedFilters);
     if (!(errorCode == CmdGlobalOptions::CliOptionResult::EOK)) {
@@ -263,16 +327,20 @@ template <typename CmdTypeT, typename CmdTypeTraits>
 bool CmdHandler<CmdTypeT, CmdTypeTraits>::isFilterable() {
   int numFields = 0;
   bool filterable = true;
-  apache::thrift::for_each_field(
-      RetType(), [&](const ThriftField& meta, auto&& /*field_ref*/) {
-        const auto& fieldType = *meta.type();
-        const auto& thriftBaseType = fieldType.getType();
+  if constexpr (
+      apache::thrift::is_thrift_struct_v<RetType> &&
+      CmdTypeT::ALLOW_FILTERING == true) {
+    apache::thrift::for_each_field(
+        RetType(), [&](const ThriftField& meta, auto&& /*field_ref*/) {
+          const auto& fieldType = *meta.type();
+          const auto& thriftBaseType = fieldType.getType();
 
-        if (thriftBaseType != ThriftType::Type::t_list) {
-          filterable = false;
-        }
-        numFields += 1;
-      });
+          if (thriftBaseType != ThriftType::Type::t_list) {
+            filterable = false;
+          }
+          numFields += 1;
+        });
+  }
 
   if (numFields != 1) {
     filterable = false;
@@ -280,65 +348,90 @@ bool CmdHandler<CmdTypeT, CmdTypeTraits>::isFilterable() {
   return filterable;
 }
 
+template <class T>
+using get_value_type_t = typename T::value_type;
+
 /* Logic: We first check if this thrift struct is filterable at all. If it is,
  we constuct a filter map that contains filterable fields. For now, only
  primitive fields will be added to the filter map and considered filterable.
+ Also, here we are traversing the nested thrift struct using the visitation api.
+ for that, we start with the RetType() object and get to the fields of the inner
+ struct using reflection. This is a much cleaner approach than the one that
+ redirects through each command's handler to get the inner struct.
  */
 template <typename CmdTypeT, typename CmdTypeTraits>
-template <typename CmdThriftStructType>
 const typename CmdHandler<CmdTypeT, CmdTypeTraits>::ValidFilterMapType
-CmdHandler<CmdTypeT, CmdTypeTraits>::getValidFiltersGeneric() {
+CmdHandler<CmdTypeT, CmdTypeTraits>::getValidFilters() {
   if (!CmdHandler<CmdTypeT, CmdTypeTraits>::isFilterable()) {
     return {};
   }
   ValidFilterMapType filterMap;
 
-  apache::thrift::for_each_field(
-      CmdThriftStructType(),
-      [&filterMap](const ThriftField& meta, auto&& /*field_ref*/) {
-        const auto& fieldType = *meta.type();
-        const auto& thriftBaseType = fieldType.getType();
+  if constexpr (
+      apache::thrift::is_thrift_struct_v<RetType> &&
+      CmdTypeT::ALLOW_FILTERING == true) {
+    apache::thrift::for_each_field(
+        RetType(),
+        [&filterMap, this](
+            const ThriftField& /*outer_meta*/, auto&& outer_field_ref) {
+          if constexpr (apache::thrift::is_thrift_struct_v<folly::detected_or_t<
+                            void,
+                            get_value_type_t,
+                            folly::remove_cvref_t<
+                                decltype(*outer_field_ref)>>>) {
+            using NestedType = get_value_type_t<
+                folly::remove_cvref_t<decltype(*outer_field_ref)>>;
+            if constexpr (apache::thrift::is_thrift_struct_v<NestedType>) {
+              apache::thrift::for_each_field(
+                  NestedType(),
+                  [&, this](const ThriftField& meta, auto&& /*field_ref*/) {
+                    const auto& fieldType = *meta.type();
+                    const auto& thriftBaseType = fieldType.getType();
 
-        // we are only supporting filtering on primitive typed keys for now.
-        // This will be expanded as we proceed.
-        if (thriftBaseType == ThriftType::Type::t_primitive) {
-          const auto& thriftType = fieldType.get_t_primitive();
-          switch (thriftType) {
-            case ThriftPrimitiveType::THRIFT_STRING_TYPE:
-              filterMap[*meta.name()] =
-                  std::make_shared<CmdGlobalOptions::TypeVerifier<std::string>>(
-                      *meta.name(),
-                      CmdTypeT().acceptedFilterValuesMap[*meta.name()]);
-              break;
+                    // we are only supporting filtering on primitive typed keys
+                    // for now. This will be expanded as we proceed.
+                    if (thriftBaseType == ThriftType::Type::t_primitive) {
+                      const auto& thriftType = fieldType.get_t_primitive();
+                      switch (thriftType) {
+                        case ThriftPrimitiveType::THRIFT_STRING_TYPE:
+                          filterMap[*meta.name()] = std::make_shared<
+                              CmdGlobalOptions::TypeVerifier<std::string>>(
+                              *meta.name(),
+                              impl().getAcceptedFilterValues()[*meta.name()]);
+                          break;
 
-            case ThriftPrimitiveType::THRIFT_I16_TYPE:
-              filterMap[*meta.name()] =
-                  std::make_shared<CmdGlobalOptions::TypeVerifier<int16_t>>(
-                      *meta.name());
-              break;
+                        case ThriftPrimitiveType::THRIFT_I16_TYPE:
+                          filterMap[*meta.name()] = std::make_shared<
+                              CmdGlobalOptions::TypeVerifier<int16_t>>(
+                              *meta.name());
+                          break;
 
-            case ThriftPrimitiveType::THRIFT_I32_TYPE:
-              filterMap[*meta.name()] =
-                  std::make_shared<CmdGlobalOptions::TypeVerifier<int32_t>>(
-                      *meta.name());
-              break;
+                        case ThriftPrimitiveType::THRIFT_I32_TYPE:
+                          filterMap[*meta.name()] = std::make_shared<
+                              CmdGlobalOptions::TypeVerifier<int32_t>>(
+                              *meta.name());
+                          break;
 
-            case ThriftPrimitiveType::THRIFT_I64_TYPE:
-              filterMap[*meta.name()] =
-                  std::make_shared<CmdGlobalOptions::TypeVerifier<int64_t>>(
-                      *meta.name());
-              break;
+                        case ThriftPrimitiveType::THRIFT_I64_TYPE:
+                          filterMap[*meta.name()] = std::make_shared<
+                              CmdGlobalOptions::TypeVerifier<int64_t>>(
+                              *meta.name());
+                          break;
 
-            case ThriftPrimitiveType::THRIFT_BYTE_TYPE:
-              filterMap[*meta.name()] =
-                  std::make_shared<CmdGlobalOptions::TypeVerifier<std::byte>>(
-                      *meta.name());
-              break;
+                        case ThriftPrimitiveType::THRIFT_BYTE_TYPE:
+                          filterMap[*meta.name()] = std::make_shared<
+                              CmdGlobalOptions::TypeVerifier<std::byte>>(
+                              *meta.name());
+                          break;
 
-            default:;
+                        default:;
+                      }
+                    }
+                  });
+            }
           }
-        }
-      });
+        });
+  }
   return filterMap;
 }
 } // namespace facebook::fboss

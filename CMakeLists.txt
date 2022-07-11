@@ -289,9 +289,12 @@ add_fbthrift_cpp_library(
     FbossCommonPhyCtrl
   OPTIONS
     json
+    reflection
   DEPENDS
     switch_config_cpp2
     transceiver_cpp2
+    fboss_cpp2
+    fb303_cpp2
 )
 add_fbthrift_cpp_library(
   optic_cpp2

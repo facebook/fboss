@@ -81,7 +81,6 @@ struct BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
-  static constexpr std::array<std::string_view, 0> FILTERS{};
 };
 
 template <typename CmdTypeT, typename CmdTypeTraits>
@@ -104,17 +103,18 @@ class CmdHandler {
   using ValidFilterMapType = std::unordered_map<
       std::string_view,
       std::shared_ptr<CmdGlobalOptions::BaseTypeVerifier>>;
+  static constexpr bool ALLOW_FILTERING = false;
 
   void run();
 
   bool isFilterable();
 
-  template <typename CmdThriftStructType>
-  const ValidFilterMapType getValidFiltersGeneric();
-
-  const ValidFilterMapType getValidFilters() {
+  std::unordered_map<std::string, std::vector<std::string>>
+  getAcceptedFilterValues() {
     return {};
   }
+
+  const ValidFilterMapType getValidFilters();
 
  protected:
   CmdTypeT& impl() {
