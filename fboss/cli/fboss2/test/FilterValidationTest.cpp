@@ -4,6 +4,9 @@
 #include <gtest/gtest.h>
 
 #include <fboss/cli/fboss2/CmdGlobalOptions.h>
+#include <fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h>
+#include <fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h>
+#include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 #include "nettools/common/TestUtils.h"
@@ -119,6 +122,87 @@ CmdGlobalOptions::UnionList createInvalidValueOtherFields() {
   return filterUnion;
 }
 
+CmdGlobalOptions::UnionList createNdpValidInput() {
+  CmdGlobalOptions::FilterTerm filterTerm1 = {
+      "ip", CmdGlobalOptions::FilterOp::EQ, "10.128.40.16"};
+  CmdGlobalOptions::FilterTerm filterTerm2 = {
+      "state", CmdGlobalOptions::FilterOp::NEQ, "REACHABLE"};
+  CmdGlobalOptions::FilterTerm filterTerm3 = {
+      "ttl", CmdGlobalOptions::FilterOp::GT, "5"};
+  CmdGlobalOptions::FilterTerm filterTerm4 = {
+      "classID", CmdGlobalOptions::FilterOp::EQ, "8"};
+  CmdGlobalOptions::IntersectionList intersectList1 = {filterTerm1};
+  CmdGlobalOptions::IntersectionList intersectList2 = {
+      filterTerm2, filterTerm3};
+  return {intersectList1, intersectList2};
+}
+
+CmdGlobalOptions::UnionList createNdpInvalidKey() {
+  CmdGlobalOptions::FilterTerm filterTerm1 = {
+      "ip", CmdGlobalOptions::FilterOp::EQ, "10.128.40.16"};
+  CmdGlobalOptions::FilterTerm filterTerm2 = {
+      "state", CmdGlobalOptions::FilterOp::NEQ, "REACHABLE"};
+  // There is no field for status in NDP. Hence, invalid key
+  CmdGlobalOptions::FilterTerm filterTerm3 = {
+      "status", CmdGlobalOptions::FilterOp::NEQ, "unknown"};
+
+  CmdGlobalOptions::IntersectionList intersectList1 = {
+      filterTerm1, filterTerm2, filterTerm3};
+  CmdGlobalOptions::UnionList filterUnion = {intersectList1};
+  return filterUnion;
+}
+
+CmdGlobalOptions::UnionList createArpValidInput() {
+  CmdGlobalOptions::FilterTerm filterTerm1 = {
+      "ip", CmdGlobalOptions::FilterOp::EQ, "10.128.40.16"};
+  CmdGlobalOptions::FilterTerm filterTerm2 = {
+      "state", CmdGlobalOptions::FilterOp::NEQ, "REACHABLE"};
+  CmdGlobalOptions::FilterTerm filterTerm3 = {
+      "ttl", CmdGlobalOptions::FilterOp::GT, "5"};
+  CmdGlobalOptions::FilterTerm filterTerm4 = {
+      "classID", CmdGlobalOptions::FilterOp::EQ, "8"};
+
+  CmdGlobalOptions::IntersectionList intersectList1 = {
+      filterTerm1, filterTerm2, filterTerm3};
+  CmdGlobalOptions::IntersectionList intersectList2 = {filterTerm4};
+  return {intersectList1, intersectList2};
+}
+
+CmdGlobalOptions::UnionList createArpInvalidValue() {
+  // state in ARP can only be "REACHABLE" or "UNREACHABLE"
+  CmdGlobalOptions::FilterTerm filterTerm1 = {
+      "state", CmdGlobalOptions::FilterOp::NEQ, "good"};
+  CmdGlobalOptions::UnionList filterUnion = {{filterTerm1}};
+  return filterUnion;
+}
+
+CmdGlobalOptions::UnionList createAggPortInvalidType() {
+  CmdGlobalOptions::FilterTerm filterTerm1 = {
+      "activeMembers", CmdGlobalOptions::FilterOp::EQ, "5"};
+  CmdGlobalOptions::FilterTerm filterTerm2 = {
+      "configuredMembers", CmdGlobalOptions::FilterOp::NEQ, "3"};
+  // minMembers accepts integers
+  CmdGlobalOptions::FilterTerm filterTerm3 = {
+      "minMembers", CmdGlobalOptions::FilterOp::NEQ, "unknown"};
+  CmdGlobalOptions::FilterTerm filterTerm4 = {
+      "name", CmdGlobalOptions::FilterOp::NEQ, "my_aggTest"};
+
+  CmdGlobalOptions::IntersectionList intersectList1 = {
+      filterTerm1, filterTerm2};
+  CmdGlobalOptions::IntersectionList intersectList2 = {
+      filterTerm3, filterTerm4};
+  CmdGlobalOptions::UnionList filterUnion = {intersectList1, intersectList2};
+  return filterUnion;
+}
+
+CmdGlobalOptions::UnionList createAggPortInvalidFilterable() {
+  // members is not filterable because it's a list. We only support primitive
+  // types and strings for filtering
+  CmdGlobalOptions::FilterTerm filterTerm1 = {
+      "members", CmdGlobalOptions::FilterOp::EQ, "some_member"};
+  return {{filterTerm1}};
+}
+
 class FilterValidatorFixture : public CmdHandlerTestBase {
  public:
   void SetUp() override {
@@ -214,7 +298,7 @@ TEST_F(FilterValidatorFixture, validInputParsing) {
   EXPECT_EQ(std::get<2>(filterTerm3), "12");
 }
 
-TEST_F(FilterValidatorFixture, otherFieldsValidityTest1) {
+TEST_F(FilterValidatorFixture, filterValidationTestPortValid) {
   auto otherFieldsValidInput = createValidInputOtherFields();
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
       CmdShowPort().getValidFilters(), otherFieldsValidInput);
@@ -222,11 +306,60 @@ TEST_F(FilterValidatorFixture, otherFieldsValidityTest1) {
   EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::EOK);
 }
 
-TEST_F(FilterValidatorFixture, otherFieldsValidityTest2) {
+TEST_F(FilterValidatorFixture, filterValidationTestNdpValid) {
+  auto ndpValidInput = createNdpValidInput();
+  auto errCode = CmdGlobalOptions::getInstance()->isValid(
+      CmdShowNdp().getValidFilters(), ndpValidInput);
+
+  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::EOK);
+}
+
+TEST_F(FilterValidatorFixture, filterValidationTestArpValid) {
+  auto arpValidInput = createArpValidInput();
+  auto errCode = CmdGlobalOptions::getInstance()->isValid(
+      CmdShowArp().getValidFilters(), arpValidInput);
+
+  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::EOK);
+}
+
+TEST_F(FilterValidatorFixture, filterValidationTestPortInvalid) {
   auto otherFieldsInvalidValueTypeInput = createInvalidValueOtherFields();
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
       CmdShowPort().getValidFilters(), otherFieldsInvalidValueTypeInput);
 
   EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::TYPE_ERROR);
 }
+
+TEST_F(FilterValidatorFixture, filterValidationTestNdpInvalid) {
+  auto ndpInvalidInput = createNdpInvalidKey();
+  auto errCode = CmdGlobalOptions::getInstance()->isValid(
+      CmdShowNdp().getValidFilters(), ndpInvalidInput);
+
+  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::KEY_ERROR);
+}
+
+TEST_F(FilterValidatorFixture, filterValidationTestArpInvalid) {
+  auto arpInvalidInput = createArpInvalidValue();
+  auto errCode = CmdGlobalOptions::getInstance()->isValid(
+      CmdShowArp().getValidFilters(), arpInvalidInput);
+
+  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::VALUE_ERROR);
+}
+
+TEST_F(FilterValidatorFixture, filterValidationTestAggPort) {
+  auto aggPortInvalidInput = createAggPortInvalidType();
+  auto errCode = CmdGlobalOptions::getInstance()->isValid(
+      CmdShowAggregatePort().getValidFilters(), aggPortInvalidInput);
+
+  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::TYPE_ERROR);
+}
+
+TEST_F(FilterValidatorFixture, filterableCheck) {
+  auto aggPortInvalidFilterable = createAggPortInvalidFilterable();
+  auto errCode = CmdGlobalOptions::getInstance()->isValid(
+      CmdShowAggregatePort().getValidFilters(), aggPortInvalidFilterable);
+
+  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::KEY_ERROR);
+}
+
 } // namespace facebook::fboss
