@@ -267,8 +267,22 @@ void ModbusSpecialHandler::handle(ModbusDevice& dev) {
   WriteMultipleRegistersResp resp(deviceAddress_, reg, len);
   try {
     dev.command(req, resp);
+  } catch (ModbusError& e) {
+    if (e.errorCode == ModbusErrorCode::ILLEGAL_DATA_ADDRESS ||
+        e.errorCode == ModbusErrorCode::ILLEGAL_FUNCTION) {
+      logInfo << "DEV:0x" << std::hex << +deviceAddress_
+              << " Special Handler at 0x" << std::hex << +reg << ' '
+              << " unsupported. Disabled from future updates" << std::endl;
+      period = -1;
+    } else {
+      logInfo << "DEV:0x" << std::hex << +deviceAddress_
+              << " Special Handler at 0x" << std::hex << +reg << ' '
+              << " caught: " << e.what() << std::endl;
+    }
   } catch (std::exception& e) {
-    logError << "Error executing special handler" << std::endl;
+    logInfo << "DEV:0x" << std::hex << +deviceAddress_
+            << " Special Handler at 0x" << std::hex << +reg << ' '
+            << " caught: " << e.what() << std::endl;
   }
   lastHandleTime_ = getTime();
   handled_ = true;
