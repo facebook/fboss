@@ -226,6 +226,7 @@ target_link_libraries(fboss2
   phy_cpp2
   hardware_stats_cpp2
   mka_structs_cpp2
+  fsdb_oper_cpp2
   Folly::folly
   show_acl_model
   show_aggregateport_model
