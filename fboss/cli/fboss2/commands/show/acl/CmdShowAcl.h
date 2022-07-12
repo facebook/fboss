@@ -81,6 +81,9 @@ class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
             << std::endl;
       }
       out << "   action: " << aclEntry.get_actionType() << std::endl;
+      if (aclEntry.get_enabled()) {
+        out << "   enabled: " << aclEntry.get_enabled() << std::endl;
+      }
       out << std::endl;
     }
   }
@@ -133,7 +136,9 @@ class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
         aclDetails.lookupClassL2() = *entry.get_lookupClassL2();
       }
       aclDetails.actionType() = entry.get_actionType();
-
+      if (entry.get_enabled()) {
+        aclDetails.enabled() = *entry.get_enabled();
+      }
       model.aclEntries()->push_back(aclDetails);
     }
     return model;
