@@ -12,7 +12,7 @@ using namespace rackmon;
 // Mocks the Modbus interface.
 class Mock2Modbus : public Modbus {
  public:
-  Mock2Modbus() : Modbus(std::cout) {}
+  Mock2Modbus() : Modbus() {}
   ~Mock2Modbus() {}
   MOCK_METHOD1(initialize, void(const nlohmann::json&));
   MOCK_METHOD4(command, void(Msg&, Msg&, uint32_t, ModbusTime));
@@ -530,7 +530,7 @@ class MockSpecialHandler : public ModbusSpecialHandler {
 };
 
 TEST(ModbusSpecialHandler, BasicHandlingStringValuePeriodic) {
-  Modbus mock_modbus{std::cout};
+  Modbus mock_modbus{};
   RegisterMap mock_rmap = R"({
     "name": "orv3_psu",
     "address_range": [110, 140],
@@ -588,7 +588,7 @@ TEST(ModbusSpecialHandler, BasicHandlingStringValuePeriodic) {
 }
 
 TEST(ModbusSpecialHandler, BasicHandlingIntegerOneShot) {
-  Modbus mock_modbus{std::cout};
+  Modbus mock_modbus{};
   RegisterMap mock_rmap = R"({
     "name": "orv3_psu",
     "address_range": [110, 140],

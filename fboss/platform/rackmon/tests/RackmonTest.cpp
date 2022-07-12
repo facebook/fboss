@@ -20,11 +20,7 @@ class FakeModbus : public Modbus {
 
  public:
   FakeModbus(uint8_t e, uint8_t mina, uint8_t maxa, uint32_t b)
-      : Modbus(std::cout),
-        exp_addr(e),
-        min_addr(mina),
-        max_addr(maxa),
-        baud(b) {}
+      : Modbus(), exp_addr(e), min_addr(mina), max_addr(maxa), baud(b) {}
   void command(Msg& req, Msg& resp, uint32_t b, ModbusTime /* unused */)
       override {
     encoder.encode(req);
@@ -67,7 +63,7 @@ class FakeModbus : public Modbus {
 class Mock3Modbus : public Modbus {
  public:
   Mock3Modbus(uint8_t e, uint8_t mina, uint8_t maxa, uint32_t b)
-      : Modbus(std::cout), fake_(e, mina, maxa, b) {
+      : Modbus(), fake_(e, mina, maxa, b) {
     ON_CALL(*this, command(_, _, _, _))
         .WillByDefault(
             Invoke([this](Msg& req, Msg& resp, uint32_t b, ModbusTime timeout) {

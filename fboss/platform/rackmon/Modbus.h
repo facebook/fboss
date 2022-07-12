@@ -24,7 +24,6 @@ class Modbus {
   std::atomic<bool> deviceValid_{false};
   std::chrono::seconds healthCheckInterval_ = std::chrono::seconds(600);
   std::unique_ptr<PollThread<Modbus>> healthCheckThread_{};
-  std::ostream& profileStore_;
 
   void healthCheck();
   bool openDevice();
@@ -36,7 +35,7 @@ class Modbus {
   }
 
  public:
-  explicit Modbus(std::ostream& prof) : profileStore_(prof) {}
+  explicit Modbus() {}
   virtual ~Modbus() {
     if (healthCheckThread_) {
       healthCheckThread_->stop();

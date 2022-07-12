@@ -18,7 +18,7 @@ void Modbus::command(
     throw std::runtime_error("Uninitialized");
   }
   RACKMON_PROFILE_SCOPE(
-      modbusCommand, "modbus::" + std::to_string(int(req.addr)), profileStore_);
+      modbusCommand, "modbus::" + std::to_string(int(req.addr)));
   if (timeout == ModbusTime::zero()) {
     timeout = defaultTimeout_;
   }

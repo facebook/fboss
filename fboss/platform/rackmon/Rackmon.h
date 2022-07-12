@@ -22,8 +22,6 @@ class Rackmon {
 
   mutable std::shared_mutex devicesMutex_{};
 
-  std::stringstream profileStore_{};
-
   // These devices discovered on actively monitored busses
   std::map<uint8_t, std::unique_ptr<ModbusDevice>> devices_{};
 
@@ -85,7 +83,7 @@ class Rackmon {
   }
 
   virtual std::unique_ptr<Modbus> makeInterface() {
-    return std::make_unique<Modbus>(profileStore_);
+    return std::make_unique<Modbus>();
   }
   const RegisterMapDatabase& getRegisterMapDatabase() const {
     return registerMapDB_;
@@ -159,9 +157,6 @@ class Rackmon {
 
   // Get value data
   void getValueData(std::vector<ModbusDeviceValueData>& data) const;
-
-  // Get profile data
-  std::string getProfileData();
 };
 
 } // namespace rackmon

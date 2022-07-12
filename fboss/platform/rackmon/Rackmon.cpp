@@ -221,8 +221,7 @@ void Rackmon::stop() {
 
 void Rackmon::rawCmd(Request& req, Response& resp, ModbusTime timeout) {
   uint8_t addr = req.addr;
-  RACKMON_PROFILE_SCOPE(
-      raw_cmd, "rawcmd::" + std::to_string(int(req.addr)), profileStore_);
+  RACKMON_PROFILE_SCOPE(raw_cmd, "rawcmd::" + std::to_string(int(req.addr)));
   std::shared_lock lock(devicesMutex_);
   if (!devices_.at(addr)->isActive()) {
     throw std::exception();
@@ -238,9 +237,7 @@ void Rackmon::readHoldingRegisters(
     std::vector<uint16_t>& registerContents,
     ModbusTime timeout) {
   RACKMON_PROFILE_SCOPE(
-      raw_cmd,
-      "readRegs::" + std::to_string(int(deviceAddress)),
-      profileStore_);
+      raw_cmd, "readRegs::" + std::to_string(int(deviceAddress)));
   std::shared_lock lock(devicesMutex_);
   if (!devices_.at(deviceAddress)->isActive()) {
     throw std::exception();
@@ -255,9 +252,7 @@ void Rackmon::writeSingleRegister(
     uint16_t value,
     ModbusTime timeout) {
   RACKMON_PROFILE_SCOPE(
-      raw_cmd,
-      "writeReg::" + std::to_string(int(deviceAddress)),
-      profileStore_);
+      raw_cmd, "writeReg::" + std::to_string(int(deviceAddress)));
   std::shared_lock lock(devicesMutex_);
   if (!devices_.at(deviceAddress)->isActive()) {
     throw std::exception();
@@ -272,9 +267,7 @@ void Rackmon::writeMultipleRegisters(
     std::vector<uint16_t>& values,
     ModbusTime timeout) {
   RACKMON_PROFILE_SCOPE(
-      raw_cmd,
-      "writeRegs::" + std::to_string(int(deviceAddress)),
-      profileStore_);
+      raw_cmd, "writeRegs::" + std::to_string(int(deviceAddress)));
   std::shared_lock lock(devicesMutex_);
   if (!devices_.at(deviceAddress)->isActive()) {
     throw std::exception();
@@ -288,9 +281,7 @@ void Rackmon::readFileRecord(
     std::vector<FileRecord>& records,
     ModbusTime timeout) {
   RACKMON_PROFILE_SCOPE(
-      raw_cmd,
-      "ReadFile::" + std::to_string(int(deviceAddress)),
-      profileStore_);
+      raw_cmd, "ReadFile::" + std::to_string(int(deviceAddress)));
   std::shared_lock lock(devicesMutex_);
   if (!devices_.at(deviceAddress)->isActive()) {
     throw std::exception();
@@ -325,12 +316,6 @@ void Rackmon::getValueData(std::vector<ModbusDeviceValueData>& data) const {
       devices_.begin(), devices_.end(), std::back_inserter(data), [](auto& kv) {
         return kv.second->getValueData();
       });
-}
-
-std::string Rackmon::getProfileData() {
-  std::stringstream ss;
-  profileStore_.swap(ss);
-  return ss.str();
 }
 
 } // namespace rackmon

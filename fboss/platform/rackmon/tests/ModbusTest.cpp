@@ -24,7 +24,7 @@ class MockUARTDevice : public UARTDevice {
 
 class MockModbus : public Modbus {
  public:
-  explicit MockModbus(std::stringstream& prof) : Modbus(prof) {}
+  explicit MockModbus() : Modbus() {}
   virtual ~MockModbus() {
     getHealthCheckThread().stop();
   }
@@ -130,8 +130,7 @@ TEST_F(ModbusTest, BasicDefaultInitialization) {
   nlohmann::json conf;
   conf["device_path"] = "/dev/ttyUSB0";
   conf["baudrate"] = 19200;
-  std::stringstream ss;
-  MockModbus bus(ss);
+  MockModbus bus;
   EXPECT_CALL(bus, makeDevice("default", "/dev/ttyUSB0", 19200))
       .Times(1)
       .WillOnce(Return(ByMove(make_dev())));
@@ -147,8 +146,7 @@ TEST_F(ModbusTest, BasicExplicitTypeInitialization) {
     conf["device_path"] = "/dev/ttyUSB0";
     conf["device_type"] = type;
     conf["baudrate"] = 19200;
-    std::stringstream ss;
-    MockModbus bus(ss);
+    MockModbus bus;
     EXPECT_CALL(bus, makeDevice(type, "/dev/ttyUSB0", 19200))
         .Times(1)
         .WillOnce(Return(ByMove(make_dev())));
@@ -167,8 +165,7 @@ TEST_F(ModbusTest, Command) {
   uint8_t write_exp_buf[] = {0, 1, 2, 3, 4, 5, 6, 7, 0x46, 0x7a};
   // mocked response with its CRC.
   uint8_t resp_buf[] = {0, 1, 2, 3, 4, 5, 6, 0xa1, 0xc6};
-  std::stringstream ss;
-  MockModbus bus(ss);
+  MockModbus bus;
   EXPECT_CALL(bus, makeDevice("default", "/dev/ttyUSB0", 19200))
       .Times(1)
       .WillOnce(
@@ -192,8 +189,7 @@ TEST_F(ModbusTest, CommandBadResp) {
   // mocked response with its CRC.
   uint8_t resp_buf[] = {
       0, 1, 2, 3, 4, 5, 6, 0xa1, 0xc7}; // 0xa1c6 is correct CRC.
-  std::stringstream ss;
-  MockModbus bus(ss);
+  MockModbus bus;
   EXPECT_CALL(bus, makeDevice("default", "/dev/ttyUSB0", 19200))
       .Times(1)
       .WillOnce(
@@ -209,8 +205,7 @@ TEST_F(ModbusTest, TestFlakyIntfRecover) {
   nlohmann::json conf;
   conf["device_path"] = "/dev/ttyUSB0";
   conf["baudrate"] = 19200;
-  std::stringstream ss;
-  MockModbus bus(ss);
+  MockModbus bus;
   EXPECT_CALL(bus, makeDevice("default", "/dev/ttyUSB0", 19200))
       .Times(1)
       .WillOnce(Return(ByMove(make_flaky_dev())));
