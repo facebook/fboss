@@ -17,6 +17,8 @@
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 #include "folly/Synchronized.h"
 
+DECLARE_string(mock_lmsensor_json_data);
+
 namespace facebook::fboss::platform::sensor_service {
 
 using namespace facebook::fboss::platform::sensor_config;

@@ -17,6 +17,11 @@
 #include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/sensor_service/GetSensorConfig.h"
 
+DEFINE_string(
+    mock_lmsensor_json_data,
+    "/etc/sensor_service/sensors_output.json",
+    "File to store the mock Lm Sensor JSON data");
+
 namespace {
 
 // The following are keys in sensor conf file
@@ -25,8 +30,6 @@ const std::string kSourceSysfs = "sysfs";
 const std::string kSourceMock = "mock";
 const std::string kSensorFieldName = "name";
 
-const std::string kMockLmsensorJasonData =
-    "/etc/sensor_service/sensors_output.json";
 const std::string kLmsensorCommand = "sensors -j";
 } // namespace
 namespace facebook::fboss::platform::sensor_service {
@@ -167,11 +170,13 @@ void SensorServiceImpl::fetchSensorData() {
     getSensorDataFromPath();
   } else if (sensorSource_ == SensorSource::MOCK) {
     std::string sensorDataJson;
-    if (folly::readFile(kMockLmsensorJasonData.c_str(), sensorDataJson)) {
+    if (folly::readFile(
+            FLAGS_mock_lmsensor_json_data.c_str(), sensorDataJson)) {
       parseSensorJsonData(sensorDataJson);
     } else {
       throw std::runtime_error(
-          "Can not find sensor data json file: " + kMockLmsensorJasonData);
+          "Can not find sensor data json file: " +
+          FLAGS_mock_lmsensor_json_data);
     }
   } else {
     throw std::runtime_error(
