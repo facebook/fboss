@@ -44,8 +44,10 @@ void SensorServiceThriftHandler::getSensorValuesByNames(
 
   } else {
     // Request list is empty, we send all the sensor data
-    std::vector<SensorData> sensorVec = sensorService_->getAllSensorData();
-
+    std::vector<SensorData> sensorVec;
+    for (const auto& sensorDataItr : sensorService_->getAllSensorData()) {
+      sensorVec.push_back(sensorDataItr.second);
+    }
     response.sensorData() = sensorVec;
   }
 }

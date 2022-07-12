@@ -138,8 +138,8 @@ std::vector<SensorData> SensorServiceImpl::getSensorsData(
   return sensorDataVec;
 }
 
-std::vector<SensorData> SensorServiceImpl::getAllSensorData() {
-  std::vector<SensorData> sensorDataVec;
+std::map<std::string, SensorData> SensorServiceImpl::getAllSensorData() {
+  std::map<std::string, SensorData> sensorDataMap;
 
   liveDataTable_.withRLock([&](auto& table) {
     for (auto& pair : table) {
@@ -147,10 +147,10 @@ std::vector<SensorData> SensorServiceImpl::getAllSensorData() {
       d.name() = pair.first;
       d.value() = pair.second.value;
       d.timeStamp() = pair.second.timeStamp;
-      sensorDataVec.push_back(d);
+      sensorDataMap[pair.first] = d;
     }
   });
-  return sensorDataVec;
+  return sensorDataMap;
 }
 
 void SensorServiceImpl::fetchSensorData() {
