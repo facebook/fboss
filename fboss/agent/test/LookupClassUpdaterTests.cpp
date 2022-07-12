@@ -520,50 +520,6 @@ TYPED_TEST(LookupClassUpdaterTest, MacMove) {
 }
 
 /*
- * This test case covers scenarios where a MAC address with class ID is
- * aged out and relearned. This simulates collapsing of the state changes
- * that occur in quick succession and makes sure that class ID is not lost.
- */
-TYPED_TEST(LookupClassUpdaterTest, MacAgeAndRelearned) {
-  if constexpr (!std::is_same_v<TypeParam, folly::MacAddress>) {
-    return;
-  }
-  this->resolve(this->getIpAddress(), this->kMacAddress());
-  this->updateLookupClasses(
-      {cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3});
-
-  this->updateState(
-      "Trigger MAC Age & Relearn ",
-      [=](const std::shared_ptr<SwitchState>& state) {
-        std::shared_ptr<SwitchState> newState{state};
-
-        auto vlan = state->getVlans()->getVlanIf(this->kVlan()).get();
-        auto* macTable = vlan->getMacTable().get();
-        auto node = macTable->getNodeIf(this->kMacAddress());
-
-        EXPECT_NE(node, nullptr);
-
-        macTable = macTable->modify(&vlan, &newState);
-
-        macTable->removeEntry(this->kMacAddress());
-        // Add the same mac entry and check the class ID
-        auto macEntry = std::make_shared<MacEntry>(
-            this->kMacAddress(), PortDescriptor(this->kPortID()));
-        macTable->addEntry(macEntry);
-
-        return newState;
-      });
-
-  waitForStateUpdates(this->sw_);
-  this->sw_->getNeighborUpdater()->waitForPendingUpdates();
-  waitForBackgroundThread(this->sw_);
-  this->verifyMacClassIDHelper(
-      this->kMacAddress(),
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3,
-      MacEntryType::DYNAMIC_ENTRY);
-}
-
-/*
  * Tests that are valid for arp/ndp neighbors only and not for Mac addresses
  */
 template <typename AddrT>

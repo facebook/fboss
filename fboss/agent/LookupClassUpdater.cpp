@@ -316,33 +316,6 @@ void LookupClassUpdater::processChanged(
     if (oldEntry->getPort().phyPortID() != newEntry->getPort().phyPortID()) {
       removeClassIDForPortAndMac(stateDelta.oldState(), vlan, oldEntry);
       updateNeighborClassID(stateDelta.newState(), vlan, newEntry);
-    } else {
-      /* When a MAC address with class ID is aged out and relearned in a
-       * quick succession, the state changes can collapse and lose the
-       * class ID. This makes sure that class ID is not lost. (T64576277)
-       */
-      auto portID = newEntry->getPort().phyPortID();
-      auto port = stateDelta.newState()->getPorts()->getPortIf(portID);
-      // Only downlink ports of MH-NIC RSW setups will have lookupClasses
-      // Thus size of getLookupClassesToDistributeTrafficOn would be > 0
-      // For other MH-NIC, this block should not be applied.
-      if (oldEntry->getClassID().has_value() &&
-          !newEntry->getClassID().has_value() && port &&
-          port->getLookupClassesToDistributeTrafficOn().size() != 0) {
-        auto classID = oldEntry->getClassID().value();
-        auto updateMacClassIDFn =
-            [vlan, newEntry, classID](
-                const std::shared_ptr<SwitchState>& state) {
-              return MacTableUtils::updateOrAddEntryWithClassID(
-                  state, vlan, newEntry, classID);
-            };
-
-        sw_->updateState(
-            folly::to<std::string>("Reconfigure lookup classID: ", classID),
-            std::move(updateMacClassIDFn));
-      } else {
-        updateNeighborClassID(stateDelta.newState(), vlan, newEntry);
-      }
     }
   } else {
     CHECK_EQ(oldEntry->getIP(), newEntry->getIP());
