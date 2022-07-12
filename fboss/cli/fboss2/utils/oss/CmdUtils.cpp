@@ -22,6 +22,6 @@ const std::string getOobNameFromHost(const std::string& /* host */) {
   return "";
 }
 
-void logUsage(const std::string& /*cmdName*/) {}
+void logUsage(const CmdLogInfo& /*Cmd Log Info*/) {}
 
 } // namespace facebook::fboss::utils

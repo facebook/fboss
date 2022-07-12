@@ -15,6 +15,7 @@
 #include <folly/IPAddress.h>
 #include <folly/String.h>
 #include <folly/gen/Base.h>
+#include <folly/stop_watch.h>
 #include <re2/re2.h>
 #include <string>
 #include <variant>
@@ -23,6 +24,11 @@
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
 namespace facebook::fboss::utils {
+
+struct CmdLogInfo {
+  std::string CmdName;
+  std::string Duration;
+};
 
 enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_UNINITIALIZE = 0,
@@ -328,6 +334,7 @@ timeval splitFractionalSecondsFromTimer(const long& timer);
 const std::string parseTimeToTimeStamp(const long& timeToParse);
 
 const std::string getPrettyElapsedTime(const int64_t& start_time);
+const std::string getDurationStr(folly::stop_watch<>& watch);
 const std::string formatBandwidth(const unsigned long& bandwidth);
 std::vector<int32_t> getPortIDList(
     const std::vector<std::string>& ifList,
@@ -336,7 +343,7 @@ std::string getAddrStr(network::thrift::BinaryAddress addr);
 std::string getAdminDistanceStr(AdminDistance adminDistance);
 void setLogLevel(std::string logLevelStr);
 
-void logUsage(const std::string& cmdName);
+void logUsage(const CmdLogInfo& cmdLogInfo);
 
 template <typename T, size_t N, size_t... Indices>
 auto arrayToTupleImpl(

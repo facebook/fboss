@@ -9,6 +9,7 @@
  */
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
+#include <folly/stop_watch.h>
 #include "folly/Conv.h"
 
 #include <folly/logging/LogConfig.h>
@@ -124,6 +125,14 @@ const std::string getPrettyElapsedTime(const int64_t& start_time) {
   pretty_output += std::to_string(leftover) + "s";
 
   return pretty_output;
+}
+
+const std::string getDurationStr(folly::stop_watch<>& watch) {
+  auto duration = watch.elapsed();
+  auto durationInMills =
+      std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+  float seconds = (float)durationInMills.count() / (float)1000;
+  return fmt::format("{:.3f} sec", seconds);
 }
 
 // Converts a readable representation of a link-bandwidth value

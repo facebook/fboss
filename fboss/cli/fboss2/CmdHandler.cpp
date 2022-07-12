@@ -257,7 +257,6 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   hasRun = true;
 
   utils::setLogLevel(CmdGlobalOptions::getInstance()->getLogLevel());
-  utils::logUsage(folly::demangle(typeid(this)).toStdString());
 
   auto extraOptionsEC =
       CmdGlobalOptions::getInstance()->validateNonFilterOptions();
@@ -290,6 +289,9 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
 
   std::vector<std::shared_future<std::tuple<std::string, RetType, std::string>>>
       futureList;
+
+  // setup a stop_watch for total time to run command
+  folly::stop_watch<> watch;
   for (const auto& host : hosts) {
     futureList.push_back(std::async(
                              std::launch::async,
@@ -314,6 +316,12 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
       exit(1);
     }
   }
+
+  utils::CmdLogInfo cmdLogInfo = {
+      folly::demangle(typeid(this)).toStdString(), // CmdName
+      utils::getDurationStr(watch), // Total time to run command
+  };
+  utils::logUsage(cmdLogInfo);
 }
 
 /* Logic: We consider a thrift struct to be filterable only if it is of type
