@@ -22,4 +22,5 @@ add_fbthrift_cpp_library(
     qsfp_config_cpp2
     qsfp_state_cpp2
     qsfp_stats_cpp2
+    sensor_service_stats_cpp2
 )

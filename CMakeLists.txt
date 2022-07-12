@@ -284,6 +284,14 @@ add_fbthrift_cpp_library(
     json
 )
 add_fbthrift_cpp_library(
+  sensor_service_stats_cpp2
+  fboss/platform/sensor_service/sensor_service_stats.thrift
+  OPTIONS
+    json
+  DEPENDS
+    sensor_service_cpp2
+)
+add_fbthrift_cpp_library(
   phy_cpp2
   fboss/lib/phy/phy.thrift
   SERVICES
