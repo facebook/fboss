@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <boost/algorithm/string.hpp>
 #include <re2/re2.h>
 #include <string>
 #include <unordered_set>
@@ -163,29 +162,32 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
     Wedge:
      fsw001.p062.f01.vll3:eth4/1/1
 
-    This function uses the BOOST split function to parse out the hostname
+    This function uses the folly::split function to parse out the hostname
     portion to be used as the expected peer
     */
     std::vector<std::string> results;
     // First try splitting as if it's a minipack
-    boost::split(results, portDescription, [](char c) { return c == ' '; });
+    folly::split(" ", portDescription, results);
+    if (results.size() > 1) {
+      return results[1];
+    }
+
     // If we don't get results from the split then split on "." which is a
     // different format
-    if (results.size() <= 1) {
-      boost::split(results, portDescription, [](char c) { return c == '.'; });
-
-      // Depending on which tier the peer is, we need to grab the specific
-      // fields to make a useable hostname
-      const RE2 ssw_regex(".*ssw.*");
-      if (RE2::FullMatch(portDescription, ssw_regex)) {
-        return results[1] + "." + results[2];
-      }
-      const RE2 fsw_regex("^fsw.*");
-      if (RE2::FullMatch(portDescription, fsw_regex)) {
-        return results[0] + "." + results[1];
-      }
+    folly::split(".", portDescription, results);
+    // Depending on which tier the peer is, we need to grab the specific
+    // fields to make a useable hostname
+    const RE2 ssw_regex(".*ssw.*");
+    if (RE2::FullMatch(portDescription, ssw_regex)) {
+      return results[1] + "." + results[2];
     }
-    return results[1];
+    const RE2 fsw_regex("^fsw.*");
+    if (RE2::FullMatch(portDescription, fsw_regex)) {
+      return results[0] + "." + results[1];
+    }
+
+    // default to empty string, entire port descriptions is in a separate column
+    return "";
   }
 
   RetType createModel(
@@ -203,7 +205,6 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
       const auto portInfo = getPortInfo(entry.get_localPort(), portEntries);
       if (queriedIfs.size() == 0 || queriedSet.count(portInfo.get_name())) {
         const auto operState = portInfo.get_operState();
-
         const auto expected_peer =
             extractExpectedPort(portInfo.get_description());
 
