@@ -262,9 +262,6 @@ struct RegisterMapDatabase {
 
   // Loads a configuration JSON into the DB.
   void load(const nlohmann::json& j);
-
-  // For debug purpose only.
-  void print(std::ostream& os);
 };
 
 // JSON conversion

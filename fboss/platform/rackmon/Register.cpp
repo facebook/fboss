@@ -216,16 +216,6 @@ void RegisterMapDatabase::load(const nlohmann::json& j) {
   regmaps.push_back(std::move(rmap));
 }
 
-void RegisterMapDatabase::print(std::ostream& os) {
-  json j = {};
-  std::transform(
-      regmaps.begin(),
-      regmaps.end(),
-      std::back_inserter(j),
-      [](const auto& ptr) { return *ptr; });
-  os << j.dump(4);
-}
-
 void from_json(const json& j, AddrRange& a) {
   a.range = j;
 }
