@@ -46,6 +46,18 @@ class CmdArgsLists {
     return untyped;
   }
 
+  std::string getArgStr() {
+    std::vector<std::string> args;
+    for (const auto& level : data_) {
+      if (!level.empty()) {
+        auto arg =
+            folly::join<std::string, std::vector<std::string>>(",", level);
+        args.emplace_back(arg);
+      }
+    }
+    return folly::join<std::string, std::vector<std::string>>("|", args);
+  }
+
  private:
   // since we do a lot of work of figuring out argument types at compile time,
   // for now we need to know the the theoretical max depth of nested subcommands

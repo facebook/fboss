@@ -28,6 +28,7 @@ namespace facebook::fboss::utils {
 struct CmdLogInfo {
   std::string CmdName;
   std::string Duration;
+  std::string Arguments;
 };
 
 enum class ObjectArgTypeId : uint8_t {
