@@ -76,15 +76,15 @@ void UARTDevice::setAttribute(bool readEnable, int baudrate) {
 
 void AspeedRS485Device::waitWrite() {
   int loops;
-  for (loops = 0; loops < 100; loops++) {
+  const int maxLoops = 10000;
+  for (loops = 0; loops < maxLoops; loops++) {
     int lsr;
     ioctl(TIOCSERGETLSR, &lsr);
     if (lsr & TIOCSER_TEMT) {
       break;
     }
-    // never should hit this if kernel supports RS485 mode
   }
-  if (loops > 0) {
+  if (loops == maxLoops) {
     logError << "Waited loops: " << loops << '\n';
   }
 }
