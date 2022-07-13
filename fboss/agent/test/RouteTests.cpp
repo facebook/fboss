@@ -2105,11 +2105,6 @@ TEST_F(RouteTest, serializeRouteTable) {
   // In new rib  only FIB is part of the switch state
   auto dyn0 = this->sw_->getState()->getFibs()->toFollyDynamic();
   auto dyn1 = deserState->getFibs()->toFollyDynamic();
-  for (auto fib : {"fibV4", "fibV6"}) {
-    // TODO: investigate why do entries appear in different order
-    dyn0["entries"][0][fib]["entries"] = folly::dynamic::array;
-    dyn1["entries"][0][fib]["entries"] = folly::dynamic::array;
-  }
   EXPECT_EQ(dyn0, dyn1);
 }
 

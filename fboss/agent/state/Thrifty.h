@@ -323,14 +323,23 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
   static void migrateFromThrifty(folly::dynamic& dyn) {
     auto schemaUpToDate = true;
     folly::dynamic entries = folly::dynamic::array;
+    std::set<std::string> keys{};
 
     for (auto& item : dyn.items()) {
-      TraitsT::Node::Fields::migrateFromThrifty(item.second);
-      if (!item.second.getDefault(ThriftyUtils::kThriftySchemaUpToDate, false)
+      // dyn.items() is an uordered map and the order in which items are
+      // returned is underterministic. enforce the order, so entries are always
+      // in the same order.
+      keys.insert(item.first.asString());
+    }
+
+    for (auto key : keys) {
+      auto& item = dyn[key];
+      TraitsT::Node::Fields::migrateFromThrifty(item);
+      if (!item.getDefault(ThriftyUtils::kThriftySchemaUpToDate, false)
                .asBool()) {
         schemaUpToDate = false;
       }
-      entries.push_back(item.second);
+      entries.push_back(item);
     }
 
     dyn[kEntries] = entries;
