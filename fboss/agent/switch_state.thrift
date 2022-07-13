@@ -325,6 +325,12 @@ struct LabelForwardingEntryFields {
   5: optional switch_config.AclLookupClass classID;
 }
 
+struct FibContainerFields {
+  1: i16 vrf;
+  2: map<string, RouteFields> fibV4;
+  3: map<string, RouteFields> fibV6;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
@@ -346,4 +352,5 @@ struct SwitchState {
   18: Address.BinaryAddress dhcpV6ReplySrc;
   19: optional switch_config.PfcWatchdogRecoveryAction pfcWatchdogRecoveryAction;
   20: map<i64, SystemPortFields> systemPortMap;
+  21: map<i16, FibContainerFields> fibs;
 }

@@ -11,6 +11,7 @@
 
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 #include <folly/dynamic.h>
@@ -18,7 +19,7 @@
 
 namespace facebook::fboss {
 
-struct ForwardingInformationBaseContainerFields {
+struct ForwardingInformationBaseContainerFields : public ThriftyFields {
   explicit ForwardingInformationBaseContainerFields(RouterID vrf);
 
   template <typename Fn>
@@ -31,13 +32,35 @@ struct ForwardingInformationBaseContainerFields {
   static ForwardingInformationBaseContainerFields fromFollyDynamicLegacy(
       const folly::dynamic& dyn);
 
+  state::FibContainerFields toThrift() const;
+  static ForwardingInformationBaseContainerFields fromThrift(
+      state::FibContainerFields const& fields);
+  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
+
+  bool operator==(const ForwardingInformationBaseContainerFields& other) const {
+    ForwardingInformationBaseV4 emptyV4{};
+    ForwardingInformationBaseV6 emptyV6{};
+    auto fibV4Ptr = fibV4.get() ? fibV4.get() : &emptyV4;
+    auto fibV6Ptr = fibV6.get() ? fibV6.get() : &emptyV6;
+    auto otherFibV4Ptr = other.fibV4.get() ? other.fibV4.get() : &emptyV4;
+    auto otherFibV6Ptr = other.fibV6.get() ? other.fibV6.get() : &emptyV6;
+    return (vrf == other.vrf) && (*fibV4Ptr == *otherFibV4Ptr) &&
+        (*fibV6Ptr == *otherFibV6Ptr);
+  }
+
+  bool operator!=(const ForwardingInformationBaseContainerFields& other) const {
+    return !(*this == other);
+  }
+
   RouterID vrf{0};
   std::shared_ptr<ForwardingInformationBaseV4> fibV4{nullptr};
   std::shared_ptr<ForwardingInformationBaseV6> fibV6{nullptr};
 };
 
 class ForwardingInformationBaseContainer
-    : public NodeBaseT<
+    : public ThriftyBaseT<
+          state::FibContainerFields,
           ForwardingInformationBaseContainer,
           ForwardingInformationBaseContainerFields> {
  public:
@@ -71,17 +94,10 @@ class ForwardingInformationBaseContainer
   static std::shared_ptr<ForwardingInformationBaseContainer>
   fromFollyDynamicLegacy(const folly::dynamic& json);
   folly::dynamic toFollyDynamicLegacy() const;
-  static std::shared_ptr<ForwardingInformationBaseContainer> fromFollyDynamic(
-      const folly::dynamic& json) {
-    return fromFollyDynamicLegacy(json);
-  }
-  folly::dynamic toFollyDynamic() const override {
-    return toFollyDynamicLegacy();
-  }
 
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using ThriftyBaseT::ThriftyBaseT;
   friend class CloneAllocator;
 };
 

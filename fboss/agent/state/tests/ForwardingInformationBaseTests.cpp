@@ -8,10 +8,13 @@
  *
  */
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/ForwardingInformationBase.h"
+#include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTypes.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
@@ -27,22 +30,17 @@ std::shared_ptr<facebook::fboss::Route<AddressT>> createRouteFromPrefix(
   return std::make_shared<facebook::fboss::Route<AddressT>>(fields);
 }
 
-} // namespace
+std::shared_ptr<facebook::fboss::ForwardingInformationBaseV4> getFibV4() {
+  facebook::fboss::ForwardingInformationBaseV4 fibV4;
 
-namespace facebook::fboss {
-
-TEST(ForwardingInformationBaseV4, IPv4DefaultPrefixComparesSmallest) {
-  ForwardingInformationBaseV4 oldFib;
-  ForwardingInformationBaseV4 newFib;
-
-  RoutePrefixV4 curPrefix;
+  facebook::fboss::RoutePrefixV4 curPrefix;
 
   // The following loop iterates over 0.0.0.0/0, 0.0.0.0/1, ..., 0.0.0.0/32
   curPrefix.network = folly::IPAddressV4("0.0.0.0");
   for (uint8_t len = 0; len <= 32; ++len) {
     curPrefix.mask = len;
 
-    newFib.addNode(createRouteFromPrefix(curPrefix));
+    fibV4.addNode(createRouteFromPrefix(curPrefix));
   }
 
   // The following loops iterate over the following set of prefixes:
@@ -52,35 +50,22 @@ TEST(ForwardingInformationBaseV4, IPv4DefaultPrefixComparesSmallest) {
 
     for (uint32_t b = (static_cast<uint32_t>(1) << 31); b > 0; b >>= 1) {
       curPrefix.network = folly::IPAddressV4::fromLongHBO(b);
-      newFib.addNode(createRouteFromPrefix(curPrefix));
+      fibV4.addNode(createRouteFromPrefix(curPrefix));
     }
   }
-
-  NodeMapDelta<ForwardingInformationBaseV4> delta(&oldFib, &newFib);
-  std::shared_ptr<RouteV4> firstRouteObserved;
-
-  DeltaFunctions::forEachAdded(delta, [&](std::shared_ptr<RouteV4> newRoute) {
-    firstRouteObserved = newRoute;
-    return LoopAction::BREAK;
-  });
-
-  EXPECT_EQ(
-      firstRouteObserved->prefix().network, folly::IPAddressV4("0.0.0.0"));
-  EXPECT_EQ(firstRouteObserved->prefix().mask, 0);
+  return fibV4.clone();
 }
 
-TEST(ForwardingInformationBaseV6, IPv6DefaultPrefixComparesSmallest) {
-  ForwardingInformationBaseV6 oldFib;
-  ForwardingInformationBaseV6 newFib;
-
-  RoutePrefixV6 curPrefix;
+std::shared_ptr<facebook::fboss::ForwardingInformationBaseV6> getFibV6() {
+  facebook::fboss::ForwardingInformationBaseV6 fibV6;
+  facebook::fboss::RoutePrefixV6 curPrefix;
 
   // The following loop iterates over ::/0, ::/1, ..., ::/128
   curPrefix.network = folly::IPAddressV6("::");
   for (uint8_t len = 0; len <= 128; ++len) {
     curPrefix.mask = len;
 
-    newFib.addNode(createRouteFromPrefix(curPrefix));
+    fibV6.addNode(createRouteFromPrefix(curPrefix));
   }
 
   std::array<uint8_t, 16> bytes;
@@ -99,14 +84,44 @@ TEST(ForwardingInformationBaseV6, IPv6DefaultPrefixComparesSmallest) {
         *curByte = 1 << bitIdx;
 
         curPrefix.network = folly::IPAddressV6::fromBinary(byteRange);
-        newFib.addNode(createRouteFromPrefix(curPrefix));
+        fibV6.addNode(createRouteFromPrefix(curPrefix));
       }
 
       *curByte = 0;
     }
   }
+  return fibV6.clone();
+}
 
-  NodeMapDelta<ForwardingInformationBaseV6> delta(&oldFib, &newFib);
+} // namespace
+
+namespace facebook::fboss {
+
+TEST(ForwardingInformationBaseV4, IPv4DefaultPrefixComparesSmallest) {
+  ForwardingInformationBaseV4 oldFib;
+  auto newFib = getFibV4();
+
+  NodeMapDelta<ForwardingInformationBaseV4> delta(&oldFib, newFib.get());
+  std::shared_ptr<RouteV4> firstRouteObserved;
+
+  DeltaFunctions::forEachAdded(delta, [&](std::shared_ptr<RouteV4> newRoute) {
+    firstRouteObserved = newRoute;
+    return LoopAction::BREAK;
+  });
+
+  validateThriftyMigration(*newFib);
+  EXPECT_EQ(
+      firstRouteObserved->prefix().network, folly::IPAddressV4("0.0.0.0"));
+  EXPECT_EQ(firstRouteObserved->prefix().mask, 0);
+}
+
+TEST(ForwardingInformationBaseV6, IPv6DefaultPrefixComparesSmallest) {
+  ForwardingInformationBaseV6 oldFib;
+  auto newFib = getFibV6();
+
+  validateThriftyMigration(*newFib);
+
+  NodeMapDelta<ForwardingInformationBaseV6> delta(&oldFib, newFib.get());
   std::shared_ptr<RouteV6> firstRouteObserved;
 
   DeltaFunctions::forEachAdded(delta, [&](std::shared_ptr<RouteV6> newRoute) {
@@ -116,6 +131,15 @@ TEST(ForwardingInformationBaseV6, IPv6DefaultPrefixComparesSmallest) {
 
   EXPECT_EQ(firstRouteObserved->prefix().network, folly::IPAddressV6("::"));
   EXPECT_EQ(firstRouteObserved->prefix().mask, 0);
+}
+
+TEST(ForwardingInformationBaseContainer, Thrifty) {
+  auto fibV4 = getFibV4();
+  auto fibV6 = getFibV4();
+  ForwardingInformationBaseContainer container(RouterID(0));
+  container.setFib(fibV4);
+  container.setFib(fibV6);
+  validateThriftyMigration(container);
 }
 
 } // namespace facebook::fboss
