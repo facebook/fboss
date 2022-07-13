@@ -17,7 +17,9 @@
 namespace facebook::fboss {
 
 template <typename IPADDR>
-struct NeighborResponseEntryFields : public ThriftyFields {
+struct NeighborResponseEntryFields : public ThriftyFields<
+                                         NeighborResponseEntryFields<IPADDR>,
+                                         state::NeighborResponseEntryFields> {
   using AddressType = IPADDR;
   static constexpr auto kMac = "mac";
   static constexpr auto kNeighborResponseIntf = "interfaceId";

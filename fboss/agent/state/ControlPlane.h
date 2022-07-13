@@ -24,7 +24,8 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-struct ControlPlaneFields : public ThriftyFields {
+struct ControlPlaneFields
+    : public ThriftyFields<ControlPlaneFields, state::ControlPlaneFields> {
   using RxReasonToQueue = std::vector<cfg::PacketRxReasonToQueue>;
 
   ControlPlaneFields() {}

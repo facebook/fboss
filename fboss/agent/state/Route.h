@@ -52,7 +52,8 @@ struct RouteTraits {
  * Temporarily need this class when using NodeMap to store the routes
  */
 template <typename AddrT>
-struct RouteFields : public ThriftyFields {
+struct RouteFields
+    : public ThriftyFields<RouteFields<AddrT>, ThriftFieldsT<AddrT>> {
   using Prefix = PrefixT<AddrT>;
   using ThriftFields = ThriftFieldsT<AddrT>;
 

@@ -83,7 +83,8 @@ class AclTtl {
   uint16_t mask_;
 };
 
-struct AclEntryFields : public ThriftyFields {
+struct AclEntryFields
+    : public ThriftyFields<AclEntryFields, state::AclEntryFields> {
   static const uint8_t kProtoIcmp = 1;
   static const uint8_t kProtoIcmpv6 = 58;
   static const uint8_t kMaxIcmpType = 0xFF;

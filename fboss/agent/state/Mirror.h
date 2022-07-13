@@ -96,7 +96,7 @@ struct MirrorTunnel {
   static MirrorTunnel fromFollyDynamic(const folly::dynamic& json);
 };
 
-struct MirrorFields : public ThriftyFields {
+struct MirrorFields : public ThriftyFields<MirrorFields, state::MirrorFields> {
   MirrorFields(
       const std::string& name,
       const std::optional<PortID>& egressPort,

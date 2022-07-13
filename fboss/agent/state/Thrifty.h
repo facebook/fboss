@@ -156,6 +156,7 @@ class ThriftyUtils {
   static auto constexpr kThriftySchemaUpToDate = "__thrifty_schema_uptodate";
 };
 
+template <typename Derived, typename ThriftT>
 class ThriftyFields {
  public:
   //  migrateTo does not modify dyn so we don't have to change the call sites of
@@ -169,7 +170,7 @@ class ThriftyFields {
 };
 
 template <typename Derived, typename ThriftT>
-class BetterThriftyFields : public ThriftyFields {
+class BetterThriftyFields : public ThriftyFields<Derived, ThriftT> {
  public:
   bool operator==(const BetterThriftyFields<Derived, ThriftT>& other) const {
     return data == other.data;
@@ -181,7 +182,7 @@ class BetterThriftyFields : public ThriftyFields {
  * those fields. this class encapsulate typical methods used in thrifty
  * migration. */
 template <typename Derived, typename ThriftT>
-struct AnotherThriftyFields : public ThriftyFields {
+struct AnotherThriftyFields : public ThriftyFields<Derived, ThriftT> {
   using FieldsT = Derived;
   virtual ~AnotherThriftyFields() = default;
 
@@ -395,7 +396,7 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
 //
 template <typename ThriftT, typename NodeT, typename FieldsT>
 class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
-  static_assert(std::is_base_of_v<ThriftyFields, FieldsT>);
+  static_assert(std::is_base_of_v<ThriftyFields<FieldsT, ThriftT>, FieldsT>);
 
  public:
   using NodeBaseT<NodeT, FieldsT>::NodeBaseT;

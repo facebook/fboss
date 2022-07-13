@@ -19,7 +19,10 @@
 
 namespace facebook::fboss {
 
-struct ForwardingInformationBaseContainerFields : public ThriftyFields {
+struct ForwardingInformationBaseContainerFields
+    : public ThriftyFields<
+          ForwardingInformationBaseContainerFields,
+          state::FibContainerFields> {
   explicit ForwardingInformationBaseContainerFields(RouterID vrf);
 
   template <typename Fn>

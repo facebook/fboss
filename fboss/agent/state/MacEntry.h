@@ -27,7 +27,8 @@ namespace facebook::fboss {
 
 enum class MacEntryType : uint8_t { DYNAMIC_ENTRY, STATIC_ENTRY };
 
-struct MacEntryFields : public ThriftyFields {
+struct MacEntryFields
+    : public ThriftyFields<MacEntryFields, state::MacEntryFields> {
   MacEntryFields(
       folly::MacAddress mac,
       PortDescriptor portDescr,

@@ -24,7 +24,9 @@ using folly::MacAddress;
 enum class NeighborState { UNVERIFIED, PENDING, REACHABLE };
 
 template <typename IPADDR>
-struct NeighborEntryFields : public ThriftyFields {
+struct NeighborEntryFields : public ThriftyFields<
+                                 NeighborEntryFields<IPADDR>,
+                                 state::NeighborEntryFields> {
   typedef IPADDR AddressType;
 
   NeighborEntryFields(

@@ -26,7 +26,7 @@ namespace facebook::fboss {
 
 using BufferPoolCfgPtr = std::shared_ptr<BufferPoolCfg>;
 
-struct PortPgFields : public ThriftyFields {
+struct PortPgFields : public ThriftyFields<PortPgFields, state::PortPgFields> {
   template <typename Fn>
   void forEachChild(Fn) {}
 

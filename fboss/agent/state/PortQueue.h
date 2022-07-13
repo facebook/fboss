@@ -23,7 +23,8 @@
 
 namespace facebook::fboss {
 
-struct PortQueueFields : public ThriftyFields {
+struct PortQueueFields
+    : public ThriftyFields<PortQueueFields, state::PortQueueFields> {
   using AQMMap = boost::container::
       flat_map<cfg::QueueCongestionBehavior, cfg::ActiveQueueManagement>;
 

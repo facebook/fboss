@@ -18,7 +18,8 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-struct SwitchSettingsFields : public ThriftyFields {
+struct SwitchSettingsFields
+    : public ThriftyFields<SwitchSettingsFields, state::SwitchSettingsFields> {
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
 

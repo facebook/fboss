@@ -39,7 +39,7 @@ class Vlan;
 using DhcpV4OverrideMap = std::map<folly::MacAddress, folly::IPAddressV4>;
 using DhcpV6OverrideMap = std::map<folly::MacAddress, folly::IPAddressV6>;
 
-struct VlanFields : public ThriftyFields {
+struct VlanFields : public ThriftyFields<VlanFields, state::VlanFields> {
   struct PortInfo {
     explicit PortInfo(bool emitTags) : tagged(emitTags) {}
     bool operator==(const PortInfo& other) const {

@@ -53,7 +53,8 @@ class QcmCfg;
 class BufferPoolCfg;
 class BufferPoolCfgMap;
 
-struct SwitchStateFields : public ThriftyFields {
+struct SwitchStateFields
+    : public ThriftyFields<SwitchStateFields, state::SwitchState> {
   SwitchStateFields();
 
   template <typename Fn>

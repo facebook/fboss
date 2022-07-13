@@ -28,7 +28,7 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-struct PortFields : public ThriftyFields {
+struct PortFields : public ThriftyFields<PortFields, state::PortFields> {
   struct VlanInfo {
     explicit VlanInfo(bool emitTags) : tagged(emitTags) {}
     bool operator==(const VlanInfo& other) const {

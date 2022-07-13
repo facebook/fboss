@@ -23,7 +23,8 @@
 
 namespace facebook::fboss {
 
-struct LoadBalancerFields : public ThriftyFields {
+struct LoadBalancerFields
+    : public ThriftyFields<LoadBalancerFields, state::LoadBalancerFields> {
   using IPv4Field = cfg::IPv4Field;
   using IPv4Fields = boost::container::flat_set<IPv4Field>;
 
