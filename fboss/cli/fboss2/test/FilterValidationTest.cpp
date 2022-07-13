@@ -6,6 +6,7 @@
 #include <fboss/cli/fboss2/CmdGlobalOptions.h>
 #include <fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h>
 #include <fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h>
+#include <fboss/cli/fboss2/utils/FilterOp.h>
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
@@ -15,11 +16,11 @@ using namespace ::testing;
 namespace facebook::fboss {
 CmdGlobalOptions::UnionList createInvalidKeyInput() {
   CmdGlobalOptions::FilterTerm filterTerm1 = {
-      "x", CmdGlobalOptions::FilterOp::GT, "22"};
+      "x", std::make_shared<FilterOpGt>(), "22"};
   CmdGlobalOptions::FilterTerm filterTerm2 = {
-      "linkState", CmdGlobalOptions::FilterOp::EQ, "Up"};
+      "linkState", std::make_shared<FilterOpEq>(), "Up"};
   CmdGlobalOptions::FilterTerm filterTerm3 = {
-      "adminState", CmdGlobalOptions::FilterOp::NEQ, "Enabled"};
+      "adminState", std::make_shared<FilterOpNeq>(), "Enabled"};
   CmdGlobalOptions::IntersectionList intersectList1 = {filterTerm1};
   CmdGlobalOptions::IntersectionList intersectList2 = {
       filterTerm2, filterTerm3};
@@ -29,11 +30,11 @@ CmdGlobalOptions::UnionList createInvalidKeyInput() {
 
 CmdGlobalOptions::UnionList createInvalidValueDataTypeInput() {
   CmdGlobalOptions::FilterTerm filterTerm1 = {
-      "linkState", CmdGlobalOptions::FilterOp::EQ, "Down"};
+      "linkState", std::make_shared<FilterOpEq>(), "Down"};
   CmdGlobalOptions::FilterTerm filterTerm2 = {
-      "id", CmdGlobalOptions::FilterOp::EQ, "id_12"};
+      "id", std::make_shared<FilterOpEq>(), "id_12"};
   CmdGlobalOptions::FilterTerm filterTerm3 = {
-      "adminState", CmdGlobalOptions::FilterOp::NEQ, "Enabled"};
+      "adminState", std::make_shared<FilterOpNeq>(), "Enabled"};
   CmdGlobalOptions::IntersectionList intersectList1 = {
       filterTerm1, filterTerm3};
   CmdGlobalOptions::IntersectionList intersectList2 = {filterTerm2};
@@ -43,11 +44,11 @@ CmdGlobalOptions::UnionList createInvalidValueDataTypeInput() {
 
 CmdGlobalOptions::UnionList createInvalidValueInput() {
   CmdGlobalOptions::FilterTerm filterTerm1 = {
-      "linkState", CmdGlobalOptions::FilterOp::EQ, "good"};
+      "linkState", std::make_shared<FilterOpEq>(), "good"};
   CmdGlobalOptions::FilterTerm filterTerm2 = {
-      "id", CmdGlobalOptions::FilterOp::EQ, "12"};
+      "id", std::make_shared<FilterOpEq>(), "12"};
   CmdGlobalOptions::FilterTerm filterTerm3 = {
-      "adminState", CmdGlobalOptions::FilterOp::NEQ, "Enabled"};
+      "adminState", std::make_shared<FilterOpNeq>(), "Enabled"};
   CmdGlobalOptions::IntersectionList intersectList1 = {
       filterTerm1, filterTerm3};
   CmdGlobalOptions::IntersectionList intersectList2 = {filterTerm2};
@@ -57,11 +58,11 @@ CmdGlobalOptions::UnionList createInvalidValueInput() {
 
 CmdGlobalOptions::UnionList createValidInput() {
   CmdGlobalOptions::FilterTerm filterTerm1 = {
-      "linkState", CmdGlobalOptions::FilterOp::EQ, "Up"};
+      "linkState", std::make_shared<FilterOpEq>(), "Up"};
   CmdGlobalOptions::FilterTerm filterTerm2 = {
-      "id", CmdGlobalOptions::FilterOp::EQ, "12"};
+      "id", std::make_shared<FilterOpEq>(), "12"};
   CmdGlobalOptions::FilterTerm filterTerm3 = {
-      "adminState", CmdGlobalOptions::FilterOp::NEQ, "Disabled"};
+      "adminState", std::make_shared<FilterOpNeq>(), "Disabled"};
   CmdGlobalOptions::IntersectionList intersectList1 = {filterTerm1};
   CmdGlobalOptions::IntersectionList intersectList2 = {filterTerm2};
   CmdGlobalOptions::IntersectionList intersectList3 = {filterTerm3};
@@ -75,17 +76,17 @@ CmdGlobalOptions::UnionList createValidInput() {
 // correctly validated.
 CmdGlobalOptions::UnionList createValidInputOtherFields() {
   CmdGlobalOptions::FilterTerm filterTerm1 = {
-      "linkState", CmdGlobalOptions::FilterOp::EQ, "Up"};
+      "linkState", std::make_shared<FilterOpEq>(), "Up"};
   CmdGlobalOptions::FilterTerm filterTerm2 = {
-      "id", CmdGlobalOptions::FilterOp::EQ, "12"};
+      "id", std::make_shared<FilterOpEq>(), "12"};
   CmdGlobalOptions::FilterTerm filterTerm3 = {
-      "adminState", CmdGlobalOptions::FilterOp::NEQ, "Disabled"};
+      "adminState", std::make_shared<FilterOpNeq>(), "Disabled"};
   CmdGlobalOptions::FilterTerm filterTerm4 = {
-      "tcvrID", CmdGlobalOptions::FilterOp::NEQ, "20"};
+      "tcvrID", std::make_shared<FilterOpNeq>(), "20"};
   CmdGlobalOptions::FilterTerm filterTerm5 = {
-      "tcvrPresent", CmdGlobalOptions::FilterOp::NEQ, "yes"};
+      "tcvrPresent", std::make_shared<FilterOpNeq>(), "yes"};
   CmdGlobalOptions::FilterTerm filterTerm6 = {
-      "speed", CmdGlobalOptions::FilterOp::NEQ, "100mbps"};
+      "speed", std::make_shared<FilterOpNeq>(), "100mbps"};
 
   CmdGlobalOptions::IntersectionList intersectList1 = {
       filterTerm1, filterTerm4};
@@ -100,17 +101,17 @@ CmdGlobalOptions::UnionList createValidInputOtherFields() {
 
 CmdGlobalOptions::UnionList createInvalidValueOtherFields() {
   CmdGlobalOptions::FilterTerm filterTerm1 = {
-      "linkState", CmdGlobalOptions::FilterOp::EQ, "Up"};
+      "linkState", std::make_shared<FilterOpEq>(), "Up"};
   CmdGlobalOptions::FilterTerm filterTerm2 = {
-      "id", CmdGlobalOptions::FilterOp::EQ, "12"};
+      "id", std::make_shared<FilterOpEq>(), "12"};
   CmdGlobalOptions::FilterTerm filterTerm3 = {
-      "adminState", CmdGlobalOptions::FilterOp::NEQ, "Disabled"};
+      "adminState", std::make_shared<FilterOpNeq>(), "Disabled"};
   CmdGlobalOptions::FilterTerm filterTerm4 = {
-      "tcvrID", CmdGlobalOptions::FilterOp::NEQ, "my_id_12"};
+      "tcvrID", std::make_shared<FilterOpNeq>(), "my_id_12"};
   CmdGlobalOptions::FilterTerm filterTerm5 = {
-      "tcvrPresent", CmdGlobalOptions::FilterOp::NEQ, "yes"};
+      "tcvrPresent", std::make_shared<FilterOpNeq>(), "yes"};
   CmdGlobalOptions::FilterTerm filterTerm6 = {
-      "speed", CmdGlobalOptions::FilterOp::NEQ, "100mbps"};
+      "speed", std::make_shared<FilterOpNeq>(), "100mbps"};
 
   CmdGlobalOptions::IntersectionList intersectList1 = {
       filterTerm1, filterTerm2, filterTerm3};
@@ -124,13 +125,13 @@ CmdGlobalOptions::UnionList createInvalidValueOtherFields() {
 
 CmdGlobalOptions::UnionList createNdpValidInput() {
   CmdGlobalOptions::FilterTerm filterTerm1 = {
-      "ip", CmdGlobalOptions::FilterOp::EQ, "10.128.40.16"};
+      "ip", std::make_shared<FilterOpEq>(), "10.128.40.16"};
   CmdGlobalOptions::FilterTerm filterTerm2 = {
-      "state", CmdGlobalOptions::FilterOp::NEQ, "REACHABLE"};
+      "state", std::make_shared<FilterOpNeq>(), "REACHABLE"};
   CmdGlobalOptions::FilterTerm filterTerm3 = {
-      "ttl", CmdGlobalOptions::FilterOp::GT, "5"};
+      "ttl", std::make_shared<FilterOpGt>(), "5"};
   CmdGlobalOptions::FilterTerm filterTerm4 = {
-      "classID", CmdGlobalOptions::FilterOp::EQ, "8"};
+      "classID", std::make_shared<FilterOpEq>(), "8"};
   CmdGlobalOptions::IntersectionList intersectList1 = {filterTerm1};
   CmdGlobalOptions::IntersectionList intersectList2 = {
       filterTerm2, filterTerm3};
@@ -139,12 +140,12 @@ CmdGlobalOptions::UnionList createNdpValidInput() {
 
 CmdGlobalOptions::UnionList createNdpInvalidKey() {
   CmdGlobalOptions::FilterTerm filterTerm1 = {
-      "ip", CmdGlobalOptions::FilterOp::EQ, "10.128.40.16"};
+      "ip", std::make_shared<FilterOpEq>(), "10.128.40.16"};
   CmdGlobalOptions::FilterTerm filterTerm2 = {
-      "state", CmdGlobalOptions::FilterOp::NEQ, "REACHABLE"};
+      "state", std::make_shared<FilterOpNeq>(), "REACHABLE"};
   // There is no field for status in NDP. Hence, invalid key
   CmdGlobalOptions::FilterTerm filterTerm3 = {
-      "status", CmdGlobalOptions::FilterOp::NEQ, "unknown"};
+      "status", std::make_shared<FilterOpNeq>(), "unknown"};
 
   CmdGlobalOptions::IntersectionList intersectList1 = {
       filterTerm1, filterTerm2, filterTerm3};
@@ -154,13 +155,13 @@ CmdGlobalOptions::UnionList createNdpInvalidKey() {
 
 CmdGlobalOptions::UnionList createArpValidInput() {
   CmdGlobalOptions::FilterTerm filterTerm1 = {
-      "ip", CmdGlobalOptions::FilterOp::EQ, "10.128.40.16"};
+      "ip", std::make_shared<FilterOpEq>(), "10.128.40.16"};
   CmdGlobalOptions::FilterTerm filterTerm2 = {
-      "state", CmdGlobalOptions::FilterOp::NEQ, "REACHABLE"};
+      "state", std::make_shared<FilterOpNeq>(), "REACHABLE"};
   CmdGlobalOptions::FilterTerm filterTerm3 = {
-      "ttl", CmdGlobalOptions::FilterOp::GT, "5"};
+      "ttl", std::make_shared<FilterOpGt>(), "5"};
   CmdGlobalOptions::FilterTerm filterTerm4 = {
-      "classID", CmdGlobalOptions::FilterOp::EQ, "8"};
+      "classID", std::make_shared<FilterOpEq>(), "8"};
 
   CmdGlobalOptions::IntersectionList intersectList1 = {
       filterTerm1, filterTerm2, filterTerm3};
@@ -171,21 +172,21 @@ CmdGlobalOptions::UnionList createArpValidInput() {
 CmdGlobalOptions::UnionList createArpInvalidValue() {
   // state in ARP can only be "REACHABLE" or "UNREACHABLE"
   CmdGlobalOptions::FilterTerm filterTerm1 = {
-      "state", CmdGlobalOptions::FilterOp::NEQ, "good"};
+      "state", std::make_shared<FilterOpNeq>(), "good"};
   CmdGlobalOptions::UnionList filterUnion = {{filterTerm1}};
   return filterUnion;
 }
 
 CmdGlobalOptions::UnionList createAggPortInvalidType() {
   CmdGlobalOptions::FilterTerm filterTerm1 = {
-      "activeMembers", CmdGlobalOptions::FilterOp::EQ, "5"};
+      "activeMembers", std::make_shared<FilterOpEq>(), "5"};
   CmdGlobalOptions::FilterTerm filterTerm2 = {
-      "configuredMembers", CmdGlobalOptions::FilterOp::NEQ, "3"};
+      "configuredMembers", std::make_shared<FilterOpNeq>(), "3"};
   // minMembers accepts integers
   CmdGlobalOptions::FilterTerm filterTerm3 = {
-      "minMembers", CmdGlobalOptions::FilterOp::NEQ, "unknown"};
+      "minMembers", std::make_shared<FilterOpNeq>(), "unknown"};
   CmdGlobalOptions::FilterTerm filterTerm4 = {
-      "name", CmdGlobalOptions::FilterOp::NEQ, "my_aggTest"};
+      "name", std::make_shared<FilterOpNeq>(), "my_aggTest"};
 
   CmdGlobalOptions::IntersectionList intersectList1 = {
       filterTerm1, filterTerm2};
@@ -199,7 +200,7 @@ CmdGlobalOptions::UnionList createAggPortInvalidFilterable() {
   // members is not filterable because it's a list. We only support primitive
   // types and strings for filtering
   CmdGlobalOptions::FilterTerm filterTerm1 = {
-      "members", CmdGlobalOptions::FilterOp::EQ, "some_member"};
+      "members", std::make_shared<FilterOpEq>(), "some_member"};
   return {{filterTerm1}};
 }
 
@@ -207,6 +208,11 @@ class FilterValidatorFixture : public CmdHandlerTestBase {
  public:
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
+  }
+
+  template <typename T>
+  bool isSameOperator(std::shared_ptr<FilterOp> basePtr) {
+    return dynamic_cast<T*>(basePtr.get()) != nullptr;
   }
 };
 
@@ -286,15 +292,15 @@ TEST_F(FilterValidatorFixture, validInputParsing) {
   const auto& filterTerm3 = intersectList2[0];
 
   EXPECT_EQ(std::get<0>(filterTerm1), "linkState");
-  EXPECT_EQ(std::get<1>(filterTerm1), CmdGlobalOptions::FilterOp::EQ);
+  EXPECT_TRUE(isSameOperator<FilterOpEq>(std::get<1>(filterTerm1)));
   EXPECT_EQ(std::get<2>(filterTerm1), "Down");
 
   EXPECT_EQ(std::get<0>(filterTerm2), "adminState");
-  EXPECT_EQ(std::get<1>(filterTerm2), CmdGlobalOptions::FilterOp::NEQ);
+  EXPECT_TRUE(isSameOperator<FilterOpNeq>(std::get<1>(filterTerm2)));
   EXPECT_EQ(std::get<2>(filterTerm2), "Disabled");
 
   EXPECT_EQ(std::get<0>(filterTerm3), "id");
-  EXPECT_EQ(std::get<1>(filterTerm3), CmdGlobalOptions::FilterOp::LTE);
+  EXPECT_TRUE(isSameOperator<FilterOpLte>(std::get<1>(filterTerm3)));
   EXPECT_EQ(std::get<2>(filterTerm3), "12");
 }
 

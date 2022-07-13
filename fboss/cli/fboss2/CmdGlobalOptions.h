@@ -12,19 +12,20 @@
 #include <CLI/CLI.hpp>
 #include "fboss/cli/fboss2/options/OutputFormat.h"
 #include "fboss/cli/fboss2/options/SSLPolicy.h"
+#include "fboss/cli/fboss2/utils/FilterOp.h"
 #include "folly/String.h"
 
 namespace facebook::fboss {
-
 class CmdGlobalOptions {
  public:
   CmdGlobalOptions() = default;
   ~CmdGlobalOptions() = default;
   CmdGlobalOptions(const CmdGlobalOptions& other) = delete;
   CmdGlobalOptions& operator=(const CmdGlobalOptions& other) = delete;
-  enum FilterOp { LT, GT, LTE, GTE, EQ, NEQ };
 
-  using FilterTerm = std::tuple<std::string, FilterOp, std::string>;
+  // using pointer here to avoid the object slicing problem
+  using FilterTerm =
+      std::tuple<std::string, std::shared_ptr<FilterOp>, std::string>;
   using IntersectionList = std::vector<FilterTerm>;
   using UnionList = std::vector<IntersectionList>;
 
@@ -63,20 +64,20 @@ class CmdGlobalOptions {
     return !s[off] ? 5381 : (hash(s, off + 1) * 33) ^ s[off];
   }
 
-  FilterOp getFilterOp(std::string parsedOp) const {
+  std::shared_ptr<FilterOp> getFilterOp(std::string parsedOp) const {
     switch (hash(parsedOp.c_str())) {
       case hash("=="):
-        return FilterOp::EQ;
+        return std::make_shared<FilterOpEq>();
       case hash("<"):
-        return FilterOp::LT;
+        return std::make_shared<FilterOpLt>();
       case hash("<="):
-        return FilterOp::LTE;
+        return std::make_shared<FilterOpLte>();
       case hash(">"):
-        return FilterOp::GT;
+        return std::make_shared<FilterOpGt>();
       case hash(">="):
-        return FilterOp::GTE;
+        return std::make_shared<FilterOpGte>();
       case hash("!="):
-        return FilterOp::NEQ;
+        return std::make_shared<FilterOpNeq>();
       default:
         throw std::invalid_argument("Invalid filter argument passed");
     }
