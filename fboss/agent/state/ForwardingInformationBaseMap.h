@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/types.h"
@@ -22,9 +23,23 @@ class SwitchState;
 using ForwardingInformationBaseMapTraits =
     NodeMapTraits<RouterID, ForwardingInformationBaseContainer>;
 
-class ForwardingInformationBaseMap : public NodeMapT<
-                                         ForwardingInformationBaseMap,
-                                         ForwardingInformationBaseMapTraits> {
+struct ForwardingInformationBaseMapThriftTraits
+    : public ThriftyNodeMapTraits<int16_t, state::FibContainerFields> {
+  static inline const std::string& getThriftKeyName() {
+    static const std::string _key = "vrf";
+    return _key;
+  }
+
+  static KeyType parseKey(const folly::dynamic& key) {
+    return key.asInt();
+  }
+};
+
+class ForwardingInformationBaseMap
+    : public ThriftyNodeMapT<
+          ForwardingInformationBaseMap,
+          ForwardingInformationBaseMapTraits,
+          ForwardingInformationBaseMapThriftTraits> {
  public:
   ForwardingInformationBaseMap();
   ~ForwardingInformationBaseMap() override;
@@ -44,7 +59,7 @@ class ForwardingInformationBaseMap : public NodeMapT<
 
  private:
   // Inherit the constructors required for clone()
-  using NodeMapT::NodeMapT;
+  using ThriftyNodeMapT::ThriftyNodeMapT;
   friend class CloneAllocator;
 };
 

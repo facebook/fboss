@@ -125,6 +125,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
   if (pfcWatchdogRecoveryAction) {
     state.pfcWatchdogRecoveryAction() = *pfcWatchdogRecoveryAction;
   }
+  state.fibs() = fibs->toThrift();
   return state;
 }
 
@@ -162,6 +163,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
     fields.pfcWatchdogRecoveryAction = *pfcWatchdogRecoveryAction;
   }
   fields.systemPorts = SystemPortMap::fromThrift(*state.systemPortMap());
+  fields.fibs = ForwardingInformationBaseMap::fromThrift(*state.fibs());
   return fields;
 }
 

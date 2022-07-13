@@ -140,6 +140,11 @@ TEST(ForwardingInformationBaseContainer, Thrifty) {
   container.setFib(fibV4);
   container.setFib(fibV6);
   validateThriftyMigration(container);
+
+  std::shared_ptr<ForwardingInformationBaseMap> fibs =
+      std::make_shared<ForwardingInformationBaseMap>();
+  fibs->addNode(container.clone());
+  validateThriftyMigration(*fibs);
 }
 
 } // namespace facebook::fboss
