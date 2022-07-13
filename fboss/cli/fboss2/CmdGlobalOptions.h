@@ -122,12 +122,13 @@ class CmdGlobalOptions {
           for (auto& acceptedVal : acceptedFilterValues) {
             out << acceptedVal << " ";
           }
-          out << "}";
+          out << "}\n";
           return CliOptionResult::VALUE_ERROR;
         }
       }
       return CliOptionResult::EOK;
     }
+
     bool compareValue(
         const std::string& resultValue,
         const std::string& predicateValue,

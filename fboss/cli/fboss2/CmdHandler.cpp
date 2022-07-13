@@ -276,8 +276,9 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
     exit(EINVAL);
   }
 
+  ValidFilterMapType validFilters = {};
   if (!parsedFilters.empty()) {
-    const auto& validFilters = getValidFilters();
+    validFilters = getValidFilters();
     const auto& errorCode =
         CmdGlobalOptions::getInstance()->isValid(validFilters, parsedFilters);
     if (!(errorCode == CmdGlobalOptions::CliOptionResult::EOK)) {
@@ -297,11 +298,11 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
                              std::launch::async,
                              &CmdHandler::asyncHandler,
                              this,
-                             host /*, inArgs*/)
+                             host,
+                             parsedFilters,
+                             validFilters)
                              .share());
   }
-
-  // TODO(surabhi236): perform the actual filtering here (Intern milestone 4).
 
   if (CmdGlobalOptions::getInstance()->getFmt().isJson()) {
     printJson(impl(), futureList, std::cout, std::cerr);
@@ -369,7 +370,7 @@ using get_value_type_t = typename T::value_type;
  redirects through each command's handler to get the inner struct.
  */
 template <typename CmdTypeT, typename CmdTypeTraits>
-const typename CmdHandler<CmdTypeT, CmdTypeTraits>::ValidFilterMapType
+const ValidFilterMapType
 CmdHandler<CmdTypeT, CmdTypeTraits>::getValidFilters() {
   if (!CmdHandler<CmdTypeT, CmdTypeTraits>::isFilterable()) {
     return {};

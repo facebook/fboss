@@ -10,17 +10,14 @@
 #pragma once
 
 #include <CLI/CLI.hpp>
-#include <thrift/lib/cpp2/visitation/for_each.h>
-#include <thrift/lib/cpp2/visitation/metadata.h>
-#include <thrift/lib/thrift/gen-cpp2/metadata_types.h>
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
-#include "fboss/cli/fboss2/CmdGlobalOptions.h"
 
 #include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include "fboss/cli/fboss2/utils/FilterUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 
 #include <fmt/color.h>
@@ -95,14 +92,8 @@ class CmdHandler {
   using Traits = CmdTypeTraits;
   using ObjectArgType = typename CmdTypeTraits::ObjectArgType;
   using RetType = typename CmdTypeTraits::RetType;
-
-  using ThriftField = apache::thrift::metadata::ThriftField;
-  using ThriftType = apache::thrift::metadata::ThriftType;
   using ThriftPrimitiveType = apache::thrift::metadata::ThriftPrimitiveType;
 
-  using ValidFilterMapType = std::unordered_map<
-      std::string_view,
-      std::shared_ptr<CmdGlobalOptions::BaseTypeVerifier>>;
   static constexpr bool ALLOW_FILTERING = false;
 
   void run();
@@ -152,7 +143,9 @@ class CmdHandler {
   }
 
   std::tuple<std::string, RetType, std::string> asyncHandler(
-      const std::string& host) {
+      const std::string& host,
+      const CmdGlobalOptions::UnionList& parsedFilters,
+      const ValidFilterMapType& validFilterMap) {
     auto hostInfo = HostInfo(host);
     XLOG(DBG2) << "host: " << host << " ip: " << hostInfo.getIpStr();
 
@@ -163,7 +156,11 @@ class CmdHandler {
     } catch (std::exception const& err) {
       errStr = folly::to<std::string>("Thrift call failed: '", err.what(), "'");
     }
-
+    if (!parsedFilters.empty()) {
+      RetType filteredResult =
+          filterOutput<CmdTypeT>(result, parsedFilters, validFilterMap);
+      return std::make_tuple(host, filteredResult, errStr);
+    }
     return std::make_tuple(host, result, errStr);
   }
 };
