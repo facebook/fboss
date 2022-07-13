@@ -47,8 +47,8 @@ using ClientToNHopMap = std::map<ClientID, RouteNextHopEntry>;
  * Map form clientId -> RouteNextHopEntry
  */
 class RouteNextHopsMulti : public AnotherThriftyFields<
-                               state::RouteNextHopsMulti,
-                               RouteNextHopsMulti> {
+                               RouteNextHopsMulti,
+                               state::RouteNextHopsMulti> {
  protected:
   ClientID findLowestAdminDistance();
   ClientToNHopMap map_;

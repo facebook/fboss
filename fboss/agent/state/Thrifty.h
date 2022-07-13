@@ -180,8 +180,9 @@ class BetterThriftyFields : public ThriftyFields {
 /* class for objects which are not really fields for any node but are members of
  * those fields. this class encapsulate typical methods used in thrifty
  * migration. */
-template <typename ThriftT, typename FieldsT>
+template <typename Derived, typename ThriftT>
 struct AnotherThriftyFields : public ThriftyFields {
+  using FieldsT = Derived;
   virtual ~AnotherThriftyFields() = default;
 
   static FieldsT fromFollyDynamic(folly::dynamic const& dyn) {

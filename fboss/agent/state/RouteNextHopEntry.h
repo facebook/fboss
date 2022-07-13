@@ -25,7 +25,7 @@ DECLARE_bool(optimized_ucmp);
 namespace facebook::fboss {
 
 class RouteNextHopEntry
-    : public AnotherThriftyFields<state::RouteNextHopEntry, RouteNextHopEntry> {
+    : public AnotherThriftyFields<RouteNextHopEntry, state::RouteNextHopEntry> {
  public:
   using Action = RouteForwardAction;
   using NextHopSet = boost::container::flat_set<NextHop>;

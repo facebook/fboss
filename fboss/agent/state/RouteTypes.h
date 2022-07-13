@@ -29,7 +29,7 @@ RouteForwardAction str2ForwardAction(const std::string& action);
  */
 template <typename AddrT>
 struct RoutePrefix
-    : public AnotherThriftyFields<state::RoutePrefix, RoutePrefix<AddrT>> {
+    : public AnotherThriftyFields<RoutePrefix<AddrT>, state::RoutePrefix> {
   AddrT network{};
   uint8_t mask{};
   RoutePrefix() {}
@@ -80,7 +80,7 @@ struct is_fboss_key_object_type<RoutePrefix<folly::IPAddressV6>> {
   static constexpr bool value = true;
 };
 
-struct Label : public AnotherThriftyFields<state::Label, Label> {
+struct Label : public AnotherThriftyFields<Label, state::Label> {
   LabelID label;
   Label() : label(0) {}
   /* implicit */ Label(LabelID labelVal) : label(labelVal) {}
