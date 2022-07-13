@@ -28,6 +28,27 @@ ForwardingInformationBaseContainerFields::
   fibV6 = std::make_shared<ForwardingInformationBaseV6>();
 }
 
+folly::dynamic ForwardingInformationBaseContainerFields::toFollyDynamicLegacy()
+    const {
+  folly::dynamic json = folly::dynamic::object;
+  json[kVrf] = static_cast<int>(vrf);
+  json[kFibV4] = fibV4->toFollyDynamicLegacy();
+  json[kFibV6] = fibV6->toFollyDynamicLegacy();
+  return json;
+}
+
+ForwardingInformationBaseContainerFields
+ForwardingInformationBaseContainerFields::fromFollyDynamicLegacy(
+    const folly::dynamic& dyn) {
+  auto vrf = static_cast<RouterID>(dyn[kVrf].asInt());
+  ForwardingInformationBaseContainerFields fields{vrf};
+  fields.fibV4 =
+      ForwardingInformationBaseV4::fromFollyDynamicLegacy(dyn[kFibV4]);
+  fields.fibV6 =
+      ForwardingInformationBaseV6::fromFollyDynamicLegacy(dyn[kFibV6]);
+  return fields;
+}
+
 ForwardingInformationBaseContainer::ForwardingInformationBaseContainer(
     RouterID vrf)
     : NodeBaseT(vrf) {}
@@ -48,23 +69,16 @@ ForwardingInformationBaseContainer::getFibV6() const {
 }
 
 std::shared_ptr<ForwardingInformationBaseContainer>
-ForwardingInformationBaseContainer::fromFollyDynamic(
+ForwardingInformationBaseContainer::fromFollyDynamicLegacy(
     const folly::dynamic& json) {
-  auto fibContainer = std::make_shared<ForwardingInformationBaseContainer>(
-      RouterID(json[kVrf].asInt()));
-  fibContainer->writableFields()->fibV4 =
-      ForwardingInformationBaseV4::fromFollyDynamic(json[kFibV4]);
-  fibContainer->writableFields()->fibV6 =
-      ForwardingInformationBaseV6::fromFollyDynamic(json[kFibV6]);
-  return fibContainer;
+  auto fields =
+      ForwardingInformationBaseContainerFields::fromFollyDynamicLegacy(json);
+  return std::make_shared<ForwardingInformationBaseContainer>(fields);
 }
 
-folly::dynamic ForwardingInformationBaseContainer::toFollyDynamic() const {
-  folly::dynamic json = folly::dynamic::object;
-  json[kVrf] = static_cast<int>(getID());
-  json[kFibV4] = getFibV4()->toFollyDynamic();
-  json[kFibV6] = getFibV6()->toFollyDynamic();
-  return json;
+folly::dynamic ForwardingInformationBaseContainer::toFollyDynamicLegacy()
+    const {
+  return getFields()->toFollyDynamicLegacy();
 }
 
 ForwardingInformationBaseContainer* ForwardingInformationBaseContainer::modify(

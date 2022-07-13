@@ -27,6 +27,10 @@ struct ForwardingInformationBaseContainerFields {
     fn(fibV6.get());
   }
 
+  folly::dynamic toFollyDynamicLegacy() const;
+  static ForwardingInformationBaseContainerFields fromFollyDynamicLegacy(
+      const folly::dynamic& dyn);
+
   RouterID vrf{0};
   std::shared_ptr<ForwardingInformationBaseV4> fibV4{nullptr};
   std::shared_ptr<ForwardingInformationBaseV6> fibV6{nullptr};
@@ -64,9 +68,16 @@ class ForwardingInformationBaseContainer
   ForwardingInformationBaseContainer* modify(
       std::shared_ptr<SwitchState>* state);
 
+  static std::shared_ptr<ForwardingInformationBaseContainer>
+  fromFollyDynamicLegacy(const folly::dynamic& json);
+  folly::dynamic toFollyDynamicLegacy() const;
   static std::shared_ptr<ForwardingInformationBaseContainer> fromFollyDynamic(
-      const folly::dynamic& json);
-  folly::dynamic toFollyDynamic() const override;
+      const folly::dynamic& json) {
+    return fromFollyDynamicLegacy(json);
+  }
+  folly::dynamic toFollyDynamic() const override {
+    return toFollyDynamicLegacy();
+  }
 
  private:
   // Inherit the constructors required for clone()
