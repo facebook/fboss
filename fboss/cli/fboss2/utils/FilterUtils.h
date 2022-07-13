@@ -17,14 +17,48 @@ using ValidFilterMapType = std::unordered_map<
     std::string_view,
     std::shared_ptr<CmdGlobalOptions::BaseTypeVerifier>>;
 
+// Returns true if the row satisfies a given filter term (<key op value>)
+// Currently filtering is only supported for fundamental types and strings.
+// Hence the static checks for those have been done
+
+/* Logic: we perform thrift reflection on each filed of the row and check if a
+filter needs to be applied on this field. If so, we compare the value of the
+filed in the result and in the predicate that was passed as filter input.
+The static checks have been put into place for string fields and primitive
+fields because filtering is only supported on those.
+*/
 template <typename RowType>
 bool satisfiesFilterTerm(
     const RowType& row,
     const CmdGlobalOptions::FilterTerm& filterTerm,
     const ValidFilterMapType& validFilterMap) {
-  bool satisfies = true;
-  // todo(surabhi236): implement logic to check if row satisfies the filter
-  // condition
+  bool satisfies = false;
+  apache::thrift::for_each_field(
+      row, [&](const ThriftField& meta, auto&& field_ref) {
+        const auto& filterKey = std::get<0>(filterTerm);
+        const auto& filterOp = std::get<1>(filterTerm);
+        const auto& predicateValue = std::get<2>(filterTerm);
+
+        if (*meta.name() == filterKey) {
+          using FieldType = folly::remove_cvref_t<decltype(*field_ref)>;
+          // Perform the comparison only if string or fundamental type
+          if constexpr (std::is_fundamental<FieldType>::value) {
+            auto it = validFilterMap.find(filterKey);
+            const auto& value = std::to_string(*field_ref);
+            if (it != validFilterMap.end()) {
+              satisfies =
+                  (it->second)->compareValue(value, predicateValue, filterOp);
+            }
+          } else if constexpr (std::is_same<FieldType, std::string>::value) {
+            auto it = validFilterMap.find(filterKey);
+            if (it != validFilterMap.end()) {
+              satisfies =
+                  (it->second)
+                      ->compareValue(*field_ref, predicateValue, filterOp);
+            }
+          }
+        }
+      });
   return satisfies;
 }
 

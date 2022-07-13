@@ -29,7 +29,7 @@ class CmdGlobalOptions {
   using IntersectionList = std::vector<FilterTerm>;
   using UnionList = std::vector<IntersectionList>;
 
-  /* These CLi option error codes have been defined to
+  /* These CLI option error codes have been defined to
   avoid using the catchall error code (1).
   These will also aid in proper unit testing.
   */
@@ -52,6 +52,10 @@ class CmdGlobalOptions {
    public:
     virtual ~BaseTypeVerifier() {}
     virtual CliOptionResult verify(std::string& value, std::ostream& out) = 0;
+    virtual bool compareValue(
+        const std::string& result,
+        const std::string& predicate,
+        std::shared_ptr<FilterOp> filterOp) = 0;
   };
 
   /* This is being done becase of the following reasons:
@@ -123,6 +127,22 @@ class CmdGlobalOptions {
         }
       }
       return CliOptionResult::EOK;
+    }
+    bool compareValue(
+        const std::string& resultValue,
+        const std::string& predicateValue,
+        std::shared_ptr<FilterOp> filterOp) override {
+      // these should not fail because filter input validation has already
+      // been done before coming here
+      auto convertedResult = folly::tryTo<ExpectedType>(resultValue);
+      auto convertedPrediate = folly::tryTo<ExpectedType>(predicateValue);
+
+      if (convertedResult.hasError() || convertedPrediate.hasError()) {
+        std::cerr << "Fatal: this shouldn't happen!" << std::endl;
+        exit(1);
+      }
+      return filterOp->compare(
+          convertedResult.value(), convertedPrediate.value());
     }
   };
 
