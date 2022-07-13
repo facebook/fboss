@@ -37,7 +37,8 @@ LabelForwardingInformationBase::getLabelForwardingEntryIf(
 
 // Save entries in old format till code to parse new format is in prod
 std::shared_ptr<LabelForwardingInformationBase>
-LabelForwardingInformationBase::fromFollyDynamic(const folly::dynamic& json) {
+LabelForwardingInformationBase::fromFollyDynamicLegacy(
+    const folly::dynamic& json) {
   auto labelFib = std::make_shared<LabelForwardingInformationBase>();
   if (json.isNull()) {
     return labelFib;

@@ -1,9 +1,13 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include <fboss/agent/state/LabelForwardingInformationBase.h>
+
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/LabelForwardingUtils.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -89,37 +93,48 @@ TEST(LabelFIBTests, updateLabelForwardingEntry) {
 }
 
 TEST(LabelFIBTests, toAndFromFollyDynamic) {
-  auto lFib = std::make_shared<LabelForwardingInformationBase>();
+  auto stateA = testStateA();
+  auto handle = createTestHandle(stateA);
+  auto sw = handle->getSw();
+  auto updater = sw->getRouteUpdater();
+  RouteUpdateWrapper::SyncFibFor syncFibs;
 
-  auto entry = std::make_shared<LabelForwardingEntry>(
-      5001,
-      ClientID::OPENR,
-      util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
-  lFib->addNode(entry);
+  MplsRoute route0;
+  *route0.topLabel() = 5001;
+  route0.adminDistance() = AdminDistance::DIRECTLY_CONNECTED;
+  auto swap = util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED);
+  for (auto& nhop : swap.getNextHopSet()) {
+    route0.nextHops()->push_back(nhop.toThrift());
+  }
+  updater.addRoute(ClientID::OPENR, route0);
 
-  entry->update(
-      ClientID::STATIC_ROUTE,
-      util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
-  lFib->resolve(entry);
+  MplsRoute route1;
+  *route1.topLabel() = 5002;
+  route1.adminDistance() = AdminDistance::DIRECTLY_CONNECTED;
+  auto php = util::getPhpLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED);
+  for (auto& nhop : php.getNextHopSet()) {
+    route1.nextHops()->push_back(nhop.toThrift());
+  }
+  updater.addRoute(ClientID::OPENR, route1);
 
-  auto phpEntry = std::make_shared<LabelForwardingEntry>(
-      5002,
-      ClientID::OPENR,
-      util::getPhpLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
-  lFib->resolve(phpEntry);
-  lFib->addNode(phpEntry);
+  syncFibs.insert({RouterID(0), ClientID::OPENR});
+  updater.program(
+      {syncFibs, RouteUpdateWrapper::SyncFibInfo::SyncFibType::MPLS_ONLY});
 
+  auto lFib = sw->getState()->getLabelForwardingInformationBase();
   auto generated =
       LabelForwardingInformationBase::fromFollyDynamic(lFib->toFollyDynamic());
 
   auto ribEntry1 = lFib->getLabelForwardingEntry(5001);
-  LabelForwardingInformationBase::noRibToRibEntryConvertor(ribEntry1);
   EXPECT_TRUE(
       ribEntry1->isSame(generated->getLabelForwardingEntry(5001).get()));
   auto ribEntry2 = lFib->getLabelForwardingEntry(5002);
-  LabelForwardingInformationBase::noRibToRibEntryConvertor(ribEntry2);
   EXPECT_TRUE(
       ribEntry2->isSame(generated->getLabelForwardingEntry(5002).get()));
+
+  validateThriftyMigration(*ribEntry1);
+  validateThriftyMigration(*ribEntry2);
+  validateThriftyMigration(*lFib);
 }
 
 TEST(LabelFIBTests, forEachAdded) {

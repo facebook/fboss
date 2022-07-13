@@ -353,4 +353,5 @@ struct SwitchState {
   19: optional switch_config.PfcWatchdogRecoveryAction pfcWatchdogRecoveryAction;
   20: map<i64, SystemPortFields> systemPortMap;
   21: map<i16, FibContainerFields> fibs;
+  22: map<i32, LabelForwardingEntryFields> labelFib;
 }

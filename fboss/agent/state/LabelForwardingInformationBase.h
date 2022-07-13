@@ -14,9 +14,31 @@ namespace facebook::fboss {
 
 using LabelForwardingRoute = NodeMapTraits<Label, LabelForwardingEntry>;
 
+struct LabelForwardingInformationBaseThriftTraits
+    : public ThriftyNodeMapTraits<int32_t, state::LabelForwardingEntryFields> {
+  static inline const std::string& getThriftKeyName() {
+    static const std::string _key = "prefix";
+    return _key;
+  }
+
+  static KeyType parseKey(const folly::dynamic& key) {
+    return key.asInt();
+  }
+
+  static int32_t convertKey(const Label& label) {
+    return label.value();
+  }
+};
+
 class LabelForwardingInformationBase
-    : public NodeMapT<LabelForwardingInformationBase, LabelForwardingRoute> {
-  using BaseT = NodeMapT<LabelForwardingInformationBase, LabelForwardingRoute>;
+    : public ThriftyNodeMapT<
+          LabelForwardingInformationBase,
+          LabelForwardingRoute,
+          LabelForwardingInformationBaseThriftTraits> {
+  using BaseT = ThriftyNodeMapT<
+      LabelForwardingInformationBase,
+      LabelForwardingRoute,
+      LabelForwardingInformationBaseThriftTraits>;
 
  public:
   LabelForwardingInformationBase();
@@ -29,7 +51,7 @@ class LabelForwardingInformationBase
   std::shared_ptr<LabelForwardingEntry> getLabelForwardingEntryIf(
       Label topLabel) const;
 
-  static std::shared_ptr<LabelForwardingInformationBase> fromFollyDynamic(
+  static std::shared_ptr<LabelForwardingInformationBase> fromFollyDynamicLegacy(
       const folly::dynamic& json);
 
   std::shared_ptr<LabelForwardingEntry> cloneLabelEntry(
@@ -75,7 +97,7 @@ class LabelForwardingInformationBase
 
  private:
   // Inherit the constructors required for clone()
-  using NodeMapT::NodeMapT;
+  using ThriftyNodeMapT::ThriftyNodeMapT;
   friend class CloneAllocator;
   static std::shared_ptr<LabelForwardingEntry> fromFollyDynamicOldFormat(
       folly::dynamic entry);
