@@ -56,6 +56,7 @@ class CmdGlobalOptions {
         const std::string& result,
         const std::string& predicate,
         std::shared_ptr<FilterOp> filterOp) = 0;
+    virtual std::vector<std::string> getAcceptableValues() = 0;
   };
 
   /* This is being done becase of the following reasons:
@@ -144,6 +145,10 @@ class CmdGlobalOptions {
       }
       return filterOp->compare(
           convertedResult.value(), convertedPrediate.value());
+    }
+
+    std::vector<std::string> getAcceptableValues() override {
+      return acceptedFilterValues;
     }
   };
 
