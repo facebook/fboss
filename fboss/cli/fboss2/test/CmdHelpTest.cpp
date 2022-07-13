@@ -38,7 +38,7 @@ TEST_F(CmdHelpTestFixture, CmdHelpTest) {
       first level in the command tree is a rootCommand, but the
       rest of the levels have Command.
       */
-      EXPECT_THAT(output, HasSubstr(applicableVerb + '\t'));
+      EXPECT_THAT(output, HasSubstr(applicableVerb));
 
       // testing all nested commands' help info
       /* testing logic for nested sub-commands:
@@ -53,7 +53,7 @@ TEST_F(CmdHelpTestFixture, CmdHelpTest) {
           auto subCmd = subCmdStack.top();
           subCmdStack.pop();
           const auto& name = subCmd.name;
-          EXPECT_THAT(output, HasSubstr(name + '\t'));
+          EXPECT_THAT(output, HasSubstr(name));
           for (const auto& nestedSubCmds : subCmd.subcommands) {
             subCmdStack.push(nestedSubCmds);
           }

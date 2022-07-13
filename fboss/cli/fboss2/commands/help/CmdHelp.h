@@ -36,19 +36,6 @@ class CmdHelp {
     return root;
   }
 
-  // for debugging purposes
-  void printRevHelpTree() {
-    for (auto element : tree_) {
-      std::cout << "object: " << element.first << std::endl;
-      auto revHelp = element.second;
-      for (auto el2 : revHelp) {
-        std::cout << " verb: " << el2.first.first
-                  << " verb help: " << el2.first.second
-                  << " num subcommands:  " << el2.second.size() << std::endl;
-      }
-    }
-  }
-
  public:
   explicit CmdHelp(std::vector<CommandTree> cmdTrees) {
     tree_ = revHelpTree(cmdTrees);
@@ -69,8 +56,8 @@ class CmdHelp {
       size_t level,
       std::ostream& out) {
     for (const auto& cmd : subCmds) {
-      out << std::string(level, '\t') << cmd.name << '\t' << cmd.help
-          << std::endl;
+      out << std::string(level - 1, '\t') << "    |---" << cmd.name << ":\t"
+          << cmd.help << std::endl;
       printSubCommandTree(cmd.subcommands, level + 1, out);
     }
   }
@@ -78,8 +65,10 @@ class CmdHelp {
   void printHelpInfo(std::string helpArg, std::ostream& out = std::cout) {
     const auto& helpTreeMapForObj = tree_[helpArg];
     for (const auto& [verbHelpPair, subCmds] : helpTreeMapForObj) {
-      out << verbHelpPair.first << '\t' << verbHelpPair.second << std::endl;
+      out << verbHelpPair.first << " " << helpArg << ":\t"
+          << verbHelpPair.second << std::endl;
       printSubCommandTree(subCmds, 1, out);
+      std::cout << std::endl;
     }
   }
 };
