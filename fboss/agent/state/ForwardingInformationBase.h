@@ -9,9 +9,11 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTypes.h"
+#include "fboss/agent/state/Thrifty.h"
 
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
@@ -25,18 +27,37 @@ using ForwardingInformationBaseTraits = NodeMapTraits<
     NodeMapNoExtraFields,
     std::map<RoutePrefix<AddressT>, std::shared_ptr<Route<AddressT>>>>;
 
+template <typename AddrT>
+struct ForwardingInformationBaseThriftTraits
+    : public ThriftyNodeMapTraits<std::string, state::RouteFields> {
+  static inline const std::string& getThriftKeyName() {
+    static const std::string _key = "prefix";
+    return _key;
+  }
+
+  static const std::string parseKey(const folly::dynamic& key) {
+    return key.asString();
+  }
+
+  static std::string convertKey(const RoutePrefix<AddrT>& prefix) {
+    return prefix.str();
+  }
+};
+
 template <typename AddressT>
 class ForwardingInformationBase
-    : public NodeMapT<
+    : public ThriftyNodeMapT<
           ForwardingInformationBase<AddressT>,
-          ForwardingInformationBaseTraits<AddressT>> {
+          ForwardingInformationBaseTraits<AddressT>,
+          ForwardingInformationBaseThriftTraits<AddressT>> {
  public:
   ForwardingInformationBase();
   ~ForwardingInformationBase() override;
 
-  using Base = NodeMapT<
+  using Base = ThriftyNodeMapT<
       ForwardingInformationBase<AddressT>,
-      ForwardingInformationBaseTraits<AddressT>>;
+      ForwardingInformationBaseTraits<AddressT>,
+      ForwardingInformationBaseThriftTraits<AddressT>>;
 
   std::shared_ptr<Route<AddressT>> exactMatch(
       const RoutePrefix<AddressT>& prefix) const;
