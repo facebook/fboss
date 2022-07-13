@@ -15,6 +15,12 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+DEFINE_bool(
+    sai_use_interface_type_for_medium,
+    false,
+    "Use interface type in platform mapping to derive the medium "
+    "instead of deriving it from the medium field");
+
 namespace facebook::fboss {
 
 namespace {
@@ -289,7 +295,30 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         apache::thrift::util::enumNameSafe(swPort->getProfileID()));
   }
   auto transmitterTech = *portProfileConfig.medium();
-  auto mediaType = utility::getSaiPortMediaType(transmitterTech, speed);
+  sai_port_media_type_t mediaType;
+  if (FLAGS_sai_use_interface_type_for_medium) {
+    // We are currently programming different media type for BCM-SAI
+    // implementation vs Native SDK implementation. That's because for
+    // native-bcm implementation, we derive the media type from interfaceType in
+    // platform mapping. However, we use the 'medium' field from platform
+    // mapping for the SAI implementation. This causes us to program a
+    // sub-optimal media type with SAI (and cause issues like S280146) as for
+    // certain profiles, the medium type is defined as TransmitterTech.OPTICAL
+    // whereas the interface type is InterfaceType.KR4 and they both currently
+    // lead to different SAI_PORT_MEDIA_TYPE. Since changing the media type is a
+    // disruptive change, we are guarding this with a flag for now as that will
+    // help us stage the roll out of this change. Eventually, we'll get rid of
+    // this flag and make deriving the media type from interfaceType as default
+    if (!portProfileConfig.interfaceType()) {
+      throw FbossError(
+          "Missing interfaceType in profile ",
+          apache::thrift::util::enumNameSafe(swPort->getProfileID()));
+    }
+    mediaType = utility::getSaiPortMediaFromInterfaceType(
+        *portProfileConfig.interfaceType());
+  } else {
+    mediaType = utility::getSaiPortMediaType(transmitterTech, speed);
+  }
   auto enableFec =
       (speed >= cfg::PortSpeed::HUNDREDG) || !platformPort->shouldDisableFEC();
   SaiPortTraits::Attributes::FecMode fecMode;

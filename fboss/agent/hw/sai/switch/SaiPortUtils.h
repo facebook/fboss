@@ -28,6 +28,9 @@ sai_port_media_type_t getSaiPortMediaType(
     TransmitterTechnology transmitterTech,
     cfg::PortSpeed speed);
 
+sai_port_media_type_t getSaiPortMediaFromInterfaceType(
+    phy::InterfaceType interfaceType);
+
 sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec);
 
 sai_port_ptp_mode_t getSaiPortPtpMode(bool enable);

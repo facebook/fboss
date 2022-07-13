@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
+#include "fboss/agent/FbossError.h"
+#include "thrift/lib/cpp/util/EnumUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -73,6 +75,36 @@ sai_port_media_type_t getSaiPortMediaType(
         default:
           return SAI_PORT_MEDIA_TYPE_COPPER;
       }
+  }
+  return SAI_PORT_MEDIA_TYPE_UNKNOWN;
+}
+
+sai_port_media_type_t getSaiPortMediaFromInterfaceType(
+    phy::InterfaceType interfaceType) {
+  switch (interfaceType) {
+    case phy::InterfaceType::KR:
+    case phy::InterfaceType::KR2:
+    case phy::InterfaceType::KR4:
+    case phy::InterfaceType::KR8:
+    case phy::InterfaceType::CAUI4_C2C:
+    case phy::InterfaceType::CAUI4_C2M:
+    case phy::InterfaceType::CAUI:
+      return SAI_PORT_MEDIA_TYPE_BACKPLANE;
+
+    case phy::InterfaceType::CR:
+    case phy::InterfaceType::CR2:
+    case phy::InterfaceType::CR4:
+      return SAI_PORT_MEDIA_TYPE_COPPER;
+
+    case phy::InterfaceType::SR:
+    case phy::InterfaceType::SR4:
+    case phy::InterfaceType::XLAUI:
+    case phy::InterfaceType::SFI:
+      return SAI_PORT_MEDIA_TYPE_FIBER;
+    default:
+      throw facebook::fboss::FbossError(
+          "Unsupported interface type: ",
+          apache::thrift::util::enumNameSafe(interfaceType));
   }
   return SAI_PORT_MEDIA_TYPE_UNKNOWN;
 }
