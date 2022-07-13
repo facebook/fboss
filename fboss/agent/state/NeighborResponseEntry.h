@@ -33,7 +33,7 @@ struct NeighborResponseEntryFields : public ThriftyFields<
   NeighborResponseEntryFields(folly::MacAddress mac, InterfaceID interfaceID)
       : mac(mac), interfaceID(interfaceID) {}
 
-  state::NeighborResponseEntryFields toThrift() const;
+  state::NeighborResponseEntryFields toThrift() const override;
   static NeighborResponseEntryFields fromThrift(
       state::NeighborResponseEntryFields const& entryTh);
 

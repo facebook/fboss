@@ -36,7 +36,7 @@ struct ControlPlaneFields
   folly::dynamic toFollyDynamicLegacy() const;
   static ControlPlaneFields fromFollyDynamicLegacy(const folly::dynamic& json);
 
-  state::ControlPlaneFields toThrift() const;
+  state::ControlPlaneFields toThrift() const override;
   static ControlPlaneFields fromThrift(state::ControlPlaneFields const& fields);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
   static void migrateFromThrifty(folly::dynamic& dyn);

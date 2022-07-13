@@ -72,7 +72,7 @@ struct VlanFields : public ThriftyFields<VlanFields, state::VlanFields> {
     fn(macTable.get());
   }
 
-  state::VlanFields toThrift() const;
+  state::VlanFields toThrift() const override;
   static VlanFields fromThrift(const state::VlanFields& vlanTh);
   static folly::dynamic migrateToThrifty(const folly::dynamic& dyn);
   static void migrateFromThrifty(folly::dynamic& dyn);

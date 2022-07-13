@@ -27,10 +27,29 @@ namespace facebook::fboss {
 using BufferPoolCfgPtr = std::shared_ptr<BufferPoolCfg>;
 
 struct PortPgFields : public ThriftyFields<PortPgFields, state::PortPgFields> {
+  PortPgFields() {}
+  PortPgFields(
+      uint8_t _id,
+      std::optional<cfg::MMUScalingFactor> _scalingFactor,
+      std::optional<std::string> _name,
+      int _minLimitBytes,
+      std::optional<int> _headroomLimitBytes,
+      std::optional<int> _resumeOffsetBytes,
+      std::string _bufferPoolName,
+      std::optional<BufferPoolCfgPtr> _bufferPoolConfigPtr = std::nullopt)
+      : id(_id),
+        scalingFactor(_scalingFactor),
+        name(_name),
+        minLimitBytes(_minLimitBytes),
+        headroomLimitBytes(_headroomLimitBytes),
+        resumeOffsetBytes(_resumeOffsetBytes),
+        bufferPoolName(_bufferPoolName),
+        bufferPoolConfigPtr(_bufferPoolConfigPtr) {}
+
   template <typename Fn>
   void forEachChild(Fn) {}
 
-  state::PortPgFields toThrift() const;
+  state::PortPgFields toThrift() const override;
   static PortPgFields fromThrift(state::PortPgFields const&);
 
   uint8_t id{0};

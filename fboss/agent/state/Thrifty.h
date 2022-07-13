@@ -159,6 +159,8 @@ class ThriftyUtils {
 template <typename Derived, typename ThriftT>
 class ThriftyFields {
  public:
+  virtual ~ThriftyFields() = default;
+
   //  migrateTo does not modify dyn so we don't have to change the call sites of
   //  fromFollyDynamic, migrateFrom does not have this limitation
   static folly::dynamic migrateToThrifty(const folly::dynamic& dyn) {
@@ -167,24 +169,8 @@ class ThriftyFields {
   static void migrateFromThrifty(folly::dynamic& dyn) {
     dyn[ThriftyUtils::kThriftySchemaUpToDate] = true;
   }
-};
 
-template <typename Derived, typename ThriftT>
-class BetterThriftyFields : public ThriftyFields<Derived, ThriftT> {
- public:
-  bool operator==(const BetterThriftyFields<Derived, ThriftT>& other) const {
-    return data == other.data;
-  }
-  ThriftT data;
-};
-
-/* class for objects which are not really fields for any node but are members of
- * those fields. this class encapsulate typical methods used in thrifty
- * migration. */
-template <typename Derived, typename ThriftT>
-struct AnotherThriftyFields : public ThriftyFields<Derived, ThriftT> {
   using FieldsT = Derived;
-  virtual ~AnotherThriftyFields() = default;
 
   static FieldsT fromFollyDynamic(folly::dynamic const& dyn) {
     if (ThriftyUtils::nodeNeedsMigration(dyn)) {
@@ -210,15 +196,27 @@ struct AnotherThriftyFields : public ThriftyFields<Derived, ThriftT> {
   }
 
   std::string str() const {
-    auto* derived = dynamic_cast<const FieldsT*>(this);
-    CHECK(derived);
-    auto obj = derived->toThrift();
+    auto obj = toThrift();
     std::string jsonStr;
     apache::thrift::SimpleJSONSerializer::serialize(obj, &jsonStr);
     return jsonStr;
   }
+
+  virtual ThriftT toThrift() const = 0;
 };
 
+template <typename Derived, typename ThriftT>
+class BetterThriftyFields : public ThriftyFields<Derived, ThriftT> {
+ public:
+  bool operator==(const BetterThriftyFields<Derived, ThriftT>& other) const {
+    return data == other.data;
+  }
+  ThriftT toThrift() const override {
+    return data;
+  }
+
+  ThriftT data;
+};
 // Base class to convert NodeMaps to thrift
 template <typename NodeMap, typename TraitsT, typename ThriftyTraitsT>
 class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {

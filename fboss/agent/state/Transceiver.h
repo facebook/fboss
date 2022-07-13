@@ -29,7 +29,7 @@ struct TransceiverSpecFields : public BetterThriftyFields<
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
 
-  state::TransceiverSpecFields toThrift() const;
+  state::TransceiverSpecFields toThrift() const override;
   static TransceiverSpecFields fromThrift(
       state::TransceiverSpecFields const& tcvrThrift);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);

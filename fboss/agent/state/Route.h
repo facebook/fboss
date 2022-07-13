@@ -114,7 +114,7 @@ struct RouteFields
     return nexthopsmulti;
   }
 
-  ThriftFields toThrift() const {
+  ThriftFields toThrift() const override {
     ThriftFields fields{};
     if constexpr (std::is_same_v<AddrT, LabelID>) {
       fields.label() = prefix.toThrift();

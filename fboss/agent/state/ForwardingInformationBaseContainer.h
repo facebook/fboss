@@ -35,7 +35,7 @@ struct ForwardingInformationBaseContainerFields
   static ForwardingInformationBaseContainerFields fromFollyDynamicLegacy(
       const folly::dynamic& dyn);
 
-  state::FibContainerFields toThrift() const;
+  state::FibContainerFields toThrift() const override;
   static ForwardingInformationBaseContainerFields fromThrift(
       state::FibContainerFields const& fields);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);

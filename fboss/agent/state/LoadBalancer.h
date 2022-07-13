@@ -37,7 +37,7 @@ struct LoadBalancerFields
   using MPLSField = cfg::MPLSField;
   using MPLSFields = boost::container::flat_set<MPLSField>;
 
-  state::LoadBalancerFields toThrift() const;
+  state::LoadBalancerFields toThrift() const override;
   static LoadBalancerFields fromThrift(state::LoadBalancerFields const& fields);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
   static void migrateFromThrifty(folly::dynamic& dyn);

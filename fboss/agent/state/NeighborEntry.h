@@ -69,7 +69,7 @@ struct NeighborEntryFields : public ThriftyFields<
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
 
-  state::NeighborEntryFields toThrift() const {
+  state::NeighborEntryFields toThrift() const override {
     state::NeighborEntryFields entryTh;
     entryTh.ipaddress() = ip.str();
     entryTh.mac() = mac.toString();

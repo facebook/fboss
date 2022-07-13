@@ -27,7 +27,7 @@ struct SwitchSettingsFields
   static SwitchSettingsFields fromFollyDynamicLegacy(
       const folly::dynamic& json);
 
-  state::SwitchSettingsFields toThrift() const;
+  state::SwitchSettingsFields toThrift() const override;
   static SwitchSettingsFields fromThrift(
       state::SwitchSettingsFields const& fields);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);

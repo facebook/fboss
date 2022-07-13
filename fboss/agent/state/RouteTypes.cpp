@@ -153,7 +153,11 @@ folly::dynamic RoutePrefix<AddrT>::migrateToThrifty(folly::dynamic const& dyn) {
   // byte is represented as signed char in thrift
   signed char mask = static_cast<signed char>(dyn[kMask].asInt());
   newDyn["prefix"] = ThriftyUtils::toFollyDynamic(addr);
-  newDyn["v6"] = std::is_same_v<AddrT, folly::IPAddressV6>;
+  if constexpr (std::is_same_v<AddrT, folly::IPAddress>) {
+    newDyn["v6"] = network::toIPAddress(addr).isV6();
+  } else {
+    newDyn["v6"] = std::is_same_v<AddrT, folly::IPAddressV6>;
+  }
   newDyn["mask"] = mask;
   return newDyn;
 }
@@ -186,7 +190,8 @@ void Label::migrateFromThrifty(folly::dynamic& dyn) {
   dyn[kLabel] = label;
 }
 
-template class RoutePrefix<folly::IPAddressV4>;
-template class RoutePrefix<folly::IPAddressV6>;
+template struct RoutePrefix<folly::IPAddress>;
+template struct RoutePrefix<folly::IPAddressV4>;
+template struct RoutePrefix<folly::IPAddressV6>;
 
 } // namespace facebook::fboss

@@ -25,7 +25,7 @@ DECLARE_bool(optimized_ucmp);
 namespace facebook::fboss {
 
 class RouteNextHopEntry
-    : public AnotherThriftyFields<RouteNextHopEntry, state::RouteNextHopEntry> {
+    : public ThriftyFields<RouteNextHopEntry, state::RouteNextHopEntry> {
  public:
   using Action = RouteForwardAction;
   using NextHopSet = boost::container::flat_set<NextHop>;
@@ -145,7 +145,7 @@ class RouteNextHopEntry
       std::vector<uint64_t>& nhWeights,
       uint64_t normalizedPathCount);
 
-  state::RouteNextHopEntry toThrift() const;
+  state::RouteNextHopEntry toThrift() const override;
   static RouteNextHopEntry fromThrift(const state::RouteNextHopEntry& prefix);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
   static void migrateFromThrifty(folly::dynamic& dyn);

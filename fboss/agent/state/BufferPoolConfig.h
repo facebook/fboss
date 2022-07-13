@@ -24,9 +24,12 @@ struct BufferPoolCfgFields
   template <typename Fn>
   void forEachChild(Fn) {}
 
-  state::BufferPoolFields toThrift() const;
+  state::BufferPoolFields toThrift() const override;
   static BufferPoolCfgFields fromThrift(state::BufferPoolFields const&);
 
+  BufferPoolCfgFields() {}
+  BufferPoolCfgFields(std::string _id, int _sharedBytes, int _headroomBytes)
+      : id(_id), sharedBytes(_sharedBytes), headroomBytes(_headroomBytes) {}
   std::string id;
   int sharedBytes;
   int headroomBytes;

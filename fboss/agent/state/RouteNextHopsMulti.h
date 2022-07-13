@@ -46,16 +46,15 @@ using ClientToNHopMap = std::map<ClientID, RouteNextHopEntry>;
 /**
  * Map form clientId -> RouteNextHopEntry
  */
-class RouteNextHopsMulti : public AnotherThriftyFields<
-                               RouteNextHopsMulti,
-                               state::RouteNextHopsMulti> {
+class RouteNextHopsMulti
+    : public ThriftyFields<RouteNextHopsMulti, state::RouteNextHopsMulti> {
  protected:
   ClientID findLowestAdminDistance();
   ClientToNHopMap map_;
   ClientID lowestAdminDistanceClientId_;
 
  public:
-  state::RouteNextHopsMulti toThrift() const;
+  state::RouteNextHopsMulti toThrift() const override;
   static RouteNextHopsMulti fromThrift(const state::RouteNextHopsMulti& prefix);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
   static void migrateFromThrifty(folly::dynamic& dyn);

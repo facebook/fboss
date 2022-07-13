@@ -419,31 +419,31 @@ void BcmPortIngressBufferManager::programIngressBuffers(
 
 const PortPgConfig& getDefaultPriorityGroupSettings() {
   static const PortPgConfig portPgConfig{PortPgFields{
-      .id = kDefaultPortPgId,
-      .scalingFactor = utility::bcmAlphaToCfgAlpha(kDefaultPgAlpha),
-      .name = std::nullopt,
-      .minLimitBytes = kDefaultMinLimitBytes,
-      .headroomLimitBytes = kDefaultHeadroomLimitBytes,
-      .resumeOffsetBytes = kdefaultResumeOffsetBytes,
-      .bufferPoolName = "",
+      kDefaultPortPgId,
+      utility::bcmAlphaToCfgAlpha(kDefaultPgAlpha),
+      std::nullopt,
+      kDefaultMinLimitBytes,
+      kDefaultHeadroomLimitBytes,
+      kdefaultResumeOffsetBytes,
+      "",
   }};
   return portPgConfig;
 }
 
 const BufferPoolCfg& getTH3DefaultIngressPoolSettings() {
   static const BufferPoolCfg bufferPoolCfg{BufferPoolCfgFields{
-      .id = kDefaultBufferPoolName,
-      .sharedBytes = kDefaultSharedBytesTh3,
-      .headroomBytes = kDefaultHeadroomBytesTh3,
+      kDefaultBufferPoolName,
+      kDefaultSharedBytesTh3,
+      kDefaultHeadroomBytesTh3,
   }};
   return bufferPoolCfg;
 }
 
 const BufferPoolCfg& getTH4DefaultIngressPoolSettings() {
   static const BufferPoolCfg bufferPoolCfg{BufferPoolCfgFields{
-      .id = kDefaultBufferPoolName,
-      .sharedBytes = kDefaultSharedBytesTh4,
-      .headroomBytes = kDefaultHeadroomBytesTh4,
+      kDefaultBufferPoolName,
+      kDefaultSharedBytesTh4,
+      kDefaultHeadroomBytesTh4,
   }};
   return bufferPoolCfg;
 }

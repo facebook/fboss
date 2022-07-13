@@ -39,7 +39,7 @@ struct MacEntryFields
   template <typename Fn>
   void forEachChild(Fn) {}
 
-  state::MacEntryFields toThrift() const;
+  state::MacEntryFields toThrift() const override;
   static MacEntryFields fromThrift(state::MacEntryFields const& ma);
 
   folly::dynamic toFollyDynamicLegacy() const;

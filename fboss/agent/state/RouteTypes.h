@@ -29,7 +29,7 @@ RouteForwardAction str2ForwardAction(const std::string& action);
  */
 template <typename AddrT>
 struct RoutePrefix
-    : public AnotherThriftyFields<RoutePrefix<AddrT>, state::RoutePrefix> {
+    : public ThriftyFields<RoutePrefix<AddrT>, state::RoutePrefix> {
   AddrT network{};
   uint8_t mask{};
   RoutePrefix() {}
@@ -42,7 +42,7 @@ struct RoutePrefix
     return folly::CIDRNetwork{network.mask(mask), mask};
   }
 
-  state::RoutePrefix toThrift() const;
+  state::RoutePrefix toThrift() const override;
   static RoutePrefix fromThrift(const state::RoutePrefix& prefix);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
   static void migrateFromThrifty(folly::dynamic& dyn);
@@ -80,7 +80,7 @@ struct is_fboss_key_object_type<RoutePrefix<folly::IPAddressV6>> {
   static constexpr bool value = true;
 };
 
-struct Label : public AnotherThriftyFields<Label, state::Label> {
+struct Label : public ThriftyFields<Label, state::Label> {
   LabelID label;
   Label() : label(0) {}
   /* implicit */ Label(LabelID labelVal) : label(labelVal) {}
@@ -93,7 +93,7 @@ struct Label : public AnotherThriftyFields<Label, state::Label> {
     return label;
   }
 
-  state::Label toThrift() const {
+  state::Label toThrift() const override {
     state::Label thriftLabel{};
     thriftLabel.value() = label;
     return thriftLabel;

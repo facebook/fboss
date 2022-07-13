@@ -77,7 +77,7 @@ struct SwitchStateFields
     fn(systemPorts.get());
   }
 
-  state::SwitchState toThrift() const;
+  state::SwitchState toThrift() const override;
   static SwitchStateFields fromThrift(const state::SwitchState& state);
 
   // Used for testing thrifty conversion

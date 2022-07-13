@@ -58,7 +58,7 @@ struct PortFields : public ThriftyFields<PortFields, state::PortFields> {
   void forEachChild(Fn /*fn*/) {}
 
   static PortFields fromThrift(state::PortFields const& pf);
-  state::PortFields toThrift() const;
+  state::PortFields toThrift() const override;
 
   struct MKASakKey {
     bool operator<(const MKASakKey& r) const {

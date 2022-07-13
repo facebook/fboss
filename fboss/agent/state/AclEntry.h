@@ -97,7 +97,7 @@ struct AclEntryFields
   template <typename Fn>
   void forEachChild(Fn) {}
 
-  state::AclEntryFields toThrift() const;
+  state::AclEntryFields toThrift() const override;
   static AclEntryFields fromThrift(state::AclEntryFields const& ma);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
   static void migrateFromThrifty(folly::dynamic& dyn);

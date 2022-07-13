@@ -141,7 +141,7 @@ struct MirrorFields : public ThriftyFields<MirrorFields, state::MirrorFields> {
 
   folly::dynamic toFollyDynamicLegacy() const;
   static MirrorFields fromFollyDynamicLegacy(const folly::dynamic& dyn);
-  state::MirrorFields toThrift() const;
+  state::MirrorFields toThrift() const override;
   static MirrorFields fromThrift(state::MirrorFields const& fields);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
   static void migrateFromThrifty(folly::dynamic& dyn);

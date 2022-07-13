@@ -16,6 +16,7 @@
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
+#include <sys/types.h>
 #include <optional>
 #include <string>
 #include <utility>
@@ -31,10 +32,42 @@ struct PortQueueFields
   template <typename Fn>
   void forEachChild(Fn) {}
 
-  state::PortQueueFields toThrift() const;
+  state::PortQueueFields toThrift() const override;
   static PortQueueFields fromThrift(state::PortQueueFields const&);
 
   bool operator==(const PortQueueFields& queue) const;
+
+  PortQueueFields() {}
+
+  PortQueueFields(
+      uint8_t _id,
+      cfg::QueueScheduling _scheduling,
+      cfg::StreamType _streamType,
+      int _weight,
+      std::optional<int> _reservedBytes,
+      std::optional<cfg::MMUScalingFactor> _scalingFactor,
+      std::optional<std::string> _name,
+      std::optional<int> _sharedBytes,
+      AQMMap _aqms,
+      std::optional<cfg::PortQueueRate> _portQueueRate,
+      std::optional<int> _bandwidthBurstMinKbits,
+      std::optional<int> _bandwidthBurstMaxKbits,
+      std::optional<TrafficClass> _trafficClass,
+      std::optional<std::set<PfcPriority>> _pfcPriorities)
+      : id(_id),
+        scheduling(_scheduling),
+        streamType(_streamType),
+        weight(_weight),
+        reservedBytes(_reservedBytes),
+        scalingFactor(_scalingFactor),
+        name(_name),
+        sharedBytes(_sharedBytes),
+        aqms(_aqms),
+        portQueueRate(_portQueueRate),
+        bandwidthBurstMinKbits(_bandwidthBurstMinKbits),
+        bandwidthBurstMaxKbits(_bandwidthBurstMaxKbits),
+        trafficClass(_trafficClass),
+        pfcPriorities(_pfcPriorities) {}
 
   uint8_t id{0};
   cfg::QueueScheduling scheduling{cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN};

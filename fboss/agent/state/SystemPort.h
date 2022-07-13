@@ -28,9 +28,6 @@ struct SystemPortFields
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
 
-  state::SystemPortFields toThrift() const {
-    return data;
-  }
   static SystemPortFields fromThrift(
       const state::SystemPortFields& systemPortThrift);
 };
