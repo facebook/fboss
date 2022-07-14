@@ -108,9 +108,27 @@ struct RootCommand : public Command {
 
 using CommandTree = std::vector<RootCommand>;
 
-//(verb, verb_help) -> vector of subcommands
-using RevHelpForObj =
-    std::map<std::pair<CmdVerb, CmdHelpMsg>, std::vector<Command>>;
+struct HelpInfo {
+  CmdVerb verb;
+  CmdHelpMsg helpMsg;
+  ValidFilterMapType validFilterMap;
+
+  HelpInfo(
+      const CmdVerb& verb,
+      const CmdHelpMsg& helpMsg,
+      const ValidFilterMapType& validFilterMap)
+      : verb(verb), helpMsg(helpMsg), validFilterMap(validFilterMap) {}
+
+  bool operator==(const HelpInfo& info) const {
+    return verb == info.verb && helpMsg == info.helpMsg;
+  }
+  bool operator<(const HelpInfo& info) const {
+    return verb < info.verb;
+  }
+};
+
+// HelpInfo -> vector of subcommands
+using RevHelpForObj = std::map<HelpInfo, std::vector<Command>>;
 
 // obj -> revHelpForObj.
 using ReverseHelpTree = std::map<std::string, RevHelpForObj>;
