@@ -23,6 +23,7 @@ struct TransceiverSpecFields : public BetterThriftyFields<
                                    TransceiverSpecFields,
                                    state::TransceiverSpecFields> {
   explicit TransceiverSpecFields(TransceiverID id) {
+    auto& data = writableData();
     *data.id() = id;
   }
 
@@ -56,29 +57,30 @@ class TransceiverSpec : public ThriftyBaseT<
       const;
 
   TransceiverID getID() const {
-    return TransceiverID(*getFields()->data.id());
+    return TransceiverID(*getFields()->data().id());
   }
 
   std::optional<double> getCableLength() const {
-    return getFields()->data.cableLength().to_optional();
+    return getFields()->data().cableLength().to_optional();
   }
   void setCableLength(double cableLength) {
-    writableFields()->data.cableLength() = cableLength;
+    writableFields()->writableData().cableLength() = cableLength;
   }
 
   std::optional<MediaInterfaceCode> getMediaInterface() const {
-    return getFields()->data.mediaInterface().to_optional();
+    return getFields()->data().mediaInterface().to_optional();
   }
   void setMediaInterface(MediaInterfaceCode mediaInterface) {
-    writableFields()->data.mediaInterface() = mediaInterface;
+    writableFields()->writableData().mediaInterface() = mediaInterface;
   }
 
   std::optional<TransceiverManagementInterface> getManagementInterface() const {
-    return getFields()->data.managementInterface().to_optional();
+    return getFields()->data().managementInterface().to_optional();
   }
   void setManagementInterface(
       TransceiverManagementInterface managementInterface) {
-    writableFields()->data.managementInterface() = managementInterface;
+    writableFields()->writableData().managementInterface() =
+        managementInterface;
   }
 
   bool operator==(const TransceiverSpec& tcvr) const;

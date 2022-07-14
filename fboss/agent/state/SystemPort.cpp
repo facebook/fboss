@@ -13,7 +13,7 @@ namespace facebook::fboss {
 SystemPortFields SystemPortFields::fromThrift(
     const state::SystemPortFields& systemPortThrift) {
   SystemPortFields sysPort(SystemPortID(*systemPortThrift.portId()));
-  sysPort.data = systemPortThrift;
+  sysPort.writableData() = systemPortThrift;
   return sysPort;
 }
 

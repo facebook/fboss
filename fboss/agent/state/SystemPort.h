@@ -22,6 +22,7 @@ namespace facebook::fboss {
 struct SystemPortFields
     : public BetterThriftyFields<SystemPortFields, state::SystemPortFields> {
   explicit SystemPortFields(SystemPortID id) {
+    auto& data = writableData();
     *data.portId() = id;
   }
 
@@ -38,56 +39,56 @@ class SystemPort : public ThriftyBaseT<
                        SystemPortFields> {
  public:
   SystemPortID getID() const {
-    return SystemPortID(*getFields()->data.portId());
+    return SystemPortID(*getFields()->data().portId());
   }
   SwitchID getSwitchId() const {
-    return SwitchID(*getFields()->data.switchId());
+    return SwitchID(*getFields()->data().switchId());
   }
   void setSwitchId(SwitchID swId) {
-    writableFields()->data.switchId() = swId;
+    writableFields()->writableData().switchId() = swId;
   }
   std::string getPortName() const {
-    return *getFields()->data.portName();
+    return *getFields()->data().portName();
   }
   void setPortName(const std::string& portName) {
-    writableFields()->data.portName() = portName;
+    writableFields()->writableData().portName() = portName;
   }
   int64_t getCoreIndex() const {
-    return *getFields()->data.coreIndex();
+    return *getFields()->data().coreIndex();
   }
   void setCoreIndex(int64_t coreIndex) {
-    writableFields()->data.coreIndex() = coreIndex;
+    writableFields()->writableData().coreIndex() = coreIndex;
   }
 
   int64_t getCorePortIndex() const {
-    return *getFields()->data.corePortIndex();
+    return *getFields()->data().corePortIndex();
   }
   void setCorePortIndex(int64_t corePortIndex) {
-    writableFields()->data.corePortIndex() = corePortIndex;
+    writableFields()->writableData().corePortIndex() = corePortIndex;
   }
   int64_t getSpeedMbps() const {
-    return *getFields()->data.speedMbps();
+    return *getFields()->data().speedMbps();
   }
   void setSpeedMbps(int64_t speedMbps) {
-    writableFields()->data.speedMbps() = speedMbps;
+    writableFields()->writableData().speedMbps() = speedMbps;
   }
   int64_t getNumVoqs() const {
-    return *getFields()->data.numVoqs();
+    return *getFields()->data().numVoqs();
   }
   void setNumVoqs(int64_t numVoqs) {
-    writableFields()->data.numVoqs() = numVoqs;
+    writableFields()->writableData().numVoqs() = numVoqs;
   }
   bool getEnabled() const {
-    return *getFields()->data.enabled();
+    return *getFields()->data().enabled();
   }
   void setEnabled(bool enabled) {
-    writableFields()->data.enabled() = enabled;
+    writableFields()->writableData().enabled() = enabled;
   }
   std::optional<std::string> getQosPolicy() const {
-    return getFields()->data.qosPolicy().to_optional();
+    return getFields()->data().qosPolicy().to_optional();
   }
   void setQosPolicy(const std::optional<std::string>& qosPolicy) {
-    writableFields()->data.qosPolicy().from_optional(qosPolicy);
+    writableFields()->writableData().qosPolicy().from_optional(qosPolicy);
   }
 
  private:
