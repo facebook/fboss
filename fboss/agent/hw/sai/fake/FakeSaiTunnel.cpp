@@ -58,9 +58,6 @@ sai_status_t create_tunnel_fn(
         return SAI_STATUS_INVALID_PARAMETER;
     }
   }
-  if (!type || !underlay || !overlay) {
-    return SAI_STATUS_INVALID_PARAMETER;
-  }
   *tunnel_id = fs->tunnelManager.create(
       type,
       underlay,
@@ -82,7 +79,7 @@ sai_status_t get_tunnel_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto tunnel = fs->tunnelManager.get(tunnel_id);
+  auto& tunnel = fs->tunnelManager.get(tunnel_id);
   for (int i = 0; i < attr_count; i++) {
     switch (attr[i].id) {
       case SAI_TUNNEL_ATTR_TYPE:
@@ -116,7 +113,7 @@ sai_status_t set_tunnel_attribute_fn(
   // #TODO: attributes marked CREATE_ONLY should not be set in
   // this function, for now every attribute can be set
   auto fs = FakeSai::getInstance();
-  auto tunnel = fs->tunnelManager.get(tunnel_id);
+  auto& tunnel = fs->tunnelManager.get(tunnel_id);
   switch (attr->id) {
     case SAI_TUNNEL_ATTR_TYPE:
       // CREATE_ONLY
@@ -193,10 +190,6 @@ sai_status_t create_tunnel_term_table_entry_fn(
         return SAI_STATUS_INVALID_PARAMETER;
     }
   }
-  if (!type || !vrId || !(dstIp.addr.ip4 || dstIp.addr.ip6) ||
-      !(srcIp.addr.ip4 || srcIp.addr.ip6) || !tunnelType || !tunnelId) {
-    return SAI_STATUS_INVALID_PARAMETER;
-  }
   *tunnel_term_table_entry_id = fs->tunnelTermManager.create(
       type,
       vrId,
@@ -221,7 +214,7 @@ sai_status_t get_tunnel_term_table_entry_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto term = fs->tunnelTermManager.get(tunnel_term_table_entry_id);
+  auto& term = fs->tunnelTermManager.get(tunnel_term_table_entry_id);
   for (int i = 0; i < attr_count; i++) {
     switch (attr[i].id) {
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_TYPE:
@@ -259,7 +252,7 @@ sai_status_t set_tunnel_term_table_entry_attribute_fn(
     sai_object_id_t tunnel_term_table_entry_id,
     const sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  auto term = fs->tunnelTermManager.get(tunnel_term_table_entry_id);
+  auto& term = fs->tunnelTermManager.get(tunnel_term_table_entry_id);
   switch (attr->id) {
     case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_TYPE:
       term.type =
