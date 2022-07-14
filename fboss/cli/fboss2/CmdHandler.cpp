@@ -202,46 +202,94 @@ template void CmdHandler<CmdSetInterfacePrbs, CmdSetInterfacePrbsTraits>::run();
 template void
 CmdHandler<CmdSetInterfacePrbsState, CmdSetInterfacePrbsStateTraits>::run();
 
-template bool CmdHandler<CmdShowAcl, CmdShowAclTraits>::isFilterable();
-template bool
-CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::isFilterable();
-template bool CmdHandler<CmdShowArp, CmdShowArpTraits>::isFilterable();
-template bool CmdHandler<CmdShowLldp, CmdShowLldpTraits>::isFilterable();
-template bool CmdHandler<CmdShowNdp, CmdShowNdpTraits>::isFilterable();
-template bool CmdHandler<CmdShowPort, CmdShowPortTraits>::isFilterable();
-template bool
-CmdHandler<CmdShowPortQueue, CmdShowPortQueueTraits>::isFilterable();
-template bool
-CmdHandler<CmdShowInterface, CmdShowInterfaceTraits>::isFilterable();
-template bool CmdHandler<
+template const ValidFilterMapType
+CmdHandler<CmdShowArp, CmdShowArpTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowLldp, CmdShowLldpTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdShowMacAddrToBlock,
+    CmdShowMacAddrToBlockTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowNdp, CmdShowNdpTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowPort, CmdShowPortTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowPortQueue, CmdShowPortQueueTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowInterface, CmdShowInterfaceTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
     CmdShowInterfaceCounters,
-    CmdShowInterfaceCountersTraits>::isFilterable();
-template bool CmdHandler<
+    CmdShowInterfaceCountersTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
     CmdShowInterfaceCountersMKA,
-    CmdShowInterfaceCountersMKATraits>::isFilterable();
-template bool CmdHandler<CmdShowInterfaceErrors, CmdShowInterfaceErrorsTraits>::
-    isFilterable();
-template bool
-CmdHandler<CmdShowInterfaceFlaps, CmdShowInterfaceFlapsTraits>::isFilterable();
-template bool
-CmdHandler<CmdShowInterfacePrbs, CmdShowInterfacePrbsTraits>::isFilterable();
-template bool CmdHandler<
+    CmdShowInterfaceCountersMKATraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdShowInterfaceErrors,
+    CmdShowInterfaceErrorsTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdShowInterfaceFlaps,
+    CmdShowInterfaceFlapsTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowInterfacePrbs, CmdShowInterfacePrbsTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
     CmdShowInterfacePrbsCapabilities,
-    CmdShowInterfacePrbsCapabilitiesTraits>::isFilterable();
-template bool CmdHandler<
+    CmdShowInterfacePrbsCapabilitiesTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
     CmdShowInterfacePrbsState,
-    CmdShowInterfacePrbsStateTraits>::isFilterable();
-template bool CmdHandler<
+    CmdShowInterfacePrbsStateTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
     CmdShowInterfacePrbsStats,
-    CmdShowInterfacePrbsStatsTraits>::isFilterable();
-template bool CmdHandler<CmdShowInterfacePhymap, CmdShowInterfacePhymapTraits>::
-    isFilterable();
-template bool CmdHandler<
+    CmdShowInterfacePrbsStatsTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowInterfacePhy, CmdShowInterfacePhyTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdShowInterfacePhymap,
+    CmdShowInterfacePhymapTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
     CmdShowInterfaceTraffic,
-    CmdShowInterfaceTrafficTraits>::isFilterable();
-template bool CmdHandler<CmdShowSdkDump, CmdShowSdkDumpTraits>::isFilterable();
-template bool
-CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::isFilterable();
+    CmdShowInterfaceTrafficTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowSdkDump, CmdShowSdkDumpTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::getValidFilters();
+
+template const ValidFilterMapType
+CmdHandler<CmdClearInterface, CmdClearInterfaceTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdClearInterfacePrbs,
+    CmdClearInterfacePrbsTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdClearInterfacePrbsStats,
+    CmdClearInterfacePrbsStatsTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdClearArp, CmdClearArpTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdClearNdp, CmdClearNdpTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdClearInterfaceCounters,
+    CmdClearInterfaceCountersTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdShowInterfaceStatus,
+    CmdShowInterfaceStatusTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdBounceInterface, CmdBounceInterfaceTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowRoute, CmdShowRouteTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowRouteDetails, CmdShowRouteDetailsTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowRouteSummary, CmdShowRouteSummaryTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdSetPort, CmdSetPortTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdSetPortState, CmdSetPortStateTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdSetInterface, CmdSetInterfaceTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdSetInterfacePrbs, CmdSetInterfacePrbsTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdSetInterfacePrbsState,
+    CmdSetInterfacePrbsStateTraits>::getValidFilters();
 
 static bool hasRun = false;
 
