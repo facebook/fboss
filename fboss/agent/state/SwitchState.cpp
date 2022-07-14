@@ -127,6 +127,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
   }
   state.fibs() = fibs->toThrift();
   state.labelFib() = labelFib->toThrift();
+  state.qosPolicyMap() = qosPolicies->toThrift();
   return state;
 }
 
@@ -167,6 +168,8 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.fibs = ForwardingInformationBaseMap::fromThrift(*state.fibs());
   fields.labelFib =
       LabelForwardingInformationBase::fromThrift(*state.labelFib());
+  fields.qosPolicies = QosPolicyMap::fromThrift(*state.qosPolicyMap());
+  fields.transceivers = TransceiverMap::fromThrift(*state.transceiverMap());
   return fields;
 }
 

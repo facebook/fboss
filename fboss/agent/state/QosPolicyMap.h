@@ -9,9 +9,11 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/QosPolicy.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 #include <memory>
@@ -20,7 +22,22 @@ namespace facebook::fboss {
 
 using QosPolicyMapTraits = NodeMapTraits<std::string, QosPolicy>;
 
-class QosPolicyMap : public NodeMapT<QosPolicyMap, QosPolicyMapTraits> {
+struct QosPolicyMapThriftTraits
+    : public ThriftyNodeMapTraits<std::string, state::QosPolicyFields> {
+  static inline const std::string& getThriftKeyName() {
+    static const std::string _key = "name";
+    return _key;
+  }
+
+  static const KeyType parseKey(const folly::dynamic& key) {
+    return key.asString();
+  }
+};
+
+class QosPolicyMap : public ThriftyNodeMapT<
+                         QosPolicyMap,
+                         QosPolicyMapTraits,
+                         QosPolicyMapThriftTraits> {
  public:
   QosPolicyMap();
   ~QosPolicyMap() override;
@@ -33,7 +50,7 @@ class QosPolicyMap : public NodeMapT<QosPolicyMap, QosPolicyMapTraits> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeMapT::NodeMapT;
+  using ThriftyNodeMapT::ThriftyNodeMapT;
   friend class CloneAllocator;
 };
 
