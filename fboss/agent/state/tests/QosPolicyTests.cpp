@@ -276,6 +276,7 @@ TEST(QosPolicy, SerializePolicies) {
   auto state = publishAndApplyConfig(stateV0, &config, platform.get());
 
   auto qosPolicies = state->getQosPolicies();
+  validateThriftyMigration(*qosPolicies);
   auto serialized = qosPolicies->toFollyDynamic();
   auto qosPoliciesBack = QosPolicyMap::fromFollyDynamic(serialized);
 
@@ -338,6 +339,7 @@ TEST(QosPolicy, SerializePoliciesWithMap) {
   auto state = publishAndApplyConfig(stateV0, &config, platform.get());
 
   auto qosPolicies = state->getQosPolicies();
+  validateThriftyMigration(*qosPolicies);
   auto serialized = qosPolicies->toFollyDynamic();
   auto qosPoliciesBack = QosPolicyMap::fromFollyDynamic(serialized);
 
