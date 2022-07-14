@@ -352,6 +352,11 @@ struct QosPolicyFields {
   7: optional map<i16, i16> pfcPriorityToPgId;
 }
 
+struct SocketAddress {
+  1: string host;
+  2: i32 port;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
