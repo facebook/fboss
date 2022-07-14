@@ -386,4 +386,5 @@ struct SwitchState {
   21: map<i16, FibContainerFields> fibs;
   22: map<i32, LabelForwardingEntryFields> labelFib;
   23: map<string, QosPolicyFields> qosPolicyMap;
+  24: map<string, SflowCollectorFields> sflowCollectorMap;
 }
