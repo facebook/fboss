@@ -21,22 +21,24 @@
 
 namespace facebook::fboss {
 
-struct SflowCollectorFields : public BetterThriftyFields<
-                                  SflowCollectorFields,
-                                  state::SflowCollectorFields> {
+struct SflowCollectorFields
+    : public ThriftyFields<SflowCollectorFields, state::SflowCollectorFields> {
   SflowCollectorFields(const std::string& ip, const uint16_t port) {
     auto address = folly::SocketAddress(ip, port);
-    *data.id() = folly::to<std::string>(
+    writableData().id() = folly::to<std::string>(
         address.getFullyQualified(), ':', address.getPort());
     state::SocketAddress socketAddr;
     *socketAddr.host() = address.getFullyQualified();
     *socketAddr.port() = port;
-    *data.address() = socketAddr;
+    writableData().address() = socketAddr;
   }
 
   template <typename Fn>
   void forEachChild(Fn) {}
 
+  state::SflowCollectorFields toThrift() const override {
+    return data();
+  }
   static SflowCollectorFields fromThrift(
       state::SflowCollectorFields const& sflowCollectorThrift);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
@@ -44,6 +46,10 @@ struct SflowCollectorFields : public BetterThriftyFields<
   folly::dynamic toFollyDynamicLegacy() const;
   static SflowCollectorFields fromFollyDynamicLegacy(
       const folly::dynamic& sflowCollectorJson);
+
+  bool operator==(const SflowCollectorFields& other) const {
+    return data() == other.data();
+  }
 };
 
 /*
@@ -58,13 +64,13 @@ class SflowCollector : public ThriftyBaseT<
   SflowCollector(const std::string& ip, const uint16_t port);
 
   const std::string& getID() const {
-    return *getFields()->data.id();
+    return *getFields()->data().id();
   }
 
   const folly::SocketAddress getAddress() const {
     return folly::SocketAddress(
-        *getFields()->data.address()->host(),
-        *getFields()->data.address()->port());
+        *getFields()->data().address()->host(),
+        *getFields()->data().address()->port());
   }
 
  private:

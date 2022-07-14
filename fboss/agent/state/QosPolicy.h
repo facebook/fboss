@@ -23,14 +23,14 @@ namespace facebook::fboss {
 
 template <typename QosAttrT>
 class TrafficClassToQosAttributeMap
-    : public BetterThriftyFields<
+    : public ThriftyFields<
           TrafficClassToQosAttributeMap<QosAttrT>,
           state::TrafficClassToQosAttributeMap> {
  public:
   TrafficClassToQosAttributeMap() {}
   explicit TrafficClassToQosAttributeMap(
       const state::TrafficClassToQosAttributeMap& map) {
-    this->data = map;
+    this->writableData() = map;
   }
 
   void addFromEntry(TrafficClass trafficClass, QosAttrT attr) {
@@ -38,26 +38,39 @@ class TrafficClassToQosAttributeMap
         state::TrafficClassToQosAttributeEntry();
     entry.trafficClass() = trafficClass;
     entry.attr() = attr;
-    this->data.from()->push_back(entry);
+    this->writableData().from()->push_back(entry);
   }
   void addToEntry(TrafficClass trafficClass, QosAttrT attr) {
     state::TrafficClassToQosAttributeEntry entry =
         state::TrafficClassToQosAttributeEntry();
     entry.trafficClass() = trafficClass;
     entry.attr() = attr;
-    this->data.to()->push_back(entry);
+    this->writableData().to()->push_back(entry);
   }
 
   const std::vector<state::TrafficClassToQosAttributeEntry> from() const {
-    return *this->data.from();
+    return *this->data().from();
   }
 
   const std::vector<state::TrafficClassToQosAttributeEntry> to() const {
-    return *this->data.to();
+    return *this->data().to();
   }
 
   bool empty() const {
-    return (*this->data.from()).empty() && (*this->data.to()).empty();
+    return this->data().from()->empty() && this->data().to()->empty();
+  }
+
+  state::TrafficClassToQosAttributeMap toThrift() const override {
+    return this->data();
+  }
+
+  static TrafficClassToQosAttributeMap<QosAttrT> fromThrift(
+      const state::TrafficClassToQosAttributeMap& systemPortThrift) {
+    return TrafficClassToQosAttributeMap<QosAttrT>(systemPortThrift);
+  }
+
+  bool operator==(const TrafficClassToQosAttributeMap& other) const {
+    return this->data() == other.data();
   }
 };
 
@@ -78,16 +91,16 @@ class DscpMap : public TrafficClassToQosAttributeMap<DSCP> {
 };
 
 struct QosPolicyFields
-    : public BetterThriftyFields<QosPolicyFields, state::QosPolicyFields> {
+    : public ThriftyFields<QosPolicyFields, state::QosPolicyFields> {
   QosPolicyFields(
       const std::string& name,
       DscpMap dscpMap,
       ExpMap expMap,
       std::map<int16_t, int16_t> trafficClassToQueueId) {
-    *data.name() = name;
-    *data.dscpMap() = dscpMap.data;
-    *data.expMap() = expMap.data;
-    *data.trafficClassToQueueId() = trafficClassToQueueId;
+    writableData().name() = name;
+    writableData().dscpMap() = dscpMap.data();
+    writableData().expMap() = expMap.data();
+    writableData().trafficClassToQueueId() = trafficClassToQueueId;
   }
 
   template <typename Fn>
@@ -109,6 +122,9 @@ struct QosPolicyFields
   static std::vector<state::TrafficClassToQosAttributeEntry> entryListFromFolly(
       folly::dynamic entry);
 
+  state::QosPolicyFields toThrift() const override {
+    return data();
+  }
   static QosPolicyFields fromThrift(
       state::QosPolicyFields const& qosPolicyFields);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
@@ -116,6 +132,10 @@ struct QosPolicyFields
   folly::dynamic toFollyDynamicLegacy() const;
   static QosPolicyFields fromFollyDynamicLegacy(
       const folly::dynamic& qosPolicy);
+
+  bool operator==(const QosPolicyFields& other) const {
+    return data() == other.data();
+  }
 };
 
 class QosPolicy
@@ -128,12 +148,8 @@ class QosPolicy
       std::map<int16_t, int16_t> trafficClassToQueueId = {})
       : ThriftyBaseT(name, dscpMap, expMap, trafficClassToQueueId) {}
 
-  bool operator!=(const QosPolicy& qosPolicy) const {
-    return !(*this == qosPolicy);
-  }
-
   const std::string& getName() const {
-    return *getFields()->data.name();
+    return *getFields()->data().name();
   }
 
   const std::string& getID() const {
@@ -141,54 +157,54 @@ class QosPolicy
   }
 
   const DscpMap getDscpMap() const {
-    return DscpMap(*getFields()->data.dscpMap());
+    return DscpMap(*getFields()->data().dscpMap());
   }
 
   void setDscpMap(DscpMap dscpMap) {
-    writableFields()->data.dscpMap() = dscpMap.data;
+    writableFields()->writableData().dscpMap() = dscpMap.data();
   }
 
   const ExpMap getExpMap() const {
-    return ExpMap(*getFields()->data.expMap());
+    return ExpMap(*getFields()->data().expMap());
   }
 
   const std::map<int16_t, int16_t> getTrafficClassToQueueId() const {
-    return *getFields()->data.trafficClassToQueueId();
+    return *getFields()->data().trafficClassToQueueId();
   }
 
   std::optional<std::map<int16_t, int16_t>> getPfcPriorityToQueueId() {
-    return getFields()->data.pfcPriorityToQueueId().to_optional();
+    return getFields()->data().pfcPriorityToQueueId().to_optional();
   }
 
   std::optional<std::map<int16_t, int16_t>> getTrafficClassToPgId() {
-    return getFields()->data.trafficClassToPgId().to_optional();
+    return getFields()->data().trafficClassToPgId().to_optional();
   }
 
   std::optional<std::map<int16_t, int16_t>> getPfcPriorityToPgId() {
-    return getFields()->data.pfcPriorityToPgId().to_optional();
+    return getFields()->data().pfcPriorityToPgId().to_optional();
   }
 
   void setExpMap(ExpMap expMap) {
-    writableFields()->data.expMap() = expMap.data;
+    writableFields()->writableData().expMap() = expMap.data();
   }
 
   void setTrafficClassToQueueIdMap(const std::map<int16_t, int16_t>& tc2Q) {
-    writableFields()->data.trafficClassToQueueId() = tc2Q;
+    writableFields()->writableData().trafficClassToQueueId() = tc2Q;
   }
 
   void setPfcPriorityToQueueIdMap(
       const std::map<int16_t, int16_t>& pfcPri2QueueId) {
-    writableFields()->data.pfcPriorityToQueueId() = pfcPri2QueueId;
+    writableFields()->writableData().pfcPriorityToQueueId() = pfcPri2QueueId;
   }
 
   void setTrafficClassToPgIdMap(
       const std::map<int16_t, int16_t>& trafficClass2PgId) {
-    writableFields()->data.trafficClassToPgId() = trafficClass2PgId;
+    writableFields()->writableData().trafficClassToPgId() = trafficClass2PgId;
   }
 
   void setPfcPriorityToPgIdMap(
       const std::map<int16_t, int16_t>& pfcPriority2PgId) {
-    writableFields()->data.pfcPriorityToPgId() = pfcPriority2PgId;
+    writableFields()->writableData().pfcPriorityToPgId() = pfcPriority2PgId;
   }
 
  private:

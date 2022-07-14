@@ -93,7 +93,7 @@ QosPolicyFields QosPolicyFields::fromThrift(
       DscpMap(*qosPolicyFields.dscpMap()),
       ExpMap(*qosPolicyFields.expMap()),
       *qosPolicyFields.trafficClassToQueueId());
-  fields.data = qosPolicyFields;
+  fields.writableData() = qosPolicyFields;
   return fields;
 }
 
@@ -197,18 +197,18 @@ void QosPolicyFields::migrateFromThrifty(folly::dynamic& dyn) {
 
 folly::dynamic QosPolicyFields::toFollyDynamicLegacy() const {
   folly::dynamic qosPolicy = folly::dynamic::object;
-  qosPolicy[kName] = *data.name();
+  qosPolicy[kName] = *data().name();
 
   // Dscp Map
   folly::dynamic dscpMap = folly::dynamic::object;
-  dscpMap[kFrom] = entryListToFolly<DSCP>(*data.dscpMap()->from());
-  dscpMap[kTo] = entryListToFolly<DSCP>(*data.dscpMap()->to());
+  dscpMap[kFrom] = entryListToFolly<DSCP>(*data().dscpMap()->from());
+  dscpMap[kTo] = entryListToFolly<DSCP>(*data().dscpMap()->to());
   qosPolicy[kDscpMap] = dscpMap;
 
   // Exp Map
   folly::dynamic expMap = folly::dynamic::object;
-  expMap[kFrom] = entryListToFolly<EXP>(*data.expMap()->from());
-  expMap[kTo] = entryListToFolly<EXP>(*data.expMap()->to());
+  expMap[kFrom] = entryListToFolly<EXP>(*data().expMap()->from());
+  expMap[kTo] = entryListToFolly<EXP>(*data().expMap()->to());
   qosPolicy[kExpMap] = expMap;
 
   // TrafficClassToQueueId
@@ -216,13 +216,13 @@ folly::dynamic QosPolicyFields::toFollyDynamicLegacy() const {
   qosPolicy[kTrafficClassToQueueId] = folly::dynamic::array;
   // TODO(pshaikh): remove below after one push
   qosPolicy[kRules] = folly::dynamic::array;
-  for (auto entry : *data.trafficClassToQueueId()) {
+  for (auto entry : *data().trafficClassToQueueId()) {
     folly::dynamic jsonEntry = folly::dynamic::object;
     jsonEntry[kTrafficClass] = entry.first;
     jsonEntry[kQueueId] = entry.second;
     qosPolicy[kTrafficClassToQueueId].push_back(jsonEntry);
   }
-  if (auto pfcPri2QueueId = data.pfcPriorityToQueueId().to_optional()) {
+  if (auto pfcPri2QueueId = data().pfcPriorityToQueueId().to_optional()) {
     qosPolicy[kPfcPriorityToQueueId] = folly::dynamic::array;
     for (const auto& pfcPri : *pfcPri2QueueId) {
       folly::dynamic jsonEntry = folly::dynamic::object;
@@ -231,7 +231,7 @@ folly::dynamic QosPolicyFields::toFollyDynamicLegacy() const {
       qosPolicy[kPfcPriorityToQueueId].push_back(jsonEntry);
     }
   }
-  if (auto trafficClass2PgId = data.trafficClassToPgId().to_optional()) {
+  if (auto trafficClass2PgId = data().trafficClassToPgId().to_optional()) {
     qosPolicy[kTrafficClassToPgId] = folly::dynamic::array;
     for (const auto& tc2PgId : *trafficClass2PgId) {
       folly::dynamic jsonEntry = folly::dynamic::object;
@@ -240,7 +240,7 @@ folly::dynamic QosPolicyFields::toFollyDynamicLegacy() const {
       qosPolicy[kTrafficClassToPgId].push_back(jsonEntry);
     }
   }
-  if (auto pfcPriority2PgId = data.pfcPriorityToPgId().to_optional()) {
+  if (auto pfcPriority2PgId = data().pfcPriorityToPgId().to_optional()) {
     qosPolicy[kPfcPriorityToPgId] = folly::dynamic::array;
     for (const auto& pfcPri2PgId : *pfcPriority2PgId) {
       folly::dynamic jsonEntry = folly::dynamic::object;
@@ -306,7 +306,8 @@ QosPolicyFields QosPolicyFields::fromFollyDynamicLegacy(
           pfcPriQueueIdEntry[kPfcPriority].asInt(),
           pfcPriQueueIdEntry[kQueueId].asInt());
     }
-    qosPolicyFields.data.pfcPriorityToQueueId() = pfcPriorityToQueueId;
+    qosPolicyFields.writableData().pfcPriorityToQueueId() =
+        pfcPriorityToQueueId;
   }
 
   // trafficClassToPgId
@@ -316,7 +317,7 @@ QosPolicyFields QosPolicyFields::fromFollyDynamicLegacy(
       trafficClassToPgId.emplace(
           tc2PgId[kTrafficClass].asInt(), tc2PgId[kPgId].asInt());
     }
-    qosPolicyFields.data.trafficClassToPgId() = trafficClassToPgId;
+    qosPolicyFields.writableData().trafficClassToPgId() = trafficClassToPgId;
   }
 
   // pfcPriorityToPgId
@@ -327,7 +328,7 @@ QosPolicyFields QosPolicyFields::fromFollyDynamicLegacy(
           static_cast<PfcPriority>(pfcPri2PgId[kPfcPriority].asInt()),
           pfcPri2PgId[kPgId].asInt());
     }
-    qosPolicyFields.data.pfcPriorityToPgId() = pfcPriorityToPgId;
+    qosPolicyFields.writableData().pfcPriorityToPgId() = pfcPriorityToPgId;
   }
   return qosPolicyFields;
 }

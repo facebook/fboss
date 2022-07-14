@@ -51,8 +51,8 @@ void SflowCollectorFields::migrateFromThrifty(folly::dynamic& dyn) {
 
 folly::dynamic SflowCollectorFields::toFollyDynamicLegacy() const {
   folly::dynamic collector = folly::dynamic::object;
-  collector[kIp] = *data.address()->host();
-  collector[kPort] = *data.address()->port();
+  collector[kIp] = *data().address()->host();
+  collector[kPort] = *data().address()->port();
 
   return collector;
 }
