@@ -78,8 +78,8 @@ void validatePfcPriToQueue(
       cfgStatePfcPriority2Queue.emplace(entry.first, entry.second);
     }
   }
-  if (swQosPolicy->getPfcPriorityToQueueId()) {
-    for (const auto& entry : *swQosPolicy->getPfcPriorityToQueueId()) {
+  if (auto pfcPriorityToQueueId = swQosPolicy->getPfcPriorityToQueueId()) {
+    for (const auto& entry : *pfcPriorityToQueueId) {
       swStatePfcPriority2Queue.emplace(entry.first, entry.second);
     }
   }
@@ -99,8 +99,8 @@ void validateTrafficClassToPgId(
     }
   }
 
-  if (swQosPolicy->getTrafficClassToPgId()) {
-    for (const auto& entry : *swQosPolicy->getTrafficClassToPgId()) {
+  if (auto trafficClassToPgId = swQosPolicy->getTrafficClassToPgId()) {
+    for (const auto& entry : *trafficClassToPgId) {
       swStateTc2PgId.emplace(entry.first, entry.second);
     }
   }
@@ -120,8 +120,8 @@ void validatePfcPriToPgId(
     }
   }
 
-  if (swQosPolicy->getPfcPriorityToPgId()) {
-    for (const auto& entry : *swQosPolicy->getPfcPriorityToPgId()) {
+  if (auto pfcPriorityToPgId = swQosPolicy->getPfcPriorityToPgId()) {
+    for (const auto& entry : *pfcPriorityToPgId) {
       swStatePfcPri2PgId.emplace(entry.first, entry.second);
     }
   }
@@ -283,6 +283,8 @@ TEST(QosPolicy, SerializePolicies) {
   for (const auto& name : {"qosPolicy_1", "qosPolicy_2"}) {
     auto q1 = qosPolicies->getQosPolicyIf(name);
     auto q2 = qosPoliciesBack->getQosPolicyIf(name);
+    validateThriftyMigration(*q1);
+    validateThriftyMigration(*q2);
     EXPECT_NE(nullptr, q1);
     EXPECT_NE(nullptr, q2);
     EXPECT_TRUE(*q1 == *q2);
@@ -343,6 +345,8 @@ TEST(QosPolicy, SerializePoliciesWithMap) {
   for (const auto& name : {"qosPolicy_1", "qosPolicy_2"}) {
     auto q1 = qosPolicies->getQosPolicyIf(name);
     auto q2 = qosPoliciesBack->getQosPolicyIf(name);
+    validateThriftyMigration(*q1);
+    validateThriftyMigration(*q2);
     EXPECT_NE(nullptr, q1);
     EXPECT_NE(nullptr, q2);
     EXPECT_TRUE(*q1 == *q2);

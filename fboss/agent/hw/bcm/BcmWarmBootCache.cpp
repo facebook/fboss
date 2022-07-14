@@ -1204,17 +1204,17 @@ BcmWarmBootCache::QosMapId2QosMapItr BcmWarmBootCache::findQosMap(
   switch (type) {
     case BcmQosMap::Type::MPLS_INGRESS:
       for (const auto& entry : qosPolicy->getExpMap().from()) {
-        mapEntries.emplace(entry.trafficClass(), entry.attr());
+        mapEntries.emplace(*entry.trafficClass(), *entry.attr());
       }
       break;
     case BcmQosMap::Type::MPLS_EGRESS:
       for (const auto& entry : qosPolicy->getExpMap().to()) {
-        mapEntries.emplace(entry.trafficClass(), entry.attr());
+        mapEntries.emplace(*entry.trafficClass(), *entry.attr());
       }
       break;
     case BcmQosMap::Type::IP_INGRESS:
       for (const auto& entry : qosPolicy->getDscpMap().from()) {
-        mapEntries.emplace(entry.trafficClass(), entry.attr());
+        mapEntries.emplace(*entry.trafficClass(), *entry.attr());
       }
       break;
     case BcmQosMap::Type::IP_EGRESS:

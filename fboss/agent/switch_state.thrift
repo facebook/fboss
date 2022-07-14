@@ -331,6 +331,27 @@ struct FibContainerFields {
   3: map<string, RouteFields> fibV6;
 }
 
+struct TrafficClassToQosAttributeEntry {
+  1: i16 trafficClass;
+  2: i16 attr;
+}
+
+struct TrafficClassToQosAttributeMap {
+  1: list<TrafficClassToQosAttributeEntry> from;
+  2: list<TrafficClassToQosAttributeEntry> to;
+}
+
+struct QosPolicyFields {
+  1: string name;
+  2: TrafficClassToQosAttributeMap dscpMap;
+  3: TrafficClassToQosAttributeMap expMap;
+  // TODO(zecheng): Use strong types when adapter is integrated.
+  4: map<i16, i16> trafficClassToQueueId;
+  5: optional map<i16, i16> pfcPriorityToQueueId;
+  6: optional map<i16, i16> trafficClassToPgId;
+  7: optional map<i16, i16> pfcPriorityToPgId;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;

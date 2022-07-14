@@ -86,7 +86,7 @@ void BcmQosPolicy::updateIngressDscpQosMap(
   const auto& oldRules = oldQosPolicy->getDscpMap().from();
   const auto& newRules = newQosPolicy->getDscpMap().from();
 
-  std::vector<TrafficClassToQosAttributeMapEntry<DSCP>> toBeRemoved;
+  std::vector<state::TrafficClassToQosAttributeEntry> toBeRemoved;
   std::set_difference(
       oldRules.begin(),
       oldRules.end(),
@@ -95,11 +95,11 @@ void BcmQosPolicy::updateIngressDscpQosMap(
       std::inserter(toBeRemoved, toBeRemoved.end()));
   for (const auto& qosRule : toBeRemoved) {
     ingressDscpQosMap_->removeRule(
-        BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.trafficClass()),
-        qosRule.attr());
+        BcmPortQueueManager::CosQToBcmInternalPriority(*qosRule.trafficClass()),
+        *qosRule.attr());
   }
 
-  std::vector<TrafficClassToQosAttributeMapEntry<DSCP>> toBeAdded;
+  std::vector<state::TrafficClassToQosAttributeEntry> toBeAdded;
   std::set_difference(
       newRules.begin(),
       newRules.end(),
@@ -108,8 +108,8 @@ void BcmQosPolicy::updateIngressDscpQosMap(
       std::inserter(toBeAdded, toBeAdded.end()));
   for (const auto& qosRule : toBeAdded) {
     ingressDscpQosMap_->addRule(
-        BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.trafficClass()),
-        qosRule.attr());
+        BcmPortQueueManager::CosQToBcmInternalPriority(*qosRule.trafficClass()),
+        *qosRule.attr());
   }
 }
 
@@ -340,7 +340,7 @@ void BcmQosPolicy::updateIngressExpQosMap(
   const auto& oldRules = oldQosPolicy->getExpMap().from();
   const auto& newRules = newQosPolicy->getExpMap().from();
 
-  std::vector<TrafficClassToQosAttributeMapEntry<EXP>> toBeRemoved;
+  std::vector<state::TrafficClassToQosAttributeEntry> toBeRemoved;
   std::set_difference(
       oldRules.begin(),
       oldRules.end(),
@@ -349,11 +349,11 @@ void BcmQosPolicy::updateIngressExpQosMap(
       std::inserter(toBeRemoved, toBeRemoved.end()));
   for (const auto& qosRule : toBeRemoved) {
     ingressExpQosMap_->removeRule(
-        BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.trafficClass()),
-        qosRule.attr());
+        BcmPortQueueManager::CosQToBcmInternalPriority(*qosRule.trafficClass()),
+        *qosRule.attr());
   }
 
-  std::vector<TrafficClassToQosAttributeMapEntry<EXP>> toBeAdded;
+  std::vector<state::TrafficClassToQosAttributeEntry> toBeAdded;
   std::set_difference(
       newRules.begin(),
       newRules.end(),
@@ -362,8 +362,8 @@ void BcmQosPolicy::updateIngressExpQosMap(
       std::inserter(toBeAdded, toBeAdded.end()));
   for (const auto& qosRule : toBeAdded) {
     ingressExpQosMap_->addRule(
-        BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.trafficClass()),
-        qosRule.attr());
+        BcmPortQueueManager::CosQToBcmInternalPriority(*qosRule.trafficClass()),
+        *qosRule.attr());
   }
 }
 
@@ -378,7 +378,7 @@ void BcmQosPolicy::updateEgressExpQosMap(
   const auto& oldRules = oldQosPolicy->getExpMap().to();
   const auto& newRules = newQosPolicy->getExpMap().to();
 
-  std::vector<TrafficClassToQosAttributeMapEntry<EXP>> toBeRemoved;
+  std::vector<state::TrafficClassToQosAttributeEntry> toBeRemoved;
   std::set_difference(
       oldRules.begin(),
       oldRules.end(),
@@ -387,11 +387,11 @@ void BcmQosPolicy::updateEgressExpQosMap(
       std::inserter(toBeRemoved, toBeRemoved.end()));
   for (const auto& qosRule : toBeRemoved) {
     egressExpQosMap_->removeRule(
-        BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.trafficClass()),
-        qosRule.attr());
+        BcmPortQueueManager::CosQToBcmInternalPriority(*qosRule.trafficClass()),
+        *qosRule.attr());
   }
 
-  std::vector<TrafficClassToQosAttributeMapEntry<EXP>> toBeAdded;
+  std::vector<state::TrafficClassToQosAttributeEntry> toBeAdded;
   std::set_difference(
       newRules.begin(),
       newRules.end(),
@@ -400,8 +400,8 @@ void BcmQosPolicy::updateEgressExpQosMap(
       std::inserter(toBeAdded, toBeAdded.end()));
   for (const auto& qosRule : toBeAdded) {
     egressExpQosMap_->addRule(
-        BcmPortQueueManager::CosQToBcmInternalPriority(qosRule.trafficClass()),
-        qosRule.attr());
+        BcmPortQueueManager::CosQToBcmInternalPriority(*qosRule.trafficClass()),
+        *qosRule.attr());
   }
 }
 
@@ -412,8 +412,9 @@ bool BcmQosPolicy::policyMatches(
   }
   for (const auto& rule : qosPolicy->getDscpMap().from()) {
     if (!ingressDscpQosMap_->ruleExists(
-            BcmPortQueueManager::CosQToBcmInternalPriority(rule.trafficClass()),
-            rule.attr())) {
+            BcmPortQueueManager::CosQToBcmInternalPriority(
+                *rule.trafficClass()),
+            *rule.attr())) {
       return false;
     }
   }
@@ -441,8 +442,8 @@ void BcmQosPolicy::programIngressDscpQosMap(
   for (const auto& dscpToTrafficClass : qosPolicy->getDscpMap().from()) {
     ingressDscpQosMap_->addRule(
         BcmPortQueueManager::CosQToBcmInternalPriority(
-            dscpToTrafficClass.trafficClass()),
-        dscpToTrafficClass.attr());
+            *dscpToTrafficClass.trafficClass()),
+        *dscpToTrafficClass.attr());
   }
 }
 
@@ -466,8 +467,8 @@ void BcmQosPolicy::programIngressExpQosMap(
   for (const auto& expToTrafficClass : qosPolicy->getExpMap().from()) {
     ingressExpQosMap_->addRule(
         BcmPortQueueManager::CosQToBcmInternalPriority(
-            expToTrafficClass.trafficClass()),
-        expToTrafficClass.attr());
+            *expToTrafficClass.trafficClass()),
+        *expToTrafficClass.attr());
   }
 }
 
@@ -491,8 +492,8 @@ void BcmQosPolicy::programEgressExpQosMap(
   for (const auto& trafficClassToExp : qosPolicy->getExpMap().to()) {
     egressExpQosMap_->addRule(
         BcmPortQueueManager::CosQToBcmInternalPriority(
-            trafficClassToExp.trafficClass()),
-        trafficClassToExp.attr());
+            *trafficClassToExp.trafficClass()),
+        *trafficClassToExp.attr());
   }
 }
 

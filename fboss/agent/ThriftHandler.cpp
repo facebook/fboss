@@ -283,8 +283,8 @@ void getPortInfoHelper(
       auto tcToDscp = qosPolicy->getDscpMap().from();
       auto tcToQueueId = qosPolicy->getTrafficClassToQueueId();
       for (const auto& entry : tcToDscp) {
-        if (tcToQueueId[entry.trafficClass()] == queue->getID()) {
-          dscps.push_back(entry.attr());
+        if (tcToQueueId[*entry.trafficClass()] == queue->getID()) {
+          dscps.push_back(*entry.attr());
         }
       }
       pq.dscps() = dscps;

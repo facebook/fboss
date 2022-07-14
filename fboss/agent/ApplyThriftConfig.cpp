@@ -1842,7 +1842,7 @@ ThriftConfigApplier::updateDataplaneDefaultQosPolicy() {
         // if exp map is not provided, set some default mapping
         // TODO(pshaikh): remove this once default config for switches will
         // always have EXP maps
-        auto expMap = TrafficClassToQosAttributeMap<EXP>();
+        auto expMap = ExpMap();
         for (auto i = 0; i < 8; i++) {
           expMap.addToEntry(static_cast<TrafficClass>(i), static_cast<EXP>(i));
           expMap.addFromEntry(
@@ -1886,16 +1886,8 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
   if (auto qosMap = qosPolicy.qosMap()) {
     DscpMap dscpMap(*qosMap->dscpMaps());
     ExpMap expMap(*qosMap->expMaps());
-    QosPolicy::TrafficClassToQueueId trafficClassToQueueId;
-    std::optional<QosPolicy::PfcPriorityToQueueId> pfcPriorityToQueueId;
-
-    for (auto cfgTrafficClassToQueueId : *qosMap->trafficClassToQueueId()) {
-      trafficClassToQueueId.emplace(
-          cfgTrafficClassToQueueId.first, cfgTrafficClassToQueueId.second);
-    }
 
     if (const auto& pfcPriorityMap = qosMap->pfcPriorityToQueueId()) {
-      QosPolicy::PfcPriorityToQueueId tmpMap;
       for (const auto& pfcPriorityEntry : *pfcPriorityMap) {
         if (pfcPriorityEntry.first >
             cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX()) {
@@ -1903,24 +1895,20 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
               "Invalid pfc priority value. Valid range is 0 to: ",
               cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX());
         }
-        tmpMap.emplace(pfcPriorityEntry.first, pfcPriorityEntry.second);
       }
-      pfcPriorityToQueueId = tmpMap;
     }
 
     auto qosPolicyNew = make_shared<QosPolicy>(
         *qosPolicy.name(),
         dscpMap.empty() ? ingressDscpMap : dscpMap,
         expMap,
-        trafficClassToQueueId);
+        *qosMap->trafficClassToQueueId());
 
-    if (pfcPriorityToQueueId) {
-      qosPolicyNew->setPfcPriorityToQueueIdMap(
-          std::move(pfcPriorityToQueueId.value()));
+    if (qosMap->pfcPriorityToQueueId().has_value()) {
+      qosPolicyNew->setPfcPriorityToQueueIdMap(*qosMap->pfcPriorityToQueueId());
     }
 
     if (const auto& tc2PgIdMap = qosMap->trafficClassToPgId()) {
-      QosPolicy::TrafficClassToPgId tc2PgIdTmp;
       for (auto tc2PgIdEntry : *tc2PgIdMap) {
         if (tc2PgIdEntry.second >
             cfg::switch_config_constants::PORT_PG_VALUE_MAX()) {
@@ -1928,13 +1916,11 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
               "Invalid pg id. Valid range is 0 to: ",
               cfg::switch_config_constants::PORT_PG_VALUE_MAX());
         }
-        tc2PgIdTmp.emplace(tc2PgIdEntry.first, tc2PgIdEntry.second);
       }
-      qosPolicyNew->setTrafficClassToPgIdMap(std::move(tc2PgIdTmp));
+      qosPolicyNew->setTrafficClassToPgIdMap(*tc2PgIdMap);
     }
 
     if (const auto& pfcPriority2PgIdMap = qosMap->pfcPriorityToPgId()) {
-      QosPolicy::PfcPriorityToPgId pfcPri2PgId;
       for (const auto& entry : *pfcPriority2PgIdMap) {
         if (entry.first >
             cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX()) {
@@ -1947,18 +1933,13 @@ shared_ptr<QosPolicy> ThriftConfigApplier::createQosPolicy(
               "Invalid pg id. Valid range is 0 to: ",
               cfg::switch_config_constants::PORT_PG_VALUE_MAX());
         }
-        pfcPri2PgId.emplace(entry.first, entry.second);
       }
-      qosPolicyNew->setPfcPriorityToPgIdMap(std::move(pfcPri2PgId));
+      qosPolicyNew->setPfcPriorityToPgIdMap(*pfcPriority2PgIdMap);
     }
 
     return qosPolicyNew;
   }
-  return make_shared<QosPolicy>(
-      *qosPolicy.name(),
-      ingressDscpMap,
-      ExpMap(TrafficClassToQosAttributeMap<EXP>()),
-      QosPolicy::TrafficClassToQueueId());
+  return make_shared<QosPolicy>(*qosPolicy.name(), ingressDscpMap);
 }
 
 std::shared_ptr<AclTableGroupMap> ThriftConfigApplier::updateAclTableGroups() {

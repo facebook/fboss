@@ -11,246 +11,190 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 #include <optional>
 #include <string>
 #include <utility>
 
-#include <boost/container/flat_set.hpp>
-
 namespace facebook::fboss {
 
 template <typename QosAttrT>
-class TrafficClassToQosAttributeMapEntry {
+class TrafficClassToQosAttributeMap
+    : public BetterThriftyFields<
+          TrafficClassToQosAttributeMap<QosAttrT>,
+          state::TrafficClassToQosAttributeMap> {
  public:
-  TrafficClassToQosAttributeMapEntry(TrafficClass trafficClass, QosAttrT attr)
-      : trafficClass_(trafficClass), attr_(attr) {}
-  TrafficClass trafficClass() const {
-    return trafficClass_;
-  }
-  QosAttrT attr() const {
-    return attr_;
+  TrafficClassToQosAttributeMap() {}
+  explicit TrafficClassToQosAttributeMap(
+      const state::TrafficClassToQosAttributeMap& map) {
+    this->data = map;
   }
 
-  bool operator<(const TrafficClassToQosAttributeMapEntry& other) const {
-    return std::tie(trafficClass_, attr_) <
-        std::tie(other.trafficClass_, other.attr_);
-  }
-
-  bool operator==(const TrafficClassToQosAttributeMapEntry& other) const {
-    return std::tie(trafficClass_, attr_) ==
-        std::tie(other.trafficClass_, other.attr_);
-  }
-  bool operator!=(const TrafficClassToQosAttributeMapEntry& other) const {
-    return !(*this == other);
-  }
-  folly::dynamic toFollyDynamic() const;
-  static TrafficClassToQosAttributeMapEntry<QosAttrT> fromFollyDynamic(
-      folly::dynamic json);
-
- private:
-  TrafficClass trafficClass_;
-  QosAttrT attr_;
-};
-
-template <typename QosAttrT>
-class TrafficClassToQosAttributeMap {
- public:
-  using Entry = TrafficClassToQosAttributeMapEntry<QosAttrT>;
-  using QosAttributeToTrafficClassSet = boost::container::flat_set<Entry>;
   void addFromEntry(TrafficClass trafficClass, QosAttrT attr) {
-    from_.emplace(
-        TrafficClassToQosAttributeMapEntry<QosAttrT>(trafficClass, attr));
+    state::TrafficClassToQosAttributeEntry entry =
+        state::TrafficClassToQosAttributeEntry();
+    entry.trafficClass() = trafficClass;
+    entry.attr() = attr;
+    this->data.from()->push_back(entry);
   }
   void addToEntry(TrafficClass trafficClass, QosAttrT attr) {
-    to_.emplace(
-        TrafficClassToQosAttributeMapEntry<QosAttrT>(trafficClass, attr));
+    state::TrafficClassToQosAttributeEntry entry =
+        state::TrafficClassToQosAttributeEntry();
+    entry.trafficClass() = trafficClass;
+    entry.attr() = attr;
+    this->data.to()->push_back(entry);
   }
 
-  const boost::container::flat_set<Entry>& from() const {
-    return from_;
+  const std::vector<state::TrafficClassToQosAttributeEntry> from() const {
+    return *this->data.from();
   }
 
-  const boost::container::flat_set<Entry>& to() const {
-    return to_;
+  const std::vector<state::TrafficClassToQosAttributeEntry> to() const {
+    return *this->data.to();
   }
 
-  bool operator<(const TrafficClassToQosAttributeMap& other) const {
-    return std::tie(from_, to_) < std::tie(other.from_, other.to_);
-  }
-
-  bool operator==(const TrafficClassToQosAttributeMap& other) const {
-    return std::tie(from_, to_) == std::tie(other.from_, other.to_);
-  }
-  bool operator!=(const TrafficClassToQosAttributeMap& other) const {
-    return !(*this == other);
-  }
   bool empty() const {
-    return from_.empty() && to_.empty();
+    return (*this->data.from()).empty() && (*this->data.to()).empty();
   }
-
-  folly::dynamic toFollyDynamic() const;
-  static TrafficClassToQosAttributeMap fromFollyDynamic(folly::dynamic json);
-
- private:
-  boost::container::flat_set<Entry> from_;
-  boost::container::flat_set<Entry> to_;
-};
-
-class DscpMap : public TrafficClassToQosAttributeMap<DSCP> {
- public:
-  DscpMap() {}
-  explicit DscpMap(const TrafficClassToQosAttributeMap<DSCP>& map)
-      : TrafficClassToQosAttributeMap<DSCP>(map) {}
-  explicit DscpMap(std::vector<cfg::DscpQosMap> cfg);
 };
 
 class ExpMap : public TrafficClassToQosAttributeMap<EXP> {
  public:
   ExpMap() {}
-  explicit ExpMap(const TrafficClassToQosAttributeMap<EXP>& map)
-      : TrafficClassToQosAttributeMap<EXP>(map) {}
   explicit ExpMap(std::vector<cfg::ExpQosMap> cfg);
+  explicit ExpMap(const state::TrafficClassToQosAttributeMap& map)
+      : TrafficClassToQosAttributeMap(map) {}
 };
 
-struct QosPolicyFields {
-  using TrafficClassToQueueId =
-      boost::container::flat_map<TrafficClass, uint16_t>;
-  using PfcPriorityToQueueId =
-      boost::container::flat_map<PfcPriority, uint16_t>;
-  using TrafficClassToPgId = boost::container::flat_map<TrafficClass, uint16_t>;
-  using PfcPriorityToPgId = boost::container::flat_map<PfcPriority, uint16_t>;
+class DscpMap : public TrafficClassToQosAttributeMap<DSCP> {
+ public:
+  DscpMap() {}
+  explicit DscpMap(std::vector<cfg::DscpQosMap> cfg);
+  explicit DscpMap(const state::TrafficClassToQosAttributeMap& map)
+      : TrafficClassToQosAttributeMap(map) {}
+};
 
+struct QosPolicyFields
+    : public BetterThriftyFields<QosPolicyFields, state::QosPolicyFields> {
   QosPolicyFields(
       const std::string& name,
       DscpMap dscpMap,
       ExpMap expMap,
-      TrafficClassToQueueId trafficClassToQueueId)
-      : name(name),
-        dscpMap(std::move(dscpMap)),
-        expMap(std::move(expMap)),
-        trafficClassToQueueId(std::move(trafficClassToQueueId)) {}
+      std::map<int16_t, int16_t> trafficClassToQueueId) {
+    *data.name() = name;
+    *data.dscpMap() = dscpMap.data;
+    *data.expMap() = expMap.data;
+    *data.trafficClassToQueueId() = trafficClassToQueueId;
+  }
 
   template <typename Fn>
   void forEachChild(Fn) {}
 
-  folly::dynamic toFollyDynamic() const;
-  static QosPolicyFields fromFollyDynamic(const folly::dynamic& json);
+  template <typename EntryT>
+  const folly::dynamic entryToFolly(
+      state::TrafficClassToQosAttributeEntry entry) const;
 
-  std::string name{nullptr};
-  DscpMap dscpMap;
-  ExpMap expMap;
-  TrafficClassToQueueId trafficClassToQueueId;
-  std::optional<PfcPriorityToQueueId> pfcPriorityToQueueId;
-  std::optional<TrafficClassToPgId> trafficClassToPgId;
-  std::optional<PfcPriorityToPgId> pfcPriorityToPgId;
+  template <typename EntryT>
+  const folly::dynamic entryListToFolly(
+      std::vector<state::TrafficClassToQosAttributeEntry> set) const;
+
+  template <typename EntryT>
+  static state::TrafficClassToQosAttributeEntry entryFromFolly(
+      folly::dynamic entry);
+
+  template <typename EntryT>
+  static std::vector<state::TrafficClassToQosAttributeEntry> entryListFromFolly(
+      folly::dynamic entry);
+
+  static QosPolicyFields fromThrift(
+      state::QosPolicyFields const& qosPolicyFields);
+  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
+  folly::dynamic toFollyDynamicLegacy() const;
+  static QosPolicyFields fromFollyDynamicLegacy(
+      const folly::dynamic& qosPolicy);
 };
 
-class QosPolicy : public NodeBaseT<QosPolicy, QosPolicyFields> {
+class QosPolicy
+    : public ThriftyBaseT<state::QosPolicyFields, QosPolicy, QosPolicyFields> {
  public:
-  using TrafficClassToQueueId = QosPolicyFields::TrafficClassToQueueId;
-  using PfcPriorityToQueueId = QosPolicyFields::PfcPriorityToQueueId;
-  using TrafficClassToPgId = QosPolicyFields::TrafficClassToPgId;
-  using PfcPriorityToPgId = QosPolicyFields::PfcPriorityToPgId;
-
   QosPolicy(
       const std::string& name,
       DscpMap dscpMap,
       ExpMap expMap = ExpMap(std::vector<cfg::ExpQosMap>{}),
-      TrafficClassToQueueId trafficClassToQueueId = TrafficClassToQueueId())
-      : NodeBaseT(name, dscpMap, expMap, trafficClassToQueueId) {}
-
-  static std::shared_ptr<QosPolicy> fromFollyDynamic(
-      const folly::dynamic& json) {
-    const auto& fields = QosPolicyFields::fromFollyDynamic(json);
-    return std::make_shared<QosPolicy>(fields);
-  }
-
-  static std::shared_ptr<QosPolicy> fromJson(const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamic();
-  }
-
-  bool operator==(const QosPolicy& qosPolicy) const {
-    return getFields()->name == qosPolicy.getName() &&
-        getFields()->dscpMap == qosPolicy.getDscpMap() &&
-        getFields()->expMap == qosPolicy.getExpMap() &&
-        getFields()->trafficClassToQueueId ==
-        qosPolicy.getTrafficClassToQueueId() &&
-        getFields()->pfcPriorityToQueueId ==
-        qosPolicy.getPfcPriorityToQueueId() &&
-        qosPolicy.getTrafficClassToPgId() == getFields()->trafficClassToPgId &&
-        qosPolicy.getPfcPriorityToPgId() == getFields()->pfcPriorityToPgId;
-  }
+      std::map<int16_t, int16_t> trafficClassToQueueId = {})
+      : ThriftyBaseT(name, dscpMap, expMap, trafficClassToQueueId) {}
 
   bool operator!=(const QosPolicy& qosPolicy) const {
     return !(*this == qosPolicy);
   }
 
   const std::string& getName() const {
-    return getFields()->name;
+    return *getFields()->data.name();
   }
 
   const std::string& getID() const {
     return getName();
   }
 
-  const DscpMap& getDscpMap() const {
-    return getFields()->dscpMap;
+  const DscpMap getDscpMap() const {
+    return DscpMap(*getFields()->data.dscpMap());
   }
 
   void setDscpMap(DscpMap dscpMap) {
-    writableFields()->dscpMap = std::move(dscpMap);
+    writableFields()->data.dscpMap() = dscpMap.data;
   }
 
-  const ExpMap& getExpMap() const {
-    return getFields()->expMap;
+  const ExpMap getExpMap() const {
+    return ExpMap(*getFields()->data.expMap());
   }
 
-  const TrafficClassToQueueId& getTrafficClassToQueueId() const {
-    return getFields()->trafficClassToQueueId;
+  const std::map<int16_t, int16_t> getTrafficClassToQueueId() const {
+    return *getFields()->data.trafficClassToQueueId();
   }
 
-  const std::optional<PfcPriorityToQueueId>& getPfcPriorityToQueueId() const {
-    return getFields()->pfcPriorityToQueueId;
+  std::optional<std::map<int16_t, int16_t>> getPfcPriorityToQueueId() {
+    return getFields()->data.pfcPriorityToQueueId().to_optional();
   }
 
-  const std::optional<TrafficClassToPgId>& getTrafficClassToPgId() const {
-    return getFields()->trafficClassToPgId;
+  std::optional<std::map<int16_t, int16_t>> getTrafficClassToPgId() {
+    return getFields()->data.trafficClassToPgId().to_optional();
   }
 
-  const std::optional<PfcPriorityToPgId>& getPfcPriorityToPgId() const {
-    return getFields()->pfcPriorityToPgId;
+  std::optional<std::map<int16_t, int16_t>> getPfcPriorityToPgId() {
+    return getFields()->data.pfcPriorityToPgId().to_optional();
   }
 
   void setExpMap(ExpMap expMap) {
-    writableFields()->expMap = std::move(expMap);
+    writableFields()->data.expMap() = expMap.data;
   }
 
-  void setTrafficClassToQueueIdMap(TrafficClassToQueueId tc2Q) {
-    writableFields()->trafficClassToQueueId = std::move(tc2Q);
+  void setTrafficClassToQueueIdMap(const std::map<int16_t, int16_t>& tc2Q) {
+    writableFields()->data.trafficClassToQueueId() = tc2Q;
   }
 
-  void setPfcPriorityToQueueIdMap(PfcPriorityToQueueId pfcPri2QueueId) {
-    writableFields()->pfcPriorityToQueueId = std::move(pfcPri2QueueId);
+  void setPfcPriorityToQueueIdMap(
+      const std::map<int16_t, int16_t>& pfcPri2QueueId) {
+    writableFields()->data.pfcPriorityToQueueId() = pfcPri2QueueId;
   }
 
-  void setTrafficClassToPgIdMap(TrafficClassToPgId trafficClass2PgId) {
-    writableFields()->trafficClassToPgId = std::move(trafficClass2PgId);
+  void setTrafficClassToPgIdMap(
+      const std::map<int16_t, int16_t>& trafficClass2PgId) {
+    writableFields()->data.trafficClassToPgId() = trafficClass2PgId;
   }
 
-  void setPfcPriorityToPgIdMap(PfcPriorityToPgId pfcPriority2PgId) {
-    writableFields()->pfcPriorityToPgId = std::move(pfcPriority2PgId);
+  void setPfcPriorityToPgIdMap(
+      const std::map<int16_t, int16_t>& pfcPriority2PgId) {
+    writableFields()->data.pfcPriorityToPgId() = pfcPriority2PgId;
   }
 
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using ThriftyBaseT<state::QosPolicyFields, QosPolicy, QosPolicyFields>::
+      ThriftyBaseT;
   friend class CloneAllocator;
 };
 

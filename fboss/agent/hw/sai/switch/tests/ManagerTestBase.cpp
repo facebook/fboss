@@ -416,7 +416,7 @@ std::shared_ptr<QosPolicy> ManagerTestBase::makeQosPolicy(
     const TestQosPolicy& qosPolicy) {
   DscpMap dscpMap;
   ExpMap expMap;
-  QosPolicyFields::TrafficClassToQueueId tc2q;
+  std::map<int16_t, int16_t> tc2q;
   for (const auto& qosMapping : qosPolicy) {
     auto [dscp, tc, q] = qosMapping;
     dscpMap.addFromEntry(TrafficClass{tc}, DSCP{dscp});

@@ -157,7 +157,7 @@ TEST_F(QosMapManagerTest, validQosPolicy) {
 TEST_F(QosMapManagerTest, missingTCToQ) {
   TestQosPolicy testQosPolicy{{10, 0, 2}, {42, 1, 4}};
   auto qosPolicy = makeQosPolicy("default", testQosPolicy);
-  qosPolicy->setTrafficClassToQueueIdMap(QosPolicy::TrafficClassToQueueId{});
+  qosPolicy->setTrafficClassToQueueIdMap(std::map<int16_t, int16_t>{});
   auto newState = makeSwitchState(qosPolicy);
   EXPECT_FALSE(saiPlatform->getHwSwitch()->isValidStateUpdate(
       StateDelta(std::make_shared<SwitchState>(), newState)));

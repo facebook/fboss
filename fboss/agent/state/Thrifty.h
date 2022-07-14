@@ -153,6 +153,43 @@ class ThriftyUtils {
     dyn = ThriftyUtils::toFollyDynamic(addr);
   }
 
+  static void stringToInt(folly::dynamic& dyn, const std::string& field) {
+    if (auto it = dyn.find(field); it != dyn.items().end()) {
+      dyn[field] = dyn[field].asInt();
+    }
+  }
+
+  static void thriftyMapToFollyArray(
+      folly::dynamic& dyn,
+      const std::string& map,
+      const std::string& key,
+      const std::string& value) {
+    if (dyn.find(map) != dyn.items().end()) {
+      folly::dynamic follyArray = folly::dynamic::array;
+      for (const auto& follyMapKey : dyn[map].keys()) {
+        folly::dynamic jsonEntry = folly::dynamic::object;
+        jsonEntry[key] = follyMapKey;
+        jsonEntry[value] = dyn[map][follyMapKey];
+        follyArray.push_back(jsonEntry);
+      }
+      dyn[map] = follyArray;
+    }
+  }
+
+  static void follyArraytoThriftyMap(
+      folly::dynamic& newDyn,
+      const std::string& map,
+      const std::string& key,
+      const std::string& value) {
+    if (newDyn.find(map) != newDyn.items().end()) {
+      folly::dynamic follyMap = folly::dynamic::object;
+      for (const auto& entry : newDyn[map]) {
+        follyMap[entry[key].asString()] = entry[value];
+      }
+      newDyn[map] = follyMap;
+    }
+  }
+
   static auto constexpr kThriftySchemaUpToDate = "__thrifty_schema_uptodate";
 };
 

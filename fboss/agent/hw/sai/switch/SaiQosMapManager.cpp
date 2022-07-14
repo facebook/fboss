@@ -33,8 +33,8 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setDscpToTcQosMap(
   mapToValueList.reserve(entries.size());
   for (const auto& entry : entries) {
     sai_qos_map_t mapping{};
-    mapping.key.dscp = entry.attr();
-    mapping.value.tc = entry.trafficClass();
+    mapping.key.dscp = *entry.attr();
+    mapping.value.tc = *entry.trafficClass();
     mapToValueList.push_back(mapping);
   }
   // set the dscp -> tc mapping in SAI
@@ -57,8 +57,8 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setExpToTcQosMap(
   mapToValueList.reserve(entries.size());
   for (const auto& entry : entries) {
     sai_qos_map_t mapping{};
-    mapping.key.mpls_exp = entry.attr();
-    mapping.value.tc = entry.trafficClass();
+    mapping.key.mpls_exp = *entry.attr();
+    mapping.value.tc = *entry.trafficClass();
     mapToValueList.push_back(mapping);
   }
   // set the exp -> tc mapping in SAI
@@ -82,9 +82,9 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToExpQosMap(
   mapToValueList.reserve(entries.size());
   for (const auto& entry : entries) {
     sai_qos_map_t mapping{};
-    mapping.key.tc = entry.trafficClass();
+    mapping.key.tc = *entry.trafficClass();
     mapping.key.color = SAI_PACKET_COLOR_GREEN;
-    mapping.value.mpls_exp = entry.attr();
+    mapping.value.mpls_exp = *entry.attr();
     mapToValueList.push_back(mapping);
   }
   // set the tc -> exp mapping in SAI
@@ -99,7 +99,7 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToExpQosMap(
 }
 
 std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToQueueQosMap(
-    const QosPolicy::TrafficClassToQueueId& newTcToQueueIdMap) {
+    const std::map<int16_t, int16_t>& newTcToQueueIdMap) {
   std::vector<sai_qos_map_t> mapToValueList;
   mapToValueList.reserve(newTcToQueueIdMap.size());
   for (const auto& tc2q : newTcToQueueIdMap) {

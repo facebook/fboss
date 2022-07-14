@@ -86,11 +86,11 @@ bool BcmQosPolicyTable::isValid(const std::shared_ptr<QosPolicy>& qosPolicy) {
   for (const auto& entry : qosPolicy->getDscpMap().from()) {
     // TODO(pshaikh): validating traffic class is valid, provide separate
     // function for the same
-    BcmPortQueueManager::CosQToBcmInternalPriority(entry.trafficClass());
-    if (entry.attr() < kDscpValueMin || entry.attr() > kDscpValueMax) {
+    BcmPortQueueManager::CosQToBcmInternalPriority(*entry.trafficClass());
+    if (*entry.attr() < kDscpValueMin || *entry.attr() > kDscpValueMax) {
       return false;
     }
-    dscpSet.emplace(entry.attr());
+    dscpSet.emplace(*entry.attr());
   }
 
   /*
