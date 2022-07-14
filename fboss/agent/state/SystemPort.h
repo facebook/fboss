@@ -20,10 +20,18 @@
 namespace facebook::fboss {
 
 struct SystemPortFields
-    : public BetterThriftyFields<SystemPortFields, state::SystemPortFields> {
+    : public ThriftyFields<SystemPortFields, state::SystemPortFields> {
   explicit SystemPortFields(SystemPortID id) {
     auto& data = writableData();
     *data.portId() = id;
+  }
+
+  bool operator==(const SystemPortFields& other) const {
+    return data() == other.data();
+  }
+
+  state::SystemPortFields toThrift() const override {
+    return data();
   }
 
   template <typename Fn>

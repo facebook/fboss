@@ -253,17 +253,6 @@ class ThriftyFields {
   ThriftT data_;
 };
 
-template <typename Derived, typename ThriftT>
-class BetterThriftyFields : public ThriftyFields<Derived, ThriftT> {
- public:
-  using ThriftyFields<Derived, ThriftT>::data_;
-  bool operator==(const BetterThriftyFields<Derived, ThriftT>& other) const {
-    return data_ == other.data_;
-  }
-  ThriftT toThrift() const override {
-    return data_;
-  }
-};
 // Base class to convert NodeMaps to thrift
 template <typename NodeMap, typename TraitsT, typename ThriftyTraitsT>
 class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {

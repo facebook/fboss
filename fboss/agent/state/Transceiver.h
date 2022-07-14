@@ -19,12 +19,16 @@
 
 namespace facebook::fboss {
 
-struct TransceiverSpecFields : public BetterThriftyFields<
+struct TransceiverSpecFields : public ThriftyFields<
                                    TransceiverSpecFields,
                                    state::TransceiverSpecFields> {
   explicit TransceiverSpecFields(TransceiverID id) {
     auto& data = writableData();
     *data.id() = id;
+  }
+
+  bool operator==(const TransceiverSpecFields& other) const {
+    return data() == other.data();
   }
 
   template <typename Fn>
