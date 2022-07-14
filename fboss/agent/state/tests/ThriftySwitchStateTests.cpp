@@ -158,6 +158,34 @@ TEST(ThriftySwitchState, BufferPoolCfgMap) {
   verifySwitchStateSerialization(state);
 }
 
+TEST(ThriftySwitchState, QosPolicyMap) {
+  const std::string kQosPolicy1Name = "qosPolicy1";
+  const std::string kQosPolicy2Name = "qosPolicy2";
+  auto qosPolicy1 = std::make_shared<QosPolicy>(kQosPolicy1Name, DscpMap());
+  auto qosPolicy2 = std::make_shared<QosPolicy>(kQosPolicy2Name, DscpMap());
+
+  auto map = std::make_shared<QosPolicyMap>();
+  map->addNode(qosPolicy1);
+  map->addNode(qosPolicy2);
+
+  auto state = SwitchState();
+  state.resetQosPolicies(map);
+  verifySwitchStateSerialization(state);
+}
+
+TEST(ThriftySwitchState, SflowCollectorMap) {
+  auto sflowCollector1 = std::make_shared<SflowCollector>("1.2.3.4", 8080);
+  auto sflowCollector2 = std::make_shared<SflowCollector>("2::3", 9090);
+
+  auto map = std::make_shared<SflowCollectorMap>();
+  map->addNode(sflowCollector1);
+  map->addNode(sflowCollector2);
+
+  auto state = SwitchState();
+  state.resetSflowCollectors(map);
+  verifySwitchStateSerialization(state);
+}
+
 TEST(ThriftySwitchState, IpAddressConversion) {
   for (auto ipStr : {"212.12.45.89", "2401:ab:de::30"}) {
     auto ip_0 = folly::IPAddress(ipStr);
