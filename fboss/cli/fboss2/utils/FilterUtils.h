@@ -104,8 +104,9 @@ typename CmdTypeT::RetType filterOutput(
     typename CmdTypeT::RetType model,
     const facebook::fboss::CmdGlobalOptions::UnionList& parsedFilters,
     const ValidFilterMapType& validFilterMap) {
-  if constexpr (apache::thrift::is_thrift_struct_v<
-                    typename CmdTypeT::RetType>) {
+  if constexpr (
+      apache::thrift::is_thrift_struct_v<typename CmdTypeT::RetType> &&
+      CmdTypeT::ALLOW_FILTERING == true) {
     apache::thrift::for_each_field(
         model, [&](const ThriftField& /*outer_meta*/, auto&& outer_field_ref) {
           if constexpr (apache::thrift::is_thrift_struct_v<folly::detected_or_t<
