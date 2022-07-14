@@ -43,6 +43,7 @@
 #include "fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h"
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h"
+#include "fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
@@ -188,6 +189,14 @@ const CommandTree& kCommandTree() {
          utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
          "Show details of blocked Mac addresses ",
          commandHandler<CmdShowMacAddrToBlock>}}},
+
+      {"show",
+       "mpls",
+       "Show mpls information",
+       {{"route",
+         utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+         "Show details of mpls routes",
+         commandHandler<CmdShowMplsRoute>}}},
 
       {
           "show",

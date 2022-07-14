@@ -122,6 +122,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_mpls_route_model
+  fboss/cli/fboss2/commands/show/mpls/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_mac_model
   fboss/cli/fboss2/commands/show/mac/model.thrift
   OPTIONS
@@ -183,6 +190,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h
   fboss/cli/fboss2/commands/show/route/utils.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h
+  fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h
   fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
@@ -248,6 +256,7 @@ target_link_libraries(fboss2
   show_interface_prbs_state
   show_interface_prbs_stats
   show_route_model
+  show_mpls_route_model
   show_mac_model
   ${RE2}
 )

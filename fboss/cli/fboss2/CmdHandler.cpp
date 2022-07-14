@@ -42,6 +42,7 @@
 #include "fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h"
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h"
+#include "fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
@@ -190,6 +191,7 @@ CmdHandler<CmdClearInterfaceCounters, CmdClearInterfaceCountersTraits>::run();
 template void
 CmdHandler<CmdShowInterfaceStatus, CmdShowInterfaceStatusTraits>::run();
 template void CmdHandler<CmdBounceInterface, CmdBounceInterfaceTraits>::run();
+template void CmdHandler<CmdShowMplsRoute, CmdShowMplsRouteTraits>::run();
 template void CmdHandler<CmdShowRoute, CmdShowRouteTraits>::run();
 template void CmdHandler<CmdShowRouteDetails, CmdShowRouteDetailsTraits>::run();
 template void CmdHandler<CmdShowRouteSummary, CmdShowRouteSummaryTraits>::run();
