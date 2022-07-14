@@ -14,61 +14,65 @@
 
 #include <folly/SocketAddress.h>
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 
-struct SflowCollectorFields {
-  SflowCollectorFields(const std::string& ip, const uint16_t port)
-      : address(ip, port),
-        id(address.getFullyQualified() + ':' +
-           folly::to<std::string>(address.getPort())) {}
+struct SflowCollectorFields : public BetterThriftyFields<
+                                  SflowCollectorFields,
+                                  state::SflowCollectorFields> {
+  SflowCollectorFields(const std::string& ip, const uint16_t port) {
+    auto address = folly::SocketAddress(ip, port);
+    *data.id() = folly::to<std::string>(
+        address.getFullyQualified(), ':', address.getPort());
+    state::SocketAddress socketAddr;
+    *socketAddr.host() = address.getFullyQualified();
+    *socketAddr.port() = port;
+    *data.address() = socketAddr;
+  }
 
   template <typename Fn>
   void forEachChild(Fn) {}
 
-  folly::dynamic toFollyDynamic() const;
-  static SflowCollectorFields fromFollyDynamic(const folly::dynamic& json);
-
-  const folly::SocketAddress address;
-  const std::string id;
+  static SflowCollectorFields fromThrift(
+      state::SflowCollectorFields const& sflowCollectorThrift);
+  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
+  static void migrateFromThrifty(folly::dynamic& dyn);
+  folly::dynamic toFollyDynamicLegacy() const;
+  static SflowCollectorFields fromFollyDynamicLegacy(
+      const folly::dynamic& sflowCollectorJson);
 };
 
 /*
  * SflowCollector stores the IP and port of a UDP-based collector of sFlow
  * samples.
  */
-class SflowCollector : public NodeBaseT<SflowCollector, SflowCollectorFields> {
+class SflowCollector : public ThriftyBaseT<
+                           state::SflowCollectorFields,
+                           SflowCollector,
+                           SflowCollectorFields> {
  public:
   SflowCollector(const std::string& ip, const uint16_t port);
 
-  static std::shared_ptr<SflowCollector> fromFollyDynamic(
-      const folly::dynamic& json) {
-    const auto& fields = SflowCollectorFields::fromFollyDynamic(json);
-    return std::make_shared<SflowCollector>(fields);
-  }
-
-  static std::shared_ptr<SflowCollector> fromJson(
-      const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamic();
-  }
-
   const std::string& getID() const {
-    return getFields()->id;
+    return *getFields()->data.id();
   }
 
-  const folly::SocketAddress& getAddress() const {
-    return getFields()->address;
+  const folly::SocketAddress getAddress() const {
+    return folly::SocketAddress(
+        *getFields()->data.address()->host(),
+        *getFields()->data.address()->port());
   }
 
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using ThriftyBaseT<
+      state::SflowCollectorFields,
+      SflowCollector,
+      SflowCollectorFields>::ThriftyBaseT;
   friend class CloneAllocator;
 };
 

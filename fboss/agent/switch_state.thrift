@@ -357,6 +357,11 @@ struct SocketAddress {
   2: i32 port;
 }
 
+struct SflowCollectorFields {
+  1: string id;
+  2: SocketAddress address;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;

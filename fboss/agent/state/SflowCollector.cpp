@@ -15,19 +15,49 @@
 namespace {
 constexpr auto kIp = "ip";
 constexpr auto kPort = "port";
+constexpr auto kId = "id";
+constexpr auto kAddress = "address";
+constexpr auto kHost = "host";
 } // namespace
 
 namespace facebook::fboss {
 
-folly::dynamic SflowCollectorFields::toFollyDynamic() const {
+SflowCollectorFields SflowCollectorFields::fromThrift(
+    state::SflowCollectorFields const& sflowCollectorThrift) {
+  return SflowCollectorFields(
+      *sflowCollectorThrift.address()->host(),
+      *sflowCollectorThrift.address()->port());
+}
+
+folly::dynamic SflowCollectorFields::migrateToThrifty(
+    const folly::dynamic& dyn) {
+  folly::dynamic newDyn = folly::dynamic::object;
+  auto host = dyn[kIp].asString();
+  auto port = dyn[kPort].asInt();
+  newDyn[kId] = folly::to<std::string>(host, ":", port);
+
+  folly::dynamic socketAddress = folly::dynamic::object;
+  socketAddress[kHost] = host;
+  socketAddress[kPort] = port;
+  newDyn[kAddress] = socketAddress;
+
+  return newDyn;
+}
+
+void SflowCollectorFields::migrateFromThrifty(folly::dynamic& dyn) {
+  dyn[kIp] = dyn[kAddress][kHost];
+  dyn[kPort] = dyn[kAddress][kPort];
+}
+
+folly::dynamic SflowCollectorFields::toFollyDynamicLegacy() const {
   folly::dynamic collector = folly::dynamic::object;
-  collector[kIp] = address.getFullyQualified();
-  collector[kPort] = address.getPort();
+  collector[kIp] = *data.address()->host();
+  collector[kPort] = *data.address()->port();
 
   return collector;
 }
 
-SflowCollectorFields SflowCollectorFields::fromFollyDynamic(
+SflowCollectorFields SflowCollectorFields::fromFollyDynamicLegacy(
     const folly::dynamic& collectorJson) {
   std::string ip = collectorJson[kIp].asString();
   uint16_t port = collectorJson[kPort].asInt();
@@ -36,8 +66,10 @@ SflowCollectorFields SflowCollectorFields::fromFollyDynamic(
 }
 
 SflowCollector::SflowCollector(const std::string& ip, const uint16_t port)
-    : NodeBaseT(ip, port) {}
+    : ThriftyBaseT(ip, port) {}
 
-template class NodeBaseT<SflowCollector, SflowCollectorFields>;
-
+template class ThriftyBaseT<
+    state::SflowCollectorFields,
+    SflowCollector,
+    SflowCollectorFields>;
 } // namespace facebook::fboss
