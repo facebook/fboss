@@ -14,11 +14,16 @@
 #include <tuple>
 #include <vector>
 
+#include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 
+using ValidFilterMapType = std::unordered_map<
+    std::string_view,
+    std::shared_ptr<CmdGlobalOptions::BaseTypeVerifier>>;
 using CommandHandlerFn = std::function<void()>;
+using GetValidFilterFn = std::function<ValidFilterMapType()>;
 
 using CmdVerb = std::string;
 using CmdObject = std::string;
@@ -48,10 +53,25 @@ struct Command {
         help{help},
         subcommands{subcommands} {}
 
+  Command(
+      const std::string& name,
+      const utils::ObjectArgTypeId argType,
+      const std::string& help,
+      const CommandHandlerFn& handler,
+      const GetValidFilterFn& validFilterGetter,
+      const std::vector<Command>& subcommands = {})
+      : name{name},
+        argType{argType},
+        help{help},
+        handler{handler},
+        validFilterHandler{validFilterGetter},
+        subcommands{subcommands} {}
+
   const std::string name;
   const utils::ObjectArgTypeId argType;
   const std::string help;
   const std::optional<CommandHandlerFn> handler;
+  const std::optional<GetValidFilterFn> validFilterHandler;
   const std::vector<Command> subcommands;
 };
 
@@ -64,6 +84,17 @@ struct RootCommand : public Command {
       const CommandHandlerFn& handler,
       const std::vector<Command>& subcommands = {})
       : Command(object, argType, help, handler, subcommands), verb{verb} {}
+
+  RootCommand(
+      const std::string& verb,
+      const std::string& object,
+      const utils::ObjectArgTypeId argType,
+      const std::string& help,
+      const CommandHandlerFn& handler,
+      const GetValidFilterFn& validFilterGetter,
+      const std::vector<Command>& subcommands = {})
+      : Command(object, argType, help, handler, validFilterGetter, subcommands),
+        verb{verb} {}
 
   RootCommand(
       const std::string& verb,
@@ -92,6 +123,11 @@ const std::vector<Command>& kSpecialCommands();
 template <typename T>
 void commandHandler() {
   T().run();
+}
+
+template <typename T>
+ValidFilterMapType getValidFilterHandler() {
+  return T().getValidFilters();
 }
 
 void helpHandler();

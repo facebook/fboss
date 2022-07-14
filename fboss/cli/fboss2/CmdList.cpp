@@ -61,19 +61,22 @@ const CommandTree& kCommandTree() {
        "acl",
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
        "Show ACL information",
-       commandHandler<CmdShowAcl>},
+       commandHandler<CmdShowAcl>,
+       getValidFilterHandler<CmdShowAcl>},
 
       {"show",
        "aggregate-port",
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
        "Show aggregate port information",
-       commandHandler<CmdShowAggregatePort>},
+       commandHandler<CmdShowAggregatePort>,
+       getValidFilterHandler<CmdShowAggregatePort>},
 
       {"show",
        "arp",
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
        "Show ARP information",
-       commandHandler<CmdShowArp>},
+       commandHandler<CmdShowArp>,
+       getValidFilterHandler<CmdShowArp>},
 
       {"show",
        "lldp",
@@ -85,13 +88,15 @@ const CommandTree& kCommandTree() {
        "ndp",
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST,
        "Show NDP information",
-       commandHandler<CmdShowNdp>},
+       commandHandler<CmdShowNdp>,
+       getValidFilterHandler<CmdShowNdp>},
 
       {"show",
        "port",
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
        "Show Port queue information",
        commandHandler<CmdShowPort>,
+       getValidFilterHandler<CmdShowPort>,
        {
 
            {"queue",
