@@ -74,21 +74,10 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
    */
   const std::shared_ptr<Interface> getInterfaceInVlan(VlanID vlan) const;
 
-  struct IntfAddrToReach {
-    IntfAddrToReach(
-        const Interface* intf,
-        const folly::IPAddress* addr,
-        uint8_t mask)
-        : intf(intf), addr(addr), mask(mask) {}
-    const Interface* intf{nullptr};
-    const folly::IPAddress* addr{nullptr};
-    uint8_t mask{0};
-  };
-
   /*
    * Find an interface with its address to reach the given destination
    */
-  IntfAddrToReach getIntfAddrToReach(
+  const std::shared_ptr<Interface> getIntfToReach(
       RouterID router,
       const folly::IPAddress& dest) const;
 

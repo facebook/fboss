@@ -63,19 +63,15 @@ const std::shared_ptr<Interface> InterfaceMap::getInterfaceInVlan(
   return interface;
 }
 
-InterfaceMap::IntfAddrToReach InterfaceMap::getIntfAddrToReach(
+const std::shared_ptr<Interface> InterfaceMap::getIntfToReach(
     RouterID router,
     const folly::IPAddress& dest) const {
-  for (auto iter = begin(); iter != end(); iter++) {
-    const auto& intf = *iter;
-    if (intf->getRouterID() == router) {
-      auto addrIter = intf->getAddressToReach(dest);
-      if (addrIter != intf->getAddresses().end()) {
-        return IntfAddrToReach(intf.get(), &addrIter->first, addrIter->second);
-      }
+  for (const auto& intf : *this) {
+    if (intf->getRouterID() == router && intf->canReachAddress(dest)) {
+      return intf;
     }
   }
-  return IntfAddrToReach(nullptr, nullptr, 0);
+  return nullptr;
 }
 
 void InterfaceMap::addInterface(const std::shared_ptr<Interface>& interface) {

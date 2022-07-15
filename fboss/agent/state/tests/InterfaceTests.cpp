@@ -70,20 +70,22 @@ TEST(Interface, addrToReach) {
   EXPECT_TRUE(intf2->hasAddress(IPAddress("::11:11:11")));
   EXPECT_FALSE(intf2->hasAddress(IPAddress("::11:11:12")));
 
-  auto ret = intfs->getIntfAddrToReach(RouterID(1), IPAddress("20.1.1.100"));
-  EXPECT_EQ(intf1.get(), ret.intf);
-  EXPECT_EQ(IPAddress("20.1.1.2"), *ret.addr);
-  EXPECT_EQ(24, ret.mask);
+  auto intf = intfs->getIntfToReach(RouterID(1), IPAddress("20.1.1.100"));
+  ASSERT_TRUE(intf != nullptr);
+  EXPECT_EQ(intf1, intf);
+  auto addr = intf->getAddressToReach(IPAddress("20.1.1.100"));
+  EXPECT_EQ(IPAddress("20.1.1.2"), addr->first);
+  EXPECT_EQ(24, addr->second);
 
-  ret = intfs->getIntfAddrToReach(RouterID(2), IPAddress("::22:33:4f"));
-  EXPECT_EQ(intf2.get(), ret.intf);
-  EXPECT_EQ(IPAddress("::22:33:44"), *ret.addr);
-  EXPECT_EQ(120, ret.mask);
+  intf = intfs->getIntfToReach(RouterID(2), IPAddress("::22:33:4f"));
+  ASSERT_TRUE(intf != nullptr);
+  EXPECT_EQ(intf2, intf);
+  addr = intf->getAddressToReach(IPAddress("::22:33:4f"));
+  EXPECT_EQ(IPAddress("::22:33:44"), addr->first);
+  EXPECT_EQ(120, addr->second);
 
-  ret = intfs->getIntfAddrToReach(RouterID(2), IPAddress("::22:34:5f"));
-  EXPECT_EQ(nullptr, ret.intf);
-  EXPECT_EQ(nullptr, ret.addr);
-  EXPECT_EQ(0, ret.mask);
+  intf = intfs->getIntfToReach(RouterID(2), IPAddress("::22:34:5f"));
+  ASSERT_TRUE(intf == nullptr);
 }
 
 TEST(Interface, applyConfig) {

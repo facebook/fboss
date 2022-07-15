@@ -3365,9 +3365,9 @@ ThriftConfigApplier::updateStaticMplsRoutes(
       }
       // check if nhopAddress is in in one of the interface subnets
       // look up in interfaces of default router (RouterID(0))
-      auto intfAddrToReach =
-          new_->getInterfaces()->getIntfAddrToReach(RouterID(0), nhopAddress);
-      if (!intfAddrToReach.intf) {
+      auto inftToReach =
+          new_->getInterfaces()->getIntfToReach(RouterID(0), nhopAddress);
+      if (!inftToReach) {
         throw FbossError(
             "static mpls route for label ",
             staticMplsRouteEntry.get_ingressLabel(),
@@ -3377,7 +3377,7 @@ ThriftConfigApplier::updateStaticMplsRoutes(
       }
       resolvedNextHops.insert(ResolvedNextHop(
           nhop.addr(),
-          intfAddrToReach.intf->getID(),
+          inftToReach->getID(),
           nhop.weight(),
           nhop.labelForwardingAction()));
     }

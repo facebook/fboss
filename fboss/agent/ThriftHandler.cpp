@@ -2057,13 +2057,13 @@ void ThriftHandler::addMplsRoutesImpl(
       auto iter = labelFibEntryNextHopAddress2Interface.find(
           std::make_pair(RouterID(0), nexthop.addr()));
       if (iter == labelFibEntryNextHopAddress2Interface.end()) {
-        auto result = (*state)->getInterfaces()->getIntfAddrToReach(
+        auto result = (*state)->getInterfaces()->getIntfToReach(
             RouterID(0), nexthop.addr());
-        if (!result.intf) {
+        if (!result) {
           throw FbossError(
               "nexthop : ", nexthop.addr().str(), " is not connected");
         }
-        if (result.intf->hasAddress(nexthop.addr())) {
+        if (result->hasAddress(nexthop.addr())) {
           // attempt to program local interface address as next hop
           throw FbossError(
               "invalid next hop, nexthop : ",
@@ -2075,7 +2075,7 @@ void ThriftHandler::addMplsRoutesImpl(
             labelFibEntryNextHopAddress2Interface.emplace(
                 std::make_pair<RouterID, folly::IPAddress>(
                     RouterID(0), nexthop.addr()),
-                result.intf->getID());
+                result->getID());
       }
 
       nexthops.emplace(ResolvedNextHop(
