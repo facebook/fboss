@@ -22,13 +22,12 @@ struct CmdShowAggregatePortTraits : public BaseCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = std::vector<std::string>;
   using RetType = cli::ShowAggregatePortModel;
+  static constexpr bool ALLOW_FILTERING = true;
 };
 
 class CmdShowAggregatePort
     : public CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits> {
  public:
-  static constexpr bool ALLOW_FILTERING = true;
-
   RetType queryClient(
       const HostInfo& hostInfo,
       const ObjectArgType& queriedPorts) {

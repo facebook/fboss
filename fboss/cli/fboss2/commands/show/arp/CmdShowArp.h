@@ -22,12 +22,11 @@ struct CmdShowArpTraits : public BaseCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
   using RetType = cli::ShowArpModel;
+  static constexpr bool ALLOW_FILTERING = true;
 };
 
 class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
  public:
-  static constexpr bool ALLOW_FILTERING = true;
-
   RetType queryClient(const HostInfo& hostInfo) {
     std::vector<facebook::fboss::ArpEntryThrift> entries;
     std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;

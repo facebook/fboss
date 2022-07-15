@@ -106,7 +106,7 @@ typename CmdTypeT::RetType filterOutput(
     const ValidFilterMapType& validFilterMap) {
   if constexpr (
       apache::thrift::is_thrift_struct_v<typename CmdTypeT::RetType> &&
-      CmdTypeT::ALLOW_FILTERING == true) {
+      CmdTypeT::Traits::ALLOW_FILTERING == true) {
     apache::thrift::for_each_field(
         model, [&](const ThriftField& /*outer_meta*/, auto&& outer_field_ref) {
           if constexpr (apache::thrift::is_thrift_struct_v<folly::detected_or_t<

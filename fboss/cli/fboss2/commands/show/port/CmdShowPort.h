@@ -30,13 +30,13 @@ using utils::Table;
 struct CmdShowPortTraits : public BaseCommandTraits {
   using ObjectArgType = utils::PortList;
   using RetType = cli::ShowPortModel;
+  static constexpr bool ALLOW_FILTERING = true;
 };
 
 class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
  public:
   using ObjectArgType = CmdShowPortTraits::ObjectArgType;
   using RetType = CmdShowPortTraits::RetType;
-  static constexpr bool ALLOW_FILTERING = true;
 
   RetType queryClient(
       const HostInfo& hostInfo,

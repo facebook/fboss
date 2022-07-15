@@ -20,12 +20,12 @@ struct CmdShowAclTraits : public BaseCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
   using RetType = cli::ShowAclModel;
+  static constexpr bool ALLOW_FILTERING = true;
 };
 
 class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {
  public:
   using RetType = CmdShowAclTraits::RetType;
-  static constexpr bool ALLOW_FILTERING = true;
 
   RetType queryClient(const HostInfo& hostInfo) {
     std::vector<facebook::fboss::AclEntryThrift> entries;

@@ -22,13 +22,13 @@ struct CmdShowNdpTraits : public BaseCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST;
   using ObjectArgType = std::vector<std::string>;
   using RetType = cli::ShowNdpModel;
+  static constexpr bool ALLOW_FILTERING = true;
 };
 
 class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
  public:
   using ObjectArgType = CmdShowNdpTraits::ObjectArgType;
   using RetType = CmdShowNdpTraits::RetType;
-  static constexpr bool ALLOW_FILTERING = true;
 
   RetType queryClient(
       const HostInfo& hostInfo,

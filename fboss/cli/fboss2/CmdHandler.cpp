@@ -389,7 +389,7 @@ bool CmdHandler<CmdTypeT, CmdTypeTraits>::isFilterable() {
   bool filterable = true;
   if constexpr (
       apache::thrift::is_thrift_struct_v<RetType> &&
-      CmdTypeT::ALLOW_FILTERING == true) {
+      CmdTypeT::Traits::ALLOW_FILTERING == true) {
     apache::thrift::for_each_field(
         RetType(), [&](const ThriftField& meta, auto&& /*field_ref*/) {
           const auto& fieldType = *meta.type();
@@ -429,7 +429,7 @@ CmdHandler<CmdTypeT, CmdTypeTraits>::getValidFilters() {
 
   if constexpr (
       apache::thrift::is_thrift_struct_v<RetType> &&
-      CmdTypeT::ALLOW_FILTERING == true) {
+      CmdTypeT::Traits::ALLOW_FILTERING == true) {
     apache::thrift::for_each_field(
         RetType(),
         [&filterMap, this](

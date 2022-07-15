@@ -78,6 +78,7 @@ struct BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
+  static constexpr bool ALLOW_FILTERING = false;
 };
 
 template <typename CmdTypeT, typename CmdTypeTraits>
@@ -93,8 +94,6 @@ class CmdHandler {
   using ObjectArgType = typename CmdTypeTraits::ObjectArgType;
   using RetType = typename CmdTypeTraits::RetType;
   using ThriftPrimitiveType = apache::thrift::metadata::ThriftPrimitiveType;
-
-  static constexpr bool ALLOW_FILTERING = false;
 
   void run();
 
