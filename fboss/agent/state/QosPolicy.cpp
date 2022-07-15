@@ -30,16 +30,62 @@ constexpr auto kTrafficClassToPgId = "trafficClassToPgId";
 constexpr auto kPgId = "pgId";
 constexpr auto kPfcPriorityToPgId = "pfcPriorityToPgId";
 constexpr auto kAttr = "attr";
+
+void follyAttributeMapToThrifty(
+    folly::dynamic& newDyn,
+    const std::string& map,
+    const std::string& qosAttr) {
+  if (newDyn.find(map) != newDyn.items().end()) {
+    auto& follyMap = newDyn[map];
+    if (follyMap.find(kFrom) != newDyn.items().end()) {
+      auto& mapFrom = follyMap[kFrom];
+      for (auto& entry : mapFrom) {
+        facebook::fboss::ThriftyUtils::stringToInt(entry, kTrafficClass);
+        facebook::fboss::ThriftyUtils::stringToInt(entry, qosAttr);
+        facebook::fboss::ThriftyUtils::renameField(entry, qosAttr, kAttr);
+      }
+    }
+    if (follyMap.find(kTo) != newDyn.items().end()) {
+      auto& mapTo = follyMap[kTo];
+      for (auto& entry : mapTo) {
+        facebook::fboss::ThriftyUtils::stringToInt(entry, kTrafficClass);
+        facebook::fboss::ThriftyUtils::stringToInt(entry, qosAttr);
+        facebook::fboss::ThriftyUtils::renameField(entry, qosAttr, kAttr);
+      }
+    }
+  }
+}
+
+void thriftyAttributeMapToFolly(
+    folly::dynamic& dyn,
+    const std::string& map,
+    const std::string& qosAttr) {
+  if (dyn.find(map) != dyn.items().end()) {
+    auto& thriftyMap = dyn[map];
+    if (thriftyMap.find(kFrom) != dyn.items().end()) {
+      auto& mapFrom = thriftyMap[kFrom];
+      for (auto& entry : mapFrom) {
+        facebook::fboss::ThriftyUtils::renameField(entry, kAttr, qosAttr);
+      }
+    }
+    if (thriftyMap.find(kTo) != dyn.items().end()) {
+      auto& mapTo = thriftyMap[kTo];
+      for (auto& entry : mapTo) {
+        facebook::fboss::ThriftyUtils::renameField(entry, kAttr, qosAttr);
+      }
+    }
+  }
+}
 } // namespace
 
 namespace facebook::fboss {
 
 template <typename EntryT>
-const folly::dynamic QosPolicyFields::entryToFolly(
+const folly::dynamic QosPolicyFields::thriftEntryToFolly(
     state::TrafficClassToQosAttributeEntry entry) const {
   folly::dynamic follyEntry = folly::dynamic::object;
   follyEntry[kTrafficClass] = folly::to<std::string>(*entry.trafficClass());
-  if (std::is_same<EntryT, DSCP>::value) {
+  if constexpr (std::is_same<EntryT, DSCP>::value) {
     follyEntry[kDscp] = folly::to<std::string>(*entry.attr());
   } else {
     follyEntry[kExp] = folly::to<std::string>(*entry.attr());
@@ -48,20 +94,20 @@ const folly::dynamic QosPolicyFields::entryToFolly(
 }
 
 template <typename EntryT>
-const folly::dynamic QosPolicyFields::entryListToFolly(
+const folly::dynamic QosPolicyFields::thriftEntryListToFolly(
     std::vector<state::TrafficClassToQosAttributeEntry> list) const {
   folly::dynamic follyList = folly::dynamic::array;
   for (const auto& dscpEntry : list) {
-    follyList.push_back(entryToFolly<EntryT>(dscpEntry));
+    follyList.push_back(thriftEntryToFolly<EntryT>(dscpEntry));
   }
   return follyList;
 }
 
 template <typename EntryT>
-state::TrafficClassToQosAttributeEntry QosPolicyFields::entryFromFolly(
+state::TrafficClassToQosAttributeEntry QosPolicyFields::follyToThriftEntry(
     folly::dynamic json) {
   auto attrStr = kDscp;
-  if (std::is_same<EntryT, EXP>::value) {
+  if constexpr (std::is_same<EntryT, EXP>::value) {
     attrStr = kExp;
   }
   if (json.find(kTrafficClass) == json.items().end() ||
@@ -78,10 +124,10 @@ state::TrafficClassToQosAttributeEntry QosPolicyFields::entryFromFolly(
 
 template <typename EntryT>
 std::vector<state::TrafficClassToQosAttributeEntry>
-QosPolicyFields::entryListFromFolly(folly::dynamic json) {
+QosPolicyFields::follyToThriftEntryList(folly::dynamic json) {
   std::vector<state::TrafficClassToQosAttributeEntry> entryList;
   for (const auto& entry : json) {
-    entryList.push_back(entryFromFolly<EntryT>(entry));
+    entryList.push_back(follyToThriftEntry<EntryT>(entry));
   }
   return entryList;
 }
@@ -99,46 +145,10 @@ QosPolicyFields QosPolicyFields::fromThrift(
 
 folly::dynamic QosPolicyFields::migrateToThrifty(folly::dynamic const& dyn) {
   folly::dynamic newDyn = dyn;
-  // Dscp Map
-  if (newDyn.find(kDscpMap) != newDyn.items().end()) {
-    auto& dscpMapFolly = newDyn[kDscpMap];
-    if (dscpMapFolly.find(kFrom) != newDyn.items().end()) {
-      auto& dscpMapFrom = dscpMapFolly[kFrom];
-      for (auto& entry : dscpMapFrom) {
-        ThriftyUtils::stringToInt(entry, kTrafficClass);
-        ThriftyUtils::stringToInt(entry, kDscp);
-        ThriftyUtils::renameField(entry, kDscp, kAttr);
-      }
-    }
-    if (dscpMapFolly.find(kTo) != newDyn.items().end()) {
-      auto& dscpMapTo = dscpMapFolly[kTo];
-      for (auto& entry : dscpMapTo) {
-        ThriftyUtils::stringToInt(entry, kTrafficClass);
-        ThriftyUtils::stringToInt(entry, kDscp);
-        ThriftyUtils::renameField(entry, kDscp, kAttr);
-      }
-    }
-  }
-  // Exp Map
-  if (newDyn.find(kExpMap) != newDyn.items().end()) {
-    auto& expMapFolly = newDyn[kExpMap];
-    if (expMapFolly.find(kFrom) != newDyn.items().end()) {
-      auto& expMapFrom = expMapFolly[kFrom];
-      for (auto& entry : expMapFrom) {
-        ThriftyUtils::stringToInt(entry, kTrafficClass);
-        ThriftyUtils::stringToInt(entry, kExp);
-        ThriftyUtils::renameField(entry, kExp, kAttr);
-      }
-    }
-    if (expMapFolly.find(kTo) != newDyn.items().end()) {
-      auto& expMapTo = expMapFolly[kTo];
-      for (auto& entry : expMapTo) {
-        ThriftyUtils::stringToInt(entry, kTrafficClass);
-        ThriftyUtils::stringToInt(entry, kExp);
-        ThriftyUtils::renameField(entry, kExp, kAttr);
-      }
-    }
-  }
+
+  follyAttributeMapToThrifty(newDyn, kDscpMap, kDscp);
+  follyAttributeMapToThrifty(newDyn, kExpMap, kExp);
+
   ThriftyUtils::follyArraytoThriftyMap(
       newDyn, kTrafficClassToQueueId, kTrafficClass, kQueueId);
   ThriftyUtils::follyArraytoThriftyMap(
@@ -151,39 +161,8 @@ folly::dynamic QosPolicyFields::migrateToThrifty(folly::dynamic const& dyn) {
 }
 
 void QosPolicyFields::migrateFromThrifty(folly::dynamic& dyn) {
-  // Dscp Map
-  if (dyn.find(kDscpMap) != dyn.items().end()) {
-    auto& dscpMapFolly = dyn[kDscpMap];
-    if (dscpMapFolly.find(kFrom) != dyn.items().end()) {
-      auto& dscpMapFrom = dscpMapFolly[kFrom];
-      for (auto& entry : dscpMapFrom) {
-        ThriftyUtils::renameField(entry, kAttr, kDscp);
-      }
-    }
-    if (dscpMapFolly.find(kTo) != dyn.items().end()) {
-      auto& dscpMapTo = dscpMapFolly[kTo];
-      for (auto& entry : dscpMapTo) {
-        ThriftyUtils::renameField(entry, kAttr, kDscp);
-      }
-    }
-  }
-
-  // Exp Map
-  if (dyn.find(kExpMap) != dyn.items().end()) {
-    auto& expMapFolly = dyn[kExpMap];
-    if (expMapFolly.find(kFrom) != dyn.items().end()) {
-      auto& expMapFrom = expMapFolly[kFrom];
-      for (auto& entry : expMapFrom) {
-        ThriftyUtils::renameField(entry, kAttr, kExp);
-      }
-    }
-    if (expMapFolly.find(kTo) != dyn.items().end()) {
-      auto& expMapTo = expMapFolly[kTo];
-      for (auto& entry : expMapTo) {
-        ThriftyUtils::renameField(entry, kAttr, kExp);
-      }
-    }
-  }
+  thriftyAttributeMapToFolly(dyn, kDscpMap, kDscp);
+  thriftyAttributeMapToFolly(dyn, kExpMap, kExp);
 
   ThriftyUtils::thriftyMapToFollyArray(
       dyn, kTrafficClassToQueueId, kTrafficClass, kQueueId);
@@ -201,14 +180,14 @@ folly::dynamic QosPolicyFields::toFollyDynamicLegacy() const {
 
   // Dscp Map
   folly::dynamic dscpMap = folly::dynamic::object;
-  dscpMap[kFrom] = entryListToFolly<DSCP>(*data().dscpMap()->from());
-  dscpMap[kTo] = entryListToFolly<DSCP>(*data().dscpMap()->to());
+  dscpMap[kFrom] = thriftEntryListToFolly<DSCP>(*data().dscpMap()->from());
+  dscpMap[kTo] = thriftEntryListToFolly<DSCP>(*data().dscpMap()->to());
   qosPolicy[kDscpMap] = dscpMap;
 
   // Exp Map
   folly::dynamic expMap = folly::dynamic::object;
-  expMap[kFrom] = entryListToFolly<EXP>(*data().expMap()->from());
-  expMap[kTo] = entryListToFolly<EXP>(*data().expMap()->to());
+  expMap[kFrom] = thriftEntryListToFolly<EXP>(*data().expMap()->from());
+  expMap[kTo] = thriftEntryListToFolly<EXP>(*data().expMap()->to());
   qosPolicy[kExpMap] = expMap;
 
   // TrafficClassToQueueId
@@ -263,10 +242,10 @@ QosPolicyFields QosPolicyFields::fromFollyDynamicLegacy(
     const auto& dscpMapFolly = json[kDscpMap];
 
     if (dscpMapFolly.find(kFrom) != json.items().end()) {
-      dscpMapThrift.from() = entryListFromFolly<DSCP>(dscpMapFolly[kFrom]);
+      dscpMapThrift.from() = follyToThriftEntryList<DSCP>(dscpMapFolly[kFrom]);
     }
     if (dscpMapFolly.find(kTo) != json.items().end()) {
-      dscpMapThrift.to() = entryListFromFolly<DSCP>(dscpMapFolly[kTo]);
+      dscpMapThrift.to() = follyToThriftEntryList<DSCP>(dscpMapFolly[kTo]);
     }
     dscpMap = DscpMap(dscpMapThrift);
   }
@@ -278,10 +257,10 @@ QosPolicyFields QosPolicyFields::fromFollyDynamicLegacy(
     const auto& expMapFolly = json[kExpMap];
 
     if (expMapFolly.find(kFrom) != json.items().end()) {
-      expMapThrift.from() = entryListFromFolly<EXP>(expMapFolly[kFrom]);
+      expMapThrift.from() = follyToThriftEntryList<EXP>(expMapFolly[kFrom]);
     }
     if (expMapFolly.find(kTo) != json.items().end()) {
-      expMapThrift.to() = entryListFromFolly<EXP>(expMapFolly[kTo]);
+      expMapThrift.to() = follyToThriftEntryList<EXP>(expMapFolly[kTo]);
     }
     expMap = ExpMap(expMapThrift);
   }

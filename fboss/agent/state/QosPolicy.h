@@ -107,20 +107,20 @@ struct QosPolicyFields
   void forEachChild(Fn) {}
 
   template <typename EntryT>
-  const folly::dynamic entryToFolly(
+  const folly::dynamic thriftEntryToFolly(
       state::TrafficClassToQosAttributeEntry entry) const;
 
   template <typename EntryT>
-  const folly::dynamic entryListToFolly(
+  const folly::dynamic thriftEntryListToFolly(
       std::vector<state::TrafficClassToQosAttributeEntry> set) const;
 
   template <typename EntryT>
-  static state::TrafficClassToQosAttributeEntry entryFromFolly(
+  static state::TrafficClassToQosAttributeEntry follyToThriftEntry(
       folly::dynamic entry);
 
   template <typename EntryT>
-  static std::vector<state::TrafficClassToQosAttributeEntry> entryListFromFolly(
-      folly::dynamic entry);
+  static std::vector<state::TrafficClassToQosAttributeEntry>
+  follyToThriftEntryList(folly::dynamic entry);
 
   state::QosPolicyFields toThrift() const override {
     return data();
