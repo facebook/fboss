@@ -3,7 +3,6 @@ namespace py3 neteng.fboss.lldp
 namespace py.asyncio neteng.fboss.asyncio.lldp
 namespace cpp2 facebook.fboss.lldp
 namespace php facebook.fboss.lldp
-namespace rust facebook.fboss.lldp
 namespace go facebook.fboss.lldp
 
 enum LinkProtocol {

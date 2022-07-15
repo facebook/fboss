@@ -4,7 +4,6 @@ namespace php fboss
 namespace py neteng.fboss.transceiver
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.transceiver
-namespace rust facebook.fboss
 
 include "fboss/lib/phy/prbs.thrift"
 
