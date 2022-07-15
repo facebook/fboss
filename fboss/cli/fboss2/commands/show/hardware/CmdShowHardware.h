@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2004-present, Facebook, Inc.
+ *  Copyright (c) 2004-present, Meta Platforms, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -54,8 +54,8 @@ class CmdShowHardware
     // Unfortunately this is expected
     auto bmc = utils::createClient<BmcClient>(hostInfo);
     auto wedgeClient = utils::createClient<FbossCtrlAsyncClient>(hostInfo);
-    auto bgpClient = utils::createClient<
-        facebook::neteng::fboss::bgp::thrift::TBgpServiceAsyncClient>(hostInfo);
+    auto bgpClient = utils::createClient<apache::thrift::Client<
+        facebook::neteng::fboss::bgp::thrift::TBgpService>>(hostInfo);
 
     // Product info helps us make some decisions when there need to be per
     // platform treatment of certain outputs
