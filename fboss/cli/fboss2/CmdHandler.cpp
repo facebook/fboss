@@ -372,6 +372,7 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
       folly::demangle(typeid(this)).toStdString(), // CmdName
       utils::getDurationStr(watch), // Total time to run command
       CmdArgsLists::getInstance()->getArgStr(), // Options used
+      utils::getUserInfo(), // User Information
   };
   utils::logUsage(cmdLogInfo);
 }

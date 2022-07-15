@@ -186,6 +186,19 @@ std::vector<int32_t> getPortIDList(
   return portIDList;
 }
 
+std::string getUserInfo() {
+  std::vector<std::string> userInfo;
+  auto fbidStr = getenv("FB_UID");
+  if (fbidStr && strcmp(fbidStr, "") != 0) {
+    userInfo.emplace_back(fbidStr);
+  }
+  auto envuser = getenv("USER");
+  if (envuser && strcmp(envuser, "") != 0) {
+    userInfo.emplace_back(envuser);
+  }
+  return folly::join<std::string, std::vector<std::string>>(" | ", userInfo);
+}
+
 std::string getAddrStr(network::thrift::BinaryAddress addr) {
   auto ip = *addr.addr();
   char ipBuff[INET6_ADDRSTRLEN];
