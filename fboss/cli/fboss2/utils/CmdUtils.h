@@ -51,7 +51,8 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_FSDB_PATH,
   OBJECT_ARG_TYPE_AS_SEQUENCE,
   OBJECT_ARG_TYPE_LOCAL_PREFERENCE,
-  OBJECT_ARG_TYPE_PHY_CHIP_TYPE
+  OBJECT_ARG_TYPE_PHY_CHIP_TYPE,
+  OBJECT_ARG_TYPE_FSDB_CLIENT_ID
 };
 
 template <typename T>
@@ -323,6 +324,17 @@ class FsdbPath : public BaseObjectArgType<std::string> {
   }
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_PATH;
+};
+
+class FsdbClientId : public BaseObjectArgType<std::string> {
+ public:
+  /* implicit */ FsdbClientId(std::vector<std::string> fsdbClientId)
+      : BaseObjectArgType(fsdbClientId) {
+    // if there is no input, the default value will be given inside each command
+  }
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_CLIENT_ID;
 };
 
 // Called after CLI11 is initlized but before parsing, for any final

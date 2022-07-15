@@ -125,6 +125,13 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
         cmd.argType ==
         utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_VIP_INJECTOR_ID) {
       subCmd->add_option("injector", args, "Injector");
+    } else if (
+        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_CLIENT_ID) {
+      subCmd->add_option(
+          "fsdb_client_id",
+          args,
+          "Client ID representing fsdb publishers/subscribers IDs e.g.\n"
+          "'agent'\n");
     }
   }
   return subCmd;
