@@ -175,7 +175,7 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
   /**
    * Find the interface IP address to reach the given destination
    */
-  Addresses::const_iterator getAddressToReach(
+  std::optional<folly::CIDRNetwork> getAddressToReach(
       const folly::IPAddress& dest) const;
 
   /**

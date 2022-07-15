@@ -10,9 +10,12 @@
 #include "fboss/agent/state/Interface.h"
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <optional>
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "folly/IPAddress.h"
+#include "folly/MacAddress.h"
 
 using folly::IPAddress;
 using folly::MacAddress;
@@ -78,19 +81,18 @@ folly::dynamic InterfaceFields::toFollyDynamic() const {
   return intf;
 }
 
-Interface::Addresses::const_iterator Interface::getAddressToReach(
+std::optional<folly::CIDRNetwork> Interface::getAddressToReach(
     const folly::IPAddress& dest) const {
-  for (auto iter = getAddresses().begin(); iter != getAddresses().end();
-       iter++) {
-    if (dest.inSubnet(iter->first, iter->second)) {
-      return iter;
+  for (const auto& [ip, mask] : getAddresses()) {
+    if (dest.inSubnet(ip, mask)) {
+      return folly::CIDRNetwork(ip, mask);
     }
   }
-  return getAddresses().end();
+  return std::nullopt;
 }
 
 bool Interface::canReachAddress(const folly::IPAddress& dest) const {
-  return getAddressToReach(dest) != getAddresses().end();
+  return getAddressToReach(dest).has_value();
 }
 
 bool Interface::isIpAttached(

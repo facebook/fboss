@@ -355,9 +355,9 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithoutEgressPort) {
     EXPECT_EQ(tunnel.dstMac, params.neighborMACs[0]);
     const auto& interface =
         state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
-    const auto& iter = interface->getAddressToReach(params.neighborIPs[0]);
-    ASSERT_TRUE(iter != interface->getAddresses().end());
-    EXPECT_EQ(tunnel.srcIp, iter->first);
+    const auto& addr = interface->getAddressToReach(params.neighborIPs[0]);
+    ASSERT_TRUE(addr.has_value());
+    EXPECT_EQ(tunnel.srcIp, addr->first);
     EXPECT_EQ(tunnel.srcMac, interface->getMac());
   });
 }
@@ -406,11 +406,11 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithEgressPort) {
 
     const auto& interface =
         state->getInterfaces()->getInterfaceIf(params.interfaces[1]);
-    const auto& iter = interface->getAddressToReach(params.neighborIPs[1]);
+    const auto& addr = interface->getAddressToReach(params.neighborIPs[1]);
 
-    ASSERT_TRUE(iter != interface->getAddresses().end());
+    ASSERT_TRUE(addr.has_value());
 
-    EXPECT_EQ(tunnel.srcIp, iter->first);
+    EXPECT_EQ(tunnel.srcIp, addr->first);
     EXPECT_EQ(tunnel.srcMac, MacAddress(interface->getMac()));
   });
 }
@@ -482,11 +482,11 @@ TYPED_TEST(MirrorManagerTest, ResolveMirrorWithDirectlyConnectedRoute) {
 
     const auto& interface =
         state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
-    const auto& iter = interface->getAddressToReach(params.neighborIPs[0]);
+    const auto& addr = interface->getAddressToReach(params.neighborIPs[0]);
 
-    ASSERT_TRUE(iter != interface->getAddresses().end());
+    ASSERT_TRUE(addr.has_value());
 
-    EXPECT_EQ(tunnel.srcIp, iter->first);
+    EXPECT_EQ(tunnel.srcIp, addr->first);
     EXPECT_EQ(tunnel.srcMac, interface->getMac());
   });
 }
@@ -552,11 +552,11 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
 
     const auto& interface0 =
         state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
-    const auto& iter0 = interface0->getAddressToReach(params.neighborIPs[0]);
+    const auto& addr = interface0->getAddressToReach(params.neighborIPs[0]);
 
-    ASSERT_TRUE(iter0 != interface0->getAddresses().end());
+    ASSERT_TRUE(addr.has_value());
 
-    EXPECT_EQ(tunnel.srcIp, iter0->first);
+    EXPECT_EQ(tunnel.srcIp, addr->first);
     EXPECT_EQ(tunnel.srcMac, interface0->getMac());
   });
 
@@ -577,11 +577,11 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteDelete) {
 
     const auto& interface1 =
         state->getInterfaces()->getInterfaceIf(params.interfaces[1]);
-    const auto& iter1 = interface1->getAddressToReach(params.neighborIPs[1]);
+    const auto& addr = interface1->getAddressToReach(params.neighborIPs[1]);
 
-    ASSERT_TRUE(iter1 != interface1->getAddresses().end());
+    ASSERT_TRUE(addr.has_value());
 
-    EXPECT_EQ(tunnel.srcIp, iter1->first);
+    EXPECT_EQ(tunnel.srcIp, addr->first);
     EXPECT_EQ(tunnel.srcMac, interface1->getMac());
   });
 }
@@ -619,11 +619,11 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
 
     const auto& interface1 =
         state->getInterfaces()->getInterfaceIf(params.interfaces[1]);
-    const auto& iter1 = interface1->getAddressToReach(params.neighborIPs[1]);
+    const auto& addr = interface1->getAddressToReach(params.neighborIPs[1]);
 
-    ASSERT_TRUE(iter1 != interface1->getAddresses().end());
+    ASSERT_TRUE(addr.has_value());
 
-    EXPECT_EQ(tunnel.srcIp, iter1->first);
+    EXPECT_EQ(tunnel.srcIp, addr->first);
     EXPECT_EQ(tunnel.srcMac, interface1->getMac());
   });
 
@@ -656,11 +656,11 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnRouteAdd) {
 
     const auto& interface0 =
         state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
-    const auto& iter0 = interface0->getAddressToReach(params.neighborIPs[0]);
+    const auto& addr = interface0->getAddressToReach(params.neighborIPs[0]);
 
-    ASSERT_TRUE(iter0 != interface0->getAddresses().end());
+    ASSERT_TRUE(addr.has_value());
 
-    EXPECT_EQ(tunnel.srcIp, iter0->first);
+    EXPECT_EQ(tunnel.srcIp, addr->first);
     EXPECT_EQ(tunnel.srcMac, interface0->getMac());
   });
 }
@@ -709,11 +709,11 @@ TYPED_TEST(MirrorManagerTest, UpdateNoMirrorWithEgressPortOnRouteDel) {
 
     const auto& interface =
         state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
-    const auto& iter = interface->getAddressToReach(params.neighborIPs[0]);
+    const auto& addr = interface->getAddressToReach(params.neighborIPs[0]);
 
-    ASSERT_TRUE(iter != interface->getAddresses().end());
+    ASSERT_TRUE(addr.has_value());
 
-    EXPECT_EQ(tunnel.srcIp, iter->first);
+    EXPECT_EQ(tunnel.srcIp, addr->first);
     EXPECT_EQ(tunnel.srcMac, interface->getMac());
   });
 
@@ -812,11 +812,11 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
 
     const auto& interface0 =
         state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
-    const auto& iter0 = interface0->getAddressToReach(params.neighborIPs[0]);
+    const auto& addr = interface0->getAddressToReach(params.neighborIPs[0]);
 
-    ASSERT_TRUE(iter0 != interface0->getAddresses().end());
+    ASSERT_TRUE(addr.has_value());
 
-    EXPECT_EQ(tunnel.srcIp, iter0->first);
+    EXPECT_EQ(tunnel.srcIp, addr->first);
     EXPECT_EQ(tunnel.srcMac, interface0->getMac());
   });
 
@@ -857,11 +857,11 @@ TYPED_TEST(MirrorManagerTest, UpdateMirrorOnNeighborChange) {
 
     const auto& interface1 =
         state->getInterfaces()->getInterfaceIf(params.interfaces[0]);
-    const auto& iter1 = interface1->getAddressToReach(params.neighborIPs[0]);
+    const auto& addr = interface1->getAddressToReach(params.neighborIPs[0]);
 
-    ASSERT_TRUE(iter1 != interface1->getAddresses().end());
+    ASSERT_TRUE(addr.has_value());
 
-    EXPECT_EQ(tunnel.srcIp, iter1->first);
+    EXPECT_EQ(tunnel.srcIp, addr->first);
     EXPECT_EQ(tunnel.srcMac, interface1->getMac());
   });
 }
