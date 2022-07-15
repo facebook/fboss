@@ -128,19 +128,43 @@ auto createComplicatedFilter() {
   return unionList;
 }
 
+auto emptyFilteredOutput() {
+  CmdGlobalOptions::FilterTerm filterTerm1 = {
+      "id", std::make_shared<FilterOpLte>(), "2"};
+  CmdGlobalOptions::FilterTerm filterTerm2 = {
+      "linkState", std::make_shared<FilterOpEq>(), "Up"};
+  CmdGlobalOptions::IntersectionList intersectList = {filterTerm1, filterTerm2};
+  CmdGlobalOptions::UnionList unionList = {intersectList};
+  return unionList;
+}
+
+auto noModificationFilter() {
+  // all entires will satisify this filter because linkState can be either Up or
+  // Down
+  CmdGlobalOptions::FilterTerm filterTerm1 = {
+      "linkState", std::make_shared<FilterOpEq>(), "Down"};
+  CmdGlobalOptions::FilterTerm filterTerm2 = {
+      "linkState", std::make_shared<FilterOpEq>(), "Up"};
+  CmdGlobalOptions::IntersectionList intersectList1 = {filterTerm1};
+  CmdGlobalOptions::IntersectionList intersectList2 = {filterTerm2};
+  CmdGlobalOptions::UnionList unionList = {intersectList1, intersectList2};
+  return unionList;
+}
+
 class FilterTestFixture : public CmdHandlerTestBase {
  public:
   cli::ShowPortModel model;
+  ValidFilterMapType validFilterMap;
 
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
     model = createTestModel();
+    validFilterMap = CmdShowPort().getValidFilters();
   }
 };
 
 TEST_F(FilterTestFixture, singleTermFiltering) {
   const auto& singleTermFilter = createSingleTermFilter();
-  const auto& validFilterMap = CmdShowPort().getValidFilters();
   const auto& filteredResult =
       filterOutput<CmdShowPort>(model, singleTermFilter, validFilterMap);
   // check that all linkState are "Up" in the filtered model.
@@ -152,7 +176,6 @@ TEST_F(FilterTestFixture, singleTermFiltering) {
 
 TEST_F(FilterTestFixture, itersectionFiltering) {
   const auto& intersectionFilter = createIntersectionFilter();
-  const auto& validFilterMap = CmdShowPort().getValidFilters();
   const auto& filteredResult =
       filterOutput<CmdShowPort>(model, intersectionFilter, validFilterMap);
   // check that all linkState are "Down" AND adminState are "Disabled" in the
@@ -167,7 +190,6 @@ TEST_F(FilterTestFixture, itersectionFiltering) {
 
 TEST_F(FilterTestFixture, unionFiltering) {
   const auto& unionFilter = createUnionFilter();
-  const auto& validFilterMap = CmdShowPort().getValidFilters();
   const auto& filteredResult =
       filterOutput<CmdShowPort>(model, unionFilter, validFilterMap);
   // check that all id > 7 OR tcvrPresent is "Absent" in the
@@ -181,7 +203,6 @@ TEST_F(FilterTestFixture, unionFiltering) {
 
 TEST_F(FilterTestFixture, complicatedFiltering) {
   const auto& compFilter = createComplicatedFilter();
-  const auto& validFilterMap = CmdShowPort().getValidFilters();
   const auto& filteredResult =
       filterOutput<CmdShowPort>(model, compFilter, validFilterMap);
   // check that (id > 3 && tcvrPresent == "Present") || (linkState == "Up" &&
@@ -197,4 +218,19 @@ TEST_F(FilterTestFixture, complicatedFiltering) {
   }
 }
 
+TEST_F(FilterTestFixture, noEntrySatisfiesFilter) {
+  const auto& emptyFilter = emptyFilteredOutput();
+  const auto& filteredResult =
+      filterOutput<CmdShowPort>(model, emptyFilter, validFilterMap);
+  // No entry satisfies (id <= 2 && linkState == "Up")
+  EXPECT_EQ(filteredResult.get_portEntries().size(), 0);
+}
+
+TEST_F(FilterTestFixture, allEntriesSatisfyFilter) {
+  const auto& noModification = noModificationFilter();
+  const auto& filteredResult =
+      filterOutput<CmdShowPort>(model, noModification, validFilterMap);
+  // All entries satisfy (linkState == Up || linkState == Down)
+  EXPECT_EQ(filteredResult.get_portEntries().size(), 6);
+}
 } // namespace facebook::fboss
