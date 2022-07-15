@@ -96,6 +96,7 @@ class CmdHandler {
   using ThriftPrimitiveType = apache::thrift::metadata::ThriftPrimitiveType;
 
   void run();
+  void runHelper();
 
   bool isFilterable();
 

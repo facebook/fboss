@@ -11,6 +11,7 @@
 #include "fboss/cli/fboss2/CmdHandler.h"
 
 #include <fboss/cli/fboss2/CmdGlobalOptions.h>
+#include <folly/lang/Exception.h>
 #include "fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
 #include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
@@ -59,8 +60,10 @@
 
 #include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
+#include <cstring>
 #include <future>
 #include <iostream>
+#include <stdexcept>
 
 #include "fboss/cli/fboss2/commands/show/acl/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/gen-cpp2/model_visitation.h"
@@ -294,7 +297,7 @@ template const ValidFilterMapType CmdHandler<
 static bool hasRun = false;
 
 template <typename CmdTypeT, typename CmdTypeTraits>
-void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
+void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
   // Parsing library invokes every chained command handler, but we only need
   // the 'leaf' command handler to be invoked. Thus, after the first (leaf)
   // command handler is invoked, simply return.
@@ -305,13 +308,12 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   }
 
   hasRun = true;
-
-  utils::setLogLevel(CmdGlobalOptions::getInstance()->getLogLevel());
-
   auto extraOptionsEC =
       CmdGlobalOptions::getInstance()->validateNonFilterOptions();
   if (extraOptionsEC != CmdGlobalOptions::CliOptionResult::EOK) {
-    exit(EINVAL);
+    throw std::invalid_argument(folly::to<std::string>(
+        "Error in filter parsing: ",
+        utils::getCliOptionErrStr(extraOptionsEC)));
   }
 
   /* If there are errors during filter parsing, we do not exit in the getFilters
@@ -323,7 +325,9 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   auto parsedFilters =
       CmdGlobalOptions::getInstance()->getFilters(filterParsingEC);
   if (filterParsingEC != CmdGlobalOptions::CliOptionResult::EOK) {
-    exit(EINVAL);
+    throw std::invalid_argument(folly::to<std::string>(
+        "Error in filter parsing: ",
+        utils::getCliOptionErrStr(filterParsingEC)));
   }
 
   ValidFilterMapType validFilters = {};
@@ -332,7 +336,8 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
     const auto& errorCode =
         CmdGlobalOptions::getInstance()->isValid(validFilters, parsedFilters);
     if (!(errorCode == CmdGlobalOptions::CliOptionResult::EOK)) {
-      exit(EINVAL);
+      throw std::invalid_argument(folly::to<std::string>(
+          "Error in filter parsing: ", utils::getCliOptionErrStr(errorCode)));
     }
   }
 
@@ -341,8 +346,6 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
   std::vector<std::shared_future<std::tuple<std::string, RetType, std::string>>>
       futureList;
 
-  // setup a stop_watch for total time to run command
-  folly::stop_watch<> watch;
   for (const auto& host : hosts) {
     futureList.push_back(std::async(
                              std::launch::async,
@@ -364,17 +367,44 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
     auto [host, data, errStr] = fut.get();
     // exit with failure if any of the calls failed
     if (!errStr.empty()) {
-      exit(1);
+      throw std::runtime_error("Error in command execution");
     }
   }
+}
 
-  utils::CmdLogInfo cmdLogInfo = {
-      folly::demangle(typeid(this)).toStdString(), // CmdName
-      utils::getDurationStr(watch), // Total time to run command
-      CmdArgsLists::getInstance()->getArgStr(), // Options used
-      utils::getUserInfo(), // User Information
-  };
-  utils::logUsage(cmdLogInfo);
+template <typename CmdTypeT, typename CmdTypeTraits>
+void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
+  utils::setLogLevel(CmdGlobalOptions::getInstance()->getLogLevel());
+
+  // setup a stop_watch for total time to run command
+  folly::stop_watch<> watch;
+  utils::CmdLogInfo cmdLogInfo;
+
+  try {
+    // The MACROS are executed in reversed order
+    // In order to have SCOPE_EXIT be the last one to get executed,
+    // it must come before SCOPE_FAIL and SCOPE_SUCCESS
+    SCOPE_EXIT {
+      cmdLogInfo.CmdName = folly::demangle(typeid(this)).toStdString();
+      cmdLogInfo.Arguments = CmdArgsLists::getInstance()->getArgStr();
+      cmdLogInfo.Duration = utils::getDurationStr(watch);
+      cmdLogInfo.UserInfo = utils::getUserInfo();
+      utils::logUsage(cmdLogInfo);
+    };
+
+    SCOPE_FAIL {
+      cmdLogInfo.ExitStatus = "FAILURE";
+    };
+
+    SCOPE_SUCCESS {
+      cmdLogInfo.ExitStatus = "SUCCESS";
+    };
+
+    runHelper();
+  } catch (const std::exception& e) {
+    std::cerr << e.what() << std::endl;
+    exit(1);
+  }
 }
 
 /* Logic: We consider a thrift struct to be filterable only if it is of type

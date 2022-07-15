@@ -240,4 +240,23 @@ std::string getAdminDistanceStr(AdminDistance adminDistance) {
       std::to_string(static_cast<int>(adminDistance)));
 }
 
+std::string getCliOptionErrStr(CmdGlobalOptions::CliOptionResult optRes) {
+  switch (optRes) {
+    case CmdGlobalOptions::CliOptionResult::EOK:
+      return "EOK";
+    case CmdGlobalOptions::CliOptionResult::KEY_ERROR:
+      return "KEY_ERROR";
+    case CmdGlobalOptions::CliOptionResult::VALUE_ERROR:
+      return "VALUE_ERROR";
+    case CmdGlobalOptions::CliOptionResult::TYPE_ERROR:
+      return "TYPE_ERROR";
+    case CmdGlobalOptions::CliOptionResult::OP_ERROR:
+      return "OP_ERROR";
+    case CmdGlobalOptions::CliOptionResult::EXTRA_OPTIONS:
+      return "EXTRA_OPTIONS";
+    case CmdGlobalOptions::CliOptionResult::TERM_ERROR:
+      return "TERM_ERROR";
+  }
+  return "UNKNOWN";
+}
 } // namespace facebook::fboss::utils
