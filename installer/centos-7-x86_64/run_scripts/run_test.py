@@ -34,6 +34,7 @@ OPT_ARG_SKIP_KNOWN_BAD_TESTS = "--skip-known-bad-tests"
 OPT_ARG_OSS = "--oss"
 OPT_ARG_NO_OSS = "--no-oss"
 OPT_ARG_MGT_IF = "--mgmt-if"
+OPT_ARG_SAI_BIN = "--sai-bin"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
@@ -270,7 +271,7 @@ class SaiTestRunner(TestRunner):
         return ""
 
     def _get_test_binary_name(self):
-        return "sai_test-sai_impl-1.10.2"
+        return args.sai_bin if args.sai_bin else "sai_test-sai_impl-1.10.2"
 
     def _get_sdk_logging_flags(self, sdk_logging_dir, test_prefix, test_to_run):
         return [
@@ -333,6 +334,7 @@ if __name__ == "__main__":
         default="eth0",
         help=("Management interface (default = eth0)"),
     )
+    ap.add_argument(OPT_ARG_SAI_BIN, type=str, help=("SAI Test binary name"))
 
     ap.add_argument(
         OPT_ARG_OSS,
