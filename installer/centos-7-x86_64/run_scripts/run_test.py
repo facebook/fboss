@@ -33,6 +33,7 @@ OPT_ARG_SDK_LOGGING = "--sdk_logging"
 OPT_ARG_SKIP_KNOWN_BAD_TESTS = "--skip-known-bad-tests"
 OPT_ARG_OSS = "--oss"
 OPT_ARG_NO_OSS = "--no-oss"
+OPT_ARG_MGT_IF = "--mgmt-if"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
@@ -67,7 +68,7 @@ class TestRunner(abc.ABC):
         run_cmd = [
             self._get_test_binary_name(),
             "--mgmt-if",
-            "eno3",
+            args.mgmt_if,
             "--config",
             conf_file,
             "--gtest_filter=" + test_to_run,
@@ -326,6 +327,13 @@ if __name__ == "__main__":
             + "=path-to-known-bad-tests-file"
         ),
     )
+    ap.add_argument(
+        OPT_ARG_MGT_IF,
+        type=str,
+        default="eth0",
+        help=("Management interface (default = eth0)"),
+    )
+
     ap.add_argument(
         OPT_ARG_OSS,
         action="store_true",
