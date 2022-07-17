@@ -31,6 +31,8 @@ OPT_ARG_FILTER = "--filter"
 OPT_ARG_CONFIG_FILE = "--config"
 OPT_ARG_SDK_LOGGING = "--sdk_logging"
 OPT_ARG_SKIP_KNOWN_BAD_TESTS = "--skip-known-bad-tests"
+OPT_ARG_OSS = "--oss"
+OPT_ARG_NO_OSS = "--no-oss"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
@@ -280,10 +282,6 @@ class SaiTestRunner(TestRunner):
 
 
 if __name__ == "__main__":
-    if ("FBOSS_BIN" not in os.environ) or ("FBOSS_LIB" not in os.environ):
-        print("FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'")
-        sys.exit(0)
-
     ap = ArgumentParser(description="Run tests.")
 
     # Define common args
@@ -328,6 +326,19 @@ if __name__ == "__main__":
             + "=path-to-known-bad-tests-file"
         ),
     )
+    ap.add_argument(
+        OPT_ARG_OSS,
+        action="store_true",
+        help="OSS build",
+    )
+
+    ap.add_argument(
+        OPT_ARG_NO_OSS,
+        action="store_false",
+        dest="oss",
+        help="No OSS build",
+    )
+    ap.set_defaults(oss=True)
 
     # Add subparsers for different test types
     subparsers = ap.add_subparsers()
@@ -343,4 +354,12 @@ if __name__ == "__main__":
     # Parse the args
     args = ap.parse_known_args()
     args = ap.parse_args(args[1], args[0])
+
+    if args.oss:
+        if ("FBOSS_BIN" not in os.environ) or ("FBOSS_LIB" not in os.environ):
+            print(
+                "FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'"
+            )
+            sys.exit(0)
+
     args.func(args)
