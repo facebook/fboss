@@ -372,4 +372,9 @@ if __name__ == "__main__":
             )
             sys.exit(0)
 
-    args.func(args)
+    try:
+        func = args.func
+    except AttributeError as e:
+        raise AttributeError("too few arguments") from e
+
+    func(args)
