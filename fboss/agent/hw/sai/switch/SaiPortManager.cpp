@@ -46,6 +46,30 @@ void setUninitializedStatsToZero(long& counter) {
       counter == hardware_stats_constants::STAT_UNINITIALIZED() ? 0 : counter;
 }
 
+uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
+  switch (counterId) {
+    case SAI_PORT_STAT_PFC_0_RX_PKTS:
+      return 0;
+    case SAI_PORT_STAT_PFC_1_RX_PKTS:
+      return 1;
+    case SAI_PORT_STAT_PFC_2_RX_PKTS:
+      return 2;
+    case SAI_PORT_STAT_PFC_3_RX_PKTS:
+      return 3;
+    case SAI_PORT_STAT_PFC_4_RX_PKTS:
+      return 4;
+    case SAI_PORT_STAT_PFC_5_RX_PKTS:
+      return 5;
+    case SAI_PORT_STAT_PFC_6_RX_PKTS:
+      return 6;
+    case SAI_PORT_STAT_PFC_7_RX_PKTS:
+      return 7;
+    default:
+      break;
+  }
+  throw FbossError("Got unexpected port counter id: ", counterId);
+}
+
 void fillHwPortStats(
     const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
     const SaiDebugCounterManager& debugCounterManager,
@@ -118,6 +142,18 @@ void fillHwPortStats(
         hwPortStats.fecUncorrectableErrors() =
             *hwPortStats.fecUncorrectableErrors() + value;
         break;
+      case SAI_PORT_STAT_PFC_0_RX_PKTS:
+      case SAI_PORT_STAT_PFC_1_RX_PKTS:
+      case SAI_PORT_STAT_PFC_2_RX_PKTS:
+      case SAI_PORT_STAT_PFC_3_RX_PKTS:
+      case SAI_PORT_STAT_PFC_4_RX_PKTS:
+      case SAI_PORT_STAT_PFC_5_RX_PKTS:
+      case SAI_PORT_STAT_PFC_6_RX_PKTS:
+      case SAI_PORT_STAT_PFC_7_RX_PKTS: {
+        auto priority = getPriorityFromPfcPktCounterId(counterId);
+        hwPortStats.inPfc_()[priority] = value;
+        break;
+      }
       default:
         if (counterId ==
             debugCounterManager.getPortL3BlackHoleCounterStatId()) {
