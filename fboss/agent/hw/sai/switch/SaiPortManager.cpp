@@ -257,6 +257,82 @@ void SaiPortManager::addMirror(const std::shared_ptr<Port>& swPort) {
   }
 }
 
+void SaiPortManager::programPfc(
+    const std::shared_ptr<Port>& swPort,
+    sai_uint8_t txPfc,
+    sai_uint8_t rxPfc) {
+  auto portHandle = getPortHandle(swPort->getID());
+
+  /*
+   * TODO XXX: SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_SEPARATE is the only mode
+   * to support, however, will need to wait till TAJO implements the same.
+   * Till then, SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED which gives us
+   * an option to let the programming work for tx == rx case. WDG400C-448
+   * on TAJO tracks this support request.
+   */
+  if (txPfc == rxPfc) {
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::PriorityFlowControlMode{
+            SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED});
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::PriorityFlowControl{txPfc});
+  } else {
+    /*
+     * PFC tx enabled / rx disabled and vice versa is unsupported in the
+     * current PFC mode of SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED!
+     */
+    throw FbossError("PFC TX and RX configured differently is unsupported!");
+  }
+  auto logHelper = [](uint8_t tx, uint8_t rx) {
+    return folly::to<std::string>(
+        tx ? "True/" : "False/", rx ? "True" : "False");
+  };
+  XLOG(DBG3) << "Successfully enabled pfc on " << swPort->getName()
+             << ", TX/RX = " << logHelper(txPfc, rxPfc);
+}
+
+std::pair<sai_uint8_t, sai_uint8_t> SaiPortManager::preparePfcConfigs(
+    const std::shared_ptr<Port>& swPort) {
+  auto pfc = swPort->getPfc();
+  sai_uint8_t txPfc = 0;
+  sai_uint8_t rxPfc = 0;
+
+  if (pfc.has_value()) {
+    // PFC is enabled for all priorities on a port
+    txPfc = (*pfc->tx()) ? 0xff : 0;
+    rxPfc = (*pfc->rx()) ? 0xff : 0;
+  }
+  return std::pair(txPfc, rxPfc);
+}
+
+void SaiPortManager::addPfc(const std::shared_ptr<Port>& swPort) {
+  if (swPort->getPfc().has_value()) {
+    // PFC is enabled for all priorities on a port
+    sai_uint8_t txPfc, rxPfc;
+    std::tie(txPfc, rxPfc) = preparePfcConfigs(swPort);
+    programPfc(swPort, txPfc, rxPfc);
+  }
+}
+
+void SaiPortManager::changePfc(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  if (oldPort->getPfc() != newPort->getPfc()) {
+    sai_uint8_t txPfc, rxPfc;
+    std::tie(txPfc, rxPfc) = preparePfcConfigs(newPort);
+    programPfc(newPort, txPfc, rxPfc);
+  } else {
+    XLOG(DBG4) << "PFC setting unchanged for port " << oldPort->getName();
+  }
+}
+
+void SaiPortManager::removePfc(const std::shared_ptr<Port>& swPort) {
+  if (swPort->getPfc().has_value()) {
+    sai_uint8_t txPfc = 0, rxPfc = 0;
+    programPfc(swPort, txPfc, rxPfc);
+  }
+}
+
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   auto portSaiId = addPortImpl(swPort);
   concurrentIndices_->portIds.emplace(portSaiId, swPort->getID());
@@ -356,6 +432,7 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
 
   removeMirror(swPort);
   removeSamplePacket(swPort);
+  removePfc(swPort);
 
   concurrentIndices_->portIds.erase(itr->second->port->adapterKey());
   concurrentIndices_->portSaiIds.erase(swId);

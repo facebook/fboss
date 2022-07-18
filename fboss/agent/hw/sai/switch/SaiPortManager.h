@@ -235,6 +235,17 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   void resetSamplePacket(SaiPortHandle* portHandle);
+  void programPfc(
+      const std::shared_ptr<Port>& swPort,
+      sai_uint8_t txPfc,
+      sai_uint8_t rxPfc);
+  std::pair<sai_uint8_t, sai_uint8_t> preparePfcConfigs(
+      const std::shared_ptr<Port>& swPort);
+  void addPfc(const std::shared_ptr<Port>& swPort);
+  void changePfc(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
+  void removePfc(const std::shared_ptr<Port>& swPort);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
