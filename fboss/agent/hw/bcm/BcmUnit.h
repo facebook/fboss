@@ -93,6 +93,7 @@ class BcmUnit {
  private:
   void attach(bool warmBoot);
   int createHwUnit();
+  int createHwUnitHelper(uint16_t deviceID, uint16_t revisionID);
   int destroyHwUnit();
 
   // Forbidden copy constructor and assignment operator
