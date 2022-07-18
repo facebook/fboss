@@ -355,6 +355,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // Egress MacSec ACL
         systemPortId, // System Port Id
         ptpStatusOpt, // PTP Mode, can be std::nullopt
+        std::nullopt, // PFC Mode
+        std::nullopt, // PFC Priorities
   };
 }
 

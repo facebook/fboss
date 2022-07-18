@@ -179,6 +179,16 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_EYE_VALUES,
         std::vector<sai_port_lane_eye_values_t>,
         SaiPortEyeValuesDefault>;
+    using PriorityFlowControlMode = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_MODE,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
+    using PriorityFlowControl = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL,
+        sai_uint8_t,
+        SaiIntDefault<sai_uint8_t>>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -209,7 +219,9 @@ struct SaiPortTraits {
       std::optional<Attributes::IngressMacSecAcl>,
       std::optional<Attributes::EgressMacSecAcl>,
       std::optional<Attributes::SystemPortId>,
-      std::optional<Attributes::PtpMode>>;
+      std::optional<Attributes::PtpMode>,
+      std::optional<Attributes::PriorityFlowControlMode>,
+      std::optional<Attributes::PriorityFlowControl>>;
 
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
@@ -271,6 +283,8 @@ SAI_ATTRIBUTE_NAME(Port, EgressMacSecAcl)
 SAI_ATTRIBUTE_NAME(Port, SystemPortId)
 SAI_ATTRIBUTE_NAME(Port, PtpMode)
 SAI_ATTRIBUTE_NAME(Port, PortEyeValues)
+SAI_ATTRIBUTE_NAME(Port, PriorityFlowControlMode)
+SAI_ATTRIBUTE_NAME(Port, PriorityFlowControl)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

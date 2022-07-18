@@ -183,7 +183,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
         std::nullopt, std::nullopt,
 #endif
-        std::nullopt, std::nullopt, std::nullopt, std::nullopt
+        std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+        std::nullopt,
   };
 }
 

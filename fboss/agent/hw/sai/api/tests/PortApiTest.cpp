@@ -46,7 +46,9 @@ class PortApiTest : public ::testing::Test {
           std::nullopt, // Ingress macsec acl
           std::nullopt, // Egress macsec acl
           std::nullopt, // System Port Id
-          std::nullopt // PTP Mode
+          std::nullopt, // PTP Mode
+          std::nullopt, // PFC Mode
+          std::nullopt, // PFC Priorities
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
