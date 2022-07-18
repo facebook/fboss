@@ -223,7 +223,7 @@ struct SaiPortTraits {
       std::optional<Attributes::PriorityFlowControlMode>,
       std::optional<Attributes::PriorityFlowControl>>;
 
-  static constexpr std::array<sai_stat_id_t, 24> CounterIdsToRead = {
+  static constexpr std::array<sai_stat_id_t, 32> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,          SAI_PORT_STAT_IF_IN_UCAST_PKTS,
       SAI_PORT_STAT_IF_IN_MULTICAST_PKTS,  SAI_PORT_STAT_IF_IN_BROADCAST_PKTS,
       SAI_PORT_STAT_IF_IN_DISCARDS,        SAI_PORT_STAT_IF_IN_ERRORS,
@@ -236,6 +236,10 @@ struct SaiPortTraits {
       SAI_PORT_STAT_PFC_2_RX_PKTS,         SAI_PORT_STAT_PFC_3_RX_PKTS,
       SAI_PORT_STAT_PFC_4_RX_PKTS,         SAI_PORT_STAT_PFC_5_RX_PKTS,
       SAI_PORT_STAT_PFC_6_RX_PKTS,         SAI_PORT_STAT_PFC_7_RX_PKTS,
+      SAI_PORT_STAT_PFC_0_TX_PKTS,         SAI_PORT_STAT_PFC_1_TX_PKTS,
+      SAI_PORT_STAT_PFC_2_TX_PKTS,         SAI_PORT_STAT_PFC_3_TX_PKTS,
+      SAI_PORT_STAT_PFC_4_TX_PKTS,         SAI_PORT_STAT_PFC_5_TX_PKTS,
+      SAI_PORT_STAT_PFC_6_TX_PKTS,         SAI_PORT_STAT_PFC_7_TX_PKTS,
   };
   static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
 };
