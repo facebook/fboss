@@ -49,6 +49,8 @@ sai_status_t create_port_fn(
   std::optional<sai_object_id_t> egressMacsecAcl;
   std::optional<uint16_t> systemPortId;
   std::optional<sai_port_ptp_mode_t> ptpMode;
+  std::optional<sai_port_priority_flow_control_mode_t> priorityFlowControlMode;
+  std::optional<sai_uint8_t> priorityFlowControl;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
@@ -143,6 +145,14 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_PTP_MODE:
         ptpMode = static_cast<sai_port_ptp_mode_t>(attr_list[i].value.s32);
         break;
+      case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_MODE:
+        priorityFlowControlMode =
+            static_cast<sai_port_priority_flow_control_mode_t>(
+                attr_list[i].value.u32);
+        break;
+      case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL:
+        priorityFlowControl = attr_list[i].value.u8;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -217,6 +227,12 @@ sai_status_t create_port_fn(
     }
   }
   port.interface_type = interface_type;
+  if (priorityFlowControlMode.has_value()) {
+    port.priorityFlowControlMode = priorityFlowControlMode.value();
+  }
+  if (priorityFlowControl.has_value()) {
+    port.priorityFlowControl = priorityFlowControl.value();
+  }
   return SAI_STATUS_SUCCESS;
 }
 
@@ -368,6 +384,13 @@ sai_status_t set_port_attribute_fn(
                 .list[j];
       }
     } break;
+    case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_MODE:
+      port.priorityFlowControlMode =
+          static_cast<sai_port_priority_flow_control_mode_t>(attr->value.u32);
+      break;
+    case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL:
+      port.priorityFlowControl = attr->value.u8;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -537,6 +560,12 @@ sai_status_t get_port_attribute_fn(
         for (int j = 0; j < port.portEyeValues.count; j++) {
           attr[i].value.porteyevalues.list[j] = port.portEyeValues.list[j];
         }
+        break;
+      case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_MODE:
+        attr[i].value.u32 = static_cast<int32_t>(port.priorityFlowControlMode);
+        break;
+      case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL:
+        attr[i].value.u8 = port.priorityFlowControl;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

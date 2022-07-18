@@ -59,6 +59,9 @@ struct FakePort {
   uint16_t systemPortId{0};
   sai_port_ptp_mode_t ptpMode{SAI_PORT_PTP_MODE_NONE};
   sai_port_eye_values_list_t portEyeValues;
+  sai_port_priority_flow_control_mode_t priorityFlowControlMode{
+      SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED};
+  sai_uint8_t priorityFlowControl{0xff};
 };
 
 struct FakePortSerdes {
