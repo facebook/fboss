@@ -1,11 +1,12 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/hw/sai/fake/FakeSaiTunnel.h"
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
-
 namespace {
 
 using facebook::fboss::FakeSai;
+using facebook::fboss::toSaiIpAddress;
 
 sai_status_t create_tunnel_fn(
     sai_object_id_t* tunnel_id,
@@ -59,12 +60,17 @@ sai_status_t create_tunnel_fn(
     }
   }
   *tunnel_id = fs->tunnelManager.create(
-      type,
-      underlay,
-      overlay,
-      ttlMode.value(),
-      dscpMode.value(),
-      ecnMode.value());
+      type, underlay, overlay, std::nullopt, std::nullopt, std::nullopt);
+  auto& tunnel = fs->tunnelManager.get(*tunnel_id);
+  if (ttlMode.has_value()) {
+    tunnel.ttlMode = ttlMode.value();
+  }
+  if (dscpMode.has_value()) {
+    tunnel.dscpMode = dscpMode.value();
+  }
+  if (ecnMode.has_value()) {
+    tunnel.ecnMode = ecnMode.value();
+  }
   return SAI_STATUS_SUCCESS;
 }
 
@@ -92,13 +98,16 @@ sai_status_t get_tunnel_attribute_fn(
         attr[i].value.oid = tunnel.overlay;
         break;
       case SAI_TUNNEL_ATTR_DECAP_TTL_MODE:
-        attr[i].value.s32 = tunnel.ttlMode.value();
+        attr[i].value.s32 =
+            tunnel.ttlMode.has_value() ? tunnel.ttlMode.value() : 0;
         break;
       case SAI_TUNNEL_ATTR_DECAP_DSCP_MODE:
-        attr[i].value.s32 = tunnel.dscpMode.value();
+        attr[i].value.s32 =
+            tunnel.dscpMode.has_value() ? tunnel.dscpMode.value() : 0;
         break;
       case SAI_TUNNEL_ATTR_DECAP_ECN_MODE:
-        attr[i].value.s32 = tunnel.ecnMode.value();
+        attr[i].value.s32 =
+            tunnel.ecnMode.has_value() ? tunnel.ecnMode.value() : 0;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
@@ -197,8 +206,10 @@ sai_status_t create_tunnel_term_table_entry_fn(
       srcIp,
       tunnelType,
       tunnelId,
-      dstIpMask.value(),
-      srcIpMask.value());
+      dstIpMask.has_value() ? dstIpMask.value()
+                            : toSaiIpAddress(folly::IPAddress("0.0.0.0")),
+      srcIpMask.has_value() ? srcIpMask.value()
+                            : toSaiIpAddress(folly::IPAddress("0.0.0.0")));
   return SAI_STATUS_SUCCESS;
 }
 
@@ -227,13 +238,17 @@ sai_status_t get_tunnel_term_table_entry_attribute_fn(
         attr[i].value.ipaddr = term.dstIp;
         break;
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_DST_IP_MASK:
-        attr[i].value.ipaddr = term.dstIpMask.value();
+        attr[i].value.ipaddr = term.dstIpMask.has_value()
+            ? term.dstIpMask.value()
+            : toSaiIpAddress(folly::IPAddress("0.0.0.0"));
         break;
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_SRC_IP:
         attr[i].value.ipaddr = term.srcIp;
         break;
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_SRC_IP_MASK:
-        attr[i].value.ipaddr = term.srcIpMask.value();
+        attr[i].value.ipaddr = term.srcIpMask.has_value()
+            ? term.srcIpMask.value()
+            : toSaiIpAddress(folly::IPAddress("0.0.0.0"));
         break;
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_TUNNEL_TYPE:
         attr[i].value.s32 = term.tunnelType;
