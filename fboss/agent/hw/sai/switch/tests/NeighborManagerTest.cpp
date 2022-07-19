@@ -31,7 +31,9 @@ class NeighborManagerTest : public ManagerTestBase {
   void checkEntry(
       const NeighborEntryT& neighborEntry,
       const folly::MacAddress& expectedDstMac,
-      sai_uint32_t expectedMetadata = 0) {
+      sai_uint32_t expectedMetadata = 0,
+      sai_uint32_t expectedEncapIndex = 0,
+      bool expectedIsLocal = true) {
     auto saiEntry =
         saiManagerTable->neighborManager().saiEntryFromSwEntry(neighborEntry);
     auto gotMac = saiApiTable->neighborApi().getAttribute(
@@ -40,6 +42,12 @@ class NeighborManagerTest : public ManagerTestBase {
     auto gotMetadata = saiApiTable->neighborApi().getAttribute(
         saiEntry, SaiNeighborTraits::Attributes::Metadata{});
     EXPECT_EQ(gotMetadata, expectedMetadata);
+    auto gotEncapIndex = saiApiTable->neighborApi().getAttribute(
+        saiEntry, SaiNeighborTraits::Attributes::EncapIndex{});
+    EXPECT_EQ(gotEncapIndex, expectedEncapIndex);
+    auto gotIsLocal = saiApiTable->neighborApi().getAttribute(
+        saiEntry, SaiNeighborTraits::Attributes::IsLocal{});
+    EXPECT_EQ(gotIsLocal, expectedIsLocal);
     auto saiNeighborHandle =
         saiManagerTable->neighborManager().getNeighborHandle(saiEntry);
     EXPECT_TRUE(saiNeighborHandle);
