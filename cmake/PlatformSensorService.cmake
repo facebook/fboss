@@ -5,11 +5,13 @@
 
 add_library(sensor_service_lib
   fboss/platform/sensor_service/GetSensorConfig.cpp
+  fboss/platform/sensor_service/FsdbSyncer.cpp
   fboss/platform/sensor_service/MockSensorConfig.cpp
   fboss/platform/sensor_service/SensorServiceImpl.cpp
   fboss/platform/sensor_service/DarwinSensorConfig.cpp
   fboss/platform/sensor_service/SensorServiceThriftHandler.cpp
   fboss/platform/sensor_service/SetupThrift.cpp
+  fboss/platform/sensor_service/oss/FsdbSyncer.cpp
   fboss/platform/sensor_service/oss/SetupThrift.cpp
   fboss/platform/sensor_service/oss/SensorStatsPub.cpp
 )
@@ -22,6 +24,9 @@ target_link_libraries(sensor_service_lib
   sensor_config_cpp2
   Folly::folly
   FBThrift::thriftcpp2
+  fsdb_stream_client
+  fsdb_pub_sub
+  fsdb_flags
 )
 
 add_executable(sensor_service
