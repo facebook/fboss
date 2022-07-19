@@ -87,6 +87,11 @@ TEST_F(NeighborManagerTest, addResolvedNeighborWithMetadata) {
   checkEntry(arpEntry, h0.mac, 42);
 }
 
+TEST_F(NeighborManagerTest, addResolvedNeighborWithEncapIndex) {
+  auto arpEntry = resolveArp(intf0.id, h0, std::nullopt, 42);
+  checkEntry(arpEntry, h0.mac, 0, 42);
+}
+
 TEST_F(NeighborManagerTest, removeResolvedNeighbor) {
   auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
@@ -109,6 +114,15 @@ TEST_F(NeighborManagerTest, changeResolvedNeighborAddMetadata) {
       makeArpEntry(intf0.id, testInterfaces[1].remoteHosts[0], 42);
   saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew);
   checkEntry(arpEntryNew, testInterfaces[1].remoteHosts[0].mac, 42);
+}
+
+TEST_F(NeighborManagerTest, changeResolvedNeighborAddEncapIndex) {
+  auto arpEntry = resolveArp(intf0.id, h0);
+  checkEntry(arpEntry, h0.mac);
+  auto arpEntryNew = makeArpEntry(
+      intf0.id, testInterfaces[1].remoteHosts[0], std::nullopt, 42);
+  saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew);
+  checkEntry(arpEntryNew, testInterfaces[1].remoteHosts[0].mac, 0, 42);
 }
 
 TEST_F(NeighborManagerTest, changeResolvedNeighborNoFieldChange) {

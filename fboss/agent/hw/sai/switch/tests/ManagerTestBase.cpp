@@ -303,7 +303,9 @@ std::shared_ptr<ArpEntry> ManagerTestBase::makePendingArpEntry(
 std::shared_ptr<ArpEntry> ManagerTestBase::makeArpEntry(
     int id,
     const TestRemoteHost& testRemoteHost,
-    std::optional<sai_uint32_t> metadata) const {
+    std::optional<sai_uint32_t> metadata,
+    std::optional<sai_uint32_t> encapIndex,
+    bool isLocal) const {
   auto arpEntry = std::make_shared<ArpEntry>(
       testRemoteHost.ip.asV4(),
       testRemoteHost.mac,
@@ -312,14 +314,21 @@ std::shared_ptr<ArpEntry> ManagerTestBase::makeArpEntry(
   if (metadata) {
     arpEntry->setClassID(static_cast<cfg::AclLookupClass>(metadata.value()));
   }
+  if (encapIndex) {
+    arpEntry->setEncapIndex(static_cast<int64_t>(encapIndex.value()));
+  }
+  arpEntry->setIsLocal(isLocal);
   return arpEntry;
 }
 
 std::shared_ptr<ArpEntry> ManagerTestBase::resolveArp(
     int id,
     const TestRemoteHost& testRemoteHost,
-    std::optional<sai_uint32_t> metadata) {
-  auto arpEntry = makeArpEntry(id, testRemoteHost, metadata);
+    std::optional<sai_uint32_t> metadata,
+    std::optional<sai_uint32_t> encapIndex,
+    bool isLocal) {
+  auto arpEntry =
+      makeArpEntry(id, testRemoteHost, metadata, encapIndex, isLocal);
   saiManagerTable->neighborManager().addNeighbor(arpEntry);
   saiManagerTable->fdbManager().addFdbEntry(
       SaiPortDescriptor(arpEntry->getPort().phyPortID()),

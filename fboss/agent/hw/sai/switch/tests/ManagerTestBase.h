@@ -140,12 +140,16 @@ class ManagerTestBase : public ::testing::Test {
   std::shared_ptr<ArpEntry> makeArpEntry(
       int id,
       const TestRemoteHost& testRemoteHost,
-      std::optional<sai_uint32_t> metadata = std::nullopt) const;
+      std::optional<sai_uint32_t> metadata = std::nullopt,
+      std::optional<sai_uint32_t> encapIndex = std::nullopt,
+      bool isLocal = true) const;
 
   std::shared_ptr<ArpEntry> resolveArp(
       int id,
       const TestRemoteHost& testRemoteHost,
-      std::optional<sai_uint32_t> metadata = std::nullopt);
+      std::optional<sai_uint32_t> metadata = std::nullopt,
+      std::optional<sai_uint32_t> encapIndex = std::nullopt,
+      bool isLocal = true);
 
   std::shared_ptr<Interface> makeInterface(
       const TestInterface& testInterface) const;
