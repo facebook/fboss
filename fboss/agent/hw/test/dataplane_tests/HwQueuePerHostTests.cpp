@@ -331,7 +331,13 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
       auto ttlAclName = utility::getQueuePerHostTtlAclName();
       auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
 
-      auto statBefore = utility::getAclInOutPackets(
+      auto packetsBefore = utility::getAclInOutPackets(
+          getHwSwitch(),
+          this->getProgrammedState(),
+          ttlAclName,
+          ttlCounterName);
+
+      auto bytesBefore = utility::getAclInOutBytes(
           getHwSwitch(),
           this->getProgrammedState(),
           ttlAclName,
@@ -340,16 +346,34 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
       auto dstIP = getIpToMacAndClassID().begin()->first;
 
       sendPacket(dstIP, frontPanel, 64 /* ttl < 128 */);
-      sendPacket(dstIP, frontPanel, 128 /* ttl >= 128 */);
+      size_t packetSize = sendPacket(dstIP, frontPanel, 128 /* ttl >= 128 */);
 
-      auto statAfter = utility::getAclInOutPackets(
+      auto packetsAfter = utility::getAclInOutPackets(
           getHwSwitch(),
           this->getProgrammedState(),
           ttlAclName,
           ttlCounterName);
 
+      auto bytesAfter = utility::getAclInOutBytes(
+          getHwSwitch(),
+          this->getProgrammedState(),
+          ttlAclName,
+          ttlCounterName);
+
+      XLOG(INFO) << "\n"
+                 << "ttlAclPacketCounter: " << std::to_string(packetsBefore)
+                 << " -> " << std::to_string(packetsAfter) << "\n"
+                 << "ttlAclBytesCounter: " << std::to_string(bytesBefore)
+                 << " -> " << std::to_string(bytesAfter);
+
       // counts ttl >= 128 packet only
-      EXPECT_EQ(statAfter - statBefore, 1);
+      EXPECT_EQ(packetsAfter - packetsBefore, 1);
+      if (frontPanel) {
+        EXPECT_EQ(bytesAfter - bytesBefore, packetSize);
+      } else {
+        // TODO: Still need to debug why we get extra 4 bytes for CPU port
+        EXPECT_GE(bytesAfter - bytesBefore, packetSize);
+      }
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -364,7 +388,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
   }
 
  private:
-  void sendPacket(AddrT dstIP, bool frontPanel, uint8_t ttl) {
+  size_t sendPacket(AddrT dstIP, bool frontPanel, uint8_t ttl) {
     auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -379,6 +403,8 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
         8001, // l4 dst port
         48 << 2, // DSCP
         ttl);
+
+    size_t txPacketSize = txPacket->buf()->length();
     // port is in LB mode, so it will egress and immediately loop back.
     // Since it is not re-written, it should hit the pipeline as if it
     // ingressed on the port, and be properly queued.
@@ -389,6 +415,8 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
     } else {
       getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
     }
+
+    return txPacketSize;
   }
 
   static inline constexpr auto kEcmpWidth = 1;

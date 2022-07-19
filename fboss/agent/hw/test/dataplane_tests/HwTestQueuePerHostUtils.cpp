@@ -130,7 +130,9 @@ void addQueuePerHostAcls(cfg::SwitchConfig* config) {
   std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
   auto ttlCounterName = getQueuePerHostTtlCounterName();
 
-  utility::addTrafficCounter(config, ttlCounterName);
+  std::vector<cfg::CounterType> counterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  utility::addTrafficCounter(config, ttlCounterName, counterTypes);
 
   // TTL + {L2, neighbor, route}
   for (auto queueId : kQueuePerhostQueueIds()) {
@@ -175,7 +177,11 @@ void addQueuePerHostAcls(cfg::SwitchConfig* config) {
   // TTL only
   auto* ttlAcl = utility::addAcl(config, getQueuePerHostTtlAclName());
   ttlAcl->ttl() = ttl;
-  utility::addAclStat(config, getQueuePerHostTtlAclName(), ttlCounterName);
+  std::vector<cfg::CounterType> setCounterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+
+  utility::addAclStat(
+      config, getQueuePerHostTtlAclName(), ttlCounterName, setCounterTypes);
 
   utility::addL2ClassIDDropAcl(
       config, getL2DropAclName(), cfg::AclLookupClass::CLASS_DROP);
@@ -192,7 +198,9 @@ void addQueuePerHostAclTables(cfg::SwitchConfig* config) {
   cfg::Ttl ttl;
   std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
   auto ttlCounterName = getQueuePerHostTtlCounterName();
-  utility::addTrafficCounter(config, ttlCounterName);
+  std::vector<cfg::CounterType> counterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  utility::addTrafficCounter(config, ttlCounterName, counterTypes);
 
   // Table 1: {L2, neighbor, route}-only
   utility::addAclTable(
@@ -249,7 +257,11 @@ void addQueuePerHostAclTables(cfg::SwitchConfig* config) {
       cfg::AclActionType::PERMIT,
       getTtlAclTableName());
   ttlAcl->ttl() = ttl;
-  utility::addAclStat(config, getQueuePerHostTtlAclName(), ttlCounterName);
+  std::vector<cfg::CounterType> setCounterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+
+  utility::addAclStat(
+      config, getQueuePerHostTtlAclName(), ttlCounterName, setCounterTypes);
 }
 
 void verifyQueuePerHostMapping(

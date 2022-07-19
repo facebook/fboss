@@ -46,7 +46,8 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
     // Create ACL to count the number of packets with DSCP == ICP
     utility::addDscpAclToCfg(
         config, kDscpCounterAclName(), utility::kIcpDscp());
-    utility::addTrafficCounter(config, kCounterName());
+    std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
+    utility::addTrafficCounter(config, kCounterName(), counterTypes);
     cfg::MatchAction matchAction = cfg::MatchAction();
     matchAction.counter() = kCounterName();
     utility::addMatcher(config, kDscpCounterAclName(), matchAction);

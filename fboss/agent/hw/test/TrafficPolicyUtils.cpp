@@ -163,10 +163,15 @@ void addQueueMatcher(
 
 void addTrafficCounter(
     cfg::SwitchConfig* config,
-    const std::string& counterName) {
+    const std::string& counterName,
+    std::optional<std::vector<cfg::CounterType>> counterTypes) {
   auto counter = cfg::TrafficCounter();
   *counter.name() = counterName;
-  *counter.types() = {cfg::CounterType::PACKETS};
+  if (counterTypes.has_value()) {
+    *counter.types() = counterTypes.value();
+  } else {
+    *counter.types() = {cfg::CounterType::PACKETS};
+  }
   config->trafficCounters()->push_back(counter);
 }
 

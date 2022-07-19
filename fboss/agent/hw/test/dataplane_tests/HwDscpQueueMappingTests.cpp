@@ -64,7 +64,8 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
       auto kAclName = "acl1";
       auto newCfg{initialConfig()};
       utility::addDscpAclToCfg(&newCfg, kAclName, kDscp());
-      utility::addTrafficCounter(&newCfg, kCounterName());
+      std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
+      utility::addTrafficCounter(&newCfg, kCounterName(), counterTypes);
       utility::addQueueMatcher(&newCfg, kAclName, kQueueId(), kCounterName());
 
       applyNewConfig(newCfg);
@@ -163,7 +164,8 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
 
       // ACL
       utility::addDscpAclToCfg(&newCfg, "acl0", kDscp());
-      utility::addTrafficCounter(&newCfg, kCounterName());
+      std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
+      utility::addTrafficCounter(&newCfg, kCounterName(), counterTypes);
       utility::addQueueMatcher(&newCfg, "acl0", kQueueIdAcl(), kCounterName());
 
       applyNewConfig(newCfg);

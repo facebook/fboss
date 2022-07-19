@@ -84,7 +84,8 @@ void addQueueMatcher(
 
 void addTrafficCounter(
     cfg::SwitchConfig* config,
-    const std::string& counterName);
+    const std::string& counterName,
+    std::optional<std::vector<cfg::CounterType>> counterTypes);
 
 cfg::QosPolicy* addDscpQosPolicy(
     cfg::SwitchConfig* cfg,

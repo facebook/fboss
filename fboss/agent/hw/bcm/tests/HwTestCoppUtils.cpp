@@ -194,7 +194,9 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
       acl.name() = kMplsDestNoMatchAclName;
       acl.packetLookupResult() =
           cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH;
-      utility::addTrafficCounter(&config, kMplsDestNoMatchCounterName);
+      std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
+      utility::addTrafficCounter(
+          &config, kMplsDestNoMatchCounterName, counterTypes);
 #if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_22))
       auto queue = utility::kCoppLowPriQueueId;
 #else
