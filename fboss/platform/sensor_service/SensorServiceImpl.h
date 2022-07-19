@@ -13,10 +13,12 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_config_types.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 #include "folly/Synchronized.h"
 
+DECLARE_int32(fsdb_statsStream_interval_seconds);
 DECLARE_string(mock_lmsensor_json_data);
 
 namespace facebook::fboss::platform::sensor_service {
@@ -44,6 +46,7 @@ class SensorServiceImpl {
   SensorServiceImpl() {
     init();
   }
+  ~SensorServiceImpl();
   explicit SensorServiceImpl(const std::string& confFileName)
       : confFileName_{confFileName} {
     init();
@@ -54,6 +57,10 @@ class SensorServiceImpl {
       const std::vector<std::string>& sensorNames);
   std::map<std::string, SensorData> getAllSensorData();
   void fetchSensorData();
+
+  FsdbSyncer* fsdbSyncer() {
+    return fsdbSyncer_.get();
+  }
 
  private:
   // Sensor config file full path
@@ -73,6 +80,10 @@ class SensorServiceImpl {
   void init();
   void parseSensorJsonData(const std::string&);
   void getSensorDataFromPath();
+
+  std::unique_ptr<FsdbSyncer> fsdbSyncer_;
+  std::optional<std::chrono::time_point<std::chrono::steady_clock>>
+      publishedStatsToFsdbAt_;
 };
 
 } // namespace facebook::fboss::platform::sensor_service

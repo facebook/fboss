@@ -15,7 +15,14 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <filesystem>
 #include "fboss/platform/helpers/Utils.h"
+#include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include "fboss/platform/sensor_service/GetSensorConfig.h"
+#include "fboss/platform/sensor_service/gen-cpp2/sensor_service_stats_types.h"
+
+DEFINE_int32(
+    fsdb_statsStream_interval_seconds,
+    5,
+    "Interval at which stats subscriptions are served");
 
 DEFINE_string(
     mock_lmsensor_json_data,
@@ -98,7 +105,15 @@ void SensorServiceImpl::init() {
     }
   });
 
+  fsdbSyncer_ = std::make_unique<FsdbSyncer>();
   XLOG(INFO) << "========================================================";
+}
+
+SensorServiceImpl::~SensorServiceImpl() {
+  if (fsdbSyncer_) {
+    fsdbSyncer_->stop();
+  }
+  fsdbSyncer_.reset();
 }
 
 std::optional<SensorData> SensorServiceImpl::getSensorData(
@@ -154,6 +169,20 @@ std::map<std::string, SensorData> SensorServiceImpl::getAllSensorData() {
 }
 
 void SensorServiceImpl::fetchSensorData() {
+  SCOPE_EXIT {
+    if (FLAGS_publish_stats_to_fsdb) {
+      auto now = std::chrono::steady_clock::now();
+      if (!publishedStatsToFsdbAt_ ||
+          std::chrono::duration_cast<std::chrono::seconds>(
+              now - *publishedStatsToFsdbAt_)
+                  .count() >= FLAGS_fsdb_statsStream_interval_seconds) {
+        stats::SensorServiceStats sensorServiceStats;
+        sensorServiceStats.sensorData() = getAllSensorData();
+        fsdbSyncer_->statsUpdated(std::move(sensorServiceStats));
+        publishedStatsToFsdbAt_ = now;
+      }
+    }
+  };
   if (sensorSource_ == SensorSource::LMSENSOR) {
     int retVal = 0;
     std::string ret = execCommandUnchecked(kLmsensorCommand, retVal);
