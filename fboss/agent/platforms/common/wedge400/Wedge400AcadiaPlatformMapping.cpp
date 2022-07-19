@@ -7170,7 +7170,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   },
                   {
                     "id": {
-                      "chip": "eth1/25",
+                      "chip": "eth1/41",
                       "lane": 2
                     }
                   },
@@ -12584,6 +12584,22 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "numLanes": 1,
           "modulation": 1,
           "fec": 74,
+          "medium": 1,
+          "interfaceMode": 10,
+          "interfaceType": 10
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 16
+      },
+      "profile": {
+        "speed": 25000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 528,
           "medium": 1,
           "interfaceMode": 10,
           "interfaceType": 10
