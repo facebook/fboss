@@ -151,38 +151,12 @@ bool ControlPlane::operator==(const ControlPlane& controlPlane) const {
 }
 
 state::ControlPlaneFields ControlPlaneFields::toThrift() const {
-  state::ControlPlaneFields thriftControlPlaneFields{};
-  if (auto policy = qosPolicy()) {
-    thriftControlPlaneFields.defaultQosPolicy() = policy.value();
-  }
-  for (auto queue : queues()) {
-    thriftControlPlaneFields.queues()->push_back(queue->toThrift());
-  }
-  for (auto entry : rxReasonToQueue()) {
-    thriftControlPlaneFields.rxReasonToQueue()->push_back(entry);
-  }
-
-  return thriftControlPlaneFields;
+  return data();
 }
 
 ControlPlaneFields ControlPlaneFields::fromThrift(
     state::ControlPlaneFields const& thriftControlPlaneFields) {
-  ControlPlaneFields fields{};
-  if (thriftControlPlaneFields.defaultQosPolicy()) {
-    fields.setQosPolicy(*thriftControlPlaneFields.defaultQosPolicy());
-  }
-  QueueConfig queues;
-  for (auto cpuQueue : *thriftControlPlaneFields.queues()) {
-    queues.push_back(PortQueue::fromThrift(cpuQueue));
-  }
-  fields.setQueues(std::move(queues));
-
-  RxReasonToQueue rxReasonToQueue;
-  for (auto entry : *thriftControlPlaneFields.rxReasonToQueue()) {
-    rxReasonToQueue.push_back(entry);
-  }
-  fields.setRxReasonToQueue(std::move(rxReasonToQueue));
-  return fields;
+  return ControlPlaneFields(thriftControlPlaneFields);
 }
 
 folly::dynamic ControlPlaneFields::migrateToThrifty(folly::dynamic const& dyn) {

@@ -17,6 +17,7 @@
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
+#include <optional>
 #include <vector>
 
 namespace facebook::fboss {
@@ -27,7 +28,11 @@ struct ControlPlaneFields
     : public ThriftyFields<ControlPlaneFields, state::ControlPlaneFields> {
   using RxReasonToQueue = std::vector<cfg::PacketRxReasonToQueue>;
 
-  ControlPlaneFields() {}
+  ControlPlaneFields() : ControlPlaneFields(state::ControlPlaneFields{}) {}
+
+  explicit ControlPlaneFields(const state::ControlPlaneFields& fields) {
+    writableData() = fields;
+  }
 
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
@@ -41,39 +46,60 @@ struct ControlPlaneFields
   static void migrateFromThrifty(folly::dynamic& dyn);
 
   bool operator==(const ControlPlaneFields& other) const {
-    return queues() == other.queues() &&
-        rxReasonToQueue() == other.rxReasonToQueue() &&
-        qosPolicy() == other.qosPolicy();
+    return data() == other.data();
   }
 
   QueueConfig queues() const {
-    return queues_;
+    QueueConfig queues;
+    for (auto queue : *data().queues()) {
+      queues.push_back(PortQueue::fromThrift(queue));
+    }
+    return queues;
+  }
+
+  void resetQueues() {
+    writableData().queues()->clear();
   }
 
   void setQueues(QueueConfig queues) {
-    queues_ = std::move(queues);
+    resetQueues();
+    for (auto queue : queues) {
+      writableData().queues()->push_back(queue->toThrift());
+    }
   }
 
   RxReasonToQueue rxReasonToQueue() const {
-    return rxReasonToQueue_;
+    RxReasonToQueue rxReasonToQueue;
+    for (auto entry : *data().rxReasonToQueue()) {
+      rxReasonToQueue.push_back(entry);
+    }
+    return rxReasonToQueue;
   }
 
+  void resetRxReasonToQueue() {
+    writableData().rxReasonToQueue()->clear();
+  }
   void setRxReasonToQueue(RxReasonToQueue rxReasonToQueue) {
-    rxReasonToQueue_ = std::move(rxReasonToQueue);
+    resetRxReasonToQueue();
+    for (auto entry : rxReasonToQueue) {
+      writableData().rxReasonToQueue()->push_back(entry);
+    }
   }
 
   std::optional<std::string> qosPolicy() const {
-    return qosPolicy_;
+    if (auto policy = data().defaultQosPolicy()) {
+      return *policy;
+    }
+    return std::nullopt;
   }
 
   void setQosPolicy(std::optional<std::string> policy) {
-    qosPolicy_ = std::move(policy);
+    if (!policy) {
+      writableData().defaultQosPolicy().reset();
+      return;
+    }
+    writableData().defaultQosPolicy() = *policy;
   }
-
- private:
-  QueueConfig queues_;
-  RxReasonToQueue rxReasonToQueue_;
-  std::optional<std::string> qosPolicy_;
 };
 
 /*
