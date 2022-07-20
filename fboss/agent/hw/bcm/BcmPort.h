@@ -144,6 +144,7 @@ class BcmPort {
   bool setPortResource(const std::shared_ptr<Port>& swPort);
   void setupStatsIfNeeded(const std::shared_ptr<Port>& swPort);
   void setupPrbs(const std::shared_ptr<Port>& swPort);
+  std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials();
 
   /*
    * Update this port's statistics.

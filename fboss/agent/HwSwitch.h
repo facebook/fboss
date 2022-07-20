@@ -321,6 +321,12 @@ class HwSwitch {
       phy::Side /* side */) {
     return std::vector<phy::PrbsLaneStats>();
   }
+
+  virtual std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(
+      int32_t /* portId */) {
+    return std::vector<prbs::PrbsPolynomial>();
+  }
+
   virtual void clearPortGearboxPrbsStats(
       int32_t /*portId*/,
       phy::Side /* side */) {}

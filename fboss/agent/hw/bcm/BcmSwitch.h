@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/hw/bcm/types.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
 #include <boost/container/flat_map.hpp>
 #include <memory>
@@ -538,6 +539,9 @@ class BcmSwitch : public BcmSwitchIf {
       int32_t portId,
       phy::Side side) override;
   void clearPortGearboxPrbsStats(int32_t portId, phy::Side side) override;
+
+  std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(
+      int32_t /* portId */) override;
   /*
    * Friend tests. We want the abilty to test private methods
    * without comprimising encapsulation for code generally.

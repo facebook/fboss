@@ -10,6 +10,8 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 
 #include <boost/algorithm/string.hpp>
+#include <boost/assign.hpp>
+#include <boost/bimap.hpp>
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -231,8 +233,17 @@ static const std::string getFdrStatsKey(int errorsPerCodeword) {
 // own value that should be used mapping to different PRBS polynominal values.
 // Hence we have a map here to mark the projection. The key here is the
 // polynominal from cli and the value is the value used in bcm api.
-static std::map<int32_t, int32_t> asicPrbsPolynominalMap =
-    {{7, 0}, {15, 1}, {23, 2}, {31, 3}, {9, 4}, {11, 5}, {58, 6}};
+using PrbsMap = boost::bimap<int32_t, uint32_t>;
+// clang-format off
+const PrbsMap asicPrbsPolynominalMap = boost::assign::list_of<PrbsMap::relation>(
+  7, 0)(
+  15, 1)(
+  23, 2)(
+  31, 3)(
+  9, 4)(
+  11, 5)(
+  58, 6);
+// clang-format on
 } // namespace
 
 namespace facebook::fboss {
@@ -1041,8 +1052,8 @@ void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
   auto prbsState = swPort->getAsicPrbs();
   if (*prbsState.enabled()) {
     auto asicPrbsPolynominalIter =
-        asicPrbsPolynominalMap.find(*prbsState.polynominal());
-    if (asicPrbsPolynominalIter == asicPrbsPolynominalMap.end()) {
+        asicPrbsPolynominalMap.left.find(*prbsState.polynominal());
+    if (asicPrbsPolynominalIter == asicPrbsPolynominalMap.left.end()) {
       throw FbossError(
           "Polynominal value not supported: ", *prbsState.polynominal());
     } else {
@@ -1091,6 +1102,14 @@ void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
 
   setPrbsIfNeeded(BCM_PORT_PHY_CONTROL_PRBS_TX_ENABLE);
   setPrbsIfNeeded(BCM_PORT_PHY_CONTROL_PRBS_RX_ENABLE);
+}
+
+std::vector<prbs::PrbsPolynomial> BcmPort::getPortPrbsPolynomials() {
+  std::vector<prbs::PrbsPolynomial> capabilities;
+  for (auto it : asicPrbsPolynominalMap.left) {
+    capabilities.push_back(static_cast<prbs::PrbsPolynomial>(it.first));
+  }
+  return capabilities;
 }
 
 PortID BcmPort::getPortID() const {

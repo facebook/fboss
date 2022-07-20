@@ -2800,6 +2800,11 @@ void BcmSwitch::clearPortStats(
   bcmStatUpdater_->clearPortStats(ports);
 }
 
+std::vector<prbs::PrbsPolynomial> BcmSwitch::getPortPrbsPolynomials(
+    int32_t portId) {
+  return portTable_->getBcmPort(portId)->getPortPrbsPolynomials();
+}
+
 std::vector<PrbsLaneStats> BcmSwitch::getPortAsicPrbsStats(int32_t portId) {
   return bcmStatUpdater_->getPortAsicPrbsStats(portId);
 }
