@@ -7,12 +7,14 @@
 
 #include <folly/IPAddress.h>
 #include <optional>
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/types.h"
+#include "folly/MacAddress.h"
 
 namespace facebook::fboss {
 
@@ -91,6 +93,43 @@ struct MirrorTunnel {
                rhs.greProtocol);
   }
 
+  state::MirrorTunnel toThrift() const {
+    state::MirrorTunnel tunnel{};
+
+    tunnel.srcIp() = network::toBinaryAddress(srcIp);
+    tunnel.dstIp() = network::toBinaryAddress(dstIp);
+    tunnel.srcMac() = srcMac.toString();
+    tunnel.dstMac() = dstMac.toString();
+    if (udpPorts) {
+      tunnel.udpSrcPort() = udpPorts->udpSrcPort;
+      tunnel.udpDstPort() = udpPorts->udpDstPort;
+    }
+    tunnel.ttl() = ttl;
+    return tunnel;
+  }
+
+  static MirrorTunnel fromThrift(const state::MirrorTunnel& tunnel) {
+    auto srcL4Port = tunnel.udpSrcPort();
+    auto dstL4Port = tunnel.udpDstPort();
+    if (srcL4Port && dstL4Port) {
+      return MirrorTunnel(
+          network::toIPAddress(*tunnel.srcIp()),
+          network::toIPAddress(*tunnel.dstIp()),
+          folly::MacAddress(*tunnel.srcMac()),
+          folly::MacAddress(*tunnel.dstMac()),
+          TunnelUdpPorts(*srcL4Port, *dstL4Port),
+          *tunnel.ttl()
+
+      );
+    }
+    return MirrorTunnel(
+        network::toIPAddress(*tunnel.srcIp()),
+        network::toIPAddress(*tunnel.dstIp()),
+        folly::MacAddress(*tunnel.srcMac()),
+        folly::MacAddress(*tunnel.dstMac()),
+        *tunnel.ttl());
+  }
+
   folly::dynamic toFollyDynamic() const;
 
   static MirrorTunnel fromFollyDynamic(const folly::dynamic& json);
@@ -104,40 +143,89 @@ struct MirrorFields : public ThriftyFields<MirrorFields, state::MirrorFields> {
       const std::optional<folly::IPAddress>& srcIp = std::nullopt,
       const std::optional<TunnelUdpPorts>& udpPorts = std::nullopt,
       const uint8_t& dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_,
-      const bool truncate = false)
-      : name(name),
-        egressPort(egressPort),
-        destinationIp(destinationIp),
-        srcIp(srcIp),
-        udpPorts(udpPorts),
-        dscp(dscp),
-        truncate(truncate) {
-    if (egressPort.has_value()) {
-      configHasEgressPort = true;
+      const bool truncate = false) {
+    auto& data = writableData();
+    data.name() = name;
+    if (egressPort) {
+      data.egressPort() = *egressPort;
+      data.configHasEgressPort() = true;
     }
+    if (destinationIp) {
+      data.destinationIp() = network::toBinaryAddress(*destinationIp);
+    }
+    if (srcIp) {
+      data.srcIp() = network::toBinaryAddress(*srcIp);
+    }
+    if (udpPorts) {
+      data.udpSrcPort() = udpPorts->udpSrcPort;
+      data.udpDstPort() = udpPorts->udpDstPort;
+    }
+    data.dscp() = dscp;
+    data.truncate() = truncate;
+  }
+
+  explicit MirrorFields(const state::MirrorFields& data) {
+    writableData() = data;
   }
 
   bool operator==(const MirrorFields& other) const {
     return (
-        name == other.name && egressPort == other.egressPort &&
-        destinationIp == other.destinationIp && srcIp == other.srcIp &&
-        udpPorts == other.udpPorts && dscp == other.dscp &&
-        truncate == other.truncate && resolvedTunnel == other.resolvedTunnel &&
-        configHasEgressPort == other.configHasEgressPort);
+        name() == other.name() && egressPort() == other.egressPort() &&
+        destinationIp() == other.destinationIp() && srcIp() == other.srcIp() &&
+        udpPorts() == other.udpPorts() && dscp() == other.dscp() &&
+        truncate() == other.truncate() &&
+        resolvedTunnel() == other.resolvedTunnel() &&
+        configHasEgressPort() == other.configHasEgressPort());
   }
 
   template <typename Fn>
   void forEachChild(Fn /* unused */) {}
 
-  std::string name;
-  std::optional<PortID> egressPort;
-  std::optional<folly::IPAddress> destinationIp;
-  std::optional<folly::IPAddress> srcIp;
-  std::optional<TunnelUdpPorts> udpPorts;
-  uint8_t dscp;
-  bool truncate;
-  std::optional<MirrorTunnel> resolvedTunnel;
-  bool configHasEgressPort{false};
+  std::string name() const {
+    return *data().name();
+  }
+  std::optional<PortID> egressPort() const {
+    if (auto port = data().egressPort()) {
+      return PortID(*port);
+    }
+    return std::nullopt;
+  }
+  std::optional<folly::IPAddress> destinationIp() const {
+    if (auto ip = data().destinationIp()) {
+      return network::toIPAddress(*ip);
+    }
+    return std::nullopt;
+  }
+  std::optional<folly::IPAddress> srcIp() const {
+    if (auto ip = data().srcIp()) {
+      return network::toIPAddress(*ip);
+    }
+    return std::nullopt;
+  }
+  std::optional<TunnelUdpPorts> udpPorts() const {
+    auto srcL4Port = data().udpSrcPort();
+    auto dstL4Port = data().udpDstPort();
+    if (srcL4Port && dstL4Port) {
+      return TunnelUdpPorts(*srcL4Port, *dstL4Port);
+    }
+    return std::nullopt;
+  }
+  uint8_t dscp() const {
+    return *data().dscp();
+  }
+  bool truncate() const {
+    return *data().truncate();
+  }
+  std::optional<MirrorTunnel> resolvedTunnel() const {
+    auto tunnel = data().tunnel();
+    if (!tunnel) {
+      return std::nullopt;
+    }
+    return MirrorTunnel::fromThrift(*tunnel);
+  }
+  bool configHasEgressPort() const {
+    return *data().configHasEgressPort();
+  }
 
   folly::dynamic toFollyDynamicLegacy() const;
   static MirrorFields fromFollyDynamicLegacy(const folly::dynamic& dyn);

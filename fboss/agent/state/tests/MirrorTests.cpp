@@ -675,11 +675,11 @@ TEST_F(MirrorTest, MirrorMapThrifty) {
   auto mirror2 = mirrors->getNode("mirror2")->clone();
 
   MirrorTunnel tunnel(
-      mirror2->getFields()->srcIp.value(),
-      mirror2->getFields()->destinationIp.value(),
+      mirror2->getFields()->srcIp().value(),
+      mirror2->getFields()->destinationIp().value(),
       folly::MacAddress("1:2:3:4:5:6"),
       folly::MacAddress("6:5:4:3:2:1"),
-      mirror2->getFields()->udpPorts.value());
+      mirror2->getFields()->udpPorts().value());
 
   mirror2->setMirrorTunnel(tunnel);
   mirror2->setEgressPort(PortID(1));

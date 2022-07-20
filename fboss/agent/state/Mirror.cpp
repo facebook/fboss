@@ -29,14 +29,6 @@ constexpr auto kUdpSrcPort = "udpSrcPort";
 constexpr auto kUdpDstPort = "udpDstPort";
 constexpr auto kTruncate = "truncate";
 constexpr auto kTtl = "ttl";
-
-std::string toThriftMacAddress(const folly::MacAddress& mac) {
-  return mac.toString();
-}
-
-folly::MacAddress toFollyMacAddress(const std::string& mac) {
-  return folly::MacAddress(mac);
-}
 } // namespace
 
 folly::dynamic MirrorTunnel::toFollyDynamic() const {
@@ -71,31 +63,32 @@ MirrorTunnel MirrorTunnel::fromFollyDynamic(const folly::dynamic& json) {
 
 folly::dynamic MirrorFields::toFollyDynamicLegacy() const {
   folly::dynamic mirrorFields = folly::dynamic::object;
-  mirrorFields[kName] = name;
-  if (egressPort) {
-    mirrorFields[kEgressPort] = folly::to<std::string>(egressPort.value());
+  mirrorFields[kName] = name();
+  if (auto port = egressPort()) {
+    mirrorFields[kEgressPort] = folly::to<std::string>(port.value());
   } else {
     mirrorFields[kEgressPort] = folly::dynamic::object;
   }
-  if (destinationIp) {
-    mirrorFields[kDestinationIp] = destinationIp.value().str();
+  if (auto ip = destinationIp()) {
+    mirrorFields[kDestinationIp] = ip.value().str();
   } else {
     mirrorFields[kDestinationIp] = folly::dynamic::object;
   }
-  if (srcIp) {
-    mirrorFields[kSrcIp] = srcIp.value().str();
+  if (auto ip = srcIp()) {
+    mirrorFields[kSrcIp] = ip.value().str();
   }
-  if (resolvedTunnel) {
-    mirrorFields[kTunnel] = resolvedTunnel.value().toFollyDynamic();
+  if (auto tunnel = resolvedTunnel()) {
+    mirrorFields[kTunnel] = tunnel.value().toFollyDynamic();
   } else {
     mirrorFields[kTunnel] = folly::dynamic::object;
   }
-  mirrorFields[kConfigHasEgressPort] = configHasEgressPort;
-  mirrorFields[kDscp] = dscp;
-  mirrorFields[kTruncate] = truncate;
-  if (udpPorts.has_value()) {
-    mirrorFields[kUdpSrcPort] = udpPorts.value().udpSrcPort;
-    mirrorFields[kUdpDstPort] = udpPorts.value().udpDstPort;
+  mirrorFields[kConfigHasEgressPort] = configHasEgressPort();
+  mirrorFields[kDscp] = dscp();
+  mirrorFields[kTruncate] = truncate();
+  auto l4Ports = udpPorts();
+  if (l4Ports.has_value()) {
+    mirrorFields[kUdpSrcPort] = l4Ports.value().udpSrcPort;
+    mirrorFields[kUdpDstPort] = l4Ports.value().udpDstPort;
   }
 
   return mirrorFields;
@@ -119,39 +112,39 @@ Mirror::Mirror(
           truncate) {}
 
 std::string Mirror::getID() const {
-  return getFields()->name;
+  return getFields()->name();
 }
 
 std::optional<PortID> Mirror::getEgressPort() const {
-  return getFields()->egressPort;
+  return getFields()->egressPort();
 }
 
 std::optional<TunnelUdpPorts> Mirror::getTunnelUdpPorts() const {
-  return getFields()->udpPorts;
+  return getFields()->udpPorts();
 }
 
 std::optional<MirrorTunnel> Mirror::getMirrorTunnel() const {
-  return getFields()->resolvedTunnel;
+  return getFields()->resolvedTunnel();
 }
 
 uint8_t Mirror::getDscp() const {
-  return getFields()->dscp;
+  return getFields()->dscp();
 }
 
 bool Mirror::getTruncate() const {
-  return getFields()->truncate;
+  return getFields()->truncate();
 }
 
 void Mirror::setTruncate(bool truncate) {
-  writableFields()->truncate = truncate;
+  writableFields()->writableData().truncate() = truncate;
 }
 
 void Mirror::setEgressPort(PortID egressPort) {
-  writableFields()->egressPort = egressPort;
+  writableFields()->writableData().egressPort() = egressPort;
 }
 
 void Mirror::setMirrorTunnel(const MirrorTunnel& tunnel) {
-  writableFields()->resolvedTunnel = tunnel;
+  writableFields()->writableData().tunnel() = tunnel.toThrift();
 }
 
 folly::dynamic Mirror::toFollyDynamicLegacy() const {
@@ -202,9 +195,9 @@ MirrorFields MirrorFields::fromFollyDynamicLegacy(const folly::dynamic& json) {
   }
   auto fields = MirrorFields(
       name, egressPort, destinationIp, srcIp, udpPorts, dscp, truncate);
-  fields.configHasEgressPort = configHasEgressPort;
+  fields.writableData().configHasEgressPort() = configHasEgressPort;
   if (tunnel) {
-    fields.resolvedTunnel = tunnel.value();
+    fields.writableData().tunnel() = tunnel->toThrift();
   }
   return fields;
 }
@@ -231,110 +224,33 @@ bool Mirror::operator!=(const Mirror& rhs) const {
 }
 
 bool Mirror::configHasEgressPort() const {
-  return getFields()->configHasEgressPort;
+  return getFields()->configHasEgressPort();
 }
 
 std::optional<folly::IPAddress> Mirror::getDestinationIp() const {
-  return getFields()->destinationIp;
+  return getFields()->destinationIp();
 }
 
 std::optional<folly::IPAddress> Mirror::getSrcIp() const {
-  return getFields()->srcIp;
+  return getFields()->srcIp();
 }
 
 Mirror::Type Mirror::type() const {
-  if (!getFields()->destinationIp) {
+  if (!getFields()->destinationIp()) {
     return Mirror::Type::SPAN;
   }
-  if (!getFields()->udpPorts) {
+  if (!getFields()->udpPorts()) {
     return Mirror::Type::ERSPAN;
   }
   return Mirror::Type::SFLOW;
 }
 
 state::MirrorFields MirrorFields::toThrift() const {
-  state::MirrorFields thriftMirrorFields;
-  thriftMirrorFields.name() = name;
-  thriftMirrorFields.dscp() = dscp;
-  thriftMirrorFields.configHasEgressPort() = configHasEgressPort;
-  thriftMirrorFields.truncate() = truncate;
-  thriftMirrorFields.isResolved() =
-      resolvedTunnel.has_value() || !destinationIp.has_value();
-  if (egressPort) {
-    thriftMirrorFields.egressPort() = *egressPort;
-  }
-  if (destinationIp) {
-    thriftMirrorFields.destinationIp() =
-        facebook::network::toBinaryAddress(*destinationIp);
-  }
-  if (srcIp) {
-    thriftMirrorFields.srcIp() = facebook::network::toBinaryAddress(*srcIp);
-  }
-  if (udpPorts) {
-    thriftMirrorFields.udpSrcPort() = udpPorts->udpSrcPort;
-    thriftMirrorFields.udpDstPort() = udpPorts->udpDstPort;
-  }
-  if (resolvedTunnel) {
-    state::MirrorTunnel tunnel;
-    tunnel.srcMac() = toThriftMacAddress(resolvedTunnel->srcMac);
-    tunnel.dstMac() = toThriftMacAddress(resolvedTunnel->dstMac);
-    tunnel.srcIp() = facebook::network::toBinaryAddress(resolvedTunnel->srcIp);
-    tunnel.dstIp() = facebook::network::toBinaryAddress(resolvedTunnel->dstIp);
-    if (resolvedTunnel->udpPorts) {
-      tunnel.udpSrcPort() = resolvedTunnel->udpPorts->udpSrcPort;
-      tunnel.udpDstPort() = resolvedTunnel->udpPorts->udpDstPort;
-    }
-    tunnel.ttl() = resolvedTunnel->ttl;
-    thriftMirrorFields.tunnel() = tunnel;
-  }
-  return thriftMirrorFields;
+  return data();
 }
 
 MirrorFields MirrorFields::fromThrift(state::MirrorFields const& fields) {
-  std::string name = *fields.name();
-  std::optional<PortID> egressPort{};
-  if (fields.egressPort()) {
-    egressPort = *fields.egressPort();
-  }
-  std::optional<folly::IPAddress> destinationIp{};
-  if (fields.destinationIp()) {
-    destinationIp = facebook::network::toIPAddress(*fields.destinationIp());
-  }
-  std::optional<folly::IPAddress> srcIp{};
-  if (fields.srcIp()) {
-    srcIp = facebook::network::toIPAddress(*fields.srcIp());
-  }
-  std::optional<TunnelUdpPorts> tunnelUdpPorts{};
-  if (fields.udpSrcPort() && fields.udpDstPort()) {
-    tunnelUdpPorts = TunnelUdpPorts(*fields.udpSrcPort(), *fields.udpDstPort());
-  }
-
-  uint8_t dscp = *fields.dscp();
-  bool truncate = *fields.truncate();
-
-  auto mirrorFields = MirrorFields(
-      name, egressPort, destinationIp, srcIp, tunnelUdpPorts, dscp, truncate);
-  mirrorFields.configHasEgressPort = *fields.configHasEgressPort();
-  if (fields.tunnel()) {
-    std::optional<TunnelUdpPorts> udpPorts{};
-    auto srcIp = facebook::network::toIPAddress(*fields.tunnel()->srcIp());
-    auto dstIp = facebook::network::toIPAddress(*fields.tunnel()->dstIp());
-    auto srcMac = toFollyMacAddress(*fields.tunnel()->srcMac());
-    auto dstMac = toFollyMacAddress(*fields.tunnel()->dstMac());
-    if (fields.tunnel()->udpSrcPort() && fields.tunnel()->udpDstPort()) {
-      udpPorts = TunnelUdpPorts(
-          *fields.tunnel()->udpSrcPort(), *fields.tunnel()->udpDstPort());
-    }
-    auto ttl = *fields.tunnel()->ttl();
-    if (udpPorts) {
-      mirrorFields.resolvedTunnel =
-          MirrorTunnel(srcIp, dstIp, srcMac, dstMac, *udpPorts, ttl);
-    } else {
-      mirrorFields.resolvedTunnel =
-          MirrorTunnel(srcIp, dstIp, srcMac, dstMac, ttl);
-    }
-  }
-  return mirrorFields;
+  return MirrorFields(fields);
 }
 
 folly::dynamic MirrorFields::migrateToThrifty(folly::dynamic const& dyn) {
