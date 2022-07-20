@@ -80,8 +80,9 @@ CmdGlobalOptions::UnionList CmdGlobalOptions::getFilters(
     IntersectionList intersectList;
     folly::split("&&", unionStr, interVec);
     for (std::string termStr : interVec) {
+      const auto& trimmedTermStr = folly::trimWhitespace(termStr);
       std::vector<std::string> filterTermVector;
-      folly::split(" ", termStr, filterTermVector);
+      folly::split(" ", trimmedTermStr, filterTermVector);
       if (filterTermVector.size() != 3) {
         std::cerr << "Each filter term must be of the form <key op value>. "
                   << std::endl;

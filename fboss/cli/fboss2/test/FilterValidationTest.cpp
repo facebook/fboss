@@ -304,6 +304,52 @@ TEST_F(FilterValidatorFixture, validInputParsing) {
   EXPECT_EQ(std::get<2>(filterTerm3), "12");
 }
 
+TEST_F(FilterValidatorFixture, validRelaxedParsing) {
+  // verify that parser correctly parses input that has spaces between the
+  // logical operator and the FilterTerm
+  std::string filterInput =
+      "linkState == Down && adminState != Disabled||id <= 12 || tcvrID > 5";
+  auto cmd = CmdGlobalOptions();
+  auto errorCode = CmdGlobalOptions::CliOptionResult::EOK;
+  cmd.setFilterInput(filterInput);
+  const auto& parsedFilters = cmd.getFilters(errorCode);
+  EXPECT_EQ(errorCode, CmdGlobalOptions::CliOptionResult::EOK);
+
+  // Check that it is correctly parsed as a unionlist of size 3.
+  EXPECT_EQ(parsedFilters.size(), 3);
+
+  // Check that first intersection list has 2 terms, second has 1 term and the
+  // third has 1 term.
+  const auto& intersectList1 = parsedFilters[0];
+  const auto& intersectList2 = parsedFilters[1];
+  const auto& intersectList3 = parsedFilters[2];
+  EXPECT_EQ(intersectList1.size(), 2);
+  EXPECT_EQ(intersectList2.size(), 1);
+  EXPECT_EQ(intersectList3.size(), 1);
+
+  // Checks for the filter terms
+  const auto& filterTerm1 = intersectList1[0];
+  const auto& filterTerm2 = intersectList1[1];
+  const auto& filterTerm3 = intersectList2[0];
+  const auto& filterTerm4 = intersectList3[0];
+
+  EXPECT_EQ(std::get<0>(filterTerm1), "linkState");
+  EXPECT_TRUE(isSameOperator<FilterOpEq>(std::get<1>(filterTerm1)));
+  EXPECT_EQ(std::get<2>(filterTerm1), "Down");
+
+  EXPECT_EQ(std::get<0>(filterTerm2), "adminState");
+  EXPECT_TRUE(isSameOperator<FilterOpNeq>(std::get<1>(filterTerm2)));
+  EXPECT_EQ(std::get<2>(filterTerm2), "Disabled");
+
+  EXPECT_EQ(std::get<0>(filterTerm3), "id");
+  EXPECT_TRUE(isSameOperator<FilterOpLte>(std::get<1>(filterTerm3)));
+  EXPECT_EQ(std::get<2>(filterTerm3), "12");
+
+  EXPECT_EQ(std::get<0>(filterTerm4), "tcvrID");
+  EXPECT_TRUE(isSameOperator<FilterOpGt>(std::get<1>(filterTerm4)));
+  EXPECT_EQ(std::get<2>(filterTerm4), "5");
+}
+
 TEST_F(FilterValidatorFixture, filterValidationTestPortValid) {
   auto otherFieldsValidInput = createValidInputOtherFields();
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
