@@ -96,6 +96,10 @@ class PrbsTest : public LinkTest {
         12,
         std::chrono::milliseconds(5000));
 
+    // Certain CMIS optics work more reliably when there is a 10s time between
+    // enabling the generator and the checker
+    /* sleep override */ std::this_thread::sleep_for(10s);
+
     XLOG(INFO) << "Enabling PRBS Checker on all ports";
     enabledState.checkerEnabled() = true;
     enabledState.generatorEnabled().reset();
@@ -105,10 +109,6 @@ class PrbsTest : public LinkTest {
         { EXPECT_EVENTUALLY_TRUE(setPrbsOnAllInterfaces(enabledState)); },
         12,
         std::chrono::milliseconds(5000));
-
-    // Certain CMIS optics work more reliably when there is a 10s time between
-    // enabling the generator and the checker
-    /* sleep override */ std::this_thread::sleep_for(10s);
 
     // 3. Check Prbs State on all ports, they all should be enabled
     XLOG(INFO) << "Checking PRBS state after enabling PRBS";
@@ -303,52 +303,44 @@ class PrbsTest : public LinkTest {
         return;
       } else {
         auto qsfpServiceClient = utils::createQsfpServiceClient();
-        // Retry for a minute to give the qsfp_service enough chance to
-        // successfully refresh a transceiver
-        WITH_RETRIES_N_TIMED(
-            {
-              EXPECT_EVENTUALLY_TRUE(checkPrbsStatsOnInterface<
-                                     facebook::fboss::QsfpServiceAsyncClient>(
-                  qsfpServiceClient.get(), interfaceName, component));
-            },
-            12,
-            std::chrono::milliseconds(5000));
+        checkPrbsStatsOnInterface<facebook::fboss::QsfpServiceAsyncClient>(
+            qsfpServiceClient.get(), interfaceName, component);
       }
     }
   }
 
   template <class Client>
-  bool checkPrbsStatsOnInterface(
+  void checkPrbsStatsOnInterface(
       Client* client,
       std::string& interfaceName,
       phy::PrbsComponent component) {
-    try {
-      phy::PrbsStats stats;
-      client->sync_getInterfacePrbsStats(stats, interfaceName, component);
-      EXPECT_FALSE(stats.get_laneStats().empty());
-      for (const auto& laneStat : stats.get_laneStats()) {
-        EXPECT_TRUE(laneStat.get_locked());
-        EXPECT_FALSE(laneStat.get_numLossOfLock());
-        EXPECT_TRUE(laneStat.get_ber() >= 0 && laneStat.get_ber() < 1);
-        EXPECT_TRUE(laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < 1);
-        EXPECT_TRUE(laneStat.get_ber() <= laneStat.get_maxBer());
-        EXPECT_TRUE(laneStat.get_timeSinceLastLocked());
-        XLOG(DBG2) << folly::sformat(
-            "Interface {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
-            interfaceName,
-            laneStat.get_laneId(),
-            laneStat.get_locked(),
-            laneStat.get_numLossOfLock(),
-            laneStat.get_ber(),
-            laneStat.get_maxBer(),
-            laneStat.get_timeSinceLastLocked());
-      }
-    } catch (const std::exception& ex) {
-      XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "
-                << ex.what();
-      return false;
-    }
-    return true;
+    WITH_RETRIES_N_TIMED(
+        {
+          phy::PrbsStats stats;
+          client->sync_getInterfacePrbsStats(stats, interfaceName, component);
+          ASSERT_EVENTUALLY_FALSE(stats.get_laneStats().empty());
+          for (const auto& laneStat : stats.get_laneStats()) {
+            EXPECT_EVENTUALLY_TRUE(laneStat.get_locked());
+            EXPECT_EVENTUALLY_FALSE(laneStat.get_numLossOfLock());
+            EXPECT_EVENTUALLY_TRUE(
+                laneStat.get_ber() >= 0 && laneStat.get_ber() < 1);
+            EXPECT_EVENTUALLY_TRUE(
+                laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < 1);
+            EXPECT_EVENTUALLY_TRUE(laneStat.get_ber() <= laneStat.get_maxBer());
+            EXPECT_EVENTUALLY_TRUE(laneStat.get_timeSinceLastLocked());
+            XLOG(DBG2) << folly::sformat(
+                "Interface {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
+                interfaceName,
+                laneStat.get_laneId(),
+                laneStat.get_locked(),
+                laneStat.get_numLossOfLock(),
+                laneStat.get_ber(),
+                laneStat.get_maxBer(),
+                laneStat.get_timeSinceLastLocked());
+          }
+        },
+        12,
+        std::chrono::milliseconds(5000));
   }
 
   void checkPrbsStatsAfterClearOnAllInterfaces(
@@ -399,7 +391,7 @@ class PrbsTest : public LinkTest {
       for (const auto& laneStat : stats.get_laneStats()) {
         EXPECT_EQ(laneStat.get_locked(), prbsEnabled);
         EXPECT_EQ(laneStat.get_numLossOfLock(), 0);
-        EXPECT_GT(laneStat.get_timeSinceLastClear(), timestampBeforeClear);
+        EXPECT_LT(laneStat.get_timeSinceLastClear(), timestampBeforeClear);
       }
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "

@@ -217,9 +217,12 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
             (side == phy::Side::SYSTEM
                  ? *phyPortConfig.profile.system.modulation()
                  : *phyPortConfig.profile.line.modulation());
+        auto now = std::time(nullptr);
         for (const auto& lanePrbsStats : prbsStats) {
-          EXPECT_TRUE(*lanePrbsStats.timeSinceLastLocked() >= sleepSeconds);
-          EXPECT_TRUE(*lanePrbsStats.timeSinceLastClear() >= sleepSeconds);
+          EXPECT_TRUE(
+              now - *lanePrbsStats.timeSinceLastLocked() >= sleepSeconds);
+          EXPECT_TRUE(
+              now - *lanePrbsStats.timeSinceLastClear() >= sleepSeconds);
           // NRZ on short channels can have 0 errors.
           // Expecting PAM4 to be BER 0 is not reasonable.
           // xphy and optics are both on the pim so the channel is short

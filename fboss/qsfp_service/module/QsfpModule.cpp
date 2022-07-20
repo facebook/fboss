@@ -452,7 +452,7 @@ void QsfpModule::clearTransceiverPrbsStats(phy::Side side) {
       laneStat.ber() = 0;
       laneStat.maxBer() = 0;
       laneStat.numLossOfLock() = 0;
-      laneStat.timeSinceLastClear() = std::time(nullptr);
+      laneStat.timeSinceLastClear() = 0;
 
       QSFP_LOG(INFO, this) << " Lane " << *laneStat.laneId()
                            << " ber and maxBer cleared";
@@ -497,11 +497,19 @@ void QsfpModule::updatePrbsStats() {
             // If previously there was no lock and now there is, update
             // timeSinceLastLocked to now
             if (!(*oldLane.locked()) && *newLane.locked()) {
-              newLane.timeSinceLastLocked() = *newStat.timeCollected();
+              newLane.timeSinceLastLocked() = 0;
             } else {
-              newLane.timeSinceLastLocked() = *oldLane.timeSinceLastLocked();
+              newLane.timeSinceLastLocked() = *oldLane.timeSinceLastLocked() +
+                  (*newStat.timeCollected()) - (*oldStat.timeCollected());
             }
-            newLane.timeSinceLastClear() = *oldLane.timeSinceLastClear();
+            if (!(*oldStat.timeCollected())) {
+              // Initially timeCollected will be 0, so initialize
+              // timeSinceLastClear to be 0 also
+              newLane.timeSinceLastClear() = 0;
+            } else {
+              newLane.timeSinceLastClear() = *oldLane.timeSinceLastClear() +
+                  (*newStat.timeCollected()) - (*oldStat.timeCollected());
+            }
           }
         }
       };

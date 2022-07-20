@@ -16,6 +16,10 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
+using std::chrono::duration_cast;
+using std::chrono::seconds;
+using std::chrono::system_clock;
+
 namespace facebook::fboss {
 
 struct CmdShowInterfacePrbsStatsTraits : public BaseCommandTraits {
@@ -41,6 +45,7 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
+    auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
     for (const auto& intfEntry : *model.interfaceEntries()) {
       for (const auto& entry : *intfEntry.componentEntries()) {
         auto stats = *(entry.prbsStats());
@@ -70,7 +75,8 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
           ber << *laneStat.ber();
           maxBer << *laneStat.maxBer();
           std::string lastClear = *laneStat.timeSinceLastClear()
-              ? utils::getPrettyElapsedTime(*laneStat.timeSinceLastClear())
+              ? utils::getPrettyElapsedTime(
+                    now.count() - *laneStat.timeSinceLastClear())
               : "N/A";
           table.addRow(
               {std::to_string(*laneStat.laneId()),
@@ -78,7 +84,8 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
                ber.str(),
                maxBer.str(),
                std::to_string(*laneStat.numLossOfLock()),
-               utils::getPrettyElapsedTime(*laneStat.timeSinceLastLocked()),
+               utils::getPrettyElapsedTime(
+                   now.count() - *laneStat.timeSinceLastLocked()),
                lastClear});
         }
         out << table << std::endl;
