@@ -159,7 +159,7 @@ class BcmPortQueueManagerTest : public BcmCosQueueManagerTest {
     return bcmPort->getCurrentQueueSettings();
   }
 
-  const QueueConfig& getSwQueues() override {
+  QueueConfig getSwQueues() override {
     auto swPort =
         getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0]));
     return swPort->getPortQueues();

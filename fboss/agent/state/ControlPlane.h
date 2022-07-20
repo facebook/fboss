@@ -74,21 +74,21 @@ class ControlPlane : public ThriftyBaseT<
     return getFields()->toFollyDynamicLegacy();
   }
 
-  const QueueConfig& getQueues() const {
+  QueueConfig getQueues() const {
     return getFields()->queues;
   }
   void resetQueues(QueueConfig& queues) {
     writableFields()->queues.swap(queues);
   }
 
-  const RxReasonToQueue& getRxReasonToQueue() const {
+  RxReasonToQueue getRxReasonToQueue() const {
     return getFields()->rxReasonToQueue;
   }
   void resetRxReasonToQueue(RxReasonToQueue& rxReasonToQueue) {
     writableFields()->rxReasonToQueue.swap(rxReasonToQueue);
   }
 
-  const std::optional<std::string>& getQosPolicy() const {
+  std::optional<std::string> getQosPolicy() const {
     return getFields()->qosPolicy;
   }
   void resetQosPolicy(std::optional<std::string>& qosPolicy) {

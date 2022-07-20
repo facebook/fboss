@@ -99,7 +99,7 @@ class BcmControlPlaneTest : public BcmCosQueueManagerTest {
     return getHwSwitch()->getControlPlane()->getMulticastQueueSettings();
   }
 
-  const QueueConfig& getSwQueues() override {
+  QueueConfig getSwQueues() override {
     return getProgrammedState()->getControlPlane()->getQueues();
   }
 };

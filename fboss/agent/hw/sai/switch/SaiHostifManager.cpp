@@ -253,8 +253,8 @@ void SaiHostifManager::processQosDelta(
 
 void SaiHostifManager::processRxReasonToQueueDelta(
     const DeltaValue<ControlPlane>& controlPlaneDelta) {
-  auto& oldRxReasonToQueue = controlPlaneDelta.getOld()->getRxReasonToQueue();
-  auto& newRxReasonToQueue = controlPlaneDelta.getNew()->getRxReasonToQueue();
+  auto oldRxReasonToQueue = controlPlaneDelta.getOld()->getRxReasonToQueue();
+  auto newRxReasonToQueue = controlPlaneDelta.getNew()->getRxReasonToQueue();
   /*
    * RxReasonToQueue is an ordered list and the enum values dicatates the
    * priority of the traps. Lower the enum value, lower the priority.
@@ -319,8 +319,8 @@ void SaiHostifManager::processRxReasonToQueueDelta(
 
 void SaiHostifManager::processQueueDelta(
     const DeltaValue<ControlPlane>& controlPlaneDelta) {
-  auto& oldQueueConfig = controlPlaneDelta.getOld()->getQueues();
-  auto& newQueueConfig = controlPlaneDelta.getNew()->getQueues();
+  auto oldQueueConfig = controlPlaneDelta.getOld()->getQueues();
+  auto newQueueConfig = controlPlaneDelta.getNew()->getQueues();
   changeCpuQueue(oldQueueConfig, newQueueConfig);
 }
 

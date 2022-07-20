@@ -22,7 +22,7 @@ class BcmCosQueueManagerTest : public BcmTest {
 
   virtual QueueConfig getHwQueues() = 0;
 
-  virtual const QueueConfig& getSwQueues() = 0;
+  virtual QueueConfig getSwQueues() = 0;
 
   void checkCosQueueAPI();
 
