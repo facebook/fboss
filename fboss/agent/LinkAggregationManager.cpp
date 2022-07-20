@@ -208,7 +208,6 @@ void LinkAggregationManager::stopLacpOnSubPort(PortID subPort) {
   it = portToController_.find(subPort);
   CHECK_NE(it, portToController_.end());
   it->second->stopMachines();
-  portToController_.erase(it);
 }
 
 void LinkAggregationManager::aggregatePortChanged(
