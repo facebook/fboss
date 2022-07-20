@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/state/NodeBase-defs.h"
@@ -32,7 +33,7 @@ namespace facebook::fboss {
 folly::dynamic ControlPlaneFields::toFollyDynamicLegacy() const {
   folly::dynamic controlPlane = folly::dynamic::object;
   controlPlane[kQueues] = folly::dynamic::array;
-  for (const auto& queue : queues) {
+  for (auto queue : queues()) {
     controlPlane[kQueues].push_back(queue->toFollyDynamic());
   }
 
@@ -40,7 +41,7 @@ folly::dynamic ControlPlaneFields::toFollyDynamicLegacy() const {
   // TODO(pgardideh): temporarily write the object version. remove when
   // migration is complete
   controlPlane[kRxReasonToQueue] = folly::dynamic::object;
-  for (const auto& entry : rxReasonToQueue) {
+  for (auto entry : rxReasonToQueue()) {
     auto reason = apache::thrift::util::enumName(*entry.rxReason());
     CHECK(reason != nullptr);
     controlPlane[kRxReasonToQueueOrderedList].push_back(
@@ -49,8 +50,8 @@ folly::dynamic ControlPlaneFields::toFollyDynamicLegacy() const {
     controlPlane[kRxReasonToQueue][reason] = *entry.queueId();
   }
 
-  if (qosPolicy) {
-    controlPlane[kQosPolicy] = *qosPolicy;
+  if (auto policy = qosPolicy()) {
+    controlPlane[kQosPolicy] = *policy;
   }
 
   return controlPlane;
@@ -59,12 +60,15 @@ folly::dynamic ControlPlaneFields::toFollyDynamicLegacy() const {
 ControlPlaneFields ControlPlaneFields::fromFollyDynamicLegacy(
     const folly::dynamic& json) {
   ControlPlaneFields controlPlane = ControlPlaneFields();
+  QueueConfig queues;
   if (json.find(kQueues) != json.items().end()) {
     for (const auto& queueJson : json[kQueues]) {
       auto queue = PortQueue::fromFollyDynamic(queueJson);
-      controlPlane.queues.push_back(queue);
+      queues.push_back(queue);
     }
   }
+  controlPlane.setQueues(std::move(queues));
+  RxReasonToQueue rxReasonToQueue;
   if (json.find(kRxReasonToQueueOrderedList) != json.items().end()) {
     for (const auto& reasonToQueueEntry : json[kRxReasonToQueueOrderedList]) {
       CHECK(
@@ -80,8 +84,9 @@ ControlPlaneFields ControlPlaneFields::fromFollyDynamicLegacy(
       cfg::PacketRxReasonToQueue reasonToQueue;
       reasonToQueue.rxReason() = reason;
       reasonToQueue.queueId() = reasonToQueueEntry.at(kQueueId).asInt();
-      controlPlane.rxReasonToQueue.push_back(reasonToQueue);
+      rxReasonToQueue.push_back(reasonToQueue);
     }
+    controlPlane.setRxReasonToQueue(std::move(rxReasonToQueue));
   } else if (json.find(kRxReasonToQueue) != json.items().end()) {
     // TODO(pgardideh): the map version of reason to queue is deprecated. Remove
     // this read when it is safe to do so.
@@ -93,11 +98,12 @@ ControlPlaneFields ControlPlaneFields::fromFollyDynamicLegacy(
       cfg::PacketRxReasonToQueue reasonToQueue;
       reasonToQueue.rxReason() = reason;
       reasonToQueue.queueId() = reasonToQueueJson.second.asInt();
-      controlPlane.rxReasonToQueue.push_back(reasonToQueue);
+      rxReasonToQueue.push_back(reasonToQueue);
     }
+    controlPlane.setRxReasonToQueue(std::move(rxReasonToQueue));
   }
   if (json.find(kQosPolicy) != json.items().end()) {
-    controlPlane.qosPolicy = json[kQosPolicy].asString();
+    controlPlane.setQosPolicy(json[kQosPolicy].asString());
   }
   return controlPlane;
 }
@@ -139,20 +145,20 @@ bool ControlPlane::operator==(const ControlPlane& controlPlane) const {
     return true;
   };
 
-  return compareQueues(getFields()->queues, controlPlane.getQueues()) &&
-      getFields()->rxReasonToQueue == controlPlane.getRxReasonToQueue() &&
-      getFields()->qosPolicy == controlPlane.getQosPolicy();
+  return compareQueues(getFields()->queues(), controlPlane.getQueues()) &&
+      getFields()->rxReasonToQueue() == controlPlane.getRxReasonToQueue() &&
+      getFields()->qosPolicy() == controlPlane.getQosPolicy();
 }
 
 state::ControlPlaneFields ControlPlaneFields::toThrift() const {
   state::ControlPlaneFields thriftControlPlaneFields{};
-  if (qosPolicy) {
-    thriftControlPlaneFields.defaultQosPolicy() = qosPolicy.value();
+  if (auto policy = qosPolicy()) {
+    thriftControlPlaneFields.defaultQosPolicy() = policy.value();
   }
-  for (auto queue : queues) {
+  for (auto queue : queues()) {
     thriftControlPlaneFields.queues()->push_back(queue->toThrift());
   }
-  for (auto entry : rxReasonToQueue) {
+  for (auto entry : rxReasonToQueue()) {
     thriftControlPlaneFields.rxReasonToQueue()->push_back(entry);
   }
 
@@ -163,14 +169,19 @@ ControlPlaneFields ControlPlaneFields::fromThrift(
     state::ControlPlaneFields const& thriftControlPlaneFields) {
   ControlPlaneFields fields{};
   if (thriftControlPlaneFields.defaultQosPolicy()) {
-    fields.qosPolicy = *thriftControlPlaneFields.defaultQosPolicy();
+    fields.setQosPolicy(*thriftControlPlaneFields.defaultQosPolicy());
   }
+  QueueConfig queues;
   for (auto cpuQueue : *thriftControlPlaneFields.queues()) {
-    fields.queues.push_back(PortQueue::fromThrift(cpuQueue));
+    queues.push_back(PortQueue::fromThrift(cpuQueue));
   }
+  fields.setQueues(std::move(queues));
+
+  RxReasonToQueue rxReasonToQueue;
   for (auto entry : *thriftControlPlaneFields.rxReasonToQueue()) {
-    fields.rxReasonToQueue.push_back(entry);
+    rxReasonToQueue.push_back(entry);
   }
+  fields.setRxReasonToQueue(std::move(rxReasonToQueue));
   return fields;
 }
 

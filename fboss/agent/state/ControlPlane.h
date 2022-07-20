@@ -11,7 +11,6 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
-#include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/Thrifty.h"
@@ -42,13 +41,39 @@ struct ControlPlaneFields
   static void migrateFromThrifty(folly::dynamic& dyn);
 
   bool operator==(const ControlPlaneFields& other) const {
-    return queues == other.queues && rxReasonToQueue == other.rxReasonToQueue &&
-        qosPolicy == other.qosPolicy;
+    return queues() == other.queues() &&
+        rxReasonToQueue() == other.rxReasonToQueue() &&
+        qosPolicy() == other.qosPolicy();
   }
 
-  QueueConfig queues;
-  RxReasonToQueue rxReasonToQueue;
-  std::optional<std::string> qosPolicy;
+  QueueConfig queues() const {
+    return queues_;
+  }
+
+  void setQueues(QueueConfig queues) {
+    queues_ = std::move(queues);
+  }
+
+  RxReasonToQueue rxReasonToQueue() const {
+    return rxReasonToQueue_;
+  }
+
+  void setRxReasonToQueue(RxReasonToQueue rxReasonToQueue) {
+    rxReasonToQueue_ = std::move(rxReasonToQueue);
+  }
+
+  std::optional<std::string> qosPolicy() const {
+    return qosPolicy_;
+  }
+
+  void setQosPolicy(std::optional<std::string> policy) {
+    qosPolicy_ = std::move(policy);
+  }
+
+ private:
+  QueueConfig queues_;
+  RxReasonToQueue rxReasonToQueue_;
+  std::optional<std::string> qosPolicy_;
 };
 
 /*
@@ -75,24 +100,24 @@ class ControlPlane : public ThriftyBaseT<
   }
 
   QueueConfig getQueues() const {
-    return getFields()->queues;
+    return getFields()->queues();
   }
   void resetQueues(QueueConfig& queues) {
-    writableFields()->queues.swap(queues);
+    writableFields()->setQueues(queues);
   }
 
   RxReasonToQueue getRxReasonToQueue() const {
-    return getFields()->rxReasonToQueue;
+    return getFields()->rxReasonToQueue();
   }
   void resetRxReasonToQueue(RxReasonToQueue& rxReasonToQueue) {
-    writableFields()->rxReasonToQueue.swap(rxReasonToQueue);
+    writableFields()->setRxReasonToQueue(rxReasonToQueue);
   }
 
   std::optional<std::string> getQosPolicy() const {
-    return getFields()->qosPolicy;
+    return getFields()->qosPolicy();
   }
   void resetQosPolicy(std::optional<std::string>& qosPolicy) {
-    writableFields()->qosPolicy.swap(qosPolicy);
+    writableFields()->setQosPolicy(qosPolicy);
   }
 
   ControlPlane* modify(std::shared_ptr<SwitchState>* state);
