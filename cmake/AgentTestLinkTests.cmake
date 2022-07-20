@@ -4,6 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(link_tests
+  fboss/agent/test/link_tests/EmptyLinkTest.cpp
   fboss/agent/test/link_tests/LinkTest.cpp
   fboss/agent/test/link_tests/LinkSanityTests.cpp
   fboss/agent/test/link_tests/PtpTests.cpp
