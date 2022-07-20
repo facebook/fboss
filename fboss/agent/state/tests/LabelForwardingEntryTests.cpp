@@ -108,7 +108,9 @@ TEST(LabelForwardingEntryTests, fromJsonOldFormat) {
   // new format with no rib has interface id in client entries always
   std::string jsonNewFormatNoRibEntryType = R"(
   {
+  "flags": 2,
   "forwardingInfo": {
+    "action": "Nexthops",
     "adminDistance": 10,
     "nexthops": [
       {
@@ -120,45 +122,104 @@ TEST(LabelForwardingEntryTests, fromJsonOldFormat) {
         "weight": "0"
       },
       {
+        "interface": 2096,
         "label_forwarding_action": {
           "type": 2
         },
-        "interface": 2096,
         "nexthop": "2401::d8c4:97ff:fed0:5b14",
         "weight": "0"
       }
-    ],
-    "action": "Nexthops"
+    ]
   },
-  "flags": 2,
+  "fwd": {
+    "action": 2,
+    "adminDistance": 10,
+    "nexthops": [
+      {
+        "address": {
+          "addr": "/oAAAAAAAADYxJf//tBbFA",
+          "ifName": "fboss2002"
+        },
+        "mplsAction": {
+          "action": 2
+        },
+        "weight": 0
+      },
+      {
+        "address": {
+          "addr": "JAEAAAAAAADYxJf//tBbFA",
+          "ifName": "fboss2096"
+        },
+        "mplsAction": {
+          "action": 2
+        },
+        "weight": 0
+      }
+    ]
+  },
+  "label": {
+    "value": 1001
+  },
+  "nexthopsmulti": {
+    "client2NextHopEntry": {
+      "786": {
+        "action": 2,
+        "adminDistance": 10,
+        "nexthops": [
+          {
+            "address": {
+              "addr": "/oAAAAAAAADYxJf//tBbFA",
+              "ifName": "fboss2002"
+            },
+            "mplsAction": {
+              "action": 2
+            },
+            "weight": 0
+          },
+          {
+            "address": {
+              "addr": "JAEAAAAAAADYxJf//tBbFA",
+              "ifName": "fboss2096"
+            },
+            "mplsAction": {
+              "action": 2
+            },
+            "weight": 0
+          }
+        ]
+      }
+    },
+    "lowestAdminDistanceClientId": 786
+  },
   "prefix": {
     "label": 1001
   },
   "rib": {
     "786": {
-      "adminDistance": 10,
       "action": "Nexthops",
+      "adminDistance": 10,
       "nexthops": [
         {
           "interface": 2002,
           "label_forwarding_action": {
             "type": 2
           },
-          "weight": "0",
-          "nexthop": "fe80::d8c4:97ff:fed0:5b14"
+          "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+          "weight": "0"
         },
         {
+          "interface": 2096,
           "label_forwarding_action": {
             "type": 2
           },
-          "interface": 2096,
-          "weight": "0",
-          "nexthop": "2401::d8c4:97ff:fed0:5b14"
+          "nexthop": "2401::d8c4:97ff:fed0:5b14",
+          "weight": "0"
         }
       ]
     }
   }
-})";
+}
+  )";
   auto newFormatNoRibEntry =
       LabelForwardingInformationBase::labelEntryFromFollyDynamic(
           folly::parseJson(jsonNewFormatNoRibEntryType));
@@ -174,8 +235,10 @@ TEST(LabelForwardingEntryTests, fromJsonOldFormat) {
   // Interface id present only in fwd and not in client entries
   // for non link local entries
   std::string jsonRibEnabledNewFormatEntryType = R"(
-  {
+    {
+  "flags": 2,
   "forwardingInfo": {
+    "action": "Nexthops",
     "adminDistance": 10,
     "nexthops": [
       {
@@ -187,44 +250,102 @@ TEST(LabelForwardingEntryTests, fromJsonOldFormat) {
         "weight": "0"
       },
       {
+        "interface": 2096,
         "label_forwarding_action": {
           "type": 2
         },
-        "interface": 2096,
         "nexthop": "2401::d8c4:97ff:fed0:5b14",
         "weight": "0"
       }
-    ],
-    "action": "Nexthops"
+    ]
   },
-  "flags": 2,
+  "fwd": {
+    "action": 2,
+    "adminDistance": 10,
+    "nexthops": [
+      {
+        "address": {
+          "addr": "/oAAAAAAAADYxJf//tBbFA",
+          "ifName": "fboss2002"
+        },
+        "mplsAction": {
+          "action": 2
+        },
+        "weight": 0
+      },
+      {
+        "address": {
+          "addr": "JAEAAAAAAADYxJf//tBbFA",
+          "ifName": "fboss2096"
+        },
+        "mplsAction": {
+          "action": 2
+        },
+        "weight": 0
+      }
+    ]
+  },
+  "label": {
+    "value": 1001
+  },
+  "nexthopsmulti": {
+    "client2NextHopEntry": {
+      "786": {
+        "action": 2,
+        "adminDistance": 10,
+        "nexthops": [
+          {
+            "address": {
+              "addr": "JAEAAAAAAADYxJf//tBbFA"
+            },
+            "mplsAction": {
+              "action": 2
+            },
+            "weight": 0
+          },
+          {
+            "address": {
+              "addr": "/oAAAAAAAADYxJf//tBbFA",
+              "ifName": "fboss2002"
+            },
+            "mplsAction": {
+              "action": 2
+            },
+            "weight": 0
+          }
+        ]
+      }
+    },
+    "lowestAdminDistanceClientId": 786
+  },
   "prefix": {
     "label": 1001
   },
   "rib": {
     "786": {
-      "adminDistance": 10,
       "action": "Nexthops",
+      "adminDistance": 10,
       "nexthops": [
         {
           "label_forwarding_action": {
             "type": 2
           },
-          "weight": "0",
-          "nexthop": "2401::d8c4:97ff:fed0:5b14"
+          "nexthop": "2401::d8c4:97ff:fed0:5b14",
+          "weight": "0"
         },
         {
           "interface": 2002,
           "label_forwarding_action": {
             "type": 2
           },
-          "weight": "0",
-          "nexthop": "fe80::d8c4:97ff:fed0:5b14"
+          "nexthop": "fe80::d8c4:97ff:fed0:5b14",
+          "weight": "0"
         }
       ]
     }
   }
-})";
+}
+  )";
 
   auto newRibEntry = LabelForwardingInformationBase::labelEntryFromFollyDynamic(
       folly::parseJson(jsonRibEnabledNewFormatEntryType));

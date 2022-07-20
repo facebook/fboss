@@ -171,23 +171,18 @@ folly::dynamic RouteFields<AddrT>::migrateToThrifty(folly::dynamic const& dyn) {
 
 template <typename AddrT>
 void RouteFields<AddrT>::migrateFromThrifty(folly::dynamic& dyn) {
-  folly::dynamic newDyn = folly::dynamic::object;
   if constexpr (std::is_same_v<AddrT, LabelID>) {
-    newDyn[kPrefix] = dyn["label"];
-  } else {
-    newDyn[kPrefix] = dyn["prefix"];
+    ThriftyUtils::renameField(dyn, "label", std::string(kPrefix));
   }
-  RouteFields<AddrT>::Prefix::migrateFromThrifty(newDyn[kPrefix]);
-  newDyn[kNextHopsMulti] = dyn["nexthopsmulti"];
-  newDyn[kFwdInfo] = dyn["fwd"];
-
-  RouteNextHopsMulti::migrateFromThrifty(newDyn[kNextHopsMulti]);
-  RouteNextHopEntry::migrateFromThrifty(newDyn[kFwdInfo]);
-  newDyn[kFlags] = dyn["flags"].asInt();
+  RouteFields<AddrT>::Prefix::migrateFromThrifty(dyn[kPrefix]);
+  ThriftyUtils::renameField(dyn, "nexthopsmulti", std::string(kNextHopsMulti));
+  ThriftyUtils::renameField(dyn, "fwd", std::string(kFwdInfo));
+  RouteNextHopsMulti::migrateFromThrifty(dyn[kNextHopsMulti]);
+  RouteNextHopEntry::migrateFromThrifty(dyn[kFwdInfo]);
+  dyn[kFlags] = dyn["flags"].asInt();
   if (dyn.find("classID") != dyn.items().end()) {
-    newDyn[kClassID] = dyn["classID"].asInt();
+    dyn[kClassID] = dyn["classID"].asInt();
   }
-  dyn = newDyn;
 }
 
 template struct RouteFields<folly::IPAddressV4>;
