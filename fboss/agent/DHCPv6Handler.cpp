@@ -260,10 +260,11 @@ void DHCPv6Handler::processDHCPv6RelayForward(
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
     dhcpPacket.write(sendCursor);
   };
+  MacAddress cpuMac = sw->getPlatform()->getLocalMac();
   sendDHCPv6Packet(
       sw,
       dstMac,
-      srcMac,
+      cpuMac,
       vlan,
       ipHdr.dstAddr,
       ipHdr.srcAddr,
