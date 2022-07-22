@@ -1537,6 +1537,18 @@ std::vector<sai_port_lane_eye_values_t> SaiPortManager::getPortEyeValues(
     return std::vector<sai_port_lane_eye_values_t>();
   }
 
+  bool eyeValuesSupported = true;
+  if (platform_->getAsic()->getDataPlanePhyChipType() ==
+      phy::DataPlanePhyChipType::IPHY) {
+#if !defined(SAI_VERSION_7_2_0_0_ODP)
+    eyeValuesSupported = false;
+#endif
+  }
+
+  if (!eyeValuesSupported) {
+    return std::vector<sai_port_lane_eye_values_t>();
+  }
+
   return SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId, SaiPortTraits::Attributes::PortEyeValues{});
 }

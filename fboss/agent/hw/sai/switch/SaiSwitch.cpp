@@ -990,9 +990,22 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
         phy::LaneInfo laneInfo;
         std::vector<phy::EyeInfo> eyeInfo;
         phy::EyeInfo oneLaneEyeInfo;
-
-        int width = eyeStatus[i].right - eyeStatus[i].left;
-        int height = eyeStatus[i].up - eyeStatus[i].down;
+        laneInfo.lane() = eyeStatus[i].lane;
+        int width{0}, height{0};
+        if (getPlatform()->getAsic()->getAsicType() ==
+            HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
+          width = eyeStatus[i].right - eyeStatus[i].left;
+          height = eyeStatus[i].up - eyeStatus[i].down;
+        } else {
+          width = eyeStatus[i].right + eyeStatus[i].left;
+          height = eyeStatus[i].up + eyeStatus[i].down;
+        }
+        // Skip if both width and height are 0, it's likely a bad reading or the
+        // eye reporting is not supported (On BCM PHYs eye is not supported for
+        // PAM4 speeds)
+        if (width == 0 && height == 0) {
+          continue;
+        }
         oneLaneEyeInfo.height() = height;
         oneLaneEyeInfo.width() = width;
         eyeInfo.push_back(oneLaneEyeInfo);

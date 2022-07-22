@@ -50,6 +50,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
+    case HwAsic::Feature::PORT_EYE_VALUES:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
@@ -84,7 +85,6 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ROUTE_FLEX_COUNTERS:
     case HwAsic::Feature::FEC_DIAG_COUNTERS:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
-    case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
