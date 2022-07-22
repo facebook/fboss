@@ -94,6 +94,7 @@ bool EbroAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
+    case HwAsic::Feature::SAI_PORT_ERR_STATUS:
       return false;
   }
   return false;

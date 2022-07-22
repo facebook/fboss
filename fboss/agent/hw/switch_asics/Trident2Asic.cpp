@@ -90,6 +90,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::VOQ_MODE:
     case HwAsic::Feature::FABRIC_MODE:
+    case HwAsic::Feature::SAI_PORT_ERR_STATUS:
       return false;
   }
   return false;

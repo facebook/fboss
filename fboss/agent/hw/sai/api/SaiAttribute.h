@@ -164,6 +164,7 @@ DEFINE_extract(std::vector<sai_int16_t>, s16list);
 DEFINE_extract(std::vector<sai_int32_t>, s32list);
 DEFINE_extract(std::vector<sai_qos_map_t>, qosmap);
 DEFINE_extract(std::vector<sai_port_lane_eye_values_t>, porteyevalues);
+DEFINE_extract(std::vector<sai_port_err_status_t>, porterror);
 DEFINE_extract(facebook::fboss::AclEntryFieldU8, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU16, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU32, aclfield);

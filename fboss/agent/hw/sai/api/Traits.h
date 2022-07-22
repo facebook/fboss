@@ -114,6 +114,11 @@ struct WrappedSaiType<std::vector<sai_port_lane_eye_values_t>> {
 };
 
 template <>
+struct WrappedSaiType<std::vector<sai_port_err_status_t>> {
+  using value = sai_port_err_status_list_t;
+};
+
+template <>
 struct WrappedSaiType<std::array<char, 32>> {
   using value = char[32];
 };

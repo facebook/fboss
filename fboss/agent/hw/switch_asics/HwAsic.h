@@ -104,6 +104,7 @@ class HwAsic {
     SAI_FEC_COUNTERS,
     VOQ_MODE,
     FABRIC_MODE,
+    SAI_PORT_ERR_STATUS,
   };
 
   enum class AsicType ASIC_TYPE_LIST;

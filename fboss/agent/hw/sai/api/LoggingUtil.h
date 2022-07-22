@@ -220,6 +220,20 @@ struct formatter<sai_port_lane_eye_values_t> {
   }
 };
 
+// Formatting for sai_port_err_status_list_t
+template <>
+struct formatter<sai_port_err_status_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const sai_port_err_status_t& errStatus, FormatContext& ctx) {
+    return format_to(ctx.out(), "{}", static_cast<int>(errStatus));
+  }
+};
+
 // Formatting for AclEntryField<T>
 template <typename T>
 struct formatter<facebook::fboss::AclEntryField<T>> {

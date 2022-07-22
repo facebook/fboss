@@ -189,6 +189,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL,
         sai_uint8_t,
         SaiIntDefault<sai_uint8_t>>;
+    using PortErrStatus = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_ERR_STATUS_LIST,
+        std::vector<sai_port_err_status_t>,
+        SaiPortErrStatusDefault>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -285,6 +290,7 @@ SAI_ATTRIBUTE_NAME(Port, PtpMode)
 SAI_ATTRIBUTE_NAME(Port, PortEyeValues)
 SAI_ATTRIBUTE_NAME(Port, PriorityFlowControlMode)
 SAI_ATTRIBUTE_NAME(Port, PriorityFlowControl)
+SAI_ATTRIBUTE_NAME(Port, PortErrStatus)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

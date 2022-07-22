@@ -384,6 +384,19 @@ sai_status_t set_port_attribute_fn(
                 .list[j];
       }
     } break;
+    case SAI_PORT_ATTR_ERR_STATUS_LIST: {
+      port.portError.count =
+          static_cast<sai_port_err_status_list_t>(attr->value.porterror).count;
+      auto& portErrorList = port.portError.list;
+      auto portErrorVector = std::vector<sai_port_err_status_t>();
+      portErrorVector.resize(port.portError.count);
+      portErrorList = portErrorVector.data();
+      for (int j = 0; j < port.portError.count; j++) {
+        portErrorList[j] =
+            static_cast<sai_port_err_status_list_t>(attr->value.porterror)
+                .list[j];
+      }
+    } break;
     case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_MODE:
       port.priorityFlowControlMode =
           static_cast<sai_port_priority_flow_control_mode_t>(attr->value.u32);
