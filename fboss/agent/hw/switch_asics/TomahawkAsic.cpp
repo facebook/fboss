@@ -51,6 +51,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::PORT_EYE_VALUES:
+    case HwAsic::Feature::SAI_PORT_ERR_STATUS:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
@@ -90,7 +91,6 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::VOQ_MODE:
     case HwAsic::Feature::FABRIC_MODE:
-    case HwAsic::Feature::SAI_PORT_ERR_STATUS:
       return false;
   }
   return false;

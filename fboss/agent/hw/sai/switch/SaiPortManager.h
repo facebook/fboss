@@ -175,6 +175,8 @@ class SaiPortManager {
 
   std::vector<sai_port_lane_eye_values_t> getPortEyeValues(
       PortSaiId saiPortId) const;
+  std::vector<sai_port_err_status_t> getPortErrStatus(
+      PortSaiId saiPortId) const;
 
   void enableAfeAdaptiveMode(PortID portId);
 

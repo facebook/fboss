@@ -1553,6 +1553,21 @@ std::vector<sai_port_lane_eye_values_t> SaiPortManager::getPortEyeValues(
       saiPortId, SaiPortTraits::Attributes::PortEyeValues{});
 }
 
+std::vector<sai_port_err_status_t> SaiPortManager::getPortErrStatus(
+    PortSaiId saiPortId) const {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_PORT_ERR_STATUS)) {
+    return std::vector<sai_port_err_status_t>();
+  }
+
+#if !defined(SAI_VERSION_7_2_0_0_ODP)
+  return std::vector<sai_port_err_status_t>();
+#endif
+
+  return SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::PortErrStatus{});
+}
+
 phy::FecMode SaiPortManager::getFECMode(PortID portId) const {
   auto handle = getPortHandle(portId);
   auto saiFecMode = GET_OPT_ATTR(Port, FecMode, handle->port->attributes());

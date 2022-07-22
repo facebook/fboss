@@ -1029,6 +1029,23 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
     }
     phyParams.line()->pcs() = pcs;
 
+    // Update Reconciliation Sublayer (RS) Info
+    auto errStatus = managerTable_->portManager().getPortErrStatus(
+        portHandle->port->adapterKey());
+    phy::LinkFaultStatus faultStatus;
+    for (auto& err : errStatus) {
+      if (err == SAI_PORT_ERR_STATUS_SIGNAL_LOCAL_ERROR) {
+        faultStatus.localFault() = true;
+      } else if (err == SAI_PORT_ERR_STATUS_REMOTE_FAULT_STATUS) {
+        faultStatus.remoteFault() = true;
+      }
+    }
+    if (*faultStatus.localFault() || *faultStatus.remoteFault()) {
+      phy::RsInfo rsInfo;
+      rsInfo.faultStatus() = faultStatus;
+      phyParams.line()->rs() = rsInfo;
+    }
+
     // PhyInfo update timestamp
     auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
     phyParams.timeCollected() = now.count();
