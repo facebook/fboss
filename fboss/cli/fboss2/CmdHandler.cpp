@@ -313,7 +313,7 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
   if (extraOptionsEC != cli::CliOptionResult::EOK) {
     throw std::invalid_argument(folly::to<std::string>(
         "Error in filter parsing: ",
-        utils::getCliOptionErrStr(extraOptionsEC)));
+        apache::thrift::util::enumNameSafe(extraOptionsEC)));
   }
 
   /* If there are errors during filter parsing, we do not exit in the getFilters
@@ -327,7 +327,7 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
   if (filterParsingEC != cli::CliOptionResult::EOK) {
     throw std::invalid_argument(folly::to<std::string>(
         "Error in filter parsing: ",
-        utils::getCliOptionErrStr(filterParsingEC)));
+        apache::thrift::util::enumNameSafe(filterParsingEC)));
   }
 
   ValidFilterMapType validFilters = {};
@@ -337,7 +337,8 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
         CmdGlobalOptions::getInstance()->isValid(validFilters, parsedFilters);
     if (!(errorCode == cli::CliOptionResult::EOK)) {
       throw std::invalid_argument(folly::to<std::string>(
-          "Error in filter parsing: ", utils::getCliOptionErrStr(errorCode)));
+          "Error in filter parsing: ",
+          apache::thrift::util::enumNameSafe(errorCode)));
     }
   }
 

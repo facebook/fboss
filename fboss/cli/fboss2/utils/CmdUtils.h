@@ -359,7 +359,6 @@ std::vector<int32_t> getPortIDList(
 std::string getUserInfo();
 std::string getAddrStr(network::thrift::BinaryAddress addr);
 std::string getAdminDistanceStr(AdminDistance adminDistance);
-std::string getCliOptionErrStr(cli::CliOptionResult optRes);
 void setLogLevel(std::string logLevelStr);
 
 void logUsage(const CmdLogInfo& cmdLogInfo);

@@ -239,24 +239,4 @@ std::string getAdminDistanceStr(AdminDistance adminDistance) {
       "Unsupported AdminDistance: " +
       std::to_string(static_cast<int>(adminDistance)));
 }
-
-std::string getCliOptionErrStr(cli::CliOptionResult optRes) {
-  switch (optRes) {
-    case cli::CliOptionResult::EOK:
-      return "EOK";
-    case cli::CliOptionResult::KEY_ERROR:
-      return "KEY_ERROR";
-    case cli::CliOptionResult::VALUE_ERROR:
-      return "VALUE_ERROR";
-    case cli::CliOptionResult::TYPE_ERROR:
-      return "TYPE_ERROR";
-    case cli::CliOptionResult::OP_ERROR:
-      return "OP_ERROR";
-    case cli::CliOptionResult::EXTRA_OPTIONS:
-      return "EXTRA_OPTIONS";
-    case cli::CliOptionResult::TERM_ERROR:
-      return "TERM_ERROR";
-  }
-  return "UNKNOWN";
-}
 } // namespace facebook::fboss::utils
