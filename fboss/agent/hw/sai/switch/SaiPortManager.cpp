@@ -1530,22 +1530,15 @@ void SaiPortManager::programMacsec(
   }
 }
 
-sai_port_eye_values_list_t SaiPortManager::getPortEyeValues(
+std::vector<sai_port_lane_eye_values_t> SaiPortManager::getPortEyeValues(
     PortSaiId saiPortId) const {
   // Eye value is supported by only few Phy devices
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::PORT_EYE_VALUES)) {
-    return sai_port_eye_values_list_t{};
+    return std::vector<sai_port_lane_eye_values_t>();
   }
 
-  sai_port_eye_values_list_t portEyeVal;
-
-  auto portLaneList = SaiApiTable::getInstance()->portApi().getAttribute(
+  return SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId, SaiPortTraits::Attributes::PortEyeValues{});
-
-  portEyeVal.count = portLaneList.size();
-  portEyeVal.list = portLaneList.data();
-
-  return portEyeVal;
 }
 
 phy::FecMode SaiPortManager::getFECMode(PortID portId) const {

@@ -173,7 +173,8 @@ class SaiPortManager {
   void setPtpTcEnable(bool enable);
   bool isPtpTcEnabled() const;
 
-  sai_port_eye_values_list_t getPortEyeValues(PortSaiId saiPortId) const;
+  std::vector<sai_port_lane_eye_values_t> getPortEyeValues(
+      PortSaiId saiPortId) const;
 
   void enableAfeAdaptiveMode(PortID portId);
 

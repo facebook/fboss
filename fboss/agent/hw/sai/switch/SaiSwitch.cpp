@@ -9,7 +9,6 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
-
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LockPolicy.h"
@@ -986,14 +985,14 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
     // Update PMD Info
     auto eyeStatus = managerTable_->portManager().getPortEyeValues(
         portHandle->port->adapterKey());
-    if (eyeStatus.count != 0) {
-      for (int i = 0; i < eyeStatus.count; i++) {
+    if (!eyeStatus.empty()) {
+      for (int i = 0; i < eyeStatus.size(); i++) {
         phy::LaneInfo laneInfo;
         std::vector<phy::EyeInfo> eyeInfo;
         phy::EyeInfo oneLaneEyeInfo;
 
-        int width = eyeStatus.list[i].right - eyeStatus.list[i].left;
-        int height = eyeStatus.list[i].up - eyeStatus.list[i].down;
+        int width = eyeStatus[i].right - eyeStatus[i].left;
+        int height = eyeStatus[i].up - eyeStatus[i].down;
         oneLaneEyeInfo.height() = height;
         oneLaneEyeInfo.width() = width;
         eyeInfo.push_back(oneLaneEyeInfo);
