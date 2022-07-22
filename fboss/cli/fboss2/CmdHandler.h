@@ -15,6 +15,7 @@
 
 #include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
+#include "fboss/cli/fboss2/gen-cpp2/cli_types.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/FilterUtils.h"

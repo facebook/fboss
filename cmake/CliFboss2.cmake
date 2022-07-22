@@ -4,6 +4,13 @@
 # cmake/FooBar.cmake
 
 add_fbthrift_cpp_library(
+  cli_model
+  fboss/cli/fboss2/cli.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_acl_model
   fboss/cli/fboss2/commands/show/acl/model.thrift
   OPTIONS
@@ -237,6 +244,7 @@ target_link_libraries(fboss2
   mka_structs_cpp2
   fsdb_oper_cpp2
   Folly::folly
+  cli_model
   show_acl_model
   show_aggregateport_model
   show_arp_model

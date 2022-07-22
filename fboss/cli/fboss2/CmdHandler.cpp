@@ -310,7 +310,7 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
   hasRun = true;
   auto extraOptionsEC =
       CmdGlobalOptions::getInstance()->validateNonFilterOptions();
-  if (extraOptionsEC != CmdGlobalOptions::CliOptionResult::EOK) {
+  if (extraOptionsEC != cli::CliOptionResult::EOK) {
     throw std::invalid_argument(folly::to<std::string>(
         "Error in filter parsing: ",
         utils::getCliOptionErrStr(extraOptionsEC)));
@@ -321,10 +321,10 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
   exit here. This is to avoid having living references during the
   destrowInstances time!
   */
-  auto filterParsingEC = CmdGlobalOptions::CliOptionResult::EOK;
+  auto filterParsingEC = cli::CliOptionResult::EOK;
   auto parsedFilters =
       CmdGlobalOptions::getInstance()->getFilters(filterParsingEC);
-  if (filterParsingEC != CmdGlobalOptions::CliOptionResult::EOK) {
+  if (filterParsingEC != cli::CliOptionResult::EOK) {
     throw std::invalid_argument(folly::to<std::string>(
         "Error in filter parsing: ",
         utils::getCliOptionErrStr(filterParsingEC)));
@@ -335,7 +335,7 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
     validFilters = getValidFilters();
     const auto& errorCode =
         CmdGlobalOptions::getInstance()->isValid(validFilters, parsedFilters);
-    if (!(errorCode == CmdGlobalOptions::CliOptionResult::EOK)) {
+    if (!(errorCode == cli::CliOptionResult::EOK)) {
       throw std::invalid_argument(folly::to<std::string>(
           "Error in filter parsing: ", utils::getCliOptionErrStr(errorCode)));
     }

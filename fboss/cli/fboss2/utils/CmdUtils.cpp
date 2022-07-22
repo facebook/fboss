@@ -240,21 +240,21 @@ std::string getAdminDistanceStr(AdminDistance adminDistance) {
       std::to_string(static_cast<int>(adminDistance)));
 }
 
-std::string getCliOptionErrStr(CmdGlobalOptions::CliOptionResult optRes) {
+std::string getCliOptionErrStr(cli::CliOptionResult optRes) {
   switch (optRes) {
-    case CmdGlobalOptions::CliOptionResult::EOK:
+    case cli::CliOptionResult::EOK:
       return "EOK";
-    case CmdGlobalOptions::CliOptionResult::KEY_ERROR:
+    case cli::CliOptionResult::KEY_ERROR:
       return "KEY_ERROR";
-    case CmdGlobalOptions::CliOptionResult::VALUE_ERROR:
+    case cli::CliOptionResult::VALUE_ERROR:
       return "VALUE_ERROR";
-    case CmdGlobalOptions::CliOptionResult::TYPE_ERROR:
+    case cli::CliOptionResult::TYPE_ERROR:
       return "TYPE_ERROR";
-    case CmdGlobalOptions::CliOptionResult::OP_ERROR:
+    case cli::CliOptionResult::OP_ERROR:
       return "OP_ERROR";
-    case CmdGlobalOptions::CliOptionResult::EXTRA_OPTIONS:
+    case cli::CliOptionResult::EXTRA_OPTIONS:
       return "EXTRA_OPTIONS";
-    case CmdGlobalOptions::CliOptionResult::TERM_ERROR:
+    case cli::CliOptionResult::TERM_ERROR:
       return "TERM_ERROR";
   }
   return "UNKNOWN";

@@ -10,6 +10,7 @@
 #pragma once
 
 #include <CLI/CLI.hpp>
+#include "fboss/cli/fboss2/gen-cpp2/cli_types.h"
 #include "fboss/cli/fboss2/options/OutputFormat.h"
 #include "fboss/cli/fboss2/options/SSLPolicy.h"
 #include "fboss/cli/fboss2/utils/FilterOp.h"
@@ -29,20 +30,6 @@ class CmdGlobalOptions {
   using IntersectionList = std::vector<FilterTerm>;
   using UnionList = std::vector<IntersectionList>;
 
-  /* These CLI option error codes have been defined to
-  avoid using the catchall error code (1).
-  These will also aid in proper unit testing.
-  */
-  enum CliOptionResult {
-    EOK = 0,
-    KEY_ERROR = 1,
-    VALUE_ERROR = 2,
-    TYPE_ERROR = 3,
-    OP_ERROR = 4,
-    EXTRA_OPTIONS = 5,
-    TERM_ERROR = 6
-  };
-
   // Static function for getting the CmdGlobalOptions folly::Singleton
   static std::shared_ptr<CmdGlobalOptions> getInstance();
 
@@ -51,7 +38,9 @@ class CmdGlobalOptions {
   class BaseTypeVerifier {
    public:
     virtual ~BaseTypeVerifier() {}
-    virtual CliOptionResult verify(std::string& value, std::ostream& out) = 0;
+    virtual cli::CliOptionResult verify(
+        std::string& value,
+        std::ostream& out) = 0;
     virtual bool compareValue(
         const std::string& result,
         const std::string& predicate,
@@ -105,13 +94,14 @@ class CmdGlobalOptions {
 
     explicit TypeVerifier(const std::string& filterKey) : key(filterKey) {}
 
-    CliOptionResult verify(std::string& value, std::ostream& out = std::cerr)
-        override {
+    cli::CliOptionResult verify(
+        std::string& value,
+        std::ostream& out = std::cerr) override {
       auto converted = folly::tryTo<ExpectedType>(value);
       if (converted.hasError()) {
         out << "invalid filter value data type passsed for key " << key
             << std::endl;
-        return CliOptionResult::TYPE_ERROR;
+        return cli::CliOptionResult::TYPE_ERROR;
       }
       if (!acceptedFilterValues.empty()) {
         if (std::find(
@@ -124,10 +114,10 @@ class CmdGlobalOptions {
             out << acceptedVal << " ";
           }
           out << "}\n";
-          return CliOptionResult::VALUE_ERROR;
+          return cli::CliOptionResult::VALUE_ERROR;
         }
       }
-      return CliOptionResult::EOK;
+      return cli::CliOptionResult::EOK;
     }
 
     bool compareValue(
@@ -152,7 +142,7 @@ class CmdGlobalOptions {
     }
   };
 
-  CliOptionResult isValid(
+  cli::CliOptionResult isValid(
       const std::unordered_map<
           std::string_view,
           std::shared_ptr<BaseTypeVerifier>>& validFilters,
@@ -171,20 +161,20 @@ class CmdGlobalOptions {
             out << field.first << " ";
           }
           out << "}" << std::endl;
-          return CliOptionResult::KEY_ERROR;
+          return cli::CliOptionResult::KEY_ERROR;
         }
         auto typeVerifyEC = (it->second)->verify(val, out);
-        if (typeVerifyEC != CliOptionResult::EOK) {
+        if (typeVerifyEC != cli::CliOptionResult::EOK) {
           return typeVerifyEC;
         }
         // Note that the operator validation is done while parsing
         // hence, we don't perform operator validation here.
       }
     }
-    return CliOptionResult::EOK;
+    return cli::CliOptionResult::EOK;
   }
 
-  CliOptionResult validateNonFilterOptions() {
+  cli::CliOptionResult validateNonFilterOptions() {
     bool hostsSet = !getHosts().empty();
     bool smcSet = !getSmc().empty();
     bool fileSet = !getFile().empty();
@@ -193,9 +183,9 @@ class CmdGlobalOptions {
         (smcSet && (hostsSet || fileSet)) ||
         (fileSet && (hostsSet || smcSet))) {
       std::cerr << "only one of host(s), smc or file can be set\n";
-      return CliOptionResult::EXTRA_OPTIONS;
+      return cli::CliOptionResult::EXTRA_OPTIONS;
     }
-    return CliOptionResult::EOK;
+    return cli::CliOptionResult::EOK;
   }
 
   std::vector<std::string> getHosts() const {
@@ -318,7 +308,7 @@ class CmdGlobalOptions {
     filter_ = filter;
   }
 
-  UnionList getFilters(CliOptionResult& filterParsingEC) const;
+  UnionList getFilters(cli::CliOptionResult& filterParsingEC) const;
 
  private:
   void initAdditional(CLI::App& app);

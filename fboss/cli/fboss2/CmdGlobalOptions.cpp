@@ -54,7 +54,7 @@ void CmdGlobalOptions::init(CLI::App& app) {
 
 // assuming each filter term to be "key op value" (with spaces).
 CmdGlobalOptions::UnionList CmdGlobalOptions::getFilters(
-    CliOptionResult& filterParsingEC) const {
+    cli::CliOptionResult& filterParsingEC) const {
   if (filter_.size() == 0) {
     return {};
   }
@@ -86,7 +86,7 @@ CmdGlobalOptions::UnionList CmdGlobalOptions::getFilters(
       if (filterTermVector.size() != 3) {
         std::cerr << "Each filter term must be of the form <key op value>. "
                   << std::endl;
-        filterParsingEC = CliOptionResult::TERM_ERROR;
+        filterParsingEC = cli::CliOptionResult::TERM_ERROR;
         return parsedFilters;
       }
 
@@ -99,7 +99,7 @@ CmdGlobalOptions::UnionList CmdGlobalOptions::getFilters(
       } catch (const std::invalid_argument& e) {
         std::cerr << "invalid operator passed for key " << filterTermVector[0]
                   << std::endl;
-        filterParsingEC = CliOptionResult::OP_ERROR;
+        filterParsingEC = cli::CliOptionResult::OP_ERROR;
         return parsedFilters;
       }
     }

@@ -9,6 +9,7 @@
 #include <fboss/cli/fboss2/utils/FilterOp.h>
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
+#include "fboss/cli/fboss2/gen-cpp2/cli_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
 #include "nettools/common/TestUtils.h"
 
@@ -220,14 +221,14 @@ TEST_F(FilterValidatorFixture, keyValidation) {
   auto invalidKeyInput = createInvalidKeyInput();
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
       CmdShowPort().getValidFilters(), invalidKeyInput);
-  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::KEY_ERROR);
+  EXPECT_EQ(errCode, cli::CliOptionResult::KEY_ERROR);
 }
 
 TEST_F(FilterValidatorFixture, valueDataTypeValidation) {
   auto invalidDataTypeInput = createInvalidValueDataTypeInput();
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
       CmdShowPort().getValidFilters(), invalidDataTypeInput);
-  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::TYPE_ERROR);
+  EXPECT_EQ(errCode, cli::CliOptionResult::TYPE_ERROR);
 }
 
 TEST_F(FilterValidatorFixture, valueValidation) {
@@ -235,7 +236,7 @@ TEST_F(FilterValidatorFixture, valueValidation) {
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
       CmdShowPort().getValidFilters(), invalidValueInput);
 
-  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::VALUE_ERROR);
+  EXPECT_EQ(errCode, cli::CliOptionResult::VALUE_ERROR);
 }
 
 TEST_F(FilterValidatorFixture, testOk) {
@@ -243,39 +244,39 @@ TEST_F(FilterValidatorFixture, testOk) {
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
       CmdShowPort().getValidFilters(), validInput);
 
-  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::EOK);
+  EXPECT_EQ(errCode, cli::CliOptionResult::EOK);
 }
 
 // Checks for operator validity and term validity are done during parsing
 TEST_F(FilterValidatorFixture, invalidOperatorTest) {
   std::string filterInput = "linkState == Up&&id = 2||adminState != Enabled";
   auto cmd = CmdGlobalOptions();
-  auto errorCode = CmdGlobalOptions::CliOptionResult::EOK;
+  auto errorCode = cli::CliOptionResult::EOK;
   cmd.setFilterInput(filterInput);
   cmd.getFilters(errorCode);
   // op error here because of id = 2. (should be ==)
-  EXPECT_EQ(errorCode, CmdGlobalOptions::CliOptionResult::OP_ERROR);
+  EXPECT_EQ(errorCode, cli::CliOptionResult::OP_ERROR);
 }
 
 TEST_F(FilterValidatorFixture, filterTermTest) {
   std::string filterInput = "linkState && adminState == disabled";
   auto cmd = CmdGlobalOptions();
-  auto errorCode = CmdGlobalOptions::CliOptionResult::EOK;
+  auto errorCode = cli::CliOptionResult::EOK;
   cmd.setFilterInput(filterInput);
   cmd.getFilters(errorCode);
   // term error here because of the term "linkState". (Terms need to be of the
   // form <key op value>.
-  EXPECT_EQ(errorCode, CmdGlobalOptions::CliOptionResult::TERM_ERROR);
+  EXPECT_EQ(errorCode, cli::CliOptionResult::TERM_ERROR);
 }
 
 TEST_F(FilterValidatorFixture, validInputParsing) {
   std::string filterInput =
       "linkState == Down&&adminState != Disabled||id <= 12";
   auto cmd = CmdGlobalOptions();
-  auto errorCode = CmdGlobalOptions::CliOptionResult::EOK;
+  auto errorCode = cli::CliOptionResult::EOK;
   cmd.setFilterInput(filterInput);
   const auto& parsedFilters = cmd.getFilters(errorCode);
-  EXPECT_EQ(errorCode, CmdGlobalOptions::CliOptionResult::EOK);
+  EXPECT_EQ(errorCode, cli::CliOptionResult::EOK);
 
   // Check that it is correctly parsed as a unionlist of size 2.
   EXPECT_EQ(parsedFilters.size(), 2);
@@ -310,10 +311,10 @@ TEST_F(FilterValidatorFixture, validRelaxedParsing) {
   std::string filterInput =
       "linkState == Down && adminState != Disabled||id <= 12 || tcvrID > 5";
   auto cmd = CmdGlobalOptions();
-  auto errorCode = CmdGlobalOptions::CliOptionResult::EOK;
+  auto errorCode = cli::CliOptionResult::EOK;
   cmd.setFilterInput(filterInput);
   const auto& parsedFilters = cmd.getFilters(errorCode);
-  EXPECT_EQ(errorCode, CmdGlobalOptions::CliOptionResult::EOK);
+  EXPECT_EQ(errorCode, cli::CliOptionResult::EOK);
 
   // Check that it is correctly parsed as a unionlist of size 3.
   EXPECT_EQ(parsedFilters.size(), 3);
@@ -355,7 +356,7 @@ TEST_F(FilterValidatorFixture, filterValidationTestPortValid) {
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
       CmdShowPort().getValidFilters(), otherFieldsValidInput);
 
-  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::EOK);
+  EXPECT_EQ(errCode, cli::CliOptionResult::EOK);
 }
 
 TEST_F(FilterValidatorFixture, filterValidationTestNdpValid) {
@@ -363,7 +364,7 @@ TEST_F(FilterValidatorFixture, filterValidationTestNdpValid) {
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
       CmdShowNdp().getValidFilters(), ndpValidInput);
 
-  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::EOK);
+  EXPECT_EQ(errCode, cli::CliOptionResult::EOK);
 }
 
 TEST_F(FilterValidatorFixture, filterValidationTestArpValid) {
@@ -371,7 +372,7 @@ TEST_F(FilterValidatorFixture, filterValidationTestArpValid) {
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
       CmdShowArp().getValidFilters(), arpValidInput);
 
-  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::EOK);
+  EXPECT_EQ(errCode, cli::CliOptionResult::EOK);
 }
 
 TEST_F(FilterValidatorFixture, filterValidationTestPortInvalid) {
@@ -379,7 +380,7 @@ TEST_F(FilterValidatorFixture, filterValidationTestPortInvalid) {
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
       CmdShowPort().getValidFilters(), otherFieldsInvalidValueTypeInput);
 
-  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::TYPE_ERROR);
+  EXPECT_EQ(errCode, cli::CliOptionResult::TYPE_ERROR);
 }
 
 TEST_F(FilterValidatorFixture, filterValidationTestNdpInvalid) {
@@ -387,7 +388,7 @@ TEST_F(FilterValidatorFixture, filterValidationTestNdpInvalid) {
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
       CmdShowNdp().getValidFilters(), ndpInvalidInput);
 
-  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::KEY_ERROR);
+  EXPECT_EQ(errCode, cli::CliOptionResult::KEY_ERROR);
 }
 
 TEST_F(FilterValidatorFixture, filterValidationTestArpInvalid) {
@@ -395,7 +396,7 @@ TEST_F(FilterValidatorFixture, filterValidationTestArpInvalid) {
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
       CmdShowArp().getValidFilters(), arpInvalidInput);
 
-  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::VALUE_ERROR);
+  EXPECT_EQ(errCode, cli::CliOptionResult::VALUE_ERROR);
 }
 
 TEST_F(FilterValidatorFixture, filterValidationTestAggPort) {
@@ -403,7 +404,7 @@ TEST_F(FilterValidatorFixture, filterValidationTestAggPort) {
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
       CmdShowAggregatePort().getValidFilters(), aggPortInvalidInput);
 
-  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::TYPE_ERROR);
+  EXPECT_EQ(errCode, cli::CliOptionResult::TYPE_ERROR);
 }
 
 TEST_F(FilterValidatorFixture, filterableCheck) {
@@ -411,7 +412,7 @@ TEST_F(FilterValidatorFixture, filterableCheck) {
   auto errCode = CmdGlobalOptions::getInstance()->isValid(
       CmdShowAggregatePort().getValidFilters(), aggPortInvalidFilterable);
 
-  EXPECT_EQ(errCode, CmdGlobalOptions::CliOptionResult::KEY_ERROR);
+  EXPECT_EQ(errCode, cli::CliOptionResult::KEY_ERROR);
 }
 
 } // namespace facebook::fboss

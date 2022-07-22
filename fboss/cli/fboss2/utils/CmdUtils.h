@@ -21,6 +21,7 @@
 #include <variant>
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
+#include "fboss/cli/fboss2/gen-cpp2/cli_types.h"
 #include "fboss/cli/fboss2/utils/PrbsUtils.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
@@ -358,7 +359,7 @@ std::vector<int32_t> getPortIDList(
 std::string getUserInfo();
 std::string getAddrStr(network::thrift::BinaryAddress addr);
 std::string getAdminDistanceStr(AdminDistance adminDistance);
-std::string getCliOptionErrStr(CmdGlobalOptions::CliOptionResult optRes);
+std::string getCliOptionErrStr(cli::CliOptionResult optRes);
 void setLogLevel(std::string logLevelStr);
 
 void logUsage(const CmdLogInfo& cmdLogInfo);
