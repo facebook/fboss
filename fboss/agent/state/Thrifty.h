@@ -21,25 +21,44 @@ namespace facebook::fboss {
 // All thrift state maps need to have an items field
 inline constexpr folly::StringPiece kItems{"items"};
 
-template <typename KeyT, typename NodeT>
+template <typename ThriftKeyT, typename NodeT>
 struct ThriftyNodeMapTraits : public NodeMapTraits<
-                                  KeyT,
+                                  ThriftKeyT,
                                   NodeT,
                                   NodeMapNoExtraFields,
-                                  std::map<KeyT, NodeT>> {
-  static inline const std::string& getThriftKeyName() {
+                                  std::map<ThriftKeyT, NodeT>> {
+  static const std::string& getThriftKeyName() {
     static const std::string _key = "id";
     return _key;
   }
 
+  template <typename NodeKeyT>
+  static const std::string getKeyFromLegacyNode(
+      const folly::dynamic& dyn,
+      const std::string& keyName) {
+    auto& legacyKey = dyn[keyName];
+    if (legacyKey.isNull() or legacyKey.isArray()) {
+      throw FbossError("key of map is null or array");
+    }
+    std::string key{};
+    if constexpr (!is_fboss_key_object_type<NodeKeyT>::value) {
+      key = legacyKey.asString();
+    } else {
+      // in cases where key is actually an object we need to convert this to
+      // proper string representation
+      key = NodeKeyT::fromFollyDynamicLegacy(legacyKey).str();
+    }
+    return key;
+  }
+
   // convert key from cpp version to one thrift will like
   template <typename NodeKey>
-  static const KeyT convertKey(const NodeKey& key) {
-    return static_cast<KeyT>(key);
+  static const ThriftKeyT convertKey(const NodeKey& key) {
+    return static_cast<ThriftKeyT>(key);
   }
 
   // parse dynamic key into thrift acceptable type
-  static const KeyT parseKey(const folly::dynamic& key) {
+  static const ThriftKeyT parseKey(const folly::dynamic& key) {
     return key.asInt();
   }
 };
@@ -333,21 +352,8 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
     folly::dynamic newItems = folly::dynamic::object;
     for (auto& item : dyn[kEntries]) {
       if (ThriftyUtils::nodeNeedsMigration(item)) {
-        auto& legacyKey = item[ThriftyTraitsT::getThriftKeyName()];
-        if (legacyKey.isNull() or legacyKey.isArray()) {
-          throw FbossError("key of map is null or array");
-        }
-        std::string key{};
-        if constexpr (!is_fboss_key_object_type<KeyType>::value) {
-          key = legacyKey.asString();
-        } else {
-          static_assert(
-              is_fboss_key_object_type<KeyType>::value,
-              "key is not an object type");
-          // in cases where key is actually an object we need to convert this to
-          // proper string representation
-          key = KeyType::fromFollyDynamicLegacy(legacyKey).str();
-        }
+        auto key = ThriftyTraitsT::template getKeyFromLegacyNode<KeyType>(
+            item, ThriftyTraitsT::getThriftKeyName());
         newItems[key] = TraitsT::Node::Fields::migrateToThrifty(item);
       } else {
         newItems[item[ThriftyTraitsT::getThriftKeyName()].asString()] = item;
@@ -385,14 +391,29 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
     dyn[ThriftyUtils::kThriftySchemaUpToDate] = schemaUpToDate;
   }
 
-  // for testing purposes
+  // for testing purposes. These are mirrors of to/from FollyDynamic defined in
+  // NodeMap, but calling the legacy conversions of the node as well
   folly::dynamic toFollyDynamicLegacy() const {
-    return NodeMapT<NodeMap, TraitsT>::toFollyDynamic();
+    folly::dynamic nodesJson = folly::dynamic::array;
+    for (const auto& node : *this) {
+      nodesJson.push_back(node->toFollyDynamicLegacy());
+    }
+    folly::dynamic json = folly::dynamic::object;
+    json[kEntries] = std::move(nodesJson);
+    // TODO: extra files if needed
+    json[kExtraFields] = folly::dynamic::object();
+    return json;
   }
 
   static std::shared_ptr<NodeMap> fromFollyDynamicLegacy(
       folly::dynamic const& dyn) {
-    return NodeMapT<NodeMap, TraitsT>::fromFollyDynamic(dyn);
+    auto nodeMap = std::make_shared<NodeMap>();
+    auto entries = dyn[kEntries];
+    for (const auto& entry : entries) {
+      nodeMap->addNode(TraitsT::Node::fromFollyDynamicLegacy(entry));
+    }
+    // TODO: extra files if needed
+    return nodeMap;
   }
 
   // return node id in the node map as it would be represented in thrift

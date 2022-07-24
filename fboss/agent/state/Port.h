@@ -60,6 +60,14 @@ struct PortFields : public ThriftyFields<PortFields, state::PortFields> {
   static PortFields fromThrift(state::PortFields const& pf);
   state::PortFields toThrift() const override;
 
+  // Port migration is complete
+  static PortFields fromFollyDynamicLegacy(folly::dynamic const& dyn) {
+    return fromFollyDynamic(dyn);
+  }
+  folly::dynamic toFollyDynamicLegacy() const {
+    return toFollyDynamic();
+  }
+
   struct MKASakKey {
     bool operator<(const MKASakKey& r) const {
       return std::tie(*sci.macAddress(), *sci.port(), associationNum) <

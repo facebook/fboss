@@ -25,6 +25,19 @@ struct SflowCollectorMapThriftTraits
   static const KeyType parseKey(const folly::dynamic& key) {
     return key.asString();
   }
+
+  // unfortunately the primary key "id" of this node was never explicitly
+  // written in the legacy serialization and instead just built from the other
+  // members. Need to override how we fetch this key
+  template <typename NodeKeyT>
+  static inline const std::string getKeyFromLegacyNode(
+      const folly::dynamic& dyn,
+      const std::string& /* keyName */) {
+    // folly::to<std::string>(
+    // address.getFullyQualified(), ':', address.getPort());
+    return folly::to<std::string>(
+        dyn["ip"].asString(), ":", dyn["port"].asString());
+  }
 };
 
 /*

@@ -30,6 +30,15 @@ struct BufferPoolCfgFields
   BufferPoolCfgFields() {}
   BufferPoolCfgFields(std::string _id, int _sharedBytes, int _headroomBytes)
       : id(_id), sharedBytes(_sharedBytes), headroomBytes(_headroomBytes) {}
+
+  // BufferPoolCfgFields migration is complete
+  static BufferPoolCfgFields fromFollyDynamicLegacy(folly::dynamic const& dyn) {
+    return fromFollyDynamic(dyn);
+  }
+  folly::dynamic toFollyDynamicLegacy() const {
+    return toFollyDynamic();
+  }
+
   std::string id;
   int sharedBytes;
   int headroomBytes;
