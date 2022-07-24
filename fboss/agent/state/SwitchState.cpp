@@ -214,7 +214,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
         defaultDataPlaneQosPolicy->toFollyDynamic();
   }
   switchState[kQosPolicies] = qosPolicies->toFollyDynamic();
-  switchState[kFibs] = fibs->toFollyDynamic();
+  switchState[kFibs] = fibs->toFollyDynamicLegacy();
   switchState[kTransceivers] = transceivers->toFollyDynamic();
   if (aclTableGroups) {
     switchState[kAclTableGroups] = aclTableGroups->toFollyDynamic();
@@ -283,7 +283,7 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
   }
   if (swJson.find(kFibs) != swJson.items().end()) {
     switchState.fibs =
-        ForwardingInformationBaseMap::fromFollyDynamic(swJson[kFibs]);
+        ForwardingInformationBaseMap::fromFollyDynamicLegacy(swJson[kFibs]);
   }
   // TODO(joseph5wu) Will eventually make transceivers as a mandatory field
   if (const auto& values = swJson.find(kTransceivers);
