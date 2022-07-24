@@ -33,6 +33,7 @@ class CmisFirmwareUpgrader {
       {"innolight-200g-fr4",
        {"T-FX4FNT-HFB    ", "T-FX4FNT-HFP    ", "T-FX4FNT-HFS    "}},
       {"innolight-400g-fr4", {"T-DQ4CNT-NFB    ", "T-DQ4CNT-NF2    "}},
+      {"intel-200g-fr4", {"SPTSMP3CLCK8    ", "SPTSMP3CLCK9    "}},
   };
 
   // Constructor. The caller is responsible for interfacing with Firmware

@@ -321,7 +321,11 @@ struct ModulePartInfo_s modulePartInfo[] = {
   // Innolight 400G module info
   {{'T','-','D','Q','4','C','N','T','-','N','F','B',0x20,0x20,0x20,0x20}, 48},
   // Innolight 400G module info
-  {{'T','-','D','Q','4','C','N','T','-','N','F','2',0x20,0x20,0x20,0x20}, 48}
+  {{'T','-','D','Q','4','C','N','T','-','N','F','2',0x20,0x20,0x20,0x20}, 48},
+  // Intel 200G module info
+  {{'S','P','T','S','M','P','3','C','L','C','K','8',0x20,0x20,0x20,0x20}, 48},
+  // Intel 200G module info
+  {{'S','P','T','S','M','P','3','C','L','C','K','9',0x20,0x20,0x20,0x20}, 48}
 };
 // clang-format on
 constexpr uint8_t kNumModuleInfo =

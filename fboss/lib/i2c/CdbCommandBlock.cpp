@@ -22,6 +22,7 @@ static constexpr uint16_t kCdbCommandModuleQuery = 0x0000;
 
 // CDB command status values
 static constexpr uint8_t kCdbCommandStatusSuccess = 0x01;
+static constexpr uint8_t kCdbCommandStatusBusyUnknown = 0x80;
 static constexpr uint8_t kCdbCommandStatusBusyCmdCaptured = 0x81;
 static constexpr uint8_t kCdbCommandStatusBusyCmdCheck = 0x82;
 static constexpr uint8_t kCdbCommandStatusBusyCmdExec = 0x83;
@@ -151,7 +152,8 @@ bool CdbCommandBlock::cmisRunCdbCommand(
     }
     if (status != kCdbCommandStatusBusyCmdCaptured &&
         status != kCdbCommandStatusBusyCmdCheck &&
-        status != kCdbCommandStatusBusyCmdExec) {
+        status != kCdbCommandStatusBusyCmdExec &&
+        status != kCdbCommandStatusBusyUnknown) {
       break;
     }
 
