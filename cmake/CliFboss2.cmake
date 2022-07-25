@@ -199,6 +199,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h
   fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h
   fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h
+  fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
   fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h
