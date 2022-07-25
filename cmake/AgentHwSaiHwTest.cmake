@@ -135,6 +135,7 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/hw/sai/hw_test/dataplane_tests/SaiAclTableGroupTrafficTests.cpp
     fboss/agent/hw/sai/hw_test/HwTestTamUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestAclUtils.cpp
+    fboss/agent/hw/sai/hw_test/HwTestPfcUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestAqmUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestCoppUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestEcmpUtils.cpp

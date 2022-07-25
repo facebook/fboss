@@ -12,6 +12,7 @@ add_executable(bcm_test
   fboss/agent/hw/bcm/tests/HwSwitchEnsembleFactory.cpp
   fboss/agent/hw/bcm/tests/HwTestTamUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestAclUtils.cpp
+  fboss/agent/hw/bcm/tests/HwTestPfcUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestAqmUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestEcmpUtils.cpp
   fboss/agent/hw/bcm/tests/HwTestPtpTcUtils.cpp
