@@ -23,6 +23,7 @@ add_library(state
   fboss/agent/state/ForwardingInformationBaseMap.cpp
   fboss/agent/state/Interface.cpp
   fboss/agent/state/InterfaceMap.cpp
+  fboss/agent/state/IpTunnel.cpp
   fboss/agent/state/LabelForwardingInformationBase.cpp
   fboss/agent/state/LoadBalancer.cpp
   fboss/agent/state/LoadBalancerMap.cpp

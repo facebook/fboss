@@ -341,6 +341,10 @@ struct TrafficClassToQosAttributeMap {
   2: list<TrafficClassToQosAttributeEntry> to;
 }
 
+struct IpTunnelFields {
+  1: string ipTunnelId;
+}
+
 struct QosPolicyFields {
   1: string name;
   2: TrafficClassToQosAttributeMap dscpMap;
@@ -387,4 +391,5 @@ struct SwitchState {
   22: map<i32, LabelForwardingEntryFields> labelFib;
   23: map<string, QosPolicyFields> qosPolicyMap;
   24: map<string, SflowCollectorFields> sflowCollectorMap;
+  25: map<string, IpTunnelFields> ipTunnelMap;
 }
