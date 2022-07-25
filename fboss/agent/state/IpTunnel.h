@@ -31,6 +31,31 @@ struct IpTunnelFields
 
 class IpTunnel
     : public ThriftyBaseT<state::IpTunnelFields, IpTunnel, IpTunnelFields> {
+ public:
+  std::string getID() const {
+    return *getFields()->data().ipTunnelId();
+  }
+
+  InterfaceID getUnderlayIntfId() const {
+    return InterfaceID(*getFields()->data().underlayIntfId());
+  }
+  void setUnderlayIntfId(InterfaceID id) {
+    writableFields()->writableData().underlayIntfId() = id;
+  }
+  int32_t getMode() const {
+    return *getFields()->data().mode();
+  }
+  void setMode(int32_t mode) {
+    writableFields()->writableData().mode() = mode;
+  }
+  // TODO: move the type conversion to elsewhere?
+  folly::IPAddress getDstIP() const {
+    return folly::IPAddress(*getFields()->data().dstIp());
+  }
+  void setDstIP(folly::IPAddress ip) {
+    writableFields()->writableData().dstIp() = ip.str();
+  }
+
  private:
   // Inherit the constructors required for clone()
   using ThriftyBaseT<state::IpTunnelFields, IpTunnel, IpTunnelFields>::

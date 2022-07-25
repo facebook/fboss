@@ -343,6 +343,9 @@ struct TrafficClassToQosAttributeMap {
 
 struct IpTunnelFields {
   1: string ipTunnelId;
+  2: i32 underlayIntfId;
+  3: i32 mode;
+  4: string dstIp;
 }
 
 struct QosPolicyFields {
