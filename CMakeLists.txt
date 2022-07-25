@@ -771,6 +771,7 @@ if (NOT SAI_ONLY)
       fboss/agent/state/Interface.cpp
       fboss/agent/state/InterfaceMap.cpp
       fboss/agent/state/IpTunnel.cpp
+      fboss/agent/state/IpTunnelMap.cpp
       fboss/agent/state/LabelForwardingAction.cpp
       fboss/agent/state/LabelForwardingInformationBase.cpp
       fboss/agent/state/LoadBalancer.cpp
