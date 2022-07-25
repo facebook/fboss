@@ -127,6 +127,9 @@ int Tomahawk4Asic::getStationID(int intfId) const {
   // station id should be smaller than 511 on tomahawk4
   if (intfId >= 4000) {
     stationId = intfId - 4000 + 400; // 400, 401, 402, ...
+  } else if (intfId >= 3000) {
+    // <RGSW, FUJI> in OLR has 96 uplinks hence we cannot use 4000
+    stationId = intfId - 3000 + 300; // 300, 301, 302, ...
   } else if (intfId >= 2000) {
     stationId = intfId - 2000 + 200; // 200, 201, 202, ...
   } else if (intfId >= 1000) {
