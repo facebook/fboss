@@ -113,19 +113,19 @@ std::string getDarwinFSConfig() {
       ],
       "type" : "linear_four_curves",
       "normal_up_table" : [
-        [15, 35],
+        [15, 24],
         [110, 100]
       ],
       "normal_down_table" : [
-        [15, 35],
+        [15, 24],
         [110, 100]
       ],
       "onefail_up_table" : [
-        [15, 35],
+        [15, 24],
         [110, 100]
       ],
       "onefail_down_table" : [
-        [15, 35],
+        [15, 24],
         [110, 100]
       ],
       "alarm" : {
