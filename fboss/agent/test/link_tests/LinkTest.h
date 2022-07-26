@@ -101,6 +101,8 @@ class LinkTest : public AgentTest {
 
   void setCmdLineFlagOverrides() const override;
 
+  void restartQsfpService() const;
+
   void TearDown() override;
 
  private:

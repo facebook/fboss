@@ -95,6 +95,34 @@ TEST_F(LinkTest, warmbootIsHitLess) {
       });
 }
 
+TEST_F(LinkTest, qsfpWarmbootIsHitLess) {
+  // Create a L3 data plane flood and then warmboot qsfp_service. Then assert
+  // that none of the traffic bearing ports loss traffic.
+  verifyAcrossWarmBoots(
+      [this]() {
+        createL3DataplaneFlood();
+        restartQsfpService();
+        // Wait for all transceivers to converge to Active state
+        EXPECT_NO_THROW(waitForAllTransceiverStates(true));
+      },
+      [this]() {
+        // Assert no traffic loss and no ecmp shrink. If ports flap
+        // these conditions will not be true
+        assertNoInDiscards();
+        auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
+        EXPECT_EQ(
+            utility::getEcmpSizeInHw(
+                sw()->getHw(),
+                {folly::IPAddress("::"), 0},
+                RouterID(0),
+                ecmpSizeInSw),
+            ecmpSizeInSw);
+        // Assert all cabled transceivers have ACTIVE state
+        EXPECT_NO_THROW(waitForAllCabledPorts(true));
+        EXPECT_NO_THROW(waitForAllTransceiverStates(true));
+      });
+}
+
 TEST_F(LinkTest, ptpEnableIsHitless) {
   // disable PTP as by default we'll  have it enabled now
   sw()->updateStateBlocking("ptp disable", [](auto state) {

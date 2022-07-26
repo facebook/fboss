@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <folly/String.h>
+#include <folly/Subprocess.h>
 #include <gflags/gflags.h>
 
 #include "fboss/agent/AgentConfig.h"
@@ -22,6 +23,13 @@
 
 DECLARE_bool(enable_macsec);
 
+namespace {
+const std::vector<std::string> kRestartQsfpService = {
+    "/bin/systemctl",
+    "restart",
+    "qsfp_service_for_testing"};
+}
+
 namespace facebook::fboss {
 
 void LinkTest::SetUp() {
@@ -36,6 +44,11 @@ void LinkTest::SetUp() {
   waitForAllCabledPorts(true, 60, 5s);
   waitForAllTransceiverStates(true, 60, 5s);
   XLOG(INFO) << "Link Test setup ready";
+}
+
+void LinkTest::restartQsfpService() const {
+  XLOG(INFO) << "Restarting QSFP Service";
+  folly::Subprocess(kRestartQsfpService).waitChecked();
 }
 
 void LinkTest::TearDown() {
@@ -217,6 +230,7 @@ void LinkTest::createL3DataplaneFlood(
       sw()->getPlatform()->getLocalMac(),
       (*sw()->getState()->getVlans()->begin())->getID());
   // TODO: Assert that traffic reached a certain rate
+  XLOG(INFO) << "Created L3 Data Plane Flood";
 }
 
 bool LinkTest::lldpNeighborsOnAllCabledPorts() const {
