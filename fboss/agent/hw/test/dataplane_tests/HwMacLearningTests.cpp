@@ -330,15 +330,8 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
        *
        * If the traffic is flowing, the L2 entries would be immediately
        * relearned (by HARDWARE learning).
-       *
-       * We could modify processMacTableChanges to omit processing of updates
-       * when l2LearningMode is HARDWARE. But, for cleaner design, we chose to
-       * maintain the abstraction of HwSwitch just applying switch states
-       * passed down to it.
-       *
-       * Thus, here we ASSERT that the MAC is removed.
        */
-      EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac(), false /* MAC aged */));
+      EXPECT_TRUE(wasMacLearnt(portDescr, kSourceMac()));
     };
 
     verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);

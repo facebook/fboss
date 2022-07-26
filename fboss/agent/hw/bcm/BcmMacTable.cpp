@@ -131,6 +131,34 @@ void BcmMacTable::unprogramMacEntry(const MacEntry* macEntry, VlanID vlan) {
   bcm_mac_t macBytes;
   macToBcm(macEntry->getMac(), &macBytes);
 
+  int rv = BCM_E_NONE;
+  bcm_l2_addr_t programmedL2Addr;
+  rv = bcm_l2_addr_get(hw_->getUnit(), macBytes, vlan, &programmedL2Addr);
+  if (BCM_SUCCESS(rv)) {
+    XLOG(DBG2) << "get existing mac entry for " << macEntry->getMac().toString()
+               << " vlan " << vlan << " mask "
+               << (BCM_L2_STATIC & programmedL2Addr.flags) << " port "
+               << programmedL2Addr.port;
+  } else {
+    XLOG(DBG2) << "failed to get existing mac entry  for "
+               << macEntry->getMac().toString() << " vlan " << vlan << " rv "
+               << rv;
+    return;
+  }
+
+  // Removing non-static entry is triggered by SDK L2 delete callback, no need
+  // to really unprogram the entry, since the L2 entry is already deleted by
+  // SDK. If we call unprogram again below, in normal case, it would be a no-op.
+  // In rare case, it may delete another L2 entry re-learnt in quick succession
+  // and cause unexpected behavior.
+  if ((BCM_L2_STATIC & programmedL2Addr.flags) == 0) {
+    XLOG(DBG2) << "Skip unprogramming non-static mac entry"
+               << macEntry->getMac().toString() << " vlan " << vlan << " port "
+               << macEntry->getPort().str()
+               << " since it is already deleted by SDK";
+    return;
+  }
+
   /*
    * In our implementation, typical sequence would be:
    *  - L2 entry is aged out by SDK - this removes the entry from L2 table.
@@ -158,7 +186,6 @@ void BcmMacTable::unprogramMacEntry(const MacEntry* macEntry, VlanID vlan) {
    *    it happens, it would work as the MAC would get relearned if there is
    *    ongoing traffic.
    */
-  int rv = BCM_E_NONE;
   switch (macEntry->getPort().type()) {
     case PortDescriptor::PortType::PHYSICAL:
       rv = bcm_l2_addr_delete_by_mac_port(

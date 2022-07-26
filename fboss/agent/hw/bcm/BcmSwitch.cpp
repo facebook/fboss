@@ -2934,9 +2934,11 @@ void BcmSwitch::l2LearningUpdateReceived(
   bool detailedUpdate =
       platform_->getAsic()->isSupported(HwAsic::Feature::DETAILED_L2_UPDATE);
   if (l2Addr && isL2OperationOfInterest(operation, detailedUpdate)) {
+    auto l2Entry = createL2Entry(l2Addr, isL2EntryPending(l2Addr));
+    XLOG(DBG2) << "received L2 event callback for " << l2Entry.str()
+               << " operation " << operation;
     callback_->l2LearningUpdateReceived(
-        createL2Entry(l2Addr, isL2EntryPending(l2Addr)),
-        getL2EntryUpdateType(operation, detailedUpdate));
+        l2Entry, getL2EntryUpdateType(operation, detailedUpdate));
   }
 }
 
