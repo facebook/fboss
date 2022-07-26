@@ -512,6 +512,9 @@ class TransceiverManager {
   void setWarmBootState();
   void setCanWarmBoot();
 
+  void readWarmBootStateFile();
+  void restoreAgentConfigAppliedInfo();
+
   // TEST ONLY
   // This private map is an override of agent getPortStatus()
   std::map<int32_t, PortStatus> overrideAgentPortStatusForTesting_;
@@ -570,6 +573,8 @@ class TransceiverManager {
    * qsfp_service warm boot related attributes
    */
   bool canWarmBoot_{false};
+
+  folly::dynamic warmBootState_;
 
   friend class TransceiverStateMachineTest;
 };

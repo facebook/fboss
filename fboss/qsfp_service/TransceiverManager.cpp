@@ -13,6 +13,7 @@
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/TransceiverStateMachineUpdate.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "folly/DynamicConverter.h"
 
 using namespace std::chrono;
 
@@ -33,6 +34,10 @@ constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
 constexpr auto kWarmBootFlag = "can_warm_boot";
 constexpr auto kWarmbootStateFileName = "qsfp_service_state";
 constexpr auto kPhyStateKey = "phy";
+constexpr auto kAgentConfigAppliedInfoStateKey = "agentConfigAppliedInfo";
+constexpr auto kAgentConfigLastAppliedInMsKey = "agentConfigLastAppliedInMs";
+constexpr auto kAgentConfigLastColdbootAppliedInMsKey =
+    "agentConfigLastColdbootAppliedInMs";
 } // namespace
 
 namespace facebook::fboss {
@@ -66,6 +71,20 @@ TransceiverManager::~TransceiverManager() {
   }
 }
 
+void TransceiverManager::readWarmBootStateFile() {
+  CHECK(canWarmBoot_);
+
+  std::string warmBootJson;
+  const auto& warmBootStateFile = warmBootStateFileName();
+  if (!folly::readFile(warmBootStateFile.c_str(), warmBootJson)) {
+    XLOG(WARN) << "Warm Boot state file: " << warmBootStateFile
+               << " doesn't exist, skip restoring warm boot state";
+    return;
+  }
+
+  warmBootState_ = folly::parseJson(warmBootJson);
+}
+
 void TransceiverManager::init() {
   // Check whether we can warm boot
   canWarmBoot_ = checkWarmBootFlags();
@@ -77,6 +96,10 @@ void TransceiverManager::init() {
     // Since this is going to be cold boot, we need to remove the can_warm_boot
     // file
     removeWarmBootFlag();
+  } else {
+    // Read the warm boot state file for a warm boot
+    readWarmBootStateFile();
+    restoreAgentConfigAppliedInfo();
   }
 
   // Now we might need to start threads
@@ -86,6 +109,33 @@ void TransceiverManager::init() {
   initExternalPhyMap();
   // Initialize the I2c bus
   initTransceiverMap();
+}
+
+void TransceiverManager::restoreAgentConfigAppliedInfo() {
+  if (const auto& agentConfigAppliedIt =
+          warmBootState_.find(kAgentConfigAppliedInfoStateKey);
+      agentConfigAppliedIt != warmBootState_.items().end()) {
+    auto agentConfigAppliedInfo = agentConfigAppliedIt->second;
+    ConfigAppliedInfo wbConfigAppliedInfo;
+    // Restore the last agent config applied timestamp from warm boot state if
+    // it exists
+    if (const auto& lastAppliedIt =
+            agentConfigAppliedInfo.find(kAgentConfigLastAppliedInMsKey);
+        lastAppliedIt != agentConfigAppliedInfo.items().end()) {
+      wbConfigAppliedInfo.lastAppliedInMs() =
+          folly::convertTo<long>(lastAppliedIt->second);
+    }
+    // Restore the last agent coldboot timestamp from warm boot state if
+    // it exists
+    if (const auto& lastColdBootIt =
+            agentConfigAppliedInfo.find(kAgentConfigLastColdbootAppliedInMsKey);
+        lastColdBootIt != agentConfigAppliedInfo.items().end()) {
+      wbConfigAppliedInfo.lastColdbootAppliedInMs() =
+          folly::convertTo<long>(lastColdBootIt->second);
+    }
+
+    configAppliedInfo_ = wbConfigAppliedInfo;
+  }
 }
 
 void TransceiverManager::gracefulExit() {
@@ -1291,24 +1341,34 @@ std::string TransceiverManager::warmBootStateFileName() const {
 void TransceiverManager::setWarmBootState() {
   // Store necessary information of qsfp_service state into the warmboot state
   // file. This can be the lane id vector of each port from PhyManager or
-  // transciever info.
-  // Right now, we only need to store phy related info.
+  // transceiver info or the last config applied timestamp from agent
+  folly::dynamic qsfpServiceState = folly::dynamic::object;
+  steady_clock::time_point begin = steady_clock::now();
   if (phyManager_) {
-    folly::dynamic qsfpServiceState = folly::dynamic::object;
-    steady_clock::time_point begin = steady_clock::now();
     qsfpServiceState[kPhyStateKey] = phyManager_->getWarmbootState();
-    steady_clock::time_point getWarmbootState = steady_clock::now();
-    XLOG(INFO)
-        << "[Exit] Finish getting warm boot state. Time: "
-        << duration_cast<duration<float>>(getWarmbootState - begin).count();
-    folly::writeFile(
-        folly::toPrettyJson(qsfpServiceState), warmBootStateFileName().c_str());
-    steady_clock::time_point serializeState = steady_clock::now();
-    XLOG(INFO) << "[Exit] Finish writing warm boot state to file. Time: "
-               << duration_cast<duration<float>>(
-                      serializeState - getWarmbootState)
-                      .count();
   }
+
+  folly::dynamic agentConfigAppliedWbState = folly::dynamic::object;
+  agentConfigAppliedWbState[kAgentConfigLastAppliedInMsKey] =
+      *configAppliedInfo_.lastAppliedInMs();
+  if (auto lastAgentColdBootTime =
+          configAppliedInfo_.lastColdbootAppliedInMs()) {
+    agentConfigAppliedWbState[kAgentConfigLastColdbootAppliedInMsKey] =
+        *lastAgentColdBootTime;
+  }
+  qsfpServiceState[kAgentConfigAppliedInfoStateKey] = agentConfigAppliedWbState;
+
+  steady_clock::time_point getWarmbootState = steady_clock::now();
+  XLOG(INFO)
+      << "[Exit] Finish getting warm boot state. Time: "
+      << duration_cast<duration<float>>(getWarmbootState - begin).count();
+  folly::writeFile(
+      folly::toPrettyJson(qsfpServiceState), warmBootStateFileName().c_str());
+  steady_clock::time_point serializeState = steady_clock::now();
+  XLOG(INFO) << "[Exit] Finish writing warm boot state to file. Time: "
+             << duration_cast<duration<float>>(
+                    serializeState - getWarmbootState)
+                    .count();
 }
 
 void TransceiverManager::setCanWarmBoot() {
@@ -1325,17 +1385,8 @@ void TransceiverManager::restoreWarmBootPhyState() {
     return;
   }
 
-  std::string warmBootJson;
-  const auto& warmBootStateFile = warmBootStateFileName();
-  if (!folly::readFile(warmBootStateFile.c_str(), warmBootJson)) {
-    XLOG(WARN) << "Warm Boot state file: " << warmBootStateFile
-               << " doesn't exit, skip restoring warm boot state";
-    return;
-  }
-
-  auto wbState = folly::parseJson(warmBootJson);
-  if (const auto& phyStateIt = wbState.find(kPhyStateKey);
-      phyManager_ && phyStateIt != wbState.items().end()) {
+  if (const auto& phyStateIt = warmBootState_.find(kPhyStateKey);
+      phyManager_ && phyStateIt != warmBootState_.items().end()) {
     phyManager_->restoreFromWarmbootState(phyStateIt->second);
   }
 }
