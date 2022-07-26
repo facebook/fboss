@@ -212,6 +212,10 @@ class CmdGlobalOptions {
     return fmt_;
   }
 
+  bool isDetailed() const {
+    return detail_;
+  }
+
   std::string getLogUsage() const {
     return logUsage_;
   }
@@ -319,6 +323,7 @@ class CmdGlobalOptions {
   std::string logLevel_{"DBG0"};
   SSLPolicy sslPolicy_{"plaintext"};
   OutputFormat fmt_;
+  bool detail_{false};
   std::string logUsage_{"scuba"};
   int fsdbThriftPort_{5908};
   int agentThriftPort_{5909};
