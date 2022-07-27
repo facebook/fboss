@@ -31,6 +31,7 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   portEntry1.operState() = PortOperState::DOWN;
   portEntry1.speedMbps() = 100000;
   portEntry1.profileID() = "PROFILE_100G_4_NRZ_CL91_COPPER";
+  portEntry1.hwLogicalPortId() = 1;
   TransceiverIdxThrift tcvr1;
   tcvr1.transceiverId() = 0;
   portEntry1.transceiverIdx() = tcvr1;
@@ -42,6 +43,7 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   portEntry2.operState() = PortOperState::DOWN;
   portEntry2.speedMbps() = 25000;
   portEntry2.profileID() = "PROFILE_25G_1_NRZ_CL74_COPPER";
+  portEntry2.hwLogicalPortId() = 2;
   TransceiverIdxThrift tcvr2;
   tcvr2.transceiverId() = 1;
   portEntry2.transceiverIdx() = tcvr2;
@@ -53,6 +55,7 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   portEntry3.operState() = PortOperState::UP;
   portEntry3.speedMbps() = 100000;
   portEntry3.profileID() = "PROFILE_100G_4_NRZ_CL91_COPPER";
+  portEntry3.hwLogicalPortId() = 3;
   TransceiverIdxThrift tcvr3;
   tcvr3.transceiverId() = 2;
   portEntry3.transceiverIdx() = tcvr3;
@@ -64,6 +67,7 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   portEntry4.operState() = PortOperState::UP;
   portEntry4.speedMbps() = 100000;
   portEntry4.profileID() = "PROFILE_100G_4_NRZ_NOFEC_COPPER";
+  portEntry4.hwLogicalPortId() = 8;
   TransceiverIdxThrift tcvr4;
   tcvr4.transceiverId() = 3;
   portEntry4.transceiverIdx() = tcvr4;
@@ -75,6 +79,7 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   portEntry5.operState() = PortOperState::UP;
   portEntry5.speedMbps() = 100000;
   portEntry5.profileID() = "PROFILE_100G_4_NRZ_CL91_OPTICAL";
+  portEntry5.hwLogicalPortId() = 7;
   TransceiverIdxThrift tcvr5;
   tcvr5.transceiverId() = 4;
   portEntry5.transceiverIdx() = tcvr5;
@@ -86,6 +91,7 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   portEntry6.operState() = PortOperState::UP;
   portEntry6.speedMbps() = 100000;
   portEntry6.profileID() = "PROFILE_100G_4_NRZ_CL91_OPTICAL";
+  portEntry6.hwLogicalPortId() = 9;
   TransceiverIdxThrift tcvr6;
   tcvr6.transceiverId() = 5;
   portEntry6.transceiverIdx() = tcvr6;

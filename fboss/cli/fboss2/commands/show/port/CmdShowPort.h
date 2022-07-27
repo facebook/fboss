@@ -83,17 +83,20 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
          "HwLogicalPortId"});
 
     for (auto const& portInfo : model.get_portEntries()) {
-      table.addRow({
-          folly::to<std::string>(portInfo.get_id()),
-          portInfo.get_name(),
-          portInfo.get_adminState(),
-          getStyledLinkState(portInfo.get_linkState()),
-          portInfo.get_tcvrPresent(),
-          folly::to<std::string>(portInfo.get_tcvrID()),
-          portInfo.get_speed(),
-          portInfo.get_profileId(),
-          folly::to<std::string>(portInfo.get_hwLogicalPortId()),
-      });
+      std::string hwLogicalPortId;
+      if (auto portId = portInfo.hwLogicalPortId()) {
+        hwLogicalPortId = folly::to<std::string>(*portId);
+      }
+      table.addRow(
+          {folly::to<std::string>(portInfo.get_id()),
+           portInfo.get_name(),
+           portInfo.get_adminState(),
+           getStyledLinkState(portInfo.get_linkState()),
+           portInfo.get_tcvrPresent(),
+           folly::to<std::string>(portInfo.get_tcvrID()),
+           portInfo.get_speed(),
+           portInfo.get_profileId(),
+           hwLogicalPortId});
     }
 
     out << table << std::endl;
@@ -241,8 +244,9 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         portDetails.linkState() = operState;
         portDetails.speed() = getSpeedGbps(portInfo.get_speedMbps());
         portDetails.profileId() = portInfo.get_profileID();
-        // TODO: Replace with HwLogicalPortId
-        portDetails.hwLogicalPortId() = portInfo.get_portId();
+        if (auto hwLogicalPortId = portInfo.hwLogicalPortId()) {
+          portDetails.hwLogicalPortId() = *hwLogicalPortId;
+        }
         if (auto tcvrId = portInfo.transceiverIdx()) {
           const auto transceiverId = tcvrId->get_transceiverId();
           portDetails.tcvrID() = transceiverId;
