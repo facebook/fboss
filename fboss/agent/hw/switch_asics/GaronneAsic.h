@@ -19,15 +19,15 @@ class GaronneAsic : public TajoAsic {
     return cfg::PortSpeed::HUNDREDG;
   }
   std::set<cfg::StreamType> getQueueStreamTypes(bool /* cpu */) const override {
-    return {cfg::StreamType::ALL};
+    return {cfg::StreamType::UNICAST};
   }
   int getDefaultNumPortQueues(cfg::StreamType streamType, bool /*cpu*/)
       const override {
     switch (streamType) {
-      case cfg::StreamType::UNICAST:
+      case cfg::StreamType::ALL:
       case cfg::StreamType::MULTICAST:
         throw FbossError("no queue exist for this stream type");
-      case cfg::StreamType::ALL:
+      case cfg::StreamType::UNICAST:
         return 8;
     }
 
