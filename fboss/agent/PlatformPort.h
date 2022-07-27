@@ -146,6 +146,18 @@ class PlatformPort {
   }
 
   /*
+   * Returns the hardware logical port id if the port supports it,
+   * otherwise, returns an empty std::optional
+   */
+  std::optional<uint32_t> getHwLogicalPortId() const {
+    return hwLogicalPortId_;
+  }
+
+  void setHwLogicalPortId(uint32_t hwLogicalPortId) {
+    hwLogicalPortId_ = hwLogicalPortId;
+  }
+
+  /*
    * statusIndication() will be called by the hardware code once a second.
    *
    * enabled  - If the port is enabled or not.
@@ -222,6 +234,7 @@ class PlatformPort {
   Platform* platform_{nullptr};
   // transceiver id should be fixed once the PlatformPort is created
   std::optional<TransceiverID> transceiverID_;
+  std::optional<uint32_t> hwLogicalPortId_;
 
   // Cached port profile config when transceiver info is required
   folly::Synchronized<

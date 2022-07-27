@@ -166,7 +166,12 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   // set platform port's speed
   auto platformPort = platform_->getPort(swPort->getID());
   platformPort->setCurrentProfile(swPort->getProfileID());
-  return saiPort->adapterKey();
+
+  // set the lower 32-bit of SaiId as Hardware logical port ID
+  auto portSaiId = saiPort->adapterKey();
+  uint32_t hwLogicalPortId = static_cast<uint32_t>(portSaiId);
+  platformPort->setHwLogicalPortId(hwLogicalPortId);
+  return portSaiId;
 }
 
 void SaiPortManager::changePort(

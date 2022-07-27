@@ -176,6 +176,10 @@ void getPortInfoHelper(
   for (auto entry : port->getVlans()) {
     portInfo.vlans()->push_back(entry.first);
   }
+  auto platformPort = sw.getPlatform()->getPlatformPort(port->getID());
+  if (platformPort->getHwLogicalPortId().has_value()) {
+    portInfo.hwLogicalPortId() = platformPort->getHwLogicalPortId().value();
+  }
 
   std::shared_ptr<QosPolicy> qosPolicy;
   auto state = sw.getState();

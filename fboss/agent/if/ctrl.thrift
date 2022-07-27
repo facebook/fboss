@@ -364,6 +364,7 @@ struct PortInfoThrift {
 
   21: optional PortHardwareDetails hw;
   22: optional TransceiverIdxThrift transceiverIdx;
+  23: optional i32 hwLogicalPortId;
 }
 
 struct PortHardwareDetails {
