@@ -105,6 +105,19 @@ class HwAqmTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
+  cfg::SwitchConfig multiplePortConfig() const {
+    auto cfg = utility::multiplePortsPerVlanConfig(
+        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
+    if (isSupported(HwAsic::Feature::L3_QOS)) {
+      auto streamType =
+          *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+      utility::addOlympicQueueConfig(
+          &cfg, streamType, getPlatform()->getAsic());
+      utility::addOlympicQosMaps(cfg);
+    }
+    return cfg;
+  }
+
   uint8_t kSilverDscp() const {
     return 0;
   }
@@ -125,7 +138,9 @@ class HwAqmTest : public HwLinkStateDependentTest {
       uint8_t dscpVal,
       bool isEcn,
       bool ensure = false,
-      int payloadLen = kDefaultTxPayloadBytes) {
+      int payloadLen = kDefaultTxPayloadBytes,
+      int ttl = 255,
+      std::optional<PortID> outPort = std::nullopt) {
     auto kECT1 = 0x01; // ECN capable transport ECT(1)
 
     dscpVal = static_cast<uint8_t>(dscpVal << 2);
@@ -146,13 +161,17 @@ class HwAqmTest : public HwLinkStateDependentTest {
         8000,
         8001,
         dscpVal,
-        255,
+        ttl,
         std::vector<uint8_t>(payloadLen, 0xff));
 
-    if (ensure) {
-      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+    if (outPort) {
+      getHwSwitch()->sendPacketOutOfPortSync(std::move(txPacket), *outPort);
     } else {
-      getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+      if (ensure) {
+        getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+      } else {
+        getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
+      }
     }
   }
 
@@ -165,9 +184,11 @@ class HwAqmTest : public HwLinkStateDependentTest {
       uint8_t dscpVal,
       bool isEcn,
       int cnt = 256,
-      int payloadLen = kDefaultTxPayloadBytes) {
+      int payloadLen = kDefaultTxPayloadBytes,
+      int ttl = 255,
+      std::optional<PortID> outPort = std::nullopt) {
     for (int i = 0; i < cnt; i++) {
-      sendPkt(dscpVal, isEcn, false /* ensure */, payloadLen);
+      sendPkt(dscpVal, isEcn, false /* ensure */, payloadLen, ttl, outPort);
     }
   }
   folly::MacAddress getIntfMac() const {
@@ -629,6 +650,98 @@ class HwAqmTest : public HwLinkStateDependentTest {
         std::nullopt /* verifyPacketCountFn */,
         setupScalingFactor,
         queueFillMaxBytes);
+  }
+
+  void runMultipleQueueDropLimitTest(bool isEcn) {
+    if (!isSupported(HwAsic::Feature::L3_QOS)) {
+#if defined(GTEST_SKIP)
+      GTEST_SKIP();
+#endif
+      return;
+    }
+    // 12K limit of queue not dropping packets (only specific to tajo asic).
+    auto numPacketsToSend = 12000;
+    int kPayloadLength = 200;
+    auto queueId = utility::kOlympicSilverQueueId;
+
+    auto setup = [=]() { applyNewConfig(multiplePortConfig()); };
+    auto verify = [=]() {
+      // Only use 10 ports
+      std::vector<PortID> ports = masterLogicalPortIds();
+      ports.resize(10);
+
+      auto before = getHwSwitchEnsemble()->getLatestPortStats(ports);
+
+      // Disable TX to build up queue for each port
+      for (auto const& port : ports) {
+        utility::setPortTxEnable(
+            getHwSwitchEnsemble()->getHwSwitch(), port, false);
+      }
+
+      // Send 12K packets to each port
+      for (auto const& port : ports) {
+        sendPkts(
+            utility::kOlympicQueueToDscp().at(0).front(),
+            isEcn,
+            numPacketsToSend,
+            kPayloadLength,
+            0, // ttl
+            port);
+      }
+
+      // Enable TX to let traffic egress
+      for (auto const& port : ports) {
+        utility::setPortTxEnable(
+            getHwSwitchEnsemble()->getHwSwitch(), port, true);
+      }
+
+      // Check stats on each queue
+      auto waitForQueueOutPackets = [&](const auto& newStats) {
+        uint64_t totalQueueDiscards{0};
+        for (auto const& port : ports) {
+          auto portStatsIter = newStats.find(port);
+          if (portStatsIter != newStats.end()) {
+            auto portStats = portStatsIter->second;
+            auto queueOut = portStats.queueOutPackets_()[queueId] -
+                before[port].queueOutPackets_()[queueId];
+            auto queueDiscards = portStats.queueOutDiscardPackets_()[queueId] -
+                before[port].queueOutDiscardPackets_()[queueId];
+            if (!queueOut && !queueDiscards) {
+              // No stats on port available yet
+              return false;
+            }
+            totalQueueDiscards += queueDiscards;
+            if (queueDiscards) {
+              XLOG(INFO) << "Port " << port
+                         << " has non-zero discards. ECN Marking: "
+                         << *portStats.outEcnCounter__ref() -
+                      *before[port].outEcnCounter__ref()
+                         << " WRED DROP: "
+                         << *portStats.wredDroppedPackets__ref() -
+                      *before[port].wredDroppedPackets__ref()
+                         << " WRED queue drops: "
+                         << portStats.queueWredDroppedPackets_()[queueId] -
+                      before[port].queueWredDroppedPackets_()[queueId]
+                         << ", Queue out packets: "
+                         << portStats.queueOutPackets_()[queueId] -
+                      before[port].queueOutPackets_()[queueId]
+                         << ", Congestion queue drops: "
+                         << portStats.queueOutDiscardPackets_()[queueId] -
+                      before[port].queueOutDiscardPackets_()[queueId];
+            }
+          }
+        }
+        return totalQueueDiscards == 0;
+      };
+
+      constexpr auto kNumRetries{3};
+      EXPECT_TRUE(getHwSwitchEnsemble()->waitPortStatsCondition(
+          waitForQueueOutPackets,
+          kNumRetries,
+          std::chrono::milliseconds(std::chrono::seconds(1))));
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
   }
 };
 
