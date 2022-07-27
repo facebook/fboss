@@ -29,7 +29,6 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
-    case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
     case HwAsic::Feature::SAI_ECN_WRED:
@@ -95,6 +94,11 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::FABRIC_MODE:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
+    /*
+     * Disabling buffer pool on Garonne since buffer pool
+     * is not supported yet.
+     */
+    case HwAsic::Feature::BUFFER_POOL:
       return false;
   }
   return false;
