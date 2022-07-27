@@ -153,12 +153,60 @@ class HwAgentPfcTests : public HwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  // Setup and apply the new config with passed in PFC configurations
+  void setupPfc(
+      const PortID& portId,
+      const bool pfcRxEnable,
+      const bool pfcTxEnable) {
+    // setup pfc
+    addPfcConfig(
+        currentConfig, getHwSwitch(), {portId}, pfcRxEnable, pfcTxEnable);
+    applyNewConfig(currentConfig);
+  }
+
+  // Run the various enabled/disabled combinations of PFC RX/TX
+  void runPfcTest(bool rxEnabled, bool txEnabled) {
+    auto setup = [=]() {
+      currentConfig = initialConfig();
+      setupPfc(masterLogicalPortIds()[0], rxEnabled, txEnabled);
+    };
+
+    auto verify = [=]() {
+      bool pfcRx = false;
+      bool pfcTx = false;
+
+      utility::getPfcEnabledStatus(
+          getHwSwitch(), masterLogicalPortIds()[0], pfcRx, pfcTx);
+
+      EXPECT_EQ(pfcRx, rxEnabled);
+      EXPECT_EQ(pfcTx, txEnabled);
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
  private:
   cfg::SwitchConfig currentConfig;
 };
 
 TEST_F(HwAgentPfcTests, PfcDefaultProgramming) {
   runPfcNotConfiguredTest(false, false);
+}
+
+TEST_F(HwAgentPfcTests, PfcRxDisabledTxDisabled) {
+  runPfcTest(false, false);
+}
+
+TEST_F(HwAgentPfcTests, PfcRxEnabledTxDisabled) {
+  runPfcTest(true, false);
+}
+
+TEST_F(HwAgentPfcTests, PfcRxDisabledTxEnabled) {
+  runPfcTest(false, true);
+}
+
+TEST_F(HwAgentPfcTests, PfcRxEnabledTxEnabled) {
+  runPfcTest(true, true);
 }
 
 } // namespace facebook::fboss
