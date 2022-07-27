@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 #include <cstdint>
 
+#include <fboss/cli/fboss2/options/SSLPolicy.h>
 #include <folly/io/async/AsyncSocket.h>
 #include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
@@ -30,6 +31,7 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
 
   using PortInfoMap = std::map<int, facebook::fboss::PortInfoThrift>&;
   MOCK_METHOD(void, getAllPortInfo, (PortInfoMap));
+  MOCK_METHOD(SSLType, getSSLPolicy, ());
   MOCK_METHOD(void, setPortState, (int32_t, bool));
   MOCK_METHOD(
       void,

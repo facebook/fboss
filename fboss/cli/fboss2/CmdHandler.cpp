@@ -26,6 +26,7 @@
 #include "fboss/cli/fboss2/commands/set/port/CmdSetPort.h"
 #include "fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
+#include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
@@ -67,6 +68,7 @@
 #include <stdexcept>
 
 #include "fboss/cli/fboss2/commands/show/acl/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/agent/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/arp/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/gen-cpp2/model_visitation.h"
@@ -147,6 +149,7 @@ namespace facebook::fboss {
 // Avoid template linker error
 // https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
 template void CmdHandler<CmdShowAcl, CmdShowAclTraits>::run();
+template void CmdHandler<CmdShowAgentSsl, CmdShowAgentSslTraits>::run();
 template void
 CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::run();
 template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();

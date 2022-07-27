@@ -18,6 +18,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_agent_model
+  fboss/cli/fboss2/commands/show/agent/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_arp_model
   fboss/cli/fboss2/commands/show/arp/model.thrift
   OPTIONS
@@ -189,6 +196,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h
   fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h
+  fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h
   fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
   fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h
@@ -247,6 +255,7 @@ target_link_libraries(fboss2
   Folly::folly
   cli_model
   show_acl_model
+  show_agent_model
   show_aggregateport_model
   show_arp_model
   show_lldp_model

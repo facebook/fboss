@@ -26,6 +26,7 @@
 #include "fboss/cli/fboss2/commands/set/port/CmdSetPort.h"
 #include "fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h"
 #include "fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h"
+#include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
@@ -64,6 +65,14 @@ const CommandTree& kCommandTree() {
        "Show ACL information",
        commandHandler<CmdShowAcl>,
        getValidFilterHandler<CmdShowAcl>},
+
+      {"show",
+       "agent",
+       "Show agent state",
+       {{"ssl",
+         utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+         "Show Agent SSL information",
+         commandHandler<CmdShowAgentSsl>}}},
 
       {"show",
        "aggregate-port",
