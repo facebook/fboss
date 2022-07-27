@@ -351,162 +351,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/1",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/1",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/1",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -516,86 +360,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth2/2/1",
           "controllingPort": 3,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY0",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/2",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/2",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY0",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/2",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/2",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG0",
@@ -685,29 +449,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth2/2",
@@ -719,23 +471,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth2/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY0",
-                      "lane": 1
+                      "chip": "eth2/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY0",
-                      "lane": 2
+                      "chip": "eth2/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY0",
@@ -747,7 +497,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY0",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY0",
@@ -758,6 +510,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 7
                     }
                   }
                 ]
@@ -769,29 +533,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth2/2",
@@ -803,23 +555,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth2/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY0",
-                      "lane": 1
+                      "chip": "eth2/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY0",
-                      "lane": 2
+                      "chip": "eth2/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY0",
@@ -831,7 +581,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY0",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY0",
@@ -842,6 +594,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 7
                     }
                   }
                 ]
@@ -1185,162 +949,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/3",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/3",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/3",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -1350,86 +958,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth2/4/1",
           "controllingPort": 7,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY0",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/4",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/4",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY0",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/4",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/4",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG0",
@@ -1519,13 +1047,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -1533,18 +1061,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth2/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/4",
                       "lane": 5
                     }
                   },
@@ -1552,6 +1068,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth2/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -1559,29 +1087,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY0",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY0",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY0",
@@ -1592,6 +1108,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 15
                     }
                   }
                 ]
@@ -1603,13 +1131,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -1617,18 +1145,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth2/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/4",
                       "lane": 5
                     }
                   },
@@ -1636,6 +1152,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth2/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -1643,29 +1171,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY0",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY0",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY0",
@@ -1676,6 +1192,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 15
                     }
                   }
                 ]
@@ -2019,162 +1547,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/5",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/5",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/5",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -2184,86 +1556,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth2/6/1",
           "controllingPort": 11,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY0",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/6",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/6",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY0",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/6",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/6",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG0",
@@ -2353,29 +1645,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth2/6",
@@ -2387,35 +1667,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth2/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY0",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY0",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY0",
@@ -2426,6 +1706,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 23
                     }
                   }
                 ]
@@ -2437,29 +1729,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth2/6",
@@ -2471,35 +1751,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth2/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY0",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY0",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY0",
@@ -2510,6 +1790,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 23
                     }
                   }
                 ]
@@ -2853,162 +2145,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG0",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/7",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/7",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/7",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/7",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/7",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/7",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -3018,86 +2154,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth2/8/1",
           "controllingPort": 15,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY0",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/8",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/8",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG0",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY0",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/8",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY0",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/8",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG0",
@@ -3187,29 +2243,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth2/8",
@@ -3221,35 +2265,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth2/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY0",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY0",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY0",
@@ -3260,6 +2304,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 31
                     }
                   }
                 ]
@@ -3271,29 +2327,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth2/8",
@@ -3305,35 +2349,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth2/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY0",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY0",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY0",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY0",
@@ -3344,6 +2388,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY0",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY0",
+                      "lane": 31
                     }
                   }
                 ]
@@ -3687,162 +2743,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/9",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/9",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/9",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/9",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/9",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/9",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -3852,86 +2752,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth2/10/1",
           "controllingPort": 19,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY1",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/10",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/10",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY1",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/10",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/10",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG1",
@@ -4021,29 +2841,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth2/10",
@@ -4055,23 +2863,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth2/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY1",
-                      "lane": 1
+                      "chip": "eth2/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY1",
-                      "lane": 2
+                      "chip": "eth2/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY1",
@@ -4083,7 +2889,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY1",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY1",
@@ -4094,6 +2902,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY1",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 7
                     }
                   }
                 ]
@@ -4105,29 +2925,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth2/10",
@@ -4139,23 +2947,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth2/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY1",
-                      "lane": 1
+                      "chip": "eth2/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY1",
-                      "lane": 2
+                      "chip": "eth2/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY1",
@@ -4167,7 +2973,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY1",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY1",
@@ -4178,6 +2986,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY1",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 7
                     }
                   }
                 ]
@@ -4521,162 +3341,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/11",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/11",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/11",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/11",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/11",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/11",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -4686,86 +3350,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth2/12/1",
           "controllingPort": 23,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY1",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/12",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/12",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY1",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/12",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/12",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG1",
@@ -4855,13 +3439,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -4869,18 +3453,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth2/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/12",
                       "lane": 5
                     }
                   },
@@ -4888,6 +3460,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth2/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -4895,29 +3479,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY1",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY1",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY1",
@@ -4928,6 +3500,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY1",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 15
                     }
                   }
                 ]
@@ -4939,13 +3523,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -4953,18 +3537,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth2/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/12",
                       "lane": 5
                     }
                   },
@@ -4972,6 +3544,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth2/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -4979,29 +3563,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY1",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY1",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY1",
@@ -5012,6 +3584,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY1",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 15
                     }
                   }
                 ]
@@ -5355,162 +3939,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/13",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/13",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/13",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/13",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/13",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/13",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -5520,86 +3948,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth2/14/1",
           "controllingPort": 27,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY1",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/14",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/14",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY1",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/14",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/14",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG1",
@@ -5689,29 +4037,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth2/14",
@@ -5723,35 +4059,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth2/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY1",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY1",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY1",
@@ -5762,6 +4098,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY1",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 23
                     }
                   }
                 ]
@@ -5773,29 +4121,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth2/14",
@@ -5807,35 +4143,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth2/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY1",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY1",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY1",
@@ -5846,6 +4182,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY1",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 23
                     }
                   }
                 ]
@@ -6189,162 +4537,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG1",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/15",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/15",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/15",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/15",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/15",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/15",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -6354,86 +4546,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth2/16/1",
           "controllingPort": 31,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY1",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/16",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/16",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG1",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY1",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/16",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY1",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth2/16",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG1",
@@ -6523,29 +4635,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth2/16",
@@ -6557,35 +4657,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth2/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY1",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY1",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY1",
@@ -6596,6 +4696,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY1",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 31
                     }
                   }
                 ]
@@ -6607,29 +4719,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth2/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth2/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth2/16",
@@ -6641,35 +4741,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth2/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth2/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY1",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY1",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY1",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY1",
@@ -6680,6 +4780,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY1",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY1",
+                      "lane": 31
                     }
                   }
                 ]
@@ -7023,162 +5135,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/1",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/1",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/1",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -7188,86 +5144,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth3/2/1",
           "controllingPort": 35,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY2",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/2",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/2",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY2",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/2",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/2",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG2",
@@ -7357,29 +5233,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth3/2",
@@ -7391,23 +5255,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth3/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY2",
-                      "lane": 1
+                      "chip": "eth3/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY2",
-                      "lane": 2
+                      "chip": "eth3/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY2",
@@ -7419,7 +5281,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY2",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY2",
@@ -7430,6 +5294,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY2",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 7
                     }
                   }
                 ]
@@ -7441,29 +5317,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth3/2",
@@ -7475,23 +5339,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth3/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY2",
-                      "lane": 1
+                      "chip": "eth3/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY2",
-                      "lane": 2
+                      "chip": "eth3/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY2",
@@ -7503,7 +5365,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY2",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY2",
@@ -7514,6 +5378,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY2",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 7
                     }
                   }
                 ]
@@ -7857,162 +5733,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/3",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/3",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/3",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -8022,86 +5742,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth3/4/1",
           "controllingPort": 39,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY2",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/4",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/4",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY2",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/4",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/4",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG2",
@@ -8191,13 +5831,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -8205,18 +5845,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth3/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/4",
                       "lane": 5
                     }
                   },
@@ -8224,6 +5852,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth3/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -8231,29 +5871,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY2",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY2",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY2",
@@ -8264,6 +5892,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY2",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 15
                     }
                   }
                 ]
@@ -8275,13 +5915,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -8289,18 +5929,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth3/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/4",
                       "lane": 5
                     }
                   },
@@ -8308,6 +5936,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth3/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -8315,29 +5955,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY2",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY2",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY2",
@@ -8348,6 +5976,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY2",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 15
                     }
                   }
                 ]
@@ -8691,162 +6331,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/5",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/5",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/5",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -8856,86 +6340,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth3/6/1",
           "controllingPort": 43,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY2",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/6",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/6",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY2",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/6",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/6",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG2",
@@ -9025,29 +6429,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth3/6",
@@ -9059,35 +6451,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth3/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY2",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY2",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY2",
@@ -9098,6 +6490,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY2",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 23
                     }
                   }
                 ]
@@ -9109,29 +6513,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth3/6",
@@ -9143,35 +6535,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth3/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY2",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY2",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY2",
@@ -9182,6 +6574,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY2",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 23
                     }
                   }
                 ]
@@ -9525,162 +6929,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG2",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/7",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/7",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/7",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/7",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/7",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/7",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -9690,86 +6938,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth3/8/1",
           "controllingPort": 47,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY2",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/8",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/8",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG2",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY2",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/8",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY2",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/8",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG2",
@@ -9859,29 +7027,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth3/8",
@@ -9893,35 +7049,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth3/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY2",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY2",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY2",
@@ -9932,6 +7088,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY2",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 31
                     }
                   }
                 ]
@@ -9943,29 +7111,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth3/8",
@@ -9977,35 +7133,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth3/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY2",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY2",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY2",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY2",
@@ -10016,6 +7172,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY2",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY2",
+                      "lane": 31
                     }
                   }
                 ]
@@ -10359,162 +7527,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/9",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/9",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/9",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/9",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/9",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/9",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -10524,86 +7536,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth3/10/1",
           "controllingPort": 51,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY3",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/10",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/10",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY3",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/10",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/10",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG3",
@@ -10693,29 +7625,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth3/10",
@@ -10727,23 +7647,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth3/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY3",
-                      "lane": 1
+                      "chip": "eth3/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY3",
-                      "lane": 2
+                      "chip": "eth3/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY3",
@@ -10755,7 +7673,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY3",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY3",
@@ -10766,6 +7686,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY3",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 7
                     }
                   }
                 ]
@@ -10777,29 +7709,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth3/10",
@@ -10811,23 +7731,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth3/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY3",
-                      "lane": 1
+                      "chip": "eth3/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY3",
-                      "lane": 2
+                      "chip": "eth3/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY3",
@@ -10839,7 +7757,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY3",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY3",
@@ -10850,6 +7770,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY3",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 7
                     }
                   }
                 ]
@@ -11193,162 +8125,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/11",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/11",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/11",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/11",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/11",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/11",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -11358,86 +8134,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth3/12/1",
           "controllingPort": 55,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY3",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/12",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/12",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY3",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/12",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/12",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG3",
@@ -11527,13 +8223,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -11541,18 +8237,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth3/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/12",
                       "lane": 5
                     }
                   },
@@ -11560,6 +8244,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth3/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -11567,29 +8263,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY3",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY3",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY3",
@@ -11600,6 +8284,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY3",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 15
                     }
                   }
                 ]
@@ -11611,13 +8307,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -11625,18 +8321,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth3/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/12",
                       "lane": 5
                     }
                   },
@@ -11644,6 +8328,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth3/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -11651,29 +8347,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY3",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY3",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY3",
@@ -11684,6 +8368,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY3",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 15
                     }
                   }
                 ]
@@ -12027,162 +8723,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/13",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/13",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/13",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/13",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/13",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/13",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -12192,86 +8732,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth3/14/1",
           "controllingPort": 59,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY3",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/14",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/14",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY3",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/14",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/14",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG3",
@@ -12361,29 +8821,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth3/14",
@@ -12395,35 +8843,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth3/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY3",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY3",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY3",
@@ -12434,6 +8882,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY3",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 23
                     }
                   }
                 ]
@@ -12445,29 +8905,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth3/14",
@@ -12479,35 +8927,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth3/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY3",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY3",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY3",
@@ -12518,6 +8966,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY3",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 23
                     }
                   }
                 ]
@@ -12861,162 +9321,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG3",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/15",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/15",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/15",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/15",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/15",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/15",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -13026,86 +9330,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth3/16/1",
           "controllingPort": 63,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY3",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/16",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/16",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG3",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY3",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/16",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY3",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth3/16",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG3",
@@ -13195,29 +9419,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth3/16",
@@ -13229,35 +9441,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth3/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY3",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY3",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY3",
@@ -13268,6 +9480,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY3",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 31
                     }
                   }
                 ]
@@ -13279,29 +9503,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG3",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth3/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth3/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth3/16",
@@ -13313,35 +9525,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth3/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth3/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY3",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY3",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY3",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY3",
@@ -13352,6 +9564,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY3",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY3",
+                      "lane": 31
                     }
                   }
                 ]
@@ -13695,162 +9919,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/1",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/1",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/1",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -13860,86 +9928,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth4/2/1",
           "controllingPort": 67,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY4",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/2",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/2",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY4",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/2",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/2",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG4",
@@ -14029,29 +10017,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth4/2",
@@ -14063,23 +10039,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth4/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY4",
-                      "lane": 1
+                      "chip": "eth4/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY4",
-                      "lane": 2
+                      "chip": "eth4/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY4",
@@ -14091,7 +10065,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY4",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY4",
@@ -14102,6 +10078,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 7
                     }
                   }
                 ]
@@ -14113,29 +10101,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth4/2",
@@ -14147,23 +10123,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth4/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY4",
-                      "lane": 1
+                      "chip": "eth4/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY4",
-                      "lane": 2
+                      "chip": "eth4/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY4",
@@ -14175,7 +10149,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY4",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY4",
@@ -14186,6 +10162,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 7
                     }
                   }
                 ]
@@ -14529,162 +10517,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/3",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/3",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/3",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -14694,86 +10526,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth4/4/1",
           "controllingPort": 71,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY4",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/4",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/4",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY4",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/4",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/4",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG4",
@@ -14863,13 +10615,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -14877,18 +10629,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth4/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/4",
                       "lane": 5
                     }
                   },
@@ -14896,6 +10636,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth4/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -14903,29 +10655,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY4",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY4",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY4",
@@ -14936,6 +10676,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 15
                     }
                   }
                 ]
@@ -14947,13 +10699,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -14961,18 +10713,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth4/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/4",
                       "lane": 5
                     }
                   },
@@ -14980,6 +10720,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth4/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -14987,29 +10739,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY4",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY4",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY4",
@@ -15020,6 +10760,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 15
                     }
                   }
                 ]
@@ -15363,162 +11115,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/5",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/5",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/5",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -15528,86 +11124,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth4/6/1",
           "controllingPort": 75,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY4",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/6",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/6",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY4",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/6",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/6",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG4",
@@ -15697,29 +11213,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth4/6",
@@ -15731,35 +11235,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth4/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY4",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY4",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY4",
@@ -15770,6 +11274,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 23
                     }
                   }
                 ]
@@ -15781,29 +11297,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth4/6",
@@ -15815,35 +11319,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth4/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY4",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY4",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY4",
@@ -15854,6 +11358,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 23
                     }
                   }
                 ]
@@ -16197,162 +11713,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG4",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/7",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/7",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/7",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/7",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/7",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/7",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -16362,86 +11722,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth4/8/1",
           "controllingPort": 79,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY4",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/8",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/8",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG4",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY4",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/8",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY4",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/8",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG4",
@@ -16531,29 +11811,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth4/8",
@@ -16565,35 +11833,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth4/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY4",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY4",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY4",
@@ -16604,6 +11872,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 31
                     }
                   }
                 ]
@@ -16615,29 +11895,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG4",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth4/8",
@@ -16649,35 +11917,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth4/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY4",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY4",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY4",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY4",
@@ -16688,6 +11956,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY4",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY4",
+                      "lane": 31
                     }
                   }
                 ]
@@ -17031,162 +12311,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/9",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/9",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/9",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/9",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/9",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/9",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -17196,86 +12320,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth4/10/1",
           "controllingPort": 83,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY5",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/10",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/10",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY5",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/10",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/10",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG5",
@@ -17365,29 +12409,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth4/10",
@@ -17399,23 +12431,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth4/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY5",
-                      "lane": 1
+                      "chip": "eth4/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY5",
-                      "lane": 2
+                      "chip": "eth4/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY5",
@@ -17427,7 +12457,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY5",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY5",
@@ -17438,6 +12470,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY5",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 7
                     }
                   }
                 ]
@@ -17449,29 +12493,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth4/10",
@@ -17483,23 +12515,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth4/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY5",
-                      "lane": 1
+                      "chip": "eth4/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY5",
-                      "lane": 2
+                      "chip": "eth4/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY5",
@@ -17511,7 +12541,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY5",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY5",
@@ -17522,6 +12554,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY5",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 7
                     }
                   }
                 ]
@@ -17865,162 +12909,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/11",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/11",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/11",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/11",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/11",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/11",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -18030,86 +12918,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth4/12/1",
           "controllingPort": 87,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY5",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/12",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/12",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY5",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/12",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/12",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG5",
@@ -18199,13 +13007,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -18213,18 +13021,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth4/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/12",
                       "lane": 5
                     }
                   },
@@ -18232,6 +13028,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth4/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -18239,29 +13047,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY5",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY5",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY5",
@@ -18272,6 +13068,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY5",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 15
                     }
                   }
                 ]
@@ -18283,13 +13091,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -18297,18 +13105,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth4/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/12",
                       "lane": 5
                     }
                   },
@@ -18316,6 +13112,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth4/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -18323,29 +13131,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY5",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY5",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY5",
@@ -18356,6 +13152,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY5",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 15
                     }
                   }
                 ]
@@ -18699,162 +13507,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/13",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/13",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/13",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/13",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/13",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/13",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -18864,86 +13516,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth4/14/1",
           "controllingPort": 91,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY5",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/14",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/14",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY5",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/14",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/14",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG5",
@@ -19033,29 +13605,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth4/14",
@@ -19067,35 +13627,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth4/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY5",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY5",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY5",
@@ -19106,6 +13666,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY5",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 23
                     }
                   }
                 ]
@@ -19117,29 +13689,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth4/14",
@@ -19151,35 +13711,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth4/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY5",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY5",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY5",
@@ -19190,6 +13750,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY5",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 23
                     }
                   }
                 ]
@@ -19533,162 +14105,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG5",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/15",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/15",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/15",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/15",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/15",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/15",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -19698,86 +14114,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth4/16/1",
           "controllingPort": 95,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY5",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/16",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/16",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG5",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY5",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/16",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY5",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth4/16",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG5",
@@ -19867,29 +14203,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth4/16",
@@ -19901,35 +14225,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth4/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY5",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY5",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY5",
@@ -19940,6 +14264,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY5",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 31
                     }
                   }
                 ]
@@ -19951,29 +14287,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth4/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth4/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth4/16",
@@ -19985,35 +14309,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth4/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth4/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY5",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY5",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY5",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY5",
@@ -20024,6 +14348,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY5",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY5",
+                      "lane": 31
                     }
                   }
                 ]
@@ -20367,162 +14703,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/1",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/1",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/1",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -20532,86 +14712,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth5/2/1",
           "controllingPort": 99,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG6",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY6",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/2",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/2",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG6",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY6",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/2",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/2",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG6",
@@ -20701,29 +14801,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth5/2",
@@ -20735,23 +14823,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth5/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY6",
-                      "lane": 1
+                      "chip": "eth5/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY6",
-                      "lane": 2
+                      "chip": "eth5/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY6",
@@ -20763,7 +14849,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY6",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY6",
@@ -20774,6 +14862,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY6",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 7
                     }
                   }
                 ]
@@ -20785,29 +14885,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth5/2",
@@ -20819,23 +14907,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth5/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY6",
-                      "lane": 1
+                      "chip": "eth5/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY6",
-                      "lane": 2
+                      "chip": "eth5/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY6",
@@ -20847,7 +14933,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY6",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY6",
@@ -20858,6 +14946,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY6",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 7
                     }
                   }
                 ]
@@ -21201,162 +15301,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/3",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/3",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/3",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -21366,86 +15310,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth5/4/1",
           "controllingPort": 103,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG6",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY6",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/4",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/4",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG6",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY6",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/4",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/4",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG6",
@@ -21535,13 +15399,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -21549,18 +15413,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth5/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/4",
                       "lane": 5
                     }
                   },
@@ -21568,6 +15420,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth5/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -21575,29 +15439,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY6",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY6",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY6",
@@ -21608,6 +15460,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY6",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 15
                     }
                   }
                 ]
@@ -21619,13 +15483,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -21633,18 +15497,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth5/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/4",
                       "lane": 5
                     }
                   },
@@ -21652,6 +15504,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth5/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -21659,29 +15523,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY6",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY6",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY6",
@@ -21692,6 +15544,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY6",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 15
                     }
                   }
                 ]
@@ -22035,162 +15899,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/5",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/5",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/5",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -22200,86 +15908,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth5/6/1",
           "controllingPort": 107,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG6",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY6",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/6",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/6",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG6",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY6",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/6",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/6",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG6",
@@ -22369,29 +15997,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth5/6",
@@ -22403,35 +16019,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth5/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY6",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY6",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY6",
@@ -22442,6 +16058,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY6",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 23
                     }
                   }
                 ]
@@ -22453,29 +16081,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth5/6",
@@ -22487,35 +16103,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth5/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY6",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY6",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY6",
@@ -22526,6 +16142,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY6",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 23
                     }
                   }
                 ]
@@ -22869,162 +16497,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG6",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/7",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/7",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/7",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/7",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/7",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/7",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -23034,86 +16506,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth5/8/1",
           "controllingPort": 111,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG6",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY6",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/8",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/8",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG6",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY6",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/8",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY6",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/8",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG6",
@@ -23203,29 +16595,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth5/8",
@@ -23237,35 +16617,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth5/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY6",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY6",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY6",
@@ -23276,6 +16656,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY6",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 31
                     }
                   }
                 ]
@@ -23287,29 +16679,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG6",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth5/8",
@@ -23321,35 +16701,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth5/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY6",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY6",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY6",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY6",
@@ -23360,6 +16740,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY6",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY6",
+                      "lane": 31
                     }
                   }
                 ]
@@ -23703,162 +17095,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/9",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/9",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/9",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/9",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/9",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/9",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -23868,86 +17104,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth5/10/1",
           "controllingPort": 115,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG7",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY7",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/10",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/10",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG7",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY7",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/10",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/10",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG7",
@@ -24037,29 +17193,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth5/10",
@@ -24071,23 +17215,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth5/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY7",
-                      "lane": 1
+                      "chip": "eth5/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY7",
-                      "lane": 2
+                      "chip": "eth5/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY7",
@@ -24099,7 +17241,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY7",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY7",
@@ -24110,6 +17254,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY7",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 7
                     }
                   }
                 ]
@@ -24121,29 +17277,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth5/10",
@@ -24155,23 +17299,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth5/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY7",
-                      "lane": 1
+                      "chip": "eth5/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY7",
-                      "lane": 2
+                      "chip": "eth5/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY7",
@@ -24183,7 +17325,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY7",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY7",
@@ -24194,6 +17338,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY7",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 7
                     }
                   }
                 ]
@@ -24537,162 +17693,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/11",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/11",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/11",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/11",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/11",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/11",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -24702,86 +17702,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth5/12/1",
           "controllingPort": 119,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG7",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY7",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/12",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/12",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG7",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY7",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/12",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/12",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG7",
@@ -24871,13 +17791,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -24885,18 +17805,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth5/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/12",
                       "lane": 5
                     }
                   },
@@ -24904,6 +17812,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth5/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -24911,29 +17831,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY7",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY7",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY7",
@@ -24944,6 +17852,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY7",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 15
                     }
                   }
                 ]
@@ -24955,13 +17875,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -24969,18 +17889,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth5/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/12",
                       "lane": 5
                     }
                   },
@@ -24988,6 +17896,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth5/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -24995,29 +17915,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY7",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY7",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY7",
@@ -25028,6 +17936,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY7",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 15
                     }
                   }
                 ]
@@ -25371,162 +18291,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/13",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/13",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/13",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/13",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/13",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/13",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -25536,86 +18300,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth5/14/1",
           "controllingPort": 123,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG7",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY7",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/14",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/14",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG7",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY7",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/14",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/14",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG7",
@@ -25705,29 +18389,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth5/14",
@@ -25739,35 +18411,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth5/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY7",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY7",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY7",
@@ -25778,6 +18450,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY7",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 23
                     }
                   }
                 ]
@@ -25789,29 +18473,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth5/14",
@@ -25823,35 +18495,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth5/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY7",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY7",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY7",
@@ -25862,6 +18534,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY7",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 23
                     }
                   }
                 ]
@@ -26205,162 +18889,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG7",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/15",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/15",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/15",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/15",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/15",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/15",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -26370,86 +18898,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth5/16/1",
           "controllingPort": 127,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG7",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY7",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/16",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/16",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG7",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY7",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/16",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY7",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth5/16",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG7",
@@ -26539,29 +18987,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth5/16",
@@ -26573,35 +19009,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth5/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY7",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY7",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY7",
@@ -26612,6 +19048,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY7",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 31
                     }
                   }
                 ]
@@ -26623,29 +19071,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG7",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth5/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth5/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth5/16",
@@ -26657,35 +19093,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth5/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth5/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY7",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY7",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY7",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY7",
@@ -26696,6 +19132,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY7",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY7",
+                      "lane": 31
                     }
                   }
                 ]
@@ -27039,162 +19487,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/1",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/1",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/1",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -27204,86 +19496,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth6/2/1",
           "controllingPort": 131,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG8",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY8",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/2",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/2",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG8",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY8",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/2",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/2",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG8",
@@ -27373,29 +19585,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth6/2",
@@ -27407,23 +19607,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth6/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY8",
-                      "lane": 1
+                      "chip": "eth6/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY8",
-                      "lane": 2
+                      "chip": "eth6/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY8",
@@ -27435,7 +19633,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY8",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY8",
@@ -27446,6 +19646,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 7
                     }
                   }
                 ]
@@ -27457,29 +19669,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth6/2",
@@ -27491,23 +19691,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth6/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY8",
-                      "lane": 1
+                      "chip": "eth6/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY8",
-                      "lane": 2
+                      "chip": "eth6/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY8",
@@ -27519,7 +19717,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY8",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY8",
@@ -27530,6 +19730,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 7
                     }
                   }
                 ]
@@ -27873,162 +20085,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/3",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/3",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/3",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -28038,86 +20094,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth6/4/1",
           "controllingPort": 135,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG8",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY8",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/4",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/4",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG8",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY8",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/4",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/4",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG8",
@@ -28207,13 +20183,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -28221,18 +20197,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth6/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/4",
                       "lane": 5
                     }
                   },
@@ -28240,6 +20204,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth6/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -28247,29 +20223,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY8",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY8",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY8",
@@ -28280,6 +20244,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 15
                     }
                   }
                 ]
@@ -28291,13 +20267,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -28305,18 +20281,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth6/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/4",
                       "lane": 5
                     }
                   },
@@ -28324,6 +20288,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth6/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -28331,29 +20307,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY8",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY8",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY8",
@@ -28364,6 +20328,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 15
                     }
                   }
                 ]
@@ -28707,162 +20683,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/5",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/5",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/5",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -28872,86 +20692,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth6/6/1",
           "controllingPort": 139,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG8",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY8",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/6",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/6",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG8",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY8",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/6",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/6",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG8",
@@ -29041,29 +20781,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth6/6",
@@ -29075,35 +20803,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth6/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY8",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY8",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY8",
@@ -29114,6 +20842,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 23
                     }
                   }
                 ]
@@ -29125,29 +20865,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth6/6",
@@ -29159,35 +20887,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth6/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY8",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY8",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY8",
@@ -29198,6 +20926,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 23
                     }
                   }
                 ]
@@ -29541,162 +21281,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG8",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/7",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/7",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/7",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/7",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/7",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/7",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -29706,86 +21290,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth6/8/1",
           "controllingPort": 143,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG8",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY8",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/8",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/8",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG8",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY8",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/8",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY8",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/8",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG8",
@@ -29875,29 +21379,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth6/8",
@@ -29909,35 +21401,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth6/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY8",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY8",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY8",
@@ -29948,6 +21440,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 31
                     }
                   }
                 ]
@@ -29959,29 +21463,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth6/8",
@@ -29993,35 +21485,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth6/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY8",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY8",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY8",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY8",
@@ -30032,6 +21524,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY8",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY8",
+                      "lane": 31
                     }
                   }
                 ]
@@ -30375,162 +21879,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/9",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/9",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/9",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/9",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/9",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/9",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -30540,86 +21888,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth6/10/1",
           "controllingPort": 147,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG9",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY9",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/10",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/10",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG9",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY9",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/10",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/10",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG9",
@@ -30709,29 +21977,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth6/10",
@@ -30743,23 +21999,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth6/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY9",
-                      "lane": 1
+                      "chip": "eth6/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY9",
-                      "lane": 2
+                      "chip": "eth6/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY9",
@@ -30771,7 +22025,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY9",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY9",
@@ -30782,6 +22038,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY9",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 7
                     }
                   }
                 ]
@@ -30793,29 +22061,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth6/10",
@@ -30827,23 +22083,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth6/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY9",
-                      "lane": 1
+                      "chip": "eth6/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY9",
-                      "lane": 2
+                      "chip": "eth6/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY9",
@@ -30855,7 +22109,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY9",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY9",
@@ -30866,6 +22122,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY9",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 7
                     }
                   }
                 ]
@@ -31209,162 +22477,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/11",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/11",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/11",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/11",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/11",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/11",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -31374,86 +22486,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth6/12/1",
           "controllingPort": 151,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG9",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY9",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/12",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/12",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG9",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY9",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/12",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/12",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG9",
@@ -31543,13 +22575,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -31557,18 +22589,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth6/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/12",
                       "lane": 5
                     }
                   },
@@ -31576,6 +22596,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth6/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -31583,29 +22615,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY9",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY9",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY9",
@@ -31616,6 +22636,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY9",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 15
                     }
                   }
                 ]
@@ -31627,13 +22659,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -31641,18 +22673,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth6/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/12",
                       "lane": 5
                     }
                   },
@@ -31660,6 +22680,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth6/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -31667,29 +22699,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY9",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY9",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY9",
@@ -31700,6 +22720,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY9",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 15
                     }
                   }
                 ]
@@ -32043,162 +23075,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/13",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/13",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/13",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/13",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/13",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/13",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -32208,86 +23084,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth6/14/1",
           "controllingPort": 155,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG9",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY9",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/14",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/14",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG9",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY9",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/14",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/14",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG9",
@@ -32377,29 +23173,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth6/14",
@@ -32411,35 +23195,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth6/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY9",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY9",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY9",
@@ -32450,6 +23234,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY9",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 23
                     }
                   }
                 ]
@@ -32461,29 +23257,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth6/14",
@@ -32495,35 +23279,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth6/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY9",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY9",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY9",
@@ -32534,6 +23318,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY9",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 23
                     }
                   }
                 ]
@@ -32877,162 +23673,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG9",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/15",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/15",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/15",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/15",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/15",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/15",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -33042,86 +23682,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth6/16/1",
           "controllingPort": 159,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG9",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY9",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/16",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/16",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG9",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY9",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/16",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY9",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth6/16",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG9",
@@ -33211,29 +23771,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth6/16",
@@ -33245,35 +23793,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth6/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY9",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY9",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY9",
@@ -33284,6 +23832,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY9",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 31
                     }
                   }
                 ]
@@ -33295,29 +23855,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG9",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth6/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth6/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth6/16",
@@ -33329,35 +23877,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth6/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth6/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY9",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY9",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY9",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY9",
@@ -33368,6 +23916,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY9",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY9",
+                      "lane": 31
                     }
                   }
                 ]
@@ -33711,162 +24271,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/1",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/1",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/1",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -33876,86 +24280,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth7/2/1",
           "controllingPort": 163,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG10",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY10",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/2",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/2",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG10",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY10",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/2",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/2",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG10",
@@ -34045,29 +24369,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth7/2",
@@ -34079,23 +24391,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth7/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY10",
-                      "lane": 1
+                      "chip": "eth7/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY10",
-                      "lane": 2
+                      "chip": "eth7/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY10",
@@ -34107,7 +24417,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY10",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY10",
@@ -34118,6 +24430,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY10",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 7
                     }
                   }
                 ]
@@ -34129,29 +24453,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth7/2",
@@ -34163,23 +24475,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth7/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY10",
-                      "lane": 1
+                      "chip": "eth7/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY10",
-                      "lane": 2
+                      "chip": "eth7/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY10",
@@ -34191,7 +24501,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY10",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY10",
@@ -34202,6 +24514,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY10",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 7
                     }
                   }
                 ]
@@ -34545,162 +24869,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/3",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/3",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/3",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -34710,86 +24878,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth7/4/1",
           "controllingPort": 167,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG10",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY10",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/4",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/4",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG10",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY10",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/4",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/4",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG10",
@@ -34879,13 +24967,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -34893,18 +24981,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth7/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/4",
                       "lane": 5
                     }
                   },
@@ -34912,6 +24988,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth7/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -34919,29 +25007,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY10",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY10",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY10",
@@ -34952,6 +25028,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY10",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 15
                     }
                   }
                 ]
@@ -34963,13 +25051,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -34977,18 +25065,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth7/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/4",
                       "lane": 5
                     }
                   },
@@ -34996,6 +25072,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth7/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -35003,29 +25091,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY10",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY10",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY10",
@@ -35036,6 +25112,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY10",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 15
                     }
                   }
                 ]
@@ -35379,162 +25467,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/5",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/5",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/5",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -35544,86 +25476,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth7/6/1",
           "controllingPort": 171,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG10",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY10",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/6",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/6",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG10",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY10",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/6",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/6",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG10",
@@ -35713,29 +25565,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth7/6",
@@ -35747,35 +25587,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth7/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY10",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY10",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY10",
@@ -35786,6 +25626,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY10",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 23
                     }
                   }
                 ]
@@ -35797,29 +25649,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth7/6",
@@ -35831,35 +25671,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth7/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY10",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY10",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY10",
@@ -35870,6 +25710,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY10",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 23
                     }
                   }
                 ]
@@ -36213,162 +26065,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG10",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/7",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/7",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/7",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/7",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/7",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/7",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -36378,86 +26074,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth7/8/1",
           "controllingPort": 175,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG10",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY10",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/8",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/8",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG10",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY10",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/8",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY10",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/8",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG10",
@@ -36547,29 +26163,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth7/8",
@@ -36581,35 +26185,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth7/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY10",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY10",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY10",
@@ -36620,6 +26224,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY10",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 31
                     }
                   }
                 ]
@@ -36631,29 +26247,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG10",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth7/8",
@@ -36665,35 +26269,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth7/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY10",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY10",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY10",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY10",
@@ -36704,6 +26308,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY10",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY10",
+                      "lane": 31
                     }
                   }
                 ]
@@ -37047,162 +26663,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/9",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/9",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/9",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/9",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/9",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/9",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -37212,86 +26672,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth7/10/1",
           "controllingPort": 179,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG11",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY11",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/10",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/10",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG11",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY11",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/10",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/10",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG11",
@@ -37381,29 +26761,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth7/10",
@@ -37415,23 +26783,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth7/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY11",
-                      "lane": 1
+                      "chip": "eth7/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY11",
-                      "lane": 2
+                      "chip": "eth7/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY11",
@@ -37443,7 +26809,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY11",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY11",
@@ -37454,6 +26822,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY11",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 7
                     }
                   }
                 ]
@@ -37465,29 +26845,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth7/10",
@@ -37499,23 +26867,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth7/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY11",
-                      "lane": 1
+                      "chip": "eth7/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY11",
-                      "lane": 2
+                      "chip": "eth7/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY11",
@@ -37527,7 +26893,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY11",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY11",
@@ -37538,6 +26906,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY11",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 7
                     }
                   }
                 ]
@@ -37881,162 +27261,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/11",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/11",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/11",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/11",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/11",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/11",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -38046,86 +27270,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth7/12/1",
           "controllingPort": 183,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG11",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY11",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/12",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/12",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG11",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY11",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/12",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/12",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG11",
@@ -38215,13 +27359,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -38229,18 +27373,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth7/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/12",
                       "lane": 5
                     }
                   },
@@ -38248,6 +27380,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth7/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -38255,29 +27399,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY11",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY11",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY11",
@@ -38288,6 +27420,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY11",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 15
                     }
                   }
                 ]
@@ -38299,13 +27443,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -38313,18 +27457,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth7/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/12",
                       "lane": 5
                     }
                   },
@@ -38332,6 +27464,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth7/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -38339,29 +27483,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY11",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY11",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY11",
@@ -38372,6 +27504,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY11",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 15
                     }
                   }
                 ]
@@ -38715,162 +27859,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/13",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/13",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/13",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/13",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/13",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/13",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -38880,86 +27868,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth7/14/1",
           "controllingPort": 187,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG11",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY11",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/14",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/14",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG11",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY11",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/14",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/14",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG11",
@@ -39049,29 +27957,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth7/14",
@@ -39083,35 +27979,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth7/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY11",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY11",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY11",
@@ -39122,6 +28018,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY11",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 23
                     }
                   }
                 ]
@@ -39133,29 +28041,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth7/14",
@@ -39167,35 +28063,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth7/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY11",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY11",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY11",
@@ -39206,6 +28102,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY11",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 23
                     }
                   }
                 ]
@@ -39549,162 +28457,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG11",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/15",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/15",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/15",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/15",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/15",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/15",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -39714,86 +28466,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth7/16/1",
           "controllingPort": 191,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG11",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY11",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/16",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/16",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG11",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY11",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/16",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY11",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth7/16",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG11",
@@ -39883,29 +28555,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth7/16",
@@ -39917,35 +28577,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth7/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY11",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY11",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY11",
@@ -39956,6 +28616,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY11",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 31
                     }
                   }
                 ]
@@ -39967,29 +28639,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth7/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth7/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth7/16",
@@ -40001,35 +28661,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth7/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth7/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY11",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY11",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY11",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY11",
@@ -40040,6 +28700,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY11",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY11",
+                      "lane": 31
                     }
                   }
                 ]
@@ -40383,162 +29055,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/1",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/1",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/1",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -40548,86 +29064,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth8/2/1",
           "controllingPort": 195,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG12",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY12",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/2",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/2",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG12",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY12",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/2",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/2",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG12",
@@ -40717,29 +29153,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth8/2",
@@ -40751,23 +29175,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth8/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY12",
-                      "lane": 1
+                      "chip": "eth8/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY12",
-                      "lane": 2
+                      "chip": "eth8/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY12",
@@ -40779,7 +29201,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY12",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY12",
@@ -40790,6 +29214,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 7
                     }
                   }
                 ]
@@ -40801,29 +29237,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth8/2",
@@ -40835,23 +29259,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth8/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY12",
-                      "lane": 1
+                      "chip": "eth8/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY12",
-                      "lane": 2
+                      "chip": "eth8/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY12",
@@ -40863,7 +29285,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY12",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY12",
@@ -40874,6 +29298,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 7
                     }
                   }
                 ]
@@ -41217,162 +29653,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/3",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/3",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/3",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -41382,86 +29662,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth8/4/1",
           "controllingPort": 199,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG12",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY12",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/4",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/4",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG12",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY12",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/4",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/4",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG12",
@@ -41551,13 +29751,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -41565,18 +29765,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth8/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/4",
                       "lane": 5
                     }
                   },
@@ -41584,6 +29772,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth8/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -41591,29 +29791,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY12",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY12",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY12",
@@ -41624,6 +29812,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 15
                     }
                   }
                 ]
@@ -41635,13 +29835,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -41649,18 +29849,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth8/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/4",
                       "lane": 5
                     }
                   },
@@ -41668,6 +29856,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth8/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -41675,29 +29875,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY12",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY12",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY12",
@@ -41708,6 +29896,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 15
                     }
                   }
                 ]
@@ -42051,162 +30251,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/5",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/5",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/5",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -42216,86 +30260,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth8/6/1",
           "controllingPort": 203,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG12",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY12",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/6",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/6",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG12",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY12",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/6",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/6",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG12",
@@ -42385,29 +30349,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth8/6",
@@ -42419,35 +30371,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth8/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY12",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY12",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY12",
@@ -42458,6 +30410,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 23
                     }
                   }
                 ]
@@ -42469,29 +30433,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth8/6",
@@ -42503,35 +30455,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth8/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY12",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY12",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY12",
@@ -42542,6 +30494,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 23
                     }
                   }
                 ]
@@ -42885,162 +30849,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG12",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/7",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/7",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/7",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/7",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/7",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/7",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -43050,86 +30858,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth8/8/1",
           "controllingPort": 207,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG12",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY12",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/8",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/8",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG12",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY12",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/8",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY12",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/8",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG12",
@@ -43219,29 +30947,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth8/8",
@@ -43253,35 +30969,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth8/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY12",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY12",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY12",
@@ -43292,6 +31008,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 31
                     }
                   }
                 ]
@@ -43303,29 +31031,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG12",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth8/8",
@@ -43337,35 +31053,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth8/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY12",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY12",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY12",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY12",
@@ -43376,6 +31092,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY12",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY12",
+                      "lane": 31
                     }
                   }
                 ]
@@ -43719,162 +31447,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/9",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/9",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/9",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/9",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/9",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/9",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -43884,86 +31456,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth8/10/1",
           "controllingPort": 211,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG13",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY13",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/10",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/10",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG13",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY13",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/10",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/10",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG13",
@@ -44053,29 +31545,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth8/10",
@@ -44087,23 +31567,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth8/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY13",
-                      "lane": 1
+                      "chip": "eth8/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY13",
-                      "lane": 2
+                      "chip": "eth8/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY13",
@@ -44115,7 +31593,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY13",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY13",
@@ -44126,6 +31606,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY13",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 7
                     }
                   }
                 ]
@@ -44137,29 +31629,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth8/10",
@@ -44171,23 +31651,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth8/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY13",
-                      "lane": 1
+                      "chip": "eth8/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY13",
-                      "lane": 2
+                      "chip": "eth8/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY13",
@@ -44199,7 +31677,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY13",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY13",
@@ -44210,6 +31690,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY13",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 7
                     }
                   }
                 ]
@@ -44553,162 +32045,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/11",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/11",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/11",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/11",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/11",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/11",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -44718,86 +32054,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth8/12/1",
           "controllingPort": 215,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG13",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY13",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/12",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/12",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG13",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY13",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/12",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/12",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG13",
@@ -44887,13 +32143,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -44901,18 +32157,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth8/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/12",
                       "lane": 5
                     }
                   },
@@ -44920,6 +32164,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth8/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -44927,29 +32183,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY13",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY13",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY13",
@@ -44960,6 +32204,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY13",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 15
                     }
                   }
                 ]
@@ -44971,13 +32227,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -44985,18 +32241,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth8/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/12",
                       "lane": 5
                     }
                   },
@@ -45004,6 +32248,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth8/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -45011,29 +32267,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY13",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY13",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY13",
@@ -45044,6 +32288,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY13",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 15
                     }
                   }
                 ]
@@ -45387,162 +32643,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/13",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/13",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/13",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/13",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/13",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/13",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -45552,86 +32652,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth8/14/1",
           "controllingPort": 219,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG13",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY13",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/14",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/14",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG13",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY13",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/14",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/14",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG13",
@@ -45721,29 +32741,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth8/14",
@@ -45755,35 +32763,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth8/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY13",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY13",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY13",
@@ -45794,6 +32802,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY13",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 23
                     }
                   }
                 ]
@@ -45805,29 +32825,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth8/14",
@@ -45839,35 +32847,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth8/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY13",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY13",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY13",
@@ -45878,6 +32886,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY13",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 23
                     }
                   }
                 ]
@@ -46221,162 +33241,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG13",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/15",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/15",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/15",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/15",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/15",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/15",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -46386,86 +33250,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth8/16/1",
           "controllingPort": 223,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG13",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY13",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/16",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/16",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG13",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY13",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/16",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY13",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth8/16",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG13",
@@ -46555,29 +33339,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth8/16",
@@ -46589,35 +33361,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth8/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY13",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY13",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY13",
@@ -46628,6 +33400,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY13",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 31
                     }
                   }
                 ]
@@ -46639,29 +33423,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG13",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth8/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth8/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth8/16",
@@ -46673,35 +33445,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth8/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth8/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY13",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY13",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY13",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY13",
@@ -46712,6 +33484,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY13",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY13",
+                      "lane": 31
                     }
                   }
                 ]
@@ -47055,162 +33839,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/1",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/1",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/1",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -47220,86 +33848,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth9/2/1",
           "controllingPort": 227,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG14",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY14",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/2",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/2",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG14",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY14",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/2",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/2",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG14",
@@ -47389,29 +33937,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth9/2",
@@ -47423,23 +33959,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth9/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY14",
-                      "lane": 1
+                      "chip": "eth9/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY14",
-                      "lane": 2
+                      "chip": "eth9/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY14",
@@ -47451,7 +33985,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY14",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY14",
@@ -47462,6 +33998,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY14",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 7
                     }
                   }
                 ]
@@ -47473,29 +34021,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/2",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth9/2",
@@ -47507,23 +34043,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth9/2",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY14",
-                      "lane": 1
+                      "chip": "eth9/2",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY14",
-                      "lane": 2
+                      "chip": "eth9/2",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY14",
@@ -47535,7 +34069,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY14",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY14",
@@ -47546,6 +34082,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY14",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 7
                     }
                   }
                 ]
@@ -47889,162 +34437,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/3",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/3",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/3",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -48054,86 +34446,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth9/4/1",
           "controllingPort": 231,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG14",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY14",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/4",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/4",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG14",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY14",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/4",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/4",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG14",
@@ -48223,13 +34535,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -48237,18 +34549,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth9/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/4",
                       "lane": 5
                     }
                   },
@@ -48256,6 +34556,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth9/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -48263,29 +34575,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY14",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY14",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY14",
@@ -48296,6 +34596,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY14",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 15
                     }
                   }
                 ]
@@ -48307,13 +34619,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -48321,18 +34633,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth9/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/4",
                       "lane": 5
                     }
                   },
@@ -48340,6 +34640,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth9/4",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/4",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/4",
+                      "lane": 0
                     }
                   }
                 ],
@@ -48347,29 +34659,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY14",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY14",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY14",
@@ -48380,6 +34680,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY14",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 15
                     }
                   }
                 ]
@@ -48723,162 +35035,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/5",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/5",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/5",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -48888,86 +35044,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth9/6/1",
           "controllingPort": 235,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG14",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY14",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/6",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/6",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG14",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY14",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/6",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/6",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG14",
@@ -49057,29 +35133,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth9/6",
@@ -49091,35 +35155,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth9/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY14",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY14",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY14",
@@ -49130,6 +35194,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY14",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 23
                     }
                   }
                 ]
@@ -49141,29 +35217,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/6",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth9/6",
@@ -49175,35 +35239,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth9/6",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/6",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY14",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY14",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY14",
@@ -49214,6 +35278,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY14",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 23
                     }
                   }
                 ]
@@ -49557,162 +35633,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG14",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/7",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/7",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/7",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/7",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/7",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/7",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -49722,86 +35642,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth9/8/1",
           "controllingPort": 239,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG14",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY14",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/8",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/8",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG14",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY14",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/8",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY14",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/8",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG14",
@@ -49891,29 +35731,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth9/8",
@@ -49925,35 +35753,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth9/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY14",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY14",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY14",
@@ -49964,6 +35792,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY14",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 31
                     }
                   }
                 ]
@@ -49975,29 +35815,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG14",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/8",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth9/8",
@@ -50009,35 +35837,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth9/8",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/8",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/8",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY14",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY14",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY14",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY14",
@@ -50048,6 +35876,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY14",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY14",
+                      "lane": 31
                     }
                   }
                 ]
@@ -50391,162 +36231,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/9",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/9",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/9",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/9",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/9",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/9",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/9",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 3
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -50556,86 +36240,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth9/10/1",
           "controllingPort": 243,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG15",
-                "lane": 0
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY15",
-                    "lane": 0
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 0
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/10",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 1
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/10",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG15",
-                "lane": 1
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY15",
-                    "lane": 1
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 2
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/10",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 3
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/10",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG15",
@@ -50725,29 +36329,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth9/10",
@@ -50759,23 +36351,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth9/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY15",
-                      "lane": 1
+                      "chip": "eth9/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY15",
-                      "lane": 2
+                      "chip": "eth9/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY15",
@@ -50787,7 +36377,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY15",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY15",
@@ -50798,6 +36390,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY15",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 7
                     }
                   }
                 ]
@@ -50809,29 +36413,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 1
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 2
+                      "lane": 3
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/10",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/10",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth9/10",
@@ -50843,23 +36435,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth9/10",
                       "lane": 6
                     }
-                  }
-                ],
-                "xphySys": [
+                  },
                   {
                     "id": {
-                      "chip": "XPHY15",
-                      "lane": 1
+                      "chip": "eth9/10",
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
-                      "chip": "XPHY15",
-                      "lane": 2
+                      "chip": "eth9/10",
+                      "lane": 0
                     }
                   }
                 ],
-                "xphyLine": [
+                "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY15",
@@ -50871,7 +36461,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "XPHY15",
                       "lane": 3
                     }
-                  },
+                  }
+                ],
+                "xphyLine": [
                   {
                     "id": {
                       "chip": "XPHY15",
@@ -50882,6 +36474,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY15",
                       "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 7
                     }
                   }
                 ]
@@ -51225,162 +36829,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/11",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/11",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/11",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/11",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/11",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/11",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 11
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 15
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -51390,86 +36838,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth9/12/1",
           "controllingPort": 247,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG15",
-                "lane": 4
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY15",
-                    "lane": 4
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 8
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/12",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 9
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/12",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG15",
-                "lane": 5
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY15",
-                    "lane": 5
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 10
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/12",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 11
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/12",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG15",
@@ -51559,13 +36927,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -51573,18 +36941,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth9/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/12",
                       "lane": 5
                     }
                   },
@@ -51592,6 +36948,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth9/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -51599,29 +36967,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY15",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY15",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY15",
@@ -51632,6 +36988,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY15",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 15
                     }
                   }
                 ]
@@ -51643,13 +37011,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
@@ -51657,18 +37025,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth9/12",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/12",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/12",
                       "lane": 5
                     }
                   },
@@ -51676,6 +37032,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth9/12",
                       "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/12",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/12",
+                      "lane": 0
                     }
                   }
                 ],
@@ -51683,29 +37051,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY15",
-                      "lane": 5
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY15",
-                      "lane": 6
+                      "lane": 7
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 11
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY15",
@@ -51716,6 +37072,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY15",
                       "lane": 13
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 14
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 15
                     }
                   }
                 ]
@@ -52059,162 +37427,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/13",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/13",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/13",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/13",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/13",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/13",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/13",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/13",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 8
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 9
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 10
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 11
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 16
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 17
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 19
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 20
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 21
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 22
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 23
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -52224,86 +37436,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth9/14/1",
           "controllingPort": 251,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG15",
-                "lane": 8
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY15",
-                    "lane": 8
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 16
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/14",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 17
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/14",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG15",
-                "lane": 9
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY15",
-                    "lane": 9
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 18
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/14",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 19
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/14",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG15",
@@ -52393,29 +37525,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth9/14",
@@ -52427,35 +37547,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth9/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY15",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY15",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY15",
@@ -52466,6 +37586,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY15",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 23
                     }
                   }
                 ]
@@ -52477,29 +37609,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/14",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/14",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth9/14",
@@ -52511,35 +37631,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth9/14",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/14",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/14",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY15",
-                      "lane": 9
+                      "lane": 10
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY15",
-                      "lane": 10
+                      "lane": 11
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 18
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 19
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY15",
@@ -52550,6 +37670,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY15",
                       "lane": 21
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 22
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 23
                     }
                   }
                 ]
@@ -52893,162 +38025,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
-          },
-          "26": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "IFG15",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/15",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/15",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/15",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/15",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/15",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/15",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/15",
-                      "lane": 7
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/15",
-                      "lane": 0
-                    }
-                  }
-                ],
-                "xphySys": [
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 12
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 13
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 14
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 15
-                    }
-                  }
-                ],
-                "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 24
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 25
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 27
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 28
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 29
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 30
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 31
-                    }
-                  }
-                ]
-              }
           }
         }
     },
@@ -53058,86 +38034,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "name": "eth9/16/1",
           "controllingPort": 255,
           "pins": [
-            {
-              "a": {
-                "chip": "IFG15",
-                "lane": 12
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY15",
-                    "lane": 12
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 24
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/16",
-                          "lane": 1
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 25
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/16",
-                          "lane": 2
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "IFG15",
-                "lane": 13
-              },
-              "z": {
-                "junction": {
-                  "system": {
-                    "chip": "XPHY15",
-                    "lane": 13
-                  },
-                  "line": [
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 26
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/16",
-                          "lane": 3
-                        }
-                      }
-                    },
-                    {
-                      "a": {
-                        "chip": "XPHY15",
-                        "lane": 27
-                      },
-                      "z": {
-                        "end": {
-                          "chip": "eth9/16",
-                          "lane": 4
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            },
             {
               "a": {
                 "chip": "IFG15",
@@ -53227,29 +38123,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth9/16",
@@ -53261,35 +38145,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth9/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY15",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY15",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY15",
@@ -53300,6 +38184,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY15",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 31
                     }
                   }
                 ]
@@ -53311,29 +38207,17 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "IFG15",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "transceiver": [
-                  {
-                    "id": {
-                      "chip": "eth9/16",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth9/16",
-                      "lane": 4
-                    }
-                  },
                   {
                     "id": {
                       "chip": "eth9/16",
@@ -53345,35 +38229,35 @@ constexpr auto kJsonPlatformMappingStr = R"(
                       "chip": "eth9/16",
                       "lane": 6
                     }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/16",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth9/16",
+                      "lane": 0
+                    }
                   }
                 ],
                 "xphySys": [
                   {
                     "id": {
                       "chip": "XPHY15",
-                      "lane": 13
+                      "lane": 14
                     }
                   },
                   {
                     "id": {
                       "chip": "XPHY15",
-                      "lane": 14
+                      "lane": 15
                     }
                   }
                 ],
                 "xphyLine": [
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 26
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "XPHY15",
-                      "lane": 27
-                    }
-                  },
                   {
                     "id": {
                       "chip": "XPHY15",
@@ -53384,6 +38268,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "XPHY15",
                       "lane": 29
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 30
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "XPHY15",
+                      "lane": 31
                     }
                   }
                 ]
