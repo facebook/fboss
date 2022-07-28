@@ -233,6 +233,7 @@ add_executable(fboss2
   fboss/cli/fboss2/utils/Table.cpp
   fboss/cli/fboss2/utils/HostInfo.h
   fboss/cli/fboss2/utils/FilterOp.h
+  fboss/cli/fboss2/utils/AggregateOp.h
   fboss/cli/fboss2/utils/FilterUtils.h
   fboss/cli/fboss2/utils/PrbsUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdClientUtils.cpp
