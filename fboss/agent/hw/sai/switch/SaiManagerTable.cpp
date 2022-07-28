@@ -38,6 +38,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
+#include "fboss/agent/hw/sai/switch/SaiTunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiUnsupportedFeatureManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
@@ -104,12 +105,12 @@ void SaiManagerTable::createSaiTableManagers(
   lagManager_ = std::make_unique<SaiLagManager>(
       saiStore, this, platform, concurrentIndices);
   wredManager_ = std::make_unique<SaiWredManager>(saiStore, this, platform);
-
   // CSP CS00011823810
 #if !defined(SAI_VERSION_5_1_0_3_ODP) && !defined(SAI_VERSION_7_2_0_0_ODP) && \
     !defined(SAI_VERSION_8_0_EA_ODP)
   tamManager_ = std::make_unique<SaiTamManager>(saiStore, this, platform);
 #endif
+  tunnelManager_ = std::make_unique<SaiTunnelManager>(saiStore, this, platform);
 }
 
 SaiManagerTable::~SaiManagerTable() {
@@ -181,7 +182,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
     !defined(SAI_VERSION_8_0_EA_ODP)
   tamManager_.reset();
 #endif
-
+  tunnelManager_.reset();
   queueManager_.reset();
   routeManager_.reset();
   schedulerManager_.reset();
@@ -397,5 +398,13 @@ SaiTamManager& SaiManagerTable::tamManager() {
 
 const SaiTamManager& SaiManagerTable::tamManager() const {
   return *tamManager_;
+}
+
+SaiTunnelManager& SaiManagerTable::tunnelManager() {
+  return *tunnelManager_;
+}
+
+const SaiTunnelManager& SaiManagerTable::tunnelManager() const {
+  return *tunnelManager_;
 }
 } // namespace facebook::fboss
