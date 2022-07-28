@@ -1,10 +1,11 @@
 add_custom_command(
-  OUTPUT  fboss/platform/rackmon/GeneratedRackmonInterfaceConfig.cpp fboss/platform/rackmon/GeneratedRackmonRegisterMapConfig.cpp
+  OUTPUT  fboss/platform/rackmon/GeneratedRackmonInterfaceConfig.cpp fboss/platform/rackmon/GeneratedRackmonPlsConfig.cpp fboss/platform/rackmon/GeneratedRackmonRegisterMapConfig.cpp
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/fboss/platform/rackmon/configs/interface/rackmon.conf fboss/platform/rackmon/configs/interface/rackmon.conf
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/fboss/platform/rackmon/configs/interface/rackmon_pls.conf fboss/platform/rackmon/configs/interface/rackmon_pls.conf
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/fboss/platform/rackmon/configs/register_map/orv2_psu.json fboss/platform/rackmon/configs/register_map/orv2_psu.json
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/fboss/platform/rackmon/generate_rackmon_config.sh fboss/platform/rackmon/generate_rackmon_config.sh
   COMMAND fboss/platform/rackmon/generate_rackmon_config.sh --install_dir=fboss/platform/rackmon/ --fbcode_dir=.
-  DEPENDS fboss/platform/rackmon/configs/interface/rackmon.conf fboss/platform/rackmon/configs/register_map/orv2_psu.json
+  DEPENDS fboss/platform/rackmon/configs/interface/rackmon.conf fboss/platform/rackmon/configs/interface/rackmon_pls.conf fboss/platform/rackmon/configs/register_map/orv2_psu.json
 )
 
 add_library(rackmon_lib
@@ -19,6 +20,7 @@ add_library(rackmon_lib
   fboss/platform/rackmon/UARTDevice.cpp
   fboss/platform/rackmon/GeneratedRackmonRegisterMapConfig.cpp
   fboss/platform/rackmon/GeneratedRackmonInterfaceConfig.cpp
+  fboss/platform/rackmon/GeneratedRackmonPlsConfig.cpp
 )
 
 target_link_libraries(rackmon_lib

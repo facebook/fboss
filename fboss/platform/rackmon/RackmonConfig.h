@@ -4,5 +4,6 @@
 
 namespace rackmonsvc {
 const std::string getInterfaceConfig();
+const std::string getRackmonPlsConfig();
 const std::vector<std::string> getRegisterMapConfig();
 } // namespace rackmonsvc

@@ -79,4 +79,5 @@ fi
 
 NAMESPACE="rackmonsvc"
 gencpp "$CONFIG_DIR/interface/rackmon.conf" "$OUTPUT_DIR/GeneratedRackmonInterfaceConfig.cpp" "$NAMESPACE" getInterfaceConfig
+gencpp "$CONFIG_DIR/interface/rackmon_pls.conf" "$OUTPUT_DIR/GeneratedRackmonPlsConfig.cpp" "$NAMESPACE" getRackmonPlsConfig
 gencpp "$CONFIG_DIR/register_map" "$OUTPUT_DIR/GeneratedRackmonRegisterMapConfig.cpp" "$NAMESPACE" getRegisterMapConfig
