@@ -12,4 +12,5 @@ enum CliOptionResult {
   OP_ERROR = 4,
   EXTRA_OPTIONS = 5,
   TERM_ERROR = 6,
+  AGG_ARGUMENT_ERROR = 7,
 }

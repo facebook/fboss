@@ -48,6 +48,10 @@ void CmdGlobalOptions::init(CLI::App& app) {
       "--filter",
       filter_,
       "filter expression. expression must be of the form TERM1&&TERM2||TERM3||TERM4... where each TERMi is of the form <key op value> See specific commands for list of available filters. Please note the specific whitespace requirements for the command");
+  app.add_option(
+      "--aggregate",
+      aggregate_,
+      "Aggregation operation. Must be of the form OPERATOR(column)");
 
   initAdditional(app);
 }
@@ -106,6 +110,38 @@ CmdGlobalOptions::UnionList CmdGlobalOptions::getFilters(
     parsedFilters.push_back(intersectList);
   }
   return parsedFilters;
+}
+
+std::optional<CmdGlobalOptions::AggregateOption>
+CmdGlobalOptions::parseAggregate(cli::CliOptionResult& aggParsingEC) const {
+  if (aggregate_.size() == 0) {
+    return std::nullopt;
+  }
+
+  unsigned first = aggregate_.find("(");
+  unsigned last = aggregate_.find_last_of(")");
+
+  if (first < 0 || first >= aggregate_.length() || last < 0 ||
+      last >= aggregate_.length()) {
+    std::cerr << " Expected aggregate argument in the form OPERATOR(column)"
+              << std::endl;
+    aggParsingEC = cli::CliOptionResult::AGG_ARGUMENT_ERROR;
+    return std::nullopt;
+  }
+
+  auto aggOpString = aggregate_.substr(0, first);
+  auto aggColumnString = aggregate_.substr(first + 1, last - first - 1);
+
+  if (aggOpString.size() == 0 || aggColumnString.size() == 0) {
+    std::cerr << " Expected aggregate argument in the form OP(column)";
+    aggParsingEC = cli::CliOptionResult::AGG_ARGUMENT_ERROR;
+    return std::nullopt;
+  }
+
+  AggregateOption parsedAggregate;
+  parsedAggregate.aggOp = getAggregateOp(aggOpString);
+  parsedAggregate.columnName = aggColumnString;
+  return parsedAggregate;
 }
 
 } // namespace facebook::fboss

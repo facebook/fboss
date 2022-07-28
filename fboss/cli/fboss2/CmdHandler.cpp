@@ -347,6 +347,16 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
     }
   }
 
+  auto aggParsingEC = cli::CliOptionResult::EOK;
+  auto parsedAggregationInput =
+      CmdGlobalOptions::getInstance()->parseAggregate(aggParsingEC);
+
+  if (aggParsingEC != cli::CliOptionResult::EOK) {
+    throw std::invalid_argument(folly::to<std::string>(
+        "Error in aggregate parsing: ",
+        apache::thrift::util::enumNameSafe(aggParsingEC)));
+  }
+
   auto hosts = getHosts();
 
   std::vector<std::shared_future<std::tuple<std::string, RetType, std::string>>>

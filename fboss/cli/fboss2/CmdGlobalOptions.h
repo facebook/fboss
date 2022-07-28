@@ -13,6 +13,7 @@
 #include "fboss/cli/fboss2/gen-cpp2/cli_types.h"
 #include "fboss/cli/fboss2/options/OutputFormat.h"
 #include "fboss/cli/fboss2/options/SSLPolicy.h"
+#include "fboss/cli/fboss2/utils/AggregateOp.h"
 #include "fboss/cli/fboss2/utils/FilterOp.h"
 #include "folly/String.h"
 
@@ -23,6 +24,11 @@ class CmdGlobalOptions {
   ~CmdGlobalOptions() = default;
   CmdGlobalOptions(const CmdGlobalOptions& other) = delete;
   CmdGlobalOptions& operator=(const CmdGlobalOptions& other) = delete;
+
+  struct AggregateOption {
+    AggregateOpEnum aggOp;
+    std::string columnName;
+  };
 
   // using pointer here to avoid the object slicing problem
   using FilterTerm =
@@ -74,6 +80,23 @@ class CmdGlobalOptions {
         return std::make_shared<FilterOpNeq>();
       default:
         throw std::invalid_argument("Invalid filter argument passed");
+    }
+  }
+
+  AggregateOpEnum getAggregateOp(std::string parsedOp) const {
+    switch (hash(parsedOp.c_str())) {
+      case hash("SUM"):
+        return AggregateOpEnum::SUM;
+      case hash("MIN"):
+        return AggregateOpEnum::MIN;
+      case hash("MAX"):
+        return AggregateOpEnum::MAX;
+      case hash("AVG"):
+        return AggregateOpEnum::AVG;
+      case hash("COUNT"):
+        return AggregateOpEnum::COUNT;
+      default:
+        throw std::invalid_argument("Invalid aggregate operation passed");
     }
   }
 
@@ -313,6 +336,8 @@ class CmdGlobalOptions {
   }
 
   UnionList getFilters(cli::CliOptionResult& filterParsingEC) const;
+  std::optional<AggregateOption> parseAggregate(
+      cli::CliOptionResult& aggregateParsingEC) const;
 
  private:
   void initAdditional(CLI::App& app);
@@ -340,6 +365,7 @@ class CmdGlobalOptions {
   int vipInjectorThriftPort_{3333};
   std::string color_{"yes"};
   std::string filter_;
+  std::string aggregate_;
 };
 
 } // namespace facebook::fboss
