@@ -71,6 +71,9 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::PFC:
+    case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
+    case HwAsic::Feature::SAI_ECN_WRED:
+    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
       return true;
     // features only supported by B0 version, or any physical device
     // where used chip is always B0.
@@ -87,7 +90,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::PORT_INTERFACE_TYPE:
-    case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL: // CS00011272352
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::PORT_TX_DISABLE:
@@ -100,8 +102,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_QOS:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
-    case HwAsic::Feature::MULTIPLE_ACL_TABLES:
-    case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
