@@ -19,4 +19,12 @@ void getPfcEnabledStatus(
     bool& /* unused */,
     bool& /* unused */) {}
 
+// Verifies if the PFC watchdog config provided matches the one
+// programmed in BCM HW
+void pfcWatchdogProgrammingMatchesConfig(
+    const HwSwitch* /* unused */,
+    const PortID& /* unused */,
+    const bool /* unused */,
+    const cfg::PfcWatchdog& /* unused */) {}
+
 } // namespace facebook::fboss::utility

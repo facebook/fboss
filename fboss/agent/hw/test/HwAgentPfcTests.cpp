@@ -153,6 +153,28 @@ class HwAgentPfcTests : public HwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  // Test to verify PFC watchdog is not configured in HW
+  void runPfcWatchdogNotConfiguredTest() {
+    auto setup = [=]() {
+      currentConfig = initialConfig();
+      setupPfc(masterLogicalPortIds()[0], true, true);
+    };
+
+    auto verify = [=]() {
+      cfg::PfcWatchdog defaultPfcWatchdogConfig{};
+
+      XLOG(DBG0)
+          << "Verify PFC watchdog is disabled by default on enabling PFC";
+      utility::pfcWatchdogProgrammingMatchesConfig(
+          getHwSwitch(),
+          masterLogicalPortIds()[0],
+          false,
+          defaultPfcWatchdogConfig);
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
   // Setup and apply the new config with passed in PFC configurations
   void setupPfc(
       const PortID& portId,
@@ -207,6 +229,10 @@ TEST_F(HwAgentPfcTests, PfcRxDisabledTxEnabled) {
 
 TEST_F(HwAgentPfcTests, PfcRxEnabledTxEnabled) {
   runPfcTest(true, true);
+}
+
+TEST_F(HwAgentPfcTests, PfcWatchdogDefaultProgramming) {
+  runPfcWatchdogNotConfiguredTest();
 }
 
 } // namespace facebook::fboss
