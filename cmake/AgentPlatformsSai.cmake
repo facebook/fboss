@@ -68,6 +68,7 @@ target_link_libraries(sai_platform
   galaxy_platform_mapping
   wedge100_platform_mapping
   wedge40_platform_mapping
+  wedge400_platform_utils
   darwin_platform_mapping
   wedge400_platform_mapping
   wedge400c_platform_mapping

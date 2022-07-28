@@ -12,3 +12,7 @@ add_library(wedge400_platform_mapping
 target_link_libraries(wedge400_platform_mapping
   platform_mapping
 )
+
+add_library(wedge400_platform_utils
+  fboss/agent/platforms/common/wedge400/oss/Wedge400PlatformUtil.cpp
+)  

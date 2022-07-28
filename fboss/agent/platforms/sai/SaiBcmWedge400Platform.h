@@ -44,6 +44,8 @@ class SaiBcmWedge400Platform : public SaiBcmPlatform {
 
   void initLEDs() override;
 
+  std::unique_ptr<PlatformMapping> createWedge400PlatformMapping();
+
  private:
   std::unique_ptr<Tomahawk3Asic> asic_;
 };

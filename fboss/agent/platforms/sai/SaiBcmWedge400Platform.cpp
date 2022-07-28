@@ -10,11 +10,12 @@
 
 #include "fboss/agent/platforms/sai/SaiBcmWedge400Platform.h"
 
-#include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
-#include "fboss/agent/platforms/common/wedge400/Wedge400PlatformMapping.h"
-
 #include <cstdio>
 #include <cstring>
+#include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
+#include "fboss/agent/platforms/common/wedge400/Wedge400GrandTetonPlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge400/Wedge400PlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge400/Wedge400PlatformUtil.h"
 namespace facebook::fboss {
 
 SaiBcmWedge400Platform::SaiBcmWedge400Platform(
@@ -22,7 +23,7 @@ SaiBcmWedge400Platform::SaiBcmWedge400Platform(
     folly::MacAddress localMac)
     : SaiBcmPlatform(
           std::move(productInfo),
-          std::make_unique<Wedge400PlatformMapping>(),
+          createWedge400PlatformMapping(),
           localMac) {
   asic_ = std::make_unique<Tomahawk3Asic>();
 }
@@ -36,5 +37,13 @@ void SaiBcmWedge400Platform::initLEDs() {
 }
 
 SaiBcmWedge400Platform::~SaiBcmWedge400Platform() {}
+
+std::unique_ptr<PlatformMapping>
+SaiBcmWedge400Platform::createWedge400PlatformMapping() {
+  if (utility::isWedge400PlatformRackTypeGrandTeton()) {
+    return std::make_unique<Wedge400GrandTetonPlatformMapping>();
+  }
+  return std::make_unique<Wedge400PlatformMapping>();
+}
 
 } // namespace facebook::fboss

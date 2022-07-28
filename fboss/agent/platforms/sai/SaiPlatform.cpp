@@ -283,7 +283,7 @@ QsfpCache* SaiPlatform::getQsfpCache() const {
 PortID SaiPlatform::findPortID(
     cfg::PortSpeed speed,
     std::vector<uint32_t> lanes,
-    PortSaiId /*portSaiId*/) const {
+    PortSaiId portSaiId) const {
   for (const auto& portMapping : portMapping_) {
     const auto& platformPort = portMapping.second;
     if (!platformPort->getProfileIDBySpeedIf(speed) ||
@@ -292,7 +292,8 @@ PortID SaiPlatform::findPortID(
     }
     return platformPort->getPortID();
   }
-  throw FbossError("platform port not found");
+  throw FbossError(
+      "platform port not found ", (PortID)portSaiId, " speed: ", (int)speed);
 }
 
 std::vector<SaiPlatformPort*> SaiPlatform::getPortsWithTransceiverID(
