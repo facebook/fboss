@@ -16,6 +16,7 @@ add_library(rackmon_lib
   fboss/platform/rackmon/ModbusDevice.cpp
   fboss/platform/rackmon/Msg.cpp
   fboss/platform/rackmon/Rackmon.cpp
+  fboss/platform/rackmon/RackmonPlsManager.cpp
   fboss/platform/rackmon/Register.cpp
   fboss/platform/rackmon/UARTDevice.cpp
   fboss/platform/rackmon/GeneratedRackmonRegisterMapConfig.cpp
