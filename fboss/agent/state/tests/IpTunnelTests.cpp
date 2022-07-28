@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 #include "fboss/agent/state/IpTunnel.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "folly/IPAddressV6.h"
 
 using namespace facebook::fboss;
@@ -26,4 +27,36 @@ TEST(Tunnel, SerDeserTunnel) {
   auto serialized = tunn->toFollyDynamic();
   auto tunnBack = IpTunnel::fromFollyDynamic(serialized);
   EXPECT_TRUE(*tunn == *tunnBack);
+}
+
+TEST(Tunnel, SerDeserSwitchState) {
+  auto state = std::make_shared<SwitchState>();
+
+  auto tunnel0 = makeTunnel("tunnel0");
+  auto tunnel1 = makeTunnel("tunnel1");
+
+  state->addTunnel(tunnel0);
+  state->addTunnel(tunnel1);
+
+  auto serialized = state->toFollyDynamic();
+  auto stateBack = SwitchState::fromFollyDynamic(serialized);
+
+  for (auto tunnelID : {"tunnel0", "tunnel1"}) {
+    EXPECT_TRUE(
+        *state->getTunnels()->getTunnel(tunnelID) ==
+        *stateBack->getTunnels()->getTunnel(tunnelID));
+  }
+}
+
+TEST(Tunnel, AddRemove) {
+  auto state = std::make_shared<SwitchState>();
+
+  auto tunnel0 = makeTunnel("tunnel0");
+  auto tunnel1 = makeTunnel("tunnel1");
+
+  state->addTunnel(tunnel0);
+  state->addTunnel(tunnel1);
+  state->getTunnels()->removeTunnel("tunnel0");
+  EXPECT_EQ(state->getTunnels()->getTunnelIf("tunnel0"), nullptr);
+  EXPECT_NE(state->getTunnels()->getTunnelIf("tunnel1"), nullptr);
 }

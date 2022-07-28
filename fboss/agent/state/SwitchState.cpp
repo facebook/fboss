@@ -67,7 +67,7 @@ constexpr auto kFibs = "fibs";
 constexpr auto kTransceivers = "transceivers";
 constexpr auto kAclTableGroups = "aclTableGroups";
 constexpr auto kSystemPorts = "systemPorts";
-constexpr auto kTunnels = "tunnels";
+constexpr auto kTunnels = "ipTunnels";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
