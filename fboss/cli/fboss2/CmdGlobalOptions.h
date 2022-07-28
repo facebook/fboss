@@ -54,6 +54,33 @@ class CmdGlobalOptions {
     virtual std::vector<std::string> getAcceptableValues() = 0;
   };
 
+  class BaseAggInfo {
+   public:
+    virtual ~BaseAggInfo() {}
+
+    virtual std::vector<AggregateOpEnum> getAcceptableOps() = 0;
+  };
+
+  template <typename ExpectedType>
+  class AggInfo : public BaseAggInfo {
+    std::string aggColumn;
+    std::vector<AggregateOpEnum> acceptedAggOps;
+
+   public:
+    AggInfo(
+        const std::string& aggColumn,
+        const std::vector<AggregateOpEnum>& acceptableOps)
+        : aggColumn(aggColumn) {
+      for (const auto& op : acceptableOps) {
+        acceptedAggOps.push_back(op);
+      }
+    }
+
+    std::vector<AggregateOpEnum> getAcceptableOps() override {
+      return acceptedAggOps;
+    }
+  };
+
   /* This is being done becase of the following reasons:
     1) switch statement (used in getFilterOp) in c++ doesn't work with strings.
     Hence, we need to find the hash of the string.

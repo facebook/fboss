@@ -455,6 +455,39 @@ bool CmdHandler<CmdTypeT, CmdTypeTraits>::isFilterable() {
   return filterable;
 }
 
+/* Logic (similar to isFilterable): We consider a thrift struct to be
+  amenable to aggregation only if it is of type list and has a single element
+  in it that is another thrift struct.
+  The idea is that the outer thrift struct (which corresponds to the RetType()
+  in the cmd traits) should contain a list of the actual displayable thrift
+  entry. For instance, the ShowPortModel struct has only one elelent that is a
+  list of PortEntry struct. This makes it aggregatable.
+  */
+template <typename CmdTypeT, typename CmdTypeTraits>
+bool CmdHandler<CmdTypeT, CmdTypeTraits>::isAggregatable() {
+  int numFields = 0;
+  bool aggregatable = true;
+  if constexpr (
+      apache::thrift::is_thrift_struct_v<RetType> &&
+      CmdTypeT::Traits::ALLOW_AGGREGATION) {
+    apache::thrift::for_each_field(
+        RetType(), [&](const ThriftField& meta, auto&& /*field_ref*/) {
+          const auto& fieldType = *meta.type();
+          const auto& thriftBaseType = fieldType.getType();
+
+          if (thriftBaseType != ThriftType::Type::t_list) {
+            aggregatable = false;
+          }
+          numFields += 1;
+        });
+  }
+
+  if (numFields != 1) {
+    aggregatable = false;
+  }
+  return aggregatable;
+}
+
 template <class T>
 using get_value_type_t = typename T::value_type;
 
@@ -541,4 +574,125 @@ CmdHandler<CmdTypeT, CmdTypeTraits>::getValidFilters() {
   }
   return filterMap;
 }
+
+/* Logic: We first check if this thrift struct is aggregatable at all. If it is,
+ we constuct an aggregate map that contains aggregatable fields. Only numeric
+ and string fields are aggregatable for now. The map maps to the AggInfo object
+ that contains information about the operations that are permitted for this
+ column. This information is subsequenlty used to perform aggregate validation.
+ Also, here we are traversing the nested thrift struct using the visitation api.
+ for that, we start with the RetType() object and get to the fields of the inner
+ struct using reflection.
+ */
+template <typename CmdTypeT, typename CmdTypeTraits>
+const typename CmdHandler<CmdTypeT, CmdTypeTraits>::ValidAggMapType
+CmdHandler<CmdTypeT, CmdTypeTraits>::getValidAggs() {
+  if (!CmdHandler<CmdTypeT, CmdTypeTraits>::isAggregatable()) {
+    return {};
+  }
+  ValidAggMapType aggMap;
+
+  if constexpr (
+      apache::thrift::is_thrift_struct_v<RetType> &&
+      CmdTypeT::Traits::ALLOW_AGGREGATION) {
+    apache::thrift::for_each_field(
+        RetType(),
+        [&aggMap, this](
+            const ThriftField& /*outer_meta*/, auto&& outer_field_ref) {
+          if constexpr (apache::thrift::is_thrift_struct_v<folly::detected_or_t<
+                            void,
+                            get_value_type_t,
+                            folly::remove_cvref_t<
+                                decltype(*outer_field_ref)>>>) {
+            using NestedType = get_value_type_t<
+                folly::remove_cvref_t<decltype(*outer_field_ref)>>;
+            if constexpr (apache::thrift::is_thrift_struct_v<NestedType>) {
+              apache::thrift::for_each_field(
+                  NestedType(),
+                  [&, this](const ThriftField& meta, auto&& /*field_ref*/) {
+                    const auto& fieldType = *meta.type();
+                    const auto& thriftBaseType = fieldType.getType();
+
+                    // Aggregation only supported on numerical keys
+                    if (thriftBaseType == ThriftType::Type::t_primitive) {
+                      const auto& thriftType = fieldType.get_t_primitive();
+                      switch (thriftType) {
+                        case ThriftPrimitiveType::THRIFT_I16_TYPE:
+                          aggMap[*meta.name()] = std::make_shared<
+                              CmdGlobalOptions::AggInfo<int16_t>>(
+                              *meta.name(),
+                              std::vector<AggregateOpEnum>{
+                                  AggregateOpEnum::SUM,
+                                  AggregateOpEnum::AVG,
+                                  AggregateOpEnum::MIN,
+                                  AggregateOpEnum::MAX,
+                                  AggregateOpEnum::COUNT});
+                          break;
+
+                        case ThriftPrimitiveType::THRIFT_I32_TYPE:
+                          aggMap[*meta.name()] = std::make_shared<
+                              CmdGlobalOptions::AggInfo<int32_t>>(
+                              *meta.name(),
+                              std::vector<AggregateOpEnum>{
+                                  AggregateOpEnum::SUM,
+                                  AggregateOpEnum::AVG,
+                                  AggregateOpEnum::MIN,
+                                  AggregateOpEnum::MAX,
+                                  AggregateOpEnum::COUNT});
+                          break;
+
+                        case ThriftPrimitiveType::THRIFT_I64_TYPE:
+                          aggMap[*meta.name()] = std::make_shared<
+                              CmdGlobalOptions::AggInfo<int64_t>>(
+                              *meta.name(),
+                              std::vector<AggregateOpEnum>{
+                                  AggregateOpEnum::SUM,
+                                  AggregateOpEnum::AVG,
+                                  AggregateOpEnum::MIN,
+                                  AggregateOpEnum::MAX,
+                                  AggregateOpEnum::COUNT});
+                          break;
+
+                        case ThriftPrimitiveType::THRIFT_FLOAT_TYPE:
+                          aggMap[*meta.name()] = std::make_shared<
+                              CmdGlobalOptions::AggInfo<float>>(
+                              *meta.name(),
+                              std::vector<AggregateOpEnum>{
+                                  AggregateOpEnum::SUM,
+                                  AggregateOpEnum::AVG,
+                                  AggregateOpEnum::MIN,
+                                  AggregateOpEnum::MAX,
+                                  AggregateOpEnum::COUNT});
+                          break;
+
+                        case ThriftPrimitiveType::THRIFT_DOUBLE_TYPE:
+                          aggMap[*meta.name()] = std::make_shared<
+                              CmdGlobalOptions::AggInfo<double>>(
+                              *meta.name(),
+                              std::vector<AggregateOpEnum>{
+                                  AggregateOpEnum::SUM,
+                                  AggregateOpEnum::AVG,
+                                  AggregateOpEnum::MIN,
+                                  AggregateOpEnum::MAX,
+                                  AggregateOpEnum::COUNT});
+                          break;
+
+                        case ThriftPrimitiveType::THRIFT_STRING_TYPE:
+                          aggMap[*meta.name()] = std::make_shared<
+                              CmdGlobalOptions::AggInfo<std::string>>(
+                              *meta.name(),
+                              std::vector<AggregateOpEnum>{
+                                  AggregateOpEnum::COUNT});
+
+                        default:;
+                      }
+                    }
+                  });
+            }
+          }
+        });
+  }
+  return aggMap;
+}
+
 } // namespace facebook::fboss

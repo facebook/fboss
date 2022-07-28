@@ -80,6 +80,7 @@ struct BaseCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
   static constexpr bool ALLOW_FILTERING = false;
+  static constexpr bool ALLOW_AGGREGATION = false;
 };
 
 template <typename CmdTypeT, typename CmdTypeTraits>
@@ -95,11 +96,15 @@ class CmdHandler {
   using ObjectArgType = typename CmdTypeTraits::ObjectArgType;
   using RetType = typename CmdTypeTraits::RetType;
   using ThriftPrimitiveType = apache::thrift::metadata::ThriftPrimitiveType;
+  using ValidAggMapType = std::unordered_map<
+      std::string_view,
+      std::shared_ptr<CmdGlobalOptions::BaseAggInfo>>;
 
   void run();
   void runHelper();
 
   bool isFilterable();
+  bool isAggregatable();
 
   std::unordered_map<std::string, std::vector<std::string>>
   getAcceptedFilterValues() {
@@ -107,6 +112,7 @@ class CmdHandler {
   }
 
   const ValidFilterMapType getValidFilters();
+  const ValidAggMapType getValidAggs();
 
  protected:
   CmdTypeT& impl() {
