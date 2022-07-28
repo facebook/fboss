@@ -51,6 +51,7 @@ add_executable(rackmon_test
   fboss/platform/rackmon/tests/ModbusTest.cpp
   fboss/platform/rackmon/tests/MsgTest.cpp
   fboss/platform/rackmon/tests/PlsConfigTest.cpp
+  fboss/platform/rackmon/tests/PlsManagerTest.cpp
   fboss/platform/rackmon/tests/PollThreadTest.cpp
   fboss/platform/rackmon/tests/RackmonConfigTest.cpp
   fboss/platform/rackmon/tests/RackmonTest.cpp
@@ -65,7 +66,7 @@ target_link_libraries(rackmon_test
   rackmon_lib
   fb303::fb303
   ${GTEST}
-  ${LIBGMOCK_LIBRARIES}                                                                                                                                                    
+  ${LIBGMOCK_LIBRARIES}
 )
 
 target_include_directories(rackmon_test PRIVATE
