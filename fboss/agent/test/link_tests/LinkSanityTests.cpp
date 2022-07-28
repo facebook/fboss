@@ -103,7 +103,8 @@ TEST_F(LinkTest, qsfpWarmbootIsHitLess) {
         createL3DataplaneFlood();
         restartQsfpService();
         // Wait for all transceivers to converge to Active state
-        EXPECT_NO_THROW(waitForAllTransceiverStates(true));
+        EXPECT_NO_THROW(waitForAllTransceiverStates(
+            true, 60 /* retries */, 5s /* retry interval */));
       },
       [this]() {
         // Assert no traffic loss and no ecmp shrink. If ports flap
