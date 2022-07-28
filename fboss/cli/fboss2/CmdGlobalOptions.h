@@ -224,6 +224,36 @@ class CmdGlobalOptions {
     return cli::CliOptionResult::EOK;
   }
 
+  cli::CliOptionResult isValidAggregate(
+      const std::unordered_map<std::string_view, std::shared_ptr<BaseAggInfo>>&
+          validAggs,
+      const std::optional<AggregateOption>& parsedAggs,
+      std::ostream& out = std::cerr) {
+    const auto& op = parsedAggs->aggOp;
+    const auto& column = parsedAggs->columnName;
+    auto it = validAggs.find(column);
+
+    if (it == validAggs.end()) {
+      out << "Invalid aggregate field name passed " << column << std::endl;
+      out << "Aggregatable fields are: { ";
+      for (const auto& field : validAggs) {
+        out << field.first << " ";
+      }
+      out << "}" << std::endl;
+      return cli::CliOptionResult::KEY_ERROR;
+    }
+
+    const auto& baseAggInfo = it->second;
+    const auto& validOps = baseAggInfo->getAcceptableOps();
+
+    if (std::find(validOps.begin(), validOps.end(), op) == validOps.end()) {
+      out << "Invalid aggregate operator passed for column " << column
+          << std::endl;
+      return cli::CliOptionResult::OP_ERROR;
+    }
+    return cli::CliOptionResult::EOK;
+  }
+
   cli::CliOptionResult validateNonFilterOptions() {
     bool hostsSet = !getHosts().empty();
     bool smcSet = !getSmc().empty();
