@@ -102,6 +102,8 @@ ThriftHandler::ThriftHandler() {
     rackmond_.loadRegisterMap(nlohmann::json::parse(regmap));
   }
   rackmond_.start();
+
+  plsManager_.loadPlsConfig(nlohmann::json::parse(getRackmonPlsConfig()));
 }
 
 void ThriftHandler::listModbusDevices(std::vector<ModbusDeviceInfo>& devices) {
@@ -273,5 +275,21 @@ RackmonStatusCode ThriftHandler::controlRackmond(
     return RackmonStatusCode::ERR_IO_FAILURE;
   }
   return RackmonStatusCode::SUCCESS;
+}
+
+void ThriftHandler::getPowerLossSiren(PowerLossSiren& pls) {
+  std::vector<std::pair<bool, bool>> plsInfo;
+
+  plsInfo = plsManager_.getPowerState();
+  if (plsInfo.size() != 3) {
+    throw std::runtime_error("failed to get power state from all 3 ports");
+  }
+
+  pls.port1()->powerLost_ref() = plsInfo[0].first;
+  pls.port1()->redundancyLost_ref() = plsInfo[0].second;
+  pls.port2()->powerLost_ref() = plsInfo[1].first;
+  pls.port2()->redundancyLost_ref() = plsInfo[1].second;
+  pls.port3()->powerLost_ref() = plsInfo[2].first;
+  pls.port3()->redundancyLost_ref() = plsInfo[2].second;
 }
 } // namespace rackmonsvc

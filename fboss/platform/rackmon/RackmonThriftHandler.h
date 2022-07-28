@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/platform/rackmon/Rackmon.h"
+#include "fboss/platform/rackmon/RackmonPlsManager.h"
 #include "fboss/platform/rackmon/if/gen-cpp2/RackmonCtrl.h"
 
 #include <memory>
@@ -21,6 +22,7 @@ namespace rackmonsvc {
 
 class ThriftHandler : virtual public RackmonCtrlSvIf {
   rackmon::Rackmon rackmond_{};
+  RackmonPlsManager plsManager_{};
 
   ModbusDeviceInfo transformModbusDeviceInfo(
       const rackmon::ModbusDeviceInfo& source);
@@ -58,8 +60,6 @@ class ThriftHandler : virtual public RackmonCtrlSvIf {
   rackmonsvc::RackmonStatusCode controlRackmond(
       rackmonsvc::RackmonControlRequest request) override;
 
-  void getPowerLossSiren(rackmonsvc::PowerLossSiren& /* plsStatus */) override {
-    // TODO
-  }
+  void getPowerLossSiren(rackmonsvc::PowerLossSiren& plsState) override;
 };
 } // namespace rackmonsvc
