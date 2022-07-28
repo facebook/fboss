@@ -59,6 +59,7 @@ add_library(address_utils
 )
 
 target_link_libraries(address_utils
+  network_address_cpp2
   Folly::folly
 )
 

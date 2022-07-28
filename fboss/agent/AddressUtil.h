@@ -66,4 +66,16 @@ inline folly::IPAddress toIPAddress(const thrift::BinaryAddress& addr) {
       addr.addr()->size()));
 }
 
+inline thrift::IPPrefix toIPPrefix(const folly::CIDRNetwork& network) {
+  thrift::IPPrefix result;
+  result.prefixAddress() = toBinaryAddress(network.first);
+  result.prefixLength() = network.second;
+  return result;
+}
+
+inline folly::CIDRNetwork toCIDRNetwork(const thrift::IPPrefix& addr) {
+  return folly::CIDRNetwork(
+      toIPAddress(addr.get_prefixAddress()), addr.get_prefixLength());
+}
+
 } // namespace facebook::network
