@@ -45,7 +45,15 @@ class SaiTunnelManager {
       const std::shared_ptr<IpTunnel>& oldTunnel,
       const std::shared_ptr<IpTunnel>& newTunnel);
 
+  const SaiTunnelHandle* getTunnelHandle(std::string swId) const {
+    return getTunnelHandleImpl(swId);
+  }
+  SaiTunnelHandle* getTunnelHandle(std::string swId) {
+    return getTunnelHandleImpl(swId);
+  }
+
  private:
+  SaiTunnelHandle* getTunnelHandleImpl(std::string swId) const;
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   Handles handles_;

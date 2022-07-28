@@ -22,6 +22,14 @@ SaiTunnelManager::~SaiTunnelManager() {}
 
 TunnelSaiId SaiTunnelManager::addTunnel(
     const std::shared_ptr<IpTunnel>& swTunnel) {
+  auto existTunnel = getTunnelHandle(swTunnel->getID());
+  if (existTunnel) {
+    throw FbossError(
+        "Attempted to add tunnel which already exists: ",
+        swTunnel->getID(),
+        " SAI id: ",
+        existTunnel->tunnel->adapterKey());
+  }
   auto& tunnelStore = saiStore_->get<SaiTunnelTraits>();
   // TTL and DSCP mode options: UNIFORM and PIPE
   // ECN has three modes instead of 2, with a customized one
@@ -89,6 +97,19 @@ void SaiTunnelManager::changeTunnel(
     removeTunnel(oldTunnel);
     addTunnel(newTunnel);
   }
+}
+
+// private const getter for use by const and non-const getters
+SaiTunnelHandle* FOLLY_NULLABLE
+SaiTunnelManager::getTunnelHandleImpl(std::string swId) const {
+  auto itr = handles_.find(swId);
+  if (itr == handles_.end()) {
+    return nullptr;
+  }
+  if (!itr->second.get()) {
+    XLOG(FATAL) << "Invalid null SaiTunnelHandle for " << swId;
+  }
+  return itr->second.get();
 }
 
 } // namespace facebook::fboss
