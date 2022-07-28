@@ -17,14 +17,23 @@ class SwitchState;
 
 using IpTunnelMapTraits = NodeMapTraits<std::string, IpTunnel>;
 
+struct IpTunnelMapThriftTraits
+    : public ThriftyNodeMapTraits<std::string, state::IpTunnelFields> {
+  static inline const std::string& getThriftKeyName() {
+    static const std::string _key = "ipTunnelId";
+    return _key;
+  }
+  static const KeyType parseKey(const folly::dynamic& key) {
+    return key.asString();
+  }
+};
 /*
  * A container for all the present IpTunnels
  */
-class IpTunnelMap
-    : public ThriftyNodeMapT<
-          IpTunnelMap,
-          IpTunnelMapTraits,
-          ThriftyNodeMapTraits<std::string, state::IpTunnelFields>> {
+class IpTunnelMap : public ThriftyNodeMapT<
+                        IpTunnelMap,
+                        IpTunnelMapTraits,
+                        IpTunnelMapThriftTraits> {
  public:
   IpTunnelMap();
   ~IpTunnelMap() override;

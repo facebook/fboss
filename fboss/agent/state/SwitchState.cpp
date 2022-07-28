@@ -20,6 +20,8 @@
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/IpTunnel.h"
+#include "fboss/agent/state/IpTunnelMap.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
@@ -65,6 +67,7 @@ constexpr auto kFibs = "fibs";
 constexpr auto kTransceivers = "transceivers";
 constexpr auto kAclTableGroups = "aclTableGroups";
 constexpr auto kSystemPorts = "systemPorts";
+constexpr auto kTunnels = "tunnels";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
@@ -91,7 +94,8 @@ SwitchStateFields::SwitchStateFields()
       labelFib(make_shared<LabelForwardingInformationBase>()),
       switchSettings(make_shared<SwitchSettings>()),
       transceivers(make_shared<TransceiverMap>()),
-      systemPorts(make_shared<SystemPortMap>()) {}
+      systemPorts(make_shared<SystemPortMap>()),
+      ipTunnels(make_shared<IpTunnelMap>()) {}
 
 state::SwitchState SwitchStateFields::toThrift() const {
   auto state = state::SwitchState();
@@ -100,6 +104,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
   state.aclMap() = acls->toThrift();
   state.transceiverMap() = transceivers->toThrift();
   state.systemPortMap() = systemPorts->toThrift();
+  state.ipTunnelMap() = ipTunnels->toThrift();
   if (bufferPoolCfgs) {
     state.bufferPoolCfgMap() = bufferPoolCfgs->toThrift();
   }
@@ -171,6 +176,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
       LabelForwardingInformationBase::fromThrift(*state.labelFib());
   fields.qosPolicies = QosPolicyMap::fromThrift(*state.qosPolicyMap());
   fields.transceivers = TransceiverMap::fromThrift(*state.transceiverMap());
+  fields.ipTunnels = IpTunnelMap::fromThrift(*state.ipTunnelMap());
   fields.sFlowCollectors =
       SflowCollectorMap::fromThrift(*state.sflowCollectorMap());
   return fields;
@@ -203,6 +209,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kAggregatePorts] = aggPorts->toFollyDynamic();
   switchState[kLabelForwardingInformationBase] = labelFib->toFollyDynamic();
   switchState[kSwitchSettings] = switchSettings->toFollyDynamic();
+  switchState[kTunnels] = ipTunnels->toFollyDynamic();
   if (qcmCfg) {
     switchState[kQcmCfg] = qcmCfg->toFollyDynamic();
   }
@@ -299,7 +306,9 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
       values != swJson.items().end()) {
     switchState.systemPorts = SystemPortMap::fromFollyDynamic(values->second);
   }
-
+  if (swJson.find(kTunnels) != swJson.items().end()) {
+    switchState.ipTunnels = IpTunnelMap::fromFollyDynamic(swJson[kTunnels]);
+  }
   // TODO verify that created state here is internally consistent t4155406
   return switchState;
 }
@@ -498,6 +507,20 @@ void SwitchState::addSystemPort(const std::shared_ptr<SystemPort>& systemPort) {
 
 void SwitchState::resetSystemPorts(std::shared_ptr<SystemPortMap> systemPorts) {
   writableFields()->systemPorts.swap(systemPorts);
+}
+
+void SwitchState::addTunnel(const std::shared_ptr<IpTunnel>& tunnel) {
+  auto* fields = writableFields();
+  // For ease-of-use, automatically clone the TunnelMap if we are still
+  // pointing to a published map.
+  if (fields->ipTunnels->isPublished()) {
+    fields->ipTunnels = fields->ipTunnels->clone();
+  }
+  fields->ipTunnels->addTunnel(tunnel);
+}
+
+void SwitchState::resetTunnels(std::shared_ptr<IpTunnelMap> tunnels) {
+  writableFields()->ipTunnels.swap(tunnels);
 }
 
 std::shared_ptr<AclTableMap> SwitchState::getAclTablesForStage(
