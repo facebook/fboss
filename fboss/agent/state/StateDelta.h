@@ -22,6 +22,7 @@
 #include "fboss/agent/state/ForwardingInformationBaseDelta.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/IpTunnelMap.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/Mirror.h"
@@ -85,6 +86,7 @@ class StateDelta {
   getLabelForwardingInformationBaseDelta() const;
   DeltaValue<SwitchSettings> getSwitchSettingsDelta() const;
   NodeMapDelta<SystemPortMap> getSystemPortsDelta() const;
+  NodeMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
 
  private:
   // Forbidden copy constructor and assignment operator

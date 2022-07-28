@@ -160,6 +160,11 @@ NodeMapDelta<SystemPortMap> StateDelta::getSystemPortsDelta() const {
       old_->getSystemPorts().get(), new_->getSystemPorts().get());
 }
 
+NodeMapDelta<IpTunnelMap> StateDelta::getIpTunnelsDelta() const {
+  return NodeMapDelta<IpTunnelMap>(
+      old_->getTunnels().get(), new_->getTunnels().get());
+}
+
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
   // Leverage the folly::dynamic printing facilities
   folly::dynamic diff = folly::dynamic::object;
@@ -212,5 +217,6 @@ template class NodeMapDelta<ForwardingInformationBaseV4>;
 template class NodeMapDelta<ForwardingInformationBaseV6>;
 template class NodeMapDelta<LabelForwardingInformationBase>;
 template class NodeMapDelta<SystemPortMap>;
+template class NodeMapDelta<IpTunnelMap>;
 
 } // namespace facebook::fboss
