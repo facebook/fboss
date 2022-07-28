@@ -49,6 +49,7 @@ add_executable(rackmon_test
   fboss/platform/rackmon/tests/ModbusDeviceTest.cpp
   fboss/platform/rackmon/tests/ModbusTest.cpp
   fboss/platform/rackmon/tests/MsgTest.cpp
+  fboss/platform/rackmon/tests/PlsConfigTest.cpp
   fboss/platform/rackmon/tests/PollThreadTest.cpp
   fboss/platform/rackmon/tests/RackmonConfigTest.cpp
   fboss/platform/rackmon/tests/RackmonTest.cpp
