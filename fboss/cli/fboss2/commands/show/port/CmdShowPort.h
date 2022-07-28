@@ -31,6 +31,7 @@ struct CmdShowPortTraits : public BaseCommandTraits {
   using ObjectArgType = utils::PortList;
   using RetType = cli::ShowPortModel;
   static constexpr bool ALLOW_FILTERING = true;
+  static constexpr bool ALLOW_AGGREGATION = true;
 };
 
 class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {

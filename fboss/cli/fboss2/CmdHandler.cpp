@@ -357,6 +357,18 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
         apache::thrift::util::enumNameSafe(aggParsingEC)));
   }
 
+  CmdHandler::ValidAggMapType validAggs = {};
+  if (parsedAggregationInput.has_value()) {
+    validAggs = getValidAggs();
+    const auto& errorCode = CmdGlobalOptions::getInstance()->isValidAggregate(
+        validAggs, parsedAggregationInput);
+    if (errorCode != cli::CliOptionResult::EOK) {
+      throw std::invalid_argument(folly::to<std::string>(
+          "Error in Aggregate validation: ",
+          apache::thrift::util::enumNameSafe(errorCode)));
+    }
+  }
+
   auto hosts = getHosts();
 
   std::vector<std::shared_future<std::tuple<std::string, RetType, std::string>>>
