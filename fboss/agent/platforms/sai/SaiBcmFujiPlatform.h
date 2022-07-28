@@ -31,29 +31,6 @@ class SaiBcmFujiPlatform : public SaiBcmPlatform {
 
   void initLEDs() override {}
 
-  PortID findPortID(
-      cfg::PortSpeed speed,
-      std::vector<uint32_t> lanes,
-      PortSaiId portSaiId) const override {
-    for (const auto& portMapping : portMapping_) {
-      const auto& platformPort = portMapping.second;
-      // TODO(daiweix): remove this method and use lanes info to find port ID
-      // after lane attribute get issue in CS00012236630 is resolved.
-      // For now, dervide port id from the lower 32 bits of portSaiId, which
-      // is the broadcom logical port id
-      //  +--------------|---------|---------|-----------------------+
-      //  |63..........48|47.....40|39.....32|31....................0|
-      //  +--------------|---------|---------|-----------------------+
-      //  |     map1     | subtype |   type  |           id          |
-      //  |              | or map2 |         |                       |
-      //  +--------------|---------|---------|-----------------------+
-      if (platformPort->getPortID() == (PortID)portSaiId) {
-        return platformPort->getPortID();
-      }
-    }
-    throw FbossError("platform port not found ", (PortID)portSaiId);
-  }
-
  private:
   std::unique_ptr<Tomahawk4Asic> asic_;
 };
