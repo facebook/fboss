@@ -35,7 +35,43 @@ struct RoutePrefix
   AddrT network_{};
   uint8_t mask_{};
   RoutePrefix() {}
-  RoutePrefix(AddrT addr, uint8_t u8) : network_(addr), mask_(u8) {}
+
+  RoutePrefix(AddrT addr, uint8_t u8) : network_(addr), mask_(u8) {
+    auto& data = this->writableData();
+    auto ip = folly::IPAddress(addr);
+    data.prefix() = network::toBinaryAddress(ip);
+    data.mask() = u8;
+    if constexpr (std::is_same_v<folly::IPAddress, AddrT>) {
+      data.v6() = addr.isV6();
+    } else {
+      static_assert(
+          std::is_same_v<folly::IPAddressV6, AddrT> ||
+              std::is_same_v<folly::IPAddressV4, AddrT>,
+          "Address is not V4 or V6");
+      data.v6() = std::is_same_v<folly::IPAddressV6, AddrT>;
+    }
+  }
+
+  explicit RoutePrefix(const state::RoutePrefix& prefix) {
+    auto& data = this->writableData();
+    data = prefix;
+    mask_ = *prefix.mask();
+    auto addr = network::toIPAddress(*prefix.prefix());
+    if constexpr (std::is_same_v<folly::IPAddress, AddrT>) {
+      network_ = addr;
+    } else {
+      static_assert(
+          std::is_same_v<folly::IPAddressV6, AddrT> ||
+              std::is_same_v<folly::IPAddressV4, AddrT>,
+          "Address is not V4 or V6");
+      if constexpr (std::is_same_v<folly::IPAddressV6, AddrT>) {
+        network_ = addr.asV6();
+      } else {
+        network_ = addr.asV4();
+      }
+    }
+  }
+
   std::string str() const {
     return folly::to<std::string>(
         network(), "/", static_cast<uint32_t>(mask()));

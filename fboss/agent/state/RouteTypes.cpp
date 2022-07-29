@@ -122,25 +122,13 @@ folly::dynamic Label::toFollyDynamicLegacy() const {
 
 template <typename AddrT>
 state::RoutePrefix RoutePrefix<AddrT>::toThrift() const {
-  state::RoutePrefix thriftPrefix{};
-  thriftPrefix.v6() = std::is_same_v<AddrT, folly::IPAddressV6>;
-  thriftPrefix.prefix() = network::toBinaryAddress(folly::IPAddress(network_));
-  thriftPrefix.mask() = mask_;
-  return thriftPrefix;
+  return this->data();
 }
 
 template <typename AddrT>
 RoutePrefix<AddrT> RoutePrefix<AddrT>::fromThrift(
     const state::RoutePrefix& thriftPrefix) {
-  RoutePrefix<AddrT> prefix;
-  prefix.mask_ = *thriftPrefix.mask();
-  folly::IPAddress network = network::toIPAddress(*thriftPrefix.prefix());
-  if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-    prefix.network_ = network.asV6();
-  } else {
-    prefix.network_ = network.asV4();
-  }
-  return prefix;
+  return RoutePrefix<AddrT>(thriftPrefix);
 }
 
 template <typename AddrT>
