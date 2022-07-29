@@ -470,6 +470,14 @@ class CmdGlobalOptions {
     filter_ = filter;
   }
 
+  void setAggregateInput(std::string& aggregate) {
+    aggregate_ = aggregate;
+  }
+
+  void aggregateAcrossDevices(bool acrossDevices) {
+    aggregateAcrossDevices_ = acrossDevices;
+  }
+
   UnionList getFilters(cli::CliOptionResult& filterParsingEC) const;
   std::optional<AggregateOption> parseAggregate(
       cli::CliOptionResult& aggregateParsingEC) const;
