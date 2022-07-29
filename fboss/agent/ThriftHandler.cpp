@@ -1152,6 +1152,49 @@ void ThriftHandler::getInterfacePrbsState(
   prbsState = sw_->getPortPrbsState(portID);
 }
 
+void ThriftHandler::clearInterfacePrbsStats(
+    std::unique_ptr<std::string> portName,
+    phy::PrbsComponent component) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  if (component != phy::PrbsComponent::ASIC) {
+    throw FbossError("Unsupported component");
+  }
+  auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(*portName);
+  clearPortPrbsStats(portID, component);
+}
+
+void ThriftHandler::getInterfacePrbsStats(
+    phy::PrbsStats& response,
+    std::unique_ptr<std::string> portName,
+    phy::PrbsComponent component) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  if (component != phy::PrbsComponent::ASIC) {
+    throw FbossError("Unsupported component");
+  }
+  auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(*portName);
+  getPortPrbsStats(response, portID, component);
+}
+
+void ThriftHandler::setInterfacePrbs(
+    std::unique_ptr<std::string> portName,
+    phy::PrbsComponent component,
+    std::unique_ptr<prbs::InterfacePrbsState> state) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  if (component != phy::PrbsComponent::ASIC) {
+    throw FbossError("Unsupported component");
+  }
+  if (!state->generatorEnabled().has_value() &&
+      !state->checkerEnabled().has_value()) {
+    throw FbossError("Neither generator or checker specified for PRBS setting");
+  }
+  auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(*portName);
+  bool enabled = (state->generatorEnabled().has_value() &&
+                  state->generatorEnabled().value()) ||
+      (state->checkerEnabled().has_value() && state->checkerEnabled().value());
+  setPortPrbs(
+      portID, component, enabled, static_cast<int>(*state->polynomial_ref()));
+}
+
 void ThriftHandler::clearPortPrbsStats(
     int32_t portId,
     phy::PrbsComponent component) {
