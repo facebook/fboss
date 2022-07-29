@@ -84,16 +84,16 @@ void RouteNextHopsMulti::update(ClientID clientId, RouteNextHopEntry nhe) {
 
   // Let's check whether this has a preferred admin distance
   if (map_.size() == 1) {
-    lowestAdminDistanceClientId_ = clientId;
+    setLowestAdminDistanceClientId(clientId);
     return;
   }
-  auto entry = getEntryForClient(lowestAdminDistanceClientId_);
+  auto entry = getEntryForClient(lowestAdminDistanceClientId());
   if (!entry) {
-    lowestAdminDistanceClientId_ = findLowestAdminDistance();
+    setLowestAdminDistanceClientId(findLowestAdminDistance());
   } else if (nhe.getAdminDistance() < entry->getAdminDistance()) {
     // Arbritary choice to use the newest one if we have multiple
     // with the same admin distance
-    lowestAdminDistanceClientId_ = clientId;
+    setLowestAdminDistanceClientId(clientId);
   }
 }
 
@@ -121,8 +121,8 @@ void RouteNextHopsMulti::delEntryForClient(ClientID clientId) {
   map_.erase(clientId);
 
   // Let's regen the next best entry
-  if (lowestAdminDistanceClientId_ == clientId) {
-    lowestAdminDistanceClientId_ = findLowestAdminDistance();
+  if (lowestAdminDistanceClientId() == clientId) {
+    setLowestAdminDistanceClientId(findLowestAdminDistance());
   }
 }
 
@@ -143,9 +143,9 @@ bool RouteNextHopsMulti::isSame(ClientID id, const RouteNextHopEntry& nhe)
 
 std::pair<ClientID, const RouteNextHopEntry*> RouteNextHopsMulti::getBestEntry()
     const {
-  auto entry = getEntryForClient(lowestAdminDistanceClientId_);
+  auto entry = getEntryForClient(lowestAdminDistanceClientId());
   if (entry) {
-    return std::make_pair(lowestAdminDistanceClientId_, entry);
+    return std::make_pair(lowestAdminDistanceClientId(), entry);
   } else {
     // Throw an exception if the map is empty. Shall not happen
     throw FbossError("Unexpected empty RouteNextHopsMulti");
@@ -154,7 +154,7 @@ std::pair<ClientID, const RouteNextHopEntry*> RouteNextHopsMulti::getBestEntry()
 
 state::RouteNextHopsMulti RouteNextHopsMulti::toThrift() const {
   state::RouteNextHopsMulti thriftMulti{};
-  thriftMulti.lowestAdminDistanceClientId() = lowestAdminDistanceClientId_;
+  thriftMulti.lowestAdminDistanceClientId() = lowestAdminDistanceClientId();
   for (auto entry : map_) {
     thriftMulti.client2NextHopEntry()->emplace(
         entry.first, entry.second.toThrift());
@@ -165,8 +165,8 @@ state::RouteNextHopsMulti RouteNextHopsMulti::toThrift() const {
 RouteNextHopsMulti RouteNextHopsMulti::fromThrift(
     const state::RouteNextHopsMulti& multi) {
   RouteNextHopsMulti routeNextHopMulti{};
-  routeNextHopMulti.lowestAdminDistanceClientId_ =
-      *multi.lowestAdminDistanceClientId();
+  routeNextHopMulti.setLowestAdminDistanceClientId(
+      *multi.lowestAdminDistanceClientId());
   for (auto entry : *multi.client2NextHopEntry()) {
     routeNextHopMulti.map_.emplace(
         entry.first, RouteNextHopEntry::fromThrift(entry.second));
@@ -183,7 +183,7 @@ folly::dynamic RouteNextHopsMulti::migrateToThrifty(folly::dynamic const& dyn) {
   }
   newDyn["client2NextHopEntry"] = client2NextHopEntryDyn;
   newDyn["lowestAdminDistanceClientId"] =
-      static_cast<int>(multi.lowestAdminDistanceClientId_);
+      static_cast<int>(multi.lowestAdminDistanceClientId());
   return newDyn;
 }
 

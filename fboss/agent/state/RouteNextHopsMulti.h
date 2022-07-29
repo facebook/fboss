@@ -48,10 +48,12 @@ using ClientToNHopMap = std::map<ClientID, RouteNextHopEntry>;
  */
 class RouteNextHopsMulti
     : public ThriftyFields<RouteNextHopsMulti, state::RouteNextHopsMulti> {
+ private:
+  ClientID lowestAdminDistanceClientId_;
+
  protected:
   ClientID findLowestAdminDistance();
   ClientToNHopMap map_;
-  ClientID lowestAdminDistanceClientId_;
 
  public:
   state::RouteNextHopsMulti toThrift() const override;
@@ -93,6 +95,14 @@ class RouteNextHopsMulti
     return map_.size();
   }
   void delEntryForClient(ClientID clientId);
+
+  ClientID lowestAdminDistanceClientId() const {
+    return lowestAdminDistanceClientId_;
+  }
+
+  void setLowestAdminDistanceClientId(ClientID id) {
+    lowestAdminDistanceClientId_ = id;
+  }
 
   const RouteNextHopEntry* FOLLY_NULLABLE
   getEntryForClient(ClientID clientId) const;
