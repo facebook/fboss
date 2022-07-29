@@ -20,6 +20,17 @@ template <
     phy::PrbsComponent ComponentZ>
 class PrbsTest : public LinkTest {
  public:
+  bool checkValidMedia(PortID port, MediaInterfaceCode media) {
+    auto tcvr =
+        this->platform()->getPlatformPort(port)->getTransceiverID().value();
+    if (auto tcvrInfo = this->platform()->getQsfpCache()->getIf(tcvr)) {
+      if (auto mediaInterface = (*tcvrInfo).moduleMediaInterface()) {
+        return *mediaInterface == media;
+      }
+    }
+    return false;
+  }
+
   bool checkPrbsSupported(
       std::string& interfaceName,
       phy::PrbsComponent component) {
@@ -463,50 +474,31 @@ class PrbsTest : public LinkTest {
   }
 };
 
-template <
-    MediaInterfaceCode Media,
-    prbs::PrbsPolynomial Polynomial,
-    phy::PrbsComponent ComponentA,
-    phy::PrbsComponent ComponentZ>
-class TransceiverPrbsTest
-    : public PrbsTest<Polynomial, ComponentA, ComponentZ> {
+template <MediaInterfaceCode Media, prbs::PrbsPolynomial Polynomial>
+class TransceiverLineToTransceiverLinePrbsTest
+    : public PrbsTest<
+          Polynomial,
+          phy::PrbsComponent::TRANSCEIVER_LINE,
+          phy::PrbsComponent::TRANSCEIVER_LINE> {
  protected:
   std::vector<std::pair<std::string, phy::PrbsComponent>> getPortsToTest()
       override {
     std::vector<std::pair<std::string, phy::PrbsComponent>> portsToTest;
-    if (ComponentA == ComponentZ) {
-      // Only possible when the component is the line side of transceiver.
-      // For system side, the other component should either be a GB or ASIC
-      CHECK(ComponentA == phy::PrbsComponent::TRANSCEIVER_LINE);
-      auto connectedPairs = this->getConnectedPairs();
-      for (const auto [port1, port2] : connectedPairs) {
-        auto portName1 = this->getPortName(port1);
-        auto portName2 = this->getPortName(port2);
-        auto tcvr1 = this->platform()
-                         ->getPlatformPort(port1)
-                         ->getTransceiverID()
-                         .value();
-        auto tcvr2 = this->platform()
-                         ->getPlatformPort(port2)
-                         ->getTransceiverID()
-                         .value();
+    auto connectedPairs = this->getConnectedPairs();
+    for (const auto [port1, port2] : connectedPairs) {
+      auto portName1 = this->getPortName(port1);
+      auto portName2 = this->getPortName(port2);
 
-        auto checkValidMedia = [this](facebook::fboss::TransceiverID tcvrID) {
-          if (auto tcvrInfo = this->platform()->getQsfpCache()->getIf(tcvrID)) {
-            if (auto mediaInterface = (*tcvrInfo).moduleMediaInterface()) {
-              return *mediaInterface == Media;
-            }
-          }
-          return false;
-        };
-        if (!checkValidMedia(tcvr1) || !checkValidMedia(tcvr2) ||
-            !this->checkPrbsSupported(portName1, ComponentA) ||
-            !this->checkPrbsSupported(portName2, ComponentZ)) {
-          continue;
-        }
-        portsToTest.push_back({portName1, ComponentA});
-        portsToTest.push_back({portName2, ComponentZ});
+      if (!this->checkValidMedia(port1, Media) ||
+          !this->checkValidMedia(port2, Media) ||
+          !this->checkPrbsSupported(
+              portName1, phy::PrbsComponent::TRANSCEIVER_LINE) ||
+          !this->checkPrbsSupported(
+              portName2, phy::PrbsComponent::TRANSCEIVER_LINE)) {
+        continue;
       }
+      portsToTest.push_back({portName1, phy::PrbsComponent::TRANSCEIVER_LINE});
+      portsToTest.push_back({portName2, phy::PrbsComponent::TRANSCEIVER_LINE});
     }
     return portsToTest;
   }
@@ -525,22 +517,21 @@ class TransceiverPrbsTest
       PRBS_TEST_NAME(COMPONENT_A, COMPONENT_B, POLYNOMIAL), \
       BOOST_PP_CAT(_, MEDIA))
 
-#define PRBS_TRANSCEIVER_TEST(MEDIA, COMPONENT_A, COMPONENT_B, POLYNOMIAL)     \
-  struct PRBS_TRANSCEIVER_TEST_NAME(                                           \
-      MEDIA, COMPONENT_A, COMPONENT_B, POLYNOMIAL)                             \
-      : public TransceiverPrbsTest<                                            \
-            MediaInterfaceCode::MEDIA,                                         \
-            prbs::PrbsPolynomial::POLYNOMIAL,                                  \
-            phy::PrbsComponent::COMPONENT_A,                                   \
-            phy::PrbsComponent::COMPONENT_B> {};                               \
-  TEST_F(                                                                      \
-      PRBS_TRANSCEIVER_TEST_NAME(MEDIA, COMPONENT_A, COMPONENT_B, POLYNOMIAL), \
-      prbsSanity) {                                                            \
-    runTest();                                                                 \
+#define PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(MEDIA, POLYNOMIAL) \
+  struct PRBS_TRANSCEIVER_TEST_NAME(                                   \
+      MEDIA, TRANSCEIVER_LINE, TRANSCEIVER_LINE, POLYNOMIAL)           \
+      : public TransceiverLineToTransceiverLinePrbsTest<               \
+            MediaInterfaceCode::MEDIA,                                 \
+            prbs::PrbsPolynomial::POLYNOMIAL> {};                      \
+  TEST_F(                                                              \
+      PRBS_TRANSCEIVER_TEST_NAME(                                      \
+          MEDIA, TRANSCEIVER_LINE, TRANSCEIVER_LINE, POLYNOMIAL),      \
+      prbsSanity) {                                                    \
+    runTest();                                                         \
   }
 
-PRBS_TRANSCEIVER_TEST(FR1_100G, TRANSCEIVER_LINE, TRANSCEIVER_LINE, PRBS31);
+PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR1_100G, PRBS31);
 
-PRBS_TRANSCEIVER_TEST(FR4_200G, TRANSCEIVER_LINE, TRANSCEIVER_LINE, PRBS31Q);
+PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR4_200G, PRBS31Q);
 
-PRBS_TRANSCEIVER_TEST(FR4_400G, TRANSCEIVER_LINE, TRANSCEIVER_LINE, PRBS31Q);
+PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR4_400G, PRBS31Q);
