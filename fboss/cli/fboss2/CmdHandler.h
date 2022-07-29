@@ -16,6 +16,7 @@
 #include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_types.h"
+#include "fboss/cli/fboss2/utils/AggregateUtils.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/FilterUtils.h"
@@ -96,9 +97,6 @@ class CmdHandler {
   using ObjectArgType = typename CmdTypeTraits::ObjectArgType;
   using RetType = typename CmdTypeTraits::RetType;
   using ThriftPrimitiveType = apache::thrift::metadata::ThriftPrimitiveType;
-  using ValidAggMapType = std::unordered_map<
-      std::string_view,
-      std::shared_ptr<CmdGlobalOptions::BaseAggInfo>>;
 
   void run();
   void runHelper();

@@ -357,7 +357,7 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
         apache::thrift::util::enumNameSafe(aggParsingEC)));
   }
 
-  CmdHandler::ValidAggMapType validAggs = {};
+  ValidAggMapType validAggs = {};
   if (parsedAggregationInput.has_value()) {
     validAggs = getValidAggs();
     const auto& errorCode = CmdGlobalOptions::getInstance()->isValidAggregate(
@@ -597,8 +597,7 @@ CmdHandler<CmdTypeT, CmdTypeTraits>::getValidFilters() {
  struct using reflection.
  */
 template <typename CmdTypeT, typename CmdTypeTraits>
-const typename CmdHandler<CmdTypeT, CmdTypeTraits>::ValidAggMapType
-CmdHandler<CmdTypeT, CmdTypeTraits>::getValidAggs() {
+const ValidAggMapType CmdHandler<CmdTypeT, CmdTypeTraits>::getValidAggs() {
   if (!CmdHandler<CmdTypeT, CmdTypeTraits>::isAggregatable()) {
     return {};
   }
