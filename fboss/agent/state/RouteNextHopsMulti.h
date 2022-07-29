@@ -97,11 +97,11 @@ class RouteNextHopsMulti
   void delEntryForClient(ClientID clientId);
 
   ClientID lowestAdminDistanceClientId() const {
-    return lowestAdminDistanceClientId_;
+    return *this->data().lowestAdminDistanceClientId();
   }
 
   void setLowestAdminDistanceClientId(ClientID id) {
-    lowestAdminDistanceClientId_ = id;
+    this->writableData().lowestAdminDistanceClientId() = id;
   }
 
   const RouteNextHopEntry* FOLLY_NULLABLE
