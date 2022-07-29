@@ -91,6 +91,51 @@ struct ReadFileRecordResponse {
   2: list<FileRecord> data;
 }
 
+/*
+ * Filter rule to select particular Device(s).
+ * Options are to request to filter by either
+ * device address or by device type.
+ */
+union DeviceFilter {
+  1: set<i16> addressFilter;
+  2: set<ModbusDeviceType> typeFilter;
+}
+
+/*
+ * Filter rule to select a particular Register(s).
+ * Options are to request to filter by either
+ * register address or by register name.
+ */
+union RegisterFilter {
+  1: set<i32> addressFilter;
+  2: set<string> nameFilter;
+}
+
+/*
+ * Set of filter rules to allow users to request
+ * for only a subset of the data.
+ */
+struct MonitorDataFilter {
+  /*
+   * If provided, returns only the devices matching
+   * the provided rule, else all devices are returned
+   */
+  1: optional DeviceFilter deviceFilter;
+
+  /* If provided, returns only the registers (of each
+   * device) matching the provided rule, else all
+   * registers are returned.
+   */
+  2: optional RegisterFilter registerFilter;
+
+  /*
+   * If true, only the latest value of each register
+   * of each device. Otherwise, the default of returning
+   * the entire history available for the register.
+   */
+  3: bool latestValueOnly = false;
+}
+
 enum RegisterValueType {
   INTEGER = 0,
   STRING = 1,
@@ -199,6 +244,15 @@ service RackmonCtrl {
   list<RackmonMonitorData> getMonitorData() throws (
     1: fboss.FbossBaseError error,
   );
+
+  /*
+   * Get the pre-fetched register values of all/subset of the detected Modbus
+   * devices. Advanced API to allow to apply filters to select a subset of
+   * device, register, value. For more, see documentation on ModbusDataFilter.
+   */
+  list<RackmonMonitorData> getMonitorDataEx(
+    1: MonitorDataFilter filter,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Send commands to control rackmond's behavior, such as pause/resume
