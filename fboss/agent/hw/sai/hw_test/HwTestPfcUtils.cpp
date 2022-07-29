@@ -42,4 +42,13 @@ int getProgrammedPfcWatchdogControlParam(
   return 0;
 }
 
+int getPfcWatchdogRecoveryAction() {
+  return -1;
+}
+
+// Maps cfg::PfcWatchdogRecoveryAction to SAI specific value
+int pfcWatchdogRecoveryAction(cfg::PfcWatchdogRecoveryAction /* unused */) {
+  return 0;
+}
+
 } // namespace facebook::fboss::utility

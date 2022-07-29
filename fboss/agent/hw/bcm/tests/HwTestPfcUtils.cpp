@@ -159,4 +159,27 @@ int getProgrammedPfcWatchdogControlParam(
   return readHwConfig[bcmParam];
 }
 
+// Reads the BCM bcmSwitchPFCDeadlockRecoveryAction from HW
+int getPfcWatchdogRecoveryAction() {
+  int value = -1;
+  const int unit = 0;
+  auto rv =
+      bcm_switch_control_get(unit, bcmSwitchPFCDeadlockRecoveryAction, &value);
+  bcmCheckError(rv, "Failed to get PFC watchdog recovery action");
+  return value;
+}
+
+// Maps cfg::PfcWatchdogRecoveryAction to BCM specific value
+int pfcWatchdogRecoveryAction(
+    cfg::PfcWatchdogRecoveryAction configuredRecoveryAction) {
+  int bcmPfcWatchdogRecoveryAction;
+  if (configuredRecoveryAction == cfg::PfcWatchdogRecoveryAction::NO_DROP) {
+    bcmPfcWatchdogRecoveryAction = bcmSwitchPFCDeadlockActionTransmit;
+  } else {
+    bcmPfcWatchdogRecoveryAction = bcmSwitchPFCDeadlockActionDrop;
+  }
+
+  return bcmPfcWatchdogRecoveryAction;
+}
+
 } // namespace facebook::fboss::utility

@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook::fboss::utility {
 
@@ -41,5 +42,11 @@ int getProgrammedPfcWatchdogControlParam(
     const HwSwitch* hw,
     const PortID& portId,
     int param);
+
+int getPfcWatchdogRecoveryAction();
+
+// Maps cfg::PfcWatchdogRecoveryAction to switch specific value
+int pfcWatchdogRecoveryAction(
+    cfg::PfcWatchdogRecoveryAction configuredRecoveryAction);
 
 } // namespace facebook::fboss::utility
