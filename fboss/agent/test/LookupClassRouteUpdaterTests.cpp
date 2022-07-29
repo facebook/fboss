@@ -246,7 +246,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
       auto route = findRoute<AddrT>(
           kRid(),
-          {folly::IPAddress(routePrefix.network), routePrefix.mask},
+          {folly::IPAddress(routePrefix.network()), routePrefix.mask()},
           sw_->getState());
       EXPECT_EQ(route->getClassID(), classID);
     });
@@ -810,15 +810,15 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
       }
       routeUpdater.addRoute(
           this->kRid(),
-          routePrefix.network,
-          routePrefix.mask,
+          routePrefix.network(),
+          routePrefix.mask(),
           this->kClientID(),
           RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
     } else {
       routeUpdater.delRoute(
           this->kRid(),
-          routePrefix.network,
-          routePrefix.mask,
+          routePrefix.network(),
+          routePrefix.mask(),
           this->kClientID());
     }
     routeUpdater.program();
@@ -1097,8 +1097,8 @@ TYPED_TEST(LookupClassRouteUpdaterTest, VerifyInteractionWithSyncFib) {
 
   updater.addRoute(
       this->kRid(),
-      this->kroutePrefix2().network,
-      this->kroutePrefix2().mask,
+      this->kroutePrefix2().network(),
+      this->kroutePrefix2().mask(),
       ClientID::BGPD,
       RouteNextHopEntry(nexthops, AdminDistance::EBGP));
   // SyncFib for BGP

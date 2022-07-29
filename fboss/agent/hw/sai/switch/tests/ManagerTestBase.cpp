@@ -355,9 +355,8 @@ ResolvedNextHop ManagerTestBase::makeMplsNextHop(
 
 std::shared_ptr<Route<folly::IPAddressV4>> ManagerTestBase::makeRoute(
     const TestRoute& route) const {
-  RouteFields<folly::IPAddressV4>::Prefix destination;
-  destination.network = route.destination.first.asV4();
-  destination.mask = route.destination.second;
+  RouteFields<folly::IPAddressV4>::Prefix destination(
+      route.destination.first.asV4(), route.destination.second);
   RouteNextHopEntry::NextHopSet swNextHops{};
   for (const auto& testInterface : route.nextHopInterfaces) {
     swNextHops.emplace(makeNextHop(testInterface));

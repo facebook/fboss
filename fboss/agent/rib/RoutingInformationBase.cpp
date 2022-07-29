@@ -606,7 +606,7 @@ RibRouteTables RibRouteTables::fromFollyDynamic(
         }
         DCHECK_EQ(
             addrToRoute
-                ->exactMatch(route->prefix().network, route->prefix().mask)
+                ->exactMatch(route->prefix().network(), route->prefix().mask())
                 ->value(),
             route);
       }

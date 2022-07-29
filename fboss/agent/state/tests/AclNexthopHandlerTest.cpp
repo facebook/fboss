@@ -164,8 +164,8 @@ class AclNexthopHandlerTest : public ::testing::Test {
     auto updater = sw_->getRouteUpdater();
     updater.addRoute(
         RouterID(0),
-        prefix.network,
-        prefix.mask,
+        prefix.network(),
+        prefix.mask(),
         ClientID(1000),
         RouteNextHopEntry(nexthops, DISTANCE));
     updater.program();
@@ -173,7 +173,8 @@ class AclNexthopHandlerTest : public ::testing::Test {
 
   void delRoute(const RoutePrefix<AddrT>& prefix) {
     auto updater = sw_->getRouteUpdater();
-    updater.delRoute(RouterID(0), prefix.network, prefix.mask, ClientID(1000));
+    updater.delRoute(
+        RouterID(0), prefix.network(), prefix.mask(), ClientID(1000));
     updater.program();
   }
 

@@ -122,7 +122,7 @@ void RibRouteUpdater::addOrReplaceRouteImpl(
     NetworkToRouteMap<AddressT>* routes,
     ClientID clientID,
     RouteNextHopEntry entry) {
-  auto it = routes->exactMatch(prefix.network, prefix.mask);
+  auto it = routes->exactMatch(prefix.network(), prefix.mask());
 
   if (it != routes->end()) {
     auto route = it->value();
@@ -176,7 +176,7 @@ void RibRouteUpdater::delRouteImpl(
     const Prefix<AddressT>& prefix,
     NetworkToRouteMap<AddressT>* routes,
     ClientID clientID) {
-  auto it = routes->exactMatch(prefix.network, prefix.mask);
+  auto it = routes->exactMatch(prefix.network(), prefix.mask());
   if (it == routes->end()) {
     XLOG(DBG3) << "Failed to delete route: " << prefix.str()
                << " does not exist";

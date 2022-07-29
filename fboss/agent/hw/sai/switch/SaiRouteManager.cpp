@@ -52,8 +52,8 @@ SaiRouteTraits::RouteEntry SaiRouteManager::routeEntryFromSwRoute(
     RouterID routerId,
     const std::shared_ptr<Route<AddrT>>& swRoute) const {
   SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
-  folly::IPAddress prefixNetwork{swRoute->prefix().network};
-  folly::CIDRNetwork prefix{prefixNetwork, swRoute->prefix().mask};
+  folly::IPAddress prefixNetwork{swRoute->prefix().network()};
+  folly::CIDRNetwork prefix{prefixNetwork, swRoute->prefix().mask()};
   SaiVirtualRouterHandle* virtualRouterHandle =
       managerTable_->virtualRouterManager().getVirtualRouterHandle(routerId);
   if (!virtualRouterHandle) {

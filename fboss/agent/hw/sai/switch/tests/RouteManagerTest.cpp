@@ -78,7 +78,7 @@ TEST_F(RouteManagerTest, updateRouteOneNextHopNoUpdate) {
                    .getVirtualRouterHandle(RouterID(0))
                    ->virtualRouter->adapterKey();
   folly::CIDRNetwork network{
-      folly::IPAddress(r->prefix().network), r->prefix().mask};
+      folly::IPAddress(r->prefix().network()), r->prefix().mask()};
   SaiRouteTraits::RouteEntry entry(switchId, vrfId, network);
   auto handle = saiManagerTable->routeManager().getRouteHandle(entry);
   auto nexthopHandle = handle->nexthopHandle_;
@@ -94,9 +94,8 @@ TEST_F(RouteManagerTest, updateRouteOneNextHopNoUpdate) {
 
 TEST_F(RouteManagerTest, addToCpuRoute) {
   TestInterface intf = testInterfaces.at(1);
-  RouteFields<folly::IPAddressV4>::Prefix destination;
-  destination.network = intf.subnet.first.asV4();
-  destination.mask = intf.subnet.second;
+  RouteFields<folly::IPAddressV4>::Prefix destination(
+      intf.subnet.first.asV4(), intf.subnet.second);
   auto r = std::make_shared<Route<folly::IPAddressV4>>(destination);
   RouteNextHopEntry entry(
       RouteForwardAction::TO_CPU, AdminDistance::STATIC_ROUTE);
@@ -124,7 +123,7 @@ TEST_F(RouteManagerTest, updateRouteOneNextHopUpdate) {
                    .getVirtualRouterHandle(RouterID(0))
                    ->virtualRouter->adapterKey();
   folly::CIDRNetwork network{
-      folly::IPAddress(r->prefix().network), r->prefix().mask};
+      folly::IPAddress(r->prefix().network()), r->prefix().mask()};
   SaiRouteTraits::RouteEntry entry(switchId, vrfId, network);
   auto handle = saiManagerTable->routeManager().getRouteHandle(entry);
   auto nexthopHandle = handle->nexthopHandle_;
@@ -144,9 +143,8 @@ TEST_F(RouteManagerTest, updateRouteOneNextHopUpdate) {
 
 TEST_F(RouteManagerTest, addDropRoute) {
   TestInterface intf = testInterfaces.at(1);
-  RouteFields<folly::IPAddressV4>::Prefix destination;
-  destination.network = intf.subnet.first.asV4();
-  destination.mask = intf.subnet.second;
+  RouteFields<folly::IPAddressV4>::Prefix destination(
+      intf.subnet.first.asV4(), intf.subnet.second);
   auto r = std::make_shared<Route<folly::IPAddressV4>>(destination);
   RouteNextHopEntry entry(
       RouteForwardAction::DROP, AdminDistance::STATIC_ROUTE);
@@ -157,9 +155,8 @@ TEST_F(RouteManagerTest, addDropRoute) {
 
 TEST_F(RouteManagerTest, addSubnetRoute) {
   TestInterface intf = testInterfaces.at(1);
-  RouteFields<folly::IPAddressV4>::Prefix destination;
-  destination.network = intf.subnet.first.asV4();
-  destination.mask = intf.subnet.second;
+  RouteFields<folly::IPAddressV4>::Prefix destination(
+      intf.subnet.first.asV4(), intf.subnet.second);
   ResolvedNextHop nh{intf.routerIp, InterfaceID(intf.id), ECMP_WEIGHT};
   RouteNextHopEntry::NextHopSet swNextHops{nh};
   RouteNextHopEntry entry(swNextHops, AdminDistance::DIRECTLY_CONNECTED);
@@ -256,9 +253,8 @@ TEST_F(RouteManagerTest, updateNexthopToNexthopRoute) {
 }
 
 TEST_F(RouteManagerTest, updateDropRouteToNextHopRoute) {
-  RouteFields<folly::IPAddressV4>::Prefix destination;
-  destination.network = tr1.destination.first.asV4();
-  destination.mask = tr1.destination.second;
+  RouteFields<folly::IPAddressV4>::Prefix destination(
+      tr1.destination.first.asV4(), tr1.destination.second);
   auto r1 = std::make_shared<Route<folly::IPAddressV4>>(destination);
   RouteNextHopEntry entry(
       RouteForwardAction::DROP, AdminDistance::STATIC_ROUTE);
@@ -308,9 +304,8 @@ TEST_F(RouteManagerTest, updateRouteDifferentNextHops) {
 }
 
 TEST_F(RouteManagerTest, updateCpuRoutetoNextHopRoute) {
-  RouteFields<folly::IPAddressV4>::Prefix destination;
-  destination.network = tr1.destination.first.asV4();
-  destination.mask = tr1.destination.second;
+  RouteFields<folly::IPAddressV4>::Prefix destination(
+      tr1.destination.first.asV4(), tr1.destination.second);
   auto r1 = std::make_shared<Route<folly::IPAddressV4>>(destination);
   RouteNextHopEntry entry(
       RouteForwardAction::TO_CPU, AdminDistance::STATIC_ROUTE);
@@ -374,9 +369,8 @@ TEST_F(ToMeRouteTest, toMeRoutesSlash32) {
   EXPECT_EQ(toMeRoutes.size(), 1);
 
   // Add the connected /32 route
-  RouteFields<folly::IPAddressV4>::Prefix destination;
-  destination.network = testIntf.subnet.first.asV4();
-  destination.mask = testIntf.subnet.second;
+  RouteFields<folly::IPAddressV4>::Prefix destination(
+      testIntf.subnet.first.asV4(), testIntf.subnet.second);
   ResolvedNextHop nh{testIntf.routerIp, InterfaceID(testIntf.id), ECMP_WEIGHT};
   RouteNextHopEntry::NextHopSet swNextHops{nh};
   RouteNextHopEntry entry(swNextHops, AdminDistance::DIRECTLY_CONNECTED);

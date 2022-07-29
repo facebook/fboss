@@ -402,7 +402,7 @@ void updateRoutesClassID(
   for (const auto& [routePrefix, classID] : routePrefix2ClassID) {
     updater->programClassID(
         RouterID(0),
-        {{folly::IPAddress(routePrefix.network), routePrefix.mask}},
+        {{folly::IPAddress(routePrefix.network()), routePrefix.mask()}},
         classID,
         false /* sync*/);
   }

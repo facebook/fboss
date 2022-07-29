@@ -129,8 +129,8 @@ void CHECK_LPM(
   facebook::fboss::RoutePrefix<AddressT> routePrefix{address, mask};
   facebook::fboss::RouteFields<AddressT> fields(routePrefix);
 
-  EXPECT_EQ(route->prefix().network, address);
-  EXPECT_EQ(route->prefix().mask, mask);
+  EXPECT_EQ(route->prefix().network(), address);
+  EXPECT_EQ(route->prefix().mask(), mask);
 }
 
 TEST_F(V4LpmTest, SparseLPM) {

@@ -69,8 +69,8 @@ class HwL3Test : public HwLinkStateDependentTest {
       auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
       RoutePrefix<folly::IPAddressV4> prefix4(kGetRoutePrefixIPv4());
       RoutePrefix<folly::IPAddressV6> prefix6(kGetRoutePrefixIPv6());
-      auto cidr4 = folly::CIDRNetwork(prefix4.network, prefix4.mask);
-      auto cidr6 = folly::CIDRNetwork(prefix6.network, prefix6.mask);
+      auto cidr4 = folly::CIDRNetwork(prefix4.network(), prefix4.mask());
+      auto cidr6 = folly::CIDRNetwork(prefix6.network(), prefix6.mask());
 
       // Ensure hit bit is NOT set
       EXPECT_FALSE(

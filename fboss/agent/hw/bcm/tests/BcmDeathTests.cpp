@@ -111,8 +111,8 @@ TEST_F(BcmDeathTest, DieOnHostRouteWithEcmpNextHops) {
   auto die = [&]() {
     ASSERT_NE(nextHopsA.size(), 0);
     ASSERT_NE(nextHopsB.size(), 0);
-    setupL3Route(ClientID(0), v6Prefix.network, v6Prefix.mask, nextHopsA);
-    setupL3Route(ClientID(0), v6Prefix.network, v6Prefix.mask, nextHopsB);
+    setupL3Route(ClientID(0), v6Prefix.network(), v6Prefix.mask(), nextHopsA);
+    setupL3Route(ClientID(0), v6Prefix.network(), v6Prefix.mask(), nextHopsB);
   };
 
   auto errorMsg =

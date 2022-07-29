@@ -80,8 +80,8 @@ sai_object_id_t getNextHopId(
     typename Route<AddrT>::Prefix prefix) {
   auto saiSwitch = static_cast<const facebook::fboss::SaiSwitch*>(hwSwitch);
   // Query the nexthop ID given the route prefix
-  folly::IPAddress prefixNetwork{prefix.network};
-  folly::CIDRNetwork follyPrefix{prefixNetwork, prefix.mask};
+  folly::IPAddress prefixNetwork{prefix.network()};
+  folly::CIDRNetwork follyPrefix{prefixNetwork, prefix.mask()};
   auto virtualRouterHandle =
       saiSwitch->managerTable()->virtualRouterManager().getVirtualRouterHandle(
           kRouter0);

@@ -137,7 +137,7 @@ class HwRouteTest : public HwLinkStateDependentTest {
         utility::getHwRouteClassID(
             this->getHwSwitch(),
             kRouterID(),
-            folly::CIDRNetwork(routePrefix.network, routePrefix.mask)),
+            folly::CIDRNetwork(routePrefix.network(), routePrefix.mask())),
         classID);
   }
 };
@@ -238,7 +238,8 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedNextHop) {
   };
   auto verify = [=]() {
     auto routePrefix0 = this->kGetRoutePrefix0();
-    auto cidr0 = folly::CIDRNetwork(routePrefix0.network, routePrefix0.mask);
+    auto cidr0 =
+        folly::CIDRNetwork(routePrefix0.network(), routePrefix0.mask());
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     EXPECT_TRUE(
@@ -247,7 +248,8 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedNextHop) {
         this->getHwSwitch(), this->kRouterID(), cidr0));
 
     auto routePrefix1 = this->kGetRoutePrefix1();
-    auto cidr1 = folly::CIDRNetwork(routePrefix1.network, routePrefix1.mask);
+    auto cidr1 =
+        folly::CIDRNetwork(routePrefix1.network(), routePrefix1.mask());
     EXPECT_TRUE(utility::isHwRouteToNextHop(
         this->getHwSwitch(),
         this->kRouterID(),
@@ -276,7 +278,7 @@ TYPED_TEST(HwRouteTest, UnresolveResolvedNextHop) {
   };
   auto verify = [=]() {
     auto routePrefix = this->kGetRoutePrefix0();
-    auto cidr = folly::CIDRNetwork(routePrefix.network, routePrefix.mask);
+    auto cidr = folly::CIDRNetwork(routePrefix.network(), routePrefix.mask());
     EXPECT_TRUE(
         utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr));
     EXPECT_FALSE(utility::isHwRouteMultiPath(
@@ -306,7 +308,8 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
   };
   auto verify = [=]() {
     auto routePrefix0 = this->kGetRoutePrefix0();
-    auto cidr0 = folly::CIDRNetwork(routePrefix0.network, routePrefix0.mask);
+    auto cidr0 =
+        folly::CIDRNetwork(routePrefix0.network(), routePrefix0.mask());
     EXPECT_FALSE(
         utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr0));
     EXPECT_TRUE(utility::isHwRouteMultiPath(
@@ -325,7 +328,8 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
         ecmpHelper.nhop(ports[1]).ip));
 
     auto routePrefix1 = this->kGetRoutePrefix1();
-    auto cidr1 = folly::CIDRNetwork(routePrefix1.network, routePrefix1.mask);
+    auto cidr1 =
+        folly::CIDRNetwork(routePrefix1.network(), routePrefix1.mask());
     EXPECT_FALSE(
         utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr1));
     EXPECT_TRUE(utility::isHwRouteMultiPath(
@@ -358,7 +362,8 @@ TYPED_TEST(HwRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
         {ports[0], ports[1]},
         {this->kGetRoutePrefix0()});
     auto routePrefix0 = this->kGetRoutePrefix0();
-    auto cidr0 = folly::CIDRNetwork(routePrefix0.network, routePrefix0.mask);
+    auto cidr0 =
+        folly::CIDRNetwork(routePrefix0.network(), routePrefix0.mask());
     EXPECT_FALSE(
         utility::isHwRouteToCpu(this->getHwSwitch(), this->kRouterID(), cidr0));
     EXPECT_TRUE(utility::isHwRouteMultiPath(

@@ -83,7 +83,7 @@ struct RouteFields
     if constexpr (
         std::is_same_v<folly::IPAddressV6, AddrT> ||
         std::is_same_v<folly::IPAddressV4, AddrT>) {
-      return prefix.mask == prefix.network.bitCount();
+      return prefix.mask() == prefix.network().bitCount();
     } else {
       return false;
     }

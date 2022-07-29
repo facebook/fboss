@@ -1043,8 +1043,8 @@ TEST_F(BcmRouteTest, UnresolveResolveNextHop) {
   };
   auto verify = [=]() {
     /* route is programmed */
-    auto* bcmRoute =
-        getHwSwitch()->routeTable()->getBcmRoute(0, route.network, route.mask);
+    auto* bcmRoute = getHwSwitch()->routeTable()->getBcmRoute(
+        0, route.network(), route.mask());
     EXPECT_NE(bcmRoute, nullptr);
     auto egressId = bcmRoute->getEgressId();
     EXPECT_NE(egressId, BcmEgressBase::INVALID);

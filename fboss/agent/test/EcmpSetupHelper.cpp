@@ -282,8 +282,8 @@ void EcmpSetupTargetedPorts<IPAddrT>::programRoutes(
   for (const auto& prefix : prefixes) {
     updater->addRoute(
         routerId_,
-        folly::IPAddress(prefix.network),
-        prefix.mask,
+        folly::IPAddress(prefix.network()),
+        prefix.mask(),
         ClientID::BGPD,
         RouteNextHopEntry(nhops, AdminDistance::EBGP, counterID));
   }
@@ -382,8 +382,8 @@ void EcmpSetupTargetedPorts<IPAddrT>::programIp2MplsRoutes(
   for (const auto& prefix : prefixes) {
     updater->addRoute(
         routerId_,
-        folly::IPAddress(prefix.network),
-        prefix.mask,
+        folly::IPAddress(prefix.network()),
+        prefix.mask(),
         ClientID::BGPD,
         RouteNextHopEntry(nhops, AdminDistance::EBGP));
   }
@@ -397,8 +397,8 @@ void EcmpSetupTargetedPorts<IPAddrT>::unprogramRoutes(
   for (const auto& prefix : prefixes) {
     wrapper->delRoute(
         routerId_,
-        folly::IPAddress(prefix.network),
-        prefix.mask,
+        folly::IPAddress(prefix.network()),
+        prefix.mask(),
         ClientID::BGPD);
   }
   wrapper->program();

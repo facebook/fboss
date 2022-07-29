@@ -65,7 +65,7 @@ void verifyLabeledNextHop(
     Label label) {
   auto* bcmRoute = static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)
                        ->routeTable()
-                       ->getBcmRoute(0, prefix.network, prefix.mask);
+                       ->getBcmRoute(0, prefix.network(), prefix.mask());
   auto egressId = bcmRoute->getEgressId();
   utility::verifyLabeledEgress(egressId, label.value());
 }
@@ -85,7 +85,7 @@ void verifyLabeledNextHopWithStack(
     const LabelForwardingAction::LabelStack& stack) {
   auto* bcmRoute = static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)
                        ->routeTable()
-                       ->getBcmRoute(0, prefix.network, prefix.mask);
+                       ->getBcmRoute(0, prefix.network(), prefix.mask());
   auto egressId = bcmRoute->getEgressId();
   // verify that given egress is tunneled egress
   // its egress label must be tunnelLabel (top of stack)
@@ -110,7 +110,7 @@ void verifyMultiPathNextHop(
     int numLabeledPorts) {
   auto* bcmRoute = static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)
                        ->routeTable()
-                       ->getBcmRoute(0, prefix.network, prefix.mask);
+                       ->getBcmRoute(0, prefix.network(), prefix.mask());
   auto egressId = bcmRoute->getEgressId(); // ecmp egress id
 
   std::map<bcm_port_t, LabelForwardingAction::LabelStack> bcmPort2Stacks;
@@ -152,7 +152,7 @@ void verifyLabeledMultiPathNextHopMemberWithStack(
     bool resolved) {
   auto* bcmRoute = static_cast<const facebook::fboss::BcmSwitch*>(hwSwitch)
                        ->routeTable()
-                       ->getBcmRoute(0, prefix.network, prefix.mask);
+                       ->getBcmRoute(0, prefix.network(), prefix.mask());
   ASSERT_NE(bcmRoute, nullptr);
   const auto* egr =
       dynamic_cast<const BcmEcmpEgress*>(bcmRoute->getNextHop()->getEgress());

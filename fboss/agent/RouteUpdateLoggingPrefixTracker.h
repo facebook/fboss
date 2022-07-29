@@ -69,8 +69,8 @@ class RouteUpdateLoggingPrefixTracker {
   bool tracking(
       const RoutePrefix<AddrT>& prefix,
       std::vector<std::string>& identifiers) const {
-    folly::IPAddress addr{prefix.network};
-    RoutePrefix<folly::IPAddress> p{addr, prefix.mask};
+    folly::IPAddress addr{prefix.network()};
+    RoutePrefix<folly::IPAddress> p{addr, prefix.mask()};
     return trackingImpl(p, identifiers);
   }
 

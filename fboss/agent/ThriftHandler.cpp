@@ -478,8 +478,8 @@ LinkNeighborThrift thriftLinkNeighbor(
 template <typename AddrT>
 IpPrefix getIpPrefix(const Route<AddrT>& route) {
   IpPrefix pfx;
-  pfx.ip() = toBinaryAddress(route.prefix().network);
-  pfx.prefixLength() = route.prefix().mask;
+  pfx.ip() = toBinaryAddress(route.prefix().network());
+  pfx.prefixLength() = route.prefix().mask();
   return pfx;
 }
 
@@ -1409,8 +1409,8 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
       return;
     }
     auto fwdInfo = route->getForwardInfo();
-    tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network);
-    tempRoute.dest()->prefixLength() = route->prefix().mask;
+    tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network());
+    tempRoute.dest()->prefixLength() = route->prefix().mask();
     tempRoute.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
     tempRoute.nextHops() =
         util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
@@ -1436,8 +1436,8 @@ void ThriftHandler::getRouteTableByClient(
       return;
     }
     UnicastRoute tempRoute;
-    tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network);
-    tempRoute.dest()->prefixLength() = route->prefix().mask;
+    tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network());
+    tempRoute.dest()->prefixLength() = route->prefix().mask();
     tempRoute.nextHops() = util::fromRouteNextHopSet(entry->getNextHopSet());
     if (entry->getCounterID().has_value()) {
       tempRoute.counterID() = *entry->getCounterID();
@@ -1477,8 +1477,8 @@ void ThriftHandler::getIpRoute(
       return;
     }
     const auto fwdInfo = match->getForwardInfo();
-    *route.dest()->ip() = toBinaryAddress(match->prefix().network);
-    *route.dest()->prefixLength() = match->prefix().mask;
+    *route.dest()->ip() = toBinaryAddress(match->prefix().network());
+    *route.dest()->prefixLength() = match->prefix().mask();
     *route.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
     auto counterID = fwdInfo.getCounterID();
     if (counterID.has_value()) {
@@ -1496,8 +1496,8 @@ void ThriftHandler::getIpRoute(
       return;
     }
     const auto fwdInfo = match->getForwardInfo();
-    *route.dest()->ip() = toBinaryAddress(match->prefix().network);
-    *route.dest()->prefixLength() = match->prefix().mask;
+    *route.dest()->ip() = toBinaryAddress(match->prefix().network());
+    *route.dest()->prefixLength() = match->prefix().mask();
     *route.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
     auto counterID = fwdInfo.getCounterID();
     if (counterID.has_value()) {
@@ -1719,8 +1719,8 @@ void ThriftHandler::getRouteUpdateLoggingTrackedPrefixes(
   for (const auto& tracked : routeUpdateLogger->getTrackedPrefixes()) {
     RouteUpdateLoggingInfo info;
     IpPrefix prefix;
-    *prefix.ip() = toBinaryAddress(tracked.prefix.network);
-    *prefix.prefixLength() = tracked.prefix.mask;
+    *prefix.ip() = toBinaryAddress(tracked.prefix.network());
+    *prefix.prefixLength() = tracked.prefix.mask();
     *info.prefix() = prefix;
     *info.identifier() = tracked.identifier;
     *info.exact() = tracked.exact;
@@ -2222,7 +2222,7 @@ void ThriftHandler::getAllMplsRouteDetails(
   const auto labelFib = sw_->getState()->getLabelForwardingInformationBase();
   for (const auto& entry : *labelFib) {
     MplsRouteDetails details;
-    getMplsRouteDetails(details, entry->getID().label);
+    getMplsRouteDetails(details, entry->getID().label());
     mplsRouteDetails.push_back(details);
   }
 }

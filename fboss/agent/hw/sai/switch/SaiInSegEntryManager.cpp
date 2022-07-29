@@ -123,7 +123,7 @@ void SaiInSegEntryManager::processRemovedInSegEntry(
 
 SaiInSegEntryHandle* SaiInSegEntryManager::getInSegEntryHandle(Label label) {
   auto inSegEntry = SaiInSegTraits::InSegEntry(
-      managerTable_->switchManager().getSwitchSaiId(), label.label);
+      managerTable_->switchManager().getSwitchSaiId(), label.label());
   auto itr = saiInSegEntryTable_.find(inSegEntry);
   if (itr == saiInSegEntryTable_.end()) {
     return nullptr;

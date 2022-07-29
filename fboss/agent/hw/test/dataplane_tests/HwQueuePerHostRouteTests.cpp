@@ -76,7 +76,7 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
     for (const auto& [routePrefix, classID] : routePrefix2ClassID) {
       updater.programClassID(
           kRouterID(),
-          {{folly::IPAddress(routePrefix.network), routePrefix.mask}},
+          {{folly::IPAddress(routePrefix.network()), routePrefix.mask()}},
           classID,
           false /* sync*/);
     }

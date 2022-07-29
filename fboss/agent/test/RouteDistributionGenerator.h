@@ -36,10 +36,10 @@ folly::CIDRNetwork getNewPrefix(
     facebook::fboss::RouterID routerId) {
   // Obtain a new prefix.
   auto prefix = prefixGenerator.getNext();
-  while (findRoute<AddrT>(routerId, {prefix.network, prefix.mask}, state)) {
+  while (findRoute<AddrT>(routerId, {prefix.network(), prefix.mask()}, state)) {
     prefix = prefixGenerator.getNext();
   }
-  return folly::CIDRNetwork{{prefix.network}, prefix.mask};
+  return folly::CIDRNetwork{{prefix.network()}, prefix.mask()};
 }
 
 using Masklen2NumPrefixes = std::map<uint8_t, uint32_t>;

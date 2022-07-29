@@ -519,7 +519,7 @@ template <typename RouteT>
 void BcmRouteTable::addRoute(bcm_vrf_t vrf, const RouteT* route) {
   const auto& prefix = route->prefix();
 
-  Key key{folly::IPAddress(prefix.network), prefix.mask, vrf};
+  Key key{folly::IPAddress(prefix.network()), prefix.mask(), vrf};
   auto ret = fib_.emplace(key, nullptr);
   if (ret.second) {
     SCOPE_FAIL {
@@ -528,8 +528,8 @@ void BcmRouteTable::addRoute(bcm_vrf_t vrf, const RouteT* route) {
     ret.first->second.reset(new BcmRoute(
         hw_,
         vrf,
-        folly::IPAddress(prefix.network),
-        prefix.mask,
+        folly::IPAddress(prefix.network()),
+        prefix.mask(),
         route->getClassID()));
   }
   CHECK(route->isResolved());
@@ -544,7 +544,7 @@ void BcmRouteTable::addRoute(bcm_vrf_t vrf, const RouteT* route) {
 template <typename RouteT>
 void BcmRouteTable::deleteRoute(bcm_vrf_t vrf, const RouteT* route) {
   const auto& prefix = route->prefix();
-  Key key{folly::IPAddress(prefix.network), prefix.mask, vrf};
+  Key key{folly::IPAddress(prefix.network()), prefix.mask(), vrf};
   auto iter = fib_.find(key);
   if (iter == fib_.end()) {
     throw FbossError("Failed to delete a non-existing route ", route->str());

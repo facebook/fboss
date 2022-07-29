@@ -36,21 +36,19 @@ std::shared_ptr<facebook::fboss::ForwardingInformationBaseV4> getFibV4() {
   facebook::fboss::RoutePrefixV4 curPrefix;
 
   // The following loop iterates over 0.0.0.0/0, 0.0.0.0/1, ..., 0.0.0.0/32
-  curPrefix.network = folly::IPAddressV4("0.0.0.0");
+  auto network = folly::IPAddressV4("0.0.0.0");
   for (uint8_t len = 0; len <= 32; ++len) {
-    curPrefix.mask = len;
-
-    fibV4.addNode(createRouteFromPrefix(curPrefix));
+    fibV4.addNode(
+        createRouteFromPrefix(facebook::fboss::RoutePrefixV4(network, len)));
   }
 
   // The following loops iterate over the following set of prefixes:
   // {2^i | i in {1, ..., 32} x {1, ..., 32}
   for (uint8_t len = 1; len <= 32; ++len) {
-    curPrefix.mask = len;
-
     for (uint32_t b = (static_cast<uint32_t>(1) << 31); b > 0; b >>= 1) {
-      curPrefix.network = folly::IPAddressV4::fromLongHBO(b);
-      fibV4.addNode(createRouteFromPrefix(curPrefix));
+      auto ip = folly::IPAddressV4::fromLongHBO(b);
+      fibV4.addNode(
+          createRouteFromPrefix(facebook::fboss::RoutePrefixV4(ip, len)));
     }
   }
   return fibV4.clone();
@@ -61,11 +59,10 @@ std::shared_ptr<facebook::fboss::ForwardingInformationBaseV6> getFibV6() {
   facebook::fboss::RoutePrefixV6 curPrefix;
 
   // The following loop iterates over ::/0, ::/1, ..., ::/128
-  curPrefix.network = folly::IPAddressV6("::");
+  auto ip = folly::IPAddressV6("::");
   for (uint8_t len = 0; len <= 128; ++len) {
-    curPrefix.mask = len;
-
-    fibV6.addNode(createRouteFromPrefix(curPrefix));
+    fibV6.addNode(
+        createRouteFromPrefix(facebook::fboss::RoutePrefixV6(ip, len)));
   }
 
   std::array<uint8_t, 16> bytes;
@@ -75,16 +72,15 @@ std::shared_ptr<facebook::fboss::ForwardingInformationBaseV6> getFibV6() {
   // The following loops iterate over the the following prefixes:
   // {2^i | i in {1, ..., 128} x {1, ..., 128}
   for (uint8_t len = 1; len <= 128; ++len) {
-    curPrefix.mask = len;
-
     for (uint8_t byteIdx = 0; byteIdx < 16; ++byteIdx) {
       auto curByte = &bytes[byteIdx];
 
       for (uint8_t bitIdx = 0; bitIdx < 8; ++bitIdx) {
         *curByte = 1 << bitIdx;
 
-        curPrefix.network = folly::IPAddressV6::fromBinary(byteRange);
-        fibV6.addNode(createRouteFromPrefix(curPrefix));
+        auto ipV6 = folly::IPAddressV6::fromBinary(byteRange);
+        fibV6.addNode(
+            createRouteFromPrefix(facebook::fboss::RoutePrefixV6(ipV6, len)));
       }
 
       *curByte = 0;
@@ -111,8 +107,8 @@ TEST(ForwardingInformationBaseV4, IPv4DefaultPrefixComparesSmallest) {
 
   validateThriftyMigration(*newFib);
   EXPECT_EQ(
-      firstRouteObserved->prefix().network, folly::IPAddressV4("0.0.0.0"));
-  EXPECT_EQ(firstRouteObserved->prefix().mask, 0);
+      firstRouteObserved->prefix().network(), folly::IPAddressV4("0.0.0.0"));
+  EXPECT_EQ(firstRouteObserved->prefix().mask(), 0);
 }
 
 TEST(ForwardingInformationBaseV6, IPv6DefaultPrefixComparesSmallest) {
@@ -129,8 +125,8 @@ TEST(ForwardingInformationBaseV6, IPv6DefaultPrefixComparesSmallest) {
     return LoopAction::BREAK;
   });
 
-  EXPECT_EQ(firstRouteObserved->prefix().network, folly::IPAddressV6("::"));
-  EXPECT_EQ(firstRouteObserved->prefix().mask, 0);
+  EXPECT_EQ(firstRouteObserved->prefix().network(), folly::IPAddressV6("::"));
+  EXPECT_EQ(firstRouteObserved->prefix().mask(), 0);
 }
 
 TEST(ForwardingInformationBaseContainer, Thrifty) {

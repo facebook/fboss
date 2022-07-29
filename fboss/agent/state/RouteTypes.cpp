@@ -50,39 +50,37 @@ RouteForwardAction str2ForwardAction(const std::string& action) {
 
 template <typename AddrT>
 bool RoutePrefix<AddrT>::operator<(const RoutePrefix& p2) const {
-  if (mask < p2.mask) {
+  if (mask() < p2.mask()) {
     return true;
-  } else if (mask > p2.mask) {
+  } else if (mask() > p2.mask()) {
     return false;
   }
-  return network < p2.network;
+  return network() < p2.network();
 }
 
 template <typename AddrT>
 bool RoutePrefix<AddrT>::operator>(const RoutePrefix& p2) const {
-  if (mask > p2.mask) {
+  if (mask() > p2.mask()) {
     return true;
-  } else if (mask < p2.mask) {
+  } else if (mask() < p2.mask()) {
     return false;
   }
-  return network > p2.network;
+  return network() > p2.network();
 }
 
 template <typename AddrT>
 folly::dynamic RoutePrefix<AddrT>::toFollyDynamicLegacy() const {
   folly::dynamic pfx = folly::dynamic::object;
-  pfx[kAddress] = network.str();
-  pfx[kMask] = mask;
+  pfx[kAddress] = network().str();
+  pfx[kMask] = mask();
   return pfx;
 }
 
 template <typename AddrT>
 RoutePrefix<AddrT> RoutePrefix<AddrT>::fromFollyDynamicLegacy(
     const folly::dynamic& pfxJson) {
-  RoutePrefix pfx;
-  pfx.network = AddrT(pfxJson[kAddress].stringPiece());
-  pfx.mask = pfxJson[kMask].asInt();
-  return pfx;
+  return RoutePrefix(
+      AddrT(pfxJson[kAddress].stringPiece()), pfxJson[kMask].asInt());
 }
 
 template <typename AddrT>
@@ -104,7 +102,7 @@ void toAppend(const RoutePrefixV6& prefix, std::string* result) {
 }
 
 void toAppend(const RouteKeyMpls& route, std::string* result) {
-  result->append(fmt::format("{}", route.label));
+  result->append(fmt::format("{}", route.label()));
 }
 
 void toAppend(const RouteForwardAction& action, std::string* result) {
@@ -118,7 +116,7 @@ std::ostream& operator<<(std::ostream& os, const RouteForwardAction& action) {
 
 folly::dynamic Label::toFollyDynamicLegacy() const {
   folly::dynamic pfx = folly::dynamic::object;
-  pfx[kLabel] = static_cast<int32_t>(label);
+  pfx[kLabel] = static_cast<int32_t>(value());
   return pfx;
 }
 
@@ -126,9 +124,8 @@ template <typename AddrT>
 state::RoutePrefix RoutePrefix<AddrT>::toThrift() const {
   state::RoutePrefix thriftPrefix{};
   thriftPrefix.v6() = std::is_same_v<AddrT, folly::IPAddressV6>;
-  thriftPrefix.prefix() =
-      network::toBinaryAddress(folly::IPAddress(network.str()));
-  thriftPrefix.mask() = mask;
+  thriftPrefix.prefix() = network::toBinaryAddress(folly::IPAddress(network_));
+  thriftPrefix.mask() = mask_;
   return thriftPrefix;
 }
 
@@ -136,12 +133,12 @@ template <typename AddrT>
 RoutePrefix<AddrT> RoutePrefix<AddrT>::fromThrift(
     const state::RoutePrefix& thriftPrefix) {
   RoutePrefix<AddrT> prefix;
-  prefix.mask = *thriftPrefix.mask();
+  prefix.mask_ = *thriftPrefix.mask();
   folly::IPAddress network = network::toIPAddress(*thriftPrefix.prefix());
   if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-    prefix.network = network.asV6();
+    prefix.network_ = network.asV6();
   } else {
-    prefix.network = network.asV4();
+    prefix.network_ = network.asV4();
   }
   return prefix;
 }
@@ -174,7 +171,7 @@ void RoutePrefix<AddrT>::migrateFromThrifty(folly::dynamic& dyn) {
 
 Label Label::fromFollyDynamicLegacy(const folly::dynamic& prefixJson) {
   Label lbl;
-  lbl.label = static_cast<int32_t>(prefixJson[kLabel].asInt());
+  lbl.label_ = static_cast<int32_t>(prefixJson[kLabel].asInt());
   return lbl;
 }
 

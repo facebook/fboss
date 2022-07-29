@@ -63,8 +63,8 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
     auto updater = sw_->getRouteUpdater();
     updater.addRoute(
         RouterID(0),
-        prefix.network,
-        prefix.mask,
+        prefix.network(),
+        prefix.mask(),
         client,
         RouteNextHopEntry(nexthops, AdminDistance::MAX_ADMIN_DISTANCE));
     updater.program();
@@ -75,7 +75,7 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
       const RoutePrefix<AddrT>& prefix,
       ClientID client = ClientID::OPENR) {
     auto updater = sw_->getRouteUpdater();
-    updater.delRoute(RouterID(0), prefix.network, prefix.mask, client);
+    updater.delRoute(RouterID(0), prefix.network(), prefix.mask(), client);
     updater.program();
   }
 

@@ -71,8 +71,8 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
       std::is_same_v<folly::IPAddressV6, AddrT> ||
       std::is_same_v<folly::IPAddressV4, AddrT>) {
     // Add the prefix
-    rd.dest()->ip() = toBinaryAddress(prefix.network);
-    rd.dest()->prefixLength() = prefix.mask;
+    rd.dest()->ip() = toBinaryAddress(prefix.network());
+    rd.dest()->prefixLength() = prefix.mask();
   }
   // Add the action
   rd.action() = forwardActionStr(fwd.getAction());

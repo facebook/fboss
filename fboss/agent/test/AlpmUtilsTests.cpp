@@ -64,8 +64,8 @@ TEST(AlpmUtilsTest, DefaultNullRoutesAddedOnEmptyState) {
   auto v6Default = getDefaultRoute<IPAddressV6>(alpmInitState);
   auto assertNullRoute = [=](const auto& route) {
     EXPECT_NE(nullptr, route);
-    EXPECT_TRUE(route->prefix().network.isZero());
-    EXPECT_EQ(0, route->prefix().mask);
+    EXPECT_TRUE(route->prefix().network().isZero());
+    EXPECT_EQ(0, route->prefix().mask());
     EXPECT_TRUE(route->isDrop());
     const auto& fwd = route->getForwardInfo();
     EXPECT_EQ(AdminDistance::MAX_ADMIN_DISTANCE, fwd.getAdminDistance());

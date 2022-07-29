@@ -136,8 +136,8 @@ void checkFibRoute(
     uint8_t networkMaskLength,
     AddressT nextHopAddress,
     InterfaceID nextHopInterfaceID) {
-  EXPECT_EQ(route->prefix().network, maskedNetworkAddress);
-  EXPECT_EQ(route->prefix().mask, networkMaskLength);
+  EXPECT_EQ(route->prefix().network(), maskedNetworkAddress);
+  EXPECT_EQ(route->prefix().mask(), networkMaskLength);
   EXPECT_TRUE(route->isResolved());
 
   const RouteNextHopEntry& forwardInfo = route->getForwardInfo();
@@ -157,8 +157,8 @@ void checkFibRoute(
     facebook::fboss::RouteNextHopEntry::Action action) {
   ASSERT_NE(action, facebook::fboss::RouteNextHopEntry::Action::NEXTHOPS);
 
-  EXPECT_EQ(route->prefix().network, maskedNetworkAddress);
-  EXPECT_EQ(route->prefix().mask, networkMaskLength);
+  EXPECT_EQ(route->prefix().network(), maskedNetworkAddress);
+  EXPECT_EQ(route->prefix().mask(), networkMaskLength);
   EXPECT_TRUE(route->isResolved());
 
   const RouteNextHopEntry& forwardInfo = route->getForwardInfo();
@@ -232,9 +232,7 @@ TEST(ConfigApplication, StaticRoutesWithNextHops) {
 
   auto v4Fib = fibContainer->getFibV4();
   EXPECT_EQ(v4Fib->size(), 3);
-  RoutePrefixV4 v4Prefix;
-  v4Prefix.network = folly::IPAddressV4("20.20.20.0");
-  v4Prefix.mask = 24;
+  RoutePrefixV4 v4Prefix{folly::IPAddressV4("20.20.20.0"), 24};
   auto v4StaticRoute = v4Fib->exactMatch(v4Prefix);
   ASSERT_NE(nullptr, v4StaticRoute);
   checkFibRoute(
@@ -246,9 +244,7 @@ TEST(ConfigApplication, StaticRoutesWithNextHops) {
 
   auto v6Fib = fibContainer->getFibV6();
   EXPECT_EQ(v6Fib->size(), 4);
-  RoutePrefixV6 v6Prefix;
-  v6Prefix.network = folly::IPAddressV6("2001::");
-  v6Prefix.mask = 64;
+  RoutePrefixV6 v6Prefix{folly::IPAddressV6("2001::"), 64};
   auto v6StaticRoute = v6Fib->exactMatch(v6Prefix);
   ASSERT_NE(nullptr, v6StaticRoute);
   checkFibRoute(

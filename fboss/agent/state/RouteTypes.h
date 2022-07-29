@@ -13,11 +13,13 @@
 #include <folly/FBString.h>
 #include <folly/IPAddress.h>
 #include <folly/dynamic.h>
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 #include "folly/IPAddressV4.h"
+#include "folly/IPAddressV6.h"
 
 namespace facebook::fboss {
 
@@ -30,16 +32,19 @@ RouteForwardAction str2ForwardAction(const std::string& action);
 template <typename AddrT>
 struct RoutePrefix
     : public ThriftyFields<RoutePrefix<AddrT>, state::RoutePrefix> {
-  AddrT network{};
-  uint8_t mask{};
+  AddrT network_{};
+  uint8_t mask_{};
   RoutePrefix() {}
-  RoutePrefix(AddrT addr, uint8_t u8) : network(addr), mask(u8) {}
+  RoutePrefix(AddrT addr, uint8_t u8) : network_(addr), mask_(u8) {}
   std::string str() const {
-    return folly::to<std::string>(network, "/", static_cast<uint32_t>(mask));
+    return folly::to<std::string>(
+        network(), "/", static_cast<uint32_t>(mask()));
   }
 
   folly::CIDRNetwork toCidrNetwork() const {
-    return folly::CIDRNetwork{network.mask(mask), mask};
+    auto maskVal = mask();
+    auto networkVal = network();
+    return folly::CIDRNetwork{networkVal.mask(maskVal), maskVal};
   }
 
   state::RoutePrefix toThrift() const override;
@@ -62,12 +67,19 @@ struct RoutePrefix
   bool operator<(const RoutePrefix&) const;
   bool operator>(const RoutePrefix&) const;
   bool operator==(const RoutePrefix& p2) const {
-    return mask == p2.mask && network == p2.network;
+    return mask() == p2.mask() && network() == p2.network();
   }
   bool operator!=(const RoutePrefix& p2) const {
     return !operator==(p2);
   }
   typedef AddrT AddressT;
+
+  inline AddrT network() const {
+    return network_;
+  }
+  inline uint8_t mask() const {
+    return mask_;
+  }
 };
 
 template <>
@@ -81,26 +93,32 @@ struct is_fboss_key_object_type<RoutePrefix<folly::IPAddressV6>> {
 };
 
 struct Label : public ThriftyFields<Label, state::Label> {
-  LabelID label;
-  Label() : label(0) {}
-  /* implicit */ Label(LabelID labelVal) : label(labelVal) {}
-  /* implicit */ Label(MplsLabel labelVal) : label(labelVal) {}
+  LabelID label_;
+  Label() : label_(0) {}
+  /* implicit */ Label(LabelID labelVal) : label_(labelVal) {}
+  /* implicit */ Label(MplsLabel labelVal) : label_(labelVal) {}
   std::string str() const {
-    return folly::to<std::string>(label);
+    return folly::to<std::string>(value());
   }
 
   LabelID value() const {
-    return label;
+    return label_;
+  }
+
+  LabelID label() const {
+    return value();
   }
 
   state::Label toThrift() const override {
     state::Label thriftLabel{};
-    thriftLabel.value() = label;
+    thriftLabel.value() = label();
     return thriftLabel;
   }
+
   static Label fromThrift(const state::Label& thriftLabel) {
     return *thriftLabel.value();
   }
+
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
   static void migrateFromThrifty(folly::dynamic& dyn);
 
@@ -117,18 +135,18 @@ struct Label : public ThriftyFields<Label, state::Label> {
 
   static Label fromString(std::string str) {
     Label lbl;
-    lbl.label = folly::to<int32_t>(str);
+    lbl.label_ = folly::to<int32_t>(str);
     return lbl;
   }
 
   bool operator<(const Label& p) const {
-    return label < p.label;
+    return value() < p.value();
   }
   bool operator>(const Label& p) const {
-    return label > p.label;
+    return value() > p.value();
   }
   bool operator==(const Label& p) const {
-    return label == p.label;
+    return value() == p.value();
   }
   bool operator!=(const Label& p) const {
     return !operator==(p);

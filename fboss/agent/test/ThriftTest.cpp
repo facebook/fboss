@@ -180,7 +180,7 @@ TEST_F(ThriftTest, LinkLocalRoutes) {
   // be present
   ASSERT_NE(nullptr, longestMatchRoute);
   // Verify that the route is to link local addr.
-  ASSERT_EQ(longestMatchRoute->prefix().network, ip);
+  ASSERT_EQ(longestMatchRoute->prefix().network(), ip);
 }
 
 TEST_F(ThriftTest, flushNonExistentNeighbor) {

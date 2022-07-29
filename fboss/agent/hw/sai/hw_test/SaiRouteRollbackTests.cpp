@@ -40,7 +40,7 @@ class SaiRouteRollbackTest : public SaiRollbackTest {
   }
   template <typename T>
   folly::CIDRNetwork routePrefixToNetwork(const RoutePrefix<T>& route) const {
-    return folly::CIDRNetwork(folly::IPAddress(route.network), route.mask);
+    return folly::CIDRNetwork(folly::IPAddress(route.network()), route.mask());
   }
   folly::CIDRNetwork kV4Network1() const {
     return routePrefixToNetwork(kV4Prefix1());

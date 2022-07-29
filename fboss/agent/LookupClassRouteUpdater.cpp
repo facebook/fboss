@@ -764,7 +764,7 @@ LookupClassRouteUpdater::addRouteAndFindClassID(
   auto ridAndCidr = std::make_pair(
       rid,
       folly::CIDRNetwork{
-          addedRoute->prefix().network, addedRoute->prefix().mask});
+          addedRoute->prefix().network(), addedRoute->prefix().mask()});
 
   auto& newState = stateDelta.newState();
   std::optional<cfg::AclLookupClass> routeClassID{std::nullopt};
@@ -949,7 +949,7 @@ void LookupClassRouteUpdater::processRouteAdded(
   auto ridAndCidr = std::make_pair(
       rid,
       folly::CIDRNetwork{
-          addedRoute->prefix().network, addedRoute->prefix().mask});
+          addedRoute->prefix().network(), addedRoute->prefix().mask()});
   auto routeClassID =
       addRouteAndFindClassID(stateDelta, rid, addedRoute, std::nullopt);
 
@@ -983,7 +983,7 @@ void LookupClassRouteUpdater::processRouteRemoved(
   auto ridAndCidr = std::make_pair(
       rid,
       folly::CIDRNetwork{
-          removedRoute->prefix().network, removedRoute->prefix().mask});
+          removedRoute->prefix().network(), removedRoute->prefix().mask()});
 
   auto routeClassID = removedRoute->getClassID();
   auto& newState = stateDelta.newState();

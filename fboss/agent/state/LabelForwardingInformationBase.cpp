@@ -186,7 +186,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::unprogramLabel(
              << static_cast<int>(client);
 
   if (entryToUpdate->getEntryForClients().isEmpty()) {
-    XLOG(DBG2) << "Purging empty forwarding entry for label:" << label.label;
+    XLOG(DBG2) << "Purging empty forwarding entry for label:" << label.value();
     writableLabelFib->removeNode(entry);
   } else {
     entryToUpdate->setResolved(*entryToUpdate->getBestEntry().second);
@@ -207,7 +207,7 @@ LabelForwardingInformationBase::purgeEntriesForClient(
       entryToModify->delEntryForClient(client);
       if (entryToModify->getEntryForClients().isEmpty()) {
         XLOG(DBG1) << "Purging empty forwarding entry for label:"
-                   << entry->getID().label;
+                   << entry->getID().label();
         iter = writableLabelFib->writableNodes().erase(iter);
         continue;
       } else {

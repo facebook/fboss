@@ -57,7 +57,7 @@ void EXPECT_ROUTES_MATCH(
     auto routeA = entryA.value();
     auto prefixA = routeA->prefix();
 
-    auto iterB = routesB->exactMatch(prefixA.network, prefixA.mask);
+    auto iterB = routesB->exactMatch(prefixA.network(), prefixA.mask());
     ASSERT_NE(routesB->end(), iterB);
     auto routeB = iterB->value();
 
@@ -71,7 +71,7 @@ void EXPECT_MPLS_ROUTES_MATCH(
   EXPECT_EQ(routesA->size(), routesB->size());
   for (const auto& entryA : *routesA) {
     auto routeA = entryA.second;
-    auto labelA = routeA->prefix().label;
+    auto labelA = routeA->prefix().label();
 
     auto iterB = routesB->find(labelA);
     ASSERT_NE(routesB->end(), iterB);
@@ -102,16 +102,16 @@ TEST(Route, removeRoutesForClient) {
   u2.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
       kClientA,
       {
-          {{r1.network, r1.mask}, RouteNextHopEntry(nhop1, kDistance)},
-          {{r3.network, r3.mask}, RouteNextHopEntry(nhop1, kDistance)},
+          {{r1.network(), r1.mask()}, RouteNextHopEntry(nhop1, kDistance)},
+          {{r3.network(), r3.mask()}, RouteNextHopEntry(nhop1, kDistance)},
       },
       {},
       false);
   u2.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
       kClientB,
       {
-          {{r2.network, r2.mask}, RouteNextHopEntry(nhop2, kDistance)},
-          {{r4.network, r4.mask}, RouteNextHopEntry(nhop2, kDistance)},
+          {{r2.network(), r2.mask()}, RouteNextHopEntry(nhop2, kDistance)},
+          {{r4.network(), r4.mask()}, RouteNextHopEntry(nhop2, kDistance)},
       },
       {},
       false);
@@ -140,11 +140,11 @@ TEST(Route, serializeRouteTable) {
   u2.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
       kClientA,
       {
-          {{r1.network, r1.mask}, RouteNextHopEntry(nhop1, kDistance)},
-          {{r2.network, r2.mask},
+          {{r1.network(), r1.mask()}, RouteNextHopEntry(nhop1, kDistance)},
+          {{r2.network(), r2.mask()},
            RouteNextHopEntry(nhop2, kDistance, counterID1, classID)},
-          {{r3.network, r3.mask}, RouteNextHopEntry(nhop1, kDistance)},
-          {{r4.network, r4.mask},
+          {{r3.network(), r3.mask()}, RouteNextHopEntry(nhop1, kDistance)},
+          {{r4.network(), r4.mask()},
            RouteNextHopEntry(nhop2, kDistance, counterID2)},
       },
       {},

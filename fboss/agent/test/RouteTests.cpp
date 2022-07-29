@@ -172,14 +172,14 @@ class RouteTest : public ::testing::Test {
       RouterID rid,
       const RoutePrefixV4& prefix) {
     return findRouteImpl<IPAddressV4>(
-        rid, {prefix.network, prefix.mask}, state);
+        rid, {prefix.network(), prefix.mask()}, state);
   }
   std::shared_ptr<Route<IPAddressV6>> findRoute6(
       const std::shared_ptr<SwitchState>& state,
       RouterID rid,
       const RoutePrefixV6& prefix) {
     return findRouteImpl<IPAddressV6>(
-        rid, {prefix.network, prefix.mask}, state);
+        rid, {prefix.network(), prefix.mask()}, state);
   }
   std::shared_ptr<Route<IPAddressV4>> findRoute4(
       const std::shared_ptr<SwitchState>& state,
@@ -289,26 +289,58 @@ TEST_F(RouteTest, dedup) {
 
   auto u2 = this->sw_->getRouteUpdater();
   u2.addRoute(
-      rid, r1.network, r1.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
+      rid,
+      r1.network(),
+      r1.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop1, DISTANCE));
   u2.addRoute(
-      rid, r2.network, r2.mask, kClientA, RouteNextHopEntry(nhop2, DISTANCE));
+      rid,
+      r2.network(),
+      r2.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop2, DISTANCE));
   u2.addRoute(
-      rid, r3.network, r3.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
+      rid,
+      r3.network(),
+      r3.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop1, DISTANCE));
   u2.addRoute(
-      rid, r4.network, r4.mask, kClientA, RouteNextHopEntry(nhop2, DISTANCE));
+      rid,
+      r4.network(),
+      r4.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop2, DISTANCE));
   u2.program();
   auto stateV2 = this->sw_->getState();
   EXPECT_NE(stateV1, stateV2);
   // Re-add the same routes; expect no change
   auto u3 = this->sw_->getRouteUpdater();
   u3.addRoute(
-      rid, r1.network, r1.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
+      rid,
+      r1.network(),
+      r1.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop1, DISTANCE));
   u3.addRoute(
-      rid, r2.network, r2.mask, kClientA, RouteNextHopEntry(nhop2, DISTANCE));
+      rid,
+      r2.network(),
+      r2.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop2, DISTANCE));
   u3.addRoute(
-      rid, r3.network, r3.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
+      rid,
+      r3.network(),
+      r3.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop1, DISTANCE));
   u3.addRoute(
-      rid, r4.network, r4.mask, kClientA, RouteNextHopEntry(nhop2, DISTANCE));
+      rid,
+      r4.network(),
+      r4.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop2, DISTANCE));
   u3.program();
 
   auto stateV3 = this->sw_->getState();
@@ -316,13 +348,29 @@ TEST_F(RouteTest, dedup) {
   // Re-add the same routes, except for one difference.  Expect an update.
   auto u4 = this->sw_->getRouteUpdater();
   u4.addRoute(
-      rid, r1.network, r1.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
+      rid,
+      r1.network(),
+      r1.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop1, DISTANCE));
   u4.addRoute(
-      rid, r2.network, r2.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
+      rid,
+      r2.network(),
+      r2.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop1, DISTANCE));
   u4.addRoute(
-      rid, r3.network, r3.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
+      rid,
+      r3.network(),
+      r3.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop1, DISTANCE));
   u4.addRoute(
-      rid, r4.network, r4.mask, kClientA, RouteNextHopEntry(nhop2, DISTANCE));
+      rid,
+      r4.network(),
+      r4.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop2, DISTANCE));
   u4.program();
   auto stateV4 = this->sw_->getState();
   EXPECT_NE(stateV4, stateV3);
@@ -942,19 +990,19 @@ void checkChangedRoute(
         EXPECT_NE(oldRt, newRt);
         const auto prefix = newRt->prefix();
         auto ret = foundChanged.insert(
-            TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
+            TEMP::Route(id, IPAddress(prefix.network()), prefix.mask()));
         EXPECT_TRUE(ret.second);
       },
       [&](RouterID id, const auto& rt) {
         const auto prefix = rt->prefix();
         auto ret = foundAdded.insert(
-            TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
+            TEMP::Route(id, IPAddress(prefix.network()), prefix.mask()));
         EXPECT_TRUE(ret.second);
       },
       [&](RouterID id, const auto& rt) {
         const auto prefix = rt->prefix();
         auto ret = foundRemoved.insert(
-            TEMP::Route(id, IPAddress(prefix.network), prefix.mask));
+            TEMP::Route(id, IPAddress(prefix.network()), prefix.mask()));
         EXPECT_TRUE(ret.second);
       });
 
@@ -1197,16 +1245,16 @@ TEST_F(RouteTest, PruneChangedRoutes) {
   auto nexthops41 = makeNextHops({"10.0.0.1", "face:b00c:0:21::41"});
   updater.addRoute(
       rid0,
-      prefix41.network,
-      prefix41.mask,
+      prefix41.network(),
+      prefix41.mask(),
       kClientA,
       RouteNextHopEntry(nexthops41, DISTANCE));
 
   RouteV6::Prefix prefix42{IPAddressV6("facf:b00c:0:21::42"), 96};
   updater.addRoute(
       rid0,
-      prefix42.network,
-      prefix42.mask,
+      prefix42.network(),
+      prefix42.mask(),
       kClientA,
       RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
 
@@ -1224,8 +1272,8 @@ TEST_F(RouteTest, PruneChangedRoutes) {
   auto nexthops42 = makeNextHops({"10.0.0.1", "face:b00c:0:21::42"});
   updater.addRoute(
       rid0,
-      prefix42.network,
-      prefix42.mask,
+      prefix42.network(),
+      prefix42.mask(),
       kClientA,
       RouteNextHopEntry(nexthops42, DISTANCE));
   updater.program();
@@ -1365,8 +1413,8 @@ void addNextHopsForClient(
   auto u = sw->getRouteUpdater();
   u.addRoute(
       kRid0,
-      prefix.network,
-      prefix.mask,
+      prefix.network(),
+      prefix.mask(),
       clientId,
       RouteNextHopEntry(newNextHops(3, ipPrefix), adminDistance));
   u.program();
@@ -1377,7 +1425,7 @@ void deleteNextHopsForClient(
     RouteV4::Prefix prefix,
     ClientID clientId) {
   auto u = sw->getRouteUpdater();
-  u.delRoute(kRid0, prefix.network, prefix.mask, clientId);
+  u.delRoute(kRid0, prefix.network(), prefix.mask(), clientId);
   u.program();
 }
 // Add and remove per-client NextHop lists to the same route, and make sure
@@ -1639,8 +1687,8 @@ TEST_F(RouteTest, unresolvedWithRouteLabels) {
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
-      kDestPrefix.network,
-      kDestPrefix.mask,
+      kDestPrefix.network(),
+      kDestPrefix.mask(),
       ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
   updater.program();
@@ -1677,8 +1725,8 @@ TEST_F(RouteTest, withTunnelAndRouteLabels) {
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
-      kDestPrefix.network,
-      kDestPrefix.mask,
+      kDestPrefix.network(),
+      kDestPrefix.mask(),
       ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
 
@@ -1758,8 +1806,8 @@ TEST_F(RouteTest, withOnlyTunnelLabels) {
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
-      kDestPrefix.network,
-      kDestPrefix.mask,
+      kDestPrefix.network(),
+      kDestPrefix.mask(),
       ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
 
@@ -1840,8 +1888,8 @@ TEST_F(RouteTest, updateTunnelLabels) {
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
-      kDestPrefix.network,
-      kDestPrefix.mask,
+      kDestPrefix.network(),
+      kDestPrefix.mask(),
       ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
 
@@ -1928,8 +1976,8 @@ TEST_F(RouteTest, updateRouteLabels) {
   // routes to remote prefix to bgp next hops
   updater.addRoute(
       rid,
-      kDestPrefix.network,
-      kDestPrefix.mask,
+      kDestPrefix.network(),
+      kDestPrefix.mask(),
       ClientID::BGPD,
       RouteNextHopEntry(bgpNextHops, DISTANCE));
 
@@ -1962,13 +2010,13 @@ TEST_F(RouteTest, updateRouteLabels) {
 
   auto anotherUpdater = this->sw_->getRouteUpdater();
   anotherUpdater.delRoute(
-      rid, kDestPrefix.network, kDestPrefix.mask, ClientID::BGPD);
+      rid, kDestPrefix.network(), kDestPrefix.mask(), ClientID::BGPD);
   anotherUpdater.program();
 
   anotherUpdater.addRoute(
       rid,
-      kDestPrefix.network,
-      kDestPrefix.mask,
+      kDestPrefix.network(),
+      kDestPrefix.mask(),
       ClientID::BGPD,
       RouteNextHopEntry(updatedBgpNextHop, DISTANCE));
 
@@ -2083,13 +2131,29 @@ TEST_F(RouteTest, serializeRouteTable) {
 
   auto u2 = this->sw_->getRouteUpdater();
   u2.addRoute(
-      rid, r1.network, r1.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
+      rid,
+      r1.network(),
+      r1.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop1, DISTANCE));
   u2.addRoute(
-      rid, r2.network, r2.mask, kClientA, RouteNextHopEntry(nhop2, DISTANCE));
+      rid,
+      r2.network(),
+      r2.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop2, DISTANCE));
   u2.addRoute(
-      rid, r3.network, r3.mask, kClientA, RouteNextHopEntry(nhop1, DISTANCE));
+      rid,
+      r3.network(),
+      r3.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop1, DISTANCE));
   u2.addRoute(
-      rid, r4.network, r4.mask, kClientA, RouteNextHopEntry(nhop2, DISTANCE));
+      rid,
+      r4.network(),
+      r4.mask(),
+      kClientA,
+      RouteNextHopEntry(nhop2, DISTANCE));
   u2.program();
 
   // to folly dynamic

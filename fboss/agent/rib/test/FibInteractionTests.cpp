@@ -370,8 +370,8 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
 
   std::vector<UnicastRoute> routesToAdd;
   routesToAdd.push_back(createUnicastRoute(
-      prefix.network,
-      prefix.mask,
+      prefix.network(),
+      prefix.mask(),
       folly::IPAddress("2401:db00:e003:9100:1006::2c")));
   std::vector<IpPrefix> routesToDelete;
 
@@ -397,8 +397,8 @@ TEST(ForwardingInformationBaseUpdater, Deduplication) {
   EXPECT_EQ(route, route2);
 
   routesToAdd.push_back(createUnicastRoute(
-      prefix.network,
-      prefix.mask,
+      prefix.network(),
+      prefix.mask(),
       folly::IPAddress("2401:db00:e003:9100:1006::2b")));
 
   // 2)

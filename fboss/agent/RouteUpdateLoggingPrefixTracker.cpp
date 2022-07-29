@@ -29,7 +29,7 @@ void RouteUpdateLoggingPrefixTracker::track(
   XLOG(INFO) << "Tracking " << req.str();
   SYNCHRONIZED(trackedPrefixes_) {
     auto found = trackedPrefixes_[req.identifier].insert(
-        req.prefix.network, req.prefix.mask, req);
+        req.prefix.network(), req.prefix.mask(), req);
     // Use the most recently set configuration
     if (!found.second) {
       found.first.value() = req;
@@ -47,7 +47,7 @@ void RouteUpdateLoggingPrefixTracker::stopTracking(
     if (itr == trackedPrefixes_.end()) {
       return;
     }
-    itr->second.erase(prefix.network, prefix.mask);
+    itr->second.erase(prefix.network(), prefix.mask());
   }
 }
 
@@ -67,7 +67,7 @@ bool RouteUpdateLoggingPrefixTracker::trackingImpl(
   SYNCHRONIZED_CONST(trackedPrefixes_) {
     for (const auto& prefixes : trackedPrefixes_) {
       const auto match =
-          prefixes.second.longestMatch(prefix.network, prefix.mask);
+          prefixes.second.longestMatch(prefix.network(), prefix.mask());
       if (match != prefixes.second.end()) {
         if (!match.value().exact) {
           identifiers.push_back(prefixes.first);

@@ -85,9 +85,9 @@ class NetworkToRouteMap
       std::shared_ptr<Route<AddressT>> route) {
     if constexpr (std::is_same_v<LabelID, AddressT>) {
       return this->emplace(
-          std::make_pair(LabelID(key.label), std::move(route)));
+          std::make_pair(LabelID(key.label()), std::move(route)));
     } else {
-      return Base::insert(key.network, key.mask, std::move(route));
+      return Base::insert(key.network(), key.mask(), std::move(route));
     }
   }
 
