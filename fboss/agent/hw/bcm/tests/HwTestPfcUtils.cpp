@@ -22,6 +22,8 @@ constexpr int kDefaultPfcDeadlockDetectionAndRecoveryEnable = 0;
 constexpr int kDefaultPfcDeadlockTimerGranularity =
     bcmCosqPFCDeadlockTimerInterval1MiliSecond;
 
+constexpr int kPfcDeadlockDetectionTimerLimit = 15;
+
 /*
  * XXX: This is to be removed in a future commit, consolidating
  * PFC config additions to a single API for migration to
@@ -118,6 +120,43 @@ void pfcWatchdogProgrammingMatchesConfig(
     compareExpectedAndProgrammedPfcWatchdogParams(
         expectedHwConfig, readHwConfig);
   }
+}
+
+int getPfcDeadlockDetectionTimerGranularity(int deadlockDetectionTimeMsec) {
+  /*
+   * BCM can configure a value 0-15 with a granularity of 1msec,
+   * 10msec, 100msec as the PfcDeadlockDetectionTime, selecting
+   * the granularity based on the attempted configuration.
+   */
+  int granularity{};
+
+  if (deadlockDetectionTimeMsec <= kPfcDeadlockDetectionTimerLimit) {
+    granularity = bcmCosqPFCDeadlockTimerInterval1MiliSecond;
+  } else if (
+      deadlockDetectionTimeMsec / 10 <= kPfcDeadlockDetectionTimerLimit) {
+    granularity = bcmCosqPFCDeadlockTimerInterval10MiliSecond;
+  } else {
+    granularity = bcmCosqPFCDeadlockTimerInterval100MiliSecond;
+  }
+  return granularity;
+}
+
+int getCosqPFCDeadlockTimerGranularity() {
+  return bcmCosqPFCDeadlockTimerGranularity;
+}
+
+// Gets all the per priority PFC watchdog params programmed in HW
+int getProgrammedPfcWatchdogControlParam(
+    const HwSwitch* hw,
+    const PortID& portId,
+    int param) {
+  auto bcmParam = static_cast<bcm_cosq_pfc_deadlock_control_t>(param);
+  std::map<bcm_cosq_pfc_deadlock_control_t, int> readHwConfig;
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
+  auto bcmPort = bcmSwitch->getPortTable()->getBcmPort(portId);
+  // Get the specified param for the first enabled PFC priorities
+  bcmPort->getProgrammedPfcWatchdogParams(kLosslessPgs().at(0), readHwConfig);
+  return readHwConfig[bcmParam];
 }
 
 } // namespace facebook::fboss::utility

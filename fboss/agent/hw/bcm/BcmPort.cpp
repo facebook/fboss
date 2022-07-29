@@ -2426,7 +2426,7 @@ void BcmPort::programPfcWatchdog(const std::shared_ptr<Port>& swPort) {
       pfcDeadlockDetectionTimer = 1;
     }
     pfcDeadlockTimerGranularity =
-        utility::getPfcDeadlockDetectionTimerGranularity(
+        utility::getBcmPfcDeadlockDetectionTimerGranularity(
             pfcDeadlockDetectionTimer);
     pfcDeadlockRecoveryTimer =
         utility::getAdjustedPfcDeadlockRecoveryTimerValue(

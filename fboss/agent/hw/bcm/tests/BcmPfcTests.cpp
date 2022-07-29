@@ -155,7 +155,7 @@ class BcmPfcTests : public BcmTest {
     if (watchdogEnabled) {
       int configuredDetectionTime = *watchdogConfig.detectionTimeMsecs();
       watchdogPrams[bcmCosqPFCDeadlockTimerGranularity] =
-          utility::getPfcDeadlockDetectionTimerGranularity(
+          utility::getBcmPfcDeadlockDetectionTimerGranularity(
               configuredDetectionTime);
       watchdogPrams[bcmCosqPFCDeadlockDetectionTimer] =
           utility::getAdjustedPfcDeadlockDetectionTimerValue(

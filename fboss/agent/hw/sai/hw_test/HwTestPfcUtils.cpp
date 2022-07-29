@@ -27,4 +27,19 @@ void pfcWatchdogProgrammingMatchesConfig(
     const bool /* unused */,
     const cfg::PfcWatchdog& /* unused */) {}
 
+int getPfcDeadlockDetectionTimerGranularity(int /* unused */) {
+  return 0;
+}
+
+int getCosqPFCDeadlockTimerGranularity() {
+  return 0;
+}
+
+int getProgrammedPfcWatchdogControlParam(
+    const HwSwitch* /* unused */,
+    const PortID& /* unused */,
+    int /* unused */) {
+  return 0;
+}
+
 } // namespace facebook::fboss::utility

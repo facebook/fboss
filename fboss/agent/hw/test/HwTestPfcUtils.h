@@ -29,4 +29,17 @@ void pfcWatchdogProgrammingMatchesConfig(
     const bool watchdogEnabled,
     const cfg::PfcWatchdog& watchdog);
 
+void runPfcWatchdogGranularityTest(
+    const cfg::PfcWatchdog& pfcWatchdogConfig,
+    const int expectedGranularity);
+
+int getPfcDeadlockDetectionTimerGranularity(int deadlockDetectionTimeMsec);
+
+int getCosqPFCDeadlockTimerGranularity();
+
+int getProgrammedPfcWatchdogControlParam(
+    const HwSwitch* hw,
+    const PortID& portId,
+    int param);
+
 } // namespace facebook::fboss::utility

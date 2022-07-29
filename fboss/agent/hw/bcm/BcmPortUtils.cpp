@@ -272,7 +272,7 @@ std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>> getCorePinMapping(
   return corePinMapping;
 }
 
-int getPfcDeadlockDetectionTimerGranularity(int deadlockDetectionTimeMsec) {
+int getBcmPfcDeadlockDetectionTimerGranularity(int deadlockDetectionTimeMsec) {
   /*
    * BCM can configure a value 0-15 with a granularity of 1msec,
    * 10msec, 100msec as the PfcDeadlockDetectionTime, selecting
