@@ -36,7 +36,7 @@ class FsdbComponentSyncer {
     readyForPublishing_.store(true);
   }
 
-  void stop() {
+  virtual void stop() {
     readyForPublishing_.store(false);
   }
 
@@ -126,8 +126,14 @@ class FsdbStateComponentSyncer : public FsdbComponentSyncer {
       });
     } else if (newState != FsdbStreamClient::State::CONNECTED) {
       // stop publishing
-      evb_->runInEventBaseThreadAndWait([this] { stop(); });
+      stop();
     }
+  }
+
+  void stop() override {
+    // for state we need to make sure stop happens on our update evb otherwise
+    // we may race shutdown with a currently running update
+    evb_->runInEventBaseThreadAndWait([this] { FsdbComponentSyncer::stop(); });
   }
 
  private:
