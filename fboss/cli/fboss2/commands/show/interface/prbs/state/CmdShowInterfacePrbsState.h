@@ -96,9 +96,10 @@ class CmdShowInterfacePrbsState : public CmdHandler<
       qsfpClient->sync_getInterfacePrbsState(
           prbsState, interfaceName, component);
     } else {
-      std::runtime_error(
-          "Unsupported component " +
-          apache::thrift::util::enumNameSafe(component));
+      auto agentClient =
+          utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
+      agentClient->sync_getInterfacePrbsState(
+          prbsState, interfaceName, component);
     }
     return prbsState;
   }

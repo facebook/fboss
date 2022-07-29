@@ -86,11 +86,15 @@ class CmdShowInterfacePrbsCapabilities
       const std::string& interfaceName,
       const phy::PrbsComponent& component) {
     std::vector<prbs::PrbsPolynomial> polynomials;
-    // PRBS capabilities API is not supported in agent right now
     if (component == phy::PrbsComponent::TRANSCEIVER_LINE ||
         component == phy::PrbsComponent::TRANSCEIVER_SYSTEM) {
       auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
       qsfpClient->sync_getSupportedPrbsPolynomials(
+          polynomials, interfaceName, component);
+    } else if (component == phy::PrbsComponent::ASIC) {
+      auto agentClient =
+          utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
+      agentClient->sync_getSupportedPrbsPolynomials(
           polynomials, interfaceName, component);
     }
     return polynomials;

@@ -119,28 +119,33 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
       const std::string& interfaceName,
       const phy::PrbsComponent& component) {
     phy::PrbsStats prbsStats;
-    if (component == phy::PrbsComponent::TRANSCEIVER_LINE ||
-        component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
-        component == phy::PrbsComponent::GB_LINE ||
-        component == phy::PrbsComponent::GB_SYSTEM) {
-      auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
-      qsfpClient->sync_getInterfacePrbsStats(
-          prbsStats, interfaceName, component);
-    } else if (component == phy::PrbsComponent::ASIC) {
-      auto agentClient =
-          utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-      if (portEntries_.empty()) {
-        // Fetch all the port info once
-        agentClient->sync_getAllPortInfo(portEntries_);
+    try {
+      if (component == phy::PrbsComponent::TRANSCEIVER_LINE ||
+          component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
+          component == phy::PrbsComponent::GB_LINE ||
+          component == phy::PrbsComponent::GB_SYSTEM) {
+        auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
+        qsfpClient->sync_getInterfacePrbsStats(
+            prbsStats, interfaceName, component);
+      } else if (component == phy::PrbsComponent::ASIC) {
+        auto agentClient =
+            utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
+                hostInfo);
+        if (portEntries_.empty()) {
+          // Fetch all the port info once
+          agentClient->sync_getAllPortInfo(portEntries_);
+        }
+        agentClient->sync_getPortPrbsStats(
+            prbsStats,
+            utils::getPortIDList({interfaceName}, portEntries_)[0],
+            component);
+      } else {
+        std::runtime_error(
+            "Unsupported component " +
+            apache::thrift::util::enumNameSafe(component));
       }
-      agentClient->sync_getPortPrbsStats(
-          prbsStats,
-          utils::getPortIDList({interfaceName}, portEntries_)[0],
-          component);
-    } else {
-      std::runtime_error(
-          "Unsupported component " +
-          apache::thrift::util::enumNameSafe(component));
+    } catch (const std::exception& e) {
+      std::cerr << e.what();
     }
     return prbsStats;
   }
