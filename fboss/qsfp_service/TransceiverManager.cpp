@@ -112,6 +112,9 @@ void TransceiverManager::init() {
 }
 
 void TransceiverManager::restoreAgentConfigAppliedInfo() {
+  if (warmBootState_.isNull()) {
+    return;
+  }
   if (const auto& agentConfigAppliedIt =
           warmBootState_.find(kAgentConfigAppliedInfoStateKey);
       agentConfigAppliedIt != warmBootState_.items().end()) {
