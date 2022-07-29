@@ -381,14 +381,18 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
                              this,
                              host,
                              parsedFilters,
-                             validFilters)
+                             validFilters,
+                             parsedAggregationInput,
+                             validAggs)
                              .share());
   }
 
-  if (CmdGlobalOptions::getInstance()->getFmt().isJson()) {
-    printJson(impl(), futureList, std::cout, std::cerr);
-  } else {
-    printTabular(impl(), futureList, std::cout, std::cerr);
+  if (!parsedAggregationInput.has_value()) {
+    if (CmdGlobalOptions::getInstance()->getFmt().isJson()) {
+      printJson(impl(), futureList, std::cout, std::cerr);
+    } else {
+      printTabular(impl(), futureList, std::cout, std::cerr);
+    }
   }
 
   for (auto& fut : futureList) {

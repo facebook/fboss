@@ -150,7 +150,9 @@ class CmdHandler {
   std::tuple<std::string, RetType, std::string> asyncHandler(
       const std::string& host,
       const CmdGlobalOptions::UnionList& parsedFilters,
-      const ValidFilterMapType& validFilterMap) {
+      const ValidFilterMapType& validFilterMap,
+      const std::optional<CmdGlobalOptions::AggregateOption>& parsedAgg,
+      const ValidAggMapType& validAggMap) {
     auto hostInfo = HostInfo(host);
     XLOG(DBG2) << "host: " << host << " ip: " << hostInfo.getIpStr();
 
@@ -162,10 +164,15 @@ class CmdHandler {
       errStr = folly::to<std::string>("Thrift call failed: '", err.what(), "'");
     }
     if (!parsedFilters.empty()) {
-      RetType filteredResult =
-          filterOutput<CmdTypeT>(result, parsedFilters, validFilterMap);
-      return std::make_tuple(host, filteredResult, errStr);
+      result = filterOutput<CmdTypeT>(result, parsedFilters, validFilterMap);
     }
+
+    if (parsedAgg.has_value()) {
+      std::cout << "aggregation result : "
+                << performAggregation<CmdTypeT>(result, parsedAgg, validAggMap)
+                << std::endl;
+    }
+
     return std::make_tuple(host, result, errStr);
   }
 };
