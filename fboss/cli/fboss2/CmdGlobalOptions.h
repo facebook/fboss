@@ -28,6 +28,7 @@ class CmdGlobalOptions {
   struct AggregateOption {
     AggregateOpEnum aggOp;
     std::string columnName;
+    bool acrossHosts = false;
   };
 
   // using pointer here to avoid the object slicing problem
@@ -500,6 +501,7 @@ class CmdGlobalOptions {
   std::string color_{"yes"};
   std::string filter_;
   std::string aggregate_;
+  bool aggregateAcrossDevices_{false};
 };
 
 } // namespace facebook::fboss

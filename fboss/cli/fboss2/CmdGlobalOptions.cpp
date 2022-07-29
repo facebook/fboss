@@ -52,6 +52,10 @@ void CmdGlobalOptions::init(CLI::App& app) {
       "--aggregate",
       aggregate_,
       "Aggregation operation. Must be of the form OPERATOR(column)");
+  app.add_option(
+      "--aggregate-hosts",
+      aggregateAcrossDevices_,
+      "whether to perform aggregation across all hosts or not");
 
   initAdditional(app);
 }
@@ -141,6 +145,7 @@ CmdGlobalOptions::parseAggregate(cli::CliOptionResult& aggParsingEC) const {
   AggregateOption parsedAggregate;
   parsedAggregate.aggOp = getAggregateOp(aggOpString);
   parsedAggregate.columnName = aggColumnString;
+  parsedAggregate.acrossHosts = aggregateAcrossDevices_;
   return parsedAggregate;
 }
 
