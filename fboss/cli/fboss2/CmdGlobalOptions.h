@@ -59,6 +59,14 @@ class CmdGlobalOptions {
     virtual ~BaseAggInfo() {}
 
     virtual std::vector<AggregateOpEnum> getAcceptableOps() = 0;
+    virtual double performAggregate(
+        const std::string& newValue,
+        double& accumulatedValue,
+        AggregateOpEnum aggOp) = 0;
+
+    virtual double getInitValue(
+        const std::string& newValue,
+        AggregateOpEnum aggOp) = 0;
   };
 
   template <typename ExpectedType>
@@ -74,6 +82,75 @@ class CmdGlobalOptions {
       for (const auto& op : acceptableOps) {
         acceptedAggOps.push_back(op);
       }
+    }
+
+    double getInitValue(const std::string& newValue, AggregateOpEnum aggOp)
+        override {
+      switch (aggOp) {
+        case AggregateOpEnum::COUNT:
+          return 1;
+          break;
+        default:
+          return folly::tryTo<double>(newValue).value();
+      }
+    }
+
+    /* Returning double here because the aggregation only concerns with numeric
+    types for now. If we extend it later to something like a string aggregate,
+    we might want to change this to return a string. But for now, it's not clear
+    if that is a real use case and so we have optimized for performance and
+    sticked with double instead of string.
+
+    TODO(surabhi236:) Moving forward, we will make some changes to this design
+    and do separate handling for strings and numeric types. All numeric types
+    will be converted to double and no conversions to or from ExpectedType will
+    happen. Similarly, all string computations will happen separately, thus
+    avoiding the need for conversions to and from ExpectedType. For this, we
+    will also make changes to the AggregateOp's accumulate to handle these cases
+    separately!
+    */
+    double performAggregate(
+        const std::string& newValue,
+        double& accumulatedValue,
+        AggregateOpEnum aggOp) override {
+      auto convertedNewVal = folly::tryTo<ExpectedType>(newValue);
+      ExpectedType convertedAccValue;
+      if constexpr (!std::is_same<ExpectedType, std::string>::value) {
+        convertedAccValue =
+            folly::tryTo<ExpectedType>(accumulatedValue).value();
+      } else {
+        convertedAccValue = std::to_string(accumulatedValue);
+      }
+      if (convertedNewVal.hasError()) {
+        std::cerr << "Fatal: error in converting value to the correct type!"
+                  << std::endl;
+        exit(1);
+      }
+
+      double newAccVal;
+      switch (aggOp) {
+        case AggregateOpEnum::SUM:
+          newAccVal = SumAgg<ExpectedType>().accumulate(
+              convertedNewVal.value(), convertedAccValue);
+          break;
+        case AggregateOpEnum::MIN:
+          newAccVal = MinAgg<ExpectedType>().accumulate(
+              convertedNewVal.value(), convertedAccValue);
+          break;
+        case AggregateOpEnum::MAX:
+          newAccVal = MaxAgg<ExpectedType>().accumulate(
+              convertedNewVal.value(), convertedAccValue);
+          break;
+        case AggregateOpEnum::COUNT:
+          newAccVal = CountAgg<ExpectedType>().accumulate(
+              convertedNewVal.value(), accumulatedValue);
+          break;
+        case AggregateOpEnum::AVG:
+          newAccVal = AvgAgg<ExpectedType>().accumulate(
+              convertedNewVal.value(), convertedAccValue);
+          break;
+      }
+      return newAccVal;
     }
 
     std::vector<AggregateOpEnum> getAcceptableOps() override {
