@@ -167,9 +167,58 @@ void printAggregate(
       }
     }
   } else {
-    std::cout << "aggregating across all hosts" << std::endl;
-    // TODO(surabhi236): Write logic to perform aggregation across results of
-    // all hosts
+    // double because aggregation results are doubles.
+    std::vector<double> hostAggResults;
+    for (auto& result : results) {
+      auto [host, data, errStr] = result.get();
+      if (errStr.empty()) {
+        hostAggResults.push_back(facebook::fboss::performAggregation<CmdTypeT>(
+            data, parsedAgg, validAggMap));
+      } else {
+        std::cerr << host << "::" << std::endl
+                  << std::string(80, '=') << std::endl;
+        std::cerr << errStr << std::endl << std::endl;
+      }
+    }
+
+    double aggregateAcrossHosts;
+    int rowNumber = 0;
+    const auto& aggOp = parsedAgg->aggOp;
+    const auto& aggColumn = parsedAgg->columnName;
+    auto it = validAggMap.find(aggColumn);
+    for (auto result : hostAggResults) {
+      if (rowNumber == 0) {
+        aggregateAcrossHosts =
+            (it->second)->getInitValue(std::to_string(result), aggOp);
+        rowNumber += 1;
+      } else {
+        switch (aggOp) {
+          case facebook::fboss::AggregateOpEnum::SUM:
+            aggregateAcrossHosts = facebook::fboss::SumAgg<double>().accumulate(
+                result, aggregateAcrossHosts);
+
+            break;
+          case facebook::fboss::AggregateOpEnum::MIN:
+            aggregateAcrossHosts = facebook::fboss::MinAgg<double>().accumulate(
+                result, aggregateAcrossHosts);
+            break;
+          case facebook::fboss::AggregateOpEnum::MAX:
+            aggregateAcrossHosts = facebook::fboss::MaxAgg<double>().accumulate(
+                result, aggregateAcrossHosts);
+            break;
+          case facebook::fboss::AggregateOpEnum::COUNT:
+            aggregateAcrossHosts =
+                facebook::fboss::CountAgg<double>().accumulate(
+                    result, aggregateAcrossHosts);
+            break;
+          case facebook::fboss::AggregateOpEnum::AVG:
+            std::cerr << "Average aggregation not supported yet!" << std::endl;
+            break;
+        }
+      }
+    }
+    std::cout << "result of aggregating across all hosts: "
+              << aggregateAcrossHosts << std::endl;
   }
 }
 
