@@ -75,29 +75,52 @@ std::vector<PortID> getAllPlatformPorts(
   }
   return ports;
 }
+bool ProdInvariantTest::checkBaseConfigPortsEmpty() {
+  const auto& baseSwitchConfig = platform()->config()->thrift.sw();
+  return baseSwitchConfig->ports()->empty();
+}
+
+cfg::SwitchConfig ProdInvariantTest::getConfigFromFlag() {
+  auto agentConfig = AgentConfig::fromFile(FLAGS_config);
+  auto config = *agentConfig->thrift.sw();
+
+  // If we're passed a config, there's a high probability that it's a prod
+  // config and the ports are not in loopback mode.
+  for (auto& port : *config.ports()) {
+    port.loopbackMode() = cfg::PortLoopbackMode::MAC;
+  }
+  return config;
+}
+
 cfg::SwitchConfig ProdInvariantTest::initialConfig() {
   cfg::SwitchConfig cfg;
   std::vector<PortID> ports;
   ports.reserve(0);
-
-  ports = getAllPlatformPorts(platform()->getPlatformPorts());
-  cfg = utility::createProdRswConfig(platform()->getHwSwitch(), ports);
-  return cfg;
+  if (checkBaseConfigPortsEmpty()) {
+    ports = getAllPlatformPorts(platform()->getPlatformPorts());
+    cfg = utility::createProdRswConfig(platform()->getHwSwitch(), ports);
+    return cfg;
+  } else {
+    return getConfigFromFlag();
+  }
 }
 
 void ProdInvariantTest::setupConfigFlag() {
   cfg::AgentConfig testConfig;
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<PortMap>(), platform());
-  testConfig.sw() = initialConfig();
-  const auto& baseConfig = platform()->config();
-  testConfig.platform() = *baseConfig->thrift.platform();
-  auto newcfg = AgentConfig(
-      testConfig,
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
-  auto newCfgFile = getTestConfigPath();
-  newcfg.dumpConfig(newCfgFile);
-  FLAGS_config = newCfgFile;
+  if (checkBaseConfigPortsEmpty()) {
+    testConfig.sw() = initialConfig();
+    const auto& baseConfig = platform()->config();
+    testConfig.platform() = *baseConfig->thrift.platform();
+    auto newcfg = AgentConfig(
+        testConfig,
+        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+            testConfig));
+    auto newCfgFile = getTestConfigPath();
+    newcfg.dumpConfig(newCfgFile);
+    FLAGS_config = newCfgFile;
+  }
   // reload config so that test config is loaded
   platform()->reloadConfig();
 }
@@ -322,12 +345,17 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
   cfg::SwitchConfig initialConfig() override {
     // TODO: Currently ProdInvariantTests only has support for BCM switches.
     // That's why we're passing false in the call below.
-    auto config = utility::createProdRswMhnicConfig(
-        platform()->getHwSwitch(),
-        getAllPlatformPorts(platform()->getPlatformPorts()),
-        false /* isSai() */);
-    return config;
+    if (checkBaseConfigPortsEmpty()) {
+      auto config = utility::createProdRswMhnicConfig(
+          platform()->getHwSwitch(),
+          getAllPlatformPorts(platform()->getPlatformPorts()),
+          false /* isSai() */);
+      return config;
+    } else {
+      return getConfigFromFlag();
+    }
   }
+
   RoutePrefix<folly::IPAddressV4> kGetRoutePrefix() {
     // Currently hardcoded to IPv4. Enabling IPv6 testing for all classes is on
     // the to-do list, after which we can choose v4 or v6 with the same model as

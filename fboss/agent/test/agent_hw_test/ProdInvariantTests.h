@@ -17,6 +17,8 @@ class ProdInvariantTest : public ProdAgentTests {
   void verifyDscpToQueueMapping();
   void verifyQueuePerHostMapping(bool dscpMarkingTest);
   std::vector<PortDescriptor> ecmpPorts_{};
+  bool checkBaseConfigPortsEmpty();
+  cfg::SwitchConfig getConfigFromFlag();
 
  private:
   std::vector<PortID> getEcmpPortIds();
