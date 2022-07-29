@@ -144,6 +144,35 @@ void printJson(
       << std::endl;
 }
 
+template <typename CmdTypeT>
+void printAggregate(
+    const std::optional<facebook::fboss::CmdGlobalOptions::AggregateOption>&
+        parsedAgg,
+    std::vector<std::shared_future<
+        std::tuple<std::string, typename CmdTypeT::RetType, std::string>>>&
+        results,
+    const facebook::fboss::ValidAggMapType& validAggMap) {
+  if (!parsedAgg->acrossHosts) {
+    for (auto& result : results) {
+      auto [host, data, errStr] = result.get();
+      if (errStr.empty()) {
+        std::cout << host << " Aggregation result:: "
+                  << facebook::fboss::performAggregation<CmdTypeT>(
+                         data, parsedAgg, validAggMap)
+                  << std::endl;
+      } else {
+        std::cerr << host << "::" << std::endl
+                  << std::string(80, '=') << std::endl;
+        std::cerr << errStr << std::endl << std::endl;
+      }
+    }
+  } else {
+    std::cout << "aggregating across all hosts" << std::endl;
+    // TODO(surabhi236): Write logic to perform aggregation across results of
+    // all hosts
+  }
+}
+
 namespace facebook::fboss {
 
 // Avoid template linker error
@@ -381,9 +410,7 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
                              this,
                              host,
                              parsedFilters,
-                             validFilters,
-                             parsedAggregationInput,
-                             validAggs)
+                             validFilters)
                              .share());
   }
 
@@ -393,6 +420,8 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
     } else {
       printTabular(impl(), futureList, std::cout, std::cerr);
     }
+  } else {
+    printAggregate<CmdTypeT>(parsedAggregationInput, futureList, validAggs);
   }
 
   for (auto& fut : futureList) {
