@@ -20,6 +20,8 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
 #include <folly/String.h>
 #include <folly/Synchronized.h>
@@ -190,6 +192,14 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       phy::PrbsComponent component,
       bool enable,
       int32_t polynominal) override;
+  void getSupportedPrbsPolynomials(
+      std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
+      std::unique_ptr<std::string> portName,
+      phy::PrbsComponent component) override;
+  void getInterfacePrbsState(
+      prbs::InterfacePrbsState& prbsState,
+      std::unique_ptr<std::string> portName,
+      phy::PrbsComponent component) override;
   void getInterfaceDetail(
       InterfaceDetail& interfaceDetails,
       int32_t interfaceId) override;

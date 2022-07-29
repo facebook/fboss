@@ -196,15 +196,6 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
   ) throws (1: fboss.FbossBaseError error) (cpp.coroutine);
 
   /*
-   * Returns the list of supported PRBS polynomials for the given port and
-   * prbs component
-   */
-  list<prbs.PrbsPolynomial> getSupportedPrbsPolynomials(
-    1: string portName,
-    2: phy.PrbsComponent component,
-  ) throws (1: fboss.FbossBaseError error);
-
-  /*
    * Change the PRBS setting on a port. Useful when debugging a link
    * down or flapping issue.
    */
@@ -212,14 +203,6 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     1: string portName,
     2: phy.PrbsComponent component,
     3: prbs.InterfacePrbsState state,
-  ) throws (1: fboss.FbossBaseError error);
-
-  /*
-   * Get the PRBS setting on a port.
-   */
-  prbs.InterfacePrbsState getInterfacePrbsState(
-    1: string portName,
-    2: phy.PrbsComponent component,
   ) throws (1: fboss.FbossBaseError error);
 
   /*

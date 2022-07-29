@@ -27,6 +27,7 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
+#include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #if FOLLY_HAS_COROUTINES
 #include "fboss/agent/MKAServiceManager.h"
 #endif
@@ -1893,6 +1894,15 @@ std::vector<PrbsLaneStats> SwSwitch::getPortAsicPrbsStats(int32_t portId) {
 
 void SwSwitch::clearPortAsicPrbsStats(int32_t portId) {
   getHw()->clearPortAsicPrbsStats(portId);
+}
+
+std::vector<prbs::PrbsPolynomial> SwSwitch::getPortPrbsPolynomials(
+    int32_t portId) {
+  return getHw()->getPortPrbsPolynomials(portId);
+}
+
+prbs::InterfacePrbsState SwSwitch::getPortPrbsState(PortID portId) {
+  return getHw()->getPortPrbsState(portId);
 }
 
 std::vector<PrbsLaneStats> SwSwitch::getPortGearboxPrbsStats(

@@ -12,6 +12,7 @@ include "fboss/agent/switch_config.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "common/fb303/if/fb303.thrift"
 include "fboss/agent/if/fboss.thrift"
+include "fboss/lib/phy/prbs.thrift"
 
 enum IpModulation {
   NRZ = 1,
@@ -355,4 +356,20 @@ service FbossCommonPhyCtrl extends fb303.FacebookService {
   map<string, PhyInfo> getInterfacePhyInfo(1: list<string> portNames) throws (
     1: fboss.FbossBaseError error,
   );
+  /*
+   * Returns the list of supported PRBS polynomials for the given port and
+   * prbs component
+   */
+  list<prbs.PrbsPolynomial> getSupportedPrbsPolynomials(
+    1: string portName,
+    2: PrbsComponent component,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Get the PRBS setting on a port.
+   */
+  prbs.InterfacePrbsState getInterfacePrbsState(
+    1: string portName,
+    2: PrbsComponent component,
+  ) throws (1: fboss.FbossBaseError error);
 }

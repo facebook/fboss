@@ -53,6 +53,8 @@
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/lib/LogThriftCall.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
 #include <fb303/ServiceData.h>
 #include <folly/IPAddressV4.h>
@@ -1126,6 +1128,30 @@ void ThriftHandler::getPortStatus(
   getPortStatusImpl(statusMap, ports);
 }
 
+void ThriftHandler::getSupportedPrbsPolynomials(
+    std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
+    std::unique_ptr<std::string> portName,
+    phy::PrbsComponent component) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  if (component != phy::PrbsComponent::ASIC) {
+    throw FbossError("Unsupported component");
+  }
+  auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(*portName);
+  prbsCapabilities = sw_->getPortPrbsPolynomials(portID);
+}
+
+void ThriftHandler::getInterfacePrbsState(
+    prbs::InterfacePrbsState& prbsState,
+    std::unique_ptr<std::string> portName,
+    phy::PrbsComponent component) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  if (component != phy::PrbsComponent::ASIC) {
+    throw FbossError("Unsupported component");
+  }
+  auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(*portName);
+  prbsState = sw_->getPortPrbsState(portID);
+}
+
 void ThriftHandler::clearPortPrbsStats(
     int32_t portId,
     phy::PrbsComponent component) {
@@ -1160,6 +1186,8 @@ void ThriftHandler::getPortPrbsStats(
     for (const auto& lane : asicPrbsStats) {
       prbsStats.laneStats()->push_back(lane);
     }
+    auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+    prbsStats.timeCollected() = now.count();
   } else if (
       component == phy::PrbsComponent::GB_SYSTEM ||
       component == phy::PrbsComponent::GB_LINE) {
@@ -1189,6 +1217,15 @@ void ThriftHandler::setPortPrbs(
   const auto port = sw_->getState()->getPorts()->getPortIf(portId);
   if (!port) {
     throw FbossError("no such port ", portNum);
+  }
+  auto capabilities = sw_->getPortPrbsPolynomials(portNum);
+  if (enable &&
+      std::find(
+          capabilities.begin(),
+          capabilities.end(),
+          static_cast<prbs::PrbsPolynomial>(polynominal)) ==
+          capabilities.end()) {
+    throw FbossError("Polynomial not supported");
   }
 
   phy::PortPrbsState newPrbsState;

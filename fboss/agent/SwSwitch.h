@@ -724,6 +724,10 @@ class SwSwitch : public HwSwitch::Callback {
   void clearPortGearboxPrbsStats(int32_t portId, phy::Side side);
   SwitchRunState getSwitchRunState() const;
 
+  std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(
+      int32_t /* portId */);
+  prbs::InterfacePrbsState getPortPrbsState(PortID /* portId */);
+
   template <typename AddressT>
   std::shared_ptr<Route<AddressT>> longestMatch(
       std::shared_ptr<SwitchState> state,
