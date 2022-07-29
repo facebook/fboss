@@ -542,6 +542,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   std::vector<prbs::PrbsPolynomial> getPortPrbsPolynomials(
       int32_t /* portId */) override;
+  prbs::InterfacePrbsState getPortPrbsState(PortID portId) override;
+
   /*
    * Friend tests. We want the abilty to test private methods
    * without comprimising encapsulation for code generally.

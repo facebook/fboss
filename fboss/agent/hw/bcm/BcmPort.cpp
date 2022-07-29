@@ -40,6 +40,7 @@
 #include "fboss/agent/hw/bcm/BcmPortQueueManager.h"
 #include "fboss/agent/hw/bcm/BcmPortResourceBuilder.h"
 #include "fboss/agent/hw/bcm/BcmPortUtils.h"
+#include "fboss/agent/hw/bcm/BcmPrbs.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmQosUtils.h"
 #include "fboss/agent/hw/bcm/BcmSdkVer.h"
@@ -229,21 +230,6 @@ static const std::string getFdrStatsKey(int errorsPerCodeword) {
   return folly::to<std::string>(kErrorsPerCodeword(), ".", errorsPerCodeword);
 }
 
-// We pass in PRBS polynominal from cli as integers. However bcm api has it's
-// own value that should be used mapping to different PRBS polynominal values.
-// Hence we have a map here to mark the projection. The key here is the
-// polynominal from cli and the value is the value used in bcm api.
-using PrbsMap = boost::bimap<int32_t, uint32_t>;
-// clang-format off
-const PrbsMap asicPrbsPolynominalMap = boost::assign::list_of<PrbsMap::relation>(
-  7, 0)(
-  15, 1)(
-  23, 2)(
-  31, 3)(
-  9, 4)(
-  11, 5)(
-  58, 6);
-// clang-format on
 } // namespace
 
 namespace facebook::fboss {
@@ -1051,9 +1037,9 @@ void BcmPort::setupStatsIfNeeded(const std::shared_ptr<Port>& swPort) {
 void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
   auto prbsState = swPort->getAsicPrbs();
   if (*prbsState.enabled()) {
-    auto asicPrbsPolynominalIter =
-        asicPrbsPolynominalMap.left.find(*prbsState.polynominal());
-    if (asicPrbsPolynominalIter == asicPrbsPolynominalMap.left.end()) {
+    auto prbsMap = asicPrbsPolynomialMap();
+    auto asicPrbsPolynominalIter = prbsMap.left.find(*prbsState.polynominal());
+    if (asicPrbsPolynominalIter == prbsMap.left.end()) {
       throw FbossError(
           "Polynominal value not supported: ", *prbsState.polynominal());
     } else {
@@ -1106,7 +1092,7 @@ void BcmPort::setupPrbs(const std::shared_ptr<Port>& swPort) {
 
 std::vector<prbs::PrbsPolynomial> BcmPort::getPortPrbsPolynomials() {
   std::vector<prbs::PrbsPolynomial> capabilities;
-  for (auto it : asicPrbsPolynominalMap.left) {
+  for (auto it : asicPrbsPolynomialMap().left) {
     capabilities.push_back(static_cast<prbs::PrbsPolynomial>(it.first));
   }
   return capabilities;

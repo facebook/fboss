@@ -603,6 +603,7 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/bcm/BcmPortQueueManager.cpp
       fboss/agent/hw/bcm/BcmPortResourceBuilder.cpp
       fboss/agent/hw/bcm/BcmPortTable.cpp
+      fboss/agent/hw/bcm/BcmPrbs.cpp
       fboss/agent/hw/bcm/BcmPtpTcMgr.cpp
       fboss/agent/hw/bcm/BcmQcmCollector.cpp
       fboss/agent/hw/bcm/BcmQcmManager.cpp

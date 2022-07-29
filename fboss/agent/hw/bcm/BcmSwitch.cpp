@@ -58,6 +58,7 @@
 #include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortGroup.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmPrbs.h"
 #include "fboss/agent/hw/bcm/BcmPtpTcMgr.h"
 #include "fboss/agent/hw/bcm/BcmQcmManager.h"
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
@@ -2803,6 +2804,10 @@ void BcmSwitch::clearPortStats(
 std::vector<prbs::PrbsPolynomial> BcmSwitch::getPortPrbsPolynomials(
     int32_t portId) {
   return portTable_->getBcmPort(portId)->getPortPrbsPolynomials();
+}
+
+prbs::InterfacePrbsState BcmSwitch::getPortPrbsState(PortID portId) {
+  return getBcmPortPrbsState(unit_, portTable_->getBcmPortId(portId));
 }
 
 std::vector<PrbsLaneStats> BcmSwitch::getPortAsicPrbsStats(int32_t portId) {
