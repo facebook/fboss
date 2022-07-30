@@ -255,6 +255,12 @@ class HwAgentPfcTests : public HwTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  // Removes PFC configuration for port, but dont apply
+  void removePfcConfigSkipApply(const PortID& portId) {
+    auto portCfg = utility::findCfgPort(currentConfig, portId);
+    portCfg->pfc().reset();
+  }
+
  private:
   cfg::SwitchConfig currentConfig;
 };
@@ -490,4 +496,68 @@ TEST_F(HwAgentPfcTests, PfcWatchdogDeadlockRecoveryAction) {
   setup();
   verify();
 }
+
+// Verify all ports should be configured with the same
+// PFC watchdog deadlock recovery action.
+TEST_F(HwAgentPfcTests, PfcWatchdogDeadlockRecoveryActionMismatch) {
+  auto setup = [&]() { setupBaseConfig(); };
+
+  auto verify = [&]() {
+    auto portId1 = masterLogicalPortIds()[0];
+    auto portId2 = masterLogicalPortIds()[1];
+    cfg::PfcWatchdog pfcWatchdogConfig{};
+    cfg::PfcWatchdog defaultPfcWatchdogConfig{};
+
+    XLOG(DBG0) << "Enable PFC watchdog and make sure programming is fine";
+    initalizePfcConfigWatchdogValues(
+        pfcWatchdogConfig, 1000, 3000, cfg::PfcWatchdogRecoveryAction::NO_DROP);
+    setupPfcAndPfcWatchdog(portId1, pfcWatchdogConfig);
+    utility::pfcWatchdogProgrammingMatchesConfig(
+        getHwSwitch(), portId1, true, pfcWatchdogConfig);
+    EXPECT_EQ(
+        utility::getPfcWatchdogRecoveryAction(),
+        utility::pfcWatchdogRecoveryAction(
+            *pfcWatchdogConfig.recoveryAction()));
+
+    XLOG(DBG0) << "Enable PFC watchdog with conflicting recovery action "
+               << "on anther port and make sure programming did not happen";
+    initalizePfcConfigWatchdogValues(
+        pfcWatchdogConfig, 1200, 6000, cfg::PfcWatchdogRecoveryAction::DROP);
+    /*
+     * Applying this config will cause a PFC deadlock recovery action
+     * mismatch between ports and will result in FbossError!
+     */
+    EXPECT_THROW(
+        setupPfcAndPfcWatchdog(portId2, pfcWatchdogConfig), FbossError);
+
+    // Make sure the watchdog programming is still as previously configured
+    utility::pfcWatchdogProgrammingMatchesConfig(
+        getHwSwitch(), portId2, false, defaultPfcWatchdogConfig);
+    EXPECT_EQ(
+        utility::getPfcWatchdogRecoveryAction(),
+        utility::pfcWatchdogRecoveryAction(
+            cfg::PfcWatchdogRecoveryAction::NO_DROP));
+
+    /*
+     * Remove PFC watchdog from the first port and enable PFC watchdog with
+     * new recovery action on the second port and make sure programming is fine
+     */
+    XLOG(DBG0)
+        << "Disable PFC on one and enable with new action on the other port";
+    removePfcConfigSkipApply(portId1);
+    initalizePfcConfigWatchdogValues(
+        pfcWatchdogConfig, 1200, 6000, cfg::PfcWatchdogRecoveryAction::DROP);
+    setupPfcAndPfcWatchdog(portId2, pfcWatchdogConfig);
+    utility::pfcWatchdogProgrammingMatchesConfig(
+        getHwSwitch(), portId2, true, pfcWatchdogConfig);
+    EXPECT_EQ(
+        utility::getPfcWatchdogRecoveryAction(),
+        utility::pfcWatchdogRecoveryAction(
+            *pfcWatchdogConfig.recoveryAction()));
+  };
+  // The test fails warmboot as there are reconfigurations done in verify
+  setup();
+  verify();
+}
+
 } // namespace facebook::fboss
