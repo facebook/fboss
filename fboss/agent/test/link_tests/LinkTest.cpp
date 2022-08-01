@@ -53,7 +53,11 @@ void LinkTest::restartQsfpService() const {
 
 void LinkTest::TearDown() {
   // Expect the qsfp service to be running at the end of the tests
-  EXPECT_NO_THROW(utils::createQsfpServiceClient());
+  auto qsfpServiceClient = utils::createQsfpServiceClient();
+  EXPECT_EQ(
+      facebook::fb303::cpp2::fb_status::ALIVE,
+      qsfpServiceClient.get()->sync_getStatus())
+      << "QSFP Service no longer alive after the test";
   AgentTest::TearDown();
 }
 
