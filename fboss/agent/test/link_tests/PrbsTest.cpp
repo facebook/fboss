@@ -35,8 +35,15 @@ class PrbsTest : public LinkTest {
       std::string& interfaceName,
       phy::PrbsComponent component) {
     if (component == phy::PrbsComponent::ASIC) {
-      // TODO: Not supported yet
-      return false;
+      auto agentClient = utils::createWedgeAgentClient();
+      WITH_RETRIES_N_TIMED(
+          {
+            EXPECT_EVENTUALLY_TRUE(checkPrbsSupportedOnInterface<
+                                   apache::thrift::Client<FbossCtrl>>(
+                agentClient.get(), interfaceName, component));
+          },
+          12,
+          std::chrono::milliseconds(5000));
     } else if (
         component == phy::PrbsComponent::GB_LINE ||
         component == phy::PrbsComponent::GB_SYSTEM) {
@@ -206,8 +213,15 @@ class PrbsTest : public LinkTest {
       auto interfaceName = portAndComponentPair.first;
       auto component = portAndComponentPair.second;
       if (component == phy::PrbsComponent::ASIC) {
-        // TODO: Not supported yet
-        return false;
+        auto agentClient = utils::createWedgeAgentClient();
+        WITH_RETRIES_N_TIMED(
+            {
+              EXPECT_EVENTUALLY_TRUE(
+                  setPrbsOnInterface<apache::thrift::Client<FbossCtrl>>(
+                      agentClient.get(), interfaceName, component, state));
+            },
+            12,
+            std::chrono::milliseconds(5000));
       } else if (
           component == phy::PrbsComponent::GB_LINE ||
           component == phy::PrbsComponent::GB_SYSTEM) {
@@ -238,8 +252,15 @@ class PrbsTest : public LinkTest {
       auto interfaceName = portAndComponentPair.first;
       auto component = portAndComponentPair.second;
       if (component == phy::PrbsComponent::ASIC) {
-        // TODO: Not supported yet
-        return false;
+        auto agentClient = utils::createWedgeAgentClient();
+        WITH_RETRIES_N_TIMED(
+            {
+              EXPECT_EVENTUALLY_TRUE(
+                  checkPrbsStateOnInterface<apache::thrift::Client<FbossCtrl>>(
+                      agentClient.get(), interfaceName, component, state));
+            },
+            12,
+            std::chrono::milliseconds(5000));
       } else if (
           component == phy::PrbsComponent::GB_LINE ||
           component == phy::PrbsComponent::GB_SYSTEM) {
@@ -305,8 +326,9 @@ class PrbsTest : public LinkTest {
       auto interfaceName = portAndComponentPair.first;
       auto component = portAndComponentPair.second;
       if (component == phy::PrbsComponent::ASIC) {
-        // TODO: Not supported yet
-        return;
+        auto agentClient = utils::createWedgeAgentClient();
+        checkPrbsStatsOnInterface<apache::thrift::Client<FbossCtrl>>(
+            agentClient.get(), interfaceName, component);
       } else if (
           component == phy::PrbsComponent::GB_LINE ||
           component == phy::PrbsComponent::GB_SYSTEM) {
@@ -361,8 +383,19 @@ class PrbsTest : public LinkTest {
       auto interfaceName = portAndComponentPair.first;
       auto component = portAndComponentPair.second;
       if (component == phy::PrbsComponent::ASIC) {
-        // TODO: Not supported yet
-        return;
+        auto agentClient = utils::createWedgeAgentClient();
+        WITH_RETRIES_N_TIMED(
+            {
+              EXPECT_EVENTUALLY_TRUE(checkPrbsStatsAfterClearOnInterface<
+                                     apache::thrift::Client<FbossCtrl>>(
+                  agentClient.get(),
+                  timestampBeforeClear,
+                  interfaceName,
+                  component,
+                  prbsEnabled));
+            },
+            12,
+            std::chrono::milliseconds(5000));
       } else if (
           component == phy::PrbsComponent::GB_LINE ||
           component == phy::PrbsComponent::GB_SYSTEM) {
@@ -417,8 +450,15 @@ class PrbsTest : public LinkTest {
       auto interfaceName = portAndComponentPair.first;
       auto component = portAndComponentPair.second;
       if (component == phy::PrbsComponent::ASIC) {
-        // TODO: Not supported yet
-        return;
+        auto agentClient = utils::createWedgeAgentClient();
+        WITH_RETRIES_N_TIMED(
+            {
+              EXPECT_EVENTUALLY_TRUE(
+                  clearPrbsStatsOnInterface<apache::thrift::Client<FbossCtrl>>(
+                      agentClient.get(), interfaceName, component));
+            },
+            12,
+            std::chrono::milliseconds(5000));
       } else if (
           component == phy::PrbsComponent::GB_LINE ||
           component == phy::PrbsComponent::GB_SYSTEM) {
