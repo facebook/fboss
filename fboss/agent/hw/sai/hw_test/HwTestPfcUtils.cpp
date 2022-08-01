@@ -7,8 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-
 #include "fboss/agent/hw/test/HwTestPfcUtils.h"
+#include <gtest/gtest.h>
 
 namespace facebook::fboss::utility {
 
@@ -17,7 +17,12 @@ void getPfcEnabledStatus(
     const HwSwitch* /* unused */,
     const PortID& /* unused */,
     bool& /* unused */,
-    bool& /* unused */) {}
+    bool& /* unused */) {
+  // This function is not implemented yet.
+  // If the test is running on SAI Switches,
+  // it should throw an error.
+  EXPECT_TRUE(false);
+}
 
 // Verifies if the PFC watchdog config provided matches the one
 // programmed in BCM HW
@@ -25,13 +30,23 @@ void pfcWatchdogProgrammingMatchesConfig(
     const HwSwitch* /* unused */,
     const PortID& /* unused */,
     const bool /* unused */,
-    const cfg::PfcWatchdog& /* unused */) {}
+    const cfg::PfcWatchdog& /* unused */) {
+  // This function is not implemented yet.
+  // If the test is running on SAI Switches,
+  // it should throw an error.
+  EXPECT_TRUE(false);
+}
 
 int getPfcDeadlockDetectionTimerGranularity(int /* unused */) {
+  EXPECT_TRUE(false);
+  // This function is not implemented yet.
+  // If the test is running on SAI Switches,
+  // it should throw an error.
   return 0;
 }
 
 int getCosqPFCDeadlockTimerGranularity() {
+  EXPECT_TRUE(false);
   return 0;
 }
 
@@ -39,15 +54,27 @@ int getProgrammedPfcWatchdogControlParam(
     const HwSwitch* /* unused */,
     const PortID& /* unused */,
     int /* unused */) {
+  // This function is not implemented yet.
+  // If the test is running on SAI Switches,
+  // it should throw an error.
+  EXPECT_TRUE(false);
   return 0;
 }
 
 int getPfcWatchdogRecoveryAction() {
+  // This function is not implemented yet.
+  // If the test is running on SAI Switches,
+  // it should throw an error.
+  EXPECT_TRUE(false);
   return -1;
 }
 
 // Maps cfg::PfcWatchdogRecoveryAction to SAI specific value
 int pfcWatchdogRecoveryAction(cfg::PfcWatchdogRecoveryAction /* unused */) {
+  // This function is not implemented yet.
+  // If the test is running on SAI Switches,
+  // it should throw an error.
+  EXPECT_TRUE(false);
   return 0;
 }
 
