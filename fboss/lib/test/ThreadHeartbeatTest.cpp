@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/ThreadHeartbeat.h"
+#include "fboss/lib/ThreadHeartbeat.h"
 #include <folly/system/ThreadName.h>
 #include <gtest/gtest.h>
 

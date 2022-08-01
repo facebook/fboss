@@ -8,7 +8,7 @@
  *
  */
 // Copyright 2014-present Facebook. All Rights Reserved.
-#include "fboss/agent/ThreadHeartbeat.h"
+#include "fboss/lib/ThreadHeartbeat.h"
 #include <folly/logging/xlog.h>
 
 using namespace std::chrono;

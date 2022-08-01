@@ -115,3 +115,11 @@ target_link_libraries(common_utils
   fboss_error
   fb303::fb303
 )
+
+add_library(thread_heartbeat
+  fboss/lib/ThreadHeartbeat.cpp
+)
+
+target_link_libraries(thread_heartbeat
+  Folly::folly
+)

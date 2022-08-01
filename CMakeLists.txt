@@ -821,7 +821,6 @@ if (NOT SAI_ONLY)
       fboss/agent/SwSwitch.cpp
       fboss/agent/SwSwitchRouteUpdateWrapper.cpp
       fboss/agent/ThriftHandler.cpp
-      fboss/agent/ThreadHeartbeat.cpp
       fboss/agent/TunIntf.cpp
       fboss/agent/TunManager.cpp
       fboss/agent/Utils.cpp
@@ -919,6 +918,7 @@ if (NOT SAI_ONLY)
       fsdb_pub_sub
       fsdb_flags
       qsfp_lib
+      thread_heartbeat
   )
 
   set_target_properties(fboss_agent PROPERTIES COMPILE_FLAGS
