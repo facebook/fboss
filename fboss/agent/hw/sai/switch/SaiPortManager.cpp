@@ -782,7 +782,8 @@ const std::vector<sai_stat_id_t>& SaiPortManager::fecStatIds(
   }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_FEC_COUNTERS) &&
       utility::isReedSolomonFec(getFECMode(portId))) {
-#if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_0_EA_ODP)
+#if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_0_EA_ODP) || \
+    defined(TAJO_SDK_VERSION_1_42_4)
     ids.push_back(SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES);
     ids.push_back(SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES);
 #endif

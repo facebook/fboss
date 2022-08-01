@@ -52,6 +52,7 @@ bool EbroAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PTP_TC_PCS:
     case HwAsic::Feature::VOQ_MODE:
     case HwAsic::Feature::FABRIC_MODE:
+    case HwAsic::Feature::SAI_FEC_COUNTERS:
       return true;
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
@@ -93,7 +94,6 @@ bool EbroAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
-    case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
       return false;
   }
