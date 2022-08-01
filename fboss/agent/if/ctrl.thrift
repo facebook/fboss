@@ -603,6 +603,24 @@ struct ConfigAppliedInfo {
   2: optional i64 lastColdbootAppliedInMs;
 }
 
+struct TeFlow {
+  1: optional i32 srcPort;
+  2: optional IpPrefix dstPrefix;
+}
+
+typedef string TeCounterID
+
+struct FlowEntry {
+  1: TeFlow flow;
+  2: list<common.NextHopThrift> nextHops;
+  3: optional TeCounterID counterID;
+}
+
+safe stateful server exception FbossTeUpdateError {
+  1: list<TeFlow> failedAddUpdateFlows;
+  2: list<TeFlow> failedDeleteFlows;
+}
+
 service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
@@ -1199,6 +1217,18 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   void setMacAddrsToBlock(
     1: list<switch_config.MacAndVlan> macAddrsToblock,
   ) throws (1: fboss.FbossBaseError error);
+
+  void addTeFlows(1: i16 clientId, 2: list<FlowEntry> teFlowEntries) throws (
+    1: FbossTeUpdateError error,
+  );
+
+  void deleteTeFlows(1: i16 clientId, 2: list<TeFlow> teFlows) throws (
+    1: FbossTeUpdateError error,
+  );
+
+  void syncTeFlows(1: i16 clientId, 2: list<FlowEntry> teFlowEntries) throws (
+    1: FbossTeUpdateError error,
+  );
 }
 
 service NeighborListenerClient extends fb303.FacebookService {
