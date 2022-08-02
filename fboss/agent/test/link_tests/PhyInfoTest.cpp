@@ -3,11 +3,15 @@
 #include <gtest/gtest.h>
 #include <chrono>
 #include <optional>
+
+#include <thrift/lib/cpp2/protocol/DebugProtocol.h>
+
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
@@ -22,6 +26,10 @@ void validatePhyInfo(
     const phy::PhyInfo& curr,
     phy::DataPlanePhyChipType chipType) {
   SCOPED_TRACE(folly::to<std::string>("port ", *prev.name()));
+  SCOPED_TRACE(
+      folly::to<std::string>("previous: ", apache::thrift::debugString(prev)));
+  SCOPED_TRACE(
+      folly::to<std::string>("current: ", apache::thrift::debugString(curr)));
 
   // Assert that a phy info update happened
   EXPECT_TRUE(*curr.timeCollected() > *prev.timeCollected());
@@ -87,10 +95,16 @@ void validatePhyInfo(
 
   {
     SCOPED_TRACE("line side");
-    EXPECT_EQ(prev.line()->side(), phy::Side::LINE);
-    EXPECT_EQ(curr.line()->side(), phy::Side::LINE);
-    checkPmd(prev.line()->get_pmd());
-    checkPmd(curr.line()->get_pmd());
+    {
+      SCOPED_TRACE("previous");
+      EXPECT_EQ(prev.line()->side(), phy::Side::LINE);
+      checkPmd(prev.line()->get_pmd());
+    }
+    {
+      SCOPED_TRACE("current");
+      EXPECT_EQ(curr.line()->side(), phy::Side::LINE);
+      checkPmd(curr.line()->get_pmd());
+    }
   }
   if (chipType == phy::DataPlanePhyChipType::XPHY) {
     SCOPED_TRACE("system side");
