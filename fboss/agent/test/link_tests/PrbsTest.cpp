@@ -21,11 +21,6 @@ struct TestPort {
   prbs::PrbsPolynomial polynomial;
 };
 
-template <
-    prbs::PrbsPolynomial PolynomialA,
-    phy::PrbsComponent ComponentA,
-    prbs::PrbsPolynomial PolynomialB,
-    phy::PrbsComponent ComponentZ>
 class PrbsTest : public LinkTest {
  public:
   bool checkValidMedia(PortID port, MediaInterfaceCode media) {
@@ -525,12 +520,7 @@ class PrbsTest : public LinkTest {
 };
 
 template <MediaInterfaceCode Media, prbs::PrbsPolynomial Polynomial>
-class TransceiverLineToTransceiverLinePrbsTest
-    : public PrbsTest<
-          Polynomial,
-          phy::PrbsComponent::TRANSCEIVER_LINE,
-          Polynomial,
-          phy::PrbsComponent::TRANSCEIVER_LINE> {
+class TransceiverLineToTransceiverLinePrbsTest : public PrbsTest {
  protected:
   std::vector<TestPort> getPortsToTest() override {
     std::vector<TestPort> portsToTest;
@@ -560,13 +550,8 @@ template <
     MediaInterfaceCode Media,
     prbs::PrbsPolynomial PolynomialA,
     phy::PrbsComponent ComponentA,
-    prbs::PrbsPolynomial PolynomialB>
-class PhyToTransceiverSystemPrbsTest
-    : public PrbsTest<
-          PolynomialA,
-          ComponentA,
-          PolynomialB,
-          phy::PrbsComponent::TRANSCEIVER_SYSTEM> {
+    prbs::PrbsPolynomial PolynomialZ>
+class PhyToTransceiverSystemPrbsTest : public PrbsTest {
  protected:
   std::vector<TestPort> getPortsToTest() override {
     CHECK(
@@ -582,11 +567,11 @@ class PhyToTransceiverSystemPrbsTest
             !this->checkPrbsSupported(
                 portName,
                 phy::PrbsComponent::TRANSCEIVER_SYSTEM,
-                PolynomialB)) {
+                PolynomialZ)) {
           continue;
         }
         portsToTest.push_back(
-            {portName, phy::PrbsComponent::TRANSCEIVER_SYSTEM, PolynomialB});
+            {portName, phy::PrbsComponent::TRANSCEIVER_SYSTEM, PolynomialZ});
         portsToTest.push_back({portName, ComponentA, PolynomialA});
       }
     }
@@ -594,7 +579,7 @@ class PhyToTransceiverSystemPrbsTest
   }
 };
 
-#define PRBS_TEST_NAME(COMPONENT_A, COMPONENT_B, POLYNOMIAL_A, POLYNOMIAL_B) \
+#define PRBS_TEST_NAME(COMPONENT_A, COMPONENT_Z, POLYNOMIAL_A, POLYNOMIAL_Z) \
   BOOST_PP_CAT(                                                              \
       Prbs_,                                                                 \
       BOOST_PP_CAT(                                                          \
@@ -603,13 +588,13 @@ class PhyToTransceiverSystemPrbsTest
               BOOST_PP_CAT(                                                  \
                   _,                                                         \
                   BOOST_PP_CAT(                                              \
-                      POLYNOMIAL_A, BOOST_PP_CAT(_TO_, COMPONENT_B)))),      \
-          BOOST_PP_CAT(_, POLYNOMIAL_B)))
+                      POLYNOMIAL_A, BOOST_PP_CAT(_TO_, COMPONENT_Z)))),      \
+          BOOST_PP_CAT(_, POLYNOMIAL_Z)))
 
 #define PRBS_TRANSCEIVER_TEST_NAME(                                         \
-    MEDIA, COMPONENT_A, COMPONENT_B, POLYNOMIAL_A, POLYNOMIAL_B)            \
+    MEDIA, COMPONENT_A, COMPONENT_Z, POLYNOMIAL_A, POLYNOMIAL_Z)            \
   BOOST_PP_CAT(                                                             \
-      PRBS_TEST_NAME(COMPONENT_A, COMPONENT_B, POLYNOMIAL_A, POLYNOMIAL_B), \
+      PRBS_TEST_NAME(COMPONENT_A, COMPONENT_Z, POLYNOMIAL_A, POLYNOMIAL_Z), \
       BOOST_PP_CAT(_, MEDIA))
 
 #define PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(MEDIA, POLYNOMIAL)        \
