@@ -743,6 +743,24 @@ TEST_F(AclApiTest, createAclEntry) {
   checkAclEntry(aclTableId, aclEntryId);
 }
 
+TEST_F(AclApiTest, enableDisableAclEntry) {
+  auto aclTableId = createAclTable();
+  checkAclTable(aclTableId);
+
+  auto aclEntryId = createAclEntry(aclTableId);
+  checkAclEntry(aclTableId, aclEntryId);
+  EXPECT_TRUE(aclApi->getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::Enabled()));
+  aclApi->setAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::Enabled(false));
+  EXPECT_FALSE(aclApi->getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::Enabled()));
+  aclApi->setAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::Enabled(true));
+  EXPECT_TRUE(aclApi->getAttribute(
+      aclEntryId, SaiAclEntryTraits::Attributes::Enabled()));
+}
+
 TEST_F(AclApiTest, mulipleAclTables) {
   auto aclTableId1 = createAclTable();
   auto aclTableId2 = createAclTable();
