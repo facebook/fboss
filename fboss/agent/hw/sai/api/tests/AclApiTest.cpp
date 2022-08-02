@@ -611,9 +611,12 @@ class AclApiTest : public ::testing::Test {
       sai_uint8_t setDSCP,
       const std::vector<sai_object_id_t>& mirrorIngress,
       const std::vector<sai_object_id_t>& mirrorEgress,
-      sai_object_id_t macsecFlow) const {
+      sai_object_id_t macsecFlow,
+      bool enabled = true) const {
     auto aclPriorityGot = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::Priority());
+    auto aclEnabledGot = aclApi->getAttribute(
+        aclEntryId, SaiAclEntryTraits::Attributes::Enabled());
 
     auto aclFieldSrcIpV6Got = aclApi->getAttribute(
         aclEntryId, SaiAclEntryTraits::Attributes::FieldSrcIpV6());
@@ -680,6 +683,7 @@ class AclApiTest : public ::testing::Test {
         aclEntryId, SaiAclEntryTraits::Attributes::ActionMacsecFlow());
 
     EXPECT_EQ(aclPriorityGot, priority);
+    EXPECT_EQ(aclEnabledGot, enabled);
 
     EXPECT_EQ(aclFieldSrcIpV6Got.getDataAndMask(), srcIpV6);
     EXPECT_EQ(aclFieldDstIpV6Got.getDataAndMask(), dstIpV6);
