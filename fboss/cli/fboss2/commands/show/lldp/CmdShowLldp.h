@@ -29,6 +29,7 @@ struct CmdShowLldpTraits : public BaseCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = std::vector<std::string>;
   using RetType = cli::ShowLldpModel;
+  static constexpr bool ALLOW_FILTERING = true;
 };
 
 class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {

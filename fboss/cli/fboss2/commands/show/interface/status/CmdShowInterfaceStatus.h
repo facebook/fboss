@@ -29,6 +29,7 @@ struct CmdShowInterfaceStatusTraits : public BaseCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
   using RetType = cli::ShowIntStatusModel;
+  static constexpr bool ALLOW_FILTERING = true;
 };
 
 class CmdShowInterfaceStatus

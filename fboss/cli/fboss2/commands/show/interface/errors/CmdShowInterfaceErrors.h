@@ -28,6 +28,7 @@ struct CmdShowInterfaceErrorsTraits : public BaseCommandTraits {
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
   using RetType = cli::InterfaceErrorsModel;
+  static constexpr bool ALLOW_FILTERING = true;
 };
 
 class CmdShowInterfaceErrors
