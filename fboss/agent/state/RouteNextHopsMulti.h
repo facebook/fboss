@@ -49,7 +49,13 @@ using ClientToNHopMap = std::map<ClientID, state::RouteNextHopEntry>;
 class RouteNextHopsMulti
     : public ThriftyFields<RouteNextHopsMulti, state::RouteNextHopsMulti> {
  private:
-  ClientToNHopMap map_;
+  ClientToNHopMap& map() {
+    return *writableData().client2NextHopEntry();
+  }
+
+  const ClientToNHopMap& map() const {
+    return *data().client2NextHopEntry();
+  }
 
  protected:
   ClientID findLowestAdminDistance();
@@ -69,29 +75,29 @@ class RouteNextHopsMulti
   void update(ClientID clientid, RouteNextHopEntry nhe);
 
   void clear() {
-    map_.clear();
+    map().clear();
   }
 
   bool operator==(const RouteNextHopsMulti& p2) const {
-    return map_ == p2.map_;
+    return map() == p2.map();
   }
 
   ClientToNHopMap::const_iterator begin() const {
-    return map_.begin();
+    return map().begin();
   }
 
   ClientToNHopMap::const_iterator end() const {
-    return map_.end();
+    return map().end();
   }
 
   bool isEmpty() const {
     // The code disallows adding/updating an empty nextHops list. So if the
     // map contains any entries, they are non-zero-length lists.
-    return map_.empty();
+    return map().empty();
   }
 
   size_t size() const {
-    return map_.size();
+    return map().size();
   }
   void delEntryForClient(ClientID clientId);
 
