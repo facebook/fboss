@@ -30,6 +30,7 @@ struct CmdShowLldpTraits : public BaseCommandTraits {
   using ObjectArgType = std::vector<std::string>;
   using RetType = cli::ShowLldpModel;
   static constexpr bool ALLOW_FILTERING = true;
+  static constexpr bool ALLOW_AGGREGATION = true;
 };
 
 class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {

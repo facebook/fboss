@@ -23,6 +23,7 @@ struct CmdShowArpTraits : public BaseCommandTraits {
   using ObjectArgType = std::monostate;
   using RetType = cli::ShowArpModel;
   static constexpr bool ALLOW_FILTERING = true;
+  static constexpr bool ALLOW_AGGREGATION = true;
 };
 
 class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {

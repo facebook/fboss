@@ -21,6 +21,7 @@ struct CmdShowAclTraits : public BaseCommandTraits {
   using ObjectArgType = std::monostate;
   using RetType = cli::ShowAclModel;
   static constexpr bool ALLOW_FILTERING = true;
+  static constexpr bool ALLOW_AGGREGATION = true;
 };
 
 class CmdShowAcl : public CmdHandler<CmdShowAcl, CmdShowAclTraits> {

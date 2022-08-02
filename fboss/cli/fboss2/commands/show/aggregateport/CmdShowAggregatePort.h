@@ -23,6 +23,7 @@ struct CmdShowAggregatePortTraits : public BaseCommandTraits {
   using ObjectArgType = std::vector<std::string>;
   using RetType = cli::ShowAggregatePortModel;
   static constexpr bool ALLOW_FILTERING = true;
+  static constexpr bool ALLOW_AGGREGATION = true;
 };
 
 class CmdShowAggregatePort

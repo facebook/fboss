@@ -34,6 +34,7 @@ struct CmdShowInterfaceTrafficTraits : public BaseCommandTraits {
   using ObjectArgType = std::monostate;
   using RetType = cli::InterfaceTrafficModel;
   static constexpr bool ALLOW_FILTERING = true;
+  static constexpr bool ALLOW_AGGREGATION = true;
 };
 
 class CmdShowInterfaceTraffic : public CmdHandler<

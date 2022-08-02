@@ -29,6 +29,7 @@ struct CmdShowInterfaceCountersTraits : public BaseCommandTraits {
   using ObjectArgType = std::monostate;
   using RetType = cli::InterfaceCountersModel;
   static constexpr bool ALLOW_FILTERING = true;
+  static constexpr bool ALLOW_AGGREGATION = true;
 };
 
 class CmdShowInterfaceCounters : public CmdHandler<

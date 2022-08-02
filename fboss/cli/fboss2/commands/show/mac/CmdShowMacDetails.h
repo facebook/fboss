@@ -21,6 +21,7 @@ struct CmdShowMacDetailsTraits : public BaseCommandTraits {
   using ObjectArgType = utils::NoneArgType;
   using RetType = cli::ShowMacDetailsModel;
   static constexpr bool ALLOW_FILTERING = true;
+  static constexpr bool ALLOW_AGGREGATION = true;
 };
 
 class CmdShowMacDetails

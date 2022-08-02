@@ -23,6 +23,7 @@ struct CmdShowNdpTraits : public BaseCommandTraits {
   using ObjectArgType = std::vector<std::string>;
   using RetType = cli::ShowNdpModel;
   static constexpr bool ALLOW_FILTERING = true;
+  static constexpr bool ALLOW_AGGREGATION = true;
 };
 
 class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {

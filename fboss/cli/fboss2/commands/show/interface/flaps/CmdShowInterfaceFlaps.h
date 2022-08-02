@@ -29,6 +29,7 @@ struct CmdShowInterfaceFlapsTraits : public BaseCommandTraits {
   using ObjectArgType = std::monostate;
   using RetType = cli::InterfaceFlapsModel;
   static constexpr bool ALLOW_FILTERING = true;
+  static constexpr bool ALLOW_AGGREGATION = true;
 };
 
 class CmdShowInterfaceFlaps

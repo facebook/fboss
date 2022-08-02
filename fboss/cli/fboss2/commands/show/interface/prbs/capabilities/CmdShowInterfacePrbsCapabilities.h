@@ -25,6 +25,7 @@ struct CmdShowInterfacePrbsCapabilitiesTraits : public BaseCommandTraits {
   using ObjectArgType = std::monostate;
   using RetType = cli::ShowCapabilitiesModel;
   static constexpr bool ALLOW_FILTERING = true;
+  static constexpr bool ALLOW_AGGREGATION = true;
 };
 
 class CmdShowInterfacePrbsCapabilities
