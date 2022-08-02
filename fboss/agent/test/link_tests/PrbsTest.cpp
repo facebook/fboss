@@ -7,6 +7,7 @@
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
@@ -14,9 +15,16 @@
 using namespace ::testing;
 using namespace facebook::fboss;
 
+struct TestPort {
+  std::string portName;
+  phy::PrbsComponent component;
+  prbs::PrbsPolynomial polynomial;
+};
+
 template <
-    prbs::PrbsPolynomial Polynomial,
+    prbs::PrbsPolynomial PolynomialA,
     phy::PrbsComponent ComponentA,
+    prbs::PrbsPolynomial PolynomialB,
     phy::PrbsComponent ComponentZ>
 class PrbsTest : public LinkTest {
  public:
@@ -33,14 +41,15 @@ class PrbsTest : public LinkTest {
 
   bool checkPrbsSupported(
       std::string& interfaceName,
-      phy::PrbsComponent component) {
+      phy::PrbsComponent component,
+      prbs::PrbsPolynomial polynomial) {
     if (component == phy::PrbsComponent::ASIC) {
       auto agentClient = utils::createWedgeAgentClient();
       WITH_RETRIES_N_TIMED(
           {
             EXPECT_EVENTUALLY_TRUE(checkPrbsSupportedOnInterface<
                                    apache::thrift::Client<FbossCtrl>>(
-                agentClient.get(), interfaceName, component));
+                agentClient.get(), interfaceName, component, polynomial));
           },
           12,
           std::chrono::milliseconds(5000));
@@ -57,7 +66,7 @@ class PrbsTest : public LinkTest {
           {
             EXPECT_EVENTUALLY_TRUE(checkPrbsSupportedOnInterface<
                                    facebook::fboss::QsfpServiceAsyncClient>(
-                qsfpServiceClient.get(), interfaceName, component));
+                qsfpServiceClient.get(), interfaceName, component, polynomial));
           },
           12,
           std::chrono::milliseconds(5000));
@@ -71,13 +80,15 @@ class PrbsTest : public LinkTest {
     waitForLldpOnCabledPorts();
 
     // Get the list of ports and their components to enable the test on
-    portsAndComponentsToTest_ = getPortsToTest();
-    CHECK(!portsAndComponentsToTest_.empty());
+    portsToTest_ = getPortsToTest();
+    CHECK(!portsToTest_.empty());
 
-    for (auto [port, component] : portsAndComponentsToTest_) {
-      XLOG(INFO) << "Will run the PRBS test on "
-                 << apache::thrift::util::enumNameSafe(component) << " on "
-                 << port;
+    for (auto testPort : portsToTest_) {
+      XLOG(INFO) << "Will run the PRBS "
+                 << apache::thrift::util::enumNameSafe(testPort.polynomial)
+                 << " test on "
+                 << apache::thrift::util::enumNameSafe(testPort.component)
+                 << " on " << testPort.portName;
     }
   }
 
@@ -85,12 +96,12 @@ class PrbsTest : public LinkTest {
     prbs::InterfacePrbsState enabledState;
     enabledState.generatorEnabled() = true;
     enabledState.checkerEnabled() = true;
-    enabledState.polynomial() = prbs::PrbsPolynomial(Polynomial);
+    // Polynomial is set later in individual functions depending on the port and
+    // component being tested
 
     prbs::InterfacePrbsState disabledState;
     disabledState.generatorEnabled() = false;
     disabledState.checkerEnabled() = false;
-    disabledState.polynomial() = prbs::PrbsPolynomial(Polynomial);
 
     auto timestampBeforeClear = std::time(nullptr);
     /* sleep override */ std::this_thread::sleep_for(1s);
@@ -185,12 +196,10 @@ class PrbsTest : public LinkTest {
     waitForLldpOnCabledPorts();
   }
 
-  virtual std::vector<std::pair<std::string, phy::PrbsComponent>>
-  getPortsToTest() = 0;
+  virtual std::vector<TestPort> getPortsToTest() = 0;
 
  private:
-  std::vector<std::pair<std::string, phy::PrbsComponent>>
-      portsAndComponentsToTest_;
+  std::vector<TestPort> portsToTest_;
 
   template <class Client>
   bool setPrbsOnInterface(
@@ -209,9 +218,10 @@ class PrbsTest : public LinkTest {
   }
 
   bool setPrbsOnAllInterfaces(prbs::InterfacePrbsState& state) {
-    for (const auto& portAndComponentPair : portsAndComponentsToTest_) {
-      auto interfaceName = portAndComponentPair.first;
-      auto component = portAndComponentPair.second;
+    for (const auto& testPort : portsToTest_) {
+      auto interfaceName = testPort.portName;
+      auto component = testPort.component;
+      state.polynomial_ref() = testPort.polynomial;
       if (component == phy::PrbsComponent::ASIC) {
         auto agentClient = utils::createWedgeAgentClient();
         WITH_RETRIES_N_TIMED(
@@ -248,9 +258,10 @@ class PrbsTest : public LinkTest {
   }
 
   bool checkPrbsStateOnAllInterfaces(prbs::InterfacePrbsState& state) {
-    for (const auto& portAndComponentPair : portsAndComponentsToTest_) {
-      auto interfaceName = portAndComponentPair.first;
-      auto component = portAndComponentPair.second;
+    for (const auto& testPort : portsToTest_) {
+      auto interfaceName = testPort.portName;
+      auto component = testPort.component;
+      state.polynomial_ref() = testPort.polynomial;
       if (component == phy::PrbsComponent::ASIC) {
         auto agentClient = utils::createWedgeAgentClient();
         WITH_RETRIES_N_TIMED(
@@ -322,9 +333,9 @@ class PrbsTest : public LinkTest {
   }
 
   void checkPrbsStatsOnAllInterfaces() {
-    for (const auto& portAndComponentPair : portsAndComponentsToTest_) {
-      auto interfaceName = portAndComponentPair.first;
-      auto component = portAndComponentPair.second;
+    for (const auto& testPort : portsToTest_) {
+      auto interfaceName = testPort.portName;
+      auto component = testPort.component;
       if (component == phy::PrbsComponent::ASIC) {
         auto agentClient = utils::createWedgeAgentClient();
         checkPrbsStatsOnInterface<apache::thrift::Client<FbossCtrl>>(
@@ -379,9 +390,9 @@ class PrbsTest : public LinkTest {
   void checkPrbsStatsAfterClearOnAllInterfaces(
       std::time_t timestampBeforeClear,
       bool prbsEnabled) {
-    for (const auto& portAndComponentPair : portsAndComponentsToTest_) {
-      auto interfaceName = portAndComponentPair.first;
-      auto component = portAndComponentPair.second;
+    for (const auto& testPort : portsToTest_) {
+      auto interfaceName = testPort.portName;
+      auto component = testPort.component;
       if (component == phy::PrbsComponent::ASIC) {
         auto agentClient = utils::createWedgeAgentClient();
         WITH_RETRIES_N_TIMED(
@@ -446,9 +457,9 @@ class PrbsTest : public LinkTest {
   }
 
   void clearPrbsStatsOnAllInterfaces() {
-    for (const auto& portAndComponentPair : portsAndComponentsToTest_) {
-      auto interfaceName = portAndComponentPair.first;
-      auto component = portAndComponentPair.second;
+    for (const auto& testPort : portsToTest_) {
+      auto interfaceName = testPort.portName;
+      auto component = testPort.component;
       if (component == phy::PrbsComponent::ASIC) {
         auto agentClient = utils::createWedgeAgentClient();
         WITH_RETRIES_N_TIMED(
@@ -499,12 +510,13 @@ class PrbsTest : public LinkTest {
   bool checkPrbsSupportedOnInterface(
       Client* client,
       std::string& interfaceName,
-      phy::PrbsComponent component) {
+      phy::PrbsComponent component,
+      prbs::PrbsPolynomial polynomial) {
     try {
       std::vector<prbs::PrbsPolynomial> prbsCaps;
       client->sync_getSupportedPrbsPolynomials(
           prbsCaps, interfaceName, component);
-      return std::find(prbsCaps.begin(), prbsCaps.end(), Polynomial) !=
+      return std::find(prbsCaps.begin(), prbsCaps.end(), polynomial) !=
           prbsCaps.end();
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "
@@ -519,11 +531,11 @@ class TransceiverLineToTransceiverLinePrbsTest
     : public PrbsTest<
           Polynomial,
           phy::PrbsComponent::TRANSCEIVER_LINE,
+          Polynomial,
           phy::PrbsComponent::TRANSCEIVER_LINE> {
  protected:
-  std::vector<std::pair<std::string, phy::PrbsComponent>> getPortsToTest()
-      override {
-    std::vector<std::pair<std::string, phy::PrbsComponent>> portsToTest;
+  std::vector<TestPort> getPortsToTest() override {
+    std::vector<TestPort> portsToTest;
     auto connectedPairs = this->getConnectedPairs();
     for (const auto [port1, port2] : connectedPairs) {
       auto portName1 = this->getPortName(port1);
@@ -532,42 +544,49 @@ class TransceiverLineToTransceiverLinePrbsTest
       if (!this->checkValidMedia(port1, Media) ||
           !this->checkValidMedia(port2, Media) ||
           !this->checkPrbsSupported(
-              portName1, phy::PrbsComponent::TRANSCEIVER_LINE) ||
+              portName1, phy::PrbsComponent::TRANSCEIVER_LINE, Polynomial) ||
           !this->checkPrbsSupported(
-              portName2, phy::PrbsComponent::TRANSCEIVER_LINE)) {
+              portName2, phy::PrbsComponent::TRANSCEIVER_LINE, Polynomial)) {
         continue;
       }
-      portsToTest.push_back({portName1, phy::PrbsComponent::TRANSCEIVER_LINE});
-      portsToTest.push_back({portName2, phy::PrbsComponent::TRANSCEIVER_LINE});
+      portsToTest.push_back(
+          {portName1, phy::PrbsComponent::TRANSCEIVER_LINE, Polynomial});
+      portsToTest.push_back(
+          {portName2, phy::PrbsComponent::TRANSCEIVER_LINE, Polynomial});
     }
     return portsToTest;
   }
 };
 
-#define PRBS_TEST_NAME(COMPONENT_A, COMPONENT_B, POLYNOMIAL)          \
-  BOOST_PP_CAT(                                                       \
-      Prbs_,                                                          \
-      BOOST_PP_CAT(                                                   \
-          BOOST_PP_CAT(COMPONENT_A, BOOST_PP_CAT(_TO_, COMPONENT_B)), \
-          BOOST_PP_CAT(_, POLYNOMIAL)))
+#define PRBS_TEST_NAME(COMPONENT_A, COMPONENT_B, POLYNOMIAL_A, POLYNOMIAL_B) \
+  BOOST_PP_CAT(                                                              \
+      Prbs_,                                                                 \
+      BOOST_PP_CAT(                                                          \
+          BOOST_PP_CAT(                                                      \
+              COMPONENT_A,                                                   \
+              BOOST_PP_CAT(                                                  \
+                  _,                                                         \
+                  BOOST_PP_CAT(                                              \
+                      POLYNOMIAL_A, BOOST_PP_CAT(_TO_, COMPONENT_B)))),      \
+          BOOST_PP_CAT(_, POLYNOMIAL_B)))
 
-#define PRBS_TRANSCEIVER_TEST_NAME(                         \
-    MEDIA, COMPONENT_A, COMPONENT_B, POLYNOMIAL)            \
-  BOOST_PP_CAT(                                             \
-      PRBS_TEST_NAME(COMPONENT_A, COMPONENT_B, POLYNOMIAL), \
+#define PRBS_TRANSCEIVER_TEST_NAME(                                         \
+    MEDIA, COMPONENT_A, COMPONENT_B, POLYNOMIAL_A, POLYNOMIAL_B)            \
+  BOOST_PP_CAT(                                                             \
+      PRBS_TEST_NAME(COMPONENT_A, COMPONENT_B, POLYNOMIAL_A, POLYNOMIAL_B), \
       BOOST_PP_CAT(_, MEDIA))
 
-#define PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(MEDIA, POLYNOMIAL) \
-  struct PRBS_TRANSCEIVER_TEST_NAME(                                   \
-      MEDIA, TRANSCEIVER_LINE, TRANSCEIVER_LINE, POLYNOMIAL)           \
-      : public TransceiverLineToTransceiverLinePrbsTest<               \
-            MediaInterfaceCode::MEDIA,                                 \
-            prbs::PrbsPolynomial::POLYNOMIAL> {};                      \
-  TEST_F(                                                              \
-      PRBS_TRANSCEIVER_TEST_NAME(                                      \
-          MEDIA, TRANSCEIVER_LINE, TRANSCEIVER_LINE, POLYNOMIAL),      \
-      prbsSanity) {                                                    \
-    runTest();                                                         \
+#define PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(MEDIA, POLYNOMIAL)        \
+  struct PRBS_TRANSCEIVER_TEST_NAME(                                          \
+      MEDIA, TRANSCEIVER_LINE, TRANSCEIVER_LINE, POLYNOMIAL, POLYNOMIAL)      \
+      : public TransceiverLineToTransceiverLinePrbsTest<                      \
+            MediaInterfaceCode::MEDIA,                                        \
+            prbs::PrbsPolynomial::POLYNOMIAL> {};                             \
+  TEST_F(                                                                     \
+      PRBS_TRANSCEIVER_TEST_NAME(                                             \
+          MEDIA, TRANSCEIVER_LINE, TRANSCEIVER_LINE, POLYNOMIAL, POLYNOMIAL), \
+      prbsSanity) {                                                           \
+    runTest();                                                                \
   }
 
 PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR1_100G, PRBS31);
