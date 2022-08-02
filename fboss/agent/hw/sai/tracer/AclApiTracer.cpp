@@ -78,6 +78,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _AclTableGroupMemberMap{
 std::map<int32_t, std::pair<std::string, std::size_t>> _AclEntryMap{
     SAI_ATTR_MAP(AclEntry, TableId),
     SAI_ATTR_MAP(AclEntry, Priority),
+    SAI_ATTR_MAP(AclEntry, Enabled),
     SAI_ATTR_MAP(AclEntry, FieldSrcIpV6),
     SAI_ATTR_MAP(AclEntry, FieldDstIpV6),
     SAI_ATTR_MAP(AclEntry, FieldSrcIpV4),
