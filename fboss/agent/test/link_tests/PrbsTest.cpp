@@ -45,14 +45,9 @@ class PrbsTest : public LinkTest {
       prbs::PrbsPolynomial polynomial) {
     if (component == phy::PrbsComponent::ASIC) {
       auto agentClient = utils::createWedgeAgentClient();
-      WITH_RETRIES_N_TIMED(
-          {
-            EXPECT_EVENTUALLY_TRUE(checkPrbsSupportedOnInterface<
-                                   apache::thrift::Client<FbossCtrl>>(
-                agentClient.get(), interfaceName, component, polynomial));
-          },
-          12,
-          std::chrono::milliseconds(5000));
+      return checkPrbsSupportedOnInterface<apache::thrift::Client<FbossCtrl>>(
+
+          agentClient.get(), interfaceName, component, polynomial);
     } else if (
         component == phy::PrbsComponent::GB_LINE ||
         component == phy::PrbsComponent::GB_SYSTEM) {
@@ -60,16 +55,8 @@ class PrbsTest : public LinkTest {
       return false;
     } else {
       auto qsfpServiceClient = utils::createQsfpServiceClient();
-      // Retry for a minute to give the qsfp_service enough chance to
-      // successfully refresh a transceiver
-      WITH_RETRIES_N_TIMED(
-          {
-            EXPECT_EVENTUALLY_TRUE(checkPrbsSupportedOnInterface<
-                                   facebook::fboss::QsfpServiceAsyncClient>(
-                qsfpServiceClient.get(), interfaceName, component, polynomial));
-          },
-          12,
-          std::chrono::milliseconds(5000));
+      return checkPrbsSupportedOnInterface<apache::thrift::Client<QsfpService>>(
+          qsfpServiceClient.get(), interfaceName, component, polynomial);
     }
     return true;
   }
@@ -150,27 +137,34 @@ class PrbsTest : public LinkTest {
         12,
         std::chrono::milliseconds(5000));
 
-    // 4. Let PRBS run for 30 seconds so that we can check the BER later
+    // 4. Let PRBS warm up for 30 seconds
     /* sleep override */ std::this_thread::sleep_for(30s);
 
-    // 5. Check PRBS stats, expect no loss of lock
+    // 5. Clear the PRBS stats to clear the instability at PRBS startup
+    XLOG(INFO) << "Clearing PRBS stats before monitoring BER";
+    clearPrbsStatsOnAllInterfaces();
+
+    // 6. Let PRBS run for 30 seconds so that we can check the BER later
+    /* sleep override */ std::this_thread::sleep_for(30s);
+
+    // 7. Check PRBS stats, expect no loss of lock
     XLOG(INFO) << "Verifying PRBS stats";
     checkPrbsStatsOnAllInterfaces();
 
-    // 6. Clear PRBS stats
+    // 8. Clear PRBS stats
     timestampBeforeClear = std::time(nullptr);
     /* sleep override */ std::this_thread::sleep_for(1s);
     XLOG(INFO) << "Clearing PRBS stats";
     clearPrbsStatsOnAllInterfaces();
 
-    // 7. Verify the last clear timestamp advanced and that there was no
+    // 9. Verify the last clear timestamp advanced and that there was no
     // impact on some of the other fields
     /* sleep override */ std::this_thread::sleep_for(20s);
     XLOG(INFO) << "Verifying PRBS stats after clear";
     checkPrbsStatsAfterClearOnAllInterfaces(
         timestampBeforeClear, true /* prbsEnabled */);
 
-    // 8. Disable PRBS on all Ports
+    // 10. Disable PRBS on all Ports
     XLOG(INFO) << "Disabling PRBS";
     // Retry for a minute to give the qsfp_service enough chance to
     // successfully refresh a transceiver
@@ -179,7 +173,7 @@ class PrbsTest : public LinkTest {
         12,
         std::chrono::milliseconds(5000));
 
-    // 9. Check Prbs State on all ports, they all should be disabled
+    // 11. Check Prbs State on all ports, they all should be disabled
     XLOG(INFO) << "Checking PRBS state after disabling PRBS";
     // Retry for a minute to give the qsfp_service enough chance to
     // successfully refresh a transceiver
@@ -190,7 +184,7 @@ class PrbsTest : public LinkTest {
         12,
         std::chrono::milliseconds(5000));
 
-    // 10. Link and traffic should come back up now
+    // 12. Link and traffic should come back up now
     XLOG(INFO) << "Waiting for links and traffic to come back up";
     EXPECT_NO_THROW(waitForAllCabledPorts(true));
     waitForLldpOnCabledPorts();
@@ -230,7 +224,7 @@ class PrbsTest : public LinkTest {
                   setPrbsOnInterface<apache::thrift::Client<FbossCtrl>>(
                       agentClient.get(), interfaceName, component, state));
             },
-            12,
+            6,
             std::chrono::milliseconds(5000));
       } else if (
           component == phy::PrbsComponent::GB_LINE ||
@@ -244,7 +238,7 @@ class PrbsTest : public LinkTest {
         WITH_RETRIES_N_TIMED(
             {
               EXPECT_EVENTUALLY_TRUE(
-                  setPrbsOnInterface<facebook::fboss::QsfpServiceAsyncClient>(
+                  setPrbsOnInterface<apache::thrift::Client<QsfpService>>(
                       qsfpServiceClient.get(),
                       interfaceName,
                       component,
@@ -270,7 +264,7 @@ class PrbsTest : public LinkTest {
                   checkPrbsStateOnInterface<apache::thrift::Client<FbossCtrl>>(
                       agentClient.get(), interfaceName, component, state));
             },
-            12,
+            6,
             std::chrono::milliseconds(5000));
       } else if (
           component == phy::PrbsComponent::GB_LINE ||
@@ -284,7 +278,7 @@ class PrbsTest : public LinkTest {
         WITH_RETRIES_N_TIMED(
             {
               EXPECT_EVENTUALLY_TRUE(checkPrbsStateOnInterface<
-                                     facebook::fboss::QsfpServiceAsyncClient>(
+                                     apache::thrift::Client<QsfpService>>(
                   qsfpServiceClient.get(), interfaceName, component, state));
             },
             12,
@@ -347,7 +341,7 @@ class PrbsTest : public LinkTest {
         return;
       } else {
         auto qsfpServiceClient = utils::createQsfpServiceClient();
-        checkPrbsStatsOnInterface<facebook::fboss::QsfpServiceAsyncClient>(
+        checkPrbsStatsOnInterface<apache::thrift::Client<QsfpService>>(
             qsfpServiceClient.get(), interfaceName, component);
       }
     }
@@ -394,19 +388,23 @@ class PrbsTest : public LinkTest {
       auto interfaceName = testPort.portName;
       auto component = testPort.component;
       if (component == phy::PrbsComponent::ASIC) {
-        auto agentClient = utils::createWedgeAgentClient();
-        WITH_RETRIES_N_TIMED(
-            {
-              EXPECT_EVENTUALLY_TRUE(checkPrbsStatsAfterClearOnInterface<
-                                     apache::thrift::Client<FbossCtrl>>(
-                  agentClient.get(),
-                  timestampBeforeClear,
-                  interfaceName,
-                  component,
-                  prbsEnabled));
-            },
-            12,
-            std::chrono::milliseconds(5000));
+        // Only check agent's prbs stats if prbs is enabled. Agent doesn't
+        // return stats when prbs is disabled
+        if (prbsEnabled) {
+          auto agentClient = utils::createWedgeAgentClient();
+          WITH_RETRIES_N_TIMED(
+              {
+                EXPECT_EVENTUALLY_TRUE(checkPrbsStatsAfterClearOnInterface<
+                                       apache::thrift::Client<FbossCtrl>>(
+                    agentClient.get(),
+                    timestampBeforeClear,
+                    interfaceName,
+                    component,
+                    prbsEnabled));
+              },
+              6,
+              std::chrono::milliseconds(5000));
+        }
       } else if (
           component == phy::PrbsComponent::GB_LINE ||
           component == phy::PrbsComponent::GB_SYSTEM) {
@@ -419,7 +417,7 @@ class PrbsTest : public LinkTest {
         WITH_RETRIES_N_TIMED(
             {
               EXPECT_EVENTUALLY_TRUE(checkPrbsStatsAfterClearOnInterface<
-                                     facebook::fboss::QsfpServiceAsyncClient>(
+                                     apache::thrift::Client<QsfpService>>(
                   qsfpServiceClient.get(),
                   timestampBeforeClear,
                   interfaceName,
@@ -468,7 +466,7 @@ class PrbsTest : public LinkTest {
                   clearPrbsStatsOnInterface<apache::thrift::Client<FbossCtrl>>(
                       agentClient.get(), interfaceName, component));
             },
-            12,
+            6,
             std::chrono::milliseconds(5000));
       } else if (
           component == phy::PrbsComponent::GB_LINE ||
@@ -482,7 +480,7 @@ class PrbsTest : public LinkTest {
         WITH_RETRIES_N_TIMED(
             {
               EXPECT_EVENTUALLY_TRUE(clearPrbsStatsOnInterface<
-                                     facebook::fboss::QsfpServiceAsyncClient>(
+                                     apache::thrift::Client<QsfpService>>(
                   qsfpServiceClient.get(), interfaceName, component));
             },
             12,
@@ -519,8 +517,8 @@ class PrbsTest : public LinkTest {
       return std::find(prbsCaps.begin(), prbsCaps.end(), polynomial) !=
           prbsCaps.end();
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Setting PRBS on " << interfaceName << " failed with "
-                << ex.what();
+      XLOG(ERR) << "Checking PRBS capabilities on " << interfaceName
+                << " failed with " << ex.what();
       return false;
     }
   }
@@ -558,6 +556,44 @@ class TransceiverLineToTransceiverLinePrbsTest
   }
 };
 
+template <
+    MediaInterfaceCode Media,
+    prbs::PrbsPolynomial PolynomialA,
+    phy::PrbsComponent ComponentA,
+    prbs::PrbsPolynomial PolynomialB>
+class PhyToTransceiverSystemPrbsTest
+    : public PrbsTest<
+          PolynomialA,
+          ComponentA,
+          PolynomialB,
+          phy::PrbsComponent::TRANSCEIVER_SYSTEM> {
+ protected:
+  std::vector<TestPort> getPortsToTest() override {
+    CHECK(
+        ComponentA == phy::PrbsComponent::ASIC ||
+        ComponentA == phy::PrbsComponent::GB_LINE);
+    std::vector<TestPort> portsToTest;
+    auto connectedPairs = this->getConnectedPairs();
+    for (const auto [port1, port2] : connectedPairs) {
+      for (const auto port : {port1, port2}) {
+        auto portName = this->getPortName(port);
+        if (!this->checkValidMedia(port, Media) ||
+            !this->checkPrbsSupported(portName, ComponentA, PolynomialA) ||
+            !this->checkPrbsSupported(
+                portName,
+                phy::PrbsComponent::TRANSCEIVER_SYSTEM,
+                PolynomialB)) {
+          continue;
+        }
+        portsToTest.push_back(
+            {portName, phy::PrbsComponent::TRANSCEIVER_SYSTEM, PolynomialB});
+        portsToTest.push_back({portName, ComponentA, PolynomialA});
+      }
+    }
+    return portsToTest;
+  }
+};
+
 #define PRBS_TEST_NAME(COMPONENT_A, COMPONENT_B, POLYNOMIAL_A, POLYNOMIAL_B) \
   BOOST_PP_CAT(                                                              \
       Prbs_,                                                                 \
@@ -589,8 +625,28 @@ class TransceiverLineToTransceiverLinePrbsTest
     runTest();                                                                \
   }
 
+#define PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(                                   \
+    MEDIA, POLYNOMIALA, COMPONENTA, POLYNOMIALB)                            \
+  struct PRBS_TRANSCEIVER_TEST_NAME(                                        \
+      MEDIA, COMPONENTA, TRANSCEIVER_SYSTEM, POLYNOMIALA, POLYNOMIALB)      \
+      : public PhyToTransceiverSystemPrbsTest<                              \
+            MediaInterfaceCode::MEDIA,                                      \
+            prbs::PrbsPolynomial::POLYNOMIALA,                              \
+            phy::PrbsComponent::COMPONENTA,                                 \
+            prbs::PrbsPolynomial::POLYNOMIALB> {};                          \
+  TEST_F(                                                                   \
+      PRBS_TRANSCEIVER_TEST_NAME(                                           \
+          MEDIA, COMPONENTA, TRANSCEIVER_SYSTEM, POLYNOMIALA, POLYNOMIALB), \
+      prbsSanity) {                                                         \
+    runTest();                                                              \
+  }
+
 PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR1_100G, PRBS31);
 
 PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR4_200G, PRBS31Q);
 
 PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR4_400G, PRBS31Q);
+
+PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_200G, PRBS31, ASIC, PRBS31Q);
+
+PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_400G, PRBS31, ASIC, PRBS31Q);
