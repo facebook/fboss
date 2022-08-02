@@ -4,6 +4,7 @@
 #include <fboss/agent/state/LabelForwardingEntry.h>
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/NodeMap-defs.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/logging/xlog.h>
@@ -71,7 +72,8 @@ LabelForwardingInformationBase::fromFollyDynamicOldFormat(folly::dynamic json) {
   auto labelNextHopsByClient = LabelNextHopsByClient::fromFollyDynamicLegacy(
       json[kLabelNextHopsByClient]);
   for (const auto& clientEntry : labelNextHopsByClient) {
-    entry->update(clientEntry.first, clientEntry.second);
+    entry->update(
+        clientEntry.first, RouteNextHopEntry::fromThrift(clientEntry.second));
   }
   entry->setResolved(
       LabelNextHopEntry::fromFollyDynamicLegacy(json[kLabelNextHop]));
@@ -110,7 +112,8 @@ void LabelForwardingInformationBase::noRibToRibEntryConvertor(
       continue;
     }
     RouteNextHopSet nhSet;
-    for (auto& nh : clientEntry.second.getNextHopSet()) {
+    auto rNHE = RouteNextHopEntry::fromThrift(clientEntry.second);
+    for (auto& nh : rNHE.getNextHopSet()) {
       const auto& addr = nh.addr();
       if (addr.isV6() && addr.isLinkLocal()) {
         nhSet.emplace(nh);
@@ -121,10 +124,7 @@ void LabelForwardingInformationBase::noRibToRibEntryConvertor(
     }
     entry->update(
         clientEntry.first,
-        RouteNextHopEntry(
-            nhSet,
-            clientEntry.second.getAdminDistance(),
-            clientEntry.second.getCounterID()));
+        RouteNextHopEntry(nhSet, rNHE.getAdminDistance(), rNHE.getCounterID()));
   }
   entry->setResolved(fwd);
 }
@@ -158,7 +158,8 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
     auto* entryToUpdate = modifyLabelEntry(state, entry);
     entryToUpdate->update(
         client, LabelNextHopEntry(std::move(nexthops), distance));
-    entryToUpdate->setResolved(*entryToUpdate->getBestEntry().second);
+    entryToUpdate->setResolved(
+        RouteNextHopEntry::fromThrift(*entryToUpdate->getBestEntry().second));
     XLOG(DBG2) << "updated label:" << label.value() << " nhops: " << nextHopsStr
                << "nhop count:" << nexthopCount
                << " in label forwarding information base for client:"
@@ -189,7 +190,8 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::unprogramLabel(
     XLOG(DBG2) << "Purging empty forwarding entry for label:" << label.value();
     writableLabelFib->removeNode(entry);
   } else {
-    entryToUpdate->setResolved(*entryToUpdate->getBestEntry().second);
+    auto entryThrift = entryToUpdate->getBestEntry().second;
+    entryToUpdate->setResolved(RouteNextHopEntry::fromThrift(*entryThrift));
   }
   return writableLabelFib;
 }
@@ -211,7 +213,9 @@ LabelForwardingInformationBase::purgeEntriesForClient(
         iter = writableLabelFib->writableNodes().erase(iter);
         continue;
       } else {
-        entryToModify->setResolved(*entryToModify->getBestEntry().second);
+        auto entryThrift = RouteNextHopEntry::fromThrift(
+            *(entryToModify->getBestEntry().second));
+        entryToModify->setResolved(entryThrift);
       }
     }
     ++iter;

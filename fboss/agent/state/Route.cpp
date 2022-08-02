@@ -16,6 +16,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "folly/IPAddressV4.h"
 
 using facebook::network::toBinaryAddress;
@@ -111,7 +112,7 @@ template <typename AddrT>
 bool RouteFields<AddrT>::has(ClientID clientId, const RouteNextHopEntry& entry)
     const {
   auto found = nexthopsmulti.getEntryForClient(clientId);
-  return found and (*found) == entry;
+  return found and RouteNextHopEntry::fromThrift((*found)) == entry;
 }
 
 template <typename AddrT>

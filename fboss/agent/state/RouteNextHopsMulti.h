@@ -41,7 +41,7 @@ namespace facebook::fboss {
  *
  */
 
-using ClientToNHopMap = std::map<ClientID, RouteNextHopEntry>;
+using ClientToNHopMap = std::map<ClientID, state::RouteNextHopEntry>;
 
 /**
  * Map form clientId -> RouteNextHopEntry
@@ -49,11 +49,10 @@ using ClientToNHopMap = std::map<ClientID, RouteNextHopEntry>;
 class RouteNextHopsMulti
     : public ThriftyFields<RouteNextHopsMulti, state::RouteNextHopsMulti> {
  private:
-  ClientID lowestAdminDistanceClientId_;
+  ClientToNHopMap map_;
 
  protected:
   ClientID findLowestAdminDistance();
-  ClientToNHopMap map_;
 
  public:
   state::RouteNextHopsMulti toThrift() const override;
@@ -104,10 +103,10 @@ class RouteNextHopsMulti
     this->writableData().lowestAdminDistanceClientId() = id;
   }
 
-  const RouteNextHopEntry* FOLLY_NULLABLE
+  const state::RouteNextHopEntry* FOLLY_NULLABLE
   getEntryForClient(ClientID clientId) const;
 
-  std::pair<ClientID, const RouteNextHopEntry*> getBestEntry() const;
+  std::pair<ClientID, const state::RouteNextHopEntry*> getBestEntry() const;
 
   bool isSame(ClientID clientId, const RouteNextHopEntry& nhe) const;
 };

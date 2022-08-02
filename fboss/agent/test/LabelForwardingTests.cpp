@@ -73,7 +73,7 @@ TEST_P(LabelForwardingTest, addMplsRoutes) {
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
           util::toRouteNextHopSet(*route.nextHops()),
-          labelFibEntryForClient->getNextHopSet());
+          util::toRouteNextHopSet(*(labelFibEntryForClient->nexthops())));
     }
   }
 }
@@ -109,7 +109,7 @@ TEST_P(LabelForwardingTest, modifyMplsRoutes) {
         EXPECT_NE(nullptr, labelFibEntryForClient);
         EXPECT_EQ(
             util::toRouteNextHopSet(*route.nextHops()),
-            labelFibEntryForClient->getNextHopSet());
+            util::toRouteNextHopSet(*(labelFibEntryForClient->nexthops())));
       }
     }
   };
@@ -237,7 +237,7 @@ TEST_P(LabelForwardingTest, deleteMplsRoutes) {
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
           util::toRouteNextHopSet(*route.nextHops()),
-          labelFibEntryForClient->getNextHopSet());
+          util::toRouteNextHopSet(*labelFibEntryForClient->nexthops()));
     }
   }
 }
@@ -285,7 +285,7 @@ TEST_P(LabelForwardingTest, syncMplsFib) {
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
           util::toRouteNextHopSet(*route.nextHops()),
-          labelFibEntryForClient->getNextHopSet());
+          util::toRouteNextHopSet(*(labelFibEntryForClient->nexthops())));
     }
   }
 
@@ -308,7 +308,7 @@ TEST_P(LabelForwardingTest, syncMplsFib) {
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
           util::toRouteNextHopSet(*routes[0][i].nextHops()),
-          labelFibEntryForClient->getNextHopSet());
+          util::toRouteNextHopSet(*labelFibEntryForClient->nexthops()));
     } else {
       auto labelFibEntry =
           labelFib->getLabelForwardingEntryIf(*routes[0][i].topLabel());
@@ -411,7 +411,8 @@ TEST_P(LabelForwardingTest, unresolvedNextHops) {
         labelFibEntry->getEntryForClient(ClientID::OPENR);
 
     EXPECT_NE(nullptr, labelFibEntryForClient);
-    auto clientNexthops = labelFibEntryForClient->getNextHopSet();
+    auto clientNexthops =
+        util::toRouteNextHopSet(*labelFibEntryForClient->nexthops());
     EXPECT_EQ(clientNexthops.size(), 4);
     auto nexthops = labelFibEntry->getForwardInfo().getNextHopSet();
     for (auto nexthop : nexthops) {

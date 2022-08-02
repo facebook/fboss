@@ -1327,21 +1327,19 @@ TEST_F(ThriftTest, UnicastRoutesWithClassID) {
   EXPECT_NE(nullptr, rtA4);
   EXPECT_EQ(rtA4->getClassID(), classID1);
   EXPECT_EQ(rtA4->getForwardInfo().getClassID(), classID1);
-  EXPECT_EQ(rtA4->getEntryForClient(ClientID::BGPD)->getClassID(), classID1);
-  EXPECT_EQ(
-      rtA4->getEntryForClient(static_cast<ClientID>(randomClient))
-          ->getClassID(),
-      std::nullopt);
+  if (auto classID = rtA4->getEntryForClient(ClientID::BGPD)->classID()) {
+    EXPECT_EQ(*classID, classID1);
+  }
+  EXPECT_TRUE(!(
+      rtA4->getEntryForClient(static_cast<ClientID>(randomClient))->classID()));
   auto rtA6 = findRoute<folly::IPAddressV6>(
       rid, IPAddress::createNetwork(prefixA6), state);
   EXPECT_NE(nullptr, rtA6);
   EXPECT_EQ(rtA6->getClassID(), classID2);
   EXPECT_EQ(rtA6->getForwardInfo().getClassID(), classID2);
-  EXPECT_EQ(rtA6->getEntryForClient(ClientID::BGPD)->getClassID(), classID2);
-  EXPECT_EQ(
-      rtA6->getEntryForClient(static_cast<ClientID>(randomClient))
-          ->getClassID(),
-      std::nullopt);
+  EXPECT_EQ(*(rtA6->getEntryForClient(ClientID::BGPD)->classID()), classID2);
+  EXPECT_FALSE(
+      rtA6->getEntryForClient(static_cast<ClientID>(randomClient))->classID());
 
   // delete BGP routes
   std::vector<IpPrefix> delRoutes = {
@@ -1382,21 +1380,17 @@ TEST_F(ThriftTest, UnicastRoutesWithClassID) {
   EXPECT_NE(nullptr, rtA4);
   EXPECT_EQ(rtA4->getClassID(), classID1);
   EXPECT_EQ(rtA4->getForwardInfo().getClassID(), classID1);
-  EXPECT_EQ(rtA4->getEntryForClient(ClientID::BGPD)->getClassID(), classID1);
-  EXPECT_EQ(
-      rtA4->getEntryForClient(static_cast<ClientID>(randomClient))
-          ->getClassID(),
-      std::nullopt);
+  EXPECT_EQ(*(rtA4->getEntryForClient(ClientID::BGPD)->classID()), classID1);
+  EXPECT_FALSE(
+      rtA4->getEntryForClient(static_cast<ClientID>(randomClient))->classID());
   rtA6 = findRoute<folly::IPAddressV6>(
       rid, IPAddress::createNetwork(prefixA6), state);
   EXPECT_NE(nullptr, rtA6);
   EXPECT_EQ(rtA6->getClassID(), classID2);
   EXPECT_EQ(rtA6->getForwardInfo().getClassID(), classID2);
-  EXPECT_EQ(rtA6->getEntryForClient(ClientID::BGPD)->getClassID(), classID2);
-  EXPECT_EQ(
-      rtA6->getEntryForClient(static_cast<ClientID>(randomClient))
-          ->getClassID(),
-      std::nullopt);
+  EXPECT_EQ(*(rtA6->getEntryForClient(ClientID::BGPD)->classID()), classID2);
+  EXPECT_FALSE(
+      rtA6->getEntryForClient(static_cast<ClientID>(randomClient))->classID());
 }
 
 TEST_F(ThriftTest, UnicastRoutesWithCounterID) {
@@ -1441,21 +1435,17 @@ TEST_F(ThriftTest, UnicastRoutesWithCounterID) {
   EXPECT_NE(nullptr, rtA4);
   EXPECT_EQ(rtA4->getForwardInfo().getCounterID(), counterID1);
   EXPECT_EQ(
-      rtA4->getEntryForClient(ClientID::BGPD)->getCounterID(), counterID1);
-  EXPECT_EQ(
-      rtA4->getEntryForClient(static_cast<ClientID>(randomClient))
-          ->getCounterID(),
-      std::nullopt);
+      *(rtA4->getEntryForClient(ClientID::BGPD)->counterID()), counterID1);
+  EXPECT_FALSE(rtA4->getEntryForClient(static_cast<ClientID>(randomClient))
+                   ->counterID());
   auto rtA6 = findRoute<folly::IPAddressV6>(
       rid, IPAddress::createNetwork(prefixA6), state);
   EXPECT_NE(nullptr, rtA6);
   EXPECT_EQ(rtA6->getForwardInfo().getCounterID(), counterID2);
   EXPECT_EQ(
-      rtA6->getEntryForClient(ClientID::BGPD)->getCounterID(), counterID2);
-  EXPECT_EQ(
-      rtA6->getEntryForClient(static_cast<ClientID>(randomClient))
-          ->getCounterID(),
-      std::nullopt);
+      *(rtA6->getEntryForClient(ClientID::BGPD)->counterID()), counterID2);
+  EXPECT_FALSE(rtA6->getEntryForClient(static_cast<ClientID>(randomClient))
+                   ->counterID());
 
   // delete BGP routes
   std::vector<IpPrefix> delRoutes = {
@@ -1492,21 +1482,17 @@ TEST_F(ThriftTest, UnicastRoutesWithCounterID) {
   EXPECT_NE(nullptr, rtA4);
   EXPECT_EQ(rtA4->getForwardInfo().getCounterID(), counterID1);
   EXPECT_EQ(
-      rtA4->getEntryForClient(ClientID::BGPD)->getCounterID(), counterID1);
-  EXPECT_EQ(
-      rtA4->getEntryForClient(static_cast<ClientID>(randomClient))
-          ->getCounterID(),
-      std::nullopt);
+      *(rtA4->getEntryForClient(ClientID::BGPD)->counterID()), counterID1);
+  EXPECT_FALSE(rtA4->getEntryForClient(static_cast<ClientID>(randomClient))
+                   ->counterID());
   rtA6 = findRoute<folly::IPAddressV6>(
       rid, IPAddress::createNetwork(prefixA6), state);
   EXPECT_NE(nullptr, rtA6);
   EXPECT_EQ(rtA6->getForwardInfo().getCounterID(), counterID2);
   EXPECT_EQ(
-      rtA6->getEntryForClient(ClientID::BGPD)->getCounterID(), counterID2);
-  EXPECT_EQ(
-      rtA6->getEntryForClient(static_cast<ClientID>(randomClient))
-          ->getCounterID(),
-      std::nullopt);
+      *(rtA6->getEntryForClient(ClientID::BGPD)->counterID()), counterID2);
+  EXPECT_FALSE(rtA6->getEntryForClient(static_cast<ClientID>(randomClient))
+                   ->counterID());
 }
 
 TEST_F(ThriftTest, CounterIDThriftReadTest) {

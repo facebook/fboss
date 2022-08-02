@@ -12,6 +12,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateUtils.h"
 
 namespace {
@@ -29,7 +30,7 @@ folly::dynamic RouteNextHopsMulti::toFollyDynamicLegacy() const {
   folly::dynamic obj = folly::dynamic::object();
   for (auto const& row : map_) {
     int clientid = static_cast<int>(row.first);
-    const auto& entry = row.second;
+    const auto& entry = RouteNextHopEntry::fromThrift(row.second);
     obj[folly::to<std::string>(clientid)] = entry.toFollyDynamicLegacy();
   }
   return obj;
@@ -51,8 +52,8 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy() const {
   for (const auto& srcPair : map_) {
     ClientAndNextHops destPair;
     *destPair.clientId() = static_cast<int>(srcPair.first);
-    for (const auto& nh : srcPair.second.getNextHopSet()) {
-      destPair.nextHops()->push_back(nh.toThrift());
+    for (const auto& nh : *srcPair.second.nexthops()) {
+      destPair.nextHops()->push_back(nh);
     }
     list.push_back(destPair);
   }
@@ -63,7 +64,8 @@ std::string RouteNextHopsMulti::strLegacy() const {
   std::string ret = "";
   for (auto const& row : map_) {
     ClientID clientid = row.first;
-    RouteNextHopSet const& nxtHps = row.second.getNextHopSet();
+    auto entry = RouteNextHopEntry::fromThrift(row.second);
+    RouteNextHopSet const& nxtHps = entry.getNextHopSet();
 
     ret.append(folly::to<std::string>("(client#", clientid, ": "));
     for (const auto& nh : nxtHps) {
@@ -77,9 +79,9 @@ std::string RouteNextHopsMulti::strLegacy() const {
 void RouteNextHopsMulti::update(ClientID clientId, RouteNextHopEntry nhe) {
   auto iter = map_.find(clientId);
   if (iter == map_.end()) {
-    map_.insert(std::make_pair(clientId, std::move(nhe)));
+    map_.insert(std::make_pair(clientId, nhe.toThrift()));
   } else {
-    iter->second = std::move(nhe);
+    iter->second = nhe.toThrift();
   }
 
   // Let's check whether this has a preferred admin distance
@@ -90,7 +92,7 @@ void RouteNextHopsMulti::update(ClientID clientId, RouteNextHopEntry nhe) {
   auto entry = getEntryForClient(lowestAdminDistanceClientId());
   if (!entry) {
     setLowestAdminDistanceClientId(findLowestAdminDistance());
-  } else if (nhe.getAdminDistance() < entry->getAdminDistance()) {
+  } else if (nhe.getAdminDistance() < *(entry->adminDistance())) {
     // Arbritary choice to use the newest one if we have multiple
     // with the same admin distance
     setLowestAdminDistanceClientId(clientId);
@@ -105,9 +107,12 @@ ClientID RouteNextHopsMulti::findLowestAdminDistance() {
   auto lowest = map_.begin();
   auto it = map_.begin();
   while (it != map_.end()) {
-    if (it->second.getAdminDistance() < lowest->second.getAdminDistance()) {
+    auto entry = RouteNextHopEntry::fromThrift(it->second);
+    if (*(it->second.adminDistance()) < *(lowest->second.adminDistance())) {
       lowest = it;
-    } else if (it->second.isSame(lowest->second) && it->first < lowest->first) {
+    } else if (
+        entry.isSame(RouteNextHopEntry::fromThrift(lowest->second)) &&
+        it->first < lowest->first) {
       // If we have two clients with the same admin distance, pick the lowest
       // client id - this is an arbritary, but deterministic, choice
       lowest = it;
@@ -126,7 +131,7 @@ void RouteNextHopsMulti::delEntryForClient(ClientID clientId) {
   }
 }
 
-const RouteNextHopEntry* RouteNextHopsMulti::getEntryForClient(
+const state::RouteNextHopEntry* RouteNextHopsMulti::getEntryForClient(
     ClientID clientId) const {
   auto iter = map_.find(clientId);
   if (iter == map_.end()) {
@@ -138,11 +143,11 @@ const RouteNextHopEntry* RouteNextHopsMulti::getEntryForClient(
 bool RouteNextHopsMulti::isSame(ClientID id, const RouteNextHopEntry& nhe)
     const {
   auto entry = getEntryForClient(id);
-  return entry && (*entry == nhe);
+  return entry && (*entry == nhe.toThrift());
 }
 
-std::pair<ClientID, const RouteNextHopEntry*> RouteNextHopsMulti::getBestEntry()
-    const {
+std::pair<ClientID, const state::RouteNextHopEntry*>
+RouteNextHopsMulti::getBestEntry() const {
   auto entry = getEntryForClient(lowestAdminDistanceClientId());
   if (entry) {
     return std::make_pair(lowestAdminDistanceClientId(), entry);
@@ -156,8 +161,7 @@ state::RouteNextHopsMulti RouteNextHopsMulti::toThrift() const {
   state::RouteNextHopsMulti thriftMulti{};
   thriftMulti.lowestAdminDistanceClientId() = lowestAdminDistanceClientId();
   for (auto entry : map_) {
-    thriftMulti.client2NextHopEntry()->emplace(
-        entry.first, entry.second.toThrift());
+    thriftMulti.client2NextHopEntry()->emplace(entry.first, entry.second);
   }
   return thriftMulti;
 }
@@ -168,8 +172,7 @@ RouteNextHopsMulti RouteNextHopsMulti::fromThrift(
   routeNextHopMulti.setLowestAdminDistanceClientId(
       *multi.lowestAdminDistanceClientId());
   for (auto entry : *multi.client2NextHopEntry()) {
-    routeNextHopMulti.map_.emplace(
-        entry.first, RouteNextHopEntry::fromThrift(entry.second));
+    routeNextHopMulti.map_.emplace(entry.first, entry.second);
   }
   return routeNextHopMulti;
 }

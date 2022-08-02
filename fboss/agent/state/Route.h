@@ -92,7 +92,7 @@ struct RouteFields
   bool hasNoEntry() const {
     return nexthopsmulti.isEmpty();
   }
-  std::pair<ClientID, const RouteNextHopEntry*> getBestEntry() const {
+  std::pair<ClientID, const state::RouteNextHopEntry*> getBestEntry() const {
     return nexthopsmulti.getBestEntry();
   }
   size_t numClientEntries() const {
@@ -105,7 +105,7 @@ struct RouteFields
     classID = c;
   }
   void delEntryForClient(ClientID clientId);
-  const RouteNextHopEntry* FOLLY_NULLABLE
+  const state::RouteNextHopEntry* FOLLY_NULLABLE
   getEntryForClient(ClientID clientId) const {
     return nexthopsmulti.getEntryForClient(clientId);
   }
@@ -354,11 +354,11 @@ class Route : public ThriftyBaseT<
   const RouteNextHopEntry& getForwardInfo() const {
     return RouteBase::getFields()->fwd;
   }
-  const RouteNextHopEntry* FOLLY_NULLABLE
+  const state::RouteNextHopEntry* FOLLY_NULLABLE
   getEntryForClient(ClientID clientId) const {
     return RouteBase::getFields()->getEntryForClient(clientId);
   }
-  std::pair<ClientID, const RouteNextHopEntry*> getBestEntry() const {
+  std::pair<ClientID, const state::RouteNextHopEntry*> getBestEntry() const {
     return RouteBase::getFields()->getBestEntry();
   }
   bool hasNoEntry() const {

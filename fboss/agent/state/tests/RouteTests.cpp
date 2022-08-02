@@ -18,6 +18,7 @@
 #include "fboss/agent/state/NodeMapDelta-defs.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState-defs.h"
@@ -183,6 +184,9 @@ TEST(Route, RouteNextHopsMultiThrift) {
 
 // Test priority ranking of nexthop lists within a RouteNextHopsMulti.
 TEST(Route, listRanking) {
+  auto toRouteNextHopEntry = [](const state::RouteNextHopEntry* entry) {
+    return RouteNextHopEntry::fromThrift(*entry);
+  };
   auto list00 = newNextHops(3, "0.0.0.");
   auto list07 = newNextHops(3, "7.7.7.");
   auto list01 = newNextHops(3, "1.1.1.");
@@ -196,24 +200,31 @@ TEST(Route, listRanking) {
   nhm.update(
       ClientID(30),
       RouteNextHopEntry(list30, AdminDistance::MAX_ADMIN_DISTANCE));
-  EXPECT_TRUE(nhm.getBestEntry().second->getNextHopSet() == list01);
+  EXPECT_TRUE(
+      toRouteNextHopEntry(nhm.getBestEntry().second).getNextHopSet() == list01);
 
   nhm.update(
       ClientID(10),
       RouteNextHopEntry(list00, AdminDistance::DIRECTLY_CONNECTED));
-  EXPECT_TRUE(nhm.getBestEntry().second->getNextHopSet() == list00);
+  EXPECT_TRUE(
+      toRouteNextHopEntry(nhm.getBestEntry().second).getNextHopSet() == list00);
 
   nhm.delEntryForClient(ClientID(10));
-  EXPECT_TRUE(nhm.getBestEntry().second->getNextHopSet() == list01);
+  EXPECT_TRUE(
+      toRouteNextHopEntry(nhm.getBestEntry().second).getNextHopSet() == list01);
 
   nhm.delEntryForClient(ClientID(30));
-  EXPECT_TRUE(nhm.getBestEntry().second->getNextHopSet() == list01);
+  EXPECT_TRUE(
+      toRouteNextHopEntry(nhm.getBestEntry().second).getNextHopSet() == list01);
 
   nhm.delEntryForClient(ClientID(1));
-  EXPECT_TRUE(nhm.getBestEntry().second->getNextHopSet() == list20);
+  EXPECT_TRUE(
+      toRouteNextHopEntry(nhm.getBestEntry().second).getNextHopSet() == list20);
 
   nhm.delEntryForClient(ClientID(20));
-  EXPECT_THROW(nhm.getBestEntry().second->getNextHopSet(), FbossError);
+  EXPECT_THROW(
+      toRouteNextHopEntry(nhm.getBestEntry().second).getNextHopSet(),
+      FbossError);
 }
 
 // Very basic test for serialization/deseralization of Routes
@@ -284,7 +295,7 @@ TEST(Route, serializeRouteCounterID) {
   folly::dynamic obj2 = folly::parseJson(json, serOpts);
   // back to Route object
   auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
-  EXPECT_EQ(rt2->getEntryForClient(clientId)->getCounterID(), counterID);
+  EXPECT_EQ(*(rt2->getEntryForClient(clientId)->counterID()), counterID);
   EXPECT_EQ(rt2->getForwardInfo().getCounterID(), counterID);
   validateThriftyMigration(*rt2);
 }
@@ -312,7 +323,7 @@ TEST(Route, serializeRouteClassID) {
   folly::dynamic obj2 = folly::parseJson(json, serOpts);
   // back to Route object
   auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
-  EXPECT_EQ(rt2->getEntryForClient(clientId)->getClassID(), classID);
+  EXPECT_EQ(*(rt2->getEntryForClient(clientId)->classID()), classID);
   EXPECT_EQ(rt2->getForwardInfo().getClassID(), classID);
   validateThriftyMigration(*rt2);
 }

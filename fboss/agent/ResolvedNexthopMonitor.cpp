@@ -8,6 +8,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -114,7 +115,8 @@ bool ResolvedNexthopMonitor::skipLabelFibEntry(
     return true;
   }
   auto bestEntry = entry->getBestEntry();
-  for (auto nhop : bestEntry.second->getNextHopSet()) {
+  auto bestRouteNextHopEntry = RouteNextHopEntry::fromThrift(*bestEntry.second);
+  for (auto nhop : bestRouteNextHopEntry.getNextHopSet()) {
     if (nhop.labelForwardingAction().has_value() &&
         nhop.labelForwardingAction()->type() ==
             LabelForwardingAction::LabelForwardingType::POP_AND_LOOKUP) {

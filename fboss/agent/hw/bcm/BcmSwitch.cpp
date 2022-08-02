@@ -3360,7 +3360,8 @@ bool BcmSwitch::isValidLabelForwardingEntry(const Route<LabelID>* entry) const {
       continue;
     }
     if (!FLAGS_mpls_rib &&
-        !isValidLabeledNextHopSet(platform_, entryForClient->getNextHopSet())) {
+        !isValidLabeledNextHopSet(
+            platform_, util::toRouteNextHopSet(*entryForClient->nexthops()))) {
       return false;
     }
   }
