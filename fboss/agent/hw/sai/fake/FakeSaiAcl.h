@@ -69,6 +69,7 @@ class FakeAclEntry {
 
   sai_object_id_t tableId;
   sai_uint32_t priority;
+  bool enabled{true};
 
   bool fieldSrcIpV6Enable{false};
   folly::IPAddressV6 fieldSrcIpV6Data;

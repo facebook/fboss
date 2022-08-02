@@ -20,6 +20,8 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
   switch (attr.id) {
     case SAI_ACL_ENTRY_ATTR_PRIORITY:
       return true;
+    case SAI_ACL_ENTRY_ATTR_ADMIN_STATE:
+      return true;
     case SAI_ACL_ENTRY_ATTR_FIELD_SRC_IPV6:
       return fieldSrcIpV6;
     case SAI_ACL_ENTRY_ATTR_FIELD_DST_IPV6:
@@ -456,6 +458,10 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.priority = attr->value.u32;
       res = SAI_STATUS_SUCCESS;
       break;
+    case SAI_ACL_ENTRY_ATTR_ADMIN_STATE:
+      aclEntry.enabled = attr->value.booldata;
+      res = SAI_STATUS_SUCCESS;
+      break;
     case SAI_ACL_ENTRY_ATTR_FIELD_SRC_IPV6:
       aclEntry.fieldSrcIpV6Enable = attr->value.aclfield.enable;
       aclEntry.fieldSrcIpV6Data =
@@ -688,6 +694,9 @@ sai_status_t get_acl_entry_attribute_fn(
         break;
       case SAI_ACL_ENTRY_ATTR_PRIORITY:
         attr_list[i].value.u32 = aclEntry.priority;
+        break;
+      case SAI_ACL_ENTRY_ATTR_ADMIN_STATE:
+        attr_list[i].value.booldata = aclEntry.enabled;
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_SRC_IPV6:
         attr_list[i].value.aclfield.enable = aclEntry.fieldSrcIpV6Enable;

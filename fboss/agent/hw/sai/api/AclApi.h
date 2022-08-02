@@ -266,7 +266,11 @@ struct SaiAclEntryTraits {
         SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_TABLE_ID, sai_object_id_t>;
     using Priority =
         SaiAttribute<EnumType, SAI_ACL_ENTRY_ATTR_PRIORITY, sai_uint32_t>;
-
+    using Enabled = SaiAttribute<
+        EnumType,
+        SAI_ACL_ENTRY_ATTR_ADMIN_STATE,
+        bool,
+        SaiBoolDefaultTrue>;
     using FieldSrcIpV6 = SaiAttribute<
         EnumType,
         SAI_ACL_ENTRY_ATTR_FIELD_SRC_IPV6,
@@ -438,6 +442,7 @@ struct SaiAclEntryTraits {
 
 SAI_ATTRIBUTE_NAME(AclEntry, TableId);
 SAI_ATTRIBUTE_NAME(AclEntry, Priority);
+SAI_ATTRIBUTE_NAME(AclEntry, Enabled);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldSrcIpV6);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldDstIpV6);
 SAI_ATTRIBUTE_NAME(AclEntry, FieldSrcIpV4);
