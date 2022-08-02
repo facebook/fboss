@@ -17,7 +17,7 @@ using std::string;
 
 namespace facebook::fboss {
 
-class HwPfcTest : public HwLinkStateDependentTest {
+class HwTrafficPfcTest : public HwLinkStateDependentTest {
  private:
   void SetUp() override {
     FLAGS_mmu_lossless_mode = true;
@@ -342,7 +342,7 @@ class HwPfcTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig cfg_;
 };
 
-TEST_F(HwPfcTest, verifyPfcDefault) {
+TEST_F(HwTrafficPfcTest, verifyPfcDefault) {
   // default to map dscp to priority = 0
   const int trafficClass = 0;
   const int pfcPriority = 0;
@@ -353,7 +353,7 @@ TEST_F(HwPfcTest, verifyPfcDefault) {
 // tc 0, now map tc 0 to PG 1. Mapping from PG to pfc priority
 // is 1:1, which means PG 1 is mapped to pfc priority 1.
 // Generate traffic to fire off PFC with smaller shared buffer
-TEST_F(HwPfcTest, verifyPfcWithMapChanges_0) {
+TEST_F(HwTrafficPfcTest, verifyPfcWithMapChanges_0) {
   const int trafficClass = 0;
   const int pfcPriority = 1;
   tc2PgOverride.insert(std::make_pair(0, 1));
@@ -364,7 +364,7 @@ TEST_F(HwPfcTest, verifyPfcWithMapChanges_0) {
 // tc 7. Now we map tc 7 -> PG 0. Mapping from PG to pfc
 // priority is 1:1, which means PG 0 is mapped to pfc priority 0.
 // Generate traffic to fire off PFC with smaller shared buffer
-TEST_F(HwPfcTest, verifyPfcWithMapChanges_1) {
+TEST_F(HwTrafficPfcTest, verifyPfcWithMapChanges_1) {
   const int trafficClass = 7;
   const int pfcPriority = 0;
   tc2PgOverride.insert(std::make_pair(7, 0));
@@ -375,7 +375,7 @@ TEST_F(HwPfcTest, verifyPfcWithMapChanges_1) {
 // and observe it kicks in and update the watchdog counters
 // watchdog counters are created/incremented when callback
 // for deadlock/recovery kicks in
-TEST_F(HwPfcTest, PfcWatchdog) {
+TEST_F(HwTrafficPfcTest, PfcWatchdog) {
   auto setup = [&]() {
     setupConfigAndEcmpTraffic();
     setupWatchdog(true /* enable watchdog */);
@@ -396,7 +396,7 @@ TEST_F(HwPfcTest, PfcWatchdog) {
 // Clear them and check they stay the same
 // Since the watchdog counters are sw based, upon warm boot
 // we don't expect these counters to be incremented either
-TEST_F(HwPfcTest, PfcWatchdogReset) {
+TEST_F(HwTrafficPfcTest, PfcWatchdogReset) {
   auto setup = [&]() {
     setupConfigAndEcmpTraffic();
     setupWatchdog(true /* enable watchdog */);

@@ -16,7 +16,7 @@
 
 namespace facebook::fboss {
 
-class HwAgentPfcTests : public HwTest {
+class HwPfcTest : public HwTest {
  protected:
   cfg::SwitchConfig initialConfig() const {
     return utility::twoL3IntfConfig(
@@ -265,31 +265,31 @@ class HwAgentPfcTests : public HwTest {
   cfg::SwitchConfig currentConfig;
 };
 
-TEST_F(HwAgentPfcTests, PfcDefaultProgramming) {
+TEST_F(HwPfcTest, PfcDefaultProgramming) {
   runPfcNotConfiguredTest(false, false);
 }
 
-TEST_F(HwAgentPfcTests, PfcRxDisabledTxDisabled) {
+TEST_F(HwPfcTest, PfcRxDisabledTxDisabled) {
   runPfcTest(false, false);
 }
 
-TEST_F(HwAgentPfcTests, PfcRxEnabledTxDisabled) {
+TEST_F(HwPfcTest, PfcRxEnabledTxDisabled) {
   runPfcTest(true, false);
 }
 
-TEST_F(HwAgentPfcTests, PfcRxDisabledTxEnabled) {
+TEST_F(HwPfcTest, PfcRxDisabledTxEnabled) {
   runPfcTest(false, true);
 }
 
-TEST_F(HwAgentPfcTests, PfcRxEnabledTxEnabled) {
+TEST_F(HwPfcTest, PfcRxEnabledTxEnabled) {
   runPfcTest(true, true);
 }
 
-TEST_F(HwAgentPfcTests, PfcWatchdogDefaultProgramming) {
+TEST_F(HwPfcTest, PfcWatchdogDefaultProgramming) {
   runPfcWatchdogNotConfiguredTest();
 }
 
-TEST_F(HwAgentPfcTests, PfcWatchdogProgramming) {
+TEST_F(HwPfcTest, PfcWatchdogProgramming) {
   cfg::PfcWatchdog pfcWatchdogConfig{};
   initalizePfcConfigWatchdogValues(
       pfcWatchdogConfig, 1, 400, cfg::PfcWatchdogRecoveryAction::DROP);
@@ -297,7 +297,7 @@ TEST_F(HwAgentPfcTests, PfcWatchdogProgramming) {
 }
 
 // Try a sequence of configuring, modifying and removing PFC watchdog
-TEST_F(HwAgentPfcTests, PfcWatchdogProgrammingSequence) {
+TEST_F(HwPfcTest, PfcWatchdogProgrammingSequence) {
   auto setup = [&]() { setupBaseConfig(); };
 
   auto verify = [&]() {
@@ -363,7 +363,7 @@ TEST_F(HwAgentPfcTests, PfcWatchdogProgrammingSequence) {
 }
 
 // Validate PFC watchdog deadlock detection timer in the 0-16msec range
-TEST_F(HwAgentPfcTests, PfcWatchdogGranularity1) {
+TEST_F(HwPfcTest, PfcWatchdogGranularity1) {
   cfg::PfcWatchdog pfcWatchdogConfig{};
   XLOG(DBG0) << "Verify PFC watchdog deadlock detection timer range 0-15msec";
   initalizePfcConfigWatchdogValues(
@@ -373,7 +373,7 @@ TEST_F(HwAgentPfcTests, PfcWatchdogGranularity1) {
 }
 
 // Validate PFC watchdog deadlock detection timer in the 16-160msec range
-TEST_F(HwAgentPfcTests, PfcWatchdogGranularity2) {
+TEST_F(HwPfcTest, PfcWatchdogGranularity2) {
   cfg::PfcWatchdog pfcWatchdogConfig{};
   XLOG(DBG0) << "Verify PFC watchdog deadlock detection timer range 16-159msec";
   initalizePfcConfigWatchdogValues(
@@ -383,7 +383,7 @@ TEST_F(HwAgentPfcTests, PfcWatchdogGranularity2) {
 }
 
 // Validate PFC watchdog deadlock detection timer in the 16-160msec range
-TEST_F(HwAgentPfcTests, PfcWatchdogGranularity3) {
+TEST_F(HwPfcTest, PfcWatchdogGranularity3) {
   cfg::PfcWatchdog pfcWatchdogConfig{};
   XLOG(DBG0) << "Verify PFC watchdog deadlock detection "
              << "timer 10msec range boundary value 159msec";
@@ -394,7 +394,7 @@ TEST_F(HwAgentPfcTests, PfcWatchdogGranularity3) {
 }
 
 // Validate PFC watchdog deadlock detection timer in the 160-1599msec range
-TEST_F(HwAgentPfcTests, PfcWatchdogGranularity4) {
+TEST_F(HwPfcTest, PfcWatchdogGranularity4) {
   cfg::PfcWatchdog pfcWatchdogConfig{};
   XLOG(DBG0) << "Verify PFC watchdog deadlock detection "
              << "timer 100msec range boundary value 160msec";
@@ -405,7 +405,7 @@ TEST_F(HwAgentPfcTests, PfcWatchdogGranularity4) {
 }
 
 // Validate PFC watchdog deadlock detection timer in the 160-1599msec range
-TEST_F(HwAgentPfcTests, PfcWatchdogGranularity5) {
+TEST_F(HwPfcTest, PfcWatchdogGranularity5) {
   cfg::PfcWatchdog pfcWatchdogConfig{};
   XLOG(DBG0) << "Verify PFC watchdog deadlock detection "
              << "timer 100msec range boundary value 1599msec";
@@ -418,7 +418,7 @@ TEST_F(HwAgentPfcTests, PfcWatchdogGranularity5) {
 
 // Validate PFC watchdog deadlock detection timer outside the 0-1599msec
 // range
-TEST_F(HwAgentPfcTests, PfcWatchdogGranularity6) {
+TEST_F(HwPfcTest, PfcWatchdogGranularity6) {
   cfg::PfcWatchdog pfcWatchdogConfig{};
   XLOG(DBG0) << "Verify PFC watchdog deadlock detection "
              << "timer outside range with 1600msec";
@@ -430,7 +430,7 @@ TEST_F(HwAgentPfcTests, PfcWatchdogGranularity6) {
 }
 
 // PFC watchdog deadlock recovery action tests
-TEST_F(HwAgentPfcTests, PfcWatchdogDeadlockRecoveryAction) {
+TEST_F(HwPfcTest, PfcWatchdogDeadlockRecoveryAction) {
   auto setup = [&]() { setupBaseConfig(); };
 
   auto verify = [&]() {
@@ -499,7 +499,7 @@ TEST_F(HwAgentPfcTests, PfcWatchdogDeadlockRecoveryAction) {
 
 // Verify all ports should be configured with the same
 // PFC watchdog deadlock recovery action.
-TEST_F(HwAgentPfcTests, PfcWatchdogDeadlockRecoveryActionMismatch) {
+TEST_F(HwPfcTest, PfcWatchdogDeadlockRecoveryActionMismatch) {
   auto setup = [&]() { setupBaseConfig(); };
 
   auto verify = [&]() {
