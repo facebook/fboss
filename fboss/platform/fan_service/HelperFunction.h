@@ -5,12 +5,11 @@
 #include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/fan_service/ServiceConfig.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
+#include "fboss/qsfp_service/lib/QsfpClient.h"
 
-bool getCacheTable(
-    std::unordered_map<
-        facebook::fboss::TransceiverID,
-        facebook::fboss::TransceiverInfo>& cacheTable,
-    std::shared_ptr<facebook::fboss::QsfpCache> qsfpCache_);
+void getTransceivers(
+    std::map<int32_t, facebook::fboss::TransceiverInfo>& cacheTable,
+    folly::EventBase& evb);
 
 void getSensorValueThroughThrift(
     int sensordThriftPort_,

@@ -12,11 +12,10 @@ int doFBInit(int argc, char** argv) {
   return 0;
 }
 
-bool getCacheTable(
-    std::unordered_map<TransceiverID, TransceiverInfo>& cacheTable,
-    std::shared_ptr<QsfpCache> qsfpCache_) {
+void getTransceivers(
+    std::map<int32_t, TransceiverInfo>& cacheTable,
+    folly::EventBase& evb) {
   XLOG(ERR) << "OSS Build does not support reading data from qsfp_service";
-  return false;
 }
 
 void getSensorValueThroughThrift(

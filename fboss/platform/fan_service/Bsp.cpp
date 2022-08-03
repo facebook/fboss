@@ -133,7 +133,7 @@ void Bsp::processOpticEntries(
     Optic* opticsGroup,
     std::shared_ptr<SensorData> pSensorData,
     uint64_t& currentQsfpSvcTimestamp,
-    std::unordered_map<TransceiverID, TransceiverInfo> cacheTable,
+    const std::map<int32_t, TransceiverInfo>& cacheTable,
     OpticEntry* opticData) {
   std::pair<fan_config_structs::OpticTableType, float> prepData;
   for (auto cacheEntry : cacheTable) {
@@ -179,6 +179,7 @@ void Bsp::processOpticEntries(
     MediaInterfaceCode mediaInterfaceCode = MediaInterfaceCode::UNKNOWN;
     if (info.moduleMediaInterface()) {
       mediaInterfaceCode = *info.moduleMediaInterface();
+      XLOG(DBG3) << "OpticsType: port is " << *info.port();
     }
     switch (mediaInterfaceCode) {
       case MediaInterfaceCode::UNKNOWN:
@@ -214,25 +215,25 @@ void Bsp::processOpticEntries(
 void Bsp::getOpticsDataThrift(
     Optic* opticsGroup,
     std::shared_ptr<SensorData> pSensorData) {
-  bool thriftSuccess = false;
-  // Here, we don't really futureGet the transciver data,
+  // Here, we don't really futureGet the transceiver data,
   // but use the cached value from the background thread.
-  // We use QsfpCache for this.
-  std::unordered_map<TransceiverID, TransceiverInfo> cacheTable;
+  // We use QsfpClient for this.
+  std::map<int32_t, TransceiverInfo> cacheTable;
   uint64_t currentQsfpSvcTimestamp = 0;
+
   try {
-    // QsfpCache runs a background thread to do the sync every
+    // QsfpClient sync with Qsfp service every
     // 30 seconds. The following merely reads the cached data
     // updated in the last sync attempt (thus returns very quickly.)
-    thriftSuccess = getCacheTable(cacheTable, qsfpCache_);
+    getTransceivers(cacheTable, evb_);
+
   } catch (std::exception& e) {
     XLOG(ERR) << "Failed to read optics data from Qsfp for "
-              << opticsGroup->opticName;
-  }
-  // If thrift fails, just return without updating sensor data
-  // control logic will see that the timestamp did not change,
-  // and do the right error handling.
-  if (!thriftSuccess) {
+              << opticsGroup->opticName
+              << ", exception: " << folly::exceptionStr(e);
+    // If thrift fails, just return without updating sensor data
+    // control logic will see that the timestamp did not change,
+    // and do the right error handling.
     return;
   }
 
@@ -371,7 +372,7 @@ void Bsp::getSensorDataThriftWithSensorList(
     std::shared_ptr<SensorData> pSensorData,
     std::vector<std::string> sensorList) {
   getSensorValueThroughThrift(
-      sensordThriftPort_, evb_, pSensorData, sensorList);
+      sensordThriftPort_, evbSensor_, pSensorData, sensorList);
   return;
 }
 
@@ -465,17 +466,15 @@ bool Bsp::setFanLedShell(std::string command, std::string fanName, int value) {
 }
 
 bool Bsp::initializeQsfpService() {
-  bool qsfpInitialized = initQsfpSvc(qsfpCache_, evb_);
-  if (qsfpInitialized) {
-    thread_.reset(new std::thread([=] { evb_.loopForever(); }));
-  }
+  thread_.reset(new std::thread([=] { evbSensor_.loopForever(); }));
   return true;
 }
 
 Bsp::~Bsp() {
   if (thread_) {
-    evb_.runInEventBaseThread([this] { evb_.terminateLoopSoon(); });
+    evbSensor_.runInEventBaseThread([this] { evbSensor_.terminateLoopSoon(); });
     thread_->join();
   }
 }
+
 } // namespace facebook::fboss::platform

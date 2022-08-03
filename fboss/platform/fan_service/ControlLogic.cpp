@@ -425,7 +425,7 @@ void ControlLogic::getOpticsUpdate() {
             for (auto tableEntry = tablePointer->begin();
                  tableEntry != tablePointer->end();
                  ++tableEntry) {
-              if (value > tableEntry->first) {
+              if (value >= tableEntry->first) {
                 pwmForThis = tableEntry->second;
               }
             }

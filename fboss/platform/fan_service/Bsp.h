@@ -136,7 +136,7 @@ class Bsp {
       Optic* opticsGroup,
       std::shared_ptr<SensorData> pSensorData,
       uint64_t& currentQsfpSvcTimestamp,
-      std::unordered_map<TransceiverID, TransceiverInfo> cacheTable,
+      const std::map<int32_t, TransceiverInfo>& cacheTable,
       OpticEntry* opticData);
 };
 } // namespace facebook::fboss::platform
