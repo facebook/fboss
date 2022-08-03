@@ -130,6 +130,8 @@ sai_service_method_table_t* SaiSandiaPhyPlatform::getServiceMethodTable()
 const std::set<sai_api_t>& SaiSandiaPhyPlatform::getSupportedApiList() const {
   auto getApiList = [this]() {
     std::set<sai_api_t> apis(getDefaultPhyAsicSupportedApis());
+    // Sandia SAI does not support ACL API so remove it
+    apis.erase(facebook::fboss::AclApi::ApiType);
     return apis;
   };
 
