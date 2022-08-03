@@ -310,21 +310,9 @@ class PortState : public BaseObjectArgType<std::string> {
 class FsdbPath : public BaseObjectArgType<std::string> {
  public:
   // Get raw fsdb path from command args
-  // return: vector of path names separated by `/`
-  // Eg: fsdbPath = {"agent/config"} | data_: {"agent", "config"}
-  /* implicit */ FsdbPath(std::vector<std::string> fsdbPath) {
-    if (fsdbPath.size() > 1) {
-      throw std::invalid_argument(folly::to<std::string>(
-          "Unexpected path '",
-          folly::join<std::string, std::vector<std::string>>(" ", fsdbPath),
-          "', expecting a single path"));
-    }
-    if (fsdbPath.size() == 1) {
-      folly::split("/", fsdbPath[0], data_);
-    }
-    // if there is no input, the default value will be given inside each command
-  }
-
+  // if there is no input, the default value will be given inside each command
+  /* implicit */ FsdbPath(std::vector<std::string> fsdbPath)
+      : BaseObjectArgType(fsdbPath) {}
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_PATH;
 };
 
