@@ -188,8 +188,14 @@ void printAggregate(
     auto it = validAggMap.find(aggColumn);
     for (auto result : hostAggResults) {
       if (rowNumber == 0) {
-        aggregateAcrossHosts =
-            (it->second)->getInitValue(std::to_string(result), aggOp);
+        if (aggOp != facebook::fboss::AggregateOpEnum::COUNT) {
+          aggregateAcrossHosts =
+              (it->second)->getInitValue(std::to_string(result), aggOp);
+        } else {
+          // can't use init value from the countAgg() here, hence separate
+          // handling
+          aggregateAcrossHosts = result;
+        }
         rowNumber += 1;
       } else {
         switch (aggOp) {
@@ -206,10 +212,10 @@ void printAggregate(
             aggregateAcrossHosts = facebook::fboss::MaxAgg<double>().accumulate(
                 result, aggregateAcrossHosts);
             break;
+          // when aggregating counts across hosts, we need to sum them!
           case facebook::fboss::AggregateOpEnum::COUNT:
-            aggregateAcrossHosts =
-                facebook::fboss::CountAgg<double>().accumulate(
-                    result, aggregateAcrossHosts);
+            aggregateAcrossHosts = facebook::fboss::SumAgg<double>().accumulate(
+                result, aggregateAcrossHosts);
             break;
           case facebook::fboss::AggregateOpEnum::AVG:
             std::cerr << "Average aggregation not supported yet!" << std::endl;
@@ -217,7 +223,7 @@ void printAggregate(
         }
       }
     }
-    std::cout << "result of aggregating across all hosts: "
+    std::cout << "Result of aggregating across all hosts: "
               << aggregateAcrossHosts << std::endl;
   }
 }
