@@ -83,13 +83,7 @@ SaiSandiaPhyPlatform::SaiSandiaPhyPlatform(
     int phyId)
     : SaiHwPlatform(
           std::move(productInfo),
-          // TODO(rajank):
-          // Put the Correct Sandia8DDPimPlatformMapping or the
-          // Sandia16QPimPlatformMapping here instead of generic
-          // MultiPimPlatformMapping
-          std::make_unique<MultiPimPlatformMapping>("")
-              // std::make_unique<SandiaPlatformMapping>()
-              ->getPimPlatformMappingUniquePtr(pimId),
+          std::make_unique<SandiaPlatformMapping>(),
           localMac),
       pimId_(pimId),
       phyId_(phyId) {
