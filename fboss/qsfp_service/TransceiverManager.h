@@ -81,7 +81,14 @@ class TransceiverManager {
     return id < getNumQsfpModules() && id >= 0;
   }
   virtual int getNumQsfpModules() = 0;
+
   virtual std::vector<TransceiverID> refreshTransceivers() = 0;
+  // Refresh specified Transceivers
+  // If `transceivers` is empty, we'll refresh all existing transceivers
+  // Return: The refreshed transceiver ids
+  std::vector<TransceiverID> refreshTransceivers(
+      const std::unordered_set<TransceiverID>& transceivers);
+
   virtual int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
   /*
@@ -370,12 +377,6 @@ class TransceiverManager {
   // Restore phy state from the last cached warm boot qsfp_service state
   // Called this after initializing all the xphys during warm boot
   void restoreWarmBootPhyState();
-
-  // Refresh specified Transceivers
-  // If `transceivers` is empty, we'll refresh all existing transceivers
-  // Return: The refreshed transceiver ids
-  std::vector<TransceiverID> refreshTransceivers(
-      const std::unordered_set<TransceiverID>& transceivers);
 
   OverrideTcvrToPortAndProfile overrideTcvrToPortAndProfileForTest_;
 
