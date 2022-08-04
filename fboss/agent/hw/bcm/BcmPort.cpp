@@ -1190,6 +1190,25 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
     }
   }
 #endif
+#if defined(BCM_SDK_VERSION_GTE_6_5_26)
+  if (hw_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::PMD_RX_SIGNAL_DETECT)) {
+    bcm_port_phy_signal_detect_status_t sd_status;
+    auto rv = bcm_port_phy_signal_detect_status_get(unit_, port_, &sd_status);
+    if (!BCM_FAILURE(rv)) {
+      for (int lane = 0; lane < totalPmdLanes; lane++) {
+        pmd.lanes_ref()[lane].lane_ref() = lane;
+        pmd.lanes_ref()[lane].signalDetectLive_ref() =
+            sd_status.signal_detect_bmp & (1 << lane);
+        pmd.lanes_ref()[lane].signalDetectChanged_ref() =
+            sd_status.signal_detect_change_bmp & (1 << lane);
+      }
+    } else {
+      XLOG(ERR) << "Failed to read rx_signal_detect_status for port " << port_
+                << " :" << bcm_errmsg(rv);
+    }
+  }
+#endif
 
   // Line side parameters
   phy::PhySideInfo lineSideInfo;
