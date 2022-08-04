@@ -114,7 +114,10 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
     case SAI_API_SYSTEM_PORT:
       return "system_port";
     default:
-      throw FbossError("api type invalid: ", apiType);
+      if (apiType >= SAI_API_MAX) {
+        throw FbossError("api type invalid: ", apiType);
+      }
+      return "unsupported";
   }
 }
 
