@@ -23,7 +23,7 @@ class RestClient {
    * Calls the particular Rest api
    */
   bool request(std::string path);
-  std::string requestWithOutput(std::string path);
+  std::string requestWithOutput(std::string path, std::string postData = "");
   void setTimeout(std::chrono::milliseconds timeout);
 
  private:

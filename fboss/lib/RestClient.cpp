@@ -12,6 +12,8 @@
 #include <sstream>
 
 #include "fboss/agent/FbossError.h"
+#include "folly/FileUtil.h"
+#include "folly/logging/xlog.h"
 
 #include <curl/curl.h>
 
@@ -50,7 +52,9 @@ void RestClient::setTimeout(std::chrono::milliseconds timeout) {
   timeout_ = timeout;
 }
 
-std::string RestClient::requestWithOutput(std::string path) {
+std::string RestClient::requestWithOutput(
+    std::string path,
+    std::string postData) {
   CURL* curl;
   CURLcode resp;
   std::stringbuf write_buffer;
@@ -75,7 +79,18 @@ std::string RestClient::requestWithOutput(std::string path) {
       curl_easy_setopt(curl, CURLOPT_INTERFACE, interface_.c_str());
     }
 
+    struct curl_slist* headers = nullptr;
+    if (!postData.empty()) {
+      curl_easy_setopt(curl, CURLOPT_POST, 1L);
+      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str());
+      headers = curl_slist_append(nullptr, "Content-Type: application/json");
+      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    }
+
     resp = curl_easy_perform(curl);
+    if (headers) {
+      curl_slist_free_all(headers);
+    }
     curl_easy_cleanup(curl);
     if (resp == CURLE_OK) {
       return write_buffer.str();
