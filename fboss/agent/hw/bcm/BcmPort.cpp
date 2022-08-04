@@ -1165,19 +1165,24 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
 
   // PMD Parameters
   phy::PmdInfo pmd;
+  int totalPmdLanes = numLanes_;
+  for (int lane = 0; lane < totalPmdLanes; lane++) {
+    phy::LaneInfo laneInfo;
+    laneInfo.lane_ref() = lane;
+    pmd.lanes_ref()[lane] = laneInfo;
+  }
 #if defined(BCM_SDK_VERSION_GTE_6_5_24)
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::PMD_RX_LOCK_STATUS)) {
     bcm_port_pmd_rx_lock_status_t lock_status;
     auto rv = bcm_port_pmd_rx_lock_status_get(unit_, port_, &lock_status);
     if (!BCM_FAILURE(rv)) {
-      for (int lane = 0; lane < numLanes_; lane++) {
-        phy::LaneInfo laneInfo;
-        laneInfo.lane_ref() = lane;
-        laneInfo.cdrLockLive_ref() = lock_status.rx_lock_bmp & (1 << lane);
-        laneInfo.cdrLockChanged_ref() =
+      for (int lane = 0; lane < totalPmdLanes; lane++) {
+        pmd.lanes_ref()[lane].lane_ref() = lane;
+        pmd.lanes_ref()[lane].cdrLockLive_ref() =
+            lock_status.rx_lock_bmp & (1 << lane);
+        pmd.lanes_ref()[lane].cdrLockChanged_ref() =
             lock_status.rx_lock_change_bmp & (1 << lane);
-        pmd.lanes_ref()[lane] = laneInfo;
       }
     } else {
       XLOG(ERR) << "Failed to read rx_lock_status for port " << port_ << " :"
