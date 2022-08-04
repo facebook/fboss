@@ -25,13 +25,19 @@ SaiAclTableManager::SaiAclTableManager(
       managerTable_(managerTable),
       platform_(platform),
       aclEntryMinimumPriority_(
-          SaiApiTable::getInstance()->switchApi().getAttribute(
-              managerTable_->switchManager().getSwitchSaiId(),
-              SaiSwitchTraits::Attributes::AclEntryMinimumPriority())),
+          (platform->getAsic()->getAsicType() ==
+           HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY)
+              ? 0
+              : SaiApiTable::getInstance()->switchApi().getAttribute(
+                    managerTable_->switchManager().getSwitchSaiId(),
+                    SaiSwitchTraits::Attributes::AclEntryMinimumPriority())),
       aclEntryMaximumPriority_(
-          SaiApiTable::getInstance()->switchApi().getAttribute(
-              managerTable_->switchManager().getSwitchSaiId(),
-              SaiSwitchTraits::Attributes::AclEntryMaximumPriority())),
+          (platform->getAsic()->getAsicType() ==
+           HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY)
+              ? 0
+              : SaiApiTable::getInstance()->switchApi().getAttribute(
+                    managerTable_->switchManager().getSwitchSaiId(),
+                    SaiSwitchTraits::Attributes::AclEntryMaximumPriority())),
       fdbDstUserMetaDataRangeMin_(0),
       fdbDstUserMetaDataRangeMax_(0),
       fdbDstUserMetaDataMask_(0),
