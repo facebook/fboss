@@ -1379,8 +1379,10 @@ void SaiSwitch::initStoreAndManagersLocked(
     HwWriteBehaviorRAII writeBehavior{behavior};
     // TODO(rajank) Might need different STAGE for phy acl group
     // Temporarily skip adding acl table group for ASIC_TYPE_ELBERT_8DD
-    if (getPlatform()->getAsic()->getAsicType() !=
-        HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
+    if ((getPlatform()->getAsic()->getAsicType() !=
+         HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) &&
+        (getPlatform()->getAsic()->getAsicType() !=
+         HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY)) {
       if (!FLAGS_enable_acl_table_group) {
         auto aclTableGroup =
             std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
