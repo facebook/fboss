@@ -139,23 +139,23 @@ std::string getDarwinFSConfig() {
     "fan_1" : {
       "rpm" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan1_input"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan1_input"
       },
       "pwm" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/pwm1"
+        "path" : "/run/devmap/sensors/FAN_CPLD/pwm1"
       },
       "pwm_range_min" : 1,
       "pwm_range_max" : 255,
       "presence" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan1_present"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan1_present"
       },
       "fan_present_val" : 1,
       "fan_missing_val" : 0,
       "led" : {
         "source" : "sysfs",
-        "path" : "sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan1_led"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan1_led"
       },
       "fan_good_led_val" : 2,
       "fan_fail_led_val" : 1
@@ -163,23 +163,23 @@ std::string getDarwinFSConfig() {
     "fan_2" : {
       "rpm" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan2_input"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan2_input"
       },
       "pwm" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/pwm2"
+        "path" : "/run/devmap/sensors/FAN_CPLD/pwm2"
       },
       "pwm_range_min" : 1,
       "pwm_range_max" : 255,
       "presence" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan2_present"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan2_present"
       },
       "fan_present_val" : 1,
       "fan_missing_val" : 0,
       "led" : {
         "source" : "sysfs",
-        "path" : "sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan2_led"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan2_led"
       },
       "fan_good_led_val" : 2,
       "fan_fail_led_val" : 1
@@ -187,23 +187,23 @@ std::string getDarwinFSConfig() {
     "fan_3" : {
       "rpm" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan3_input"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan3_input"
       },
       "pwm" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/pwm3"
+        "path" : "/run/devmap/sensors/FAN_CPLD/pwm3"
       },
       "pwm_range_min" : 1,
       "pwm_range_max" : 255,
       "presence" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan3_present"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan3_present"
       },
       "fan_present_val" : 1,
       "fan_missing_val" : 0,
       "led" : {
         "source" : "sysfs",
-        "path" : "sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan3_led"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan3_led"
       },
       "fan_good_led_val" : 2,
       "fan_fail_led_val" : 1
@@ -211,23 +211,23 @@ std::string getDarwinFSConfig() {
     "fan_4" : {
       "rpm" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan4_input"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan4_input"
       },
       "pwm" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/pwm4"
+        "path" : "/run/devmap/sensors/FAN_CPLD/pwm4"
       },
       "pwm_range_min" : 1,
       "pwm_range_max" : 255,
       "presence" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan4_present"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan4_present"
       },
       "fan_present_val" : 1,
       "fan_missing_val" : 0,
       "led" : {
         "source" : "sysfs",
-        "path" : "sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan4_led"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan4_led"
       },
       "fan_good_led_val" : 2,
       "fan_fail_led_val" : 1
@@ -235,23 +235,23 @@ std::string getDarwinFSConfig() {
     "fan_5" : {
       "rpm" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan5_input"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan5_input"
       },
       "pwm" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/pwm5"
+        "path" : "/run/devmap/sensors/FAN_CPLD/pwm5"
       },
       "pwm_range_min" : 1,
       "pwm_range_max" : 255,
       "presence" : {
         "source" : "sysfs",
-        "path" : "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan5_present"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan5_present"
       },
       "fan_present_val" : 1,
       "fan_missing_val" : 0,
       "led" : {
         "source" : "sysfs",
-        "path" : "sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan5_led"
+        "path" : "/run/devmap/sensors/FAN_CPLD/fan5_led"
       },
       "fan_good_led_val" : 2,
       "fan_fail_led_val" : 1
