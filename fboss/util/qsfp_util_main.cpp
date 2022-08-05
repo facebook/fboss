@@ -1,5 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 #include "fboss/util/QsfpUtilTx.h"
@@ -82,6 +83,14 @@ int main(int argc, char* argv[]) {
   if (FLAGS_clear_low_power && FLAGS_set_low_power) {
     fprintf(stderr, "Cannot set and clear lp mode\n");
     return EX_USAGE;
+  }
+
+  auto pidList = getPidForProcess("qsfp_service");
+
+  if (pidList.empty()) {
+    XLOG(INFO) << "qsfp_service is not running";
+  } else {
+    XLOG(INFO) << "qsfp_service is running";
   }
 
   std::vector<unsigned int> ports;
@@ -296,8 +305,8 @@ int main(int argc, char* argv[]) {
 
     if (FLAGS_direct_i2c && printInfo) {
       try {
-        // Get the port details from the direct i2c read and then print out the
-        // i2c info from module
+        // Get the port details from the direct i2c read and then print out
+        // the i2c info from module
         printPortDetail(fetchDataFromLocalI2CBus(i2cInfo, portNum), portNum);
       } catch (const I2cError& ex) {
         // This generally means the QSFP module is not present.
