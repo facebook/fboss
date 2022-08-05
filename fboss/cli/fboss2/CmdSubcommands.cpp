@@ -75,7 +75,10 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
       subCmd->add_option("msg", args, "Message");
     } else if (
         cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_AREA_LIST) {
-      subCmd->add_option("areas", args, "Open/R areas");
+      subCmd->add_option("areas", args, "Openr areas");
+    } else if (
+        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NODE_LIST) {
+      subCmd->add_option("nodes", args, "Openr node names");
     } else if (
         cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT) {
       subCmd->add_option(
