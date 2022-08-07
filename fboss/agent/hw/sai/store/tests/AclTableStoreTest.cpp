@@ -230,6 +230,7 @@ class AclTableStoreTest : public SaiStoreTest {
         {
             aclTableIdAttribute,
             this->kPriority(),
+            true, // enabled
             AclEntryFieldIpV6(this->kSrcIpV6()),
             AclEntryFieldIpV6(this->kDstIpV6()),
             AclEntryFieldIpV4(this->kSrcIpV4()),
@@ -397,6 +398,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
   SaiAclEntryTraits::CreateAttributes c{
       aclTableId,
       this->kPriority(),
+      true, // enabled
       this->kSrcIpV6(),
       this->kDstIpV6(),
       this->kSrcIpV4(),

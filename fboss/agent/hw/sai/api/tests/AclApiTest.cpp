@@ -453,6 +453,7 @@ class AclApiTest : public ::testing::Test {
     return aclApi->create<SaiAclEntryTraits>(
         {aclTableIdAttribute,
          aclPriorityAttribute,
+         true, // enabled
          aclFieldSrcIpV6,
          aclFieldDstIpV6,
          aclFieldSrcIpV4,

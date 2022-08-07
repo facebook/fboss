@@ -407,6 +407,7 @@ struct SaiAclEntryTraits {
   using CreateAttributes = std::tuple<
       Attributes::TableId,
       std::optional<Attributes::Priority>,
+      Attributes::Enabled,
       std::optional<Attributes::FieldSrcIpV6>,
       std::optional<Attributes::FieldDstIpV6>,
       std::optional<Attributes::FieldSrcIpV4>,

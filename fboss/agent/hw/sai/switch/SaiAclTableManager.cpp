@@ -954,6 +954,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   SaiAclEntryTraits::CreateAttributes attributes{
       aclTableId,
       priority,
+      true,
       fieldSrcIpV6,
       fieldDstIpV6,
       fieldSrcIpV4,
