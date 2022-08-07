@@ -41,31 +41,29 @@ void SaiLinkStateToggler::setPortPreemphasis(
       attr = val;
     }
   };
-  // set different preemphasis or txfir only when input value is not zero,
-  // otherwise use default settings from serdesAttributesFromSwPinConfigs()
-  if (preemphasis != 0) {
-    auto preemphasisVal =
-        std::vector<uint32_t>(numLanes, static_cast<uint32_t>(preemphasis));
-    if (saiEnsemble_->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET)) {
-      setTxRxAttr(
-          serDesAttributes,
-          SaiPortSerdesTraits::Attributes::Preemphasis{},
-          preemphasisVal);
-    } else {
-      setTxRxAttr(
-          serDesAttributes,
-          SaiPortSerdesTraits::Attributes::TxFirPre1{},
-          preemphasisVal);
-      setTxRxAttr(
-          serDesAttributes,
-          SaiPortSerdesTraits::Attributes::TxFirPost1{},
-          preemphasisVal);
-      setTxRxAttr(
-          serDesAttributes,
-          SaiPortSerdesTraits::Attributes::TxFirMain{},
-          preemphasisVal);
-    }
+  auto preemphasisVal =
+      std::vector<uint32_t>(numLanes, static_cast<uint32_t>(preemphasis));
+  if (saiEnsemble_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET)) {
+    setTxRxAttr(
+        serDesAttributes,
+        SaiPortSerdesTraits::Attributes::Preemphasis{},
+        preemphasisVal);
+  } else if (preemphasis != 0) {
+    // set different txfir only when input value is not zero,
+    // otherwise use default settings from serdesAttributesFromSwPinConfigs()
+    setTxRxAttr(
+        serDesAttributes,
+        SaiPortSerdesTraits::Attributes::TxFirPre1{},
+        preemphasisVal);
+    setTxRxAttr(
+        serDesAttributes,
+        SaiPortSerdesTraits::Attributes::TxFirPost1{},
+        preemphasisVal);
+    setTxRxAttr(
+        serDesAttributes,
+        SaiPortSerdesTraits::Attributes::TxFirMain{},
+        preemphasisVal);
   }
   if (saiEnsemble_->getPlatform()->isSerdesApiSupported()) {
     portHandle->serdes->setAttributes(serDesAttributes);
