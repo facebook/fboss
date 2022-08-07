@@ -1001,6 +1001,10 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   XLOG(INFO) << "added acl entry " << addedAclEntry->getID() << " priority "
              << addedAclEntry->getPriority();
 
+  auto enabled = SaiApiTable::getInstance()->aclApi().getAttribute(
+      it->second->aclEntry->adapterKey(),
+      SaiAclEntryTraits::Attributes::Enabled{});
+  CHECK(enabled) << "Acl entry: " << addedAclEntry->getID() << " not enabled";
   return it->second->aclEntry->adapterKey();
 }
 
