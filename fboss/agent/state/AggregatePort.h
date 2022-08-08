@@ -13,6 +13,7 @@
 #include "fboss/agent/LacpTypes.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/types.h"
 
@@ -89,6 +90,25 @@ struct AggregatePortFields {
 
     folly::dynamic toFollyDynamic() const;
     static Subport fromFollyDynamic(const folly::dynamic& json);
+
+    state::Subport toThrift() const {
+      state::Subport subport;
+      subport.id() = portID;
+      subport.priority() = priority;
+      subport.lacpPortRate() = rate;
+      subport.lacpPortActivity() = activity;
+      subport.holdTimerMultiplier() = holdTimerMulitiplier;
+      return subport;
+    }
+
+    static Subport fromThrift(state::Subport subport) {
+      return Subport(
+          PortID(*subport.id()),
+          *subport.priority(),
+          *subport.lacpPortRate(),
+          *subport.lacpPortActivity(),
+          *subport.holdTimerMultiplier());
+    }
 
     PortID portID{0};
     uint16_t priority{0};

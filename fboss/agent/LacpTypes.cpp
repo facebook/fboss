@@ -108,6 +108,34 @@ ParticipantInfo ParticipantInfo::fromFollyDynamic(const folly::dynamic& json) {
   return actorInfo;
 }
 
+state::ParticipantInfo ParticipantInfo::toThrift() const {
+  state::ParticipantInfo data;
+  data.systemPriority() = systemPriority;
+  data.systemID()->reserve(folly::MacAddress::SIZE);
+  for (int i = 0; i < folly::MacAddress::SIZE; i++) {
+    data.systemID()->push_back(systemID[i]);
+  }
+  data.key() = key;
+  data.portPriority() = portPriority;
+  data.port() = port;
+  data.state() = static_cast<state::LacpState>(state);
+  return data;
+}
+
+ParticipantInfo ParticipantInfo::fromThrift(
+    const state::ParticipantInfo& data) {
+  ParticipantInfo actorInfo;
+  actorInfo.key = static_cast<uint16_t>(*data.key());
+  actorInfo.port = static_cast<uint16_t>(*data.port());
+  actorInfo.portPriority = static_cast<uint16_t>(*data.portPriority());
+  actorInfo.state = static_cast<LacpState>(*data.state());
+  actorInfo.systemPriority = static_cast<uint16_t>(*data.systemPriority());
+  for (auto i = 0; i < folly::MacAddress::SIZE; i++) {
+    actorInfo.systemID[i] = data.systemID()[i];
+  }
+  return actorInfo;
+}
+
 bool LACPDU::isValid() const {
   // TODO(samank): validate frame
   return true;

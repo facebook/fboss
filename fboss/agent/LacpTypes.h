@@ -19,6 +19,7 @@
 #include <folly/io/Cursor.h>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 
 namespace facebook::fboss {
 
@@ -98,6 +99,8 @@ struct ParticipantInfo {
 
   folly::dynamic toFollyDynamic() const;
   static ParticipantInfo fromFollyDynamic(const folly::dynamic& json);
+  state::ParticipantInfo toThrift() const;
+  static ParticipantInfo fromThrift(const state::ParticipantInfo& data);
 
   bool operator==(const ParticipantInfo& rhs) const;
   bool operator!=(const ParticipantInfo& rhs) const;
