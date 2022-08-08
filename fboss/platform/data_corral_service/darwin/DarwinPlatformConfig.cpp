@@ -14,7 +14,7 @@ std::string getDarwinPlatformConfig() {
       "attributes": [
         {
           "name": "present",
-          "path": "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan1_present"
+          "path": "/run/devmap/sensors/FAN_CPLD/fan1_present"
         }
       ]
     },
@@ -23,7 +23,7 @@ std::string getDarwinPlatformConfig() {
       "attributes": [
         {
           "name": "present",
-          "path": "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan2_present"
+          "path": "/run/devmap/sensors/FAN_CPLD/fan2_present"
         }
       ]
     },
@@ -32,7 +32,7 @@ std::string getDarwinPlatformConfig() {
       "attributes": [
         {
           "name": "present",
-          "path": "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan3_present"
+          "path": "/run/devmap/sensors/FAN_CPLD/fan3_present"
         }
       ]
     },
@@ -41,7 +41,7 @@ std::string getDarwinPlatformConfig() {
       "attributes": [
         {
           "name": "present",
-          "path": "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan4_present"
+          "path": "/run/devmap/sensors/FAN_CPLD/fan4_present"
         }
       ]
     },
@@ -50,7 +50,7 @@ std::string getDarwinPlatformConfig() {
       "attributes": [
         {
           "name": "present",
-          "path": "/sys/bus/i2c/drivers/rook-fan-cpld/17-0060/hwmon/hwmon2/fan5_present"
+          "path": "/run/devmap/sensors/FAN_CPLD/fan5_present"
         }
       ]
     },
@@ -59,7 +59,7 @@ std::string getDarwinPlatformConfig() {
       "attributes": [
         {
           "name": "present",
-          "path": "/sys/bus/pci/drivers/scd/0000:07:00.0/pem_present"
+          "path": "/run/devmap/fpgas/SCD_FPGA/pem_present"
         }
       ]
     },
@@ -68,7 +68,7 @@ std::string getDarwinPlatformConfig() {
       "attributes": [
         {
           "name": "present",
-          "path": "/sys/bus/pci/drivers/scd/0000:07:00.0/rackmon_present"
+          "path": "/run/devmap/fpgas/SCD_FPGA/rackmon_present"
         }
       ]
     }
@@ -76,35 +76,27 @@ std::string getDarwinPlatformConfig() {
   "chassisAttributes": [
     {
       "name": "SystemLedRed",
-      "path": "/sys/bus/pci/drivers/scd/0000:07:00.0/scd-leds.5.auto/leds/red:sys_status/brightness"
+      "path": "/run/devmap/fpgas/SCD_FPGA/scd-leds.0/leds/system:red:status/brightness"
     },
     {
       "name" : "SystemLedGreen",
-      "path" : "/sys/bus/pci/drivers/scd/0000:07:00.0/scd-leds.5.auto/leds/green:sys_status/brightness"
+      "path" : "/run/devmap/fpgas/SCD_FPGA/scd-leds.0/leds/system:green:status/brightness"
     },
     {
       "name" : "FanLedRed",
-      "path" : "/sys/bus/pci/drivers/scd/0000:07:00.0/scd-leds.5.auto/leds/red:fan_status/brightness"
+      "path" : "/run/devmap/fpgas/SCD_FPGA/scd-leds.0/leds/fan:red:status/brightness"
     },
     {
       "name" : "FanLedGreen",
-      "path" : "/sys/bus/pci/drivers/scd/0000:07:00.0/scd-leds.5.auto/leds/green:fan_status/brightness"
+      "path" : "/run/devmap/fpgas/SCD_FPGA/scd-leds.0/leds/fan:green:status/brightness"
     },
     {
       "name" : "PemLedRed",
-      "path" : "/sys/bus/pci/drivers/scd/0000:07:00.0/scd-leds.5.auto/leds/red:pem_status/brightness"
+      "path" : "/run/devmap/fpgas/SCD_FPGA/scd-leds.0/leds/pem:red:status/brightness"
     },
     {
       "name" : "PemLedGreen",
-      "path" : "/sys/bus/pci/drivers/scd/0000:07:00.0/scd-leds.5.auto/leds/green:pem_status/brightness"
-    },
-    {
-      "name" : "RackmonLedRed",
-      "path" : "/sys/bus/pci/drivers/scd/0000:07:00.0/scd-leds.5.auto/leds/red:rackmon_status/brightness"
-    },
-    {
-      "name" : "RackmonLedGreen",
-      "path" : "/sys/bus/pci/drivers/scd/0000:07:00.0/scd-leds.5.auto/leds/green:rackmon_status/brightness"
+      "path" : "/run/devmap/fpgas/SCD_FPGA/scd-leds.0/leds/pem:green:status/brightness"
     }
   ]
 })";
