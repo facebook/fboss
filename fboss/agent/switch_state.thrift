@@ -293,8 +293,8 @@ struct RoutePrefix {
 }
 
 struct RouteNextHopEntry {
-  1: ctrl.AdminDistance adminDistance;
-  2: ctrl.RouteForwardAction action;
+  1: ctrl.AdminDistance adminDistance = ctrl.AdminDistance.MAX_ADMIN_DISTANCE;
+  2: ctrl.RouteForwardAction action = ctrl.RouteForwardAction.DROP;
   3: optional string counterID;
   4: optional switch_config.AclLookupClass classID;
   5: list<common.NextHopThrift> nexthops;

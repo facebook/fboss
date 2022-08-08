@@ -73,9 +73,7 @@ class RouteNextHopEntry
     return *data().action();
   }
 
-  const NextHopSet& getNextHopSet() const {
-    return nhopSet_;
-  }
+  NextHopSet getNextHopSet() const;
 
   const std::optional<RouteCounterID> getCounterID() const {
     if (auto counter = data().counterID()) {
@@ -122,7 +120,7 @@ class RouteNextHopEntry
 
   // Reset the NextHopSet
   void reset() {
-    nhopSet_.clear();
+    writableData() = state::RouteNextHopEntry{};
   }
 
   bool isValid(bool forMplsRoute = false) const;
@@ -167,7 +165,6 @@ class RouteNextHopEntry
   void normalize(
       std::vector<NextHopWeight>& scaledWeights,
       NextHopWeight totalWeight) const;
-  NextHopSet nhopSet_;
 };
 
 /**

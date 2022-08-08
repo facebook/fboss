@@ -52,7 +52,10 @@ namespace util {
 RouteNextHopSet toRouteNextHopSet(
     std::vector<NextHopThrift> const& nhs,
     bool allowV6NonLinkLocal) {
-  RouteNextHopSet rnhs;
+  RouteNextHopSet rnhs{};
+  if (nhs.empty()) {
+    return rnhs;
+  }
   std::vector<NextHop> nexthops;
   rnhs.reserve(nhs.size());
   for (auto const& nh : nhs) {
@@ -110,10 +113,6 @@ RouteNextHopEntry::RouteNextHopEntry(
 
 RouteNextHopEntry::RouteNextHopEntry(const state::RouteNextHopEntry& entry) {
   writableData() = entry;
-  const auto& nhops = *entry.nexthops();
-  if (!nhops.empty()) {
-    nhopSet_ = util::toRouteNextHopSet(nhops, true);
-  }
 }
 
 NextHopWeight RouteNextHopEntry::getTotalWeight() const {
@@ -204,7 +203,8 @@ folly::dynamic RouteNextHopEntry::toFollyDynamicLegacy() const {
   folly::dynamic entry = folly::dynamic::object;
   entry[kAction] = forwardActionStr(getAction());
   folly::dynamic nhops = folly::dynamic::array;
-  for (const auto& nhop : nhopSet_) {
+  auto nextHopSet = getNextHopSet();
+  for (const auto& nhop : nextHopSet) {
     nhops.push_back(nhop.toFollyDynamic());
   }
   entry[kNexthops] = std::move(nhops);
@@ -248,12 +248,13 @@ bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
   bool valid = true;
   if (!forMplsRoute) {
     /* for ip2mpls routes, next hop label forwarding action must be push */
-    for (const auto& nexthop : nhopSet_) {
+    auto nhops = getNextHopSet();
+    for (const auto& nexthop : *data().nexthops()) {
       if (getAction() != Action::NEXTHOPS) {
         continue;
       }
-      if (nexthop.labelForwardingAction() &&
-          nexthop.labelForwardingAction()->type() !=
+      if (nexthop.mplsAction().has_value() &&
+          *(nexthop.mplsAction()->action()) !=
               LabelForwardingAction::LabelForwardingType::PUSH) {
         return !valid;
       }
@@ -780,6 +781,10 @@ state::RouteNextHopEntry RouteNextHopEntry::getRouteNextHopEntryThrift(
     entry.nexthops() = util::fromRouteNextHopSet(std::move(nhopSet));
   }
   return entry;
+}
+
+RouteNextHopSet RouteNextHopEntry::getNextHopSet() const {
+  return util::toRouteNextHopSet(*data().nexthops(), true);
 }
 
 } // namespace facebook::fboss

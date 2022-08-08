@@ -124,9 +124,10 @@ TEST(RouteNextHopEntry, FromNextHopsThrift) {
   ASSERT_EQ(nextHopEntry.getClassID(), classID);
 
   std::sort(nextHops.begin(), nextHops.end());
+  auto nextHopEntryNextHops = nextHopEntry.getNextHopSet();
   ASSERT_TRUE(std::equal(
-      nextHopEntry.getNextHopSet().begin(),
-      nextHopEntry.getNextHopSet().end(),
+      nextHopEntryNextHops.begin(),
+      nextHopEntryNextHops.end(),
       nextHops.begin()));
 }
 
@@ -152,9 +153,10 @@ TEST(RouteNextHopEntry, FromBinaryAddresses) {
   ASSERT_EQ(nextHopEntry.getClassID(), classID);
 
   std::sort(nextHops.begin(), nextHops.end());
+  auto nextHopEntryNextHops = nextHopEntry.getNextHopSet();
   ASSERT_TRUE(std::equal(
-      nextHopEntry.getNextHopSet().begin(),
-      nextHopEntry.getNextHopSet().end(),
+      nextHopEntryNextHops.begin(),
+      nextHopEntryNextHops.end(),
       nextHops.begin()));
 }
 
