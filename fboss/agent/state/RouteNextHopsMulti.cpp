@@ -77,67 +77,20 @@ std::string RouteNextHopsMulti::strLegacy() const {
 }
 
 void RouteNextHopsMulti::update(ClientID clientId, RouteNextHopEntry nhe) {
-  auto iter = map().find(clientId);
-  if (iter == map().end()) {
-    map().insert(std::make_pair(clientId, nhe.toThrift()));
-  } else {
-    iter->second = nhe.toThrift();
-  }
-
-  // Let's check whether this has a preferred admin distance
-  if (map().size() == 1) {
-    setLowestAdminDistanceClientId(clientId);
-    return;
-  }
-  auto entry = getEntryForClient(lowestAdminDistanceClientId());
-  if (!entry) {
-    setLowestAdminDistanceClientId(findLowestAdminDistance());
-  } else if (nhe.getAdminDistance() < *(entry->adminDistance())) {
-    // Arbritary choice to use the newest one if we have multiple
-    // with the same admin distance
-    setLowestAdminDistanceClientId(clientId);
-  }
+  RouteNextHopsMulti::update(clientId, writableData(), nhe.toThrift());
 }
 
 ClientID RouteNextHopsMulti::findLowestAdminDistance() {
-  if (map().size() == 0) {
-    // We'll set it on the next add
-    return ClientID(-1);
-  }
-  auto lowest = map().begin();
-  auto it = map().begin();
-  while (it != map().end()) {
-    auto entry = RouteNextHopEntry::fromThrift(it->second);
-    if (*(it->second.adminDistance()) < *(lowest->second.adminDistance())) {
-      lowest = it;
-    } else if (
-        entry.isSame(RouteNextHopEntry::fromThrift(lowest->second)) &&
-        it->first < lowest->first) {
-      // If we have two clients with the same admin distance, pick the lowest
-      // client id - this is an arbritary, but deterministic, choice
-      lowest = it;
-    }
-    ++it;
-  }
-  return lowest->first;
+  return RouteNextHopsMulti::findLowestAdminDistance(data());
 }
 
 void RouteNextHopsMulti::delEntryForClient(ClientID clientId) {
-  map().erase(clientId);
-
-  // Let's regen the next best entry
-  if (lowestAdminDistanceClientId() == clientId) {
-    setLowestAdminDistanceClientId(findLowestAdminDistance());
-  }
+  RouteNextHopsMulti::delEntryForClient(clientId, writableData());
 }
 
 const state::RouteNextHopEntry* RouteNextHopsMulti::getEntryForClient(
     ClientID clientId) const {
-  auto iter = map().find(clientId);
-  if (iter == map().end()) {
-    return nullptr;
-  }
-  return &iter->second;
+  return RouteNextHopsMulti::getEntryForClient(clientId, data());
 }
 
 bool RouteNextHopsMulti::isSame(ClientID id, const RouteNextHopEntry& nhe)
@@ -148,13 +101,7 @@ bool RouteNextHopsMulti::isSame(ClientID id, const RouteNextHopEntry& nhe)
 
 std::pair<ClientID, const state::RouteNextHopEntry*>
 RouteNextHopsMulti::getBestEntry() const {
-  auto entry = getEntryForClient(lowestAdminDistanceClientId());
-  if (entry) {
-    return std::make_pair(lowestAdminDistanceClientId(), entry);
-  } else {
-    // Throw an exception if the map is empty. Shall not happen
-    throw FbossError("Unexpected empty RouteNextHopsMulti");
-  }
+  return RouteNextHopsMulti::getBestEntry(data());
 }
 
 state::RouteNextHopsMulti RouteNextHopsMulti::toThrift() const {
@@ -199,6 +146,96 @@ void RouteNextHopsMulti::migrateFromThrifty(folly::dynamic& dyn) {
   }
   dyn.erase("client2NextHopEntry");
   dyn.erase("lowestAdminDistanceClientId");
+}
+
+std::pair<ClientID, const state::RouteNextHopEntry*>
+RouteNextHopsMulti::getBestEntry(
+    const state::RouteNextHopsMulti& nexthopsmulti) {
+  auto clientID = *nexthopsmulti.lowestAdminDistanceClientId();
+  auto entry = RouteNextHopsMulti::getEntryForClient(clientID, nexthopsmulti);
+  if (entry) {
+    return std::make_pair(clientID, entry);
+  } else {
+    // Throw an exception if the map is empty. Shall not happen
+    throw FbossError("Unexpected empty RouteNextHopsMulti");
+  }
+}
+
+const state::RouteNextHopEntry* FOLLY_NULLABLE
+RouteNextHopsMulti::getEntryForClient(
+    ClientID clientId,
+    const state::RouteNextHopsMulti& nexthopsmulti) {
+  const auto& map = *(nexthopsmulti.client2NextHopEntry());
+  auto iter = map.find(clientId);
+  if (iter == map.end()) {
+    return nullptr;
+  }
+  return &iter->second;
+}
+
+void RouteNextHopsMulti::update(
+    ClientID clientId,
+    state::RouteNextHopsMulti& nexthopsmulti,
+    state::RouteNextHopEntry nhe) {
+  auto& map = *(nexthopsmulti.client2NextHopEntry());
+  auto iter = map.find(clientId);
+  if (iter == map.end()) {
+    map.insert(std::make_pair(clientId, nhe));
+  } else {
+    iter->second = nhe;
+  }
+
+  // Let's check whether this has a preferred admin distance
+  if (map.size() == 1) {
+    nexthopsmulti.lowestAdminDistanceClientId() = clientId;
+    return;
+  }
+  auto lowestAdminDistanceClientId =
+      *nexthopsmulti.lowestAdminDistanceClientId();
+  auto entry = RouteNextHopsMulti::getEntryForClient(
+      lowestAdminDistanceClientId, nexthopsmulti);
+  if (!entry) {
+    nexthopsmulti.lowestAdminDistanceClientId() =
+        RouteNextHopsMulti::findLowestAdminDistance(nexthopsmulti);
+  } else if (*(nhe.adminDistance()) < *(entry->adminDistance())) {
+    // Arbritary choice to use the newest one if we have multiple
+    // with the same admin distance
+    nexthopsmulti.lowestAdminDistanceClientId() = clientId;
+  }
+}
+
+ClientID RouteNextHopsMulti::findLowestAdminDistance(
+    const state::RouteNextHopsMulti& nexthopsmulti) {
+  const auto& map = *nexthopsmulti.client2NextHopEntry();
+  if (map.size() == 0) {
+    // We'll set it on the next add
+    return ClientID(-1);
+  }
+  auto lowest = map.begin();
+  auto it = map.begin();
+  while (it != map.end()) {
+    if (*(it->second.adminDistance()) < *(lowest->second.adminDistance())) {
+      lowest = it;
+    } else if (it->second == lowest->second && it->first < lowest->first) {
+      // If we have two clients with the same admin distance, pick the lowest
+      // client id - this is an arbritary, but deterministic, choice
+      lowest = it;
+    }
+    ++it;
+  }
+  return lowest->first;
+}
+
+void RouteNextHopsMulti::delEntryForClient(
+    ClientID clientId,
+    state::RouteNextHopsMulti& nexthopsmulti) {
+  auto& map = *(nexthopsmulti.client2NextHopEntry());
+  map.erase(clientId);
+  // Let's regen the next best entry
+  if (*nexthopsmulti.lowestAdminDistanceClientId() == clientId) {
+    nexthopsmulti.lowestAdminDistanceClientId() =
+        RouteNextHopsMulti::findLowestAdminDistance(nexthopsmulti);
+  }
 }
 
 } // namespace facebook::fboss

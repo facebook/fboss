@@ -115,6 +115,25 @@ class RouteNextHopsMulti
   std::pair<ClientID, const state::RouteNextHopEntry*> getBestEntry() const;
 
   bool isSame(ClientID clientId, const RouteNextHopEntry& nhe) const;
+
+  static std::pair<ClientID, const state::RouteNextHopEntry*> getBestEntry(
+      const state::RouteNextHopsMulti& nexthopsmulti);
+
+  static const state::RouteNextHopEntry* FOLLY_NULLABLE getEntryForClient(
+      ClientID clientId,
+      const state::RouteNextHopsMulti& nexthopsmulti);
+
+  static void update(
+      ClientID clientId,
+      state::RouteNextHopsMulti& nexthopsmulti,
+      state::RouteNextHopEntry nhe);
+
+  static ClientID findLowestAdminDistance(
+      const state::RouteNextHopsMulti& nexthopsmulti);
+
+  static void delEntryForClient(
+      ClientID clientId,
+      state::RouteNextHopsMulti& nexthopsmulti);
 };
 
 } // namespace facebook::fboss
