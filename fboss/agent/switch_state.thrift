@@ -392,6 +392,50 @@ struct InterfaceFields {
   10: bool isStateSyncDisabled = false;
 }
 
+enum LacpState {
+  NONE = 0,
+  ACTIVE = 1,
+  SHORT_TIMEOUT = 2,
+  AGGREGATABLE = 4,
+  IN_SYNC = 8,
+  COLLECTING = 16,
+  DISTRIBUTING = 32,
+  DEFAULTED = 64,
+  EXPIRED = 128,
+}
+
+struct ParticipantInfo {
+  1: i32 systemPriority;
+  2: list<i16> systemID;
+  3: i32 key;
+  4: i32 portPriority;
+  5: i32 port;
+  6: LacpState state;
+}
+
+struct Subport {
+  1: i32 id;
+  2: i32 priority;
+  3: switch_config.LacpPortRate lacpPortRate;
+  4: switch_config.LacpPortActivity lacpPortActivity;
+  5: i32 holdTimerMultiplier;
+}
+
+struct AggregatePortFields {
+  1: i16 id;
+  2: string name;
+  3: string description;
+  4: i32 systemPriority;
+  // network byte order
+  5: i64 systemID (cpp2.type = "std::uint64_t");
+  6: i16 minimumLinkCount;
+  7: list<Subport> ports;
+  // portId to forwarding {ture -> enabled; false -> disabled};
+  8: map<i32, bool> portToFwdState;
+  // PortId to ParticipantInfo struct
+  9: map<i32, ParticipantInfo> portToPartnerState;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
