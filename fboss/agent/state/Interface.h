@@ -13,8 +13,12 @@
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
 #include <folly/dynamic.h>
+#include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
@@ -23,9 +27,10 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-struct InterfaceFields {
+struct InterfaceFields
+    : public ThriftyFields<InterfaceFields, state::InterfaceFields> {
+  using ThriftyFields::ThriftyFields;
   typedef boost::container::flat_map<folly::IPAddress, uint8_t> Addresses;
-
   InterfaceFields(
       InterfaceID id,
       RouterID router,
@@ -34,15 +39,27 @@ struct InterfaceFields {
       folly::MacAddress mac,
       int mtu,
       bool isVirtual,
-      bool isStateSyncDisabled)
-      : id(id),
-        routerID(router),
-        vlanID(vlan),
-        name(name.data(), name.size()),
-        mac(mac),
-        mtu(mtu),
-        isVirtual(isVirtual),
-        isStateSyncDisabled(isStateSyncDisabled) {}
+      bool isStateSyncDisabled) {
+    writableData().interfaceId() = id;
+    writableData().routerId() = router;
+    writableData().vlanId() = vlan;
+    writableData().name() = name;
+    writableData().mac() = mac.u64NBO();
+    writableData().mtu() = mtu;
+    writableData().isVirtual() = isVirtual;
+    writableData().isStateSyncDisabled() = isStateSyncDisabled;
+  }
+
+  state::InterfaceFields toThrift() const override {
+    return data();
+  }
+  static InterfaceFields fromThrift(
+      state::InterfaceFields const& interfaceFields) {
+    return InterfaceFields(interfaceFields);
+  }
+  bool operator==(const InterfaceFields& other) const {
+    return data() == other.data();
+  }
 
   /*
    * Deserialize from a folly::dynamic object
@@ -55,17 +72,6 @@ struct InterfaceFields {
 
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
-
-  const InterfaceID id;
-  RouterID routerID;
-  VlanID vlanID;
-  std::string name;
-  folly::MacAddress mac;
-  Addresses addrs;
-  cfg::NdpConfig ndp;
-  int mtu;
-  bool isVirtual{false};
-  bool isStateSyncDisabled{false};
 };
 
 /*
@@ -74,7 +80,6 @@ struct InterfaceFields {
 class Interface : public NodeBaseT<Interface, InterfaceFields> {
  public:
   typedef InterfaceFields::Addresses Addresses;
-
   Interface(
       InterfaceID id,
       RouterID router,
@@ -94,82 +99,78 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
             isVirtual,
             isStateSyncDisabled) {}
 
-  static std::shared_ptr<Interface> fromFollyDynamic(
-      const folly::dynamic& json) {
-    const auto& fields = InterfaceFields::fromFollyDynamic(json);
-    return std::make_shared<Interface>(fields);
-  }
-
-  static std::shared_ptr<Interface> fromJson(const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamic();
-  }
-
   InterfaceID getID() const {
-    return getFields()->id;
+    return InterfaceID(*getFields()->data().interfaceId());
   }
 
   RouterID getRouterID() const {
-    return getFields()->routerID;
+    return RouterID(*getFields()->data().routerId());
   }
   void setRouterID(RouterID id) {
-    writableFields()->routerID = id;
+    writableFields()->writableData().routerId() = id;
   }
 
   VlanID getVlanID() const {
-    return getFields()->vlanID;
+    return VlanID(*getFields()->data().vlanId());
   }
   void setVlanID(VlanID id) {
-    writableFields()->vlanID = id;
+    writableFields()->writableData().vlanId() = id;
   }
 
   int getMtu() const {
-    return getFields()->mtu;
+    return *getFields()->data().mtu();
   }
   void setMtu(int mtu) {
-    writableFields()->mtu = mtu;
+    writableFields()->writableData().mtu() = mtu;
   }
 
   const std::string& getName() const {
-    return getFields()->name;
+    return *getFields()->data().name();
   }
   void setName(const std::string& name) {
-    writableFields()->name = name;
+    writableFields()->writableData().name() = name;
   }
 
   folly::MacAddress getMac() const {
-    return getFields()->mac;
+    return folly::MacAddress::fromNBO(*getFields()->data().mac());
   }
   void setMac(folly::MacAddress mac) {
-    writableFields()->mac = mac;
+    writableFields()->writableData().mac() = mac.u64NBO();
   }
 
   bool isVirtual() const {
-    return getFields()->isVirtual;
+    return *getFields()->data().isVirtual();
   }
   void setIsVirtual(bool isVirtual) {
-    writableFields()->isVirtual = isVirtual;
+    writableFields()->writableData().isVirtual() = isVirtual;
   }
 
   bool isStateSyncDisabled() const {
-    return getFields()->isStateSyncDisabled;
+    return *getFields()->data().isStateSyncDisabled();
   }
   void setIsStateSyncDisabled(bool isStateSyncDisabled) {
-    writableFields()->isStateSyncDisabled = isStateSyncDisabled;
+    writableFields()->writableData().isStateSyncDisabled() =
+        isStateSyncDisabled;
   }
 
-  const Addresses& getAddresses() const {
-    return getFields()->addrs;
+  Addresses getAddresses() const {
+    Addresses addresses;
+    for (const auto& [ipStr, mask] : *getFields()->data().addresses()) {
+      addresses.emplace(folly::CIDRNetwork(ipStr, mask));
+    }
+    return addresses;
   }
   void setAddresses(Addresses addrs) {
-    writableFields()->addrs.swap(addrs);
+    std::map<std::string, int16_t> addresses;
+    for (const auto& [addr, mask] : addrs) {
+      addresses.emplace(addr.str(), mask);
+    }
+    writableFields()->writableData().addresses() = std::move(addresses);
   }
   bool hasAddress(folly::IPAddress ip) const {
-    const auto& addrs = getAddresses();
-    return addrs.find(ip) != addrs.end();
+    auto ipStr = ip.str();
+    const auto& addrs = getFields()->data().addresses();
+    return addrs->find(ipStr) != addrs->end();
   }
 
   /**
@@ -184,10 +185,10 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
   bool canReachAddress(const folly::IPAddress& dest) const;
 
   const cfg::NdpConfig& getNdpConfig() const {
-    return getFields()->ndp;
+    return *getFields()->data().ndpConfig();
   }
   void setNdpConfig(const cfg::NdpConfig& ndp) {
-    writableFields()->ndp = ndp;
+    writableFields()->writableData().ndpConfig() = ndp;
   }
 
   /*
@@ -201,6 +202,25 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
       folly::IPAddress ip,
       InterfaceID intfID,
       const std::shared_ptr<SwitchState>& state);
+
+  // defer all bellow methods to the fields
+  state::InterfaceFields toThrift() const {
+    return getFields()->toThrift();
+  }
+  static std::shared_ptr<Interface> fromThrift(
+      state::InterfaceFields const& interfaceFields) {
+    return std::make_shared<Interface>(InterfaceFields(interfaceFields));
+  }
+  bool operator==(const Interface& other) const {
+    return *getFields() == *other.getFields();
+  }
+  static std::shared_ptr<Interface> fromFollyDynamic(
+      const folly::dynamic& json) {
+    return std::make_shared<Interface>(InterfaceFields::fromFollyDynamic(json));
+  }
+  folly::dynamic toFollyDynamic() const override {
+    return getFields()->toFollyDynamic();
+  }
 
   /*
    * Inherit the constructors required for clone().

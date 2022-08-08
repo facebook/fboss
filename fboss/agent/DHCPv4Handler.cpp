@@ -234,8 +234,7 @@ void DHCPv4Handler::processRequest(
   if (switchIp.isZero()) {
     auto vlanInterface =
         state->getInterfaces()->getInterfaceInVlanIf(pkt->getSrcVlan());
-    auto& addresses = vlanInterface->getAddresses();
-    for (auto address : addresses) {
+    for (const auto& address : vlanInterface->getAddresses()) {
       if (address.first.isV4()) {
         switchIp = address.first.asV4();
         break;

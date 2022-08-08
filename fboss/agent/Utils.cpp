@@ -68,8 +68,7 @@ IPAddressV4 getSwitchVlanIP(
     VlanID vlan) {
   IPAddressV4 switchIp;
   auto vlanInterface = state->getInterfaces()->getInterfaceInVlan(vlan);
-  auto& addresses = vlanInterface->getAddresses();
-  for (const auto& address : addresses) {
+  for (const auto& address : vlanInterface->getAddresses()) {
     if (address.first.isV4()) {
       switchIp = address.first.asV4();
       return switchIp;
@@ -83,8 +82,7 @@ IPAddressV6 getSwitchVlanIPv6(
     VlanID vlan) {
   IPAddressV6 switchIp;
   auto vlanInterface = state->getInterfaces()->getInterfaceInVlan(vlan);
-  auto& addresses = vlanInterface->getAddresses();
-  for (const auto& address : addresses) {
+  for (const auto& address : vlanInterface->getAddresses()) {
     if (address.first.isV6()) {
       switchIp = address.first.asV6();
       return switchIp;

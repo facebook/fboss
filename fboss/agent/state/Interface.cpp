@@ -11,6 +11,7 @@
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <optional>
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -52,40 +53,48 @@ InterfaceFields InterfaceFields::fromFollyDynamic(const folly::dynamic& json) {
         addr.asString(),
         -1 /*use /32 for v4 and /128 for v6*/,
         false /*don't apply mask*/);
-    intfFields.addrs[cidr.first] = cidr.second;
+    intfFields.writableData().addresses()->emplace(
+        cidr.first.str(), cidr.second);
   }
-  apache::thrift::SimpleJSONSerializer::deserialize<cfg::NdpConfig>(
-      toJson(json[kNdpConfig]), intfFields.ndp);
+  intfFields.writableData().ndpConfig() =
+      apache::thrift::SimpleJSONSerializer::deserialize<cfg::NdpConfig>(
+          toJson(json[kNdpConfig]));
   return intfFields;
 }
 
 folly::dynamic InterfaceFields::toFollyDynamic() const {
   folly::dynamic intf = folly::dynamic::object;
-  intf[kInterfaceId] = static_cast<uint32_t>(id);
-  intf[kRouterId] = static_cast<uint32_t>(routerID);
-  intf[kVlanId] = static_cast<uint16_t>(vlanID);
-  intf[kName] = name;
-  intf[kMac] = to<string>(mac);
-  intf[kMtu] = to<string>(mtu);
-  intf[kIsVirtual] = to<string>(isVirtual);
-  intf[kIsStateSyncDisabled] = to<string>(isStateSyncDisabled);
+  intf[kInterfaceId] = *data().interfaceId();
+  intf[kRouterId] = *data().routerId();
+  intf[kVlanId] = *data().vlanId();
+  intf[kName] = *data().name();
+  // fix
+  intf[kMac] = to<string>(folly::MacAddress::fromNBO(*data().mac()));
+  // fix?
+  intf[kMtu] = to<string>(*data().mtu());
+  // fix?
+  intf[kIsVirtual] = to<string>(*data().isVirtual());
+  // fix?
+  intf[kIsStateSyncDisabled] = to<string>(*data().isStateSyncDisabled());
   std::vector<folly::dynamic> addresses;
-  for (auto const& addrAndMask : addrs) {
-    addresses.emplace_back(
-        to<string>(addrAndMask.first) + "/" + to<string>(addrAndMask.second));
+  addresses.reserve(data().addresses()->size());
+  for (auto const& [ipStr, mask] : *data().addresses()) {
+    addresses.emplace_back(ipStr + "/" + folly::to<string>(mask));
   }
   intf[kAddresses] = folly::dynamic(addresses.begin(), addresses.end());
   string ndpCfgJson;
-  apache::thrift::SimpleJSONSerializer::serialize(ndp, &ndpCfgJson);
+  apache::thrift::SimpleJSONSerializer::serialize(
+      *data().ndpConfig(), &ndpCfgJson);
   intf[kNdpConfig] = folly::parseJson(ndpCfgJson);
   return intf;
 }
 
 std::optional<folly::CIDRNetwork> Interface::getAddressToReach(
     const folly::IPAddress& dest) const {
-  for (const auto& [ip, mask] : getAddresses()) {
-    if (dest.inSubnet(ip, mask)) {
-      return folly::CIDRNetwork(ip, mask);
+  for (const auto& [ipStr, mask] : *getFields()->data().addresses()) {
+    auto cidr = folly::CIDRNetwork(ipStr, mask);
+    if (dest.inSubnet(cidr.first, cidr.second)) {
+      return cidr;
     }
   }
   return std::nullopt;

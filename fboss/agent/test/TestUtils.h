@@ -465,4 +465,12 @@ void validateThriftyMigration(const ThriftyNode& node) {
     EXPECT_EQ(forwardMigrationNode, backwardMigrationNode);
   }
 }
+
+template <typename Node>
+void validateNodeSerilization(const Node& node) {
+  auto nodeBack = Node::fromFollyDynamic(node.toFollyDynamic());
+  EXPECT_EQ(node, *nodeBack);
+  nodeBack = Node::fromThrift(node.toThrift());
+  EXPECT_EQ(node, *nodeBack);
+}
 } // namespace facebook::fboss

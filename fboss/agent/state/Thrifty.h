@@ -215,6 +215,9 @@ class ThriftyUtils {
 template <typename Derived, typename ThriftT>
 class ThriftyFields {
  public:
+  ThriftyFields() {}
+  explicit ThriftyFields(const ThriftT& data) : data_(data) {}
+
   virtual ~ThriftyFields() = default;
 
   //  migrateTo does not modify dyn so we don't have to change the call sites of

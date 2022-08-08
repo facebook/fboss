@@ -377,6 +377,21 @@ struct SflowCollectorFields {
   2: SocketAddress address;
 }
 
+struct InterfaceFields {
+  1: i32 interfaceId;
+  2: i32 routerId;
+  3: i32 vlanId;
+  4: string name;
+  // network byte order
+  5: i64 mac (cpp2.type = "std::uint64_t");
+  // ip -> prefix length
+  6: map<string, i16> addresses;
+  7: switch_config.NdpConfig ndpConfig;
+  8: i32 mtu;
+  9: bool isVirtual = false;
+  10: bool isStateSyncDisabled = false;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
