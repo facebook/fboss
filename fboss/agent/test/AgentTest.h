@@ -48,7 +48,7 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
    * When used in conjunction with createL3DataplaneFlood, can be
    * used to verify that none of the traffic bearing ports flapped
    */
-  void assertNoInDiscards();
+  void assertNoInDiscards(int maxNumDiscards = 0);
 
   template <
       typename SETUP_FN,

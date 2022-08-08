@@ -186,7 +186,7 @@ void AgentTest::setupConfigFlag() {
   // Nothing to setup by default
 }
 
-void AgentTest::assertNoInDiscards() {
+void AgentTest::assertNoInDiscards(int maxNumDiscards) {
   // When port stat is not updated yet post warmboot (collect timestamp will be
   // -1), retry another round on all ports.
   int numRounds = 0;
@@ -201,7 +201,7 @@ void AgentTest::assertNoInDiscards() {
                  << " out bytes: " << *stats.outBytes_() << " at timestamp "
                  << *stats.timestamp_();
       if (*stats.timestamp_() > 0) {
-        EXPECT_EQ(inDiscards, 0);
+        EXPECT_LE(inDiscards, maxNumDiscards);
       } else {
         retry = true;
         break;

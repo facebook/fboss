@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestMacUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -61,6 +62,40 @@ class MacLearningTest : public LinkTest {
     };
     EXPECT_TRUE(waitForSwitchStateCondition(l2EntryLearned, kMaxRetries));
   }
+
+  void verifyL2EntryValidated(PortID txPort, MacAddress srcMac) {
+    // send packets whose src mac matches L2 entry and verify no drops,
+    // if L2 entry is in pending state, these packets would be dropped
+    auto ecmpPorts = getVlanOwningCabledPorts();
+    programDefaultRoute(ecmpPorts, sw()->getPlatform()->getLocalMac());
+    disableTTLDecrements(ecmpPorts);
+    // wait long enough for all L2 entries learned/validated, port stats updated
+    // sleep override
+    sleep(5);
+    // get discards before pump traffic
+    auto portStats = sw()->getHw()->getPortStats();
+    int maxDiscards = 0;
+    for (auto [port, stats] : portStats) {
+      auto inDiscards = *stats.inDiscards_();
+      XLOG(DBG2) << "Port: " << port << " in discards: " << inDiscards
+                 << " in bytes: " << *stats.inBytes_()
+                 << " out bytes: " << *stats.outBytes_() << " at timestamp "
+                 << *stats.timestamp_();
+      if (inDiscards > maxDiscards) {
+        maxDiscards = inDiscards;
+      }
+    }
+    utility::pumpTraffic(
+        true,
+        sw()->getHw(),
+        sw()->getPlatform()->getLocalMac(),
+        (*sw()->getState()->getVlans()->begin())->getID(),
+        txPort,
+        255,
+        srcMac);
+    // no additional discards after pump traffic
+    assertNoInDiscards(maxDiscards);
+  }
 };
 
 TEST_F(MacLearningTest, l2EntryFlap) {
@@ -77,9 +112,6 @@ TEST_F(MacLearningTest, l2EntryFlap) {
     txPacket(macAddr, vlan, txPort);
     verifyL2EntryLearned(macAddr, vlan);
 
-    WaitForMacEntryAddedOrDeleted macDeleted(sw(), macAddr, vlan, false);
-    WaitForMacEntryAddedOrDeleted macAdded(sw(), macAddr, vlan, true);
-
     sw()->getUpdateEvb()->runInEventBaseThread([]() {
       XLOG(DBG2) << "Pause state update evb thread";
       // sleep override
@@ -90,25 +122,15 @@ TEST_F(MacLearningTest, l2EntryFlap) {
     // previous learnt L2 entry should aged out by now
 
     txPacket(macAddr, vlan, txPort);
+    // disable L2 aging
+    updateL2Aging(0);
 
     // wait some time for all queued L2 entry state updates processed
-    // and the corresponding L2 entry should be deleted and added
     // sleep override
     sleep(kL2LearnDelay);
 
-    // verify L2 entry was deleted and removed if running sw mac learning
-    // TODO(daiweix): L2 aging timer somehow is not properly updated
-    // after warmboot on wedge100s, need further investigation
-    if (sw()->getHw()->getPlatform()->getAsic()->isSupported(
-            HwAsic::Feature::PENDING_L2_ENTRY) &&
-        sw()->getBootType() != BootType::WARM_BOOT) {
-      EXPECT_TRUE(macDeleted.wait());
-      EXPECT_TRUE(macAdded.wait());
-    }
-
     // Send one more packet, L2 entry should be learned again
     txPacket(macAddr, vlan, txPort);
-    updateL2Aging(0);
 
     verifyL2EntryLearned(macAddr, vlan);
     std::vector<L2EntryThrift> l2Entries;
@@ -127,6 +149,8 @@ TEST_F(MacLearningTest, l2EntryFlap) {
       }
     }
     EXPECT_TRUE(foundL2Entry);
+
+    verifyL2EntryValidated(txPort, macAddr);
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
