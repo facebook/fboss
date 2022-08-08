@@ -83,49 +83,49 @@ struct RouteFields
     if constexpr (
         std::is_same_v<folly::IPAddressV6, AddrT> ||
         std::is_same_v<folly::IPAddressV4, AddrT>) {
-      return prefix.mask() == prefix.network().bitCount();
+      return prefix().mask() == prefix().network().bitCount();
     } else {
       return false;
     }
   }
 
   bool hasNoEntry() const {
-    return nexthopsmulti.isEmpty();
+    return nexthopsmulti().isEmpty();
   }
   std::pair<ClientID, const state::RouteNextHopEntry*> getBestEntry() const {
-    return nexthopsmulti.getBestEntry();
+    return nexthopsmulti_.getBestEntry();
   }
   size_t numClientEntries() const {
-    return nexthopsmulti.size();
+    return nexthopsmulti().size();
   }
   std::optional<cfg::AclLookupClass> getClassID() const {
-    return classID;
+    return classID();
   }
   void setClassID(std::optional<cfg::AclLookupClass> c) {
-    classID = c;
+    classID_ = c;
   }
   void delEntryForClient(ClientID clientId);
   const state::RouteNextHopEntry* FOLLY_NULLABLE
   getEntryForClient(ClientID clientId) const {
-    return nexthopsmulti.getEntryForClient(clientId);
+    return nexthopsmulti_.getEntryForClient(clientId);
   }
 
-  const RouteNextHopsMulti& getEntryForClients() const {
-    return nexthopsmulti;
+  RouteNextHopsMulti getEntryForClients() const {
+    return nexthopsmulti();
   }
 
   ThriftFields toThrift() const override {
     ThriftFields fields{};
     if constexpr (std::is_same_v<AddrT, LabelID>) {
-      fields.label() = prefix.toThrift();
+      fields.label() = prefix().toThrift();
     } else {
-      fields.prefix() = prefix.toThrift();
+      fields.prefix() = prefix().toThrift();
     }
-    fields.nexthopsmulti() = nexthopsmulti.toThrift();
-    fields.fwd() = fwd.toThrift();
-    fields.flags() = flags;
-    if (classID) {
-      fields.classID() = *classID;
+    fields.nexthopsmulti() = nexthopsmulti().toThrift();
+    fields.fwd() = fwd().toThrift();
+    fields.flags() = flags();
+    if (classID()) {
+      fields.classID() = *classID();
     }
     return fields;
   }
@@ -150,6 +150,10 @@ struct RouteFields
 
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
   static void migrateFromThrifty(folly::dynamic& dyn);
+
+  void clearFlags() {
+    flags_ = 0;
+  }
 
  private:
   /**
@@ -179,22 +183,22 @@ struct RouteFields
     PROCESSING = 0x8,
   };
   void setFlagsProcessing() {
-    flags |= PROCESSING;
-    flags &= ~(RESOLVED | UNRESOLVABLE | CONNECTED);
+    flags_ |= PROCESSING;
+    flags_ &= ~(RESOLVED | UNRESOLVABLE | CONNECTED);
   }
   void setFlagsResolved() {
-    flags |= RESOLVED;
-    flags &= ~(UNRESOLVABLE | PROCESSING);
+    flags_ |= RESOLVED;
+    flags_ &= ~(UNRESOLVABLE | PROCESSING);
   }
   void setFlagsUnresolvable() {
-    flags |= UNRESOLVABLE;
-    flags &= ~(RESOLVED | PROCESSING | CONNECTED);
+    flags_ |= UNRESOLVABLE;
+    flags_ &= ~(RESOLVED | PROCESSING | CONNECTED);
   }
   void setFlagsConnected() {
-    flags |= CONNECTED;
+    flags_ |= CONNECTED;
   }
   void clearForwardInFlags() {
-    flags &= ~(RESOLVED | PROCESSING | CONNECTED | UNRESOLVABLE);
+    flags_ &= ~(RESOLVED | PROCESSING | CONNECTED | UNRESOLVABLE);
   }
 
   // private constructor for thrift to fields
@@ -204,73 +208,91 @@ struct RouteFields
       const RouteNextHopEntry& argsFwd,
       uint32_t argsFlags,
       std::optional<cfg::AclLookupClass> argsClassID)
-      : prefix(argsPrefix),
-        nexthopsmulti(argsNexthopsmulti),
-        fwd(argsFwd),
-        flags(argsFlags),
-        classID(argsClassID) {}
+      : prefix_(argsPrefix),
+        nexthopsmulti_(argsNexthopsmulti),
+        fwd_(argsFwd),
+        flags_(argsFlags),
+        classID_(argsClassID) {}
 
  public:
   std::string str() const;
   void update(ClientID clientId, RouteNextHopEntry entry);
   void updateClassID(std::optional<cfg::AclLookupClass> c) {
-    classID = c;
+    classID_ = c;
   }
   bool has(ClientID clientId, const RouteNextHopEntry& entry) const;
 
   bool isResolved() const {
-    return (flags & RESOLVED);
+    return (flags_ & RESOLVED);
   }
   bool isUnresolvable() const {
-    return (flags & UNRESOLVABLE);
+    return (flags_ & UNRESOLVABLE);
   }
   bool isConnected() const {
-    return (flags & CONNECTED);
+    return (flags_ & CONNECTED);
   }
   bool isDrop() const {
-    return isResolved() && fwd.isDrop();
+    return isResolved() && fwd_.isDrop();
   }
   bool isToCPU() const {
-    return isResolved() && fwd.isToCPU();
+    return isResolved() && fwd_.isToCPU();
   }
   bool isProcessing() const {
-    return (flags & PROCESSING);
+    return (flags_ & PROCESSING);
   }
   bool needResolve() const {
     // not resolved, nor unresolvable, nor in processing
-    return !(flags & (RESOLVED | UNRESOLVABLE | PROCESSING));
+    return !(flags_ & (RESOLVED | UNRESOLVABLE | PROCESSING));
   }
   void setProcessing() {
     CHECK(!isProcessing());
     setFlagsProcessing();
   }
   void setResolved(RouteNextHopEntry f) {
-    fwd = std::move(f);
+    fwd_ = std::move(f);
     setFlagsResolved();
   }
   void setUnresolvable() {
-    fwd.reset();
+    fwd_.reset();
     setFlagsUnresolvable();
   }
   void setConnected() {
     setFlagsConnected();
   }
   void clearForward() {
-    fwd.reset();
+    fwd_.reset();
     clearForwardInFlags();
   }
-  Prefix prefix;
+
+  Prefix prefix() const {
+    return prefix_;
+  }
+  RouteNextHopsMulti nexthopsmulti() const {
+    return nexthopsmulti_;
+  }
+  RouteNextHopEntry fwd() const {
+    return fwd_;
+  }
+  uint32_t flags() const {
+    return flags_;
+  }
+  std::optional<cfg::AclLookupClass> classID() const {
+    return classID_;
+  }
+
+ private:
+  Prefix prefix_;
   // The following fields will not be copied during clone()
   /*
    * All next hops of the routes. This set could be empty if and only if
    * the route is directly connected
    */
-  RouteNextHopsMulti nexthopsmulti;
-  RouteNextHopEntry fwd{
+  RouteNextHopsMulti nexthopsmulti_;
+  RouteNextHopEntry fwd_{
       RouteNextHopEntry::Action::DROP,
       AdminDistance::MAX_ADMIN_DISTANCE};
-  uint32_t flags{0};
-  std::optional<cfg::AclLookupClass> classID{std::nullopt};
+  uint32_t flags_{0};
+  std::optional<cfg::AclLookupClass> classID_{std::nullopt};
 };
 
 /// Route<> Class
@@ -316,10 +338,10 @@ class Route : public ThriftyBaseT<
 
   static void modify(std::shared_ptr<SwitchState>* state);
 
-  const Prefix& prefix() const {
-    return RouteBase::getFields()->prefix;
+  Prefix prefix() const {
+    return RouteBase::getFields()->prefix();
   }
-  const Prefix& getID() const {
+  Prefix getID() const {
     return prefix();
   }
   bool isResolved() const {
@@ -351,8 +373,8 @@ class Route : public ThriftyBaseT<
     return RouteBase::getFields()->str();
   }
   // Return the forwarding info for this route
-  const RouteNextHopEntry& getForwardInfo() const {
-    return RouteBase::getFields()->fwd;
+  RouteNextHopEntry getForwardInfo() const {
+    return RouteBase::getFields()->fwd();
   }
   const state::RouteNextHopEntry* FOLLY_NULLABLE
   getEntryForClient(ClientID clientId) const {
@@ -411,12 +433,12 @@ class Route : public ThriftyBaseT<
     RouteBase::writableFields()->delEntryForClient(clientId);
   }
 
-  const RouteNextHopsMulti& getEntryForClients() const {
+  RouteNextHopsMulti getEntryForClients() const {
     return RouteBase::getFields()->getEntryForClients();
   }
 
   bool isPopAndLookup() const {
-    const auto& nexthops = RouteBase::getFields()->fwd.getNextHopSet();
+    const auto nexthops = RouteBase::getFields()->fwd().getNextHopSet();
     if (nexthops.size() == 1) {
       // there must be exactly one next hop for POP_AND_LOOKUP action
       return nexthops.begin()->isPopAndLookup();

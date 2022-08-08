@@ -217,7 +217,7 @@ TEST_F(RouteTest, routeApi) {
     EXPECT_EQ(pfx6, route.prefix());
     EXPECT_EQ(route.toRouteDetails(), route.getFields()->toRouteDetails());
     EXPECT_EQ(route.str(), route.getFields()->str());
-    EXPECT_EQ(route.getFields()->flags, 0);
+    EXPECT_EQ(route.getFields()->flags(), 0);
     EXPECT_FALSE(route.isResolved());
     EXPECT_FALSE(route.isUnresolvable());
     EXPECT_FALSE(route.isConnected());
@@ -1537,7 +1537,7 @@ TEST_F(RouteTest, StaticIp2MplsRoutes) {
   EXPECT_FALSE(v4Route->isToCPU());
   EXPECT_FALSE(v4Route->isConnected());
 
-  auto& v4Fwd = v4Route->getForwardInfo();
+  auto v4Fwd = v4Route->getForwardInfo();
   EXPECT_EQ(RouteForwardAction::NEXTHOPS, v4Fwd.getAction());
   EXPECT_EQ(1, v4Fwd.getNextHopSet().size());
   for (auto& nexthop : v4Fwd.getNextHopSet()) {
@@ -1554,7 +1554,7 @@ TEST_F(RouteTest, StaticIp2MplsRoutes) {
   EXPECT_FALSE(v6Route->isToCPU());
   EXPECT_FALSE(v6Route->isConnected());
 
-  auto& v6Fwd = v4Route->getForwardInfo();
+  auto v6Fwd = v4Route->getForwardInfo();
   EXPECT_EQ(RouteForwardAction::NEXTHOPS, v6Fwd.getAction());
   EXPECT_EQ(1, v6Fwd.getNextHopSet().size());
 
