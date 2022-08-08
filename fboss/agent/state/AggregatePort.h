@@ -15,6 +15,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_set.hpp>
@@ -26,7 +27,9 @@ namespace facebook::fboss {
 class RxPacket;
 class SwitchState;
 
-struct AggregatePortFields {
+struct AggregatePortFields
+    : public ThriftyFields<AggregatePortFields, state::AggregatePortFields> {
+  using ThriftyFields::ThriftyFields;
   /* The SDK exposes much finer controls over the egress state of trunk member
    * ports, both as compared to what we expose in SwSwitch and as compared to
    * the ingress trunk member port control. I don't see a need for these more
@@ -146,21 +149,16 @@ struct AggregatePortFields {
 
   folly::dynamic toFollyDynamic() const;
   static AggregatePortFields fromFollyDynamic(const folly::dynamic& json);
-
-  const AggregatePortID id_{0};
-  std::string name_;
-  std::string description_;
-  // systemPriortity_ and systemID_ are LACP parameters associated with an
-  // entire system; they are constant across AggregatePorts. Maintaining a copy
-  // of these parameters in each AggregatePort node is a convenient way of
-  // signalling to LinkAggregationManager that they've been updated via a config
-  // change.
-  uint16_t systemPriority_;
-  folly::MacAddress systemID_;
-  uint8_t minimumLinkCount_;
-  Subports ports_;
-  SubportToForwardingState portToFwdState_;
-  SubportToPartnerState portToPartnerState_;
+  state::AggregatePortFields toThrift() const override {
+    return data();
+  }
+  static AggregatePortFields fromThrift(
+      state::AggregatePortFields const& aggregatePortFields) {
+    return AggregatePortFields(aggregatePortFields);
+  }
+  bool operator==(const AggregatePortFields& other) const {
+    return data() == other.data();
+  }
 
  private:
   folly::dynamic portAndFwdStateToFollyDynamic(
@@ -205,6 +203,18 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
         Subports(subports.begin(), subports.end()));
   }
 
+  state::AggregatePortFields toThrift() const {
+    return getFields()->toThrift();
+  }
+  static std::shared_ptr<AggregatePort> fromThrift(
+      state::AggregatePortFields const& aggregatePortFields) {
+    return std::make_shared<AggregatePort>(
+        AggregatePortFields(aggregatePortFields));
+  }
+  bool operator==(const AggregatePort& other) const {
+    return *getFields() == *other.getFields();
+  }
+
   static std::shared_ptr<AggregatePort> fromFollyDynamic(
       const folly::dynamic& json) {
     const auto& fields = AggregatePortFields::fromFollyDynamic(json);
@@ -221,104 +231,116 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
   }
 
   AggregatePortID getID() const {
-    return getFields()->id_;
+    return AggregatePortID(*getFields()->data().id());
   }
 
   const std::string& getName() const {
-    return getFields()->name_;
+    return *getFields()->data().name();
   }
 
   void setName(const std::string& name) {
-    writableFields()->name_ = name;
+    writableFields()->writableData().name() = name;
   }
 
   const std::string& getDescription() const {
-    return getFields()->description_;
+    return *getFields()->data().description();
   }
 
   void setDescription(const std::string& desc) {
-    writableFields()->description_ = desc;
+    writableFields()->writableData().description() = desc;
   }
 
   uint16_t getSystemPriority() const {
-    return getFields()->systemPriority_;
+    return *getFields()->data().systemPriority();
   }
 
   void setSystemPriority(uint16_t systemPriority) {
-    writableFields()->systemPriority_ = systemPriority;
+    writableFields()->writableData().systemPriority() = systemPriority;
   }
 
   folly::MacAddress getSystemID() const {
-    return getFields()->systemID_;
+    return folly::MacAddress::fromNBO(*getFields()->data().systemID());
   }
 
   void setSystemID(folly::MacAddress systemID) {
-    writableFields()->systemID_ = systemID;
+    writableFields()->writableData().systemID() = systemID.u64NBO();
   }
 
   uint8_t getMinimumLinkCount() const {
-    return getFields()->minimumLinkCount_;
+    return *getFields()->data().minimumLinkCount();
   }
 
   void setMinimumLinkCount(uint8_t minLinkCount) {
-    writableFields()->minimumLinkCount_ = minLinkCount;
+    writableFields()->writableData().minimumLinkCount() = minLinkCount;
   }
 
   AggregatePort::Forwarding getForwardingState(PortID port) {
-    auto it = getFields()->portToFwdState_.find(port);
-    if (it == getFields()->portToFwdState_.cend()) {
+    auto it = *getFields()->data().portToFwdState()->find(port);
+    if (it == *getFields()->data().portToFwdState()->end()) {
       throw FbossError("No forwarding state found for port ", port);
     }
 
-    return it->second;
+    return it.second ? Forwarding::ENABLED : Forwarding::DISABLED;
   }
 
   void setForwardingState(PortID port, AggregatePort::Forwarding fwd) {
-    // TODO(samank): need to handle case in which port doesn't exist?
-    auto it = writableFields()->portToFwdState_.find(port);
-    if (it == writableFields()->portToFwdState_.end()) {
+    auto it = writableFields()->writableData().portToFwdState()->find(port);
+    if (it == writableFields()->writableData().portToFwdState()->end()) {
       throw FbossError("No forwarding state found for port ", port);
     }
 
-    it->second = fwd;
+    it->second = fwd == Forwarding::ENABLED;
   }
 
   AggregatePort::PartnerState getPartnerState(PortID port) const {
-    auto it = getFields()->portToPartnerState_.find(port);
-    if (it == getFields()->portToPartnerState_.cend()) {
+    auto it = *getFields()->data().portToPartnerState()->find(port);
+    if (it == *getFields()->data().portToPartnerState()->end()) {
       throw FbossError("No partner state found for port ", port);
     }
 
-    return it->second;
+    return ParticipantInfo::fromThrift(it.second);
   }
 
   void setPartnerState(PortID port, const AggregatePort::PartnerState& state) {
-    auto it = writableFields()->portToPartnerState_.find(port);
-    if (it == writableFields()->portToPartnerState_.end()) {
+    auto it = writableFields()->data().portToPartnerState()->find(port);
+    if (it == writableFields()->data().portToPartnerState()->end()) {
       throw FbossError("No partner state found for port ", port);
     }
 
-    it->second = state;
+    writableFields()->writableData().portToPartnerState()[port] =
+        state.toThrift();
   }
 
-  SubportsConstRange sortedSubports() const {
-    return SubportsConstRange(
-        getFields()->ports_.cbegin(), getFields()->ports_.cend());
+  std::vector<Subport> sortedSubports() const {
+    std::vector<Subport> subports;
+    for (const auto subport : *getFields()->data().ports()) {
+      subports.push_back(Subport::fromThrift(subport));
+    }
+    return subports;
   }
 
   template <typename ConstIter>
   void setSubports(folly::Range<ConstIter> subports) {
-    writableFields()->ports_ = Subports(subports.begin(), subports.end());
+    writableFields()->writableData().ports()->clear();
+    auto subportMap = Subports(subports.begin(), subports.end());
+    for (const auto& subport : subportMap) {
+      writableFields()->writableData().ports()->push_back(subport.toThrift());
+    }
   }
 
-  SubportsDifferenceType subportsCount() const;
+  uint32_t subportsCount() const {
+    return getFields()->data().ports()->size();
+  }
 
   uint32_t forwardingSubportCount() const;
 
-  SubportAndForwardingStateConstRange subportAndFwdState() const {
-    return SubportAndForwardingStateConstRange(
-        getFields()->portToFwdState_.cbegin(),
-        getFields()->portToFwdState_.cend());
+  AggregatePortFields::SubportToForwardingState subportAndFwdState() const {
+    AggregatePortFields::SubportToForwardingState portToFwdState;
+    for (const auto& [key, val] : *getFields()->data().portToFwdState()) {
+      portToFwdState[PortID(key)] =
+          val ? Forwarding::ENABLED : Forwarding::DISABLED;
+    }
+    return portToFwdState;
   }
 
   bool isMemberPort(PortID port) const;

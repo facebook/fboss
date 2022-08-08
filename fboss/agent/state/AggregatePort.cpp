@@ -103,16 +103,23 @@ AggregatePortFields::AggregatePortFields(
     uint8_t minimumLinkCount,
     Subports&& ports,
     SubportToForwardingState&& portStates,
-    SubportToPartnerState&& portPartnerStates)
-    : id_(id),
-      name_(name),
-      description_(description),
-      systemPriority_(systemPriority),
-      systemID_(systemID),
-      minimumLinkCount_(minimumLinkCount),
-      ports_(std::move(ports)),
-      portToFwdState_(std::move(portStates)),
-      portToPartnerState_(std::move(portPartnerStates)) {}
+    SubportToPartnerState&& portPartnerStates) {
+  writableData().id() = id;
+  writableData().name() = name;
+  writableData().description() = description;
+  writableData().systemPriority() = systemPriority;
+  writableData().systemID() = systemID.u64NBO();
+  writableData().minimumLinkCount() = minimumLinkCount;
+  for (const auto& subport : ports) {
+    writableData().ports()->push_back(subport.toThrift());
+  }
+  for (const auto& [key, val] : portStates) {
+    writableData().portToFwdState()->emplace(key, val == Forwarding::ENABLED);
+  }
+  for (const auto& [key, val] : portPartnerStates) {
+    writableData().portToPartnerState()->emplace(key, val.toThrift());
+  }
+}
 
 AggregatePortFields::AggregatePortFields(
     AggregatePortID id,
@@ -123,50 +130,54 @@ AggregatePortFields::AggregatePortFields(
     uint8_t minimumLinkCount,
     Subports&& ports,
     AggregatePortFields::Forwarding fwd,
-    ParticipantInfo pState)
-    : id_(id),
-      name_(name),
-      description_(description),
-      systemPriority_(systemPriority),
-      systemID_(systemID),
-      minimumLinkCount_(minimumLinkCount),
-      ports_(std::move(ports)),
-      portToFwdState_(),
-      portToPartnerState_() {
-  for (const auto& subport : ports_) {
-    auto hint = portToFwdState_.end();
-    portToFwdState_.emplace_hint(hint, subport.portID, fwd);
+    ParticipantInfo pState) {
+  writableData().id() = id;
+  writableData().name() = name;
+  writableData().description() = description;
+  writableData().systemPriority() = systemPriority;
+  writableData().systemID() = systemID.u64NBO();
+  writableData().minimumLinkCount() = minimumLinkCount;
+  for (const auto& subport : ports) {
+    writableData().ports()->push_back(subport.toThrift());
   }
-  for (const auto& subport : ports_) {
-    auto hint = portToPartnerState_.end();
-    portToPartnerState_.emplace_hint(hint, subport.portID, pState);
+  for (const auto& subport : ports) {
+    writableData().portToFwdState()->emplace(
+        subport.portID, fwd == Forwarding::ENABLED);
+  }
+  for (const auto& subport : ports) {
+    writableData().portToPartnerState()->emplace(
+        subport.portID, pState.toThrift());
   }
 }
 
 folly::dynamic AggregatePortFields::toFollyDynamic() const {
   folly::dynamic aggPortFields = folly::dynamic::object;
-  aggPortFields[kId] = static_cast<uint16_t>(id_);
-  aggPortFields[kName] = name_;
-  aggPortFields[kDescription] = description_;
-  aggPortFields[kMinimumLinkCount] = minimumLinkCount_;
+  aggPortFields[kId] = static_cast<uint16_t>(*data().id());
+  aggPortFields[kName] = *data().name();
+  aggPortFields[kDescription] = *data().description();
+  aggPortFields[kMinimumLinkCount] = *data().minimumLinkCount();
 
   folly::dynamic subports = folly::dynamic::array;
-  for (const auto& subport : ports_) {
-    subports.push_back(subport.toFollyDynamic());
+  for (const auto& subport : *data().ports()) {
+    subports.push_back(Subport::fromThrift(subport).toFollyDynamic());
   }
   aggPortFields[kSubports] = std::move(subports);
-  aggPortFields[kSystemID] = systemID_.toString();
-  aggPortFields[kSystemPriority] = static_cast<uint16_t>(systemPriority_);
+  aggPortFields[kSystemID] =
+      folly::MacAddress::fromNBO(*data().systemID()).toString();
+  aggPortFields[kSystemPriority] =
+      static_cast<uint16_t>(*data().systemPriority());
 
   folly::dynamic fwdingState = folly::dynamic::array();
-  for (const auto& state : portToFwdState_) {
-    fwdingState.push_back(portAndFwdStateToFollyDynamic(state));
+  for (const auto& [port, state] : *data().portToFwdState()) {
+    fwdingState.push_back(portAndFwdStateToFollyDynamic(std::make_pair(
+        PortID(port), state ? Forwarding::ENABLED : Forwarding::DISABLED)));
   }
   aggPortFields[kForwardingStates] = fwdingState;
 
   folly::dynamic partnerState = folly::dynamic::array();
-  for (const auto& pState : portToPartnerState_) {
-    partnerState.push_back(portAndPartnerStateToFollyDynamic(pState));
+  for (const auto& [port, state] : *data().portToPartnerState()) {
+    partnerState.push_back(portAndPartnerStateToFollyDynamic(
+        std::make_pair(PortID(port), ParticipantInfo::fromThrift(state))));
   }
   aggPortFields[kPartnerInfos] = partnerState;
   return aggPortFields;
@@ -215,11 +226,6 @@ AggregatePortFields AggregatePortFields::fromFollyDynamic(
       std::move(portPartnerStates));
 }
 
-AggregatePort::SubportsDifferenceType AggregatePort::subportsCount() const {
-  auto subportsRange = sortedSubports();
-  return std::distance(subportsRange.begin(), subportsRange.end());
-}
-
 uint32_t AggregatePort::forwardingSubportCount() const {
   uint32_t count = 0;
 
@@ -235,8 +241,8 @@ uint32_t AggregatePort::forwardingSubportCount() const {
 }
 
 bool AggregatePort::isMemberPort(PortID port) const {
-  for (const auto& memberPort : getFields()->ports_) {
-    if (memberPort.portID == port) {
+  for (const auto& memberPort : *getFields()->data().ports()) {
+    if (PortID(*memberPort.id()) == port) {
       return true;
     }
   }

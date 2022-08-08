@@ -191,7 +191,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
     verifyReachability();
   }
 
-  AggregatePort::SubportsConstRange getSubPorts(AggregatePortID aggId) {
+  std::vector<AggregatePortFields::Subport> getSubPorts(AggregatePortID aggId) {
     const auto& aggPort =
         sw()->getState()->getAggregatePorts()->getAggregatePort(aggId);
     EXPECT_NE(aggPort, nullptr);

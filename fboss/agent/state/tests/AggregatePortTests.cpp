@@ -58,10 +58,10 @@ void checkAggPort(
   auto expectedSubportsBegin = expectedSubports.cbegin();
   auto expectedSubportsBeyond = expectedSubports.cend();
 
-  ASSERT_TRUE(std::is_sorted(
-      aggPort->sortedSubports().cbegin(), aggPort->sortedSubports().cend()));
-  auto subportsBegin = aggPort->sortedSubports().cbegin();
-  auto subportsBeyond = aggPort->sortedSubports().cend();
+  auto sortedSubport = aggPort->sortedSubports();
+  ASSERT_TRUE(std::is_sorted(sortedSubport.cbegin(), sortedSubport.cend()));
+  auto subportsBegin = sortedSubport.cbegin();
+  auto subportsBeyond = sortedSubport.cend();
 
   auto equivalent = [](PortID actual,
                        PortID expected) -> testing::AssertionResult {
@@ -103,6 +103,7 @@ void checkAggPort(
     EXPECT_TRUE(
         testing::AssertionFailure() << *expectedSubportsBegin << " expected");
   }
+  validateNodeSerilization(*aggPort);
 }
 
 TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
@@ -513,6 +514,12 @@ TEST(AggregatePort, multiTrunkIdempotence) {
 
   // Applying the same config again should result in no change
   EXPECT_EQ(nullptr, publishAndApplyConfig(endState, &config, &platform));
+
+  auto endAggPorts = endState->getAggregatePorts();
+  validateNodeSerilization(
+      *endAggPorts->getAggregatePortIf(AggregatePortID(55)));
+  validateNodeSerilization(
+      *endAggPorts->getAggregatePortIf(AggregatePortID(155)));
 }
 
 TEST(AggregatePort, multiTrunkAddAndChange) {
@@ -695,6 +702,11 @@ TEST(AggregatePort, multiTrunkRemove) {
   EXPECT_EQ(
       startAggPorts->getAggregatePortIf(AggregatePortID(90)),
       endAggPorts->getAggregatePortIf(AggregatePortID(90)));
+
+  validateNodeSerilization(
+      *startAggPorts->getAggregatePortIf(AggregatePortID(40)));
+  validateNodeSerilization(
+      *startAggPorts->getAggregatePortIf(AggregatePortID(90)));
 }
 
 TEST(AggregatePort, subPortSerializationInverseOfDeserialization) {
@@ -736,6 +748,8 @@ TEST(AggregatePort, serializationInverseOfDeserialization) {
       folly::MacAddress("01:02:03:04:05:06"), // systemID
       4,
       subportRange);
+
+  validateNodeSerilization(*aggPort);
 
   auto serializedAggPort = aggPort->toFollyDynamic();
   auto deserializedAggPort = AggregatePort::fromFollyDynamic(serializedAggPort);

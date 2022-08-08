@@ -26,8 +26,9 @@ LagSaiId SaiLagManager::addLag(
     labelValue[i] = name[i];
   }
   // TODO(pshaikh): support LAG without ports?
-
-  auto& subPort = aggregatePort->sortedSubports().front();
+  auto subports = aggregatePort->sortedSubports();
+  CHECK_GT(subports.size(), 0);
+  auto& subPort = subports.front();
   auto portSaiIdsIter = concurrentIndices_->portSaiIds.find(subPort.portID);
   // port must exist before LAG
   CHECK(portSaiIdsIter != concurrentIndices_->portSaiIds.end());

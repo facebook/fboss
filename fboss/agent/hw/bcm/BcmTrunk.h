@@ -63,8 +63,8 @@ class BcmTrunk {
   void suppressTrunkInternalFlood(
       const std::shared_ptr<AggregatePort>& aggPort);
   void programForwardingState(
-      AggregatePort::SubportAndForwardingStateConstRange oldRange,
-      AggregatePort::SubportAndForwardingStateConstRange newRange,
+      AggregatePortFields::SubportToForwardingState oldState,
+      AggregatePortFields::SubportToForwardingState newState,
       std::vector<PortID>& addedPorts,
       std::vector<PortID>& removedPorts);
   void modifyMemberPort(bool added, PortID memberPort);

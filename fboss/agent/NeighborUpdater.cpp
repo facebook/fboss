@@ -179,12 +179,11 @@ void NeighborUpdater::aggregatePortChanged(
   CHECK_EQ(oldAggPort->getID(), newAggPort->getID());
 
   auto oldSubportRange = oldAggPort->sortedSubports();
+  auto newSubport = newAggPort->sortedSubports();
 
   bool transitionedToDown = oldAggPort->isUp() && !newAggPort->isUp();
   bool membershipChanged = !std::equal(
-      oldSubportRange.begin(),
-      oldSubportRange.end(),
-      newAggPort->sortedSubports().begin());
+      oldSubportRange.begin(), oldSubportRange.end(), newSubport.begin());
 
   if (transitionedToDown || membershipChanged) {
     auto aggregatePortID = newAggPort->getID();

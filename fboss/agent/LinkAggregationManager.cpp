@@ -218,14 +218,13 @@ void LinkAggregationManager::aggregatePortChanged(
   recordStatistics(sw_, oldAggPort, newAggPort);
 
   auto oldSubportRange = oldAggPort->sortedSubports();
+  auto newSubport = newAggPort->sortedSubports();
   if (oldAggPort->getName() == newAggPort->getName() &&
       oldAggPort->getDescription() == newAggPort->getDescription() &&
       oldAggPort->getSystemPriority() == newAggPort->getSystemPriority() &&
       oldAggPort->getSystemID() == newAggPort->getSystemID() &&
       std::equal(
-          oldSubportRange.begin(),
-          oldSubportRange.end(),
-          newAggPort->sortedSubports().begin())) {
+          oldSubportRange.begin(), oldSubportRange.end(), newSubport.begin())) {
     return;
   }
 

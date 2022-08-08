@@ -155,22 +155,22 @@ void BcmTrunk::program(
 }
 
 void BcmTrunk::programForwardingState(
-    AggregatePort::SubportAndForwardingStateConstRange oldRange,
-    AggregatePort::SubportAndForwardingStateConstRange newRange,
+    AggregatePortFields::SubportToForwardingState oldState,
+    AggregatePortFields::SubportToForwardingState newState,
     std::vector<PortID>& addedPorts,
     std::vector<PortID>& removedPorts) {
   PortID oldSubport, newSubport;
   AggregatePort::Forwarding oldFwdState, newFwdState;
 
-  for (auto newSubportAndFwdState : newRange) {
+  for (auto newSubportAndFwdState : newState) {
     std::tie(newSubport, newFwdState) = newSubportAndFwdState;
     auto oldSubportAndFwdStateIter = std::find_if(
-        oldRange.begin(),
-        oldRange.end(),
+        oldState.begin(),
+        oldState.end(),
         [newSubport](AggregatePort::SubportAndForwardingStateValueType val) {
           return val.first == newSubport;
         });
-    if (oldSubportAndFwdStateIter == oldRange.end()) {
+    if (oldSubportAndFwdStateIter == oldState.end()) {
       continue;
     }
     std::tie(oldSubport, oldFwdState) = *oldSubportAndFwdStateIter;
