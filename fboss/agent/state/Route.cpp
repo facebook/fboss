@@ -28,7 +28,8 @@ using std::string;
 
 // RouteFields<> Class
 template <typename AddrT>
-RouteFields<AddrT>::RouteFields(const Prefix& prefix) : prefix_(prefix) {}
+RouteFields<AddrT>::RouteFields(const Prefix& prefix)
+    : RouteFields(getRouteFields(prefix)) {}
 
 template <typename AddrT>
 bool RouteFields<AddrT>::operator==(const RouteFields& rf) const {
@@ -61,6 +62,8 @@ RouteFields<AddrT> RouteFields<AddrT>::fromFollyDynamicLegacy(
   if (routeJson.find(kClassID) != routeJson.items().end()) {
     rt.classID_ = cfg::AclLookupClass(routeJson[kClassID].asInt());
   }
+  rt.writableData() = getRouteFields(
+      rt.prefix_, rt.nexthopsmulti_, rt.fwd_, rt.flags_, rt.classID_);
   return rt;
 }
 
@@ -77,8 +80,8 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
   }
   // Add the action
   rd.action() = forwardActionStr(fwd().getAction());
-  auto nhopSet =
-      normalizedNhopWeights ? fwd().normalizedNextHops() : fwd().getNextHopSet();
+  auto nhopSet = normalizedNhopWeights ? fwd().normalizedNextHops()
+                                       : fwd().getNextHopSet();
   // Add the forwarding info
   for (const auto& nh : nhopSet) {
     IfAndIP ifAndIp;
@@ -106,6 +109,8 @@ template <typename AddrT>
 void RouteFields<AddrT>::update(ClientID clientId, RouteNextHopEntry entry) {
   fwd_.reset();
   nexthopsmulti_.update(clientId, std::move(entry));
+  this->writableData().fwd() = fwd_.toThrift();
+  this->writableData().nexthopsmulti() = nexthopsmulti_.toThrift();
 }
 template <typename AddrT>
 
@@ -116,7 +121,7 @@ bool RouteFields<AddrT>::has(ClientID clientId, const RouteNextHopEntry& entry)
 }
 
 template <typename AddrT>
-std::string RouteFields<AddrT>::str() const {
+std::string RouteFields<AddrT>::strLegacy() const {
   std::string ret;
   ret = folly::to<string>(prefix_, '@');
   ret.append(nexthopsmulti_.strLegacy());
@@ -148,6 +153,7 @@ std::string RouteFields<AddrT>::str() const {
 template <typename AddrT>
 void RouteFields<AddrT>::delEntryForClient(ClientID clientId) {
   nexthopsmulti_.delEntryForClient(clientId);
+  this->writableData().nexthopsmulti() = nexthopsmulti_.toThrift();
 }
 
 template <typename AddrT>
@@ -184,6 +190,28 @@ void RouteFields<AddrT>::migrateFromThrifty(folly::dynamic& dyn) {
   if (dyn.find("classID") != dyn.items().end()) {
     dyn[kClassID] = dyn["classID"].asInt();
   }
+}
+
+template <typename AddrT>
+ThriftFieldsT<AddrT> RouteFields<AddrT>::getRouteFields(
+    const PrefixT<AddrT>& prefix,
+    const RouteNextHopsMulti& multi,
+    const RouteNextHopEntry& fwd,
+    uint32_t flags,
+    const std::optional<cfg::AclLookupClass>& classID) {
+  ThriftFieldsT<AddrT> fields{};
+  if constexpr (std::is_same_v<AddrT, LabelID>) {
+    fields.label() = prefix.toThrift();
+  } else {
+    fields.prefix() = prefix.toThrift();
+  }
+  fields.nexthopsmulti() = multi.toThrift();
+  fields.fwd() = fwd.toThrift();
+  fields.flags() = flags;
+  if (classID) {
+    fields.classID() = *classID;
+  }
+  return fields;
 }
 
 template struct RouteFields<folly::IPAddressV4>;

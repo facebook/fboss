@@ -103,6 +103,11 @@ struct RouteFields
   }
   void setClassID(std::optional<cfg::AclLookupClass> c) {
     classID_ = c;
+    if (c) {
+      this->writableData().classID() = c.value();
+    } else {
+      this->writableData().classID().reset();
+    }
   }
   void delEntryForClient(ClientID clientId);
   const state::RouteNextHopEntry* FOLLY_NULLABLE
@@ -115,37 +120,11 @@ struct RouteFields
   }
 
   ThriftFields toThrift() const override {
-    ThriftFields fields{};
-    if constexpr (std::is_same_v<AddrT, LabelID>) {
-      fields.label() = prefix().toThrift();
-    } else {
-      fields.prefix() = prefix().toThrift();
-    }
-    fields.nexthopsmulti() = nexthopsmulti().toThrift();
-    fields.fwd() = fwd().toThrift();
-    fields.flags() = flags();
-    if (classID()) {
-      fields.classID() = *classID();
-    }
-    return fields;
+    return this->data();
   }
 
   static RouteFields fromThrift(ThriftFields const& fields) {
-    auto nexthopsmulti =
-        RouteNextHopsMulti::fromThrift(*fields.nexthopsmulti());
-    auto fwd = RouteNextHopEntry::fromThrift(*fields.fwd());
-    auto flags = *fields.flags();
-    std::optional<cfg::AclLookupClass> classID{};
-    if (fields.classID()) {
-      classID = *fields.classID();
-    }
-    if constexpr (std::is_same_v<AddrT, LabelID>) {
-      auto prefix = Prefix::fromThrift(*fields.label());
-      return RouteFields<AddrT>(prefix, nexthopsmulti, fwd, flags, classID);
-    } else {
-      auto prefix = Prefix::fromThrift(*fields.prefix());
-      return RouteFields<AddrT>(prefix, nexthopsmulti, fwd, flags, classID);
-    }
+    return RouteFields(fields);
   }
 
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
@@ -185,20 +164,25 @@ struct RouteFields
   void setFlagsProcessing() {
     flags_ |= PROCESSING;
     flags_ &= ~(RESOLVED | UNRESOLVABLE | CONNECTED);
+    this->writableData().flags() = flags_;
   }
   void setFlagsResolved() {
     flags_ |= RESOLVED;
     flags_ &= ~(UNRESOLVABLE | PROCESSING);
+    this->writableData().flags() = flags_;
   }
   void setFlagsUnresolvable() {
     flags_ |= UNRESOLVABLE;
     flags_ &= ~(RESOLVED | PROCESSING | CONNECTED);
+    this->writableData().flags() = flags_;
   }
   void setFlagsConnected() {
     flags_ |= CONNECTED;
+    this->writableData().flags() = flags_;
   }
   void clearForwardInFlags() {
     flags_ &= ~(RESOLVED | PROCESSING | CONNECTED | UNRESOLVABLE);
+    this->writableData().flags() = flags_;
   }
 
   // private constructor for thrift to fields
@@ -208,17 +192,43 @@ struct RouteFields
       const RouteNextHopEntry& argsFwd,
       uint32_t argsFlags,
       std::optional<cfg::AclLookupClass> argsClassID)
-      : prefix_(argsPrefix),
-        nexthopsmulti_(argsNexthopsmulti),
-        fwd_(argsFwd),
-        flags_(argsFlags),
-        classID_(argsClassID) {}
+      : RouteFields(getRouteFields(
+            argsPrefix,
+            argsNexthopsmulti,
+            argsFwd,
+            argsFlags,
+            argsClassID)) {}
+
+  explicit RouteFields(const ThriftFields& fields) {
+    this->writableData() = fields;
+    nexthopsmulti_ = RouteNextHopsMulti::fromThrift(*fields.nexthopsmulti());
+    fwd_ = RouteNextHopEntry::fromThrift(*fields.fwd());
+    flags_ = *fields.flags();
+    if (fields.classID()) {
+      classID_ = *fields.classID();
+    }
+    if constexpr (std::is_same_v<AddrT, LabelID>) {
+      prefix_ = Prefix::fromThrift(*fields.label());
+    } else {
+      prefix_ = Prefix::fromThrift(*fields.prefix());
+    }
+  }
+
+  static ThriftFields getRouteFields(
+      const PrefixT<AddrT>& prefix,
+      const RouteNextHopsMulti& multi = RouteNextHopsMulti(),
+      const RouteNextHopEntry& fwd =
+          RouteNextHopEntry{
+              RouteNextHopEntry::Action::DROP,
+              AdminDistance::MAX_ADMIN_DISTANCE},
+      uint32_t flags = 0,
+      const std::optional<cfg::AclLookupClass>& classID = std::nullopt);
 
  public:
-  std::string str() const;
+  std::string strLegacy() const;
   void update(ClientID clientId, RouteNextHopEntry entry);
   void updateClassID(std::optional<cfg::AclLookupClass> c) {
-    classID_ = c;
+    setClassID(c);
   }
   bool has(ClientID clientId, const RouteNextHopEntry& entry) const;
 
@@ -250,10 +260,12 @@ struct RouteFields
   }
   void setResolved(RouteNextHopEntry f) {
     fwd_ = std::move(f);
+    this->writableData().fwd() = fwd_.toThrift();
     setFlagsResolved();
   }
   void setUnresolvable() {
     fwd_.reset();
+    this->writableData().fwd() = fwd_.toThrift();
     setFlagsUnresolvable();
   }
   void setConnected() {
@@ -261,6 +273,7 @@ struct RouteFields
   }
   void clearForward() {
     fwd_.reset();
+    this->writableData().fwd() = fwd_.toThrift();
     clearForwardInFlags();
   }
 
