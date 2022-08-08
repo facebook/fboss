@@ -93,7 +93,7 @@ struct RouteFields
     return nexthopsmulti().isEmpty();
   }
   std::pair<ClientID, const state::RouteNextHopEntry*> getBestEntry() const {
-    return nexthopsmulti_.getBestEntry();
+    return RouteNextHopsMulti::getBestEntry(*(this->data().nexthopsmulti()));
   }
   size_t numClientEntries() const {
     return nexthopsmulti().size();
@@ -111,7 +111,8 @@ struct RouteFields
   void delEntryForClient(ClientID clientId);
   const state::RouteNextHopEntry* FOLLY_NULLABLE
   getEntryForClient(ClientID clientId) const {
-    return nexthopsmulti_.getEntryForClient(clientId);
+    return RouteNextHopsMulti::getEntryForClient(
+        clientId, *(this->data().nexthopsmulti()));
   }
 
   RouteNextHopsMulti getEntryForClients() const {
@@ -198,7 +199,6 @@ struct RouteFields
 
   explicit RouteFields(const ThriftFields& fields) {
     this->writableData() = fields;
-    nexthopsmulti_ = RouteNextHopsMulti::fromThrift(*fields.nexthopsmulti());
   }
 
   static ThriftFields getRouteFields(
@@ -273,7 +273,7 @@ struct RouteFields
     }
   }
   RouteNextHopsMulti nexthopsmulti() const {
-    return nexthopsmulti_;
+    return RouteNextHopsMulti::fromThrift(*(this->data().nexthopsmulti()));
   }
   RouteNextHopEntry fwd() const {
     return RouteNextHopEntry(*(this->data().fwd()));
@@ -287,14 +287,6 @@ struct RouteFields
     }
     return std::nullopt;
   }
-
- private:
-  // The following fields will not be copied during clone()
-  /*
-   * All next hops of the routes. This set could be empty if and only if
-   * the route is directly connected
-   */
-  RouteNextHopsMulti nexthopsmulti_;
 };
 
 /// Route<> Class
