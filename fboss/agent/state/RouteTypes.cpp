@@ -158,9 +158,8 @@ void RoutePrefix<AddrT>::migrateFromThrifty(folly::dynamic& dyn) {
 }
 
 Label Label::fromFollyDynamicLegacy(const folly::dynamic& prefixJson) {
-  Label lbl;
-  lbl.label_ = static_cast<int32_t>(prefixJson[kLabel].asInt());
-  return lbl;
+  return Label(
+      getLabelThrift(static_cast<uint32_t>(prefixJson[kLabel].asInt())));
 }
 
 folly::dynamic Label::migrateToThrifty(folly::dynamic const& dyn) {

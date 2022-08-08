@@ -121,16 +121,20 @@ struct is_fboss_key_object_type<RoutePrefix<folly::IPAddressV6>> {
 };
 
 struct Label : public ThriftyFields<Label, state::Label> {
-  LabelID label_;
-  Label() : label_(0) {}
-  /* implicit */ Label(LabelID labelVal) : label_(labelVal) {}
-  /* implicit */ Label(MplsLabel labelVal) : label_(labelVal) {}
+  Label() : Label(Label::getLabelThrift(0)) {}
+  /* implicit */ Label(LabelID labelVal)
+      : Label(Label::getLabelThrift(labelVal)) {}
+  /* implicit */ Label(MplsLabel labelVal)
+      : Label(Label::getLabelThrift(labelVal)) {}
+  /* implicit */ Label(state::Label labelVal) {
+    writableData() = labelVal;
+  }
   std::string str() const {
     return folly::to<std::string>(value());
   }
 
   LabelID value() const {
-    return label_;
+    return static_cast<LabelID>(*data().value());
   }
 
   LabelID label() const {
@@ -162,9 +166,7 @@ struct Label : public ThriftyFields<Label, state::Label> {
   static Label fromFollyDynamicLegacy(const folly::dynamic& prefixJson);
 
   static Label fromString(std::string str) {
-    Label lbl;
-    lbl.label_ = folly::to<int32_t>(str);
-    return lbl;
+    return Label(getLabelThrift(folly::to<uint32_t>(str)));
   }
 
   bool operator<(const Label& p) const {
@@ -178,6 +180,13 @@ struct Label : public ThriftyFields<Label, state::Label> {
   }
   bool operator!=(const Label& p) const {
     return !operator==(p);
+  }
+
+ private:
+  static state::Label getLabelThrift(uint32_t label) {
+    state::Label thriftLabel{};
+    thriftLabel.value() = label;
+    return thriftLabel;
   }
 };
 
