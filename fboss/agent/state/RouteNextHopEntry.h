@@ -66,11 +66,11 @@ class RouteNextHopEntry
   explicit RouteNextHopEntry(const state::RouteNextHopEntry& entry);
 
   AdminDistance getAdminDistance() const {
-    return adminDistance_;
+    return *data().adminDistance();
   }
 
   Action getAction() const {
-    return action_;
+    return *data().action();
   }
 
   const NextHopSet& getNextHopSet() const {
@@ -78,11 +78,17 @@ class RouteNextHopEntry
   }
 
   const std::optional<RouteCounterID> getCounterID() const {
-    return counterID_;
+    if (auto counter = data().counterID()) {
+      return *counter;
+    }
+    return std::nullopt;
   }
 
   const std::optional<AclLookupClass> getClassID() const {
-    return classID_;
+    if (auto classID = data().classID()) {
+      return *classID;
+    }
+    return std::nullopt;
   }
 
   NextHopSet normalizedNextHops() const;
@@ -105,10 +111,10 @@ class RouteNextHopEntry
 
   // Methods to manipulate this object
   bool isDrop() const {
-    return action_ == Action::DROP;
+    return getAction() == Action::DROP;
   }
   bool isToCPU() const {
-    return action_ == Action::TO_CPU;
+    return getAction() == Action::TO_CPU;
   }
   bool isSame(const RouteNextHopEntry& entry) const {
     return entry.getAdminDistance() == getAdminDistance();
@@ -117,9 +123,6 @@ class RouteNextHopEntry
   // Reset the NextHopSet
   void reset() {
     nhopSet_.clear();
-    action_ = Action::DROP;
-    counterID_ = std::nullopt;
-    classID_ = std::nullopt;
   }
 
   bool isValid(bool forMplsRoute = false) const;
@@ -164,10 +167,6 @@ class RouteNextHopEntry
   void normalize(
       std::vector<NextHopWeight>& scaledWeights,
       NextHopWeight totalWeight) const;
-  AdminDistance adminDistance_;
-  Action action_{Action::DROP};
-  std::optional<RouteCounterID> counterID_;
-  std::optional<AclLookupClass> classID_;
   NextHopSet nhopSet_;
 };
 

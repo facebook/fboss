@@ -111,14 +111,6 @@ RouteNextHopEntry::RouteNextHopEntry(
 RouteNextHopEntry::RouteNextHopEntry(const state::RouteNextHopEntry& entry) {
   writableData() = entry;
   const auto& nhops = *entry.nexthops();
-  adminDistance_ = *entry.adminDistance();
-  action_ = *entry.action();
-  if (entry.counterID()) {
-    counterID_ = *entry.counterID();
-  }
-  if (entry.classID()) {
-    classID_ = *entry.classID();
-  }
   if (!nhops.empty()) {
     nhopSet_ = util::toRouteNextHopSet(nhops, true);
   }
@@ -130,7 +122,7 @@ NextHopWeight RouteNextHopEntry::getTotalWeight() const {
 
 std::string RouteNextHopEntry::str() const {
   std::string result;
-  switch (action_) {
+  switch (getAction()) {
     case Action::DROP:
       result = "DROP";
       break;
@@ -144,14 +136,16 @@ std::string RouteNextHopEntry::str() const {
       CHECK(0);
       break;
   }
-  result +=
-      folly::to<std::string>(";admin=", static_cast<int32_t>(adminDistance_));
   result += folly::to<std::string>(
-      ";counterID=", counterID_.has_value() ? *counterID_ : "none");
+      ";admin=", static_cast<int32_t>(getAdminDistance()));
+  auto counterID = getCounterID();
+  auto classID = getClassID();
+  result += folly::to<std::string>(
+      ";counterID=", counterID.has_value() ? *counterID : "none");
   result += folly::to<std::string>(
       ";classID=",
-      classID_.has_value()
-          ? apache::thrift::util::enumNameSafe(AclLookupClass(*classID_))
+      classID.has_value()
+          ? apache::thrift::util::enumNameSafe(AclLookupClass(*classID))
           : "none");
   return result;
 }
@@ -208,18 +202,20 @@ NextHopWeight totalWeight(const RouteNextHopEntry::NextHopSet& nhops) {
 
 folly::dynamic RouteNextHopEntry::toFollyDynamicLegacy() const {
   folly::dynamic entry = folly::dynamic::object;
-  entry[kAction] = forwardActionStr(action_);
+  entry[kAction] = forwardActionStr(getAction());
   folly::dynamic nhops = folly::dynamic::array;
   for (const auto& nhop : nhopSet_) {
     nhops.push_back(nhop.toFollyDynamic());
   }
   entry[kNexthops] = std::move(nhops);
-  entry[kAdminDistance] = static_cast<int32_t>(adminDistance_);
-  if (counterID_.has_value()) {
-    entry[kCounterID] = counterID_.value();
+  entry[kAdminDistance] = static_cast<int32_t>(getAdminDistance());
+  auto counterID = getCounterID();
+  if (counterID.has_value()) {
+    entry[kCounterID] = counterID.value();
   }
-  if (classID_.has_value()) {
-    entry[kClassID] = static_cast<int32_t>(classID_.value());
+  auto classID = getClassID();
+  if (classID.has_value()) {
+    entry[kClassID] = static_cast<int32_t>(classID.value());
   }
   return entry;
 }
@@ -253,7 +249,7 @@ bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
   if (!forMplsRoute) {
     /* for ip2mpls routes, next hop label forwarding action must be push */
     for (const auto& nexthop : nhopSet_) {
-      if (action_ != Action::NEXTHOPS) {
+      if (getAction() != Action::NEXTHOPS) {
         continue;
       }
       if (nexthop.labelForwardingAction() &&
