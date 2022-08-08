@@ -102,7 +102,6 @@ struct RouteFields
     return classID();
   }
   void setClassID(std::optional<cfg::AclLookupClass> c) {
-    classID_ = c;
     if (c) {
       this->writableData().classID() = c.value();
     } else {
@@ -131,7 +130,7 @@ struct RouteFields
   static void migrateFromThrifty(folly::dynamic& dyn);
 
   void clearFlags() {
-    flags_ = 0;
+    this->writableData().flags() = 0;
   }
 
  private:
@@ -162,27 +161,25 @@ struct RouteFields
     PROCESSING = 0x8,
   };
   void setFlagsProcessing() {
-    flags_ |= PROCESSING;
-    flags_ &= ~(RESOLVED | UNRESOLVABLE | CONNECTED);
-    this->writableData().flags() = flags_;
+    setFlags(flags() | PROCESSING);
+    setFlags(flags() & (~(RESOLVED | UNRESOLVABLE | CONNECTED)));
   }
   void setFlagsResolved() {
-    flags_ |= RESOLVED;
-    flags_ &= ~(UNRESOLVABLE | PROCESSING);
-    this->writableData().flags() = flags_;
+    setFlags(flags() | RESOLVED);
+    setFlags(flags() & (~(UNRESOLVABLE | PROCESSING)));
   }
   void setFlagsUnresolvable() {
-    flags_ |= UNRESOLVABLE;
-    flags_ &= ~(RESOLVED | PROCESSING | CONNECTED);
-    this->writableData().flags() = flags_;
+    setFlags(flags() | UNRESOLVABLE);
+    setFlags(flags() & (~(RESOLVED | PROCESSING | CONNECTED)));
   }
   void setFlagsConnected() {
-    flags_ |= CONNECTED;
-    this->writableData().flags() = flags_;
+    setFlags(flags() | CONNECTED);
   }
   void clearForwardInFlags() {
-    flags_ &= ~(RESOLVED | PROCESSING | CONNECTED | UNRESOLVABLE);
-    this->writableData().flags() = flags_;
+    setFlags(flags() & (~(RESOLVED | PROCESSING | CONNECTED | UNRESOLVABLE)));
+  }
+  void setFlags(uint32_t flags) {
+    this->writableData().flags() = flags;
   }
 
   // private constructor for thrift to fields
@@ -203,15 +200,6 @@ struct RouteFields
     this->writableData() = fields;
     nexthopsmulti_ = RouteNextHopsMulti::fromThrift(*fields.nexthopsmulti());
     fwd_ = RouteNextHopEntry::fromThrift(*fields.fwd());
-    flags_ = *fields.flags();
-    if (fields.classID()) {
-      classID_ = *fields.classID();
-    }
-    if constexpr (std::is_same_v<AddrT, LabelID>) {
-      prefix_ = Prefix::fromThrift(*fields.label());
-    } else {
-      prefix_ = Prefix::fromThrift(*fields.prefix());
-    }
   }
 
   static ThriftFields getRouteFields(
@@ -233,13 +221,13 @@ struct RouteFields
   bool has(ClientID clientId, const RouteNextHopEntry& entry) const;
 
   bool isResolved() const {
-    return (flags_ & RESOLVED);
+    return (flags() & RESOLVED);
   }
   bool isUnresolvable() const {
-    return (flags_ & UNRESOLVABLE);
+    return (flags() & UNRESOLVABLE);
   }
   bool isConnected() const {
-    return (flags_ & CONNECTED);
+    return (flags() & CONNECTED);
   }
   bool isDrop() const {
     return isResolved() && fwd_.isDrop();
@@ -248,11 +236,11 @@ struct RouteFields
     return isResolved() && fwd_.isToCPU();
   }
   bool isProcessing() const {
-    return (flags_ & PROCESSING);
+    return (flags() & PROCESSING);
   }
   bool needResolve() const {
     // not resolved, nor unresolvable, nor in processing
-    return !(flags_ & (RESOLVED | UNRESOLVABLE | PROCESSING));
+    return !(flags() & (RESOLVED | UNRESOLVABLE | PROCESSING));
   }
   void setProcessing() {
     CHECK(!isProcessing());
@@ -278,7 +266,11 @@ struct RouteFields
   }
 
   Prefix prefix() const {
-    return prefix_;
+    if constexpr (std::is_same_v<AddrT, LabelID>) {
+      return Prefix::fromThrift(*(this->data().label()));
+    } else {
+      return Prefix::fromThrift(*(this->data().prefix()));
+    }
   }
   RouteNextHopsMulti nexthopsmulti() const {
     return nexthopsmulti_;
@@ -287,14 +279,16 @@ struct RouteFields
     return fwd_;
   }
   uint32_t flags() const {
-    return flags_;
+    return *(this->data().flags());
   }
   std::optional<cfg::AclLookupClass> classID() const {
-    return classID_;
+    if (auto classID = this->data().classID()) {
+      return *classID;
+    }
+    return std::nullopt;
   }
 
  private:
-  Prefix prefix_;
   // The following fields will not be copied during clone()
   /*
    * All next hops of the routes. This set could be empty if and only if
@@ -304,8 +298,6 @@ struct RouteFields
   RouteNextHopEntry fwd_{
       RouteNextHopEntry::Action::DROP,
       AdminDistance::MAX_ADMIN_DISTANCE};
-  uint32_t flags_{0};
-  std::optional<cfg::AclLookupClass> classID_{std::nullopt};
 };
 
 /// Route<> Class

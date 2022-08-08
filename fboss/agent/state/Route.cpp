@@ -33,19 +33,18 @@ RouteFields<AddrT>::RouteFields(const Prefix& prefix)
 
 template <typename AddrT>
 bool RouteFields<AddrT>::operator==(const RouteFields& rf) const {
-  return std::tie(flags_, prefix_, nexthopsmulti_, fwd_, classID_) ==
-      std::tie(rf.flags_, rf.prefix_, rf.nexthopsmulti_, rf.fwd_, rf.classID_);
+  return this->data() == rf.data();
 }
 
 template <typename AddrT>
 folly::dynamic RouteFields<AddrT>::toFollyDynamicLegacy() const {
   folly::dynamic routeFields = folly::dynamic::object;
-  routeFields[kPrefix] = prefix_.toFollyDynamicLegacy();
+  routeFields[kPrefix] = prefix().toFollyDynamicLegacy();
   routeFields[kNextHopsMulti] = nexthopsmulti_.toFollyDynamicLegacy();
   routeFields[kFwdInfo] = fwd_.toFollyDynamicLegacy();
-  routeFields[kFlags] = flags_;
-  if (classID_.has_value()) {
-    routeFields[kClassID] = static_cast<int>(classID_.value());
+  routeFields[kFlags] = flags();
+  if (auto _classID = classID()) {
+    routeFields[kClassID] = static_cast<int>(_classID.value());
   }
 
   return routeFields;
@@ -54,16 +53,18 @@ folly::dynamic RouteFields<AddrT>::toFollyDynamicLegacy() const {
 template <typename AddrT>
 RouteFields<AddrT> RouteFields<AddrT>::fromFollyDynamicLegacy(
     const folly::dynamic& routeJson) {
-  RouteFields<AddrT> rt(Prefix::fromFollyDynamicLegacy(routeJson[kPrefix]));
+  Prefix prefix = Prefix::fromFollyDynamicLegacy(routeJson[kPrefix]);
+  RouteFields<AddrT> rt(prefix);
   rt.nexthopsmulti_ =
       RouteNextHopsMulti::fromFollyDynamicLegacy(routeJson[kNextHopsMulti]);
   rt.fwd_ = RouteNextHopEntry::fromFollyDynamicLegacy(routeJson[kFwdInfo]);
-  rt.flags_ = routeJson[kFlags].asInt();
+  uint32_t flags = routeJson[kFlags].asInt();
+  std::optional<cfg::AclLookupClass> classID{};
   if (routeJson.find(kClassID) != routeJson.items().end()) {
-    rt.classID_ = cfg::AclLookupClass(routeJson[kClassID].asInt());
+    classID = cfg::AclLookupClass(routeJson[kClassID].asInt());
   }
-  rt.writableData() = getRouteFields(
-      rt.prefix_, rt.nexthopsmulti_, rt.fwd_, rt.flags_, rt.classID_);
+  rt.writableData() =
+      getRouteFields(prefix, rt.nexthopsmulti_, rt.fwd_, flags, classID);
   return rt;
 }
 
@@ -123,7 +124,7 @@ bool RouteFields<AddrT>::has(ClientID clientId, const RouteNextHopEntry& entry)
 template <typename AddrT>
 std::string RouteFields<AddrT>::strLegacy() const {
   std::string ret;
-  ret = folly::to<string>(prefix_, '@');
+  ret = folly::to<string>(prefix(), '@');
   ret.append(nexthopsmulti_.strLegacy());
   ret.append(" State:");
   if (isConnected()) {
@@ -141,8 +142,9 @@ std::string RouteFields<AddrT>::strLegacy() const {
   ret.append(", => ");
   ret.append(fwd_.str());
 
-  auto classIDStr = classID_.has_value()
-      ? folly::to<std::string>(static_cast<int>(classID_.value()))
+  auto _classID = classID();
+  auto classIDStr = _classID.has_value()
+      ? folly::to<std::string>(static_cast<int>(_classID.value()))
       : "None";
   ret.append(", classID: ");
   ret.append(classIDStr);
