@@ -199,7 +199,6 @@ struct RouteFields
   explicit RouteFields(const ThriftFields& fields) {
     this->writableData() = fields;
     nexthopsmulti_ = RouteNextHopsMulti::fromThrift(*fields.nexthopsmulti());
-    fwd_ = RouteNextHopEntry::fromThrift(*fields.fwd());
   }
 
   static ThriftFields getRouteFields(
@@ -230,10 +229,14 @@ struct RouteFields
     return (flags() & CONNECTED);
   }
   bool isDrop() const {
-    return isResolved() && fwd_.isDrop();
+    return isResolved() &&
+        RouteNextHopEntry::isAction(
+               *(this->data().fwd()), RouteForwardAction::DROP);
   }
   bool isToCPU() const {
-    return isResolved() && fwd_.isToCPU();
+    return isResolved() &&
+        RouteNextHopEntry::isAction(
+               *(this->data().fwd()), RouteForwardAction::TO_CPU);
   }
   bool isProcessing() const {
     return (flags() & PROCESSING);
@@ -247,21 +250,18 @@ struct RouteFields
     setFlagsProcessing();
   }
   void setResolved(RouteNextHopEntry f) {
-    fwd_ = std::move(f);
-    this->writableData().fwd() = fwd_.toThrift();
+    this->writableData().fwd() = f.toThrift();
     setFlagsResolved();
   }
   void setUnresolvable() {
-    fwd_.reset();
-    this->writableData().fwd() = fwd_.toThrift();
+    this->writableData().fwd() = state::RouteNextHopEntry{};
     setFlagsUnresolvable();
   }
   void setConnected() {
     setFlagsConnected();
   }
   void clearForward() {
-    fwd_.reset();
-    this->writableData().fwd() = fwd_.toThrift();
+    this->writableData().fwd() = state::RouteNextHopEntry{};
     clearForwardInFlags();
   }
 
@@ -276,7 +276,7 @@ struct RouteFields
     return nexthopsmulti_;
   }
   RouteNextHopEntry fwd() const {
-    return fwd_;
+    return RouteNextHopEntry(*(this->data().fwd()));
   }
   uint32_t flags() const {
     return *(this->data().flags());
@@ -295,9 +295,6 @@ struct RouteFields
    * the route is directly connected
    */
   RouteNextHopsMulti nexthopsmulti_;
-  RouteNextHopEntry fwd_{
-      RouteNextHopEntry::Action::DROP,
-      AdminDistance::MAX_ADMIN_DISTANCE};
 };
 
 /// Route<> Class

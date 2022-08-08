@@ -118,6 +118,10 @@ class RouteNextHopEntry
     return entry.getAdminDistance() == getAdminDistance();
   }
 
+  static bool isAction(const state::RouteNextHopEntry& entry, Action action) {
+    return *entry.action() == action;
+  }
+
   // Reset the NextHopSet
   void reset() {
     writableData() = state::RouteNextHopEntry{};
