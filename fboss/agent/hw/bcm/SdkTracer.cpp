@@ -2925,7 +2925,12 @@ int __wrap__bcm_shutdown(int unit) {
 int __wrap_soc_shutdown(int unit) {
   if (!facebook::fboss::BcmCinter::getInstance()) {
   }
+// TODO investigate why DNX builds don't include definition for soc_shutdown
+#if BCM_VER_RELEASE != 26
   CALL_WRAPPERS_RV(soc_shutdown(unit));
+#else
+  return 0;
+#endif
 }
 
 int __wrap_bcm_l3_intf_delete(int unit, bcm_l3_intf_t* intf) {
