@@ -22,6 +22,7 @@
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 DECLARE_bool(enable_macsec);
+DECLARE_string(config);
 
 namespace {
 const std::vector<std::string> kRestartQsfpService = {
@@ -64,6 +65,25 @@ void LinkTest::TearDown() {
 void LinkTest::setCmdLineFlagOverrides() const {
   FLAGS_enable_macsec = true;
   AgentTest::setCmdLineFlagOverrides();
+}
+
+void LinkTest::overrideL2LearningConfig(bool swLearning, int ageTimer) {
+  auto agentConfig = AgentConfig::fromFile(FLAGS_config);
+  cfg::AgentConfig testConfig = agentConfig->thrift;
+  if (swLearning) {
+    testConfig.sw()->switchSettings()->l2LearningMode() =
+        cfg::L2LearningMode::SOFTWARE;
+  } else {
+    testConfig.sw()->switchSettings()->l2LearningMode() =
+        cfg::L2LearningMode::HARDWARE;
+  }
+  testConfig.sw()->switchSettings()->l2AgeTimerSeconds() = ageTimer;
+  auto newAgentConfig = AgentConfig(
+      testConfig,
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
+  newAgentConfig.dumpConfig(getTestConfigPath());
+  FLAGS_config = getTestConfigPath();
+  platform()->reloadConfig();
 }
 
 // Waits till the link status of the ports in cabledPorts vector reaches

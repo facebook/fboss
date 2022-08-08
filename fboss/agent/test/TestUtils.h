@@ -422,6 +422,29 @@ class WaitForSwitchState : public StateObserver {
   std::unique_ptr<folly::annotate_ignore_thread_sanitizer_guard> tsanGuard_;
 };
 
+class WaitForMacEntryAddedOrDeleted : public WaitForSwitchState {
+ public:
+  WaitForMacEntryAddedOrDeleted(
+      SwSwitch* sw,
+      folly::MacAddress mac,
+      VlanID vlan,
+      bool added)
+      : WaitForSwitchState(
+            sw,
+            [mac, vlan, added](const StateDelta& delta) {
+              const auto& newVlan =
+                  delta.getVlansDelta().getNew()->getNodeIf(vlan);
+
+              auto newEntry = newVlan->getMacTable()->getNodeIf(mac);
+              if (added) {
+                return (newEntry != nullptr);
+              }
+              return (newEntry == nullptr);
+            },
+            "WaitForMacEntryAddedOrDeleted") {}
+  ~WaitForMacEntryAddedOrDeleted() {}
+};
+
 void programRoutes(
     const utility::RouteDistributionGenerator::RouteChunks& routeChunks,
     SwSwitch* sw);

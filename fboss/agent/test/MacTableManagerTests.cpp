@@ -21,29 +21,6 @@
 
 namespace facebook::fboss {
 
-class WaitForMacEntryAddedOrDeleted : public WaitForSwitchState {
- public:
-  WaitForMacEntryAddedOrDeleted(
-      SwSwitch* sw,
-      folly::MacAddress mac,
-      VlanID vlan,
-      bool added)
-      : WaitForSwitchState(
-            sw,
-            [mac, vlan, added](const StateDelta& delta) {
-              const auto& newVlan =
-                  delta.getVlansDelta().getNew()->getNodeIf(vlan);
-
-              auto newEntry = newVlan->getMacTable()->getNodeIf(mac);
-              if (added) {
-                return (newEntry != nullptr);
-              }
-              return (newEntry == nullptr);
-            },
-            "WaitForMacEntryAddedOrDeleted") {}
-  ~WaitForMacEntryAddedOrDeleted() {}
-};
-
 class MacTableManagerTest : public ::testing::Test {
  public:
   using Func = folly::Function<void()>;
