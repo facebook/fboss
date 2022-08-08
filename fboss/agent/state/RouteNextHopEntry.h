@@ -41,6 +41,8 @@ class RouteNextHopEntry
         counterID_(counterID),
         classID_(classID) {
     CHECK_NE(action_, Action::NEXTHOPS);
+    writableData() = getRouteNextHopEntryThrift(
+        action_, adminDistance_, nhopSet_, counterID_, classID_);
   }
 
   RouteNextHopEntry(
@@ -59,7 +61,11 @@ class RouteNextHopEntry
         counterID_(counterID),
         classID_(classID) {
     nhopSet_.emplace(std::move(nhop));
+    writableData() = getRouteNextHopEntryThrift(
+        action_, adminDistance_, nhopSet_, counterID_, classID_);
   }
+
+  explicit RouteNextHopEntry(const state::RouteNextHopEntry& entry);
 
   AdminDistance getAdminDistance() const {
     return adminDistance_;
@@ -151,6 +157,12 @@ class RouteNextHopEntry
   static void migrateFromThrifty(folly::dynamic& dyn);
 
  private:
+  static state::RouteNextHopEntry getRouteNextHopEntryThrift(
+      Action action,
+      AdminDistance distance,
+      NextHopSet nhopSet = {},
+      std::optional<RouteCounterID> counterID = std::nullopt,
+      std::optional<AclLookupClass> classID = std::nullopt);
   void normalize(
       std::vector<NextHopWeight>& scaledWeights,
       NextHopWeight totalWeight) const;
