@@ -36,13 +36,13 @@ class RouteNextHopEntry
       AdminDistance distance,
       std::optional<RouteCounterID> counterID = std::nullopt,
       std::optional<AclLookupClass> classID = std::nullopt)
-      : adminDistance_(distance),
-        action_(action),
-        counterID_(counterID),
-        classID_(classID) {
-    CHECK_NE(action_, Action::NEXTHOPS);
-    writableData() = getRouteNextHopEntryThrift(
-        action_, adminDistance_, nhopSet_, counterID_, classID_);
+      : RouteNextHopEntry(getRouteNextHopEntryThrift(
+            action,
+            distance,
+            NextHopSet(),
+            counterID,
+            classID)) {
+    CHECK_NE(action, Action::NEXTHOPS);
   }
 
   RouteNextHopEntry(
@@ -56,14 +56,12 @@ class RouteNextHopEntry
       AdminDistance distance,
       std::optional<RouteCounterID> counterID = std::nullopt,
       std::optional<AclLookupClass> classID = std::nullopt)
-      : adminDistance_(distance),
-        action_(Action::NEXTHOPS),
-        counterID_(counterID),
-        classID_(classID) {
-    nhopSet_.emplace(std::move(nhop));
-    writableData() = getRouteNextHopEntryThrift(
-        action_, adminDistance_, nhopSet_, counterID_, classID_);
-  }
+      : RouteNextHopEntry(getRouteNextHopEntryThrift(
+            Action::NEXTHOPS,
+            distance,
+            NextHopSet({nhop}),
+            counterID,
+            classID)) {}
 
   explicit RouteNextHopEntry(const state::RouteNextHopEntry& entry);
 

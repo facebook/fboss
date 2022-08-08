@@ -97,16 +97,15 @@ RouteNextHopEntry::RouteNextHopEntry(
     AdminDistance distance,
     std::optional<RouteCounterID> counterID,
     std::optional<AclLookupClass> classID)
-    : adminDistance_(distance),
-      action_(Action::NEXTHOPS),
-      counterID_(counterID),
-      classID_(classID),
-      nhopSet_(std::move(nhopSet)) {
-  if (nhopSet_.size() == 0) {
+    : RouteNextHopEntry(getRouteNextHopEntryThrift(
+          Action::NEXTHOPS,
+          distance,
+          nhopSet,
+          counterID,
+          classID)) {
+  if (nhopSet.size() == 0) {
     throw FbossError("Empty nexthop set is passed to the RouteNextHopEntry");
   }
-  writableData() = getRouteNextHopEntryThrift(
-      action_, adminDistance_, nhopSet_, counterID_, classID_);
 }
 
 RouteNextHopEntry::RouteNextHopEntry(const state::RouteNextHopEntry& entry) {
