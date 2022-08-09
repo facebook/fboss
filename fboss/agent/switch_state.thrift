@@ -436,6 +436,14 @@ struct AggregatePortFields {
   9: map<i32, ParticipantInfo> portToPartnerState;
 }
 
+struct TeFlowEntryFields {
+  1: ctrl.TeFlow flow;
+  3: list<common.NextHopThrift> nexthops;
+  4: list<common.NextHopThrift> resolvedNexthops;
+  5: bool enabled;
+  6: optional ctrl.TeCounterID counterID;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
