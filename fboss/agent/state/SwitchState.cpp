@@ -28,6 +28,8 @@
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/SwitchSettings.h"
+#include "fboss/agent/state/TeFlowEntry.h"
+#include "fboss/agent/state/TeFlowTable.h"
 #include "fboss/agent/state/Transceiver.h"
 #include "fboss/agent/state/TransceiverMap.h"
 #include "fboss/agent/state/Vlan.h"
@@ -68,6 +70,7 @@ constexpr auto kTransceivers = "transceivers";
 constexpr auto kAclTableGroups = "aclTableGroups";
 constexpr auto kSystemPorts = "systemPorts";
 constexpr auto kTunnels = "ipTunnels";
+constexpr auto kTeFlows = "teFlows";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
@@ -95,7 +98,8 @@ SwitchStateFields::SwitchStateFields()
       switchSettings(make_shared<SwitchSettings>()),
       transceivers(make_shared<TransceiverMap>()),
       systemPorts(make_shared<SystemPortMap>()),
-      ipTunnels(make_shared<IpTunnelMap>()) {}
+      ipTunnels(make_shared<IpTunnelMap>()),
+      teFlowTable(make_shared<TeFlowTable>()) {}
 
 state::SwitchState SwitchStateFields::toThrift() const {
   auto state = state::SwitchState();
@@ -134,6 +138,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
   state.labelFib() = labelFib->toThrift();
   state.qosPolicyMap() = qosPolicies->toThrift();
   state.sflowCollectorMap() = sFlowCollectors->toThrift();
+  state.teFlowTable() = teFlowTable->toThrift();
   return state;
 }
 
@@ -179,6 +184,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.ipTunnels = IpTunnelMap::fromThrift(*state.ipTunnelMap());
   fields.sFlowCollectors =
       SflowCollectorMap::fromThrift(*state.sflowCollectorMap());
+  fields.teFlowTable = TeFlowTable::fromThrift(*state.teFlowTable());
   return fields;
 }
 
@@ -210,6 +216,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
   switchState[kLabelForwardingInformationBase] = labelFib->toFollyDynamic();
   switchState[kSwitchSettings] = switchSettings->toFollyDynamic();
   switchState[kTunnels] = ipTunnels->toFollyDynamic();
+  switchState[kTeFlows] = teFlowTable->toFollyDynamic();
   if (qcmCfg) {
     switchState[kQcmCfg] = qcmCfg->toFollyDynamic();
   }
@@ -308,6 +315,9 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
   }
   if (swJson.find(kTunnels) != swJson.items().end()) {
     switchState.ipTunnels = IpTunnelMap::fromFollyDynamic(swJson[kTunnels]);
+  }
+  if (swJson.find(kTeFlows) != swJson.items().end()) {
+    switchState.teFlowTable = TeFlowTable::fromFollyDynamic(swJson[kTeFlows]);
   }
   // TODO verify that created state here is internally consistent t4155406
   return switchState;
@@ -521,6 +531,10 @@ void SwitchState::addTunnel(const std::shared_ptr<IpTunnel>& tunnel) {
 
 void SwitchState::resetTunnels(std::shared_ptr<IpTunnelMap> tunnels) {
   writableFields()->ipTunnels.swap(tunnels);
+}
+
+void SwitchState::resetTeFlowTable(std::shared_ptr<TeFlowTable> flowTable) {
+  writableFields()->teFlowTable.swap(flowTable);
 }
 
 std::shared_ptr<AclTableMap> SwitchState::getAclTablesForStage(

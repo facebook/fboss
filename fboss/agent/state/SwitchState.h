@@ -37,6 +37,7 @@
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/SystemPortMap.h"
+#include "fboss/agent/state/TeFlowTable.h"
 #include "fboss/agent/state/TransceiverMap.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/types.h"
@@ -77,6 +78,7 @@ struct SwitchStateFields
     fn(transceivers.get());
     fn(systemPorts.get());
     fn(ipTunnels.get());
+    fn(teFlowTable.get());
   }
 
   state::SwitchState toThrift() const override;
@@ -114,6 +116,7 @@ struct SwitchStateFields
   std::shared_ptr<TransceiverMap> transceivers;
   std::shared_ptr<SystemPortMap> systemPorts;
   std::shared_ptr<IpTunnelMap> ipTunnels;
+  std::shared_ptr<TeFlowTable> teFlowTable;
 
   VlanID defaultVlan{0};
 
@@ -404,6 +407,9 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   const std::shared_ptr<IpTunnelMap>& getTunnels() const {
     return getFields()->ipTunnels;
   }
+  const std::shared_ptr<TeFlowTable>& getTeFlowTable() const {
+    return getFields()->teFlowTable;
+  }
 
   /*
    * The following functions modify the static state.
@@ -443,6 +449,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetSystemPorts(std::shared_ptr<SystemPortMap> systemPorts);
   void addTunnel(const std::shared_ptr<IpTunnel>& tunnel);
   void resetTunnels(std::shared_ptr<IpTunnelMap> tunnels);
+  void resetTeFlowTable(std::shared_ptr<TeFlowTable> teFlowTable);
 
   void publish() override {
     using BaseT = NodeBaseT<SwitchState, SwitchStateFields>;
