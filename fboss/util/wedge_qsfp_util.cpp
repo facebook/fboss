@@ -3183,4 +3183,71 @@ void getModulePrbsStats(folly::EventBase& evb, std::vector<PortID> portList) {
   }
 }
 
+/*
+ * Verify the select command is working properly with regard to the --direct-i2c
+ * option
+ */
+bool verifyDirectI2cCompliance() {
+  // TODO (sampham): the commands in the if statement below are working properly
+  // with regard to the --direct-i2c option. After the remaining commands do
+  // the same, delete the if statement below. The if statement below allows an
+  // incremental addition of properly behaved commands to force users to use
+  // them correctly right away without having to wait for all commands to be
+  // compliant at once
+  if (FLAGS_tx_disable || FLAGS_tx_enable || FLAGS_pause_remediation ||
+      FLAGS_get_remediation_until_time || FLAGS_read_reg || FLAGS_write_reg ||
+      FLAGS_update_module_firmware || FLAGS_update_bulk_module_fw) {
+    bool qsfpServiceActive = false;
+
+    try {
+      auto qsfpServiceClient = utils::createQsfpServiceClient();
+
+      if (qsfpServiceClient &&
+          facebook::fb303::cpp2::fb_status::ALIVE ==
+              qsfpServiceClient.get()->sync_getStatus()) {
+        qsfpServiceActive = true;
+      }
+    } catch (const std::exception& ex) {
+      XLOG(DBG5) << fmt::format(
+          "Exception connecting to qsfp_service: {}", folly::exceptionStr(ex));
+    }
+
+    if (qsfpServiceActive) {
+      XLOG(INFO) << "qsfp_service is running";
+    } else {
+      XLOG(INFO) << "qsfp_service is not running";
+    }
+
+    if (FLAGS_direct_i2c) {
+      if (qsfpServiceActive) {
+        XLOG(ERR)
+            << "--direct_i2c option is used while QSFP service is running. Please stop QSFP service first or do not use the --direct_i2c option";
+        return false;
+      }
+
+      // It does not make sense to use the below commands while qsfp_service is
+      // not running
+      if (FLAGS_pause_remediation || FLAGS_get_remediation_until_time) {
+        XLOG(ERR) << "This command does not support the --direct_i2c option";
+        return false;
+      }
+    } else {
+      if (!qsfpServiceActive) {
+        XLOG(ERR)
+            << "--direct_i2c option is not used while QSFP service is not running. Please run QSFP service first or use the --direct_i2c option";
+        return false;
+      }
+
+      // The below commands work with the --direct-i2c option only
+      if (FLAGS_update_module_firmware || FLAGS_update_bulk_module_fw) {
+        XLOG(ERR)
+            << "This command is expected to be used with the --direct_i2c option";
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 } // namespace facebook::fboss

@@ -85,12 +85,10 @@ int main(int argc, char* argv[]) {
     return EX_USAGE;
   }
 
-  auto pidList = getPidForProcess("qsfp_service");
-
-  if (pidList.empty()) {
-    XLOG(INFO) << "qsfp_service is not running";
-  } else {
-    XLOG(INFO) << "qsfp_service is running";
+  // Verify the select command is working properly with regard to the
+  // --direct-i2c option
+  if (!verifyDirectI2cCompliance()) {
+    return EX_USAGE;
   }
 
   std::vector<unsigned int> ports;
