@@ -116,7 +116,7 @@ std::shared_ptr<BcmCinter> BcmCinter::getInstance() {
 }
 
 void BcmCinter::setupGlobals() {
-  array<string, 38> globals = {
+  array<string, 39> globals = {
       "_shr_pbmp_t pbmp",
       "_shr_rx_reasons_t reasons",
       "bcm_cosq_gport_discard_t discard",
@@ -155,6 +155,7 @@ void BcmCinter::setupGlobals() {
       "bcm_field_flexctr_config_t flexctr_config",
       "bcm_flexctr_action_t flexctr_action",
       "bcm_flexctr_trigger_t flexctr_trigger",
+      "bcm_field_hint_t hint",
   };
   writeCintLines(std::move(globals));
 #ifdef INCLUDE_PKTIO
@@ -3081,6 +3082,33 @@ int BcmCinter::bcm_port_stat_detach_with_id(
 int BcmCinter::bcm_stat_clear(int unit, bcm_port_t port) {
   writeCintLines(
       wrapFunc(to<string>("bcm_stat_clear(", makeParamStr(unit, port), ")")));
+  return 0;
+}
+
+int BcmCinter::bcm_field_hints_create(
+    int unit,
+    bcm_field_hintid_t* /* hint_id */) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_field_hints_create(", makeParamStr(unit, "&hint_id"), ")")));
+  return 0;
+}
+
+std::vector<std::string> BcmCinter::cintForHint(bcm_field_hint_t hint) {
+  return {
+      "bcm_field_hint_t_init(&hint)",
+      to<string>("hint.hint_type = ", hint.hint_type),
+      to<string>("hint.qual = ", hint.qual),
+      to<string>("hint.start_bit = ", hint.start_bit),
+      to<string>("hint.end_bit = ", hint.end_bit)};
+}
+
+int BcmCinter::bcm_field_hints_add(
+    int unit,
+    bcm_field_hintid_t hint_id,
+    bcm_field_hint_t* hint) {
+  writeCintLines(cintForHint(*hint));
+  writeCintLines(wrapFunc(
+      fmt::format("bcm_field_hints_add({}, {}, &hint)", unit, hint_id)));
   return 0;
 }
 

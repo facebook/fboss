@@ -240,6 +240,15 @@ int __real_bcm_field_group_traverse(
     bcm_field_group_traverse_cb callback,
     void* user_data);
 
+void __real_bcm_field_hint_t_init(bcm_field_hint_t* hint);
+
+int __real_bcm_field_hints_create(int unit, bcm_field_hintid_t* hint_id);
+
+int __real_bcm_field_hints_add(
+    int unit,
+    bcm_field_hintid_t hint_id,
+    bcm_field_hint_t* hint);
+
 int __real_bcm_l3_egress_ecmp_delete(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
@@ -2647,6 +2656,21 @@ int __wrap_bcm_field_entry_destroy(int unit, bcm_field_entry_t entry) {
 
 int __wrap_bcm_field_group_destroy(int unit, bcm_field_group_t group) {
   CALL_WRAPPERS_RV(bcm_field_group_destroy(unit, group));
+}
+
+void __wrap_bcm_field_hint_t_init(bcm_field_hint_t* hint) {
+  CALL_WRAPPERS_NO_RV(bcm_field_hint_t_init(hint));
+}
+
+int __wrap_bcm_field_hints_create(int unit, bcm_field_hintid_t* hint_id) {
+  CALL_WRAPPERS_RV(bcm_field_hints_create(unit, hint_id));
+}
+
+int __wrap_bcm_field_hints_add(
+    int unit,
+    bcm_field_hintid_t hint_id,
+    bcm_field_hint_t* hint) {
+  CALL_WRAPPERS_RV(bcm_field_hints_add(unit, hint_id, hint));
 }
 
 // Switch control

@@ -421,6 +421,15 @@ class BcmSdkInterface {
       bcm_switch_object_t object,
       int* entries) = 0;
 
+  virtual void bcm_field_hint_t_init(bcm_field_hint_t* hint) = 0;
+
+  virtual int bcm_field_hints_create(int unit, bcm_field_hintid_t* hint_id) = 0;
+
+  virtual int bcm_field_hints_add(
+      int unit,
+      bcm_field_hintid_t hint_id,
+      bcm_field_hint_t* hint) = 0;
+
 // workaround to make 6.5.17 build work
 // flag will be removed once 6.5.17 is gone
 #if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_19))

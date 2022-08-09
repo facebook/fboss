@@ -355,6 +355,12 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int priority_group_id,
       bcm_cosq_port_prigroup_control_t type,
       int arg) override;
+  void bcm_field_hint_t_init(bcm_field_hint_t* /*hint*/) override {}
+  int bcm_field_hints_create(int unit, bcm_field_hintid_t* hint_id) override;
+  int bcm_field_hints_add(
+      int unit,
+      bcm_field_hintid_t hint_id,
+      bcm_field_hint_t* hint) override;
   int bcm_field_init(int unit) override;
   int bcm_field_group_create_id(
       int unit,
@@ -1972,6 +1978,8 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
 
   std::vector<std::string> cintForFlexCtrTrigger(
       bcm_flexctr_trigger_t& flexctr_trigger);
+
+  std::vector<std::string> cintForHint(bcm_field_hint_t hint);
 
 #if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
   std::vector<std::string> cintForPortFdrConfig(
