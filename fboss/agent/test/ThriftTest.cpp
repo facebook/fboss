@@ -61,6 +61,16 @@ IpPrefix ipPrefix(const folly::CIDRNetwork& nw) {
   result.prefixLength() = nw.second;
   return result;
 }
+
+FlowEntry makeFlow(std::string dstIp) {
+  FlowEntry flowEntry;
+  flowEntry.flow()->srcPort() = 100;
+  flowEntry.flow()->dstPrefix() = ipPrefix(dstIp, 64);
+  flowEntry.counterID() = "counter0";
+  flowEntry.nextHops()->resize(1);
+  flowEntry.nextHops()[0].address() = toBinaryAddress(IPAddress("1::1"));
+  return flowEntry;
+}
 } // unnamed namespace
 
 class ThriftTest : public ::testing::Test {
@@ -1934,4 +1944,32 @@ TEST_F(ThriftTest, applySpeedAndProfileMismatchConfig) {
       sw_->applyConfig(
           "Mismatch config with wrong speed and profile", mismatchConfig),
       FbossError);
+}
+
+TEST_F(ThriftTest, addRemoveTeFlow) {
+  ThriftHandler handler(sw_);
+  auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
+  auto flowEntry = makeFlow("100::1");
+  teFlowEntries->emplace_back(flowEntry);
+  handler.addTeFlows(std::move(teFlowEntries));
+  auto state = sw_->getState();
+  auto teFlowTable = state->getTeFlowTable();
+  EXPECT_EQ(teFlowTable->size(), 1);
+  auto tableEntry = teFlowTable->getTeFlowIf(*flowEntry.flow());
+  EXPECT_NE(tableEntry, nullptr);
+  EXPECT_EQ(tableEntry->getCounterID(), "counter0");
+  EXPECT_EQ(tableEntry->getNextHops().size(), 1);
+  EXPECT_EQ(
+      tableEntry->getNextHops()[0].address(),
+      toBinaryAddress(IPAddress("1::1")));
+  EXPECT_EQ(tableEntry->getResolvedNextHops().size(), 1);
+  EXPECT_EQ(tableEntry->getResolvedNextHops()[0], tableEntry->getNextHops()[0]);
+
+  auto teFlows = std::make_unique<std::vector<TeFlow>>();
+  teFlows->emplace_back(*flowEntry.flow());
+  handler.deleteTeFlows(std::move(teFlows));
+  state = sw_->getState();
+  teFlowTable = state->getTeFlowTable();
+  tableEntry = teFlowTable->getTeFlowIf(*flowEntry.flow());
+  EXPECT_EQ(tableEntry, nullptr);
 }
