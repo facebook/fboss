@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
@@ -32,6 +33,11 @@ class TeFlowEntry : public ThriftyBaseT<
                         state::TeFlowEntryFields,
                         TeFlowEntry,
                         TeFlowEntryFields> {
+ public:
+  TeFlow getID() const {
+    return *getFields()->data().flow();
+  }
+
  private:
   // Inherit the constructors required for clone()
   using ThriftyBaseT<state::TeFlowEntryFields, TeFlowEntry, TeFlowEntryFields>::
