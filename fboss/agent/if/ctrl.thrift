@@ -1218,15 +1218,15 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
     1: list<switch_config.MacAndVlan> macAddrsToblock,
   ) throws (1: fboss.FbossBaseError error);
 
-  void addTeFlows(1: i16 clientId, 2: list<FlowEntry> teFlowEntries) throws (
+  void addTeFlows(1: list<FlowEntry> teFlowEntries) throws (
     1: FbossTeUpdateError error,
   );
 
-  void deleteTeFlows(1: i16 clientId, 2: list<TeFlow> teFlows) throws (
+  void deleteTeFlows(1: list<TeFlow> teFlows) throws (
     1: FbossTeUpdateError error,
   );
 
-  void syncTeFlows(1: i16 clientId, 2: list<FlowEntry> teFlowEntries) throws (
+  void syncTeFlows(1: list<FlowEntry> teFlowEntries) throws (
     1: FbossTeUpdateError error,
   );
 }
