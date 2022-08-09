@@ -80,6 +80,8 @@ class TeFlowEntry : public ThriftyBaseT<
     return !(*this == entry);
   }
 
+  TeFlowEntry* modify(std::shared_ptr<SwitchState>* state);
+
  private:
   // Inherit the constructors required for clone()
   using ThriftyBaseT<state::TeFlowEntryFields, TeFlowEntry, TeFlowEntryFields>::
