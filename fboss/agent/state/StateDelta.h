@@ -34,6 +34,7 @@
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/SystemPortMap.h"
+#include "fboss/agent/state/TeFlowTable.h"
 #include "fboss/agent/state/TransceiverMap.h"
 #include "fboss/agent/state/VlanMapDelta.h"
 
@@ -87,6 +88,7 @@ class StateDelta {
   DeltaValue<SwitchSettings> getSwitchSettingsDelta() const;
   NodeMapDelta<SystemPortMap> getSystemPortsDelta() const;
   NodeMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
+  NodeMapDelta<TeFlowTable> getTeFlowEntriesDelta() const;
 
  private:
   // Forbidden copy constructor and assignment operator
