@@ -55,7 +55,7 @@ class TeFlowTable : public ThriftyNodeMapT<
       const FlowEntry& entry);
   TeFlowTable* removeTeFlowEntry(
       std::shared_ptr<SwitchState>* state,
-      TeFlow& id);
+      const TeFlow& id);
   TeFlowTable* modify(std::shared_ptr<SwitchState>* state);
 
  private:

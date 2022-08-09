@@ -2484,4 +2484,54 @@ void ThriftHandler::getInterfacePhyInfo(
   }
 }
 
+void ThriftHandler::addTeFlows(
+    std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+
+  auto updateFn = [=, teFlows = std::move(*teFlowEntries)](
+                      const std::shared_ptr<SwitchState>& state) {
+    auto newState = state->clone();
+
+    addTeFlowsImpl(&newState, teFlows);
+    if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
+      throw FbossError("Invalid TE flow entries");
+    }
+    return newState;
+  };
+  try {
+    sw_->updateStateBlocking("addTEFlowEntries", updateFn);
+  } catch (const FbossHwUpdateError& ex) {
+    // TODO translate the error.
+    throw FbossTeUpdateError();
+  }
+}
+
+void ThriftHandler::addTeFlowsImpl(
+    std::shared_ptr<SwitchState>* state,
+    const std::vector<FlowEntry>& teFlowEntries) const {
+  auto teFlowTable = (*state)->getTeFlowTable().get()->modify(state);
+  for (const auto& teFlowEntry : teFlowEntries) {
+    teFlowTable = teFlowTable->addTeFlowEntry(state, teFlowEntry);
+  }
+}
+
+void ThriftHandler::deleteTeFlows(
+    std::unique_ptr<std::vector<TeFlow>> teFlows) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  auto updateFn = [=, flows = std::move(*teFlows)](
+                      const std::shared_ptr<SwitchState>& state) {
+    auto newState = state->clone();
+    auto teFlowTable = state->getTeFlowTable().get();
+    for (const auto& flow : flows) {
+      teFlowTable = teFlowTable->removeTeFlowEntry(&newState, flow);
+    }
+    return newState;
+  };
+  sw_->updateStateBlocking("deleteTeFlows", updateFn);
+}
+
+void ThriftHandler::syncTeFlows(
+    std::unique_ptr<std::vector<FlowEntry>> /*teFlowEntries*/) {}
 } // namespace facebook::fboss

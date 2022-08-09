@@ -47,7 +47,7 @@ TeFlowTable* TeFlowTable::addTeFlowEntry(
 
 TeFlowTable* TeFlowTable::removeTeFlowEntry(
     std::shared_ptr<SwitchState>* state,
-    TeFlow& flowId) {
+    const TeFlow& flowId) {
   auto* writableTable = modify(state);
   auto oldFlowEntry = writableTable->getTeFlowIf(flowId);
   if (!oldFlowEntry) {

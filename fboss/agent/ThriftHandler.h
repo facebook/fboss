@@ -121,6 +121,12 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       MplsRouteDetails& mplsRouteDetail,
       MplsLabel topLabel) override;
 
+  void addTeFlows(
+      std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) override;
+  void deleteTeFlows(std::unique_ptr<std::vector<TeFlow>> teFlows) override;
+  void syncTeFlows(
+      std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) override;
+
   SwSwitch* getSw() const {
     return sw_;
   }
@@ -401,6 +407,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getPortStatusImpl(
       std::map<int32_t, PortStatus>& statusMap,
       const std::unique_ptr<std::vector<int32_t>>& ports) const;
+  void addTeFlowsImpl(
+      std::shared_ptr<SwitchState>* state,
+      const std::vector<FlowEntry>& teFlowEntries) const;
 
   void ensureConfigured(folly::StringPiece function) const;
   void ensureConfigured() const {
