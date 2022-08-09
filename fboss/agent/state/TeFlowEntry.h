@@ -37,6 +37,48 @@ class TeFlowEntry : public ThriftyBaseT<
   TeFlow getID() const {
     return *getFields()->data().flow();
   }
+  const TeFlow& getFlow() const {
+    return *getFields()->data().flow();
+  }
+  TeCounterID getCounterID() const {
+    return *getFields()->data().counterID();
+  }
+  void setCounterID(std::optional<TeCounterID> counter) {
+    if (counter.has_value()) {
+      writableFields()->writableData().counterID() = *counter;
+    } else {
+      writableFields()->writableData().counterID().reset();
+    }
+  }
+  const std::vector<NextHopThrift>& getNextHops() const {
+    return *getFields()->data().nexthops();
+  }
+  void setNextHops(const std::vector<NextHopThrift>& nexthops) {
+    writableFields()->writableData().nexthops() = nexthops;
+  }
+  const std::vector<NextHopThrift>& getResolvedNextHops() const {
+    return *getFields()->data().resolvedNexthops();
+  }
+  void setResolvedNextHops(std::vector<NextHopThrift> nexthops) {
+    writableFields()->writableData().resolvedNexthops() = nexthops;
+  }
+  bool getEnabled() const {
+    return *getFields()->data().enabled();
+  }
+  void setEnabled(bool enable) {
+    writableFields()->writableData().enabled() = enable;
+  }
+
+  bool operator==(const TeFlowEntry& entry) {
+    return (getID() == entry.getID()) &&
+        (getNextHops() == entry.getNextHops()) &&
+        (getResolvedNextHops() == entry.getResolvedNextHops()) &&
+        (getCounterID() == entry.getCounterID()) &&
+        (getEnabled() == entry.getEnabled());
+  }
+  bool operator!=(const TeFlowEntry& entry) {
+    return !(*this == entry);
+  }
 
  private:
   // Inherit the constructors required for clone()
