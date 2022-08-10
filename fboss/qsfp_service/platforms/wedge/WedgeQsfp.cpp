@@ -11,6 +11,7 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
 #include <folly/Conv.h>
 #include <folly/Memory.h>
+#include <folly/Random.h>
 #include <folly/ScopeGuard.h>
 
 #include <folly/logging/xlog.h>
@@ -31,6 +32,31 @@ constexpr uint8_t kCommonModuleFwVerReg = 39;
 
 constexpr auto kNumInterfaceDetectionRetries = 5;
 constexpr auto kInterfaceDetectionRetryMillis = 10;
+
+DEFINE_int32(
+    module_io_err_inject,
+    0,
+    "Probability of module IO error injection [0..100%]");
+
+/*
+ * generateIOErrorForTest
+ *
+ * This function will generate the I2c error based on the flag
+ * module_io_err_inject. The FLAGS_module_io_err_inject indicates probability of
+ * error in the range 0 to 100%. This function finds a random number in range
+ * [1..100] and if that random number is in the range [1..desiredProbability]
+ * then it generates i2c error. For 0% we don't generate any error and 100% will
+ * lead to always generating the error. This function is only intended for the
+ * test
+ */
+void generateIOErrorForTest(std::string functionName) {
+  if (FLAGS_module_io_err_inject > 0 && FLAGS_module_io_err_inject <= 100) {
+    int randomPlacement = folly::Random::rand32(1, 100);
+    if (randomPlacement <= FLAGS_module_io_err_inject) {
+      throw I2cError(folly::sformat("IO error injected in {:s}", functionName));
+    }
+  }
+}
 } // namespace
 
 namespace facebook {
@@ -69,6 +95,7 @@ int WedgeQsfp::readTransceiver(
     SCOPE_SUCCESS {
       wedgeQsfpstats_.recordReadSuccess();
     };
+    generateIOErrorForTest("readTransceiver()");
     threadSafeI2CBus_->moduleRead(module_ + 1, param, fieldValue);
   } catch (const std::exception& ex) {
     XLOG(ERR) << "Read from transceiver " << module_ << " at offset " << offset
@@ -93,6 +120,7 @@ int WedgeQsfp::writeTransceiver(
     SCOPE_SUCCESS {
       wedgeQsfpstats_.recordWriteSuccess();
     };
+    generateIOErrorForTest("writeTransceiver()");
     threadSafeI2CBus_->moduleWrite(module_ + 1, param, fieldValue);
 
     // Intel transceiver require some delay for every write.
