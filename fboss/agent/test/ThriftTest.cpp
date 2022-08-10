@@ -1973,3 +1973,59 @@ TEST_F(ThriftTest, addRemoveTeFlow) {
   tableEntry = teFlowTable->getTeFlowIf(*flowEntry.flow());
   EXPECT_EQ(tableEntry, nullptr);
 }
+
+TEST_F(ThriftTest, syncTeFlows) {
+  auto initalPrefixes = {"100::1", "101::1", "102::1", "103::1"};
+  ThriftHandler handler(sw_);
+  auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
+  for (const auto& prefix : initalPrefixes) {
+    auto flowEntry = makeFlow(prefix);
+    teFlowEntries->emplace_back(flowEntry);
+  }
+  handler.addTeFlows(std::move(teFlowEntries));
+  auto state = sw_->getState();
+  auto teFlowTable = state->getTeFlowTable();
+  EXPECT_EQ(teFlowTable->size(), 4);
+
+  // Ensure that all entries are created
+  for (const auto& prefix : initalPrefixes) {
+    TeFlow flow;
+    flow.dstPrefix() = ipPrefix(prefix, 64);
+    flow.srcPort() = 100;
+    auto tableEntry = teFlowTable->getTeFlowIf(flow);
+    EXPECT_NE(tableEntry, nullptr);
+  }
+
+  auto syncPrefixes = {"100::1", "101::1", "104::1"};
+  auto syncFlowEntries = std::make_unique<std::vector<FlowEntry>>();
+  for (const auto& prefix : syncPrefixes) {
+    auto flowEntry = makeFlow(prefix);
+    syncFlowEntries->emplace_back(flowEntry);
+  }
+  handler.syncTeFlows(std::move(syncFlowEntries));
+  state = sw_->getState();
+  teFlowTable = state->getTeFlowTable();
+  EXPECT_EQ(teFlowTable->size(), 3);
+  // Ensure that newly added entries are present
+  for (const auto& prefix : syncPrefixes) {
+    TeFlow flow;
+    flow.dstPrefix() = ipPrefix(prefix, 64);
+    flow.srcPort() = 100;
+    auto tableEntry = teFlowTable->getTeFlowIf(flow);
+    EXPECT_NE(tableEntry, nullptr);
+  }
+  // Ensure that missing entries are removed
+  for (const auto& prefix : {"102::1", "103::1"}) {
+    TeFlow flow;
+    flow.dstPrefix() = ipPrefix(prefix, 64);
+    flow.srcPort() = 100;
+    auto tableEntry = teFlowTable->getTeFlowIf(flow);
+    EXPECT_EQ(tableEntry, nullptr);
+  }
+  // sync flows with no entries
+  auto nullFlowEntries = std::make_unique<std::vector<FlowEntry>>();
+  handler.syncTeFlows(std::move(nullFlowEntries));
+  state = sw_->getState();
+  teFlowTable = state->getTeFlowTable();
+  EXPECT_EQ(teFlowTable->size(), 0);
+}
