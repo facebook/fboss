@@ -77,6 +77,27 @@ struct SignalFlags {
   4: i32 rxLol;
 }
 
+/*
+ * Currently, only support HARD_RESET
+ */
+enum ResetType {
+  INVALID = 0,
+  HARD_RESET = 1,
+// SOFT_RESET = 2,
+// DATAPATH_RESET = 3,
+// VCC_RESET = 4,
+}
+
+/*
+ * Currently, only support RESET_THEN_CLEAR
+ */
+enum ResetAction {
+  INVALID = 0,
+  RESET_THEN_CLEAR = 1,
+// RESET = 2,
+// CLEAR_RESET = 3,
+}
+
 enum TransmitterTechnology {
   UNKNOWN = 0,
   COPPER = 1,

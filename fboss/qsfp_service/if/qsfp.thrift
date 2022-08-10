@@ -54,6 +54,19 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
   ) throws (1: fboss.FbossBaseError error);
 
   /*
+   * Reset a select transceiver
+   * portName: ethx/y/z
+   * resetType: HARD_RESET
+   * resetAction: RESET_THEN_CLEAR
+   * Throw when trying to hard reset a SFF8472 transceiver (not supported)
+   */
+  void resetTransceiver(
+    1: string portName,
+    2: transceiver.ResetType resetType,
+    3: transceiver.ResetAction resetAction,
+  ) throws (1: fboss.FbossBaseError error);
+
+  /*
    * Qsfp service has an internal remediation loop and may potentially perform
    * interruptive operation to modules that carry no active(up) link. However
    * it may cause some confusion for debugging. This function is to tell
