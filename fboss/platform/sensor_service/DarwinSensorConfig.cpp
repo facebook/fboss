@@ -17,6 +17,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 85
         },
+        "compute" : "@/1000.0",
         "type" : 3
       },
       "CPU_PHYS_ID_0" : {
@@ -24,6 +25,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 105
         },
+        "compute" : "@/1000.0",
         "type"  : 3
       },
       "CPU_CORE0_TEMP" : {
@@ -31,6 +33,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 105
         },
+        "compute" : "@/1000.0",
         "type" : 3
       },
       "CPU_CORE1_TEMP" : {
@@ -38,6 +41,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 105
         },
+        "compute" : "@/1000.0",
         "type" : 3
       },
       "CPU_CORE2_TEMP" : {
@@ -45,6 +49,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 105
         },
+        "compute" : "@/1000.0",
         "type" : 3
       },
       "CPU_CORE3_TEMP" : {
@@ -52,6 +57,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 105
         },
+        "compute" : "@/1000.0",
         "type" : 3
       },
       "CPU_BOARD_TEMP" : {
@@ -59,6 +65,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 85
         },
+        "compute" : "@/1000.0",
         "type" : 3
       },
       "BACK_PANEL_TEMP" : {
@@ -66,6 +73,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 75
         },
+        "compute" : "@/1000.0",
         "type" : 3
       },
       "MPS1_VIN" : {
@@ -74,6 +82,7 @@ std::string getDarwinConfig() {
           "4" : 14,
           "5" : 9
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "MPS1_TEMP" : {
@@ -81,17 +90,15 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 110
         },
+        "compute" : "@/1000.0",
         "type" : 3
-      },
-      "MPS1_POUT" : {
-        "path" : "/run/devmap/sensors/CPU_MPS1_PMBUS/power2_input",
-        "type" : 0
       },
       "MPS1_IIN" : {
         "path" : "/run/devmap/sensors/CPU_MPS1_PMBUS/curr1_input",
         "thresholdMap" : {
           "4" : 85
         },
+        "compute" : "@/1000.0",
         "type" : 2
       },
       "MPS1_IOUT" : {
@@ -99,6 +106,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 45
         },
+        "compute" : "@/1000.0",
         "type" : 2
       },
       "MPS2_VIN" : {
@@ -107,6 +115,7 @@ std::string getDarwinConfig() {
           "4" : 14,
           "5" : 9
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "MPS2_TEMP" : {
@@ -114,17 +123,15 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 110
         },
+        "compute" : "@/1000.0",
         "type" : 3
-      },
-      "MPS2_POUT" : {
-        "path" : "/run/devmap/sensors/CPU_MPS2_PMBUS/power2_input",
-        "type" : 0
       },
       "MPS2_IIN" : {
         "path" : "/run/devmap/sensors/CPU_MPS2_PMBUS/curr1_input",
         "thresholdMap" : {
           "4" : 85
         },
+        "compute" : "@/1000.0",
         "type" : 2
       },
       "MPS2_IOUT" : {
@@ -132,6 +139,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 35
         },
+        "compute" : "@/1000.0",
         "type" : 2
       },
       "POS_1V7_VCCIN_VRRDY" : {
@@ -140,6 +148,7 @@ std::string getDarwinConfig() {
           "4" : 1.875,
           "5" : 1.12
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "POS_0V6_VTT" : {
@@ -148,6 +157,7 @@ std::string getDarwinConfig() {
           "4" : 0.69,
           "5" : 0.51
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "POS_1V2_VDDQ" : {
@@ -156,6 +166,7 @@ std::string getDarwinConfig() {
           "4" : 1.38,
           "5" : 1.02
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "POS_2V5_VPP" : {
@@ -164,6 +175,7 @@ std::string getDarwinConfig() {
           "4" : 2.99,
           "5" : 2.21
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "POS_1V5_PCH" : {
@@ -172,6 +184,7 @@ std::string getDarwinConfig() {
           "4" : 1.725,
           "5" : 1.27
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "POS_1V05_COM" : {
@@ -180,6 +193,7 @@ std::string getDarwinConfig() {
           "4" : 1.208,
           "5" : 0.89
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "POS_1V3_KRHV" : {
@@ -188,6 +202,7 @@ std::string getDarwinConfig() {
           "4" : 1.495,
           "5" : 1.1
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "POS_1V7_SCFUSE" : {
@@ -196,6 +211,7 @@ std::string getDarwinConfig() {
           "4" : 1.955,
           "5" : 1.44
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "POS_3V3" : {
@@ -204,6 +220,7 @@ std::string getDarwinConfig() {
           "4" : 3.795,
           "5" : 2.8
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "POS_5V0" : {
@@ -212,6 +229,7 @@ std::string getDarwinConfig() {
           "4" : 5.75,
           "5" : 4.25
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "POS_1V2_ALW" : {
@@ -220,6 +238,7 @@ std::string getDarwinConfig() {
           "4" : 1.38,
           "5" : 1.02
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "POS_3V3_ALW" : {
@@ -236,6 +255,7 @@ std::string getDarwinConfig() {
           "4" : 13.8,
           "5" : 9.72
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "POS_1V2_LAN1" : {
@@ -244,6 +264,7 @@ std::string getDarwinConfig() {
           "4" : 1.38,
           "5" : 1.02
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "POS_1V2_LAN2" : {
@@ -252,6 +273,7 @@ std::string getDarwinConfig() {
           "4" : 1.38,
           "5" : 1.02
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "FRONT_PANEL_TEMP" : {
@@ -259,6 +281,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 85
         },
+        "compute" : "@/1000.0",
         "type" : 3
       }
     },
@@ -320,6 +343,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 85
         },
+        "compute" : "@/1000.0",
         "type" : 3
       },
       "SC_BOARD_MIDDLE_TEMP" : {
@@ -327,6 +351,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 75
         },
+        "compute" : "@/1000.0",
         "type" : 3
       },
       "SC_BOARD_LEFT_TEMP" : {
@@ -334,6 +359,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 75
         },
+        "compute" : "@/1000.0",
         "type" : 3
       },
       "SC_FRONT_PANEL_TEMP" : {
@@ -341,6 +367,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 75
         },
+        "compute" : "@/1000.0",
         "type" : 3
       },
       "SC_TH3_DIODE1_TEMP" : {
@@ -348,6 +375,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 125
         },
+        "compute" : "@/1000.0",
         "type" : 3
       },
       "SC_TH3_DIODE2_TEMP" : {
@@ -355,6 +383,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 125
         },
+        "compute" : "@/1000.0",
         "type" : 3
       }
     },
@@ -365,7 +394,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 14
         },
-        "compute" : "15.5*@",
+        "compute" : "(15.5*@)/1000.0",
         "type" : 1
       },
       "PEM_ECB_VOUT_CH2" : {
@@ -373,7 +402,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 14
         },
-        "compute" : "15.5*@",
+        "compute" : "15.5*@/1000.0",
         "type" : 1
       },
       "PEM_ECB_IOUT_CH1" : {
@@ -382,7 +411,7 @@ std::string getDarwinConfig() {
           "4" : 60,
           "5" : 0.5
         },
-        "compute" : "(48390/343)*@",
+        "compute" : "(48390/343)*@/1000.0",
         "type" : 2
       },
       "PEM_ECB_IOUT_CH2" : {
@@ -391,7 +420,7 @@ std::string getDarwinConfig() {
           "4" : 60,
           "5" : 0.5
         },
-        "compute" : "(48390/343)*@",
+        "compute" : "(48390/343)*@/1000.0",
         "type" : 2
       },
       "PEM_ADC_VIN" : {
@@ -400,6 +429,7 @@ std::string getDarwinConfig() {
           "4" : 13.5,
           "5" : 10.9
         },
+        "compute" : "@*2.048*7.64/4096",
         "type" : 1
       },
       "PEM_ADC_VOUT" : {
@@ -407,6 +437,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "5" : 10.8
         },
+        "compute" : "@*2.048*7.64/4096",
         "type" : 1
       },
       "PEM_ADC_VDROP" : {
@@ -415,6 +446,7 @@ std::string getDarwinConfig() {
           "4" : 0.08,
           "5" : 0.0
         },
+        "compute" : "@/1000.0",
         "type" : 1
       },
       "PEM_INTERNAL_TEMP" : {
@@ -422,6 +454,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 85
         },
+        "compute" : "@/1000.0",
         "type" : 3
       },
       "PEM_EXTERNAL_TEMP" : {
@@ -429,6 +462,7 @@ std::string getDarwinConfig() {
         "thresholdMap" : {
           "4" : 85
         },
+        "compute" : "@/1000.0",
         "type" : 3
       }
     },
