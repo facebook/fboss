@@ -71,6 +71,11 @@ void HwTest::SetUp() {
 }
 
 void HwTest::TearDown() {
+  // At the end of the test, expect the watchdog fired count to be 0 because we
+  // don't expect any deadlocked threads
+  EXPECT_EQ(
+      ensemble_->getWedgeManager()->getStateMachineThreadHeartbeatMissedCount(),
+      0);
   ensemble_.reset();
 }
 
