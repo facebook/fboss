@@ -2533,5 +2533,26 @@ void ThriftHandler::deleteTeFlows(
 }
 
 void ThriftHandler::syncTeFlows(
-    std::unique_ptr<std::vector<FlowEntry>> /*teFlowEntries*/) {}
+    std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  auto updateFn = [=, teFlows = std::move(*teFlowEntries)](
+                      const std::shared_ptr<SwitchState>& state) {
+    auto newState = state->clone();
+    auto teFlowTable = std::make_shared<TeFlowTable>();
+    newState->resetTeFlowTable(teFlowTable);
+    addTeFlowsImpl(&newState, teFlows);
+    if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
+      throw FbossError("Invalid TE flows");
+    }
+    return newState;
+  };
+  try {
+    // TODO - switch to protected update
+    sw_->updateStateBlocking("syncTeFlows", updateFn);
+  } catch (const FbossHwUpdateError& ex) {
+    // TODO translate the error.
+    throw FbossTeUpdateError();
+  }
+}
 } // namespace facebook::fboss
