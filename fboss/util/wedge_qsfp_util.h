@@ -62,6 +62,7 @@ DECLARE_bool(prbs_stop);
 DECLARE_bool(prbs_stats);
 DECLARE_bool(generator);
 DECLARE_bool(checker);
+DECLARE_bool(module_io_stats);
 
 enum LoopbackMode { noLoopback, electricalLoopback, opticalLoopback };
 

@@ -290,6 +290,10 @@ DEFINE_bool(
 DEFINE_bool(prbs_stats, false, "Get the PRBS stats from a module line side");
 DEFINE_bool(generator, false, "Start or Stop PRBS Generator side");
 DEFINE_bool(checker, false, "Start or Stop PRBS Checker side");
+DEFINE_bool(
+    module_io_stats,
+    false,
+    "Get the Module read/write transaction stats");
 
 namespace {
 struct ModulePartInfo_s {
