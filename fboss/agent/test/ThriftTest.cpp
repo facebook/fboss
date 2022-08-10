@@ -62,13 +62,16 @@ IpPrefix ipPrefix(const folly::CIDRNetwork& nw) {
   return result;
 }
 
-FlowEntry makeFlow(std::string dstIp) {
+FlowEntry makeFlow(
+    std::string dstIp,
+    std::string nhip = "1::1",
+    std::string counter = "counter0") {
   FlowEntry flowEntry;
   flowEntry.flow()->srcPort() = 100;
   flowEntry.flow()->dstPrefix() = ipPrefix(dstIp, 64);
-  flowEntry.counterID() = "counter0";
+  flowEntry.counterID() = counter;
   flowEntry.nextHops()->resize(1);
-  flowEntry.nextHops()[0].address() = toBinaryAddress(IPAddress("1::1"));
+  flowEntry.nextHops()[0].address() = toBinaryAddress(IPAddress(nhip));
   return flowEntry;
 }
 } // unnamed namespace
@@ -1954,24 +1957,69 @@ TEST_F(ThriftTest, addRemoveTeFlow) {
   handler.addTeFlows(std::move(teFlowEntries));
   auto state = sw_->getState();
   auto teFlowTable = state->getTeFlowTable();
-  EXPECT_EQ(teFlowTable->size(), 1);
-  auto tableEntry = teFlowTable->getTeFlowIf(*flowEntry.flow());
-  EXPECT_NE(tableEntry, nullptr);
-  EXPECT_EQ(tableEntry->getCounterID(), "counter0");
-  EXPECT_EQ(tableEntry->getNextHops().size(), 1);
-  EXPECT_EQ(
-      tableEntry->getNextHops()[0].address(),
-      toBinaryAddress(IPAddress("1::1")));
-  EXPECT_EQ(tableEntry->getResolvedNextHops().size(), 1);
-  EXPECT_EQ(tableEntry->getResolvedNextHops()[0], tableEntry->getNextHops()[0]);
+  auto verifyEntry =
+      [&teFlowTable](const auto& flow, const auto& nhop, const auto& counter) {
+        EXPECT_EQ(teFlowTable->size(), 1);
+        auto tableEntry = teFlowTable->getTeFlowIf(flow);
+        EXPECT_NE(tableEntry, nullptr);
+        EXPECT_EQ(tableEntry->getCounterID(), counter);
+        EXPECT_EQ(tableEntry->getNextHops().size(), 1);
+        EXPECT_EQ(
+            tableEntry->getNextHops()[0].address(),
+            toBinaryAddress(IPAddress(nhop)));
+        EXPECT_EQ(tableEntry->getResolvedNextHops().size(), 1);
+        EXPECT_EQ(
+            tableEntry->getResolvedNextHops()[0], tableEntry->getNextHops()[0]);
+      };
+  verifyEntry(*flowEntry.flow(), "1::1", "counter0");
+
+  // modify the entry
+  auto flowEntry2 = makeFlow("100::1", "2::2", "counter1");
+  auto newFlowEntries = std::make_unique<std::vector<FlowEntry>>();
+  newFlowEntries->emplace_back(flowEntry2);
+  handler.addTeFlows(std::move(newFlowEntries));
+  state = sw_->getState();
+  teFlowTable = state->getTeFlowTable();
+  verifyEntry(*flowEntry.flow(), "2::2", "counter1");
 
   auto teFlows = std::make_unique<std::vector<TeFlow>>();
   teFlows->emplace_back(*flowEntry.flow());
   handler.deleteTeFlows(std::move(teFlows));
   state = sw_->getState();
   teFlowTable = state->getTeFlowTable();
-  tableEntry = teFlowTable->getTeFlowIf(*flowEntry.flow());
+  auto tableEntry = teFlowTable->getTeFlowIf(*flowEntry.flow());
   EXPECT_EQ(tableEntry, nullptr);
+
+  // add flows in bulk
+  auto testPrefixes = {"100::1", "101::1", "102::1", "103::1"};
+  auto bulkEntries = std::make_unique<std::vector<FlowEntry>>();
+  for (const auto& prefix : testPrefixes) {
+    bulkEntries->emplace_back(makeFlow(prefix));
+  }
+  handler.addTeFlows(std::move(bulkEntries));
+  state = sw_->getState();
+  teFlowTable = state->getTeFlowTable();
+  EXPECT_EQ(teFlowTable->size(), 4);
+
+  // bulk delete
+  auto flowsToDelete = {"100::1", "101::1"};
+  auto deletionFlows = std::make_unique<std::vector<TeFlow>>();
+  for (const auto& prefix : flowsToDelete) {
+    TeFlow flow;
+    flow.dstPrefix() = ipPrefix(prefix, 64);
+    flow.srcPort() = 100;
+    deletionFlows->emplace_back(flow);
+  }
+  handler.deleteTeFlows(std::move(deletionFlows));
+  state = sw_->getState();
+  teFlowTable = state->getTeFlowTable();
+  EXPECT_EQ(teFlowTable->size(), 2);
+  for (const auto& prefix : flowsToDelete) {
+    TeFlow flow;
+    flow.dstPrefix() = ipPrefix(prefix, 64);
+    flow.srcPort() = 100;
+    EXPECT_EQ(teFlowTable->getTeFlowIf(flow), nullptr);
+  }
 }
 
 TEST_F(ThriftTest, syncTeFlows) {
