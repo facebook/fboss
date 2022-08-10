@@ -73,6 +73,11 @@ class QsfpServiceHandler
     return manager_.get();
   }
 
+  void resetTransceiver(
+      std::unique_ptr<::std::string> portName,
+      ResetType resetType,
+      ResetAction resetAction) override;
+
   void pauseRemediation(
       int32_t timeout,
       std::unique_ptr<std::vector<std::string>> portList) override;

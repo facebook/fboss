@@ -92,6 +92,12 @@ class TransceiverManager {
 
   virtual int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
+
+  void resetTransceiver(
+      std::unique_ptr<::std::string> portName,
+      ResetType resetType,
+      ResetAction resetAction);
+
   /*
    * A function take a parameter representing number of seconds,
    * adding it to the time point of now and assign it to
