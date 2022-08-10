@@ -356,7 +356,8 @@ TEST_F(MultiNodeDisruptiveTest, LacpTimeout) {
       lagMgr->stopLacpOnSubPort(subPortRange.back().portID);
       auto remoteLacpTimeout =
           [this, &aggPortId](const std::shared_ptr<SwitchState>& state) {
-            const auto& localPort = getSubPorts(aggPortId).front().portID;
+            const auto& subPorts = getSubPorts(aggPortId);
+            const auto& localPort = subPorts.front().portID;
             const auto& aggPort =
                 state->getAggregatePorts()->getAggregatePort(aggPortId);
             const auto& remoteState = aggPort->getPartnerState(localPort).state;
