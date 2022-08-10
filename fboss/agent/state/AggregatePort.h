@@ -275,12 +275,12 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
   }
 
   AggregatePort::Forwarding getForwardingState(PortID port) {
-    auto it = *getFields()->data().portToFwdState()->find(port);
-    if (it == *getFields()->data().portToFwdState()->end()) {
+    auto it = getFields()->data().portToFwdState()->find(port);
+    if (it == getFields()->data().portToFwdState()->end()) {
       throw FbossError("No forwarding state found for port ", port);
     }
 
-    return it.second ? Forwarding::ENABLED : Forwarding::DISABLED;
+    return it->second ? Forwarding::ENABLED : Forwarding::DISABLED;
   }
 
   void setForwardingState(PortID port, AggregatePort::Forwarding fwd) {
