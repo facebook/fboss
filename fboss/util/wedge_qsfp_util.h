@@ -263,4 +263,8 @@ void getModulePrbsStats(folly::EventBase& evb, std::vector<PortID> portList);
 
 bool verifyDirectI2cCompliance();
 
+void printModuleTransactionStats(
+    const std::vector<int32_t>& ports,
+    folly::EventBase& evb);
+
 } // namespace facebook::fboss

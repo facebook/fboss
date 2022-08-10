@@ -3250,4 +3250,53 @@ bool verifyDirectI2cCompliance() {
   return true;
 }
 
+void printModuleTransactionStats(
+    const std::vector<int32_t>& ports,
+    folly::EventBase& evb) {
+  int64_t totalRead = 0, readFailed = 0, totalWrite = 0, writeFailed = 0;
+  float readFailure, writeFailure;
+  auto modulesInfo = fetchInfoFromQsfpService(ports, evb);
+
+  printf(
+      "Module        ReadsAttempted      ReadFailed(%%)   WritesAttempted    WritesFailed(%%)\n");
+  for (auto& moduleInfo : modulesInfo) {
+    if (moduleInfo.second.stats().has_value()) {
+      auto& moduleStat = moduleInfo.second.stats().value();
+      readFailure = moduleStat.numReadAttempted().value()
+          ? (double(moduleStat.numReadFailed().value() * 100) /
+             moduleStat.numReadAttempted().value())
+          : 0;
+      writeFailure = moduleStat.numWriteAttempted().value()
+          ? (double(moduleStat.numWriteFailed().value() * 100) /
+             moduleStat.numWriteAttempted().value())
+          : 0;
+
+      printf(
+          "%3d         %10ld      %10ld (%5.2f%%)  %10ld     %10ld (%5.2f%%))\n",
+          moduleInfo.first,
+          moduleStat.numReadAttempted().value(),
+          moduleStat.numReadFailed().value(),
+          readFailure,
+          moduleStat.numWriteAttempted().value(),
+          moduleStat.numWriteFailed().value(),
+          writeFailure);
+
+      totalRead += moduleStat.numReadAttempted().value();
+      readFailed += moduleStat.numReadFailed().value();
+      totalWrite += moduleStat.numWriteAttempted().value();
+      writeFailed += moduleStat.numWriteFailed().value();
+    }
+  }
+  readFailure = totalRead ? (double(readFailed * 100) / totalRead) : 0;
+  writeFailure = totalWrite ? (double(writeFailed * 100) / totalWrite) : 0;
+  printf(
+      "Total       %10ld      %10ld (%5.2f%%)  %10ld     %10ld (%5.2f%%)\n",
+      totalRead,
+      readFailed,
+      readFailure,
+      totalWrite,
+      writeFailed,
+      writeFailure);
+}
+
 } // namespace facebook::fboss
