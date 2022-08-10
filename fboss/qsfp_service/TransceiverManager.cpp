@@ -29,6 +29,11 @@ DEFINE_bool(
     true,
     "Enable/disable warm boot functionality for qsfp_service");
 
+DEFINE_int32(
+    state_machine_update_thread_heartbeat_ms,
+    10000,
+    "State machine update thread's heartbeat interval (ms)");
+
 namespace {
 constexpr auto kForceColdBootFileName = "cold_boot_once_qsfp_service";
 constexpr auto kWarmBootFlag = "can_warm_boot";
@@ -235,6 +240,7 @@ void TransceiverManager::startThreads() {
   // Setup all TransceiverStateMachineHelper thread
   for (auto& stateMachineHelper : stateMachines_) {
     stateMachineHelper.second->startThread();
+    heartbeats_.push_back(stateMachineHelper.second->getThreadHeartbeat());
   }
 
   XLOG(DBG2) << "Started TransceiverStateMachineUpdateThread";
@@ -243,9 +249,37 @@ void TransceiverManager::startThreads() {
     this->threadLoop(
         "TransceiverStateMachineUpdateThread", updateEventBase_.get());
   }));
+
+  auto heartbeatStatsFunc = [this](int /* delay */, int /* backLog */) {};
+  heartbeats_.push_back(std::make_shared<ThreadHeartbeat>(
+      updateEventBase_.get(),
+      "updateThreadHeartbeat",
+      FLAGS_state_machine_update_thread_heartbeat_ms,
+      heartbeatStatsFunc));
+
+  // Create a watchdog that will monitor the heartbeats of all the threads and
+  // increment the missed counter when there is no heartbeat on at least one
+  // thread in the last FLAGS_state_machine_update_thread_heartbeat_ms * 10 time
+  heartbeatWatchdog_ = std::make_unique<ThreadHeartbeatWatchdog>(
+      std::chrono::milliseconds(
+          FLAGS_state_machine_update_thread_heartbeat_ms * 10),
+      [this]() { stateMachineThreadHeartbeatMissedCount_ += 1; });
+  for (auto heartbeat : heartbeats_) {
+    heartbeatWatchdog_->startMonitoringHeartbeat(heartbeat);
+  }
+  // Kick off the heartbeat monitoring
+  heartbeatWatchdog_->start();
 }
 
 void TransceiverManager::stopThreads() {
+  if (heartbeatWatchdog_) {
+    heartbeatWatchdog_->stop();
+    heartbeatWatchdog_.reset();
+  }
+  for (auto heartbeat_ : heartbeats_) {
+    heartbeat_.reset();
+  }
+
   // We use runInEventBaseThread() to terminateLoopSoon() rather than calling it
   // directly here.  This ensures that any events already scheduled via
   // runInEventBaseThread() will have a chance to run.
@@ -1060,6 +1094,12 @@ void TransceiverManager::TransceiverStateMachineHelper::startThread() {
   updateEventBase_ = std::make_unique<folly::EventBase>();
   updateThread_.reset(
       new std::thread([this] { updateEventBase_->loopForever(); }));
+  auto heartbeatStatsFunc = [this](int /* delay */, int /* backLog */) {};
+  heartbeat_ = std::make_shared<ThreadHeartbeat>(
+      updateEventBase_.get(),
+      folly::to<std::string>("stateMachine_", tcvrID_, "_"),
+      FLAGS_state_machine_update_thread_heartbeat_ms,
+      heartbeatStatsFunc);
 }
 
 void TransceiverManager::TransceiverStateMachineHelper::stopThread() {

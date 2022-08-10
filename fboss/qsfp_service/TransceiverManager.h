@@ -15,6 +15,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/ThreadHeartbeat.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
@@ -341,6 +342,10 @@ class TransceiverManager {
 
   std::optional<DiagsCapability> getDiagsCapability(TransceiverID id) const;
 
+  long getStateMachineThreadHeartbeatMissedCount() const {
+    return stateMachineThreadHeartbeatMissedCount_;
+  }
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
@@ -447,6 +452,10 @@ class TransceiverManager {
       return stateMachine_;
     }
 
+    std::shared_ptr<ThreadHeartbeat> getThreadHeartbeat() {
+      return heartbeat_;
+    }
+
    private:
     TransceiverID tcvrID_;
     folly::Synchronized<state_machine<TransceiverStateMachine>> stateMachine_;
@@ -454,6 +463,7 @@ class TransceiverManager {
     // handcrafted HeaderClientChannel client instead of servicerouter client
     std::unique_ptr<std::thread> updateThread_;
     std::unique_ptr<folly::EventBase> updateEventBase_;
+    std::shared_ptr<ThreadHeartbeat> heartbeat_;
   };
 
   using TransceiverToStateMachineHelper = std::unordered_map<
@@ -576,6 +586,19 @@ class TransceiverManager {
   bool canWarmBoot_{false};
 
   folly::dynamic warmBootState_;
+
+  std::vector<std::shared_ptr<ThreadHeartbeat>> heartbeats_;
+
+  /*
+   * A thread dedicated to monitor above state machine thread heartbeats
+   */
+  std::unique_ptr<ThreadHeartbeatWatchdog> heartbeatWatchdog_;
+
+  /*
+   * Tracks how many times a heart beat (from any of the state machine threads)
+   * was missed. This counter is periodically published to ODS by StatsPublisher
+   */
+  std::atomic<long> stateMachineThreadHeartbeatMissedCount_{0};
 
   friend class TransceiverStateMachineTest;
 };
