@@ -163,7 +163,7 @@ class RouteNextHopEntry
   static state::RouteNextHopEntry getRouteNextHopEntryThrift(
       Action action,
       AdminDistance distance,
-      NextHopSet nhopSet = {},
+      NextHopSet nhopSet = NextHopSet(),
       std::optional<RouteCounterID> counterID = std::nullopt,
       std::optional<AclLookupClass> classID = std::nullopt);
   void normalize(
