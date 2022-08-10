@@ -85,11 +85,13 @@ int WedgeQsfp::readTransceiver(
     uint8_t* fieldValue) {
   auto offset = param.offset;
   auto len = param.len;
+  wedgeQsfpstats_.recordReadAttempted();
   try {
     SCOPE_EXIT {
       wedgeQsfpstats_.updateReadDownTime();
     };
     SCOPE_FAIL {
+      wedgeQsfpstats_.recordReadFailed();
       StatsPublisher::bumpReadFailure();
     };
     SCOPE_SUCCESS {
@@ -110,11 +112,13 @@ int WedgeQsfp::writeTransceiver(
     uint8_t* fieldValue) {
   auto offset = param.offset;
   auto len = param.len;
+  wedgeQsfpstats_.recordWriteAttempted();
   try {
     SCOPE_EXIT {
       wedgeQsfpstats_.updateWriteDownTime();
     };
     SCOPE_FAIL {
+      wedgeQsfpstats_.recordWriteFailed();
       StatsPublisher::bumpWriteFailure();
     };
     SCOPE_SUCCESS {

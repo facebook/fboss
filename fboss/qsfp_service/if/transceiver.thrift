@@ -352,6 +352,14 @@ struct TransceiverStats {
   1: double readDownTime;
   // duration between last write and last successful write
   2: double writeDownTime;
+  // Number of times the read transaction was attempted
+  3: i64 numReadAttempted;
+  // Number of times the read transaction failed
+  4: i64 numReadFailed;
+  // Number of times the write transaction was attempted
+  5: i64 numWriteAttempted;
+  // Number of times the write transaction failed
+  6: i64 numWriteFailed;
 }
 
 struct ModuleStatus {

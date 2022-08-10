@@ -48,6 +48,26 @@ class WedgeQsfpStats {
     lastSuccessfulWrite_ = std::chrono::steady_clock::now();
   }
 
+  void recordReadAttempted() {
+    std::lock_guard<std::mutex> g(statsMutex_);
+    stats_.numReadAttempted() = stats_.numReadAttempted().value() + 1;
+  }
+
+  void recordWriteAttempted() {
+    std::lock_guard<std::mutex> g(statsMutex_);
+    stats_.numWriteAttempted() = stats_.numWriteAttempted().value() + 1;
+  }
+
+  void recordReadFailed() {
+    std::lock_guard<std::mutex> g(statsMutex_);
+    stats_.numReadFailed() = stats_.numReadFailed().value() + 1;
+  }
+
+  void recordWriteFailed() {
+    std::lock_guard<std::mutex> g(statsMutex_);
+    stats_.numWriteFailed() = stats_.numWriteFailed().value() + 1;
+  }
+
   TransceiverStats getStats() {
     std::lock_guard<std::mutex> g(statsMutex_);
     return stats_;
