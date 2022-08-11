@@ -296,6 +296,8 @@ struct PhySideInfo {
   2: optional PcsInfo pcs;
   3: PmdInfo pmd;
   4: optional RsInfo rs; // Reconciliation sub-layer
+  5: optional InterfaceType interfaceType;
+  6: transceiver.TransmitterTechnology medium;
 }
 
 struct PcsInfo {
