@@ -57,23 +57,11 @@ class SaiTunnelManager {
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   Handles handles_;
-  sai_tunnel_type_t getSaiTunnelType(TunnelType type) {
-    switch (type) {
-      case IPINIP:
-        return SAI_TUNNEL_TYPE_IPINIP;
-      default:
-        throw FbossError("Failed to convert IpTunnel type to SAI type: ", type);
-    }
-  }
-  sai_tunnel_term_table_entry_type_t getSaiTunnelTermType(TunnelTermType type) {
-    switch (type) {
-      case MP2MP:
-        return SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2MP;
-      default:
-        throw FbossError(
-            "Failed to convert IpTunnel term type to SAI type: ", type);
-    }
-  }
+  sai_tunnel_type_t getSaiTunnelType(TunnelType type);
+  sai_tunnel_term_table_entry_type_t getSaiTunnelTermType(TunnelTermType type);
+  sai_tunnel_ttl_mode_t getSaiTtlMode(cfg::IpTunnelMode m);
+  sai_tunnel_dscp_mode_t getSaiDscpMode(cfg::IpTunnelMode m);
+  sai_tunnel_decap_ecn_mode_t getSaiDecapEcnMode(cfg::IpTunnelMode m);
 };
 
 } // namespace facebook::fboss

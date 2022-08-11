@@ -18,6 +18,7 @@ enum TunnelType {
 
 enum TunnelTermType {
   MP2MP,
+  P2MP,
 };
 
 struct IpTunnelFields
@@ -55,23 +56,23 @@ class IpTunnel
   void setUnderlayIntfId(InterfaceID id) {
     writableFields()->writableData().underlayIntfId() = id;
   }
-  int32_t getTTLMode() const {
-    return *getFields()->data().ttlMode();
+  cfg::IpTunnelMode getTTLMode() const {
+    return static_cast<cfg::IpTunnelMode>(*getFields()->data().ttlMode());
   }
-  void setTTLMode(int32_t mode) {
-    writableFields()->writableData().ttlMode() = mode;
+  void setTTLMode(cfg::IpTunnelMode mode) {
+    writableFields()->writableData().ttlMode() = static_cast<int32_t>(mode);
   }
-  int32_t getDscpMode() const {
-    return *getFields()->data().dscpMode();
+  cfg::IpTunnelMode getDscpMode() const {
+    return static_cast<cfg::IpTunnelMode>(*getFields()->data().dscpMode());
   }
-  void setDscpMode(int32_t mode) {
-    writableFields()->writableData().dscpMode() = mode;
+  void setDscpMode(cfg::IpTunnelMode mode) {
+    writableFields()->writableData().dscpMode() = static_cast<int32_t>(mode);
   }
-  int32_t getEcnMode() const {
-    return *getFields()->data().ecnMode();
+  cfg::IpTunnelMode getEcnMode() const {
+    return static_cast<cfg::IpTunnelMode>(*getFields()->data().ecnMode());
   }
-  void setEcnMode(int32_t mode) {
-    writableFields()->writableData().ecnMode() = mode;
+  void setEcnMode(cfg::IpTunnelMode mode) {
+    writableFields()->writableData().ecnMode() = static_cast<int32_t>(mode);
   }
   TunnelTermType getTunnelTermType() const {
     return static_cast<TunnelTermType>(*getFields()->data().tunnelTermType());

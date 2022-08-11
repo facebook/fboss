@@ -11,9 +11,9 @@ std::shared_ptr<IpTunnel> makeTunnel(std::string tunnelId = "tunnel0") {
   auto tunnel = std::make_shared<IpTunnel>(tunnelId);
   tunnel->setType(IPINIP);
   tunnel->setUnderlayIntfId(InterfaceID(42));
-  tunnel->setTTLMode(1);
-  tunnel->setDscpMode(1);
-  tunnel->setEcnMode(1);
+  tunnel->setTTLMode(cfg::IpTunnelMode::PIPE);
+  tunnel->setDscpMode(cfg::IpTunnelMode::PIPE);
+  tunnel->setEcnMode(cfg::IpTunnelMode::PIPE);
   tunnel->setTunnelTermType(MP2MP);
   tunnel->setDstIP(folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"));
   tunnel->setSrcIP(folly::IPAddressV6("::"));

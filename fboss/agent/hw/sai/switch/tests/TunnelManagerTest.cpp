@@ -13,7 +13,7 @@ using namespace facebook::fboss;
 
 std::shared_ptr<IpTunnel> makeTunnel(
     std::string tunnelId = "tunnel0",
-    int32_t mode = 1) {
+    cfg::IpTunnelMode mode = cfg::IpTunnelMode::PIPE) {
   auto tunnel = std::make_shared<IpTunnel>(tunnelId);
   tunnel->setType(IPINIP);
   tunnel->setUnderlayIntfId(InterfaceID(42));
@@ -101,7 +101,6 @@ class TunnelManagerTest : public ManagerTestBase {
 TEST_F(TunnelManagerTest, addTunnel) {
   std::shared_ptr<IpTunnel> swTunnel = makeTunnel("tunnel0");
   TunnelSaiId saiId = saiManagerTable->tunnelManager().addTunnel(swTunnel);
-  int expMode = 1; // TTL, DSCP and ECN should be the same value
   checkTunnel(
       saiId,
       "tunnel0",
@@ -109,9 +108,9 @@ TEST_F(TunnelManagerTest, addTunnel) {
       SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2MP,
       InterfaceID(42),
       InterfaceID(42),
-      expMode,
-      expMode,
-      expMode,
+      SAI_TUNNEL_TTL_MODE_PIPE_MODEL,
+      SAI_TUNNEL_DSCP_MODE_PIPE_MODEL,
+      SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER,
       folly::IPAddressV6("::"),
       folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"));
 }
@@ -119,7 +118,6 @@ TEST_F(TunnelManagerTest, addTunnel) {
 TEST_F(TunnelManagerTest, addTwoTunnels) {
   TunnelSaiId saiId0 =
       saiManagerTable->tunnelManager().addTunnel(makeTunnel("tunn0"));
-  int expMode = 1;
   checkTunnel(
       saiId0,
       "tunn0",
@@ -127,9 +125,9 @@ TEST_F(TunnelManagerTest, addTwoTunnels) {
       SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2MP,
       InterfaceID(42),
       InterfaceID(42),
-      expMode,
-      expMode,
-      expMode,
+      SAI_TUNNEL_TTL_MODE_PIPE_MODEL,
+      SAI_TUNNEL_DSCP_MODE_PIPE_MODEL,
+      SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER,
       folly::IPAddressV6("::"),
       folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"));
   TunnelSaiId saiId1 =
@@ -141,9 +139,9 @@ TEST_F(TunnelManagerTest, addTwoTunnels) {
       SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2MP,
       InterfaceID(42),
       InterfaceID(42),
-      expMode,
-      expMode,
-      expMode,
+      SAI_TUNNEL_TTL_MODE_PIPE_MODEL,
+      SAI_TUNNEL_DSCP_MODE_PIPE_MODEL,
+      SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER,
       folly::IPAddressV6("::"),
       folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"));
 }
@@ -158,7 +156,7 @@ TEST_F(TunnelManagerTest, addDupTunnel) {
 TEST_F(TunnelManagerTest, changeTunnel) {
   std::shared_ptr<IpTunnel> swTunnel = makeTunnel("tunnel0");
   saiManagerTable->tunnelManager().addTunnel(swTunnel);
-  auto swTunnel2 = makeTunnel("tunnel1", 0);
+  auto swTunnel2 = makeTunnel("tunnel1", cfg::IpTunnelMode::UNIFORM);
   swTunnel2->setDstIP(
       folly::IPAddressV6("2001:db8:3333:4444:5555:6666:7777:8888"));
   swTunnel2->setSrcIPMask(folly::IPAddressV6("2001:db8::"));
