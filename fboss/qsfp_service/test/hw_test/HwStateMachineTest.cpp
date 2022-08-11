@@ -386,13 +386,11 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
     // Due to some platforms are easy to have i2c issue which causes the current
     // refresh not work as expected. Adding enough retries to make sure that we
     // at least can meet all `expectedStates` after 10 times.
-    checkWithRetry(
-        [this, &expectedStates]() {
-          return refreshStateMachinesTillMeetAllStates(
-              expectedStates,
-              true /* isRemediated */,
-              false /* isAgentColdboot */);
-        },
+    WITH_RETRIES_N_TIMED(
+        EXPECT_EVENTUALLY_TRUE(refreshStateMachinesTillMeetAllStates(
+            expectedStates,
+            true /* isRemediated */,
+            false /* isAgentColdboot */)),
         10 /* retries */,
         std::chrono::milliseconds(10000) /* msBetweenRetry */);
   };
@@ -444,11 +442,9 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
       // Due to some platforms are easy to have i2c issue which causes the
       // current refresh not work as expected. Adding enough retries to make
       // sure that we at least can meet all `expectedStates` after 10 times.
-      checkWithRetry(
-          [this, &expectedStates, isAgentColdboot]() {
-            return refreshStateMachinesTillMeetAllStates(
-                expectedStates, false /* isRemediated */, isAgentColdboot);
-          },
+      WITH_RETRIES_N_TIMED(
+          EXPECT_EVENTUALLY_TRUE(refreshStateMachinesTillMeetAllStates(
+              expectedStates, false /* isRemediated */, isAgentColdboot)),
           10 /* retries */,
           std::chrono::milliseconds(10000) /* msBetweenRetry */);
     };
