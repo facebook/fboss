@@ -699,6 +699,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       &SaiMirrorManager::addMirror,
       &SaiMirrorManager::removeMirror);
 
+  processDelta(
+      delta.getIpTunnelsDelta(),
+      managerTable_->tunnelManager(),
+      lockPolicy,
+      &SaiTunnelManager::changeTunnel,
+      &SaiTunnelManager::addTunnel,
+      &SaiTunnelManager::removeTunnel);
+
   if (FLAGS_enable_acl_table_group &&
       platform_->getAsic()->isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES)) {
     processDelta(
