@@ -75,6 +75,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
+    case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
       return true;
     // features only supported by B0 version, or any physical device
     // where used chip is always B0.
@@ -91,7 +92,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::PORT_INTERFACE_TYPE:
-    case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL: // CS00011272352
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::PORT_TX_DISABLE:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
