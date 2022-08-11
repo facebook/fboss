@@ -83,6 +83,9 @@ TEST_F(HwOverflowTest, overflowRoutes) {
     case PlatformMode::MAKALU:
       // No overflow test for MAKALU yet
       break;
+    case PlatformMode::KAMET:
+      // No overflow test for KAMET yet
+      break;
   }
   if (routeChunks.size() == 0) {
     return;

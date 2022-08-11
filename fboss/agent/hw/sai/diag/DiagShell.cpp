@@ -161,6 +161,7 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformMode::FAKE_WEDGE:
     case PlatformMode::FAKE_WEDGE40:
     case PlatformMode::MAKALU:
+    case PlatformMode::KAMET:
       throw FbossError("Shell not supported for fake platforms");
   }
   CHECK(0) << " Should never get here";
@@ -369,6 +370,8 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
       throw FbossError("Shell not supported for fake platforms");
     case PlatformMode::MAKALU:
       throw FbossError("Shell not supported for Makalu platforms");
+    case PlatformMode::KAMET:
+      throw FbossError("Shell not supported for Kamet platforms");
   }
   CHECK(0) << " Should never get here";
   return "";
@@ -416,6 +419,8 @@ std::string& DiagCmdServer::cleanUpOutput(
       throw FbossError("Shell not supported for fake platforms");
     case PlatformMode::MAKALU:
       throw FbossError("Shell not supported for Makalu platforms");
+    case PlatformMode::KAMET:
+      throw FbossError("Shell not supported for Kamet platforms");
   }
   CHECK(0) << " Should never get here";
   return output;
