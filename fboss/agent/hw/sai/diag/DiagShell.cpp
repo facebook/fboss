@@ -160,6 +160,7 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
       return std::make_unique<PythonRepl>(ptys_->file.fd());
     case PlatformMode::FAKE_WEDGE:
     case PlatformMode::FAKE_WEDGE40:
+    case PlatformMode::MAKALU:
       throw FbossError("Shell not supported for fake platforms");
   }
   CHECK(0) << " Should never get here";
@@ -366,6 +367,8 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
     case PlatformMode::FAKE_WEDGE:
     case PlatformMode::FAKE_WEDGE40:
       throw FbossError("Shell not supported for fake platforms");
+    case PlatformMode::MAKALU:
+      throw FbossError("Shell not supported for Makalu platforms");
   }
   CHECK(0) << " Should never get here";
   return "";
@@ -411,6 +414,8 @@ std::string& DiagCmdServer::cleanUpOutput(
     case PlatformMode::FAKE_WEDGE:
     case PlatformMode::FAKE_WEDGE40:
       throw FbossError("Shell not supported for fake platforms");
+    case PlatformMode::MAKALU:
+      throw FbossError("Shell not supported for Makalu platforms");
   }
   CHECK(0) << " Should never get here";
   return output;

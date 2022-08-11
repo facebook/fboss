@@ -31,7 +31,8 @@ enum class PlatformMode : char {
   CLOUDRIPPER,
   DARWIN,
   LASSEN,
-  SANDIA
+  SANDIA,
+  MAKALU,
 };
 
 inline std::string toString(PlatformMode mode) {
@@ -70,6 +71,8 @@ inline std::string toString(PlatformMode mode) {
       return "LASSEN";
     case PlatformMode::SANDIA:
       return "SANDIA";
+    case PlatformMode::MAKALU:
+      return "MAKALU";
   }
   throw std::runtime_error("Unknown mode");
   return "Unknown";
