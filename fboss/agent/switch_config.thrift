@@ -1426,6 +1426,26 @@ struct SdkVersion {
   2: optional string saiSdk;
 }
 
+enum IpTunnelMode {
+  // will map to sai_tunnel_ttl_mode_t and sai_tunnel_dscp_mode_t and
+  // sai_tunnel_decap_ecn_mode_t
+  UNIFORM = 0,
+  PIPE = 1,
+  USER = 2,
+}
+
+struct IpInIpTunnel {
+  1: string ipInIpTunnelId;
+  2: i32 underlayIntfID;
+  3: string dstIp;
+  4: string srcIp;
+  5: string dstIpMask;
+  6: string srcIpMask;
+  7: optional IpTunnelMode ttlMode;
+  8: optional IpTunnelMode dscpMode;
+  9: optional IpTunnelMode ecnMode;
+}
+
 /**
  * The configuration for a switch.
  *
@@ -1546,4 +1566,5 @@ struct SwitchConfig {
   45: optional AclTableGroup aclTableGroup;
   // agent sdk versions
   46: optional SdkVersion sdkVersion;
+  47: optional list<IpInIpTunnel> ipInIpTunnels;
 }

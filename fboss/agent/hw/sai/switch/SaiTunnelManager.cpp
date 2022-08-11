@@ -55,13 +55,13 @@ TunnelSaiId SaiTunnelManager::addTunnel(
   SaiTunnelTermTraits::CreateAttributes k2{
       getSaiTunnelTermType(swTunnel->getTunnelTermType()),
       saiVirtualRouterId,
-      swTunnel->getDstIP(), // Term Dest Ip
-      swTunnel->getSrcIP(), // Term source ip
+      swTunnel->getSrcIP(), // Term Dest Ip
+      swTunnel->getDstIP(), // Term source ip
       getSaiTunnelType(swTunnel->getType()), // Tunnel Type
       tunnelObj
           ->adapterKey(), // SAI id of the tunnel, not the IpTunnel id in state
-      swTunnel->getDstIPMask(),
-      swTunnel->getSrcIPMask()};
+      swTunnel->getSrcIPMask(),
+      swTunnel->getDstIPMask()};
   std::shared_ptr<SaiTunnelTerm> tunnelTermObj =
       tunnelTermStore.setObject(k2, k2);
   auto tunnelHandle = std::make_unique<SaiTunnelHandle>();

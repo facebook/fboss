@@ -112,8 +112,8 @@ TEST_F(TunnelManagerTest, addTunnel) {
       expMode,
       expMode,
       expMode,
-      folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"),
-      folly::IPAddressV6("::"));
+      folly::IPAddressV6("::"),
+      folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"));
 }
 
 TEST_F(TunnelManagerTest, addTwoTunnels) {
@@ -130,8 +130,8 @@ TEST_F(TunnelManagerTest, addTwoTunnels) {
       expMode,
       expMode,
       expMode,
-      folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"),
-      folly::IPAddressV6("::"));
+      folly::IPAddressV6("::"),
+      folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"));
   TunnelSaiId saiId1 =
       saiManagerTable->tunnelManager().addTunnel(makeTunnel("tunn1"));
   checkTunnel(
@@ -144,8 +144,8 @@ TEST_F(TunnelManagerTest, addTwoTunnels) {
       expMode,
       expMode,
       expMode,
-      folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"),
-      folly::IPAddressV6("::"));
+      folly::IPAddressV6("::"),
+      folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"));
 }
 
 TEST_F(TunnelManagerTest, addDupTunnel) {
@@ -167,11 +167,12 @@ TEST_F(TunnelManagerTest, changeTunnel) {
   EXPECT_NE(handle, nullptr);
   EXPECT_EQ(
       GET_OPT_ATTR(Tunnel, DecapTtlMode, handle->tunnel->attributes()), 0);
+  // Term obj has reversed semantics of src and dst
   EXPECT_EQ(
-      GET_ATTR(TunnelTerm, DstIp, handle->tunnelTerm->attributes()),
+      GET_ATTR(TunnelTerm, SrcIp, handle->tunnelTerm->attributes()),
       folly::IPAddressV6("2001:db8:3333:4444:5555:6666:7777:8888"));
   EXPECT_EQ(
-      GET_OPT_ATTR(TunnelTerm, SrcIpMask, handle->tunnelTerm->attributes()),
+      GET_OPT_ATTR(TunnelTerm, DstIpMask, handle->tunnelTerm->attributes()),
       folly::IPAddressV6("2001:db8::"));
   SaiVirtualRouterHandle* virtualRouterHandle =
       saiManagerTable->virtualRouterManager().getVirtualRouterHandle(

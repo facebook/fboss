@@ -39,6 +39,8 @@
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/IpTunnel.h"
+#include "fboss/agent/state/IpTunnelMap.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/NdpResponseTable.h"
