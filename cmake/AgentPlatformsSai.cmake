@@ -51,6 +51,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/oss/SaiLassenPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiPlatformInit.cpp
+  fboss/agent/platforms/sai/oss/SaiMakaluPlatformPort.cpp
 )
 
 target_link_libraries(sai_platform
