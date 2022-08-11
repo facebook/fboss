@@ -78,6 +78,7 @@ target_link_libraries(sai_platform
   qsfp_cache
   wedge_led_utils
   cloud_ripper_platform_mapping
+  makalu_platform_mapping
 )
 
 set_target_properties(sai_platform PROPERTIES COMPILE_FLAGS
