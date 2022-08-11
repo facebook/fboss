@@ -136,41 +136,36 @@ std::optional<phy::PhyInfo> getXphyInfo(PortID portID) {
 TEST_F(LinkTest, iPhyInfoTest) {
   auto cabledPorts = getCabledPorts();
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
-
-  auto phyInfoReady = [&phyInfoBefore, &cabledPorts, this]() {
-    phyInfoBefore = sw()->getIPhyInfo(cabledPorts);
-    for (const auto& port : cabledPorts) {
-      if (phyInfoBefore.find(port) == phyInfoBefore.end() ||
-          *(phyInfoBefore[port].timeCollected()) == 0 ||
-          !phyInfoBefore[port].linkState().value_or({})) {
-        return false;
-      }
-    }
-    return true;
-  };
   // Make sure the stats thread had a chance to update the iphy data before
   // starting the test
-  checkWithRetry(
-      phyInfoReady,
+  WITH_RETRIES_N_TIMED(
+      {
+        phyInfoBefore = sw()->getIPhyInfo(cabledPorts);
+        for (const auto& port : cabledPorts) {
+          auto phyIt = phyInfoBefore.find(port);
+          ASSERT_EVENTUALLY_NE(phyIt, phyInfoBefore.end());
+          EXPECT_EVENTUALLY_NE(phyIt->second.timeCollected(), 0);
+          EXPECT_EVENTUALLY_NE(phyIt->second.timeCollected(), 0);
+          EXPECT_EVENTUALLY_TRUE(phyIt->second.linkState().value_or({}));
+        }
+      },
       20 /* retries */,
       std::chrono::milliseconds(1000) /* msBetweenRetry */);
 
   std::map<PortID, const phy::PhyInfo> phyInfoAfter;
-  auto phyInfoUpdated = [&phyInfoBefore, &cabledPorts, &phyInfoAfter, this]() {
-    phyInfoAfter = sw()->getIPhyInfo(cabledPorts);
-    for (const auto& port : cabledPorts) {
-      if (phyInfoAfter.find(port) == phyInfoAfter.end() ||
-          *(phyInfoAfter[port].timeCollected()) -
-                  *(phyInfoBefore[port].timeCollected()) <
-              20) {
-        return false;
-      }
-    }
-    return true;
-  };
-  // Monitor the link for 20 seconds and collect phy stats
-  checkWithRetry(
-      phyInfoUpdated,
+  // Monitor the link for 30 seconds and collect phy stats
+  WITH_RETRIES_N_TIMED(
+      {
+        phyInfoAfter = sw()->getIPhyInfo(cabledPorts);
+        for (const auto& port : cabledPorts) {
+          auto phyIt = phyInfoAfter.find(port);
+          ASSERT_EVENTUALLY_NE(phyIt, phyInfoAfter.end());
+          EXPECT_EVENTUALLY_GT(
+              *(phyInfoAfter[port].timeCollected()) -
+                  *(phyInfoBefore[port].timeCollected()),
+              20);
+        }
+      },
       30 /* retries */,
       std::chrono::milliseconds(1000) /* msBetweenRetry */);
 
@@ -191,59 +186,22 @@ TEST_F(LinkTest, xPhyInfoTest) {
   // sleep override
   std::this_thread::sleep_for(10s);
 
-  auto phyInfoReady =
-      [&phyInfoBefore, &cabledPorts, this](bool logErrors = false) {
+  // Wait for at least 1 snapshot from every active port before we start
+  WITH_RETRIES_N_TIMED(
+      {
         for (const auto& port : cabledPorts) {
           if (phyInfoBefore.count(port)) {
             continue;
           }
-          if (auto phyInfo = getXphyInfo(port)) {
-            phyInfoBefore.emplace(port, *phyInfo);
-          } else {
-            if (logErrors) {
-              XLOG(ERR) << getPortName(port) << " has no xphy info.";
-            }
-            return false;
-          }
+          auto phyInfo = getXphyInfo(port);
+          // ASSERT_EVENTUALLY will retry the whole block if failed
+          ASSERT_EVENTUALLY_TRUE(phyInfo.has_value())
+              << getPortName(port) << " has no xphy info.";
+          phyInfoBefore.emplace(port, *phyInfo);
         }
-
-        return true;
-      };
-
-  // Wait for at least 1 snapshot from every active port before we start
-  try {
-    checkWithRetry(
-        phyInfoReady,
-        kMaxNumXphyInfoCollectionCheck /* retries */,
-        kSecondsBetweenXphyInfoCollectionCheck /* retry period */);
-  } catch (...) {
-    XLOG(ERR) << "Failed to wait for all ports to have snapshots:";
-    phyInfoReady(true);
-    throw;
-  }
-
-  std::map<PortID, const phy::PhyInfo> phyInfoAfter;
-  auto phyInfoUpdated = [&phyInfoBefore, &cabledPorts, &phyInfoAfter, this](
-                            bool logErrors = false) {
-    for (const auto& port : cabledPorts) {
-      if (phyInfoAfter.count(port)) {
-        continue;
-      }
-
-      if (auto phyInfo = getXphyInfo(port); phyInfo.has_value() &&
-          (phyInfo->get_timeCollected() -
-               phyInfoBefore[port].get_timeCollected() >=
-           kSecondsBetweenSnapshots)) {
-        phyInfoAfter.emplace(port, *phyInfo);
-      } else {
-        if (logErrors) {
-          XLOG(ERR) << getPortName(port) << " has no updated xphy info.";
-        }
-        return false;
-      }
-    }
-    return true;
-  };
+      },
+      kMaxNumXphyInfoCollectionCheck /* retries */,
+      kSecondsBetweenXphyInfoCollectionCheck /* retry period */);
 
   const auto timeStart = std::chrono::steady_clock::now();
 
@@ -251,16 +209,26 @@ TEST_F(LinkTest, xPhyInfoTest) {
   // sleep override
   std::this_thread::sleep_for(std::chrono::seconds(kSecondsBetweenSnapshots));
 
-  try {
-    checkWithRetry(
-        phyInfoUpdated,
-        kMaxNumXphyInfoCollectionCheck /* retries */,
-        kSecondsBetweenXphyInfoCollectionCheck /* retry period */);
-  } catch (...) {
-    XLOG(ERR) << "Failed to wait for all ports to have snapshot updates:";
-    phyInfoUpdated(true);
-    throw;
-  }
+  std::map<PortID, const phy::PhyInfo> phyInfoAfter;
+  WITH_RETRIES_N_TIMED(
+      {
+        for (const auto& port : cabledPorts) {
+          if (phyInfoAfter.count(port)) {
+            continue;
+          }
+          auto phyInfo = getXphyInfo(port);
+          ASSERT_EVENTUALLY_TRUE(phyInfo.has_value())
+              << getPortName(port) << " has no xphy info.";
+          ASSERT_EVENTUALLY_GE(
+              phyInfo->get_timeCollected() -
+                  phyInfoBefore[port].get_timeCollected(),
+              kSecondsBetweenSnapshots)
+              << getPortName(port) << " has no updated xphy info.";
+          phyInfoAfter.emplace(port, *phyInfo);
+        }
+      },
+      kMaxNumXphyInfoCollectionCheck /* retries */,
+      kSecondsBetweenXphyInfoCollectionCheck /* retry period */);
 
   const auto timeEnd = std::chrono::steady_clock::now();
   const auto timeTaken =

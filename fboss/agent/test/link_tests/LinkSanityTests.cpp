@@ -37,38 +37,32 @@ TEST_F(LinkTest, asicLinkFlap) {
 }
 
 TEST_F(LinkTest, getTransceivers) {
-  auto allTransceiversPresent = [this]() {
-    auto ports = getCabledPorts();
-    // Set the port status on all cabled ports to false. The link should go
-    // down
-    for (const auto& port : ports) {
-      auto transceiverId =
-          platform()->getPlatformPort(port)->getTransceiverID().value();
-      if (!platform()->getQsfpCache()->getIf(transceiverId)) {
-        return false;
+  auto verify = [this]() {
+    WITH_RETRIES({
+      auto ports = getCabledPorts();
+      // Set the port status on all cabled ports to false. The link should go
+      // down
+      for (const auto& port : ports) {
+        auto transceiverId =
+            platform()->getPlatformPort(port)->getTransceiverID().value();
+        EXPECT_EVENTUALLY_TRUE(platform()->getQsfpCache()->getIf(transceiverId))
+            << "TcvrId " << transceiverId;
       }
-    }
-    return true;
+    })
   };
 
-  verifyAcrossWarmBoots(
-      []() {},
-      [allTransceiversPresent, this]() {
-        checkWithRetry(allTransceiversPresent);
-      });
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 
 TEST_F(LinkTest, trafficRxTx) {
-  auto packetsFlowingOnAllPorts = [this]() {
-    sw()->getLldpMgr()->sendLldpOnAllPorts();
-    return lldpNeighborsOnAllCabledPorts();
+  auto verify = [this]() {
+    WITH_RETRIES({
+      sw()->getLldpMgr()->sendLldpOnAllPorts();
+      EXPECT_EVENTUALLY_TRUE(lldpNeighborsOnAllCabledPorts());
+    });
   };
 
-  verifyAcrossWarmBoots(
-      []() {},
-      [packetsFlowingOnAllPorts, this]() {
-        checkWithRetry(packetsFlowingOnAllPorts);
-      });
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 
 TEST_F(LinkTest, warmbootIsHitLess) {

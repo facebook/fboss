@@ -36,23 +36,17 @@ class OpenBmcUpgradeTest : public LinkTest {
   }
 
   void waitForSshAccessToOob() const {
-    auto checkSsh = []() {
+    WITH_RETRIES({
       std::string sshCmd = folly::sformat(
           "sshpass -p {} ssh root@{} ls",
           FLAGS_openbmc_password,
           FLAGS_oob_asset);
       std::string resultStr;
       std::string errStr;
-      if (!facebook::process::Process::execShellCmd(
-              sshCmd, &resultStr, &errStr)) {
-        XLOG(ERR) << "Result str = " << resultStr;
-        XLOG(ERR) << "Err str = " << errStr;
-        return false;
-      }
-      return true;
-    };
-
-    checkWithRetry(checkSsh);
+      EXPECT_EVENTUALLY_TRUE(
+          facebook::process::Process::execShellCmd(sshCmd, &resultStr, &errStr))
+          << "Result str = " << resultStr << "\nErr str = " << errStr;
+    });
   }
 
  protected:

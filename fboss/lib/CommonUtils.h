@@ -139,6 +139,10 @@ struct _SoftAssertFail {};
   _ASSERT_EVENTUALLY(expr1 != expr2, ASSERT_NE(expr1, expr2))
 #define ASSERT_EVENTUALLY_GT(expr1, expr2) \
   _ASSERT_EVENTUALLY(expr1 > expr2, ASSERT_GT(expr1, expr2))
+#define ASSERT_EVENTUALLY_GE(expr1, expr2) \
+  _ASSERT_EVENTUALLY(expr1 >= expr2, ASSERT_GE(expr1, expr2))
+#define ASSERT_EVENTUALLY_LT(expr1, expr2) \
+  _ASSERT_EVENTUALLY(expr1 < expr2, ASSERT_LT(expr1, expr2))
 
 #define EXPECT_EVENTUALLY_TRUE(expr) \
   _EXPECT_EVENTUALLY((bool)(expr), EXPECT_TRUE(expr))
@@ -150,5 +154,9 @@ struct _SoftAssertFail {};
   _EXPECT_EVENTUALLY(expr1 != expr2, EXPECT_NE(expr1, expr2))
 #define EXPECT_EVENTUALLY_GT(expr1, expr2) \
   _EXPECT_EVENTUALLY(expr1 > expr2, EXPECT_GT(expr1, expr2))
+#define EXPECT_EVENTUALLY_GE(expr1, expr2) \
+  _EXPECT_EVENTUALLY(expr1 >= expr2, EXPECT_GE(expr1, expr2))
+#define EXPECT_EVENTUALLY_LT(expr1, expr2) \
+  _EXPECT_EVENTUALLY(expr1 < expr2, EXPECT_LT(expr1, expr2))
 
 } // namespace facebook::fboss
