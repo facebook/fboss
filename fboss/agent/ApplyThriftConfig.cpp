@@ -23,6 +23,7 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/normalization/Normalizer.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -369,6 +370,12 @@ class ThriftConfigApplier {
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCPU);
 
+  shared_ptr<IpTunnel> createIpInIpTunnel(const cfg::IpInIpTunnel& config);
+  shared_ptr<IpTunnel> updateIpInIpTunnel(
+      const std::shared_ptr<IpTunnel>& orig,
+      const cfg::IpInIpTunnel* config);
+  std::shared_ptr<IpTunnelMap> updateIpInIpTunnels();
+
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
   const cfg::SwitchConfig* cfg_{nullptr};
@@ -680,6 +687,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newLoadBalancers = loadBalancerConfigApplier.updateLoadBalancers();
     if (newLoadBalancers) {
       new_->resetLoadBalancers(std::move(newLoadBalancers));
+      changed = true;
+    }
+  }
+
+  {
+    auto newTunnels = updateIpInIpTunnels();
+    if (newTunnels) {
+      new_->resetTunnels(std::move(newTunnels));
       changed = true;
     }
   }
@@ -3325,6 +3340,81 @@ ThriftConfigApplier::createLabelForwardingEntry(
       label,
       ClientID::STATIC_ROUTE,
       getStaticLabelNextHopEntry(action, nexthops));
+}
+
+std::shared_ptr<IpTunnelMap> ThriftConfigApplier::updateIpInIpTunnels() {
+  const auto& origTunnels = orig_->getTunnels();
+  IpTunnelMap::NodeContainer newTunnels;
+  bool changed = false;
+  size_t numExistingProcessed = 0;
+  if (!cfg_->ipInIpTunnels().has_value()) {
+    return nullptr;
+  }
+  for (const auto& tunnelCfg : cfg_->ipInIpTunnels().value()) {
+    auto origTunnel = origTunnels->getTunnelIf(*tunnelCfg.ipInIpTunnelId());
+    std::shared_ptr<IpTunnel> newTunnel;
+    if (origTunnel) {
+      newTunnel = updateIpInIpTunnel(origTunnel, &tunnelCfg);
+      ++numExistingProcessed;
+    } else {
+      newTunnel = createIpInIpTunnel(tunnelCfg);
+    }
+
+    changed |= updateMap(&newTunnels, origTunnel, newTunnel);
+  }
+
+  if (numExistingProcessed != origTunnels->size()) {
+    // Some existing Tunnels were removed.
+    CHECK_LT(numExistingProcessed, origTunnels->size());
+    changed = true;
+  }
+
+  if (!changed) {
+    return nullptr;
+  }
+  return origTunnels->clone(std::move(newTunnels));
+}
+
+shared_ptr<IpTunnel> ThriftConfigApplier::updateIpInIpTunnel(
+    const std::shared_ptr<IpTunnel>& orig,
+    const cfg::IpInIpTunnel* config) {
+  // the original tunnel has the same name as the new one from config
+  auto newTunnel = createIpInIpTunnel(*config);
+  if (*newTunnel == *orig) {
+    return nullptr;
+  }
+  return newTunnel;
+}
+
+shared_ptr<IpTunnel> ThriftConfigApplier::createIpInIpTunnel(
+    const cfg::IpInIpTunnel& config) {
+  auto tunnel = make_shared<IpTunnel>(*config.ipInIpTunnelId());
+  tunnel->setType(IPINIP);
+  tunnel->setTunnelTermType(P2MP);
+  tunnel->setUnderlayIntfId(InterfaceID(*config.underlayIntfID()));
+  if (auto ttl = config.ttlMode()) {
+    tunnel->setTTLMode(static_cast<cfg::IpTunnelMode>(*ttl));
+  } else {
+    tunnel->setTTLMode(cfg::IpTunnelMode::UNIFORM);
+  }
+  if (auto dscp = config.dscpMode()) {
+    tunnel->setDscpMode(static_cast<cfg::IpTunnelMode>(*dscp));
+  } else {
+    tunnel->setDscpMode(cfg::IpTunnelMode::UNIFORM);
+  }
+  if (auto ecn = config.ecnMode()) {
+    tunnel->setEcnMode(static_cast<cfg::IpTunnelMode>(*ecn));
+  } else {
+    tunnel->setEcnMode(cfg::IpTunnelMode::UNIFORM);
+  }
+  // IP in IP tunnel decap: dst ip is the src of Tunnel state
+  // (state default: encap)
+  tunnel->setSrcIP(folly::IPAddressV6(*config.dstIp()));
+  tunnel->setDstIP(folly::IPAddressV6(*config.srcIp()));
+  tunnel->setSrcIPMask(folly::IPAddressV6(*config.dstIpMask()));
+  tunnel->setDstIPMask(folly::IPAddressV6(*config.srcIpMask()));
+
+  return tunnel;
 }
 
 std::shared_ptr<LabelForwardingInformationBase>
