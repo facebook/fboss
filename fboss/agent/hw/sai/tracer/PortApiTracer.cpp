@@ -39,6 +39,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap {
 #endif
       SAI_ATTR_MAP(Port, PrbsPolynomial), SAI_ATTR_MAP(Port, PrbsConfig),
       SAI_ATTR_MAP(Port, IngressMacSecAcl), SAI_ATTR_MAP(Port, EgressMacSecAcl),
+      SAI_ATTR_MAP(Port, PtpMode),
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _PortSerdesMap{
