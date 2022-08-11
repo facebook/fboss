@@ -408,6 +408,7 @@ bool needsExtraFPQsetQualifiers(HwAsic::AsicType asicType) {
     case HwAsic::AsicType::ASIC_TYPE_GARONNE:
     case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
     case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case HwAsic::AsicType::ASIC_TYPE_INDUS:
       throw FbossError("Unsupported ASIC type");
   }
   return true;

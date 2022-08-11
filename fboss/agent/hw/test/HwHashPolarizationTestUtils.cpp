@@ -47,6 +47,7 @@ std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
       case HwAsic::AsicType::ASIC_TYPE_GARONNE:
       case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
       case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
+      case HwAsic::AsicType::ASIC_TYPE_INDUS:
         return nullptr;
     }
   } else {
@@ -66,6 +67,7 @@ std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
       case HwAsic::AsicType::ASIC_TYPE_GARONNE:
       case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
       case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
+      case HwAsic::AsicType::ASIC_TYPE_INDUS:
         return nullptr;
     }
   }

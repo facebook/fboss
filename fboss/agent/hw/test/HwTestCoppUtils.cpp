@@ -52,6 +52,7 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case HwAsic::AsicType::ASIC_TYPE_INDUS:
       return 9;
     case HwAsic::AsicType::ASIC_TYPE_EBRO:
     case HwAsic::AsicType::ASIC_TYPE_GARONNE:
@@ -77,6 +78,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
       return cfg::ToCpuAction::COPY;
     case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
     case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case HwAsic::AsicType::ASIC_TYPE_INDUS:
       throw FbossError(
           "AsicType ", hwAsic->getAsicType(), " doesn't support cpu action");
   }

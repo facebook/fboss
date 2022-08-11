@@ -17,6 +17,7 @@ namespace facebook::fboss {
       ASIC_TYPE_EBRO,       \
       ASIC_TYPE_GARONNE,    \
       ASIC_TYPE_SANDIA_PHY, \
+      ASIC_TYPE_INDUS,      \
   };
 
 class HwAsic {
@@ -122,6 +123,7 @@ class HwAsic {
     ASIC_VENDOR_MARVELL,
     ASIC_VENDOR_MOCK,
     ASIC_VENDOR_FAKE,
+    ASIC_VENDOR_INDUS,
   };
 
   virtual ~HwAsic() {}

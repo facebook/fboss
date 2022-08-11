@@ -91,6 +91,7 @@ SaiVirtualRouterManager::createMplsRouterInterface(VirtualRouterSaiId vrId) {
     case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
     case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
     case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case HwAsic::AsicType::ASIC_TYPE_INDUS:
       // TODO(pshaikh): mpls support required
       break;
   }

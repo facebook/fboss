@@ -3400,6 +3400,7 @@ void BcmSwitch::disableHotSwap() const {
       case HwAsic::AsicType::ASIC_TYPE_MOCK:
       case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
       case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
+      case HwAsic::AsicType::ASIC_TYPE_INDUS:
         CHECK(0) << " Invalid ASIC type";
     }
   }

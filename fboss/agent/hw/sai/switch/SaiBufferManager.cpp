@@ -49,6 +49,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
     case HwAsic::AsicType::ASIC_TYPE_GARONNE:
     case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
     case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case HwAsic::AsicType::ASIC_TYPE_INDUS:
       XLOG(FATAL) << " Not supported";
       break;
     case HwAsic::AsicType::ASIC_TYPE_FAKE:
@@ -108,6 +109,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
     }
     case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
     case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case HwAsic::AsicType::ASIC_TYPE_INDUS:
       throw FbossError(
           "Not supported to get max egress pool for ASIC: ",
           asic->getAsicType());
