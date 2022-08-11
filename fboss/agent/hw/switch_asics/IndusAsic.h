@@ -90,7 +90,7 @@ class IndusAsic : public HwAsic {
     return getMMUSizeBytes() / 2;
   }
   uint32_t getNumCores() const override {
-    throw FbossError("Num cores API not supported");
+    return 48;
   }
   bool scalingFactorBasedDynamicThresholdSupported() const override {
     return false;
