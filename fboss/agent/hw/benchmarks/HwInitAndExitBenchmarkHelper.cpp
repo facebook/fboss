@@ -127,7 +127,8 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
       asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4 ||
       asicType == HwAsic::AsicType::ASIC_TYPE_EBRO ||
       asicType == HwAsic::AsicType::ASIC_TYPE_GARONNE ||
-      asicType == HwAsic::AsicType::ASIC_TYPE_INDUS) {
+      asicType == HwAsic::AsicType::ASIC_TYPE_INDUS ||
+      asicType == HwAsic::AsicType::ASIC_TYPE_BEAS) {
     return utility::HgridUuRouteScaleGenerator(ensemble->getProgrammedState())
         .getThriftRoutes();
   } else if (asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK) {

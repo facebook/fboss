@@ -29,6 +29,7 @@ class HwDiagShellStressTest : public HwLinkStateDependentTest {
       case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
       case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
       case HwAsic::AsicType::ASIC_TYPE_INDUS:
+      case HwAsic::AsicType::ASIC_TYPE_BEAS:
         // No diag shell to test for these ASICs
         break;
       case HwAsic::AsicType::ASIC_TYPE_EBRO:

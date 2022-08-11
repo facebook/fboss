@@ -233,6 +233,7 @@ void ProdInvariantTest::verifySafeDiagCommands() {
     case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
     case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
     case HwAsic::AsicType::ASIC_TYPE_INDUS:
+    case HwAsic::AsicType::ASIC_TYPE_BEAS:
       break;
 
     case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:

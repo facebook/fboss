@@ -18,6 +18,7 @@ namespace facebook::fboss {
       ASIC_TYPE_GARONNE,    \
       ASIC_TYPE_SANDIA_PHY, \
       ASIC_TYPE_INDUS,      \
+      ASIC_TYPE_BEAS,       \
   };
 
 class HwAsic {
