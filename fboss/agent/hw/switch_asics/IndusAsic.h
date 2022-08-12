@@ -90,7 +90,7 @@ class IndusAsic : public HwAsic {
     return getMMUSizeBytes() / 2;
   }
   uint32_t getNumCores() const override {
-    return 48;
+    return 2;
   }
   bool scalingFactorBasedDynamicThresholdSupported() const override {
     return false;
