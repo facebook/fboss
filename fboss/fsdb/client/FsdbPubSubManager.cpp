@@ -139,15 +139,19 @@ void FsdbPubSubManager::createStatPathPublisher(
 }
 
 void FsdbPubSubManager::removeStateDeltaPublisher() {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
   stateDeltaPublisher_.reset();
 }
 void FsdbPubSubManager::removeStatePathPublisher() {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
   statePathPublisher_.reset();
 }
 void FsdbPubSubManager::removeStatDeltaPublisher() {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
   statDeltaPublisher_.reset();
 }
 void FsdbPubSubManager::removeStatPathPublisher() {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
   statPathPublisher_.reset();
 }
 
@@ -156,23 +160,26 @@ void FsdbPubSubManager::publishImpl(PublisherT* publisher, PubUnitT&& pubUnit) {
   if (!publisher) {
     throw std::runtime_error("Publisher must be created before publishing");
   }
-  std::lock_guard<std::mutex> lk(publisherMutex_);
   publisher->write(std::forward<PubUnitT>(pubUnit));
 }
 
 void FsdbPubSubManager::publishState(OperDelta&& pubUnit) {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
   publishImpl(stateDeltaPublisher_.get(), std::move(pubUnit));
 }
 
 void FsdbPubSubManager::publishState(OperState&& pubUnit) {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
   publishImpl(statePathPublisher_.get(), std::move(pubUnit));
 }
 
 void FsdbPubSubManager::publishStat(OperDelta&& pubUnit) {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
   publishImpl(statDeltaPublisher_.get(), std::move(pubUnit));
 }
 
 void FsdbPubSubManager::publishStat(OperState&& pubUnit) {
+  std::lock_guard<std::mutex> lk(publisherMutex_);
   publishImpl(statPathPublisher_.get(), std::move(pubUnit));
 }
 
