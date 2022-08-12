@@ -191,10 +191,8 @@ void addQueuePerHostAcls(cfg::SwitchConfig* config) {
       config, getRouteDropAclName(), cfg::AclLookupClass::CLASS_DROP);
 }
 
-void addQueuePerHostAclTables(cfg::SwitchConfig* config) {
-  utility::addAclTableGroup(
-      config, cfg::AclStage::INGRESS, getAclTableGroupName());
-
+// Utility to add TTL ACL table to a multi acl table group
+void addTtlAclTable(cfg::SwitchConfig* config, int16_t priority) {
   cfg::Ttl ttl;
   std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
   auto ttlCounterName = getQueuePerHostTtlCounterName();
@@ -202,11 +200,32 @@ void addQueuePerHostAclTables(cfg::SwitchConfig* config) {
       cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
   utility::addTrafficCounter(config, ttlCounterName, counterTypes);
 
-  // Table 1: {L2, neighbor, route}-only
+  utility::addAclTable(
+      config,
+      getTtlAclTableName(),
+      priority, // priority
+      {cfg::AclTableActionType::COUNTER},
+      {cfg::AclTableQualifier::TTL});
+
+  auto* ttlAcl = utility::addAcl(
+      config,
+      getQueuePerHostTtlAclName(),
+      cfg::AclActionType::PERMIT,
+      getTtlAclTableName());
+  ttlAcl->ttl() = ttl;
+  std::vector<cfg::CounterType> setCounterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+
+  utility::addAclStat(
+      config, getQueuePerHostTtlAclName(), ttlCounterName, setCounterTypes);
+}
+
+// Utility to add {L2, neighbor, route}-Acl Table to Multi Acl table group
+void addQueuePerHostAclTables(cfg::SwitchConfig* config, int16_t priority) {
   utility::addAclTable(
       config,
       getQueuePerHostAclTableName(),
-      1, // priority
+      priority, // priority
       {cfg::AclTableActionType::PACKET_ACTION},
       {cfg::AclTableQualifier::LOOKUP_CLASS_L2,
        cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
@@ -242,26 +261,6 @@ void addQueuePerHostAclTables(cfg::SwitchConfig* config) {
     aclRoute->lookupClassRoute() = classID;
     utility::addQueueMatcher(config, routeAclName, queueId);
   }
-
-  // Table 2: TTL only
-  utility::addAclTable(
-      config,
-      getTtlAclTableName(),
-      2, // priority
-      {cfg::AclTableActionType::COUNTER},
-      {cfg::AclTableQualifier::TTL});
-
-  auto* ttlAcl = utility::addAcl(
-      config,
-      getQueuePerHostTtlAclName(),
-      cfg::AclActionType::PERMIT,
-      getTtlAclTableName());
-  ttlAcl->ttl() = ttl;
-  std::vector<cfg::CounterType> setCounterTypes{
-      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
-
-  utility::addAclStat(
-      config, getQueuePerHostTtlAclName(), ttlCounterName, setCounterTypes);
 }
 
 void verifyQueuePerHostMapping(

@@ -34,13 +34,8 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
     auto cfg = utility::onePortPerVlanConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
 
-    if (isSupported()) {
-      utility::addQueuePerHostQueueConfig(&cfg);
-      utility::addQueuePerHostAclTables(&cfg);
-    } else {
-      utility::addAclTableGroup(
-          &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
-    }
+    utility::addAclTableGroup(
+        &cfg, cfg::AclStage::INGRESS, utility::getAclTableGroupName());
 
     return cfg;
   }
@@ -307,6 +302,14 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
           this->getProgrammedState());
       auto state2 = addResolvedNeighborWithClassID<folly::IPAddressV6>(state1);
       applyNewState(state2);
+
+      if (isSupported()) {
+        auto newCfg{initialConfig()};
+        utility::addQueuePerHostQueueConfig(&newCfg);
+        utility::addQueuePerHostAclTables(&newCfg, 1 /*priority*/);
+        utility::addTtlAclTable(&newCfg, 2 /*priority*/);
+        applyNewConfig(newCfg);
+      }
     };
 
     auto verify = [this, frontPanel]() {
