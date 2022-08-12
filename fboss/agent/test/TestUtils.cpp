@@ -155,7 +155,7 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic) {
   cfg.interfaces()[0].intfID() = 1;
   cfg.interfaces()[0].routerID() = 0;
   cfg.interfaces()[0].vlanID() = 1;
-  cfg.interfaces()[0].name() = "interface1";
+  cfg.interfaces()[0].name() = "fboss1";
   cfg.interfaces()[0].mac() = "00:02:00:00:00:01";
   cfg.interfaces()[0].mtu() = 9000;
   cfg.interfaces()[0].ipAddresses()->resize(4);
@@ -167,7 +167,7 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic) {
   cfg.interfaces()[1].intfID() = 55;
   cfg.interfaces()[1].routerID() = 0;
   cfg.interfaces()[1].vlanID() = 55;
-  cfg.interfaces()[1].name() = "interface55";
+  cfg.interfaces()[1].name() = "fboss55";
   cfg.interfaces()[1].mac() = "00:02:00:00:00:55";
   cfg.interfaces()[1].mtu() = 9000;
   cfg.interfaces()[1].ipAddresses()->resize(4);
@@ -337,7 +337,7 @@ shared_ptr<SwitchState> testStateA() {
       InterfaceID(1),
       RouterID(0),
       VlanID(1),
-      "interface1",
+      "fboss1",
       MacAddress("00:02:00:00:00:01"),
       9000,
       false, /* is virtual */
@@ -359,7 +359,7 @@ shared_ptr<SwitchState> testStateA() {
       InterfaceID(55),
       RouterID(0),
       VlanID(55),
-      "interface55",
+      "fboss55",
       MacAddress("00:02:00:00:00:55"),
       9000,
       false, /* is virtual */
@@ -414,7 +414,7 @@ shared_ptr<SwitchState> testStateB() {
       InterfaceID(1),
       RouterID(0),
       VlanID(1),
-      "interface1",
+      "fboss1",
       MacAddress("00:02:00:00:00:01"),
       9000,
       false, /* is virtual */

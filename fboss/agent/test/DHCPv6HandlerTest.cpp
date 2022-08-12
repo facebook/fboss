@@ -88,7 +88,7 @@ const string kDhcpV6RelaySrcStr{
     "20 01 0d b8 03 00 00 00 00 00 00 00 00 00 00 01"};
 const IPAddressV6 kDhcpV6RelaySrc("2001:0db8:0300:0000:0000:0000:0000:0001");
 // SrcIP to be used for RelayReply pkts
-// Has to match an interface (interface55) IP address
+// Has to match an interface (fboss55) IP address
 const IPAddressV6 kDhcpV6ReplySrc("2401:db00:2110:3055:0000:0000:0000:0001");
 
 // Function to setup SwState required for the tests

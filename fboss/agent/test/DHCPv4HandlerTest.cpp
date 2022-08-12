@@ -67,7 +67,7 @@ const MacAddress kClientMacOverride("03:00:00:00:00:03");
 const IPAddressV4 kDhcpOverride("30.30.30.30");
 
 const IPAddressV4 kDhcpV4RelaySrc("88.0.0.1");
-// have to match an interface (interface55) IP address
+// have to match an interface (fboss55) IP address
 const IPAddressV4 kDhcpV4ReplySrc("10.0.55.1");
 
 shared_ptr<SwitchState> testState() {
@@ -564,7 +564,7 @@ TEST(DHCPv4ReplySrcTest, DHCPReply) {
   // Sending an DHCP request should not trigger state update
   EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
 
-  // DHCP reply source is override to interface55's address
+  // DHCP reply source is override to fboss55's address
   EXPECT_SWITCHED_PKT(
       sw, "DHCP reply", checkDHCPReply(kDhcpV4ReplySrc, VlanID(55)));
 

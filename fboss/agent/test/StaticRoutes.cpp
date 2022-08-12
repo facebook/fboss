@@ -50,7 +50,7 @@ class StaticRouteTest : public ::testing::TestWithParam<bool> {
     config.interfaces()[0].intfID() = 1;
     config.interfaces()[0].routerID() = 0;
     config.interfaces()[0].vlanID() = 1;
-    config.interfaces()[0].name() = "interface1";
+    config.interfaces()[0].name() = "fboss1";
     config.interfaces()[0].mac() = "00:02:00:00:00:01";
     config.interfaces()[0].mtu() = 9000;
     config.staticRoutesToNull()->resize(2);

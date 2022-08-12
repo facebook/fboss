@@ -94,7 +94,7 @@ TEST_F(ThriftTest, getInterfaceDetail) {
   // Query the two interfaces configured by testStateA()
   InterfaceDetail info;
   handler.getInterfaceDetail(info, 1);
-  EXPECT_EQ("interface1", *info.interfaceName());
+  EXPECT_EQ("fboss1", *info.interfaceName());
   EXPECT_EQ(1, *info.interfaceId());
   EXPECT_EQ(1, *info.vlanId());
   EXPECT_EQ(0, *info.routerId());
@@ -109,7 +109,7 @@ TEST_F(ThriftTest, getInterfaceDetail) {
   EXPECT_THAT(*info.address(), UnorderedElementsAreArray(expectedAddrs));
 
   handler.getInterfaceDetail(info, 55);
-  EXPECT_EQ("interface55", *info.interfaceName());
+  EXPECT_EQ("fboss55", *info.interfaceName());
   EXPECT_EQ(55, *info.interfaceId());
   EXPECT_EQ(55, *info.vlanId());
   EXPECT_EQ(0, *info.routerId());
