@@ -1,11 +1,13 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/IpTunnel.h"
 #include "fboss/agent/types.h"
 #include "folly/IPAddressV6.h"
+#include "folly/logging/xlog.h"
 
 #include <string>
 
@@ -13,10 +15,11 @@ using namespace facebook::fboss;
 
 std::shared_ptr<IpTunnel> makeTunnel(
     std::string tunnelId = "tunnel0",
+    uint32_t intfID = 0,
     cfg::IpTunnelMode mode = cfg::IpTunnelMode::PIPE) {
   auto tunnel = std::make_shared<IpTunnel>(tunnelId);
   tunnel->setType(IPINIP);
-  tunnel->setUnderlayIntfId(InterfaceID(42));
+  tunnel->setUnderlayIntfId(InterfaceID(intfID));
   tunnel->setTTLMode(mode);
   tunnel->setDscpMode(mode);
   tunnel->setEcnMode(mode);
@@ -31,8 +34,9 @@ std::shared_ptr<IpTunnel> makeTunnel(
 class TunnelManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
-    setupStage = SetupStage::BLANK;
+    setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::INTERFACE;
     ManagerTestBase::SetUp();
+    intf0 = testInterfaces[0];
   }
 
   void checkTunnel(
@@ -40,8 +44,6 @@ class TunnelManagerTest : public ManagerTestBase {
       std::string id,
       int32_t expType,
       int32_t expTermType,
-      InterfaceID expUnderlay,
-      InterfaceID expOverlay,
       int32_t expTtl,
       int32_t expDscp,
       int32_t expEcn,
@@ -50,12 +52,16 @@ class TunnelManagerTest : public ManagerTestBase {
     auto type = saiApiTable->tunnelApi().getAttribute(
         saiId, SaiTunnelTraits::Attributes::Type());
     EXPECT_EQ(type, expType);
-    uint32_t underlay = saiApiTable->tunnelApi().getAttribute(
+    SaiRouterInterfaceHandle* intfHandle =
+        saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
+            InterfaceID(intf0.id));
+    RouterInterfaceSaiId saiIntfId{intfHandle->routerInterface->adapterKey()};
+    auto underlay = saiApiTable->tunnelApi().getAttribute(
         saiId, SaiTunnelTraits::Attributes::UnderlayInterface());
-    EXPECT_EQ(underlay, expUnderlay);
-    uint32_t overlay = saiApiTable->tunnelApi().getAttribute(
+    EXPECT_EQ(underlay, saiIntfId);
+    auto overlay = saiApiTable->tunnelApi().getAttribute(
         saiId, SaiTunnelTraits::Attributes::UnderlayInterface());
-    EXPECT_EQ(overlay, expOverlay);
+    EXPECT_EQ(overlay, saiIntfId);
     auto ttl = saiApiTable->tunnelApi().getAttribute(
         saiId, SaiTunnelTraits::Attributes::DecapTtlMode());
     EXPECT_EQ(ttl, expTtl);
@@ -96,18 +102,18 @@ class TunnelManagerTest : public ManagerTestBase {
         GET_ATTR(TunnelTerm, ActionTunnelId, handle->tunnelTerm->attributes()),
         saiId);
   }
+
+  TestInterface intf0;
 };
 
 TEST_F(TunnelManagerTest, addTunnel) {
-  std::shared_ptr<IpTunnel> swTunnel = makeTunnel("tunnel0");
+  std::shared_ptr<IpTunnel> swTunnel = makeTunnel("tunnel0", intf0.id);
   TunnelSaiId saiId = saiManagerTable->tunnelManager().addTunnel(swTunnel);
   checkTunnel(
       saiId,
       "tunnel0",
       SAI_TUNNEL_TYPE_IPINIP,
       SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2MP,
-      InterfaceID(42),
-      InterfaceID(42),
       SAI_TUNNEL_TTL_MODE_PIPE_MODEL,
       SAI_TUNNEL_DSCP_MODE_PIPE_MODEL,
       SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER,
@@ -117,28 +123,24 @@ TEST_F(TunnelManagerTest, addTunnel) {
 
 TEST_F(TunnelManagerTest, addTwoTunnels) {
   TunnelSaiId saiId0 =
-      saiManagerTable->tunnelManager().addTunnel(makeTunnel("tunn0"));
+      saiManagerTable->tunnelManager().addTunnel(makeTunnel("tunn0", intf0.id));
   checkTunnel(
       saiId0,
       "tunn0",
       SAI_TUNNEL_TYPE_IPINIP,
       SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2MP,
-      InterfaceID(42),
-      InterfaceID(42),
       SAI_TUNNEL_TTL_MODE_PIPE_MODEL,
       SAI_TUNNEL_DSCP_MODE_PIPE_MODEL,
       SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER,
       folly::IPAddressV6("::"),
       folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"));
   TunnelSaiId saiId1 =
-      saiManagerTable->tunnelManager().addTunnel(makeTunnel("tunn1"));
+      saiManagerTable->tunnelManager().addTunnel(makeTunnel("tunn1", intf0.id));
   checkTunnel(
       saiId1,
       "tunn1",
       SAI_TUNNEL_TYPE_IPINIP,
       SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2MP,
-      InterfaceID(42),
-      InterfaceID(42),
       SAI_TUNNEL_TTL_MODE_PIPE_MODEL,
       SAI_TUNNEL_DSCP_MODE_PIPE_MODEL,
       SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER,
@@ -156,7 +158,7 @@ TEST_F(TunnelManagerTest, addDupTunnel) {
 TEST_F(TunnelManagerTest, changeTunnel) {
   std::shared_ptr<IpTunnel> swTunnel = makeTunnel("tunnel0");
   saiManagerTable->tunnelManager().addTunnel(swTunnel);
-  auto swTunnel2 = makeTunnel("tunnel1", cfg::IpTunnelMode::UNIFORM);
+  auto swTunnel2 = makeTunnel("tunnel1", intf0.id, cfg::IpTunnelMode::UNIFORM);
   swTunnel2->setDstIP(
       folly::IPAddressV6("2001:db8:3333:4444:5555:6666:7777:8888"));
   swTunnel2->setSrcIPMask(folly::IPAddressV6("2001:db8::"));

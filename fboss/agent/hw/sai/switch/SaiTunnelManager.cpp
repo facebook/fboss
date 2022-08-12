@@ -30,6 +30,16 @@ TunnelSaiId SaiTunnelManager::addTunnel(
         " SAI id: ",
         existTunnel->tunnel->adapterKey());
   }
+  SaiRouterInterfaceHandle* intfHandle =
+      managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
+          swTunnel->getUnderlayIntfId());
+  if (!intfHandle) {
+    throw FbossError(
+        "Failed to create tunnel from IpTunnel. "
+        "No SaiRouterInterface for InterfaceID: ",
+        swTunnel->getUnderlayIntfId());
+  }
+  RouterInterfaceSaiId saiIntfId{intfHandle->routerInterface->adapterKey()};
   auto& tunnelStore = saiStore_->get<SaiTunnelTraits>();
   // TTL and DSCP mode options: UNIFORM and PIPE
   // ECN has three modes instead of 2, with a customized one
@@ -39,8 +49,8 @@ TunnelSaiId SaiTunnelManager::addTunnel(
   // tunnel usecase
   SaiTunnelTraits::CreateAttributes k1{
       getSaiTunnelType(swTunnel->getType()),
-      swTunnel->getUnderlayIntfId(), // Underlay interface
-      swTunnel->getUnderlayIntfId(), // overlay interface
+      saiIntfId,
+      saiIntfId,
       getSaiTtlMode(swTunnel->getTTLMode()),
       getSaiDscpMode(swTunnel->getDscpMode()),
       getSaiDecapEcnMode(swTunnel->getEcnMode())};
