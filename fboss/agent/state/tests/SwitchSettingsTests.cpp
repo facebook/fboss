@@ -218,7 +218,8 @@ TEST(SwitchSettingsTest, ToFromJSON) {
           "l2AgeTimerSeconds": 600,
           "maxRouteCounterIDs": 10,
           "blockNeighbors": [],
-          "macAddrsToBlock": []
+          "macAddrsToBlock": [],
+          "switchType": 0
         }
   )";
 

@@ -285,6 +285,10 @@ struct SwitchSettingsFields {
   5: i32 maxRouteCounterIDs;
   6: list<BlockedNeighbor> blockNeighbors;
   7: list<BlockedMacAddress> macAddrsToBlock;
+  // Switch type
+  8: switch_config.SwitchType switchType = switch_config.SwitchType.NPU;
+  // Switch id (only applicable for VOQ based systems)
+  9: optional i64 switchId;
 }
 
 struct RoutePrefix {
