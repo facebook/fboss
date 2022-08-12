@@ -108,6 +108,7 @@ class HwAsic {
     VOQ_MODE,
     FABRIC_MODE,
     SAI_PORT_ERR_STATUS,
+    EXACT_MATCH,
   };
 
   enum class AsicType ASIC_TYPE_LIST;

@@ -92,6 +92,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::VOQ_MODE:
     case HwAsic::Feature::FABRIC_MODE:
+    case HwAsic::Feature::EXACT_MATCH:
       return false;
   }
   return false;

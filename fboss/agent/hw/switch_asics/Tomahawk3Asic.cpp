@@ -61,6 +61,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
+    case HwAsic::Feature::EXACT_MATCH:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

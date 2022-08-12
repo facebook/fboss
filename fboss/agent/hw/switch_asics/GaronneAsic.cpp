@@ -100,6 +100,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
      * is not supported yet.
      */
     case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::EXACT_MATCH:
       return false;
   }
   return false;
