@@ -97,6 +97,7 @@ struct PortFields {
   27: optional list<phy.PinConfig> pinConfigs;
   28: optional phy.ProfileSideConfig lineProfileConfig;
   29: optional list<phy.PinConfig> linePinConfigs;
+  30: switch_config.PortType portType = switch_config.PortType.INTERFACE_PORT;
 }
 
 struct SystemPortFields {
