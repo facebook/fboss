@@ -34,25 +34,6 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  std::string kDscpCounterAclName() const {
-    return "dscp_counter_acl";
-  }
-
-  std::string kCounterName() const {
-    return "dscp_counter";
-  }
-
-  void addDscpCounterAcl(cfg::SwitchConfig* config) {
-    // Create ACL to count the number of packets with DSCP == ICP
-    utility::addDscpAclToCfg(
-        config, kDscpCounterAclName(), utility::kIcpDscp());
-    std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
-    utility::addTrafficCounter(config, kCounterName(), counterTypes);
-    cfg::MatchAction matchAction = cfg::MatchAction();
-    matchAction.counter() = kCounterName();
-    utility::addMatcher(config, kDscpCounterAclName(), matchAction);
-  }
-
   void verifyDscpMarking(bool frontPanel) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
       return;
@@ -84,7 +65,7 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
 
       auto newCfg{initialConfig()};
       utility::addOlympicQosMaps(newCfg);
-      addDscpCounterAcl(&newCfg);
+      utility::addDscpCounterAcl(&newCfg);
       utility::addDscpMarkingAcls(&newCfg);
 
       applyNewConfig(newCfg);
@@ -97,8 +78,8 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
       auto beforeAclInOutPkts = utility::getAclInOutPackets(
           getHwSwitch(),
           getProgrammedState(),
-          kDscpCounterAclName(),
-          kCounterName());
+          utility::kDscpCounterAclName(),
+          utility::kCounterName());
 
       sendAllPackets(
           0 /* No Dscp */,
@@ -114,8 +95,8 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
       auto afterAclInOutPkts = utility::getAclInOutPackets(
           getHwSwitch(),
           getProgrammedState(),
-          kDscpCounterAclName(),
-          kCounterName());
+          utility::kDscpCounterAclName(),
+          utility::kCounterName());
 
       // See detailed comment block at the beginning of this function
       EXPECT_EQ(
@@ -145,8 +126,8 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
       auto afterAclInOutPkts2 = utility::getAclInOutPackets(
           getHwSwitch(),
           getProgrammedState(),
-          kDscpCounterAclName(),
-          kCounterName());
+          utility::kDscpCounterAclName(),
+          utility::kCounterName());
 
       // See detailed comment block at the beginning of this function
       EXPECT_EQ(

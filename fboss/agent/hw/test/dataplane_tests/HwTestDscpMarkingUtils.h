@@ -21,8 +21,14 @@ namespace facebook::fboss::utility {
 const std::vector<uint32_t>& kTcpPorts();
 const std::vector<uint32_t>& kUdpPorts();
 
+std::string getDscpAclTableName();
+std::string kDscpCounterAclName();
+std::string kCounterName();
+std::string getIngressAclTableGroupName();
 uint8_t kIcpDscp();
 
 void addDscpMarkingAcls(cfg::SwitchConfig* config);
-
+void addDscpCounterAcl(cfg::SwitchConfig* config);
+void addDscpMarkingAclTable(cfg::SwitchConfig* config);
+void addDscpAclTable(cfg::SwitchConfig* config, int16_t priority);
 } // namespace facebook::fboss::utility
