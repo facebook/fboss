@@ -819,6 +819,11 @@ typedef string PortPgConfigName
 typedef string BufferPoolConfigName
 
 const i32 DEFAULT_PORT_MTU = 9412;
+
+enum PortType {
+  INTERFACE_PORT = 0,
+  FABRIC_PORT = 1,
+}
 /**
  * Configuration for a single logical port
  */
@@ -961,6 +966,10 @@ struct Port {
    * pre-aggregated ODS counters
    */
   26: optional list<string> counterTags;
+  /*
+   * Port type to convey type for this port
+   */
+  27: PortType portType = PortType.INTERFACE_PORT;
 }
 
 enum LacpPortRate {
