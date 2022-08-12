@@ -298,6 +298,7 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(switchSettingsV1->getSwitchType(), cfg::SwitchType::VOQ);
   EXPECT_EQ(switchSettingsV1->getSwitchId(), 100);
+  validateNodeSerilization(*switchSettingsV1);
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
 
   // Flip back to NPU switch type
@@ -312,5 +313,6 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_FALSE(switchSettingsV2->isPublished());
   EXPECT_EQ(switchSettingsV2->getSwitchType(), cfg::SwitchType::NPU);
   EXPECT_FALSE(switchSettingsV2->getSwitchId().has_value());
+  validateNodeSerilization(*switchSettingsV2);
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV2, &config, platform.get()));
 }
