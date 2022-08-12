@@ -2407,6 +2407,10 @@ std::string SaiSwitch::listObjects(
       case HwObjectType::SAI_MANAGED_OBJECTS:
         listManagedObjects = true;
         break;
+      case HwObjectType::IPTUNNEL:
+        objTypes.push_back(SAI_OBJECT_TYPE_TUNNEL);
+        objTypes.push_back(SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY);
+        break;
     }
   }
   std::lock_guard<std::mutex> lk(saiSwitchMutex_);
