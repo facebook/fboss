@@ -59,6 +59,8 @@ struct SwitchSettingsFields
   uint32_t maxRouteCounterIDs{0};
   std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
   std::vector<std::pair<VlanID, folly::MacAddress>> macAddrsToBlock;
+  cfg::SwitchType switchType = cfg::SwitchType::NPU;
+  std::optional<int64_t> switchId;
 };
 
 /*
@@ -137,6 +139,20 @@ class SwitchSettings : public ThriftyBaseT<
       const std::vector<std::pair<VlanID, folly::MacAddress>>&
           macAddrsToBlock) {
     writableFields()->macAddrsToBlock = macAddrsToBlock;
+  }
+
+  cfg::SwitchType getSwitchType() const {
+    return getFields()->switchType;
+  }
+  void setSwitchType(cfg::SwitchType type) {
+    writableFields()->switchType = type;
+  }
+
+  std::optional<int64_t> getSwitchId() const {
+    return getFields()->switchId;
+  }
+  void setSwitchId(std::optional<int64_t> switchId) {
+    writableFields()->switchId = switchId;
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);

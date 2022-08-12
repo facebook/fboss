@@ -28,6 +28,9 @@ constexpr auto kBlockNeighborIP = "blockNeighborIP";
 constexpr auto kMacAddrsToBlock = "macAddrsToBlock";
 constexpr auto kMacAddrToBlockVlanID = "macAddrToBlockVlanID";
 constexpr auto kMacAddrToBlockAddr = "macAddrToBlockAddr";
+constexpr auto kSwitchType = "switchType";
+constexpr auto kSwitchId = "switchId";
+
 } // namespace
 
 namespace facebook::fboss {
@@ -55,6 +58,10 @@ folly::dynamic SwitchSettingsFields::toFollyDynamicLegacy() const {
     jsonEntry[kMacAddrToBlockVlanID] = folly::to<std::string>(vlanID);
     jsonEntry[kMacAddrToBlockAddr] = folly::to<std::string>(macAddr);
     switchSettings[kMacAddrsToBlock].push_back(jsonEntry);
+  }
+  switchSettings[kSwitchType] = static_cast<int>(switchType);
+  if (switchId) {
+    switchSettings[kSwitchId] = *switchId;
   }
 
   return switchSettings;
@@ -96,6 +103,13 @@ SwitchSettingsFields SwitchSettingsFields::fromFollyDynamicLegacy(
           entry[kMacAddrToBlockAddr].asString());
     }
   }
+  if (json.find(kSwitchType) != json.items().end()) {
+    switchSettings.switchType =
+        static_cast<cfg::SwitchType>(json[kSwitchType].asInt());
+  }
+  if (json.find(kSwitchId) != json.items().end()) {
+    switchSettings.switchId = json[kSwitchId].asInt();
+  }
 
   return switchSettings;
 }
@@ -124,7 +138,9 @@ bool SwitchSettings::operator==(const SwitchSettings& switchSettings) const {
       (getFields()->maxRouteCounterIDs ==
        switchSettings.getMaxRouteCounterIDs()) &&
       getFields()->blockNeighbors == switchSettings.getBlockNeighbors() &&
-      getFields()->macAddrsToBlock == switchSettings.getMacAddrsToBlock());
+      getFields()->macAddrsToBlock == switchSettings.getMacAddrsToBlock() &&
+      getFields()->switchType == switchSettings.getSwitchType() &&
+      getFields()->switchId == switchSettings.getSwitchId());
 }
 
 state::SwitchSettingsFields SwitchSettingsFields::toThrift() const {
@@ -148,6 +164,10 @@ state::SwitchSettingsFields SwitchSettingsFields::toThrift() const {
     blockedMac.macAddrToBlockAddr() = mac.toString();
     thriftFields.macAddrsToBlock()->push_back(blockedMac);
   }
+  thriftFields.switchType() = switchType;
+  if (switchId) {
+    thriftFields.switchId() = *switchId;
+  }
   return thriftFields;
 }
 
@@ -170,6 +190,11 @@ SwitchSettingsFields SwitchSettingsFields::fromThrift(
     auto vlan = static_cast<VlanID>(*macAddr.macAddrToBlockVlanID());
     settings.macAddrsToBlock.push_back(std::make_pair(vlan, mac));
   }
+  settings.switchType = *fields.switchType();
+  if (fields.switchId()) {
+    settings.switchId = *fields.switchId();
+  }
+
   return settings;
 }
 
