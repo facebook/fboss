@@ -1302,6 +1302,7 @@ TEST(Port, portFabricTypeApplyConfig) {
   ASSERT_NE(nullptr, stateV2);
   for (auto port : *stateV2->getPorts()) {
     EXPECT_EQ(port->getPortType(), cfg::PortType::FABRIC_PORT);
+    EXPECT_NE(*port, *stateV1->getPorts()->getPort(port->getID()));
   }
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV2, &config, platform.get()));
   // Flip back to intefac_port type
@@ -1312,6 +1313,7 @@ TEST(Port, portFabricTypeApplyConfig) {
   ASSERT_NE(nullptr, stateV3);
   for (auto port : *stateV3->getPorts()) {
     EXPECT_EQ(port->getPortType(), cfg::PortType::INTERFACE_PORT);
+    EXPECT_NE(*port, *stateV2->getPorts()->getPort(port->getID()));
   }
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV3, &config, platform.get()));
 }

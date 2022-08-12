@@ -272,7 +272,8 @@ bool PortFields::operator==(const PortFields& other) const {
       other.lookupClassesToDistrubuteTrafficOn &&
       profileID == other.profileID && maxFrameSize == other.maxFrameSize &&
       ThriftyUtils::listEq(queues, other.queues) &&
-      ThriftyUtils::listEq(pgConfigs, other.pgConfigs);
+      ThriftyUtils::listEq(pgConfigs, other.pgConfigs) &&
+      portType == other.portType;
 }
 
 Port::Port(PortID id, const std::string& name) : ThriftyBaseT(id, name) {}
