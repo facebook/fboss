@@ -1467,7 +1467,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       mirrorsUnChanged && newQosPolicy == orig->getQosPolicy() &&
       *portConf->expectedLLDPValues() == orig->getLLDPValidations() &&
       *portConf->maxFrameSize() == orig->getMaxFrameSize() &&
-      lookupClassesUnchanged && profileConfigUnchanged && pinConfigsUnchanged) {
+      lookupClassesUnchanged && profileConfigUnchanged && pinConfigsUnchanged &&
+      *portConf->portType() == orig->getPortType()) {
     return nullptr;
   }
 
@@ -1502,6 +1503,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->resetPgConfigs(portPgCfgs);
   newPort->setProfileConfig(*newProfileConfigRef);
   newPort->resetPinConfigs(newPinConfigs);
+  newPort->setPortType(*portConf->portType());
   return newPort;
 }
 
