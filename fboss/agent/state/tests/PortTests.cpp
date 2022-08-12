@@ -1268,3 +1268,20 @@ TEST(PortMap, iterateOrder) {
 
   validateThriftyMigration(*ports);
 }
+
+TEST(Port, portFabricType) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = testConfigA();
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+
+  for (auto port : *stateV1->getPorts()) {
+    EXPECT_EQ(port->getPortType(), cfg::PortType::INTERFACE_PORT);
+    auto newPort = port->clone();
+    newPort->setPortType(cfg::PortType::FABRIC_PORT);
+    auto newerPort = Port::fromFollyDynamic(newPort->toFollyDynamic());
+    EXPECT_EQ(newerPort->getPortType(), cfg::PortType::FABRIC_PORT);
+  }
+}

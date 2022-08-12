@@ -131,6 +131,7 @@ struct PortFields : public ThriftyFields<PortFields, state::PortFields> {
   std::optional<mka::MKASak> txSecureAssociationKey;
   bool macsecDesired{false};
   bool dropUnencrypted{false};
+  cfg::PortType portType = cfg::PortType::INTERFACE_PORT;
 };
 
 /*
@@ -193,6 +194,13 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
 
   cfg::PortState getAdminState() const {
     return getFields()->adminState;
+  }
+
+  cfg::PortType getPortType() const {
+    return getFields()->portType;
+  }
+  void setPortType(cfg::PortType portType) {
+    writableFields()->portType = portType;
   }
 
   void setAdminState(cfg::PortState adminState) {

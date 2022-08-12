@@ -158,6 +158,8 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
     port.linePinConfigs = *linePinCfgs;
   }
 
+  port.portType = *portThrift.portType();
+
   return port;
 }
 
@@ -246,6 +248,8 @@ state::PortFields PortFields::toThrift() const {
   if (linePinConfigs) {
     port.linePinConfigs() = *linePinConfigs;
   }
+
+  *port.portType() = portType;
 
   return port;
 }
