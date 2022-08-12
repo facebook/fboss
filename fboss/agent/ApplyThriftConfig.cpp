@@ -2891,6 +2891,20 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     newSwitchSettings->setMacAddrsToBlock(cfgMacAddrsToBlock);
     switchSettingsChange = true;
   }
+  if (origSwitchSettings->getSwitchType() !=
+      cfg_->switchSettings()->switchType()) {
+    newSwitchSettings->setSwitchType(*cfg_->switchSettings()->switchType());
+    switchSettingsChange = true;
+  }
+  std::optional<int64_t> cfgSwitchId =
+      cfg_->switchSettings()->switchId().has_value()
+      ? *cfg_->switchSettings()->switchId()
+      : std::optional<int64_t>();
+
+  if (origSwitchSettings->getSwitchId() != cfgSwitchId) {
+    newSwitchSettings->setSwitchId(cfgSwitchId);
+    switchSettingsChange = true;
+  }
 
   return switchSettingsChange ? newSwitchSettings : nullptr;
 }

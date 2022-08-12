@@ -276,3 +276,41 @@ TEST(SwitchSettingsTest, ThrifyMigration) {
   EXPECT_NE(nullptr, stateV1);
   validateThriftyMigration(*stateV1->getSwitchSettings());
 }
+
+TEST(SwitchSettingsTest, applyVoqSwitch) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  // Check default value
+  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV0);
+  EXPECT_EQ(switchSettingsV0->getBlockNeighbors().size(), 0);
+
+  // Check if value is updated
+  cfg::SwitchConfig config;
+  *config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
+  config.switchSettings()->switchId() = 100;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_EQ(switchSettingsV1->getSwitchType(), cfg::SwitchType::VOQ);
+  EXPECT_EQ(switchSettingsV1->getSwitchId(), 100);
+  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
+
+  // Flip back to NPU switch type
+  *config.switchSettings()->switchType() = cfg::SwitchType::NPU;
+  config.switchSettings()->switchId().reset();
+  EXPECT_FALSE(config.switchSettings()->switchId().has_value());
+
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  EXPECT_NE(nullptr, stateV2);
+  auto switchSettingsV2 = stateV2->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV2);
+  EXPECT_FALSE(switchSettingsV2->isPublished());
+  EXPECT_EQ(switchSettingsV2->getSwitchType(), cfg::SwitchType::NPU);
+  EXPECT_FALSE(switchSettingsV2->getSwitchId().has_value());
+  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV2, &config, platform.get()));
+}
