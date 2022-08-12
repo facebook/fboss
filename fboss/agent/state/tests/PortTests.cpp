@@ -1285,3 +1285,33 @@ TEST(Port, portFabricType) {
     EXPECT_EQ(newerPort->getPortType(), cfg::PortType::FABRIC_PORT);
   }
 }
+
+TEST(Port, portFabricTypeApplyConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = testConfigA();
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+
+  for (auto& port : *config.ports()) {
+    EXPECT_EQ(port.portType(), cfg::PortType::INTERFACE_PORT);
+    port.portType() = cfg::PortType::FABRIC_PORT;
+  }
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+  for (auto port : *stateV2->getPorts()) {
+    EXPECT_EQ(port->getPortType(), cfg::PortType::FABRIC_PORT);
+  }
+  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV2, &config, platform.get()));
+  // Flip back to intefac_port type
+  for (auto& port : *config.ports()) {
+    port.portType() = cfg::PortType::INTERFACE_PORT;
+  }
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
+  ASSERT_NE(nullptr, stateV3);
+  for (auto port : *stateV3->getPorts()) {
+    EXPECT_EQ(port->getPortType(), cfg::PortType::INTERFACE_PORT);
+  }
+  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV3, &config, platform.get()));
+}
