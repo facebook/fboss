@@ -65,16 +65,6 @@ std::unique_ptr<PublisherT> FsdbPubSubManager::createPublisherImpl(
   }
   auto& evbThread = publishStats ? statsPublisherStreamEvbThread_
                                  : statePublisherStreamEvbThread_;
-  // TSAN when creating publisher. Workaround while we work on D37692128.
-  //
-  // This vptr race is benign. In folly::AsyncTimeout, we're passed in as void*,
-  // re-casted and the virtual method timeoutExpired() is called. The thread is
-  // started in constructor of FsdbStreamClient. Vtable is pointed at
-  // FsdbStreamClient and not pointed at the final class yet. So the
-  // timeoutExpired() call is technically not correct. But we currently don't
-  // override that in children classes. So the incorrect vtable doesn't actually
-  // produce incorrect result.
-  folly::annotate_ignore_thread_sanitizer_guard tsanGuard(__FILE__, __LINE__);
   auto publisher = std::make_unique<PublisherT>(
       clientId_,
       publishPath,
@@ -255,16 +245,6 @@ void FsdbPubSubManager::addSubscriptionImpl(
   auto subsStr =
       toSubscriptionStr(fsdbHost, subscribePath, isDelta, subscribeStats);
   path2Subscriber_.withWLock([&](auto& path2Subscriber) {
-    // TSAN when creating subscriber. Workaround while we work on D37692128.
-    //
-    // This vptr race is benign. In folly::AsyncTimeout, we're passed in as
-    // void*, re-casted and the virtual method timeoutExpired() is called. The
-    // thread is started in constructor of FsdbStreamClient. Vtable is pointed
-    // at FsdbStreamClient and not pointed at the final class yet. So the
-    // timeoutExpired() call is technically not correct. But we currently don't
-    // override that in children classes. So the incorrect vtable doesn't
-    // actually produce incorrect result.
-    folly::annotate_ignore_thread_sanitizer_guard tsanGuard(__FILE__, __LINE__);
     auto [itr, inserted] = path2Subscriber.emplace(std::make_pair(
         subsStr,
         std::make_unique<SubscriberT>(

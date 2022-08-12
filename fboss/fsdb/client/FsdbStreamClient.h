@@ -17,7 +17,8 @@
 
 namespace folly {
 class CancellationToken;
-}
+class AsyncTimeout;
+} // namespace folly
 
 namespace apache::thrift {
 template <class>
@@ -27,7 +28,7 @@ class Client;
 namespace facebook::fboss::fsdb {
 class FsdbService;
 
-class FsdbStreamClient : public folly::AsyncTimeout {
+class FsdbStreamClient {
  public:
   enum class State : uint16_t { DISCONNECTED, CONNECTED, CANCELLED };
 
@@ -39,7 +40,7 @@ class FsdbStreamClient : public folly::AsyncTimeout {
       const std::string& counterPrefix,
       FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
                                                  State /*newState*/) {});
-  virtual ~FsdbStreamClient() override;
+  virtual ~FsdbStreamClient();
 
   void setServerToConnect(
       const std::string& ip,
@@ -84,7 +85,7 @@ class FsdbStreamClient : public folly::AsyncTimeout {
   void createClient(const std::string& ip, uint16_t port);
   void resetClient();
   void connectToServer(const std::string& ip, uint16_t port);
-  void timeoutExpired() noexcept override;
+  void timeoutExpired() noexcept;
 
 #if FOLLY_HAS_COROUTINES && !defined(IS_OSS)
   folly::coro::Task<void> serviceLoopWrapper();
@@ -111,6 +112,7 @@ class FsdbStreamClient : public folly::AsyncTimeout {
   std::optional<folly::SocketAddress> serverAddress_;
   FsdbStreamStateChangeCb stateChangeCb_;
   std::atomic<bool> serviceLoopRunning_{false};
+  std::unique_ptr<folly::AsyncTimeout> timer_;
 #if FOLLY_HAS_COROUTINES
   folly::coro::CancellableAsyncScope serviceLoopScope_;
 #endif

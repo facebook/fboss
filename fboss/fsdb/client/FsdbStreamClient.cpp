@@ -3,6 +3,7 @@
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 
 #include <folly/experimental/coro/BlockingWait.h>
+#include <folly/io/async/AsyncTimeout.h>
 #include <folly/logging/xlog.h>
 
 #ifndef IS_OSS
@@ -21,14 +22,16 @@ FsdbStreamClient::FsdbStreamClient(
     folly::EventBase* connRetryEvb,
     const std::string& counterPrefix,
     FsdbStreamStateChangeCb stateChangeCb)
-    : folly::AsyncTimeout(connRetryEvb),
-      clientId_(clientId),
+    : clientId_(clientId),
       streamEvb_(streamEvb),
       connRetryEvb_(connRetryEvb),
       counterPrefix_(counterPrefix),
       clientEvbThread_(
           std::make_unique<folly::ScopedEventBaseThread>(clientId)),
       stateChangeCb_(stateChangeCb),
+      timer_(folly::AsyncTimeout::make(
+          *connRetryEvb,
+          [this]() noexcept { timeoutExpired(); })),
       disconnectEvents_(
           fb303::ThreadCachedServiceData::get()->getThreadStats(),
           counterPrefix_ + ".disconnects",
@@ -40,7 +43,7 @@ FsdbStreamClient::FsdbStreamClient(
   }
   fb303::fbData->setCounter(getConnectedCounterName(), 0);
   connRetryEvb->runInEventBaseThread(
-      [this] { scheduleTimeout(FLAGS_fsdb_reconnect_ms); });
+      [this] { timer_->scheduleTimeout(FLAGS_fsdb_reconnect_ms); });
 }
 
 FsdbStreamClient::~FsdbStreamClient() {
@@ -94,7 +97,7 @@ void FsdbStreamClient::timeoutExpired() noexcept {
     connectToServer(
         serverAddress_->getIPAddress().str(), serverAddress_->getPort());
   }
-  scheduleTimeout(FLAGS_fsdb_reconnect_ms);
+  timer_->scheduleTimeout(FLAGS_fsdb_reconnect_ms);
 }
 
 bool FsdbStreamClient::isConnectedToServer() const {
@@ -150,7 +153,8 @@ void FsdbStreamClient::cancel() {
     return;
   }
   serverAddress_.reset();
-  connRetryEvb_->runInEventBaseThreadAndWait([this] { cancelTimeout(); });
+  connRetryEvb_->runInEventBaseThreadAndWait(
+      [this] { timer_->cancelTimeout(); });
   setState(State::CANCELLED);
   resetClient();
   // terminate event base getting ready for clean-up
