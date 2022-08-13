@@ -819,9 +819,29 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
 }
 
 shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
-    const std::shared_ptr<PortMap>& /*ports*/,
-    int64_t /*switchId*/) {
-  return nullptr;
+    const std::shared_ptr<PortMap>& ports,
+    int64_t switchId) {
+  auto sysPorts = std::make_shared<SystemPortMap>();
+  for (const auto& port : *ports) {
+    if (port->getPortType() != cfg::PortType::INTERFACE_PORT) {
+      continue;
+    }
+    auto sysPort = std::make_shared<SystemPort>(
+        SystemPortID{switchId << 16 | port->getID()});
+    sysPort->setSwitchId(SwitchID(switchId));
+    sysPort->setPortName(
+        port->getName() + "_" + folly::to<std::string>(switchId));
+    // TODO - get core and core port index from platform
+    sysPort->setCoreIndex(0);
+    sysPort->setCorePortIndex(1);
+    sysPort->setSpeedMbps(static_cast<int>(port->getSpeed()));
+    sysPort->setNumVoqs(8);
+    sysPort->setEnabled(port->isEnabled());
+    sysPort->setQosPolicy(port->getQosPolicy());
+    sysPorts->addSystemPort(std::move(sysPort));
+  }
+
+  return sysPorts;
 }
 
 shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
