@@ -221,7 +221,7 @@ class ThriftConfigApplier {
       const std::shared_ptr<TransceiverMap>& transceiverMap);
   std::shared_ptr<SystemPortMap> updateSystemPorts(
       const std::shared_ptr<PortMap>& ports,
-      int64_t switchId);
+      std::optional<int64_t> switchId);
   std::shared_ptr<Port> updatePort(
       const std::shared_ptr<Port>& orig,
       const cfg::Port* cfg,
@@ -413,6 +413,13 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   {
     auto newSwitchSettings = updateSwitchSettings();
     if (newSwitchSettings) {
+      if (newSwitchSettings->getSwitchType() !=
+              orig_->getSwitchSettings()->getSwitchType() ||
+          newSwitchSettings->getSwitchId() !=
+              orig_->getSwitchSettings()->getSwitchId()) {
+        new_->resetSystemPorts(updateSystemPorts(
+            new_->getPorts(), newSwitchSettings->getSwitchId()));
+      }
       new_->resetSwitchSettings(std::move(newSwitchSettings));
       changed = true;
     }
@@ -453,8 +460,11 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       if (new_->getSwitchSettings()->getSwitchType() == cfg::SwitchType::VOQ) {
         CHECK(cfg_->switchSettings()->switchId().has_value())
             << "Switch id must be set for VOQ switch";
-        new_->resetSystemPorts(updateSystemPorts(
-            new_->getPorts(), *cfg_->switchSettings()->switchId()));
+        std::optional<int64_t> switchId;
+        if (cfg_->switchSettings()->switchId()) {
+          switchId = *cfg_->switchSettings()->switchId();
+        }
+        new_->resetSystemPorts(updateSystemPorts(new_->getPorts(), switchId));
       }
       changed = true;
     }
@@ -820,8 +830,13 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
 
 shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     const std::shared_ptr<PortMap>& ports,
-    int64_t switchId) {
+    std::optional<int64_t> switchIdOpt) {
   auto sysPorts = std::make_shared<SystemPortMap>();
+  if (*cfg_->switchSettings()->switchType() != cfg::SwitchType::VOQ) {
+    return sysPorts;
+  }
+  CHECK(switchIdOpt.has_value());
+  auto switchId = *switchIdOpt;
   for (const auto& port : *ports) {
     if (port->getPortType() != cfg::PortType::INTERFACE_PORT) {
       continue;
