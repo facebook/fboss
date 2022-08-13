@@ -86,3 +86,19 @@ TEST(SystemPort, Modify) {
   state->publish();
   EXPECT_NE(origSysPorts.get(), origSysPorts->modify(&state));
 }
+
+TEST(SystemPort, sysPortApplyConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigA();
+  config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
+  config.switchSettings()->switchId() = 1;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  EXPECT_EQ(stateV1->getSystemPorts()->size(), stateV1->getPorts()->size());
+  // Flip one port to fabric port type and see that sys ports are updated
+  config.ports()->begin()->portType() = cfg::PortType::FABRIC_PORT;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+  EXPECT_EQ(stateV2->getSystemPorts()->size(), stateV2->getPorts()->size() - 1);
+}
