@@ -1,0 +1,200 @@
+// (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
+
+#pragma once
+
+#include <fboss/thrift_storage/CowStateUpdate.h>
+#include <fboss/thrift_storage/CowStorage.h>
+#include <folly/Synchronized.h>
+#include <folly/io/async/ScopedEventBaseThread.h>
+#include <folly/logging/xlog.h>
+
+namespace facebook::fboss::fsdb {
+
+template <typename Root>
+class CowStorageMgr {
+ public:
+  using CowStateUpdateFn = typename CowStateUpdate<Root>::CowStateUpdateFn;
+  using CowState = typename CowStateUpdate<Root>::CowState;
+  using CowStateUpdateList = folly::
+      IntrusiveList<CowStateUpdate<Root>, &CowStateUpdate<Root>::listHook_>;
+  using CowStateUpdateCb = std::function<
+      void(const std::shared_ptr<CowState>&, const std::shared_ptr<CowState>&)>;
+
+  explicit CowStorageMgr(
+      CowStorage<Root>&& storage,
+      CowStateUpdateCb cb = [](const auto& /*oldState*/,
+                               const auto& /*newState*/) {})
+      : storage_(std::make_unique<CowStorage<Root>>(std::move(storage))),
+        stateUpdateCb_(cb) {}
+
+  /**
+   * Schedule an update to the CowState.
+   *
+   *  @param  update
+   *          The update to be enqueued
+   *  @return bool whether the update was queued or not
+   * This schedules the specified CowStateUpdate to be invoked in the update
+   * thread in order to update the CowState
+   *
+   */
+  void updateState(std::unique_ptr<CowStateUpdate<Root>> update) {
+    pendingUpdates_.wlock()->push_back(*update.release());
+    updateEvbThread_.getEventBase()->runInEventBaseThread(
+        handlePendingUpdatesHelper, this);
+  }
+  /**
+   * Schedule an update to the CowState.
+   *
+   * @param name  A name to identify the source of this update.  This is
+   *              primarily used for logging and debugging purposes.
+   * @param fn    The function that will prepare the new CowState.
+   * @return bool whether the update was queued or not
+   * The CowStateUpdateFn takes a single argument -- the current CowState
+   * object to modify.  It should return a new CowState object, or null if
+   * it decides that no update needs to be performed.
+   *
+   * Note that the update function will not be called immediately--it will be
+   * invoked later from the update thread.  Therefore if you supply a lambda
+   * with bound arguments, make sure that any bound arguments will still be
+   * valid later when the function is invoked.  (e.g., Don't capture local
+   * variables from your current call frame by reference.)
+   *
+   * The CowStateUpdateFn must not throw any exceptions.
+   *
+   * The update thread may choose to batch updates in some cases--if it has
+   * multiple update functions to run it may run them all at once and only
+   * send a single update notification to the HwSwitch and other update
+   * subscribers.  Therefore the CowStateUpdateFn may be called with an
+   * unpublished CowState in some cases.
+   */
+  void updateState(folly::StringPiece name, CowStateUpdateFn fn) {
+    auto update =
+        std::make_unique<FunctionCowStateUpdate<Root>>(name, std::move(fn));
+    updateState(std::move(update));
+  }
+  /**
+   * Schedule an update to the CowState.
+   *
+   * @param name  A name to identify the source of this update.  This is
+   *              primarily used for logging and debugging purposes.
+   * @param fn    The function that will prepare the new CowState.
+   *
+   * A version of updateState that prevents the update handling queue from
+   * coalescing this update with later updates. This should rarely be used,
+   * but can be used when there is an update that MUST be seen by the hw
+   * implementation, even if the inverse update is immediately applied.
+   */
+  void updateStateNoCoalescing(folly::StringPiece name, CowStateUpdateFn fn) {
+    auto update = std::make_unique<FunctionCowStateUpdate<Root>>(
+        name,
+        std::move(fn),
+        static_cast<int>(CowStateUpdate<Root>::BehaviorFlags::NON_COALESCING));
+    updateState(std::move(update));
+  }
+
+  /*
+   * A version of updateState() that doesn't return until the update has been
+   * applied.
+   *
+   * This should only be called in situations where it is safe to block the
+   * current thread until the operation completes.
+   *
+   */
+  void updateStateBlocking(folly::StringPiece name, CowStateUpdateFn fn) {
+    auto result = std::make_shared<BlockingUpdateResult>();
+    auto update = std::make_unique<BlockingCowStateUpdate<Root>>(
+        name, std::move(fn), result);
+    updateState(std::move(update));
+    result->wait();
+  }
+  const std::shared_ptr<CowState> getState() const {
+    return (*storage_.rlock())->root();
+  }
+
+ private:
+  static void handlePendingUpdatesHelper(CowStorageMgr<Root>* mgr) {
+    mgr->handlePendingUpdates();
+  }
+  void handlePendingUpdates() {
+    CowStateUpdateList updates;
+    // Dequeue all queued updates
+    pendingUpdates_.withWLock([&updates](auto& pendingUpdates) {
+      auto iter = pendingUpdates.begin();
+      while (iter != pendingUpdates.end()) {
+        auto* update = &(*iter);
+        if (update->isNonCoalescing()) {
+          if (iter == pendingUpdates.begin()) {
+            // First update is non coalescing, splice it onto the updates list
+            // and apply transaction by itself
+            ++iter;
+            break;
+          } else {
+            // Splice all updates upto this non coalescing update, we will
+            // get the non coalescing update in the next round
+            break;
+          }
+        }
+        ++iter;
+      }
+      updates.splice(
+          updates.begin(), pendingUpdates, pendingUpdates.begin(), iter);
+    });
+    // handlePendingUpdates() is invoked once for each update, but a previous
+    // call might have already processed everything.  If we don't have anything
+    // to do just return early.
+    if (updates.empty()) {
+      return;
+    }
+    auto oldAppliedState = getState();
+    auto newDesiredState = oldAppliedState;
+    auto iter = updates.begin();
+    while (iter != updates.end()) {
+      auto* update = &(*iter);
+      ++iter;
+
+      std::shared_ptr<CowState> intermediateState;
+      XLOG(INFO) << "preparing state update " << update->getName();
+      try {
+        intermediateState = update->applyUpdate(newDesiredState);
+      } catch (const std::exception& ex) {
+        // Call the update's onError() function, and then immediately delete
+        // it (therefore removing it from the intrusive list).  This way we
+        // won't call it's onSuccess() function later.
+        update->onError(ex);
+        delete update;
+      }
+      // We have applied the update to software switch state, so call success
+      // on the update.
+      if (intermediateState) {
+        // Call publish after applying each StateUpdate.  This guarantees that
+        // the next StateUpdate function will have clone the SwitchState before
+        // making any changes.  This ensures that if a StateUpdate function
+        // ever fails partway through it can't have partially modified our
+        // existing state, leaving it in an invalid state.
+        intermediateState->publish();
+        newDesiredState = intermediateState;
+      }
+    }
+    // Invoke callback on change
+    if (newDesiredState != oldAppliedState) {
+      storage_.wlock()->reset(new CowStorage<Root>(newDesiredState));
+      stateUpdateCb_(oldAppliedState, newDesiredState);
+      newDesiredState.reset();
+    }
+    // Notify all of the updates of success and delete them.
+    while (!updates.empty()) {
+      std::unique_ptr<CowStateUpdate<Root>> update(&updates.front());
+      updates.pop_front();
+      update->onSuccess();
+    }
+  }
+  folly::Synchronized<std::unique_ptr<CowStorage<Root>>> storage_;
+  CowStateUpdateCb stateUpdateCb_;
+  /*
+   * A list of pending state updates to be applied.
+   */
+  folly::Synchronized<CowStateUpdateList> pendingUpdates_;
+  folly::ScopedEventBaseThread updateEvbThread_;
+};
+
+} // namespace facebook::fboss::fsdb
