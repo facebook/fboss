@@ -219,6 +219,9 @@ class ThriftConfigApplier {
   void updateVlanInterfaces(const Interface* intf);
   std::shared_ptr<PortMap> updatePorts(
       const std::shared_ptr<TransceiverMap>& transceiverMap);
+  std::shared_ptr<SystemPortMap> updateSystemPorts(
+      const std::shared_ptr<PortMap>& ports,
+      int64_t switchId);
   std::shared_ptr<Port> updatePort(
       const std::shared_ptr<Port>& orig,
       const cfg::Port* cfg,
@@ -447,6 +450,12 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newPorts = updatePorts(new_->getTransceivers());
     if (newPorts) {
       new_->resetPorts(std::move(newPorts));
+      if (new_->getSwitchSettings()->getSwitchType() == cfg::SwitchType::VOQ) {
+        CHECK(cfg_->switchSettings()->switchId().has_value())
+            << "Switch id must be set for VOQ switch";
+        new_->resetSystemPorts(updateSystemPorts(
+            new_->getPorts(), *cfg_->switchSettings()->switchId()));
+      }
       changed = true;
     }
   }
@@ -807,6 +816,12 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
   IPAddressV6 linkLocalAddr(IPAddressV6::LINK_LOCAL, intf->getMac());
   VlanIpInfo linkLocalInfo(64, intf->getMac(), intf->getID());
   entry.addresses.emplace(IPAddress(linkLocalAddr), linkLocalInfo);
+}
+
+shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
+    const std::shared_ptr<PortMap>& /*ports*/,
+    int64_t /*switchId*/) {
+  return nullptr;
 }
 
 shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
