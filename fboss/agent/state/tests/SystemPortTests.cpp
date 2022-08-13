@@ -135,6 +135,6 @@ TEST(SystemPort, sysPortApplyConfigSwitchIdChange) {
       stateV2->getSystemPorts()->size(), stateV1->getSystemPorts()->size());
 
   for (auto& sysPort : *stateV2->getSystemPorts()) {
-    EXPECT_EQ(sysPort->getSwitchId(), 2);
+    EXPECT_EQ(sysPort->getSwitchId(), SwitchID(2));
   }
 }
