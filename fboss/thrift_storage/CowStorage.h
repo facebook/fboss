@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include <fboss/facebook/thrift_cow/nodes/Types.h>
-#include <fboss/facebook/thrift_cow/visitors/ExtendedPathVisitor.h>
-#include <fboss/facebook/thrift_cow/visitors/PathVisitor.h>
+#include <fboss/thrift_cow/nodes/Types.h>
+#include <fboss/thrift_cow/visitors/ExtendedPathVisitor.h>
+#include <fboss/thrift_cow/visitors/PathVisitor.h>
 #include <fboss/thrift_storage/Storage.h>
 #include <folly/logging/xlog.h>
 
