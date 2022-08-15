@@ -10,6 +10,7 @@
 
 // #include <folly/IPAddress.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/PortDescriptor.h"
@@ -183,6 +184,41 @@ TEST(ThriftySwitchState, SflowCollectorMap) {
 
   auto state = SwitchState();
   state.resetSflowCollectors(map);
+  verifySwitchStateSerialization(state);
+}
+
+TEST(ThriftySwitchState, AggregatePortMap) {
+  MockPlatform platform;
+  auto startState = testStateA();
+  std::vector<int> memberPort1 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  std::vector<int> memberPort2 = {11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+
+  auto config = testConfigA();
+  config.aggregatePorts()->resize(2);
+  *config.aggregatePorts()[0].key() = 55;
+  *config.aggregatePorts()[0].name() = "lag55";
+  *config.aggregatePorts()[0].description() = "upwards facing link-bundle";
+  (*config.aggregatePorts()[0].memberPorts()).resize(10);
+  for (int i = 0; i < memberPort1.size(); ++i) {
+    *config.aggregatePorts()[0].memberPorts()[i].memberPortID() =
+        memberPort1[i];
+  }
+  *config.aggregatePorts()[1].key() = 155;
+  *config.aggregatePorts()[1].name() = "lag155";
+  *config.aggregatePorts()[1].description() = "downwards facing link-bundle";
+  (*config.aggregatePorts()[1].memberPorts()).resize(10);
+  *config.aggregatePorts()[1].memberPorts()[0].memberPortID() = 1;
+  for (int i = 0; i < memberPort2.size(); ++i) {
+    *config.aggregatePorts()[1].memberPorts()[i].memberPortID() =
+        memberPort2[i];
+  }
+
+  auto endState = publishAndApplyConfig(startState, &config, &platform);
+  ASSERT_NE(nullptr, endState);
+  auto aggPorts = endState->getAggregatePorts();
+
+  auto state = SwitchState();
+  state.resetAggregatePorts(aggPorts);
   verifySwitchStateSerialization(state);
 }
 
