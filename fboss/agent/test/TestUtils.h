@@ -496,4 +496,26 @@ void validateNodeSerilization(const Node& node) {
   nodeBack = Node::fromThrift(node.toThrift());
   EXPECT_EQ(node, *nodeBack);
 }
+
+template <typename NodeMap>
+bool isSameNodeMap(const NodeMap& lhs, const NodeMap& rhs) {
+  if (lhs.size() != rhs.size()) {
+    return false;
+  }
+
+  for (const auto& [key, value] : lhs.getAllNodes()) {
+    if (auto other = rhs.getNodeIf(key); !other || *value != *other) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template <typename NodeMap>
+void validateNodeMapSerilization(const NodeMap& nodeMap) {
+  auto nodeMapBack = NodeMap::fromFollyDynamic(nodeMap.toFollyDynamic());
+  EXPECT_TRUE(isSameNodeMap(nodeMap, *nodeMapBack));
+  nodeMapBack = NodeMap::fromThrift(nodeMap.toThrift());
+  EXPECT_TRUE(isSameNodeMap(nodeMap, *nodeMapBack));
+}
 } // namespace facebook::fboss

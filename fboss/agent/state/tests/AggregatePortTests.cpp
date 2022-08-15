@@ -417,6 +417,9 @@ void checkChangedAggPorts(
   EXPECT_EQ(changedIDs, foundChanged);
   EXPECT_EQ(addedIDs, foundAdded);
   EXPECT_EQ(removedIDs, foundRemoved);
+
+  validateNodeMapSerilization(*oldAggPorts);
+  validateNodeMapSerilization(*newAggPorts);
 }
 
 void setAggregatePortMemberIDs(
@@ -703,6 +706,8 @@ TEST(AggregatePort, multiTrunkRemove) {
       startAggPorts->getAggregatePortIf(AggregatePortID(90)),
       endAggPorts->getAggregatePortIf(AggregatePortID(90)));
 
+  validateNodeMapSerilization(*startAggPorts);
+  validateNodeMapSerilization(*endAggPorts);
   validateNodeSerilization(
       *startAggPorts->getAggregatePortIf(AggregatePortID(40)));
   validateNodeSerilization(
