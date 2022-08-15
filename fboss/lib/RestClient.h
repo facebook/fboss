@@ -19,11 +19,14 @@ class RestClient {
   RestClient(std::string hostname, int port);
   RestClient(folly::IPAddress ipAddress, int port);
   RestClient(folly::IPAddress ipAddress, int port, std::string interface);
+  virtual ~RestClient() = default;
   /*
    * Calls the particular Rest api
    */
   bool request(std::string path);
-  std::string requestWithOutput(std::string path, std::string postData = "");
+  virtual std::string requestWithOutput(
+      std::string path,
+      std::string postData = "");
   void setTimeout(std::chrono::milliseconds timeout);
 
  private:
