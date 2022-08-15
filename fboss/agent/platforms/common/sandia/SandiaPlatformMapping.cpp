@@ -39108,12 +39108,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "xphyLine": {
           "numLanes": 4,
           "modulation": 1,
-          "fec": 528
+          "fec": 528,
+          "medium": 2
         },
         "xphySystem": {
           "numLanes": 2,
           "modulation": 1,
-          "fec": 528
+          "fec": 528,
+          "medium": 3
         }
       }
     },
@@ -39134,12 +39136,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "xphyLine": {
           "numLanes": 4,
           "modulation": 2,
-          "fec": 544
+          "fec": 544,
+          "medium": 2
         },
         "xphySystem": {
           "numLanes": 2,
           "modulation": 2,
-          "fec": 544
+          "fec": 544,
+          "medium": 3
         }
       }
     },
@@ -39160,12 +39164,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
         "xphyLine": {
           "numLanes": 8,
           "modulation": 2,
-          "fec": 544
+          "fec": 544,
+          "medium": 2
         },
         "xphySystem": {
           "numLanes": 4,
           "modulation": 2,
-          "fec": 544
+          "fec": 544,
+          "medium": 3
         }
       }
     }
