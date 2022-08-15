@@ -476,4 +476,5 @@ struct SwitchState {
   24: map<string, SflowCollectorFields> sflowCollectorMap;
   25: map<string, IpTunnelFields> ipTunnelMap;
   26: map<string, TeFlowEntryFields> teFlowTable;
+  27: map<i16, AggregatePortFields> aggregatePortMap;
 }
