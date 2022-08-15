@@ -21,6 +21,11 @@ AggregatePortMap::AggregatePortMap() {}
 
 AggregatePortMap::~AggregatePortMap() {}
 
+int16_t AggregatePortMap::getNodeThriftKey(
+    const std::shared_ptr<AggregatePort>& node) {
+  return node->getID();
+}
+
 std::map<int16_t, state::AggregatePortFields> AggregatePortMap::toThrift()
     const {
   std::map<int16_t, state::AggregatePortFields> thriftMap;

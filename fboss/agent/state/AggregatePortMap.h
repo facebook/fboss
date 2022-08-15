@@ -24,6 +24,8 @@ using AggregatePortMapTraits = NodeMapTraits<AggregatePortID, AggregatePort>;
 class AggregatePortMap
     : public NodeMapT<AggregatePortMap, AggregatePortMapTraits> {
  public:
+  using ThriftType = std::map<int16_t, state::AggregatePortFields>;
+
   AggregatePortMap();
   ~AggregatePortMap() override;
 
@@ -34,6 +36,8 @@ class AggregatePortMap
   std::shared_ptr<AggregatePort> getAggregatePort(AggregatePortID id) const {
     return getNode(id);
   }
+
+  static int16_t getNodeThriftKey(const std::shared_ptr<AggregatePort>& node);
 
   std::map<int16_t, state::AggregatePortFields> toThrift() const;
 

@@ -183,6 +183,7 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
       AggregatePortFields::SubportToForwardingState::const_iterator>;
   using SubportAndForwardingStateValueType =
       AggregatePortFields::SubportToForwardingState::value_type;
+  using ThriftType = state::AggregatePortFields;
 
   template <typename Iterator>
   static std::shared_ptr<AggregatePort> fromSubportRange(
