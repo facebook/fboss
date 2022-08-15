@@ -7,8 +7,11 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/state/AggregatePortMap.h"
+
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
+
 #include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
@@ -17,6 +20,24 @@ namespace facebook::fboss {
 AggregatePortMap::AggregatePortMap() {}
 
 AggregatePortMap::~AggregatePortMap() {}
+
+std::map<int16_t, state::AggregatePortFields> AggregatePortMap::toThrift()
+    const {
+  std::map<int16_t, state::AggregatePortFields> thriftMap;
+  for (const auto& [key, value] : this->getAllNodes()) {
+    thriftMap[key] = value->toThrift();
+  }
+  return thriftMap;
+}
+
+std::shared_ptr<AggregatePortMap> AggregatePortMap::fromThrift(
+    std::map<int16_t, state::AggregatePortFields> const& aggregatePortMap) {
+  auto aggPortMap = std::make_shared<AggregatePortMap>();
+  for (const auto& [key, value] : aggregatePortMap) {
+    aggPortMap->addNode(AggregatePort::fromThrift(value));
+  }
+  return aggPortMap;
+}
 
 std::shared_ptr<AggregatePort> AggregatePortMap::getAggregatePortIf(
     PortID port) const {

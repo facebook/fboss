@@ -214,6 +214,9 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
   bool operator==(const AggregatePort& other) const {
     return *getFields() == *other.getFields();
   }
+  bool operator!=(const AggregatePort& other) const {
+    return !(*this == other);
+  }
 
   static std::shared_ptr<AggregatePort> fromFollyDynamic(
       const folly::dynamic& json) {

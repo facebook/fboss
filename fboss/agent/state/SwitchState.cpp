@@ -139,6 +139,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
   state.qosPolicyMap() = qosPolicies->toThrift();
   state.sflowCollectorMap() = sFlowCollectors->toThrift();
   state.teFlowTable() = teFlowTable->toThrift();
+  state.aggregatePortMap() = aggPorts->toThrift();
   return state;
 }
 
@@ -185,6 +186,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.sFlowCollectors =
       SflowCollectorMap::fromThrift(*state.sflowCollectorMap());
   fields.teFlowTable = TeFlowTable::fromThrift(*state.teFlowTable());
+  fields.aggPorts = AggregatePortMap::fromThrift(*state.aggregatePortMap());
   return fields;
 }
 

@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeMap.h"
 
 namespace facebook::fboss {
@@ -33,6 +34,11 @@ class AggregatePortMap
   std::shared_ptr<AggregatePort> getAggregatePort(AggregatePortID id) const {
     return getNode(id);
   }
+
+  std::map<int16_t, state::AggregatePortFields> toThrift() const;
+
+  static std::shared_ptr<AggregatePortMap> fromThrift(
+      std::map<int16_t, state::AggregatePortFields> const& aggregatePortMap);
 
   /* This method will iterate over every member port in every aggregate port,
    * so it is a quadratic operation. If it turns out to be a bottleneck, we can
