@@ -10,6 +10,7 @@ add_fbthrift_cpp_library(
     DataCorralServiceThrift
   OPTIONS
     json
+    reflection
   DEPENDS
     fb303_cpp2
     fboss_cpp2

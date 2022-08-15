@@ -10,6 +10,7 @@ add_fbthrift_cpp_library(
     SensorServiceThrift
   OPTIONS
     json
+    reflection
   DEPENDS
     fboss_cpp2
     ctrl_cpp2
@@ -20,4 +21,5 @@ add_fbthrift_cpp_library(
   fboss/platform/sensor_service/if/sensor_config.thrift
   OPTIONS
     json
+    reflection
 )

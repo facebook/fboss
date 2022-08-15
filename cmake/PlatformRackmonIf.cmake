@@ -10,6 +10,7 @@ add_fbthrift_cpp_library(
   RackmonCtrl
   OPTIONS
     json
+    reflection
   DEPENDS
     fb303_cpp2
     fboss_cpp2

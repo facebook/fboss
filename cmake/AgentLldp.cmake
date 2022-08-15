@@ -9,6 +9,7 @@ add_fbthrift_cpp_library(
   fboss/agent/lldp/lldp.thrift
   OPTIONS
     json
+    reflection
 )
 
 add_library(lldp

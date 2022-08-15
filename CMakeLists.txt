@@ -212,12 +212,14 @@ add_fbthrift_cpp_library(
   fboss/agent/if/mpls.thrift
   OPTIONS
     json
+    reflection
 )
 add_fbthrift_cpp_library(
   switch_config_cpp2
   fboss/agent/switch_config.thrift
   OPTIONS
     json
+    reflection
   DEPENDS
     common_cpp2
     mpls_cpp2
@@ -227,6 +229,7 @@ add_fbthrift_cpp_library(
   fboss/agent/agent_config.thrift
   OPTIONS
     json
+    reflection
   DEPENDS
     platform_config_cpp2
     switch_config_cpp2
@@ -236,6 +239,7 @@ add_fbthrift_cpp_library(
   fboss/agent/platform_config.thrift
   OPTIONS
     json
+    reflection
   DEPENDS
     bcm_config_cpp2
     asic_config_cpp2
@@ -246,6 +250,7 @@ add_fbthrift_cpp_library(
   fboss/agent/switch_state.thrift
   OPTIONS
     json
+    reflection
   DEPENDS
     switch_config_cpp2
     phy_cpp2
@@ -312,6 +317,7 @@ add_fbthrift_cpp_library(
   fboss/agent/if/optic.thrift
   OPTIONS
     json
+    reflection
   DEPENDS
     transceiver_cpp2
 )
@@ -320,6 +326,7 @@ add_fbthrift_cpp_library(
   fboss/agent/if/fboss.thrift
   OPTIONS
     json
+    reflection
 )
 add_fbthrift_cpp_library(
   sflow_cpp2
@@ -332,6 +339,7 @@ add_fbthrift_cpp_library(
   fboss/agent/if/common.thrift
   OPTIONS
     json
+    reflection
   DEPENDS
     mpls_cpp2
     network_address_cpp2
@@ -344,6 +352,7 @@ add_fbthrift_cpp_library(
     NeighborListenerClient
   OPTIONS
     json
+    reflection
   DEPENDS
     fboss_cpp2
     fb303_cpp2
@@ -376,6 +385,7 @@ add_fbthrift_cpp_library(
   fboss/agent/hw/sai/config/asic_config.thrift
   OPTIONS
     json
+    reflection
 )
 add_fbthrift_cpp_library(
   packettrace_cpp2
@@ -386,6 +396,7 @@ add_fbthrift_cpp_library(
   fboss/mka_service/if/mka_structs.thrift
   OPTIONS
     json
+    reflection
 )
 add_fbthrift_cpp_library(
   hardware_stats_cpp2
@@ -393,6 +404,7 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     visitation
+    reflection
   DEPENDS
     mka_structs_cpp2
 )
@@ -401,6 +413,7 @@ add_fbthrift_cpp_library(
   fboss/agent/agent_stats.thrift
   OPTIONS
     json
+    reflection
   DEPENDS
     hardware_stats_cpp2
 )

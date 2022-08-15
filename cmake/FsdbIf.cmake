@@ -8,6 +8,7 @@ add_fbthrift_cpp_library(
   fboss/fsdb/if/fsdb_common.thrift
   OPTIONS
     json
+    reflection
 )
 
 add_fbthrift_cpp_library(
@@ -15,6 +16,7 @@ add_fbthrift_cpp_library(
   fboss/fsdb/if/fsdb_oper.thrift
   OPTIONS
     json
+    reflection
   DEPENDS
     agent_config_cpp2
     agent_stats_cpp2

@@ -8,4 +8,5 @@ add_fbthrift_cpp_library(
   fboss/platform/fan_service/if/fan_config_structs.thrift
   OPTIONS
     json
+    reflection
 )
