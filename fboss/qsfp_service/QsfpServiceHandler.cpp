@@ -259,6 +259,12 @@ bool QsfpServiceHandler::getSdkState(std::unique_ptr<std::string> fileName) {
   return manager_->getSdkState(*fileName);
 }
 
+void QsfpServiceHandler::getSaiPortInfo(
+    std::string& out,
+    std::unique_ptr<std::string> portName) {
+  auto log = LOG_THRIFT_CALL(INFO);
+}
+
 void QsfpServiceHandler::publishLinkSnapshots(
     std::unique_ptr<std::vector<std::string>> portNames) {
   auto log = LOG_THRIFT_CALL(INFO);

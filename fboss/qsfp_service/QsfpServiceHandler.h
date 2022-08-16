@@ -185,6 +185,9 @@ class QsfpServiceHandler
 
   bool getSdkState(std::unique_ptr<std::string> fileName) override;
 
+  void getSaiPortInfo(std::string& out, std::unique_ptr<std::string> portName)
+      override;
+
   void publishLinkSnapshots(
       std::unique_ptr<std::vector<std::string>> portNames) override;
 

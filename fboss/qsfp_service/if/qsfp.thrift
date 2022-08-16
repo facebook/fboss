@@ -155,6 +155,10 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
 
   bool getSdkState(1: string fileName) throws (1: fboss.FbossBaseError error);
 
+  string getSaiPortInfo(1: string portName) throws (
+    1: fboss.FbossBaseError error,
+  );
+
   bool sakInstallRx(
     1: mka_structs.MKASak sak,
     2: mka_structs.MKASci sciToAdd,
