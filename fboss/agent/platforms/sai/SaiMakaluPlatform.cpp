@@ -20,7 +20,7 @@ namespace facebook::fboss {
 SaiMakaluPlatform::SaiMakaluPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     folly::MacAddress localMac)
-    : SaiHwPlatform(
+    : SaiBcmPlatform(
           std::move(productInfo),
           std::make_unique<MakaluPlatformMapping>(),
           localMac) {
@@ -29,10 +29,6 @@ SaiMakaluPlatform::SaiMakaluPlatform(
 
 HwAsic* SaiMakaluPlatform::getAsic() const {
   return asic_.get();
-}
-
-std::string SaiMakaluPlatform::getHwConfig() {
-  return *config()->thrift.platform()->get_chip().get_asic().config();
 }
 
 SaiMakaluPlatform::~SaiMakaluPlatform() {}

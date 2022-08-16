@@ -125,7 +125,6 @@ class HwAsic {
     ASIC_VENDOR_MARVELL,
     ASIC_VENDOR_MOCK,
     ASIC_VENDOR_FAKE,
-    ASIC_VENDOR_INDUS,
   };
 
   virtual ~HwAsic() {}

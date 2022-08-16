@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss {

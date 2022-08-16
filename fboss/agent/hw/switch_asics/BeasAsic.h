@@ -2,20 +2,16 @@
 
 #pragma once
 
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/switch_asics/BroadcomAsic.h"
 
 namespace facebook::fboss {
 
-class Beas : public HwAsic {
+class BeasAsic : public BroadcomAsic {
  public:
   bool isSupported(Feature feature) const override;
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_BEAS;
   }
-  std::string getVendor() const override {
-    return "beas";
-  }
-
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
     return phy::DataPlanePhyChipType::XPHY;
   }

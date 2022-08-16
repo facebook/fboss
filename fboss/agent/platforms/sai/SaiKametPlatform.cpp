@@ -10,7 +10,7 @@
 
 #include "fboss/agent/platforms/sai/SaiKametPlatform.h"
 
-#include "fboss/agent/hw/switch_asics/IndusAsic.h"
+#include "fboss/agent/hw/switch_asics/BeasAsic.h"
 #include "fboss/agent/platforms/common/kamet/KametPlatformMapping.h"
 
 #include <cstdio>
@@ -20,19 +20,15 @@ namespace facebook::fboss {
 SaiKametPlatform::SaiKametPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     folly::MacAddress localMac)
-    : SaiHwPlatform(
+    : SaiBcmPlatform(
           std::move(productInfo),
           std::make_unique<KametPlatformMapping>(),
           localMac) {
-  asic_ = std::make_unique<IndusAsic>();
+  asic_ = std::make_unique<BeasAsic>();
 }
 
 HwAsic* SaiKametPlatform::getAsic() const {
   return asic_.get();
-}
-
-std::string SaiKametPlatform::getHwConfig() {
-  return *config()->thrift.platform()->get_chip().get_asic().config();
 }
 
 SaiKametPlatform::~SaiKametPlatform() {}

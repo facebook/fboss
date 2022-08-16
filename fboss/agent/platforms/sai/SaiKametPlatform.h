@@ -9,13 +9,13 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/sai/SaiHwPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
 
 namespace facebook::fboss {
 
-class IndusAsic;
+class BeasAsic;
 
-class SaiKametPlatform : public SaiHwPlatform {
+class SaiKametPlatform : public SaiBcmPlatform {
  public:
   explicit SaiKametPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
@@ -23,7 +23,13 @@ class SaiKametPlatform : public SaiHwPlatform {
   ~SaiKametPlatform() override;
   HwAsic* getAsic() const override;
 
-  std::string getHwConfig() override;
+  uint32_t numLanesPerCore() const override {
+    return 1;
+  }
+
+  uint32_t numCellsAvailable() const override {
+    return 130665;
+  }
 
   bool isSerdesApiSupported() const override {
     return true;
@@ -50,7 +56,7 @@ class SaiKametPlatform : public SaiHwPlatform {
   }
 
  private:
-  std::unique_ptr<IndusAsic> asic_;
+  std::unique_ptr<BeasAsic> asic_;
 };
 
 } // namespace facebook::fboss

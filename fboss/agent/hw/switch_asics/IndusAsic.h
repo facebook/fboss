@@ -2,22 +2,15 @@
 
 #pragma once
 
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/BroadcomAsic.h"
 
 namespace facebook::fboss {
 
-class IndusAsic : public HwAsic {
+class IndusAsic : public BroadcomAsic {
  public:
   bool isSupported(Feature) const override;
-  std::string getVendor() const override {
-    return "indus";
-  }
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_INDUS;
-  }
-  AsicVendor getAsicVendor() const override {
-    return HwAsic::AsicVendor::ASIC_VENDOR_INDUS;
   }
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
     return phy::DataPlanePhyChipType::IPHY;
