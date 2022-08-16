@@ -3112,6 +3112,22 @@ int BcmCinter::bcm_field_hints_add(
   return 0;
 }
 
+int BcmCinter::bcm_field_hints_destroy(int unit, bcm_field_hintid_t hint_id) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_field_hints_destroy(", makeParamStr(unit, hint_id), ")")));
+  return 0;
+}
+
+int BcmCinter::bcm_field_hints_get(
+    int unit,
+    bcm_field_hintid_t hint_id,
+    bcm_field_hint_t* hint) {
+  writeCintLines(cintForHint(*hint));
+  writeCintLines(wrapFunc(
+      fmt::format("bcm_field_hints_get({}, {}, &hint)", unit, hint_id)));
+  return 0;
+}
+
 #if (defined(IS_OPENNSA) || defined(BCM_SDK_VERSION_GTE_6_5_21))
 std::vector<std::string> BcmCinter::cintForPortFdrConfig(
     bcm_port_fdr_config_t fdr_config) {

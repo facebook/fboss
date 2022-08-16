@@ -361,6 +361,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int unit,
       bcm_field_hintid_t hint_id,
       bcm_field_hint_t* hint) override;
+  int bcm_field_hints_destroy(int unit, bcm_field_hintid_t hint_id) override;
+  int bcm_field_hints_get(
+      int unit,
+      bcm_field_hintid_t hint_id,
+      bcm_field_hint_t* hint) override;
   int bcm_field_init(int unit) override;
   int bcm_field_group_create_id(
       int unit,
