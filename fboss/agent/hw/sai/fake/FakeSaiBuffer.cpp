@@ -133,6 +133,9 @@ sai_status_t create_buffer_profile_fn(
   std::optional<sai_buffer_profile_threshold_mode_t> threshMode;
   std::optional<sai_int8_t> dynamicThreshold;
   std::optional<sai_int8_t> staticThreshold;
+  std::optional<sai_uint64_t> xoffTh;
+  std::optional<sai_uint64_t> xonTh;
+  std::optional<sai_uint64_t> xonOffsetTh;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_BUFFER_PROFILE_ATTR_POOL_ID:
@@ -148,6 +151,15 @@ sai_status_t create_buffer_profile_fn(
       case SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH:
         dynamicThreshold = attr_list[i].value.s8;
         break;
+      case SAI_BUFFER_PROFILE_ATTR_XOFF_TH:
+        xoffTh = attr_list[i].value.u64;
+        break;
+      case SAI_BUFFER_PROFILE_ATTR_XON_TH:
+        xonTh = attr_list[i].value.u64;
+        break;
+      case SAI_BUFFER_PROFILE_ATTR_XON_OFFSET_TH:
+        xonOffsetTh = attr_list[i].value.u64;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -156,7 +168,13 @@ sai_status_t create_buffer_profile_fn(
     return SAI_STATUS_INVALID_PARAMETER;
   }
   *buffer_profile_id = fs->bufferProfileManager.create(
-      poolId.value(), reservedBytes, threshMode, dynamicThreshold);
+      poolId.value(),
+      reservedBytes,
+      threshMode,
+      dynamicThreshold,
+      xoffTh,
+      xonTh,
+      xonOffsetTh);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -175,6 +193,15 @@ sai_status_t set_buffer_profile_attribute_fn(
       break;
     case SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH:
       profile.dynamicThreshold = attr->value.s8;
+      break;
+    case SAI_BUFFER_PROFILE_ATTR_XOFF_TH:
+      profile.xoffTh = attr->value.u64;
+      break;
+    case SAI_BUFFER_PROFILE_ATTR_XON_TH:
+      profile.xonTh = attr->value.u64;
+      break;
+    case SAI_BUFFER_PROFILE_ATTR_XON_OFFSET_TH:
+      profile.xonOffsetTh = attr->value.u64;
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
@@ -209,6 +236,16 @@ sai_status_t get_buffer_profile_attribute_fn(
       case SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH:
         attr[i].value.s8 =
             profile.dynamicThreshold ? profile.dynamicThreshold.value() : 0;
+        break;
+      case SAI_BUFFER_PROFILE_ATTR_XOFF_TH:
+        attr[i].value.u64 = profile.xoffTh ? profile.xoffTh.value() : 0;
+        break;
+      case SAI_BUFFER_PROFILE_ATTR_XON_TH:
+        attr[i].value.u64 = profile.xonTh ? profile.xonTh.value() : 0;
+        break;
+      case SAI_BUFFER_PROFILE_ATTR_XON_OFFSET_TH:
+        attr[i].value.u64 =
+            profile.xonOffsetTh ? profile.xonOffsetTh.value() : 0;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
