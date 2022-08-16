@@ -466,6 +466,77 @@ phy::PhyInfo SaiPhyManager::getPhyInfo(PortID swPort) {
   return phy::PhyInfo{};
 }
 
+std::string SaiPhyManager::getSaiPortInfo(PortID swPort) {
+  std::string output;
+
+  XLOG(INFO) << "SaiPhyManager::getSaiPortInfo";
+  auto globalPhyID = getGlobalXphyIDbyPortID(swPort);
+  auto saiPlatform = getSaiPlatform(globalPhyID);
+  auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+
+  auto switchId = saiSwitch->getSwitchId();
+
+  // Get port handle and then get port attributes
+  auto portHandle =
+      saiSwitch->managerTable()->portManager().getPortHandle(swPort);
+
+  if (portHandle == nullptr) {
+    XLOG(INFO) << "Port Handle is null";
+    return "";
+  }
+
+  output.append(folly::sformat(
+      "SwPort {:d} \n Switch Id {:d}\n",
+      static_cast<int>(swPort),
+      static_cast<uint64_t>(switchId)));
+
+  auto linePortAdapter = portHandle->port->adapterKey();
+  auto sysPortAdapter = portHandle->sysPort->adapterKey();
+  auto connectorAdapter = portHandle->connector->adapterKey();
+
+  output.append(folly::sformat("  Line Port Obj = {}\n", linePortAdapter.t));
+
+  auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+      linePortAdapter, SaiPortTraits::Attributes::OperStatus{});
+  output.append(folly::sformat(
+      "    Link Status: {:d}\n", static_cast<int>(portOperStatus)));
+  auto portSpeed = SaiApiTable::getInstance()->portApi().getAttribute(
+      linePortAdapter, SaiPortTraits::Attributes::Speed{});
+  output.append(folly::sformat("    Speed: {:d}\n", portSpeed));
+  auto fecMode = SaiApiTable::getInstance()->portApi().getAttribute(
+      linePortAdapter, SaiPortTraits::Attributes::FecMode{});
+  output.append(folly::sformat("    Fec mode: {:d}\n", fecMode));
+  auto interfaceType = SaiApiTable::getInstance()->portApi().getAttribute(
+      linePortAdapter, SaiPortTraits::Attributes::InterfaceType{});
+  output.append(folly::sformat("    Interface Type: {:d}\n", interfaceType));
+  auto serdesId = SaiApiTable::getInstance()->portApi().getAttribute(
+      linePortAdapter, SaiPortTraits::Attributes::SerdesId{});
+  output.append(folly::sformat("    Serdes Id: {:d}\n", serdesId));
+
+  output.append(folly::sformat("  Syetem Port Obj = {}\n", sysPortAdapter.t));
+
+  portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
+      sysPortAdapter, SaiPortTraits::Attributes::OperStatus{});
+  output.append(folly::sformat(
+      "    Link Status: {:d}\n", static_cast<int>(portOperStatus)));
+  portSpeed = SaiApiTable::getInstance()->portApi().getAttribute(
+      sysPortAdapter, SaiPortTraits::Attributes::Speed{});
+  output.append(folly::sformat("    Speed: {:d}\n", portSpeed));
+  fecMode = SaiApiTable::getInstance()->portApi().getAttribute(
+      sysPortAdapter, SaiPortTraits::Attributes::FecMode{});
+  output.append(folly::sformat("    Fec mode: {:d}\n", fecMode));
+  interfaceType = SaiApiTable::getInstance()->portApi().getAttribute(
+      sysPortAdapter, SaiPortTraits::Attributes::InterfaceType{});
+  output.append(folly::sformat("    Interface Type: {:d}\n", interfaceType));
+  serdesId = SaiApiTable::getInstance()->portApi().getAttribute(
+      sysPortAdapter, SaiPortTraits::Attributes::SerdesId{});
+  output.append(folly::sformat("    Serdes Id: {:d}\n", serdesId));
+
+  output.append(
+      folly::sformat("  Port Connector Obj = {}\n", connectorAdapter.t));
+  return output;
+}
+
 std::unique_ptr<ExternalPhyPortStatsUtils>
 SaiPhyManager::createExternalPhyPortStats(PortID portID) {
   // TODO(joseph5wu) Need to check what kinda stas we can get from

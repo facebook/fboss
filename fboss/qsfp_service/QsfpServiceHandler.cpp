@@ -263,6 +263,7 @@ void QsfpServiceHandler::getSaiPortInfo(
     std::string& out,
     std::unique_ptr<std::string> portName) {
   auto log = LOG_THRIFT_CALL(INFO);
+  out = manager_->getSaiPortInfo(*portName);
 }
 
 void QsfpServiceHandler::publishLinkSnapshots(

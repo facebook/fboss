@@ -193,6 +193,9 @@ class TransceiverManager {
 
   virtual bool getSdkState(std::string filename) const = 0;
 
+  virtual std::string getSaiPortInfo(std::string portName) {
+    return "";
+  }
   // Returns the interface names for a given transceiverId
   // Returns empty list when there is no corresponding name for a given
   // transceiver ID
