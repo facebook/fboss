@@ -151,14 +151,19 @@ void PacketStreamClient::cancel() {
       XLOG(WARNING) << clientId_ << " disconnect failed:" << ex.what();
     }
   });
+#endif
 
+  // Flip to disconnected early so other threads won't try to touch client_
+  // while we're destroying it.
+  state_.store(State::DISCONNECTED);
+
+#if FOLLY_HAS_COROUTINES
   clientEvbThread_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
       [this]() { client_.reset(); });
   // terminate event base getting ready for clean-up
   clientEvbThread_->getEventBase()->terminateLoopSoon();
   evb_->terminateLoopSoon();
 #endif
-  state_.store(State::DISCONNECTED);
 }
 
 #if FOLLY_HAS_COROUTINES

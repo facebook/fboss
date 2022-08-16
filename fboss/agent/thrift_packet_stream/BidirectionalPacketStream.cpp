@@ -276,8 +276,8 @@ ssize_t BidirectionalPacketStream::send(TPacket&& packet) {
 // server calls. Right now supports one birectional connection so we don't
 // care about the client id.
 void BidirectionalPacketStream::clientConnected(const std::string& clientId) {
-  clientConnected_.store(true);
   connectedClientId_ = clientId;
+  clientConnected_.store(true);
   STATS_client_connected.add(1);
 }
 void BidirectionalPacketStream::clientDisconnected(
