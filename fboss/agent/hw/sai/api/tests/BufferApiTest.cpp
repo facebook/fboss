@@ -52,7 +52,13 @@ class BufferApiTest : public ::testing::Test {
     SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynamicThresh{
         24};
     SaiBufferProfileTraits::CreateAttributes c{
-        pool, reservedBytes, mode, dynamicThresh};
+        pool,
+        reservedBytes,
+        mode,
+        dynamicThresh,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt};
     return bufferApi->create<SaiBufferProfileTraits>(c, 0);
   }
   void checkBufferProfile(BufferProfileSaiId id) const {

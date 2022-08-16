@@ -83,13 +83,24 @@ struct SaiBufferProfileTraits {
         EnumType,
         SAI_BUFFER_PROFILE_ATTR_SHARED_DYNAMIC_TH,
         sai_int8_t>;
+    using XoffTh =
+        SaiAttribute<EnumType, SAI_BUFFER_PROFILE_ATTR_XOFF_TH, sai_uint64_t>;
+    using XonTh =
+        SaiAttribute<EnumType, SAI_BUFFER_PROFILE_ATTR_XON_TH, sai_uint64_t>;
+    using XonOffsetTh = SaiAttribute<
+        EnumType,
+        SAI_BUFFER_PROFILE_ATTR_XON_OFFSET_TH,
+        sai_uint64_t>;
   };
   using AdapterKey = BufferProfileSaiId;
   using CreateAttributes = std::tuple<
       Attributes::PoolId,
       std::optional<Attributes::ReservedBytes>,
       std::optional<Attributes::ThresholdMode>,
-      std::optional<Attributes::SharedDynamicThreshold>>;
+      std::optional<Attributes::SharedDynamicThreshold>,
+      std::optional<Attributes::XoffTh>,
+      std::optional<Attributes::XonTh>,
+      std::optional<Attributes::XonOffsetTh>>;
   using AdapterHostKey = CreateAttributes;
 };
 
@@ -97,6 +108,9 @@ SAI_ATTRIBUTE_NAME(BufferProfile, PoolId);
 SAI_ATTRIBUTE_NAME(BufferProfile, ReservedBytes);
 SAI_ATTRIBUTE_NAME(BufferProfile, ThresholdMode);
 SAI_ATTRIBUTE_NAME(BufferProfile, SharedDynamicThreshold);
+SAI_ATTRIBUTE_NAME(BufferProfile, XoffTh);
+SAI_ATTRIBUTE_NAME(BufferProfile, XonTh);
+SAI_ATTRIBUTE_NAME(BufferProfile, XonOffsetTh);
 
 class BufferApi : public SaiApi<BufferApi> {
  public:
