@@ -65,8 +65,10 @@ HwSwitchEnsemble::~HwSwitchEnsemble() {
   }
   if (platform_ && getHwSwitch() &&
       getHwSwitch()->getRunState() >= SwitchRunState::INITIALIZED) {
-    auto minRouteState = getMinAlpmRouteState(getProgrammedState());
-    applyNewState(minRouteState);
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_PROGRAMMING)) {
+      auto minRouteState = getMinAlpmRouteState(getProgrammedState());
+      applyNewState(minRouteState);
+    }
     // Unregister callbacks before we start destroying hwSwitch
     getHwSwitch()->unregisterCallbacks();
   }
@@ -340,11 +342,13 @@ void HwSwitchEnsemble::setupEnsemble(
   updater.stateUpdated(
       StateDelta(std::make_shared<SwitchState>(), programmedState_));
 
-  // ALPM requires that default routes be programmed
-  // before any other routes. We handle that setup here. Similarly ALPM
-  // requires that default routes be deleted last. That aspect is handled
-  // in TearDown
-  getRouteUpdater().programMinAlpmState();
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_PROGRAMMING)) {
+    // ALPM requires that default routes be programmed
+    // before any other routes. We handle that setup here. Similarly ALPM
+    // requires that default routes be deleted last. That aspect is handled
+    // in TearDown
+    getRouteUpdater().programMinAlpmState();
+  }
 
   thriftThread_ = std::move(thriftThread);
   switchRunStateChanged(SwitchRunState::INITIALIZED);
