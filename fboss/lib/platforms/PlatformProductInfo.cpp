@@ -130,6 +130,10 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::LASSEN;
     } else if (modelName.find("Sandia") == 0 || modelName.find("SANDIA") == 0) {
       mode_ = PlatformMode::SANDIA;
+    } else if (modelName.find("Makalu") == 0) {
+      mode_ = PlatformMode::MAKALU;
+    } else if (modelName.find("Kamet") == 0) {
+      mode_ = PlatformMode::KAMET;
     } else {
       throw std::runtime_error("invalid model name " + modelName);
     }
@@ -160,6 +164,10 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::LASSEN;
     } else if (FLAGS_mode == "sandia") {
       mode_ = PlatformMode::SANDIA;
+    } else if (FLAGS_mode == "makalu") {
+      mode_ = PlatformMode::MAKALU;
+    } else if (FLAGS_mode == "kamet") {
+      mode_ = PlatformMode::KAMET;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }
