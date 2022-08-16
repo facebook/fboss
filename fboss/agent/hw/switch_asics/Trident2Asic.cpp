@@ -39,6 +39,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::SAI_LAG_HASH:
+    case HwAsic::Feature::ROUTE_PROGRAMMING:
       return true;
 
     case HwAsic::Feature::ERSPANv6:

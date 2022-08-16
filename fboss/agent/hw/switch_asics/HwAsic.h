@@ -109,6 +109,7 @@ class HwAsic {
     FABRIC_MODE,
     SAI_PORT_ERR_STATUS,
     EXACT_MATCH,
+    ROUTE_PROGRAMMING,
   };
 
   enum class AsicType ASIC_TYPE_LIST;
