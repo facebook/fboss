@@ -1220,15 +1220,18 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   ) throws (1: fboss.FbossBaseError error);
 
   void addTeFlows(1: list<FlowEntry> teFlowEntries) throws (
-    1: FbossTeUpdateError error,
+    1: fboss.FbossBaseError error,
+    2: FbossTeUpdateError teFlowError,
   );
 
   void deleteTeFlows(1: list<TeFlow> teFlows) throws (
-    1: FbossTeUpdateError error,
+    1: fboss.FbossBaseError error,
+    2: FbossTeUpdateError teFlowError,
   );
 
   void syncTeFlows(1: list<FlowEntry> teFlowEntries) throws (
-    1: FbossTeUpdateError error,
+    1: fboss.FbossBaseError error,
+    2: FbossTeUpdateError teFlowError,
   );
 }
 

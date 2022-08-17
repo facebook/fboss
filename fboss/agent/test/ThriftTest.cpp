@@ -47,6 +47,14 @@ using ::testing::Return;
 using testing::UnorderedElementsAreArray;
 
 namespace {
+static TeCounterID kCounterID("counter0");
+static std::string kNhopAddrA("2401:db00:2110:3001::0002");
+static std::string kNhopAddrB("2401:db00:2110:3055::0002");
+static folly::MacAddress kMacAddress("01:02:03:04:05:06");
+static VlanID kVlanA(1);
+static VlanID kVlanB(55);
+static PortID kPortIDA(1);
+static PortID kPortIDB(11);
 
 IpPrefix ipPrefix(StringPiece ip, int length) {
   IpPrefix result;
@@ -64,14 +72,16 @@ IpPrefix ipPrefix(const folly::CIDRNetwork& nw) {
 
 FlowEntry makeFlow(
     std::string dstIp,
-    std::string nhip = "1::1",
-    std::string counter = "counter0") {
+    std::string nhip = kNhopAddrA,
+    std::string counter = "counter0",
+    std::string nhopAddr = "fboss1") {
   FlowEntry flowEntry;
   flowEntry.flow()->srcPort() = 100;
   flowEntry.flow()->dstPrefix() = ipPrefix(dstIp, 64);
   flowEntry.counterID() = counter;
   flowEntry.nextHops()->resize(1);
   flowEntry.nextHops()[0].address() = toBinaryAddress(IPAddress(nhip));
+  flowEntry.nextHops()[0].address()->ifName() = nhopAddr;
   return flowEntry;
 }
 } // unnamed namespace
@@ -1949,7 +1959,37 @@ TEST_F(ThriftTest, applySpeedAndProfileMismatchConfig) {
       FbossError);
 }
 
-TEST_F(ThriftTest, addRemoveTeFlow) {
+class ThriftTeFlowTest : public ::testing::Test {
+ public:
+  void SetUp() override {
+    auto config = testConfigA();
+    handle_ = createTestHandle(&config);
+    sw_ = handle_->getSw();
+    sw_->initialConfigApplied(std::chrono::steady_clock::now());
+    sw_->getNeighborUpdater()->receivedNdpMine(
+        kVlanA,
+        folly::IPAddressV6(kNhopAddrA),
+        kMacAddress,
+        PortDescriptor(kPortIDA),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
+    sw_->getNeighborUpdater()->receivedNdpMine(
+        kVlanB,
+        folly::IPAddressV6(kNhopAddrB),
+        kMacAddress,
+        PortDescriptor(kPortIDB),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
+
+    sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForBackgroundThread(sw_);
+    waitForStateUpdates(sw_);
+  }
+  SwSwitch* sw_;
+  std::unique_ptr<HwTestHandle> handle_;
+};
+
+TEST_F(ThriftTeFlowTest, addRemoveTeFlow) {
   ThriftHandler handler(sw_);
   auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   auto flowEntry = makeFlow("100::1");
@@ -1957,30 +1997,33 @@ TEST_F(ThriftTest, addRemoveTeFlow) {
   handler.addTeFlows(std::move(teFlowEntries));
   auto state = sw_->getState();
   auto teFlowTable = state->getTeFlowTable();
-  auto verifyEntry =
-      [&teFlowTable](const auto& flow, const auto& nhop, const auto& counter) {
-        EXPECT_EQ(teFlowTable->size(), 1);
-        auto tableEntry = teFlowTable->getTeFlowIf(flow);
-        EXPECT_NE(tableEntry, nullptr);
-        EXPECT_EQ(tableEntry->getCounterID(), counter);
-        EXPECT_EQ(tableEntry->getNextHops().size(), 1);
-        EXPECT_EQ(
-            tableEntry->getNextHops()[0].address(),
-            toBinaryAddress(IPAddress(nhop)));
-        EXPECT_EQ(tableEntry->getResolvedNextHops().size(), 1);
-        EXPECT_EQ(
-            tableEntry->getResolvedNextHops()[0], tableEntry->getNextHops()[0]);
-      };
-  verifyEntry(*flowEntry.flow(), "1::1", "counter0");
+  auto verifyEntry = [&teFlowTable](
+                         const auto& flow,
+                         const auto& nhop,
+                         const auto& counter,
+                         const auto& intf) {
+    EXPECT_EQ(teFlowTable->size(), 1);
+    auto tableEntry = teFlowTable->getTeFlowIf(flow);
+    EXPECT_NE(tableEntry, nullptr);
+    EXPECT_EQ(tableEntry->getCounterID(), counter);
+    EXPECT_EQ(tableEntry->getNextHops().size(), 1);
+    auto expectedNhop = toBinaryAddress(IPAddress(nhop));
+    expectedNhop.ifName() = intf;
+    EXPECT_EQ(tableEntry->getNextHops()[0].address(), expectedNhop);
+    EXPECT_EQ(tableEntry->getResolvedNextHops().size(), 1);
+    EXPECT_EQ(
+        tableEntry->getResolvedNextHops()[0], tableEntry->getNextHops()[0]);
+  };
+  verifyEntry(*flowEntry.flow(), kNhopAddrA, "counter0", "fboss1");
 
   // modify the entry
-  auto flowEntry2 = makeFlow("100::1", "2::2", "counter1");
+  auto flowEntry2 = makeFlow("100::1", kNhopAddrB, "counter1", "fboss55");
   auto newFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   newFlowEntries->emplace_back(flowEntry2);
   handler.addTeFlows(std::move(newFlowEntries));
   state = sw_->getState();
   teFlowTable = state->getTeFlowTable();
-  verifyEntry(*flowEntry.flow(), "2::2", "counter1");
+  verifyEntry(*flowEntry.flow(), kNhopAddrB, "counter1", "fboss55");
 
   auto teFlows = std::make_unique<std::vector<TeFlow>>();
   teFlows->emplace_back(*flowEntry.flow());
@@ -2022,7 +2065,7 @@ TEST_F(ThriftTest, addRemoveTeFlow) {
   }
 }
 
-TEST_F(ThriftTest, syncTeFlows) {
+TEST_F(ThriftTeFlowTest, syncTeFlows) {
   auto initalPrefixes = {"100::1", "101::1", "102::1", "103::1"};
   ThriftHandler handler(sw_);
   auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
