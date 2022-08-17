@@ -74,7 +74,7 @@ class QsfpServiceHandler
   }
 
   void resetTransceiver(
-      std::unique_ptr<::std::string> portName,
+      std::unique_ptr<std::vector<std::string>> portNames,
       ResetType resetType,
       ResetAction resetAction) override;
 

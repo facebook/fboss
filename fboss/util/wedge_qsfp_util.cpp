@@ -200,6 +200,9 @@ DEFINE_bool(
     false,
     "Read Transceiver info from i2c bus instead of qsfp_service");
 DEFINE_bool(qsfp_hard_reset, false, "Issue a hard reset to port QSFP");
+DEFINE_bool(qsfp_reset, false, "Issue reset to QSFP ports");
+DEFINE_string(qsfp_reset_type, "INVALID", "HARD_RESET");
+DEFINE_string(qsfp_reset_action, "INVALID", "RESET_THEN_CLEAR");
 DEFINE_bool(
     electrical_loopback,
     false,
@@ -2220,6 +2223,51 @@ bool doQsfpHardReset(TransceiverI2CApi* bus, unsigned int port) {
   qsfpBus->triggerQsfpHardReset(port);
 
   return true;
+}
+
+int resetQsfp(const std::vector<std::string>& ports, folly::EventBase& evb) {
+  if (ports.empty()) {
+    XLOG(ERR) << "Please specify QSFP ports to be reset";
+    return EX_USAGE;
+  }
+
+  ResetType resetType;
+  apache::thrift::TEnumTraits<ResetType>::findValue(
+      FLAGS_qsfp_reset_type, &resetType);
+
+  switch (static_cast<ResetType>(resetType)) {
+    case ResetType::HARD_RESET:
+      break;
+    case ResetType::INVALID:
+    default:
+      XLOG(ERR) << fmt::format("Invalid reset type: {}", FLAGS_qsfp_reset_type);
+      return EX_USAGE;
+  };
+
+  ResetAction resetAction;
+  apache::thrift::TEnumTraits<ResetAction>::findValue(
+      FLAGS_qsfp_reset_action, &resetAction);
+
+  switch (static_cast<ResetAction>(resetAction)) {
+    case ResetAction::RESET_THEN_CLEAR:
+      break;
+    case ResetAction::INVALID:
+    default:
+      XLOG(ERR) << fmt::format(
+          "Invalid reset action: {}", FLAGS_qsfp_reset_action);
+      return EX_USAGE;
+  };
+
+  try {
+    auto client = getQsfpClient(evb);
+    client->sync_resetTransceiver(ports, resetType, resetAction);
+    XLOG(INFO) << "Successfully reset ports";
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << fmt::format("Error reseting ports: {:s}", ex.what());
+    return EX_SOFTWARE;
+  }
+
+  return EX_OK;
 }
 
 bool doMiniphotonLoopback(

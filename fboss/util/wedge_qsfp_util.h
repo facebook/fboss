@@ -26,6 +26,9 @@ DECLARE_bool(cdr_disable);
 DECLARE_int32(open_timeout);
 DECLARE_bool(direct_i2c);
 DECLARE_bool(qsfp_hard_reset);
+DECLARE_bool(qsfp_reset);
+DECLARE_int32(reset_type);
+DECLARE_int32(reset_action);
 DECLARE_bool(electrical_loopback);
 DECLARE_bool(optical_loopback);
 DECLARE_bool(clear_loopback);
@@ -194,6 +197,8 @@ void printPortDetailService(
 void tryOpenBus(TransceiverI2CApi* bus);
 
 bool doQsfpHardReset(TransceiverI2CApi* bus, unsigned int port);
+
+int resetQsfp(const std::vector<std::string>& ports, folly::EventBase& evb);
 
 bool doMiniphotonLoopback(
     TransceiverI2CApi* bus,

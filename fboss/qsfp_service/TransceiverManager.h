@@ -94,7 +94,7 @@ class TransceiverManager {
       std::unique_ptr<std::vector<int32_t>> ids) = 0;
 
   void resetTransceiver(
-      std::unique_ptr<::std::string> portName,
+      std::unique_ptr<std::vector<std::string>> portNames,
       ResetType resetType,
       ResetAction resetAction);
 

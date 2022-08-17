@@ -98,11 +98,11 @@ void QsfpServiceHandler::syncPorts(
 }
 
 void QsfpServiceHandler::resetTransceiver(
-    std::unique_ptr<::std::string> portName,
+    std::unique_ptr<std::vector<std::string>> portNames,
     ResetType resetType,
     ResetAction resetAction) {
   auto log = LOG_THRIFT_CALL(INFO);
-  manager_->resetTransceiver(std::move(portName), resetType, resetAction);
+  manager_->resetTransceiver(std::move(portNames), resetType, resetAction);
 }
 
 void QsfpServiceHandler::pauseRemediation(

@@ -61,7 +61,7 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
    * Throw when trying to hard reset a SFF8472 transceiver (not supported)
    */
   void resetTransceiver(
-    1: string portName,
+    1: list<string> portNames,
     2: transceiver.ResetType resetType,
     3: transceiver.ResetAction resetAction,
   ) throws (1: fboss.FbossBaseError error);

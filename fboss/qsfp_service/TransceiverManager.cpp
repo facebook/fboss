@@ -1713,7 +1713,7 @@ std::vector<TransceiverID> TransceiverManager::refreshTransceivers(
 }
 
 void TransceiverManager::resetTransceiver(
-    std::unique_ptr<::std::string> /* portName */,
+    std::unique_ptr<std::vector<std::string>> /* portNames */,
     ResetType /* resetType */,
     ResetAction /* resetAction */) {}
 

@@ -35,6 +35,7 @@ std::vector<FlagCommand> kCommands = {
     {"cdr_enable", {}},
     {"cdr_disable", {}},
     {"qsfp_hard_reset", {}},
+    {"qsfp_reset", {"reset_type", "reset_action"}},
     {"electrical_loopback", {}},
     {"optical_loopback", {}},
     {"clear_loopback", {}},
@@ -124,6 +125,10 @@ int main(int argc, char* argv[]) {
   }
   if (!good) {
     return EX_USAGE;
+  }
+
+  if (FLAGS_qsfp_reset) {
+    return resetQsfp(portNames, evb);
   }
 
   if (FLAGS_pause_remediation) {
