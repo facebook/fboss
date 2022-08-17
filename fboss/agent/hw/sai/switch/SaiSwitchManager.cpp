@@ -84,19 +84,27 @@ SaiSwitchManager::SaiSwitchManager(
         platform->getSwitchAttributes(false, switchType, switchId),
         0 /* fake switch id; ignored */);
 
-    resetLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV4>();
-    resetLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV6>();
+    const auto& asic = platform_->getAsic();
+    if (asic->isSupported(HwAsic::Feature::ECMP_HASH_V4)) {
+      resetLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV4>();
+    }
+    if (asic->isSupported(HwAsic::Feature::ECMP_HASH_V6)) {
+      resetLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV6>();
+    }
 #if defined(SAI_VERSION_7_0_0_2_ODP)
     resetLoadBalancer<SaiSwitchTraits::Attributes::LagHashV4>();
     resetLoadBalancer<SaiSwitchTraits::Attributes::LagHashV6>();
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
-    auto maxEcmpCount = SaiApiTable::getInstance()->switchApi().getAttribute(
-        switch_->adapterKey(),
-        SaiSwitchTraits::Attributes::MaxEcmpMemberCount{});
-    XLOG(DBG2) << "Got max ecmp member count " << maxEcmpCount;
-    switch_->setOptionalAttribute(
-        SaiSwitchTraits::Attributes::EcmpMemberCount{maxEcmpCount});
+    if (asic->isSupported(HwAsic::Feature::ECMP_HASH_V4) ||
+        asic->isSupported(HwAsic::Feature::ECMP_HASH_V6)) {
+      auto maxEcmpCount = SaiApiTable::getInstance()->switchApi().getAttribute(
+          switch_->adapterKey(),
+          SaiSwitchTraits::Attributes::MaxEcmpMemberCount{});
+      XLOG(DBG2) << "Got max ecmp member count " << maxEcmpCount;
+      switch_->setOptionalAttribute(
+          SaiSwitchTraits::Attributes::EcmpMemberCount{maxEcmpCount});
+    }
 #endif
   }
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
