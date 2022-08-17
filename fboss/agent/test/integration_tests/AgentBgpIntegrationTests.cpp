@@ -10,6 +10,7 @@
 
 #include <fb303/ServiceData.h>
 #include <folly/Subprocess.h>
+#include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -33,6 +34,7 @@ auto constexpr kTestPrefixLength = 120;
 } // namespace
 
 using namespace facebook::neteng::fboss::bgp::thrift;
+using namespace facebook::neteng::fboss::bgp_attr;
 
 using StateUpdateFn = facebook::fboss::SwSwitch::StateUpdateFn;
 
@@ -166,6 +168,35 @@ class BgpIntegrationTest : public AgentIntegrationTest {
       }
     });
   }
+
+  TIpPrefix makePrefix(folly::IPAddress prefix, uint8_t length) {
+    TIpPrefix tprefix;
+    tprefix.afi_ref() = TBgpAfi::AFI_IPV6;
+    tprefix.num_bits_ref() = length;
+    tprefix.prefix_bin_ref() =
+        network::toBinaryAddress(prefix).addr_ref()->toStdString();
+    return tprefix;
+  }
+
+  void addBgpRoutes(std::vector<std::pair<folly::IPAddress, uint8_t>> toAdd) {
+    auto clientParams = servicerouter::ClientParams();
+    clientParams.setSingleHost("::1", kBgpThriftPort);
+    auto client =
+        servicerouter::cpp2::getClientFactory()
+            .getSRClientUnique<TBgpServiceAsyncClient>("", clientParams);
+    auto nhPrefix = makePrefix(folly::IPAddress("2::"), 128);
+    std::map<TIpPrefix, TBgpAttributes> networks;
+    for (const auto& entry : toAdd) {
+      auto tPrefix = makePrefix(entry.first, entry.second);
+      TBgpAttributes attributes;
+      auto tBgpCommunities = std::vector<TBgpCommunity>();
+      attributes.nexthop() = std::move(nhPrefix);
+      attributes.communities() = tBgpCommunities;
+      attributes.install_to_fib() = true;
+      networks[tPrefix] = attributes;
+    }
+    client->sync_addNetworks(std::move(networks));
+  }
 };
 
 TEST_F(BgpIntegrationTest, bgpSesionsEst) {
@@ -219,6 +250,17 @@ TEST_F(BgpIntegrationTest, bgpRestart) {
     checkRoute(folly::IPAddressV6(kTestPrefix), kTestPrefixLength, true);
   };
   verifyAcrossWarmBoots(verify);
+}
+
+// TODO - Change this to a 100k route test
+TEST_F(BgpIntegrationTest, addBgpRoute) {
+  auto setup = [&]() {
+    checkBgpState(TBgpPeerState::ESTABLISHED, {"1::", "2::"});
+    checkAgentState();
+    addBgpRoutes({{folly::IPAddress("102::"), 120}});
+  };
+  auto verify = [&]() { checkRoute(folly::IPAddressV6("102::"), 120, true); };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
