@@ -16,6 +16,8 @@ using folly::IPAddressV4;
 using folly::IPAddressV6;
 using folly::StringPiece;
 
+using StateUpdateFn = facebook::fboss::SwSwitch::StateUpdateFn;
+
 namespace {
 static TeCounterID kCounterID("counter0");
 static std::string kNhopAddrA("2401:db00:2110:3001::0002");
@@ -111,6 +113,10 @@ class TeFlowTest : public ::testing::Test {
     EXPECT_EQ(entry->getResolvedNextHops().size(), 1);
     EXPECT_EQ(entry->getResolvedNextHops()[0].address(), expectedNhop);
   }
+
+  void updateState(folly::StringPiece name, StateUpdateFn func) {
+    sw_->updateStateBlocking(name, func);
+  }
   std::unique_ptr<HwTestHandle> handle_;
   SwSwitch* sw_;
 };
@@ -162,4 +168,44 @@ TEST_F(TeFlowTest, AddDeleteTeFlow) {
   // delete the entry
   flowTable->removeTeFlowEntry(&state, flowId);
   EXPECT_EQ(flowTable->getTeFlowIf(flowId), nullptr);
+}
+
+TEST_F(TeFlowTest, NextHopResolution) {
+  auto state = sw_->getState();
+  auto flowId = makeFlowKey("100::");
+  auto flowEntry = makeFlow("100::");
+
+  updateState("add te flow", [&](const auto& state) {
+    auto newState = state->clone();
+    auto flowTable = std::make_shared<TeFlowTable>();
+    flowTable->addTeFlowEntry(&newState, flowEntry);
+    newState->resetTeFlowTable(flowTable);
+    return newState;
+  });
+  auto tableEntry = sw_->getState()->getTeFlowTable()->getTeFlowIf(flowId);
+  verifyFlowEntry(tableEntry);
+
+  // test neighbor removal
+  sw_->getNeighborUpdater()->flushEntry(kVlanA, folly::IPAddressV6(kNhopAddrA));
+  sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(sw_);
+  waitForStateUpdates(sw_);
+  tableEntry = sw_->getState()->getTeFlowTable()->getTeFlowIf(flowId);
+  EXPECT_EQ(tableEntry->getEnabled(), false);
+  EXPECT_EQ(tableEntry->getResolvedNextHops().size(), 0);
+
+  // add back the neighbor entry
+  sw_->getNeighborUpdater()->receivedNdpMine(
+      kVlanA,
+      folly::IPAddressV6(kNhopAddrA),
+      kMacAddress,
+      PortDescriptor(kPortIDA),
+      ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+      0);
+  sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(sw_);
+  waitForStateUpdates(sw_);
+  tableEntry = sw_->getState()->getTeFlowTable()->getTeFlowIf(flowId);
+  EXPECT_EQ(tableEntry->getEnabled(), true);
+  verifyFlowEntry(tableEntry);
 }

@@ -63,7 +63,8 @@ TeFlowTable* TeFlowTable::removeTeFlowEntry(
   if (!oldFlowEntry) {
     std::string flowStr;
     toAppend(flowId, &flowStr);
-    throw FbossError("Request to delete a non existing flow entry :", flowStr);
+    XLOG(ERR) << "Request to delete a non existing flow entry :" << flowStr;
+    return writableTable;
   }
   writableTable->removeNodeIf(flowId);
   return writableTable;
