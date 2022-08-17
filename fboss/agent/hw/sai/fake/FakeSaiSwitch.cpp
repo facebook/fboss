@@ -496,6 +496,10 @@ sai_status_t get_switch_attribute_fn(
         attr[i].value.u32 = sw.getEcmpMemberCount();
         break;
 #endif
+      case SAI_SWITCH_ATTR_NUMBER_OF_FABRIC_PORTS:
+        attr[i].value.u32 = 0;
+        break;
+
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
