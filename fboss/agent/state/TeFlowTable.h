@@ -57,11 +57,11 @@ class TeFlowTable : public ThriftyNodeMapT<
       std::shared_ptr<SwitchState>* state,
       const TeFlow& id);
   TeFlowTable* modify(std::shared_ptr<SwitchState>* state);
-
- private:
   static bool isNexthopResolved(
       NextHopThrift nexthop,
       std::shared_ptr<SwitchState> state);
+
+ private:
   // Inherit the constructors required for clone()
   using ThriftyNodeMapT::ThriftyNodeMapT;
   friend class CloneAllocator;

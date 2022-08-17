@@ -51,6 +51,7 @@
 #include "fboss/agent/StaticL2ForNeighborObserver.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/TeFlowNexthopHandler.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
@@ -208,7 +209,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       macTableManager_(new MacTableManager(this)),
       phySnapshotManager_(
           new PhySnapshotManager<kIphySnapshotIntervalSeconds>()),
-      aclNexthopHandler_(new AclNexthopHandler(this)) {
+      aclNexthopHandler_(new AclNexthopHandler(this)),
+      teFlowNextHopHandler_(new TeFlowNexthopHandler(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());

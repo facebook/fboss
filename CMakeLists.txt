@@ -839,6 +839,7 @@ if (NOT SAI_ONLY)
       fboss/agent/SwitchStats.cpp
       fboss/agent/SwSwitch.cpp
       fboss/agent/SwSwitchRouteUpdateWrapper.cpp
+      fboss/agent/TeFlowNexthopHandler.cpp
       fboss/agent/ThriftHandler.cpp
       fboss/agent/TunIntf.cpp
       fboss/agent/TunManager.cpp

@@ -147,6 +147,7 @@ add_library(core
   fboss/agent/StaticL2ForNeighborSwSwitchUpdater.cpp
   fboss/agent/SwSwitch.cpp
   fboss/agent/SwSwitchRouteUpdateWrapper.cpp
+  fboss/agent/TeFlowNexthopHandler.cpp
   fboss/agent/TunIntf.cpp
   fboss/agent/TunManager.cpp
   fboss/agent/ndp/IPv6RouteAdvertiser.cpp
