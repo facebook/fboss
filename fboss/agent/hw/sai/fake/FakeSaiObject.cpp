@@ -467,6 +467,18 @@ sai_status_t sai_get_object_key(
       }
       break;
     }
+    case SAI_OBJECT_TYPE_TUNNEL: {
+      for (const auto& ob : fs->tunnelManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY: {
+      for (const auto& ob : fs->tunnelTermManager.map()) {
+        object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
     case SAI_OBJECT_TYPE_MIRROR_SESSION: {
       for (const auto& ob : fs->mirrorManager.map()) {
         object_list[i++].key.object_id = ob.second.id;
