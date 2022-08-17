@@ -110,6 +110,8 @@ class HwAsic {
     SAI_PORT_ERR_STATUS,
     EXACT_MATCH,
     ROUTE_PROGRAMMING,
+    ECMP_HASH_V4,
+    ECMP_HASH_V6
   };
 
   enum class AsicType ASIC_TYPE_LIST;

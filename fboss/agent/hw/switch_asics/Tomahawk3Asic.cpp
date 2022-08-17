@@ -63,6 +63,8 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::ROUTE_PROGRAMMING:
+    case HwAsic::Feature::ECMP_HASH_V4:
+    case HwAsic::Feature::ECMP_HASH_V6:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

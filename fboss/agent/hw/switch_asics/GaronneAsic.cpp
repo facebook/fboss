@@ -51,6 +51,8 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PTP_TC_PCS:
     case HwAsic::Feature::VOQ_MODE:
     case HwAsic::Feature::ROUTE_PROGRAMMING:
+    case HwAsic::Feature::ECMP_HASH_V4:
+    case HwAsic::Feature::ECMP_HASH_V6:
       return true;
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:

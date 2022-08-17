@@ -40,6 +40,8 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::ROUTE_PROGRAMMING:
+    case HwAsic::Feature::ECMP_HASH_V4:
+    case HwAsic::Feature::ECMP_HASH_V6:
       return true;
 
     case HwAsic::Feature::ERSPANv6:

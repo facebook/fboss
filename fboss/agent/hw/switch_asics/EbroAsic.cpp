@@ -54,6 +54,8 @@ bool EbroAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_MODE:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::ROUTE_PROGRAMMING:
+    case HwAsic::Feature::ECMP_HASH_V4:
+    case HwAsic::Feature::ECMP_HASH_V6:
       return true;
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:

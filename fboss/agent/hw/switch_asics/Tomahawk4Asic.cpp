@@ -78,6 +78,8 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::ROUTE_PROGRAMMING:
+    case HwAsic::Feature::ECMP_HASH_V4:
+    case HwAsic::Feature::ECMP_HASH_V6:
       return true;
     // features only supported by B0 version, or any physical device
     // where used chip is always B0.
