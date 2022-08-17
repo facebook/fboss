@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestDscpMarkingUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -108,6 +110,10 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
     }
   }
 
+  const std::vector<uint8_t> ttlfields = {64, 128};
+  /* Default Dscp Value used before */
+  const uint8_t dscpDefault = 48;
+
   bool isSupported() const {
     return HwTest::isSupported(HwAsic::Feature::L3_QOS);
   }
@@ -187,11 +193,25 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
   }
 
   template <typename AddrT>
-  void sendPacketHelper(bool frontPanel) {
+  void sendPacketHelper(bool frontPanel, uint8_t dscp) {
     for (const auto& ipToMacAndClassID : getIpToMacAndClassID<AddrT>()) {
       auto dstIP = ipToMacAndClassID.first;
-      sendPacket<AddrT>(dstIP, frontPanel, 64 /* ttl < 128 */);
-      sendPacket<AddrT>(dstIP, frontPanel, 128 /* ttl >= 128 */);
+      sendPacket<AddrT>(
+          dstIP,
+          frontPanel,
+          ttlfields[0] /* ttl < 128 */,
+          dscp,
+          IP_PROTO::IP_PROTO_UDP,
+          std::nullopt,
+          std::nullopt);
+      sendPacket<AddrT>(
+          dstIP,
+          frontPanel,
+          ttlfields[1] /* ttl >= 128 */,
+          dscp,
+          IP_PROTO::IP_PROTO_UDP,
+          std::nullopt,
+          std::nullopt);
     }
   }
 
@@ -226,8 +246,22 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
 
     for (const auto& ipToMacAndClassID : getIpToMacAndClassID<AddrT>()) {
       auto dstIP = ipToMacAndClassID.first;
-      sendPacket<AddrT>(dstIP, frontPanel, 64 /* ttl < 128 */);
-      sendPacket<AddrT>(dstIP, frontPanel, 128 /* ttl >= 128 */);
+      sendPacket<AddrT>(
+          dstIP,
+          frontPanel,
+          ttlfields[0] /* ttl < 128 */,
+          dscpDefault,
+          IP_PROTO::IP_PROTO_UDP,
+          std::nullopt,
+          std::nullopt);
+      sendPacket<AddrT>(
+          dstIP,
+          frontPanel,
+          ttlfields[1] /* ttl >= 128 */,
+          dscpDefault,
+          IP_PROTO::IP_PROTO_UDP,
+          std::nullopt,
+          std::nullopt);
     }
 
     std::map<int, int64_t> afterQueueOutPkts;
@@ -321,6 +355,133 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
   }
 
   template <typename AddrT>
+  std::pair<std::string, AddrT> testTypeAndIpHelper() {
+    std::string testType;
+    AddrT dstIP;
+
+    if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
+      testType = "IPv4 Traffic";
+      dstIP = folly::IPAddressV4("1.0.0.10");
+    } else if constexpr (std::is_same<AddrT, folly::IPAddressV6>::value) {
+      testType = "IPv6 Traffic";
+      dstIP = folly::IPAddressV6("1::10");
+    }
+
+    return std::make_pair(testType, dstIP);
+  }
+
+  std::pair<uint64_t, uint64_t> pktCounterHelper() {
+    auto kDscpCounterAclName = utility::kDscpCounterAclName();
+    auto kCounterName = utility::kCounterName();
+    auto dscpAclPkts = utility::getAclInOutPackets(
+        getHwSwitch(),
+        this->getProgrammedState(),
+        kDscpCounterAclName,
+        kCounterName,
+        kAclStage(),
+        utility::getDscpAclTableName());
+
+    auto ttlAclName = utility::getQueuePerHostTtlAclName();
+    auto ttlCounterName = utility::getQueuePerHostTtlCounterName();
+    auto ttlAclPkts = utility::getAclInOutPackets(
+        getHwSwitch(),
+        this->getProgrammedState(),
+        ttlAclName,
+        ttlCounterName,
+        kAclStage(),
+        utility::getTtlAclTableName());
+
+    return std::make_pair(dscpAclPkts, ttlAclPkts);
+  }
+
+  template <typename AddrT>
+  void _verifyHelperDscpTtlAclTables(bool frontPanel) {
+    auto [testType, dstIP] = testTypeAndIpHelper<AddrT>();
+
+    auto [beforeDscpAclPkts, beforeTtlAclPkts] = pktCounterHelper();
+    sendAllPacketshelper<AddrT>(dstIP, frontPanel, 0);
+    auto [intermediateDscpAclPkts, intermediateTtlAclPkts] = pktCounterHelper();
+    sendAllPacketshelper<AddrT>(dstIP, frontPanel, utility::kIcpDscp());
+    auto [afterDscpAclPkts, afterTtlAclPkts] = pktCounterHelper();
+
+    XLOG(INFO) << "TestType: " << testType;
+    XLOG(INFO) << "Before ICP pkts: " << beforeDscpAclPkts
+               << " Intermediate ICP pkts: " << intermediateDscpAclPkts
+               << " After ICP pkts: " << afterDscpAclPkts;
+    XLOG(INFO) << "Before Ttl pkts: " << beforeTtlAclPkts
+               << " Intermediate Ttl pkts: " << intermediateTtlAclPkts
+               << " After Ttl pkts: " << afterTtlAclPkts;
+
+    /* When packet egresses, DSCP is not marked and so ACL counter is not hit.
+     * It marks the DSCP instead. Since the port is in loopback mode, the same
+     * packet comes in and this time hits the counter and is incremented
+     */
+    EXPECT_EQ(
+        intermediateDscpAclPkts - beforeDscpAclPkts,
+        (1 /* ACL hit once */ * 2 /* Pkt sent twice with different TTL */ *
+         2 /*l4Srcport and l4DstPort */ *
+         (utility::kUdpPorts().size() +
+          utility::kTcpPorts()
+              .size()) /* For each destIP, all ICP port pkts are sent */));
+
+    EXPECT_EQ(
+        intermediateTtlAclPkts - beforeTtlAclPkts,
+        (2 /*l4Srcport and l4DstPort */ *
+         (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
+
+    /* counts ttl >= 128 packet only. We send twice with and without DSCP
+     * marking. Each time, we send to a list of dest ports.
+     * For each send, we send for all UDP and TCP ICP ports. so the expected
+     * value needs to account for that.
+     */
+    EXPECT_EQ(
+        afterTtlAclPkts - intermediateTtlAclPkts,
+        (2 /*l4Srcport and l4DstPort */ *
+         (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
+
+    /* Inject a pkt with dscp = ICP DSCP.
+     *   - The packet will match DSCP ACL, thus counter incremented.
+     *   - Packet egress via front panel port which is in loopback mode.
+     *   - Thus, packet gets looped back.
+     *   - Hits ACL again, and thus counter incremented twice.
+     */
+    EXPECT_EQ(
+        afterDscpAclPkts - intermediateDscpAclPkts,
+        (2 /* ACL hit twice */ * 2 /* Pkt sent twice with different TTL */ *
+         2 /*L4Srcport and L4DstPort */ *
+         (utility::kUdpPorts().size() + utility::kTcpPorts().size())));
+  }
+
+  void verifyDscpTtlAclTablesHelper(bool frontPanel) {
+    ASSERT_TRUE(HwTest::isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
+
+    auto setup = [this]() {
+      resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
+
+      auto state1 = addResolvedNeighborWithClassID<folly::IPAddressV4>(
+          this->getProgrammedState());
+      auto state2 = addResolvedNeighborWithClassID<folly::IPAddressV6>(state1);
+      applyNewState(state2);
+
+      if (isSupported()) {
+        auto newCfg{initialConfig()};
+        utility::addOlympicQosMaps(newCfg);
+        utility::addDscpAclTable(&newCfg, 1 /*priority*/);
+        utility::addTtlAclTable(&newCfg, 2);
+        applyNewConfig(newCfg);
+      }
+    };
+
+    auto verify = [this, frontPanel]() {
+      // TODO: IPV4 not working. It needs to be triaged and fixed
+      //_verifyHelperDscpTtlAclTables<folly::IPAddressV4>(frontPanel);
+      _verifyHelperDscpTtlAclTables<folly::IPAddressV6>(frontPanel);
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  template <typename AddrT>
   AddrT kSrcIP() {
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
       return folly::IPAddressV4("1.0.0.1");
@@ -331,21 +492,80 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
 
  private:
   template <typename AddrT>
-  void sendPacket(AddrT dstIP, bool frontPanel, uint8_t ttl) {
+  void sendAllPacketshelper(AddrT dstIP, bool frontPanel, uint8_t dscp) {
+    sendAllPackets(
+        dstIP, frontPanel, dscp, IP_PROTO::IP_PROTO_UDP, utility::kUdpPorts());
+    sendAllPackets(
+        dstIP, frontPanel, dscp, IP_PROTO::IP_PROTO_TCP, utility::kTcpPorts());
+  }
+  template <typename AddrT>
+  void sendAllPackets(
+      AddrT dstIP,
+      bool frontPanel,
+      uint8_t dscp,
+      IP_PROTO proto,
+      const std::vector<uint32_t>& ports) {
+    for (auto ttl : ttlfields) {
+      for (auto port : ports) {
+        sendPacket(
+            dstIP,
+            frontPanel,
+            ttl,
+            dscp,
+            proto,
+            port /* l4SrcPort */,
+            std::nullopt /* l4DstPort */);
+        sendPacket(
+            dstIP,
+            frontPanel,
+            ttl,
+            dscp,
+            proto,
+            std::nullopt /* l4SrcPort */,
+            port /* l4DstPort */);
+      }
+    }
+  }
+
+  template <typename AddrT>
+  void sendPacket(
+      AddrT dstIP,
+      bool frontPanel,
+      uint8_t ttl,
+      uint8_t dscp,
+      IP_PROTO proto,
+      std::optional<uint16_t> l4SrcPort,
+      std::optional<uint16_t> l4DstPort) {
     auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
-    auto txPacket = utility::makeUDPTxPacket(
-        getHwSwitch(),
-        vlanId,
-        srcMac, // src mac
-        intfMac, // dst mac
-        kSrcIP<AddrT>(),
-        dstIP,
-        8000, // l4 src port
-        8001, // l4 dst port
-        48 << 2, // DSCP
-        ttl);
+    std::unique_ptr<facebook::fboss::TxPacket> txPacket;
+    CHECK(proto == IP_PROTO::IP_PROTO_UDP || proto == IP_PROTO::IP_PROTO_TCP);
+    if (proto == IP_PROTO::IP_PROTO_UDP) {
+      txPacket = utility::makeUDPTxPacket(
+          getHwSwitch(),
+          vlanId,
+          srcMac, // src mac
+          intfMac, // dst mac
+          kSrcIP<AddrT>(),
+          dstIP,
+          l4SrcPort.has_value() ? l4SrcPort.value() : 8000,
+          l4DstPort.has_value() ? l4DstPort.value() : 8001,
+          dscp << 2,
+          ttl);
+    } else if (proto == IP_PROTO::IP_PROTO_TCP) {
+      txPacket = utility::makeTCPTxPacket(
+          getHwSwitch(),
+          vlanId,
+          srcMac, // src mac
+          intfMac, // dst mac
+          kSrcIP<AddrT>(),
+          dstIP,
+          l4SrcPort.has_value() ? l4SrcPort.value() : 8000,
+          l4DstPort.has_value() ? l4DstPort.value() : 8001,
+          dscp << 2,
+          ttl);
+    }
     // port is in LB mode, so it will egress and immediately loop back.
     // Since it is not re-written, it should hit the pipeline as if it
     // ingressed on the port, and be properly queued.
@@ -388,6 +608,28 @@ TEST_F(
   }
 
   verifyMultipleAclTablesHelper(true /* cpu port */);
+}
+
+TEST_F(SaiAclTableGroupTrafficTest, VerifyDscpMarkingAndTtlAclTableCpu) {
+  if (!isSupported()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  verifyDscpTtlAclTablesHelper(true /* cpu port */);
+}
+
+TEST_F(SaiAclTableGroupTrafficTest, VerifyDscpMarkingAndTtlAclTableFrontPanel) {
+  if (!isSupported()) {
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+
+  verifyDscpTtlAclTablesHelper(false /* cpu port */);
 }
 
 } // namespace facebook::fboss
