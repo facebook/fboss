@@ -8,6 +8,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
+#include "fboss/agent/state/IpTunnel.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -62,22 +63,26 @@ TunnelSaiId SaiTunnelManager::addTunnel(
       managerTable_->virtualRouterManager().getVirtualRouterHandle(RouterID(0));
   VirtualRouterSaiId saiVirtualRouterId{
       virtualRouterHandle->virtualRouter->adapterKey()};
-  SaiTunnelTermTraits::CreateAttributes k2{
-      getSaiTunnelTermType(swTunnel->getTunnelTermType()),
-      saiVirtualRouterId,
-      swTunnel->getSrcIP(), // Term Dest Ip
-      swTunnel->getDstIP(), // Term source ip
-      getSaiTunnelType(swTunnel->getType()), // Tunnel Type
-      tunnelObj
-          ->adapterKey(), // SAI id of the tunnel, not the IpTunnel id in state
-      swTunnel->getSrcIPMask(),
-      swTunnel->getDstIPMask()};
-  std::shared_ptr<SaiTunnelTerm> tunnelTermObj =
-      tunnelTermStore.setObject(k2, k2);
-  auto tunnelHandle = std::make_unique<SaiTunnelHandle>();
-  tunnelHandle->tunnel = tunnelObj;
-  tunnelHandle->tunnelTerm = tunnelTermObj;
-  handles_[swTunnel->getID()] = std::move(tunnelHandle);
+  if (swTunnel->getTunnelTermType() == P2MP) {
+    SaiTunnelTermTraits::CreateAttributes k2{
+        getSaiTunnelTermType(swTunnel->getTunnelTermType()),
+        saiVirtualRouterId,
+        swTunnel->getSrcIP(), // Term Dest Ip
+        std::nullopt,
+        getSaiTunnelType(swTunnel->getType()), // Tunnel Type
+        tunnelObj->adapterKey(), // SAI id of the tunnel, not the IpTunnel id in
+                                 // state
+        std::nullopt,
+        std::nullopt};
+    std::shared_ptr<SaiTunnelTerm> tunnelTermObj =
+        tunnelTermStore.setObject(k2, k2);
+    auto tunnelHandle = std::make_unique<SaiTunnelHandle>();
+    tunnelHandle->tunnel = tunnelObj;
+    tunnelHandle->tunnelTerm = tunnelTermObj;
+    handles_[swTunnel->getID()] = std::move(tunnelHandle);
+  } else {
+    throw FbossError("Tunnel Term types other than P2MP are not supported yet");
+  }
   return tunnelObj->adapterKey();
 }
 void SaiTunnelManager::removeTunnel(const std::shared_ptr<IpTunnel>& swTunnel) {

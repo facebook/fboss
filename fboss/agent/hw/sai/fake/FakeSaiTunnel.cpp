@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/hw/sai/fake/FakeSaiTunnel.h"
+#include <optional>
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 namespace {
@@ -206,10 +207,8 @@ sai_status_t create_tunnel_term_table_entry_fn(
       srcIp,
       tunnelType,
       tunnelId,
-      dstIpMask.has_value() ? dstIpMask.value()
-                            : toSaiIpAddress(folly::IPAddress("0.0.0.0")),
-      srcIpMask.has_value() ? srcIpMask.value()
-                            : toSaiIpAddress(folly::IPAddress("0.0.0.0")));
+      std::nullopt,
+      std::nullopt);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -240,7 +239,7 @@ sai_status_t get_tunnel_term_table_entry_attribute_fn(
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_DST_IP_MASK:
         attr[i].value.ipaddr = term.dstIpMask.has_value()
             ? term.dstIpMask.value()
-            : toSaiIpAddress(folly::IPAddress("0.0.0.0"));
+            : toSaiIpAddress(folly::IPAddress("255.255.255.255"));
         break;
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_SRC_IP:
         attr[i].value.ipaddr = term.srcIp;
@@ -248,7 +247,7 @@ sai_status_t get_tunnel_term_table_entry_attribute_fn(
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_SRC_IP_MASK:
         attr[i].value.ipaddr = term.srcIpMask.has_value()
             ? term.srcIpMask.value()
-            : toSaiIpAddress(folly::IPAddress("0.0.0.0"));
+            : toSaiIpAddress(folly::IPAddress("255.255.255.255"));
         break;
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_TUNNEL_TYPE:
         attr[i].value.s32 = term.tunnelType;
@@ -283,7 +282,7 @@ sai_status_t set_tunnel_term_table_entry_attribute_fn(
       break;
     case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_DST_IP_MASK:
       // CREATE_ONLY
-      term.dstIpMask.value() = attr->value.ipaddr;
+      term.dstIpMask = attr->value.ipaddr;
       break;
     case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_SRC_IP:
       // CREATE_ONLY
@@ -291,7 +290,7 @@ sai_status_t set_tunnel_term_table_entry_attribute_fn(
       break;
     case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_SRC_IP_MASK:
       // CREATE_ONLY
-      term.srcIpMask.value() = attr->value.ipaddr;
+      term.srcIpMask = attr->value.ipaddr;
       break;
     case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_TUNNEL_TYPE:
       // CREATE_ONLY

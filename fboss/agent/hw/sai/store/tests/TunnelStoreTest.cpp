@@ -53,7 +53,6 @@ class TunnelStoreTest : public SaiStoreTest {
         folly::IPAddress("255.255.255.255")};
     SaiTunnelTermTraits::Attributes::SrcIpMask srcIpMask{
         folly::IPAddress("255.255.255.255")};
-
     return {
         type, vrId, dstIp, srcIp, tunnelType, tunnelId, dstIpMask, srcIpMask};
   }
@@ -95,9 +94,6 @@ TEST_F(TunnelStoreTest, loadTunnelTerm) {
       SAI_TUNNEL_TYPE_IPINIP);
   EXPECT_EQ(
       GET_ATTR(TunnelTerm, DstIp, got->attributes()), folly::IPAddress(dip));
-  EXPECT_EQ(
-      GET_OPT_ATTR(TunnelTerm, DstIpMask, got->attributes()),
-      folly::IPAddress("255.255.255.255"));
 }
 
 TEST_F(TunnelStoreTest, tunnelLoadCtor) {
@@ -132,7 +128,7 @@ TEST_F(TunnelStoreTest, tunnelCreateCtor) {
 TEST_F(TunnelStoreTest, tunnelTermCreateCtor) {
   auto tunnelId = createTunnel();
   SaiTunnelTermTraits::AdapterHostKey k{
-      SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2MP,
+      SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP,
       43,
       folly::IPAddress(dip),
       folly::IPAddress(sip),
@@ -144,10 +140,6 @@ TEST_F(TunnelStoreTest, tunnelTermCreateCtor) {
   EXPECT_EQ(
       GET_ATTR(TunnelTerm, TunnelType, obj.attributes()),
       SAI_TUNNEL_TYPE_IPINIP);
-  EXPECT_EQ(
-      saiApiTable->tunnelApi().getAttribute(
-          obj.adapterKey(), SaiTunnelTermTraits::Attributes::DstIpMask{}),
-      folly::IPAddress("0.0.0.0"));
 }
 
 TEST_F(TunnelStoreTest, serDeserTunnel) {

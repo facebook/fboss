@@ -93,11 +93,12 @@ struct SaiTunnelTermTraits {
         SaiObjectIdT>;
   };
   using AdapterKey = TunnelTermSaiId;
+  // will not use dst and src mask since Bcm doesn't support it
   using CreateAttributes = std::tuple<
       Attributes::Type,
       Attributes::VrId,
       Attributes::DstIp,
-      Attributes::SrcIp,
+      std::optional<Attributes::SrcIp>,
       Attributes::TunnelType,
       Attributes::ActionTunnelId,
       std::optional<Attributes::DstIpMask>,

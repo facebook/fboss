@@ -23,11 +23,13 @@ std::shared_ptr<IpTunnel> makeTunnel(
   tunnel->setTTLMode(mode);
   tunnel->setDscpMode(mode);
   tunnel->setEcnMode(mode);
-  tunnel->setTunnelTermType(MP2MP);
-  tunnel->setDstIP(folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"));
-  tunnel->setSrcIP(folly::IPAddressV6("::"));
-  tunnel->setDstIPMask(folly::IPAddressV6("::"));
-  tunnel->setSrcIPMask(folly::IPAddressV6("::"));
+  tunnel->setTunnelTermType(P2MP);
+  tunnel->setSrcIP(folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"));
+  tunnel->setDstIP(folly::IPAddressV6("::"));
+  tunnel->setDstIPMask(
+      folly::IPAddressV6("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"));
+  tunnel->setSrcIPMask(
+      folly::IPAddressV6("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"));
   return tunnel;
 }
 
@@ -88,16 +90,7 @@ class TunnelManagerTest : public ManagerTestBase {
         expType);
     EXPECT_EQ(
         GET_ATTR(TunnelTerm, DstIp, handle->tunnelTerm->attributes()),
-        expDstIp);
-    EXPECT_EQ(
-        GET_ATTR(TunnelTerm, SrcIp, handle->tunnelTerm->attributes()),
         expSrcIp);
-    EXPECT_EQ(
-        GET_OPT_ATTR(TunnelTerm, DstIpMask, handle->tunnelTerm->attributes()),
-        folly::IPAddressV6("::"));
-    EXPECT_EQ(
-        GET_OPT_ATTR(TunnelTerm, SrcIpMask, handle->tunnelTerm->attributes()),
-        folly::IPAddressV6("::"));
     EXPECT_EQ(
         GET_ATTR(TunnelTerm, ActionTunnelId, handle->tunnelTerm->attributes()),
         saiId);
@@ -113,7 +106,7 @@ TEST_F(TunnelManagerTest, addTunnel) {
       saiId,
       "tunnel0",
       SAI_TUNNEL_TYPE_IPINIP,
-      SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2MP,
+      SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP,
       SAI_TUNNEL_TTL_MODE_PIPE_MODEL,
       SAI_TUNNEL_DSCP_MODE_PIPE_MODEL,
       SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER,
@@ -128,7 +121,7 @@ TEST_F(TunnelManagerTest, addTwoTunnels) {
       saiId0,
       "tunn0",
       SAI_TUNNEL_TYPE_IPINIP,
-      SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2MP,
+      SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP,
       SAI_TUNNEL_TTL_MODE_PIPE_MODEL,
       SAI_TUNNEL_DSCP_MODE_PIPE_MODEL,
       SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER,
@@ -140,7 +133,7 @@ TEST_F(TunnelManagerTest, addTwoTunnels) {
       saiId1,
       "tunn1",
       SAI_TUNNEL_TYPE_IPINIP,
-      SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2MP,
+      SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP,
       SAI_TUNNEL_TTL_MODE_PIPE_MODEL,
       SAI_TUNNEL_DSCP_MODE_PIPE_MODEL,
       SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER,
@@ -159,9 +152,8 @@ TEST_F(TunnelManagerTest, changeTunnel) {
   std::shared_ptr<IpTunnel> swTunnel = makeTunnel("tunnel0");
   saiManagerTable->tunnelManager().addTunnel(swTunnel);
   auto swTunnel2 = makeTunnel("tunnel1", intf0.id, cfg::IpTunnelMode::UNIFORM);
-  swTunnel2->setDstIP(
+  swTunnel2->setSrcIP(
       folly::IPAddressV6("2001:db8:3333:4444:5555:6666:7777:8888"));
-  swTunnel2->setSrcIPMask(folly::IPAddressV6("2001:db8::"));
   saiManagerTable->tunnelManager().changeTunnel(swTunnel, swTunnel2);
   auto handle = saiManagerTable->tunnelManager().getTunnelHandle("tunnel1");
   EXPECT_NE(handle, nullptr);
@@ -169,11 +161,8 @@ TEST_F(TunnelManagerTest, changeTunnel) {
       GET_OPT_ATTR(Tunnel, DecapTtlMode, handle->tunnel->attributes()), 0);
   // Term obj has reversed semantics of src and dst
   EXPECT_EQ(
-      GET_ATTR(TunnelTerm, SrcIp, handle->tunnelTerm->attributes()),
+      GET_ATTR(TunnelTerm, DstIp, handle->tunnelTerm->attributes()),
       folly::IPAddressV6("2001:db8:3333:4444:5555:6666:7777:8888"));
-  EXPECT_EQ(
-      GET_OPT_ATTR(TunnelTerm, DstIpMask, handle->tunnelTerm->attributes()),
-      folly::IPAddressV6("2001:db8::"));
   SaiVirtualRouterHandle* virtualRouterHandle =
       saiManagerTable->virtualRouterManager().getVirtualRouterHandle(
           RouterID(0));

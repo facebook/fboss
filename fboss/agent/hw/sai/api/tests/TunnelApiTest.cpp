@@ -7,6 +7,7 @@
 #include <folly/logging/xlog.h>
 
 #include <gtest/gtest.h>
+#include <optional>
 
 using namespace facebook::fboss;
 
@@ -74,13 +75,16 @@ class TunnelApiTest : public ::testing::Test {
     SaiTunnelTermTraits::Attributes::SrcIp srcIp{_srcIp};
     SaiTunnelTermTraits::Attributes::TunnelType tunnelType{_tunnelType};
     SaiTunnelTermTraits::Attributes::ActionTunnelId tunnelId{_tunnelId};
-    SaiTunnelTermTraits::Attributes::DstIpMask dstIpMask{
-        folly::IPAddress("0.0.0.0")};
-    SaiTunnelTermTraits::Attributes::SrcIpMask srcIpMask{
-        folly::IPAddress("0.0.0.0")};
 
     SaiTunnelTermTraits::CreateAttributes a{
-        type, vrId, dstIp, srcIp, tunnelType, tunnelId, dstIpMask, srcIpMask};
+        type,
+        vrId,
+        dstIp,
+        srcIp,
+        tunnelType,
+        tunnelId,
+        std::nullopt,
+        std::nullopt};
     return tunnelApi->create<SaiTunnelTermTraits>(a, 0);
   }
 
@@ -91,25 +95,12 @@ class TunnelApiTest : public ::testing::Test {
     SaiTunnelTermTraits::Attributes::VrId vrId;
     auto gotVrId = tunnelApi->getAttribute(id, vrId);
     EXPECT_EQ(fs->tunnelTermManager.get(id).vrId, gotVrId);
-    // TODO: == overload required for folly addr and sai addr
-    // SaiTunnelTermTraits::Attributes::DstIp dstIp;
-    // auto gotDstIp = tunnelApi->getAttribute(id, dstIp);
-    // EXPECT_EQ(fs->tunnelTermManager.get(id).dstIp, gotDstIp);
-    // SaiTunnelTermTraits::Attributes::SrcIp srcIp;
-    // auto gotSrcIp = tunnelApi->getAttribute(id, srcIp);
-    // EXPECT_EQ(fs->tunnelTermManager.get(id).srcIp, gotSrcIp);
     SaiTunnelTermTraits::Attributes::TunnelType tunnelType;
     auto gotTunnelType = tunnelApi->getAttribute(id, tunnelType);
     EXPECT_EQ(fs->tunnelTermManager.get(id).tunnelType, gotTunnelType);
     SaiTunnelTermTraits::Attributes::ActionTunnelId tunnelId;
     auto gotTunnelId = tunnelApi->getAttribute(id, tunnelId);
     EXPECT_EQ(fs->tunnelTermManager.get(id).tunnelId, gotTunnelId);
-    // SaiTunnelTermTraits::Attributes::DstIpMask dstIpMask;
-    // auto gotDstIpMask = tunnelApi->getAttribute(id, dstIpMask);
-    // EXPECT_EQ(fs->tunnelTermManager.get(id).dstIpMask, gotDstIpMask);
-    // SaiTunnelTermTraits::Attributes::SrcIpMask srcIpMask;
-    // auto gotSrcIpMask = tunnelApi->getAttribute(id, srcIpMask);
-    // EXPECT_EQ(fs->tunnelTermManager.get(id).srcIpMask, gotSrcIpMask);
   }
 
   std::shared_ptr<FakeSai> fs;
