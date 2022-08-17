@@ -174,11 +174,33 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     laneList.push_back(*pinCfg.id()->lane());
   }
 
+  std::optional<SaiPortTraits::Attributes::InterfaceType> intfType(
+      std::nullopt);
+
+  std::string dbgOutput;
+  dbgOutput.append(folly::sformat(
+      "Attributes for creating port {:d}, Side {:s}, Lanes: ",
+      static_cast<int>(portId),
+      (lineSide ? "Line" : "System")));
+  for (auto lane : laneList) {
+    dbgOutput.append(folly::sformat("{:d} ", lane));
+  }
+  dbgOutput.append(folly::sformat(
+      " Speed {:d} Enabled {:s} Fec {:d} ",
+      static_cast<int>(speed),
+      (enabled ? "True" : "False"),
+      static_cast<int>(utility::getSaiPortFecMode(fecMode))));
+  if (intfType.has_value()) {
+    dbgOutput.append(folly::sformat(
+        " Interface Type {:d}", static_cast<int>(intfType.value().value())));
+  }
+  XLOG(DBG3) << dbgOutput;
+
   return SaiPortTraits::CreateAttributes {
     laneList, static_cast<uint32_t>(speed), enabled,
         utility::getSaiPortFecMode(fecMode), std::nullopt, std::nullopt,
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-        std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+        std::nullopt, intfType, std::nullopt, std::nullopt, std::nullopt,
         std::nullopt, std::nullopt,
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
         std::nullopt, std::nullopt,
