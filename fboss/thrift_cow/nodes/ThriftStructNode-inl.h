@@ -365,12 +365,12 @@ class ThriftStructNode
   using Self = ThriftStructNode<TType>;
   using Fields = ThriftStructFields<TType>;
   using ThriftType = typename Fields::ThriftType;
-  using NodeBaseT = NodeBaseT<ThriftStructNode<TType>, Fields>;
+  using BaseT = NodeBaseT<ThriftStructNode<TType>, Fields>;
   using CowType = NodeType;
   using TC = typename Fields::TC;
   using PathIter = typename std::vector<std::string>::const_iterator;
 
-  using NodeBaseT::NodeBaseT;
+  using BaseT::BaseT;
 
   TType toThrift() const {
     return this->getFields()->toThrift();

@@ -33,7 +33,6 @@ set_target_properties(thrift_cow_nodes PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries(thrift_cow_nodes
   thrift_cow_serializer
-  fatal
   state
   thrift_cow_visitors
   Folly::folly

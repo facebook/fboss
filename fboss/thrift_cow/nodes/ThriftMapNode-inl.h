@@ -235,13 +235,13 @@ class ThriftMapNode : public NodeBaseT<
   using Self = ThriftMapNode<TypeClass, TType>;
   using Fields = ThriftMapFields<TypeClass, TType>;
   using ThriftType = typename Fields::ThriftType;
-  using NodeBaseT = NodeBaseT<ThriftMapNode<TypeClass, TType>, Fields>;
+  using BaseT = NodeBaseT<ThriftMapNode<TypeClass, TType>, Fields>;
   using CowType = NodeType;
   using key_type = typename Fields::key_type;
   using value_type = typename Fields::value_type;
   using PathIter = typename std::vector<std::string>::const_iterator;
 
-  using NodeBaseT::NodeBaseT;
+  using BaseT::BaseT;
 
   TType toThrift() const {
     return this->getFields()->toThrift();

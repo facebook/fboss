@@ -397,12 +397,12 @@ class ThriftUnionNode
   using Fields = ThriftUnionFields<TType>;
   using TC = typename Fields::TC;
   using ThriftType = typename Fields::ThriftType;
-  using NodeBaseT = NodeBaseT<ThriftUnionNode<TType>, Fields>;
+  using BaseT = NodeBaseT<ThriftUnionNode<TType>, Fields>;
   using CowType = NodeType;
   using TypeEnum = typename Fields::TypeEnum;
   using PathIter = typename std::vector<std::string>::const_iterator;
 
-  using NodeBaseT::NodeBaseT;
+  using BaseT::BaseT;
 
   TType toThrift() const {
     return this->getFields()->toThrift();

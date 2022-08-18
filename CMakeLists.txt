@@ -206,6 +206,7 @@ add_fbthrift_cpp_library(
   common/network/if/Address.thrift
   OPTIONS
     json
+    reflection
 )
 add_fbthrift_cpp_library(
   mpls_cpp2

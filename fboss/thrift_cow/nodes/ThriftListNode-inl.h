@@ -209,12 +209,12 @@ class ThriftListNode : public NodeBaseT<
   using Self = ThriftListNode<TypeClass, TType>;
   using Fields = ThriftListFields<TypeClass, TType>;
   using ThriftType = typename Fields::ThriftType;
-  using NodeBaseT = NodeBaseT<ThriftListNode<TypeClass, TType>, Fields>;
+  using BaseT = NodeBaseT<ThriftListNode<TypeClass, TType>, Fields>;
   using CowType = NodeType;
   using value_type = typename Fields::value_type;
   using PathIter = typename std::vector<std::string>::const_iterator;
 
-  using NodeBaseT::NodeBaseT;
+  using BaseT::BaseT;
 
   TType toThrift() const {
     return this->getFields()->toThrift();
