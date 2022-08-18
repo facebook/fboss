@@ -499,7 +499,9 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_NUMBER_OF_FABRIC_PORTS:
         attr[i].value.u32 = 0;
         break;
-
+      case SAI_SWITCH_ATTR_FABRIC_PORT_LIST:
+        attr[i].value.objlist.count = 0;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

@@ -260,7 +260,10 @@ struct SaiSwitchTraits {
         EnumType,
         SAI_SWITCH_ATTR_NUMBER_OF_FABRIC_PORTS,
         sai_uint32_t>;
-
+    using FabricPortList = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_FABRIC_PORT_LIST,
+        std::vector<sai_object_id_t>>;
     /*
      * Use ECN thresholds for ECT traffic, if not set WRED thresholds
      * would be used
@@ -504,6 +507,7 @@ SAI_ATTRIBUTE_NAME(Switch, IngressAcl)
 SAI_ATTRIBUTE_NAME(Switch, AclFieldList)
 SAI_ATTRIBUTE_NAME(Switch, TamObject)
 SAI_ATTRIBUTE_NAME(Switch, NumberOfFabricPorts)
+SAI_ATTRIBUTE_NAME(Switch, FabricPortList)
 SAI_ATTRIBUTE_NAME(Switch, UseEcnThresholds)
 SAI_ATTRIBUTE_NAME(Switch, EgressPoolAvaialableSize)
 SAI_ATTRIBUTE_NAME(Switch, CounterRefreshInterval)
