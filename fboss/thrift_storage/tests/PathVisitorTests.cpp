@@ -7,8 +7,8 @@
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
-#include "fboss/fsdb/tests/gen-cpp2/test_fatal_types.h"
-#include "fboss/fsdb/tests/gen-cpp2/test_types.h"
+#include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_fatal_types.h"
+#include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
 #include "fboss/thrift_storage/visitors/ThriftPathVisitor.h"
 
 using folly::dynamic;
