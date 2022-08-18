@@ -1271,6 +1271,15 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     cpu->resetQueues(cpuQueues);
     state->resetControlPlane(cpu);
   }
+  if (switchType_ == cfg::SwitchType::FABRIC) {
+    auto& switchApi = SaiApiTable::getInstance()->switchApi();
+    auto fabricPorts = switchApi.getAttribute(
+        switchId_, SaiSwitchTraits::Attributes::FabricPortList{});
+    auto& portStore = saiStore_->get<SaiPortTraits>();
+    for (auto& fid : fabricPorts) {
+      portStore.loadObjectOwnedByAdapter(PortSaiId(fid));
+    }
+  }
   // TODO(joseph5wu) We need to design how to restore xphy ports for the state
   // Temporarily skip resetPorts for ASIC_TYPE_ELBERT_8DD
   if (platform_->getAsic()->getAsicType() !=
