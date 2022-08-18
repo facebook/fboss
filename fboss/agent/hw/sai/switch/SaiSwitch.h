@@ -465,6 +465,7 @@ class SaiSwitch : public HwSwitch {
 
   int64_t watermarkStatsUpdateTime_{0};
   HwAsic::AsicType asicType_;
+  cfg::SwitchType switchType_{cfg::SwitchType::NPU};
 };
 
 } // namespace facebook::fboss

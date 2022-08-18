@@ -1272,7 +1272,7 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     state->resetControlPlane(cpu);
   }
   // TODO(joseph5wu) We need to design how to restore xphy ports for the state
-  // Temporarily skil resetPorts for ASIC_TYPE_ELBERT_8DD
+  // Temporarily skip resetPorts for ASIC_TYPE_ELBERT_8DD
   if (platform_->getAsic()->getAsicType() !=
       HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
     // reconstruct ports
@@ -1288,6 +1288,7 @@ HwInitResult SaiSwitch::initLocked(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId) noexcept {
   HwInitResult ret;
+  switchType_ = switchType;
   ret.rib = std::make_unique<RoutingInformationBase>();
   ret.bootType = bootType_;
   std::unique_ptr<folly::dynamic> adapterKeysJson;
