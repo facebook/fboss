@@ -53,6 +53,7 @@
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/phy/PhyUtils.h"
 
 extern "C" {
 #include <bcm/cosq.h>
@@ -1147,6 +1148,7 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
   phy::DataPlanePhyChip phyChip;
   phyChip.type() = phy::DataPlanePhyChipType::IPHY;
   info.phyChip() = phyChip;
+  info.speed() = getSpeed();
   info.linkState() = isUp();
 
   // PCS parameters
@@ -1159,6 +1161,21 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
       phy::RsFecInfo rsFec;
       rsFec.correctedCodewords() = *((*portStats).fecCorrectableErrors());
       rsFec.uncorrectedCodewords() = *((*portStats).fecUncorrectableErrors());
+
+      phy::RsFecInfo lastRsFec;
+      if (auto lastPcs = lastPhyInfo_.line()->pcs()) {
+        if (auto lastFec = lastPcs->rsFec()) {
+          lastRsFec = *lastFec;
+        }
+      }
+      auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+      utility::updateCorrectedBitsAndPreFECBer(
+          rsFec, /* current RsFecInfo to update */
+          lastRsFec, /* previous RsFecInfo */
+          std::nullopt, /* counter not available from hardware */
+          now.count() - *lastPhyInfo_.timeCollected(), /* timeDeltaInSeconds */
+          fecMode, /* operational FecMode */
+          *info.speed() /* operational Speed */);
       pcs.rsFec() = rsFec;
     }
   }
@@ -1233,6 +1250,7 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   info.timeCollected() = now.count();
 
+  lastPhyInfo_ = info;
   return info;
 }
 

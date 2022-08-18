@@ -417,6 +417,8 @@ class BcmPort {
       std::nullopt};
 
   std::atomic<int> numLanes_{0};
+
+  phy::PhyInfo lastPhyInfo_;
 };
 
 } // namespace facebook::fboss
