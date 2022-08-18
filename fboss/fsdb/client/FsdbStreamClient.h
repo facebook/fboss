@@ -109,7 +109,7 @@ class FsdbStreamClient {
   folly::Synchronized<State> state_{State::DISCONNECTED};
   std::string counterPrefix_;
   std::unique_ptr<folly::ScopedEventBaseThread> clientEvbThread_;
-  std::optional<folly::SocketAddress> serverAddress_;
+  folly::Synchronized<std::optional<folly::SocketAddress>> serverAddress_;
   FsdbStreamStateChangeCb stateChangeCb_;
   std::atomic<bool> serviceLoopRunning_{false};
   std::unique_ptr<folly::AsyncTimeout> timer_;

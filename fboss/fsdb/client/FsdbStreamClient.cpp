@@ -86,16 +86,17 @@ void FsdbStreamClient::setServerToConnect(
     const std::string& ip,
     uint16_t port,
     bool allowReset) {
-  if (!allowReset && serverAddress_) {
+  if (!allowReset && *serverAddress_.rlock()) {
     throw std::runtime_error("Cannot reset server address");
   }
-  serverAddress_ = folly::SocketAddress(ip, port);
+  *serverAddress_.wlock() = folly::SocketAddress(ip, port);
 }
 
 void FsdbStreamClient::timeoutExpired() noexcept {
-  if (getState() == State::DISCONNECTED && serverAddress_) {
+  auto serverAddress = *serverAddress_.rlock();
+  if (getState() == State::DISCONNECTED && serverAddress) {
     connectToServer(
-        serverAddress_->getIPAddress().str(), serverAddress_->getPort());
+        serverAddress->getIPAddress().str(), serverAddress->getPort());
   }
   timer_->scheduleTimeout(FLAGS_fsdb_reconnect_ms);
 }
@@ -152,7 +153,7 @@ void FsdbStreamClient::cancel() {
     XLOG(WARNING) << clientId() << " already cancelled";
     return;
   }
-  serverAddress_.reset();
+  serverAddress_.wlock()->reset();
   connRetryEvb_->runInEventBaseThreadAndWait(
       [this] { timer_->cancelTimeout(); });
   setState(State::CANCELLED);
