@@ -3,6 +3,23 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_library(nodebase
+  fboss/agent/state/NodeBase.cpp
+  fboss/agent/state/NodeBase.h
+  fboss/agent/state/NodeBase-defs.h
+  fboss/agent/state/NodeMap.h
+  fboss/agent/state/NodeMap-defs.h
+  fboss/agent/state/NodeMapDelta.h
+  fboss/agent/state/NodeMapDelta-defs.h
+  fboss/agent/state/NodeMapIterator.h
+)
+
+target_link_libraries(nodebase
+  fboss_error
+  fboss_types
+  Folly::folly
+)
+
 add_library(state
   fboss/agent/state/AclEntry.cpp
   fboss/agent/state/AclMap.cpp
@@ -36,7 +53,6 @@ add_library(state
   fboss/agent/state/NdpResponseEntry.cpp
   fboss/agent/state/NdpResponseTable.cpp
   fboss/agent/state/NdpTable.cpp
-  fboss/agent/state/NodeBase.cpp
   fboss/agent/state/Port.cpp
   fboss/agent/state/PortMap.cpp
   fboss/agent/state/PortQueue.cpp
@@ -78,6 +94,7 @@ target_link_libraries(state
   mka_structs_cpp2
   fboss_cpp2
   label_forwarding_action
+  nodebase
   state_utils
   radix_tree
   phy_cpp2

@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/types.h"
 
 #include <boost/cast.hpp>

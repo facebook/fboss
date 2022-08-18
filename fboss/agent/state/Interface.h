@@ -15,6 +15,7 @@
 #include <folly/dynamic.h>
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"

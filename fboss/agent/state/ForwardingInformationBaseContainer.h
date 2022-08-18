@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/Thrifty.h"
