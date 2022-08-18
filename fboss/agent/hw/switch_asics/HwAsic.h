@@ -181,6 +181,11 @@ class HwAsic {
   virtual int getDefaultACLGroupID() const;
 
   /*
+   * Default Content Aware Processor group ID for TeFlows
+   */
+  virtual int getDefaultTeFlowGroupID() const;
+
+  /*
    * station entry id for vlan interface
    */
   virtual int getStationID(int intfID) const;

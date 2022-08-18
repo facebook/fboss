@@ -14,6 +14,9 @@ namespace {
 // already installed in the group.
 // So 63 is the largest group id we can get.
 constexpr auto kDefaultACLGroupID = 63;
+// On TH4 the range for EM group Id is 0-15.
+// Hence 16 is the total number EM group Id can be created.
+constexpr auto kDefaultTeFlowGroupID = 1;
 } // namespace
 
 namespace facebook::fboss {
@@ -124,6 +127,14 @@ int Tomahawk4Asic::getDefaultACLGroupID() const {
     return FLAGS_acl_gid;
   } else {
     return kDefaultACLGroupID;
+  }
+}
+
+int Tomahawk4Asic::getDefaultTeFlowGroupID() const {
+  if (FLAGS_teFlow_gid > 0) {
+    return FLAGS_teFlow_gid;
+  } else {
+    return kDefaultTeFlowGroupID;
   }
 }
 

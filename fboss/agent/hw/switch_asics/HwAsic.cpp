@@ -10,9 +10,11 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 DEFINE_int32(acl_gid, -1, "Content aware processor group ID for ACLs");
+DEFINE_int32(teFlow_gid, -1, "Exact Match group ID for TeFlows");
 
 namespace {
 constexpr auto kDefaultACLGroupID = 128;
+constexpr auto kDefaultTeFlowGroupID = 1;
 constexpr auto kDefaultDropEgressID = 100000;
 enum IntAsicType ASIC_TYPE_LIST;
 std::vector<IntAsicType> getAsicTypeIntList() {
@@ -30,6 +32,17 @@ int HwAsic::getDefaultACLGroupID() const {
     return FLAGS_acl_gid;
   } else {
     return kDefaultACLGroupID;
+  }
+}
+
+/*
+ * Default Content Aware Processor group ID for TeFlows
+ */
+int HwAsic::getDefaultTeFlowGroupID() const {
+  if (FLAGS_teFlow_gid > 0) {
+    return FLAGS_teFlow_gid;
+  } else {
+    return kDefaultTeFlowGroupID;
   }
 }
 

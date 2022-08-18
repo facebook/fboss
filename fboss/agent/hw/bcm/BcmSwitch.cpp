@@ -42,6 +42,7 @@
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmEgressQueueFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmExactMatchUtils.h"
 #include "fboss/agent/hw/bcm/BcmFacebookAPI.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
@@ -873,6 +874,10 @@ HwInitResult BcmSwitch::initImpl(
   if (FLAGS_force_init_fp || !warmBoot || haveMissingOrQSetChangedFPGroups()) {
     initFieldProcessor();
     setupFPGroups();
+  }
+
+  if (FLAGS_enable_exact_match) {
+    createTeFlowGroup();
   }
 
   dropDhcpPackets();
@@ -2989,6 +2994,14 @@ void BcmSwitch::createAclGroup() {
       platform_->getAsic()->getDefaultACLGroupID(),
       FLAGS_acl_g_pri,
       getPlatform()->getAsic()->isSupported(HwAsic::Feature::HSDK));
+}
+
+void BcmSwitch::createTeFlowGroup() {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::EXACT_MATCH)) {
+    initEMTable(unit_, platform_->getAsic()->getDefaultTeFlowGroupID());
+  } else {
+    throw FbossError("Enabling exact match is not supported on this platform");
+  }
 }
 
 void BcmSwitch::dropDhcpPackets() {

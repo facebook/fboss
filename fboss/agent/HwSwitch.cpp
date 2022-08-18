@@ -28,6 +28,8 @@ DEFINE_int32(
     60,
     "Update watermark stats interval in seconds");
 
+DEFINE_bool(enable_exact_match, false, "enable init of exact match table");
+
 namespace facebook::fboss {
 
 std::string HwSwitch::getDebugDump() const {

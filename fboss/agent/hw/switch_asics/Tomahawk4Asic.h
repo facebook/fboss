@@ -5,6 +5,8 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/BroadcomAsic.h"
 
+DECLARE_int32(teFlow_gid);
+
 namespace facebook::fboss {
 
 class Tomahawk4Asic : public BroadcomAsic {
@@ -64,6 +66,8 @@ class Tomahawk4Asic : public BroadcomAsic {
   int getNumLanesPerPhysicalPort() const override;
 
   int getDefaultACLGroupID() const override;
+
+  int getDefaultTeFlowGroupID() const override;
 
   int getStationID(int intfId) const override;
 

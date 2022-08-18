@@ -41,6 +41,7 @@ extern "C" {
 }
 
 DECLARE_bool(flexports);
+DECLARE_bool(enable_exact_match);
 
 namespace facebook::fboss {
 
@@ -854,6 +855,11 @@ class BcmSwitch : public BcmSwitchIf {
    */
   bool haveMissingOrQSetChangedFPGroups() const;
   void setupFPGroups();
+
+  /*
+   * Create TeFlow group
+   */
+  void createTeFlowGroup();
 
   /*
    * Forces a linkscan pass on the provided ports.
