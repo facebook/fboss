@@ -8,9 +8,9 @@
 #include <thrift/lib/cpp2/protocol/DebugProtocol.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <thrift/lib/cpp2/reflection/folly_dynamic.h>
-#include "fboss/facebook/fsdb/oper/tests/gen-cpp2/test_fatal_types.h"
-#include "fboss/facebook/fsdb/oper/tests/gen-cpp2/test_types.h"
-#include "fboss/facebook/fsdb/oper/tests/gen-cpp2/test_types_custom_protocol.h"
+#include "fboss/fsdb/tests/gen-cpp2/test_fatal_types.h"
+#include "fboss/fsdb/tests/gen-cpp2/test_types.h"
+#include "fboss/fsdb/tests/gen-cpp2/test_types_custom_protocol.h"
 #include "fboss/thrift_storage/CowStateUpdate.h"
 #include "fboss/thrift_storage/CowStorage.h"
 #include "fboss/thrift_storage/CowStorageMgr.h"

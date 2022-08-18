@@ -4,7 +4,7 @@
 
 // @lint-ignore CLANGTIDY
 #include "fboss/agent/gen-cpp2-thriftpath/agent_config.h" // @manual=//fboss/agent:agent_config-cpp2-thriftpath
-#include "fboss/facebook/fsdb/oper/tests/gen-cpp2-thriftpath/test.h" // @manual
+#include "fboss/fsdb/tests/gen-cpp2-thriftpath/test.h" // @manual
 
 TEST(PathTests, toStrSimple) {
   using namespace facebook::fboss::fsdb;
