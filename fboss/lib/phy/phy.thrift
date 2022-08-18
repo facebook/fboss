@@ -309,6 +309,11 @@ struct PcsInfo {
 struct RsFecInfo {
   1: i64 correctedCodewords;
   2: i64 uncorrectedCodewords;
+  // Note that not all platforms report correctedBits counter.
+  // For those that don't, we'll approximate it using the corrected codewords count.
+  // This also means that the preFECBer could be approximated as well.
+  3: i64 correctedBits;
+  4: double preFECBer;
 }
 
 struct PmdInfo {
