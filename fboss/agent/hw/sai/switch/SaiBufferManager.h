@@ -42,6 +42,8 @@ class SaiBufferManager {
       const SaiPlatform* platform);
 
   std::shared_ptr<SaiBufferProfile> getOrCreateProfile(const PortQueue& queue);
+  std::shared_ptr<SaiBufferProfile> getOrCreateIngressProfile(
+      const PortPgConfig& portPgConfig);
 
   void setupEgressBufferPool();
   void setupIngressBufferPool(const PortPgConfig& cfg);
@@ -55,6 +57,8 @@ class SaiBufferManager {
   void publishDeviceWatermark(uint64_t peakBytes) const;
   SaiBufferProfileTraits::CreateAttributes profileCreateAttrs(
       const PortQueue& queue) const;
+  SaiBufferProfileTraits::CreateAttributes ingressProfileCreateAttrs(
+      const PortPgConfig& config) const;
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

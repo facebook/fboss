@@ -200,4 +200,41 @@ std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateProfile(
   return store.setObject(k, attributes);
 }
 
+SaiBufferProfileTraits::CreateAttributes
+SaiBufferManager::ingressProfileCreateAttrs(const PortPgConfig& config) const {
+  SaiBufferProfileTraits::Attributes::PoolId pool{
+      ingressBufferPoolHandle_->bufferPool->adapterKey()};
+  SaiBufferProfileTraits::Attributes::ReservedBytes reservedBytes =
+      config.getMinLimitBytes();
+  SaiBufferProfileTraits::Attributes::ThresholdMode mode{
+      SAI_BUFFER_PROFILE_THRESHOLD_MODE_STATIC};
+  SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynThresh{0};
+  if (config.getScalingFactor()) {
+    mode = SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC;
+    dynThresh = static_cast<sai_uint8_t>(config.getScalingFactor().value());
+  }
+  SaiBufferProfileTraits::Attributes::XoffTh xoffTh{0};
+  if (config.getHeadroomLimitBytes()) {
+    xoffTh = config.getHeadroomLimitBytes().value();
+  }
+  SaiBufferProfileTraits::Attributes::XonTh xonTh{0}; // Not configured!
+  SaiBufferProfileTraits::Attributes::XonOffsetTh xonOffsetTh{0};
+  if (config.getResumeOffsetBytes()) {
+    xonOffsetTh = config.getResumeOffsetBytes().value();
+  }
+  return SaiBufferProfileTraits::CreateAttributes{
+      pool, reservedBytes, mode, dynThresh, xoffTh, xonTh, xonOffsetTh};
+}
+
+std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateIngressProfile(
+    const PortPgConfig& portPgConfig) {
+  setupIngressBufferPool(portPgConfig);
+  auto attributes = ingressProfileCreateAttrs(portPgConfig);
+  auto& store = saiStore_->get<SaiBufferProfileTraits>();
+  SaiBufferProfileTraits::AdapterHostKey k = tupleProjection<
+      SaiBufferProfileTraits::CreateAttributes,
+      SaiBufferProfileTraits::AdapterHostKey>(attributes);
+  return store.setObject(k, attributes);
+}
+
 } // namespace facebook::fboss
