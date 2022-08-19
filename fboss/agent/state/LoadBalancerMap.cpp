@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/state/LoadBalancerMap.h"
+#include "fboss/agent/Constants.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 
@@ -32,7 +33,7 @@ void LoadBalancerMap::updateLoadBalancer(
   updateNode(loadBalancer);
 }
 
-std::shared_ptr<LoadBalancerMap> LoadBalancerMap::fromFollyDynamic(
+std::shared_ptr<LoadBalancerMap> LoadBalancerMap::fromFollyDynamicLegacy(
     const folly::dynamic& serializedLoadBalancers) {
   if (serializedLoadBalancers.isObject()) {
     return NodeMapT<LoadBalancerMap, LoadBalancerMapTraits>::fromFollyDynamic(
@@ -42,9 +43,12 @@ std::shared_ptr<LoadBalancerMap> LoadBalancerMap::fromFollyDynamic(
   // until the new way of saving it as a map is in prod. support both ways.
   auto deserializedLoadBalancers = std::make_shared<LoadBalancerMap>();
 
-  for (const auto& serializedLoadBalancer : serializedLoadBalancers) {
+  const auto& entries = serializedLoadBalancers.isObject()
+      ? serializedLoadBalancers[kEntries]
+      : serializedLoadBalancers;
+  for (const auto& serializedLoadBalancer : entries) {
     auto deserializedLoadBalancer =
-        LoadBalancer::fromFollyDynamic(serializedLoadBalancer);
+        LoadBalancer::fromFollyDynamicLegacy(serializedLoadBalancer);
     deserializedLoadBalancers->addLoadBalancer(deserializedLoadBalancer);
   }
 

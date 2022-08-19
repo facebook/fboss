@@ -236,6 +236,34 @@ TEST(LoadBalancer, deserializationInverseOfSerlization) {
       folly::range(mplsFields.begin(), mplsFields.end()));
 }
 
+TEST(LoadBalancer, Thrifty) {
+  auto origLoadBalancerID = LoadBalancerID::AGGREGATE_PORT;
+  auto origHash = cfg::HashingAlgorithm::CRC16_CCITT;
+  uint32_t origSeed = 0xA51C5EED;
+  LoadBalancer::IPv4Fields origV4Src({LoadBalancer::IPv4Field::SOURCE_ADDRESS});
+  LoadBalancer::IPv6Fields origV6Dst(
+      {LoadBalancer::IPv6Field::DESTINATION_ADDRESS});
+  LoadBalancer::TransportFields origTransportSrcAndDst(
+      {LoadBalancer::TransportField::SOURCE_PORT,
+       LoadBalancer::TransportField::DESTINATION_PORT});
+  LoadBalancer::MPLSFields mplsFields{
+      LoadBalancer::MPLSField::TOP_LABEL,
+      LoadBalancer::MPLSField::SECOND_LABEL,
+      LoadBalancer::MPLSField::THIRD_LABEL};
+
+  LoadBalancer loadBalancer(
+      origLoadBalancerID,
+      origHash,
+      origSeed,
+      origV4Src,
+      origV6Dst,
+      origTransportSrcAndDst,
+      mplsFields);
+
+  auto newLoadBalancer = LoadBalancer::fromThrift(loadBalancer.toThrift());
+  EXPECT_EQ(loadBalancer, *newLoadBalancer);
+}
+
 namespace {
 
 void checkLoadBalancersDelta(
@@ -334,6 +362,7 @@ TEST(LoadBalancerMap, addLoadBalancer) {
   auto startLoadBalancers = startState->getLoadBalancers();
   ASSERT_NE(nullptr, startLoadBalancers);
   EXPECT_EQ(1, startLoadBalancers->size());
+  validateThriftyMigration(*startLoadBalancers);
 
   // This config adds a DEFAULT_LAG_HASH LoadBalancer
   cfg::SwitchConfig config;
@@ -351,6 +380,7 @@ TEST(LoadBalancerMap, addLoadBalancer) {
   std::set<LoadBalancerID> removed = {};
   checkLoadBalancersDelta(
       startLoadBalancers, endLoadBalancers, updated, added, removed);
+  validateThriftyMigration(*endLoadBalancers);
 
   // Check LoadBalancerID::ECMP has not been modified
   EXPECT_EQ(
@@ -371,6 +401,7 @@ TEST(LoadBalancerMap, removeLoadBalancer) {
   auto startLoadBalancers = startState->getLoadBalancers();
   ASSERT_NE(nullptr, startLoadBalancers);
   EXPECT_EQ(2, startLoadBalancers->size());
+  validateThriftyMigration(*startLoadBalancers);
 
   // This config removes the DEFAULT_LAG_HASH LoadBalancer
   cfg::SwitchConfig config;
@@ -389,6 +420,7 @@ TEST(LoadBalancerMap, removeLoadBalancer) {
   std::set<LoadBalancerID> removed = {LoadBalancerID::AGGREGATE_PORT};
   checkLoadBalancersDelta(
       startLoadBalancers, endLoadBalancers, updated, added, removed);
+  validateThriftyMigration(*endLoadBalancers);
 
   // Check LoadBalancerID::ECMP has not been modified
   EXPECT_EQ(
@@ -412,6 +444,7 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
   auto startEcmpLoadBalancer =
       startLoadBalancers->getLoadBalancerIf(LoadBalancerID::ECMP);
   ASSERT_NE(nullptr, startEcmpLoadBalancer);
+  validateThriftyMigration(*startLoadBalancers);
 
   // This config modifies the DEFAULT_EMCP_HASH LoadBalancer
   cfg::SwitchConfig config;
@@ -425,6 +458,7 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
   ASSERT_NE(nullptr, endLoadBalancers);
   EXPECT_EQ(2, endLoadBalancers->getGeneration());
   EXPECT_EQ(2, endLoadBalancers->size());
+  validateThriftyMigration(*endLoadBalancers);
 
   std::set<LoadBalancerID> updated = {LoadBalancerID::ECMP};
   std::set<LoadBalancerID> added = {};
@@ -523,4 +557,61 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
       folly::range(
           ecmpOrigTransportSrcAndDst.begin(), ecmpOrigTransportSrcAndDst.end()),
       folly::range(ecmpMplsFields.begin(), ecmpMplsFields.end()));
+}
+
+TEST(LoadBalancerMap, Thrifty) {
+  auto aggPortOrigLoadBalancerID = LoadBalancerID::AGGREGATE_PORT;
+  auto aggPortOrigHash = cfg::HashingAlgorithm::CRC16_CCITT;
+  uint32_t aggPortOrigSeed = 0xA51C5EED;
+  LoadBalancer::IPv4Fields aggPortOrigV4Src(
+      {LoadBalancer::IPv4Field::SOURCE_ADDRESS});
+  LoadBalancer::IPv6Fields aggPortOrigV6Dst(
+      {LoadBalancer::IPv6Field::DESTINATION_ADDRESS});
+  LoadBalancer::TransportFields aggPortOrigTransportSrcAndDst(
+      {LoadBalancer::TransportField::SOURCE_PORT,
+       LoadBalancer::TransportField::DESTINATION_PORT});
+  LoadBalancer::MPLSFields aggMplsFields{
+      LoadBalancer::MPLSField::TOP_LABEL,
+      LoadBalancer::MPLSField::SECOND_LABEL,
+      LoadBalancer::MPLSField::THIRD_LABEL};
+
+  auto ecmpOrigLoadBalancerID = LoadBalancerID::ECMP;
+  auto ecmpOrigHash = cfg::HashingAlgorithm::CRC16_CCITT;
+  uint32_t ecmpOrigSeed = 0xA51C5EED;
+  LoadBalancer::IPv4Fields ecmpOrigV4Dst(
+      {LoadBalancer::IPv4Field::DESTINATION_ADDRESS});
+  LoadBalancer::IPv6Fields ecmpOrigV6Src(
+      {LoadBalancer::IPv6Field::SOURCE_ADDRESS});
+  LoadBalancer::TransportFields ecmpOrigTransportSrcAndDst(
+      {LoadBalancer::TransportField::SOURCE_PORT,
+       LoadBalancer::TransportField::DESTINATION_PORT});
+  LoadBalancer::MPLSFields ecmpMplsFields{
+      LoadBalancer::MPLSField::TOP_LABEL,
+      LoadBalancer::MPLSField::SECOND_LABEL,
+      LoadBalancer::MPLSField::THIRD_LABEL};
+
+  LoadBalancerMap loadBalancerMap;
+  loadBalancerMap.addLoadBalancer(std::make_shared<LoadBalancer>(
+      aggPortOrigLoadBalancerID,
+      aggPortOrigHash,
+      aggPortOrigSeed,
+      aggPortOrigV4Src,
+      aggPortOrigV6Dst,
+      aggPortOrigTransportSrcAndDst,
+      aggMplsFields));
+  loadBalancerMap.addLoadBalancer(std::make_shared<LoadBalancer>(
+      ecmpOrigLoadBalancerID,
+      ecmpOrigHash,
+      ecmpOrigSeed,
+      ecmpOrigV4Dst,
+      ecmpOrigV6Src,
+      ecmpOrigTransportSrcAndDst,
+      ecmpMplsFields));
+
+  validateThriftyMigration(loadBalancerMap);
+  auto thriftMap = loadBalancerMap.toThrift();
+  auto newLoadBalancerMap = LoadBalancerMap::fromThrift(thriftMap);
+  auto newThriftMap = newLoadBalancerMap->toThrift();
+  EXPECT_EQ(thriftMap, newThriftMap);
+  EXPECT_EQ(*newLoadBalancerMap, loadBalancerMap);
 }

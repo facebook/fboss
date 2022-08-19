@@ -477,4 +477,5 @@ struct SwitchState {
   25: map<string, IpTunnelFields> ipTunnelMap;
   26: map<string, TeFlowEntryFields> teFlowTable;
   27: map<i16, AggregatePortFields> aggregatePortMap;
+  28: map<switch_config.LoadBalancerID, LoadBalancerFields> loadBalancerMap;
 }

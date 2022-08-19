@@ -120,7 +120,8 @@ class ThriftyUtils {
   }
 
   static bool nodeNeedsMigration(const folly::dynamic& dyn) {
-    return !dyn.getDefault(kThriftySchemaUpToDate, false).asBool();
+    return !dyn.isObject() ||
+        !dyn.getDefault(kThriftySchemaUpToDate, false).asBool();
   }
 
   // given folly dynamic of ip, return binary address
@@ -354,7 +355,8 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
    */
   static folly::dynamic migrateToThrifty(const folly::dynamic& dyn) {
     folly::dynamic newItems = folly::dynamic::object;
-    for (auto& item : dyn[kEntries]) {
+    auto* entries = getEntries(dyn);
+    for (auto& item : *entries) {
       if (ThriftyUtils::nodeNeedsMigration(item)) {
         auto key = ThriftyTraitsT::template getKeyFromLegacyNode<KeyType>(
             item, ThriftyTraitsT::getThriftKeyName());
@@ -443,6 +445,15 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
   bool operator!=(
       const ThriftyNodeMapT<NodeMap, TraitsT, ThriftyTraitsT>& rhs) const {
     return !(*this == rhs);
+  }
+
+ private:
+  static const folly::dynamic* getEntries(const folly::dynamic& dyn) {
+    if (dyn.isArray()) {
+      return &dyn;
+    }
+    CHECK(dyn.isObject());
+    return &dyn[kEntries];
   }
 };
 
