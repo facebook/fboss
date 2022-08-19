@@ -127,10 +127,14 @@ void SaiBufferManager::setupEgressBufferPool() {
   assertMaxBufferPoolSize(platform_);
   egressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   auto& store = saiStore_->get<SaiBufferPoolTraits>();
-  SaiBufferPoolTraits::CreateAttributes c{
-      SAI_BUFFER_POOL_TYPE_EGRESS,
-      getMaxEgressPoolBytes(platform_),
-      SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC};
+  SaiBufferPoolTraits::CreateAttributes c {
+    SAI_BUFFER_POOL_TYPE_EGRESS, getMaxEgressPoolBytes(platform_),
+        SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC
+#if defined(TAJO_SDK)
+        ,
+        0 /* XoffSize for Egress Pool */
+#endif
+  };
   egressBufferPoolHandle_->bufferPool =
       store.setObject(SAI_BUFFER_POOL_TYPE_EGRESS, c);
 }

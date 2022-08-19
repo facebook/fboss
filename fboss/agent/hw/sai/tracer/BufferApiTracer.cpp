@@ -18,10 +18,12 @@
 using folly::to;
 
 namespace {
-std::map<int32_t, std::pair<std::string, std::size_t>> _BufferPoolMap{
-    SAI_ATTR_MAP(BufferPool, Type),
-    SAI_ATTR_MAP(BufferPool, Size),
-    SAI_ATTR_MAP(BufferPool, ThresholdMode),
+std::map<int32_t, std::pair<std::string, std::size_t>> _BufferPoolMap {
+  SAI_ATTR_MAP(BufferPool, Type), SAI_ATTR_MAP(BufferPool, Size),
+      SAI_ATTR_MAP(BufferPool, ThresholdMode),
+#if defined(TAJO_SDK)
+      SAI_ATTR_MAP(BufferPool, XoffSize),
+#endif
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _BufferProfileMap{

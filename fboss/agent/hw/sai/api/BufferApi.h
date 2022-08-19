@@ -41,11 +41,22 @@ struct SaiBufferPoolTraits {
         EnumType,
         SAI_BUFFER_POOL_ATTR_THRESHOLD_MODE,
         sai_int32_t>;
+#if defined(TAJO_SDK)
+    using XoffSize =
+        SaiAttribute<EnumType, SAI_BUFFER_POOL_ATTR_XOFF_SIZE, sai_uint64_t>;
+#endif
   };
   using AdapterKey = BufferPoolSaiId;
   using AdapterHostKey = Attributes::Type;
-  using CreateAttributes =
-      std::tuple<Attributes::Type, Attributes::Size, Attributes::ThresholdMode>;
+  using CreateAttributes = std::tuple<
+      Attributes::Type,
+      Attributes::Size,
+      Attributes::ThresholdMode
+#if defined(TAJO_SDK)
+      ,
+      Attributes::XoffSize
+#endif
+      >;
 
   static constexpr std::array<sai_stat_id_t, 1> CounterIdsToReadAndClear = {
       SAI_BUFFER_POOL_STAT_WATERMARK_BYTES,
@@ -56,6 +67,9 @@ struct SaiBufferPoolTraits {
 SAI_ATTRIBUTE_NAME(BufferPool, Type);
 SAI_ATTRIBUTE_NAME(BufferPool, Size);
 SAI_ATTRIBUTE_NAME(BufferPool, ThresholdMode);
+#if defined(TAJO_SDK)
+SAI_ATTRIBUTE_NAME(BufferPool, XoffSize);
+#endif
 
 template <>
 struct SaiObjectHasStats<SaiBufferPoolTraits> : public std::true_type {};
