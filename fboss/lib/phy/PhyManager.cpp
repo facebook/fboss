@@ -604,7 +604,12 @@ void PhyManager::updatePortStats(
         std::optional<ExternalPhyPortStats> stats;
         // if PORT_INFO feature is supported, use getPortInfo instead
         if (xphy->isSupported(phy::ExternalPhy::Feature::PORT_INFO)) {
-          auto xphyPortInfo = xphy->getPortInfo(systemLanes, lineLanes);
+          PhyInfo lastPhyInfo;
+          if (auto lastXphyInfo = getXphyInfo(portID)) {
+            lastPhyInfo = *lastXphyInfo;
+          }
+          auto xphyPortInfo =
+              xphy->getPortInfo(systemLanes, lineLanes, lastPhyInfo);
           xphyPortInfo.name() = getPortName(portID);
           xphyPortInfo.speed() = programmedSpeed;
           updateXphyInfo(portID, xphyPortInfo);

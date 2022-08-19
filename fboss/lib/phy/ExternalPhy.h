@@ -209,7 +209,8 @@ class ExternalPhy {
 
   virtual PhyInfo getPortInfo(
       const std::vector<LaneID>& /* sysLanes */,
-      const std::vector<LaneID>& /* lineLanes */) {
+      const std::vector<LaneID>& /* lineLanes */,
+      PhyInfo& /* lastPhyInfo */) {
     throw facebook::fboss::FbossError(
         "Port info not supported on this platform");
   }

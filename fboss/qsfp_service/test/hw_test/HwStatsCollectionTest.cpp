@@ -118,10 +118,11 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
           lineLanes.push_back(item.first);
         }
 
+        phy::PhyInfo lastPhyInfo;
         auto portInfo = getHwQsfpEnsemble()
                             ->getPhyManager()
                             ->getExternalPhy(port)
-                            ->getPortInfo(sysLanes, lineLanes);
+                            ->getPortInfo(sysLanes, lineLanes, lastPhyInfo);
 
         // Sanity check the info we received
         auto chipInfo = portInfo.phyChip();
