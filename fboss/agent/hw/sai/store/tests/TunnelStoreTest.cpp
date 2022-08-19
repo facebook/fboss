@@ -18,7 +18,6 @@
 using namespace facebook::fboss;
 
 static constexpr folly::StringPiece dip = "42.42.12.34";
-static constexpr folly::StringPiece sip = "42.43.56.78";
 
 class TunnelStoreTest : public SaiStoreTest {
  public:
@@ -42,19 +41,13 @@ class TunnelStoreTest : public SaiStoreTest {
   SaiTunnelTermTraits::CreateAttributes createTunnelTermAttrs(
       TunnelSaiId _id) const {
     SaiTunnelTermTraits::Attributes::Type type{
-        SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2MP};
+        SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP};
     SaiTunnelTermTraits::Attributes::VrId vrId{43};
     SaiTunnelTermTraits::Attributes::DstIp dstIp{folly::IPAddress(dip)};
-    SaiTunnelTermTraits::Attributes::SrcIp srcIp{folly::IPAddress(sip)};
     SaiTunnelTermTraits::Attributes::TunnelType tunnelType{
         SAI_TUNNEL_TYPE_IPINIP};
     SaiTunnelTermTraits::Attributes::ActionTunnelId tunnelId{_id};
-    SaiTunnelTermTraits::Attributes::DstIpMask dstIpMask{
-        folly::IPAddress("255.255.255.255")};
-    SaiTunnelTermTraits::Attributes::SrcIpMask srcIpMask{
-        folly::IPAddress("255.255.255.255")};
-    return {
-        type, vrId, dstIp, srcIp, tunnelType, tunnelId, dstIpMask, srcIpMask};
+    return {type, vrId, dstIp, tunnelType, tunnelId};
   }
   TunnelTermSaiId createTunnelTerm(TunnelSaiId _id) {
     auto& tunnelApi = saiApiTable->tunnelApi();
@@ -131,11 +124,8 @@ TEST_F(TunnelStoreTest, tunnelTermCreateCtor) {
       SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP,
       43,
       folly::IPAddress(dip),
-      folly::IPAddress(sip),
       SAI_TUNNEL_TYPE_IPINIP,
-      tunnelId,
-      std::nullopt,
-      std::nullopt};
+      tunnelId};
   SaiObject<SaiTunnelTermTraits> obj = createObj<SaiTunnelTermTraits>(k, k, 0);
   EXPECT_EQ(
       GET_ATTR(TunnelTerm, TunnelType, obj.attributes()),

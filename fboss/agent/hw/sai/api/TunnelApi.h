@@ -98,11 +98,8 @@ struct SaiTunnelTermTraits {
       Attributes::Type,
       Attributes::VrId,
       Attributes::DstIp,
-      std::optional<Attributes::SrcIp>,
       Attributes::TunnelType,
-      Attributes::ActionTunnelId,
-      std::optional<Attributes::DstIpMask>,
-      std::optional<Attributes::SrcIpMask>>;
+      Attributes::ActionTunnelId>;
   using AdapterHostKey = CreateAttributes;
 };
 

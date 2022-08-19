@@ -41,19 +41,13 @@ class FakeSaiTunnelTerm {
       sai_tunnel_term_table_entry_type_t type,
       sai_object_id_t vrId,
       sai_ip_address_t dstIp,
-      sai_ip_address_t srcIp,
       sai_tunnel_type_t tunnelType,
-      sai_object_id_t tunnelId,
-      std::optional<sai_ip_address_t> dstIpMask,
-      std::optional<sai_ip_address_t> srcIpMask)
+      sai_object_id_t tunnelId)
       : type(type),
         vrId(vrId),
         dstIp(dstIp),
-        srcIp(srcIp),
         tunnelType(tunnelType),
-        tunnelId(tunnelId),
-        dstIpMask(dstIpMask),
-        srcIpMask(srcIpMask) {}
+        tunnelId(tunnelId) {}
   sai_object_id_t id;
   sai_tunnel_term_table_entry_type_t type;
   sai_object_id_t vrId;

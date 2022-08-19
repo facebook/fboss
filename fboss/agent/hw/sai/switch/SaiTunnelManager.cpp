@@ -68,12 +68,10 @@ TunnelSaiId SaiTunnelManager::addTunnel(
         getSaiTunnelTermType(swTunnel->getTunnelTermType()),
         saiVirtualRouterId,
         swTunnel->getSrcIP(), // Term Dest Ip
-        std::nullopt,
         getSaiTunnelType(swTunnel->getType()), // Tunnel Type
-        tunnelObj->adapterKey(), // SAI id of the tunnel, not the IpTunnel id in
-                                 // state
-        std::nullopt,
-        std::nullopt};
+        // SAI id of the tunnel, not the IpTunnel id in state
+        tunnelObj->adapterKey()};
+
     std::shared_ptr<SaiTunnelTerm> tunnelTermObj =
         tunnelTermStore.setObject(k2, k2);
     auto tunnelHandle = std::make_unique<SaiTunnelHandle>();
