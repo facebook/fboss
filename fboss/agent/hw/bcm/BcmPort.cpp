@@ -1168,11 +1168,24 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
           lastRsFec = *lastFec;
         }
       }
+      std::optional<uint64_t> correctedBitsFromHw;
+#if defined(BCM_SDK_VERSION_GTE_6_5_26)
+      if (hw_->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::FEC_CORRECTED_BITS)) {
+        int64_t correctedBits;
+        fec_stat_accumulate(
+            unit_,
+            port_,
+            BCM_PORT_PHY_CONTROL_RS_FEC_BIT_ERROR_COUNT,
+            &correctedBits);
+        correctedBitsFromHw = *lastRsFec.correctedBits() + correctedBits;
+      }
+#endif
       auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
       utility::updateCorrectedBitsAndPreFECBer(
           rsFec, /* current RsFecInfo to update */
           lastRsFec, /* previous RsFecInfo */
-          std::nullopt, /* counter not available from hardware */
+          correctedBitsFromHw, /* counter if available from hardware */
           now.count() - *lastPhyInfo_.timeCollected(), /* timeDeltaInSeconds */
           fecMode, /* operational FecMode */
           *info.speed() /* operational Speed */);

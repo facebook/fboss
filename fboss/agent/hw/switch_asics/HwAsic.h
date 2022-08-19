@@ -111,7 +111,8 @@ class HwAsic {
     EXACT_MATCH,
     ROUTE_PROGRAMMING,
     ECMP_HASH_V4,
-    ECMP_HASH_V6
+    ECMP_HASH_V6,
+    FEC_CORRECTED_BITS,
   };
 
   enum class AsicType ASIC_TYPE_LIST;

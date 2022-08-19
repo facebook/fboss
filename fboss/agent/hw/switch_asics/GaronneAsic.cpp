@@ -104,6 +104,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
      */
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::EXACT_MATCH:
+    case HwAsic::Feature::FEC_CORRECTED_BITS:
       return false;
   }
   return false;

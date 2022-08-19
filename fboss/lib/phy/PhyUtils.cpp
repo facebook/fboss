@@ -58,10 +58,11 @@ void updateCorrectedBitsAndPreFECBer(
       correctedBits = correctedBits * 150 / 2;
     }
     fecInfo.correctedBits() = correctedBits;
-    auto correctedBitsDelta = correctedBits - *oldRsFecInfo.correctedBits();
-    fecInfo.preFECBer() =
-        utility::ber(correctedBitsDelta, speed, timeDeltaInSeconds);
   }
+  auto correctedBitsDelta =
+      *fecInfo.correctedBits() - *oldRsFecInfo.correctedBits();
+  fecInfo.preFECBer() =
+      utility::ber(correctedBitsDelta, speed, timeDeltaInSeconds);
 }
 
 } // namespace facebook::fboss::utility
