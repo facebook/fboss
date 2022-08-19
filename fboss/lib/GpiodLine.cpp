@@ -47,10 +47,12 @@ int GpiodLine::getValue() {
 }
 
 void GpiodLine::setValue(int defaultVal, int targetVal) {
-  if (gpiod_line_request_output(line_, name_.c_str(), defaultVal) != 0) {
-    throw GpiodLineError(fmt::format(
-        "GpiodLineTrace: gpiod_line_request_output() failed to set {} direction to output",
-        name_));
+  if (!gpiod_line_is_used(line_)) {
+    if (gpiod_line_request_output(line_, name_.c_str(), defaultVal) != 0) {
+      throw GpiodLineError(fmt::format(
+          "GpiodLineTrace: gpiod_line_request_output() failed to set {} direction to output",
+          name_));
+    }
   }
 
   if (gpiod_line_set_value(line_, targetVal) != 0) {
