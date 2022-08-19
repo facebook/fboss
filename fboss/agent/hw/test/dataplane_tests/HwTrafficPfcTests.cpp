@@ -139,7 +139,9 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       pgConfig.id() = pgId;
       pgConfig.bufferPoolName() = "bufferNew";
       // provide atleast 1 cell worth of minLimit
-      pgConfig.minLimitBytes() = 300;
+      pgConfig.minLimitBytes() = 2200;
+      // set large enough headroom to avoid drop
+      pgConfig.headroomLimitBytes() = 293624;
       portPgConfigs.emplace_back(pgConfig);
     }
 
@@ -152,6 +154,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     // provide small shared buffer size
     // idea is to hit the limit and trigger XOFF (PFC)
     poolConfig.sharedBytes() = 10000;
+    poolConfig.headroomBytes() = 4771136;
     bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
     newCfg.bufferPoolConfigs() = bufferPoolCfgMap;
     cfg_ = newCfg;
@@ -264,7 +267,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
             8001,
             dscp << 2, // dscp is last 6 bits in TC
             255,
-            std::vector<uint8_t>(7000, 0xff));
+            std::vector<uint8_t>(2000, 0xff));
 
         getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
       }
