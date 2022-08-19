@@ -34,7 +34,6 @@ class LoadBalancerMap
   void addLoadBalancer(std::shared_ptr<LoadBalancer> loadBalancer);
   void updateLoadBalancer(std::shared_ptr<LoadBalancer> loadBalancer);
 
-  folly::dynamic toFollyDynamic() const override;
   static std::shared_ptr<LoadBalancerMap> fromFollyDynamic(
       const folly::dynamic& serializedLoadBalancers);
 

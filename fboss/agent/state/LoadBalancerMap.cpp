@@ -32,17 +32,6 @@ void LoadBalancerMap::updateLoadBalancer(
   updateNode(loadBalancer);
 }
 
-folly::dynamic LoadBalancerMap::toFollyDynamic() const {
-  folly::dynamic serializedLoadBalancers = folly::dynamic::array;
-
-  for (const auto& loadBalancer : *this) {
-    auto serializedLoadBalancer = loadBalancer->toFollyDynamic();
-    serializedLoadBalancers.push_back(serializedLoadBalancer);
-  }
-
-  return serializedLoadBalancers;
-}
-
 std::shared_ptr<LoadBalancerMap> LoadBalancerMap::fromFollyDynamic(
     const folly::dynamic& serializedLoadBalancers) {
   if (serializedLoadBalancers.isObject()) {
