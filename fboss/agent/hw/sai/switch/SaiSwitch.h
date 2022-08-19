@@ -189,7 +189,7 @@ class SaiSwitch : public HwSwitch {
   bool transactionsSupported() const override;
   bool l2LearningModeChangeProhibited() const;
 
-  virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfo() const override;
+  virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfo() override;
 
   uint32_t generateDeterministicSeed(
       LoadBalancerID loadBalancerID,
@@ -301,7 +301,7 @@ class SaiSwitch : public HwSwitch {
   folly::F14FastMap<std::string, HwPortStats> getPortStatsLocked(
       const std::lock_guard<std::mutex>& lock) const;
 
-  std::map<PortID, phy::PhyInfo> updateAllPhyInfoLocked() const;
+  std::map<PortID, phy::PhyInfo> updateAllPhyInfoLocked();
 
   void linkStateChangedCallbackBottomHalf(
       std::vector<sai_port_oper_status_notification_t> data);
@@ -466,6 +466,8 @@ class SaiSwitch : public HwSwitch {
   int64_t watermarkStatsUpdateTime_{0};
   HwAsic::AsicType asicType_;
   cfg::SwitchType switchType_{cfg::SwitchType::NPU};
+
+  std::map<PortID, phy::PhyInfo> lastPhyInfos_;
 };
 
 } // namespace facebook::fboss

@@ -2646,7 +2646,7 @@ void BcmSwitch::updateGlobalStats() {
   }
 }
 
-std::map<PortID, phy::PhyInfo> BcmSwitch::updateAllPhyInfo() const {
+std::map<PortID, phy::PhyInfo> BcmSwitch::updateAllPhyInfo() {
   return portTable_->updateIPhyInfo();
 }
 

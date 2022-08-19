@@ -138,6 +138,8 @@ class SaiPortManager {
   }
 
   cfg::PortSpeed getMaxSpeed(PortID port) const;
+  // getSpeed returns the currently configured speed
+  cfg::PortSpeed getSpeed(PortID port) const;
   Handles::const_iterator begin() const {
     return handles_.begin();
   }

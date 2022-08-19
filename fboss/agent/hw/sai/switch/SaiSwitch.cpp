@@ -66,6 +66,8 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "folly/MacAddress.h"
 
+#include "fboss/lib/phy/PhyUtils.h"
+
 #include <folly/logging/xlog.h>
 
 #include <chrono>
@@ -957,12 +959,12 @@ folly::F14FastMap<std::string, HwPortStats> SaiSwitch::getPortStatsLocked(
   return portStatsMap;
 }
 
-std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfo() const {
+std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfo() {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return updateAllPhyInfoLocked();
 }
 
-std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
+std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
   std::map<PortID, phy::PhyInfo> returnPhyParams;
 
   for (const auto& portIdAndHandle : managerTable_->portManager()) {
@@ -982,6 +984,11 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
       continue;
     }
 
+    phy::PhyInfo lastPhyInfo;
+    if (auto itr = lastPhyInfos_.find(swPort); itr != lastPhyInfos_.end()) {
+      lastPhyInfo = itr->second;
+    }
+
     phy::PhyInfo phyParams;
     phyParams.name() = fb303PortStat->portName();
     phyParams.switchID() = getSwitchId();
@@ -990,6 +997,7 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
     phyChip.type() = getPlatform()->getAsic()->getDataPlanePhyChipType();
     phyParams.phyChip() = phyChip;
     phyParams.linkState() = managerTable_->portManager().isUp(swPort);
+    phyParams.speed() = managerTable_->portManager().getSpeed(swPort);
     phyParams.line()->side() = phy::Side::LINE;
     // Update PMD Info
     auto eyeStatus = managerTable_->portManager().getPortEyeValues(
@@ -1034,6 +1042,21 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
           *(fb303PortStat->portStats().fecCorrectableErrors());
       rsFec.uncorrectedCodewords() =
           *(fb303PortStat->portStats().fecUncorrectableErrors());
+
+      phy::RsFecInfo lastLineRsFec;
+      if (auto lastPcs = lastPhyInfo.line()->pcs()) {
+        if (auto lastFec = lastPcs->rsFec()) {
+          lastLineRsFec = *lastFec;
+        }
+      }
+      auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+      utility::updateCorrectedBitsAndPreFECBer(
+          rsFec, /* current RsFecInfo to update */
+          lastLineRsFec, /* previous RsFecInfo */
+          std::nullopt, /* counter not available from hardware */
+          now.count() - *lastPhyInfo.timeCollected(), /* timeDeltaInSeconds */
+          fecMode, /* operational FecMode */
+          *phyParams.speed() /* operational Speed */);
       pcs.rsFec() = rsFec;
     }
     phyParams.line()->pcs() = pcs;
@@ -1060,6 +1083,7 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() const {
     phyParams.timeCollected() = now.count();
     returnPhyParams[swPort] = phyParams;
   }
+  lastPhyInfos_ = returnPhyParams;
   return returnPhyParams;
 }
 

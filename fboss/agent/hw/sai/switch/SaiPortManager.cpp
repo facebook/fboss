@@ -1587,4 +1587,10 @@ phy::FecMode SaiPortManager::getFECMode(PortID portId) const {
       static_cast<sai_port_fec_mode_t>(saiFecMode), profileID);
 }
 
+cfg::PortSpeed SaiPortManager::getSpeed(PortID portId) const {
+  auto handle = getPortHandle(portId);
+  return static_cast<cfg::PortSpeed>(
+      GET_ATTR(Port, Speed, handle->port->attributes()));
+}
+
 } // namespace facebook::fboss

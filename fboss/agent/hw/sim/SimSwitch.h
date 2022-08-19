@@ -117,7 +117,7 @@ class SimSwitch : public HwSwitch {
     return "";
   }
 
-  virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfo() const override {
+  virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfo() override {
     return std::map<PortID, phy::PhyInfo>();
   }
 

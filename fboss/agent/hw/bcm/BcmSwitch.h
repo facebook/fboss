@@ -584,7 +584,7 @@ class BcmSwitch : public BcmSwitchIf {
 
   bool usePKTIO() const;
 
-  std::map<PortID, phy::PhyInfo> updateAllPhyInfo() const override;
+  std::map<PortID, phy::PhyInfo> updateAllPhyInfo() override;
 
  private:
   enum Flags : uint32_t {
