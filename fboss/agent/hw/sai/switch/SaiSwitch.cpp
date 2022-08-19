@@ -1285,7 +1285,8 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   if (platform_->getAsic()->getAsicType() !=
       HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
     // reconstruct ports
-    state->resetPorts(managerTable_->portManager().reconstructPortsFromStore());
+    state->resetPorts(
+        managerTable_->portManager().reconstructPortsFromStore(switchType_));
   }
   return state;
 }

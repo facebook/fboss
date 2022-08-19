@@ -886,13 +886,18 @@ cfg::PortSpeed SaiPortManager::getMaxSpeed(PortID port) const {
   return platform_->getPortMaxSpeed(port);
 }
 
-std::shared_ptr<PortMap> SaiPortManager::reconstructPortsFromStore() const {
+std::shared_ptr<PortMap> SaiPortManager::reconstructPortsFromStore(
+    cfg::SwitchType switchType) const {
   auto& portStore = saiStore_->get<SaiPortTraits>();
   auto portMap = std::make_shared<PortMap>();
   for (auto& iter : portStore.objects()) {
     auto saiPort = iter.second.lock();
     auto port =
         swPortFromAttributes(saiPort->attributes(), saiPort->adapterKey());
+    if (switchType == cfg::SwitchType::FABRIC ||
+        switchType == cfg::SwitchType::VOQ) {
+      // TODO: Query port type attr and identify fabric ports
+    }
     portMap->addNode(port);
   }
   return portMap;

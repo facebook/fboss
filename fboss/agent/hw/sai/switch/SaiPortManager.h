@@ -147,7 +147,8 @@ class SaiPortManager {
   void setQosPolicy();
   void clearQosPolicy();
 
-  std::shared_ptr<PortMap> reconstructPortsFromStore() const;
+  std::shared_ptr<PortMap> reconstructPortsFromStore(
+      cfg::SwitchType switchType) const;
 
   std::shared_ptr<Port> swPortFromAttributes(
       SaiPortTraits::CreateAttributes attributees,
