@@ -91,7 +91,47 @@ folly::dynamic InterfaceFields::toFollyDynamic() const {
 
 std::optional<folly::CIDRNetwork> Interface::getAddressToReach(
     const folly::IPAddress& dest) const {
-  for (const auto& [ipStr, mask] : *getFields()->data().addresses()) {
+  /*
+   * Preserving old behavior for mitigation of S289408
+   * Prior to migrating InterfaceFields to native thrift
+   * representation, we maintained interface addresses in
+   * flat_map<IPAddress, uint16_t> data structure. That is
+   * these were sorted based on IP address. In thrift
+   * representation we store them in a std::map<string, uint16_t>
+   * i.e. sorted by string.
+   * This has some unfortunate downstream implications for
+   * server subnets. Consider, for server facing subnet
+   * our downlink interface (vlan2000) has 2 link local
+   * addresses - fe80::face:b00c and another LL derived
+   * from our own mac address. Only one of these LLs is used
+   * in neighbor solicitations sent from RSW to servers.
+   * Which one we use depends on which occurs first in
+   * the address storage data structure. Prior to
+   * thrift migration, fe80::face:b00c always came
+   * before dynamic LL, while with string comparison
+   * dynamic LL comes first.
+   * The source address RSW uses for neighbor solicitations
+   * influences behavior of neighbor entries on servers.
+   * When using fe80::face:b00c, a neighbor entry for that
+   * IP will be created on servers on receiving NS (neighbor
+   * solicitations) from RSW.  On servers fe80::face:b00C
+   * is used as gateway for V4 while RSW's dynamic LL is
+   * used as gateway for V6. Since V6 traffic is always
+   * flowing we are confident of RSW's dynamic LL being
+   * resolved on servers. However, fe80::face:b00c needs
+   * either V4 traffic or a NS using that src IP from RSW.
+   * Further certain services, on startup check for
+   * both GWs to be resolved. And get into a crash loop
+   * otherwise. Now the following 2 conditions makes
+   * these services vulnerable
+   *  - Absence of V4 traffic on servers
+   *  - RSW using dynamic LL for NS1
+   *  The concerned services are updating their check
+   *  to protect from this vulnerability. Meanwhile
+   *  we are reverting to old behavior so as to not
+   *  couple our release with their rollout.
+   */
+  for (const auto& [ipStr, mask] : getAddresses()) {
     auto cidr = folly::CIDRNetwork(ipStr, mask);
     if (dest.inSubnet(cidr.first, cidr.second)) {
       return cidr;
