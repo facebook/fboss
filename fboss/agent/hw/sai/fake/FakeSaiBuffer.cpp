@@ -25,6 +25,7 @@ sai_status_t create_buffer_pool_fn(
   std::optional<sai_buffer_pool_type_t> poolType;
   std::optional<sai_uint64_t> poolSize;
   std::optional<sai_buffer_pool_threshold_mode_t> threshMode;
+  std::optional<sai_uint64_t> xoffSize;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_BUFFER_POOL_ATTR_TYPE:
@@ -37,6 +38,9 @@ sai_status_t create_buffer_pool_fn(
         threshMode = static_cast<sai_buffer_pool_threshold_mode_t>(
             attr_list[i].value.s32);
         break;
+      case SAI_BUFFER_POOL_ATTR_XOFF_SIZE:
+        xoffSize = attr_list[i].value.u64;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -45,7 +49,7 @@ sai_status_t create_buffer_pool_fn(
     return SAI_STATUS_INVALID_PARAMETER;
   }
   *buffer_pool_id = fs->bufferPoolManager.create(
-      poolType.value(), poolSize.value(), threshMode.value());
+      poolType.value(), poolSize.value(), threshMode.value(), xoffSize);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -77,6 +81,9 @@ sai_status_t get_buffer_pool_attribute_fn(
         break;
       case SAI_BUFFER_POOL_ATTR_THRESHOLD_MODE:
         attr[i].value.s32 = pool.threshMode;
+        break;
+      case SAI_BUFFER_POOL_ATTR_XOFF_SIZE:
+        attr[i].value.u64 = pool.xoffSize ? pool.xoffSize.value() : 0;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
