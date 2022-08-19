@@ -40,11 +40,12 @@ TEST(Interface, addrToReach) {
   *intfConfig->vlanID() = 1;
   *intfConfig->routerID() = 1;
   intfConfig->mac() = "00:02:00:11:22:33";
-  intfConfig->ipAddresses()->resize(4);
+  intfConfig->ipAddresses()->resize(5);
   intfConfig->ipAddresses()[0] = "10.1.1.1/24";
   intfConfig->ipAddresses()[1] = "20.1.1.2/24";
   intfConfig->ipAddresses()[2] = "::22:33:44/120";
   intfConfig->ipAddresses()[3] = "::11:11:11/120";
+  intfConfig->ipAddresses()[4] = "fe80::face:b00c/64";
 
   intfConfig = &config.interfaces()[1];
   *intfConfig->intfID() = 2;
@@ -89,6 +90,13 @@ TEST(Interface, addrToReach) {
 
   intf = intfs->getIntfToReach(RouterID(2), IPAddress("::22:34:5f"));
   ASSERT_TRUE(intf == nullptr);
+  // Assert the to reach LL we always use fe80::face:b00c address
+  // This is not required by NDP RFC (we could use any of the in
+  // subnet addresses), but using fe80::face:b00c is done to
+  // preserve longstanding behavior. See S289408 for details.
+  EXPECT_EQ(
+      IPAddress("fe80::face:b00c"),
+      intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
 }
 
 TEST(Interface, applyConfig) {
