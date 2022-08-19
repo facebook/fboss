@@ -116,6 +116,9 @@ class CmdShowInterfacePhy
         rsFecTable.addRow(
             {prefix + "Uncorrected codewords",
              std::to_string(*(rsFec->uncorrectedCodewords()))});
+        std::ostringstream outStringStream;
+        outStringStream << *rsFec->preFECBer();
+        rsFecTable.addRow({prefix + "Pre-FEC BER", outStringStream.str()});
         hasRsFecData = true;
       }
       if (hasPcsData) {
