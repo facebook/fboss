@@ -896,7 +896,11 @@ std::shared_ptr<PortMap> SaiPortManager::reconstructPortsFromStore(
         swPortFromAttributes(saiPort->attributes(), saiPort->adapterKey());
     if (switchType == cfg::SwitchType::FABRIC ||
         switchType == cfg::SwitchType::VOQ) {
-      // TODO: Query port type attr and identify fabric ports
+      auto portType = SaiApiTable::getInstance()->portApi().getAttribute(
+          saiPort->adapterKey(), SaiPortTraits::Attributes::Type{});
+      if (portType == SAI_PORT_TYPE_FABRIC) {
+        port->setPortType(cfg::PortType::FABRIC_PORT);
+      }
     }
     portMap->addNode(port);
   }
