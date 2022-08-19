@@ -23,6 +23,7 @@ namespace facebook::fboss {
 class SaiManagerTable;
 class SaiPlatform;
 class PortQueue;
+class PortPgConfig;
 class HwAsic;
 class SaiStore;
 
@@ -43,6 +44,7 @@ class SaiBufferManager {
   std::shared_ptr<SaiBufferProfile> getOrCreateProfile(const PortQueue& queue);
 
   void setupEgressBufferPool();
+  void setupIngressBufferPool(const PortPgConfig& cfg);
   void updateStats();
   uint64_t getDeviceWatermarkBytes() const {
     return deviceWatermarkBytes_;
@@ -58,6 +60,7 @@ class SaiBufferManager {
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
   std::unique_ptr<SaiBufferPoolHandle> egressBufferPoolHandle_;
+  std::unique_ptr<SaiBufferPoolHandle> ingressBufferPoolHandle_;
   UnorderedRefMap<SaiBufferProfileTraits::AdapterHostKey, SaiBufferProfile>
       bufferProfiles_;
   uint64_t deviceWatermarkBytes_{0};

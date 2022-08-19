@@ -139,6 +139,25 @@ void SaiBufferManager::setupEgressBufferPool() {
       store.setObject(SAI_BUFFER_POOL_TYPE_EGRESS, c);
 }
 
+void SaiBufferManager::setupIngressBufferPool(const PortPgConfig& portPgCfg) {
+  if (ingressBufferPoolHandle_) {
+    return;
+  }
+  ingressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
+  auto& store = saiStore_->get<SaiBufferPoolTraits>();
+  auto bufferPoolCfg = portPgCfg.getBufferPoolConfig().value();
+  SaiBufferPoolTraits::CreateAttributes c {
+    SAI_BUFFER_POOL_TYPE_INGRESS, bufferPoolCfg->getSharedBytes(),
+        SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC
+#if defined(TAJO_SDK)
+        ,
+        bufferPoolCfg->getHeadroomBytes()
+#endif
+  };
+  ingressBufferPoolHandle_->bufferPool =
+      store.setObject(SAI_BUFFER_POOL_TYPE_INGRESS, c);
+}
+
 void SaiBufferManager::updateStats() {
   if (egressBufferPoolHandle_) {
     egressBufferPoolHandle_->bufferPool->updateStats();
