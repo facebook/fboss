@@ -268,6 +268,7 @@ class SaiPortManager {
   std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
 
   std::optional<SaiPortTraits::Attributes::PtpMode> getPtpMode() const;
+  cfg::PortType portType_{cfg::PortType::INTERFACE_PORT};
 };
 
 } // namespace facebook::fboss
