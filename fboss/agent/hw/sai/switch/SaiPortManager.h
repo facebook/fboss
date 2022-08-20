@@ -187,6 +187,9 @@ class SaiPortManager {
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
+  void changePortImpl(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
   void addRemovedHandle(PortID portID);
   void removeRemovedHandleIf(PortID portID);
   void releasePorts();

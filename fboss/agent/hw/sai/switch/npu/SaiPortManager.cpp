@@ -174,7 +174,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   return portSaiId;
 }
 
-void SaiPortManager::changePort(
+void SaiPortManager::changePortImpl(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
   SaiPortHandle* existingPort = getPortHandle(newPort->getID());

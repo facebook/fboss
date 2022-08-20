@@ -107,7 +107,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   return saiLinePort->adapterKey();
 }
 
-void SaiPortManager::changePort(
+void SaiPortManager::changePortImpl(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
   auto nonMacsecFieldsChange = [](const auto& l, const auto& r) {

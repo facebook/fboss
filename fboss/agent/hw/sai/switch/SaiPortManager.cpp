@@ -398,9 +398,21 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
       PortDescriptorSaiId(portSaiId), swPort->getIngressVlan());
   XLOG(DBG2) << "added port " << swPort->getID() << " with vlan "
              << swPort->getIngressVlan() << " Port type: "
-             << (portType_ == cfg::PortType::INTERFACE_PORT ? "Interface"
-                                                            : "Network");
+             << apache::thrift::TEnumTraits<cfg::PortType>::findName(portType_);
+
   return portSaiId;
+}
+
+void SaiPortManager::changePort(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  if (portType_ != newPort->getPortType()) {
+    portType_ = newPort->getPortType();
+    XLOG(DBG2) << " Port : " << newPort->getID() << " changed to : "
+               << apache::thrift::TEnumTraits<cfg::PortType>::findName(
+                      portType_);
+  }
+  changePortImpl(oldPort, newPort);
 }
 
 void SaiPortManager::addSamplePacket(const std::shared_ptr<Port>& swPort) {
