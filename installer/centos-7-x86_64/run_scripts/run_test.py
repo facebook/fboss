@@ -53,7 +53,7 @@ class TestRunner(abc.ABC):
 
     _GTEST_RESULT_PATTERN = re.compile(
         r"""\[\s+(?P<status>(OK)|(FAILED)|(SKIPPED)|(TIMEOUT))\s+\]\s+
-        (?P<test_case>[\w\.]+)\s+\((?P<duration>\d+)\s+ms\)$""",
+        (?P<test_case>[\w\.\/]+)\s+\((?P<duration>\d+)\s+ms\)$""",
         re.VERBOSE,
     )
 
@@ -283,7 +283,10 @@ class SaiTestRunner(TestRunner):
             "--enable_get_attr_log",
             "--enable_packet_log",
             "--sai-log",
-            os.path.join(sdk_logging_dir, "replayer-log-" + test_prefix + test_to_run),
+            os.path.join(
+                sdk_logging_dir,
+                "replayer-log-" + test_prefix + test_to_run.replace("/", "-"),
+            ),
         ]
 
 
