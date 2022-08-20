@@ -10,24 +10,10 @@
 #include <folly/Benchmark.h>
 #include <unordered_set>
 
-#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
-#include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
+#include "fboss/qsfp_service/test/benchmarks/HwBenchmarkUtils.h"
 
 namespace facebook::fboss {
-
-std::unique_ptr<WedgeManager> setupForColdboot() {
-  // Once we setup for cold boot, WedgeManager will always reload xphy firmware
-  // when initExternalPhyMap() is called
-  createDir(FLAGS_qsfp_service_volatile_dir);
-  auto fd = createFile(TransceiverManager::forceColdBootFileName());
-  close(fd);
-
-  gflags::SetCommandLineOptionWithMode(
-      "force_reload_gearbox_fw", "1", gflags::SET_FLAGS_DEFAULT);
-
-  return createWedgeManager();
-}
 
 // This function will read one byte from the offset 0 on transceivers
 // with the specified media type.
