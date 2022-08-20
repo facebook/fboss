@@ -35,7 +35,6 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::PENDING_L2_ENTRY:
-    case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
     case HwAsic::Feature::MAC_AGING:
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
@@ -105,6 +104,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
+    case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
       return false;
   }
   return false;
