@@ -1159,13 +1159,11 @@ void SaiAclTableManager::updateStats() {
 std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
     const {
   /*
-   * Ebro either does not support following qualifier or enabling those
-   * overflows max key width. Thus, disable those on Ebro for now.
+   * Tajo does not support following qualifier or enabling those
+   * overflows max key width. Thus, disable those on Tajo for now.
    */
-  bool isEbro =
-      platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_EBRO;
-  bool isGaronne = platform_->getAsic()->getAsicType() ==
-      HwAsic::AsicType::ASIC_TYPE_GARONNE;
+  bool isTajo = platform_->getAsic()->getAsicVendor() ==
+      HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
   bool isTrident2 = platform_->getAsic()->getAsicType() ==
       HwAsic::AsicType::ASIC_TYPE_TRIDENT2;
   std::set<cfg::AclTableQualifier> tajoQualifiers = {
@@ -1180,17 +1178,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
       cfg::AclTableQualifier::LOOKUP_CLASS_L2,
       cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
       cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
-  if (isEbro) {
-    return tajoQualifiers;
-  }
-  if (isGaronne) {
-    /*
-     * (TODO): Garonne does not support class ID yet. prune it from
-     * qualifier list for now.
-     */
-    tajoQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_L2);
-    tajoQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR);
-    tajoQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE);
+
+  if (isTajo) {
     return tajoQualifiers;
   }
 
