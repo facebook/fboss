@@ -1053,11 +1053,6 @@ TEST(PortMap, registerPorts) {
   EXPECT_TRUE(port10->isPublished());
 
   validateThriftyMigration(*ports);
-
-  // Attempting to register new ports after the PortMap has been published
-  // should crash.
-  ASSERT_DEATH(
-      ports->registerPort(PortID(5), "port5"), "Check failed: !isPublished()");
 }
 
 /*

@@ -103,11 +103,4 @@ TEST(TransceiverMap, addTransceiver) {
   EXPECT_TRUE(transceiver10->isPublished());
 
   validateThriftyMigration(*transceiverMap);
-
-  // Attempting to add new transceivers after the TransceiverMap has been
-  // published should crash.
-  auto transceiver3 = std::make_shared<TransceiverSpec>(TransceiverID(3));
-  ASSERT_DEATH(
-      transceiverMap->addTransceiver(transceiver3),
-      "Check failed: !isPublished()");
 }

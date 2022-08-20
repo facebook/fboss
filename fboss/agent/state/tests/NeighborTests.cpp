@@ -141,7 +141,6 @@ TEST(NeighborResponseTableTest, modify) {
 
   arpResponseTable = std::make_shared<ArpResponseTable>();
   arpResponseTable->setEntry(ip1, mac1, InterfaceID(0));
-  EXPECT_DEATH(vlan->setArpResponseTable(arpResponseTable), "!isPublished");
   modifiedVlan->setArpResponseTable(arpResponseTable);
 
   EXPECT_NE(vlan.get(), modifiedVlan);
