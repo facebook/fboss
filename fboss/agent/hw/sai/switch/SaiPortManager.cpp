@@ -828,7 +828,7 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   setUninitializedStatsToZero(*curPortStats.fecUncorrectableErrors());
 
   curPortStats.timestamp_() = now.count();
-  handle->port->updateStats(supportedStats(), SAI_STATS_MODE_READ);
+  handle->port->updateStats(supportedStats(portId), SAI_STATS_MODE_READ);
   auto fecCounters = fecStatIds(portId);
   if (!fecCounters.empty()) {
     handle->port->updateStats(fecCounters, SAI_STATS_MODE_READ_AND_CLEAR);
@@ -845,6 +845,15 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
       handle->configuredQueues, curPortStats, updateWatermarks);
   managerTable_->macsecManager().updateStats(portId, curPortStats);
   portStats_[portId]->updateStats(curPortStats, now);
+}
+
+const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats(PortID port) {
+  auto itr = port2SupportedStats_.find(port);
+  if (itr != port2SupportedStats_.end()) {
+    return itr->second;
+  }
+  fillInSupportedStats(port);
+  return port2SupportedStats_.find(port)->second;
 }
 
 std::map<PortID, HwPortStats> SaiPortManager::getPortStats() const {
@@ -866,7 +875,7 @@ void SaiPortManager::clearStats(PortID port) {
   if (!portHandle) {
     return;
   }
-  auto statsToClear = supportedStats();
+  auto statsToClear = supportedStats(port);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::DEBUG_COUNTER)) {
     // Debug counters are implemented differently than regular port counters
     // and not all implementations support clearing them. For our use case

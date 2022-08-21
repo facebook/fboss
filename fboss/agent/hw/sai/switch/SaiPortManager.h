@@ -200,7 +200,8 @@ class SaiPortManager {
       const folly::F14FastSet<PortID>& ports);
 
   void setQosMapsOnAllPorts(QosMapSaiId dscpToTc, QosMapSaiId tcToQueue);
-  const std::vector<sai_stat_id_t>& supportedStats() const;
+  const std::vector<sai_stat_id_t>& supportedStats(PortID port);
+  void fillInSupportedStats(PortID port);
   const std::vector<sai_stat_id_t>& fecStatIds(PortID portID) const;
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
   SaiQueueHandle* getQueueHandleImpl(
@@ -272,6 +273,7 @@ class SaiPortManager {
 
   std::optional<SaiPortTraits::Attributes::PtpMode> getPtpMode() const;
   cfg::PortType portType_{cfg::PortType::INTERFACE_PORT};
+  std::unordered_map<PortID, std::vector<sai_stat_id_t>> port2SupportedStats_;
 };
 
 } // namespace facebook::fboss
