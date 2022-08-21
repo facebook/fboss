@@ -20,6 +20,15 @@ class HwIpInIpTunnelTest : public HwLinkStateDependentTest {
   std::string kTunnelTermDstIp = "2000::1";
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
+    std::vector<cfg::IpInIpTunnel> tunnelList;
+    auto cfg{this->initialConfig()};
+    tunnelList.push_back(makeTunnelConfig("hwTestTunnel", kTunnelTermDstIp));
+    cfg.ipInIpTunnels() = tunnelList;
+    this->applyNewConfig(cfg);
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(), getPlatform()->getLocalMac());
+    resolveNeigborAndProgramRoutes(
+        ecmpHelper, 1); // forwarding takes the first port: 0
   }
 
   cfg::SwitchConfig initialConfig() const override {
@@ -75,35 +84,41 @@ class HwIpInIpTunnelTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwIpInIpTunnelTest, TunnelDecapForwarding) {
-  auto setup = [=]() {
-    std::vector<cfg::IpInIpTunnel> tunnelList;
-    auto cfg{this->initialConfig()};
-    tunnelList.push_back(makeTunnelConfig("hwTestTunnel", kTunnelTermDstIp));
-    cfg.ipInIpTunnels() = tunnelList;
-    this->applyNewConfig(cfg);
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(
-        getProgrammedState(), getPlatform()->getLocalMac());
-    resolveNeigborAndProgramRoutes(
-        ecmpHelper, 1); // forwarding takes the first port: 0
-  };
-
   auto verify = [=]() {
-    // src is in; dest is out
-    auto beforeSrcBytes =
+    auto beforeInBytes =
         getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
-    auto beforeDstBytes =
+    auto beforeOutBytes =
         getLatestPortStats(masterLogicalPortIds()[0]).get_outBytes_();
     sendIpInIpPacket(kTunnelTermDstIp);
-    auto afterSrcBytes =
+    auto afterInBytes =
         getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
-    auto afterDstBytes =
+    auto afterOutBytes =
         getLatestPortStats(masterLogicalPortIds()[0]).get_outBytes_();
 
     EXPECT_EQ(
-        afterSrcBytes - beforeSrcBytes - IPv6Hdr::SIZE,
-        afterDstBytes - beforeDstBytes);
+        afterInBytes - beforeInBytes - IPv6Hdr::SIZE,
+        afterOutBytes - beforeOutBytes);
   };
-  this->verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots([=] {}, verify);
+}
+
+TEST_F(HwIpInIpTunnelTest, TunnelTermEntryMiss) {
+  auto verify = [=]() {
+    auto beforeInBytes =
+        getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
+    auto beforeOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[0]).get_outBytes_();
+    sendIpInIpPacket("5000::6");
+    auto afterInBytes =
+        getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
+    auto afterOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[0]).get_outBytes_();
+
+    EXPECT_NE(afterInBytes, beforeInBytes);
+    EXPECT_NE(afterOutBytes, beforeOutBytes);
+    EXPECT_EQ(afterInBytes - beforeInBytes, afterOutBytes - beforeOutBytes);
+  };
+  this->verifyAcrossWarmBoots([=] {}, verify);
 }
 
 } // namespace facebook::fboss
