@@ -367,7 +367,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TAM_EVENT, "tamEvent_"},
       {SAI_OBJECT_TYPE_TAM, "tam_"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_"},
-      {SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, "tunnelTermTableEntry_"},
+      {SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, "tunnelTerm_"},
       {SAI_OBJECT_TYPE_UDF_GROUP, "udfGroup_"},
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtualRouter_"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_"},
