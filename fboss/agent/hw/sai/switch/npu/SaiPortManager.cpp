@@ -37,9 +37,10 @@ std::optional<SaiPortTraits::Attributes::SystemPortId> getSystemPortId(
 } // namespace
 
 void SaiPortManager::fillInSupportedStats(PortID port) {
-  auto getSupportedStats = [this]() {
+  auto getSupportedStats = [this, port]() {
     std::vector<sai_stat_id_t> counterIds;
-    if (portType_ == cfg::PortType::FABRIC_PORT) {
+    auto portType = port2PortType_.find(port)->second;
+    if (portType == cfg::PortType::FABRIC_PORT) {
       counterIds = std::vector<sai_stat_id_t>{
           SAI_PORT_STAT_IF_IN_OCTETS,
           SAI_PORT_STAT_IF_IN_ERRORS,

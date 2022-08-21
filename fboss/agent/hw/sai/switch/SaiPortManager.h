@@ -256,6 +256,7 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   void removePfc(const std::shared_ptr<Port>& swPort);
+  void setPortType(PortID portId, cfg::PortType portType);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
@@ -272,7 +273,7 @@ class SaiPortManager {
   std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
 
   std::optional<SaiPortTraits::Attributes::PtpMode> getPtpMode() const;
-  cfg::PortType portType_{cfg::PortType::INTERFACE_PORT};
+  std::unordered_map<PortID, cfg::PortType> port2PortType_;
   std::unordered_map<PortID, std::vector<sai_stat_id_t>> port2SupportedStats_;
 };
 

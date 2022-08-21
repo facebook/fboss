@@ -389,16 +389,23 @@ void SaiPortManager::removePfc(const std::shared_ptr<Port>& swPort) {
   }
 }
 
+void SaiPortManager::setPortType(PortID port, cfg::PortType type) {
+  port2PortType_.insert({port, type});
+  // If Port type changed, supported stats need to be updated
+  port2SupportedStats_.clear();
+  XLOG(DBG2) << " Port : " << port << " type set to : "
+             << apache::thrift::TEnumTraits<cfg::PortType>::findName(type);
+}
+
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
-  portType_ = swPort->getPortType();
+  setPortType(swPort->getID(), swPort->getPortType());
   auto portSaiId = addPortImpl(swPort);
   concurrentIndices_->portIds.emplace(portSaiId, swPort->getID());
   concurrentIndices_->portSaiIds.emplace(swPort->getID(), portSaiId);
   concurrentIndices_->vlanIds.emplace(
       PortDescriptorSaiId(portSaiId), swPort->getIngressVlan());
   XLOG(DBG2) << "added port " << swPort->getID() << " with vlan "
-             << swPort->getIngressVlan() << " Port type: "
-             << apache::thrift::TEnumTraits<cfg::PortType>::findName(portType_);
+             << swPort->getIngressVlan();
 
   return portSaiId;
 }
@@ -406,11 +413,8 @@ PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
 void SaiPortManager::changePort(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
-  if (portType_ != newPort->getPortType()) {
-    portType_ = newPort->getPortType();
-    XLOG(DBG2) << " Port : " << newPort->getID() << " changed to : "
-               << apache::thrift::TEnumTraits<cfg::PortType>::findName(
-                      portType_);
+  if (oldPort->getPortType() != newPort->getPortType()) {
+    setPortType(newPort->getID(), newPort->getPortType());
   }
   changePortImpl(oldPort, newPort);
 }
@@ -512,6 +516,8 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   addRemovedHandle(itr->first);
   handles_.erase(itr);
   portStats_.erase(swId);
+  port2SupportedStats_.erase(swId);
+  port2PortType_.erase(swId);
   // TODO: do FDB entries associated with this port need to be removed
   // now?
   XLOG(DBG2) << "removed port " << swPort->getID() << " with vlan "
