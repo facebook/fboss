@@ -25,9 +25,8 @@ int getEMGroupID(int gid) {
   return BCM_FIELD_EM_ID_BASE + gid;
 }
 
-int initEMTable(int unit, bcm_field_group_t gid) {
+void initEMTable(int unit, bcm_field_group_t gid, bcm_field_hintid_t& hintId) {
   bcm_field_group_config_t groupConfig;
-  bcm_field_hintid_t hintId;
   bcm_field_hint_t hint;
 
   /* Creating hint id to associate with EM Group */
@@ -62,8 +61,28 @@ int initEMTable(int unit, bcm_field_group_t gid) {
 
   rv = bcm_field_group_config_create(unit, &groupConfig);
   bcmCheckError(rv, "init EM Table:bcm_field_group_config_create failed");
+}
 
-  return hintId;
+bool validateDstIpHint(
+    int unit,
+    bcm_field_hintid_t hintId,
+    int hintStartBit,
+    int hintEndBit) {
+  bcm_field_hint_t hint;
+  bcm_field_hint_t_init(&hint);
+  hint.hint_type = bcmFieldHintTypeExtraction;
+  hint.qual = bcmFieldQualifyDstIp6;
+  auto rv = bcm_field_hints_get(unit, hintId, &hint);
+  bcmCheckError(rv, "Unable to get hints for hint: ", hintId);
+  return (hint.start_bit == hintStartBit) && (hint.end_bit == hintEndBit);
+}
+
+int getEmDstIpHintStartBit() {
+  return kDefaultExactMatchDestIpHintStartBit;
+}
+
+int getEmDstIpHintEndBit() {
+  return kDefaultExactMatchDestIpHintEndBit;
 }
 
 } // namespace facebook::fboss::utility

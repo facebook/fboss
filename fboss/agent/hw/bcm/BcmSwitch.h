@@ -71,6 +71,7 @@ class BcmRouteCounterTableBase;
 class BcmRxPacket;
 class BcmStatUpdater;
 class BcmSwitchEventCallback;
+class BcmTeFlowTable;
 class BcmTrunkTable;
 class BcmUnit;
 class BcmWarmBootCache;
@@ -151,6 +152,8 @@ class BcmSwitchIf : public HwSwitch {
 
   virtual const BcmQosPolicyTable* getQosPolicyTable() const = 0;
 
+  virtual const BcmTeFlowTable* getTeFlowTable() const = 0;
+
   virtual const BcmTrunkTable* getTrunkTable() const = 0;
 
   virtual BcmStatUpdater* getStatUpdater() const = 0;
@@ -168,6 +171,8 @@ class BcmSwitchIf : public HwSwitch {
   virtual BcmEgressManager* writableEgressManager() const = 0;
 
   virtual BcmAclTable* writableAclTable() const = 0;
+
+  virtual BcmTeFlowTable* writableTeFlowTable() const = 0;
 
   virtual BcmWarmBootCache* getWarmBootCache() const = 0;
 
@@ -342,6 +347,9 @@ class BcmSwitch : public BcmSwitchIf {
   BcmStatUpdater* getStatUpdater() const override {
     return bcmStatUpdater_.get();
   }
+  const BcmTeFlowTable* getTeFlowTable() const override {
+    return teFlowTable_.get();
+  }
   const BcmTrunkTable* getTrunkTable() const override {
     return trunkTable_.get();
   }
@@ -403,6 +411,9 @@ class BcmSwitch : public BcmSwitchIf {
   }
   BcmAclTable* writableAclTable() const override {
     return aclTable_.get();
+  }
+  BcmTeFlowTable* writableTeFlowTable() const override {
+    return teFlowTable_.get();
   }
   BcmWarmBootCache* getWarmBootCache() const override {
     return warmBootCache_.get();
@@ -857,11 +868,6 @@ class BcmSwitch : public BcmSwitchIf {
   void setupFPGroups();
 
   /*
-   * Create TeFlow group
-   */
-  void createTeFlowGroup();
-
-  /*
    * Forces a linkscan pass on the provided ports.
    */
   void forceLinkscanOn(bcm_pbmp_t ports);
@@ -1020,6 +1026,7 @@ class BcmSwitch : public BcmSwitchIf {
   std::unique_ptr<BcmAclTable> aclTable_;
   std::unique_ptr<BcmStatUpdater> bcmStatUpdater_;
   std::unique_ptr<BcmCosManager> cosManager_;
+  std::unique_ptr<BcmTeFlowTable> teFlowTable_;
   std::unique_ptr<BcmTrunkTable> trunkTable_;
   std::unique_ptr<BcmSflowExporterTable> sFlowExporterTable_;
   std::unique_ptr<BcmControlPlane> controlPlane_;

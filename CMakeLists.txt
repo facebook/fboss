@@ -595,6 +595,7 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/bcm/BcmEcmpUtils.cpp
       fboss/agent/hw/bcm/BcmEgress.cpp
       fboss/agent/hw/bcm/BcmEgressQueueFlexCounter.cpp
+      fboss/agent/hw/bcm/BcmExactMatchUtils.cpp
       fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.cpp
       fboss/agent/hw/bcm/BcmFieldProcessorUtils.cpp
       fboss/agent/hw/bcm/BcmFlexCounter.cpp
@@ -641,6 +642,7 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/bcm/BcmSwitchEventCallback.cpp
       fboss/agent/hw/bcm/BcmSwitchEventUtils.cpp
       fboss/agent/hw/bcm/BcmTableStats.cpp
+      fboss/agent/hw/bcm/BcmTeFlowTable.cpp
       fboss/agent/hw/bcm/BcmTrunk.cpp
       fboss/agent/hw/bcm/BcmTrunkStats.cpp
       fboss/agent/hw/bcm/BcmTrunkTable.cpp

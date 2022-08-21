@@ -27,6 +27,25 @@ int getEMGroupID(int gid);
 /*
  * init EM Table
  */
-int initEMTable(int unit, bcm_field_group_t gid);
+void initEMTable(int unit, bcm_field_group_t gid, bcm_field_hintid_t& hintId);
+
+/*
+ * validate Dst IP hint
+ */
+bool validateDstIpHint(
+    int unit,
+    bcm_field_hintid_t hintId,
+    int hintStartBit,
+    int hintEndBit);
+
+/*
+ * get EM DstIp hint start bit
+ */
+int getEmDstIpHintStartBit();
+
+/*
+ * get EM DstIp hint end bit
+ */
+int getEmDstIpHintEndBit();
 
 } // namespace facebook::fboss::utility
