@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 
 #include <folly/logging/xlog.h>
+#include <re2/re2.h>
 #include <memory>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/FbossError.h"
@@ -70,6 +71,24 @@ void modifyCfgForQcmTests(facebook::fboss::BcmConfig::ConfigMap& cfg) {
   cfg["flowtracker_enterprise_number"] = "0xAABBCCDD";
   cfg["fpem_mem_entries"] = "0x2000";
   cfg["ctr_evict_enable"] = "0";
+}
+
+void modifyCfgForEMTests(std::string& yamlCfg) {
+  std::string globalSt("global:\n");
+  std::string emSt("fpem_mem_entries:");
+  std::size_t glPos = yamlCfg.find(globalSt);
+  std::size_t emPos = yamlCfg.find(emSt);
+  static const re2::RE2 emPattern(
+      "(fpem_mem_entries: )(0x[0-9a-fA-F]+|[0-9]+)(\n)");
+
+  if (glPos != std::string::npos) {
+    if (emPos == std::string::npos) {
+      yamlCfg.replace(
+          glPos, globalSt.length(), "global:\n      fpem_mem_entries: 65536\n");
+    } else {
+      re2::RE2::Replace(&yamlCfg, emPattern, "fpem_mem_entries: 65536\n");
+    }
+  }
 }
 
 } // namespace
@@ -213,6 +232,15 @@ void BcmSwitchEnsemble::init(
       platform->getAsic()->isSupported(HwAsic::Feature::QCM)) {
     XLOG(INFO) << "Modify bcm cfg as load_qcm_fw is enabled";
     modifyCfgForQcmTests(cfg);
+  }
+  if (FLAGS_enable_exact_match &&
+      platform->getAsic()->isSupported(HwAsic::Feature::EXACT_MATCH)) {
+    XLOG(INFO) << "Modify bcm cfg as enable_exact_match is enabled";
+    if (bcmTestPlatform->usesYamlConfig()) {
+      modifyCfgForEMTests(yamlCfg);
+    } else {
+      cfg["fpem_mem_entries"] = "0x10000";
+    }
   }
   if (bcmTestPlatform->usesYamlConfig()) {
     BcmAPI::initHSDK(yamlCfg);

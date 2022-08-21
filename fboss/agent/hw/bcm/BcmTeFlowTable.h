@@ -28,6 +28,9 @@ class BcmTeFlowTable {
   explicit BcmTeFlowTable(BcmSwitch* hw) : hw_(hw) {}
   ~BcmTeFlowTable();
   void createTeFlowGroup();
+  bcm_field_hintid_t getHintId() const {
+    return hintId_;
+  }
 
  private:
   BcmSwitch* hw_;

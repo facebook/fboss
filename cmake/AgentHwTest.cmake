@@ -214,6 +214,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwSwitchStateReplayTest.cpp
   fboss/agent/hw/test/HwParityErrorTest.cpp
   fboss/agent/hw/test/HwPtpTcTests.cpp
+  fboss/agent/hw/test/HwTeFlowTests.cpp
   # TODO: Compile takes too long. Commenting until addressing it
   # fboss/agent/hw/test/HwHashPolarizationTestUtils.cpp
   # fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTomahawk.cpp
