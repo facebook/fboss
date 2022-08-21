@@ -46,10 +46,11 @@ void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
     }
     ++lagsIter;
   }
-  {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     managerTable_->hostifManager().updateStats(updateWatermarks);
   }
+
   {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     managerTable_->bufferManager().updateStats();
