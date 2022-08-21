@@ -514,7 +514,7 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   portStats_.erase(swId);
   // TODO: do FDB entries associated with this port need to be removed
   // now?
-  XLOG(INFO) << "removed port " << swPort->getID() << " with vlan "
+  XLOG(DBG2) << "removed port " << swPort->getID() << " with vlan "
              << swPort->getIngressVlan();
 }
 
@@ -950,7 +950,7 @@ void SaiPortManager::setQosMapsOnAllPorts(
 
 void SaiPortManager::setQosPolicy() {
   auto& qosMapManager = managerTable_->qosMapManager();
-  XLOG(INFO) << "Set default qos map";
+  XLOG(DBG2) << "Set default qos map";
   auto qosMapHandle = qosMapManager.getQosMap();
   globalDscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
   globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
@@ -1431,7 +1431,7 @@ void SaiPortManager::programMacsec(
   // any existing Rx/Tx SAK already present in this port and then later at the
   // bottom of this function, remove Macsec default config from port
   if (oldMacsecDesired && !newMacsecDesired) {
-    XLOG(INFO) << "programMacsec setting macsecDesired=false on port = "
+    XLOG(DBG2) << "programMacsec setting macsecDesired=false on port = "
                << newPort->getName() << ", Deleting all Rx and Tx SAK";
     auto rxSaks = newPort->getRxSaks();
     rxSaks.clear();
@@ -1443,7 +1443,7 @@ void SaiPortManager::programMacsec(
     // If MacsecDesired changed to True or the dropUnencrypted value has changed
     // then configure dropUnencrypted as per the config
     macsecManager.setMacsecState(portId, true, newDropUnencrypted);
-    XLOG(INFO) << "programMacsec with macsecDesired=true on port = "
+    XLOG(DBG2) << "programMacsec with macsecDesired=true on port = "
                << newPort->getName() << ", setting dropUnencrypted = "
                << (newDropUnencrypted ? "True" : "False");
   }
@@ -1455,7 +1455,7 @@ void SaiPortManager::programMacsec(
   if (oldTxSak != newTxSak) {
     if (!newTxSak) {
       auto txSak = *oldTxSak;
-      XLOG(INFO) << "Deleting old Tx SAK for MAC="
+      XLOG(DBG2) << "Deleting old Tx SAK for MAC="
                  << txSak.sci()->macAddress().value()
                  << " port=" << txSak.sci()->port().value();
 
@@ -1482,7 +1482,7 @@ void SaiPortManager::programMacsec(
             oldSak.sci().value(),
             oldSak.assocNum().value());
 
-        XLOG(INFO) << "Updating Tx SAK by Deleting and Adding. MAC="
+        XLOG(DBG2) << "Updating Tx SAK by Deleting and Adding. MAC="
                    << oldSak.sci()->macAddress().value()
                    << " port=" << oldSak.sci()->port().value()
                    << " AN=" << oldSak.assocNum().value();
@@ -1494,7 +1494,7 @@ void SaiPortManager::programMacsec(
         macsecManager.deleteMacsec(
             portId, oldSak, *oldSak.sci(), SAI_MACSEC_DIRECTION_EGRESS, true);
       }
-      XLOG(INFO) << "Setup Egress Macsec for MAC="
+      XLOG(DBG2) << "Setup Egress Macsec for MAC="
                  << txSak.sci()->macAddress().value()
                  << " port=" << txSak.sci()->port().value();
       macsecManager.setupMacsec(
@@ -1527,7 +1527,7 @@ void SaiPortManager::programMacsec(
       }
       // Use the SCI from the key. Since for RX we use SCI of peer, which
       // is stored in MKASakKey
-      XLOG(INFO) << "Setup Ingress Macsec for MAC="
+      XLOG(DBG2) << "Setup Ingress Macsec for MAC="
                  << key.sci.macAddress().value()
                  << " port=" << key.sci.port().value();
       macsecManager.setupMacsec(
@@ -1545,7 +1545,7 @@ void SaiPortManager::programMacsec(
     updateStats(portId, false);
     // Use the SCI from the key. Since for RX we use SCI of peer, which
     // is stored in MKASakKey
-    XLOG(INFO) << "Deleting old Rx SAK for MAC=" << key.sci.macAddress().value()
+    XLOG(DBG2) << "Deleting old Rx SAK for MAC=" << key.sci.macAddress().value()
                << " port=" << key.sci.port().value();
     macsecManager.deleteMacsec(
         portId, sak, key.sci, SAI_MACSEC_DIRECTION_INGRESS);
