@@ -41,6 +41,16 @@ const std::vector<sai_stat_id_t>& SaiPortManager::supportedStats() const {
   if (counterIds.size()) {
     return counterIds;
   }
+  if (portType_ == cfg::PortType::FABRIC_PORT) {
+    counterIds = std::vector<sai_stat_id_t>{
+        SAI_PORT_STAT_IF_IN_OCTETS,
+        SAI_PORT_STAT_IF_IN_ERRORS,
+        SAI_PORT_STAT_IF_OUT_OCTETS,
+        SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES,
+        SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES,
+    };
+    return counterIds;
+  }
   std::set<sai_stat_id_t> countersToFilter;
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::ECN)) {
     countersToFilter.insert(SAI_PORT_STAT_ECN_MARKED_PACKETS);
