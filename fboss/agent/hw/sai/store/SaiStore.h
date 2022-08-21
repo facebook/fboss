@@ -85,14 +85,16 @@ class SaiObjectStore {
    * Using the adapter key, the sai store can be populated with its attributes.
    */
   std::shared_ptr<ObjectType> loadObjectOwnedByAdapter(
-      const typename SaiObjectTraits::AdapterKey& adapterKey) {
-    auto object = reloadObject(adapterKey);
+      const typename SaiObjectTraits::AdapterKey& adapterKey,
+      bool addToWarmbootHandles = false) {
+    auto object = reloadObject(adapterKey, addToWarmbootHandles);
     object->setOwnedByAdapter(true);
     return object;
   }
 
   std::shared_ptr<ObjectType> reloadObject(
-      const typename SaiObjectTraits::AdapterKey& adapterKey) {
+      const typename SaiObjectTraits::AdapterKey& adapterKey,
+      bool addToWarmbootHandles = false) {
     ObjectType temporary(adapterKey);
     auto adapterHostKey = temporary.adapterHostKey();
     auto obj = objects_.ref(adapterHostKey);
@@ -104,20 +106,24 @@ class SaiObjectStore {
       // destroy temporary without removing underlying sai object
       temporary.release();
     }
-    auto iter = warmBootHandles_.find(adapterHostKey);
-    if (iter != warmBootHandles_.end()) {
-      // Adapter keys are discovered by sai store in two ways
-      // 1. by calling get object keys api which is possible in cold and warm
-      // boot.
-      // 2. by looking into saved hw switch state, only possible in warm boot
-      //
-      // For objects owned by adapter keys, first is possible ONLY if adapter
-      // supports get object keys api for a given object type. Unfortunately,
-      // not all adapters may support get object keys api for all objects. For
-      // such adapters, warmboot handles may not have this key during cold boot.
-      // For adapters which support get object keys api, warm boot handles will
-      // always have this object.
-      warmBootHandles_.erase(iter);
+    if (addToWarmbootHandles) {
+      warmBootHandles_.emplace(adapterHostKey, obj);
+    } else {
+      auto iter = warmBootHandles_.find(adapterHostKey);
+      if (iter != warmBootHandles_.end()) {
+        // Adapter keys are discovered by sai store in two ways
+        // 1. by calling get object keys api which is possible in cold and warm
+        // boot.
+        // 2. by looking into saved hw switch state, only possible in warm boot
+        //
+        // For objects owned by adapter keys, first is possible ONLY if adapter
+        // supports get object keys api for a given object type. Unfortunately,
+        // not all adapters may support get object keys api for all objects. For
+        // such adapters, warmboot handles may not have this key during cold
+        // boot. For adapters which support get object keys api, warm boot
+        // handles will always have this object.
+        warmBootHandles_.erase(iter);
+      }
     }
     return obj;
   }
