@@ -121,4 +121,29 @@ TEST_F(HwIpInIpTunnelTest, TunnelTermEntryMiss) {
   this->verifyAcrossWarmBoots([=] {}, verify);
 }
 
+TEST_F(HwIpInIpTunnelTest, IpinIpNoTunnelConfigured) {
+  auto setup = [=]() {
+    auto cfg{this->initialConfig()};
+    //  no tunnel configured
+    this->applyNewConfig(cfg);
+  };
+
+  auto verify = [=]() {
+    auto beforeInBytes =
+        getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
+    auto beforeOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[0]).get_outBytes_();
+    sendIpInIpPacket("5000::6");
+    auto afterInBytes =
+        getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
+    auto afterOutBytes =
+        getLatestPortStats(masterLogicalPortIds()[0]).get_outBytes_();
+
+    EXPECT_NE(afterInBytes, beforeInBytes);
+    EXPECT_NE(afterOutBytes, beforeOutBytes);
+    EXPECT_EQ(afterInBytes - beforeInBytes, afterOutBytes - beforeOutBytes);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
