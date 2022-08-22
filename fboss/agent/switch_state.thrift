@@ -449,6 +449,14 @@ struct TeFlowEntryFields {
   6: optional ctrl.TeCounterID counterID;
 }
 
+struct AclTableFields {
+  1: string id;
+  2: i32 priority;
+  3: map<string, AclEntryFields> aclMap;
+  4: list<switch_config.AclTableActionType> actionTypes;
+  5: list<switch_config.AclTableQualifier> qualifiers;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
