@@ -126,6 +126,10 @@ void SaiPhyManager::updateAllXphyPortsStats() {
               try {
                 static SwitchStats unused;
                 platformInfo->getHwSwitch()->updateStats(&unused);
+                auto phyInfos = platformInfo->getHwSwitch()->updateAllPhyInfo();
+                for (const auto& info : phyInfos) {
+                  updateXphyInfo(info.first, info.second);
+                }
               } catch (const std::exception& e) {
                 XLOG(INFO) << "Stats collection failed on : "
                            << "switch: "
