@@ -457,6 +457,12 @@ struct AclTableFields {
   5: list<switch_config.AclTableQualifier> qualifiers;
 }
 
+struct AclTableGroupFields {
+  1: switch_config.AclStage stage;
+  2: string name;
+  3: map<string, AclTableFields> aclTableMap;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
