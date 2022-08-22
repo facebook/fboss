@@ -32,7 +32,11 @@ class SaiKametPlatform : public SaiBcmPlatform {
   }
 
   bool isSerdesApiSupported() const override {
-    return true;
+    /*
+     * Ungate this when port profile mappings are done.
+     * Serdes settings require platform port profiles
+     */
+    return false;
   }
 
   void initLEDs() override;
