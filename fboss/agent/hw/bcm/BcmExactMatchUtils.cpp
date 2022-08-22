@@ -34,7 +34,11 @@ void initEMTable(int unit, bcm_field_group_t gid, bcm_field_hintid_t& hintId) {
   bcmCheckError(rv, "init EM Table:bcm_field_hints_create failed");
 
   /* configuring hint type, number of bits and the qualifier */
+#if (defined(IS_OPENNSA))
+  memset(&hint, 0, sizeof(bcm_field_hint_t));
+#else
   bcm_field_hint_t_init(&hint);
+#endif
   hint.hint_type = bcmFieldHintTypeExtraction;
   hint.qual = bcmFieldQualifyDstIp6;
   hint.start_bit = kDefaultExactMatchDestIpHintStartBit;
@@ -69,7 +73,11 @@ bool validateDstIpHint(
     int hintStartBit,
     int hintEndBit) {
   bcm_field_hint_t hint;
+#if (defined(IS_OPENNSA))
+  memset(&hint, 0, sizeof(bcm_field_hint_t));
+#else
   bcm_field_hint_t_init(&hint);
+#endif
   hint.hint_type = bcmFieldHintTypeExtraction;
   hint.qual = bcmFieldQualifyDstIp6;
   auto rv = bcm_field_hints_get(unit, hintId, &hint);
