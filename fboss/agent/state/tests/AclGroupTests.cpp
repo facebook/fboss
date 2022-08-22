@@ -124,10 +124,12 @@ TEST(AclGroup, TestEquality) {
   auto tableMap1 = std::make_shared<AclTableMap>();
   tableMap1->addTable(table1);
   tableMap1->addTable(table3);
+  validateNodeMapSerilization(*tableMap1);
 
   auto tableMap2 = std::make_shared<AclTableMap>();
   tableMap2->addTable(table2);
   tableMap2->addTable(table3);
+  validateNodeMapSerilization(*tableMap2);
 
   table2->setPriority(2);
   EXPECT_NE(*tableMap1, *tableMap2);
@@ -249,6 +251,7 @@ TEST(AclGroup, SerializeAclTableMap) {
   auto tableMap = std::make_shared<AclTableMap>();
   tableMap->addTable(table1);
   tableMap->addTable(table2);
+  validateNodeMapSerilization(*tableMap);
 
   auto serialized = tableMap->toFollyDynamic();
   auto tableMapBack = AclTableMap::fromFollyDynamic(serialized);
@@ -299,6 +302,7 @@ TEST(AclGroup, SerializeAclTableGroup) {
   auto tableMap = std::make_shared<AclTableMap>();
   tableMap->addTable(table1);
   tableMap->addTable(table2);
+  validateNodeMapSerilization(*tableMap);
 
   auto tableGroup = std::make_shared<AclTableGroup>(kAclStage1);
   tableGroup->setAclTableMap(tableMap);
