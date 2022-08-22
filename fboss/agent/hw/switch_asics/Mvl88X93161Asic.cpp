@@ -7,6 +7,7 @@ namespace facebook::fboss {
 bool Mvl88X93161Asic::isSupported(Feature feature) const {
   switch (feature) {
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
+    case HwAsic::Feature::FEC:
       return true;
     default:
       return false;

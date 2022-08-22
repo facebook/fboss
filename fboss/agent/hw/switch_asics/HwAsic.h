@@ -113,6 +113,8 @@ class HwAsic {
     ECMP_HASH_V4,
     ECMP_HASH_V6,
     FEC_CORRECTED_BITS,
+    MEDIA_TYPE,
+    FEC,
   };
 
   enum class AsicType ASIC_TYPE_LIST;
