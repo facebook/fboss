@@ -149,6 +149,42 @@ sai_status_t set_tunnel_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t get_tunnel_stats_fn(
+    sai_object_id_t /*tunnel*/,
+    uint32_t num_of_counters,
+    const sai_stat_id_t* /*counter_ids*/,
+    uint64_t* counters) {
+  for (auto i = 0; i < num_of_counters; ++i) {
+    counters[i] = 0;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+/*
+ * In fake sai there isn't a dataplane, so all stats
+ * stay at 0. Leverage the corresponding non _ext
+ * stats fn to get the stats. If stats are always 0,
+ * modes (READ, READ_AND_CLEAR) don't matter
+ */
+sai_status_t get_tunnel_stats_ext_fn(
+    sai_object_id_t tunnel,
+    uint32_t num_of_counters,
+    const sai_stat_id_t* counter_ids,
+    sai_stats_mode_t /*mode*/,
+    uint64_t* counters) {
+  return get_tunnel_stats_fn(tunnel, num_of_counters, counter_ids, counters);
+}
+/*
+ *  noop clear stats API. Since fake doesnt have a
+ *  dataplane stats are always set to 0, so
+ *  no need to clear them
+ */
+sai_status_t clear_tunnel_stats_fn(
+    sai_object_id_t /*tunnel*/,
+    uint32_t /*number_of_counters*/,
+    const sai_stat_id_t* /*counter_ids*/) {
+  return SAI_STATUS_SUCCESS;
+}
+
 sai_status_t create_tunnel_term_table_entry_fn(
     sai_object_id_t* tunnel_term_table_entry_id,
     sai_object_id_t /* switch_id */,
@@ -296,6 +332,10 @@ void populate_tunnel_api(sai_tunnel_api_t** tunnel_api) {
   _tunnel_api.remove_tunnel = &remove_tunnel_fn;
   _tunnel_api.get_tunnel_attribute = &get_tunnel_attribute_fn;
   _tunnel_api.set_tunnel_attribute = &set_tunnel_attribute_fn;
+
+  _tunnel_api.get_tunnel_stats = &get_tunnel_stats_fn;
+  _tunnel_api.get_tunnel_stats_ext = &get_tunnel_stats_ext_fn;
+  _tunnel_api.clear_tunnel_stats = &clear_tunnel_stats_fn;
 
   _tunnel_api.create_tunnel_term_table_entry =
       &create_tunnel_term_table_entry_fn;
