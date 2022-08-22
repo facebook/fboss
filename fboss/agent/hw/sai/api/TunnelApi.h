@@ -140,6 +140,25 @@ class TunnelApi : public SaiApi<TunnelApi> {
     return api_->set_tunnel_attribute(key, attr);
   }
 
+  sai_status_t _getStats(
+      TunnelSaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids,
+      sai_stats_mode_t mode,
+      uint64_t* counters) const {
+    return api_->get_tunnel_stats(key, num_of_counters, counter_ids, counters);
+    // #TODO: get_tunnel_stats will be deprecated
+    // use get_tunnel_stats_ext(key, num_of_counters, counter_ids, mode,
+    // counters) if supported later
+  }
+
+  sai_status_t _clearStats(
+      TunnelSaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids) const {
+    return api_->clear_tunnel_stats(key, num_of_counters, counter_ids);
+  }
+
   sai_status_t _create(
       TunnelTermSaiId* id,
       sai_object_id_t switch_id,
