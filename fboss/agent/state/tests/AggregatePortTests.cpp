@@ -103,7 +103,7 @@ void checkAggPort(
     EXPECT_TRUE(
         testing::AssertionFailure() << *expectedSubportsBegin << " expected");
   }
-  validateNodeSerilization(*aggPort);
+  validateNodeSerialization(*aggPort);
 }
 
 TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
@@ -418,8 +418,8 @@ void checkChangedAggPorts(
   EXPECT_EQ(addedIDs, foundAdded);
   EXPECT_EQ(removedIDs, foundRemoved);
 
-  validateNodeMapSerilization(*oldAggPorts);
-  validateNodeMapSerilization(*newAggPorts);
+  validateNodeMapSerialization(*oldAggPorts);
+  validateNodeMapSerialization(*newAggPorts);
 }
 
 void setAggregatePortMemberIDs(
@@ -519,9 +519,9 @@ TEST(AggregatePort, multiTrunkIdempotence) {
   EXPECT_EQ(nullptr, publishAndApplyConfig(endState, &config, &platform));
 
   auto endAggPorts = endState->getAggregatePorts();
-  validateNodeSerilization(
+  validateNodeSerialization(
       *endAggPorts->getAggregatePortIf(AggregatePortID(55)));
-  validateNodeSerilization(
+  validateNodeSerialization(
       *endAggPorts->getAggregatePortIf(AggregatePortID(155)));
 }
 
@@ -706,11 +706,11 @@ TEST(AggregatePort, multiTrunkRemove) {
       startAggPorts->getAggregatePortIf(AggregatePortID(90)),
       endAggPorts->getAggregatePortIf(AggregatePortID(90)));
 
-  validateNodeMapSerilization(*startAggPorts);
-  validateNodeMapSerilization(*endAggPorts);
-  validateNodeSerilization(
+  validateNodeMapSerialization(*startAggPorts);
+  validateNodeMapSerialization(*endAggPorts);
+  validateNodeSerialization(
       *startAggPorts->getAggregatePortIf(AggregatePortID(40)));
-  validateNodeSerilization(
+  validateNodeSerialization(
       *startAggPorts->getAggregatePortIf(AggregatePortID(90)));
 }
 
@@ -754,7 +754,7 @@ TEST(AggregatePort, serializationInverseOfDeserialization) {
       4,
       subportRange);
 
-  validateNodeSerilization(*aggPort);
+  validateNodeSerialization(*aggPort);
 
   auto serializedAggPort = aggPort->toFollyDynamic();
   auto deserializedAggPort = AggregatePort::fromFollyDynamic(serializedAggPort);

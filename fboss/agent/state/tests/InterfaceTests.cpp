@@ -66,8 +66,8 @@ TEST(Interface, addrToReach) {
   const auto& intf1 = intfs->getInterface(InterfaceID(1));
   const auto& intf2 = intfs->getInterface(InterfaceID(2));
 
-  validateNodeSerilization(*intf1);
-  validateNodeSerilization(*intf2);
+  validateNodeSerialization(*intf1);
+  validateNodeSerialization(*intf2);
 
   EXPECT_TRUE(intf1->hasAddress(IPAddress("10.1.1.1")));
   EXPECT_FALSE(intf1->hasAddress(IPAddress("10.1.2.1")));
@@ -296,7 +296,7 @@ TEST(Interface, applyConfig) {
   EXPECT_EQ("Interface 2", interface->getName());
   EXPECT_EQ(oldInterface->getMac(), interface->getMac());
   EXPECT_EQ(oldInterface->getAddresses(), interface->getAddresses());
-  validateNodeSerilization(*interface);
+  validateNodeSerialization(*interface);
 }
 
 /*

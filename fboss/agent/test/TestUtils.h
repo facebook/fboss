@@ -490,7 +490,7 @@ void validateThriftyMigration(const ThriftyNode& node) {
 }
 
 template <typename Node>
-void validateNodeSerilization(const Node& node) {
+void validateNodeSerialization(const Node& node) {
   auto nodeBack = Node::fromFollyDynamic(node.toFollyDynamic());
   EXPECT_EQ(node, *nodeBack);
   nodeBack = Node::fromThrift(node.toThrift());
@@ -512,7 +512,7 @@ bool isSameNodeMap(const NodeMap& lhs, const NodeMap& rhs) {
 }
 
 template <typename NodeMap>
-void validateNodeMapSerilization(const NodeMap& nodeMap) {
+void validateNodeMapSerialization(const NodeMap& nodeMap) {
   auto nodeMapBack = NodeMap::fromFollyDynamic(nodeMap.toFollyDynamic());
   EXPECT_TRUE(isSameNodeMap(nodeMap, *nodeMapBack));
   nodeMapBack = NodeMap::fromThrift(nodeMap.toThrift());
