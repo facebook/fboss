@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclTable.h"
 #include "fboss/agent/state/NodeMap.h"
@@ -23,6 +24,11 @@ class AclTableMap : public NodeMapT<AclTableMap, AclTableMapTraits> {
  public:
   AclTableMap();
   ~AclTableMap() override;
+
+  std::map<std::string, state::AclTableFields> toThrift() const;
+
+  static std::shared_ptr<AclTableMap> fromThrift(
+      std::map<std::string, state::AclTableFields> const& thriftMap);
 
   bool operator==(const AclTableMap& aclTableMap) const {
     if (numTables() != aclTableMap.numTables()) {
