@@ -38,6 +38,11 @@
 
 #include "fboss/agent/hw/sai/switch/SaiHandler.h"
 
+DEFINE_string(
+    dll_path,
+    "/etc/packages/neteng-fboss-wedge_agent/current",
+    "directory of HSDK warmboot DLL files");
+
 namespace {
 
 std::unordered_map<std::string, std::string> kSaiProfileValues;
@@ -353,7 +358,19 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
           getInternalSystemPortConfig()};
     }
   }
-
+#if defined(SAI_VERSION_8_0_EA_ODP)
+  std::optional<SaiSwitchTraits::Attributes::DllPath> dllPath;
+  auto platformMode = getMode();
+  if (platformMode == PlatformMode::FUJI ||
+      platformMode == PlatformMode::ELBERT) {
+    std::vector<int8_t> dllPathCharArray;
+    std::copy(
+        FLAGS_dll_path.c_str(),
+        FLAGS_dll_path.c_str() + FLAGS_dll_path.size() + 1,
+        std::back_inserter(dllPathCharArray));
+    dllPath = dllPathCharArray;
+  }
+#endif
   return {
     initSwitch,
         hwInfo, // hardware info
@@ -393,6 +410,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
         std::nullopt, // Max ECMP member count
         std::nullopt, // ECMP member count
+#endif
+#if defined(SAI_VERSION_8_0_EA_ODP)
+        dllPath,
 #endif
   };
 }
