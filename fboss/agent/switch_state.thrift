@@ -492,4 +492,5 @@ struct SwitchState {
   26: map<string, TeFlowEntryFields> teFlowTable;
   27: map<i16, AggregatePortFields> aggregatePortMap;
   28: map<switch_config.LoadBalancerID, LoadBalancerFields> loadBalancerMap;
+  29: map<switch_config.AclStage, AclTableGroupFields> aclTableGroupMap;
 }
