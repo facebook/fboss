@@ -28,9 +28,10 @@ namespace facebook::fboss {
 
 folly::dynamic AclTableGroupFields::toFollyDynamic() const {
   folly::dynamic aclTableGroup = folly::dynamic::object;
-  aclTableGroup[kAclStage] = static_cast<int>(stage);
-  aclTableGroup[kName] = name;
-  aclTableGroup[kAclTableMap] = aclTableMap->toFollyDynamic();
+  aclTableGroup[kAclStage] = static_cast<int>(*data().stage());
+  aclTableGroup[kName] = *data().name();
+  aclTableGroup[kAclTableMap] =
+      AclTableMap::fromThrift(*data().aclTableMap())->toFollyDynamic();
   return aclTableGroup;
 }
 
