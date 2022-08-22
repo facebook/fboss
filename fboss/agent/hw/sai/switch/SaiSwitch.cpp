@@ -1003,11 +1003,11 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     auto eyeStatus = managerTable_->portManager().getPortEyeValues(
         portHandle->port->adapterKey());
     if (!eyeStatus.empty()) {
+      // Collect eyeInfos for all lanes
+      std::map<int, std::vector<phy::EyeInfo>> eyeInfos;
       for (int i = 0; i < eyeStatus.size(); i++) {
-        phy::LaneInfo laneInfo;
         std::vector<phy::EyeInfo> eyeInfo;
         phy::EyeInfo oneLaneEyeInfo;
-        laneInfo.lane() = eyeStatus[i].lane;
         int width{0}, height{0};
         if (getPlatform()->getAsic()->getAsicType() ==
             HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
@@ -1025,9 +1025,14 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
         }
         oneLaneEyeInfo.height() = height;
         oneLaneEyeInfo.width() = width;
-        eyeInfo.push_back(oneLaneEyeInfo);
-        laneInfo.eyes() = eyeInfo;
-        phyParams.line()->pmd()->lanes()[i] = laneInfo;
+        eyeInfos[eyeStatus[i].lane].push_back(oneLaneEyeInfo);
+      }
+      for (auto eyeInfo : eyeInfos) {
+        auto laneId = eyeInfo.first;
+        phy::LaneInfo laneInfo;
+        laneInfo.lane() = laneId;
+        laneInfo.eyes() = eyeInfo.second;
+        phyParams.line()->pmd()->lanes()[laneId] = laneInfo;
       }
     }
 
