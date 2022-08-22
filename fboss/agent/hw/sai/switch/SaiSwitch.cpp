@@ -999,89 +999,21 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     phyParams.linkState() = managerTable_->portManager().isUp(swPort);
     phyParams.speed() = managerTable_->portManager().getSpeed(swPort);
     phyParams.line()->side() = phy::Side::LINE;
+
     // Update PMD Info
-    auto eyeStatus = managerTable_->portManager().getPortEyeValues(
-        portHandle->port->adapterKey());
-    if (!eyeStatus.empty()) {
-      // Collect eyeInfos for all lanes
-      std::map<int, std::vector<phy::EyeInfo>> eyeInfos;
-      for (int i = 0; i < eyeStatus.size(); i++) {
-        std::vector<phy::EyeInfo> eyeInfo;
-        phy::EyeInfo oneLaneEyeInfo;
-        int width{0}, height{0};
-        if (getPlatform()->getAsic()->getAsicType() ==
-            HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
-          width = eyeStatus[i].right - eyeStatus[i].left;
-          height = eyeStatus[i].up - eyeStatus[i].down;
-        } else {
-          width = eyeStatus[i].right + eyeStatus[i].left;
-          height = eyeStatus[i].up + eyeStatus[i].down;
-        }
-        // Skip if both width and height are 0, it's likely a bad reading or the
-        // eye reporting is not supported (On BCM PHYs eye is not supported for
-        // PAM4 speeds)
-        if (width == 0 && height == 0) {
-          continue;
-        }
-        oneLaneEyeInfo.height() = height;
-        oneLaneEyeInfo.width() = width;
-        eyeInfos[eyeStatus[i].lane].push_back(oneLaneEyeInfo);
-      }
-      for (auto eyeInfo : eyeInfos) {
-        auto laneId = eyeInfo.first;
-        phy::LaneInfo laneInfo;
-        laneInfo.lane() = laneId;
-        laneInfo.eyes() = eyeInfo.second;
-        phyParams.line()->pmd()->lanes()[laneId] = laneInfo;
-      }
-    }
+    updatePmdInfo(*phyParams.line(), portHandle->port);
 
     // Update PCS Info
-    phy::PcsInfo pcs;
-    // FEC parameters
-    auto fecMode = getPortFECMode(swPort);
-    if (fecMode == phy::FecMode::CL91 || fecMode == phy::FecMode::RS528 ||
-        fecMode == phy::FecMode::RS544 || fecMode == phy::FecMode::RS544_2N) {
-      phy::RsFecInfo rsFec;
-      rsFec.correctedCodewords() =
-          *(fb303PortStat->portStats().fecCorrectableErrors());
-      rsFec.uncorrectedCodewords() =
-          *(fb303PortStat->portStats().fecUncorrectableErrors());
-
-      phy::RsFecInfo lastLineRsFec;
-      if (auto lastPcs = lastPhyInfo.line()->pcs()) {
-        if (auto lastFec = lastPcs->rsFec()) {
-          lastLineRsFec = *lastFec;
-        }
-      }
-      auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
-      utility::updateCorrectedBitsAndPreFECBer(
-          rsFec, /* current RsFecInfo to update */
-          lastLineRsFec, /* previous RsFecInfo */
-          std::nullopt, /* counter not available from hardware */
-          now.count() - *lastPhyInfo.timeCollected(), /* timeDeltaInSeconds */
-          fecMode, /* operational FecMode */
-          *phyParams.speed() /* operational Speed */);
-      pcs.rsFec() = rsFec;
-    }
-    phyParams.line()->pcs() = pcs;
+    updatePcsInfo(
+        *phyParams.line(),
+        swPort,
+        phy::Side::LINE,
+        lastPhyInfo,
+        fb303PortStat,
+        *phyParams.speed());
 
     // Update Reconciliation Sublayer (RS) Info
-    auto errStatus = managerTable_->portManager().getPortErrStatus(
-        portHandle->port->adapterKey());
-    phy::LinkFaultStatus faultStatus;
-    for (auto& err : errStatus) {
-      if (err == SAI_PORT_ERR_STATUS_SIGNAL_LOCAL_ERROR) {
-        faultStatus.localFault() = true;
-      } else if (err == SAI_PORT_ERR_STATUS_REMOTE_FAULT_STATUS) {
-        faultStatus.remoteFault() = true;
-      }
-    }
-    if (*faultStatus.localFault() || *faultStatus.remoteFault()) {
-      phy::RsInfo rsInfo;
-      rsInfo.faultStatus() = faultStatus;
-      phyParams.line()->rs() = rsInfo;
-    }
+    updateRsInfo(*phyParams.line(), portHandle->port);
 
     // PhyInfo update timestamp
     auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
@@ -1090,6 +1022,112 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
   }
   lastPhyInfos_ = returnPhyParams;
   return returnPhyParams;
+}
+
+void SaiSwitch::updatePmdInfo(
+    phy::PhySideInfo& sideInfo,
+    std::shared_ptr<SaiPort> port) {
+  auto eyeStatus =
+      managerTable_->portManager().getPortEyeValues(port->adapterKey());
+  if (eyeStatus.empty()) {
+    return;
+  }
+  // Collect eyeInfos for all lanes
+  std::map<int, std::vector<phy::EyeInfo>> eyeInfos;
+  for (int i = 0; i < eyeStatus.size(); i++) {
+    std::vector<phy::EyeInfo> eyeInfo;
+    phy::EyeInfo oneLaneEyeInfo;
+    int width{0}, height{0};
+    if (getPlatform()->getAsic()->getAsicType() ==
+        HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
+      width = eyeStatus[i].right - eyeStatus[i].left;
+      height = eyeStatus[i].up - eyeStatus[i].down;
+    } else {
+      width = eyeStatus[i].right + eyeStatus[i].left;
+      height = eyeStatus[i].up + eyeStatus[i].down;
+    }
+    // Skip if both width and height are 0, it's likely a bad reading or the
+    // eye reporting is not supported (On BCM PHYs eye is not supported for
+    // PAM4 speeds)
+    if (width == 0 && height == 0) {
+      continue;
+    }
+    oneLaneEyeInfo.height() = height;
+    oneLaneEyeInfo.width() = width;
+    eyeInfos[eyeStatus[i].lane].push_back(oneLaneEyeInfo);
+  }
+  for (auto eyeInfo : eyeInfos) {
+    auto laneId = eyeInfo.first;
+    phy::LaneInfo laneInfo;
+    laneInfo.lane() = laneId;
+    laneInfo.eyes() = eyeInfo.second;
+    sideInfo.pmd()->lanes()[laneId] = laneInfo;
+  }
+}
+
+void SaiSwitch::updatePcsInfo(
+    phy::PhySideInfo& sideInfo,
+    PortID swPort,
+    phy::Side side,
+    phy::PhyInfo& lastPhyInfo,
+    const HwPortFb303Stats* fb303PortStat,
+    cfg::PortSpeed speed) {
+  auto fecMode = getPortFECMode(swPort);
+  if (fecMode == phy::FecMode::CL91 || fecMode == phy::FecMode::RS528 ||
+      fecMode == phy::FecMode::RS544 || fecMode == phy::FecMode::RS544_2N) {
+    phy::PcsInfo pcsInfo;
+    phy::RsFecInfo rsFec;
+    rsFec.correctedCodewords() =
+        *(fb303PortStat->portStats().fecCorrectableErrors());
+    rsFec.uncorrectedCodewords() =
+        *(fb303PortStat->portStats().fecUncorrectableErrors());
+
+    phy::RsFecInfo lastRsFec;
+    std::optional<phy::PcsInfo> lastPcs;
+    if (side == phy::Side::LINE) {
+      if (auto pcs = lastPhyInfo.line()->pcs()) {
+        lastPcs = *pcs;
+      }
+    } else if (auto sysSide = lastPhyInfo.system()) {
+      if (sysSide->pcs().has_value()) {
+        lastPcs = *sysSide->pcs();
+      }
+    }
+    if (lastPcs.has_value() && lastPcs->rsFec().has_value()) {
+      lastRsFec = *lastPcs->rsFec();
+    }
+
+    auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+    utility::updateCorrectedBitsAndPreFECBer(
+        rsFec, /* current RsFecInfo to update */
+        lastRsFec, /* previous RsFecInfo */
+        std::nullopt, /* counter not available from hardware */
+        now.count() - *lastPhyInfo.timeCollected(), /* timeDeltaInSeconds */
+        fecMode, /* operational FecMode */
+        speed /* operational Speed */);
+    pcsInfo.rsFec() = rsFec;
+    sideInfo.pcs() = pcsInfo;
+  }
+}
+
+void SaiSwitch::updateRsInfo(
+    phy::PhySideInfo& sideInfo,
+    std::shared_ptr<SaiPort> port) {
+  auto errStatus =
+      managerTable_->portManager().getPortErrStatus(port->adapterKey());
+  phy::LinkFaultStatus faultStatus;
+  for (auto& err : errStatus) {
+    if (err == SAI_PORT_ERR_STATUS_SIGNAL_LOCAL_ERROR) {
+      faultStatus.localFault() = true;
+    } else if (err == SAI_PORT_ERR_STATUS_REMOTE_FAULT_STATUS) {
+      faultStatus.remoteFault() = true;
+    }
+  }
+  if (*faultStatus.localFault() || *faultStatus.remoteFault()) {
+    phy::RsInfo rsInfo;
+    rsInfo.faultStatus() = faultStatus;
+    sideInfo.rs() = rsInfo;
+  }
 }
 
 void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {

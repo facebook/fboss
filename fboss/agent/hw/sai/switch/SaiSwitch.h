@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "folly/MacAddress.h"
@@ -302,6 +303,18 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock) const;
 
   std::map<PortID, phy::PhyInfo> updateAllPhyInfoLocked();
+
+  void updatePmdInfo(phy::PhySideInfo& sideInfo, std::shared_ptr<SaiPort> port);
+
+  void updatePcsInfo(
+      phy::PhySideInfo& sideInfo,
+      PortID swPort,
+      phy::Side side,
+      phy::PhyInfo& lastPhyInfo,
+      const HwPortFb303Stats* fb303PortStat,
+      cfg::PortSpeed speed);
+
+  void updateRsInfo(phy::PhySideInfo& sideInfo, std::shared_ptr<SaiPort> port);
 
   void linkStateChangedCallbackBottomHalf(
       std::vector<sai_port_oper_status_notification_t> data);
