@@ -109,6 +109,8 @@ TEST(AclGroup, TestEquality) {
   table2->setAclMap(map2);
   table2->setActionTypes(kActionTypes);
   table2->setQualifiers(kQualifiers);
+  validateNodeSerilization(*table1);
+  validateNodeSerilization(*table2);
 
   EXPECT_NE(*table1, *table2);
   table2->setPriority(1);
@@ -117,6 +119,7 @@ TEST(AclGroup, TestEquality) {
   // test AclTableMap equality
   auto table3 = std::make_shared<AclTable>(3, kTable2);
   table3->setAclMap(map3);
+  validateNodeSerilization(*table3);
 
   auto tableMap1 = std::make_shared<AclTableMap>();
   tableMap1->addTable(table1);
@@ -195,6 +198,7 @@ TEST(AclGroup, SerializeAclTable) {
   table->setAclMap(map);
   table->setActionTypes(kActionTypes);
   table->setQualifiers(kQualifiers);
+  validateNodeSerilization(*table);
 
   auto serialized = table->toFollyDynamic();
   auto tableBack = AclTable::fromFollyDynamic(serialized);
@@ -239,6 +243,8 @@ TEST(AclGroup, SerializeAclTableMap) {
   table1->setAclMap(map1);
   auto table2 = std::make_shared<AclTable>(2, kTable2);
   table2->setAclMap(map2);
+  validateNodeSerilization(*table1);
+  validateNodeSerilization(*table2);
 
   auto tableMap = std::make_shared<AclTableMap>();
   tableMap->addTable(table1);
@@ -287,6 +293,8 @@ TEST(AclGroup, SerializeAclTableGroup) {
   table1->setAclMap(map1);
   auto table2 = std::make_shared<AclTable>(2, kTable2);
   table2->setAclMap(map2);
+  validateNodeSerilization(*table1);
+  validateNodeSerilization(*table2);
 
   auto tableMap = std::make_shared<AclTableMap>();
   tableMap->addTable(table1);
@@ -327,6 +335,7 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
   table1->setAclMap(map1);
   table1->setActionTypes(kActionTypes);
   table1->setQualifiers(kQualifiers);
+  validateNodeSerilization(*table1);
 
   auto tableMap = make_shared<AclTableMap>();
   tableMap->addTable(table1);
@@ -404,6 +413,7 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
   auto table2 = std::make_shared<AclTable>(2, kTable2);
   table2->setAclMap(map2);
   tableGroup->getAclTableMap()->addTable(table2);
+  validateNodeSerilization(*table2);
 
   cfg::AclTable cfgTable2;
   cfgTable2.name_ref() = kTable2;
@@ -458,6 +468,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   map1->addEntry(entry1b);
   auto table1 = std::make_shared<AclTable>(1, kTable1);
   table1->setAclMap(map1);
+  validateNodeSerilization(*table1);
 
   auto entry2a = make_shared<AclEntry>(priority2++, kAcl2a);
   entry2a->setActionType(cfg::AclActionType::DENY);
@@ -465,6 +476,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   map2->addEntry(entry2a);
   auto table2 = std::make_shared<AclTable>(2, kTable2);
   table2->setAclMap(map2);
+  validateNodeSerilization(*table2);
 
   auto tableMap = make_shared<AclTableMap>();
   tableMap->addTable(table1);
@@ -531,6 +543,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   auto table3 = std::make_shared<AclTable>(3, kTable3);
   table3->setAclMap(map3);
   tableGroup->getAclTableMap()->addTable(table3);
+  validateNodeSerilization(*table3);
 
   EXPECT_EQ(
       *(stateV2->getAclTableGroups()->getAclTableGroup(kAclStage1)),
