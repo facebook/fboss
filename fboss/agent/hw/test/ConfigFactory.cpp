@@ -306,7 +306,7 @@ void setPortToDefaultProfileIDMap(
     getPortToDefaultProfileIDMap().insert(
         safeProfileIDs.begin(), safeProfileIDs.end());
   }
-  XLOG(INFO) << "PortToDefaultProfileIDMap has "
+  XLOG(DBG2) << "PortToDefaultProfileIDMap has "
              << getPortToDefaultProfileIDMap().size() << " ports";
 }
 
@@ -813,7 +813,7 @@ UplinkDownlinkPair getRswUplinkDownlinkPorts(
     }
   }
 
-  XLOG(INFO) << "Uplinks : " << uplinks.size()
+  XLOG(DBG2) << "Uplinks : " << uplinks.size()
              << " downlinks: " << downlinks.size();
   return std::pair(uplinks, downlinks);
 }
@@ -850,7 +850,7 @@ UplinkDownlinkPair getRtswUplinkDownlinkPorts(
     }
   }
 
-  XLOG(INFO) << "Uplinks : " << uplinks.size()
+  XLOG(DBG2) << "Uplinks : " << uplinks.size()
              << " downlinks: " << downlinks.size();
   return std::pair(uplinks, downlinks);
 }
@@ -922,7 +922,7 @@ std::map<int, std::vector<uint8_t>> getOlympicQosMaps(
 
   for (const auto& qosPolicy : *config.qosPolicies()) {
     auto qosName = qosPolicy.get_name();
-    XLOG(INFO) << "Iterating over QoS policies: found qosPolicy " << qosName;
+    XLOG(DBG2) << "Iterating over QoS policies: found qosPolicy " << qosName;
 
     // Optional thrift field access
     if (auto qosMap = qosPolicy.qosMap()) {

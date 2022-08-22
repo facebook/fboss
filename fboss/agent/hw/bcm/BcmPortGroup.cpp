@@ -130,7 +130,7 @@ BcmPortGroup::BcmPortGroup(
     }
   }
 
-  XLOG(INFO) << "Create BcmPortGroup with controlling port: "
+  XLOG(DBG2) << "Create BcmPortGroup with controlling port: "
              << controllingPort->getPortID()
              << ", port group size: " << allPorts_.size()
              << ", laneMode:" << laneMode_
@@ -351,7 +351,7 @@ void BcmPortGroup::reconfigure(
 
   // 4. Update the vco frequencies set if needed
   if (!newVCOFrequencies.empty()) {
-    XLOG(INFO) << "Set PortGroup VCOFrequency, controlling port:"
+    XLOG(DBG2) << "Set PortGroup VCOFrequency, controlling port:"
                << controllingPort_->getBcmPortId() << ", from "
                << VCOFrequencySetToString(vcoFrequencies_) << " to "
                << VCOFrequencySetToString(newVCOFrequencies);
@@ -475,7 +475,7 @@ void BcmPortGroup::setActiveLanesWithFlexPortApi(
   }
 
   // update laneMode_ to the new desiredMode
-  XLOG(INFO) << "Finished reconfiguring port group of control port: "
+  XLOG(DBG2) << "Finished reconfiguring port group of control port: "
              << controllingPort_->getPortID() << ", from " << laneMode_
              << " lanes to " << desiredLaneMode << " lanes"
              << ", port group size from " << beforePortGroupSize << " to "

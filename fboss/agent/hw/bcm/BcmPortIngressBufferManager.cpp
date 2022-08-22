@@ -91,7 +91,7 @@ void BcmPortIngressBufferManager::writeCosqTypeToHwIfNeeded(
   if (hwValue != value) {
     writeCosqTypeToHw(cosq, type, value, typeStr);
   } else {
-    XLOG(INFO) << "Skip programming " << typeStr << "value : " << value;
+    XLOG(DBG2) << "Skip programming " << typeStr << "value : " << value;
   }
 }
 
@@ -103,7 +103,7 @@ void BcmPortIngressBufferManager::programPfcOnPgIfNeeded(
   if (currPfcStatus != newPfcStatus) {
     programPfcOnPg(cosq, newPfcStatus);
   } else {
-    XLOG(INFO) << "Skip programming for programPfcOnPgIfNeeded";
+    XLOG(DBG2) << "Skip programming for programPfcOnPgIfNeeded";
   }
 }
 
@@ -272,7 +272,7 @@ void BcmPortIngressBufferManager::programPgLosslessModeIfNeeded(
   if (currPgLosslessMode != newPgLosslessMode) {
     programPgLosslessMode(pgId, newPgLosslessMode);
   } else {
-    XLOG(INFO) << "Skip programming for pgId: " << pgId;
+    XLOG(DBG2) << "Skip programming for pgId: " << pgId;
   }
 }
 

@@ -216,12 +216,12 @@ void BcmSflowExporterTable::addExporter(const shared_ptr<SflowCollector>& c) {
     return;
   }
 
-  XLOG(INFO) << "Successfully added exporter for "
+  XLOG(DBG2) << "Successfully added exporter for "
              << c->getAddress().getFullyQualified();
 }
 
 void BcmSflowExporterTable::removeExporter(const std::string& id) {
-  XLOG(INFO) << "Removed sFlow exporter " << id;
+  XLOG(DBG2) << "Removed sFlow exporter " << id;
   map_.erase(id);
 }
 

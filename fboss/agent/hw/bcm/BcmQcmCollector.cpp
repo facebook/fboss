@@ -167,7 +167,7 @@ void BcmQcmCollector::init(const std::shared_ptr<SwitchState>& swState) {
   exportProfileCreate();
   flowTrackerTemplateCreate();
   collectorTemplateAttach();
-  XLOG(INFO) << "Collector Init done";
+  XLOG(DBG2) << "Collector Init done";
 }
 
 void BcmQcmCollector::destroyCollector() {
@@ -187,6 +187,6 @@ void BcmQcmCollector::stop() {
   destroyExportProfile();
   destroyFlowTrackerTemplate();
 
-  XLOG(INFO) << "Collector stop done";
+  XLOG(DBG2) << "Collector stop done";
 }
 } // namespace facebook::fboss

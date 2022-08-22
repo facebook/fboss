@@ -34,7 +34,7 @@ void AgentTest::setupAgent() {
   // thread and that runs for lifetime of the application.
   asyncInitThread_->detach();
   initializer()->waitForInitDone();
-  XLOG(INFO) << "Agent has been setup and ready for the test";
+  XLOG(DBG2) << "Agent has been setup and ready for the test";
 }
 
 void AgentTest::TearDown() {
@@ -157,7 +157,7 @@ void AgentTest::waitForLinkStatus(
     bool up,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
-  XLOG(INFO) << "Checking link status on "
+  XLOG(DBG2) << "Checking link status on "
              << folly::join(",", getPortNames(portsToCheck));
   auto portStatus = sw()->getPortStatus();
   std::vector<PortID> badPorts;
@@ -196,7 +196,7 @@ void AgentTest::assertNoInDiscards(int maxNumDiscards) {
     auto portStats = sw()->getHw()->getPortStats();
     for (auto [port, stats] : portStats) {
       auto inDiscards = *stats.inDiscards_();
-      XLOG(INFO) << "Port: " << port << " in discards: " << inDiscards
+      XLOG(DBG2) << "Port: " << port << " in discards: " << inDiscards
                  << " in bytes: " << *stats.inBytes_()
                  << " out bytes: " << *stats.outBytes_() << " at timestamp "
                  << *stats.timestamp_();

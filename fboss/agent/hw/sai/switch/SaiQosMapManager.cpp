@@ -121,7 +121,7 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToQueueQosMap(
 
 void SaiQosMapManager::setQosMaps(
     const std::shared_ptr<QosPolicy>& newQosPolicy) {
-  XLOG(INFO) << "Setting global QoS map: " << newQosPolicy->getName();
+  XLOG(DBG2) << "Setting global QoS map: " << newQosPolicy->getName();
   handle_ = std::make_unique<SaiQosMapHandle>();
   handle_->dscpToTcMap = setDscpToTcQosMap(newQosPolicy->getDscpMap());
   handle_->tcToQueueMap =

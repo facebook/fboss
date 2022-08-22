@@ -1102,7 +1102,7 @@ void SaiSwitch::gracefulExitLocked(
     const std::lock_guard<std::mutex>& lock) {
   std::chrono::steady_clock::time_point begin =
       std::chrono::steady_clock::now();
-  XLOG(INFO) << "[Exit] Starting SAI Switch graceful exit";
+  XLOG(DBG2) << "[Exit] Starting SAI Switch graceful exit";
 
   SaiSwitchTraits::Attributes::SwitchRestartWarm restartWarm{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(switchId_, restartWarm);
@@ -1111,18 +1111,18 @@ void SaiSwitch::gracefulExitLocked(
   platform_->getWarmBootHelper()->setCanWarmBoot();
   std::chrono::steady_clock::time_point wbSaiSwitchWrite =
       std::chrono::steady_clock::now();
-  XLOG(INFO) << "[Exit] SaiSwitch warm boot state write time: "
+  XLOG(DBG2) << "[Exit] SaiSwitch warm boot state write time: "
              << std::chrono::duration_cast<std::chrono::duration<float>>(
                     wbSaiSwitchWrite - begin)
                     .count();
   managerTable_->switchManager().gracefulExit();
   std::chrono::steady_clock::time_point wbSdk =
       std::chrono::steady_clock::now();
-  XLOG(INFO) << "[Exit] Warm boot sdk time: "
+  XLOG(DBG2) << "[Exit] Warm boot sdk time: "
              << std::chrono::duration_cast<std::chrono::duration<float>>(
                     wbSdk - wbSaiSwitchWrite)
                     .count();
-  XLOG(INFO) << " [Exit] SaiSwitch Graceful exit locked time: "
+  XLOG(DBG2) << " [Exit] SaiSwitch Graceful exit locked time: "
              << std::chrono::duration_cast<std::chrono::duration<float>>(
                     wbSdk - begin)
                     .count();
@@ -1514,7 +1514,7 @@ void SaiSwitch::packetRxCallback(
         hostifTrapSaiIdOpt = attr_list[index].value.oid;
         break;
       default:
-        XLOG(INFO) << "invalid attribute received";
+        XLOG(DBG2) << "invalid attribute received";
     }
   }
 
@@ -2062,7 +2062,7 @@ SaiManagerTable* SaiSwitch::managerTableLocked(
 void SaiSwitch::fdbEventCallback(
     uint32_t count,
     const sai_fdb_event_notification_data_t* data) {
-  XLOG(INFO) << "Received " << count << " learn notifications";
+  XLOG(DBG2) << "Received " << count << " learn notifications";
   if (runState_ < SwitchRunState::CONFIGURED) {
     // receive learn events after switch is configured to prevent
     // fdb entries from being created against ports  which would

@@ -425,7 +425,7 @@ void IPv6Handler::handleNeighborSolicitation(
   }
 
   if (!AggregatePort::isIngressValid(state, pkt)) {
-    XLOG(INFO) << "Dropping invalid NS ingressing on port " << pkt->getSrcPort()
+    XLOG(DBG2) << "Dropping invalid NS ingressing on port " << pkt->getSrcPort()
                << " on vlan " << vlan << " for " << targetIP;
     return;
   }

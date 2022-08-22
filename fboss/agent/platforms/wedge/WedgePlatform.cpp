@@ -181,7 +181,7 @@ void WedgePlatform::preWarmbootStateApplied() {
       changedPorts[entry.first] = s;
     }
   }
-  XLOG(INFO) << "[preWarmbootStateApplied]: Will update " << changedPorts.size()
+  XLOG(DBG2) << "[preWarmbootStateApplied]: Will update " << changedPorts.size()
              << " ports to qsfp cache.";
   qsfpCache_->portsChanged(changedPorts);
 }

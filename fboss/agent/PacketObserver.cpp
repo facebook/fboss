@@ -37,7 +37,7 @@ void PacketObservers::registerPacketObserver(
   if (pktObservers->find(name) != pktObservers->end()) {
     throw FbossError("Observer was already added: ", name);
   }
-  XLOG(INFO) << "Register: " << name << " as packet observer";
+  XLOG(DBG2) << "Register: " << name << " as packet observer";
   pktObservers->emplace(name, observer);
 }
 
@@ -48,7 +48,7 @@ void PacketObservers::unregisterPacketObserver(
   if (!pktObservers->erase(name)) {
     throw FbossError("Observer erase failed for:", name);
   }
-  XLOG(INFO) << "Unergister: " << name << " as packet observer";
+  XLOG(DBG2) << "Unergister: " << name << " as packet observer";
 }
 
 } // namespace facebook::fboss

@@ -428,7 +428,7 @@ FPGroupDesiredQsetCmp::FPGroupDesiredQsetCmp(
 
 bool FPGroupDesiredQsetCmp::hasDesiredQset() {
   auto equal = qsetsEqual(groupQset_, getEffectiveDesiredQset());
-  XLOG(INFO) << "Group : " << groupId_ << " has desired qset: " << equal;
+  XLOG(DBG2) << "Group : " << groupId_ << " has desired qset: " << equal;
   return equal;
 }
 

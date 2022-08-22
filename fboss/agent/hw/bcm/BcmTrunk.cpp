@@ -41,7 +41,7 @@ BcmTrunk::~BcmTrunk() {
   // remove the member ports of a trunk before destroying the trunk itself
   auto rv = bcm_trunk_destroy(hw_->getUnit(), bcmTrunkID_);
   bcmLogFatal(rv, hw_, "failed to destroy trunk ", bcmTrunkID_);
-  XLOG(INFO) << "deleted trunk " << bcmTrunkID_;
+  XLOG(DBG2) << "deleted trunk " << bcmTrunkID_;
 }
 
 void BcmTrunk::init(const std::shared_ptr<AggregatePort>& aggPort) {
@@ -69,7 +69,7 @@ void BcmTrunk::init(const std::shared_ptr<AggregatePort>& aggPort) {
         members.data(),
         &member_count);
     bcmCheckError(rv, "failed to get subports for trunk ", bcmTrunkID_);
-    XLOG(INFO) << "Found " << member_count
+    XLOG(DBG2) << "Found " << member_count
                << " members in HW for AggregatePort " << aggPort->getID();
 
     for (auto [subPort, fwdState] : aggPort->subportAndFwdState()) {
@@ -89,7 +89,7 @@ void BcmTrunk::init(const std::shared_ptr<AggregatePort>& aggPort) {
         // removed from trunk but before LACP reacts to port down, we add
         // it back here. However this will be short lived since
         // linkUp/DownHwLocked will be involked at end of warmboot init.
-        XLOG(INFO) << "Found disabled member port " << subPort;
+        XLOG(DBG2) << "Found disabled member port " << subPort;
         modifyMemberPort(true, subPort);
       } else {
         trunkStats_.grantMembership(subPort);
@@ -103,7 +103,7 @@ void BcmTrunk::init(const std::shared_ptr<AggregatePort>& aggPort) {
   auto rv = bcm_trunk_create(hw_->getUnit(), 0, &bcmTrunkID_);
   bcmCheckError(
       rv, "failed to create trunk for aggregate port ", aggPort->getID());
-  XLOG(INFO) << "created trunk " << bcmTrunkID_ << " for AggregatePort "
+  XLOG(DBG2) << "created trunk " << bcmTrunkID_ << " for AggregatePort "
              << aggPort->getID();
 
   bcm_trunk_info_t info;
@@ -188,7 +188,7 @@ void BcmTrunk::programForwardingState(
 }
 
 void BcmTrunk::modifyMemberPort(bool added, PortID memberPort) {
-  XLOG(INFO) << "modifyMemberPort: bcmTrunkID_ = " << bcmTrunkID_
+  XLOG(DBG2) << "modifyMemberPort: bcmTrunkID_ = " << bcmTrunkID_
              << ", added = " << added << ", port = " << memberPort;
   bcm_trunk_member_t member;
   bcm_trunk_member_t_init(&member);
@@ -204,13 +204,13 @@ void BcmTrunk::modifyMemberPort(bool added, PortID memberPort) {
       // The port may have already been deleted in the link-scan thread
       // and the StateDelta at hand may be the result of the SwitchState
       // catching up to the hardware state
-      XLOG(INFO) << "already deleted port " << memberPort << " from trunk "
+      XLOG(DBG2) << "already deleted port " << memberPort << " from trunk "
                  << bcmTrunkID_;
       return;
     }
     bcmCheckError(
         rv, "failed to delete port ", memberPort, " from trunk ", bcmTrunkID_);
-    XLOG(INFO) << "deleted port " << memberPort << " from trunk "
+    XLOG(DBG2) << "deleted port " << memberPort << " from trunk "
                << bcmTrunkID_;
     trunkStats_.revokeMembership(memberPort);
   }
@@ -250,7 +250,7 @@ void BcmTrunk::shrinkTrunkGroupHwNotLocked(
       trunk,
       " in interrupt context");
 
-  XLOG(INFO) << "removed port " << toDisable << " from trunk " << trunk
+  XLOG(DBG2) << "removed port " << toDisable << " from trunk " << trunk
              << " in interrupt context";
 }
 

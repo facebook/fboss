@@ -89,7 +89,7 @@ BidirectionalPacketStream::BidirectionalPacketStream(
 }
 
 BidirectionalPacketStream::~BidirectionalPacketStream() {
-  XLOG(INFO) << "Closing Bidirectional stream:";
+  XLOG(DBG2) << "Closing Bidirectional stream:";
   if (evb_) {
     evb_->runImmediatelyOrRunInEventBaseThreadAndWait(
         [this]() { cancelTimeout(); });
@@ -103,13 +103,13 @@ void BidirectionalPacketStream::registerPortsToServer() {
       portMap_.withWLock([&](auto& lockedMap) {
         for (const auto& port : lockedMap) {
           // register the port for local server
-          XLOG(INFO) << serviceName_ << ": Register Port " << port;
+          XLOG(DBG2) << serviceName_ << ": Register Port " << port;
           PacketStreamService::registerPort(
               std::make_unique<std::string>(connectedClientId_),
               std::make_unique<std::string>(port));
           // now lets ask the server to register port.
           PacketStreamClient::registerPortToServer(port);
-          XLOG(INFO) << "Registered Port:" << port << " successfully with "
+          XLOG(DBG2) << "Registered Port:" << port << " successfully with "
                      << connectedClientId_;
         }
       });
@@ -126,7 +126,7 @@ void BidirectionalPacketStream::connectClient(uint16_t port) {
     STATS_err_invalid_connect_client_port.add(1);
     throw std::runtime_error("Invalid port");
   }
-  XLOG(INFO) << serviceName_ << ": Starting Connection to Server: " << port;
+  XLOG(DBG2) << serviceName_ << ": Starting Connection to Server: " << port;
   peerServerPort_.store(port);
   newConnection_.store(true);
   PacketStreamClient::connectToServer("::1", port);
@@ -149,7 +149,7 @@ void BidirectionalPacketStream::timeoutExpired() noexcept {
     // try to reconnect.
     STATS_start_reconnect_to_server.add(1);
     auto port = peerServerPort_.load();
-    XLOG(INFO) << serviceName_ << ": Reconnecting to server on port: " << port;
+    XLOG(DBG2) << serviceName_ << ": Reconnecting to server on port: " << port;
     newConnection_.store(true);
     PacketStreamClient::connectToServer("::1", port);
   }
@@ -161,7 +161,7 @@ std::shared_ptr<AsyncPacketTransport> BidirectionalPacketStream::listen(
   if (port.empty()) {
     return {};
   }
-  XLOG(INFO) << serviceName_ << ": Start listening on Port: " << port;
+  XLOG(DBG2) << serviceName_ << ": Start listening on Port: " << port;
   portMap_.withWLock([&](auto& lockedMap) { lockedMap.emplace(port); });
   if (clientConnected_.load() && PacketStreamClient::isConnectedToServer()) {
     // lets try to register the port.
@@ -172,7 +172,7 @@ std::shared_ptr<AsyncPacketTransport> BidirectionalPacketStream::listen(
           std::make_unique<std::string>(port));
       // now lets ask the server to register port.
       PacketStreamClient::registerPortToServer(port);
-      XLOG(INFO) << "Registered Port:" << port << " successfully with "
+      XLOG(DBG2) << "Registered Port:" << port << " successfully with "
                  << connectedClientId_;
 
     } catch (const std::exception& ex) {
@@ -219,7 +219,7 @@ void BidirectionalPacketStream::close(const std::string& port) {
       return;
     }
   }
-  XLOG(INFO) << "Unregister Port:" << port;
+  XLOG(DBG2) << "Unregister Port:" << port;
 }
 
 void BidirectionalPacketStream::recvPacket(TPacket&& packet) {

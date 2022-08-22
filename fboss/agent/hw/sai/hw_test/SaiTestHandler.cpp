@@ -27,7 +27,7 @@ SaiTestHandler::~SaiTestHandler() {}
 
 apache::thrift::ResponseAndServerStream<std::string, std::string>
 SaiTestHandler::startDiagShell() {
-  XLOG(INFO) << "New diag shell session connecting";
+  XLOG(DBG2) << "New diag shell session connecting";
   if (!hw_->isFullyInitialized()) {
     throw FbossError("switch is still initializing or is exiting ");
   }
@@ -35,7 +35,7 @@ SaiTestHandler::startDiagShell() {
   auto streamAndPublisher =
       apache::thrift::ServerStream<std::string>::createPublisher([this]() {
         diagShell_.markResetPublisher();
-        XLOG(INFO) << "Diag shell session disconnected";
+        XLOG(DBG2) << "Diag shell session disconnected";
       });
 
   std::string firstPrompt =

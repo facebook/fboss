@@ -362,7 +362,7 @@ void BcmHostIf::programToTrunk(
     hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
         getEgressId(), BcmEcmpEgress::Action::EXPAND);
   } else {
-    XLOG(INFO)
+    XLOG(DBG2)
         << "Skip adding trunk to ECMP since minLink condition is not met for trunk "
         << trunk;
     hw_->writableMultiPathNextHopTable()->egressResolutionChangedHwLocked(
@@ -452,7 +452,7 @@ void BcmHostTable::warmBootHostEntriesSynced() {
     } else {
       auto trunk = hw_->getTrunkTable()->linkDownHwNotLocked(idx);
       if (trunk != BcmTrunk::INVALID) {
-        XLOG(INFO) << "Shrinking ECMP entries egressing over trunk " << trunk;
+        XLOG(DBG2) << "Shrinking ECMP entries egressing over trunk " << trunk;
         hw_->writableEgressManager()->trunkDownHwNotLocked(trunk);
       }
       hw_->writableEgressManager()->linkDownHwLocked(idx);

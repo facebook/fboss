@@ -34,13 +34,13 @@ PktCapture::PktCapture(
       packetFilter_(captureFilter) {}
 
 void PktCapture::start(StringPiece path) {
-  XLOG(INFO) << "starting packet capture " << toString();
+  XLOG(DBG2) << "starting packet capture " << toString();
   writer_.start(path, true);
 }
 
 void PktCapture::stop() {
   writer_.finish();
-  XLOG(INFO) << "Stopped packet capture " << toString(true);
+  XLOG(DBG2) << "Stopped packet capture " << toString(true);
 }
 
 bool PktCapture::packetReceived(const RxPacket* pkt) {

@@ -106,7 +106,7 @@ void runRxSlowPathBenchmark() {
     cpuRxRateJson["cpu_rx_bytes_per_sec"] = bytesPerSec;
     std::cout << toPrettyJson(cpuRxRateJson) << std::endl;
   } else {
-    XLOG(INFO) << " Pkts before: " << pktsBefore << " Pkts after: " << pktsAfter
+    XLOG(DBG2) << " Pkts before: " << pktsBefore << " Pkts after: " << pktsAfter
                << " interval ms: " << durationMillseconds.count()
                << " pps: " << pps << " bytes per sec: " << bytesPerSec;
   }

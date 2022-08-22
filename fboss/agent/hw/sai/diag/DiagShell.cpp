@@ -96,7 +96,7 @@ TerminalSession::TerminalSession(
 
   oldStreams_.reserve(streams.size());
   for (const auto& stream : streams) {
-    XLOG(INFO) << "Redirect stream to PTY slave: " << stream.fd();
+    XLOG(DBG2) << "Redirect stream to PTY slave: " << stream.fd();
     // Save old stream (OWNING File objects!)
     oldStreams_.emplace_back(stream.dup());
     // Set the pty slave as the stream
@@ -128,7 +128,7 @@ void DiagShellClientState::publishOutput(const std::string& output) {
 
 void DiagShellClientState::completeStream() {
   std::move(publisher_).complete();
-  XLOG(INFO) << "Completed Stream on " << clientAddrAndPort_;
+  XLOG(DBG2) << "Completed Stream on " << clientAddrAndPort_;
 }
 } // namespace detail
 
@@ -281,7 +281,7 @@ std::string StreamingDiagShellServer::start(
 }
 
 void StreamingDiagShellServer::markResetPublisher() {
-  XLOG(INFO) << "Marked to reset diag shell client states";
+  XLOG(DBG2) << "Marked to reset diag shell client states";
   shouldResetPublisher_ = true;
 }
 
@@ -298,7 +298,7 @@ void StreamingDiagShellServer::consumeInput(
 }
 
 void StreamingDiagShellServer::resetPublisher() {
-  XLOG(INFO) << "Resetting diag shell client state";
+  XLOG(DBG2) << "Resetting diag shell client state";
   auto locked = publisher_.lock();
   if (!shouldResetPublisher_) {
     return;
@@ -313,7 +313,7 @@ void StreamingDiagShellServer::resetPublisher() {
   shouldResetPublisher_ = false;
   locked->reset();
   disconnect();
-  XLOG(INFO) << "Ready to accept new clients";
+  XLOG(DBG2) << "Ready to accept new clients";
 }
 
 // TODO: Log command output to Scuba

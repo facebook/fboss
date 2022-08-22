@@ -21,7 +21,7 @@ PacketStreamClient::PacketStreamClient(
 }
 
 PacketStreamClient::~PacketStreamClient() {
-  XLOG(INFO) << "Destroying PacketStreamClient";
+  XLOG(DBG2) << "Destroying PacketStreamClient";
   cancel();
 }
 
@@ -47,7 +47,7 @@ void PacketStreamClient::connectToServer(const std::string& ip, uint16_t port) {
     throw std::runtime_error("Client resumed after cancel called");
   }
   if (State::INIT != state) {
-    XLOG(INFO) << "Client is already in process of connecting to server";
+    XLOG(DBG2) << "Client is already in process of connecting to server";
     return;
   }
 
@@ -79,7 +79,7 @@ folly::coro::Task<void> PacketStreamClient::connect() {
     co_return;
   }
   state_.store(State::CONNECTED);
-  XLOG(INFO) << clientId_ << " connected successfully";
+  XLOG(DBG2) << clientId_ << " connected successfully";
   auto getToken = [this]() {
     return cancelSource_.withWLock(
         [](auto& cancelSource) { return cancelSource->getToken(); });
@@ -97,7 +97,7 @@ folly::coro::Task<void> PacketStreamClient::connect() {
     XLOG(ERR) << clientId_ << " Server error: " << folly::exceptionStr(ex);
     state_.store(State::INIT);
   }
-  XLOG(INFO) << "Client Cancellation Completed";
+  XLOG(DBG2) << "Client Cancellation Completed";
   co_return;
 }
 #endif
@@ -128,10 +128,10 @@ void PacketStreamClient::clearPortFromServer(const std::string& l2port) {
 
 void PacketStreamClient::cancel() {
 #if FOLLY_HAS_COROUTINES
-  XLOG(INFO) << "Cancel PacketStreamClient";
+  XLOG(DBG2) << "Cancel PacketStreamClient";
   cancelSource_.withWLock([](auto& cancelSource) {
     if (cancelSource) {
-      XLOG(INFO) << "Request PacketStreamClient Cancellation";
+      XLOG(DBG2) << "Request PacketStreamClient Cancellation";
       cancelSource->requestCancellation();
     }
   });

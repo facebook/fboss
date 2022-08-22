@@ -219,7 +219,7 @@ void BcmPortResourceBuilder::program() {
   }
   int unit_ = hw_->getUnit();
 
-  XLOG(INFO) << "About to reconfigure port group of for control port: "
+  XLOG(DBG2) << "About to reconfigure port group of for control port: "
              << controllingPort_->getPortID()
              << ", from port size: " << numRemovedPorts_
              << " to port size: " << numAddedPorts_;
@@ -228,7 +228,7 @@ void BcmPortResourceBuilder::program() {
   std::vector<bcm_port_t> newPortIDs;
   auto i = 0;
   for (const auto& portRes : portResources_) {
-    XLOG(INFO) << "Set port resource. logical_id:" << portRes.port
+    XLOG(DBG2) << "Set port resource. logical_id:" << portRes.port
                << ", physical_port:" << portRes.physical_port
                << ", lanes:" << portRes.lanes;
     if (i < numRemovedPorts_) {

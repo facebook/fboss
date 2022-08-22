@@ -26,7 +26,7 @@ std::string RouteUpdateLoggingInstance::str() const {
 
 void RouteUpdateLoggingPrefixTracker::track(
     const RouteUpdateLoggingInstance& req) {
-  XLOG(INFO) << "Tracking " << req.str();
+  XLOG(DBG2) << "Tracking " << req.str();
   SYNCHRONIZED(trackedPrefixes_) {
     auto found = trackedPrefixes_[req.identifier].insert(
         req.prefix.network(), req.prefix.mask(), req);
@@ -41,7 +41,7 @@ void RouteUpdateLoggingPrefixTracker::track(
 void RouteUpdateLoggingPrefixTracker::stopTracking(
     const RoutePrefix<folly::IPAddress>& prefix,
     const std::string& identifier) {
-  XLOG(INFO) << "Stop tracking " << prefix.str() << " " << identifier;
+  XLOG(DBG2) << "Stop tracking " << prefix.str() << " " << identifier;
   SYNCHRONIZED(trackedPrefixes_) {
     auto itr = trackedPrefixes_.find(identifier);
     if (itr == trackedPrefixes_.end()) {
@@ -54,7 +54,7 @@ void RouteUpdateLoggingPrefixTracker::stopTracking(
 // stop tracking all the routes with the given identifier
 void RouteUpdateLoggingPrefixTracker::stopTracking(
     const std::string& identifier) {
-  XLOG(INFO) << "Stop tracking all prefixes for " << identifier;
+  XLOG(DBG2) << "Stop tracking all prefixes for " << identifier;
   SYNCHRONIZED(trackedPrefixes_) {
     trackedPrefixes_.erase(identifier);
   }

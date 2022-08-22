@@ -32,7 +32,7 @@ class LacpTest : public LinkTest {
   }
 
   void setupConfigFlag() override {
-    XLOG(INFO) << "setup up config flag";
+    XLOG(DBG2) << "setup up config flag";
     bool canWarmBoot = false;
     if (platform()->getWarmBootHelper()) {
       canWarmBoot = platform()->getWarmBootHelper()->canWarmBoot();
@@ -41,7 +41,7 @@ class LacpTest : public LinkTest {
           checkFileExists(platform()->getWarmBootDir() + "/can_warm_boot_0");
     }
     if (canWarmBoot) {
-      XLOG(INFO) << "use previous running agent config for warmboot init";
+      XLOG(DBG2) << "use previous running agent config for warmboot init";
       FLAGS_config = getTestConfigPath();
       platform()->reloadConfig();
     }
@@ -61,10 +61,10 @@ class LacpTest : public LinkTest {
     if (ports1.empty()) {
       throw FbossError("not enough ports connected for aggregate ports");
     }
-    XLOG(INFO) << "Add " << folly::join(',', ports1) << " to agg port"
+    XLOG(DBG2) << "Add " << folly::join(',', ports1) << " to agg port"
                << getAggPorts()[0];
     addAggPort(getAggPorts()[0], ports1, &config, cfg::LacpPortRate::SLOW);
-    XLOG(INFO) << "Add " << folly::join(',', ports2) << " to agg port"
+    XLOG(DBG2) << "Add " << folly::join(',', ports2) << " to agg port"
                << getAggPorts()[1];
     addAggPort(getAggPorts()[1], ports2, &config, cfg::LacpPortRate::SLOW);
     sw()->applyConfig("Reconfigure", config);

@@ -368,7 +368,7 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       ptpTcMgr_(new BcmPtpTcMgr(this)) {}
 
 BcmSwitch::~BcmSwitch() {
-  XLOG(INFO) << "Destroying BcmSwitch";
+  XLOG(DBG2) << "Destroying BcmSwitch";
   resetTables();
   if (unitObject_) {
     // In agent this would be done in the signal handler
@@ -471,7 +471,7 @@ void BcmSwitch::unregisterCallbacks() {
                               "callback: "
                            << bcm_errmsg(rv);
     flags_ &= ~PFC_WATCHDOG_REGISTERED;
-    XLOG(INFO) << "Unregistered pfc watchdog";
+    XLOG(DBG2) << "Unregistered pfc watchdog";
   }
 
   /*
@@ -488,7 +488,7 @@ void BcmSwitch::unregisterCallbacks() {
 
 void BcmSwitch::gracefulExitImpl(folly::dynamic& switchState) {
   steady_clock::time_point begin = steady_clock::now();
-  XLOG(INFO) << "[Exit] Starting BCM Switch graceful exit";
+  XLOG(DBG2) << "[Exit] Starting BCM Switch graceful exit";
   // Ideally, preparePortsForGracefulExit() would run in update EVB of the
   // SwSwitch, but it does not really matter at the graceful exit time. If
   // this is a concern, this can be moved to the updateEventBase_ of SwSwitch.
@@ -505,7 +505,7 @@ void BcmSwitch::gracefulExitImpl(folly::dynamic& switchState) {
   switchState[kHwSwitch] = toFollyDynamic();
   unitObject_->writeWarmBootState(switchState);
   unitObject_.reset();
-  XLOG(INFO)
+  XLOG(DBG2)
       << "[Exit] BRCM Graceful Exit time "
       << duration_cast<duration<float>>(steady_clock::now() - begin).count();
 }
@@ -685,7 +685,7 @@ void BcmSwitch::runBcmScript(const std::string& filename) const {
     return;
   }
 
-  XLOG(INFO) << "Run script " << filename;
+  XLOG(DBG2) << "Run script " << filename;
   printDiagCmd(folly::to<string>("rcload ", filename));
 }
 
@@ -795,7 +795,7 @@ HwInitResult BcmSwitch::initImpl(
   ret.initializedTime =
       duration_cast<duration<float>>(steady_clock::now() - begin).count();
 
-  XLOG(INFO) << "Initializing BcmSwitch for unit " << unit_;
+  XLOG(DBG2) << "Initializing BcmSwitch for unit " << unit_;
 
   // Add callbacks for unit and parity errors as early as possible to handle
   // critical events
@@ -816,7 +816,7 @@ HwInitResult BcmSwitch::initImpl(
   // Create bcmStatUpdater to cache the stat ids
   bcmStatUpdater_ = std::make_unique<BcmStatUpdater>(this);
 
-  XLOG(INFO) << " Is ALPM enabled: " << BcmAPI::isAlpmEnabled();
+  XLOG(DBG2) << " Is ALPM enabled: " << BcmAPI::isAlpmEnabled();
   // Additional switch configuration
   auto state = make_shared<SwitchState>();
   bcm_port_config_t pcfg;
@@ -1300,7 +1300,7 @@ void BcmSwitch::processDisabledPorts(const StateDelta& delta) {
       [&](const shared_ptr<Port>& oldPort, const shared_ptr<Port>& newPort) {
         if (oldPort->isEnabled() && !newPort->isEnabled()) {
           auto bcmPort = portTable_->getBcmPort(newPort->getID());
-          XLOG(INFO) << "Disabling port: " << newPort->getID();
+          XLOG(DBG2) << "Disabling port: " << newPort->getID();
           bcmPort->disable(newPort);
         }
       });
@@ -2473,7 +2473,7 @@ void BcmSwitch::linkStateChangedHwNotLocked(
   if (!up) {
     auto trunk = trunkTable_->linkDownHwNotLocked(bcmPortId);
     if (trunk != BcmTrunk::INVALID) {
-      XLOG(INFO) << "Shrinking ECMP entries egressing over trunk " << trunk;
+      XLOG(DBG2) << "Shrinking ECMP entries egressing over trunk " << trunk;
       writableEgressManager()->trunkDownHwNotLocked(trunk);
     }
     writableEgressManager()->linkDownHwNotLocked(bcmPortId);
@@ -3079,7 +3079,7 @@ bool BcmSwitch::haveMissingOrQSetChangedFPGroups() const {
       XLOG(DBG1) << " FP group : " << gid << " does not exist";
       return true;
     } else if (!FPGroupDesiredQsetCmp(this, gid, qset).hasDesiredQset()) {
-      XLOG(INFO) << " FP group : " << gid << " has a changed QSET";
+      XLOG(DBG2) << " FP group : " << gid << " has a changed QSET";
       return true;
     }
   }
@@ -3213,7 +3213,7 @@ bool BcmSwitch::handleSflowPacket(BcmPacketT& bcmPacket) noexcept {
 
 std::string BcmSwitch::gatherSdkState() const {
   if (!platform_->isBcmShellSupported()) {
-    XLOG(INFO) << "Cannot dump SDK state since the platform does not support "
+    XLOG(DBG2) << "Cannot dump SDK state since the platform does not support "
                   "bcm shell";
     return "";
   }
@@ -3346,7 +3346,7 @@ bool BcmSwitch::hasValidAclMatcher(const std::shared_ptr<AclEntry>& acl) const {
 
 void BcmSwitch::forceLinkscanOn(bcm_pbmp_t ports) {
   if (!(flags_ & LINKSCAN_REGISTERED)) {
-    XLOG(INFO) << "Linkscan not registered, skipping force scan";
+    XLOG(DBG2) << "Linkscan not registered, skipping force scan";
     return;
   }
   // will immediately scan ports in the passed in port bitmap. Useful

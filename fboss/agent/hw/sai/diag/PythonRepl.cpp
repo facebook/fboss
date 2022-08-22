@@ -58,7 +58,7 @@ void PythonRepl::runPythonInterpreter() {
   std::wstring arg = L"SAI-Diag-Repl";
   wchar_t* argp = arg.data();
   wchar_t** argv = &argp;
-  XLOG(INFO) << "Starting Python interpreter";
+  XLOG(DBG2) << "Starting Python interpreter";
   Py_Initialize();
   /* hack: point sys.stderr at the pty slave fd so that it is sent to the user
    *       but without spoiling stderr for logging. For some reason, the same
@@ -69,7 +69,7 @@ void PythonRepl::runPythonInterpreter() {
   auto fdopenCmd = folly::sformat("f = os.fdopen({}, 'w')", fd_);
   PyRun_SimpleString(fdopenCmd.c_str());
   PyRun_SimpleString("sys.stderr = f");
-  XLOG(INFO) << "Starting interactive Python session";
+  XLOG(DBG2) << "Starting interactive Python session";
   Py_Main(argc, argv);
   Py_Finalize();
 }

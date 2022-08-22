@@ -176,7 +176,7 @@ void BcmSwitchEnsemble::init(
   } else {
     // Load from a local file
     if (!FLAGS_bcm_config.empty()) {
-      XLOG(INFO) << "Loading bcm config from " << FLAGS_bcm_config;
+      XLOG(DBG2) << "Loading bcm config from " << FLAGS_bcm_config;
       if (bcmTestPlatform->usesYamlConfig()) {
         yamlCfg = BcmYamlConfig::loadFromFile(FLAGS_bcm_config);
       } else {
@@ -184,7 +184,7 @@ void BcmSwitchEnsemble::init(
       }
       agentConfig = createEmptyAgentConfig();
     } else if (!FLAGS_config.empty()) {
-      XLOG(INFO) << "Loading config from " << FLAGS_config;
+      XLOG(DBG2) << "Loading config from " << FLAGS_config;
       agentConfig = AgentConfig::fromFile(FLAGS_config);
       if (bcmTestPlatform->usesYamlConfig()) {
         yamlCfg = can_throw(*(platform->config()->thrift)
@@ -210,7 +210,7 @@ void BcmSwitchEnsemble::init(
   // when in lossless mode on support platforms, use a different BCM knob
   if (FLAGS_mmu_lossless_mode &&
       platform->getAsic()->isSupported(HwAsic::Feature::PFC)) {
-    XLOG(INFO) << "Modify the bcm cfg as mmu_lossless mode is enabled";
+    XLOG(DBG2) << "Modify the bcm cfg as mmu_lossless mode is enabled";
     if (bcmTestPlatform->usesYamlConfig()) {
       std::string toReplace("LOSSY");
       std::size_t pos = yamlCfg.find(toReplace);
@@ -230,7 +230,7 @@ void BcmSwitchEnsemble::init(
   }
   if (FLAGS_load_qcm_fw &&
       platform->getAsic()->isSupported(HwAsic::Feature::QCM)) {
-    XLOG(INFO) << "Modify bcm cfg as load_qcm_fw is enabled";
+    XLOG(DBG2) << "Modify bcm cfg as load_qcm_fw is enabled";
     modifyCfgForQcmTests(cfg);
   }
   if (FLAGS_enable_exact_match &&

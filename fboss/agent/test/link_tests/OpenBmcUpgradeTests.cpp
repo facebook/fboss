@@ -16,7 +16,7 @@ DEFINE_string(openbmc_password, "", "password to access the oob as root");
 class OpenBmcUpgradeTest : public LinkTest {
  private:
   void rebootOob(int waitAfterRebootSeconds = 300) const {
-    XLOG(INFO) << "Rebooting oob....";
+    XLOG(DBG2) << "Rebooting oob....";
     std::string rebootCmd = folly::sformat(
         "sshpass -p {} ssh root@{} reboot",
         FLAGS_openbmc_password,
@@ -51,7 +51,7 @@ class OpenBmcUpgradeTest : public LinkTest {
 
  protected:
   void openBmcSanityCheck() const {
-    XLOG(INFO) << "Checking ssh access to oob";
+    XLOG(DBG2) << "Checking ssh access to oob";
     waitForSshAccessToOob();
     std::string pingCmd = folly::sformat("ping6 -c 5 {}", FLAGS_oob_asset);
     std::string resultStr;
@@ -62,7 +62,7 @@ class OpenBmcUpgradeTest : public LinkTest {
       XLOG(ERR) << "Err str = " << errStr;
       throw FbossError("OpenBMC Sanity check failed : ", errStr);
     }
-    XLOG(INFO) << "OpenBMC sanity check passed";
+    XLOG(DBG2) << "OpenBMC sanity check passed";
   }
 
   void upgradeOpenBmc() const {
@@ -81,10 +81,10 @@ class OpenBmcUpgradeTest : public LinkTest {
     }
     // Reboot OOB
     rebootOob();
-    XLOG(INFO) << "OpenBMC upgrade successful! Starting OpenBMC sanity check";
+    XLOG(DBG2) << "OpenBMC upgrade successful! Starting OpenBMC sanity check";
     openBmcSanityCheck();
 
-    XLOG(INFO) << "OpenBMC version after upgrade : " << openBmcVersion();
+    XLOG(DBG2) << "OpenBMC version after upgrade : " << openBmcVersion();
   }
 
   std::string openBmcVersion() const {
@@ -107,7 +107,7 @@ class OpenBmcUpgradeTest : public LinkTest {
 TEST_F(OpenBmcUpgradeTest, openBmcHitlessUpgrade) {
   // Do an initial sanity check on the OpenBmc
   openBmcSanityCheck();
-  XLOG(INFO) << "OpenBMC version before upgrade : " << openBmcVersion();
+  XLOG(DBG2) << "OpenBMC version before upgrade : " << openBmcVersion();
 
   // Start traffic
   createL3DataplaneFlood();

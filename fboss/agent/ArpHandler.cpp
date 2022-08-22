@@ -139,7 +139,7 @@ void ArpHandler::handlePacket(
   }
 
   if (op == ARP_OP_REQUEST && !AggregatePort::isIngressValid(state, pkt)) {
-    XLOG(INFO) << "Dropping invalid ARP request ingressing on port "
+    XLOG(DBG2) << "Dropping invalid ARP request ingressing on port "
                << pkt->getSrcPort() << " on vlan " << pkt->getSrcVlan()
                << " for " << targetIP;
     return;

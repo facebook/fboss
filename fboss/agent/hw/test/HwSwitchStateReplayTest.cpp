@@ -47,7 +47,7 @@ class HwSwitchStateReplayTest : public HwTest {
     // but that would entail making replay test a stand alone tool, which
     // then forgoes benefit of continuous validation we get by being part
     // of bcm_tests
-    XLOG(INFO)
+    XLOG(DBG2)
         << "No replay state file specified, applying one port per vlan config";
     auto config =
         utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
@@ -62,7 +62,7 @@ class HwSwitchStateReplayTest : public HwTest {
       for (auto port : *wbState->getPorts()) {
         if (port->isUp()) {
           port->setLoopbackMode(cfg::PortLoopbackMode::MAC);
-          XLOG(INFO) << " Setting loopback mode for : " << port->getID();
+          XLOG(DBG2) << " Setting loopback mode for : " << port->getID();
         }
       }
       applyNewState(wbState);

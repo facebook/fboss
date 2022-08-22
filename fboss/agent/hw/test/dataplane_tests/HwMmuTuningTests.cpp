@@ -62,7 +62,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     auto queueOutDiscardBytes = *portStats.queueOutDiscardBytes_();
     auto queueOutDiscardPackets = *portStats.queueOutDiscardPackets_();
     auto queueWaterMarks = *portStats.queueWatermarkBytes_();
-    XLOG(INFO) << " Port discards: " << *portStats.outDiscards_()
+    XLOG(DBG2) << " Port discards: " << *portStats.outDiscards_()
                << " low pri queue discards, bytes: "
                << queueOutDiscardBytes[lowPriQueue]
                << " packets: " << queueOutDiscardPackets[lowPriQueue]
@@ -71,7 +71,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
                << " packets: " << queueOutDiscardPackets[highPriQueue];
     auto lowPriWatermark = queueWaterMarks[lowPriQueue];
     auto highPriWatermark = queueWaterMarks[highPriQueue];
-    XLOG(INFO) << " Low pri queue ( " << lowPriQueue
+    XLOG(DBG2) << " Low pri queue ( " << lowPriQueue
                << " ) watermark: " << lowPriWatermark << " High pri queue ( "
                << highPriQueue << " ) watermark: " << highPriWatermark;
     EXPECT_GE(highPriWatermark, lowPriWatermark);

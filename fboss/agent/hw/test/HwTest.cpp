@@ -109,15 +109,15 @@ void HwTest::TearDown() {
    * during atexit. TODO: figure out why extra time
    * is spent in at exit cleanups
    */
-  XLOG(INFO) << " Destroy singleton instances ";
+  XLOG(DBG2) << " Destroy singleton instances ";
   folly::SingletonVault::singleton()->destroyInstances();
-  XLOG(INFO) << " Done destroying singleton instances";
+  XLOG(DBG2) << " Done destroying singleton instances";
 }
 
 void HwTest::logStage(folly::StringPiece msg) {
-  XLOG(INFO);
-  XLOG(INFO) << kStageLogPrefix << msg;
-  XLOG(INFO);
+  XLOG(DBG2);
+  XLOG(DBG2) << kStageLogPrefix << msg;
+  XLOG(DBG2);
 }
 
 void HwTest::tearDownSwitchEnsemble(bool doWarmboot) {

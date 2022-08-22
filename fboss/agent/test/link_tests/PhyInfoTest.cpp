@@ -233,12 +233,12 @@ TEST_F(LinkTest, xPhyInfoTest) {
   const auto timeEnd = std::chrono::steady_clock::now();
   const auto timeTaken =
       std::chrono::duration_cast<std::chrono::seconds>(timeEnd - timeStart);
-  XLOG(INFO) << "Updating snapshots on all ports took " << timeTaken.count()
+  XLOG(DBG2) << "Updating snapshots on all ports took " << timeTaken.count()
              << "s";
 
   // Validate PhyInfo
   for (const auto& port : cabledPorts) {
-    XLOG(INFO) << "Verifying port:" << getPortName(port);
+    XLOG(DBG2) << "Verifying port:" << getPortName(port);
     validatePhyInfo(
         phyInfoBefore[port],
         phyInfoAfter[port],

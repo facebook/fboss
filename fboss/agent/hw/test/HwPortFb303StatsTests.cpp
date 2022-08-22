@@ -209,7 +209,7 @@ void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
         HwPortFb303Stats::statName(counterName, kPortName));
     auto expectedVal = (curValue++) + 1;
     EXPECT_EQ(actualVal, expectedVal) << "failed for " << counterName;
-    XLOG(INFO) << counterName << ": " << actualVal << " " << expectedVal;
+    XLOG(DBG2) << counterName << ": " << actualVal << " " << expectedVal;
   }
   curValue = 1;
   for (auto counterName : HwPortFb303Stats::kQueueStatKeys()) {

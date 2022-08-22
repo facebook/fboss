@@ -141,7 +141,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
       const std::vector<utility::EthFrame>& rxPackets,
       const std::vector<cfg::LoadBalancer>& secondHashes,
       bool expectPolarization) {
-    XLOG(INFO) << " Num captured packets: " << rxPackets.size();
+    XLOG(DBG2) << " Num captured packets: " << rxPackets.size();
     auto ecmpPorts = getEcmpPorts();
     auto firstVlan = utility::firstVlanID(getProgrammedState());
     auto mac = utility::getInterfaceMac(getProgrammedState(), firstVlan);
@@ -590,7 +590,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
       const std::vector<utility::EthFrame>& rxPackets,
       const std::vector<cfg::LoadBalancer>& secondHashes,
       bool expectPolarization) {
-    XLOG(INFO) << " Num captured packets: " << rxPackets.size();
+    XLOG(DBG2) << " Num captured packets: " << rxPackets.size();
     auto ports = getEgressPorts();
     auto firstVlan = utility::firstVlanID(getProgrammedState());
     auto mac = utility::getInterfaceMac(getProgrammedState(), firstVlan);

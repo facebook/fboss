@@ -36,7 +36,7 @@ class VlanManagerTest : public ManagerTestBase {
   void checkVlanMembers(
       VlanSaiId saiVlanId,
       const std::unordered_set<uint32_t>& expectedPorts) const {
-    XLOG(INFO) << "check vlan members " << saiVlanId;
+    XLOG(DBG2) << "check vlan members " << saiVlanId;
     std::unordered_set<uint32_t> observedPorts;
     auto& vlanApi = saiApiTable->vlanApi();
     auto& bridgeApi = saiApiTable->bridgeApi();
@@ -52,7 +52,7 @@ class VlanManagerTest : public ManagerTestBase {
       auto lanesGot =
           portApi.getAttribute(portId, SaiPortTraits::Attributes::HwLaneList{});
       observedPorts.insert(lanesGot[0]);
-      XLOG(INFO) << "Check Vlan Member: " << member
+      XLOG(DBG2) << "Check Vlan Member: " << member
                  << "; bpid: " << bridgePortId << "; portId" << portId << "; "
                  << lanesGot[0];
     }

@@ -507,7 +507,7 @@ SaiHostifTrapHandle* SaiHostifManager::getHostifTrapHandle(
 
 void SaiHostifManager::setQosPolicy() {
   auto& qosMapManager = managerTable_->qosMapManager();
-  XLOG(INFO) << "Set cpu qos map";
+  XLOG(DBG2) << "Set cpu qos map";
   // We allow only a single QoS policy right now, so
   // pick that up.
   auto qosMapHandle = qosMapManager.getQosMap();

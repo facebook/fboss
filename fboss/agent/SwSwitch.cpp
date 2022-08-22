@@ -229,7 +229,7 @@ SwSwitch::~SwSwitch() {
 void SwSwitch::stop(bool revertToMinAlpmState) {
   setSwitchRunState(SwitchRunState::EXITING);
 
-  XLOG(INFO) << "Stopping SwSwitch...";
+  XLOG(DBG2) << "Stopping SwSwitch...";
 
   // First tell the hw to stop sending us events by unregistering the callback
   // After this we should no longer receive packets or link state changed events
@@ -390,17 +390,17 @@ folly::dynamic SwSwitch::gracefulExitState() const {
 void SwSwitch::gracefulExit() {
   if (isFullyInitialized()) {
     steady_clock::time_point begin = steady_clock::now();
-    XLOG(INFO) << "[Exit] Starting SwSwitch graceful exit";
+    XLOG(DBG2) << "[Exit] Starting SwSwitch graceful exit";
     ipv6_->floodNeighborAdvertisements();
     arp_->floodGratuituousArp();
     steady_clock::time_point neighborFloodDone = steady_clock::now();
-    XLOG(INFO)
+    XLOG(DBG2)
         << "[Exit] Neighbor flood time "
         << duration_cast<duration<float>>(neighborFloodDone - begin).count();
     // Stop handlers and threads before uninitializing h/w
     stop();
     steady_clock::time_point stopThreadsAndHandlersDone = steady_clock::now();
-    XLOG(INFO) << "[Exit] Stop thread and handlers time "
+    XLOG(DBG2) << "[Exit] Stop thread and handlers time "
                << duration_cast<duration<float>>(
                       stopThreadsAndHandlersDone - neighborFloodDone)
                       .count();
@@ -408,13 +408,13 @@ void SwSwitch::gracefulExit() {
     folly::dynamic switchState = gracefulExitState();
 
     steady_clock::time_point switchStateToFollyDone = steady_clock::now();
-    XLOG(INFO) << "[Exit] Switch state to folly dynamic "
+    XLOG(DBG2) << "[Exit] Switch state to folly dynamic "
                << duration_cast<duration<float>>(
                       switchStateToFollyDone - stopThreadsAndHandlersDone)
                       .count();
     // Cleanup if we ever initialized
     hw_->gracefulExit(switchState);
-    XLOG(INFO)
+    XLOG(DBG2)
         << "[Exit] SwSwitch Graceful Exit time "
         << duration_cast<duration<float>>(steady_clock::now() - begin).count();
   }
@@ -577,7 +577,7 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   });
 
   startThreads();
-  XLOG(INFO)
+  XLOG(DBG2)
       << "Time to init switch and start all threads "
       << duration_cast<duration<float>>(steady_clock::now() - begin).count();
 
@@ -777,7 +777,7 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
 
 bool SwSwitch::updateState(unique_ptr<StateUpdate> update) {
   if (isExiting()) {
-    XLOG(INFO) << " Skipped queuing update: " << update->getName()
+    XLOG(DBG2) << " Skipped queuing update: " << update->getName()
                << " since exit already started";
     return false;
   }
@@ -903,7 +903,7 @@ void SwSwitch::handlePendingUpdates() {
     ++iter;
 
     shared_ptr<SwitchState> intermediateState;
-    XLOG(INFO) << "preparing state update " << update->getName();
+    XLOG(DBG2) << "preparing state update " << update->getName();
     try {
       intermediateState = update->applyUpdate(newDesiredState);
     } catch (const std::exception& ex) {
@@ -952,7 +952,7 @@ void SwSwitch::handlePendingUpdates() {
          * resync from external clients on COLD boot, we will need to get
          * more rigorous here.
          */
-        XLOG(INFO) << " Failed to apply updates to HW since SwSwtich already "
+        XLOG(DBG2) << " Failed to apply updates to HW since SwSwtich already "
                       "started exit";
       } else if (updates.size() == 1 && updates.begin()->hwFailureProtected()) {
         fb303::fbData->incrementCounter(kHwUpdateFailures);
@@ -1011,7 +1011,7 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
   DCHECK_EQ(oldState, getAppliedState());
 
   auto start = std::chrono::steady_clock::now();
-  XLOG(INFO) << "Updating state: old_gen=" << oldState->getGeneration()
+  XLOG(DBG2) << "Updating state: old_gen=" << oldState->getGeneration()
              << " new_gen=" << newState->getGeneration();
   DCHECK_GT(newState->getGeneration(), oldState->getGeneration());
 
@@ -1019,7 +1019,7 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
 
   // If we are already exiting, abort the update
   if (isExiting()) {
-    XLOG(INFO) << " Agent exiting before all updates could be applied";
+    XLOG(DBG2) << " Agent exiting before all updates could be applied";
     return oldState;
   }
 
@@ -1325,7 +1325,7 @@ void SwSwitch::linkStateChanged(
 
     if (port) {
       if (port->isUp() != up) {
-        XLOG(INFO) << "SW Link state changed: " << port->getName() << " ["
+        XLOG(DBG2) << "SW Link state changed: " << port->getName() << " ["
                    << (port->isUp() ? "UP" : "DOWN") << "->"
                    << (up ? "UP" : "DOWN") << "]";
         port = port->modify(&newState);
@@ -1543,7 +1543,7 @@ void SwSwitch::sendPacketOutOfPortAsync(
       return;
     }
   }
-  XLOG(INFO) << "failed to send packet out aggregate port" << aggPortID
+  XLOG(DBG2) << "failed to send packet out aggregate port" << aggPortID
              << ": aggregate port has no enabled physical ports";
 }
 
@@ -1562,7 +1562,7 @@ void SwSwitch::sendL3Packet(
     std::unique_ptr<TxPacket> pkt,
     std::optional<InterfaceID> maybeIfID) noexcept {
   if (!isFullyInitialized()) {
-    XLOG(INFO) << " Dropping L3 packet since device not yet initialized";
+    XLOG(DBG2) << " Dropping L3 packet since device not yet initialized";
     stats()->pktDropped();
     return;
   }

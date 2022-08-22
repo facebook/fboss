@@ -250,7 +250,7 @@ bool HwOlympicQosSchedulerTest::verifyWRRHelper(
     if (distributionOk) {
       return true;
     }
-    XLOG(INFO) << " Retrying ...";
+    XLOG(DBG2) << " Retrying ...";
   }
   return false;
 }
@@ -279,7 +279,7 @@ bool HwOlympicQosSchedulerTest::verifySPHelper(int trafficQueueId) {
     if (distributionOk) {
       return true;
     }
-    XLOG(INFO) << " Retrying ...";
+    XLOG(DBG2) << " Retrying ...";
   }
   return false;
 }

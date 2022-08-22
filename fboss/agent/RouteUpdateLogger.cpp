@@ -211,7 +211,7 @@ void GlogUpdateLogHandler::log(
     const std::string& entityType,
     const std::string* oldEntity,
     const std::string* newEntity) {
-  XLOG(INFO) << "[" << identifier << "] "
+  XLOG(DBG2) << "[" << identifier << "] "
              << UpdateLogHandler::updateString(operation) << " " << entityType
              << "." << entityUpdateMessage(entityType, oldEntity, newEntity);
 }

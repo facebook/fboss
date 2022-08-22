@@ -196,7 +196,7 @@ void SaiPortManager::changePortImpl(
   SaiPortTraits::CreateAttributes newAttributes = attributesFromSwPort(newPort);
 
   if (createOnlyAttributeChanged(oldAttributes, newAttributes)) {
-    XLOG(INFO) << "Create only attribute (e.g. lane, speed etc.) changed for "
+    XLOG(DBG2) << "Create only attribute (e.g. lane, speed etc.) changed for "
                << oldPort->getID();
     removePort(oldPort);
     addPort(newPort);
@@ -212,7 +212,7 @@ void SaiPortManager::changePortImpl(
   if (newPort->getIngressVlan() != oldPort->getIngressVlan()) {
     concurrentIndices_->vlanIds.insert_or_assign(
         PortDescriptorSaiId(saiPort->adapterKey()), newPort->getIngressVlan());
-    XLOG(INFO) << "changed vlan on port " << newPort->getID()
+    XLOG(DBG2) << "changed vlan on port " << newPort->getID()
                << ": old vlan: " << oldPort->getIngressVlan()
                << ", new vlan: " << newPort->getIngressVlan();
   }
@@ -389,7 +389,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 void SaiPortManager::enableAfeAdaptiveMode(PortID portId) {
   SaiPortHandle* portHandle = getPortHandle(portId);
   if (!portHandle) {
-    XLOG(INFO) << "afe adaptive mode not enabled: failed to find port"
+    XLOG(DBG2) << "afe adaptive mode not enabled: failed to find port"
                << portId;
     return;
   }
@@ -399,14 +399,14 @@ void SaiPortManager::enableAfeAdaptiveMode(PortID portId) {
   // Return if media type is not copper
   if (!(mediaType == SAI_PORT_MEDIA_TYPE_COPPER ||
         mediaType == SAI_PORT_MEDIA_TYPE_UNKNOWN)) {
-    XLOG(INFO)
+    XLOG(DBG2)
         << "afe adaptive mode not enabled: media type do not match for port: "
         << portId;
     return;
   }
 
   if (!portHandle->serdes) {
-    XLOG(INFO) << "afe adaptive mode not enabled: failed to find serdes on port"
+    XLOG(DBG2) << "afe adaptive mode not enabled: failed to find serdes on port"
                << portId;
     return;
   }
@@ -427,7 +427,7 @@ void SaiPortManager::enableAfeAdaptiveMode(PortID portId) {
     }
   }
   if (!afeReset) {
-    XLOG(INFO) << "afe adaptive mode is already enabled on port: " << portId;
+    XLOG(DBG2) << "afe adaptive mode is already enabled on port: " << portId;
     return;
   }
 
@@ -445,7 +445,7 @@ void SaiPortManager::enableAfeAdaptiveMode(PortID portId) {
       serdesAttributes) = rxAfeAdaptiveEnable;
   portHandle->serdes.reset();
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
-  XLOG(INFO) << "Configuring afe mode to adaptive on port: " << portId;
+  XLOG(DBG2) << "Configuring afe mode to adaptive on port: " << portId;
 }
 
 } // namespace facebook::fboss

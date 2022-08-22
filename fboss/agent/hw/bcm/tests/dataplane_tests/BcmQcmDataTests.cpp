@@ -419,7 +419,7 @@ TEST_F(BcmQcmDataTest, VerifyQcmFirmwareInit) {
     getHwSwitch()->printDiagCmd("mcsstatus Quick=true");
     std::string mcsStatusStr =
         logBuffer.getBuffer()->moveToFbString().toStdString();
-    XLOG(INFO) << "MCStatus:" << mcsStatusStr;
+    XLOG(DBG2) << "MCStatus:" << mcsStatusStr;
     EXPECT_TRUE(mcsStatusStr.find("uC 0 status: OK") != std::string::npos);
   };
   verifyAcrossWarmBoots(setup, verify);

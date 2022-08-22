@@ -577,10 +577,10 @@ ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {
     sw->registerNeighborListener([=](const std::vector<std::string>& added,
                                      const std::vector<std::string>& deleted) {
       for (auto& listener : listeners_.accessAllThreads()) {
-        XLOG(INFO) << "Sending notification to bgpD";
+        XLOG(DBG2) << "Sending notification to bgpD";
         auto listenerPtr = &listener;
         listener.eventBase->runInEventBaseThread([=] {
-          XLOG(INFO) << "firing off notification";
+          XLOG(DBG2) << "firing off notification";
           invokeNeighborListeners(listenerPtr, added, deleted);
         });
       }
@@ -1210,7 +1210,7 @@ void ThriftHandler::clearPortPrbsStats(
         : phy::Side::LINE;
     sw_->clearPortGearboxPrbsStats(portId, side);
   } else {
-    XLOG(INFO) << "Unrecognized component to ClearPortPrbsStats: "
+    XLOG(DBG2) << "Unrecognized component to ClearPortPrbsStats: "
                << apache::thrift::util::enumNameSafe(component);
   }
 }
@@ -1244,7 +1244,7 @@ void ThriftHandler::getPortPrbsStats(
       prbsStats.laneStats()->push_back(lane);
     }
   } else {
-    XLOG(INFO) << "Unrecognized component to GetPortPrbsStats: "
+    XLOG(DBG2) << "Unrecognized component to GetPortPrbsStats: "
                << apache::thrift::util::enumNameSafe(component);
   }
 }
@@ -1300,7 +1300,7 @@ void ThriftHandler::setPortPrbs(
     };
     sw_->updateStateBlocking("set port gearbox line side prbs", updateFn);
   } else {
-    XLOG(INFO) << "Unrecognized component to setPortPrbs: "
+    XLOG(DBG2) << "Unrecognized component to setPortPrbs: "
                << apache::thrift::util::enumNameSafe(component);
   }
 }
@@ -1485,7 +1485,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
   forAllRoutes(state, [&routes](RouterID /*rid*/, const auto& route) {
     UnicastRoute tempRoute;
     if (!route->isResolved()) {
-      XLOG(INFO) << "Skipping unresolved route: " << route->toFollyDynamic();
+      XLOG(DBG2) << "Skipping unresolved route: " << route->toFollyDynamic();
       return;
     }
     auto fwdInfo = route->getForwardInfo();

@@ -18,7 +18,7 @@ namespace facebook::fboss {
 
 LagSaiId SaiLagManager::addLag(
     const std::shared_ptr<AggregatePort>& aggregatePort) {
-  XLOG(INFO) << "adding aggregate port : " << aggregatePort->getID();
+  XLOG(DBG2) << "adding aggregate port : " << aggregatePort->getID();
 
   auto name = aggregatePort->getName();
   std::array<char, 32> labelValue{};
@@ -75,7 +75,7 @@ LagSaiId SaiLagManager::addLag(
 
 void SaiLagManager::removeLag(
     const std::shared_ptr<AggregatePort>& aggregatePort) {
-  XLOG(INFO) << "removing aggregate port : " << aggregatePort->getID();
+  XLOG(DBG2) << "removing aggregate port : " << aggregatePort->getID();
   auto iter = handles_.find(aggregatePort->getID());
   if (iter == handles_.end()) {
     throw FbossError(

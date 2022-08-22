@@ -87,7 +87,7 @@ TunIntf::TunIntf(
   // next release onwards we will not need it
   disableIPv6AddrGenMode(ifIndex_);
 
-  XLOG(INFO) << "Added interface " << name_ << " with fd " << fd_ << " @ index "
+  XLOG(DBG2) << "Added interface " << name_ << " with fd " << fd_ << " @ index "
              << ifIndex_ << ", "
              << "DOWN";
 }
@@ -153,7 +153,7 @@ TunIntf::TunIntf(
   // Disable v6 link-local address assignment on Tun interface
   disableIPv6AddrGenMode(ifIndex_);
 
-  XLOG(INFO) << "Created interface " << name_ << " with fd " << fd_
+  XLOG(DBG2) << "Created interface " << name_ << " with fd " << fd_
              << " @ index " << ifIndex_ << ", " << (status ? "UP" : "DOWN");
 }
 
@@ -171,7 +171,7 @@ TunIntf::~TunIntf() {
 
   // Close FD. This will delete the interface if TUNSETPERSIST is not on
   closeFD();
-  XLOG(INFO) << (toDelete_ ? "Delete" : "Detach") << " interface " << name_;
+  XLOG(DBG2) << (toDelete_ ? "Delete" : "Detach") << " interface " << name_;
 }
 
 void TunIntf::stop() {
@@ -220,14 +220,14 @@ void TunIntf::openFD() {
   sysCheckError(
       ret, "Failed to set close-on-exec flags ", flags, " to fd ", fd_);
 
-  XLOG(INFO) << "Create/attach to tun interface " << name_ << " @ fd " << fd_;
+  XLOG(DBG2) << "Create/attach to tun interface " << name_ << " @ fd " << fd_;
 }
 
 void TunIntf::closeFD() noexcept {
   auto ret = close(fd_);
   sysLogError(ret, "Failed to close fd ", fd_, " for interface ", name_);
   if (ret == 0) {
-    XLOG(INFO) << "Closed fd " << fd_ << " for interface " << name_;
+    XLOG(DBG2) << "Closed fd " << fd_ << " for interface " << name_;
     fd_ = -1;
   }
 }

@@ -172,22 +172,22 @@ void Initializer::initImpl() {
   auto timeInterval = std::chrono::seconds(1);
   fs_->addFunction(callback, timeInterval, "updateStats");
   fs_->start();
-  XLOG(INFO) << "Started background thread: UpdateStatsThread";
+  XLOG(DBG2) << "Started background thread: UpdateStatsThread";
   initCondition_.notify_all();
 }
 
 void SignalHandler::signalReceived(int /*signum*/) noexcept {
   restart_time::mark(RestartEvent::SIGNAL_RECEIVED);
 
-  XLOG(INFO) << "[Exit] Signal received ";
+  XLOG(DBG2) << "[Exit] Signal received ";
   steady_clock::time_point begin = steady_clock::now();
   stopServices_();
   steady_clock::time_point servicesStopped = steady_clock::now();
-  XLOG(INFO) << "[Exit] Services stop time "
+  XLOG(DBG2) << "[Exit] Services stop time "
              << duration_cast<duration<float>>(servicesStopped - begin).count();
   sw_->gracefulExit();
   steady_clock::time_point switchGracefulExit = steady_clock::now();
-  XLOG(INFO)
+  XLOG(DBG2)
       << "[Exit] Switch Graceful Exit time "
       << duration_cast<duration<float>>(switchGracefulExit - servicesStopped)
              .count()
@@ -247,7 +247,7 @@ void AgentInitializer::createSwitch(
   // if somehow a client did manage to get into the shell, the shell
   // would read EOF immediately and exit.
   if (!freopen("/dev/null", "r", stdin)) {
-    XLOG(INFO) << "Could not open /dev/null ";
+    XLOG(DBG2) << "Could not open /dev/null ";
   }
 
   // Now that we have parsed the command line flags, create the Platform
@@ -288,7 +288,7 @@ int AgentInitializer::initAgent() {
   SignalHandler signalHandler(
       eventBase_, sw_.get(), [this]() { stopServices(); });
 
-  XLOG(INFO) << "serving on localhost on port " << FLAGS_port;
+  XLOG(DBG2) << "serving on localhost on port " << FLAGS_port;
   server_->serve();
   return 0;
 }
@@ -296,9 +296,9 @@ int AgentInitializer::initAgent() {
 void AgentInitializer::stopServices() {
   // stop accepting new connections
   server_->stopListening();
-  XLOG(INFO) << "Stopped thrift server listening";
+  XLOG(DBG2) << "Stopped thrift server listening";
   initializer_->stopFunctionScheduler();
-  XLOG(INFO) << "Stopped stats FunctionScheduler";
+  XLOG(DBG2) << "Stopped stats FunctionScheduler";
   fbossFinalize();
 }
 

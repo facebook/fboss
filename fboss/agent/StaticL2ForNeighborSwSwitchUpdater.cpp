@@ -55,7 +55,7 @@ template <typename NeighborEntryT>
 void StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
     VlanID vlanId,
     const std::shared_ptr<NeighborEntryT>& removedEntry) {
-  XLOG(INFO) << " Neighbor entry removed: " << removedEntry->str();
+  XLOG(DBG2) << " Neighbor entry removed: " << removedEntry->str();
   auto mac = removedEntry->getMac();
   auto removeMacEntryFn = [vlanId,
                            mac](const std::shared_ptr<SwitchState>& state) {

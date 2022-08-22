@@ -62,7 +62,7 @@ void ProdInvariantTest::SetUp() {
     ecmpPorts_.push_back(PortDescriptor(uplinkPort));
   }
   setupAgentTestEcmp(ecmpPorts_);
-  XLOG(INFO) << "ProdInvariantTest setup done";
+  XLOG(DBG2) << "ProdInvariantTest setup done";
 }
 
 std::vector<PortID> getAllPlatformPorts(
@@ -191,7 +191,7 @@ void ProdInvariantTest::verifyLoadBalancing() {
             25);
       });
   EXPECT_TRUE(loadBalanced);
-  XLOG(INFO) << "Verify loadbalancing done";
+  XLOG(DBG2) << "Verify loadbalancing done";
 }
 
 void ProdInvariantTest::verifyCopp() {
@@ -200,7 +200,7 @@ void ProdInvariantTest::verifyCopp() {
       sw()->getPlatform()->getAsic(),
       sw()->getState(),
       getDownlinkPort());
-  XLOG(INFO) << "Verify COPP done";
+  XLOG(DBG2) << "Verify COPP done";
 }
 
 int ProdInvariantTestMain(
@@ -326,7 +326,7 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
       getEcmpPortIds(),
       downlinkPortId));
 
-  XLOG(INFO) << "Verify DSCP to Queue mapping done";
+  XLOG(DBG2) << "Verify DSCP to Queue mapping done";
 }
 
 class ProdInvariantRswMhnicTest : public ProdInvariantTest {
@@ -342,7 +342,7 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
       ecmpPorts_.push_back(PortDescriptor(uplinkPort));
     }
     setupRSWMhnicEcmpV4(ecmpPorts_);
-    XLOG(INFO) << "ProdInvariantTest setup done";
+    XLOG(DBG2) << "ProdInvariantTest setup done";
   }
   cfg::SwitchConfig initialConfig() override {
     // TODO: Currently ProdInvariantTests only has support for BCM switches.

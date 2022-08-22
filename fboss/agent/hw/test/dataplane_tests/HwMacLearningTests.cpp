@@ -637,7 +637,7 @@ class HwMacLearningAndMyStationInteractionTest : public HwMacLearningTest {
                 portStatsAfter.find(masterLogicalPortIds()[0])->second;
             auto oldOutBytes = *oldPortStats.outBytes_();
             auto newOutBytes = *newPortStats.outBytes_();
-            XLOG(INFO) << " Port Id: " << masterLogicalPortIds()[0]
+            XLOG(DBG2) << " Port Id: " << masterLogicalPortIds()[0]
                        << " Old out bytes: " << oldOutBytes
                        << " New out bytes: " << newOutBytes
                        << " Delta : " << (newOutBytes - oldOutBytes);
@@ -742,19 +742,19 @@ TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
       auto numExpectedUpdates = 0;
       switch (op) {
         case MacOp::ASSOCIATE:
-          XLOG(INFO) << " Adding classs id to mac";
+          XLOG(DBG2) << " Adding classs id to mac";
           associateClassID();
           // TH3 generates a delete and add on class ID update
           numExpectedUpdates = isTH3 ? 2 : 0;
           break;
         case MacOp::DISSOASSOCIATE:
-          XLOG(INFO) << " Removing classs id from mac";
+          XLOG(DBG2) << " Removing classs id from mac";
           disassociateClassID();
           // TH3 generates a delete and add on class ID update
           numExpectedUpdates = isTH3 ? 2 : 0;
           break;
         case MacOp::DELETE:
-          XLOG(INFO) << " Removing mac";
+          XLOG(DBG2) << " Removing mac";
           // Force MAC aging to as fast as possible but min is still 1 second
           utility::setMacAgeTimerSeconds(
               getHwSwitchEnsemble(), kMinAgeInSecs());

@@ -130,7 +130,7 @@ int L3RouteToCPUCb(
 
   if ((egr.flags & BCM_L3_L2TOCPU) == 0 &&
       (egr.flags & BCM_L3_DST_DISCARD) == 0) {
-    XLOG(INFO) << "egress " << intf
+    XLOG(DBG2) << "egress " << intf
                << " does not have BCM_L3_L2TOCPU or DISCARD flag";
     *allToCPU = false;
   }

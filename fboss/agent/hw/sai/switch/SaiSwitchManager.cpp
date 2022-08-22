@@ -380,7 +380,7 @@ void SaiSwitchManager::removeLoadBalancer(
 
 void SaiSwitchManager::setQosPolicy() {
   auto& qosMapManager = managerTable_->qosMapManager();
-  XLOG(INFO) << "Set default qos map";
+  XLOG(DBG2) << "Set default qos map";
   auto qosMapHandle = qosMapManager.getQosMap();
   globalDscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
   globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
@@ -405,7 +405,7 @@ void SaiSwitchManager::setQosPolicy() {
 }
 
 void SaiSwitchManager::clearQosPolicy() {
-  XLOG(INFO) << "Reset default qos map";
+  XLOG(DBG2) << "Reset default qos map";
   resetQosMaps();
 }
 
@@ -425,7 +425,7 @@ void SaiSwitchManager::setIngressAcl(sai_object_id_t id) {
           HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL)) {
     return;
   }
-  XLOG(INFO) << "Set ingress ACL; " << id;
+  XLOG(DBG2) << "Set ingress ACL; " << id;
   switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::IngressAcl{id});
 }
 
@@ -439,7 +439,7 @@ void SaiSwitchManager::resetIngressAcl() {
       std::get<std::optional<SaiSwitchTraits::Attributes::IngressAcl>>(
           switch_->attributes());
   if (ingressAcl && ingressAcl->value() != SAI_NULL_OBJECT_ID) {
-    XLOG(INFO) << "Reset current ingress acl:" << ingressAcl->value()
+    XLOG(DBG2) << "Reset current ingress acl:" << ingressAcl->value()
                << " back to null";
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::IngressAcl{SAI_NULL_OBJECT_ID});

@@ -26,7 +26,7 @@ void InterruptTest::setUpPorts() {
   SwSwitch* swSwitch = sw();
   auto firstPort = swSwitch->getState()->getPorts()->begin();
   PortID firstPortID = (*firstPort)->getID();
-  XLOG(INFO) << " Enable mac loopback on the first port " << firstPortID;
+  XLOG(DBG2) << " Enable mac loopback on the first port " << firstPortID;
   setPortLoopbackMode(firstPortID, cfg::PortLoopbackMode::MAC);
   frontPanelPortToLoopTraffic_ = firstPortID;
 }
@@ -37,14 +37,14 @@ void InterruptTest::SetUp() {
 
   originalIntrTimeout_ = sw()->getPlatform()->getIntrTimeout();
 
-  XLOG(INFO) << "The original intr_timeout is " << originalIntrTimeout_;
+  XLOG(DBG2) << "The original intr_timeout is " << originalIntrTimeout_;
 
   // Set the timeout to be 1 sec, so the scheduling latency should not be a
   // factor. If we see any non-zero intr_timeout_count, it should be from real
   // hw interrupt miss.
   sw()->getPlatform()->setIntrTimeout(1000000);
 
-  XLOG(INFO) << "Soak Test setup ready";
+  XLOG(DBG2) << "Soak Test setup ready";
 }
 
 void InterruptTest::TearDown() {
@@ -80,7 +80,7 @@ bool InterruptTest::RunOneLoop(SoakLoopArgs* args) {
   uint64_t intrCountEnd = platform->getIntrCount();
 
   uint64_t intrCountDiff = intrCountEnd - intrCountStart;
-  XLOG(INFO) << "intr_count = " << intrCountEnd << ", diff = " << intrCountDiff;
+  XLOG(DBG2) << "intr_count = " << intrCountEnd << ", diff = " << intrCountDiff;
 
   // The interrupt counts should be over 0.  It will fail for the platforms
   // which have not implemented the interrupt counts functions.  At this point,
@@ -91,7 +91,7 @@ bool InterruptTest::RunOneLoop(SoakLoopArgs* args) {
 }
 
 TEST_F(InterruptTest, IntrMiss) {
-  XLOG(INFO) << "In test case IntrMiss";
+  XLOG(DBG2) << "In test case IntrMiss";
 
   InterruptLoopArgs args;
   args.numPktsPerLoop = 1;

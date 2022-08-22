@@ -88,7 +88,7 @@ class HwSflowTest : public HwLinkStateDependentTest {
         if (sampledPackets == expectedSampledPackets) {
           break;
         }
-        XLOG(INFO) << " Desired number of packets not sampled, retrying";
+        XLOG(DBG2) << " Desired number of packets not sampled, retrying";
         sleep(1);
       }
       EXPECT_EQ(expectedSampledPackets, sampledPackets);

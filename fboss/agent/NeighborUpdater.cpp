@@ -54,7 +54,7 @@ NeighborUpdater::NeighborUpdater(SwSwitch* sw, bool disableImpl) : sw_(sw) {
   // of NeighborUpdaterImpl i.e. NeighborUpdaterNoopImpl
   // and invoke it with same interface across the code
   if (disableImpl) {
-    XLOG(INFO) << "Disable neighbor update implementation";
+    XLOG(DBG2) << "Disable neighbor update implementation";
     impl_ = std::make_shared<NeighborUpdaterVariant>(
         std::in_place_type_t<NeighborUpdaterNoopImpl>(), sw);
   } else {
@@ -168,7 +168,7 @@ void NeighborUpdater::portChanged(
     CHECK_EQ(oldPort->getID(), newPort->getID());
     auto portId = newPort->getID();
 
-    XLOG(INFO) << "Purging neighbor entry for physical port " << portId;
+    XLOG(DBG2) << "Purging neighbor entry for physical port " << portId;
     portDown(PortDescriptor(portId));
   }
 }
@@ -187,7 +187,7 @@ void NeighborUpdater::aggregatePortChanged(
 
   if (transitionedToDown || membershipChanged) {
     auto aggregatePortID = newAggPort->getID();
-    XLOG(INFO) << "Purging neighbor entry for aggregate port "
+    XLOG(DBG2) << "Purging neighbor entry for aggregate port "
                << aggregatePortID;
     portDown(PortDescriptor(aggregatePortID));
   }

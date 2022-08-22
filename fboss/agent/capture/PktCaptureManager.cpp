@@ -137,7 +137,7 @@ void PktCaptureManager::invokeCaptures(const Fn& fn) {
     }
 
     if (!stillActive) {
-      XLOG(INFO) << "auto-stopping packet capture \"" << capture->name()
+      XLOG(DBG2) << "auto-stopping packet capture \"" << capture->name()
                  << "\"";
       try {
         inactiveCaptures_[capture->name()] = std::move(thisIt->second);

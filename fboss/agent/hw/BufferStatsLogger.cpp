@@ -20,7 +20,7 @@ namespace facebook::fboss {
 void GlogBufferStatsLogger::logDeviceBufferStat(
     uint64_t bytesUsed,
     uint64_t bytesMax) {
-  XLOG(INFO) << " Switch MMU, bytes used : " << bytesUsed
+  XLOG(DBG2) << " Switch MMU, bytes used : " << bytesUsed
              << " max available : " << bytesMax
              << " percent used : " << (bytesUsed * 100.0) / bytesMax;
 }
@@ -32,7 +32,7 @@ void GlogBufferStatsLogger::logPortBufferStat(
     uint64_t bytesUsed,
     uint64_t pktsDropeed,
     const XPEs& xpes) {
-  XLOG(INFO) << " Port : " << portName << " " << dirStr(dir)
+  XLOG(DBG2) << " Port : " << portName << " " << dirStr(dir)
              << " cosQ: " << cosQ << " bytes used : " << bytesUsed
              << " Packets dropped: " << pktsDropeed
              << " XPEs: " << xpeStr(xpes);

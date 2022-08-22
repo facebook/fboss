@@ -43,7 +43,7 @@ apache::thrift::ServerStream<TPacket> PacketStreamService::connect(
         apache::thrift::ServerStream<TPacket>::createPublisher(
             [client = clientId, this] {
               // when the client is disconnected run this section.
-              XLOG(INFO) << "Client disconnected: " << client;
+              XLOG(DBG2) << "Client disconnected: " << client;
               clientMap_.withWLock([client = client](auto& lockedMap) {
                 lockedMap.erase(client);
               });
@@ -57,7 +57,7 @@ apache::thrift::ServerStream<TPacket> PacketStreamService::connect(
               std::make_pair(client, ClientInfo(std::move(publisher))));
         });
     clientConnected(clientId);
-    XLOG(INFO) << clientId << " connected successfully to PacketStreamService";
+    XLOG(DBG2) << clientId << " connected successfully to PacketStreamService";
     return std::move(streamAndPublisher.first);
   } catch (const std::exception& except) {
     XLOG(ERR) << "connect failed with exp:" << except.what();

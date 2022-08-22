@@ -79,7 +79,7 @@ void SaiSystemPortManager::removeSystemPort(
     throw FbossError("Attempted to remove non-existent system port: ", swId);
   }
   handles_.erase(itr);
-  XLOG(INFO) << "removed system port " << swSystemPort->getID();
+  XLOG(DBG2) << "removed system port " << swSystemPort->getID();
 }
 
 // private const getter for use by const and non-const getters

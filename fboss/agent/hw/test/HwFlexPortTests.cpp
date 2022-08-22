@@ -57,7 +57,7 @@ class HwFlexPortTest : public HwTest {
   void flexPortApplyConfigTest(FlexPortMode flexMode, std::string configName) {
     auto modes = getHwSwitchEnsemble()->getSupportedFlexPortModes();
     if (find(modes.begin(), modes.end(), flexMode) == modes.end()) {
-      XLOG(INFO) << "Skipping flexport mode: " << configName;
+      XLOG(DBG2) << "Skipping flexport mode: " << configName;
       return;
     }
     auto allPortsinGroup = getAllPortsInGroup(masterLogicalPortIds()[0]);

@@ -855,7 +855,7 @@ void LookupClassUpdater::processMacAddrsToBlockUpdates(
   macAddrsToBlock_ = newMacAddrsToBlock;
   for (const auto& [vlanID, macAddress] : toBeUpdatedMacAddrsToBlock) {
     auto vlan = newState->getVlans()->getVlanIf(vlanID);
-    XLOG(INFO) << "Starting to Processing mac address "
+    XLOG(DBG2) << "Starting to Processing mac address "
                << macAddress.toString();
     if (!vlan) {
       XLOG(DBG2) << "No vlan found for vlanID " << vlanID << " macAddress "

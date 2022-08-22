@@ -55,7 +55,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       auto bytesCountAfter = utility::getAclInOutBytes(
           getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
 
-      XLOG(INFO) << "\n"
+      XLOG(DBG2) << "\n"
                  << "aclPacketCounter: " << std::to_string(pktCountBefore)
                  << " -> " << std::to_string(pktCountAfter) << "\n"
                  << "aclBytesCounter: " << std::to_string(bytesCountBefore)

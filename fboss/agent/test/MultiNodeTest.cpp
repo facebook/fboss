@@ -152,7 +152,7 @@ std::map<PortID, PortID> MultiNodeTest::localToRemotePort() const {
       }
       return localToRemote.size() == testPorts().size();
     } catch (const std::exception& ex) {
-      XLOG(INFO) << "Failed to get nbrs: " << ex.what();
+      XLOG(DBG2) << "Failed to get nbrs: " << ex.what();
       return false;
     }
   };

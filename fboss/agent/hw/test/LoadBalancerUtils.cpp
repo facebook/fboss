@@ -232,12 +232,12 @@ void pumpDeterministicRandomTraffic(
       }
       count++;
       if (count % 1000 == 0) {
-        XLOG(INFO) << counter << " . sent " << count << " packets";
+        XLOG(DBG2) << counter << " . sent " << count << " packets";
         counter++;
       }
     }
   }
-  XLOG(INFO) << "Sent total of " << count << " packets";
+  XLOG(DBG2) << "Sent total of " << count << " packets";
 }
 
 void pumpMplsTraffic(
@@ -324,7 +324,7 @@ bool isLoadBalancedImpl(
           (static_cast<float>(portOutBytes) / highest) * 100.0;
       auto percentDev = std::abs(weightPercent - portOutBytesPercent);
       // Don't tolerate a deviation of more than maxDeviationPct
-      XLOG(INFO) << "Percent Deviation: " << percentDev
+      XLOG(DBG2) << "Percent Deviation: " << percentDev
                  << ", Maximum Deviation: " << maxDeviationPct;
       if (percentDev > maxDeviationPct) {
         return false;
@@ -333,7 +333,7 @@ bool isLoadBalancedImpl(
   } else {
     auto percentDev = (static_cast<float>(highest - lowest) / lowest) * 100.0;
     // Don't tolerate a deviation of more than maxDeviationPct
-    XLOG(INFO) << "Percent Deviation: " << percentDev
+    XLOG(DBG2) << "Percent Deviation: " << percentDev
                << ", Maximum Deviation: " << maxDeviationPct;
     if (percentDev > maxDeviationPct) {
       return false;

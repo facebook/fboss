@@ -999,7 +999,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       addedAclEntry->getPriority(), std::move(entryHandle));
   CHECK(inserted);
 
-  XLOG(INFO) << "added acl entry " << addedAclEntry->getID() << " priority "
+  XLOG(DBG2) << "added acl entry " << addedAclEntry->getID() << " priority "
              << addedAclEntry->getPriority();
 
   auto enabled = SaiApiTable::getInstance()->aclApi().getAttribute(
@@ -1037,7 +1037,7 @@ void SaiAclTableManager::removeAclEntry(
   if (action && action.value().getTrafficCounter()) {
     removeAclCounter(action.value().getTrafficCounter().value());
   }
-  XLOG(INFO) << "removed acl  entry " << removedAclEntry->getID()
+  XLOG(DBG2) << "removed acl  entry " << removedAclEntry->getID()
              << " priority " << removedAclEntry->getPriority();
 }
 
@@ -1058,7 +1058,7 @@ void SaiAclTableManager::changedAclEntry(
    * ASIC/SAI implementation typically does not allow modifying an ACL entry.
    * Thus, remove and re-add.
    */
-  XLOG(INFO) << "changing acl entry " << oldAclEntry->getID();
+  XLOG(DBG2) << "changing acl entry " << oldAclEntry->getID();
   removeAclEntry(oldAclEntry, aclTableName);
   addAclEntry(newAclEntry, aclTableName);
 }
@@ -1397,7 +1397,7 @@ void SaiAclTableManager::recreateAclTable(
     XLOG(WARNING) << "feature to update acl table is not supported";
     return;
   }
-  XLOG(INFO) << "refreshing acl table schema";
+  XLOG(DBG2) << "refreshing acl table schema";
   auto adapterHostKey = aclTable->adapterHostKey();
   auto& aclEntryStore = saiStore_->get<SaiAclEntryTraits>();
 

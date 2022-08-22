@@ -49,7 +49,7 @@ void StaticL2ForNeighborUpdater::processAdded(
     const std::shared_ptr<NeighborEntryT>& addedEntry) {
   assertNeighborEntry(*addedEntry);
   if (isReachable(addedEntry)) {
-    XLOG(INFO) << " Neighbor entry added: " << addedEntry->str();
+    XLOG(DBG2) << " Neighbor entry added: " << addedEntry->str();
     ensureMacEntryForNeighbor(vlan, addedEntry);
   }
 }
@@ -61,7 +61,7 @@ void StaticL2ForNeighborUpdater::processRemoved(
     const std::shared_ptr<NeighborEntryT>& removedEntry) {
   assertNeighborEntry(*removedEntry);
   if (isReachable(removedEntry)) {
-    XLOG(INFO) << " Neighbor entry removed: " << removedEntry->str();
+    XLOG(DBG2) << " Neighbor entry removed: " << removedEntry->str();
     pruneMacEntryForNeighbor(vlan, removedEntry);
   }
 }
@@ -76,7 +76,7 @@ void StaticL2ForNeighborUpdater::processChanged(
   assertNeighborEntry(*newEntry);
   if ((isReachable(oldEntry) != isReachable(newEntry)) ||
       (oldEntry->getMac() != newEntry->getMac())) {
-    XLOG(INFO) << " Neighbor entry changed, old: " << oldEntry->str()
+    XLOG(DBG2) << " Neighbor entry changed, old: " << oldEntry->str()
                << " new: " << newEntry->str();
     processRemoved<NeighborEntryT>(stateDelta.oldState(), vlan, oldEntry);
     processAdded<NeighborEntryT>(stateDelta.newState(), vlan, newEntry);

@@ -33,7 +33,7 @@ DiagCmdFilter::DiagCmdFilter(
 }
 
 void DiagCmdFilter::enable(bool isEnabled) {
-  XLOG(INFO) << "Diag cmd filter " << (isEnabled ? "enabled" : "disabled");
+  XLOG(DBG2) << "Diag cmd filter " << (isEnabled ? "enabled" : "disabled");
   diagCmdFilterEnable_ = isEnabled;
 }
 
@@ -69,7 +69,7 @@ void DiagCmdFilter::initDiagCmdFilters() {
 void DiagCmdFilter::setCfgFile(const std::string& filterCfgFile) {
   // If the file is empty just initialize base cmd filters and return
   if (filterCfgFile.empty()) {
-    XLOG(INFO) << "Diag cmd filter cfg file " << filterCfgFile << " is empty";
+    XLOG(DBG2) << "Diag cmd filter cfg file " << filterCfgFile << " is empty";
     initDiagCmdFilters();
     return;
   }
@@ -91,7 +91,7 @@ void DiagCmdFilter::setCfgFile(const std::string& filterCfgFile) {
 
   loadDiagCmdFilters(fileCfgFilters_);
   diagCmdFilterCfgFile_ = filterCfgFile;
-  XLOG(INFO) << "Loaded diag cmd filter cfg file " << filterCfgFile;
+  XLOG(DBG2) << "Loaded diag cmd filter cfg file " << filterCfgFile;
 }
 
 std::string DiagCmdFilter::getCfgFile() const {

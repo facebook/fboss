@@ -302,7 +302,7 @@ void BcmAPI::bdeCreate() {
     rv = linux_bde_create(&bus, &bde);
     bcmCheckError(rv, "failed to initialize BDE");
   } else {
-    XLOG(INFO) << "Bcm running in SIM mode";
+    XLOG(DBG2) << "Bcm running in SIM mode";
     bdeCreateSim();
   }
 }

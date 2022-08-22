@@ -103,7 +103,7 @@ class BidirectionalPacketStreamTest : public Test {
       const std::string& port,
       std::shared_ptr<AsyncPacketTransport> transport,
       std::shared_ptr<folly::Baton<>> baton = {}) {
-    XLOG(INFO) << "Send FbossToMka: port: " << port << " numPkts:" << numPkts;
+    XLOG(DBG2) << "Send FbossToMka: port: " << port << " numPkts:" << numPkts;
     if (!baton) {
       baton = std::make_shared<folly::Baton<>>();
     }
@@ -128,7 +128,7 @@ class BidirectionalPacketStreamTest : public Test {
       EXPECT_EQ(bufStr, pktString);
     }
 
-    XLOG(INFO) << "Completed SendFbossToMKA for port:" << port;
+    XLOG(DBG2) << "Completed SendFbossToMKA for port:" << port;
   }
 
   void sendMkaToFboss(
@@ -137,7 +137,7 @@ class BidirectionalPacketStreamTest : public Test {
       std::shared_ptr<AsyncPacketTransport> transport,
       std::shared_ptr<folly::Baton<>> baton = {},
       bool validatePackets = true) {
-    XLOG(INFO) << "Send MKAToFboss: port: " << port << " numPkts:" << numPkts;
+    XLOG(DBG2) << "Send MKAToFboss: port: " << port << " numPkts:" << numPkts;
     if (!baton) {
       baton = std::make_shared<folly::Baton<>>();
     }
@@ -162,7 +162,7 @@ class BidirectionalPacketStreamTest : public Test {
         EXPECT_EQ(g_mkaTofboss, *pkt.buf());
       }
     }
-    XLOG(INFO) << "Completed SendMKAToFboss for port:" << port;
+    XLOG(DBG2) << "Completed SendMKAToFboss for port:" << port;
   }
 
   void sendParallelMultiplePkts(size_t numPkts = 100) {

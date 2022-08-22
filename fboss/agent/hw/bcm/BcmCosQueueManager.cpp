@@ -705,7 +705,7 @@ void BcmCosQueueManager::getCosQueueGportsFromHw() {
   auto rv = bcm_cosq_gport_traverse(
       hw_->getUnit(), &cosqGportTraverseCallback, static_cast<void*>(this));
   bcmCheckError(rv, "Failed to traverse queue gports for ", portName_);
-  XLOG(INFO) << "getCosQueueGportsFromHw for port: " << portName_
+  XLOG(DBG2) << "getCosQueueGportsFromHw for port: " << portName_
              << ", port gport: " << portGport_
              << ", unicast: " << cosQueueGports_.unicast.size()
              << ", multicast: " << cosQueueGports_.multicast.size();

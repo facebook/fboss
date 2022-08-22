@@ -712,7 +712,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
             }
             totalQueueDiscards += queueDiscards;
             if (queueDiscards) {
-              XLOG(INFO) << "Port " << port
+              XLOG(DBG2) << "Port " << port
                          << " has non-zero discards. ECN Marking: "
                          << *portStats.outEcnCounter__ref() -
                       *before[port].outEcnCounter__ref()

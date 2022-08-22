@@ -41,9 +41,9 @@ std::unique_ptr<AgentConfig> HwConfigSetupTest::getAgentConfigFromFile(
       isWarmBoot ? FLAGS_to_agent_config : FLAGS_from_agent_config;
   try {
     agentCustomConfig = AgentConfig::fromFile(configPath);
-    XLOG(INFO) << "Loading agent config from " << configPath;
+    XLOG(DBG2) << "Loading agent config from " << configPath;
   } catch (const FbossError& ex) {
-    XLOG(INFO) << "No pre warmboot agent config provided, using static config";
+    XLOG(DBG2) << "No pre warmboot agent config provided, using static config";
   }
   return agentCustomConfig;
 }

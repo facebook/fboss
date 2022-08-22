@@ -57,7 +57,7 @@ bool verifyQueueMappings(
     } else {
       break;
     }
-    XLOG(INFO) << " Retrying ...";
+    XLOG(DBG2) << " Retrying ...";
   } while (--retries && !statsMatch);
   return statsMatch;
 }
@@ -96,7 +96,7 @@ bool verifyQueueMappingsInvariantHelper(
     if (mappingVerified) {
       break;
     }
-    XLOG(INFO) << "Mapping verified for : " << (int)ecmpPort;
+    XLOG(DBG2) << "Mapping verified for : " << (int)ecmpPort;
 
     mappingVerified = verifyQueueMappings(
         portStatsBefore[ecmpPort], q2dscpMap, getAllHwPortStats, ecmpPort);

@@ -160,7 +160,7 @@ class HwPacketFloodTest : public HwLinkStateDependentTest {
                               : *portStatsBefore[portId].outBroadcastPkts_();
       auto packetsAfter = v6 ? *portStatsAfter[portId].outMulticastPkts_()
                              : *portStatsAfter[portId].outBroadcastPkts_();
-      XLOG(INFO) << "port id: " << portId << " before pkts:" << packetsBefore
+      XLOG(DBG2) << "port id: " << portId << " before pkts:" << packetsBefore
                  << ", after pkts:" << packetsAfter
                  << ", before bytes:" << *portStatsBefore[portId].outBytes_()
                  << ", after bytes:" << *portStatsAfter[portId].outBytes_();
@@ -198,7 +198,7 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
         std::move(txPacket), masterLogicalPortIds()[0], std::nullopt);
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
-    XLOG(INFO) << "Lldp Packet:"
+    XLOG(DBG2) << "Lldp Packet:"
                << " before pkts:" << *portStatsBefore.outMulticastPkts_()
                << ", after pkts:" << *portStatsAfter.outMulticastPkts_()
                << ", before bytes:" << *portStatsBefore.outBytes_()
@@ -246,7 +246,7 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
       delete buf;
     }
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
-    XLOG(INFO) << "Lldp Packet:"
+    XLOG(DBG2) << "Lldp Packet:"
                << " before pkts:" << *portStatsBefore.outMulticastPkts_()
                << ", after pkts:" << *portStatsAfter.outMulticastPkts_()
                << ", before bytes:" << *portStatsBefore.outBytes_()
@@ -284,7 +284,7 @@ TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
         std::nullopt);
     getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
-    XLOG(INFO) << "ARP Packet:"
+    XLOG(DBG2) << "ARP Packet:"
                << " before pkts:" << *portStatsBefore.outBroadcastPkts_()
                << ", after pkts:" << *portStatsAfter.outBroadcastPkts_()
                << ", before bytes:" << *portStatsBefore.outBytes_()
@@ -504,7 +504,7 @@ TEST_F(HwPacketFloodTest, NdpFloodTest) {
         break;
       }
       std::this_thread::sleep_for(1s);
-      XLOG(INFO) << " Retrying ... ";
+      XLOG(DBG2) << " Retrying ... ";
     }
     EXPECT_TRUE(suceess);
   };

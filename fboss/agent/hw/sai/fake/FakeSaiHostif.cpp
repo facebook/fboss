@@ -40,7 +40,7 @@ sai_status_t send_hostif_fn(
         break;
     }
   }
-  XLOG(INFO) << "Sending packet on port : " << std::hex << tx_port
+  XLOG(DBG2) << "Sending packet on port : " << std::hex << tx_port
              << " tx type : " << tx_type << " on queue: " << queueId;
 
   return SAI_STATUS_SUCCESS;

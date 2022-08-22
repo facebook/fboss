@@ -72,7 +72,7 @@ cfg::SwitchConfig getTestConfig() {
     ++i;
   }
 
-  XLOG(INFO) << "Created " << platformPorts.size() << " port config";
+  XLOG(DBG2) << "Created " << platformPorts.size() << " port config";
 
   return cfg;
 }

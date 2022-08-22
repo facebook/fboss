@@ -364,7 +364,7 @@ void verifyQueuePerHostMapping(
   for (auto [qid, beforePkts] : beforeQueueOutPkts) {
     auto pktsOnQueue = afterQueueOutPkts[qid] - beforePkts;
 
-    XLOG(INFO) << "queueId: " << qid << " pktsOnQueue: " << pktsOnQueue;
+    XLOG(DBG2) << "queueId: " << qid << " pktsOnQueue: " << pktsOnQueue;
 
     if (blockNeighbor) {
       // if the neighbor is blocked, all pkts are dropped

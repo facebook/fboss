@@ -66,7 +66,7 @@ class PrbsTest : public LinkTest {
     CHECK(!portsToTest_.empty());
 
     for (auto testPort : portsToTest_) {
-      XLOG(INFO) << "Will run the PRBS "
+      XLOG(DBG2) << "Will run the PRBS "
                  << apache::thrift::util::enumNameSafe(testPort.polynomial)
                  << " test on "
                  << apache::thrift::util::enumNameSafe(testPort.component)
@@ -87,17 +87,17 @@ class PrbsTest : public LinkTest {
 
     auto timestampBeforeClear = std::time(nullptr);
     /* sleep override */ std::this_thread::sleep_for(1s);
-    XLOG(INFO) << "Clearing PRBS stats before starting the test";
+    XLOG(DBG2) << "Clearing PRBS stats before starting the test";
     clearPrbsStatsOnAllInterfaces();
 
     // 1. Verify the last clear timestamp advanced and num loss of lock was
     // reset to 0
-    XLOG(INFO) << "Verifying PRBS stats are cleared before starting the test";
+    XLOG(DBG2) << "Verifying PRBS stats are cleared before starting the test";
     checkPrbsStatsAfterClearOnAllInterfaces(
         timestampBeforeClear, false /* prbsEnabled */);
 
     // 2. Enable PRBS on all Ports
-    XLOG(INFO) << "Enabling PRBS Generator on all ports";
+    XLOG(DBG2) << "Enabling PRBS Generator on all ports";
     enabledState.generatorEnabled() = true;
     enabledState.checkerEnabled().reset();
     // Retry for a minute to give the qsfp_service enough chance to
@@ -111,7 +111,7 @@ class PrbsTest : public LinkTest {
     // enabling the generator and the checker
     /* sleep override */ std::this_thread::sleep_for(10s);
 
-    XLOG(INFO) << "Enabling PRBS Checker on all ports";
+    XLOG(DBG2) << "Enabling PRBS Checker on all ports";
     enabledState.checkerEnabled() = true;
     enabledState.generatorEnabled().reset();
     // Retry for a minute to give the qsfp_service enough chance to
@@ -122,7 +122,7 @@ class PrbsTest : public LinkTest {
         std::chrono::milliseconds(5000));
 
     // 3. Check Prbs State on all ports, they all should be enabled
-    XLOG(INFO) << "Checking PRBS state after enabling PRBS";
+    XLOG(DBG2) << "Checking PRBS state after enabling PRBS";
     // Retry for a minute to give the qsfp_service enough chance to
     // successfully refresh a transceiver
     WITH_RETRIES_N_TIMED(
@@ -136,31 +136,31 @@ class PrbsTest : public LinkTest {
     /* sleep override */ std::this_thread::sleep_for(30s);
 
     // 5. Clear the PRBS stats to clear the instability at PRBS startup
-    XLOG(INFO) << "Clearing PRBS stats before monitoring BER";
+    XLOG(DBG2) << "Clearing PRBS stats before monitoring BER";
     clearPrbsStatsOnAllInterfaces();
 
     // 6. Let PRBS run for 30 seconds so that we can check the BER later
     /* sleep override */ std::this_thread::sleep_for(30s);
 
     // 7. Check PRBS stats, expect no loss of lock
-    XLOG(INFO) << "Verifying PRBS stats";
+    XLOG(DBG2) << "Verifying PRBS stats";
     checkPrbsStatsOnAllInterfaces();
 
     // 8. Clear PRBS stats
     timestampBeforeClear = std::time(nullptr);
     /* sleep override */ std::this_thread::sleep_for(1s);
-    XLOG(INFO) << "Clearing PRBS stats";
+    XLOG(DBG2) << "Clearing PRBS stats";
     clearPrbsStatsOnAllInterfaces();
 
     // 9. Verify the last clear timestamp advanced and that there was no
     // impact on some of the other fields
     /* sleep override */ std::this_thread::sleep_for(20s);
-    XLOG(INFO) << "Verifying PRBS stats after clear";
+    XLOG(DBG2) << "Verifying PRBS stats after clear";
     checkPrbsStatsAfterClearOnAllInterfaces(
         timestampBeforeClear, true /* prbsEnabled */);
 
     // 10. Disable PRBS on all Ports
-    XLOG(INFO) << "Disabling PRBS";
+    XLOG(DBG2) << "Disabling PRBS";
     // Retry for a minute to give the qsfp_service enough chance to
     // successfully refresh a transceiver
     WITH_RETRIES_N_TIMED(
@@ -169,7 +169,7 @@ class PrbsTest : public LinkTest {
         std::chrono::milliseconds(5000));
 
     // 11. Check Prbs State on all ports, they all should be disabled
-    XLOG(INFO) << "Checking PRBS state after disabling PRBS";
+    XLOG(DBG2) << "Checking PRBS state after disabling PRBS";
     // Retry for a minute to give the qsfp_service enough chance to
     // successfully refresh a transceiver
     WITH_RETRIES_N_TIMED(
@@ -180,7 +180,7 @@ class PrbsTest : public LinkTest {
         std::chrono::milliseconds(5000));
 
     // 12. Link and traffic should come back up now
-    XLOG(INFO) << "Waiting for links and traffic to come back up";
+    XLOG(DBG2) << "Waiting for links and traffic to come back up";
     EXPECT_NO_THROW(waitForAllCabledPorts(true));
     waitForLldpOnCabledPorts();
   }

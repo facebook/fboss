@@ -44,11 +44,11 @@ void LinkTest::SetUp() {
   // programming
   waitForAllCabledPorts(true, 60, 5s);
   waitForAllTransceiverStates(true, 60, 5s);
-  XLOG(INFO) << "Link Test setup ready";
+  XLOG(DBG2) << "Link Test setup ready";
 }
 
 void LinkTest::restartQsfpService() const {
-  XLOG(INFO) << "Restarting QSFP Service";
+  XLOG(DBG2) << "Restarting QSFP Service";
   folly::Subprocess(kRestartQsfpService).waitChecked();
 }
 
@@ -128,7 +128,7 @@ std::map<int32_t, TransceiverInfo> LinkTest::waitForTransceiverInfo(
         return info;
       }
     }
-    XLOG(INFO) << "TransceiverInfo was empty";
+    XLOG(DBG2) << "TransceiverInfo was empty";
     if (retries) {
       /* sleep override */
       std::this_thread::sleep_for(msBetweenRetry);
@@ -184,11 +184,11 @@ LinkTest::getOpticalCabledPortsAndNames() const {
         opticalPorts.push_back(port);
         opticalPortNames += portName + " ";
       } else {
-        XLOG(INFO) << "Transceiver: " << tcvrId + 1 << ", " << portName
+        XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
                    << ", is not optics, skip it";
       }
     } else {
-      XLOG(INFO) << "TransceiverInfo of transceiver: " << tcvrId + 1 << ", "
+      XLOG(DBG2) << "TransceiverInfo of transceiver: " << tcvrId + 1 << ", "
                  << portName << ", is not present, skip it";
     }
   }
@@ -254,14 +254,14 @@ void LinkTest::createL3DataplaneFlood(
       sw()->getPlatform()->getLocalMac(),
       (*sw()->getState()->getVlans()->begin())->getID());
   // TODO: Assert that traffic reached a certain rate
-  XLOG(INFO) << "Created L3 Data Plane Flood";
+  XLOG(DBG2) << "Created L3 Data Plane Flood";
 }
 
 bool LinkTest::lldpNeighborsOnAllCabledPorts() const {
   auto lldpDb = sw()->getLldpMgr()->getDB();
   for (const auto& port : getCabledPorts()) {
     if (!lldpDb->getNeighbors(port).size()) {
-      XLOG(INFO) << " No lldp neighbors on : " << getPortName(port);
+      XLOG(DBG2) << " No lldp neighbors on : " << getPortName(port);
       return false;
     }
   }
@@ -313,7 +313,7 @@ void LinkTest::waitForStateMachineState(
     TransceiverStateMachineState stateMachineState,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
-  XLOG(INFO) << "Checking qsfp TransceiverStateMachineState on "
+  XLOG(DBG2) << "Checking qsfp TransceiverStateMachineState on "
              << folly::join(",", transceiversToCheck);
 
   std::vector<int32_t> expectedTransceiver;
@@ -348,7 +348,7 @@ void LinkTest::waitForStateMachineState(
     }
 
     if (badTransceivers.empty()) {
-      XLOG(INFO) << "All qsfp TransceiverStateMachineState on "
+      XLOG(DBG2) << "All qsfp TransceiverStateMachineState on "
                  << folly::join(",", expectedTransceiver) << " match "
                  << apache::thrift::util::enumNameSafe(stateMachineState);
       return;

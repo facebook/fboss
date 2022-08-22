@@ -160,28 +160,28 @@ TEST_F(LinkTest, opticsTxDisableEnable) {
     opticalPortNames = "wedge_qsfp_util " + opticalPortNames;
     const std::string txDisableCmd = opticalPortNames + "--tx-disable";
 
-    XLOG(INFO) << "opticsTxDisableEnable: About to execute cmd: "
+    XLOG(DBG2) << "opticsTxDisableEnable: About to execute cmd: "
                << txDisableCmd;
     // TODO(ccpowers): Doesn't seem like there's a way for us to make this
     // command a literal, since it depends on the cabling. We may want to just
     // make a qsfp-service API for this rather than using a shell cmd
     // @lint-ignore CLANGTIDY
     folly::Subprocess(txDisableCmd).waitChecked();
-    XLOG(INFO) << fmt::format(
+    XLOG(DBG2) << fmt::format(
         "opticsTxDisableEnable: cmd {:s} finished. Awaiting links to go down...",
         txDisableCmd);
     EXPECT_NO_THROW(waitForLinkStatus(opticalPorts, false));
-    XLOG(INFO) << "opticsTxDisableEnable: link Tx disabled";
+    XLOG(DBG2) << "opticsTxDisableEnable: link Tx disabled";
 
     const std::string txEnableCmd = opticalPortNames + "--tx-enable";
-    XLOG(INFO) << "opticsTxDisableEnable: About to execute cmd: "
+    XLOG(DBG2) << "opticsTxDisableEnable: About to execute cmd: "
                << txEnableCmd;
     // @lint-ignore CLANGTIDY
     folly::Subprocess(txEnableCmd).waitChecked();
-    XLOG(INFO) << fmt::format(
+    XLOG(DBG2) << fmt::format(
         "opticsTxDisableEnable: cmd {:s} finished. Awaiting links to go up...",
         txEnableCmd);
     EXPECT_NO_THROW(waitForLinkStatus(opticalPorts, true));
-    XLOG(INFO) << "opticsTxDisableEnable: links are up";
+    XLOG(DBG2) << "opticsTxDisableEnable: links are up";
   }
 }

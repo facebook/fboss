@@ -65,7 +65,7 @@ BcmMirrorDestination::BcmMirrorDestination(
     mirror_destination.flags = BCM_MIRROR_DEST_TUNNEL_SFLOW;
     mirror_destination.udp_src_port = mirrorTunnel.udpPorts.value().udpSrcPort;
     mirror_destination.udp_dst_port = mirrorTunnel.udpPorts.value().udpDstPort;
-    XLOG(INFO) << "SFLOW tunnel: source([" << mirrorTunnel.srcIp
+    XLOG(DBG2) << "SFLOW tunnel: source([" << mirrorTunnel.srcIp
                << "]:" << mirror_destination.udp_src_port << "/"
                << mirrorTunnel.srcMac << "), destination(["
                << mirrorTunnel.dstIp << "]:" << mirror_destination.udp_dst_port
@@ -74,7 +74,7 @@ BcmMirrorDestination::BcmMirrorDestination(
   } else {
     mirror_destination.gre_protocol = mirrorTunnel.greProtocol;
     mirror_destination.flags = BCM_MIRROR_DEST_TUNNEL_IP_GRE;
-    XLOG(INFO) << "ERSPAN(I) tunnel: source(" << mirrorTunnel.srcIp << "/"
+    XLOG(DBG2) << "ERSPAN(I) tunnel: source(" << mirrorTunnel.srcIp << "/"
                << mirrorTunnel.srcMac << "), destination(" << mirrorTunnel.dstIp
                << "/" << mirrorTunnel.dstMac << ")";
   }

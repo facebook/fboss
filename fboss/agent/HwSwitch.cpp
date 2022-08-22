@@ -56,7 +56,7 @@ void HwSwitch::switchRunStateChanged(SwitchRunState newState) {
   if (runState_ != newState) {
     switchRunStateChangedImpl(newState);
     runState_ = newState;
-    XLOG(INFO) << " HwSwitch run state changed to: "
+    XLOG(DBG2) << " HwSwitch run state changed to: "
                << switchRunStateStr(runState_);
   }
 }

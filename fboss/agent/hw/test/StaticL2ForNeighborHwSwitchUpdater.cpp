@@ -51,7 +51,7 @@ template <typename NeighborEntryT>
 void StaticL2ForNeighborHwSwitchUpdater::pruneMacEntry(
     VlanID vlan,
     const std::shared_ptr<NeighborEntryT>& removedEntry) {
-  XLOG(INFO) << " Neighbor entry removed: " << removedEntry->str();
+  XLOG(DBG2) << " Neighbor entry removed: " << removedEntry->str();
   auto mac = removedEntry->getMac();
   // Note that its possible that other neighbors still refer to this MAC.
   // Handle this in 2 steps

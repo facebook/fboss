@@ -178,7 +178,7 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
       if (rateIsCorrect) {
         break;
       }
-      XLOG(INFO) << " Retrying ...";
+      XLOG(DBG2) << " Retrying ...";
       sleep(5);
     }
 

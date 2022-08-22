@@ -102,7 +102,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
       time["worst_case_bulk_lookup_msescs"] = worstCaseBulkLookupMsecs;
       std::cout << toPrettyJson(time) << std::endl;
     } else {
-      XLOG(INFO) << "worst_case_lookup_msescs : " << worstCaseLookupMsecs
+      XLOG(DBG2) << "worst_case_lookup_msescs : " << worstCaseLookupMsecs
                  << " worst_case_bulk_lookup_msescs : "
                  << worstCaseBulkLookupMsecs;
     }

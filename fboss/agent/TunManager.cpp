@@ -227,7 +227,7 @@ void TunManager::setIntfStatus(
   // Set flags
   error = ioctl(sockFd, SIOCSIFFLAGS, static_cast<void*>(&ifr));
   sysCheckError(error, "Failed to set interface flags on ", ifName);
-  XLOG(INFO) << "Brought " << (status ? "up" : "down") << " interface "
+  XLOG(DBG2) << "Brought " << (status ? "up" : "down") << " interface "
              << ifName << " @ index " << ifIndex;
 }
 
@@ -330,7 +330,7 @@ void TunManager::addRemoveRouteTable(InterfaceID ifID, int ifIndex, bool add) {
                     << " default route " << addr << " @index " << ifIndex
                     << ". ErrorCode: " << error;
     }
-    XLOG(INFO) << (add ? "Added" : "Removed") << " default route " << addr
+    XLOG(DBG2) << (add ? "Added" : "Removed") << " default route " << addr
                << " @ index " << ifIndex << " in table " << getTableId(ifID)
                << " for interface " << ifID;
   }
@@ -387,7 +387,7 @@ void TunManager::addRemoveSourceRouteRule(
       getTableId(ifID),
       " for interface ",
       ifID);
-  XLOG(INFO) << (add ? "Added" : "Removed") << " rule for address " << addr
+  XLOG(DBG2) << (add ? "Added" : "Removed") << " rule for address " << addr
              << " to lookup table " << getTableId(ifID) << " for interface "
              << ifID;
 }
@@ -448,7 +448,7 @@ void TunManager::addRemoveTunAddress(
       ifName,
       " @ index ",
       ifIndex);
-  XLOG(INFO) << (add ? "Added" : "Removed") << " address " << addr.str() << "/"
+  XLOG(DBG2) << (add ? "Added" : "Removed") << " address " << addr.str() << "/"
              << static_cast<int>(mask) << " on interface " << ifName
              << " @ index " << ifIndex;
 }
@@ -569,7 +569,7 @@ void TunManager::doProbe(std::lock_guard<std::mutex>& /* lock */) {
     const auto endTs = std::chrono::steady_clock::now();
     auto elapsedMs =
         std::chrono::duration_cast<std::chrono::milliseconds>(endTs - startTs);
-    XLOG(INFO) << "Probing of linux state took " << elapsedMs.count() << "ms.";
+    XLOG(DBG2) << "Probing of linux state took " << elapsedMs.count() << "ms.";
   };
 
   CHECK(!probeDone_); // Callers must check for probeDone before calling

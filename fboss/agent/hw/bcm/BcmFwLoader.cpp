@@ -164,7 +164,7 @@ void BcmFwLoader::stopFirmwareImpl(BcmSwitch* sw, FwType fwType) {
 void BcmFwLoader::loadFirmware(BcmSwitch* sw, HwAsic* hwAsic) {
   if (hwAsic && hwAsic->isSupported(HwAsic::Feature::QCM)) {
     // QCM fw is supported on Tomahawk only
-    XLOG(INFO) << "Load the QCM firmware ..";
+    XLOG(DBG2) << "Load the QCM firmware ..";
     loadFirmwareImpl(sw, FwType::QCM);
   }
   return;

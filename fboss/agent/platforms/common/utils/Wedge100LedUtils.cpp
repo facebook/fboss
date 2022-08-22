@@ -150,7 +150,7 @@ void Wedge100LedUtils::enableLedMode() {
       auto i2cBus = std::make_unique<Wedge100I2CBus>();
       WedgeI2CBusLock(std::move(i2cBus))
           .write(kSysCpldAddr, kLedModeReg, 1, &mode);
-      XLOG(INFO) << "Successfully set LED mode to '12-bit' mode";
+      XLOG(DBG2) << "Successfully set LED mode to '12-bit' mode";
       return;
     } catch (const std::exception& ex) {
       if (std::chrono::steady_clock::now() > expireTime) {

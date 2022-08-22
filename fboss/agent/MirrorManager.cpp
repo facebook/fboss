@@ -53,7 +53,7 @@ std::shared_ptr<SwitchState> MirrorManager::resolveMirrors(
         ? v4Manager_->updateMirror(mirror)
         : v6Manager_->updateMirror(mirror);
     if (updatedMirror) {
-      XLOG(INFO) << "Mirror: " << updatedMirror->getID() << " updated.";
+      XLOG(DBG2) << "Mirror: " << updatedMirror->getID() << " updated.";
       mirrors->updateNode(updatedMirror);
       mirrorsUpdated = true;
     }

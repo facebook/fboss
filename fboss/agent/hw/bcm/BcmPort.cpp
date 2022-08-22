@@ -1866,7 +1866,7 @@ uint32_t BcmPort::getCL91FECStatus() const {
       BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION_CL91,
       &cl91Status);
   if (rv == BCM_E_UNAVAIL) {
-    XLOG(INFO) << "Failed to read if CL91 FEC is enabled: " << bcm_errmsg(rv);
+    XLOG(DBG2) << "Failed to read if CL91 FEC is enabled: " << bcm_errmsg(rv);
     return 0;
   }
   bcmCheckError(rv, "failed to read if CL91 FEC is enabled");
@@ -1937,7 +1937,7 @@ bool BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
         BCM_PORT_PHY_CONTROL_FORWARD_ERROR_CORRECTION_CL91,
         desiredCl91Status);
     if (rv == BCM_E_UNAVAIL) {
-      XLOG(INFO) << "Failed to set CL91 FEC is enabled: " << bcm_errmsg(rv);
+      XLOG(DBG2) << "Failed to set CL91 FEC is enabled: " << bcm_errmsg(rv);
       return changed;
     }
     bcmCheckError(rv, "failed to set cl91 fec setting");
@@ -1993,7 +1993,7 @@ phy::TxSettings BcmPort::getTxSettingsForLane(int lane) const {
 void BcmPort::setTxSetting(const std::shared_ptr<Port>& swPort) {
   const auto& iphyPinConfigs = swPort->getPinConfigs();
   if (iphyPinConfigs.empty()) {
-    XLOG(INFO) << "No iphy pin configs to program for " << swPort->getName();
+    XLOG(DBG2) << "No iphy pin configs to program for " << swPort->getName();
     return;
   }
   if (platformPort_->shouldUsePortResourceAPIs()) {
@@ -2092,7 +2092,7 @@ void BcmPort::setTxSettingViaPhyTx(
 
   const auto& iphyLaneConfigs = utility::getIphyLaneConfigs(iphyPinConfigs);
   if (iphyLaneConfigs.empty()) {
-    XLOG(INFO) << "No iphy lane configs needed to program for "
+    XLOG(DBG2) << "No iphy lane configs needed to program for "
                << swPort->getName();
     return;
   }

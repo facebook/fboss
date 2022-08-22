@@ -596,7 +596,7 @@ void SaiMacsecManager::removeMacsecSecureChannel(
   // Remove the SC from secureChannel map
   portHandle->secureChannels.erase(itr);
 
-  XLOG(INFO) << "removed macsec SC for linePort:secureChannelId:direction: "
+  XLOG(DBG2) << "removed macsec SC for linePort:secureChannelId:direction: "
              << linePort << ":" << secureChannelId << ":" << direction;
 }
 
@@ -926,7 +926,7 @@ void SaiMacsecManager::setMacsecState(
     setupMacsecState(linePort, dropUnencrypted, SAI_MACSEC_DIRECTION_INGRESS);
     setupMacsecState(linePort, dropUnencrypted, SAI_MACSEC_DIRECTION_EGRESS);
   }
-  XLOG(INFO) << "For Port " << linePort << "Basic Macsec state "
+  XLOG(DBG2) << "For Port " << linePort << "Basic Macsec state "
              << (macsecDesired ? "Setup" : "Deletion") << " Successfull";
 }
 

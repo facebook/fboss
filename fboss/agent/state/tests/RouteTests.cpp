@@ -373,7 +373,7 @@ TEST(RouteTypes, toFromRouteNextHops) {
         break;
       }
     }
-    XLOG(INFO) << "**** " << ipaddr;
+    XLOG(DBG2) << "**** " << ipaddr;
     EXPECT_TRUE(found);
   };
 

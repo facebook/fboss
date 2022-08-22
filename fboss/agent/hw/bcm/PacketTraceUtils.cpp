@@ -81,13 +81,13 @@ void transformPacketTraceInfo(
 
   // We haven't seen the following hashing in our switches.
   if (hashInfo.flags & BCM_SWITCH_PKT_TRACE_ECMP_2) {
-    XLOG(INFO) << "Packet trace: ECMP 2 triggered.";
+    XLOG(DBG2) << "Packet trace: ECMP 2 triggered.";
   }
   if (hashInfo.flags & BCM_SWITCH_PKT_TRACE_TRUNK) {
-    XLOG(INFO) << "Packet trace: Trunk triggered.";
+    XLOG(DBG2) << "Packet trace: Trunk triggered.";
   }
   if (hashInfo.flags & BCM_SWITCH_PKT_TRACE_FABRIC_TRUNK) {
-    XLOG(INFO) << "Packet trace: Fabric trunk triggered.";
+    XLOG(DBG2) << "Packet trace: Fabric trunk triggered.";
   }
 
   *packetTraceInfo.resolution() = bcmPacketTraceInfo.pkt_trace_resolution;

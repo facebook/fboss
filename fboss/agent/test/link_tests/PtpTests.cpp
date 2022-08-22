@@ -25,7 +25,7 @@ class PtpTests : public LinkTest {
   void createPtpTraffic(
       const boost::container::flat_set<PortDescriptor>& ecmpPorts,
       PTPMessageType ptpPkt) {
-    XLOG(INFO) << "Create PTP traffic";
+    XLOG(DBG2) << "Create PTP traffic";
     programDefaultRoute(ecmpPorts, sw()->getPlatform()->getLocalMac());
     // pick the first port from the list
     auto outputPort = *ecmpPorts.begin();
@@ -104,7 +104,7 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
       continue;
     }
 
-    XLOG(INFO) << "PTP event packet found";
+    XLOG(DBG2) << "PTP event packet found";
     PTPHeader ptpHdr(&pktCursor);
     auto correctionField = ptpHdr.getCorrectionField();
 
@@ -114,14 +114,14 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
     if (hopLimit == kStartTtl) {
       // this is the original pkt, and has no timestamp on it
       EXPECT_EQ(correctionField, 0);
-      XLOG(INFO)
+      XLOG(DBG2)
           << "PTP packet found with CorrectionField (CF) set to 0 with hop limit : "
           << kStartTtl;
     } else {
       EXPECT_GT(correctionField, 0);
       // nano secs is first 48-bits, last 16 bits is subnano secs (remove it)
       uint64_t cfInNsecs = (correctionField >> 16) & 0x0000ffffffffffff;
-      XLOG(INFO) << "PTP packet found with CorrectionField (CF) set "
+      XLOG(DBG2) << "PTP packet found with CorrectionField (CF) set "
                  << std::hex << cfInNsecs << ", ttl: " << hopLimit;
       // CF for first pkt is ~800nsecs for BCM and ~1.7 msecs for Tajo
       EXPECT_LT(cfInNsecs, 2000);

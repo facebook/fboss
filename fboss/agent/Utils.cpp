@@ -258,7 +258,7 @@ StopWatch::~StopWatch() {
     time[*name_] = durationMillseconds;
     std::cout << time << std::endl;
   } else {
-    XLOG(INFO) << *name_ << " : " << durationMillseconds;
+    XLOG(DBG2) << *name_ << " : " << durationMillseconds;
   }
 }
 } // namespace facebook::fboss

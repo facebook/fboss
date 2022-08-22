@@ -126,7 +126,7 @@ BcmMmuState BcmYamlConfig::getMmuState() const {
   auto mode =
       getConfigValue<std::string>(thresholdNode_, kHSDKThresholsModeKey);
   if (mode) {
-    XLOG(INFO) << "MMU state is " << *mode;
+    XLOG(DBG2) << "MMU state is " << *mode;
     if (*mode == "LOSSY") {
       return BcmMmuState::MMU_LOSSY;
     } else if (*mode == "LOSSLESS") {

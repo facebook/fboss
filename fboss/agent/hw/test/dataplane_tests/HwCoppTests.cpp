@@ -1072,7 +1072,7 @@ TYPED_TEST(HwCoppTest, ArpRequestAndReplyToHighPriQ) {
 TYPED_TEST(HwCoppTest, NdpSolicitationToHighPriQ) {
   auto setup = [=]() { this->setup(); };
   auto verify = [=]() {
-    XLOG(INFO) << "verifying solicitation";
+    XLOG(DBG2) << "verifying solicitation";
     this->sendPktAndVerifyNdpPacketsCpuQueue(
         utility::getCoppHighPriQueueId(this->getAsic()),
         folly::IPAddressV6("1::2"), // sender of solicitation
@@ -1105,7 +1105,7 @@ TYPED_TEST(HwCoppTest, NdpSolicitNeighbor) {
   // More explanation in the test plan section of - D34782575
   auto setup = [=]() { this->setup(); };
   auto verify = [=]() {
-    XLOG(INFO) << "verifying solicitation";
+    XLOG(DBG2) << "verifying solicitation";
     this->sendPktAndVerifyNdpPacketsCpuQueue(
         utility::getCoppHighPriQueueId(this->getAsic()),
         folly::IPAddressV6("1::1"), // sender of solicitation
@@ -1121,7 +1121,7 @@ TYPED_TEST(HwCoppTest, NdpSolicitNeighbor) {
 TYPED_TEST(HwCoppTest, NdpAdvertisementToHighPriQ) {
   auto setup = [=]() { this->setup(); };
   auto verify = [=]() {
-    XLOG(INFO) << "verifying advertisement";
+    XLOG(DBG2) << "verifying advertisement";
     this->sendPktAndVerifyNdpPacketsCpuQueue(
         utility::getCoppHighPriQueueId(this->getAsic()),
         folly::IPAddressV6("1::2"), // sender of advertisement

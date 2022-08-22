@@ -238,7 +238,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
       expectedSampleCount +=
           (*portStats.inUnicastPkts_() / FLAGS_sflow_test_rate);
     }
-    XLOG(INFO) << "total packets rx " << allPortRx;
+    XLOG(DBG2) << "total packets rx " << allPortRx;
     return expectedSampleCount;
   }
 
@@ -277,8 +277,8 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
           : (actualSampleCount - expectedSampleCount);
       auto percentError = (difference * 100) / actualSampleCount;
       EXPECT_LE(percentError, percentErrorThreshold);
-      XLOG(INFO) << "expected number of " << expectedSampleCount << " samples";
-      XLOG(INFO) << "captured number of " << actualSampleCount << " samples";
+      XLOG(DBG2) << "expected number of " << expectedSampleCount << " samples";
+      XLOG(DBG2) << "captured number of " << actualSampleCount << " samples";
       bringUpPorts(std::vector<PortID>(ports.begin() + 1, ports.end()));
     };
     verifyAcrossWarmBoots(setup, verify);
@@ -334,7 +334,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
       auto buf = folly::IOBuf::wrapBuffer(payload.data(), payload.size());
       folly::io::Cursor cursor{buf.get()};
       auto shim = utility::parseSflowShim(cursor);
-      XLOG(INFO) << fmt::format(
+      XLOG(DBG2) << fmt::format(
           "srcPort = {}, dstPort = {}", shim.srcPort, shim.dstPort);
       EXPECT_EQ(shim.srcPort, static_cast<uint32_t>(getPortsForSampling()[1]));
       if (getPlatform()->getAsic()->isSupported(
@@ -374,7 +374,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV4) {
 
     auto _ = capturedPkt->getTxPacket(getHwSwitch());
     auto __ = folly::io::Cursor(_->buf());
-    XLOG(INFO) << PktUtil::hexDump(__);
+    XLOG(DBG2) << PktUtil::hexDump(__);
 
     // packet's payload is truncated before it was mirrored
     EXPECT_LE(capturedPkt->length(), pkt.length());
@@ -416,7 +416,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithTruncateV6) {
 
     auto _ = capturedPkt->getTxPacket(getHwSwitch());
     auto __ = folly::io::Cursor(_->buf());
-    XLOG(INFO) << PktUtil::hexDump(__);
+    XLOG(DBG2) << PktUtil::hexDump(__);
 
     // packet's payload is truncated before it was mirrored
     EXPECT_LE(capturedPkt->length(), pkt.length());
@@ -474,7 +474,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketWithLagMemberAsEgressPort) {
 
     auto _ = capturedPkt->getTxPacket(getHwSwitch());
     auto __ = folly::io::Cursor(_->buf());
-    XLOG(INFO) << PktUtil::hexDump(__);
+    XLOG(DBG2) << PktUtil::hexDump(__);
 
     // packet's payload is truncated before it was mirrored
     EXPECT_LE(capturedPkt->length(), pkt.length());

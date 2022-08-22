@@ -47,7 +47,7 @@ void BcmFacebookAPI::vprintf(const char* fmt, va_list varg) {
 
     // No-one is listening for this message, so log it ourselves.
     string msg = folly::stringVPrintf(fmt, varg);
-    XLOG(INFO) << "[BCM " << BcmAPI::getThreadName() << "] " << msg;
+    XLOG(DBG2) << "[BCM " << BcmAPI::getThreadName() << "] " << msg;
   } catch (const std::exception& ex) {
     // vprintf() is invoked by C functions, so ensure that we don't
     // throw C++ exceptions up to pure C code.
@@ -94,5 +94,5 @@ extern "C" void sal_shell(void) {
 }
 
 extern "C" void pci_print_all() {
-  XLOG(INFO) << "pci_print_all() called";
+  XLOG(DBG2) << "pci_print_all() called";
 }

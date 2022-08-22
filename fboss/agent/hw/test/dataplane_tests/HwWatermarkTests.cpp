@@ -100,7 +100,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       XLOG(DBG0) << " Retry ...";
       sleep(1);
     } while (--retries > 0);
-    XLOG(INFO) << " Did not get expected watermark value";
+    XLOG(DBG2) << " Did not get expected watermark value";
     return false;
   }
 
@@ -138,7 +138,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       sleep(1);
     } while (--retries > 0);
 
-    XLOG(INFO) << " Did not get expected device watermark value";
+    XLOG(DBG2) << " Did not get expected device watermark value";
     return false;
   }
   std::map<PortID, folly::IPAddressV6> getPort2DstIp() const {

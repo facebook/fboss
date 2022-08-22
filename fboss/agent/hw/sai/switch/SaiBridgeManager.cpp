@@ -81,7 +81,7 @@ void SaiBridgeManager::setL2LearningMode(
   if (l2LearningMode) {
     fdbLearningMode_ = getFdbLearningMode(l2LearningMode.value());
   }
-  XLOG(INFO) << "FDB learning mode set to "
+  XLOG(DBG2) << "FDB learning mode set to "
              << (getL2LearningMode() == cfg::L2LearningMode::HARDWARE
                      ? "hardware"
                      : "software");

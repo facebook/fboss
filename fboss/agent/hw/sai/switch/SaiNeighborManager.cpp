@@ -85,10 +85,10 @@ template <typename NeighborEntryT>
 void SaiNeighborManager::addNeighbor(
     const std::shared_ptr<NeighborEntryT>& swEntry) {
   if (swEntry->isPending()) {
-    XLOG(INFO) << "skip adding unresolved neighbor " << swEntry->getIP();
+    XLOG(DBG2) << "skip adding unresolved neighbor " << swEntry->getIP();
     return;
   }
-  XLOG(INFO) << "addNeighbor " << swEntry->getIP();
+  XLOG(DBG2) << "addNeighbor " << swEntry->getIP();
   auto subscriberKey = saiEntryFromSwEntry(swEntry);
   if (managedNeighbors_.find(subscriberKey) != managedNeighbors_.end()) {
     throw FbossError(
@@ -132,10 +132,10 @@ template <typename NeighborEntryT>
 void SaiNeighborManager::removeNeighbor(
     const std::shared_ptr<NeighborEntryT>& swEntry) {
   if (swEntry->isPending()) {
-    XLOG(INFO) << "skip removing unresolved neighbor " << swEntry->getIP();
+    XLOG(DBG2) << "skip removing unresolved neighbor " << swEntry->getIP();
     return;
   }
-  XLOG(INFO) << "removeNeighbor " << swEntry->getIP();
+  XLOG(DBG2) << "removeNeighbor " << swEntry->getIP();
   auto subscriberKey = saiEntryFromSwEntry(swEntry);
   if (managedNeighbors_.find(subscriberKey) == managedNeighbors_.end()) {
     throw FbossError(

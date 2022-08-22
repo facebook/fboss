@@ -224,7 +224,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
      */
     for (auto [qid, beforePkts] : beforeQueueOutPkts) {
       auto pktsOnQueue = afterQueueOutPkts[qid] - beforePkts;
-      XLOG(INFO) << " Pkts on queue : " << qid << " pkts: " << pktsOnQueue;
+      XLOG(DBG2) << " Pkts on queue : " << qid << " pkts: " << pktsOnQueue;
 
       if (blockNeighbor) {
         // if the neighbor is blocked, all pkts are dropped
@@ -360,7 +360,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
           ttlAclName,
           ttlCounterName);
 
-      XLOG(INFO) << "\n"
+      XLOG(DBG2) << "\n"
                  << "ttlAclPacketCounter: " << std::to_string(packetsBefore)
                  << " -> " << std::to_string(packetsAfter) << "\n"
                  << "ttlAclBytesCounter: " << std::to_string(bytesBefore)

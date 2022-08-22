@@ -301,7 +301,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
         getHwSwitchEnsemble()->readPfcDeadlockDetectionCounter(port);
     auto recoveryCtr =
         getHwSwitchEnsemble()->readPfcDeadlockRecoveryCounter(port);
-    XLOG(INFO) << "deadlockCtr:" << deadlockCtr
+    XLOG(DBG2) << "deadlockCtr:" << deadlockCtr
                << ", recoveryCtr:" << recoveryCtr;
     EXPECT_TRUE((deadlockCtr == 0) && (recoveryCtr == 0));
   }

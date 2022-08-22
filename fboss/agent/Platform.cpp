@@ -157,7 +157,7 @@ void Platform::setOverrideTransceiverInfo(
       overrideTcvrs.emplace(*transceiverID, tcvrInfo);
     }
   }
-  XLOG(INFO) << "Build override TransceiverInfo map, size="
+  XLOG(DBG2) << "Build override TransceiverInfo map, size="
              << overrideTcvrs.size();
   overrideTransceiverInfos_.emplace(overrideTcvrs);
 }

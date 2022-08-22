@@ -293,7 +293,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
      */
     for (auto [qid, beforePkts] : beforeQueueOutPkts) {
       auto pktsOnQueue = afterQueueOutPkts[qid] - beforePkts;
-      XLOG(INFO) << "TestType: " << testType << " Pkts on queue : " << qid
+      XLOG(DBG2) << "TestType: " << testType << " Pkts on queue : " << qid
                  << " pkts: " << pktsOnQueue;
       if (qid == 0) {
         EXPECT_GE(pktsOnQueue, 1);
@@ -404,11 +404,11 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
     sendAllPacketshelper<AddrT>(dstIP, frontPanel, utility::kIcpDscp());
     auto [afterDscpAclPkts, afterTtlAclPkts] = pktCounterHelper();
 
-    XLOG(INFO) << "TestType: " << testType;
-    XLOG(INFO) << "Before ICP pkts: " << beforeDscpAclPkts
+    XLOG(DBG2) << "TestType: " << testType;
+    XLOG(DBG2) << "Before ICP pkts: " << beforeDscpAclPkts
                << " Intermediate ICP pkts: " << intermediateDscpAclPkts
                << " After ICP pkts: " << afterDscpAclPkts;
-    XLOG(INFO) << "Before Ttl pkts: " << beforeTtlAclPkts
+    XLOG(DBG2) << "Before Ttl pkts: " << beforeTtlAclPkts
                << " Intermediate Ttl pkts: " << intermediateTtlAclPkts
                << " After Ttl pkts: " << afterTtlAclPkts;
 

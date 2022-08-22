@@ -160,13 +160,13 @@ bcm_trunk_t BcmTrunkTable::linkDownHwNotLocked(bcm_port_t port) const {
     return facebook::fboss::BcmTrunk::INVALID;
   }
   auto trunk = *maybeTrunk;
-  XLOG(INFO) << "Found trunk " << trunk << " for port " << port;
+  XLOG(DBG2) << "Found trunk " << trunk << " for port " << port;
 
   // Note that getEnabledMemberPortsCountHwNotLocked() must be invoked before
   // shrinkTrunkGroupHwNotLocked()
   auto count = BcmTrunk::getEnabledMemberPortsCountHwNotLocked(
       hw_->getUnit(), trunk, port);
-  XLOG(INFO) << count << " member ports enabled in trunk " << trunk;
+  XLOG(DBG2) << count << " member ports enabled in trunk " << trunk;
   BcmTrunk::shrinkTrunkGroupHwNotLocked(hw_->getUnit(), trunk, port);
 
   auto maybeMinLinkCount = trunkToMinLinkCount_.get(trunk);
@@ -218,7 +218,7 @@ bool BcmTrunkTable::isMinLinkMet(bcm_trunk_t trunk) const {
   auto memGport = members[0].gport & 0x3FFFFFF;
   auto count = BcmTrunk::getEnabledMemberPortsCountHwNotLocked(
       hw_->getUnit(), trunk, memGport);
-  XLOG(INFO) << count << " member ports enabled in trunk " << trunk;
+  XLOG(DBG2) << count << " member ports enabled in trunk " << trunk;
 
   return count < minLinkCount ? false : true;
 }

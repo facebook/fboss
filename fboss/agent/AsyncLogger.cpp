@@ -262,7 +262,7 @@ void AsyncLogger::openLogFile(std::string& filePath) {
     return;
   }
 
-  XLOG(INFO) << "[Async Logger] Logging " << srcTypeStr << " log at "
+  XLOG(DBG2) << "[Async Logger] Logging " << srcTypeStr << " log at "
              << filePath;
 }
 

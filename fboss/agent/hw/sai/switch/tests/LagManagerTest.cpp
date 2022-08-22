@@ -32,7 +32,7 @@ class LagManagerTest : public ManagerTestBase {
   void checkLagMembers(
       LagSaiId saiLagId,
       const std::unordered_set<uint32_t>& expectedPorts) const {
-    XLOG(INFO) << "check LAG members " << saiLagId;
+    XLOG(DBG2) << "check LAG members " << saiLagId;
     std::unordered_set<uint32_t> observedPorts;
     auto& lagApi = saiApiTable->lagApi();
     auto& portApi = saiApiTable->portApi();

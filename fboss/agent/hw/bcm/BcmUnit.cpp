@@ -186,26 +186,26 @@ int bdeSpiWrite(soc_cm_dev_t* dev, uint32_t addr, uint8_t* buf, int len) {
 namespace facebook::fboss {
 void BcmUnit::writeWarmBootState(const folly::dynamic& switchState) {
   if (!BcmAPI::isHwUsingHSDK()) {
-    XLOG(INFO) << " [Exit] Syncing BRCM switch state to file";
+    XLOG(DBG2) << " [Exit] Syncing BRCM switch state to file";
     steady_clock::time_point bcmWarmBootSyncStart = steady_clock::now();
     // Force the device to write out its warm boot state
     auto rv = bcm_switch_control_set(unit_, bcmSwitchControlSync, 1);
     bcmCheckError(rv, "Unable to sync state for L2 warm boot");
 
     steady_clock::time_point bcmWarmBootSyncDone = steady_clock::now();
-    XLOG(INFO) << "[Exit] BRCM warm boot sync time "
+    XLOG(DBG2) << "[Exit] BRCM warm boot sync time "
                << duration_cast<duration<float>>(
                       bcmWarmBootSyncDone - bcmWarmBootSyncStart)
                       .count();
   }
   // Now write our state to file
-  XLOG(INFO) << " [Exit] Syncing FBOSS switch state to file";
+  XLOG(DBG2) << " [Exit] Syncing FBOSS switch state to file";
   steady_clock::time_point fbossWarmBootSyncStart = steady_clock::now();
   if (!warmBootHelper()->storeWarmBootState(switchState)) {
     XLOG(FATAL) << "Unable to write switch state JSON to file";
   }
   steady_clock::time_point fbossWarmBootSyncDone = steady_clock::now();
-  XLOG(INFO) << "[Exit] Fboss warm boot sync time "
+  XLOG(DBG2) << "[Exit] Fboss warm boot sync time "
              << duration_cast<duration<float>>(
                     fbossWarmBootSyncDone - fbossWarmBootSyncStart)
                     .count();
@@ -214,7 +214,7 @@ void BcmUnit::writeWarmBootState(const folly::dynamic& switchState) {
 void BcmUnit::deleteBcmUnitImpl() {
   if (attached_.load(std::memory_order_acquire)) {
     steady_clock::time_point begin = steady_clock::now();
-    XLOG(INFO) << " [Exit] Initiating BRCM ASIC shutdown";
+    XLOG(DBG2) << " [Exit] Initiating BRCM ASIC shutdown";
 
     /* This is the counterpart of bcm_pktio_init() in the desctruction
      * path internal to SDK.  But Broadcom only made bcm_pktio_init
@@ -254,7 +254,7 @@ void BcmUnit::deleteBcmUnitImpl() {
     }
 
     steady_clock::time_point bcmShutdownDone = steady_clock::now();
-    XLOG(INFO)
+    XLOG(DBG2)
         << "[Exit] Bcm shut down time "
         << duration_cast<duration<float>>(bcmShutdownDone - begin).count();
 
@@ -331,14 +331,14 @@ void BcmUnit::attach(bool warmBoot) {
       usePKTIO_ = true;
     }
   }
-  XLOG(INFO) << "usePKTIO = " << usePKTIO_;
+  XLOG(DBG2) << "usePKTIO = " << usePKTIO_;
 
   attached_.store(true, std::memory_order_release);
 } // namespace facebook::fboss
 
 void BcmUnit::registerCallbackVector() {
   auto* dev = bde->get_dev(deviceIndex_);
-  XLOG(INFO) << "Initializing device " << deviceIndex_ << ": type "
+  XLOG(DBG2) << "Initializing device " << deviceIndex_ << ": type "
              << dev->device << " rev " << (int)dev->rev;
 
   // Initialize the device driver function vector
@@ -375,12 +375,12 @@ void BcmUnit::registerCallbackVector() {
 
 void BcmUnit::bcmInit() {
   steady_clock::time_point begin = steady_clock::now();
-  XLOG(INFO) << "Initializing BCM unit " << unit_;
+  XLOG(DBG2) << "Initializing BCM unit " << unit_;
   // Call bcm_attach()
   auto rv = bcm_attach(unit_, nullptr, nullptr, unit_);
   facebook::fboss::bcmCheckError(
       rv, "failed to init BCM driver for unit ", unit_);
-  XLOG(INFO)
+  XLOG(DBG2)
       << "[Init] BRCM attach time "
       << duration_cast<duration<float>>(steady_clock::now() - begin).count();
 }
