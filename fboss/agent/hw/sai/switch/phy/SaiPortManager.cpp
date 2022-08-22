@@ -154,8 +154,12 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         ", profile:",
         apache::thrift::util::enumNameSafe(swPort->getProfileID()));
   }
-  phy::FecMode fecMode = lineSide ? *swPort->getLineProfileConfig()->fec()
-                                  : *swPort->getProfileConfig().fec();
+  std::optional<SaiPortTraits::Attributes::FecMode> fecMode;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::FEC)) {
+    auto phyFecMode = lineSide ? *swPort->getLineProfileConfig()->fec()
+                               : *swPort->getProfileConfig().fec();
+    fecMode = utility::getSaiPortFecMode(phyFecMode);
+  }
 
   // Now use pinConfigs from SW port as the source of truth
   // TODO: Support programming dynamic tx_settings
@@ -184,23 +188,23 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   for (auto lane : laneList) {
     dbgOutput.append(folly::sformat("{:d} ", lane));
   }
+
   dbgOutput.append(folly::sformat(
-      " Speed {:d} Enabled {:s} Fec {:d} ",
+      " Speed {:d} Enabled {:s} Fec {:s} ",
       static_cast<int>(speed),
       (enabled ? "True" : "False"),
-      static_cast<int>(utility::getSaiPortFecMode(fecMode))));
+      (fecMode ? folly::to<std::string>(fecMode->value()) : "null")));
   if (intfType.has_value()) {
     dbgOutput.append(folly::sformat(
         " Interface Type {:d}", static_cast<int>(intfType.value().value())));
   }
-  XLOG(DBG3) << dbgOutput;
+  XLOG(DBG2) << dbgOutput;
 
   return SaiPortTraits::CreateAttributes {
-    laneList, static_cast<uint32_t>(speed), enabled,
-        utility::getSaiPortFecMode(fecMode), std::nullopt, std::nullopt,
+    laneList, static_cast<uint32_t>(speed), enabled, fecMode, std::nullopt,
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-        std::nullopt, intfType, std::nullopt, std::nullopt, std::nullopt,
-        std::nullopt, std::nullopt,
+        std::nullopt, std::nullopt, intfType, std::nullopt, std::nullopt,
+        std::nullopt, std::nullopt, std::nullopt,
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
         std::nullopt, std::nullopt,
 #endif
