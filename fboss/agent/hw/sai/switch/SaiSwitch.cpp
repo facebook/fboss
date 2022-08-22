@@ -67,6 +67,7 @@
 #include "folly/MacAddress.h"
 
 #include "fboss/lib/phy/PhyUtils.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 #include <folly/logging/xlog.h>
 
@@ -995,13 +996,23 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     // Global phy parameters
     phy::DataPlanePhyChip phyChip;
     phyChip.type() = getPlatform()->getAsic()->getDataPlanePhyChipType();
+    bool isXphy = *phyChip.type() == phy::DataPlanePhyChipType::XPHY;
     phyParams.phyChip() = phyChip;
     phyParams.linkState() = managerTable_->portManager().isUp(swPort);
     phyParams.speed() = managerTable_->portManager().getSpeed(swPort);
     phyParams.line()->side() = phy::Side::LINE;
 
+    if (isXphy) {
+      phyParams.system() = phy::PhySideInfo();
+      phyParams.system()->side() = phy::Side::SYSTEM;
+    }
+
     // Update PMD Info
     updatePmdInfo(*phyParams.line(), portHandle->port);
+    if (isXphy) {
+      CHECK(phyParams.system().has_value());
+      updatePmdInfo(*phyParams.system(), portHandle->sysPort);
+    }
 
     // Update PCS Info
     updatePcsInfo(
