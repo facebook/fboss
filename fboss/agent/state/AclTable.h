@@ -22,25 +22,37 @@
 
 namespace facebook::fboss {
 
-struct AclTableFields {
-  explicit AclTableFields(int priority, const std::string& name)
-      : priority(priority), name(name) {}
+struct AclTableFields
+    : public ThriftyFields<AclTableFields, state::AclTableFields> {
+  using ThriftyFields::ThriftyFields;
+  explicit AclTableFields(int priority, const std::string& name) {
+    writableData().id() = name;
+    writableData().priority() = priority;
+  }
   explicit AclTableFields(
       int priority,
       const std::string& name,
-      std::shared_ptr<AclMap> aclMap)
-      : priority(priority), name(name), aclMap(aclMap) {}
+      std::shared_ptr<AclMap> aclMap) {
+    writableData().id() = name;
+    writableData().priority() = priority;
+    writableData().aclMap() = aclMap->toThrift();
+  }
 
   template <typename Fn>
   void forEachChild(Fn) {}
 
   folly::dynamic toFollyDynamic() const;
   static AclTableFields fromFollyDynamic(const folly::dynamic& json);
-  int priority;
-  std::string name;
-  std::shared_ptr<AclMap> aclMap;
-  std::vector<cfg::AclTableActionType> actionTypes;
-  std::vector<cfg::AclTableQualifier> qualifiers;
+  state::AclTableFields toThrift() const override {
+    return data();
+  }
+  static AclTableFields fromThrift(
+      state::AclTableFields const& aclTableFields) {
+    return AclTableFields(aclTableFields);
+  }
+  bool operator==(const AclTableFields& other) const {
+    return data() == other.data();
+  }
 };
 
 /*
@@ -64,12 +76,15 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
     return getFields()->toFollyDynamic();
   }
 
-  bool operator==(const AclTable& aclTable) const {
-    return getFields()->priority == aclTable.getPriority() &&
-        getFields()->name == aclTable.getID() &&
-        *(getFields()->aclMap) == *(aclTable.getAclMap()) &&
-        getFields()->actionTypes == aclTable.getActionTypes() &&
-        getFields()->qualifiers == aclTable.getQualifiers();
+  state::AclTableFields toThrift() const {
+    return getFields()->toThrift();
+  }
+  static std::shared_ptr<AclTable> fromThrift(
+      state::AclTableFields const& aclTableFields) {
+    return std::make_shared<AclTable>(AclTableFields(aclTableFields));
+  }
+  bool operator==(const AclTable& other) const {
+    return *getFields() == *other.getFields();
   }
 
   bool operator!=(const AclTable& aclTable) const {
@@ -77,39 +92,39 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
   }
 
   int getPriority() const {
-    return getFields()->priority;
+    return *getFields()->data().priority();
   }
 
   void setPriority(const int priority) {
-    writableFields()->priority = priority;
+    writableFields()->writableData().priority() = priority;
   }
 
   const std::string& getID() const {
-    return getFields()->name;
+    return *getFields()->data().id();
   }
 
   std::shared_ptr<AclMap> getAclMap() const {
-    return getFields()->aclMap;
+    return AclMap::fromThrift(*getFields()->data().aclMap());
   }
 
   void setAclMap(std::shared_ptr<AclMap> aclMap) {
-    writableFields()->aclMap = aclMap;
+    writableFields()->writableData().aclMap() = aclMap->toThrift();
   }
 
   std::vector<cfg::AclTableActionType> getActionTypes() const {
-    return getFields()->actionTypes;
+    return *getFields()->data().actionTypes();
   }
 
   void setActionTypes(const std::vector<cfg::AclTableActionType>& actionTypes) {
-    writableFields()->actionTypes = actionTypes;
+    writableFields()->writableData().actionTypes() = actionTypes;
   }
 
   std::vector<cfg::AclTableQualifier> getQualifiers() const {
-    return getFields()->qualifiers;
+    return *getFields()->data().qualifiers();
   }
 
   void setQualifiers(const std::vector<cfg::AclTableQualifier>& qualifiers) {
-    writableFields()->qualifiers = qualifiers;
+    writableFields()->writableData().qualifiers() = qualifiers;
   }
 
  private:
