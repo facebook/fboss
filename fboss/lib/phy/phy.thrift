@@ -334,6 +334,7 @@ struct LaneInfo {
   7: TxSettings txSettings;
   8: optional list<EyeInfo> eyes;
   9: optional float snr;
+  10: optional i16 rxFrequencyPPM;
 }
 
 struct LinkFaultStatus {

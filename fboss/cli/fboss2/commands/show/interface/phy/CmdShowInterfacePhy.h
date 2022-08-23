@@ -138,11 +138,13 @@ class CmdShowInterfacePhy
            "RX Signal Detect Live",
            "RX CDR Lock Live",
            "Eye Heights",
-           "Eye Widths"});
+           "Eye Widths",
+           "Rx PPM"});
       for (const auto& laneInfo : *sideInfo.pmd()->lanes()) {
         auto lane = laneInfo.second;
         std::string sigDetLive = "N/A";
         std::string cdrLockLive = "N/A";
+        std::string rxPPM = "N/A";
         std::vector<float> eyeHeights = {};
         std::vector<float> eyeWidths = {};
         if (auto rxSigDetLive = lane.signalDetectLive()) {
@@ -150,6 +152,9 @@ class CmdShowInterfacePhy
         }
         if (auto rxCdrLockLive = lane.cdrLockLive()) {
           cdrLockLive = std::to_string(*rxCdrLockLive);
+        }
+        if (auto rxFreqPPM = lane.rxFrequencyPPM()) {
+          rxPPM = std::to_string(*rxFreqPPM);
         }
         if (auto eyes = lane.eyes()) {
           for (const auto& eye : *eyes) {
@@ -167,7 +172,8 @@ class CmdShowInterfacePhy
              makeColorCellForLiveFlag(sigDetLive),
              makeColorCellForLiveFlag(cdrLockLive),
              folly::join(",", eyeHeights),
-             folly::join(",", eyeWidths)});
+             folly::join(",", eyeWidths),
+             rxPPM});
       }
       out << pmdTable;
     }
