@@ -121,7 +121,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     const folly::IPAddressV6& innerDstIp,
     uint16_t srcPort,
     uint16_t dstPort,
-    uint8_t trafficClass = 0,
+    uint8_t outerTrafficClass = 0,
+    uint8_t innerTrafficClass = 0,
     uint8_t hopLimit = 255,
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>());

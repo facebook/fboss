@@ -55,16 +55,21 @@ class HwIpInIpTunnelTest : public HwLinkStateDependentTest {
 
     return tunnel;
   }
-  void sendIpInIpPacket(std::string dstIpAddr) {
+
+  std::unique_ptr<TxPacket> makePkt(
+      std::string outerDstIpAddr,
+      std::string innerDstIpAddr = "3000::3",
+      uint8_t outerTrafficClass = 0,
+      uint8_t innerTrafficClass = 0) {
     auto vlanId = VlanID(*initialConfig().vlanPorts()[1].vlanID());
     auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     const folly::IPAddressV6 outerSrcIp("1000::1");
-    const folly::IPAddressV6 outerDstIp(dstIpAddr);
+    const folly::IPAddressV6 outerDstIp(outerDstIpAddr);
     const folly::IPAddressV6 innerSrcIp("4004::23");
-    const folly::IPAddressV6 innerDstIp("3000::3");
+    const folly::IPAddressV6 innerDstIp(innerDstIpAddr);
     auto payload = std::vector<uint8_t>(10, 0xff);
-    auto txPacket = utility::makeIpInIpTxPacket(
+    return utility::makeIpInIpTxPacket(
         getHwSwitch(),
         vlanId,
         srcMac, // src mac
@@ -75,9 +80,19 @@ class HwIpInIpTunnelTest : public HwLinkStateDependentTest {
         innerDstIp,
         10000, // udp src port
         20000, // udp dst port
-        0,
+        outerTrafficClass,
+        innerTrafficClass,
         255,
         payload);
+  }
+
+  void sendIpInIpPacketPort(
+      std::string outDstIpAddr,
+      std::string innerDstIpAddr = "3000::3",
+      uint8_t outerTrafficClass = 0,
+      uint8_t innerTrafficClass = 0) {
+    auto txPacket = makePkt(
+        outDstIpAddr, innerDstIpAddr, outerTrafficClass, innerTrafficClass);
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
         std::move(txPacket), masterLogicalPortIds()[1]);
   }
@@ -89,7 +104,7 @@ TEST_F(HwIpInIpTunnelTest, TunnelDecapForwarding) {
         getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
     auto beforeOutBytes =
         getLatestPortStats(masterLogicalPortIds()[0]).get_outBytes_();
-    sendIpInIpPacket(kTunnelTermDstIp);
+    sendIpInIpPacketPort(kTunnelTermDstIp);
     auto afterInBytes =
         getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
     auto afterOutBytes =
@@ -108,7 +123,7 @@ TEST_F(HwIpInIpTunnelTest, TunnelTermEntryMiss) {
         getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
     auto beforeOutBytes =
         getLatestPortStats(masterLogicalPortIds()[0]).get_outBytes_();
-    sendIpInIpPacket("5000::6");
+    sendIpInIpPacketPort("5000::6");
     auto afterInBytes =
         getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
     auto afterOutBytes =
@@ -133,7 +148,7 @@ TEST_F(HwIpInIpTunnelTest, IpinIpNoTunnelConfigured) {
         getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
     auto beforeOutBytes =
         getLatestPortStats(masterLogicalPortIds()[0]).get_outBytes_();
-    sendIpInIpPacket("5000::6");
+    sendIpInIpPacketPort("5000::6");
     auto afterInBytes =
         getLatestPortStats(masterLogicalPortIds()[1]).get_inBytes_();
     auto afterOutBytes =

@@ -225,7 +225,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     const folly::IPAddressV6& innerDstIp,
     uint16_t srcPort,
     uint16_t dstPort,
-    uint8_t trafficClass,
+    uint8_t outerTrafficClass,
+    uint8_t innerTrafficClass,
     uint8_t hopLimit,
     std::optional<std::vector<uint8_t>> payload) {
   if (!payload) {
@@ -237,14 +238,14 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
   // IPv6Hdr -- outer
   IPv6Hdr outerIpHdr(outerSrcIp, outerDstIp);
   outerIpHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6);
-  outerIpHdr.trafficClass = trafficClass;
+  outerIpHdr.trafficClass = outerTrafficClass;
   outerIpHdr.payloadLength =
       IPv6Hdr::size() + UDPHeader::size() + payloadBytes.size();
   outerIpHdr.hopLimit = hopLimit;
   // IPv6Hdr -- inner
   IPv6Hdr innerIpHdr(innerSrcIp, innerDstIp);
   innerIpHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
-  innerIpHdr.trafficClass = trafficClass;
+  innerIpHdr.trafficClass = innerTrafficClass;
   innerIpHdr.payloadLength = UDPHeader::size() + payloadBytes.size();
   innerIpHdr.hopLimit = hopLimit;
 
