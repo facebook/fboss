@@ -896,6 +896,11 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   setUninitializedStatsToZero(*curPortStats.inDiscards_());
   setUninitializedStatsToZero(*curPortStats.fecCorrectableErrors());
   setUninitializedStatsToZero(*curPortStats.fecUncorrectableErrors());
+  // For fabric ports the following counters would never be collected
+  // Set them to 0
+  setUninitializedStatsToZero(*curPortStats.inDstNullDiscards_());
+  setUninitializedStatsToZero(*curPortStats.inDiscardsRaw_());
+  setUninitializedStatsToZero(*curPortStats.inPause_());
 
   curPortStats.timestamp_() = now.count();
   handle->port->updateStats(supportedStats(portId), SAI_STATS_MODE_READ);
