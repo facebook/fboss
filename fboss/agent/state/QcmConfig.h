@@ -56,6 +56,17 @@ struct QcmCfgFields {
 
 class QcmCfg : public NodeBaseT<QcmCfg, QcmCfgFields> {
  public:
+  // TODO: do Qcm serlization properly. not used anywhere right now
+  cfg::QcmConfig toThrift() {
+    // TODO: should we just use the config version struct of this or have a
+    // switch_state mirror
+    return cfg::QcmConfig();
+  }
+
+  std::shared_ptr<QcmCfg> fromThrift() {
+    return std::make_shared<QcmCfg>();
+  }
+
   static std::shared_ptr<QcmCfg> fromFollyDynamic(const folly::dynamic& json) {
     const auto& fields = QcmCfgFields::fromFollyDynamic(json);
     return std::make_shared<QcmCfg>(fields);
