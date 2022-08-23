@@ -14,6 +14,7 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
+#include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Thrifty.h"
@@ -265,6 +266,33 @@ TEST(ThriftySwitchState, AclTableGroupMap) {
 
   auto state = SwitchState();
   state.resetAclTableGroups(tableGroups);
+  verifySwitchStateSerialization(state);
+}
+
+TEST(ThriftySwitchState, InterfaceMap) {
+  MockPlatform platform;
+  auto startState = testStateA();
+
+  auto config = testConfigA();
+  config.vlans()->resize(2);
+  *config.vlans()[0].id() = 1;
+  config.vlans()[0].intfID() = 1;
+  *config.vlans()[1].id() = 2;
+  config.vlans()[1].intfID() = 2;
+  config.interfaces()->resize(2);
+  *config.interfaces()[0].intfID() = 1;
+  *config.interfaces()[0].vlanID() = 1;
+  config.interfaces()[0].mac() = "00:00:00:00:00:11";
+  *config.interfaces()[1].intfID() = 2;
+  *config.interfaces()[1].vlanID() = 2;
+  config.interfaces()[1].mac() = "00:00:00:00:00:22";
+
+  auto endState = publishAndApplyConfig(startState, &config, &platform);
+  ASSERT_NE(nullptr, endState);
+  auto interfaces = endState->getInterfaces();
+
+  auto state = SwitchState();
+  state.resetIntfs(interfaces);
   verifySwitchStateSerialization(state);
 }
 

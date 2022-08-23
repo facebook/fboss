@@ -340,6 +340,8 @@ void checkChangedIntfs(
   EXPECT_EQ(changedIDs, foundChanged);
   EXPECT_EQ(addedIDs, foundAdded);
   EXPECT_EQ(removedIDs, foundRemoved);
+  validateNodeMapSerialization(*oldIntfs);
+  validateNodeMapSerialization(*newIntfs);
 }
 
 TEST(InterfaceMap, applyConfig) {
