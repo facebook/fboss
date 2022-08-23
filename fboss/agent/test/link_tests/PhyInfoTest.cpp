@@ -6,6 +6,7 @@
 
 #include <thrift/lib/cpp2/protocol/DebugProtocol.h>
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/PlatformPort.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
@@ -13,6 +14,7 @@
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 using namespace ::testing;
@@ -21,6 +23,68 @@ using namespace facebook::fboss;
 static constexpr int kSecondsBetweenSnapshots = 20;
 
 namespace {
+
+void validateInterfaceAndMedium(
+    phy::InterfaceType interfaceType,
+    TransmitterTechnology medium) {
+  static const std::map<TransmitterTechnology, std::set<phy::InterfaceType>>
+      kMediumMap = {
+          {TransmitterTechnology::COPPER,
+           {
+               phy::InterfaceType::CR,
+               phy::InterfaceType::CR2,
+               phy::InterfaceType::CR4,
+               // Seems to only be expected on copper per BcmPortUtils.cpp
+               phy::InterfaceType::GMII,
+           }},
+          {TransmitterTechnology::OPTICAL,
+           {
+               phy::InterfaceType::SR,
+               phy::InterfaceType::SR4,
+               // Choice for optical profiles in
+               // BcmPortUtils::getSpeedToTransmitterTechAndMode
+               phy::InterfaceType::CAUI,
+               phy::InterfaceType::CAUI4,
+               phy::InterfaceType::XLAUI,
+               phy::InterfaceType::SFI,
+               // appears to be used for 40G optical profiles in minipack
+               // (minipack_16q.cinc)
+               phy::InterfaceType::XLPPI,
+               // Wedge400C prefers KR4 and KR8 for >100G optical profiles
+               // for some reason...
+               phy::InterfaceType::KR4,
+               phy::InterfaceType::KR8,
+           }},
+          {TransmitterTechnology::BACKPLANE,
+           {
+               phy::InterfaceType::KR,
+               phy::InterfaceType::KR2,
+               phy::InterfaceType::KR4,
+               phy::InterfaceType::KR8,
+               // Results in backplane medium in
+               // BcmPortUtils::getDesiredPhyLaneConfig
+               phy::InterfaceType::CAUI4_C2C,
+               phy::InterfaceType::CAUI4_C2M,
+               phy::InterfaceType::AUI_C2C,
+               phy::InterfaceType::AUI_C2M,
+           }},
+      };
+
+  if (interfaceType == phy::InterfaceType::NONE ||
+      medium == TransmitterTechnology::UNKNOWN) {
+    return;
+  }
+
+  auto validInterfaceTypes = kMediumMap.find(medium);
+  CHECK(validInterfaceTypes != kMediumMap.end());
+  EXPECT_FALSE(
+      validInterfaceTypes->second.find(interfaceType) ==
+      validInterfaceTypes->second.end())
+      << "InterfaceType " << apache::thrift::util::enumNameSafe(interfaceType)
+      << " is not compatible with medium "
+      << apache::thrift::util::enumNameSafe(medium);
+}
+
 void validatePhyInfo(
     const phy::PhyInfo& prev,
     const phy::PhyInfo& curr,
@@ -68,9 +132,9 @@ void validatePhyInfo(
     }
   }
 
-  // PMD checks
-  auto checkPmd = [](phy::PmdInfo pmdInfo) {
-    for (const auto& lane : *pmdInfo.lanes()) {
+  auto checkSideInfo = [](const phy::PhySideInfo& sideInfo) {
+    // PMD checks
+    for (const auto& lane : *sideInfo.pmd()->lanes()) {
       SCOPED_TRACE(folly::to<std::string>("lane ", lane.first));
       if (auto cdrLiveStatus = lane.second.cdrLockLive()) {
         EXPECT_TRUE(*cdrLiveStatus);
@@ -91,6 +155,11 @@ void validatePhyInfo(
       // TODO: Also expect > 0 lanes on platforms that support the pmd apis with
       // sdk >= 6.5.24
     }
+
+    // Check that interfaceType and medium dont conflict
+    if (sideInfo.interfaceType().has_value()) {
+      validateInterfaceAndMedium(*sideInfo.interfaceType(), *sideInfo.medium());
+    }
   };
 
   {
@@ -98,22 +167,22 @@ void validatePhyInfo(
     {
       SCOPED_TRACE("previous");
       EXPECT_EQ(prev.line()->side(), phy::Side::LINE);
-      checkPmd(prev.line()->get_pmd());
+      checkSideInfo(*prev.line());
     }
     {
       SCOPED_TRACE("current");
       EXPECT_EQ(curr.line()->side(), phy::Side::LINE);
-      checkPmd(curr.line()->get_pmd());
+      checkSideInfo(*curr.line());
     }
   }
   if (chipType == phy::DataPlanePhyChipType::XPHY) {
     SCOPED_TRACE("system side");
     if (auto sysInfo = prev.system()) {
-      checkPmd(sysInfo->get_pmd());
+      checkSideInfo(*sysInfo);
       EXPECT_TRUE(curr.system());
       EXPECT_EQ(prev.system()->side(), phy::Side::SYSTEM);
       EXPECT_EQ(curr.system()->side(), phy::Side::SYSTEM);
-      checkPmd(apache::thrift::can_throw(curr.system())->get_pmd());
+      checkSideInfo(*apache::thrift::can_throw(curr.system()));
     }
     // TODO: Expect system side info always on XPHY when every XPHY supports
     // publishing phy infos
