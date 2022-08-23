@@ -995,7 +995,8 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     phyParams.switchID() = getSwitchId();
     // Global phy parameters
     phy::DataPlanePhyChip phyChip;
-    phyChip.type() = getPlatform()->getAsic()->getDataPlanePhyChipType();
+    auto chipType = getPlatform()->getAsic()->getDataPlanePhyChipType();
+    phyChip.type() = chipType;
     bool isXphy = *phyChip.type() == phy::DataPlanePhyChipType::XPHY;
     phyParams.phyChip() = phyChip;
     phyParams.linkState() = managerTable_->portManager().isUp(swPort);
@@ -1007,6 +1008,8 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
       phyParams.system()->side() = phy::Side::SYSTEM;
     }
 
+    phyParams.line()->interfaceType() = getInterfaceType(swPort, chipType);
+    phyParams.line()->medium() = managerTable_->portManager().getMedium(swPort);
     // Update PMD Info
     updatePmdInfo(*phyParams.line(), portHandle->port);
     if (isXphy) {
@@ -1545,6 +1548,41 @@ bool SaiSwitch::isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId) {
   }
   return (
       kAllowedRxReasons.find(hostifTrapItr->second) != kAllowedRxReasons.end());
+}
+
+// If the SAI impl supports reading intf type, get it from portManager
+// otherwise just return the value from our platform config.
+phy::InterfaceType SaiSwitch::getInterfaceType(
+    PortID portID,
+    phy::DataPlanePhyChipType chipType) const {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::PORT_INTERFACE_TYPE)) {
+    return managerTable_->portManager().getInterfaceType(portID);
+  }
+
+  auto platPort = platform_->getPort(portID);
+  auto profileConfig =
+      platPort->getPortProfileConfig(platPort->getCurrentProfile());
+  if (chipType == phy::DataPlanePhyChipType::IPHY) {
+    if (!profileConfig.iphy()->interfaceType()) {
+      XLOG(WARNING) << "No interfaceType set for iphy on port " << portID;
+      return phy::InterfaceType::NONE;
+    }
+    return *profileConfig.iphy()->interfaceType();
+  }
+  if (chipType == phy::DataPlanePhyChipType::XPHY) {
+    // TODO: we should eventually support system side stat collection for xphy
+    // as well.
+    if (!profileConfig.xphyLine() ||
+        !profileConfig.xphyLine()->interfaceType()) {
+      XLOG(WARNING) << "No interfaceType set for xphy on port " << portID;
+      return phy::InterfaceType::NONE;
+    }
+    return *profileConfig.xphyLine()->interfaceType();
+  }
+  XLOG(WARNING) << "Invalid chip type " << static_cast<int>(chipType)
+                << " found for port " << portID;
+
+  return phy::InterfaceType::NONE;
 }
 
 void SaiSwitch::packetRxCallback(

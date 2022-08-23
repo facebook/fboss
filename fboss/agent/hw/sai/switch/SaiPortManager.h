@@ -185,6 +185,10 @@ class SaiPortManager {
 
   phy::FecMode getFECMode(PortID portId) const;
 
+  phy::InterfaceType getInterfaceType(PortID portID) const;
+
+  TransmitterTechnology getMedium(PortID portID) const;
+
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
   void changePortImpl(

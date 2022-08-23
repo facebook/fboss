@@ -432,6 +432,10 @@ class SaiSwitch : public HwSwitch {
 
   bool isMissingSrcPortAllowed(HostifTrapSaiId hostifTrapSaiId);
 
+  phy::InterfaceType getInterfaceType(
+      PortID portID,
+      phy::DataPlanePhyChipType chipType) const;
+
   /*
    * SaiSwitch must support a few varieties of concurrent access:
    * 1. state updates on the SwSwitch update thread calling stateChanged

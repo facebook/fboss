@@ -189,6 +189,70 @@ void fillHwPortStats(
     }
   }
 }
+
+phy::InterfaceType fromSaiInterfaceType(
+    sai_port_interface_type_t saiInterfaceType) {
+  switch (saiInterfaceType) {
+    case SAI_PORT_INTERFACE_TYPE_CR:
+      return phy::InterfaceType::CR;
+    case SAI_PORT_INTERFACE_TYPE_CR2:
+      return phy::InterfaceType::CR2;
+    case SAI_PORT_INTERFACE_TYPE_CR4:
+      return phy::InterfaceType::CR4;
+    case SAI_PORT_INTERFACE_TYPE_SR:
+      return phy::InterfaceType::SR;
+    case SAI_PORT_INTERFACE_TYPE_SR4:
+      return phy::InterfaceType::SR4;
+    case SAI_PORT_INTERFACE_TYPE_KR:
+      return phy::InterfaceType::KR;
+    case SAI_PORT_INTERFACE_TYPE_KR4:
+      return phy::InterfaceType::KR4;
+    case SAI_PORT_INTERFACE_TYPE_CAUI:
+      return phy::InterfaceType::CAUI;
+    case SAI_PORT_INTERFACE_TYPE_GMII:
+      return phy::InterfaceType::GMII;
+    case SAI_PORT_INTERFACE_TYPE_SFI:
+      return phy::InterfaceType::SFI;
+    case SAI_PORT_INTERFACE_TYPE_XLAUI:
+      return phy::InterfaceType::XLAUI;
+    case SAI_PORT_INTERFACE_TYPE_KR2:
+      return phy::InterfaceType::KR2;
+    case SAI_PORT_INTERFACE_TYPE_CAUI4:
+      return phy::InterfaceType::CAUI4;
+
+    // Don't seem to currently have an equivalent fboss interface type
+    case SAI_PORT_INTERFACE_TYPE_NONE:
+    case SAI_PORT_INTERFACE_TYPE_SR2:
+    case SAI_PORT_INTERFACE_TYPE_LR:
+    case SAI_PORT_INTERFACE_TYPE_XAUI:
+    case SAI_PORT_INTERFACE_TYPE_XFI:
+    case SAI_PORT_INTERFACE_TYPE_XGMII:
+    case SAI_PORT_INTERFACE_TYPE_MAX:
+    case SAI_PORT_INTERFACE_TYPE_LR4:
+    default:
+      XLOG(WARNING) << "Failed to convert sai interface type"
+                    << static_cast<int>(saiInterfaceType);
+      return phy::InterfaceType::NONE;
+  }
+}
+
+TransmitterTechnology fromSaiMediaType(sai_port_media_type_t saiMediaType) {
+  switch (saiMediaType) {
+    case SAI_PORT_MEDIA_TYPE_UNKNOWN:
+      return TransmitterTechnology::UNKNOWN;
+    case SAI_PORT_MEDIA_TYPE_FIBER:
+      return TransmitterTechnology::OPTICAL;
+    case SAI_PORT_MEDIA_TYPE_COPPER:
+      return TransmitterTechnology::COPPER;
+    case SAI_PORT_MEDIA_TYPE_BACKPLANE:
+      return TransmitterTechnology::BACKPLANE;
+    case SAI_PORT_MEDIA_TYPE_NOT_PRESENT:
+    default:
+      XLOG(WARNING) << "Failed to convert sai media type "
+                    << static_cast<int>(saiMediaType) << ". Default to UNKNOWN";
+      return TransmitterTechnology::UNKNOWN;
+  }
+}
 } // namespace
 
 SaiPortManager::SaiPortManager(
@@ -1621,6 +1685,23 @@ cfg::PortSpeed SaiPortManager::getSpeed(PortID portId) const {
   auto handle = getPortHandle(portId);
   return static_cast<cfg::PortSpeed>(
       GET_ATTR(Port, Speed, handle->port->attributes()));
+}
+
+phy::InterfaceType SaiPortManager::getInterfaceType(PortID portID) const {
+  auto handle = getPortHandle(portID);
+  auto saiPortId = handle->port->adapterKey();
+  auto saiInterfaceType = SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::InterfaceType{});
+  return fromSaiInterfaceType(
+      static_cast<sai_port_interface_type_t>(saiInterfaceType));
+}
+
+TransmitterTechnology SaiPortManager::getMedium(PortID portID) const {
+  auto handle = getPortHandle(portID);
+  auto saiPortId = handle->port->adapterKey();
+  auto saiMediaType = SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::MediaType{});
+  return fromSaiMediaType(static_cast<sai_port_media_type_t>(saiMediaType));
 }
 
 } // namespace facebook::fboss

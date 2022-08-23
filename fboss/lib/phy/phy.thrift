@@ -72,6 +72,7 @@ enum InterfaceMode {
 }
 
 enum InterfaceType {
+  NONE = 0,
   // Backplane
   KR = 1,
   KR2 = 2,
