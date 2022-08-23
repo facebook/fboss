@@ -493,4 +493,5 @@ struct SwitchState {
   27: map<i16, AggregatePortFields> aggregatePortMap;
   28: map<switch_config.LoadBalancerID, LoadBalancerFields> loadBalancerMap;
   29: map<switch_config.AclStage, AclTableGroupFields> aclTableGroupMap;
+  30: map<i32, InterfaceFields> interfaceMap;
 }

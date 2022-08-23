@@ -141,6 +141,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
   state.teFlowTable() = teFlowTable->toThrift();
   state.aggregatePortMap() = aggPorts->toThrift();
   state.aclTableGroupMap() = aclTableGroups->toThrift();
+  state.interfaceMap() = interfaces->toThrift();
   return state;
 }
 
@@ -190,6 +191,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.aggPorts = AggregatePortMap::fromThrift(*state.aggregatePortMap());
   fields.aclTableGroups =
       AclTableGroupMap::fromThrift(*state.aclTableGroupMap());
+  fields.interfaces = InterfaceMap::fromThrift(*state.interfaceMap());
   return fields;
 }
 

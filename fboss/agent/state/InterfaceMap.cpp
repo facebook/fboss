@@ -22,6 +22,23 @@ InterfaceMap::InterfaceMap() {}
 
 InterfaceMap::~InterfaceMap() {}
 
+std::map<int, state::InterfaceFields> InterfaceMap::toThrift() const {
+  std::map<int, state::InterfaceFields> thriftMap;
+  for (const auto& [key, value] : this->getAllNodes()) {
+    thriftMap[key] = value->toThrift();
+  }
+  return thriftMap;
+}
+
+std::shared_ptr<InterfaceMap> InterfaceMap::fromThrift(
+    std::map<int, state::InterfaceFields> const& thriftMap) {
+  auto interfaceMap = std::make_shared<InterfaceMap>();
+  for (const auto& [key, value] : thriftMap) {
+    interfaceMap->addNode(Interface::fromThrift(value));
+  }
+  return interfaceMap;
+}
+
 std::shared_ptr<Interface> InterfaceMap::getInterfaceIf(
     RouterID router,
     const IPAddress& ip) const {

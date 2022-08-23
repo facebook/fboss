@@ -8,8 +8,10 @@
  *
  */
 #pragma once
+
 #include <folly/IPAddress.h>
 #include <vector>
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/types.h"
 namespace facebook::fboss {
@@ -24,6 +26,11 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
  public:
   InterfaceMap();
   ~InterfaceMap() override;
+
+  std::map<int, state::InterfaceFields> toThrift() const;
+
+  static std::shared_ptr<InterfaceMap> fromThrift(
+      std::map<int, state::InterfaceFields> const& thriftMap);
 
   /*
    * Get the specified Interface.
