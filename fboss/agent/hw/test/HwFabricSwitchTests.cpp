@@ -35,4 +35,13 @@ TEST_F(HwFabricSwitchTest, loopbackMode) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwFabricSwitchTest, collectStats) {
+  auto verify = [this]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    for (auto& port : *getProgrammedState()->getPorts()) {
+      getLatestPortStats(port->getID());
+    }
+  };
+  verifyAcrossWarmBoots([] {}, verify);
+}
 } // namespace facebook::fboss
