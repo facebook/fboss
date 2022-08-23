@@ -71,6 +71,7 @@ add_library(bcm
   fboss/agent/hw/bcm/BcmSwitchEventCallback.cpp
   fboss/agent/hw/bcm/BcmSwitchEventUtils.cpp
   fboss/agent/hw/bcm/BcmTableStats.cpp
+  fboss/agent/hw/bcm/BcmTeFlowEntry.cpp
   fboss/agent/hw/bcm/BcmTeFlowTable.cpp
   fboss/agent/hw/bcm/BcmTrunk.cpp
   fboss/agent/hw/bcm/BcmTrunkStats.cpp

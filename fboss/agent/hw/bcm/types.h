@@ -20,6 +20,7 @@ namespace facebook::fboss {
 
 using BcmAclEntryHandle = int;
 using BcmMirrorHandle = int;
+using BcmTeFlowEntryHandle = int;
 
 using BcmTrafficCounterStats = std::unordered_map<cfg::CounterType, uint64_t>;
 using BcmEgressQueueTrafficCounterStats = std::unordered_map<
