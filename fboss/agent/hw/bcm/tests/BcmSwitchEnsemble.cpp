@@ -31,6 +31,7 @@
 DECLARE_bool(setup_thrift);
 
 using apache::thrift::can_throw;
+using namespace facebook::fboss;
 
 namespace {
 void addPort(
@@ -54,6 +55,61 @@ void addFlexPort(
   addPort(cfg, start + 1, speed / 4, false);
   addPort(cfg, start + 2, speed / 2, false);
   addPort(cfg, start + 3, speed / 4, false);
+}
+
+std::unique_ptr<AgentConfig> loadCfgFromLocalFile(
+    std::unique_ptr<Platform>& platform,
+    BcmTestPlatform* bcmTestPlatform,
+    std::string& yamlCfg,
+    BcmConfig::ConfigMap& cfg) {
+  std::unique_ptr<AgentConfig> agentConfig;
+  if (!FLAGS_bcm_config.empty()) {
+    XLOG(DBG2) << "Loading bcm config from " << FLAGS_bcm_config;
+    if (bcmTestPlatform->usesYamlConfig()) {
+      yamlCfg = BcmYamlConfig::loadFromFile(FLAGS_bcm_config);
+    } else {
+      cfg = BcmConfig::loadFromFile(FLAGS_bcm_config);
+    }
+    agentConfig = createEmptyAgentConfig();
+  } else if (!FLAGS_config.empty()) {
+    XLOG(DBG2) << "Loading config from " << FLAGS_config;
+    agentConfig = AgentConfig::fromFile(FLAGS_config);
+    if (bcmTestPlatform->usesYamlConfig()) {
+      yamlCfg = can_throw(*(platform->config()->thrift)
+                               .platform()
+                               ->chip()
+                               ->get_bcm()
+                               .yamlConfig());
+    } else {
+      cfg =
+          *(platform->config()->thrift).platform()->chip()->get_bcm().config();
+    }
+  } else {
+    throw FbossError("No config file to load!");
+  }
+  return agentConfig;
+}
+
+void modifyCfgForPfcTests(
+    BcmTestPlatform* bcmTestPlatform,
+    std::string& yamlCfg,
+    BcmConfig::ConfigMap& cfg) {
+  if (bcmTestPlatform->usesYamlConfig()) {
+    std::string toReplace("LOSSY");
+    std::size_t pos = yamlCfg.find(toReplace);
+    if (pos != std::string::npos) {
+      yamlCfg.replace(pos, toReplace.length(), "LOSSY_AND_LOSSLESS");
+    }
+  } else {
+    cfg["mmu_lossless"] = "0x2";
+    cfg["buf.mqueue.guarantee.0"] = "0C";
+    cfg["mmu_config_override"] = "0";
+    cfg["buf.prigroup7.guarantee"] = "0C";
+    if (FLAGS_qgroup_guarantee_enable) {
+      cfg["buf.qgroup.guarantee_mc"] = "0";
+      cfg["buf.qgroup.guarantee"] = "0";
+    }
+  }
 }
 
 void modifyCfgForQcmTests(facebook::fboss::BcmConfig::ConfigMap& cfg) {
@@ -175,33 +231,7 @@ void BcmSwitchEnsemble::init(
     agentConfig = createEmptyAgentConfig();
   } else {
     // Load from a local file
-    if (!FLAGS_bcm_config.empty()) {
-      XLOG(DBG2) << "Loading bcm config from " << FLAGS_bcm_config;
-      if (bcmTestPlatform->usesYamlConfig()) {
-        yamlCfg = BcmYamlConfig::loadFromFile(FLAGS_bcm_config);
-      } else {
-        cfg = BcmConfig::loadFromFile(FLAGS_bcm_config);
-      }
-      agentConfig = createEmptyAgentConfig();
-    } else if (!FLAGS_config.empty()) {
-      XLOG(DBG2) << "Loading config from " << FLAGS_config;
-      agentConfig = AgentConfig::fromFile(FLAGS_config);
-      if (bcmTestPlatform->usesYamlConfig()) {
-        yamlCfg = can_throw(*(platform->config()->thrift)
-                                 .platform()
-                                 ->chip()
-                                 ->get_bcm()
-                                 .yamlConfig());
-      } else {
-        cfg = *(platform->config()->thrift)
-                   .platform()
-                   ->chip()
-                   ->get_bcm()
-                   .config();
-      }
-    } else {
-      throw FbossError("No config file to load!");
-    }
+    agentConfig = loadCfgFromLocalFile(platform, bcmTestPlatform, yamlCfg, cfg);
     for (auto item : *agentConfig->thrift.defaultCommandLineArgs()) {
       gflags::SetCommandLineOptionWithMode(
           item.first.c_str(), item.second.c_str(), gflags::SET_FLAG_IF_DEFAULT);
@@ -211,22 +241,7 @@ void BcmSwitchEnsemble::init(
   if (FLAGS_mmu_lossless_mode &&
       platform->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     XLOG(DBG2) << "Modify the bcm cfg as mmu_lossless mode is enabled";
-    if (bcmTestPlatform->usesYamlConfig()) {
-      std::string toReplace("LOSSY");
-      std::size_t pos = yamlCfg.find(toReplace);
-      if (pos != std::string::npos) {
-        yamlCfg.replace(pos, toReplace.length(), "LOSSY_AND_LOSSLESS");
-      }
-    } else {
-      cfg["mmu_lossless"] = "0x2";
-      cfg["buf.mqueue.guarantee.0"] = "0C";
-      cfg["mmu_config_override"] = "0";
-      cfg["buf.prigroup7.guarantee"] = "0C";
-      if (FLAGS_qgroup_guarantee_enable) {
-        cfg["buf.qgroup.guarantee_mc"] = "0";
-        cfg["buf.qgroup.guarantee"] = "0";
-      }
-    }
+    modifyCfgForPfcTests(bcmTestPlatform, yamlCfg, cfg);
   }
   if (FLAGS_load_qcm_fw &&
       platform->getAsic()->isSupported(HwAsic::Feature::QCM)) {
@@ -235,7 +250,7 @@ void BcmSwitchEnsemble::init(
   }
   if (FLAGS_enable_exact_match &&
       platform->getAsic()->isSupported(HwAsic::Feature::EXACT_MATCH)) {
-    XLOG(INFO) << "Modify bcm cfg as enable_exact_match is enabled";
+    XLOG(DBG2) << "Modify bcm cfg as enable_exact_match is enabled";
     if (bcmTestPlatform->usesYamlConfig()) {
       modifyCfgForEMTests(yamlCfg);
     } else {
