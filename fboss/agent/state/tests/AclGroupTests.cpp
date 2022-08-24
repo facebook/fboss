@@ -497,7 +497,6 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
 
   auto tableGroups = make_shared<AclTableGroupMap>();
   tableGroups->addAclTableGroup(tableGroup);
-  validateNodeMapSerialization(*tableGroups);
 
   cfg::AclTable cfgTable1;
   cfgTable1.name_ref() = kTable1;
