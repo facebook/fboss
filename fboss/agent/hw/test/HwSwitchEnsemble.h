@@ -77,8 +77,6 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void stopObservers();
   struct HwSwitchEnsembleInitInfo {
     std::optional<TransceiverInfo> overrideTransceiverInfo;
-    cfg::SwitchType switchType = cfg::SwitchType::NPU;
-    std::optional<int64_t> switchId;
   };
   enum Feature : uint32_t {
     PACKET_RX,
