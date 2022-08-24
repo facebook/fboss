@@ -22,20 +22,13 @@
 
 namespace facebook::fboss {
 
-struct AclTableGroupFields
-    : public ThriftyFields<AclTableGroupFields, state::AclTableGroupFields> {
-  using ThriftyFields::ThriftyFields;
-  explicit AclTableGroupFields(cfg::AclStage stage) {
-    writableData().stage() = stage;
-  }
+struct AclTableGroupFields {
+  explicit AclTableGroupFields(cfg::AclStage stage) : stage(stage) {}
   explicit AclTableGroupFields(
       cfg::AclStage stage,
       const std::string& name,
-      std::shared_ptr<AclTableMap> aclTableMap) {
-    writableData().stage() = stage;
-    writableData().name() = name;
-    writableData().aclTableMap() = aclTableMap->toThrift();
-  }
+      std::shared_ptr<AclTableMap> aclTableMap)
+      : stage(stage), name(name), aclTableMap(aclTableMap) {}
 
   template <typename Fn>
   void forEachChild(Fn) {}
@@ -43,16 +36,9 @@ struct AclTableGroupFields
   folly::dynamic toFollyDynamic() const;
   static AclTableGroupFields fromFollyDynamic(const folly::dynamic& json);
 
-  state::AclTableGroupFields toThrift() const override {
-    return data();
-  }
-  static AclTableGroupFields fromThrift(
-      state::AclTableGroupFields const& aclTableGroupFields) {
-    return AclTableGroupFields(aclTableGroupFields);
-  }
-  bool operator==(const AclTableGroupFields& other) const {
-    return data() == other.data();
-  }
+  cfg::AclStage stage;
+  std::string name;
+  std::shared_ptr<AclTableMap> aclTableMap;
 };
 
 /*
@@ -77,40 +63,34 @@ class AclTableGroup : public NodeBaseT<AclTableGroup, AclTableGroupFields> {
     return getFields()->toFollyDynamic();
   }
 
-  state::AclTableGroupFields toThrift() const {
-    return getFields()->toThrift();
-  }
-  static std::shared_ptr<AclTableGroup> fromThrift(
-      state::AclTableGroupFields const& aclTableFields) {
-    return std::make_shared<AclTableGroup>(AclTableGroupFields(aclTableFields));
+  bool operator==(const AclTableGroup& aclTableGroup) const {
+    return getFields()->stage == aclTableGroup.getID() &&
+        *(getFields()->aclTableMap) == *(aclTableGroup.getAclTableMap()) &&
+        getFields()->name == aclTableGroup.getName();
   }
 
-  bool operator==(const AclTableGroup& other) const {
-    return *getFields() == *other.getFields();
-  }
-
-  bool operator!=(const AclTableGroup& other) const {
-    return !(*this == other);
+  bool operator!=(const AclTableGroup& aclTableGroup) const {
+    return !(*this == aclTableGroup);
   }
 
   cfg::AclStage getID() const {
-    return *getFields()->data().stage();
+    return getFields()->stage;
   }
 
   const std::string& getName() const {
-    return *getFields()->data().name();
+    return getFields()->name;
   }
 
   void setName(const std::string& name) {
-    writableFields()->writableData().name() = name;
+    writableFields()->name = name;
   }
 
   std::shared_ptr<AclTableMap> getAclTableMap() const {
-    return AclTableMap::fromThrift(*getFields()->data().aclTableMap());
+    return getFields()->aclTableMap;
   }
 
   void setAclTableMap(std::shared_ptr<AclTableMap> aclTableMap) {
-    writableFields()->writableData().aclTableMap() = aclTableMap->toThrift();
+    writableFields()->aclTableMap = aclTableMap;
   }
 
  private:
