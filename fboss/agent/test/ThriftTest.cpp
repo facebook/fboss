@@ -2120,3 +2120,34 @@ TEST_F(ThriftTeFlowTest, syncTeFlows) {
   teFlowTable = state->getTeFlowTable();
   EXPECT_EQ(teFlowTable->size(), 0);
 }
+
+TEST_F(ThriftTeFlowTest, getTeFlowDetails) {
+  auto testPrefixes = {"100::1", "101::1", "102::1", "103::1"};
+  ThriftHandler handler(sw_);
+  auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
+  for (const auto& prefix : testPrefixes) {
+    auto flowEntry = makeFlow(prefix);
+    teFlowEntries->emplace_back(flowEntry);
+  }
+  handler.addTeFlows(std::move(teFlowEntries));
+  auto state = sw_->getState();
+  auto teFlowTable = state->getTeFlowTable();
+  EXPECT_EQ(teFlowTable->size(), 4);
+
+  std::vector<TeFlowDetails> flowDetails;
+  handler.getTeFlowTableDetails(flowDetails);
+  EXPECT_EQ(flowDetails.size(), teFlowTable->size());
+
+  auto idx = 0;
+  for (const auto& prefix : testPrefixes) {
+    TeFlow flow;
+    flow.srcPort() = 100;
+    flow.dstPrefix() = ipPrefix(prefix, 64);
+    auto flowDetail = flowDetails[idx++];
+    auto tableEntry = state->getTeFlowTable()->getTeFlowIf(flow);
+    EXPECT_EQ(flowDetail.enabled(), tableEntry->getEnabled());
+    EXPECT_EQ(flowDetail.counterID(), tableEntry->getCounterID());
+    EXPECT_EQ(flowDetail.nexthops(), tableEntry->getNextHops());
+    EXPECT_EQ(flowDetail.resolvedNexthops(), tableEntry->getResolvedNextHops());
+  }
+}
