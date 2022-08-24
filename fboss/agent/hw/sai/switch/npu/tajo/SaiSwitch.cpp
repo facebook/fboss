@@ -29,6 +29,19 @@ std::string eventName(sai_switch_event_type_t type) {
   return folly::to<std::string>("unknown event type: ", type);
 }
 
+#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_56_0)
+std::string correctionType(sai_tam_switch_event_ecc_err_type_t type) {
+  switch (type) {
+    case SAI_TAM_SWITCH_EVENT_ECC_ERR_TYPE_ECC_COR:
+      return "ECC_COR";
+    case SAI_TAM_SWITCH_EVENT_ECC_ERR_TYPE_ECC_UNCOR:
+      return "ECC_UNCOR";
+    case SAI_TAM_SWITCH_EVENT_ECC_ERR_TYPE_PARITY:
+      return "PARITY";
+  }
+  return "correction-type-unknown";
+}
+#else
 std::string correctionType(sai_tam_switch_event_ecc_err_type_e type) {
   switch (type) {
     case ECC_COR:
@@ -40,6 +53,7 @@ std::string correctionType(sai_tam_switch_event_ecc_err_type_e type) {
   }
   return "correction-type-unknown";
 }
+#endif
 } // namespace
 
 namespace facebook::fboss {
@@ -62,6 +76,16 @@ void SaiSwitch::tamEventCallback(
     case SAI_SWITCH_EVENT_TYPE_PARITY_ERROR: {
       auto errorType = eventDesc->event.switch_event.data.parity_error.err_type;
       switch (errorType) {
+#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_56_0)
+        case SAI_TAM_SWITCH_EVENT_ECC_ERR_TYPE_ECC_COR:
+          getSwitchStats()->corrParityError();
+          break;
+        case SAI_TAM_SWITCH_EVENT_ECC_ERR_TYPE_ECC_UNCOR:
+        case SAI_TAM_SWITCH_EVENT_ECC_ERR_TYPE_PARITY:
+          getSwitchStats()->uncorrParityError();
+          break;
+      }
+#else
         case ECC_COR:
           getSwitchStats()->corrParityError();
           break;
@@ -70,6 +94,7 @@ void SaiSwitch::tamEventCallback(
           getSwitchStats()->uncorrParityError();
           break;
       }
+#endif
       sstream << ", correction type=" << correctionType(errorType);
     } break;
     case SAI_SWITCH_EVENT_TYPE_ALL:
