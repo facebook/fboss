@@ -60,6 +60,7 @@
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/gen-cpp2/switch_config_types_custom_protocol.h"
 #include "fboss/agent/hw/HwSwitchStats.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
@@ -655,7 +656,9 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   heartbeatWatchdog_->start();
 
   setSwitchRunState(SwitchRunState::INITIALIZED);
-  SwSwitchRouteUpdateWrapper(this, rib_.get()).programMinAlpmState();
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_PROGRAMMING)) {
+    SwSwitchRouteUpdateWrapper(this, rib_.get()).programMinAlpmState();
+  }
   if (FLAGS_log_all_fib_updates) {
     constexpr auto kAllFibUpdates = "all_fib_updates";
     logRouteUpdates("::", 0, kAllFibUpdates);

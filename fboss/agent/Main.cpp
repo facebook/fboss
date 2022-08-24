@@ -29,6 +29,8 @@
 #include "fboss/agent/SetupThrift.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/lib/CommonUtils.h"
@@ -313,7 +315,9 @@ void AgentInitializer::stopAgent(bool setupWarmboot) {
 #endif
 #endif
   } else {
-    sw_->stop(true);
+    auto revertToMinAlpmState = sw_->getPlatform()->getAsic()->isSupported(
+        HwAsic::Feature::ROUTE_PROGRAMMING);
+    sw_->stop(revertToMinAlpmState);
   }
 }
 
