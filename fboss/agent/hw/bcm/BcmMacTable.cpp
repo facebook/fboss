@@ -193,7 +193,7 @@ void BcmMacTable::unprogramMacEntry(const MacEntry* macEntry, VlanID vlan) {
           macBytes,
           static_cast<bcm_module_t>(0),
           macEntry->getPort().phyPortID(),
-          0);
+          BCM_L2_REPLACE_NO_CALLBACKS);
       break;
     case PortDescriptor::PortType::AGGREGATE:
       // No bcm_l2_addr_delete_by_mac_trunk API, CS9347300 requests the same.

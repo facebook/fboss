@@ -136,9 +136,7 @@ void BcmSwitchSettings::enableL2LearningCallback() {
      *   callback for FBOSS' own CPU Add should be disabled for each MAC add
      *   (by setting the appropriate flag for this during CPU add API call).
      */
-    auto rv = bcm_switch_control_set(unit, bcmSwitchL2CpuDeleteEvent, 1);
-    bcmCheckError(rv, "Failed to subscribe to L2 CPU Delete Event");
-    rv = bcm_switch_control_set(unit, bcmSwitchL2LearnEvent, 1);
+    auto rv = bcm_switch_control_set(unit, bcmSwitchL2LearnEvent, 1);
     bcmCheckError(rv, "Failed to subscribe to L2 CPU Learn Event");
     rv = bcm_switch_control_set(unit, bcmSwitchL2AgingEvent, 1);
     bcmCheckError(rv, "Failed to subscribe to L2 CPU Aging Event");
@@ -173,11 +171,7 @@ void BcmSwitchSettings::disableL2LearningCallback() {
     /*
      * Unconfigure callback for L2 table update events.
      */
-    auto rv = bcm_switch_control_set(unit, bcmSwitchL2CpuAddEvent, 0);
-    bcmCheckError(rv, "Failed to unsubscribe from L2 CPU Add Event");
-    rv = bcm_switch_control_set(unit, bcmSwitchL2CpuDeleteEvent, 0);
-    bcmCheckError(rv, "Failed to unsubscribe from L2 CPU Delete Event");
-    rv = bcm_switch_control_set(unit, bcmSwitchL2LearnEvent, 0);
+    auto rv = bcm_switch_control_set(unit, bcmSwitchL2LearnEvent, 0);
     bcmCheckError(rv, "Failed to unsubscribe from L2 CPU Learn Event");
     rv = bcm_switch_control_set(unit, bcmSwitchL2AgingEvent, 0);
     bcmCheckError(rv, "Failed to unsubscribe from L2 CPU Aging Event");
