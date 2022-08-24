@@ -67,6 +67,15 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_teflow_model
+  fboss/cli/fboss2/commands/show/teflow/model.thrift
+  OPTIONS
+    json
+  DEPENDS
+    show_route_model
+)
+
+add_fbthrift_cpp_library(
   show_interface_flaps
   fboss/cli/fboss2/commands/show/interface/flaps/model.thrift
   OPTIONS
@@ -224,6 +233,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/prbs/state/CmdShowInterfacePrbsState.h
   fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h
   fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h
+  fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/CmdSubcommands.cpp
   fboss/cli/fboss2/Main.cpp
@@ -280,6 +290,7 @@ target_link_libraries(fboss2
   show_route_model
   show_mpls_route_model
   show_mac_model
+  show_teflow_model
   ${RE2}
 )
 
