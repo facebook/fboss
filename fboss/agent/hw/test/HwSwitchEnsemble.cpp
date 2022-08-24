@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestUtils.h"
 
+#include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/FbossHwUpdateError.h"
@@ -324,12 +325,18 @@ void HwSwitchEnsemble::setupEnsemble(
     const HwSwitchEnsembleInitInfo& initInfo) {
   platform_ = std::move(platform);
   linkToggler_ = std::move(linkToggler);
+  const auto switchSettings =
+      *platform_->config()->thrift.sw()->switchSettings();
+  std::optional<int64_t> switchId;
+  if (switchSettings.switchId().has_value()) {
+    switchId = *switchSettings.switchId();
+  }
 
   auto hwInitResult = getHwSwitch()->init(
       this,
       true /*failHwCallsOnWarmboot*/,
-      initInfo.switchType,
-      initInfo.switchId);
+      *switchSettings.switchType(),
+      switchId);
 
   programmedState_ = hwInitResult.switchState;
   routingInformationBase_ = std::move(hwInitResult.rib);
