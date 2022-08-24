@@ -149,9 +149,6 @@ TEST(AclGroup, TestEquality) {
   auto tableGroup3 = std::make_shared<AclTableGroup>(kAclStage2);
   tableGroup3->setAclTableMap(tableMap1);
   tableGroup2->setName(kGroup1);
-  validateNodeSerialization(*tableGroup1);
-  validateNodeSerialization(*tableGroup2);
-  validateNodeSerialization(*tableGroup3);
 
   EXPECT_EQ(*tableGroup1, *tableGroup2);
   EXPECT_NE(*tableGroup1, *tableGroup3);
@@ -310,7 +307,6 @@ TEST(AclGroup, SerializeAclTableGroup) {
   auto tableGroup = std::make_shared<AclTableGroup>(kAclStage1);
   tableGroup->setAclTableMap(tableMap);
   tableGroup->setName(kGroup1);
-  validateNodeSerialization(*tableGroup);
 
   auto serialized = tableGroup->toFollyDynamic();
   auto tableGroupBack = AclTableGroup::fromFollyDynamic(serialized);
@@ -350,7 +346,6 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
   auto tableGroup = std::make_shared<AclTableGroup>(kAclStage1);
   tableGroup->setAclTableMap(tableMap);
   tableGroup->setName(kGroup1);
-  validateNodeSerialization(*tableGroup);
 
   cfg::AclTable cfgTable1;
   cfgTable1.name_ref() = kTable1;
@@ -493,7 +488,6 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   auto tableGroup = make_shared<AclTableGroup>(kAclStage1);
   tableGroup->setAclTableMap(tableMap);
   tableGroup->setName(kGroup1);
-  validateNodeSerialization(*tableGroup);
 
   auto tableGroups = make_shared<AclTableGroupMap>();
   tableGroups->addAclTableGroup(tableGroup);
