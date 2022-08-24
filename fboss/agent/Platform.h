@@ -53,7 +53,7 @@ enum class PlatformMode : char;
  */
 class Platform {
  public:
-  explicit Platform(
+  Platform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       std::unique_ptr<PlatformMapping> platformMapping,
       folly::MacAddress localMac);
