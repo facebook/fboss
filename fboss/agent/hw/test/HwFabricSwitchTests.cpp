@@ -1,10 +1,18 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/HwTest.h"
 
 namespace facebook::fboss {
 
-class HwFabricSwitchTest : public HwTest {};
+class HwFabricSwitchTest : public HwTest {
+ public:
+  void SetUp() override {
+    HwTest::SetUp();
+    ASSERT_EQ(getHwSwitch()->getSwitchType(), cfg::SwitchType::FABRIC);
+    ASSERT_TRUE(getHwSwitch()->getSwitchId().has_value());
+  }
+};
 
 TEST_F(HwFabricSwitchTest, init) {
   verifyAcrossWarmBoots([]() {}, []() {});
