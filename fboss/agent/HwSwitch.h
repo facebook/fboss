@@ -147,9 +147,17 @@ class HwSwitch {
       bool failHwCallsOnWarmboot,
       cfg::SwitchType switchType = cfg::SwitchType::NPU,
       std::optional<int64_t> switchId = std::nullopt) {
+    switchType_ = switchType;
+    switchId_ = switchId;
     return initImpl(callback, failHwCallsOnWarmboot, switchType, switchId);
   }
 
+  cfg::SwitchType getSwitchType() const {
+    return switchType_;
+  }
+  std::optional<int64_t> getSwitchId() const {
+    return switchId_;
+  }
   /*
    * Tells the hw switch to unregister the callback and to stop calling
    * packetReceived and linkStateChanged. This is mainly used during exit
@@ -379,6 +387,8 @@ class HwSwitch {
   // create the var in the thread local storage (TLS) of the calling
   // thread and cannot be created up front.
   mutable folly::ThreadLocalPtr<HwSwitchStats> hwSwitchStats_;
+  cfg::SwitchType switchType_{cfg::SwitchType::NPU};
+  std::optional<int64_t> switchId_;
 };
 
 } // namespace facebook::fboss
