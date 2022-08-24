@@ -10,7 +10,6 @@
 
 // #include <folly/IPAddress.h>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/state/AclTableGroupMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
@@ -221,51 +220,6 @@ TEST(ThriftySwitchState, AggregatePortMap) {
 
   auto state = SwitchState();
   state.resetAggregatePorts(aggPorts);
-  verifySwitchStateSerialization(state);
-}
-
-TEST(ThriftySwitchState, AclTableGroupMap) {
-  MockPlatform platform;
-
-  const std::string kTable1 = "table1";
-  const std::string kTable2 = "table2";
-  const std::string kAcl1a = "acl1a";
-  const std::string kAcl1b = "acl1b";
-  const std::string kAcl2a = "acl2a";
-  const std::string kGroup1 = "group1";
-  int priority1 = 100000;
-  int priority2 = 100000;
-  const cfg::AclStage kAclStage1 = cfg::AclStage::INGRESS;
-
-  auto entry1a = std::make_shared<AclEntry>(priority1++, kAcl1a);
-  entry1a->setActionType(cfg::AclActionType::DENY);
-  auto entry1b = std::make_shared<AclEntry>(priority1++, kAcl1b);
-  entry1b->setActionType(cfg::AclActionType::DENY);
-  auto map1 = std::make_shared<AclMap>();
-  map1->addEntry(entry1a);
-  map1->addEntry(entry1b);
-  auto table1 = std::make_shared<AclTable>(1, kTable1);
-  table1->setAclMap(map1);
-
-  auto entry2a = std::make_shared<AclEntry>(priority2++, kAcl2a);
-  entry2a->setActionType(cfg::AclActionType::DENY);
-  auto map2 = std::make_shared<AclMap>();
-  map2->addEntry(entry2a);
-  auto table2 = std::make_shared<AclTable>(2, kTable2);
-  table2->setAclMap(map2);
-
-  auto tableMap = std::make_shared<AclTableMap>();
-  tableMap->addTable(table1);
-  tableMap->addTable(table2);
-  auto tableGroup = std::make_shared<AclTableGroup>(kAclStage1);
-  tableGroup->setAclTableMap(tableMap);
-  tableGroup->setName(kGroup1);
-
-  auto tableGroups = std::make_shared<AclTableGroupMap>();
-  tableGroups->addAclTableGroup(tableGroup);
-
-  auto state = SwitchState();
-  state.resetAclTableGroups(tableGroups);
   verifySwitchStateSerialization(state);
 }
 
