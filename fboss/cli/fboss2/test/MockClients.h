@@ -54,6 +54,10 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
           std::unique_ptr<apache::thrift::HandlerCallback<
               std::unique_ptr<std::map<std::string, int64_t>>>>,
           std::unique_ptr<std::string> regex));
+  MOCK_METHOD(
+      void,
+      getTeFlowTableDetails,
+      (std::vector<facebook::fboss::TeFlowDetails>&));
 };
 
 class MockFbossQsfpService : public QsfpServiceSvIf {
