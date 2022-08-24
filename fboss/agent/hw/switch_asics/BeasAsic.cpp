@@ -14,13 +14,20 @@ bool BeasAsic::isSupported(Feature feature) const {
   return false;
 }
 
-std::set<cfg::StreamType> BeasAsic::getQueueStreamTypes(bool /* cpu */) const {
-  throw FbossError("Beas doesn't support queue feature");
+std::set<cfg::StreamType> BeasAsic::getQueueStreamTypes(bool cpu) const {
+  std::set<cfg::StreamType> streams;
+  if (!cpu) {
+    // On kamet we use a single fabric queue for all
+    // traffic
+    streams.insert(cfg::StreamType::ALL);
+  }
+  return streams;
 }
+
 int BeasAsic::getDefaultNumPortQueues(
     cfg::StreamType /* streamType */,
-    bool /* cpu */) const {
-  throw FbossError("Beas doesn't support queue feature");
+    bool cpu) const {
+  return cpu ? 0 : 1;
 }
 uint64_t BeasAsic::getDefaultReservedBytes(
     cfg::StreamType /* streamType */,
@@ -34,7 +41,7 @@ cfg::MMUScalingFactor BeasAsic::getDefaultScalingFactor(
 }
 
 uint32_t BeasAsic::getMaxMirrors() const {
-  throw FbossError("Beas doesn't support mirror feature");
+  return 0;
 }
 uint16_t BeasAsic::getMirrorTruncateSize() const {
   throw FbossError("Beas doesn't support mirror feature");
