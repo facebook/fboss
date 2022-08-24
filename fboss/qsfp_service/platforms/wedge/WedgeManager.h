@@ -104,14 +104,6 @@ class WedgeManager : public TransceiverManager {
   virtual void triggerQsfpHardReset(int idx);
 
   /*
-   * This function takes the portId, port profile id and creates phy port
-   * config using platform mapping.
-   */
-  std::optional<phy::PhyPortConfig> getPhyPortConfigValues(
-      int32_t portId,
-      cfg::PortProfileID portProfileId);
-
-  /*
    * This function will call PhyManager to create all the ExternalPhy objects
    */
   bool initExternalPhyMap(bool forceWarmboot = false) override;
