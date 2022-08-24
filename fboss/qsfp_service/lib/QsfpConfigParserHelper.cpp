@@ -47,5 +47,25 @@ std::optional<unsigned int> sffRxPreemphasisOverride(
   return std::nullopt;
 }
 
+std::optional<unsigned int> sffRxAmplitudeOverride(
+    const cfg::TransceiverOverrides& overrides) {
+  if (auto sffOverride = overrides.sff_ref()) {
+    if (auto rxamp = sffOverride->rxAmplitude()) {
+      return *rxamp;
+    }
+  }
+  return std::nullopt;
+}
+
+std::optional<unsigned int> sffTxEqualizationOverride(
+    const cfg::TransceiverOverrides& overrides) {
+  if (auto sffOverride = overrides.sff_ref()) {
+    if (auto txeq = sffOverride->txEqualization()) {
+      return *txeq;
+    }
+  }
+  return std::nullopt;
+}
+
 } // namespace fboss
 } // namespace facebook

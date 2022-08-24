@@ -16,5 +16,9 @@ std::optional<RxEqualizerSettings> cmisRxEqualizerSettingOverride(
     const cfg::TransceiverOverrides& overrides);
 std::optional<unsigned int> sffRxPreemphasisOverride(
     const cfg::TransceiverOverrides& overrides);
+std::optional<unsigned int> sffRxAmplitudeOverride(
+    const cfg::TransceiverOverrides& overrides);
+std::optional<unsigned int> sffTxEqualizationOverride(
+    const cfg::TransceiverOverrides& overrides);
 } // namespace fboss
 } // namespace facebook

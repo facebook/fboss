@@ -21,6 +21,8 @@ struct TransceiverConfigOverrideFactor {
 
 struct Sff8636Overrides {
   1: optional i16 rxPreemphasis;
+  2: optional i16 rxAmplitude;
+  3: optional i16 txEqualization;
 }
 
 struct CmisOverrides {

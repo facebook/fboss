@@ -56,4 +56,18 @@ TEST(QsfpConfigParserTest, preemphOverride) {
   sffOverride.rxPreemphasis() = 2;
   cfgOverride.sff_ref() = sffOverride;
   EXPECT_EQ(sffRxPreemphasisOverride(cfgOverride), 2);
+  EXPECT_EQ(sffTxEqualizationOverride(cfgOverride), std::nullopt);
+  EXPECT_EQ(sffRxAmplitudeOverride(cfgOverride), std::nullopt);
+
+  sffOverride.rxAmplitude() = 1;
+  cfgOverride.sff_ref() = sffOverride;
+  EXPECT_EQ(sffRxPreemphasisOverride(cfgOverride), 2);
+  EXPECT_EQ(sffTxEqualizationOverride(cfgOverride), std::nullopt);
+  EXPECT_EQ(sffRxAmplitudeOverride(cfgOverride), 1);
+
+  sffOverride.txEqualization() = 3;
+  cfgOverride.sff_ref() = sffOverride;
+  EXPECT_EQ(sffRxPreemphasisOverride(cfgOverride), 2);
+  EXPECT_EQ(sffTxEqualizationOverride(cfgOverride), 3);
+  EXPECT_EQ(sffRxAmplitudeOverride(cfgOverride), 1);
 }
