@@ -622,6 +622,16 @@ safe stateful server exception FbossTeUpdateError {
   2: list<TeFlow> failedDeleteFlows;
 }
 
+struct TeFlowDetails {
+  1: TeFlow flow;
+  3: list<common.NextHopThrift> nexthops;
+  4: list<common.NextHopThrift> resolvedNexthops;
+  // Enabled tracks state of flow rule. If there are
+  // no valid nexthops, agent will disable the rule
+  5: bool enabled;
+  6: optional ctrl.TeCounterID counterID;
+}
+
 service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
@@ -1232,6 +1242,10 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   void syncTeFlows(1: list<FlowEntry> teFlowEntries) throws (
     1: fboss.FbossBaseError error,
     2: FbossTeUpdateError teFlowError,
+  );
+
+  list<TeFlowDetails> getTeFlowTableDetails() throws (
+    1: fboss.FbossBaseError error,
   );
 }
 

@@ -2555,4 +2555,20 @@ void ThriftHandler::syncTeFlows(
     throw FbossTeUpdateError();
   }
 }
+
+void ThriftHandler::getTeFlowTableDetails(
+    std::vector<TeFlowDetails>& flowTable) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  auto teFlowTable = sw_->getState()->getTeFlowTable();
+  for (const auto& entry : *teFlowTable) {
+    TeFlowDetails flowDetails;
+    flowDetails.flow() = entry->getFlow();
+    flowDetails.enabled() = entry->getEnabled();
+    flowDetails.nexthops() = entry->getNextHops();
+    flowDetails.resolvedNexthops() = entry->getResolvedNextHops();
+    flowDetails.counterID() = entry->getCounterID();
+    flowTable.emplace_back(flowDetails);
+  }
+}
 } // namespace facebook::fboss
