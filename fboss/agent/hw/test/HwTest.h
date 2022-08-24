@@ -160,11 +160,6 @@ class HwTest : public ::testing::Test,
   virtual std::optional<TransceiverInfo> overrideTransceiverInfo() const {
     return std::nullopt;
   }
-  virtual std::pair<std::optional<SwitchID>, cfg::SwitchType>
-  getSwitchIdAndType() const {
-    return std::make_pair(
-        std::optional<SwitchID>(std::nullopt), cfg::SwitchType::NPU);
-  }
 
   std::shared_ptr<SwitchState> applyNewStateImpl(
       const std::shared_ptr<SwitchState>& newState,

@@ -4,13 +4,7 @@
 
 namespace facebook::fboss {
 
-class HwFabricSwitchTest : public HwTest {
- private:
-  std::pair<std::optional<SwitchID>, cfg::SwitchType> getSwitchIdAndType()
-      const override {
-    return std::make_pair(SwitchID(0), cfg::SwitchType::FABRIC);
-  }
-};
+class HwFabricSwitchTest : public HwTest {};
 
 TEST_F(HwFabricSwitchTest, init) {
   verifyAcrossWarmBoots([]() {}, []() {});
