@@ -237,4 +237,25 @@ std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateIngressProfile(
   return store.setObject(k, attributes);
 }
 
+void SaiBufferManager::createIngressBufferPool(
+    const std::shared_ptr<Port> port) {
+  /*
+   * We expect to create a single ingress buffer pool and there
+   * are checks in place to ensure more than 1 buffer pool is
+   * not configured. Although there are multiple possible port
+   * PG configs, all of it can point only to the same buffer
+   * pool config, hence we need to just process a single
+   * port PG config.
+   * Buffer configuration change would fall under disruptive
+   * config change and hence is not expected to happen as part
+   * of warm boot, hence we dont need to handle update case for
+   * buffer pool config as well.
+   */
+  if (!ingressBufferPoolHandle_) {
+    const auto& portPgCfgs = port->getPortPgConfigs();
+    const auto& portPgCfg = (*portPgCfgs)[0];
+    setupIngressBufferPool(*portPgCfg);
+  }
+}
+
 } // namespace facebook::fboss
