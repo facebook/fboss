@@ -558,6 +558,7 @@ class SaiStore {
       SaiObjectStore<SaiBridgePortTraits>,
       SaiObjectStore<SaiBufferPoolTraits>,
       SaiObjectStore<SaiBufferProfileTraits>,
+      SaiObjectStore<SaiIngressPriorityGroupTraits>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       SaiObjectStore<SaiCounterTraits>,
 #endif

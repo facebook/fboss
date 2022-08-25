@@ -88,6 +88,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_BUFFER_PROFILE:
       *count = fs->bufferProfileManager.map().size();
       break;
+    case SAI_OBJECT_TYPE_INGRESS_PRIORITY_GROUP:
+      *count = fs->ingressPriorityGroupManager.map().size();
+      break;
     case SAI_OBJECT_TYPE_BRIDGE_PORT: {
       for (const auto& br : fs->bridgeManager.map()) {
         *count += br.second.fm().map().size();
@@ -350,6 +353,12 @@ sai_status_t sai_get_object_key(
     }
     case SAI_OBJECT_TYPE_BUFFER_POOL: {
       for (const auto& b : fs->bufferPoolManager.map()) {
+        object_list[i++].key.object_id = b.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_INGRESS_PRIORITY_GROUP: {
+      for (const auto& b : fs->ingressPriorityGroupManager.map()) {
         object_list[i++].key.object_id = b.second.id;
       }
       break;
