@@ -296,3 +296,25 @@ TEST_F(BufferApiTest, getIngressPriorityGroupAttritbutes) {
           id, SaiIngressPriorityGroupTraits::Attributes::Index{}),
       10);
 }
+TEST_F(BufferApiTest, setIngressPriorityGroupAttritbutes) {
+  auto id = createIngressPriorityGroup();
+  bufferApi->setAttribute(
+      id, SaiIngressPriorityGroupTraits::Attributes::Port{2});
+  EXPECT_EQ(
+      bufferApi->getAttribute(
+          id, SaiIngressPriorityGroupTraits::Attributes::Port{}),
+      2);
+  bufferApi->setAttribute(
+      id, SaiIngressPriorityGroupTraits::Attributes::Index{20});
+  EXPECT_EQ(
+      bufferApi->getAttribute(
+          id, SaiIngressPriorityGroupTraits::Attributes::Index{}),
+      20);
+  std::optional<SaiIngressPriorityGroupTraits::Attributes::BufferProfile>
+      bufferProfile{100};
+  bufferApi->setAttribute(id, bufferProfile);
+  EXPECT_EQ(
+      bufferApi->getAttribute(
+          id, SaiIngressPriorityGroupTraits::Attributes::BufferProfile{}),
+      100);
+}
