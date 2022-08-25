@@ -37,7 +37,6 @@ std::size_t ReadOneByte(MediaInterfaceCode mediaType) {
       param.offset() = 0;
       param.length() = 1;
       request->parameter() = param;
-
       suspender.dismiss();
       wedgeMgr->readTransceiverRegister(response, std::move(request));
       suspender.rehire();
