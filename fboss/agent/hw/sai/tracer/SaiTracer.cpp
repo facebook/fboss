@@ -1376,6 +1376,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_INSEG_ENTRY:
       setInsegEntryAttributes(attr_list, attr_count, attrLines);
       break;
+    case SAI_OBJECT_TYPE_INGRESS_PRIORITY_GROUP:
+      setIngressPriorityGroupAttributes(attr_list, attr_count, attrLines);
+      break;
     case SAI_OBJECT_TYPE_LAG:
       setLagAttributes(attr_list, attr_count, attrLines);
       break;

@@ -18,5 +18,6 @@ sai_buffer_api_t* wrappedBufferApi();
 
 SET_ATTRIBUTE_FUNC_DECLARATION(BufferPool);
 SET_ATTRIBUTE_FUNC_DECLARATION(BufferProfile);
+SET_ATTRIBUTE_FUNC_DECLARATION(IngressPriorityGroup);
 
 } // namespace facebook::fboss
