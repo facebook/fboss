@@ -63,6 +63,10 @@ struct FakePort {
       SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED};
   sai_uint8_t priorityFlowControl{0xff};
   sai_port_err_status_list_t portError;
+  std::vector<sai_object_id_t> ingressPriorityGroupList;
+  sai_uint32_t numberOfIngressPriorityGroups{0};
+  sai_object_id_t qosTcToPriorityGroupMap{SAI_NULL_OBJECT_ID};
+  sai_object_id_t qosPfcPriorityToQueueMap{SAI_NULL_OBJECT_ID};
 };
 
 struct FakePortSerdes {

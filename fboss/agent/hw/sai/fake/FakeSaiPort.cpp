@@ -51,6 +51,10 @@ sai_status_t create_port_fn(
   std::optional<sai_port_ptp_mode_t> ptpMode;
   std::optional<sai_port_priority_flow_control_mode_t> priorityFlowControlMode;
   std::optional<sai_uint8_t> priorityFlowControl;
+  std::vector<sai_object_id_t> ingressPriorityGroupList;
+  std::optional<sai_uint32_t> numberOfIngressPriorityGroups;
+  std::optional<sai_object_id_t> qosTcToPriorityGroupMap;
+  std::optional<sai_object_id_t> qosPfcPriorityToQueueMap;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
@@ -153,6 +157,21 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL:
         priorityFlowControl = attr_list[i].value.u8;
         break;
+      case SAI_PORT_ATTR_INGRESS_PRIORITY_GROUP_LIST: {
+        for (int j = 0; j < attr_list[i].value.objlist.count; ++j) {
+          ingressPriorityGroupList.push_back(
+              attr_list[i].value.objlist.list[j]);
+        }
+      } break;
+      case SAI_PORT_ATTR_NUMBER_OF_INGRESS_PRIORITY_GROUPS:
+        numberOfIngressPriorityGroups = attr_list[i].value.u32;
+        break;
+      case SAI_PORT_ATTR_QOS_TC_TO_PRIORITY_GROUP_MAP:
+        qosTcToPriorityGroupMap = attr_list[i].value.oid;
+        break;
+      case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
+        qosPfcPriorityToQueueMap = attr_list[i].value.oid;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -232,6 +251,18 @@ sai_status_t create_port_fn(
   }
   if (priorityFlowControl.has_value()) {
     port.priorityFlowControl = priorityFlowControl.value();
+  }
+  if (ingressPriorityGroupList.size()) {
+    port.ingressPriorityGroupList = ingressPriorityGroupList;
+  }
+  if (numberOfIngressPriorityGroups.has_value()) {
+    port.numberOfIngressPriorityGroups = numberOfIngressPriorityGroups.value();
+  }
+  if (qosTcToPriorityGroupMap.has_value()) {
+    port.qosTcToPriorityGroupMap = qosTcToPriorityGroupMap.value();
+  }
+  if (qosPfcPriorityToQueueMap.has_value()) {
+    port.qosPfcPriorityToQueueMap = qosPfcPriorityToQueueMap.value();
   }
   return SAI_STATUS_SUCCESS;
 }
@@ -403,6 +434,22 @@ sai_status_t set_port_attribute_fn(
       break;
     case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL:
       port.priorityFlowControl = attr->value.u8;
+      break;
+    case SAI_PORT_ATTR_INGRESS_PRIORITY_GROUP_LIST: {
+      auto& ingressPriorityGroupList = port.ingressPriorityGroupList;
+      ingressPriorityGroupList.clear();
+      for (int j = 0; j < attr->value.objlist.count; ++j) {
+        ingressPriorityGroupList.push_back(attr->value.objlist.list[j]);
+      }
+    } break;
+    case SAI_PORT_ATTR_NUMBER_OF_INGRESS_PRIORITY_GROUPS:
+      port.numberOfIngressPriorityGroups = attr->value.u32;
+      break;
+    case SAI_PORT_ATTR_QOS_TC_TO_PRIORITY_GROUP_MAP:
+      port.qosTcToPriorityGroupMap = attr->value.oid;
+      break;
+    case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
+      port.qosPfcPriorityToQueueMap = attr->value.oid;
       break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
@@ -579,6 +626,26 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL:
         attr[i].value.u8 = port.priorityFlowControl;
+        break;
+      case SAI_PORT_ATTR_INGRESS_PRIORITY_GROUP_LIST: {
+        if (port.ingressPriorityGroupList.size() >
+            attr[i].value.objlist.count) {
+          attr[i].value.objlist.count = port.ingressPriorityGroupList.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.ingressPriorityGroupList.size(); ++j) {
+          attr[i].value.objlist.list[j] = port.ingressPriorityGroupList[j];
+        }
+        attr[i].value.objlist.count = port.ingressPriorityGroupList.size();
+      } break;
+      case SAI_PORT_ATTR_NUMBER_OF_INGRESS_PRIORITY_GROUPS:
+        attr[i].value.u32 = port.numberOfIngressPriorityGroups;
+        break;
+      case SAI_PORT_ATTR_QOS_TC_TO_PRIORITY_GROUP_MAP:
+        attr[i].value.oid = port.qosTcToPriorityGroupMap;
+        break;
+      case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
+        attr[i].value.oid = port.qosPfcPriorityToQueueMap;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
