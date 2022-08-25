@@ -59,6 +59,7 @@ struct FakeSai {
   FakeBridgeManager bridgeManager;
   FakeBufferPoolManager bufferPoolManager;
   FakeBufferProfileManager bufferProfileManager;
+  FakeIngressPriorityGroupManager ingressPriorityGroupManager;
   FakeCounterManager counterManager;
   FakeDebugCounterManager debugCounterManager;
   FakeFdbManager fdbManager;

@@ -69,4 +69,20 @@ using FakeBufferProfileManager =
 
 void populate_buffer_api(sai_buffer_api_t** buffer_api);
 
+class FakeIngressPriorityGroup {
+ public:
+  FakeIngressPriorityGroup(
+      sai_object_id_t port,
+      sai_uint8_t index,
+      std::optional<sai_object_id_t> bufferProfile)
+      : port(port), index(index), bufferProfile(bufferProfile) {}
+  sai_object_id_t id;
+  sai_object_id_t port;
+  sai_uint8_t index;
+  std::optional<sai_object_id_t> bufferProfile;
+};
+
+using FakeIngressPriorityGroupManager =
+    FakeManager<sai_object_id_t, FakeIngressPriorityGroup>;
+
 } // namespace facebook::fboss

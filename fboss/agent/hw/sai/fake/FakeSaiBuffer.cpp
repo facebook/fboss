@@ -261,6 +261,94 @@ sai_status_t get_buffer_profile_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t create_ingress_priority_group_fn(
+    sai_object_id_t* ingress_priority_group_id,
+    sai_object_id_t /* switch_id */,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  std::optional<sai_object_id_t> port;
+  std::optional<sai_uint8_t> index;
+  std::optional<sai_object_id_t> bufferProfile;
+  auto fs = FakeSai::getInstance();
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_INGRESS_PRIORITY_GROUP_ATTR_BUFFER_PROFILE:
+        bufferProfile = attr_list[i].value.oid;
+        break;
+      case SAI_INGRESS_PRIORITY_GROUP_ATTR_PORT:
+        port = attr_list[i].value.oid;
+        break;
+      case SAI_INGRESS_PRIORITY_GROUP_ATTR_INDEX:
+        index = attr_list[i].value.u8;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  if (!port || !index) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+  *ingress_priority_group_id = fs->ingressPriorityGroupManager.create(
+      port.value(), index.value(), bufferProfile);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_ingress_priority_group_fn(
+    sai_object_id_t ingress_priority_group_id) {
+  auto fs = FakeSai::getInstance();
+  fs->ingressPriorityGroupManager.remove(ingress_priority_group_id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t set_ingress_priority_group_attribute_fn(
+    sai_object_id_t ingress_priority_group_id,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& ingressPriorityGroup =
+      fs->ingressPriorityGroupManager.get(ingress_priority_group_id);
+  switch (attr->id) {
+    case SAI_INGRESS_PRIORITY_GROUP_ATTR_BUFFER_PROFILE:
+      ingressPriorityGroup.bufferProfile = attr->value.oid;
+      break;
+    case SAI_INGRESS_PRIORITY_GROUP_ATTR_PORT:
+      ingressPriorityGroup.port = attr->value.oid;
+      break;
+    case SAI_INGRESS_PRIORITY_GROUP_ATTR_INDEX:
+      ingressPriorityGroup.index = attr->value.u8;
+      break;
+    default:
+      return SAI_STATUS_INVALID_PARAMETER;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_ingress_priority_group_attribute_fn(
+    sai_object_id_t ingress_priority_group_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& ingressPriorityGroup =
+      fs->ingressPriorityGroupManager.get(ingress_priority_group_id);
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr[i].id) {
+      case SAI_INGRESS_PRIORITY_GROUP_ATTR_BUFFER_PROFILE:
+        attr[i].value.oid = ingressPriorityGroup.bufferProfile
+            ? ingressPriorityGroup.bufferProfile.value()
+            : 0;
+        break;
+      case SAI_INGRESS_PRIORITY_GROUP_ATTR_PORT:
+        attr[i].value.oid = ingressPriorityGroup.port;
+        break;
+      case SAI_INGRESS_PRIORITY_GROUP_ATTR_INDEX:
+        attr[i].value.u8 = ingressPriorityGroup.index;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_buffer_api_t _buffer_api;
@@ -277,6 +365,12 @@ void populate_buffer_api(sai_buffer_api_t** buffer_api) {
   _buffer_api.remove_buffer_profile = &remove_buffer_profile_fn;
   _buffer_api.set_buffer_profile_attribute = &set_buffer_profile_attribute_fn;
   _buffer_api.get_buffer_profile_attribute = &get_buffer_profile_attribute_fn;
+  _buffer_api.create_ingress_priority_group = &create_ingress_priority_group_fn;
+  _buffer_api.remove_ingress_priority_group = &remove_ingress_priority_group_fn;
+  _buffer_api.get_ingress_priority_group_attribute =
+      &get_ingress_priority_group_attribute_fn;
+  _buffer_api.set_ingress_priority_group_attribute =
+      &set_ingress_priority_group_attribute_fn;
   *buffer_api = &_buffer_api;
 }
 
