@@ -194,7 +194,7 @@ class CowStorageMgr {
    * A list of pending state updates to be applied.
    */
   folly::Synchronized<CowStateUpdateList> pendingUpdates_;
-  folly::ScopedEventBaseThread updateEvbThread_;
+  folly::ScopedEventBaseThread updateEvbThread_{"CowStorageMgrUpdateThread"};
 };
 
 } // namespace facebook::fboss::fsdb
