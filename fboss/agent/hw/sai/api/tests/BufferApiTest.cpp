@@ -97,6 +97,33 @@ class BufferApiTest : public ::testing::Test {
         : 0;
     EXPECT_EQ(expectedXonOffsetTh, gotXonOffsetTh);
   }
+  IngressPriorityGroupSaiId createIngressPriorityGroup() {
+    SaiIngressPriorityGroupTraits::Attributes::Port port{1};
+    SaiIngressPriorityGroupTraits::Attributes::Index index{10};
+    std::optional<SaiIngressPriorityGroupTraits::Attributes::BufferProfile>
+        bufferProfile;
+
+    SaiIngressPriorityGroupTraits::CreateAttributes c{
+        port, index, bufferProfile};
+    return bufferApi->create<SaiIngressPriorityGroupTraits>(c, 0);
+  }
+  void checkIngressPriorityGroup(IngressPriorityGroupSaiId id) const {
+    SaiIngressPriorityGroupTraits::Attributes::Port port{};
+    auto gotPort = bufferApi->getAttribute(id, port);
+    EXPECT_EQ(fs->ingressPriorityGroupManager.get(id).port, gotPort);
+
+    SaiIngressPriorityGroupTraits::Attributes::Index index{};
+    auto gotIndex = bufferApi->getAttribute(id, index);
+    EXPECT_EQ(fs->ingressPriorityGroupManager.get(id).index, gotIndex);
+
+    SaiIngressPriorityGroupTraits::Attributes::BufferProfile bufferProfile{};
+    auto gotBufferProfile = bufferApi->getAttribute(id, bufferProfile);
+    auto expectedBufferProfile =
+        fs->ingressPriorityGroupManager.get(id).bufferProfile.has_value()
+        ? fs->ingressPriorityGroupManager.get(id).bufferProfile.value()
+        : 0;
+    EXPECT_EQ(expectedBufferProfile, gotBufferProfile);
+  }
 
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<BufferApi> bufferApi;
@@ -253,4 +280,19 @@ TEST_F(BufferApiTest, setBufferProfileAttributesIngress) {
       bufferApi->getAttribute(
           profileId, SaiBufferProfileTraits::Attributes::XonOffsetTh{}),
       4826);
+}
+TEST_F(BufferApiTest, createIngressPriorityGroup) {
+  auto ingressPriorityGroupId = createIngressPriorityGroup();
+  checkIngressPriorityGroup(ingressPriorityGroupId);
+}
+TEST_F(BufferApiTest, getIngressPriorityGroupAttritbutes) {
+  auto id = createIngressPriorityGroup();
+  EXPECT_EQ(
+      bufferApi->getAttribute(
+          id, SaiIngressPriorityGroupTraits::Attributes::Port{}),
+      1);
+  EXPECT_EQ(
+      bufferApi->getAttribute(
+          id, SaiIngressPriorityGroupTraits::Attributes::Index{}),
+      10);
 }
