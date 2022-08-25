@@ -258,4 +258,15 @@ void SaiBufferManager::createIngressBufferPool(
   }
 }
 
+void SaiBufferManager::createIngressBufferProfiles(
+    const std::shared_ptr<Port> port,
+    folly::F14FastMap<uint16_t, std::shared_ptr<SaiBufferProfile>>&
+        pgBufferProfiles) {
+  const auto& portPgCfgs = port->getPortPgConfigs();
+  for (const auto& portPgCfg : *portPgCfgs) {
+    pgBufferProfiles[portPgCfg->getID()] =
+        getOrCreateIngressProfile(*portPgCfg);
+  }
+}
+
 } // namespace facebook::fboss

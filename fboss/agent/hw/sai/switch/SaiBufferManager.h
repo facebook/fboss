@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
+#include "fboss/agent/state/PortPgConfig.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
 
@@ -50,6 +51,10 @@ class SaiBufferManager {
   void setupIngressBufferPool(const PortPgConfig& cfg);
   void updateStats();
   void createIngressBufferPool(const std::shared_ptr<Port> port);
+  void createIngressBufferProfiles(
+      const std::shared_ptr<Port> port,
+      folly::F14FastMap<uint16_t, std::shared_ptr<SaiBufferProfile>>&
+          pgBufferProfiles);
   uint64_t getDeviceWatermarkBytes() const {
     return deviceWatermarkBytes_;
   }
