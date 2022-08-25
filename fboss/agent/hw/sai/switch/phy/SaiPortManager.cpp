@@ -224,9 +224,59 @@ void SaiPortManager::enableAfeAdaptiveMode(PortID /*portID*/) {}
  * file
  */
 void SaiPortManager::programSerdes(
-    std::shared_ptr<SaiPort> /* saiLinePort */,
-    std::shared_ptr<Port> /* swPort */,
-    SaiPortHandle* /* portHandle */) {}
+    std::shared_ptr<SaiPort> saiLinePort,
+    std::shared_ptr<Port> swPort,
+    SaiPortHandle* portHandle) {
+  if (!platform_->isSerdesApiSupported() ||
+      !(platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET))) {
+    return;
+  }
+
+  std::shared_ptr<SaiPort> saiSysPort = portHandle->sysPort;
+
+  // Create the Line side Serdes
+  SaiPortSerdesTraits::AdapterHostKey lineSerdesKey{saiLinePort->adapterKey()};
+  auto& store = saiStore_->get<SaiPortSerdesTraits>();
+  // check if serdes object already exists for given port
+  std::shared_ptr<SaiPortSerdes> lineSerdes = store.get(lineSerdesKey);
+
+  if (lineSerdes) {
+    // If the Serdes exists then reset it
+    lineSerdes.reset();
+  }
+
+  // The line side pin config is optional parameter but for PHY it must be
+  // provided
+  if (!swPort->getLinePinConfigs().has_value()) {
+    throw FbossError("Line side pin config not found");
+  }
+
+  SaiPortSerdesTraits::CreateAttributes serdesAttributes =
+      serdesAttributesFromSwPinConfigs(
+          saiLinePort->adapterKey(),
+          swPort->getLinePinConfigs().value(),
+          lineSerdes);
+
+  // create Line port Serdes
+  portHandle->serdes = store.setObject(lineSerdesKey, serdesAttributes);
+
+  // Create the system side Serdes now
+  SaiPortSerdesTraits::AdapterHostKey sysSerdesKey{saiSysPort->adapterKey()};
+  // check if serdes object already exists for given port
+  std::shared_ptr<SaiPortSerdes> sysSerdes = store.get(sysSerdesKey);
+
+  if (sysSerdes) {
+    // If the Serdes exists then reset it
+    sysSerdes.reset();
+  }
+
+  serdesAttributes = serdesAttributesFromSwPinConfigs(
+      saiSysPort->adapterKey(), swPort->getPinConfigs(), sysSerdes);
+
+  // create System port serdes
+  portHandle->sysSerdes = store.setObject(sysSerdesKey, serdesAttributes);
+}
 
 /*
  * serdesAttributesFromSwPinConfigs
@@ -237,9 +287,54 @@ void SaiPortManager::programSerdes(
  */
 SaiPortSerdesTraits::CreateAttributes
 SaiPortManager::serdesAttributesFromSwPinConfigs(
-    PortSaiId /* portSaiId */,
-    const std::vector<phy::PinConfig>& /* pinConfigs */,
+    PortSaiId portSaiId,
+    const std::vector<phy::PinConfig>& pinConfigs,
     const std::shared_ptr<SaiPortSerdes>& /* serdes */) {
-  return SaiPortSerdesTraits::CreateAttributes{};
+  SaiPortSerdesTraits::CreateAttributes attrs;
+
+  SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
+  SaiPortSerdesTraits::Attributes::TxFirMain::ValueType txMain;
+  SaiPortSerdesTraits::Attributes::TxFirPost1::ValueType txPost1;
+
+  // Now use pinConfigs from SW port as the source of truth
+  auto numExpectedTxLanes = 0;
+  for (const auto& pinConfig : pinConfigs) {
+    if (auto tx = pinConfig.tx()) {
+      ++numExpectedTxLanes;
+      txPre1.push_back(*tx->pre());
+      txMain.push_back(*tx->main());
+      txPost1.push_back(*tx->post());
+    }
+  }
+
+  auto setTxAttr = [](auto& attrs, auto type, const auto& val) {
+    auto& attr = std::get<std::optional<std::decay_t<decltype(type)>>>(attrs);
+    if (!val.empty()) {
+      attr = val;
+    }
+  };
+
+  std::get<SaiPortSerdesTraits::Attributes::PortId>(attrs) =
+      static_cast<sai_object_id_t>(portSaiId);
+  setTxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre1{}, txPre1);
+  setTxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost1{}, txPost1);
+  setTxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirMain{}, txMain);
+
+  std::string dbgOutput;
+  dbgOutput.append(folly::sformat(
+      "Attributes for creating port {} Serdes (per lane): ",
+      static_cast<uint64_t>(portSaiId)));
+
+  for (auto lane = 0; lane < numExpectedTxLanes; lane++) {
+    dbgOutput.append(folly::sformat(
+        "[Pre1 {:d} Main {:d} Post1 {:d}], ",
+        (lane < txPre1.size() ? txPre1[lane] : static_cast<unsigned int>(-1)),
+        (lane < txMain.size() ? txMain[lane] : static_cast<unsigned int>(-1)),
+        (lane < txPost1.size() ? txPost1[lane]
+                               : static_cast<unsigned int>(-1))));
+  }
+  XLOG(INFO) << dbgOutput;
+
+  return attrs;
 }
 } // namespace facebook::fboss

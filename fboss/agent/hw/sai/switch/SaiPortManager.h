@@ -76,6 +76,7 @@ struct SaiPortHandle {
   std::shared_ptr<SaiPort> port;
   std::shared_ptr<SaiPort> sysPort;
   std::shared_ptr<SaiPortSerdes> serdes;
+  std::shared_ptr<SaiPortSerdes> sysSerdes;
   std::shared_ptr<SaiPortConnector> connector;
   std::shared_ptr<SaiBridgePort> bridgePort;
   std::vector<SaiQueueHandle*> configuredQueues;

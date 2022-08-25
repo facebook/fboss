@@ -8,6 +8,7 @@ bool Mvl88X93161Asic::isSupported(Feature feature) const {
   switch (feature) {
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
     case HwAsic::Feature::FEC:
+    case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
       return true;
     default:
       return false;
