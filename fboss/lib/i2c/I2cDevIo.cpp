@@ -92,9 +92,9 @@ void I2cDevIo::read(uint8_t addr, uint8_t offset, uint8_t* buf, int len) {
   packets.nmsgs = 2;
 
   if (ioctl(fd_, I2C_RDWR, &packets) >= 0) {
-    // Replicate a 50 ms delay after each read from YampI2c class to avoid
+    // Replicate a 1 ms delay after each read from YampI2c class to avoid
     // invalidating previously qualified transceivers per review with HW optics
-    const auto usDelay = 50000;
+    const auto usDelay = 1000;
     /* sleep override */ usleep(usDelay);
   } else {
     throw I2cDevIoError(fmt::format(
