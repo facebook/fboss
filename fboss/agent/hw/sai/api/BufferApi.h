@@ -126,6 +126,39 @@ SAI_ATTRIBUTE_NAME(BufferProfile, XoffTh);
 SAI_ATTRIBUTE_NAME(BufferProfile, XonTh);
 SAI_ATTRIBUTE_NAME(BufferProfile, XonOffsetTh);
 
+struct SaiIngressPriorityGroupTraits {
+  static constexpr sai_api_t ApiType = SAI_API_BUFFER;
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_INGRESS_PRIORITY_GROUP;
+  using SaiApiT = BufferApi;
+  struct Attributes {
+    using EnumType = sai_ingress_priority_group_attr_t;
+    using Port = SaiAttribute<
+        EnumType,
+        SAI_INGRESS_PRIORITY_GROUP_ATTR_PORT,
+        sai_object_id_t>;
+    using Index = SaiAttribute<
+        EnumType,
+        SAI_INGRESS_PRIORITY_GROUP_ATTR_INDEX,
+        sai_uint8_t>;
+    using BufferProfile = SaiAttribute<
+        EnumType,
+        SAI_INGRESS_PRIORITY_GROUP_ATTR_BUFFER_PROFILE,
+        sai_object_id_t>;
+  };
+
+  using AdapterKey = IngressPriorityGroupSaiId;
+  using CreateAttributes = std::tuple<
+      Attributes::Port,
+      Attributes::Index,
+      std::optional<Attributes::BufferProfile>>;
+  using AdapterHostKey = CreateAttributes;
+};
+
+SAI_ATTRIBUTE_NAME(IngressPriorityGroup, Port);
+SAI_ATTRIBUTE_NAME(IngressPriorityGroup, Index);
+SAI_ATTRIBUTE_NAME(IngressPriorityGroup, BufferProfile);
+
 class BufferApi : public SaiApi<BufferApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_BUFFER;
