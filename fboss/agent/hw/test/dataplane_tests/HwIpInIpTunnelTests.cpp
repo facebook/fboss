@@ -7,8 +7,12 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/hw/test/HwTestPacketSnooper.h"
+#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/TrafficPolicyUtils.h"
+#include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "folly/logging/xlog.h"
@@ -29,6 +33,10 @@ class HwIpInIpTunnelTest : public HwLinkStateDependentTest {
         getProgrammedState(), getPlatform()->getLocalMac());
     resolveNeigborAndProgramRoutes(
         ecmpHelper, 1); // forwarding takes the first port: 0
+  }
+
+  HwSwitchEnsemble::Features featuresDesired() const override {
+    return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
   }
 
   cfg::SwitchConfig initialConfig() const override {
@@ -159,6 +167,33 @@ TEST_F(HwIpInIpTunnelTest, IpinIpNoTunnelConfigured) {
     EXPECT_EQ(afterInBytes - beforeInBytes, afterOutBytes - beforeOutBytes);
   };
   this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwIpInIpTunnelTest, DecapPacketParsing) {
+  auto verify = [=]() {
+    auto packetCapture = HwTestPacketTrapEntry(
+        getHwSwitch(), std::set<PortID>({masterLogicalPortIds()[0]}));
+    HwTestPacketSnooper snooper(getHwSwitchEnsemble());
+    sendIpInIpPacketPort(kTunnelTermDstIp, "dead::1", 0xFA, 0xCE);
+    auto capturedPkt = snooper.waitForPacket(1);
+    ASSERT_TRUE(capturedPkt.has_value());
+
+    auto v6Pkt = capturedPkt->v6PayLoad();
+    auto hdr = v6Pkt->header();
+    EXPECT_EQ(hdr.dstAddr, folly::IPAddress("dead::1"));
+    EXPECT_EQ(hdr.srcAddr, folly::IPAddress("4004::23"));
+    // using PIPE mode: inner DSCP and ECN should not be changed
+    EXPECT_EQ(hdr.trafficClass, 0xCE);
+
+    auto udpPkt = v6Pkt->payload();
+    auto payload = udpPkt->payload();
+    EXPECT_EQ(payload.size(), 10);
+    EXPECT_EQ(payload, std::vector<uint8_t>(10, 0xff));
+    EXPECT_EQ(udpPkt->header().srcPort, 10000);
+    EXPECT_EQ(udpPkt->header().dstPort, 20000);
+  };
+
+  this->verifyAcrossWarmBoots([=] {}, verify);
 }
 
 } // namespace facebook::fboss
