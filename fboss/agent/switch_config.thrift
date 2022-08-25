@@ -620,6 +620,10 @@ enum QueueScheduling {
   // This means this can cause starvation on other queues if not
   // configured properly
   STRICT_PRIORITY = 1,
+  // The round robin runs on all queues set to use WRR with deficit counter
+  // for a port
+  // Required to set a weight when using this
+  DEFICIT_ROUND_ROBIN = 2,
 }
 
 // Detection based on average queue length in bytes with two thresholds.

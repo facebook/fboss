@@ -200,11 +200,15 @@ CfgSchedulingAndWeight bcmSchedulingAndWeightToCfg(
   cfg::QueueScheduling scheduling;
   int weight;
   if (pair.first == BCM_COSQ_STRICT ||
-      (pair.first == BCM_COSQ_WEIGHTED_ROUND_ROBIN && pair.second == 0)) {
+      (pair.first == BCM_COSQ_WEIGHTED_ROUND_ROBIN && pair.second == 0) ||
+      (pair.first == BCM_COSQ_DEFICIT_ROUND_ROBIN && pair.second == 0)) {
     scheduling = cfg::QueueScheduling::STRICT_PRIORITY;
     weight = 1;
   } else if (pair.first == BCM_COSQ_WEIGHTED_ROUND_ROBIN) {
     scheduling = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
+    weight = pair.second;
+  } else if (pair.first == BCM_COSQ_DEFICIT_ROUND_ROBIN) {
+    scheduling = cfg::QueueScheduling::DEFICIT_ROUND_ROBIN;
     weight = pair.second;
   } else {
     throw FbossError("Unknown cosQ scheduling mode: ", pair.first);
