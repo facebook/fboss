@@ -60,6 +60,10 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
       portStore.setObject(sysPortKey, attributes, swPort->getID());
   XLOG(DBG3) << "Created sysport " << saiSysPort->adapterKey();
 
+  // Record the line port handle and port connector handles
+  auto handle = std::make_unique<SaiPortHandle>();
+  handle->sysPort = saiSysPort;
+
   // Create line side port
   attributes = attributesFromSwPort(swPort, true);
   SaiPortTraits::AdapterHostKey linePortKey{
@@ -67,6 +71,10 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   auto saiLinePort =
       portStore.setObject(linePortKey, attributes, swPort->getID());
   XLOG(DBG3) << "Created lineport " << saiLinePort->adapterKey();
+  handle->port = saiLinePort;
+
+  // Program System and Line side Serdes
+  programSerdes(saiLinePort, swPort, handle.get());
 
   // Create the port connector
   SaiPortConnectorTraits::CreateAttributes portConnAttr{
@@ -77,6 +85,9 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   auto saiPortConn = portConnStore.setObject(portConnKey, portConnAttr);
   XLOG(DBG3) << "Created port connector " << saiPortConn->adapterKey();
 
+  handle->connector = saiPortConn;
+  handles_.emplace(swPort->getID(), std::move(handle));
+
   // Make admin state of sysport and lineport up after the connector  is created
   saiSysPort->setOptionalAttribute(SaiPortTraits::Attributes::AdminState{true});
   saiLinePort->setOptionalAttribute(
@@ -86,13 +97,6 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
       "Port admin state of lineport {:d} and sysport {:d} made up",
       static_cast<uint64_t>(saiLinePort->adapterKey()),
       static_cast<uint64_t>(saiSysPort->adapterKey()));
-
-  // Record the line port handle and port connector handles
-  auto handle = std::make_unique<SaiPortHandle>();
-  handle->port = saiLinePort;
-  handle->sysPort = saiSysPort;
-  handle->connector = saiPortConn;
-  handles_.emplace(swPort->getID(), std::move(handle));
 
   if (swPort->isEnabled()) {
     portStats_.emplace(
