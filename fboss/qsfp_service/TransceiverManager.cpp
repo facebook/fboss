@@ -1012,18 +1012,20 @@ void TransceiverManager::triggerAgentConfigChangeEvent() {
 
   // Only need to reset data path if there's a new coldboot
   bool resetDataPath = false;
-  std::optional<std::string> resetDataPathLog;
+  std::string resetDataPathLog;
   if (auto lastColdbootAppliedInMs =
           newConfigAppliedInfo.lastColdbootAppliedInMs()) {
     if (auto oldLastColdbootAppliedInMs =
             configAppliedInfo_.lastColdbootAppliedInMs()) {
       resetDataPath = (*lastColdbootAppliedInMs > *oldLastColdbootAppliedInMs);
-      resetDataPathLog = folly::to<std::string>(
-          "Need reset data path. [Old Coldboot time:",
-          *oldLastColdbootAppliedInMs,
-          ", New Coldboot time:",
-          *lastColdbootAppliedInMs,
-          "]");
+      if (resetDataPath) {
+        resetDataPathLog = folly::to<std::string>(
+            "Need reset data path. [Old Coldboot time:",
+            *oldLastColdbootAppliedInMs,
+            ", New Coldboot time:",
+            *lastColdbootAppliedInMs,
+            "]");
+      }
     } else {
       // Always reset data path the cached info doesn't have coldboot config
       // applied time
@@ -1039,8 +1041,7 @@ void TransceiverManager::triggerAgentConfigChangeEvent() {
              << *newConfigAppliedInfo.lastAppliedInMs()
              << " and last cached time:"
              << *configAppliedInfo_.lastAppliedInMs()
-             << ". Issue all ports reprogramming events. "
-             << (resetDataPathLog ? *resetDataPathLog : "");
+             << ". Issue all ports reprogramming events. " << resetDataPathLog;
 
   // Update present transceiver state machine back to DISCOVERED
   // and absent transeiver state machine back to NOT_PRESENT
