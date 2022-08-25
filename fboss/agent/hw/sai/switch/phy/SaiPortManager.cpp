@@ -214,4 +214,32 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 }
 
 void SaiPortManager::enableAfeAdaptiveMode(PortID /*portID*/) {}
+
+/*
+ * programSerdes
+ *
+ * This function programs the Serdes for the PHY port. It programs 2 serdes
+ * - one for lien side port and other one for system side port. The Serdes
+ * parameters are fetched from the SI parameters put in the platformMapping
+ * file
+ */
+void SaiPortManager::programSerdes(
+    std::shared_ptr<SaiPort> /* saiLinePort */,
+    std::shared_ptr<Port> /* swPort */,
+    SaiPortHandle* /* portHandle */) {}
+
+/*
+ * serdesAttributesFromSwPinConfigs
+ *
+ * This function returns the list of attributes for Creating a serdes. The
+ * input is taken from list of pin config which could be system side PHY pin
+ * config or the line side PHY pin config
+ */
+SaiPortSerdesTraits::CreateAttributes
+SaiPortManager::serdesAttributesFromSwPinConfigs(
+    PortSaiId /* portSaiId */,
+    const std::vector<phy::PinConfig>& /* pinConfigs */,
+    const std::shared_ptr<SaiPortSerdes>& /* serdes */) {
+  return SaiPortSerdesTraits::CreateAttributes{};
+}
 } // namespace facebook::fboss
