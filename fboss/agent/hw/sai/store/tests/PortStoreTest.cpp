@@ -43,6 +43,8 @@ class PortStoreTest : public SaiStoreTest {
           std::nullopt, // PTP Mode
           std::nullopt, // PFC Mode
           std::nullopt, // PFC Priorities
+          std::nullopt, // TC to Priority Group map
+          std::nullopt, // PFC Priority to Queue map
     };
   }
 

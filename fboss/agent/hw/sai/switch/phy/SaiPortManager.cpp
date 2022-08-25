@@ -213,7 +213,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, std::nullopt,
 #endif
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-        std::nullopt,
+        std::nullopt, std::nullopt, std::nullopt,
   };
 }
 

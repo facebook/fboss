@@ -43,6 +43,10 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap {
       SAI_ATTR_MAP(Port, PriorityFlowControlMode),
       SAI_ATTR_MAP(Port, PriorityFlowControl),
       SAI_ATTR_MAP(Port, PortErrStatus),
+      SAI_ATTR_MAP(Port, IngressPriorityGroupList),
+      SAI_ATTR_MAP(Port, NumberOfIngressPriorityGroups),
+      SAI_ATTR_MAP(Port, QosTcToPriorityGroupMap),
+      SAI_ATTR_MAP(Port, QosPfcPriorityToQueueMap),
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _PortSerdesMap{

@@ -382,6 +382,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         ptpStatusOpt, // PTP Mode, can be std::nullopt
         std::nullopt, // PFC Mode
         std::nullopt, // PFC Priorities
+        std::nullopt, // TC to Priority Group map
+        std::nullopt, // PFC Priority to Queue map
   };
 }
 

@@ -194,6 +194,26 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_ERR_STATUS_LIST,
         std::vector<sai_port_err_status_t>,
         SaiPortErrStatusDefault>;
+    using IngressPriorityGroupList = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_INGRESS_PRIORITY_GROUP_LIST,
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
+    using NumberOfIngressPriorityGroups = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_NUMBER_OF_INGRESS_PRIORITY_GROUPS,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+    using QosTcToPriorityGroupMap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_TC_TO_PRIORITY_GROUP_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
+    using QosPfcPriorityToQueueMap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP,
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -226,7 +246,9 @@ struct SaiPortTraits {
       std::optional<Attributes::SystemPortId>,
       std::optional<Attributes::PtpMode>,
       std::optional<Attributes::PriorityFlowControlMode>,
-      std::optional<Attributes::PriorityFlowControl>>;
+      std::optional<Attributes::PriorityFlowControl>,
+      std::optional<Attributes::QosTcToPriorityGroupMap>,
+      std::optional<Attributes::QosPfcPriorityToQueueMap>>;
 
   static constexpr std::array<sai_stat_id_t, 32> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,          SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -291,6 +313,10 @@ SAI_ATTRIBUTE_NAME(Port, PortEyeValues)
 SAI_ATTRIBUTE_NAME(Port, PriorityFlowControlMode)
 SAI_ATTRIBUTE_NAME(Port, PriorityFlowControl)
 SAI_ATTRIBUTE_NAME(Port, PortErrStatus)
+SAI_ATTRIBUTE_NAME(Port, IngressPriorityGroupList)
+SAI_ATTRIBUTE_NAME(Port, NumberOfIngressPriorityGroups)
+SAI_ATTRIBUTE_NAME(Port, QosTcToPriorityGroupMap)
+SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToQueueMap)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
