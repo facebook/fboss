@@ -1740,6 +1740,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF_TRAP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_HOSTIF_TRAP_GROUP, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_INGRESS_PRIORITY_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_LAG, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_LAG_MEMBER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_MACSEC, 0);
