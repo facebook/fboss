@@ -219,7 +219,8 @@ void BcmSwitchEnsemble::init(
   std::unique_ptr<AgentConfig> agentConfig;
   BcmConfig::ConfigMap cfg;
   std::string yamlCfg;
-  if (getPlatformMode() == PlatformMode::FAKE_WEDGE) {
+  auto platformMode = getPlatformMode();
+  if (platformMode == PlatformMode::FAKE_WEDGE) {
     FLAGS_flexports = true;
     for (int n = 1; n <= 125; n += 4) {
       addFlexPort(cfg, n, 40);
@@ -237,25 +238,40 @@ void BcmSwitchEnsemble::init(
           item.first.c_str(), item.second.c_str(), gflags::SET_FLAG_IF_DEFAULT);
     }
   }
+  // Augment bcm configs based on capabilities.
+  // We should really move this functionality to generated bcm_test configs for
+  // features we deploy widely (say EM).
+  // Unfortunately we can't use ASIC for querying this capabilities, since
+  // ASIC construction requires inputs from AgentConfig (switchType) during
+  // construction.
+  std::unordered_set<PlatformMode> th3AndTh4BcmPlatforms = {
+      PlatformMode::MINIPACK,
+      PlatformMode::YAMP,
+      PlatformMode::WEDGE400,
+      PlatformMode::DARWIN,
+      PlatformMode::FUJI,
+      PlatformMode::ELBERT};
   // when in lossless mode on support platforms, use a different BCM knob
   if (FLAGS_mmu_lossless_mode &&
-      platform->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+      th3AndTh4BcmPlatforms.find(platformMode) != th3AndTh4BcmPlatforms.end()) {
     XLOG(DBG2) << "Modify the bcm cfg as mmu_lossless mode is enabled";
     modifyCfgForPfcTests(bcmTestPlatform, yamlCfg, cfg);
   }
-  if (FLAGS_load_qcm_fw &&
-      platform->getAsic()->isSupported(HwAsic::Feature::QCM)) {
-    XLOG(DBG2) << "Modify bcm cfg as load_qcm_fw is enabled";
-    modifyCfgForQcmTests(cfg);
-  }
   if (FLAGS_enable_exact_match &&
-      platform->getAsic()->isSupported(HwAsic::Feature::EXACT_MATCH)) {
+      th3AndTh4BcmPlatforms.find(platformMode) != th3AndTh4BcmPlatforms.end()) {
     XLOG(DBG2) << "Modify bcm cfg as enable_exact_match is enabled";
     if (bcmTestPlatform->usesYamlConfig()) {
       modifyCfgForEMTests(yamlCfg);
     } else {
       cfg["fpem_mem_entries"] = "0x10000";
     }
+  }
+  std::unordered_set<PlatformMode> thBcmPlatforms = {
+      PlatformMode::WEDGE100, PlatformMode::GALAXY_LC, PlatformMode::GALAXY_FC};
+  if (FLAGS_load_qcm_fw &&
+      thBcmPlatforms.find(platformMode) != thBcmPlatforms.end()) {
+    XLOG(DBG2) << "Modify bcm cfg as load_qcm_fw is enabled";
+    modifyCfgForQcmTests(cfg);
   }
   if (bcmTestPlatform->usesYamlConfig()) {
     BcmAPI::initHSDK(yamlCfg);
