@@ -40,6 +40,38 @@ class FsdbBaseComponentSyncer {
     return *readyForPublishing_.rlock();
   }
 
+  bool isStats() {
+    return isStats_;
+  }
+
+  const std::vector<std::string>& getBasePath() {
+    return basePath_;
+  }
+
+  virtual void publisherStateChanged(
+      FsdbStreamClient::State oldState,
+      FsdbStreamClient::State newState) = 0;
+
+ protected:
+  FsdbPubSubManager* pubSubManager() {
+    return pubSubManager_;
+  }
+
+  folly::Synchronized<bool> readyForPublishing_{false};
+
+ private:
+  std::vector<std::string> basePath_;
+  bool isStats_;
+  FsdbPubSubManager* pubSubManager_;
+};
+
+class FsdbBaseDeltaComponentSyncer : public FsdbBaseComponentSyncer {
+ public:
+  using FsdbBaseComponentSyncer::FsdbBaseComponentSyncer;
+
+ protected:
+  void publishDelta(OperDelta&& deltas);
+
   OperDelta createDelta(std::vector<OperDeltaUnit>&& deltas) const {
     OperDelta delta;
     delta.changes() = deltas;
@@ -77,33 +109,15 @@ class FsdbBaseComponentSyncer {
     }
     return deltaUnit;
   }
-
-  const std::vector<std::string>& getBasePath() {
-    return basePath_;
-  }
-
-  virtual void publisherStateChanged(
-      FsdbStreamClient::State oldState,
-      FsdbStreamClient::State newState) = 0;
-
- protected:
-  void publishDelta(OperDelta&& deltas);
-  void publishPath(OperState&& data);
-
- private:
-  std::vector<std::string> basePath_;
-  bool isStats_;
-  FsdbPubSubManager* pubSubManager_;
-  folly::Synchronized<bool> readyForPublishing_{false};
 };
 
 template <typename DataT>
-class FsdbStateComponentSyncer : public FsdbBaseComponentSyncer {
+class FsdbStateComponentSyncer : public FsdbBaseDeltaComponentSyncer {
  public:
   FsdbStateComponentSyncer(
       folly::EventBase* evb,
       std::vector<std::string>&& basePath)
-      : FsdbBaseComponentSyncer(std::move(basePath), false /* isStats */),
+      : FsdbBaseDeltaComponentSyncer(std::move(basePath), false /* isStats */),
         evb_(evb) {
     CHECK(evb);
   }
@@ -141,10 +155,18 @@ class FsdbStateComponentSyncer : public FsdbBaseComponentSyncer {
   folly::EventBase* evb_;
 };
 
-class FsdbStatsComponentSyncer : public FsdbBaseComponentSyncer {
+class FsdbBasePathComponentSyncer : public FsdbBaseComponentSyncer {
+ public:
+  using FsdbBaseComponentSyncer::FsdbBaseComponentSyncer;
+
+ protected:
+  void publishPath(OperState&& data);
+};
+
+class FsdbStatsComponentSyncer : public FsdbBasePathComponentSyncer {
  public:
   explicit FsdbStatsComponentSyncer(std::vector<std::string>&& basePath)
-      : FsdbBaseComponentSyncer(std::move(basePath), true /* isStats */) {}
+      : FsdbBasePathComponentSyncer(std::move(basePath), true /* isStats */) {}
 
   void publisherStateChanged(
       FsdbStreamClient::State oldState,

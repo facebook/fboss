@@ -5,28 +5,28 @@
 
 namespace facebook::fboss::fsdb {
 
-void FsdbBaseComponentSyncer::publishDelta(OperDelta&& data) {
+void FsdbBaseDeltaComponentSyncer::publishDelta(OperDelta&& data) {
   readyForPublishing_.withRLock([&](bool ready) {
     if (!ready) {
       return;
     }
-    if (isStats_) {
-      pubSubManager_->publishStat(std::move(data));
+    if (isStats()) {
+      pubSubManager()->publishStat(std::move(data));
     } else {
-      pubSubManager_->publishState(std::move(data));
+      pubSubManager()->publishState(std::move(data));
     }
   });
 }
 
-void FsdbBaseComponentSyncer::publishPath(OperState&& data) {
+void FsdbBasePathComponentSyncer::publishPath(OperState&& data) {
   readyForPublishing_.withRLock([&](bool ready) {
     if (!ready) {
       return;
     }
-    if (isStats_) {
-      pubSubManager_->publishStat(std::move(data));
+    if (isStats()) {
+      pubSubManager()->publishStat(std::move(data));
     } else {
-      pubSubManager_->publishState(std::move(data));
+      pubSubManager()->publishState(std::move(data));
     }
   });
 }
