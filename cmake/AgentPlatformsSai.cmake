@@ -30,7 +30,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiSandiaPlatform.cpp
   fboss/agent/platforms/sai/SaiSandiaPlatformPort.cpp
   fboss/agent/platforms/sai/SaiWedge400CPlatform.cpp
-  fboss/agent/platforms/sai/oss/SaiCloudRipperPlatform.cpp
+  fboss/agent/platforms/sai/SaiCloudRipperPlatform.cpp
   fboss/agent/platforms/sai/SaiCloudRipperPlatformPort.cpp
   fboss/agent/platforms/sai/SaiWedge400CPlatformPort.cpp
   fboss/agent/platforms/sai/SaiTajoPlatform.cpp
