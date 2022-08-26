@@ -115,6 +115,7 @@ class HwAsic {
     FEC_CORRECTED_BITS,
     MEDIA_TYPE,
     FEC,
+    RX_FREQUENCY_PPM,
   };
 
   enum class AsicType ASIC_TYPE_LIST;

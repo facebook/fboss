@@ -58,6 +58,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::FEC:
+    case HwAsic::Feature::RX_FREQUENCY_PPM:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

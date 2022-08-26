@@ -1199,11 +1199,14 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
   for (int lane = 0; lane < totalPmdLanes; lane++) {
     phy::LaneInfo laneInfo;
     laneInfo.lane_ref() = lane;
-    uint32_t value;
-    auto rv = bcm_port_phy_control_get(
-        unit_, port_, BCM_PORT_PHY_CONTROL_RX_PPM, &value);
-    bcmCheckError(rv, "failed to get rx frequency ppm");
-    laneInfo.rxFrequencyPPM() = value;
+    if (hw_->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::RX_FREQUENCY_PPM)) {
+      uint32_t value;
+      auto rv = bcm_port_phy_control_get(
+          unit_, port_, BCM_PORT_PHY_CONTROL_RX_PPM, &value);
+      bcmCheckError(rv, "failed to get rx frequency ppm");
+      laneInfo.rxFrequencyPPM() = value;
+    }
     pmd.lanes_ref()[lane] = laneInfo;
   }
 #if defined(BCM_SDK_VERSION_GTE_6_5_24)

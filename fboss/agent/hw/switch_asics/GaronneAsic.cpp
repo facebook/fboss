@@ -107,6 +107,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
+    case HwAsic::Feature::RX_FREQUENCY_PPM:
       return false;
   }
   return false;
