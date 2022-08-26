@@ -8,6 +8,7 @@ namespace facebook::fboss {
 
 class IndusAsic : public BroadcomAsic {
  public:
+  using BroadcomAsic::BroadcomAsic;
   bool isSupported(Feature) const override;
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_INDUS;

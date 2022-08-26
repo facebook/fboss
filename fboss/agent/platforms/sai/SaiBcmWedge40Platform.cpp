@@ -28,9 +28,9 @@ SaiBcmWedge40Platform::SaiBcmWedge40Platform(
           localMac) {}
 
 void SaiBcmWedge40Platform::setupAsic(
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) {
-  asic_ = std::make_unique<Trident2Asic>();
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  asic_ = std::make_unique<Trident2Asic>(switchType, switchId);
 }
 
 HwAsic* SaiBcmWedge40Platform::getAsic() const {

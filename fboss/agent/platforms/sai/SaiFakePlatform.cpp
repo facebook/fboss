@@ -39,9 +39,9 @@ SaiFakePlatform::SaiFakePlatform(
           kLocalMac) {}
 
 void SaiFakePlatform::setupAsic(
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) {
-  asic_ = std::make_unique<FakeAsic>();
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  asic_ = std::make_unique<FakeAsic>(switchType, switchId);
 }
 
 std::string SaiFakePlatform::getVolatileStateDir() const {

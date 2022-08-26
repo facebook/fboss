@@ -92,7 +92,7 @@ SaiElbert8DDPhyPlatform::SaiElbert8DDPhyPlatform(
 void SaiElbert8DDPhyPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId) {
-  asic_ = std::make_unique<CredoF104Asic>();
+  asic_ = std::make_unique<CredoF104Asic>(switchType, switchId);
 }
 SaiElbert8DDPhyPlatform::~SaiElbert8DDPhyPlatform() {}
 

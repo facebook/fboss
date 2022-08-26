@@ -24,9 +24,9 @@ SaiBcmFujiPlatform::SaiBcmFujiPlatform(
           localMac) {}
 
 void SaiBcmFujiPlatform::setupAsic(
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) {
-  asic_ = std::make_unique<Tomahawk4Asic>();
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  asic_ = std::make_unique<Tomahawk4Asic>(switchType, switchId);
 }
 
 HwAsic* SaiBcmFujiPlatform::getAsic() const {

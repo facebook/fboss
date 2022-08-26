@@ -23,6 +23,11 @@ namespace facebook::fboss {
 
 class HwAsic {
  public:
+  HwAsic(
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId,
+      std::unordered_set<cfg::SwitchType> supportedModes = {
+          cfg::SwitchType::NPU});
   enum class Feature {
     HOSTTABLE_FOR_HOSTROUTES,
     SPAN,
@@ -233,6 +238,10 @@ class HwAsic {
       cfg::MMUScalingFactor scalingFactor) const = 0;
 
   virtual uint32_t getStaticQueueLimitBytes() const = 0;
+
+ private:
+  cfg::SwitchType switchType_;
+  std::optional<int64_t> switchId_;
 };
 
 } // namespace facebook::fboss

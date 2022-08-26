@@ -81,7 +81,7 @@ SaiCloudRipperPhyPlatform::SaiCloudRipperPhyPlatform(
 void SaiCloudRipperPhyPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId) {
-  asic_ = std::make_unique<CredoF104Asic>();
+  asic_ = std::make_unique<CredoF104Asic>(switchType, switchId);
 }
 
 SaiCloudRipperPhyPlatform::~SaiCloudRipperPhyPlatform() {}

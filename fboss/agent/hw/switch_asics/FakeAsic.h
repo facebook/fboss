@@ -11,6 +11,7 @@ namespace facebook::fboss {
 
 class FakeAsic : public HwAsic {
  public:
+  using HwAsic::HwAsic;
   bool isSupported(Feature feature) const override {
     switch (feature) {
       case Feature::HSDK:

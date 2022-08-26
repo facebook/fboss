@@ -9,6 +9,7 @@ namespace facebook::fboss {
 
 class BroadcomAsic : public HwAsic {
  public:
+  using HwAsic::HwAsic;
   std::string getVendor() const override {
     return "bcm";
   }

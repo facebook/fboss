@@ -30,9 +30,9 @@ Wedge40Platform::Wedge40Platform(
           localMac) {}
 
 void Wedge40Platform::setupAsic(
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) {
-  asic_ = std::make_unique<Trident2Asic>();
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  asic_ = std::make_unique<Trident2Asic>(switchType, switchId);
 }
 
 std::unique_ptr<WedgePortMapping> Wedge40Platform::createPortMapping() {

@@ -34,9 +34,9 @@ FakeBcmTestPlatform::FakeBcmTestPlatform()
           std::make_unique<FakeTestPlatformMapping>(getControllingPortIDs())) {}
 
 void FakeBcmTestPlatform::setupAsic(
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) {
-  asic_ = std::make_unique<FakeAsic>();
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  asic_ = std::make_unique<FakeAsic>(switchType, switchId);
 }
 
 FakeBcmTestPlatform::~FakeBcmTestPlatform() {}

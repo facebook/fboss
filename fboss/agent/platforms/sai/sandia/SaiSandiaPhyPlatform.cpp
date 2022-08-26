@@ -91,7 +91,7 @@ SaiSandiaPhyPlatform::SaiSandiaPhyPlatform(
 void SaiSandiaPhyPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId) {
-  asic_ = std::make_unique<Mvl88X93161Asic>();
+  asic_ = std::make_unique<Mvl88X93161Asic>(switchType, switchId);
 }
 SaiSandiaPhyPlatform::~SaiSandiaPhyPlatform() {}
 

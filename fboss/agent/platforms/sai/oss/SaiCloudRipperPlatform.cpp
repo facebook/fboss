@@ -24,9 +24,9 @@ SaiCloudRipperPlatform::SaiCloudRipperPlatform(
           localMac) {}
 
 void SaiCloudRipperPlatform::setupAsic(
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) {
-  asic_ = std::make_unique<EbroAsic>();
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  asic_ = std::make_unique<EbroAsic>(switchType, switchId);
 }
 
 std::string SaiCloudRipperPlatform::getHwConfig() {

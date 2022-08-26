@@ -26,9 +26,9 @@ SaiBcmYampPlatform::SaiBcmYampPlatform(
           localMac) {}
 
 void SaiBcmYampPlatform::setupAsic(
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) {
-  asic_ = std::make_unique<Tomahawk3Asic>();
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  asic_ = std::make_unique<Tomahawk3Asic>(switchType, switchId);
 }
 
 HwAsic* SaiBcmYampPlatform::getAsic() const {

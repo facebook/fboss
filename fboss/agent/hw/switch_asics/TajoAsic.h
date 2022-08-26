@@ -8,6 +8,8 @@
 namespace facebook::fboss {
 
 class TajoAsic : public HwAsic {
+ public:
+  using HwAsic::HwAsic;
   std::string getVendor() const override {
     return "tajo";
   }

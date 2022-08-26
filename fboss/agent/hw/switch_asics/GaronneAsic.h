@@ -8,6 +8,8 @@
 namespace facebook::fboss {
 
 class GaronneAsic : public TajoAsic {
+ public:
+  using TajoAsic::TajoAsic;
   bool isSupported(Feature) const override;
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_GARONNE;

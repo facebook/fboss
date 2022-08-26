@@ -26,9 +26,9 @@ SaiMakaluPlatform::SaiMakaluPlatform(
           localMac) {}
 
 void SaiMakaluPlatform::setupAsic(
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) {
-  asic_ = std::make_unique<IndusAsic>();
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  asic_ = std::make_unique<IndusAsic>(switchType, switchId);
 }
 
 HwAsic* SaiMakaluPlatform::getAsic() const {

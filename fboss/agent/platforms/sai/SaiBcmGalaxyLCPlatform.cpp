@@ -24,9 +24,9 @@ SaiBcmGalaxyLCPlatform::SaiBcmGalaxyLCPlatform(
           localMac) {}
 
 void SaiBcmGalaxyLCPlatform::setupAsic(
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) {
-  asic_ = std::make_unique<TomahawkAsic>();
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  asic_ = std::make_unique<TomahawkAsic>(switchType, switchId);
 }
 
 HwAsic* SaiBcmGalaxyLCPlatform::getAsic() const {

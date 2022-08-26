@@ -24,9 +24,9 @@ WedgeTomahawkPlatform::WedgeTomahawkPlatform(
           localMac) {}
 
 void WedgeTomahawkPlatform::setupAsic(
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) {
-  asic_ = std::make_unique<TomahawkAsic>();
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  asic_ = std::make_unique<TomahawkAsic>(switchType, switchId);
 }
 
 const PortQueue& WedgeTomahawkPlatform::getDefaultPortQueueSettings(

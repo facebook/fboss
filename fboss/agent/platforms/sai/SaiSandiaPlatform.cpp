@@ -25,9 +25,9 @@ SaiSandiaPlatform::SaiSandiaPlatform(
           localMac) {}
 
 void SaiSandiaPlatform::setupAsic(
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) {
-  asic_ = std::make_unique<GaronneAsic>();
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  asic_ = std::make_unique<GaronneAsic>(switchType, switchId);
 }
 
 std::string SaiSandiaPlatform::getHwConfig() {

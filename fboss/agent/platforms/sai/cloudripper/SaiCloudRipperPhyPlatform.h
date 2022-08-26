@@ -51,8 +51,8 @@ class SaiCloudRipperPhyPlatform : public SaiHwPlatform {
 
   SaiSwitchTraits::CreateAttributes getSwitchAttributes(
       bool /*mandatoryOnly*/,
-      cfg::SwitchType /*switchType*/,
-      std::optional<int64_t> /*switchId*/) override {
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId) override {
     CHECK(switchCreateAttrs_);
     return *switchCreateAttrs_;
   }

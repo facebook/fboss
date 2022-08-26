@@ -33,9 +33,9 @@ SaiWedge400CPlatform::SaiWedge400CPlatform(
     : SaiTajoPlatform(std::move(productInfo), std::move(mapping), localMac) {}
 
 void SaiWedge400CPlatform::setupAsic(
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) {
-  asic_ = std::make_unique<EbroAsic>();
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  asic_ = std::make_unique<EbroAsic>(switchType, switchId);
 }
 
 HwAsic* SaiWedge400CPlatform::getAsic() const {

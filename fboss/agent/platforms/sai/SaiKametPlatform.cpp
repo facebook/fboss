@@ -26,9 +26,9 @@ SaiKametPlatform::SaiKametPlatform(
           localMac) {}
 
 void SaiKametPlatform::setupAsic(
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) {
-  asic_ = std::make_unique<BeasAsic>();
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  asic_ = std::make_unique<BeasAsic>(switchType, switchId);
 }
 
 HwAsic* SaiKametPlatform::getAsic() const {

@@ -8,6 +8,7 @@ namespace facebook::fboss {
 
 class BeasAsic : public BroadcomAsic {
  public:
+  using BroadcomAsic::BroadcomAsic;
   bool isSupported(Feature feature) const override;
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_BEAS;

@@ -24,9 +24,9 @@ SaiBcmElbertPlatform::SaiBcmElbertPlatform(
           localMac) {}
 
 void SaiBcmElbertPlatform::setupAsic(
-    cfg::SwitchType /*switchType*/,
-    std::optional<int64_t> /*switchId*/) {
-  asic_ = std::make_unique<Tomahawk4Asic>();
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  asic_ = std::make_unique<Tomahawk4Asic>(switchType, switchId);
 }
 HwAsic* SaiBcmElbertPlatform::getAsic() const {
   return asic_.get();

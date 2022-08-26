@@ -24,6 +24,17 @@ std::vector<IntAsicType> getAsicTypeIntList() {
 
 namespace facebook::fboss {
 
+HwAsic::HwAsic(
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId,
+    std::unordered_set<cfg::SwitchType> supportedModes)
+    : switchType_(switchType), switchId_(switchId) {
+  if (supportedModes.find(switchType_) == supportedModes.end()) {
+    throw std::runtime_error(
+        folly::to<std::string>("Unsupported Mode: ", switchType_));
+  }
+}
+
 /*
  * Default Content Aware Processor group ID for ACLs
  */
