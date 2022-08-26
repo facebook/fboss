@@ -15,12 +15,12 @@ namespace facebook::fboss::fsdb {
 class FsdbPubSubManager;
 class FsdbSyncManager;
 
-class FsdbComponentSyncer {
+class FsdbBaseComponentSyncer {
  public:
-  FsdbComponentSyncer(std::vector<std::string>&& basePath, bool isStats)
+  FsdbBaseComponentSyncer(std::vector<std::string>&& basePath, bool isStats)
       : basePath_(std::move(basePath)), isStats_(isStats) {}
 
-  virtual ~FsdbComponentSyncer() {
+  virtual ~FsdbBaseComponentSyncer() {
     CHECK(!readyForPublishing_.load());
   }
 
@@ -98,12 +98,12 @@ class FsdbComponentSyncer {
 };
 
 template <typename DataT>
-class FsdbStateComponentSyncer : public FsdbComponentSyncer {
+class FsdbStateComponentSyncer : public FsdbBaseComponentSyncer {
  public:
   FsdbStateComponentSyncer(
       folly::EventBase* evb,
       std::vector<std::string>&& basePath)
-      : FsdbComponentSyncer(std::move(basePath), false /* isStats */),
+      : FsdbBaseComponentSyncer(std::move(basePath), false /* isStats */),
         evb_(evb) {
     CHECK(evb);
   }
@@ -133,17 +133,18 @@ class FsdbStateComponentSyncer : public FsdbComponentSyncer {
   void stop() override {
     // for state we need to make sure stop happens on our update evb otherwise
     // we may race shutdown with a currently running update
-    evb_->runInEventBaseThreadAndWait([this] { FsdbComponentSyncer::stop(); });
+    evb_->runInEventBaseThreadAndWait(
+        [this] { FsdbBaseComponentSyncer::stop(); });
   }
 
  private:
   folly::EventBase* evb_;
 };
 
-class FsdbStatsComponentSyncer : public FsdbComponentSyncer {
+class FsdbStatsComponentSyncer : public FsdbBaseComponentSyncer {
  public:
   explicit FsdbStatsComponentSyncer(std::vector<std::string>&& basePath)
-      : FsdbComponentSyncer(std::move(basePath), true /* isStats */) {}
+      : FsdbBaseComponentSyncer(std::move(basePath), true /* isStats */) {}
 
   void publisherStateChanged(
       FsdbStreamClient::State oldState,

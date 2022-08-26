@@ -10,7 +10,7 @@
 
 namespace facebook::fboss::fsdb {
 
-class FsdbComponentSyncer;
+class FsdbBaseComponentSyncer;
 
 class FsdbSyncManager {
  public:
@@ -28,8 +28,8 @@ class FsdbSyncManager {
   void start();
   void stop();
 
-  void registerStateSyncer(FsdbComponentSyncer* syncer);
-  void registerStatsSyncer(FsdbComponentSyncer* syncer);
+  void registerStateSyncer(FsdbBaseComponentSyncer* syncer);
+  void registerStatsSyncer(FsdbBaseComponentSyncer* syncer);
 
   // Convinence publish apis
   void publishState(OperDelta&& pubUnit) {
@@ -55,8 +55,8 @@ class FsdbSyncManager {
       FsdbStreamClient::State newState);
 
   std::unique_ptr<FsdbPubSubManager> fsdbPubSubMgr_;
-  std::vector<FsdbComponentSyncer*> stateSyncers_;
-  std::vector<FsdbComponentSyncer*> statSyncers_;
+  std::vector<FsdbBaseComponentSyncer*> stateSyncers_;
+  std::vector<FsdbBaseComponentSyncer*> statSyncers_;
   std::vector<std::string> statePath_;
   std::vector<std::string> statsPath_;
   bool started = false;

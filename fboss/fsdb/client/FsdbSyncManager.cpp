@@ -1,7 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/fsdb/client/FsdbSyncManager.h"
-#include "fboss/fsdb/client/FsdbComponentSyncer.h"
+#include "fboss/fsdb/client/FsdbBaseComponentSyncer.h"
 
 namespace facebook::fboss::fsdb {
 
@@ -44,13 +44,13 @@ void FsdbSyncManager::stop() {
   started = false;
 }
 
-void FsdbSyncManager::registerStateSyncer(FsdbComponentSyncer* syncer) {
+void FsdbSyncManager::registerStateSyncer(FsdbBaseComponentSyncer* syncer) {
   CHECK(!started);
   stateSyncers_.push_back(syncer);
   syncer->registerSyncManager(this);
 }
 
-void FsdbSyncManager::registerStatsSyncer(FsdbComponentSyncer* syncer) {
+void FsdbSyncManager::registerStatsSyncer(FsdbBaseComponentSyncer* syncer) {
   CHECK(!started);
   statSyncers_.push_back(syncer);
   syncer->registerSyncManager(this);
