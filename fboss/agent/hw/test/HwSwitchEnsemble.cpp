@@ -325,18 +325,12 @@ void HwSwitchEnsemble::setupEnsemble(
     const HwSwitchEnsembleInitInfo& initInfo) {
   platform_ = std::move(platform);
   linkToggler_ = std::move(linkToggler);
-  const auto switchSettings =
-      *platform_->config()->thrift.sw()->switchSettings();
-  std::optional<int64_t> switchId;
-  if (switchSettings.switchId().has_value()) {
-    switchId = *switchSettings.switchId();
-  }
 
   auto hwInitResult = getHwSwitch()->init(
       this,
       true /*failHwCallsOnWarmboot*/,
-      *switchSettings.switchType(),
-      switchId);
+      platform_->getAsic()->getSwitchType(),
+      platform_->getAsic()->getSwitchId());
 
   programmedState_ = hwInitResult.switchState;
   routingInformationBase_ = std::move(hwInitResult.rib);
