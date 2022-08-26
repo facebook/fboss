@@ -31,20 +31,6 @@ class FsdbSyncManager {
   void registerStateSyncer(FsdbBaseComponentSyncer* syncer);
   void registerStatsSyncer(FsdbBaseComponentSyncer* syncer);
 
-  // Convinence publish apis
-  void publishState(OperDelta&& pubUnit) {
-    fsdbPubSubMgr_->publishState(std::move(pubUnit));
-  }
-  void publishState(OperState&& pubUnit) {
-    fsdbPubSubMgr_->publishState(std::move(pubUnit));
-  }
-  void publishStat(OperDelta&& pubUnit) {
-    fsdbPubSubMgr_->publishStat(std::move(pubUnit));
-  }
-  void publishStat(OperState&& pubUnit) {
-    fsdbPubSubMgr_->publishStat(std::move(pubUnit));
-  }
-
  private:
   void statePublisherStateChanged(
       FsdbStreamClient::State oldState,

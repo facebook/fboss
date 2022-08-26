@@ -28,8 +28,8 @@ class FsdbBaseComponentSyncer {
 
   void publishPath(OperState&& data, bool initialSync = false);
 
-  void registerSyncManager(FsdbSyncManager* syncManager) {
-    syncManager_ = syncManager;
+  void registerPubSubMgr(FsdbPubSubManager* pubSubManager) {
+    pubSubManager_ = pubSubManager;
   }
 
   virtual void start() {
@@ -93,7 +93,7 @@ class FsdbBaseComponentSyncer {
  private:
   std::vector<std::string> basePath_;
   bool isStats_;
-  FsdbSyncManager* syncManager_;
+  FsdbPubSubManager* pubSubManager_;
   std::atomic<bool> readyForPublishing_{false};
 };
 

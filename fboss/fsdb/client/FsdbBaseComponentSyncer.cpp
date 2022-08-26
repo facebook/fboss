@@ -11,9 +11,9 @@ void FsdbBaseComponentSyncer::publishDelta(OperDelta&& data, bool initialSync) {
     return;
   }
   if (isStats_) {
-    syncManager_->publishStat(std::move(data));
+    pubSubManager_->publishStat(std::move(data));
   } else {
-    syncManager_->publishState(std::move(data));
+    pubSubManager_->publishState(std::move(data));
   }
 }
 
@@ -23,9 +23,9 @@ void FsdbBaseComponentSyncer::publishPath(OperState&& data, bool initialSync) {
     return;
   }
   if (isStats_) {
-    syncManager_->publishStat(std::move(data));
+    pubSubManager_->publishStat(std::move(data));
   } else {
-    syncManager_->publishState(std::move(data));
+    pubSubManager_->publishState(std::move(data));
   }
 }
 

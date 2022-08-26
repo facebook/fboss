@@ -47,13 +47,13 @@ void FsdbSyncManager::stop() {
 void FsdbSyncManager::registerStateSyncer(FsdbBaseComponentSyncer* syncer) {
   CHECK(!started);
   stateSyncers_.push_back(syncer);
-  syncer->registerSyncManager(this);
+  syncer->registerPubSubMgr(fsdbPubSubMgr_.get());
 }
 
 void FsdbSyncManager::registerStatsSyncer(FsdbBaseComponentSyncer* syncer) {
   CHECK(!started);
   statSyncers_.push_back(syncer);
-  syncer->registerSyncManager(this);
+  syncer->registerPubSubMgr(fsdbPubSubMgr_.get());
 }
 
 void FsdbSyncManager::statePublisherStateChanged(
