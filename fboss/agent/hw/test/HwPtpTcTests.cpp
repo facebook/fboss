@@ -73,14 +73,12 @@ TEST_F(HwPtpTcTest, VerifyPtpTcToggle) {
   }
 
   auto setup = [=]() { setupHelper(); };
-
   auto enabled = false;
   auto verify = [&]() {
     EXPECT_EQ(enabled, utility::getPtpTcEnabled(getHwSwitch()));
   };
 
   setup();
-  verify();
 
   for (int i = 0; i < kLoopCount; ++i) {
     enabled = !enabled; // toggle
