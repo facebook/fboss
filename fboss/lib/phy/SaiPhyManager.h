@@ -195,8 +195,10 @@ void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
       auto credoF104 = static_cast<xphychipT*>(getExternalPhy(phy.first));
       // Set CredoF104's customized switch attributes before calling init
       saiPlatform->setSwitchAttributes(credoF104->getSwitchAttributes());
+      cfg::AgentConfig config;
+      config.sw()->switchSettings()->switchType() = cfg::SwitchType::PHY;
       saiPlatform->init(
-          nullptr /* No AgentConfig needed */,
+          std::make_unique<AgentConfig>(config, ""),
           0 /* No switch featured needed */);
 
       // Now call HwSwitch to create the switch object in hardware
