@@ -526,17 +526,11 @@ void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype) {
 void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
-  const auto switchSettings =
-      *platform_->config()->thrift.sw()->switchSettings();
-  std::optional<int64_t> switchId;
-  if (switchSettings.switchId().has_value()) {
-    switchId = *switchSettings.switchId();
-  }
   auto hwInitRet = hw_->init(
       this,
       false /*failHwCallsOnWarmboot*/,
-      *switchSettings.switchType(),
-      switchId);
+      platform_->getAsic()->getSwitchType(),
+      platform_->getAsic()->getSwitchId());
   auto initialState = hwInitRet.switchState;
   bootType_ = hwInitRet.bootType;
   rib_ = std::move(hwInitRet.rib);
