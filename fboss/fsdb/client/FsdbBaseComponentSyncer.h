@@ -21,27 +21,23 @@ class FsdbBaseComponentSyncer {
       : basePath_(std::move(basePath)), isStats_(isStats) {}
 
   virtual ~FsdbBaseComponentSyncer() {
-    CHECK(!readyForPublishing_.load());
+    CHECK(!*readyForPublishing_.rlock());
   }
-
-  void publishDelta(OperDelta&& deltas, bool initialSync = false);
-
-  void publishPath(OperState&& data, bool initialSync = false);
 
   void registerPubSubMgr(FsdbPubSubManager* pubSubManager) {
     pubSubManager_ = pubSubManager;
   }
 
   virtual void start() {
-    readyForPublishing_.store(true);
+    *readyForPublishing_.wlock() = true;
   }
 
   virtual void stop() {
-    readyForPublishing_.store(false);
+    *readyForPublishing_.wlock() = false;
   }
 
   bool isReady() {
-    return readyForPublishing_.load();
+    return *readyForPublishing_.rlock();
   }
 
   OperDelta createDelta(std::vector<OperDeltaUnit>&& deltas) const {
@@ -90,11 +86,15 @@ class FsdbBaseComponentSyncer {
       FsdbStreamClient::State oldState,
       FsdbStreamClient::State newState) = 0;
 
+ protected:
+  void publishDelta(OperDelta&& deltas);
+  void publishPath(OperState&& data);
+
  private:
   std::vector<std::string> basePath_;
   bool isStats_;
   FsdbPubSubManager* pubSubManager_;
-  std::atomic<bool> readyForPublishing_{false};
+  folly::Synchronized<bool> readyForPublishing_{false};
 };
 
 template <typename DataT>
@@ -121,7 +121,7 @@ class FsdbStateComponentSyncer : public FsdbBaseComponentSyncer {
             getBasePath(),
             std::optional<DataT>(),
             std::optional<DataT>(getCurrentState()));
-        publishDelta(createDelta({deltaUnit}), true /* initialSync */);
+        publishDelta(createDelta({deltaUnit}));
         start();
       });
     } else if (newState != FsdbStreamClient::State::CONNECTED) {

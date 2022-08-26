@@ -5,28 +5,30 @@
 
 namespace facebook::fboss::fsdb {
 
-void FsdbBaseComponentSyncer::publishDelta(OperDelta&& data, bool initialSync) {
-  // publish on initial sync even if not ready yet
-  if (!initialSync && !isReady()) {
-    return;
-  }
-  if (isStats_) {
-    pubSubManager_->publishStat(std::move(data));
-  } else {
-    pubSubManager_->publishState(std::move(data));
-  }
+void FsdbBaseComponentSyncer::publishDelta(OperDelta&& data) {
+  readyForPublishing_.withRLock([&](bool ready) {
+    if (!ready) {
+      return;
+    }
+    if (isStats_) {
+      pubSubManager_->publishStat(std::move(data));
+    } else {
+      pubSubManager_->publishState(std::move(data));
+    }
+  });
 }
 
-void FsdbBaseComponentSyncer::publishPath(OperState&& data, bool initialSync) {
-  // publish on initial sync even if not ready yet
-  if (!initialSync && !isReady()) {
-    return;
-  }
-  if (isStats_) {
-    pubSubManager_->publishStat(std::move(data));
-  } else {
-    pubSubManager_->publishState(std::move(data));
-  }
+void FsdbBaseComponentSyncer::publishPath(OperState&& data) {
+  readyForPublishing_.withRLock([&](bool ready) {
+    if (!ready) {
+      return;
+    }
+    if (isStats_) {
+      pubSubManager_->publishStat(std::move(data));
+    } else {
+      pubSubManager_->publishState(std::move(data));
+    }
+  });
 }
 
 void FsdbStatsComponentSyncer::publisherStateChanged(
