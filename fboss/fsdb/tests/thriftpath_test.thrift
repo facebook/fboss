@@ -8,6 +8,13 @@ enum TestEnum {
   THIRD = 3,
 }
 
+enum TestEnum2 {
+  FIRST = 1,
+  SECOND = 2,
+}
+
+typedef list<TestEnum2> ListTypedef
+
 struct TestStructSimple {
   1: i32 min;
   2: i32 max;
@@ -39,4 +46,5 @@ struct TestStruct {
   14: list<i32> listOfPrimitives;
   15: set<i32> setOfI32;
   16: map<string, TestStructSimple> stringToStruct = {};
+  17: ListTypedef listTypedef = [];
 } (thriftpath.root)
