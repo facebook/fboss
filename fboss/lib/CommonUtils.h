@@ -7,6 +7,12 @@
 #include <optional>
 #include "fboss/agent/FbossError.h"
 
+// Exception not subclassing std::exception to avoid being caught by user code.
+// Used only in WITH_RETRIES toolkit
+namespace {
+struct _SoftAssertFail {};
+} // namespace
+
 namespace facebook::fboss {
 /*
  * For tests prefer using WITH_RETRIES and ASSERT_EVENTUALLY_* over this
@@ -68,8 +74,6 @@ inline int64_t getCumulativeValue(
  * will continue execution in case of failure. After all retires we will hard
  * EXPECT all checks
  */
-// Exception not subclassing std::exception to avoid being caught by user code
-struct _SoftAssertFail {};
 #define WITH_RETRIES_N_TIMED(tests, maxRetries, sleepTime)              \
   {                                                                     \
     int WITH_RETRIES_tries = 0;                                         \
