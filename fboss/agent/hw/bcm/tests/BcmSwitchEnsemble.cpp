@@ -257,8 +257,7 @@ void BcmSwitchEnsemble::init(
     XLOG(DBG2) << "Modify the bcm cfg as mmu_lossless mode is enabled";
     modifyCfgForPfcTests(bcmTestPlatform, yamlCfg, cfg);
   }
-  if (FLAGS_enable_exact_match &&
-      th3AndTh4BcmPlatforms.find(platformMode) != th3AndTh4BcmPlatforms.end()) {
+  if (FLAGS_enable_exact_match) {
     XLOG(DBG2) << "Modify bcm cfg as enable_exact_match is enabled";
     if (bcmTestPlatform->usesYamlConfig()) {
       modifyCfgForEMTests(yamlCfg);
