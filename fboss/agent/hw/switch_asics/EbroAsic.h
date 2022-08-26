@@ -16,7 +16,11 @@ class EbroAsic : public TajoAsic {
             {cfg::SwitchType::NPU,
              cfg::SwitchType::VOQ,
              cfg::SwitchType::FABRIC}) {}
-  bool isSupported(Feature) const override;
+  bool isSupported(Feature feature) const override {
+    return getSwitchType() != cfg::SwitchType::FABRIC
+        ? isSupportedNonFabric(feature)
+        : isSupportedFabric(feature);
+  }
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_EBRO;
   }
@@ -102,6 +106,10 @@ class EbroAsic : public TajoAsic {
   uint32_t getStaticQueueLimitBytes() const override {
     return 16000 * getPacketBufferUnitSize();
   }
+
+ private:
+  bool isSupportedFabric(Feature feature) const;
+  bool isSupportedNonFabric(Feature feature) const;
 };
 
 } // namespace facebook::fboss

@@ -239,6 +239,13 @@ class HwAsic {
 
   virtual uint32_t getStaticQueueLimitBytes() const = 0;
 
+  cfg::SwitchType getSwitchType() const {
+    return switchType_;
+  }
+  std::optional<uint64_t> getSwitchId() const {
+    return switchId_;
+  }
+
  private:
   cfg::SwitchType switchType_;
   std::optional<int64_t> switchId_;

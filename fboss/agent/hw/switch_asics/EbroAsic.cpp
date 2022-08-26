@@ -4,7 +4,7 @@
 
 namespace facebook::fboss {
 
-bool EbroAsic::isSupported(Feature feature) const {
+bool EbroAsic::isSupportedNonFabric(Feature feature) const {
   switch (feature) {
     /*
      * None of the features are verified on the asic.
@@ -109,4 +109,13 @@ bool EbroAsic::isSupported(Feature feature) const {
   return false;
 }
 
+bool EbroAsic::isSupportedFabric(Feature feature) const {
+  switch (feature) {
+    case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
+      return true;
+    default:
+      return false;
+  }
+  return false;
+}
 } // namespace facebook::fboss
