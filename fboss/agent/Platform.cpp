@@ -126,8 +126,12 @@ void Platform::init(
     uint32_t hwFeaturesDesired) {
   // take ownership of the config if passed in
   config_ = std::move(config);
-  // TODO extract switch type and id
-  setupAsic(cfg::SwitchType::NPU, std::nullopt);
+  const auto switchSettings = *config_->thrift.sw()->switchSettings();
+  std::optional<int64_t> switchId;
+  if (switchSettings.switchId().has_value()) {
+    switchId = *switchSettings.switchId();
+  }
+  setupAsic(*switchSettings.switchType(), switchId);
   initImpl(hwFeaturesDesired);
   // We should always initPorts() here instead of leaving the hw/ to call
   initPorts();
