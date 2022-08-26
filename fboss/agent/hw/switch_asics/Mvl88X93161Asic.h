@@ -8,7 +8,8 @@ namespace facebook::fboss {
 
 class Mvl88X93161Asic : public HwAsic {
  public:
-  using HwAsic::HwAsic;
+  Mvl88X93161Asic(cfg::SwitchType type, std::optional<int64_t> id)
+      : HwAsic(type, id, {cfg::SwitchType::PHY}) {}
   bool isSupported(Feature feature) const override;
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_SANDIA_PHY;

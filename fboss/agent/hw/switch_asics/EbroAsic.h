@@ -9,7 +9,13 @@ namespace facebook::fboss {
 
 class EbroAsic : public TajoAsic {
  public:
-  using TajoAsic::TajoAsic;
+  EbroAsic(cfg::SwitchType type, std::optional<int64_t> id)
+      : TajoAsic(
+            type,
+            id,
+            {cfg::SwitchType::NPU,
+             cfg::SwitchType::VOQ,
+             cfg::SwitchType::FABRIC}) {}
   bool isSupported(Feature) const override;
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_EBRO;

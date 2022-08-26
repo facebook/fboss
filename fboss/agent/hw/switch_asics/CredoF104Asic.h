@@ -8,7 +8,8 @@ namespace facebook::fboss {
 
 class CredoF104Asic : public HwAsic {
  public:
-  using HwAsic::HwAsic;
+  CredoF104Asic(cfg::SwitchType type, std::optional<int64_t> id)
+      : HwAsic(type, id, {cfg::SwitchType::PHY}) {}
   bool isSupported(Feature feature) const override;
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_ELBERT_8DD;
