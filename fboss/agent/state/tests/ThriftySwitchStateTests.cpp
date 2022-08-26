@@ -189,7 +189,7 @@ TEST(ThriftySwitchState, SflowCollectorMap) {
 }
 
 TEST(ThriftySwitchState, AggregatePortMap) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto startState = testStateA();
   std::vector<int> memberPort1 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   std::vector<int> memberPort2 = {11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
@@ -214,7 +214,7 @@ TEST(ThriftySwitchState, AggregatePortMap) {
         memberPort2[i];
   }
 
-  auto endState = publishAndApplyConfig(startState, &config, &platform);
+  auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
   auto aggPorts = endState->getAggregatePorts();
 
@@ -224,7 +224,7 @@ TEST(ThriftySwitchState, AggregatePortMap) {
 }
 
 TEST(ThriftySwitchState, InterfaceMap) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto startState = testStateA();
 
   auto config = testConfigA();
@@ -241,7 +241,7 @@ TEST(ThriftySwitchState, InterfaceMap) {
   *config.interfaces()[1].vlanID() = 2;
   config.interfaces()[1].mac() = "00:00:00:00:00:22";
 
-  auto endState = publishAndApplyConfig(startState, &config, &platform);
+  auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
   auto interfaces = endState->getInterfaces();
 

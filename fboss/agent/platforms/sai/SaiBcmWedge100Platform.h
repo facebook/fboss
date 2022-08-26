@@ -47,6 +47,8 @@ class SaiBcmWedge100Platform : public SaiBcmPlatform {
   void initLEDs() override;
 
  private:
+  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
+      override;
   std::unique_ptr<TomahawkAsic> asic_;
 };
 

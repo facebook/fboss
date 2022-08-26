@@ -23,9 +23,7 @@ class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
       std::unique_ptr<PlatformMapping> platformMapping)
       : BcmTestWedgePlatform(
             std::move(productInfo),
-            std::move(platformMapping)) {
-    asic_ = std::make_unique<Tomahawk3Asic>();
-  }
+            std::move(platformMapping)) {}
   ~BcmTestWedgeTomahawk3Platform() override {}
 
   bool canUseHostTableForHostRoutes() const override {
@@ -65,6 +63,11 @@ class BcmTestWedgeTomahawk3Platform : public BcmTestWedgePlatform {
   int getPortItm(BcmPort* bcmPort) const override;
 
  private:
+  void setupAsic(
+      cfg::SwitchType /*switchType*/,
+      std::optional<int64_t> /*switchId*/) override {
+    asic_ = std::make_unique<Tomahawk3Asic>();
+  }
   // Forbidden copy constructor and assignment operator
   BcmTestWedgeTomahawk3Platform(BcmTestWedgeTomahawk3Platform const&) = delete;
   BcmTestWedgeTomahawk3Platform& operator=(

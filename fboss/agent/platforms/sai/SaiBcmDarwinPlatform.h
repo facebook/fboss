@@ -37,6 +37,8 @@ class SaiBcmDarwinPlatform : public SaiBcmPlatform {
   void initLEDs() override;
 
  private:
+  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
+      override;
   std::unique_ptr<Tomahawk3Asic> asic_;
 };
 

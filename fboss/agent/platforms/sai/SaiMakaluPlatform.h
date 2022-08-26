@@ -56,6 +56,8 @@ class SaiMakaluPlatform : public SaiBcmPlatform {
   }
 
  private:
+  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
+      override;
   std::unique_ptr<IndusAsic> asic_;
 };
 

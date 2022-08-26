@@ -62,6 +62,8 @@ class MockPlatform : public Platform {
   MOCK_CONST_METHOD0(getQsfpCache, QsfpCache*());
 
  private:
+  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
+      override;
   void createTmpDir();
   void cleanupTmpDir();
 

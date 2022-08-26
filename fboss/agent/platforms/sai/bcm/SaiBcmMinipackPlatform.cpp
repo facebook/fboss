@@ -22,8 +22,6 @@ SaiBcmMinipackPlatform::SaiBcmMinipackPlatform(
           std::move(productInfo),
           std::make_unique<MinipackPlatformMapping>(
               ExternalPhyVersion::MILN5_2),
-          localMac) {
-  asic_ = std::make_unique<Tomahawk3Asic>();
-}
+          localMac) {}
 
 } // namespace facebook::fboss

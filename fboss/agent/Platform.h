@@ -305,6 +305,9 @@ class Platform {
    * creates the HwSwitch instance it must serve back to SwSwitch.
    */
   virtual void initImpl(uint32_t hwFeaturesDesired) = 0;
+  virtual void setupAsic(
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId) = 0;
 
   std::unique_ptr<AgentConfig> config_;
 

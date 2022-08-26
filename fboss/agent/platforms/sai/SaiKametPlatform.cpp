@@ -23,7 +23,11 @@ SaiKametPlatform::SaiKametPlatform(
     : SaiBcmPlatform(
           std::move(productInfo),
           std::make_unique<KametPlatformMapping>(),
-          localMac) {
+          localMac) {}
+
+void SaiKametPlatform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<BeasAsic>();
 }
 

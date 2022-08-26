@@ -22,7 +22,11 @@ SaiSandiaPlatform::SaiSandiaPlatform(
     : SaiTajoPlatform(
           std::move(productInfo),
           std::make_unique<SandiaPlatformMapping>(),
-          localMac) {
+          localMac) {}
+
+void SaiSandiaPlatform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<GaronneAsic>();
 }
 

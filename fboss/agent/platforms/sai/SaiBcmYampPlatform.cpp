@@ -23,7 +23,11 @@ SaiBcmYampPlatform::SaiBcmYampPlatform(
     : SaiBcmPlatform(
           std::move(productInfo),
           std::make_unique<YampPlatformMapping>(),
-          localMac) {
+          localMac) {}
+
+void SaiBcmYampPlatform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<Tomahawk3Asic>();
 }
 

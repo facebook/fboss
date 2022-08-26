@@ -24,7 +24,11 @@ SaiBcmWedge400Platform::SaiBcmWedge400Platform(
     : SaiBcmPlatform(
           std::move(productInfo),
           createWedge400PlatformMapping(),
-          localMac) {
+          localMac) {}
+
+void SaiBcmWedge400Platform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<Tomahawk3Asic>();
 }
 

@@ -21,7 +21,11 @@ SaiCloudRipperPlatform::SaiCloudRipperPlatform(
     : SaiTajoPlatform(
           std::move(productInfo),
           std::make_unique<CloudRipperPlatformMapping>(),
-          localMac) {
+          localMac) {}
+
+void SaiCloudRipperPlatform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<EbroAsic>();
 }
 

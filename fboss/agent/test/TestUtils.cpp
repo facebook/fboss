@@ -227,7 +227,9 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
 }
 
 unique_ptr<MockPlatform> createMockPlatform() {
-  return make_unique<testing::NiceMock<MockPlatform>>();
+  auto mock = make_unique<testing::NiceMock<MockPlatform>>();
+  mock->init(std::make_unique<AgentConfig>(cfg::AgentConfig{}, ""), 0);
+  return std::move(mock);
 }
 
 unique_ptr<HwTestHandle> createTestHandle(

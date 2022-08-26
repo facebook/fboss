@@ -24,7 +24,11 @@ BcmTestWedge40Platform::BcmTestWedge40Platform(
     std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmTestWedgePlatform(
           std::move(productInfo),
-          std::make_unique<Wedge40PlatformMapping>()) {
+          std::make_unique<Wedge40PlatformMapping>()) {}
+
+void BcmTestWedge40Platform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<Trident2Asic>();
 }
 

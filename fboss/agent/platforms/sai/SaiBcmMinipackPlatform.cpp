@@ -20,6 +20,12 @@ HwAsic* SaiBcmMinipackPlatform::getAsic() const {
   return asic_.get();
 }
 
+void SaiBcmMinipackPlatform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
+  asic_ = std::make_unique<Tomahawk3Asic>();
+}
+
 void SaiBcmMinipackPlatform::initLEDs() {
   // TODO skhare
 }

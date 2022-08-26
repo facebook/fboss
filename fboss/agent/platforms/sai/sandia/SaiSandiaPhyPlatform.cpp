@@ -86,10 +86,13 @@ SaiSandiaPhyPlatform::SaiSandiaPhyPlatform(
           std::make_unique<SandiaPlatformMapping>(),
           localMac),
       pimId_(pimId),
-      phyId_(phyId) {
+      phyId_(phyId) {}
+
+void SaiSandiaPhyPlatform::setupAsic(
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
   asic_ = std::make_unique<Mvl88X93161Asic>();
 }
-
 SaiSandiaPhyPlatform::~SaiSandiaPhyPlatform() {}
 
 std::string SaiSandiaPhyPlatform::getHwConfig() {

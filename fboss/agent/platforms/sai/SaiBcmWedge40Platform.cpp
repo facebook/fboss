@@ -25,7 +25,11 @@ SaiBcmWedge40Platform::SaiBcmWedge40Platform(
     : SaiBcmPlatform(
           std::move(productInfo),
           std::make_unique<Wedge40PlatformMapping>(),
-          localMac) {
+          localMac) {}
+
+void SaiBcmWedge40Platform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<Trident2Asic>();
 }
 

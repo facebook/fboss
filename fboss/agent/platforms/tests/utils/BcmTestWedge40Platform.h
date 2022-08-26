@@ -48,6 +48,9 @@ class BcmTestWedge40Platform : public BcmTestWedgePlatform {
   bool verifyLEDStatus(PortID port, bool up) override;
 
  private:
+  void setupAsic(
+      cfg::SwitchType /*switchType*/,
+      std::optional<int64_t> /*switchId*/) override;
   // Forbidden copy constructor and assignment operator
   BcmTestWedge40Platform(BcmTestWedge40Platform const&) = delete;
   BcmTestWedge40Platform& operator=(BcmTestWedge40Platform const&) = delete;

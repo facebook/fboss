@@ -87,10 +87,13 @@ SaiElbert8DDPhyPlatform::SaiElbert8DDPhyPlatform(
               ->getPimPlatformMappingUniquePtr(pimId),
           localMac),
       pimId_(pimId),
-      phyId_(phyId) {
+      phyId_(phyId) {}
+
+void SaiElbert8DDPhyPlatform::setupAsic(
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
   asic_ = std::make_unique<CredoF104Asic>();
 }
-
 SaiElbert8DDPhyPlatform::~SaiElbert8DDPhyPlatform() {}
 
 std::string SaiElbert8DDPhyPlatform::getHwConfig() {

@@ -184,7 +184,7 @@ void addNeighborEntry(
 // Test that we can add Arp and Ndp entries to a state and revert them from the
 // published state.
 TEST(SwitchStatePruningTests, AddNeighborEntry) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   SwitchConfig config;
   shared_ptr<SwitchState> state0 = make_shared<SwitchState>();
   // state0 = empty state
@@ -203,7 +203,7 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
   // state0
   // ... register some ports, vlans, interfaces
   // state1
-  auto state1 = publishAndApplyConfig(state0, &config, &platform);
+  auto state1 = publishAndApplyConfig(state0, &config, platform.get());
   ASSERT_NE(state1, nullptr);
   ASSERT_TRUE(!state1->isPublished());
   state1->publish();
@@ -283,7 +283,7 @@ TEST(SwitchStatePruningTests, AddNeighborEntry) {
 // Test that we can update pending entries to resolved ones, and revert them
 // back to pending.
 TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   SwitchConfig config;
   shared_ptr<SwitchState> state0 = make_shared<SwitchState>();
   // state0 -> empty state
@@ -302,7 +302,7 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
   // state0
   // ... register some ports, vlans, interfaces
   // state1
-  auto state1 = publishAndApplyConfig(state0, &config, &platform);
+  auto state1 = publishAndApplyConfig(state0, &config, platform.get());
   ASSERT_NE(state1, nullptr);
   ASSERT_TRUE(!state1->isPublished());
   state1->publish();
@@ -392,7 +392,7 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
 }
 
 TEST(SwitchStatePruningTests, ModifyState) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   SwitchConfig config;
   // The empty state
   shared_ptr<SwitchState> state0 = make_shared<SwitchState>();
@@ -411,7 +411,7 @@ TEST(SwitchStatePruningTests, ModifyState) {
   // state1
   registerPortsAndPopulateConfig(
       port2VlanMap, &vlan2OutgoingMac, state0, config);
-  auto state1 = publishAndApplyConfig(state0, &config, &platform);
+  auto state1 = publishAndApplyConfig(state0, &config, platform.get());
   ASSERT_NE(state1, nullptr);
   ASSERT_TRUE(!state1->isPublished());
   state1->publish();
@@ -440,7 +440,7 @@ TEST(SwitchStatePruningTests, ModifyState) {
 // Test we can modify empty arp table without resetting the arp table to a new
 // one created outside.
 TEST(SwitchStatePruningTests, ModifyEmptyArpTable) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   SwitchConfig config;
   // state0 = the empty state
   shared_ptr<SwitchState> state0 = make_shared<SwitchState>();
@@ -459,7 +459,7 @@ TEST(SwitchStatePruningTests, ModifyEmptyArpTable) {
   // state0
   // ... register ports, vlans, interfaces
   // state1
-  auto state1 = publishAndApplyConfig(state0, &config, &platform);
+  auto state1 = publishAndApplyConfig(state0, &config, platform.get());
   ASSERT_NE(state1, nullptr);
   ASSERT_TRUE(!state1->isPublished());
   state1->publish();
@@ -492,7 +492,7 @@ TEST(SwitchStatePruningTests, ModifyEmptyArpTable) {
  * This code tests that the modify function of NeighborTable works as expected.
  */
 TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   SwitchConfig config;
   // The empty state
   shared_ptr<SwitchState> state0 = make_shared<SwitchState>();
@@ -512,7 +512,7 @@ TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
   // state0
   //  ... register ports, vlans, interfaces
   // state1
-  auto state1 = publishAndApplyConfig(state0, &config, &platform);
+  auto state1 = publishAndApplyConfig(state0, &config, platform.get());
   ASSERT_NE(state1, nullptr);
   ASSERT_TRUE(!state1->isPublished());
   state1->publish();

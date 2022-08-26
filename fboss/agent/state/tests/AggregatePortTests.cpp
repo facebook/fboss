@@ -107,7 +107,7 @@ void checkAggPort(
 }
 
 TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto startState = make_shared<SwitchState>();
   startState->registerPort(PortID(1), "port1");
 
@@ -141,7 +141,7 @@ TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
   config.aggregatePorts()[0].memberPorts()->resize(1);
   *config.aggregatePorts()[0].memberPorts()[0].memberPortID() = 1;
 
-  auto endState = publishAndApplyConfig(startState, &config, &platform);
+  auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
   auto aggPort =
       endState->getAggregatePorts()->getAggregatePortIf(AggregatePortID(1));
@@ -152,7 +152,7 @@ TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
 }
 
 TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto baseState = make_shared<SwitchState>();
   baseState->registerPort(PortID(1), "port1");
   baseState->registerPort(PortID(2), "port2");
@@ -183,7 +183,8 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
   *baseConfig.vlanPorts()[1].vlanID() = 1000;
   *baseConfig.vlanPorts()[1].emitTags() = false;
 
-  auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
+  auto startState =
+      publishAndApplyConfig(baseState, &baseConfig, platform.get());
   ASSERT_NE(nullptr, startState);
 
   // This config has an aggregate port comprised of two physical ports
@@ -196,7 +197,7 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
   *config.aggregatePorts()[0].memberPorts()[0].memberPortID() = 1;
   *config.aggregatePorts()[0].memberPorts()[1].memberPortID() = 2;
 
-  auto endState = publishAndApplyConfig(startState, &config, &platform);
+  auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
   auto aggPort =
       endState->getAggregatePorts()->getAggregatePortIf(AggregatePortID(1));
@@ -206,7 +207,7 @@ TEST(AggregatePort, singleTrunkWithTwoPhysicalPorts) {
 }
 
 TEST(AggregatePort, singleTrunkIdempotence) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto baseState = make_shared<SwitchState>();
   baseState->registerPort(PortID(1), "port1");
   baseState->registerPort(PortID(2), "port2");
@@ -246,7 +247,8 @@ TEST(AggregatePort, singleTrunkIdempotence) {
   *baseConfig.aggregatePorts()[0].memberPorts()[0].memberPortID() = 1;
   *baseConfig.aggregatePorts()[0].memberPorts()[1].memberPortID() = 2;
 
-  auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
+  auto startState =
+      publishAndApplyConfig(baseState, &baseConfig, platform.get());
   ASSERT_NE(nullptr, startState);
 
   // config is the same as baseConfig, but the order of physical ports in the
@@ -257,11 +259,12 @@ TEST(AggregatePort, singleTrunkIdempotence) {
       config.aggregatePorts()[0].memberPorts()[0],
       config.aggregatePorts()[0].memberPorts()[1]);
 
-  EXPECT_EQ(nullptr, publishAndApplyConfig(startState, &config, &platform));
+  EXPECT_EQ(
+      nullptr, publishAndApplyConfig(startState, &config, platform.get()));
 }
 
 TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto baseState = make_shared<SwitchState>();
   baseState->registerPort(PortID(1), "port1");
   baseState->registerPort(PortID(2), "port2");
@@ -301,7 +304,8 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   *baseConfig.aggregatePorts()[0].memberPorts()[0].memberPortID() = 1;
   *baseConfig.aggregatePorts()[0].memberPorts()[1].memberPortID() = 2;
 
-  auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
+  auto startState =
+      publishAndApplyConfig(baseState, &baseConfig, platform.get());
   ASSERT_NE(nullptr, startState);
 
   // This config config has a single aggregate port without any constituent
@@ -310,7 +314,7 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
   *config.aggregatePorts()[0].description() = "empty bundle";
   config.aggregatePorts()[0].memberPorts()->resize(0);
 
-  auto endState = publishAndApplyConfig(startState, &config, &platform);
+  auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
   auto aggPort =
       endState->getAggregatePorts()->getAggregatePortIf(AggregatePortID(1));
@@ -320,7 +324,7 @@ TEST(AggregatePort, singleTrunkWithoutPhysicalPorts) {
 }
 
 TEST(AggregatePort, noTrunk) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
   auto baseState = make_shared<SwitchState>();
   baseState->registerPort(PortID(1), "port1");
   baseState->registerPort(PortID(2), "port2");
@@ -360,14 +364,15 @@ TEST(AggregatePort, noTrunk) {
   *baseConfig.aggregatePorts()[0].memberPorts()[0].memberPortID() = 1;
   *baseConfig.aggregatePorts()[0].memberPorts()[1].memberPortID() = 2;
 
-  auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
+  auto startState =
+      publishAndApplyConfig(baseState, &baseConfig, platform.get());
   ASSERT_NE(nullptr, startState);
 
   // This config has no aggregate ports
   auto config = baseConfig;
   config.aggregatePorts()->resize(0);
 
-  auto endState = publishAndApplyConfig(startState, &config, &platform);
+  auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
   auto allAggPorts = endState->getAggregatePorts();
   EXPECT_EQ(allAggPorts->begin(), allAggPorts->end());
@@ -433,7 +438,7 @@ void setAggregatePortMemberIDs(
 }
 
 TEST(AggregatePort, multiTrunkAdd) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
 
   auto startState = testStateA();
   auto startAggPorts = startState->getAggregatePorts();
@@ -457,7 +462,7 @@ TEST(AggregatePort, multiTrunkAdd) {
       *config.aggregatePorts()[1].memberPorts(),
       {11, 12, 13, 14, 15, 16, 17, 18, 19, 20});
 
-  auto endState = publishAndApplyConfig(startState, &config, &platform);
+  auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
   auto endAggPorts = endState->getAggregatePorts();
   ASSERT_NE(nullptr, endAggPorts);
@@ -489,7 +494,7 @@ TEST(AggregatePort, multiTrunkAdd) {
 }
 
 TEST(AggregatePort, multiTrunkIdempotence) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
 
   auto startState = testStateA();
 
@@ -512,11 +517,11 @@ TEST(AggregatePort, multiTrunkIdempotence) {
       *config.aggregatePorts()[1].memberPorts(),
       {11, 12, 13, 14, 15, 16, 17, 18, 19, 20});
 
-  auto endState = publishAndApplyConfig(startState, &config, &platform);
+  auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
 
   // Applying the same config again should result in no change
-  EXPECT_EQ(nullptr, publishAndApplyConfig(endState, &config, &platform));
+  EXPECT_EQ(nullptr, publishAndApplyConfig(endState, &config, platform.get()));
 
   auto endAggPorts = endState->getAggregatePorts();
   validateNodeSerialization(
@@ -526,7 +531,7 @@ TEST(AggregatePort, multiTrunkIdempotence) {
 }
 
 TEST(AggregatePort, multiTrunkAddAndChange) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
 
   auto baseState = testStateA();
 
@@ -550,7 +555,8 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
       *baseConfig.aggregatePorts()[1].memberPorts(),
       {11, 12, 13, 14, 15, 16, 17, 18, 19, 20});
 
-  auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
+  auto startState =
+      publishAndApplyConfig(baseState, &baseConfig, platform.get());
   ASSERT_NE(nullptr, startState);
   auto startAggPorts = startState->getAggregatePorts();
 
@@ -584,7 +590,7 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
   setAggregatePortMemberIDs(
       *config.aggregatePorts()[3].memberPorts(), {16, 17, 18, 19, 20});
 
-  auto endState = publishAndApplyConfig(startState, &config, &platform);
+  auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
   auto endAggPorts = endState->getAggregatePorts();
   ASSERT_NE(nullptr, endAggPorts);
@@ -631,7 +637,7 @@ TEST(AggregatePort, multiTrunkAddAndChange) {
 }
 
 TEST(AggregatePort, multiTrunkRemove) {
-  MockPlatform platform;
+  auto platform = createMockPlatform();
 
   auto baseState = testStateA();
 
@@ -669,7 +675,8 @@ TEST(AggregatePort, multiTrunkRemove) {
   setAggregatePortMemberIDs(
       *baseConfig.aggregatePorts()[3].memberPorts(), {16, 17, 18, 19, 20});
 
-  auto startState = publishAndApplyConfig(baseState, &baseConfig, &platform);
+  auto startState =
+      publishAndApplyConfig(baseState, &baseConfig, platform.get());
   ASSERT_NE(nullptr, startState);
   auto startAggPorts = startState->getAggregatePorts();
   ASSERT_NE(nullptr, startAggPorts);
@@ -681,7 +688,7 @@ TEST(AggregatePort, multiTrunkRemove) {
   config.aggregatePorts()[1] = config.aggregatePorts()[3];
   config.aggregatePorts()->resize(2);
 
-  auto endState = publishAndApplyConfig(startState, &config, &platform);
+  auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);
   auto endAggPorts = endState->getAggregatePorts();
   ASSERT_NE(nullptr, endAggPorts);

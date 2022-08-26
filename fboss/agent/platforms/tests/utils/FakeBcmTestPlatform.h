@@ -60,6 +60,9 @@ class FakeBcmTestPlatform : public BcmTestPlatform {
   HwAsic* getAsic() const override;
 
  private:
+  void setupAsic(
+      cfg::SwitchType /*switchType*/,
+      std::optional<int64_t> /*switchId*/) override;
   // Forbidden copy constructor and assignment operator
   FakeBcmTestPlatform(FakeBcmTestPlatform const&) = delete;
   FakeBcmTestPlatform& operator=(FakeBcmTestPlatform const&) = delete;

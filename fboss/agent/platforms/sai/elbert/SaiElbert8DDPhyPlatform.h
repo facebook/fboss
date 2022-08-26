@@ -66,6 +66,8 @@ class SaiElbert8DDPhyPlatform : public SaiHwPlatform {
   }
 
  private:
+  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
+      override;
   uint8_t pimId_{0};
   int phyId_{0};
   std::unique_ptr<CredoF104Asic> asic_;

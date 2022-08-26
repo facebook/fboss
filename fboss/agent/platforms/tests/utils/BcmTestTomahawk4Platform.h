@@ -23,9 +23,7 @@ class BcmTestTomahawk4Platform : public BcmTestWedgePlatform {
       std::unique_ptr<PlatformMapping> platformMapping)
       : BcmTestWedgePlatform(
             std::move(productInfo),
-            std::move(platformMapping)) {
-    asic_ = std::make_unique<Tomahawk4Asic>();
-  }
+            std::move(platformMapping)) {}
   ~BcmTestTomahawk4Platform() override {}
 
   bool canUseHostTableForHostRoutes() const override {
@@ -67,6 +65,11 @@ class BcmTestTomahawk4Platform : public BcmTestWedgePlatform {
   }
 
  private:
+  void setupAsic(
+      cfg::SwitchType /*switchType*/,
+      std::optional<int64_t> /*switchId*/) override {
+    asic_ = std::make_unique<Tomahawk4Asic>();
+  }
   // Forbidden copy constructor and assignment operator
   BcmTestTomahawk4Platform(BcmTestTomahawk4Platform const&) = delete;
   BcmTestTomahawk4Platform& operator=(BcmTestTomahawk4Platform const&) = delete;

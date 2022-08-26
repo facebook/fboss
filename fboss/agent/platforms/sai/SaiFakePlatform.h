@@ -54,6 +54,8 @@ class SaiFakePlatform : public SaiPlatform {
   const std::set<sai_api_t>& getSupportedApiList() const override;
 
  private:
+  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
+      override;
   folly::test::TemporaryDirectory tmpDir_;
   std::unique_ptr<FakeAsic> asic_;
 };

@@ -36,7 +36,11 @@ SaiFakePlatform::SaiFakePlatform(
     : SaiPlatform(
           std::move(productInfo),
           std::make_unique<FakeTestPlatformMapping>(getControllingPortIDs()),
-          kLocalMac) {
+          kLocalMac) {}
+
+void SaiFakePlatform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<FakeAsic>();
 }
 

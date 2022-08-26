@@ -126,6 +126,8 @@ void Platform::init(
     uint32_t hwFeaturesDesired) {
   // take ownership of the config if passed in
   config_ = std::move(config);
+  // TODO extract switch type and id
+  setupAsic(cfg::SwitchType::NPU, std::nullopt);
   initImpl(hwFeaturesDesired);
   // We should always initPorts() here instead of leaving the hw/ to call
   initPorts();

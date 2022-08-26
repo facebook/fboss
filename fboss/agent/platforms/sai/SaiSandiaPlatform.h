@@ -23,6 +23,9 @@ class SaiSandiaPlatform : public SaiTajoPlatform {
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
 
+ private:
+  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
+      override;
   std::unique_ptr<GaronneAsic> asic_;
 };
 

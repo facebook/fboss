@@ -24,10 +24,13 @@ SaiBcmWedge100Platform::SaiBcmWedge100Platform(
     : SaiBcmPlatform(
           std::move(productInfo),
           std::make_unique<Wedge100PlatformMapping>(),
-          localMac) {
+          localMac) {}
+
+void SaiBcmWedge100Platform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<TomahawkAsic>();
 }
-
 HwAsic* SaiBcmWedge100Platform::getAsic() const {
   return asic_.get();
 }

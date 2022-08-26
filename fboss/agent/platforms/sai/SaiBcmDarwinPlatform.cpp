@@ -23,7 +23,11 @@ SaiBcmDarwinPlatform::SaiBcmDarwinPlatform(
     : SaiBcmPlatform(
           std::move(productInfo),
           std::make_unique<DarwinPlatformMapping>(),
-          localMac) {
+          localMac) {}
+
+void SaiBcmDarwinPlatform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<Tomahawk3Asic>();
 }
 

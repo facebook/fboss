@@ -21,7 +21,11 @@ SaiBcmGalaxyLCPlatform::SaiBcmGalaxyLCPlatform(
           std::move(productInfo),
           std::make_unique<GalaxyLCPlatformMapping>(
               GalaxyLCPlatformMapping::getLinecardName()),
-          localMac) {
+          localMac) {}
+
+void SaiBcmGalaxyLCPlatform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<TomahawkAsic>();
 }
 

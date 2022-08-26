@@ -57,7 +57,6 @@ MockPlatform::MockPlatform(
   ON_CALL(*hw_, stateChangedTransaction(_))
       .WillByDefault(WithArg<0>(
           Invoke([=](const StateDelta& delta) { return delta.newState(); })));
-  asic_ = std::make_unique<MockAsic>();
   for (auto portEntry : getPlatformMapping()->getPlatformPorts()) {
     auto portID = PortID(portEntry.first);
     portMapping_.emplace(
@@ -72,6 +71,11 @@ MockPlatform::MockPlatform()
 
 MockPlatform::~MockPlatform() {}
 
+void MockPlatform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
+  asic_ = std::make_unique<MockAsic>();
+}
 HwSwitch* MockPlatform::getHwSwitch() const {
   return hw_.get();
 }

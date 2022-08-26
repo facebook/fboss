@@ -21,10 +21,13 @@ SaiBcmElbertPlatform::SaiBcmElbertPlatform(
     : SaiBcmPlatform(
           std::move(productInfo),
           std::make_unique<ElbertPlatformMapping>(),
-          localMac) {
+          localMac) {}
+
+void SaiBcmElbertPlatform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<Tomahawk4Asic>();
 }
-
 HwAsic* SaiBcmElbertPlatform::getAsic() const {
   return asic_.get();
 }

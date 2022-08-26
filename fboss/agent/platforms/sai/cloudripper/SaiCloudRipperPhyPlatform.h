@@ -61,6 +61,8 @@ class SaiCloudRipperPhyPlatform : public SaiHwPlatform {
   }
 
  private:
+  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
+      override;
   int phyId_{0};
   std::unique_ptr<CredoF104Asic> asic_;
   std::optional<SaiSwitchTraits::CreateAttributes> switchCreateAttrs_;

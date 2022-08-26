@@ -24,15 +24,17 @@ SaiWedge400CPlatform::SaiWedge400CPlatform(
     : SaiTajoPlatform(
           std::move(productInfo),
           std::make_unique<Wedge400CPlatformMapping>(),
-          localMac) {
-  asic_ = std::make_unique<EbroAsic>();
-}
+          localMac) {}
 
 SaiWedge400CPlatform::SaiWedge400CPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     std::unique_ptr<Wedge400CEbbLabPlatformMapping> mapping,
     folly::MacAddress localMac)
-    : SaiTajoPlatform(std::move(productInfo), std::move(mapping), localMac) {
+    : SaiTajoPlatform(std::move(productInfo), std::move(mapping), localMac) {}
+
+void SaiWedge400CPlatform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<EbroAsic>();
 }
 

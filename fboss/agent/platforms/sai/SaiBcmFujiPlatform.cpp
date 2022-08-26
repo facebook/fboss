@@ -21,7 +21,11 @@ SaiBcmFujiPlatform::SaiBcmFujiPlatform(
     : SaiBcmPlatform(
           std::move(productInfo),
           std::make_unique<FujiPlatformMapping>(),
-          localMac) {
+          localMac) {}
+
+void SaiBcmFujiPlatform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<Tomahawk4Asic>();
 }
 

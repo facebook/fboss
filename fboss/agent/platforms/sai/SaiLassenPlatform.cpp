@@ -22,7 +22,11 @@ SaiLassenPlatform::SaiLassenPlatform(
     : SaiTajoPlatform(
           std::move(productInfo),
           std::make_unique<LassenPlatformMapping>(),
-          localMac) {
+          localMac) {}
+
+void SaiLassenPlatform::setupAsic(
+    cfg::SwitchType /*switchType*/,
+    std::optional<int64_t> /*switchId*/) {
   asic_ = std::make_unique<EbroAsic>();
 }
 

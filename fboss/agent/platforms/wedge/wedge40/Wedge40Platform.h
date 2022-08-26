@@ -51,6 +51,8 @@ class Wedge40Platform : public WedgePlatform {
       phy::VCOFrequencyFactor& factor) const override;
 
  private:
+  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
+      override;
   Wedge40Platform(Wedge40Platform const&) = delete;
   Wedge40Platform& operator=(Wedge40Platform const&) = delete;
   std::unique_ptr<Trident2Asic> asic_;
