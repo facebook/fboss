@@ -35,6 +35,10 @@ HwAsic* SaiMakaluPlatform::getAsic() const {
   return asic_.get();
 }
 
+std::vector<sai_system_port_config_t>
+SaiMakaluPlatform::getInternalSystemPortConfig() const {
+  return {{0, 0, 0, 0, 100000, 8}};
+}
 SaiMakaluPlatform::~SaiMakaluPlatform() {}
 
 } // namespace facebook::fboss
