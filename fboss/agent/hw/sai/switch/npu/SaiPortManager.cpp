@@ -119,10 +119,8 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   auto saiPort = portStore.setObject(portKey, attributes, swPort->getID());
   handle->port = saiPort;
   programSerdes(saiPort, swPort, handle.get());
+  loadPortQueues(handle.get());
 
-  if (swPort->getPortType() != cfg::PortType::FABRIC_PORT) {
-    loadPortQueues(handle.get());
-  }
   const auto asic = platform_->getAsic();
   if (swPort->isEnabled()) {
     portStats_.emplace(
