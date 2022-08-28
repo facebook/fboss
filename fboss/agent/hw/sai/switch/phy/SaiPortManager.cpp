@@ -297,8 +297,15 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre2;
+#endif
   SaiPortSerdesTraits::Attributes::TxFirMain::ValueType txMain;
   SaiPortSerdesTraits::Attributes::TxFirPost1::ValueType txPost1;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  SaiPortSerdesTraits::Attributes::TxFirPost1::ValueType txPost2;
+  SaiPortSerdesTraits::Attributes::TxFirPost1::ValueType txPost3;
+#endif
 
   // Now use pinConfigs from SW port as the source of truth
   auto numExpectedTxLanes = 0;
@@ -306,8 +313,15 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
       txPre1.push_back(*tx->pre());
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      txPre2.push_back(*tx->pre2());
+#endif
       txMain.push_back(*tx->main());
       txPost1.push_back(*tx->post());
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      txPost2.push_back(*tx->post2());
+      txPost3.push_back(*tx->post3());
+#endif
     }
   }
 
@@ -321,7 +335,14 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
   std::get<SaiPortSerdesTraits::Attributes::PortId>(attrs) =
       static_cast<sai_object_id_t>(portSaiId);
   setTxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre1{}, txPre1);
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  setTxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre2{}, txPre2);
+#endif
   setTxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost1{}, txPost1);
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  setTxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost2{}, txPost2);
+  setTxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost3{}, txPost3);
+#endif
   setTxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirMain{}, txMain);
 
   std::string dbgOutput;
@@ -330,12 +351,24 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       static_cast<uint64_t>(portSaiId)));
 
   for (auto lane = 0; lane < numExpectedTxLanes; lane++) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    dbgOutput.append(folly::sformat(
+        "[Pre1 {:d} Pre2 {:d} Main {:d} Post1 {:d} Post2 {:d} Post3 {:d}], ",
+        (lane < txPre1.size() ? txPre1[lane] : static_cast<unsigned int>(-1)),
+        (lane < txPre2.size() ? txPre2[lane] : static_cast<unsigned int>(-1)),
+        (lane < txMain.size() ? txMain[lane] : static_cast<unsigned int>(-1)),
+        (lane < txPost1.size() ? txPost1[lane] : static_cast<unsigned int>(-1)),
+        (lane < txPost2.size() ? txPost2[lane] : static_cast<unsigned int>(-1)),
+        (lane < txPost3.size() ? txPost3[lane]
+                               : static_cast<unsigned int>(-1))));
+#else
     dbgOutput.append(folly::sformat(
         "[Pre1 {:d} Main {:d} Post1 {:d}], ",
         (lane < txPre1.size() ? txPre1[lane] : static_cast<unsigned int>(-1)),
         (lane < txMain.size() ? txMain[lane] : static_cast<unsigned int>(-1)),
         (lane < txPost1.size() ? txPost1[lane]
                                : static_cast<unsigned int>(-1))));
+#endif
   }
   XLOG(INFO) << dbgOutput;
 
