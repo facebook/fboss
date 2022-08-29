@@ -84,6 +84,8 @@ bool TeFlowNexthopHandler::updateTeFlowEntry(
     auto newEntry = originalEntry->modify(&newState);
     newEntry->setEnabled(!resolvedNextHops.empty());
     newEntry->setResolvedNextHops(std::move(resolvedNextHops));
+    XLOG(DBG3) << "TeFlowNexthopHandler: Setting nexthop changed for flow: "
+               << newEntry->str();
     return true;
   }
   return false;

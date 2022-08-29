@@ -1,8 +1,10 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <gtest/gtest.h>
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/TeFlowEntry.h"
+#include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "folly/IPAddressV6.h"
@@ -208,4 +210,46 @@ TEST_F(TeFlowTest, NextHopResolution) {
   tableEntry = sw_->getState()->getTeFlowTable()->getTeFlowIf(flowId);
   EXPECT_EQ(tableEntry->getEnabled(), true);
   verifyFlowEntry(tableEntry);
+}
+
+TEST_F(TeFlowTest, TeFlowStats) {
+  auto state = sw_->getState();
+  auto flowEntries = {
+      makeFlow("100::"),
+      makeFlow("101::"),
+      makeFlow("102::"),
+      makeFlow("103::", kNhopAddrB, "fboss55"),
+      makeFlow("104::", kNhopAddrB, "fboss55")};
+
+  CounterCache counters(sw_);
+
+  updateState("add te flow", [&](const auto& state) {
+    auto newState = state->clone();
+    auto flowTable = std::make_shared<TeFlowTable>();
+    for (const auto& flowEntry : flowEntries) {
+      flowTable->addTeFlowEntry(&newState, flowEntry);
+    }
+    newState->resetTeFlowTable(flowTable);
+    return newState;
+  });
+
+  waitForStateUpdates(sw_);
+  sw_->updateStats();
+  counters.update();
+  EXPECT_TRUE(counters.checkExist(SwitchStats::kCounterPrefix + "teflows"));
+  EXPECT_EQ(counters.value(SwitchStats::kCounterPrefix + "teflows"), 5);
+  EXPECT_EQ(
+      counters.value(SwitchStats::kCounterPrefix + "teflows.inactive"), 0);
+
+  // trigger ndp flush to disable NextHopB enentries
+  sw_->getNeighborUpdater()->flushEntry(kVlanB, folly::IPAddressV6(kNhopAddrB));
+  sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(sw_);
+  waitForStateUpdates(sw_);
+  sw_->updateStats();
+  counters.update();
+  EXPECT_TRUE(counters.checkExist(SwitchStats::kCounterPrefix + "teflows"));
+  EXPECT_EQ(counters.value(SwitchStats::kCounterPrefix + "teflows"), 5);
+  EXPECT_EQ(
+      counters.value(SwitchStats::kCounterPrefix + "teflows.inactive"), 2);
 }
