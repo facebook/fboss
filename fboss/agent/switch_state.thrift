@@ -463,6 +463,26 @@ struct AclTableGroupFields {
   3: map<string, AclTableFields> aclTableMap;
 }
 
+struct QcmCfgFields {
+  1: i32 agingIntervalInMsecs = switch_config.DEFAULT_QCM_AGING_INTERVAL_MSECS;
+  2: i32 numFlowSamplesPerView = switch_config.DEFAULT_QCM_FLOWS_PER_VIEW;
+  3: i32 flowLimit = switch_config.DEFAULT_QCM_FLOW_LIMIT;
+  4: i32 numFlowsClear = switch_config.DEFAULT_QCM_NUM_FLOWS_TO_CLEAR;
+  5: i32 scanIntervalInUsecs = switch_config.DEFAULT_QCM_SCAN_INTERVAL_USECS;
+  6: i32 exportThreshold = switch_config.DEFAULT_QCM_EXPORT_THRESHOLD;
+  7: bool monitorQcmCfgPortsOnly = false;
+  8: map<i32, i32> flowWeights;
+  // srcIp and dstIp need to be in CIDRNetwork format
+  9: ctrl.IpPrefix collectorSrcIp;
+  10: ctrl.IpPrefix collectorDstIp;
+  11: i16 collectorSrcPort;
+  12: i16 collectorDstPort;
+  13: optional byte collectorDscp;
+  14: optional i32 ppsToQcm;
+  15: list<i32> monitorQcmPortList;
+  16: map<i32, set<i32>> port2QosQueueIds;
+}
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
@@ -494,4 +514,5 @@ struct SwitchState {
   28: map<switch_config.LoadBalancerID, LoadBalancerFields> loadBalancerMap;
   29: map<switch_config.AclStage, AclTableGroupFields> aclTableGroupMap;
   30: map<i32, InterfaceFields> interfaceMap;
+  31: QcmCfgFields qcmCfg;
 }
