@@ -464,6 +464,7 @@ class NdpTest : public ::testing::Test {
   }
 
  protected:
+  void validateRouterAdv(std::optional<std::string> configuredRouterIp);
   SwSwitch* sw_;
 };
 
@@ -662,9 +663,13 @@ TEST_F(NdpTest, TriggerSolicitation) {
       sw, IPAddressV6("2401:db00:2110:3004::2"), VlanID(5));
 }
 
-TEST_F(NdpTest, RouterAdvertisement) {
+void NdpTest::validateRouterAdv(std::optional<std::string> configuredRouterIp) {
   seconds raInterval(1);
-  auto config = createSwitchConfig(raInterval, seconds(0));
+  auto config =
+      createSwitchConfig(raInterval, seconds(0), false, configuredRouterIp);
+  auto routerAdvSrcIp = configuredRouterIp
+      ? folly::IPAddressV6(*configuredRouterIp)
+      : MockPlatform::getMockLinkLocalIp6();
   // Add an interface with a /128 mask, to make sure it isn't included
   // in the generated RA packets.
   config.interfaces()[0].ipAddresses()->push_back(
@@ -686,7 +691,7 @@ TEST_F(NdpTest, RouterAdvertisement) {
       "router advertisement",
       checkRouterAdvert(
           MockPlatform::getMockLocalMac(),
-          MockPlatform::getMockLinkLocalIp6(),
+          routerAdvSrcIp,
           MacAddress("33:33:00:00:00:01"),
           IPAddressV6("ff02::1"),
           VlanID(5),
@@ -700,7 +705,7 @@ TEST_F(NdpTest, RouterAdvertisement) {
       "router advertisement",
       checkRouterAdvert(
           MockPlatform::getMockLocalMac(),
-          MockPlatform::getMockLinkLocalIp6(),
+          routerAdvSrcIp,
           MacAddress("02:05:73:f9:46:fc"),
           IPAddressV6("2401:db00:2110:1234::1:0"),
           VlanID(5),
@@ -746,7 +751,7 @@ TEST_F(NdpTest, RouterAdvertisement) {
       "router advertisement",
       checkRouterAdvert(
           MockPlatform::getMockLocalMac(),
-          MockPlatform::getMockLinkLocalIp6(),
+          routerAdvSrcIp,
           MacAddress("02:ab:73:f9:46:fc"),
           IPAddressV6("2401:db00:2110:1234::1:0"),
           VlanID(5),
@@ -804,7 +809,7 @@ TEST_F(NdpTest, RouterAdvertisement) {
       "router advertisement",
       checkRouterAdvert(
           MockPlatform::getMockLocalMac(),
-          MockPlatform::getMockLinkLocalIp6(),
+          routerAdvSrcIp,
           MacAddress("33:33:00:00:00:01"),
           IPAddressV6("ff02::1"),
           VlanID(5),
@@ -813,6 +818,10 @@ TEST_F(NdpTest, RouterAdvertisement) {
           expectedPrefixes));
   counters.update();
   EXPECT_GT(counters.value("PrimaryInterface.router_advertisements.sum"), 0);
+}
+
+TEST_F(NdpTest, RouterAdvertisement) {
+  validateRouterAdv(std::nullopt);
 }
 
 TEST_F(NdpTest, BrokenRouterAdvConfig) {
