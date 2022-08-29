@@ -71,6 +71,7 @@ TEST(QcmConfigTest, applyConfig) {
       EXPECT_EQ(qosQueueId, initQosQueueId++);
     }
   }
+  validateThriftyMigration(*qcmConfig1);
 
   // re-program the map
   map.emplace(1, 9);
@@ -111,6 +112,7 @@ TEST(QcmConfigTest, applyConfig) {
       EXPECT_EQ(qosQueueId, initQosQueueId++);
     }
   }
+  validateThriftyMigration(*qcmConfig2);
 
   // remove the cfg
   config.qcmConfig().reset();
@@ -197,6 +199,7 @@ TEST(QcmConfigTest, ToFromJSON) {
       qcmCfg->getCollectorSrcIp());
   auto portList = qcmCfg->getMonitorQcmPortList();
   EXPECT_EQ(portList.size(), 3);
+  validateThriftyMigration(*qcmCfg);
 }
 
 // Intent of this test is to enable QCM, modify an
@@ -229,4 +232,5 @@ TEST(QcmConfigTest, verifyQcmWithSwitchSettingsChange) {
   auto qcmConfig1 = state1->getQcmCfg();
   EXPECT_NE(nullptr, qcmConfig1);
   EXPECT_EQ(qcmConfig1->getNumFlowsClear(), 22);
+  validateThriftyMigration(*qcmConfig1);
 }
