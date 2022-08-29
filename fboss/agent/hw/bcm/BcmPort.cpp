@@ -697,8 +697,7 @@ void BcmPort::program(const shared_ptr<Port>& port) {
     enableLinkscan();
   }
   // Cache the number of phy lanes this port uses
-  const auto& iphyPinConfigs = port->getPinConfigs();
-  auto lanes = utility::getIphyLaneConfigs(iphyPinConfigs).size();
+  auto lanes = port->getPinConfigs().size();
   numLanes_.exchange(lanes);
 
   {
