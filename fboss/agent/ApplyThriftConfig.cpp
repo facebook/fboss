@@ -2663,6 +2663,13 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
       *config->isStateSyncDisabled());
   intf->setAddresses(addrs);
   if (auto ndp = config->ndp()) {
+    if (ndp->routerAddress() &&
+        !intf->hasAddress(folly::IPAddress(*ndp->routerAddress()))) {
+      throw FbossError(
+          "Router address: ",
+          *ndp->routerAddress(),
+          " does not match any interface address");
+    }
     intf->setNdpConfig(*ndp);
   }
   return intf;
