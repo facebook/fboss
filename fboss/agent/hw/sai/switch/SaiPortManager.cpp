@@ -219,10 +219,11 @@ phy::InterfaceType fromSaiInterfaceType(
       return phy::InterfaceType::KR2;
     case SAI_PORT_INTERFACE_TYPE_CAUI4:
       return phy::InterfaceType::CAUI4;
+    case SAI_PORT_INTERFACE_TYPE_SR2:
+      return phy::InterfaceType::SR2;
 
     // Don't seem to currently have an equivalent fboss interface type
     case SAI_PORT_INTERFACE_TYPE_NONE:
-    case SAI_PORT_INTERFACE_TYPE_SR2:
     case SAI_PORT_INTERFACE_TYPE_LR:
     case SAI_PORT_INTERFACE_TYPE_XAUI:
     case SAI_PORT_INTERFACE_TYPE_XFI:

@@ -110,11 +110,47 @@ std::vector<FlexPortMode> SaiSandiaPhyPlatform::getSupportedFlexPortModes()
     const {
   throw FbossError("SaiSandiaPhyPlatform doesn't support FlexPort");
 }
+
 std::optional<sai_port_interface_type_t> SaiSandiaPhyPlatform::getInterfaceType(
-    TransmitterTechnology /* transmitterTech */,
-    cfg::PortSpeed /* speed */) const {
-  throw FbossError("SaiSandiaPhyPlatform doesn't support getInterfaceType()");
+    TransmitterTechnology transmitterTech,
+    cfg::PortSpeed speed) const {
+  if (!getAsic()->isSupported(HwAsic::Feature::PORT_INTERFACE_TYPE)) {
+    return std::nullopt;
+  }
+
+  static std::map<
+      cfg::PortSpeed,
+      std::map<TransmitterTechnology, sai_port_interface_type_t>>
+      kSpeedAndMediaType2InterfaceType = {
+          {cfg::PortSpeed::HUNDREDG,
+           {{TransmitterTechnology::OPTICAL, SAI_PORT_INTERFACE_TYPE_SR4},
+            {TransmitterTechnology::BACKPLANE, SAI_PORT_INTERFACE_TYPE_SR2},
+            // What to default to
+            {TransmitterTechnology::COPPER, SAI_PORT_INTERFACE_TYPE_SR4},
+            {TransmitterTechnology::UNKNOWN, SAI_PORT_INTERFACE_TYPE_SR4}}},
+      };
+
+  auto mediaType2InterfaceTypeIter =
+      kSpeedAndMediaType2InterfaceType.find(speed);
+  if (mediaType2InterfaceTypeIter == kSpeedAndMediaType2InterfaceType.end()) {
+    throw FbossError(
+        "unsupported speed for interface type retrieval : ", speed);
+  }
+
+  auto interfaceTypeIter =
+      mediaType2InterfaceTypeIter->second.find(transmitterTech);
+  if (interfaceTypeIter == mediaType2InterfaceTypeIter->second.end()) {
+    throw FbossError(
+        "unsupported media type for interface type retrieval : ",
+        transmitterTech);
+  }
+  XLOG(DBG3) << "getInterfaceType for speed " << static_cast<int>(speed)
+             << " transmitterTech " << static_cast<int>(transmitterTech)
+             << " interfaceType = " << interfaceTypeIter->second;
+
+  return interfaceTypeIter->second;
 }
+
 bool SaiSandiaPhyPlatform::isSerdesApiSupported() const {
   return true;
 }

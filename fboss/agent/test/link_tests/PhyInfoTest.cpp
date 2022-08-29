@@ -67,6 +67,7 @@ void validateInterfaceAndMedium(
                phy::InterfaceType::CAUI4_C2M,
                phy::InterfaceType::AUI_C2C,
                phy::InterfaceType::AUI_C2M,
+               phy::InterfaceType::SR2,
            }},
       };
 

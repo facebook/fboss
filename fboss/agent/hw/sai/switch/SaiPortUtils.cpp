@@ -89,6 +89,7 @@ sai_port_media_type_t getSaiPortMediaFromInterfaceType(
     case phy::InterfaceType::CAUI4_C2C:
     case phy::InterfaceType::CAUI4_C2M:
     case phy::InterfaceType::CAUI:
+    case phy::InterfaceType::SR2:
       return SAI_PORT_MEDIA_TYPE_BACKPLANE;
 
     case phy::InterfaceType::CR:

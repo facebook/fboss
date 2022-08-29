@@ -57,6 +57,7 @@ enum InterfaceMode {
   // Optics
   SR = 20,
   SR4 = 21,
+  SR2 = 22,
   // CAUI
   CAUI = 30,
   CAUI4 = 31,
@@ -85,6 +86,7 @@ enum InterfaceType {
   // Optics
   SR = 20,
   SR4 = 21,
+  SR2 = 22,
   // CAUI
   CAUI = 30,
   CAUI4 = 31,
