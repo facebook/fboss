@@ -1134,6 +1134,14 @@ struct NdpConfig {
   * servers within the network.
   */
   7: bool routerAdvertisementOtherBit = 0;
+  /*
+   * IP Address to use in router advertisement.
+   * This must be one of the Interface IP addresses.
+   * In absence of this config, implementation can
+   * choose any of the interface addresses as Router
+   * address.
+   */
+  8: optional string routerAddress;
 }
 
 /**
