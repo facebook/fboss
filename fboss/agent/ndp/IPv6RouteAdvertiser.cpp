@@ -258,7 +258,9 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
 
   auto bodyLength = getAdvertisementPacketBodySize(prefixes.size());
 
-  IPAddressV6 srcIP(IPAddressV6::LINK_LOCAL, intf->getMac());
+  IPAddressV6 srcIP = ndpConfig->routerAddress()
+      ? folly::IPAddressV6(*ndpConfig->routerAddress())
+      : folly::IPAddressV6(IPAddressV6::LINK_LOCAL, intf->getMac());
   IPv6Hdr ipv6(srcIP, dstIP);
   ipv6.trafficClass = kGetNetworkControlTrafficClass();
   ipv6.payloadLength = ICMPHdr::SIZE + bodyLength;
