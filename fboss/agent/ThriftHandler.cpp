@@ -2489,6 +2489,7 @@ void ThriftHandler::addTeFlows(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
 
+  auto numFlows = teFlowEntries->size();
   auto updateFn = [=, teFlows = std::move(*teFlowEntries)](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
@@ -2505,6 +2506,7 @@ void ThriftHandler::addTeFlows(
     // TODO translate the error.
     throw FbossTeUpdateError();
   }
+  XLOG(DBG2) << "addTeFlows Added : " << numFlows;
 }
 
 void ThriftHandler::addTeFlowsImpl(
@@ -2520,6 +2522,7 @@ void ThriftHandler::deleteTeFlows(
     std::unique_ptr<std::vector<TeFlow>> teFlows) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
+  auto numFlows = teFlows->size();
   auto updateFn = [=, flows = std::move(*teFlows)](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
@@ -2530,12 +2533,15 @@ void ThriftHandler::deleteTeFlows(
     return newState;
   };
   sw_->updateStateBlocking("deleteTeFlows", updateFn);
+  XLOG(DBG2) << "deleteTeFlows Deleted : " << numFlows;
 }
 
 void ThriftHandler::syncTeFlows(
     std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
+  auto numFlows = teFlowEntries->size();
+  auto oldNumFlows = sw_->getState()->getTeFlowTable()->size();
   auto updateFn = [=, teFlows = std::move(*teFlowEntries)](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
@@ -2554,6 +2560,8 @@ void ThriftHandler::syncTeFlows(
     // TODO translate the error.
     throw FbossTeUpdateError();
   }
+  XLOG(DBG2) << "syncTeFlows newFlowCount :" << numFlows
+             << " oldFlowCount :" << oldNumFlows;
 }
 
 void ThriftHandler::getTeFlowTableDetails(
@@ -2567,7 +2575,9 @@ void ThriftHandler::getTeFlowTableDetails(
     flowDetails.enabled() = entry->getEnabled();
     flowDetails.nexthops() = entry->getNextHops();
     flowDetails.resolvedNexthops() = entry->getResolvedNextHops();
-    flowDetails.counterID() = entry->getCounterID();
+    flowDetails.counterID() = entry->getCounterID().has_value()
+        ? entry->getCounterID().value()
+        : "null";
     flowTable.emplace_back(flowDetails);
   }
 }

@@ -105,7 +105,7 @@ class TeFlowTest : public ::testing::Test {
       std::string ifname = "fboss1") {
     EXPECT_NE(entry, nullptr);
     EXPECT_TRUE(entry->getEnabled());
-    EXPECT_EQ(entry->getCounterID(), counterID);
+    EXPECT_EQ(*entry->getCounterID(), counterID);
     EXPECT_EQ(entry->getNextHops().size(), 1);
     auto expectedNhop = toBinaryAddress(IPAddress(nhop));
     expectedNhop.ifName() = ifname;

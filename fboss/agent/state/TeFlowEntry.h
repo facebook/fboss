@@ -41,8 +41,12 @@ class TeFlowEntry : public ThriftyBaseT<
   const TeFlow& getFlow() const {
     return *getFields()->data().flow();
   }
-  TeCounterID getCounterID() const {
-    return *getFields()->data().counterID();
+  std::optional<TeCounterID> getCounterID() const {
+    if (getFields()->data().counterID()) {
+      return *getFields()->data().counterID();
+    } else {
+      return std::nullopt;
+    }
   }
   void setCounterID(std::optional<TeCounterID> counter) {
     if (counter.has_value()) {
@@ -82,6 +86,7 @@ class TeFlowEntry : public ThriftyBaseT<
   }
 
   TeFlowEntry* modify(std::shared_ptr<SwitchState>* state);
+  std::string str() const;
 
  private:
   // Inherit the constructors required for clone()

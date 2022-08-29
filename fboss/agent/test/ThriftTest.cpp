@@ -2005,7 +2005,7 @@ TEST_F(ThriftTeFlowTest, addRemoveTeFlow) {
     EXPECT_EQ(teFlowTable->size(), 1);
     auto tableEntry = teFlowTable->getTeFlowIf(flow);
     EXPECT_NE(tableEntry, nullptr);
-    EXPECT_EQ(tableEntry->getCounterID(), counter);
+    EXPECT_EQ(*tableEntry->getCounterID(), counter);
     EXPECT_EQ(tableEntry->getNextHops().size(), 1);
     auto expectedNhop = toBinaryAddress(IPAddress(nhop));
     expectedNhop.ifName() = intf;
@@ -2146,7 +2146,7 @@ TEST_F(ThriftTeFlowTest, getTeFlowDetails) {
     auto flowDetail = flowDetails[idx++];
     auto tableEntry = state->getTeFlowTable()->getTeFlowIf(flow);
     EXPECT_EQ(flowDetail.enabled(), tableEntry->getEnabled());
-    EXPECT_EQ(flowDetail.counterID(), tableEntry->getCounterID());
+    EXPECT_EQ(flowDetail.counterID(), *tableEntry->getCounterID());
     EXPECT_EQ(flowDetail.nexthops(), tableEntry->getNextHops());
     EXPECT_EQ(flowDetail.resolvedNexthops(), tableEntry->getResolvedNextHops());
   }

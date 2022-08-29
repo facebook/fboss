@@ -48,9 +48,11 @@ TeFlowTable* TeFlowTable::addTeFlowEntry(
     auto teFlowEntry = std::make_shared<TeFlowEntry>(*entry.flow());
     fillFlowInfo(teFlowEntry);
     writableTable->addNode(teFlowEntry);
+    XLOG(DBG3) << "Adding TeFlow " << teFlowEntry->str();
   } else {
     auto* entryToUpdate = oldFlowEntry->modify(state);
     fillFlowInfo(entryToUpdate);
+    XLOG(DBG3) << "Updating TeFlow " << entryToUpdate->str();
   }
   return writableTable;
 }
@@ -67,6 +69,7 @@ TeFlowTable* TeFlowTable::removeTeFlowEntry(
     return writableTable;
   }
   writableTable->removeNodeIf(flowId);
+  XLOG(DBG3) << "Deleting TeFlow " << oldFlowEntry->str();
   return writableTable;
 }
 
