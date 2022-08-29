@@ -19,7 +19,7 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-typedef boost::container::flat_map<int, int> WeightMap;
+typedef std::map<int, int> WeightMap;
 typedef std::map<int, std::set<int>> Port2QosQueueIdMap;
 
 struct QcmCfgFields {
@@ -45,10 +45,10 @@ struct QcmCfgFields {
   WeightMap flowWeights;
   folly::CIDRNetwork collectorDstIp{std::make_pair(folly::IPAddress(), 0)};
   folly::CIDRNetwork collectorSrcIp{std::make_pair(folly::IPAddress(), 0)};
-  uint32_t collectorSrcPort;
-  uint32_t collectorDstPort{
+  uint16_t collectorSrcPort;
+  uint16_t collectorDstPort{
       cfg::switch_config_constants::DEFAULT_QCM_COLLECTOR_DST_PORT()};
-  std::optional<uint32_t> collectorDscp{std::nullopt};
+  std::optional<uint8_t> collectorDscp{std::nullopt};
   std::optional<uint32_t> ppsToQcm{std::nullopt};
   std::vector<int32_t> monitorQcmPortList;
   Port2QosQueueIdMap port2QosQueueIds;
@@ -185,27 +185,27 @@ class QcmCfg : public NodeBaseT<QcmCfg, QcmCfgFields> {
     writableFields()->collectorSrcIp = ip;
   }
 
-  uint32_t getCollectorSrcPort() const {
+  uint16_t getCollectorSrcPort() const {
     return getFields()->collectorSrcPort;
   }
 
-  void setCollectorSrcPort(const uint32_t srcPort) {
+  void setCollectorSrcPort(const uint16_t srcPort) {
     writableFields()->collectorSrcPort = srcPort;
   }
 
-  void setCollectorDstPort(const uint32_t dstPort) {
+  void setCollectorDstPort(const uint16_t dstPort) {
     writableFields()->collectorDstPort = dstPort;
   }
 
-  uint32_t getCollectorDstPort() const {
+  uint16_t getCollectorDstPort() const {
     return getFields()->collectorDstPort;
   }
 
-  std::optional<uint32_t> getCollectorDscp() const {
+  std::optional<uint8_t> getCollectorDscp() const {
     return getFields()->collectorDscp;
   }
 
-  void setCollectorDscp(const uint32_t dscp) {
+  void setCollectorDscp(const uint8_t dscp) {
     writableFields()->collectorDscp = dscp;
   }
 
