@@ -459,6 +459,7 @@ void SwSwitch::updateStats() {
   updateRouteStats();
   updatePortInfo();
   updateLldpStats();
+  updateTeFlowStats();
   try {
     getHw()->updateStats(stats());
   } catch (const std::exception& ex) {

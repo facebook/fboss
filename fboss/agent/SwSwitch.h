@@ -794,6 +794,7 @@ class SwSwitch : public HwSwitch::Callback {
   void publishInitTimes(std::string name, const float& time);
   void updatePortInfo();
   void updateRouteStats();
+  void updateTeFlowStats();
   void publishSwitchInfo(const HwInitResult& hwInitRet);
   void setSwitchRunState(SwitchRunState desiredState);
   SwitchStats* createSwitchStats();
