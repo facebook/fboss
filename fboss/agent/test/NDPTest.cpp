@@ -831,10 +831,7 @@ TEST_F(NdpTest, BrokenRouterAdvConfig) {
 }
 
 TEST_F(NdpTest, RouterAdvConfigWithRouterAddress) {
-  seconds raInterval(1);
-  auto config =
-      createSwitchConfig(raInterval, seconds(0), false, "fe80::face:b00c");
-  EXPECT_NO_THROW(createTestHandle(&config));
+  validateRouterAdv("fe80::face:b00c");
 }
 
 TEST_F(NdpTest, receiveNeighborAdvertisementUnsolicited) {
