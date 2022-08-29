@@ -99,6 +99,7 @@ sai_port_media_type_t getSaiPortMediaFromInterfaceType(
 
     case phy::InterfaceType::SR:
     case phy::InterfaceType::SR4:
+    case phy::InterfaceType::SR8:
     case phy::InterfaceType::XLAUI:
     case phy::InterfaceType::SFI:
       return SAI_PORT_MEDIA_TYPE_FIBER;

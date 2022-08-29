@@ -128,6 +128,15 @@ std::optional<sai_port_interface_type_t> SaiSandiaPhyPlatform::getInterfaceType(
             // What to default to
             {TransmitterTechnology::COPPER, SAI_PORT_INTERFACE_TYPE_SR4},
             {TransmitterTechnology::UNKNOWN, SAI_PORT_INTERFACE_TYPE_SR4}}},
+          {cfg::PortSpeed::FOURHUNDREDG,
+           // TODO(rajank):
+           // Replace 22 with SR8 once wedge_qsfp_util is build for
+           // SDK >=1.10.0
+           {{TransmitterTechnology::OPTICAL, sai_port_interface_type_t(22)},
+            {TransmitterTechnology::BACKPLANE, SAI_PORT_INTERFACE_TYPE_SR4},
+            // What to default to
+            {TransmitterTechnology::COPPER, SAI_PORT_INTERFACE_TYPE_SR4},
+            {TransmitterTechnology::UNKNOWN, SAI_PORT_INTERFACE_TYPE_SR4}}},
       };
 
   auto mediaType2InterfaceTypeIter =
