@@ -66,7 +66,8 @@ const int kSubportCount = 2;
 cfg::SwitchConfig createSwitchConfig(
     seconds raInterval,
     seconds ndpTimeout,
-    bool createAggPort = false) {
+    bool createAggPort = false,
+    std::optional<std::string> routerAddress = std::nullopt) {
   // Create a thrift config to use
   cfg::SwitchConfig config;
   config.vlans()->resize(2);
@@ -100,15 +101,19 @@ cfg::SwitchConfig createSwitchConfig(
   *config.interfaces()[0].vlanID() = 5;
   config.interfaces()[0].name() = "PrimaryInterface";
   config.interfaces()[0].mtu() = 9000;
-  config.interfaces()[0].ipAddresses()->resize(5);
+  config.interfaces()[0].ipAddresses()->resize(6);
   config.interfaces()[0].ipAddresses()[0] = "10.164.4.10/24";
   config.interfaces()[0].ipAddresses()[1] = "10.164.4.1/24";
   config.interfaces()[0].ipAddresses()[2] = "10.164.4.2/24";
   config.interfaces()[0].ipAddresses()[3] = "2401:db00:2110:3004::/64";
   config.interfaces()[0].ipAddresses()[4] = "2401:db00:2110:3004::000a/64";
+  config.interfaces()[0].ipAddresses()[5] = "fe80::face:b00c/64";
   config.interfaces()[0].ndp() = cfg::NdpConfig();
   *config.interfaces()[0].ndp()->routerAdvertisementSeconds() =
       raInterval.count();
+  if (routerAddress) {
+    config.interfaces()[0].ndp()->routerAddress() = *routerAddress;
+  }
   *config.interfaces()[1].intfID() = 4321;
   *config.interfaces()[1].vlanID() = 1;
   config.interfaces()[1].name() = "DefaultHWInterface";
@@ -420,8 +425,10 @@ class NdpTest : public ::testing::Test {
  public:
   unique_ptr<HwTestHandle> setupTestHandle(
       seconds raInterval = seconds(0),
-      seconds ndpInterval = seconds(0)) {
-    auto config = createSwitchConfig(raInterval, ndpInterval);
+      seconds ndpInterval = seconds(0),
+      std::optional<std::string> routerAddress = std::nullopt) {
+    auto config =
+        createSwitchConfig(raInterval, ndpInterval, false, routerAddress);
 
     *config.maxNeighborProbes() = 1;
     *config.staleEntryInterval() = 1;
@@ -806,6 +813,19 @@ TEST_F(NdpTest, RouterAdvertisement) {
           expectedPrefixes));
   counters.update();
   EXPECT_GT(counters.value("PrimaryInterface.router_advertisements.sum"), 0);
+}
+
+TEST_F(NdpTest, BrokenRouterAdvConfig) {
+  seconds raInterval(1);
+  auto config = createSwitchConfig(raInterval, seconds(0), false, "2::2");
+  EXPECT_THROW(createTestHandle(&config), FbossError);
+}
+
+TEST_F(NdpTest, RouterAdvConfigWithRouterAddress) {
+  seconds raInterval(1);
+  auto config =
+      createSwitchConfig(raInterval, seconds(0), false, "fe80::face:b00c");
+  EXPECT_NO_THROW(createTestHandle(&config));
 }
 
 TEST_F(NdpTest, receiveNeighborAdvertisementUnsolicited) {
