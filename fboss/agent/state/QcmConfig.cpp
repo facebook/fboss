@@ -8,9 +8,11 @@
  *
  */
 #include "fboss/agent/state/QcmConfig.h"
-#include "fboss/agent/state/SwitchState.h"
-
+#include <fboss/agent/gen-cpp2/switch_state_types.h>
+#include <fboss/agent/if/gen-cpp2/ctrl_types.h>
+#include <fboss/agent/state/Thrifty.h>
 #include "fboss/agent/state/NodeBase-defs.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace {
 constexpr auto kNumFlowSamplesPerView = "numFlowSamplesPerView";
@@ -33,40 +35,41 @@ constexpr auto kMonitorQcmCfgPortsOnly = "monitorQcmCfgPortsOnly";
 
 namespace facebook::fboss {
 
-folly::dynamic QcmCfgFields::toFollyDynamic() const {
+folly::dynamic QcmCfgFields::toFollyDynamicLegacy() const {
   folly::dynamic qcmCfg = folly::dynamic::object;
 
-  qcmCfg[kNumFlowSamplesPerView] = static_cast<uint32_t>(numFlowSamplesPerView);
-  qcmCfg[kFlowLimit] = static_cast<uint32_t>(flowLimit);
-  qcmCfg[kNumFlowsClear] = static_cast<uint32_t>(numFlowsClear);
-  qcmCfg[kScanIntervalInUsecs] = static_cast<uint32_t>(scanIntervalInUsecs);
-  qcmCfg[kExportThreshold] = static_cast<uint32_t>(exportThreshold);
-  qcmCfg[kMonitorQcmCfgPortsOnly] = static_cast<bool>(monitorQcmCfgPortsOnly);
+  qcmCfg[kNumFlowSamplesPerView] =
+      static_cast<uint32_t>(numFlowSamplesPerView());
+  qcmCfg[kFlowLimit] = static_cast<uint32_t>(flowLimit());
+  qcmCfg[kNumFlowsClear] = static_cast<uint32_t>(numFlowsClear());
+  qcmCfg[kScanIntervalInUsecs] = static_cast<uint32_t>(scanIntervalInUsecs());
+  qcmCfg[kExportThreshold] = static_cast<uint32_t>(exportThreshold());
+  qcmCfg[kMonitorQcmCfgPortsOnly] = static_cast<bool>(monitorQcmCfgPortsOnly());
 
   folly::dynamic flowWeightMap = folly::dynamic::object;
-  for (const auto& weight : flowWeights) {
+  for (const auto& weight : flowWeights()) {
     flowWeightMap[folly::to<std::string>(static_cast<int>(weight.first))] =
         weight.second;
   }
   qcmCfg[kFlowWeights] = flowWeightMap;
-  qcmCfg[kAgingIntervalInMsecs] = static_cast<uint32_t>(agingIntervalInMsecs);
-  qcmCfg[kCollectorDstIp] = folly::IPAddress::networkToString(collectorDstIp);
-  qcmCfg[kCollectorSrcPort] = static_cast<uint32_t>(collectorSrcPort);
-  qcmCfg[kCollectorDstPort] = static_cast<uint32_t>(collectorDstPort);
-  if (collectorDscp) {
-    qcmCfg[kCollectorDscp] = collectorDscp.value();
+  qcmCfg[kAgingIntervalInMsecs] = static_cast<uint32_t>(agingIntervalInMsecs());
+  qcmCfg[kCollectorDstIp] = folly::IPAddress::networkToString(collectorDstIp());
+  qcmCfg[kCollectorSrcPort] = static_cast<uint32_t>(collectorSrcPort());
+  qcmCfg[kCollectorDstPort] = static_cast<uint32_t>(collectorDstPort());
+  if (auto dscp = collectorDscp()) {
+    qcmCfg[kCollectorDscp] = dscp.value();
   }
-  if (ppsToQcm) {
-    qcmCfg[kPpsToQcm] = ppsToQcm.value();
+  if (auto pps2qcm = ppsToQcm()) {
+    qcmCfg[kPpsToQcm] = pps2qcm.value();
   }
-  qcmCfg[kCollectorSrcIp] = folly::IPAddress::networkToString(collectorSrcIp);
+  qcmCfg[kCollectorSrcIp] = folly::IPAddress::networkToString(collectorSrcIp());
 
   qcmCfg[kMonitorQcmPortList] = folly::dynamic::array;
-  for (const auto& qcmPort : monitorQcmPortList) {
+  for (const auto& qcmPort : monitorQcmPortList()) {
     qcmCfg[kMonitorQcmPortList].push_back(qcmPort);
   }
   folly::dynamic port2QosQueueMap = folly::dynamic::object;
-  for (const auto& perPortQosQueueIds : port2QosQueueIds) {
+  for (const auto& perPortQosQueueIds : port2QosQueueIds()) {
     folly::dynamic qcmSet = folly::dynamic::array;
     for (const auto& qosQueueId : perPortQosQueueIds.second) {
       qcmSet.push_back(qosQueueId);
@@ -78,74 +81,112 @@ folly::dynamic QcmCfgFields::toFollyDynamic() const {
   return qcmCfg;
 }
 
-QcmCfgFields QcmCfgFields::fromFollyDynamic(const folly::dynamic& json) {
+QcmCfgFields QcmCfgFields::fromFollyDynamicLegacy(const folly::dynamic& json) {
   QcmCfgFields qcmCfgFields = QcmCfgFields();
 
   if (json.find(kNumFlowSamplesPerView) != json.items().end()) {
-    qcmCfgFields.numFlowSamplesPerView = json[kNumFlowSamplesPerView].asInt();
+    qcmCfgFields.setNumFlowSamplesPerView(json[kNumFlowSamplesPerView].asInt());
   }
   if (json.find(kFlowLimit) != json.items().end()) {
-    qcmCfgFields.flowLimit = json[kFlowLimit].asInt();
+    qcmCfgFields.setFlowLimit(json[kFlowLimit].asInt());
   }
   if (json.find(kNumFlowsClear) != json.items().end()) {
-    qcmCfgFields.numFlowsClear = json[kNumFlowsClear].asInt();
+    qcmCfgFields.setNumFlowsClear(json[kNumFlowsClear].asInt());
   }
   if (json.find(kScanIntervalInUsecs) != json.items().end()) {
-    qcmCfgFields.scanIntervalInUsecs = json[kScanIntervalInUsecs].asInt();
+    qcmCfgFields.setScanIntervalInUsecs(json[kScanIntervalInUsecs].asInt());
   }
   if (json.find(kExportThreshold) != json.items().end()) {
-    qcmCfgFields.exportThreshold = json[kExportThreshold].asInt();
+    qcmCfgFields.setExportThreshold(json[kExportThreshold].asInt());
   }
   if (json.find(kMonitorQcmCfgPortsOnly) != json.items().end()) {
-    qcmCfgFields.monitorQcmCfgPortsOnly =
-        json[kMonitorQcmCfgPortsOnly].asBool();
+    qcmCfgFields.setMonitorQcmCfgPortsOnly(
+        json[kMonitorQcmCfgPortsOnly].asBool());
   }
 
+  WeightMap weightMap;
   for (const auto& weight : json[kFlowWeights].items()) {
-    qcmCfgFields.flowWeights[weight.first.asInt()] = weight.second.asInt();
+    weightMap[weight.first.asInt()] = weight.second.asInt();
   }
+  qcmCfgFields.setFlowWeights(std::move(weightMap));
   if (json.find(kAgingIntervalInMsecs) != json.items().end()) {
-    qcmCfgFields.agingIntervalInMsecs = json[kAgingIntervalInMsecs].asInt();
+    qcmCfgFields.setAgingIntervalInMsecs(json[kAgingIntervalInMsecs].asInt());
   }
   if (json.find(kCollectorDstIp) != json.items().end()) {
-    qcmCfgFields.collectorDstIp =
-        folly::IPAddress::createNetwork(json[kCollectorDstIp].asString());
+    qcmCfgFields.setCollectorDstIp(
+        folly::IPAddress::createNetwork(json[kCollectorDstIp].asString()));
   }
   if (json.find(kCollectorSrcPort) != json.items().end()) {
-    qcmCfgFields.collectorSrcPort = json[kCollectorSrcPort].asInt();
+    qcmCfgFields.setCollectorSrcPort(json[kCollectorSrcPort].asInt());
   }
   if (json.find(kCollectorDstPort) != json.items().end()) {
-    qcmCfgFields.collectorDstPort = json[kCollectorDstPort].asInt();
+    qcmCfgFields.setCollectorDstPort(json[kCollectorDstPort].asInt());
   }
   if (json.find(kCollectorDscp) != json.items().end()) {
-    qcmCfgFields.collectorDscp = json[kCollectorDscp].asInt();
+    qcmCfgFields.setCollectorDscp(json[kCollectorDscp].asInt());
   }
   if (json.find(kPpsToQcm) != json.items().end()) {
-    qcmCfgFields.ppsToQcm = json[kPpsToQcm].asInt();
+    qcmCfgFields.setPpsToQcm(json[kPpsToQcm].asInt());
   }
   if (json.find(kCollectorSrcIp) != json.items().end()) {
-    qcmCfgFields.collectorSrcIp =
-        folly::IPAddress::createNetwork(json[kCollectorSrcIp].asString());
+    qcmCfgFields.setCollectorSrcIp(
+        folly::IPAddress::createNetwork(json[kCollectorSrcIp].asString()));
   }
 
+  std::vector<int32_t> monitorQcmPortList{};
   if (json.find(kMonitorQcmPortList) != json.items().end()) {
     for (const auto& qcmPort : json[kMonitorQcmPortList]) {
       uint32_t port = qcmPort.asInt();
-      qcmCfgFields.monitorQcmPortList.push_back(port);
+      monitorQcmPortList.push_back(port);
     }
   }
+  qcmCfgFields.setMonitorQcmPortList(std::move(monitorQcmPortList));
 
   if (json.find(kPort2QosQueueIds) != json.items().end()) {
+    Port2QosQueueIdMap port2QosQueueIds;
     for (const auto& perPortQosQueueIds : json[kPort2QosQueueIds].items()) {
       for (const auto& queueId : perPortQosQueueIds.second) {
-        qcmCfgFields.port2QosQueueIds[perPortQosQueueIds.first.asInt()].insert(
+        port2QosQueueIds[perPortQosQueueIds.first.asInt()].insert(
             queueId.asInt());
       }
     }
+    qcmCfgFields.setPort2QosQueueIds(std::move(port2QosQueueIds));
   }
   return qcmCfgFields;
 }
 
-template class NodeBaseT<QcmCfg, QcmCfgFields>;
+folly::dynamic QcmCfgFields::migrateToThrifty(folly::dynamic const& dyn) {
+  folly::dynamic newDyn = dyn;
+  auto toIpPrefix = [](const std::string& s) {
+    folly::CIDRNetwork cidr = folly::IPAddress::createNetwork(s, -1, false);
+    auto prefix = ThriftyUtils::toIpPrefix(cidr);
+    std::string jsonStr;
+    apache::thrift::SimpleJSONSerializer::serialize(prefix, &jsonStr);
+    return folly::parseJson(jsonStr);
+  };
+  auto dstIp = dyn["collectorDstIp"].asString();
+  auto srcIp = dyn["collectorSrcIp"].asString();
+  newDyn["collectorDstIp"] = toIpPrefix(dstIp);
+  newDyn["collectorSrcIp"] = toIpPrefix(srcIp);
+  return newDyn;
+}
+
+void QcmCfgFields::migrateFromThrifty(folly::dynamic& dyn) {
+  auto fromIpPrefix = [](folly::dynamic& prefix) {
+    auto jsonStr = folly::toJson(prefix);
+    auto inBuf =
+        folly::IOBuf::wrapBufferAsValue(jsonStr.data(), jsonStr.size());
+    auto obj = apache::thrift::SimpleJSONSerializer::deserialize<IpPrefix>(
+        folly::io::Cursor{&inBuf});
+    auto cidr = ThriftyUtils::toCIDRNetwork(obj);
+    return folly::IPAddress::networkToString(cidr);
+  };
+  auto dstIp = dyn["collectorDstIp"];
+  auto srcIp = dyn["collectorSrcIp"];
+  dyn["collectorDstIp"] = fromIpPrefix(dstIp);
+  dyn["collectorSrcIp"] = fromIpPrefix(srcIp);
+}
+
+template class ThriftyBaseT<state::QcmCfgFields, QcmCfg, QcmCfgFields>;
 
 } // namespace facebook::fboss

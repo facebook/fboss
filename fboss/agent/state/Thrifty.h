@@ -8,6 +8,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <type_traits>
 
+#include <fboss/agent/AddressUtil.h>
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
@@ -212,6 +213,18 @@ class ThriftyUtils {
   }
 
   static auto constexpr kThriftySchemaUpToDate = "__thrifty_schema_uptodate";
+
+  static folly::CIDRNetwork toCIDRNetwork(const IpPrefix& prefix) {
+    return folly::CIDRNetwork(
+        network::toIPAddress(*prefix.ip()), *prefix.prefixLength());
+  }
+
+  static IpPrefix toIpPrefix(const folly::CIDRNetwork& cidr) {
+    IpPrefix prefix{};
+    prefix.ip() = network::toBinaryAddress(cidr.first);
+    prefix.prefixLength() = cidr.second;
+    return prefix;
+  }
 };
 
 template <typename Derived, typename ThriftT>
