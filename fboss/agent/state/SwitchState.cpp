@@ -140,6 +140,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
   state.sflowCollectorMap() = sFlowCollectors->toThrift();
   state.teFlowTable() = teFlowTable->toThrift();
   state.aggregatePortMap() = aggPorts->toThrift();
+  state.aclTableGroupMap() = aclTableGroups->toThrift();
   state.interfaceMap() = interfaces->toThrift();
   if (qcmCfg) {
     state.qcmCfg() = qcmCfg->toThrift();
@@ -191,6 +192,8 @@ SwitchStateFields SwitchStateFields::fromThrift(
       SflowCollectorMap::fromThrift(*state.sflowCollectorMap());
   fields.teFlowTable = TeFlowTable::fromThrift(*state.teFlowTable());
   fields.aggPorts = AggregatePortMap::fromThrift(*state.aggregatePortMap());
+  fields.aclTableGroups =
+      AclTableGroupMap::fromThrift(*state.aclTableGroupMap());
   fields.interfaces = InterfaceMap::fromThrift(*state.interfaceMap());
   fields.qcmCfg = QcmCfg::fromThrift(*state.qcmCfg());
   return fields;
