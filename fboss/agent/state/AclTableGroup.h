@@ -35,6 +35,7 @@ struct AclTableGroupFields
     writableData().stage() = stage;
     writableData().name() = name;
     writableData().aclTableMap() = aclTableMap->toThrift();
+    aclTableMap_ = aclTableMap;
   }
 
   template <typename Fn>
@@ -53,6 +54,7 @@ struct AclTableGroupFields
   bool operator==(const AclTableGroupFields& other) const {
     return data() == other.data();
   }
+  std::shared_ptr<AclTableMap> aclTableMap_;
 };
 
 /*
@@ -106,10 +108,11 @@ class AclTableGroup : public NodeBaseT<AclTableGroup, AclTableGroupFields> {
   }
 
   std::shared_ptr<AclTableMap> getAclTableMap() const {
-    return AclTableMap::fromThrift(*getFields()->data().aclTableMap());
+    return getFields()->aclTableMap_;
   }
 
   void setAclTableMap(std::shared_ptr<AclTableMap> aclTableMap) {
+    writableFields()->aclTableMap_ = aclTableMap;
     writableFields()->writableData().aclTableMap() = aclTableMap->toThrift();
   }
 
