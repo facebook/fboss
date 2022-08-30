@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclTableGroup.h"
 #include "fboss/agent/state/NodeMap.h"
@@ -24,6 +25,11 @@ class AclTableGroupMap
  public:
   AclTableGroupMap();
   ~AclTableGroupMap() override;
+
+  std::map<cfg::AclStage, state::AclTableGroupFields> toThrift() const;
+
+  static std::shared_ptr<AclTableGroupMap> fromThrift(
+      std::map<cfg::AclStage, state::AclTableGroupFields> const& thriftMap);
 
   const std::shared_ptr<AclTableGroup>& getAclTableGroup(
       cfg::AclStage aclStage) const {
