@@ -14,6 +14,9 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestDscpMarkingUtils.h"
+#include "fboss/agent/hw/test/dataplane_tests/HwTestQueuePerHostUtils.h"
+
 #include "fboss/agent/state/SwitchState.h"
 
 #include <string>
@@ -131,6 +134,61 @@ class SaiAclTableGroupTest : public HwTest {
   cfg::AclStage kAclStage() const {
     return cfg::AclStage::INGRESS;
   }
+
+  std::string kQphDscpTable() const {
+    return "qph_dscp_table";
+  }
+
+  void addQphDscpAclTable(cfg::SwitchConfig* newCfg) {
+    // Table 1: For QPH and Dscp Acl.
+    utility::addAclTable(
+        newCfg,
+        kQphDscpTable(),
+        1 /* priority */,
+        {cfg::AclTableActionType::PACKET_ACTION,
+         cfg::AclTableActionType::COUNTER},
+        {cfg::AclTableQualifier::L4_SRC_PORT,
+         cfg::AclTableQualifier::L4_DST_PORT,
+         cfg::AclTableQualifier::IP_PROTOCOL,
+         cfg::AclTableQualifier::ICMPV4_TYPE,
+         cfg::AclTableQualifier::ICMPV4_CODE,
+         cfg::AclTableQualifier::ICMPV6_TYPE,
+         cfg::AclTableQualifier::ICMPV6_CODE,
+         cfg::AclTableQualifier::DSCP,
+         cfg::AclTableQualifier::LOOKUP_CLASS_L2,
+         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
+         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE});
+
+    utility::addQueuePerHostAclEntry(newCfg, kQphDscpTable());
+    utility::addDscpAclEntryWithCounter(newCfg, kQphDscpTable());
+  }
+
+  void addTwoAclTables(cfg::SwitchConfig* newCfg) {
+    utility::addAclTableGroup(newCfg, kAclStage(), "Ingress Table Group");
+
+    // Table 1: Create QPH and DSCP ACLs in the same table.
+    addQphDscpAclTable(newCfg);
+
+    // Table 2: Create TTL acl Table follwed by entry.
+    // This utlity call adds the TTL Acl entry as well.
+    utility::addTtlAclTable(newCfg, 2 /* priority */);
+    applyNewConfig(*newCfg);
+  }
+
+  // Delete the QphDscpAclTable
+  void deleteQphDscpAclTable(cfg::SwitchConfig* newCfg) {
+    utility::delAclTable(newCfg, kQphDscpTable());
+    utility::deleteQueuePerHostMatchers(newCfg);
+    utility::delDscpMatchers(newCfg);
+    applyNewConfig(*newCfg);
+  }
+
+  // Delete the TtlAclTable
+  void deleteTtlAclTable(cfg::SwitchConfig* newCfg) {
+    utility::delAclTable(newCfg, utility::getTtlAclTableName());
+    utility::deleteTtlCounters(newCfg);
+    applyNewConfig(*newCfg);
+  }
 };
 
 TEST_F(SaiAclTableGroupTest, SingleAclTableGroup) {
@@ -241,4 +299,92 @@ TEST_F(SaiAclTableGroupTest, RemoveAclTable) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+/*
+ * The below testcases vary from the above in the sense that they add the QPH
+ * and DSCP ACLs in the Table 1 and TTL ACL in Table 2 (production use case) and
+ * then tests deletion and addition of these tables in the config
+ */
+TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteFirst) {
+  ASSERT_TRUE(isSupported());
+
+  auto setup = [this]() {
+    auto newCfg = initialConfig();
+    addTwoAclTables(&newCfg);
+    // Delete the First table
+    deleteQphDscpAclTable(&newCfg);
+  };
+
+  auto verify = [=]() {
+    ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
+    ASSERT_FALSE(utility::isAclTableEnabled(getHwSwitch(), kQphDscpTable()));
+    ASSERT_TRUE(utility::isAclTableEnabled(
+        getHwSwitch(), utility::getTtlAclTableName()));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteSecond) {
+  ASSERT_TRUE(isSupported());
+
+  auto setup = [this]() {
+    auto newCfg = initialConfig();
+    addTwoAclTables(&newCfg);
+    // Delete the Second Table
+    deleteTtlAclTable(&newCfg);
+  };
+
+  auto verify = [=]() {
+    ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kQphDscpTable()));
+    ASSERT_FALSE(utility::isAclTableEnabled(
+        getHwSwitch(), utility::getTtlAclTableName()));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteAddFirst) {
+  ASSERT_TRUE(isSupported());
+
+  auto setup = [this]() {
+    auto newCfg = initialConfig();
+    addTwoAclTables(&newCfg);
+    // Delete and Readd the first Acl Table
+    deleteQphDscpAclTable(&newCfg);
+    addQphDscpAclTable(&newCfg);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kQphDscpTable()));
+    ASSERT_TRUE(utility::isAclTableEnabled(
+        getHwSwitch(), utility::getTtlAclTableName()));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteAddSecond) {
+  ASSERT_TRUE(isSupported());
+
+  auto setup = [this]() {
+    auto newCfg = initialConfig();
+    addTwoAclTables(&newCfg);
+    // Delete and Readd the second Acl Table
+    deleteTtlAclTable(&newCfg);
+    utility::addTtlAclTable(&newCfg, 2 /* priority */);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kQphDscpTable()));
+    ASSERT_TRUE(utility::isAclTableEnabled(
+        getHwSwitch(), utility::getTtlAclTableName()));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss
