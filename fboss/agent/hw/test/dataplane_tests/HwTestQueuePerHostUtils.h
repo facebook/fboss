@@ -108,7 +108,13 @@ void updateRoutesClassID(
         std::optional<cfg::AclLookupClass>>& routePrefix2ClassID,
     RouteUpdateWrapper* updater);
 
+void addTtlAclEntry(cfg::SwitchConfig* config, const std::string& aclTableName);
 void addTtlAclTable(cfg::SwitchConfig* config, int16_t priority);
+void deleteTtlCounters(cfg::SwitchConfig* config);
+void addQueuePerHostAclEntry(
+    cfg::SwitchConfig* config,
+    const std::string& aclTableName);
 void addQueuePerHostAclTables(cfg::SwitchConfig* config, int16_t priority);
+void deleteQueuePerHostMatchers(cfg::SwitchConfig* config);
 
 } // namespace facebook::fboss::utility

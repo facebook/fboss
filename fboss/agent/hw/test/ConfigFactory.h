@@ -117,6 +117,7 @@ void addMatcher(
     cfg::SwitchConfig* config,
     const std::string& matcherName,
     const cfg::MatchAction& matchAction);
+void delMatcher(cfg::SwitchConfig* config, const std::string& matcherName);
 std::vector<PortID> getAllPortsInGroup(const HwSwitch* hwSwitch, PortID portID);
 
 std::vector<PortDescriptor> getUplinksForEcmp(

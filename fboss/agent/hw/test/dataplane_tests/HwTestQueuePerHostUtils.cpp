@@ -11,6 +11,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
@@ -191,8 +192,15 @@ void addQueuePerHostAcls(cfg::SwitchConfig* config) {
       config, getRouteDropAclName(), cfg::AclLookupClass::CLASS_DROP);
 }
 
-// Utility to add TTL ACL table to a multi acl table group
-void addTtlAclTable(cfg::SwitchConfig* config, int16_t priority) {
+void deleteTtlCounters(cfg::SwitchConfig* config) {
+  auto ttlCounterName = getQueuePerHostTtlCounterName();
+
+  utility::delAclStat(config, getQueuePerHostTtlAclName(), ttlCounterName);
+}
+
+void addTtlAclEntry(
+    cfg::SwitchConfig* config,
+    const std::string& aclTableName) {
   cfg::Ttl ttl;
   std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
   auto ttlCounterName = getQueuePerHostTtlCounterName();
@@ -200,6 +208,21 @@ void addTtlAclTable(cfg::SwitchConfig* config, int16_t priority) {
       cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
   utility::addTrafficCounter(config, ttlCounterName, counterTypes);
 
+  auto* ttlAcl = utility::addAcl(
+      config,
+      getQueuePerHostTtlAclName(),
+      cfg::AclActionType::PERMIT,
+      aclTableName);
+  ttlAcl->ttl() = ttl;
+  std::vector<cfg::CounterType> setCounterTypes{
+      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+
+  utility::addAclStat(
+      config, getQueuePerHostTtlAclName(), ttlCounterName, setCounterTypes);
+}
+
+// Utility to add TTL ACL table to a multi acl table group
+void addTtlAclTable(cfg::SwitchConfig* config, int16_t priority) {
   utility::addAclTable(
       config,
       getTtlAclTableName(),
@@ -207,17 +230,46 @@ void addTtlAclTable(cfg::SwitchConfig* config, int16_t priority) {
       {cfg::AclTableActionType::COUNTER},
       {cfg::AclTableQualifier::TTL});
 
-  auto* ttlAcl = utility::addAcl(
-      config,
-      getQueuePerHostTtlAclName(),
-      cfg::AclActionType::PERMIT,
-      getTtlAclTableName());
-  ttlAcl->ttl() = ttl;
-  std::vector<cfg::CounterType> setCounterTypes{
-      cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
+  addTtlAclEntry(config, getTtlAclTableName());
+}
 
-  utility::addAclStat(
-      config, getQueuePerHostTtlAclName(), ttlCounterName, setCounterTypes);
+void deleteQueuePerHostMatchers(cfg::SwitchConfig* config) {
+  for (auto queueId : kQueuePerhostQueueIds()) {
+    auto l2AclName = getQueuePerHostL2AclNameForQueue(queueId);
+    utility::delMatcher(config, l2AclName);
+
+    auto neighborAclName = getQueuePerHostNeighborAclNameForQueue(queueId);
+    utility::delMatcher(config, neighborAclName);
+
+    auto routeAclName = getQueuePerHostRouteAclNameForQueue(queueId);
+    utility::delMatcher(config, routeAclName);
+  }
+}
+
+void addQueuePerHostAclEntry(
+    cfg::SwitchConfig* config,
+    const std::string& aclTableName) {
+  for (auto queueId : kQueuePerhostQueueIds()) {
+    auto classID = kQueuePerHostQueueToClass().at(queueId);
+
+    auto l2AclName = getQueuePerHostL2AclNameForQueue(queueId);
+    auto aclL2 = utility::addAcl(
+        config, l2AclName, cfg::AclActionType::PERMIT, aclTableName);
+    aclL2->lookupClassL2() = classID;
+    utility::addQueueMatcher(config, l2AclName, queueId);
+
+    auto neighborAclName = getQueuePerHostNeighborAclNameForQueue(queueId);
+    auto aclNeighbor = utility::addAcl(
+        config, neighborAclName, cfg::AclActionType::PERMIT, aclTableName);
+    aclNeighbor->lookupClassNeighbor() = classID;
+    utility::addQueueMatcher(config, neighborAclName, queueId);
+
+    auto routeAclName = getQueuePerHostRouteAclNameForQueue(queueId);
+    auto aclRoute = utility::addAcl(
+        config, routeAclName, cfg::AclActionType::PERMIT, aclTableName);
+    aclRoute->lookupClassRoute() = classID;
+    utility::addQueueMatcher(config, routeAclName, queueId);
+  }
 }
 
 // Utility to add {L2, neighbor, route}-Acl Table to Multi Acl table group
@@ -231,36 +283,7 @@ void addQueuePerHostAclTables(cfg::SwitchConfig* config, int16_t priority) {
        cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
        cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE});
 
-  for (auto queueId : kQueuePerhostQueueIds()) {
-    auto classID = kQueuePerHostQueueToClass().at(queueId);
-
-    auto l2AclName = getQueuePerHostL2AclNameForQueue(queueId);
-    auto aclL2 = utility::addAcl(
-        config,
-        l2AclName,
-        cfg::AclActionType::PERMIT,
-        getQueuePerHostAclTableName());
-    aclL2->lookupClassL2() = classID;
-    utility::addQueueMatcher(config, l2AclName, queueId);
-
-    auto neighborAclName = getQueuePerHostNeighborAclNameForQueue(queueId);
-    auto aclNeighbor = utility::addAcl(
-        config,
-        neighborAclName,
-        cfg::AclActionType::PERMIT,
-        getQueuePerHostAclTableName());
-    aclNeighbor->lookupClassNeighbor() = classID;
-    utility::addQueueMatcher(config, neighborAclName, queueId);
-
-    auto routeAclName = getQueuePerHostRouteAclNameForQueue(queueId);
-    auto aclRoute = utility::addAcl(
-        config,
-        routeAclName,
-        cfg::AclActionType::PERMIT,
-        getQueuePerHostAclTableName());
-    aclRoute->lookupClassRoute() = classID;
-    utility::addQueueMatcher(config, routeAclName, queueId);
-  }
+  addQueuePerHostAclEntry(config, getQueuePerHostAclTableName());
 }
 
 void verifyQueuePerHostMapping(

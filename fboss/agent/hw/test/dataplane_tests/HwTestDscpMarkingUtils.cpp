@@ -92,17 +92,34 @@ void addDscpCounterAcl(cfg::SwitchConfig* config) {
   utility::addMatcher(config, kDscpCounterAclName(), matchAction);
 }
 
-void addDscpMarkingAclsTableHelper(
+void delDscpMarkingAclMatchers(
     cfg::SwitchConfig* config,
     IP_PROTO proto,
     const std::vector<uint32_t>& ports) {
   for (auto port : ports) {
     auto l4SrcPortAclName = getDscpAclName(proto, "src", port);
+    utility::delMatcher(config, l4SrcPortAclName);
+
+    auto l4DstPortAclName = getDscpAclName(proto, "dst", port);
+    utility::delMatcher(config, l4DstPortAclName);
+  }
+}
+
+void delDscpMatchers(cfg::SwitchConfig* config) {
+  utility::delAclStat(config, kDscpCounterAclName(), kCounterName());
+  delDscpMarkingAclMatchers(config, IP_PROTO::IP_PROTO_UDP, kUdpPorts());
+  delDscpMarkingAclMatchers(config, IP_PROTO::IP_PROTO_TCP, kTcpPorts());
+}
+
+void addDscpMarkingAclsTableHelper(
+    cfg::SwitchConfig* config,
+    IP_PROTO proto,
+    const std::vector<uint32_t>& ports,
+    const std::string& aclTableName) {
+  for (auto port : ports) {
+    auto l4SrcPortAclName = getDscpAclName(proto, "src", port);
     auto dscpSrcMarkingAcl = utility::addAcl(
-        config,
-        l4SrcPortAclName,
-        cfg::AclActionType::PERMIT,
-        getDscpAclTableName());
+        config, l4SrcPortAclName, cfg::AclActionType::PERMIT, aclTableName);
     dscpSrcMarkingAcl->proto() = static_cast<int>(proto);
     dscpSrcMarkingAcl->l4SrcPort() = port;
     utility::addSetDscpAndEgressQueueActionToCfg(
@@ -110,10 +127,7 @@ void addDscpMarkingAclsTableHelper(
 
     auto l4DstPortAclName = getDscpAclName(proto, "dst", port);
     auto dscpDstMarkingAcl = utility::addAcl(
-        config,
-        l4DstPortAclName,
-        cfg::AclActionType::PERMIT,
-        getDscpAclTableName());
+        config, l4DstPortAclName, cfg::AclActionType::PERMIT, aclTableName);
     dscpDstMarkingAcl->proto() = static_cast<int>(proto);
     dscpDstMarkingAcl->l4DstPort() = port;
     utility::addSetDscpAndEgressQueueActionToCfg(
@@ -121,16 +135,31 @@ void addDscpMarkingAclsTableHelper(
   }
 }
 
-void addDscpMarkingAclTable(cfg::SwitchConfig* config) {
-  addDscpMarkingAclsTableHelper(config, IP_PROTO::IP_PROTO_UDP, kUdpPorts());
-  addDscpMarkingAclsTableHelper(config, IP_PROTO::IP_PROTO_TCP, kTcpPorts());
+void addDscpMarkingAclTable(
+    cfg::SwitchConfig* config,
+    const std::string& aclTableName) {
+  addDscpMarkingAclsTableHelper(
+      config, IP_PROTO::IP_PROTO_UDP, kUdpPorts(), aclTableName);
+  addDscpMarkingAclsTableHelper(
+      config, IP_PROTO::IP_PROTO_TCP, kTcpPorts(), aclTableName);
+}
+
+void addDscpAclEntryWithCounter(
+    cfg::SwitchConfig* config,
+    const std::string& aclTableName) {
+  std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
+  utility::addTrafficCounter(config, kCounterName(), counterTypes);
+  auto* dscpAcl = utility::addAcl(
+      config, kDscpCounterAclName(), cfg::AclActionType::PERMIT, aclTableName);
+  dscpAcl->dscp() = utility::kIcpDscp();
+
+  utility::addAclStat(
+      config, kDscpCounterAclName(), kCounterName(), counterTypes);
+  addDscpMarkingAclTable(config, aclTableName);
 }
 
 // Utility to add ICP Marking ACL table to a multi acl table group
 void addDscpAclTable(cfg::SwitchConfig* config, int16_t priority) {
-  std::vector<cfg::CounterType> counterTypes{cfg::CounterType::PACKETS};
-  utility::addTrafficCounter(config, kCounterName(), counterTypes);
-
   utility::addAclTable(
       config,
       getDscpAclTableName(),
@@ -145,17 +174,6 @@ void addDscpAclTable(cfg::SwitchConfig* config, int16_t priority) {
        cfg::AclTableQualifier::ICMPV6_TYPE,
        cfg::AclTableQualifier::ICMPV6_CODE,
        cfg::AclTableQualifier::DSCP});
-
-  auto* dscpAcl = utility::addAcl(
-      config,
-      kDscpCounterAclName(),
-      cfg::AclActionType::PERMIT,
-      getDscpAclTableName());
-  dscpAcl->dscp() = utility::kIcpDscp();
-
-  utility::addAclStat(
-      config, kDscpCounterAclName(), kCounterName(), counterTypes);
-
-  addDscpMarkingAclTable(config);
+  addDscpAclEntryWithCounter(config, getDscpAclTableName());
 }
 } // namespace facebook::fboss::utility
