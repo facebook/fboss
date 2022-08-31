@@ -37,7 +37,7 @@ HwAsic* SaiMakaluPlatform::getAsic() const {
 
 std::vector<sai_system_port_config_t>
 SaiMakaluPlatform::getInternalSystemPortConfig() const {
-  return {{0, 0, 0, 0, 100000, 8}};
+  return {{0, 0, 0, 0, 10000, 8}};
 }
 SaiMakaluPlatform::~SaiMakaluPlatform() {}
 
