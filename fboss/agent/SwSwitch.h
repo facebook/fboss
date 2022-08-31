@@ -647,7 +647,7 @@ class SwSwitch : public HwSwitch::Callback {
    * through the well defined RouteUpdateWrapper
    * abstraction
    */
-  const RoutingInformationBase* getRib() const {
+  RoutingInformationBase* getRib() const {
     return rib_.get();
   }
 

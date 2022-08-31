@@ -31,7 +31,7 @@ std::shared_ptr<SwitchState> swSwitchFibUpdate(
       vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
 
   auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
-  sw->updateStateWithHwFailureProtection("", std::move(fibUpdater));
+  sw->updateStateWithHwFailureProtection("update fib", std::move(fibUpdater));
   return sw->getState();
 }
 

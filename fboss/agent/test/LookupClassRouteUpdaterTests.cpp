@@ -838,6 +838,9 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   void runInUpdateEvbAndWaitAfterNeighborCachePropagation(Func func) {
     schedulePendingTestStateUpdates();
     this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForStateUpdates(this->sw_);
+    sw_->getRib()->waitForRibUpdates();
+    waitForStateUpdates(this->sw_);
     runInUpdateEventBaseAndWait(std::move(func));
   }
 
