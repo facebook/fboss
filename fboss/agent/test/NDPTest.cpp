@@ -685,19 +685,6 @@ void NdpTest::validateRouterAdv(std::optional<std::string> configuredRouterIp) {
       {IPAddressV6("fe80::"), 64},
   };
   CounterCache counters(sw);
-  // Multicast router advertisement use switched api
-  EXPECT_SWITCHED_PKT(
-      sw,
-      "router advertisement",
-      checkRouterAdvert(
-          MockPlatform::getMockLocalMac(),
-          routerAdvSrcIp,
-          MacAddress("33:33:00:00:00:01"),
-          IPAddressV6("ff02::1"),
-          VlanID(5),
-          intfConfig->getNdpConfig(),
-          9000,
-          expectedPrefixes));
 
   // Send the router solicitation packet
   EXPECT_OUT_OF_PORT_PKT(
@@ -796,15 +783,11 @@ void NdpTest::validateRouterAdv(std::optional<std::string> configuredRouterIp) {
   // interval.  Schedule a timeout to wake us up after the interval has
   // expired.  Using the background EventBase to run the timeout ensures that
   // it will always run after the RA timeout has fired.
-  std::promise<bool> done;
-  auto* evb = sw->getBackgroundEvb();
-  evb->runInEventBaseThread(
-      [&]() { evb->tryRunAfterDelay([&]() { done.set_value(true); }, 1010); });
-  done.get_future().wait();
-  // We send RA packets just before switch controller shutdown,
+  // We also send RA packets just before switch controller shutdown,
   // so expect RA packet.
+
   // Multicast router advertisement use switched api
-  EXPECT_SWITCHED_PKT(
+  EXPECT_MANY_SWITCHED_PKTS(
       sw,
       "router advertisement",
       checkRouterAdvert(
@@ -816,6 +799,12 @@ void NdpTest::validateRouterAdv(std::optional<std::string> configuredRouterIp) {
           intfConfig->getNdpConfig(),
           9000,
           expectedPrefixes));
+  std::promise<bool> done;
+  auto* evb = sw->getBackgroundEvb();
+  evb->runInEventBaseThread([&]() {
+    evb->tryRunAfterDelay([&]() { done.set_value(true); }, 1010 /*ms*/);
+  });
+  done.get_future().wait();
   counters.update();
   EXPECT_GT(counters.value("PrimaryInterface.router_advertisements.sum"), 0);
 }
