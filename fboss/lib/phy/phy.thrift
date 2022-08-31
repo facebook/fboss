@@ -121,15 +121,15 @@ struct TxSettings {
   5: i16 post2 = 0;
   6: i16 post3 = 0;
   8: optional i16 driveCurrent;
-  9: optional i16 diffEncoderEn;
-  10: optional i16 digGain;
-  11: optional i16 ffeCoeff0;
-  12: optional i16 ffeCoeff1;
-  13: optional i16 ffeCoeff2;
-  14: optional i16 ffeCoeff3;
-  15: optional i16 ffeCoeff4;
-  16: optional i16 parityEncoderEn;
-  17: optional i16 thpEn;
+  9: optional i32 diffEncoderEn;
+  10: optional i32 digGain;
+  11: optional i32 ffeCoeff0;
+  12: optional i32 ffeCoeff1;
+  13: optional i32 ffeCoeff2;
+  14: optional i32 ffeCoeff3;
+  15: optional i32 ffeCoeff4;
+  16: optional i32 parityEncoderEn;
+  17: optional i32 thpEn;
 }
 
 struct RxSettings {
@@ -137,15 +137,15 @@ struct RxSettings {
   2: optional i16 dspMode;
   3: optional i16 afeTrim;
   4: optional i16 acCouplingBypass;
-  5: optional i16 channelReach;
-  6: optional i16 diffEncoderEn;
-  7: optional i16 fbfCoefInitVal;
-  8: optional i16 fbfLmsEnable;
-  9: optional i16 instgScanOptimize;
-  10: optional i16 instgTableEndRow;
-  11: optional i16 instgTableStartRow;
-  12: optional i16 parityEncoderEn;
-  13: optional i16 thpEn;
+  5: optional i32 channelReach;
+  6: optional i32 diffEncoderEn;
+  7: optional i32 fbfCoefInitVal;
+  8: optional i32 fbfLmsEnable;
+  9: optional i32 instgScanOptimize;
+  10: optional i32 instgTableEndRow;
+  11: optional i32 instgTableStartRow;
+  12: optional i32 parityEncoderEn;
+  13: optional i32 thpEn;
 }
 
 struct LaneMap {
