@@ -19,7 +19,6 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::L3_QOS:
     case HwAsic::Feature::SCHEDULER_PPS:
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
-    case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
     case HwAsic::Feature::ACL_COPY_TO_CPU:
@@ -53,7 +52,6 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
-    case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::PORT_TX_DISABLE:
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
@@ -100,6 +98,9 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
+    // TODO - get the features working on Indus ASIC
+    case HwAsic::Feature::DEBUG_COUNTER:
+    case HwAsic::Feature::BUFFER_POOL:
       return false;
   }
   return false;
