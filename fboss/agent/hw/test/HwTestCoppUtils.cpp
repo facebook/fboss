@@ -98,7 +98,7 @@ cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic) {
 
 uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId) {
   uint32_t pps;
-  if (hwAsic->getAsicType() == HwAsic::AsicType::ASIC_TYPE_EBRO) {
+  if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
     if (queueId == kCoppLowPriQueueId) {
       pps = kCoppTajoLowPriPktsPerSec;
     } else if (queueId == kCoppDefaultPriQueueId) {
@@ -120,7 +120,7 @@ uint32_t getCoppQueuePps(const HwAsic* hwAsic, uint16_t queueId) {
 
 uint32_t getCoppQueueKbpsFromPps(const HwAsic* hwAsic, uint32_t pps) {
   uint32_t kbps;
-  if (hwAsic->getAsicType() == HwAsic::AsicType::ASIC_TYPE_EBRO) {
+  if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
     kbps = (round(pps / 60) * 60) *
         (kAveragePacketSize + kCpuPacketOverheadBytes) * 8 / 1000;
   } else {
