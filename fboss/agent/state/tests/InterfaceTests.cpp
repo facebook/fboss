@@ -28,39 +28,62 @@ using std::make_shared;
 using std::shared_ptr;
 using ::testing::Return;
 
-TEST(Interface, addrToReach) {
-  auto platform = createMockPlatform();
-  cfg::SwitchConfig config;
-  config.vlans()->resize(2);
-  *config.vlans()[0].id() = 1;
-  *config.vlans()[1].id() = 2;
-  config.interfaces()->resize(2);
-  auto* intfConfig = &config.interfaces()[0];
-  *intfConfig->intfID() = 1;
-  *intfConfig->vlanID() = 1;
-  *intfConfig->routerID() = 1;
-  intfConfig->mac() = "00:02:00:11:22:33";
-  intfConfig->ipAddresses()->resize(5);
-  intfConfig->ipAddresses()[0] = "10.1.1.1/24";
-  intfConfig->ipAddresses()[1] = "20.1.1.2/24";
-  intfConfig->ipAddresses()[2] = "::22:33:44/120";
-  intfConfig->ipAddresses()[3] = "::11:11:11/120";
-  intfConfig->ipAddresses()[4] = "fe80::face:b00c/64";
+class InterfaceAddrToReach : public ::testing::Test {
+ private:
+  cfg::SwitchConfig genConfigWithLLs(
+      std::set<std::string> intfLinkLocals,
+      std::optional<std::string> raRouterAddr) {
+    cfg::SwitchConfig config;
+    config.vlans()->resize(2);
+    *config.vlans()[0].id() = 1;
+    *config.vlans()[1].id() = 2;
+    config.interfaces()->resize(2);
+    auto* intfConfig = &config.interfaces()[0];
+    *intfConfig->intfID() = 1;
+    *intfConfig->vlanID() = 1;
+    *intfConfig->routerID() = 1;
+    intfConfig->ipAddresses()->resize(4 + intfLinkLocals.size());
+    auto idx = 0;
+    intfConfig->ipAddresses()[idx++] = "10.1.1.1/24";
+    intfConfig->ipAddresses()[idx++] = "20.1.1.2/24";
+    intfConfig->ipAddresses()[idx++] = "::22:33:44/120";
+    intfConfig->ipAddresses()[idx++] = "::11:11:11/120";
+    for (const auto& intfAddr : intfLinkLocals) {
+      intfConfig->ipAddresses()[idx++] = intfAddr;
+    }
+    if (raRouterAddr) {
+      intfConfig->ndp() = cfg::NdpConfig{};
+      intfConfig->ndp()->routerAddress() = *raRouterAddr;
+    }
 
-  intfConfig = &config.interfaces()[1];
-  *intfConfig->intfID() = 2;
-  *intfConfig->vlanID() = 2;
-  *intfConfig->routerID() = 2;
-  intfConfig->mac() = "00:02:00:11:22:33";
-  intfConfig->ipAddresses()->resize(4);
-  intfConfig->ipAddresses()[0] = "10.1.1.1/24";
-  intfConfig->ipAddresses()[1] = "20.1.1.2/24";
-  intfConfig->ipAddresses()[2] = "::22:33:44/120";
-  intfConfig->ipAddresses()[3] = "::11:11:11/120";
+    intfConfig = &config.interfaces()[1];
+    *intfConfig->intfID() = 2;
+    *intfConfig->vlanID() = 2;
+    *intfConfig->routerID() = 2;
+    intfConfig->ipAddresses()->resize(4);
+    intfConfig->ipAddresses()[0] = "10.1.1.1/24";
+    intfConfig->ipAddresses()[1] = "20.1.1.2/24";
+    intfConfig->ipAddresses()[2] = "::22:33:44/120";
+    intfConfig->ipAddresses()[3] = "::11:11:11/120";
+    return config;
+  }
 
-  InterfaceID id(1);
-  shared_ptr<SwitchState> oldState = make_shared<SwitchState>();
-  auto state = publishAndApplyConfig(oldState, &config, platform.get());
+ protected:
+  std::shared_ptr<SwitchState> setup(
+      std::set<std::string> intfLinkLocals,
+      std::optional<std::string> raRouterAddr) {
+    platform_ = createMockPlatform();
+    auto config = genConfigWithLLs(intfLinkLocals, raRouterAddr);
+    return publishAndApplyConfig(
+        std::make_shared<SwitchState>(), &config, platform_.get());
+  }
+
+ private:
+  std::unique_ptr<Platform> platform_;
+};
+
+TEST_F(InterfaceAddrToReach, addrToReach) {
+  auto state = setup({"fe80::face:b00c/64"}, std::nullopt);
   ASSERT_NE(nullptr, state);
   const auto& intfs = state->getInterfaces();
   const auto& intf1 = intfs->getInterface(InterfaceID(1));
