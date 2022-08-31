@@ -140,6 +140,31 @@ TEST_F(InterfaceAddrToReach, addrToReachBackendNwNewConfig) {
       intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
 }
 
+TEST_F(InterfaceAddrToReach, addrToReachWithRouterAddrConfigured) {
+  auto state = setup({"fe80::face:b00c/64"}, "fe80::face:b00c");
+  const auto& intf1 = state->getInterfaces()->getInterface(InterfaceID(1));
+  EXPECT_EQ(
+      MockPlatform::getMockLinkLocalIp6(),
+      intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
+}
+
+TEST_F(InterfaceAddrToReach, addrToReachBackendRouterAddrConfigured) {
+  auto state =
+      setup({"fe80::face:b00b/64", "fe80::be:face:b00c/64"}, "fe80::face:b00b");
+  const auto& intf1 = state->getInterfaces()->getInterface(InterfaceID(1));
+  EXPECT_EQ(
+      MockPlatform::getMockLinkLocalIp6(),
+      intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
+}
+
+TEST_F(InterfaceAddrToReach, addrToReachBackendNewConfigRouterAddrConfigured) {
+  auto state = setup({"fe80::be:face:b00c/64"}, "fe80::be:face:b00c");
+  const auto& intf1 = state->getInterfaces()->getInterface(InterfaceID(1));
+  EXPECT_EQ(
+      MockPlatform::getMockLinkLocalIp6(),
+      intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
+}
+
 TEST(Interface, applyConfig) {
   auto platform = createMockPlatform();
   cfg::SwitchConfig config;
