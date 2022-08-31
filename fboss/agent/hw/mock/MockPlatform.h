@@ -34,7 +34,7 @@ class HwSwitchWarmBootHelper;
 class MockPlatform : public Platform {
  public:
   MockPlatform();
-  explicit MockPlatform(
+  MockPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       std::unique_ptr<MockHwSwitch> hw);
   ~MockPlatform() override;
