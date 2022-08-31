@@ -1487,7 +1487,9 @@ void SaiSwitch::initStoreAndManagersLocked(
         (getPlatform()->getAsic()->getAsicType() !=
          HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY) &&
         (getPlatform()->getAsic()->getAsicType() !=
-         HwAsic::AsicType::ASIC_TYPE_BEAS)) {
+         HwAsic::AsicType::ASIC_TYPE_BEAS) &&
+        (getPlatform()->getAsic()->getAsicType() !=
+         HwAsic::AsicType::ASIC_TYPE_INDUS)) {
       if (!FLAGS_enable_acl_table_group) {
         auto aclTableGroup =
             std::make_shared<AclTableGroup>(cfg::AclStage::INGRESS);
