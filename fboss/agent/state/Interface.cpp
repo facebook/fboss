@@ -91,6 +91,18 @@ folly::dynamic InterfaceFields::toFollyDynamic() const {
 
 std::optional<folly::CIDRNetwork> Interface::getAddressToReach(
     const folly::IPAddress& dest) const {
+  auto getAddressToReach = [this, &dest](const auto& addresses) {
+    std::optional<folly::CIDRNetwork> reachableBy;
+    for (const auto& [ipStr, mask] : addresses) {
+      auto cidr = folly::CIDRNetwork(ipStr, mask);
+      if (dest.inSubnet(cidr.first, cidr.second)) {
+        reachableBy = cidr;
+        break;
+      }
+    }
+    return reachableBy;
+  };
+
   /*
    * Preserving old behavior for mitigation of S289408
    * Prior to migrating InterfaceFields to native thrift
@@ -131,11 +143,27 @@ std::optional<folly::CIDRNetwork> Interface::getAddressToReach(
    *  we are reverting to old behavior so as to not
    *  couple our release with their rollout.
    */
-  for (const auto& [ipStr, mask] : getAddresses()) {
-    auto cidr = folly::CIDRNetwork(ipStr, mask);
-    if (dest.inSubnet(cidr.first, cidr.second)) {
-      return cidr;
+  if (!getNdpConfig().routerAddress()) {
+    return getAddressToReach(getAddresses());
+  } else {
+    /*
+     * If RA router address is configured, use MAC derived LL if it can
+     * reach destination address. This is to allow hitless roll back of
+     * this config. Consider, w/o this config we used to use MAC derived
+     * LL in RA advertisements. This address would then get used as default
+     * GW address for v6 traffic and get resolved. When we start using
+     * a configured address (say fe80::face:b00c), this address will no longer
+     * be resolved. And if we undo this RA.routerAddress config (rollback case)
+     * we may get a brief blip in connectivity while the default GW is resolved.
+     */
+    folly::CIDRNetwork linkLocalCidr{
+        folly::IPAddressV6(folly::IPAddressV6::LINK_LOCAL, getMac()), 64};
+    if (dest.inSubnet(linkLocalCidr.first, linkLocalCidr.second)) {
+      return linkLocalCidr;
     }
+    // No longer need special case behavior since with routerAddress configured
+    // we would have unified v4 and v6 GW addresses
+    return getAddressToReach(*getFields()->data().addresses());
   }
   return std::nullopt;
 }
