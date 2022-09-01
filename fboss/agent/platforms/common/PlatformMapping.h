@@ -71,6 +71,7 @@ class PlatformMapping {
  public:
   PlatformMapping() {}
   explicit PlatformMapping(const std::string& jsonPlatformMappingStr);
+  explicit PlatformMapping(const cfg::PlatformMapping& mapping);
   virtual ~PlatformMapping() = default;
 
   cfg::PlatformMapping toThrift() const;
@@ -152,6 +153,7 @@ class PlatformMapping {
       cfg::PortProfileID profileID) const;
 
  private:
+  void init(const cfg::PlatformMapping& mapping);
   // Forbidden copy constructor and assignment operator
   PlatformMapping(PlatformMapping const&) = delete;
   PlatformMapping& operator=(PlatformMapping const&) = delete;

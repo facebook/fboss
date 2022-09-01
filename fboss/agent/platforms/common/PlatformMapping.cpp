@@ -144,9 +144,15 @@ std::string PlatformPortProfileConfigMatcher::toString() const {
 }
 
 PlatformMapping::PlatformMapping(const std::string& jsonPlatformMappingStr) {
-  auto mapping =
-      apache::thrift::SimpleJSONSerializer::deserialize<cfg::PlatformMapping>(
-          jsonPlatformMappingStr);
+  init(apache::thrift::SimpleJSONSerializer::deserialize<cfg::PlatformMapping>(
+      jsonPlatformMappingStr));
+}
+
+PlatformMapping::PlatformMapping(const cfg::PlatformMapping& mapping) {
+  init(mapping);
+}
+
+void PlatformMapping::init(const cfg::PlatformMapping& mapping) {
   platformPorts_ = std::move(*mapping.ports());
   platformSupportedProfiles_ = std::move(*mapping.platformSupportedProfiles());
   for (auto chip : *mapping.chips()) {
