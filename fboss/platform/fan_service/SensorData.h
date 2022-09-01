@@ -76,6 +76,9 @@ class SensorData {
   auto end() const {
     return sensorEntry_.end();
   }
+  auto size() const {
+    return sensorEntry_.size();
+  }
   void setLastQsfpSvcTime(uint64_t t);
   uint64_t getLastQsfpSvcTime();
 
