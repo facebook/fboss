@@ -36,10 +36,12 @@ struct SaiQueueTraits {
     using Type = SaiAttribute<EnumType, SAI_QUEUE_ATTR_TYPE, sai_int32_t>;
     using Port = SaiAttribute<EnumType, SAI_QUEUE_ATTR_PORT, SaiObjectIdT>;
     using Index = SaiAttribute<EnumType, SAI_QUEUE_ATTR_INDEX, sai_uint8_t>;
+
     using ParentSchedulerNode = SaiAttribute<
         EnumType,
         SAI_QUEUE_ATTR_PARENT_SCHEDULER_NODE,
-        SaiObjectIdT>;
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
     using WredProfileId = SaiAttribute<
         EnumType,
         SAI_QUEUE_ATTR_WRED_PROFILE_ID,
@@ -62,7 +64,7 @@ struct SaiQueueTraits {
       Attributes::Type,
       Attributes::Port,
       Attributes::Index,
-      Attributes::ParentSchedulerNode,
+      std::optional<Attributes::ParentSchedulerNode>,
       std::optional<Attributes::SchedulerProfileId>,
       std::optional<Attributes::WredProfileId>,
       std::optional<Attributes::BufferProfileId>>;
