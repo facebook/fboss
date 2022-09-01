@@ -38,6 +38,7 @@ struct PlatformPortMapping {
   2: string name;
   3: i32 controllingPort;
   4: list<phy.PinConnection> pins;
+  5: switch_config.PortType portType = switch_config.PortType.INTERFACE_PORT;
 }
 
 struct PlatformPortConfig {
