@@ -3,6 +3,7 @@
 // Implementation of Bsp class. Refer to .h for functional description
 #include "Bsp.h"
 #include <string>
+#include "fboss/fsdb/Flags.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 // Additional FB helper funtion
@@ -16,6 +17,9 @@ Bsp::Bsp() {
   fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>("fan_service");
   fsdbSensorSubscriber_ =
       std::make_unique<FsdbSensorSubscriber>(fsdbPubSubMgr_.get());
+  if (FLAGS_subscribe_to_stats_from_fsdb) {
+    fsdbSensorSubscriber_->subscribeToSensorServiceStat(subscribedSensorData);
+  }
 }
 
 int Bsp::run(const std::string& cmd) {
@@ -30,6 +34,7 @@ void Bsp::getSensorData(
   bool fetchOverThrift = false;
   bool fetchOverRest = false;
   bool fetchOverUtil = false;
+  bool fetchFromFsdb = false;
 
   // Only sysfs is read one by one. For other type of read,
   // we set the flags for each type, then read them in batch
@@ -41,7 +46,11 @@ void Bsp::getSensorData(
     bool readSuccessful;
     switch (*sensor->access.accessType()) {
       case fan_config_structs::SourceType::kSrcThrift:
-        fetchOverThrift = true;
+        if (FLAGS_subscribe_to_stats_from_fsdb) {
+          fetchFromFsdb = true;
+        } else {
+          fetchOverThrift = true;
+        }
         break;
       case fan_config_structs::SourceType::kSrcRest:
         fetchOverRest = true;
@@ -82,6 +91,15 @@ void Bsp::getSensorData(
   }
   if (fetchOverRest) {
     getSensorDataRest(pServiceConfig, pSensorData);
+  }
+  if (fetchFromFsdb) {
+    // Populate the last data that was received from FSDB into pSensorData
+    auto subscribedData = *subscribedSensorData.rlock();
+    for (const auto& sensorIt : subscribedData) {
+      auto sensorData = sensorIt.second;
+      pSensorData->updateEntryFloat(
+          *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
+    }
   }
 
   // Set flag if not set yet

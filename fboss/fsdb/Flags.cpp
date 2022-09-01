@@ -12,3 +12,7 @@ DEFINE_bool(
     publish_state_to_fsdb,
     false,
     "Whether to publish switch state to fsdb");
+DEFINE_bool(
+    subscribe_to_stats_from_fsdb,
+    false,
+    "Whether to subscribe to stats from fsdb");
