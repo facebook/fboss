@@ -9,11 +9,13 @@ add_library(fan_service_lib
   fboss/platform/fan_service/DarwinFSConfig.cpp
   fboss/platform/fan_service/FanService.cpp
   fboss/platform/fan_service/FanServiceHandler.cpp
+  fboss/platform/fan_service/FsdbSensorSubscriber.cpp
   fboss/platform/fan_service/Mokujin.cpp
   fboss/platform/fan_service/MokujinFSConfig.cpp
   fboss/platform/fan_service/SensorData.cpp
   fboss/platform/fan_service/ServiceConfig.cpp
   fboss/platform/fan_service/SetupThrift.cpp
+  fboss/platform/fan_service/oss/FsdbSensorSubscriber.cpp
   fboss/platform/fan_service/oss/OssHelper.cpp
   fboss/platform/fan_service/oss/SetupThrift.cpp
 )
@@ -27,6 +29,9 @@ target_link_libraries(fan_service_lib
   Folly::folly
   FBThrift::thriftcpp2
   qsfp_cache
+  fsdb_stream_client
+  fsdb_pub_sub
+  fsdb_flags
 )
 
 add_executable(fan_service

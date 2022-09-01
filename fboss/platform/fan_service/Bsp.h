@@ -39,12 +39,17 @@
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/platform/fan_service/HelperFunction.h"
 
+#include "fboss/fsdb/client/FsdbPubSubManager.h"
+#include "fboss/platform/fan_service/FsdbSensorSubscriber.h"
+#include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
+
 int runShellCmd(const std::string& cmd);
 
 namespace facebook::fboss::platform {
 
 class Bsp {
  public:
+  Bsp();
   virtual ~Bsp();
   // getSensorData: Get sensor data from either cache or direct access
   virtual void getSensorData(
@@ -72,6 +77,10 @@ class Bsp {
   virtual float readSysfs(std::string path) const;
   virtual bool initializeQsfpService();
   static apache::thrift::RpcOptions getRpcOptions();
+
+  FsdbSensorSubscriber* fsdbSensorSubscriber() {
+    return fsdbSensorSubscriber_.get();
+  }
 
  protected:
   // replaceAllString : String replace helper function
@@ -138,5 +147,8 @@ class Bsp {
       uint64_t& currentQsfpSvcTimestamp,
       const std::map<int32_t, TransceiverInfo>& cacheTable,
       OpticEntry* opticData);
+
+  std::unique_ptr<FsdbSensorSubscriber> fsdbSensorSubscriber_;
+  std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
 };
 } // namespace facebook::fboss::platform

@@ -7,8 +7,16 @@
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 // Additional FB helper funtion
 #include "common/time/Time.h"
+#include "fboss/platform/fan_service/FsdbSensorSubscriber.h"
+#include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 
 namespace facebook::fboss::platform {
+
+Bsp::Bsp() {
+  fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>("fan_service");
+  fsdbSensorSubscriber_ =
+      std::make_unique<FsdbSensorSubscriber>(fsdbPubSubMgr_.get());
+}
 
 int Bsp::run(const std::string& cmd) {
   int rc = 0;
@@ -475,6 +483,8 @@ Bsp::~Bsp() {
     evbSensor_.runInEventBaseThread([this] { evbSensor_.terminateLoopSoon(); });
     thread_->join();
   }
+  fsdbSensorSubscriber_.reset();
+  fsdbPubSubMgr_.reset();
 }
 
 } // namespace facebook::fboss::platform
