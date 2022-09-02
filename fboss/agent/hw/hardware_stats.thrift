@@ -178,3 +178,7 @@ struct HwAsicErrors {
   3: i64 uncorrectedParityErrors;
   4: i64 asicErrors;
 }
+
+struct HwTeFlowStats {
+  1: i64 bytes;
+}
