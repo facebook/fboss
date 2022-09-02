@@ -845,6 +845,8 @@ class SwSwitch : public HwSwitch::Callback {
   // Sets the counter that tracks port status
   void setPortStatusCounter(PortID port, bool up);
 
+  std::map<std::string, HwTeFlowStats> getTeFlowStats();
+
   void updateConfigAppliedInfo();
 
   std::string curConfigStr_;

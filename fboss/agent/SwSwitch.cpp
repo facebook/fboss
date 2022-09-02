@@ -450,6 +450,7 @@ void SwSwitch::updateStats() {
         agentStats.hwPortStats() = getHw()->getPortStats();
         agentStats.hwAsicErrors() =
             getHw()->getSwitchStats()->getHwAsicErrors();
+        agentStats.teFlowStats() = getTeFlowStats();
         stats()->fillAgentStats(agentStats);
         fsdbSyncer_->statsUpdated(std::move(agentStats));
         publishedStatsToFsdbAt_ = now;
@@ -467,6 +468,27 @@ void SwSwitch::updateStats() {
     XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
   }
   phySnapshotManager_->updatePhyInfos(getHw()->updateAllPhyInfo());
+}
+
+std::map<std::string, HwTeFlowStats> SwSwitch::getTeFlowStats() {
+  std::map<std::string, HwTeFlowStats> teFlowStats;
+  auto statMap = facebook::fb303::fbData->getStatMap();
+  for (const auto& flowEntry : *getState()->getTeFlowTable()) {
+    if (flowEntry->getCounterID().has_value()) {
+      auto statName =
+          folly::to<std::string>(flowEntry->getCounterID().value(), ".bytes");
+      // returns default stat if statName does not exists
+      auto statPtr = statMap->getStatPtrNoExport(statName);
+      auto lockedStatPtr = statPtr->lock();
+      auto numLevels = lockedStatPtr->numLevels();
+      // Cumulative (ALLTIME) counters are at (numLevels - 1)
+      HwTeFlowStats flowStat;
+      flowStat.bytes() = lockedStatPtr->sum(numLevels - 1);
+      teFlowStats.emplace(
+          flowEntry->getCounterID().value(), std::move(flowStat));
+    }
+  }
+  return teFlowStats;
 }
 
 void SwSwitch::registerNeighborListener(
