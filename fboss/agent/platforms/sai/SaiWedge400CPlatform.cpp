@@ -50,18 +50,21 @@ std::vector<sai_system_port_config_t>
 SaiWedge400CPlatform::getInternalSystemPortConfig() const {
   // Below are a mixture system port configs for
   // internal {loopback, CPU} ports. From the speeds (in Mbps)
-  // one can infer that ports 5-8 are 1G CPU ports and 10-14 are
+  // one can infer that ports 6-10 are 1G CPU ports and 10-14 are
   // 100G loopback ports (TODO - confirm this with vendor)
+  //
   return {
-      {10, 0, 2, 25, 100000, 8},
-      {11, 0, 4, 25, 100000, 8},
-      {12, 0, 6, 25, 100000, 8},
-      {13, 0, 8, 25, 100000, 8},
-      {14, 0, 10, 25, 100000, 8},
+      {11, 0, 0, 25, 100000, 8},
+      {12, 0, 2, 25, 100000, 8},
+      {13, 0, 4, 25, 100000, 8},
+      {14, 0, 6, 25, 100000, 8},
+      {15, 0, 8, 25, 100000, 8},
+      {16, 0, 10, 25, 100000, 8},
       {6, 0, 0, 24, 1000, 8},
       {7, 0, 4, 24, 1000, 8},
-      {8, 0, 8, 24, 1000, 8},
-      {5, 0, 1, 24, 1000, 8}};
+      {8, 0, 6, 24, 1000, 8},
+      {9, 0, 8, 24, 1000, 8},
+      {10, 0, 1, 24, 1000, 8}};
 }
 
 SaiWedge400CPlatform::~SaiWedge400CPlatform() {}
