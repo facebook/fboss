@@ -48,8 +48,11 @@ struct SaiSystemPortTraits {
         std::vector<SaiObjectIdT>>;
     using Port =
         SaiAttribute<EnumType, SAI_SYSTEM_PORT_ATTR_PORT, SaiObjectIdT>;
-    using AdminState =
-        SaiAttribute<EnumType, SAI_SYSTEM_PORT_ATTR_ADMIN_STATE, bool>;
+    using AdminState = SaiAttribute<
+        EnumType,
+        SAI_SYSTEM_PORT_ATTR_ADMIN_STATE,
+        bool,
+        SaiBoolDefaultFalse>;
     using ConfigInfo = SaiAttribute<
         EnumType,
         SAI_SYSTEM_PORT_ATTR_CONFIG_INFO,
@@ -57,7 +60,8 @@ struct SaiSystemPortTraits {
     using QosTcToQueueMap = SaiAttribute<
         EnumType,
         SAI_SYSTEM_PORT_ATTR_QOS_TC_TO_QUEUE_MAP,
-        SaiObjectIdT>;
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
   };
   using AdapterKey = SystemPortSaiId;
   using AdapterHostKey = Attributes::ConfigInfo;
