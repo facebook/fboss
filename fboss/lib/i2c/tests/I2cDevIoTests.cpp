@@ -25,22 +25,24 @@ class I2cDevIoTests : public ::testing::Test {
    * cannot read from a regular non-i2cDev file
    */
   void testInvalidRead() {
-    std::unique_ptr<I2cDevIo> i2cDev = std::make_unique<I2cDevIo>(filePath_);
+    std::unique_ptr<I2cDevIo> i2cDev =
+        std::make_unique<I2cDevIo>(filePath_, I2cIoType::I2cIoTypeForTest);
     uint8_t addr = 0x50;
     uint8_t offset = 127;
     uint8_t buf;
-    EXPECT_THROW(i2cDev->read(addr, offset, &buf, 1), I2cDevImplError);
+    EXPECT_THROW(i2cDev->read(addr, offset, &buf, 1), I2cDevIoError);
   }
 
   /* Verify the I2cDevIo::write() method throws I2cDevIoError exception if it
    * cannot write to a regular non-i2cDev file
    */
   void testInvalidWrite() {
-    std::unique_ptr<I2cDevIo> i2cDev = std::make_unique<I2cDevIo>(filePath_);
+    std::unique_ptr<I2cDevIo> i2cDev =
+        std::make_unique<I2cDevIo>(filePath_, I2cIoType::I2cIoTypeForTest);
     uint8_t addr = 0x50;
     uint8_t offset = 127;
     const uint8_t buf = 1;
-    EXPECT_THROW(i2cDev->write(addr, offset, &buf, 1), I2cDevImplError);
+    EXPECT_THROW(i2cDev->write(addr, offset, &buf, 1), I2cDevIoError);
   }
 
  protected:
