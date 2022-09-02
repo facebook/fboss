@@ -65,13 +65,13 @@ SaiSwitchManager::SaiSwitchManager(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId)
     : managerTable_(managerTable), platform_(platform) {
+  int64_t swId = switchId.value_or(0);
   if (bootType == BootType::WARM_BOOT) {
     // Extract switch adapter key and create switch only with the mandatory
     // init attribute (warm boot path)
     auto& switchApi = SaiApiTable::getInstance()->switchApi();
     auto newSwitchId = switchApi.create<SaiSwitchTraits>(
-        platform->getSwitchAttributes(true, switchType, switchId),
-        0 /* switch id; ignored */);
+        platform->getSwitchAttributes(true, switchType, switchId), swId);
     // Load all switch attributes
     switch_ = std::make_unique<SaiSwitchObj>(newSwitchId);
     switch_->setOptionalAttribute(
@@ -82,7 +82,7 @@ SaiSwitchManager::SaiSwitchManager(
     switch_ = std::make_unique<SaiSwitchObj>(
         std::monostate(),
         platform->getSwitchAttributes(false, switchType, switchId),
-        0 /* fake switch id; ignored */);
+        swId);
 
     const auto& asic = platform_->getAsic();
     if (asic->isSupported(HwAsic::Feature::ECMP_HASH_V4)) {
