@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <gtest/gtest.h>
+#include "common/stats/MonotonicCounter.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/TeFlowEntry.h"
@@ -89,11 +90,12 @@ class TeFlowTest : public ::testing::Test {
   FlowEntry makeFlow(
       std::string dstIp,
       std::string nhop = kNhopAddrA,
-      std::string ifname = "fboss1") {
+      std::string ifname = "fboss1",
+      std::string counterID = kCounterID) {
     FlowEntry flowEntry;
     flowEntry.flow()->srcPort() = 100;
     flowEntry.flow()->dstPrefix() = ipPrefix(dstIp, 64);
-    flowEntry.counterID() = kCounterID;
+    flowEntry.counterID() = counterID;
     flowEntry.nextHops()->resize(1);
     flowEntry.nextHops()[0].address() = toBinaryAddress(IPAddress(nhop));
     flowEntry.nextHops()[0].address()->ifName() = ifname;
@@ -252,4 +254,44 @@ TEST_F(TeFlowTest, TeFlowStats) {
   EXPECT_EQ(counters.value(SwitchStats::kCounterPrefix + "teflows"), 5);
   EXPECT_EQ(
       counters.value(SwitchStats::kCounterPrefix + "teflows.inactive"), 2);
+}
+
+TEST_F(TeFlowTest, TeFlowCounter) {
+  auto state = sw_->getState();
+  // 3 flow entries with 2 counters
+  auto flowEntries = {
+      makeFlow("100::", kNhopAddrA, "fboss1", "counter0"),
+      makeFlow("101::", kNhopAddrA, "fboss1", "counter0"),
+      makeFlow("102::", kNhopAddrA, "fboss1", "counter1")};
+
+  updateState("add te flows", [&](const auto& state) {
+    auto newState = state->clone();
+    auto flowTable = std::make_shared<TeFlowTable>();
+    for (const auto& flowEntry : flowEntries) {
+      flowTable->addTeFlowEntry(&newState, flowEntry);
+    }
+    newState->resetTeFlowTable(flowTable);
+    return newState;
+  });
+
+  int testByteCounterValue = 64;
+  auto updateCounter = [&testByteCounterValue](auto counterID) {
+    auto counter = std::make_unique<facebook::stats::MonotonicCounter>(
+        counterID, facebook::fb303::SUM, facebook::fb303::RATE);
+    auto now = duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch());
+    counter->updateValue(now, 0);
+    now = duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch());
+    counter->updateValue(now, testByteCounterValue);
+  };
+  updateCounter("counter0.bytes");
+  updateCounter("counter1.bytes");
+  CounterCache counters(sw_);
+  counters.update();
+  auto teFlowStats = sw_->getTeFlowStats();
+  EXPECT_EQ(teFlowStats.size(), 2);
+  for (const auto& stat : teFlowStats) {
+    EXPECT_EQ(*stat.second.bytes(), testByteCounterValue);
+  }
 }
