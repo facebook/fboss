@@ -4,6 +4,7 @@
 #include <folly/experimental/TestUtil.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
+#include "fboss/lib/i2c/I2cDevImpl.h"
 #include "fboss/lib/i2c/I2cDevIo.h"
 
 namespace facebook::fboss {
@@ -28,7 +29,7 @@ class I2cDevIoTests : public ::testing::Test {
     uint8_t addr = 0x50;
     uint8_t offset = 127;
     uint8_t buf;
-    EXPECT_THROW(i2cDev->read(addr, offset, &buf, 1), I2cDevIoError);
+    EXPECT_THROW(i2cDev->read(addr, offset, &buf, 1), I2cDevImplError);
   }
 
   /* Verify the I2cDevIo::write() method throws I2cDevIoError exception if it
@@ -39,7 +40,7 @@ class I2cDevIoTests : public ::testing::Test {
     uint8_t addr = 0x50;
     uint8_t offset = 127;
     const uint8_t buf = 1;
-    EXPECT_THROW(i2cDev->write(addr, offset, &buf, 1), I2cDevIoError);
+    EXPECT_THROW(i2cDev->write(addr, offset, &buf, 1), I2cDevImplError);
   }
 
  protected:

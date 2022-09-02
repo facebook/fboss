@@ -9,21 +9,11 @@
  */
 #pragma once
 
+#include <memory>
 #include <string>
+#include "fboss/lib/i2c/I2cDevImpl.h"
 
 namespace facebook::fboss {
-
-class I2cDevIoError : public std::exception {
- public:
-  explicit I2cDevIoError(const std::string& what) : what_(what) {}
-
-  const char* what() const noexcept override {
-    return what_.c_str();
-  }
-
- private:
-  std::string what_;
-};
 
 class I2cDevIo {
  public:
@@ -40,6 +30,7 @@ class I2cDevIo {
  private:
   std::string devName_;
   int fd_;
+  std::unique_ptr<I2cDevImpl> i2cDevImpl_;
 };
 
 } // namespace facebook::fboss
