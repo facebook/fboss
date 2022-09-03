@@ -18,7 +18,7 @@ class EbroAsic;
 
 class SaiWedge400CPlatform : public SaiTajoPlatform {
  public:
-  explicit SaiWedge400CPlatform(
+  SaiWedge400CPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac);
   ~SaiWedge400CPlatform() override;
@@ -43,7 +43,7 @@ class SaiWedge400CPlatform : public SaiTajoPlatform {
 
 class SaiWedge400CEbbLabPlatform : public SaiWedge400CPlatform {
  public:
-  explicit SaiWedge400CEbbLabPlatform(
+  SaiWedge400CEbbLabPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac);
 };
