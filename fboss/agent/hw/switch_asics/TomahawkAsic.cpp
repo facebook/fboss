@@ -97,8 +97,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
-    case HwAsic::Feature::VOQ_MODE:
-    case HwAsic::Feature::FABRIC_MODE:
+
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::FABRIC_PORTS:
       return false;

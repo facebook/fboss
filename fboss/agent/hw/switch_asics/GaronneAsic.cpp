@@ -48,7 +48,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
-    case HwAsic::Feature::VOQ_MODE:
+
     case HwAsic::Feature::ROUTE_PROGRAMMING:
     case HwAsic::Feature::ECMP_HASH_V4:
     case HwAsic::Feature::ECMP_HASH_V6:
@@ -97,7 +97,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
-    case HwAsic::Feature::FABRIC_MODE:
+
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     /*
      * Disabling buffer pool on Garonne since buffer pool
