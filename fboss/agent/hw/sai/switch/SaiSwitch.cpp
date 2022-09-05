@@ -1346,7 +1346,7 @@ SaiManagerTable* SaiSwitch::managerTable() {
 std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   auto state = std::make_shared<SwitchState>();
 
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::QUEUE)) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     // get cpu queue settings
     auto cpu = std::make_shared<ControlPlane>();
     auto cpuQueues = managerTable_->hostifManager().getQueueSettings();

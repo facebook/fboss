@@ -39,7 +39,6 @@ class HwAsic {
     MPLS_ECMP,
     SAI_MPLS_QOS,
     HASH_FIELDS_CUSTOMIZATION,
-    QUEUE,
     ECN,
     L3_QOS,
     QOS_MAP_GLOBAL,
