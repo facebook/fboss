@@ -104,6 +104,10 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
+    /*
+     * Set to true once fabric ports support comes in
+     */
+    case HwAsic::Feature::FABRIC_PORTS:
       return false;
   }
   return false;

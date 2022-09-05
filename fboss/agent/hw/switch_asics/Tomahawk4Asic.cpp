@@ -121,6 +121,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_MODE:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
+    case HwAsic::Feature::FABRIC_PORTS:
       return false;
   }
   return false;

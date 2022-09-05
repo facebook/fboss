@@ -121,6 +121,7 @@ class HwAsic {
     MEDIA_TYPE,
     FEC,
     RX_FREQUENCY_PPM,
+    FABRIC_PORTS,
   };
 
   enum class AsicType ASIC_TYPE_LIST;

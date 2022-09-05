@@ -7,6 +7,7 @@ namespace facebook::fboss {
 bool BeasAsic::isSupported(Feature feature) const {
   switch (feature) {
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
+    case HwAsic::Feature::FABRIC_PORTS:
       return true;
     default:
       return false;

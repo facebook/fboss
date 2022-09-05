@@ -100,6 +100,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ_MODE:
     case HwAsic::Feature::FABRIC_MODE:
     case HwAsic::Feature::EXACT_MATCH:
+    case HwAsic::Feature::FABRIC_PORTS:
       return false;
   }
   return false;

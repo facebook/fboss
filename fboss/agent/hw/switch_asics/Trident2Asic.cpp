@@ -100,6 +100,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
+    case HwAsic::Feature::FABRIC_PORTS:
       return false;
   }
   return false;
