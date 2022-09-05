@@ -1353,16 +1353,19 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
     cpu->resetQueues(cpuQueues);
     state->resetControlPlane(cpu);
   }
-  if (switchType_ == cfg::SwitchType::FABRIC) {
-    auto& switchApi = SaiApiTable::getInstance()->switchApi();
-    auto fabricPorts = switchApi.getAttribute(
-        switchId_, SaiSwitchTraits::Attributes::FabricPortList{});
-    auto& portStore = saiStore_->get<SaiPortTraits>();
-    for (auto& fid : fabricPorts) {
-      // Add to warm boot handles so object has a reference and
-      // is preserved in Port store
-      portStore.loadObjectOwnedByAdapter(
-          PortSaiId(fid), true /* add to warm boot handles*/);
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_PORTS)) {
+    if (switchType_ == cfg::SwitchType::FABRIC ||
+        switchType_ == cfg::SwitchType::VOQ) {
+      auto& switchApi = SaiApiTable::getInstance()->switchApi();
+      auto fabricPorts = switchApi.getAttribute(
+          switchId_, SaiSwitchTraits::Attributes::FabricPortList{});
+      auto& portStore = saiStore_->get<SaiPortTraits>();
+      for (auto& fid : fabricPorts) {
+        // Add to warm boot handles so object has a reference and
+        // is preserved in Port store
+        portStore.loadObjectOwnedByAdapter(
+            PortSaiId(fid), true /* add to warm boot handles*/);
+      }
     }
   }
   // TODO(joseph5wu) We need to design how to restore xphy ports for the state
