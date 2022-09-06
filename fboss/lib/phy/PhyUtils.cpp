@@ -13,6 +13,7 @@ bool isReedSolomonFec(phy::FecMode fec) {
     case phy::FecMode::RS528:
     case phy::FecMode::RS544:
     case phy::FecMode::RS544_2N:
+    case phy::FecMode::RS545:
       return true;
     case phy::FecMode::CL74:
     case phy::FecMode::NONE:

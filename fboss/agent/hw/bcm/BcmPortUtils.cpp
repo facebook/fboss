@@ -114,6 +114,8 @@ bcm_port_phy_fec_t phyFecModeToBcmPortPhyFec(phy::FecMode fec) {
       return bcmPortPhyFecRs544;
     case phy::FecMode::RS544_2N:
       return bcmPortPhyFecRs544_2xN;
+    case phy::FecMode::RS545:
+      return bcmPortPhyFecRs545;
   };
   throw facebook::fboss::FbossError(
       "Unsupported fec type: ", apache::thrift::util::enumNameSafe(fec));

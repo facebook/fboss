@@ -97,6 +97,8 @@ phy::VCOFrequency BcmPlatform::getVCOFrequency(
           FOLLY_FALLTHROUGH;
         case phy::FecMode::CL91:
           FOLLY_FALLTHROUGH;
+        case phy::FecMode::RS545:
+          FOLLY_FALLTHROUGH;
         case phy::FecMode::RS528:
           return phy::VCOFrequency::VCO_25_78125GHZ;
       }

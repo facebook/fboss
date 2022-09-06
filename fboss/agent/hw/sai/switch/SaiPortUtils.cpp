@@ -126,6 +126,7 @@ sai_port_fec_mode_t getSaiPortFecMode(phy::FecMode fec) {
     case phy::FecMode::RS528:
     case phy::FecMode::RS544:
     case phy::FecMode::RS544_2N:
+    case phy::FecMode::RS545:
       mode = SAI_PORT_FEC_MODE_RS;
       break;
   }
@@ -162,6 +163,9 @@ phy::FecMode getFecModeFromSaiFecMode(
         case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
         case cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL:
           mode = phy::FecMode::RS544_2N;
+          break;
+        case cfg::PortProfileID::PROFILE_50G_1_PAM4_RS545_COPPER:
+          mode = phy::FecMode::RS545;
           break;
         default:
           mode = phy::FecMode::NONE;

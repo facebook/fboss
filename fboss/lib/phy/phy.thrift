@@ -26,6 +26,7 @@ enum FecMode {
   RS528 = 528,
   RS544 = 544,
   RS544_2N = 11,
+  RS545 = 545,
 }
 
 struct VCOFrequencyFactor {
