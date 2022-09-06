@@ -17,14 +17,14 @@ class BeasAsic;
 
 class SaiKametPlatform : public SaiBcmPlatform {
  public:
-  explicit SaiKametPlatform(
+  SaiKametPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac);
   ~SaiKametPlatform() override;
   HwAsic* getAsic() const override;
 
   uint32_t numLanesPerCore() const override {
-    return 1;
+    return 4;
   }
 
   uint32_t numCellsAvailable() const override {
