@@ -39,8 +39,21 @@ class BcmTeFlowEntry {
   }
 
   TeFlow getID() const;
+  // Check whether the teflow details of handle in h/w matches the s/w teflow
+  static bool isStateSame(
+      const BcmSwitch* hw,
+      int gid,
+      BcmTeFlowEntryHandle handle,
+      const std::shared_ptr<TeFlowEntry>& teFlow);
+  static bcm_if_t getEgressId(
+      const BcmSwitch* hw,
+      std::shared_ptr<BcmMultiPathNextHop>& redirectNexthop,
+      const std::shared_ptr<TeFlowEntry>& teFlow);
 
  private:
+  void createTeFlowQualifiers();
+  void createTeFlowActions();
+  void installTeFlowEntry();
   void createTeFlowEntry();
 
   BcmSwitch* hw_;

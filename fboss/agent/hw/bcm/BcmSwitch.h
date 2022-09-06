@@ -100,6 +100,7 @@ class PortQueue;
 class BcmQcmManager;
 class BcmPtpTcMgr;
 class BcmEgressQueueFlexCounterManager;
+class TeFlowEntry;
 
 /*
  * Virtual interface to BcmSwitch, primarily for mocking/testing
@@ -723,6 +724,13 @@ class BcmSwitch : public BcmSwitchIf {
   void processAddedAcl(const std::shared_ptr<AclEntry>& acl);
   void processRemovedAcl(const std::shared_ptr<AclEntry>& acl);
   bool hasValidAclMatcher(const std::shared_ptr<AclEntry>& acl) const;
+
+  void processTeFlowChanges(const StateDelta& delta);
+  void processChangedTeFlow(
+      const std::shared_ptr<TeFlowEntry>& oldTeFlow,
+      const std::shared_ptr<TeFlowEntry>& newTeFlow);
+  void processAddedTeFlow(const std::shared_ptr<TeFlowEntry>& teFlow);
+  void processRemovedTeFlow(const std::shared_ptr<TeFlowEntry>& teFlow);
 
   void processAggregatePortChanges(const StateDelta& delta);
   void processChangedAggregatePort(

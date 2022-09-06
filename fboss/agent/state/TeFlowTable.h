@@ -67,4 +67,5 @@ class TeFlowTable : public ThriftyNodeMapT<
   friend class CloneAllocator;
 };
 void toAppend(const TeFlow& flow, std::string* result);
+std::string getTeFlowStr(const TeFlow& flow);
 } // namespace facebook::fboss

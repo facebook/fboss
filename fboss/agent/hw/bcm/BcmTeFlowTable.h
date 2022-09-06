@@ -14,6 +14,7 @@ extern "C" {
 }
 
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/bcm/BcmTeFlowEntry.h"
 #include "fboss/agent/hw/bcm/types.h"
 
 namespace facebook::fboss {
@@ -32,10 +33,27 @@ class BcmTeFlowTable {
     return hintId_;
   }
 
+  void processAddedTeFlow(
+      const int groupId,
+      const std::shared_ptr<TeFlowEntry>& teFlow);
+  void processRemovedTeFlow(const std::shared_ptr<TeFlowEntry>& teFlow);
+  void releaseTeFlows();
+
+  // Throw exception if not found
+  BcmTeFlowEntry* getTeFlow(const std::shared_ptr<TeFlowEntry>& teFlow) const;
+  // return nullptr if not found
+  BcmTeFlowEntry* getTeFlowIf(const std::shared_ptr<TeFlowEntry>& teFlow) const;
+  void processChangedTeFlow(
+      const int groupId,
+      const std::shared_ptr<TeFlowEntry>& oldTeFlow,
+      const std::shared_ptr<TeFlowEntry>& newTeFlow);
+
  private:
+  using BcmTeFlowEntryMap = std::map<TeFlow, std::unique_ptr<BcmTeFlowEntry>>;
   BcmSwitch* hw_;
   bcm_field_hintid_t hintId_{0};
   int teFlowGroupId_{0};
+  BcmTeFlowEntryMap teFlowEntryMap_;
 };
 
 } // namespace facebook::fboss

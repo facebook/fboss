@@ -73,6 +73,7 @@
 #include "fboss/agent/hw/bcm/BcmSwitchEventUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitchSettings.h"
 #include "fboss/agent/hw/bcm/BcmTableStats.h"
+#include "fboss/agent/hw/bcm/BcmTeFlowEntry.h"
 #include "fboss/agent/hw/bcm/BcmTeFlowTable.h"
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
@@ -103,6 +104,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/Route.h"
+#include "fboss/agent/state/TeFlowEntry.h"
 #include "fboss/agent/state/TransceiverMap.h"
 
 #include "fboss/agent/state/SflowCollector.h"
@@ -383,14 +385,15 @@ void BcmSwitch::resetTables() {
   unregisterCallbacks();
   labelMap_.reset();
   routeTable_.reset();
-  // ACL entries now may hold reference to multi path nexthop.
-  // So release ACLs before any nexthop related tables:
+  // ACL entries & TeFlow entries now may hold reference to multi path nexthop.
+  // So release ACLs and TeFlows before any nexthop related tables:
   // l3 nexthop table
   // mpls nexthop table
   // host table
   // multi path nexthop table
   aclTable_->releaseAcls();
   aclTable_.reset();
+  teFlowTable_.reset();
   l3NextHopTable_.reset();
   mplsNextHopTable_.reset();
   // Release host entries before reseting switch's host table
@@ -411,7 +414,6 @@ void BcmSwitch::resetTables() {
   portTable_.reset();
   qosPolicyTable_.reset();
   mirrorTable_.reset();
-  teFlowTable_.reset();
   trunkTable_.reset();
   controlPlane_.reset();
   rtag7LoadBalancer_.reset();
@@ -1246,6 +1248,9 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   // Any ACL changes
   processAclChanges(delta);
 
+  // Any TeFlow changes
+  processTeFlowChanges(delta);
+
   // Any changes to the set of sFlow collectors
   processSflowCollectorChanges(delta);
 
@@ -2079,6 +2084,15 @@ void BcmSwitch::processAclChanges(const StateDelta& delta) {
       &BcmSwitch::processChangedAcl,
       &BcmSwitch::processAddedAcl,
       &BcmSwitch::processRemovedAcl,
+      this);
+}
+
+void BcmSwitch::processTeFlowChanges(const StateDelta& delta) {
+  forEachChanged(
+      delta.getTeFlowEntriesDelta(),
+      &BcmSwitch::processChangedTeFlow,
+      &BcmSwitch::processAddedTeFlow,
+      &BcmSwitch::processRemovedTeFlow,
       this);
 }
 
@@ -3327,6 +3341,27 @@ void BcmSwitch::processRemovedAcl(const std::shared_ptr<AclEntry>& acl) {
 void BcmSwitch::processAddedAcl(const std::shared_ptr<AclEntry>& acl) {
   XLOG(DBG3) << "processAddedAcl, ACL=" << acl->getID();
   aclTable_->processAddedAcl(platform_->getAsic()->getDefaultACLGroupID(), acl);
+}
+
+void BcmSwitch::processChangedTeFlow(
+    const std::shared_ptr<TeFlowEntry>& oldTeFlow,
+    const std::shared_ptr<TeFlowEntry>& newTeFlow) {
+  XLOG(DBG3) << "processChangedTeFlow, oldTeFlow=" << oldTeFlow->str()
+             << " newTeFlow=" << newTeFlow->str();
+  teFlowTable_->processChangedTeFlow(
+      platform_->getAsic()->getDefaultTeFlowGroupID(), oldTeFlow, newTeFlow);
+}
+
+void BcmSwitch::processRemovedTeFlow(
+    const std::shared_ptr<TeFlowEntry>& teFlow) {
+  XLOG(DBG3) << "processRemovedTeFlow, TeFlow=" << teFlow->str();
+  teFlowTable_->processRemovedTeFlow(teFlow);
+}
+
+void BcmSwitch::processAddedTeFlow(const std::shared_ptr<TeFlowEntry>& teFlow) {
+  XLOG(DBG3) << "processAddedTeFlow, TeFlow=" << teFlow->str();
+  teFlowTable_->processAddedTeFlow(
+      platform_->getAsic()->getDefaultTeFlowGroupID(), teFlow);
 }
 
 bool BcmSwitch::hasValidAclMatcher(const std::shared_ptr<AclEntry>& acl) const {

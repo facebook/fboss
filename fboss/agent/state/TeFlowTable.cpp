@@ -63,9 +63,8 @@ TeFlowTable* TeFlowTable::removeTeFlowEntry(
   auto* writableTable = modify(state);
   auto oldFlowEntry = writableTable->getTeFlowIf(flowId);
   if (!oldFlowEntry) {
-    std::string flowStr;
-    toAppend(flowId, &flowStr);
-    XLOG(ERR) << "Request to delete a non existing flow entry :" << flowStr;
+    XLOG(ERR) << "Request to delete a non existing flow entry :"
+              << getTeFlowStr(flowId);
     return writableTable;
   }
   writableTable->removeNodeIf(flowId);
@@ -131,6 +130,12 @@ void toAppend(const TeFlow& flow, std::string* result) {
   std::string flowJson;
   apache::thrift::SimpleJSONSerializer::serialize(flow, &flowJson);
   result->append(flowJson);
+}
+
+std::string getTeFlowStr(const TeFlow& flow) {
+  std::string flowStr;
+  toAppend(flow, &flowStr);
+  return flowStr;
 }
 
 FBOSS_INSTANTIATE_NODE_MAP(TeFlowTable, TeFlowTableTraits);
