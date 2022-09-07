@@ -259,6 +259,10 @@ std::vector<phy::PinID> PlatformPort::getTransceiverLanes(
       getPlatformPortEntry(), getPlatform()->getDataPlanePhyChips(), profileID);
 }
 
+cfg::PortType PlatformPort::getPortType() const {
+  return *getPlatformPortEntry().mapping()->portType();
+}
+
 namespace {
 constexpr auto kFbossPortNameRegex = "eth(\\d+)/(\\d+)/1";
 }
