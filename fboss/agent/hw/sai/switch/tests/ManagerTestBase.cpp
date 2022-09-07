@@ -193,6 +193,9 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
     case cfg::PortSpeed::FIFTYG:
       swPort->setProfileId(cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER);
       break;
+    case cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG:
+      swPort->setProfileId(cfg::PortProfileID::PROFILE_50G_1_PAM4_RS545_COPPER);
+      break;
     case cfg::PortSpeed::HUNDREDG:
       swPort->setProfileId(cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL);
       break;
