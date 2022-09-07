@@ -33,8 +33,8 @@ class SaiKametPlatform : public SaiBcmPlatform {
 
   bool isSerdesApiSupported() const override {
     /*
-     * Ungate this when port profile mappings are done.
-     * Serdes settings require platform port profiles
+     * Ungate this when serdes api support is provided
+     * by vendor for Kamet platform.
      */
     return false;
   }
