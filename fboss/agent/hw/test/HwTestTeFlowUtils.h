@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "fboss/agent/types.h"
+#include "fboss/agent/HwSwitch.h"
 
-#include <folly/IPAddress.h>
-
-#include <set>
-
-namespace facebook::fboss {
-class HwSwitch;
-namespace utility {
+namespace facebook::fboss::utility {
 
 bool validateTeFlowGroupEnabled(const facebook::fboss::HwSwitch* hw);
 
-} // namespace utility
-} // namespace facebook::fboss
+int getNumTeFlowEntries(const facebook::fboss::HwSwitch* hw);
+
+void checkSwHwTeFlowMatch(
+    const HwSwitch* hw,
+    std::shared_ptr<SwitchState> state,
+    TeFlow flow);
+
+} // namespace facebook::fboss::utility

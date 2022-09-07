@@ -129,7 +129,7 @@ bool BcmTeFlowEntry::isStateSame(
       "Group=", gid, ", teflow=", teFlow->str(), ", handle=", handle);
   bool isSame = true;
 
-  XLOG(DBG0) << "Verify the state of Teflow entry: " << teFlowMsg;
+  XLOG(DBG3) << "Verify the state of Teflow entry: " << teFlowMsg;
   // check src port
   if (teFlow->getFlow().srcPort().has_value()) {
     auto srcPort = teFlow->getFlow().srcPort().value();
@@ -153,7 +153,7 @@ bool BcmTeFlowEntry::isStateSame(
     uint8_t pfxLen;
     auto asicType = hw->getPlatform()->getAsic()->getAsicType();
     if (asicType == HwAsic::AsicType::ASIC_TYPE_FAKE) {
-      pfxLen = 128;
+      pfxLen = 128; // TODO - Fix this behavior in Fake SDK similar to H/w.
     } else {
       pfxLen = static_cast<uint8_t>(*prefix.prefixLength());
     }

@@ -21,4 +21,22 @@ bool validateTeFlowGroupEnabled(const HwSwitch* /* unused */) {
   return false;
 }
 
+int getNumTeFlowEntries(const HwSwitch* /* unused */) {
+  // This function is not implemented yet.
+  // If the test is running on SAI Switches,
+  // it should throw an error.
+  EXPECT_TRUE(false);
+  return 0;
+}
+
+void checkSwHwTeFlowMatch(
+    const HwSwitch* /* unused */,
+    std::shared_ptr<SwitchState> /* unused */,
+    TeFlow /* unused */) {
+  // This function is not implemented yet.
+  // If the test is running on SAI Switches,
+  // it should throw an error.
+  EXPECT_TRUE(false);
+}
+
 } // namespace facebook::fboss::utility

@@ -14,6 +14,9 @@
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTeFlowTable.h"
+#include "fboss/agent/state/SwitchState.h"
+
+#include <gtest/gtest.h>
 
 namespace facebook::fboss::utility {
 
@@ -27,6 +30,35 @@ bool validateTeFlowGroupEnabled(const facebook::fboss::HwSwitch* hw) {
              bcmSwitch->getTeFlowTable()->getHintId(),
              getEmDstIpHintStartBit(),
              getEmDstIpHintEndBit());
+}
+
+int getNumTeFlowEntries(const facebook::fboss::HwSwitch* hw) {
+  const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
+
+  int gid = bcmSwitch->getPlatform()->getAsic()->getDefaultTeFlowGroupID();
+  int size = 0;
+
+  auto rv = bcm_field_entry_multi_get(
+      bcmSwitch->getUnit(), getEMGroupID(gid), 0, nullptr, &size);
+  bcmCheckError(
+      rv,
+      "failed to get field group entry count, gid=",
+      folly::to<std::string>(gid));
+  return size;
+}
+
+void checkSwHwTeFlowMatch(
+    const HwSwitch* hw,
+    std::shared_ptr<SwitchState> state,
+    TeFlow flow) {
+  const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
+  auto flowEntry = state->getTeFlowTable()->getTeFlowIf(flow);
+  int gid = bcmSwitch->getPlatform()->getAsic()->getDefaultTeFlowGroupID();
+
+  auto hwTeFlows = bcmSwitch->getTeFlowTable()->getTeFlowIf(flowEntry);
+  ASSERT_NE(nullptr, hwTeFlows);
+  ASSERT_TRUE(BcmTeFlowEntry::isStateSame(
+      bcmSwitch, getEMGroupID(gid), hwTeFlows->getHandle(), flowEntry));
 }
 
 } // namespace facebook::fboss::utility
