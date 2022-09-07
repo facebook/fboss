@@ -124,9 +124,10 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
       subCmd->add_option(
           "fsdb_path",
           args,
-          "Fsdb path to set - some examples \n"
-          "'agent' -> fsdb stats\n"
-          "'agent/config' -> fsdb state\n");
+          "Path in fsdb model, delimited and prefixed by slashes (/). Slashes inside keys like port name \n"
+          "need to be escaped (eth2/1/1 -> eth2\\/1\\/1). Ex:\n"
+          "\tstats path - \"/agent/hwPortStats/eth2\\/1\\/1\" -- Note the quotes, otherwise the shell will drop the escape (can double escape without quotes)\n"
+          "\tstate path - /agent/switchState\n");
     } else if (
         cmd.argType ==
         utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_VIP_INJECTOR_ID) {

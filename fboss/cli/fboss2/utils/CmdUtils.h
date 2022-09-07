@@ -11,7 +11,7 @@
 
 #include <CLI/CLI.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
-#include <fboss/lib/phy/gen-cpp2/phy_types.h>
+#include <boost/algorithm/string/regex.hpp>
 #include <folly/IPAddress.h>
 #include <folly/String.h>
 #include <folly/gen/Base.h>
@@ -19,6 +19,8 @@
 #include <re2/re2.h>
 #include <string>
 #include <variant>
+
+#include <fboss/lib/phy/gen-cpp2/phy_types.h>
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_types.h"
@@ -310,10 +312,33 @@ class PortState : public BaseObjectArgType<std::string> {
 
 class FsdbPath : public BaseObjectArgType<std::string> {
  public:
-  // Get raw fsdb path from command args
-  // if there is no input, the default value will be given inside each command
-  /* implicit */ FsdbPath(std::vector<std::string> fsdbPath)
-      : BaseObjectArgType(fsdbPath) {}
+  /* implicit */ FsdbPath(std::vector<std::string> fsdbPath) {
+    if (fsdbPath.size() > 1) {
+      throw std::runtime_error(
+          "Argument for fsdb path needs to be a single string starting with /, path items separated by /\n"
+          "Slashes inside path tokens such as eth2/1/1 need to be escaped"
+          "For example \"/agent/switchState/ports/eth2\\/1\\/1\"");
+    } else if (fsdbPath.size() == 1) {
+      auto pathString = fsdbPath[0];
+      // Split by SLASH, ignoring ones escaped by a BACK_SLASH
+      boost::split_regex(
+          fsdbPath, pathString, boost::basic_regex("(?<!\\\\)/"));
+      folly::gen::from(fsdbPath) |
+          // prefix SLASH is enforced to differentiate b/w path and subcommand
+          // names, split will give an extranous empty string at the start of
+          // path so filter that out
+          folly::gen::filter([](const std::string& in) { return in != ""; }) |
+          // unescape strings for things like eth2\/1\/1
+          folly::gen::map([](const std::string& in) {
+            auto strCopy = in;
+            const RE2 re("\\\\/");
+            RE2::GlobalReplace(&strCopy, re, "/");
+            return strCopy;
+          }) |
+          folly::gen::appendTo(data_);
+      // TODO: validate path matches model here
+    }
+  }
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_PATH;
 };
 
