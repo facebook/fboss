@@ -189,6 +189,36 @@ class SaiAclTableGroupTest : public HwTest {
     utility::deleteTtlCounters(newCfg);
     applyNewConfig(*newCfg);
   }
+
+  enum tableAddType {
+    table1,
+    table2,
+    tableBoth,
+  };
+
+  void warmbootSetupHelper(tableAddType tableAdd) {
+    auto newCfg = initialConfig();
+
+    switch (tableAdd) {
+      case tableAddType::table1:
+        utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+        // Add Table 1: Create QPH and DSCP ACLs in the same table.
+        addQphDscpAclTable(&newCfg);
+        break;
+      case tableAddType::table2:
+        utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
+        // Add Table 2: TtlTable
+        utility::addTtlAclTable(&newCfg, 2 /* priority */);
+        break;
+      case tableAddType::tableBoth:
+        addTwoAclTables(&newCfg);
+        break;
+      default:
+        throw("Invalid Table Add Enum type");
+        break;
+    }
+    applyNewConfig(newCfg);
+  }
 };
 
 TEST_F(SaiAclTableGroupTest, SingleAclTableGroup) {
@@ -386,5 +416,81 @@ TEST_F(SaiAclTableGroupTest, AddTwoTablesDeleteAddSecond) {
   };
 
   verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(SaiAclTableGroupTest, AddFirstTableAfterWarmboot) {
+  ASSERT_TRUE(isSupported());
+
+  auto setup = [this]() { warmbootSetupHelper(tableAddType::table2); };
+
+  auto setupPostWarmboot = [=]() {
+    warmbootSetupHelper(tableAddType::tableBoth);
+  };
+
+  auto verifyPostWarmboot = [=]() {
+    ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kQphDscpTable()));
+    ASSERT_TRUE(utility::isAclTableEnabled(
+        getHwSwitch(), utility::getTtlAclTableName()));
+  };
+
+  verifyAcrossWarmBoots(
+      setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
+}
+
+TEST_F(SaiAclTableGroupTest, AddSecondTableAfterWarmboot) {
+  ASSERT_TRUE(isSupported());
+
+  auto setup = [this]() { warmbootSetupHelper(tableAddType::table1); };
+
+  auto setupPostWarmboot = [=]() {
+    warmbootSetupHelper(tableAddType::tableBoth);
+  };
+
+  auto verifyPostWarmboot = [=]() {
+    ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kQphDscpTable()));
+    ASSERT_TRUE(utility::isAclTableEnabled(
+        getHwSwitch(), utility::getTtlAclTableName()));
+  };
+
+  verifyAcrossWarmBoots(
+      setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
+}
+
+TEST_F(SaiAclTableGroupTest, DeleteFirstTableAfterWarmboot) {
+  ASSERT_TRUE(isSupported());
+
+  auto setup = [this]() { warmbootSetupHelper(tableAddType::tableBoth); };
+
+  auto setupPostWarmboot = [=]() { warmbootSetupHelper(tableAddType::table2); };
+
+  auto verifyPostWarmboot = [=]() {
+    ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
+    ASSERT_FALSE(utility::isAclTableEnabled(getHwSwitch(), kQphDscpTable()));
+    ASSERT_TRUE(utility::isAclTableEnabled(
+        getHwSwitch(), utility::getTtlAclTableName()));
+  };
+
+  verifyAcrossWarmBoots(
+      setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
+}
+
+TEST_F(SaiAclTableGroupTest, DeleteSecondTableAfterWarmboot) {
+  ASSERT_TRUE(isSupported());
+
+  auto setup = [this]() { warmbootSetupHelper(tableAddType::tableBoth); };
+
+  auto setupPostWarmboot = [=]() { warmbootSetupHelper(tableAddType::table1); };
+
+  auto verifyPostWarmboot = [=]() {
+    ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kQphDscpTable()));
+    ASSERT_FALSE(utility::isAclTableEnabled(
+        getHwSwitch(), utility::getTtlAclTableName()));
+  };
+
+  verifyAcrossWarmBoots(
+      setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
 }
 } // namespace facebook::fboss
