@@ -244,9 +244,18 @@ class HwAsic {
     return switchId_;
   }
 
+  cfg::StreamType getDefaultStreamType() const {
+    return defaultStreamType_;
+  }
+
+  void setDefaultStreamType(cfg::StreamType streamType) {
+    defaultStreamType_ = streamType;
+  }
+
  private:
   cfg::SwitchType switchType_;
   std::optional<int64_t> switchId_;
+  cfg::StreamType defaultStreamType_{cfg::StreamType::ALL};
 };
 
 } // namespace facebook::fboss
