@@ -4,7 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(kamet_platform_mapping
-  fboss/agent/platforms/common/kamet/oss/KametPlatformMapping.cpp
+  fboss/agent/platforms/common/kamet/KametPlatformMapping.cpp
 )
 
 target_link_libraries(kamet_platform_mapping
