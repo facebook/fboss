@@ -28,6 +28,9 @@ void SaiLassenPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId) {
   asic_ = std::make_unique<EbroAsic>(switchType, switchId);
+#if defined(TAJO_SDK_VERSION_1_56_0)
+  asic_->setDefaultStreamType(cfg::StreamType::UNICAST);
+#endif
 }
 
 HwAsic* SaiLassenPlatform::getAsic() const {
