@@ -276,11 +276,12 @@ void FbFpgaI2cController::read(
     folly::MutableByteRange buf,
     uint8_t i2cAddress) {
   XLOG(DBG5) << folly::sformat(
-      "FbFpgaI2cController::read pim {:d} rtc {:d} chan {:d} offset {:d}",
+      "FbFpgaI2cController::read pim {:d} rtc {:d} chan {:d} offset {:d} i2cAddress {:d}",
       pim_,
       rtc_,
       channel,
-      offset);
+      offset,
+      i2cAddress);
   // As this is a sync and blocking function, we don't have to dump it to
   // EventBase to run the functions. So that we can avoid unexpected
   // EventBase chain issue
@@ -311,11 +312,12 @@ void FbFpgaI2cController::write(
     folly::ByteRange buf,
     uint8_t i2cAddress) {
   XLOG(DBG5) << folly::sformat(
-      "FbFpgaI2cController::write pim {:d} rtc {:d} chan {:d} offset {:d}",
+      "FbFpgaI2cController::write pim {:d} rtc {:d} chan {:d} offset {:d} i2cAddress {:d}",
       pim_,
       rtc_,
       channel,
-      offset);
+      offset,
+      i2cAddress);
   // As this is a sync and blocking function, we don't have to dump it to
   // EventBase to run the functions. So that we can avoid unexpected
   // EventBase chain issue
