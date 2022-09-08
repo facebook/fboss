@@ -499,6 +499,14 @@ class BcmSdkInterface {
       uint32 options,
       uint64* value) = 0;
 
+  virtual int bcm_cosq_bst_stat_extended_get(
+      int unit,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosq,
+      bcm_bst_stat_id_t bid,
+      uint32 options,
+      uint64* value) = 0;
+
   virtual int bcm_cosq_bst_stat_sync(int unit, bcm_bst_stat_id_t bid) = 0;
   virtual int bcm_stat_custom_add(
       int unit,

@@ -313,6 +313,14 @@ class BcmInterface {
       uint32 options,
       uint64* value) = 0;
 
+  virtual int bcm_cosq_bst_stat_extended_get(
+      int unit,
+      bcm_gport_t gport,
+      bcm_cos_queue_t cosq,
+      bcm_bst_stat_id_t bid,
+      uint32 options,
+      uint64* value) = 0;
+
   virtual int bcm_stat_clear(int unit, bcm_port_t port) = 0;
 
   virtual int bcm_l3_route_max_ecmp_set(int unit, int max) = 0;
