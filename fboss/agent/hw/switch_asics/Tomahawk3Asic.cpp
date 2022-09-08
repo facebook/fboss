@@ -98,8 +98,8 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
-
     case HwAsic::Feature::FABRIC_PORTS:
+    case HwAsic::Feature::FABRIC_PORT_MTU:
       return false;
   }
   return false;

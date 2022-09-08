@@ -91,7 +91,6 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
-
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
@@ -104,6 +103,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
+    case HwAsic::Feature::FABRIC_PORT_MTU:
       return false;
   }
   return false;

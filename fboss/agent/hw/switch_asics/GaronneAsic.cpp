@@ -97,7 +97,6 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
-
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     /*
      * Disabling buffer pool on Garonne since buffer pool
@@ -109,6 +108,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::COUNTER_REFRESH_INTERVAL:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::FABRIC_PORTS:
+    case HwAsic::Feature::FABRIC_PORT_MTU:
       return false;
   }
   return false;

@@ -120,6 +120,7 @@ class HwAsic {
     RX_FREQUENCY_PPM,
     FABRIC_PORTS,
     ECMP_MEMBER_WIDTH_INTROSPECTION,
+    FABRIC_PORT_MTU,
   };
 
   enum class AsicType ASIC_TYPE_LIST;

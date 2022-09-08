@@ -57,6 +57,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
+    case HwAsic::Feature::FABRIC_PORT_MTU:
       return true;
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
