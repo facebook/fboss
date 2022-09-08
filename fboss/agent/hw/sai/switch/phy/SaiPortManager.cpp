@@ -165,6 +165,27 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     fecMode = utility::getSaiPortFecMode(phyFecMode);
   }
 
+  std::optional<SaiPortTraits::Attributes::InterfaceType> intfType(
+      std::nullopt);
+
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::PORT_INTERFACE_TYPE) &&
+      platform_->getAsic()->getAsicType() ==
+          HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY) {
+    if (!swPort->getProfileConfig().medium() ||
+        !swPort->getLineProfileConfig()->medium()) {
+      throw FbossError(
+          "Missing medium info in profile ",
+          apache::thrift::util::enumNameSafe(swPort->getProfileID()));
+    }
+    auto transmitterTech = lineSide ? *swPort->getLineProfileConfig()->medium()
+                                    : *swPort->getProfileConfig().medium();
+
+    if (auto saiInterfaceType =
+            platform_->getInterfaceType(transmitterTech, speed)) {
+      intfType = saiInterfaceType.value();
+    }
+  }
+
   // Now use pinConfigs from SW port as the source of truth
   // TODO: Support programming dynamic tx_settings
   std::vector<uint32_t> laneList;
@@ -180,9 +201,6 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   for (const auto& pinCfg : pinCfgs) {
     laneList.push_back(*pinCfg.id()->lane());
   }
-
-  std::optional<SaiPortTraits::Attributes::InterfaceType> intfType(
-      std::nullopt);
 
   std::string dbgOutput;
   dbgOutput.append(folly::sformat(
