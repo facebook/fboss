@@ -266,6 +266,19 @@ void QsfpServiceHandler::getSaiPortInfo(
   out = manager_->getSaiPortInfo(*portName);
 }
 
+void QsfpServiceHandler::saiPhyRegisterAccess(
+    std::string& out,
+    std::unique_ptr<std::string> portName,
+    bool opRead,
+    int phyAddr,
+    int devId,
+    int regOffset,
+    int data) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  out = manager_->saiPhyRegisterAccess(
+      *portName, opRead, phyAddr, devId, regOffset, data);
+}
+
 void QsfpServiceHandler::publishLinkSnapshots(
     std::unique_ptr<std::vector<std::string>> portNames) {
   auto log = LOG_THRIFT_CALL(INFO);

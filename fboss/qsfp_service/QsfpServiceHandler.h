@@ -188,6 +188,15 @@ class QsfpServiceHandler
   void getSaiPortInfo(std::string& out, std::unique_ptr<std::string> portName)
       override;
 
+  void saiPhyRegisterAccess(
+      std::string& out,
+      std::unique_ptr<std::string> portName,
+      bool opRead,
+      int phyAddr,
+      int devId,
+      int regOffset,
+      int data) override;
+
   void publishLinkSnapshots(
       std::unique_ptr<std::vector<std::string>> portNames) override;
 

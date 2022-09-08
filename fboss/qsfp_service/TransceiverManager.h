@@ -196,6 +196,17 @@ class TransceiverManager {
   virtual std::string getSaiPortInfo(std::string portName) {
     return "";
   }
+
+  virtual std::string saiPhyRegisterAccess(
+      std::string /* portName */,
+      bool /* opRead */,
+      int /* phyAddr */,
+      int /* devId */,
+      int /* regOffset */,
+      int /* data */) {
+    return "";
+  }
+
   // Returns the interface names for a given transceiverId
   // Returns empty list when there is no corresponding name for a given
   // transceiver ID

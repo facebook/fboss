@@ -159,6 +159,15 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     1: fboss.FbossBaseError error,
   );
 
+  string saiPhyRegisterAccess(
+    1: string portName,
+    2: bool opRead = true,
+    3: i32 phyAddr,
+    4: i32 devId,
+    5: i32 regOffset,
+    6: i32 data,
+  ) throws (1: fboss.FbossBaseError error);
+
   bool sakInstallRx(
     1: mka_structs.MKASak sak,
     2: mka_structs.MKASci sciToAdd,
