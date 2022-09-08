@@ -202,7 +202,8 @@ class NodeBaseT : public NodeBase {
     return &fields_;
   }
   Fields* writableFields() {
-    CHECK(!isPublished());
+    CHECK(!isPublished()) << "Node type: "
+                          << folly::demangle(typeid(this)).toStdString();
     return &fields_;
   }
 
