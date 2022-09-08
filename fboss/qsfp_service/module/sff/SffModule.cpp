@@ -153,6 +153,10 @@ static std::map<ExtendedSpecComplianceCode, MediaInterfaceCode>
          MediaInterfaceCode::CWDM4_100G},
         {ExtendedSpecComplianceCode::CR4_100G, MediaInterfaceCode::CR4_100G},
         {ExtendedSpecComplianceCode::FR1_100G, MediaInterfaceCode::FR1_100G},
+        // If we need to support other 50G copper channel interface types, we'll
+        // need to use byte 113 to determine the number of channels
+        {ExtendedSpecComplianceCode::CR_50G_CHANNELS,
+         MediaInterfaceCode::CR4_200G},
 };
 
 void getQsfpFieldAddress(

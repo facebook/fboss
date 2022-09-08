@@ -204,6 +204,8 @@ enum ExtendedSpecComplianceCode {
   CWDM4_100G = 6,
   CR4_100G = 11,
   FR1_100G = 38,
+  // 50GBASE-CR, 100GBASE-CR2, or 200GBASE-CR4
+  CR_50G_CHANNELS = 64,
 }
 
 // Transceiver identifier as read from module page 0 reg 0
