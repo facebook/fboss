@@ -1034,6 +1034,9 @@ void SaiPortManager::setQosMapsOnAllPorts(
 }
 
 void SaiPortManager::setQosPolicy() {
+  if (managerTable_->switchManager().isGlobalQoSMapSupported()) {
+    return;
+  }
   auto& qosMapManager = managerTable_->qosMapManager();
   XLOG(DBG2) << "Set default qos map";
   auto qosMapHandle = qosMapManager.getQosMap();

@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/QosMapApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -49,7 +50,7 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setDscpToTcQosMap(
 
 std::shared_ptr<SaiQosMap> SaiQosMapManager::setExpToTcQosMap(
     const ExpMap& newExpMap) {
-  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_QOS)) {
+  if (!managerTable_->switchManager().isMplsQoSMapSupported()) {
     return nullptr;
   }
   std::vector<sai_qos_map_t> mapToValueList;
@@ -74,7 +75,7 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setExpToTcQosMap(
 
 std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToExpQosMap(
     const ExpMap& newExpMap) {
-  if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_QOS)) {
+  if (!managerTable_->switchManager().isMplsQoSMapSupported()) {
     return nullptr;
   }
   std::vector<sai_qos_map_t> mapToValueList;

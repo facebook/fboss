@@ -235,7 +235,7 @@ void SaiHostifManager::changeHostifTrap(
 
 void SaiHostifManager::processQosDelta(
     const DeltaValue<ControlPlane>& controlPlaneDelta) {
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
+  if (managerTable_->switchManager().isGlobalQoSMapSupported()) {
     // Global QOS policy applies to all ports including the CPU port
     // nothing to do here
     return;

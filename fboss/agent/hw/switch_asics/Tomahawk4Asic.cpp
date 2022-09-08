@@ -86,6 +86,8 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
+    case HwAsic::Feature::SAI_MPLS_QOS:
+    case HwAsic::Feature::QOS_MAP_GLOBAL:
       return true;
     // features only supported by B0 version, or any physical device
     // where used chip is always B0.
@@ -97,7 +99,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOW_SAMPLING:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
-    case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
@@ -110,7 +111,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::WIDE_ECMP:
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT: // CS00012066057
     case HwAsic::Feature::MACSEC:
-    case HwAsic::Feature::SAI_MPLS_QOS:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:

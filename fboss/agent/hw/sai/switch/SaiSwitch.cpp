@@ -314,27 +314,32 @@ void SaiSwitch::unregisterCallbacks() noexcept {
   }
 }
 
-template <typename ManagerT, typename LockPolicyT>
+template <typename LockPolicyT>
 void SaiSwitch::processDefaultDataPlanePolicyDelta(
     const StateDelta& delta,
-    ManagerT& mgr,
     const LockPolicyT& lockPolicy) {
   auto qosDelta = delta.getDefaultDataPlaneQosPolicyDelta();
   auto& qosMapManager = managerTable_->qosMapManager();
+  auto& portManager = managerTable_->portManager();
+  auto& switchManager = managerTable_->switchManager();
   if ((qosDelta.getOld() != qosDelta.getNew())) {
     [[maybe_unused]] const auto& lock = lockPolicy.lock();
     if (qosDelta.getOld() && qosDelta.getNew()) {
       if (*qosDelta.getOld() != *qosDelta.getNew()) {
-        mgr.clearQosPolicy();
+        portManager.clearQosPolicy();
+        switchManager.clearQosPolicy();
         qosMapManager.removeQosMap();
         qosMapManager.addQosMap(qosDelta.getNew());
-        mgr.setQosPolicy();
+        portManager.setQosPolicy();
+        switchManager.setQosPolicy();
       }
     } else if (qosDelta.getNew()) {
       qosMapManager.addQosMap(qosDelta.getNew());
-      mgr.setQosPolicy();
+      portManager.setQosPolicy();
+      switchManager.setQosPolicy();
     } else if (qosDelta.getOld()) {
-      mgr.clearQosPolicy();
+      portManager.clearQosPolicy();
+      switchManager.clearQosPolicy();
       qosMapManager.removeQosMap();
     }
   }
@@ -594,14 +599,7 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
           managerTable_->lagManager().addBridgePort(newAggPort);
         });
   }
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL)) {
-    processDefaultDataPlanePolicyDelta(
-        delta, managerTable_->switchManager(), lockPolicy);
-  } else {
-    processDefaultDataPlanePolicyDelta(
-        delta, managerTable_->portManager(), lockPolicy);
-  }
-
+  processDefaultDataPlanePolicyDelta(delta, lockPolicy);
   processDelta(
       delta.getIntfsDelta(),
       managerTable_->routerInterfaceManager(),

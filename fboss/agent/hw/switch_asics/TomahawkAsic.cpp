@@ -59,12 +59,13 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
+    case HwAsic::Feature::SAI_MPLS_QOS:
+    case HwAsic::Feature::QOS_MAP_GLOBAL:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::ERSPANv6:
     case HwAsic::Feature::SFLOWv6:
-    case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
     case HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
@@ -86,7 +87,6 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD:
     case HwAsic::Feature::MACSEC:
-    case HwAsic::Feature::SAI_MPLS_QOS:
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::ROUTE_COUNTERS:

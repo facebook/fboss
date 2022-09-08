@@ -77,6 +77,9 @@ class SaiSwitchManager {
   void setPtpTcEnabled(bool ptpEnable);
   std::optional<bool> getPtpTcEnabled();
 
+  bool isGlobalQoSMapSupported() const;
+  bool isMplsQoSMapSupported() const;
+
  private:
   void programEcmpLoadBalancerParams(
       std::optional<sai_uint32_t> seed,

@@ -326,10 +326,9 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       const StateDelta& delta);
 
-  template <typename ManagerT, typename LockPolicyT>
+  template <typename LockPolicyT>
   void processDefaultDataPlanePolicyDelta(
       const StateDelta& delta,
-      ManagerT& mgr,
       const LockPolicyT& lk);
 
   template <typename LockPolicyT>

@@ -109,8 +109,7 @@ SaiSwitchManager::SaiSwitchManager(
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     initCpuPort();
   }
-  isMplsQosSupported_ =
-      platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_QOS);
+  isMplsQosSupported_ = isMplsQoSMapSupported();
 }
 
 void SaiSwitchManager::initCpuPort() {
@@ -381,22 +380,24 @@ void SaiSwitchManager::setQosPolicy() {
   auto& qosMapManager = managerTable_->qosMapManager();
   XLOG(DBG2) << "Set default qos map";
   auto qosMapHandle = qosMapManager.getQosMap();
-  globalDscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
-  globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
-  globalExpToTcQosMap_ = qosMapHandle->expToTcMap;
-  globalTcToExpQosMap_ = qosMapHandle->tcToExpMap;
   // set switch attrs to oids
-  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosDscpToTcMap{
-      globalDscpToTcQosMap_->adapterKey()});
-  switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosTcToQueueMap{
-      globalTcToQueueQosMap_->adapterKey()});
+  if (isGlobalQoSMapSupported()) {
+    globalDscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosDscpToTcMap{
+        globalDscpToTcQosMap_->adapterKey()});
+    globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
+    switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosTcToQueueMap{
+        globalTcToQueueQosMap_->adapterKey()});
+  }
   if (!isMplsQosSupported_) {
     return;
   }
+  globalExpToTcQosMap_ = qosMapHandle->expToTcMap;
   if (globalExpToTcQosMap_) {
     switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosExpToTcMap{
         globalExpToTcQosMap_->adapterKey()});
   }
+  globalTcToExpQosMap_ = qosMapHandle->tcToExpMap;
   if (globalTcToExpQosMap_) {
     switch_->setOptionalAttribute(SaiSwitchTraits::Attributes::QosTcToExpMap{
         globalTcToExpQosMap_->adapterKey()});
@@ -492,4 +493,17 @@ std::optional<bool> SaiSwitchManager::getPtpTcEnabled() {
   return isPtpTcEnabled_;
 }
 
+bool SaiSwitchManager::isGlobalQoSMapSupported() const {
+#if defined(SAI_VERSION_5_1_0_3_ODP) || defined(SAI_VERSION_7_2_0_0_ODP)
+  return false;
+#endif
+  return platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL);
+}
+
+bool SaiSwitchManager::isMplsQoSMapSupported() const {
+#if defined(SAI_VERSION_5_1_0_3_ODP) || defined(SAI_VERSION_7_2_0_0_ODP)
+  return false;
+#endif
+  return platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_QOS);
+}
 } // namespace facebook::fboss
