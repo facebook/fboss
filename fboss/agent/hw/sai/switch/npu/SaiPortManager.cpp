@@ -131,16 +131,20 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
         std::make_pair(portQueue->getID(), portQueue->getStreamType());
     const auto& configuredQueue = handle->queues[queueKey];
     handle->configuredQueues.push_back(configuredQueue.get());
-    portQueue->setReservedBytes(
-        portQueue->getReservedBytes()
-            ? *portQueue->getReservedBytes()
-            : asic->getDefaultReservedBytes(
-                  portQueue->getStreamType(), false /* not cpu port*/));
-    portQueue->setScalingFactor(
-        portQueue->getScalingFactor()
-            ? *portQueue->getScalingFactor()
-            : asic->getDefaultScalingFactor(
-                  portQueue->getStreamType(), false /* not cpu port*/));
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
+      portQueue->setReservedBytes(
+          portQueue->getReservedBytes()
+              ? *portQueue->getReservedBytes()
+              : asic->getDefaultReservedBytes(
+                    portQueue->getStreamType(), false /* not cpu port*/));
+      portQueue->setScalingFactor(
+          portQueue->getScalingFactor()
+              ? *portQueue->getScalingFactor()
+              : asic->getDefaultScalingFactor(
+                    portQueue->getStreamType(), false /* not cpu port*/));
+    } else if (portQueue->getReservedBytes() || portQueue->getScalingFactor()) {
+      throw FbossError("Reserved bytes, scaling factor setting not supported");
+    }
     auto pitr = portStats_.find(swPort->getID());
 
     if (pitr != portStats_.end()) {
