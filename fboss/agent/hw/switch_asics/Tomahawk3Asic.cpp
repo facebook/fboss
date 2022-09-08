@@ -68,6 +68,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
+    case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

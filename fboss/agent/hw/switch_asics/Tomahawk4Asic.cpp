@@ -85,6 +85,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::FEC:
+    case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
       return true;
     // features only supported by B0 version, or any physical device
     // where used chip is always B0.

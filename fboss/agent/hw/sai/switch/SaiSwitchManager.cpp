@@ -96,8 +96,7 @@ SaiSwitchManager::SaiSwitchManager(
     resetLoadBalancer<SaiSwitchTraits::Attributes::LagHashV6>();
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
-    if (asic->isSupported(HwAsic::Feature::ECMP_HASH_V4) ||
-        asic->isSupported(HwAsic::Feature::ECMP_HASH_V6)) {
+    if (asic->isSupported(HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION)) {
       auto maxEcmpCount = SaiApiTable::getInstance()->switchApi().getAttribute(
           switch_->adapterKey(),
           SaiSwitchTraits::Attributes::MaxEcmpMemberCount{});

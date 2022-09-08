@@ -43,6 +43,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_HASH_V6:
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::FEC:
+    case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
       return true;
 
     case HwAsic::Feature::ERSPANv6:

@@ -95,6 +95,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::EXACT_MATCH:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
+    case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     // On indus ASIC we don't create any vlans but rather
     // associate RIFs directly with ports. Hence no bridge port
     // is created (or supported for now).
