@@ -530,6 +530,7 @@ enum StreamType {
   UNICAST = 0,
   MULTICAST = 1,
   ALL = 2,
+  FABRIC_TX = 3,
 }
 
 struct QueueMatchAction {

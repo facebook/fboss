@@ -120,6 +120,11 @@ int IndusAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
       return 8;
     case cfg::StreamType::MULTICAST:
       return cpu ? 10 : 4;
+    case cfg::StreamType::FABRIC_TX:
+      if (cpu) {
+        break;
+      }
+      return 1;
     case cfg::StreamType::ALL:
       break;
   }

@@ -42,6 +42,9 @@ class EbroAsic : public TajoAsic {
       const override {
     switch (streamType) {
       case cfg::StreamType::MULTICAST:
+      // Handle FABRIC_TX when support is available for
+      // this feature in SDK
+      case cfg::StreamType::FABRIC_TX:
         throw FbossError("no queue exist for this stream type");
       case cfg::StreamType::UNICAST:
       case cfg::StreamType::ALL:

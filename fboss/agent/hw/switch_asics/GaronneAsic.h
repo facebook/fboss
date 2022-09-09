@@ -28,6 +28,7 @@ class GaronneAsic : public TajoAsic {
     switch (streamType) {
       case cfg::StreamType::ALL:
       case cfg::StreamType::MULTICAST:
+      case cfg::StreamType::FABRIC_TX:
         throw FbossError("no queue exist for this stream type");
       case cfg::StreamType::UNICAST:
         return 8;

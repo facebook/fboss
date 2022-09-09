@@ -118,6 +118,7 @@ int TomahawkAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
       // CPU on TH has 48 queues, but we restrict ourselves to first 10
       return 10;
     case cfg::StreamType::ALL:
+    case cfg::StreamType::FABRIC_TX:
       break;
   }
   throw FbossError(

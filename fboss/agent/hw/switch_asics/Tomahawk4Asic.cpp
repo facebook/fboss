@@ -183,6 +183,7 @@ int Tomahawk4Asic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
     case cfg::StreamType::MULTICAST:
       return cpu ? 10 : 4;
     case cfg::StreamType::ALL:
+    case cfg::StreamType::FABRIC_TX:
       break;
   }
   throw FbossError(

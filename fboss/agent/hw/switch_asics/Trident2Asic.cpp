@@ -123,6 +123,7 @@ int Trident2Asic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
        */
       return cpu ? 10 : 0;
     case cfg::StreamType::ALL:
+    case cfg::StreamType::FABRIC_TX:
       break;
   }
   throw FbossError(

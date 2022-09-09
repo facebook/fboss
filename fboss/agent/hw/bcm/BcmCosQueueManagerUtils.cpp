@@ -342,6 +342,7 @@ const PortQueue& getDefaultPortQueueSettings(
           return getTH4DefaultMCPortQueueSettings();
       }
     case cfg::StreamType::ALL:
+    case cfg::StreamType::FABRIC_TX:
       break;
   }
   throw FbossError(
@@ -454,7 +455,8 @@ const PortQueue& getDefaultControlPlaneQueueSettings(
       }
     case cfg::StreamType::UNICAST:
     case cfg::StreamType::ALL:
-      throw FbossError("Control Plane doesn't support unicast queue");
+    case cfg::StreamType::FABRIC_TX:
+      break;
   }
   throw FbossError(
       "Control Plane queue doesn't support streamType:",
