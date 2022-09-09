@@ -47,7 +47,6 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
-
     case HwAsic::Feature::ROUTE_PROGRAMMING:
     case HwAsic::Feature::ECMP_HASH_V4:
     case HwAsic::Feature::ECMP_HASH_V6:
@@ -109,6 +108,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::FABRIC_PORT_MTU:
+    case HwAsic::Feature::SAI_FIRMWARE_PATH:
       return false;
   }
   return false;

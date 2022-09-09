@@ -104,6 +104,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::FABRIC_PORT_MTU:
+    case HwAsic::Feature::SAI_FIRMWARE_PATH:
       return false;
   }
   return false;
