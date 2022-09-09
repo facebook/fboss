@@ -31,7 +31,9 @@ folly::dynamic AclTableFields::toFollyDynamic() const {
   folly::dynamic aclTable = folly::dynamic::object;
   aclTable[kPriority] = *data().priority();
   aclTable[kName] = *data().id();
-  aclTable[kAclMap] = AclMap::fromThrift(*data().aclMap())->toFollyDynamic();
+  if (aclMap_) {
+    aclTable[kAclMap] = aclMap_->toFollyDynamic();
+  }
 
   aclTable[kActionTypes] = folly::dynamic::array;
   for (const auto& actionType : *data().actionTypes()) {
@@ -48,10 +50,12 @@ folly::dynamic AclTableFields::toFollyDynamic() const {
 
 AclTableFields AclTableFields::fromFollyDynamic(
     const folly::dynamic& aclTableJson) {
+  std::shared_ptr<AclMap> aclMap;
+  if (aclTableJson.find(kAclMap) != aclTableJson.items().end()) {
+    aclMap = AclMap::fromFollyDynamic(aclTableJson[kAclMap]);
+  }
   AclTableFields aclTable(
-      aclTableJson[kPriority].asInt(),
-      aclTableJson[kName].asString(),
-      AclMap::fromFollyDynamic(aclTableJson[kAclMap]));
+      aclTableJson[kPriority].asInt(), aclTableJson[kName].asString(), aclMap);
 
   if (aclTableJson.find(kActionTypes) != aclTableJson.items().end()) {
     for (const auto& entry : aclTableJson[kActionTypes]) {

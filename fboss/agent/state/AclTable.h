@@ -29,13 +29,14 @@ struct AclTableFields
     writableData().id() = name;
     writableData().priority() = priority;
   }
-  explicit AclTableFields(
+  AclTableFields(
       int priority,
       const std::string& name,
       std::shared_ptr<AclMap> aclMap) {
     writableData().id() = name;
     writableData().priority() = priority;
     writableData().aclMap() = aclMap->toThrift();
+    aclMap_ = aclMap;
   }
 
   template <typename Fn>
@@ -48,11 +49,17 @@ struct AclTableFields
   }
   static AclTableFields fromThrift(
       state::AclTableFields const& aclTableFields) {
-    return AclTableFields(aclTableFields);
+    AclTableFields fields = AclTableFields(aclTableFields);
+    if (auto aclMap = aclTableFields.aclMap()) {
+      fields.aclMap_ = AclMap::fromThrift(*aclMap);
+    }
+    return fields;
   }
   bool operator==(const AclTableFields& other) const {
     return data() == other.data();
   }
+
+  std::shared_ptr<AclMap> aclMap_;
 };
 
 /*
@@ -81,7 +88,11 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
   }
   static std::shared_ptr<AclTable> fromThrift(
       state::AclTableFields const& aclTableFields) {
-    return std::make_shared<AclTable>(AclTableFields(aclTableFields));
+    auto aclTable = std::make_shared<AclTable>(AclTableFields(aclTableFields));
+    if (auto aclMap = aclTableFields.aclMap()) {
+      aclTable->writableFields()->aclMap_ = AclMap::fromThrift(*aclMap);
+    }
+    return aclTable;
   }
   bool operator==(const AclTable& other) const {
     return *getFields() == *other.getFields();
@@ -104,10 +115,11 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
   }
 
   std::shared_ptr<AclMap> getAclMap() const {
-    return AclMap::fromThrift(*getFields()->data().aclMap());
+    return getFields()->aclMap_;
   }
 
   void setAclMap(std::shared_ptr<AclMap> aclMap) {
+    writableFields()->aclMap_ = aclMap;
     writableFields()->writableData().aclMap() = aclMap->toThrift();
   }
 

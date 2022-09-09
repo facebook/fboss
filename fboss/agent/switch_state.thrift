@@ -452,7 +452,7 @@ struct TeFlowEntryFields {
 struct AclTableFields {
   1: string id;
   2: i32 priority;
-  3: map<string, AclEntryFields> aclMap;
+  3: optional map<string, AclEntryFields> aclMap;
   4: list<switch_config.AclTableActionType> actionTypes;
   5: list<switch_config.AclTableQualifier> qualifiers;
 }
