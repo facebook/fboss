@@ -43,6 +43,11 @@ DEFINE_string(
     "/etc/packages/neteng-fboss-wedge_agent/current",
     "directory of HSDK warmboot DLL files");
 
+DEFINE_string(
+    firmware_path,
+    "/etc/packages/neteng-fboss-wedge_agent/current",
+    "Path to load the firmware");
+
 namespace {
 
 std::unordered_map<std::string, std::string> kSaiProfileValues;
@@ -371,6 +376,17 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     dllPath = dllPathCharArray;
   }
 #endif
+
+  std::optional<SaiSwitchTraits::Attributes::FirmwarePathName> firmwarePathName{
+      std::nullopt};
+  if (getAsic()->isSupported(HwAsic::Feature::SAI_FIRMWARE_PATH)) {
+    std::vector<int8_t> firmwarePathNameArray;
+    std::copy(
+        FLAGS_firmware_path.c_str(),
+        FLAGS_firmware_path.c_str() + FLAGS_firmware_path.size() + 1,
+        std::back_inserter(firmwarePathNameArray));
+    firmwarePathName = firmwarePathNameArray;
+  }
   return {
     initSwitch,
         hwInfo, // hardware info
@@ -395,7 +411,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         std::nullopt, // tam object list
         useEcnThresholds,
         std::nullopt, // counter refresh interval
-        std::nullopt, // Firmware path name
+        firmwarePathName, // Firmware path name
         std::nullopt, // Firmware load method
         std::nullopt, // Firmware load type
         std::nullopt, // Hardware access bus
