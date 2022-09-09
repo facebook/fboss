@@ -28,7 +28,7 @@ struct AclTableGroupFields
   explicit AclTableGroupFields(cfg::AclStage stage) {
     writableData().stage() = stage;
   }
-  explicit AclTableGroupFields(
+  AclTableGroupFields(
       cfg::AclStage stage,
       const std::string& name,
       std::shared_ptr<AclTableMap> aclTableMap) {
@@ -49,6 +49,10 @@ struct AclTableGroupFields
   }
   static AclTableGroupFields fromThrift(
       state::AclTableGroupFields const& aclTableGroupFields) {
+    auto fields = AclTableGroupFields(aclTableGroupFields);
+    if (auto aclTableMap = aclTableGroupFields.aclTableMap()) {
+      fields.aclTableMap_ = AclTableMap::fromThrift(*aclTableMap);
+    }
     return AclTableGroupFields(aclTableGroupFields);
   }
   bool operator==(const AclTableGroupFields& other) const {
@@ -83,8 +87,14 @@ class AclTableGroup : public NodeBaseT<AclTableGroup, AclTableGroupFields> {
     return getFields()->toThrift();
   }
   static std::shared_ptr<AclTableGroup> fromThrift(
-      state::AclTableGroupFields const& aclTableFields) {
-    return std::make_shared<AclTableGroup>(AclTableGroupFields(aclTableFields));
+      state::AclTableGroupFields const& aclTableGroupFields) {
+    auto aclTableGroup = std::make_shared<AclTableGroup>(
+        AclTableGroupFields(aclTableGroupFields));
+    if (auto aclTableMap = aclTableGroupFields.aclTableMap()) {
+      aclTableGroup->writableFields()->aclTableMap_ =
+          AclTableMap::fromThrift(*aclTableMap);
+    }
+    return aclTableGroup;
   }
 
   bool operator==(const AclTableGroup& other) const {

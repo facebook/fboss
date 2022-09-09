@@ -460,7 +460,7 @@ struct AclTableFields {
 struct AclTableGroupFields {
   1: switch_config.AclStage stage;
   2: string name;
-  3: map<string, AclTableFields> aclTableMap;
+  3: optional map<string, AclTableFields> aclTableMap;
 }
 
 struct QcmCfgFields {

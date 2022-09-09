@@ -30,17 +30,23 @@ folly::dynamic AclTableGroupFields::toFollyDynamic() const {
   folly::dynamic aclTableGroup = folly::dynamic::object;
   aclTableGroup[kAclStage] = static_cast<int>(*data().stage());
   aclTableGroup[kName] = *data().name();
-  aclTableGroup[kAclTableMap] =
-      AclTableMap::fromThrift(*data().aclTableMap())->toFollyDynamic();
+  if (aclTableMap_) {
+    aclTableGroup[kAclTableMap] = aclTableMap_->toFollyDynamic();
+  }
   return aclTableGroup;
 }
 
 AclTableGroupFields AclTableGroupFields::fromFollyDynamic(
     const folly::dynamic& aclTableGroupJson) {
+  std::shared_ptr<AclTableMap> aclTableMap;
+  if (aclTableGroupJson.find(kAclTableMap) != aclTableGroupJson.items().end()) {
+    aclTableMap =
+        AclTableMap::fromFollyDynamic(aclTableGroupJson[kAclTableMap]);
+  }
   AclTableGroupFields aclTableGroup(
       cfg::AclStage(aclTableGroupJson[kAclStage].asInt()),
       aclTableGroupJson[kName].asString(),
-      AclTableMap::fromFollyDynamic(aclTableGroupJson[kAclTableMap]));
+      aclTableMap);
 
   return aclTableGroup;
 }
