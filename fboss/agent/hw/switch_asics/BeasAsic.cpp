@@ -20,7 +20,7 @@ std::set<cfg::StreamType> BeasAsic::getQueueStreamTypes(bool cpu) const {
   if (!cpu) {
     // On kamet we use a single fabric queue for all
     // traffic
-    streams.insert(cfg::StreamType::ALL);
+    streams.insert(cfg::StreamType::FABRIC_TX);
   }
   return streams;
 }
