@@ -123,6 +123,10 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       verifyCopper100gProfile(transceiver, mediaInterfaces);
       break;
 
+    case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER:
+      verifyCopper200gProfile(transceiver, mediaInterfaces);
+      break;
+
     default:
       throw FbossError(
           "Unhandled profile ", apache::thrift::util::enumNameSafe(profile));
@@ -203,6 +207,18 @@ void HwTransceiverUtils::verifyCopper100gProfile(
 
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR4_100G);
+  }
+}
+
+void HwTransceiverUtils::verifyCopper200gProfile(
+    const TransceiverInfo& transceiver,
+    const std::vector<MediaInterfaceId>& mediaInterfaces) {
+  EXPECT_EQ(
+      TransmitterTechnology::COPPER,
+      *(transceiver.cable().value_or({}).transmitterTech()));
+
+  for (const auto& mediaId : mediaInterfaces) {
+    EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR4_200G);
   }
 }
 
