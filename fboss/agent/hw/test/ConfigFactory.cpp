@@ -244,40 +244,51 @@ cfg::SwitchConfig genPortVlanCfg(
   securePortsInConfig(hwSwitch->getPlatform(), config, ports);
 
   // Port config
+  auto kPortMTU = 9412;
   for (auto portID : ports) {
     auto portCfg = findCfgPort(config, portID);
-    portCfg->maxFrameSize() = 9412;
     portCfg->state() = cfg::PortState::ENABLED;
     portCfg->loopbackMode() = lbMode;
-    portCfg->ingressVlan() = port2vlan.find(portID)->second;
+    if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
+      portCfg->ingressVlan() = 0;
+      portCfg->maxFrameSize() = hwSwitch->getPlatform()->getAsic()->isSupported(
+                                    HwAsic::Feature::FABRIC_PORT_MTU)
+          ? kPortMTU
+          : 0;
+    } else {
+      portCfg->ingressVlan() = port2vlan.find(portID)->second;
+      portCfg->maxFrameSize() = kPortMTU;
+    }
     portCfg->routable() = true;
     portCfg->parserType() = cfg::ParserType::L3;
   }
 
-  // Vlan config
-  for (auto vlanID : vlans) {
-    cfg::Vlan vlan;
-    vlan.id() = vlanID;
-    vlan.name() = "vlan" + std::to_string(vlanID);
-    vlan.routable() = true;
-    config.vlans()->push_back(vlan);
-  }
+  if (vlans.size()) {
+    // Vlan config
+    for (auto vlanID : vlans) {
+      cfg::Vlan vlan;
+      vlan.id() = vlanID;
+      vlan.name() = "vlan" + std::to_string(vlanID);
+      vlan.routable() = true;
+      config.vlans()->push_back(vlan);
+    }
 
-  cfg::Vlan defaultVlan;
-  defaultVlan.id() = kDefaultVlanId;
-  defaultVlan.name() = folly::sformat("vlan{}", kDefaultVlanId);
-  defaultVlan.routable() = true;
-  config.vlans()->push_back(defaultVlan);
-  config.defaultVlan() = kDefaultVlanId;
+    cfg::Vlan defaultVlan;
+    defaultVlan.id() = kDefaultVlanId;
+    defaultVlan.name() = folly::sformat("vlan{}", kDefaultVlanId);
+    defaultVlan.routable() = true;
+    config.vlans()->push_back(defaultVlan);
+    config.defaultVlan() = kDefaultVlanId;
 
-  // Vlan port config
-  for (auto vlanPortPair : port2vlan) {
-    cfg::VlanPort vlanPort;
-    vlanPort.logicalPort() = vlanPortPair.first;
-    vlanPort.vlanID() = vlanPortPair.second;
-    vlanPort.spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
-    vlanPort.emitTags() = false;
-    config.vlanPorts()->push_back(vlanPort);
+    // Vlan port config
+    for (auto vlanPortPair : port2vlan) {
+      cfg::VlanPort vlanPort;
+      vlanPort.logicalPort() = vlanPortPair.first;
+      vlanPort.vlanID() = vlanPortPair.second;
+      vlanPort.spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
+      vlanPort.emitTags() = false;
+      config.vlanPorts()->push_back(vlanPort);
+    }
   }
 
   return config;
@@ -355,6 +366,7 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
   std::map<PortID, VlanID> port2vlan;
   std::vector<VlanID> vlans{VlanID(baseVlanId)};
   std::vector<PortID> vlanPorts;
+
   for (auto port : ports) {
     port2vlan[port] = VlanID(baseVlanId);
     vlanPorts.push_back(port);
@@ -411,8 +423,13 @@ cfg::SwitchConfig multiplePortsPerVlanConfig(
   auto idx = 0;
   auto vlan = baseVlanId;
   for (auto port : ports) {
-    port2vlan[port] = VlanID(vlan);
     vlanPorts.push_back(port);
+    auto portType =
+        hwSwitch->getPlatform()->getPlatformPort(port)->getPortType();
+    if (portType == cfg::PortType::FABRIC_PORT) {
+      continue;
+    }
+    port2vlan[port] = VlanID(vlan);
     idx++;
     // If current vlan has portsPerVlan port,
     // then add a new vlan
@@ -422,24 +439,26 @@ cfg::SwitchConfig multiplePortsPerVlanConfig(
     }
   }
   auto config = genPortVlanCfg(hwSwitch, vlanPorts, port2vlan, vlans, lbMode);
-  config.interfaces()->resize(vlans.size());
-  for (auto i = 0; i < vlans.size(); ++i) {
-    *config.interfaces()[i].intfID() = baseVlanId + i;
-    *config.interfaces()[i].vlanID() = baseVlanId + i;
-    *config.interfaces()[i].routerID() = 0;
-    if (setInterfaceMac) {
-      config.interfaces()[i].mac() = getLocalCpuMacStr();
-    }
-    config.interfaces()[i].mtu() = 9000;
-    if (interfaceHasSubnet) {
-      config.interfaces()[i].ipAddresses()->resize(2);
-      auto ipDecimal = folly::sformat("{}", i + 1);
-      config.interfaces()[i].ipAddresses()[0] = FLAGS_nodeZ
-          ? folly::sformat("{}.0.0.2/24", ipDecimal)
-          : folly::sformat("{}.0.0.1/24", ipDecimal);
-      config.interfaces()[i].ipAddresses()[1] = FLAGS_nodeZ
-          ? folly::sformat("{}::1/64", ipDecimal)
-          : folly::sformat("{}::0/64", ipDecimal);
+  if (vlans.size()) {
+    config.interfaces()->resize(vlans.size());
+    for (auto i = 0; i < vlans.size(); ++i) {
+      *config.interfaces()[i].intfID() = baseVlanId + i;
+      *config.interfaces()[i].vlanID() = baseVlanId + i;
+      *config.interfaces()[i].routerID() = 0;
+      if (setInterfaceMac) {
+        config.interfaces()[i].mac() = getLocalCpuMacStr();
+      }
+      config.interfaces()[i].mtu() = 9000;
+      if (interfaceHasSubnet) {
+        config.interfaces()[i].ipAddresses()->resize(2);
+        auto ipDecimal = folly::sformat("{}", i + 1);
+        config.interfaces()[i].ipAddresses()[0] = FLAGS_nodeZ
+            ? folly::sformat("{}.0.0.2/24", ipDecimal)
+            : folly::sformat("{}.0.0.1/24", ipDecimal);
+        config.interfaces()[i].ipAddresses()[1] = FLAGS_nodeZ
+            ? folly::sformat("{}::1/64", ipDecimal)
+            : folly::sformat("{}::0/64", ipDecimal);
+      }
     }
   }
   return config;
