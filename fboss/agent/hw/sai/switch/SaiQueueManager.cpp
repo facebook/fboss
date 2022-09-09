@@ -66,12 +66,19 @@ SaiQueueTraits::CreateAttributes makeQueueAttributes(
     PortSaiId portSaiId,
     const PortQueue& portQueue) {
   sai_queue_type_t type;
-  if (portQueue.getStreamType() == cfg::StreamType::UNICAST) {
-    type = SAI_QUEUE_TYPE_UNICAST;
-  } else if (portQueue.getStreamType() == cfg::StreamType::MULTICAST) {
-    type = SAI_QUEUE_TYPE_MULTICAST;
-  } else {
-    type = SAI_QUEUE_TYPE_ALL;
+  switch (portQueue.getStreamType()) {
+    case cfg::StreamType::UNICAST:
+      type = SAI_QUEUE_TYPE_UNICAST;
+      break;
+    case cfg::StreamType::MULTICAST:
+      type = SAI_QUEUE_TYPE_MULTICAST;
+      break;
+    case cfg::StreamType::ALL:
+      type = SAI_QUEUE_TYPE_ALL;
+      break;
+    case cfg::StreamType::FABRIC_TX:
+      type = SAI_QUEUE_TYPE_FABRIC_TX;
+      break;
   }
   return SaiQueueTraits::CreateAttributes{
       type,
@@ -88,12 +95,21 @@ SaiQueueConfig makeSaiQueueConfig(
   auto queueIndex = std::get<SaiQueueTraits::Attributes::Index>(adapterHostKey);
   auto queueType = std::get<SaiQueueTraits::Attributes::Type>(adapterHostKey);
   cfg::StreamType streamType;
-  if (queueType.value() == SAI_QUEUE_TYPE_UNICAST) {
-    streamType = cfg::StreamType::UNICAST;
-  } else if (queueType.value() == SAI_QUEUE_TYPE_MULTICAST) {
-    streamType = cfg::StreamType::MULTICAST;
-  } else {
-    streamType = cfg::StreamType::ALL;
+  switch (queueType.value()) {
+    case SAI_QUEUE_TYPE_UNICAST:
+      streamType = cfg::StreamType::UNICAST;
+      break;
+    case SAI_QUEUE_TYPE_MULTICAST:
+      streamType = cfg::StreamType::MULTICAST;
+      break;
+    case SAI_QUEUE_TYPE_ALL:
+      streamType = cfg::StreamType::ALL;
+      break;
+    case SAI_QUEUE_TYPE_FABRIC_TX:
+      streamType = cfg::StreamType::FABRIC_TX;
+      break;
+    default:
+      throw FbossError("Unhandled SAI queue type: ", queueType.value());
   }
   return std::make_pair(queueIndex.value(), streamType);
 }
