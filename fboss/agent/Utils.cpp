@@ -117,6 +117,19 @@ bool dumpStateToFile(const std::string& filename, const folly::dynamic& json) {
   return folly::writeFile(folly::toPrettyJson(json), filename.c_str());
 }
 
+bool dumpThriftStateToFile(
+    const std::string& filename,
+    const state::WarmbootState& thriftState) {
+  apache::thrift::BinaryProtocolWriter writer;
+  folly::IOBufQueue queue;
+  writer.setOutput(&queue);
+  auto bytesWritten = thriftState.write(&writer);
+  std::vector<std::byte> result;
+  result.resize(bytesWritten);
+  folly::io::Cursor(queue.front()).pull(result.data(), bytesWritten);
+  return folly::writeFile(result, filename.c_str());
+}
+
 std::string getLocalHostname() {
   const size_t kHostnameMaxLen = 256; // from gethostname man page
   char hostname[kHostnameMaxLen];

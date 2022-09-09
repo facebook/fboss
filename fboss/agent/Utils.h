@@ -22,6 +22,7 @@
 #include <folly/Range.h>
 #include <folly/lang/Bits.h>
 
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
 
@@ -84,6 +85,13 @@ void incNiceValue(const uint32_t increment);
  * Serialize folly dynamic to JSON and write to file
  */
 bool dumpStateToFile(const std::string& filename, const folly::dynamic& json);
+
+/*
+ * Serialize thrift struct to binary and write to file
+ */
+bool dumpThriftStateToFile(
+    const std::string& filename,
+    const state::WarmbootState& thriftState);
 
 std::vector<ClientID> AllClientIDs();
 

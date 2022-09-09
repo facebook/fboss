@@ -138,7 +138,10 @@ bool HwSwitchWarmBootHelper::storeWarmBootState(
     const state::WarmbootState& thriftSwitchState) {
   warmBootStateWritten_ =
       dumpStateToFile(warmBootFollySwitchStateFile(), follySwitchState);
-  // TODO: Dump thriftSwitchState to file
+  if (FLAGS_dump_thrift_state) {
+    warmBootStateWritten_ &= dumpThriftStateToFile(
+        warmBootThriftSwitchStateFile(), thriftSwitchState);
+  }
   return warmBootStateWritten_;
 }
 
