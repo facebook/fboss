@@ -94,10 +94,13 @@ class ResolvedNexthopMonitor : public StateObserver {
   }
 
   bool isClientMonitored(ClientID clientId) const {
-    for (auto client : *kMonitoredClients.rlock()) {
-      if (clientId == client) {
-        /* route is programmed by client and it's next hops are preferred */
-        return true;
+    {
+      auto monitoredClientsLocked = kMonitoredClients.rlock();
+      for (auto client : *monitoredClientsLocked) {
+        if (clientId == client) {
+          /* route is programmed by client and it's next hops are preferred */
+          return true;
+        }
       }
     }
     return false;
