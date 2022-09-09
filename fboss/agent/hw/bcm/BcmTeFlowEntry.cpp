@@ -139,7 +139,8 @@ bool BcmTeFlowEntry::isStateSame(
         teFlowMsg,
         "SrcPort",
         bcm_field_qualify_SrcPort_get,
-        srcPort);
+        srcPort,
+        false);
   }
 
   // check dst Ip
@@ -148,20 +149,10 @@ bool BcmTeFlowEntry::isStateSame(
     bcm_ip6_t mask{};
     auto prefix = teFlow->getFlow().dstPrefix().value();
     folly::IPAddress ipaddr = toIPAddress(*prefix.ip());
-    // Hardware/SDK returns 56 bits dest Ip Mask here since 56 bits was hint
-    // config. But Fake SDK returns 128 bits because EM entry needs full mask.
-    uint8_t pfxLen;
-    auto asicType = hw->getPlatform()->getAsic()->getAsicType();
-    if (asicType == HwAsic::AsicType::ASIC_TYPE_FAKE) {
-      pfxLen = 128; // TODO - Fix this behavior in Fake SDK similar to H/w.
-    } else {
-      pfxLen = static_cast<uint8_t>(*prefix.prefixLength());
-    }
     if (!ipaddr.isV6()) {
       throw FbossError("only ipv6 addresses are supported for teflow");
     }
     facebook::fboss::ipToBcmIp6(ipaddr, &addr);
-    memcpy(&mask, folly::IPAddressV6::fetchMask(pfxLen).data(), sizeof(mask));
     isSame &= isBcmQualFieldStateSame(
         bcm_field_qualify_DstIp6_get,
         hw->getUnit(),
@@ -170,7 +161,8 @@ bool BcmTeFlowEntry::isStateSame(
         addr,
         mask,
         teFlowMsg,
-        "Dst IP");
+        "Dst IP",
+        false);
   }
 
   int enabled = teFlow->getEnabled() ? 1 : 0;

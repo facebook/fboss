@@ -106,6 +106,17 @@ class HwTeFlowTest : public HwLinkStateDependentTest {
     newState->resetTeFlowTable(teFlows);
     this->applyNewState(newState);
   }
+
+  void modifyFlowEntry(
+      std::shared_ptr<TeFlowEntry>& newFlowEntry,
+      bool enable) {
+    auto teFlows = this->getProgrammedState()->getTeFlowTable()->clone();
+    newFlowEntry->setEnabled(enable);
+    teFlows->updateNode(newFlowEntry);
+    auto newState = this->getProgrammedState()->clone();
+    newState->resetTeFlowTable(teFlows);
+    this->applyNewState(newState);
+  }
 };
 
 TEST_F(HwTeFlowTest, VerifyTeFlowGroupEnable) {
@@ -147,6 +158,42 @@ TEST_F(HwTeFlowTest, validateAddDeleteTeFlow) {
   this->deleteFlowEntry(flowEntry1);
 
   EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
+}
+
+TEST_F(HwTeFlowTest, validateEnableDisableTeFlow) {
+  if (this->skipTest()) {
+    return;
+  }
+
+  auto flowEntry1 = makeFlowEntry("100::");
+  this->addFlowEntry(flowEntry1);
+  auto flowEntry2 = makeFlowEntry("101::");
+  this->addFlowEntry(flowEntry2);
+
+  EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 2);
+  utility::checkSwHwTeFlowMatch(
+      getHwSwitch(), getProgrammedState(), makeFlowKey("100::"));
+  utility::checkSwHwTeFlowMatch(
+      getHwSwitch(), getProgrammedState(), makeFlowKey("101::"));
+
+  auto newFlowEntry1 = makeFlowEntry("100::");
+  this->modifyFlowEntry(newFlowEntry1, false);
+  utility::checkSwHwTeFlowMatch(
+      getHwSwitch(), getProgrammedState(), makeFlowKey("100::"));
+
+  auto newFlowEntry2 = makeFlowEntry("101::");
+  this->modifyFlowEntry(newFlowEntry2, false);
+  utility::checkSwHwTeFlowMatch(
+      getHwSwitch(), getProgrammedState(), makeFlowKey("101::"));
+
+  this->deleteFlowEntry(newFlowEntry1);
+  EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
+
+  auto newFlowEntry3 = makeFlowEntry("101::");
+  this->modifyFlowEntry(newFlowEntry3, true);
+  EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
+  utility::checkSwHwTeFlowMatch(
+      getHwSwitch(), getProgrammedState(), makeFlowKey("101::"));
 }
 
 } // namespace facebook::fboss

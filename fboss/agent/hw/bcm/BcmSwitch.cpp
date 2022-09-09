@@ -383,17 +383,18 @@ BcmSwitch::~BcmSwitch() {
 void BcmSwitch::resetTables() {
   std::unique_lock<std::mutex> lk(lock_);
   unregisterCallbacks();
-  labelMap_.reset();
-  routeTable_.reset();
   // ACL entries & TeFlow entries now may hold reference to multi path nexthop.
   // So release ACLs and TeFlows before any nexthop related tables:
   // l3 nexthop table
   // mpls nexthop table
   // host table
   // multi path nexthop table
+  // route table
   aclTable_->releaseAcls();
   aclTable_.reset();
   teFlowTable_.reset();
+  labelMap_.reset();
+  routeTable_.reset();
   l3NextHopTable_.reset();
   mplsNextHopTable_.reset();
   // Release host entries before reseting switch's host table

@@ -124,7 +124,8 @@ bool isBcmQualFieldStateSame(
     const std::optional<ModuleParam>& swModValue,
     const std::optional<Param>& swValue,
     const std::string& aclMsg,
-    const std::string& qualMsg) {
+    const std::string& qualMsg,
+    bool verifyMask = true) {
   ModuleParam hwModData{}, hwModMask{};
   Param hwData{}, hwMask{};
   auto rv =
@@ -137,7 +138,7 @@ bool isBcmQualFieldStateSame(
   // in S/W, H/W will return 0 and it will match the first or condition. If we
   // set 0 in S/W, H/W will still return 0 and then it will match the second or.
   auto hwModValue = hwModData & hwModMask;
-  auto hwValue = hwData & hwMask;
+  auto hwValue = verifyMask ? hwData & hwMask : hwData;
   bool isNotExistInBoth =
       (!swModValue && !hwModValue) && (!swValue && !hwValue);
   // only check match if exist in both
@@ -204,7 +205,8 @@ bool isBcmQualFieldStateSame(
     const Param (&swData)[size],
     const Param (&swMask)[size],
     const std::string& aclMsg,
-    const std::string& qualMsg) {
+    const std::string& qualMsg,
+    bool verifyMask = true) {
   Param hwData[size];
   Param hwMask[size];
   auto rv = getBcmQualifierFn(unit, entry, &hwData, &hwMask);
@@ -218,8 +220,10 @@ bool isBcmQualFieldStateSame(
     for (size_t i = 0; i < size; i++) {
       isValueSameInBoth &= (hwData[i] == swData[i]);
     }
-    for (size_t i = 0; i < size; i++) {
-      isValueSameInBoth &= (hwMask[i] == swMask[i]);
+    if (verifyMask) {
+      for (size_t i = 0; i < size; i++) {
+        isValueSameInBoth &= (hwMask[i] == swMask[i]);
+      }
     }
   }
   if (isNotExistInBoth || isValueSameInBoth) {
@@ -322,7 +326,8 @@ bool isBcmPortQualFieldStateSame(
     const std::string& aclMsg,
     const std::string& qualMsg,
     Func getBcmQualifierFn,
-    std::optional<uint16_t> swPort) {
+    std::optional<uint16_t> swPort,
+    bool verifyMask = true) {
   // Actually we don't need to care module values
   std::optional<bcm_module_t> moduleD{std::nullopt};
   std::optional<bcm_port_t> portD{std::nullopt};
@@ -331,7 +336,14 @@ bool isBcmPortQualFieldStateSame(
     portD = swPort.value();
   }
   return isBcmQualFieldStateSame(
-      getBcmQualifierFn, unit, entry, moduleD, portD, aclMsg, qualMsg);
+      getBcmQualifierFn,
+      unit,
+      entry,
+      moduleD,
+      portD,
+      aclMsg,
+      qualMsg,
+      verifyMask);
 }
 
 bcm_field_qset_t getAclQset(HwAsic::AsicType asicType);
