@@ -605,16 +605,21 @@ void SaiPortManager::changeQueue(
     SaiQueueConfig saiQueueConfig =
         std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
     auto queueHandle = getQueueHandle(swId, saiQueueConfig);
-    newPortQueue->setReservedBytes(
-        newPortQueue->getReservedBytes()
-            ? *newPortQueue->getReservedBytes()
-            : asic->getDefaultReservedBytes(
-                  newPortQueue->getStreamType(), false /* not cpu port*/));
-    newPortQueue->setScalingFactor(
-        newPortQueue->getScalingFactor()
-            ? *newPortQueue->getScalingFactor()
-            : asic->getDefaultScalingFactor(
-                  newPortQueue->getStreamType(), false /* not cpu port*/));
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
+      newPortQueue->setReservedBytes(
+          newPortQueue->getReservedBytes()
+              ? *newPortQueue->getReservedBytes()
+              : asic->getDefaultReservedBytes(
+                    newPortQueue->getStreamType(), false /* not cpu port*/));
+      newPortQueue->setScalingFactor(
+          newPortQueue->getScalingFactor()
+              ? *newPortQueue->getScalingFactor()
+              : asic->getDefaultScalingFactor(
+                    newPortQueue->getStreamType(), false /* not cpu port*/));
+    } else if (
+        newPortQueue->getReservedBytes() || newPortQueue->getScalingFactor()) {
+      throw FbossError("Reserved bytes, scaling factor setting not supported");
+    }
     managerTable_->queueManager().changeQueue(queueHandle, *newPortQueue);
     auto queueName = newPortQueue->getName()
         ? *newPortQueue->getName()

@@ -150,8 +150,11 @@ void SaiQueueManager::changeQueue(
     SaiQueueHandle* queueHandle,
     const PortQueue& newPortQueue) {
   CHECK(queueHandle);
-  auto newScheduler =
-      managerTable_->schedulerManager().createScheduler(newPortQueue);
+  std::shared_ptr<SaiScheduler> newScheduler;
+  if (newPortQueue.getScheduling() != cfg::QueueScheduling::INTERNAL) {
+    newScheduler =
+        managerTable_->schedulerManager().createScheduler(newPortQueue);
+  }
   if (newScheduler != queueHandle->scheduler) {
     queueHandle->queue->setOptionalAttribute(
         SaiQueueTraits::Attributes::SchedulerProfileId(
