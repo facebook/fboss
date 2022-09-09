@@ -104,7 +104,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
         masterLogicalPortIds()[1],
         masterLogicalPortIds()[2],
     };
-    auto config = utility::onePortPerVlanConfig(
+    auto config = utility::onePortPerInterfaceConfig(
         getHwSwitch(), std::move(ports), cfg::PortLoopbackMode::MAC, true);
 
     if constexpr (std::is_same_v<PortType, AggregatePortID>) {

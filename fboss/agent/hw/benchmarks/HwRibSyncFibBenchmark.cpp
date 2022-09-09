@@ -24,7 +24,7 @@ namespace facebook::fboss {
 BENCHMARK(RibSyncFibBenchmark) {
   folly::BenchmarkSuspender suspender;
   auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
-  auto config = utility::onePortPerVlanConfig(
+  auto config = utility::onePortPerInterfaceConfig(
       ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfig(config);
   utility::THAlpmRouteScaleGenerator gen(ensemble->getProgrammedState(), 50000);

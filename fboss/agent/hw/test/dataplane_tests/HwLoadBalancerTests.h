@@ -95,7 +95,7 @@ template <typename EcmpTestHelperT>
 class HwLoadBalancerTest : public HwLinkStateDependentTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::onePortPerVlanConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
     return cfg;
   }

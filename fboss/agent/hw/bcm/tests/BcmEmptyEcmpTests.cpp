@@ -30,8 +30,8 @@ namespace facebook::fboss {
 class BcmEmptyEcmpTest : public BcmTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg =
-        utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+    auto cfg = utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
     return cfg;
   }
   template <typename AddrT>

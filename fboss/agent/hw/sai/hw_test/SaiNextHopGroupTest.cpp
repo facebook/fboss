@@ -20,7 +20,7 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
   }
 
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerVlanConfig(
+    return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         {masterLogicalPortIds()[0],
          masterLogicalPortIds()[1],

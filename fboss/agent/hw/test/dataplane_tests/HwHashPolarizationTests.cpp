@@ -39,7 +39,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
   }
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::onePortPerVlanConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
     return cfg;
   }
@@ -489,7 +489,7 @@ template <int kNumAggregatePorts, int kAggregatePortWidth>
 class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
  private:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::onePortPerVlanConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
     return cfg;
   }

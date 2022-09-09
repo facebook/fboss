@@ -41,7 +41,7 @@ class HwTeFlowTest : public HwLinkStateDependentTest {
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
     };
-    auto cfg = utility::onePortPerVlanConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(), std::move(ports), cfg::PortLoopbackMode::MAC);
     return cfg;
   }

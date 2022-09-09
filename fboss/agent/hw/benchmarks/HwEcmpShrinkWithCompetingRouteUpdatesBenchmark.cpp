@@ -36,8 +36,8 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
       {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX});
   auto hwSwitch = ensemble->getHwSwitch();
 
-  auto config =
-      utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());
+  auto config = utility::onePortPerInterfaceConfig(
+      hwSwitch, ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfig(config);
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState());

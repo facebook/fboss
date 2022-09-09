@@ -20,7 +20,7 @@ namespace facebook::fboss {
 
 TEST_F(BcmTest, onlyExpectedQueueStatsSeen) {
   auto setup = [this] {
-    applyNewConfig(utility::onePortPerVlanConfig(
+    applyNewConfig(utility::onePortPerInterfaceConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC));
   };
   auto verify = [this] {

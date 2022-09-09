@@ -38,8 +38,8 @@ namespace facebook::fboss {
 void runBenchmark() {
   auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto hwSwitch = ensemble->getHwSwitch();
-  auto config =
-      utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());
+  auto config = utility::onePortPerInterfaceConfig(
+      hwSwitch, ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfig(config);
 
   utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;

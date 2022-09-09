@@ -30,8 +30,8 @@ namespace facebook::fboss {
 class HwWatermarkTest : public HwLinkStateDependentTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg =
-        utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+    auto cfg = utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       auto streamType =
           *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());

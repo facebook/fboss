@@ -31,8 +31,8 @@ BENCHMARK(HwEcmpGroupShrink) {
   constexpr int kEcmpWidth = 4;
   auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto hwSwitch = ensemble->getHwSwitch();
-  auto config =
-      utility::onePortPerVlanConfig(hwSwitch, ensemble->masterLogicalPortIds());
+  auto config = utility::onePortPerInterfaceConfig(
+      hwSwitch, ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfig(config);
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState());

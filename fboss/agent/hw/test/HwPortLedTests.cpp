@@ -12,7 +12,7 @@ class HwPortLedTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto lbMode = getPlatform()->getAsic()->desiredLoopbackMode();
-    return utility::onePortPerVlanConfig(
+    return utility::onePortPerInterfaceConfig(
         getHwSwitch(), {masterLogicalPortIds()[0]}, lbMode);
   }
 };

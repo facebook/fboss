@@ -68,7 +68,7 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
     int baseVlanId = kBaseVlanId,
     bool optimizePortProfile = true,
     bool setInterfaceMac = true);
-cfg::SwitchConfig onePortPerVlanConfig(
+cfg::SwitchConfig onePortPerInterfaceConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,

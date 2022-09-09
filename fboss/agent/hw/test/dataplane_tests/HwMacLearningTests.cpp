@@ -550,7 +550,8 @@ TEST_F(HwMacLearningStaticEntriesTest, VerifyStaticDynamicTransformations) {
 class HwMacLearningAndMyStationInteractionTest : public HwMacLearningTest {
  public:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
   }
   /*
    * Tests added in response to S234435. We hit a vendor SDK bug,

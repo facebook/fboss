@@ -65,7 +65,7 @@ class BcmEcmpTest : public BcmLinkStateDependentTests {
         getProgrammedState(), kRid);
   }
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerVlanConfig(
+    return utility::onePortPerInterfaceConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
   }
 

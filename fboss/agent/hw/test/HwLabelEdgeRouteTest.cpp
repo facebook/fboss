@@ -62,7 +62,7 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
     for (auto i = 0; i < kWidth; i++) {
       ports.push_back(masterLogicalPortIds()[i]);
     }
-    return utility::onePortPerVlanConfig(
+    return utility::onePortPerInterfaceConfig(
         getHwSwitch(), ports, cfg::PortLoopbackMode::MAC);
   }
 

@@ -379,20 +379,20 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
   return config;
 }
 
-cfg::SwitchConfig onePortPerVlanConfig(
+cfg::SwitchConfig onePortPerInterfaceConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
     cfg::PortLoopbackMode lbMode,
     bool interfaceHasSubnet,
     bool setInterfaceMac,
-    int baseVlanId) {
+    int baseIntfId) {
   return multiplePortsPerVlanConfig(
       hwSwitch,
       ports,
       lbMode,
       interfaceHasSubnet,
       setInterfaceMac,
-      baseVlanId,
+      baseIntfId,
       1);
 }
 
@@ -662,7 +662,7 @@ cfg::SwitchConfig createRtswUplinkDownlinkConfig(
       masterLogicalPortIds, uplinks, downlinks, disabledLinks, kTotalLinkCount);
 
   // make all logicalPorts have their own vlan id
-  auto cfg = utility::onePortPerVlanConfig(
+  auto cfg = utility::onePortPerInterfaceConfig(
       hwSwitch, masterLogicalPortIds, lbMode, true, kUplinkBaseVlanId);
   for (auto portId : uplinks) {
     utility::updatePortSpeed(*hwSwitch, cfg, portId, portSpeed);
@@ -692,13 +692,13 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
     bool interfaceHasSubnet) {
   auto platform = hwSwitch->getPlatform();
   /*
-   * For platforms which are not rsw, its always onePortPerVlanConfig
+   * For platforms which are not rsw, its always onePortPerInterfaceConfig
    * config with all uplinks and downlinks in same speed. Use the
    * config factory utility to generate the config, update the port
    * speed and return the config.
    */
   if (!isRswPlatform(platform->getMode())) {
-    auto config = utility::onePortPerVlanConfig(
+    auto config = utility::onePortPerInterfaceConfig(
         hwSwitch,
         masterLogicalPortIds,
         lbMode,
@@ -721,11 +721,11 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
   std::vector<PortID> downlinkMasterPorts(
       masterLogicalPortIds.begin() + uplinksCount, masterLogicalPortIds.end());
   /*
-   * Prod uplinks are always onePortPerVlanConfig. Use the existing
+   * Prod uplinks are always onePortPerInterfaceConfig. Use the existing
    * utlity to generate one port per vlan config followed by port
    * speed update.
    */
-  auto config = utility::onePortPerVlanConfig(
+  auto config = utility::onePortPerInterfaceConfig(
       hwSwitch,
       uplinkMasterPorts,
       lbMode,

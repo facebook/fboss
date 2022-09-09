@@ -77,7 +77,7 @@ class BcmQcmDataTest : public BcmLinkStateDependentTests {
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
     };
-    auto config = utility::onePortPerVlanConfig(
+    auto config = utility::onePortPerInterfaceConfig(
         getHwSwitch(), std::move(ports), cfg::PortLoopbackMode::MAC, true);
     return config;
   }

@@ -50,7 +50,7 @@ BENCHMARK(HwStatsCollection) {
   // number of ports but same ASIC, e.g. wedge400 and minipack
   int numPortsToCollectStats = 48;
   ports.resize(std::min((int)ports.size(), numPortsToCollectStats));
-  auto config = utility::onePortPerVlanConfig(hwSwitch, ports);
+  auto config = utility::onePortPerInterfaceConfig(hwSwitch, ports);
   // route counters in hardware is currently limited to 255.
   // this is due to the fact that in some platforms, route class id
   // (8 bits) is overloaded to support counter id.

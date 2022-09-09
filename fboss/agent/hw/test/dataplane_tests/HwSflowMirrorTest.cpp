@@ -111,7 +111,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
   }
 
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerVlanConfig(
+    return utility::onePortPerInterfaceConfig(
         getHwSwitch(), getPortsForSampling(), cfg::PortLoopbackMode::MAC);
   }
 

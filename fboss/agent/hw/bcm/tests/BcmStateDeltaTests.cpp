@@ -122,7 +122,7 @@ TEST_F(BcmTest, removePortFails) {
 
 TEST_F(BcmTest, validQosPolicyConfigWithRules) {
   auto cfg =
-      utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+      utility::onePortPerInterfaceConfig(getHwSwitch(), masterLogicalPortIds());
   auto state0 = applyNewConfig(cfg);
   addQosPolicyWithRules(cfg, "qp");
   setDataPlaneTrafficPolicy(cfg, "qp");
@@ -132,7 +132,7 @@ TEST_F(BcmTest, validQosPolicyConfigWithRules) {
 
 TEST_F(BcmTest, validQosPolicyConfigWithRulesAndDifferentPolicyForPort) {
   auto cfg =
-      utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+      utility::onePortPerInterfaceConfig(getHwSwitch(), masterLogicalPortIds());
   auto state0 = applyNewConfig(cfg);
   addQosPolicyWithRules(cfg, "qp0");
   setDataPlaneTrafficPolicy(cfg, "qp0");
@@ -144,7 +144,7 @@ TEST_F(BcmTest, validQosPolicyConfigWithRulesAndDifferentPolicyForPort) {
 
 TEST_F(BcmTest, expAndDscpQosMapDefaultQosPolicy) {
   auto cfg =
-      utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+      utility::onePortPerInterfaceConfig(getHwSwitch(), masterLogicalPortIds());
   auto state0 = applyNewConfig(cfg);
   addQosPolicyWithDscpAndExpMap(cfg, "qp");
   setDataPlaneTrafficPolicy(cfg, "qp");
@@ -154,7 +154,7 @@ TEST_F(BcmTest, expAndDscpQosMapDefaultQosPolicy) {
 
 TEST_F(BcmTest, dscpQosMapForPort) {
   auto cfg =
-      utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+      utility::onePortPerInterfaceConfig(getHwSwitch(), masterLogicalPortIds());
   auto state0 = applyNewConfig(cfg);
   addQosPolicyWithDscpAndExpMap(cfg, "qp0");
   setDataPlaneTrafficPolicy(cfg, "qp0");
@@ -166,7 +166,7 @@ TEST_F(BcmTest, dscpQosMapForPort) {
 
 TEST_F(BcmTest, expQosMapForPort) {
   auto cfg =
-      utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+      utility::onePortPerInterfaceConfig(getHwSwitch(), masterLogicalPortIds());
   auto state0 = applyNewConfig(cfg);
   addQosPolicyWithDscpMap(cfg, "qp0");
   setDataPlaneTrafficPolicy(cfg, "qp0");

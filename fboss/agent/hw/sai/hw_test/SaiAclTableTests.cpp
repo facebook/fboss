@@ -18,7 +18,7 @@ class SaiAclTableRecreateTests : public HwTest {
     HwTest::SetUp();
   }
   cfg::SwitchConfig initialConfig() const {
-    return utility::onePortPerVlanConfig(
+    return utility::onePortPerInterfaceConfig(
         getHwSwitch(), {masterLogicalPortIds()[0]});
   }
 };

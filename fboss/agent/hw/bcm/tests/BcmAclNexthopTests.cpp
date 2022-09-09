@@ -47,7 +47,7 @@ class BcmAclNexthopTest : public BcmTest {
     for (int i = 0; i < ports.size(); ++i) {
       ports[i] = masterLogicalPortIds()[i];
     }
-    return utility::onePortPerVlanConfig(getHwSwitch(), ports);
+    return utility::onePortPerInterfaceConfig(getHwSwitch(), ports);
   }
 
   cfg::SwitchConfig testConfig(std::string vipIp, std::string nexthopIp) const {

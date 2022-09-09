@@ -65,8 +65,8 @@ class HwProdInvariantsTest : public HwLinkStateDependentTest {
   }
 
   virtual cfg::SwitchConfig initConfigHelper() const {
-    auto cfg =
-        utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+    auto cfg = utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
     utility::addProdFeaturesToConfig(cfg, getHwSwitch());
     return cfg;
   }

@@ -27,7 +27,7 @@ namespace facebook::fboss {
 class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::onePortPerVlanConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
     cfg.staticRoutesToNull()->resize(2);
     *cfg.staticRoutesToNull()[0].routerID() =

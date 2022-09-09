@@ -29,7 +29,7 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
         getProgrammedState(), RouterID(0));
   }
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::onePortPerVlanConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
     return cfg;
   }

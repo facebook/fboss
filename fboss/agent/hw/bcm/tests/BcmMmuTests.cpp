@@ -46,7 +46,8 @@ class BcmMmuTests : public BcmTest {
   }
 
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
   }
 
   void addCpuQueues(cfg::SwitchConfig& cfg) {

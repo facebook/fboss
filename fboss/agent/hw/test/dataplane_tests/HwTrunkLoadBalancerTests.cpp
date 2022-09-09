@@ -143,7 +143,7 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
 
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    auto config = utility::onePortPerVlanConfig(
+    auto config = utility::onePortPerInterfaceConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
     return config;
   }

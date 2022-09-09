@@ -29,7 +29,8 @@ namespace facebook::fboss {
 class BcmPortStressTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
   }
 };
 

@@ -49,8 +49,8 @@ class HwSwitchStateReplayTest : public HwTest {
     // of bcm_tests
     XLOG(DBG2)
         << "No replay state file specified, applying one port per vlan config";
-    auto config =
-        utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+    auto config = utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
     applyNewConfig(config);
     return getProgrammedState();
   }

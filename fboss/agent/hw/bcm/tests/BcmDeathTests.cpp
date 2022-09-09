@@ -27,7 +27,7 @@ class BcmDeathTest : public BcmTest {
         masterLogicalPortIds()[1],
         masterLogicalPortIds()[2],
     };
-    return utility::onePortPerVlanConfig(
+    return utility::onePortPerInterfaceConfig(
         getHwSwitch(), ports, cfg::PortLoopbackMode::NONE);
   }
 

@@ -71,7 +71,8 @@ class HwMirrorTest : public HwTest {
 
  protected:
   cfg::SwitchConfig initialConfig() const {
-    return utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
   }
 
   cfg::Mirror getSpanMirror(

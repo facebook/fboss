@@ -33,7 +33,7 @@ cfg::SwitchConfig AgentIntegrationTest::initialConfig() const {
   }
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<PortMap>(), sw()->getPlatform());
-  cfg = utility::onePortPerVlanConfig(
+  cfg = utility::onePortPerInterfaceConfig(
       platform()->getHwSwitch(), ports, cfg::PortLoopbackMode::MAC, true, true);
 
   cfg.switchSettings()->maxRouteCounterIDs() = 1;

@@ -14,7 +14,7 @@ namespace facebook::fboss {
 class HwParityErrorTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerVlanConfig(
+    return utility::onePortPerInterfaceConfig(
         getHwSwitch(), {masterLogicalPortIds()[0]});
   }
 

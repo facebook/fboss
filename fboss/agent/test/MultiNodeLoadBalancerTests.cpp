@@ -101,7 +101,7 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
     }
   }
   cfg::SwitchConfig initialConfig() const override {
-    auto config = utility::onePortPerVlanConfig(
+    auto config = utility::onePortPerInterfaceConfig(
         platform()->getHwSwitch(),
         testPorts(),
         cfg::PortLoopbackMode::NONE,

@@ -31,7 +31,8 @@ namespace facebook::fboss {
 class HwResourceStatsTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerVlanConfig(getHwSwitch(), masterLogicalPortIds());
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
   }
   using Prefix6 = typename Route<folly::IPAddressV6>::Prefix;
   using Prefix4 = typename Route<folly::IPAddressV4>::Prefix;
