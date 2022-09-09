@@ -516,3 +516,8 @@ struct SwitchState {
   30: map<i32, InterfaceFields> interfaceMap;
   31: QcmCfgFields qcmCfg;
 }
+
+struct WarmbootState {
+  1: SwitchState swSwitchState;
+// TODO: Extend for hwSwitchState
+}
