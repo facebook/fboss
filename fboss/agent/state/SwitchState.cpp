@@ -201,7 +201,9 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.aclTableGroups =
       AclTableGroupMap::fromThrift(*state.aclTableGroupMap());
   fields.interfaces = InterfaceMap::fromThrift(*state.interfaceMap());
-  fields.qcmCfg = QcmCfg::fromThrift(*state.qcmCfg());
+  if (auto qcmConfig = state.qcmCfg()) {
+    fields.qcmCfg = QcmCfg::fromThrift(*qcmConfig);
+  }
   return fields;
 }
 
