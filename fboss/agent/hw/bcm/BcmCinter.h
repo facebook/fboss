@@ -856,8 +856,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   }
   int bcm_cosq_bst_stat_extended_get(
       int /*unit*/,
-      bcm_gport_t /*gport*/,
-      bcm_cos_queue_t /*cosq*/,
+      bcm_cosq_object_id_t* /*id*/,
       bcm_bst_stat_id_t /*bid*/,
       uint32 /*options*/,
       uint64* /*value*/) override {

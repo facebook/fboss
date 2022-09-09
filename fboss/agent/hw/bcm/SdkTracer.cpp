@@ -307,8 +307,7 @@ int __real_bcm_cosq_bst_stat_get(
 
 int __real_bcm_cosq_bst_stat_extended_get(
     int unit,
-    bcm_gport_t gport,
-    bcm_cos_queue_t cosq,
+    bcm_cosq_object_id_t* id,
     bcm_bst_stat_id_t bid,
     uint32 options,
     uint64* value);
@@ -911,8 +910,7 @@ int __real_bcm_cosq_bst_stat_get(
 
 int __real_bcm_cosq_bst_stat_extended_get(
     int unit,
-    bcm_gport_t gport,
-    bcm_cos_queue_t cosq,
+    bcm_cosq_object_id_t* id,
     bcm_bst_stat_id_t bid,
     uint32 options,
     uint64* value);
@@ -2056,13 +2054,12 @@ int __wrap_bcm_cosq_bst_stat_get(
 
 int __wrap_bcm_cosq_bst_stat_extended_get(
     int unit,
-    bcm_gport_t gport,
-    bcm_cos_queue_t cosq,
+    bcm_cosq_object_id_t* id,
     bcm_bst_stat_id_t bid,
     uint32 options,
     uint64* value) {
   CALL_WRAPPERS_RV(
-      bcm_cosq_bst_stat_extended_get(unit, gport, cosq, bid, options, value));
+      bcm_cosq_bst_stat_extended_get(unit, id, bid, options, value));
 }
 
 int __wrap_bcm_stat_custom_add(
