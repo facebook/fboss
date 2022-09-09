@@ -111,8 +111,14 @@ class PortQueue
 
   void setScheduling(cfg::QueueScheduling scheduling) {
     writableFields()->scheduling = scheduling;
-    if (scheduling == cfg::QueueScheduling::STRICT_PRIORITY) {
-      writableFields()->weight = 0;
+    switch (scheduling) {
+      case cfg::QueueScheduling::STRICT_PRIORITY:
+      case cfg::QueueScheduling::INTERNAL:
+        writableFields()->weight = 0;
+        break;
+      case cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN:
+      case cfg::QueueScheduling::DEFICIT_ROUND_ROBIN:
+        break;
     }
   }
 

@@ -626,6 +626,9 @@ enum QueueScheduling {
   // for a port
   // Required to set a weight when using this
   DEFICIT_ROUND_ROBIN = 2,
+  // For certain queue types (viz. Fabric port queues) scheduling details are
+  // not exposed for programming.
+  INTERNAL = 1000,
 }
 
 // Detection based on average queue length in bytes with two thresholds.
