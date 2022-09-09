@@ -383,17 +383,21 @@ void HwSwitchEnsemble::switchRunStateChanged(SwitchRunState switchState) {
   }
 }
 
-folly::dynamic HwSwitchEnsemble::gracefulExitState() const {
-  folly::dynamic switchState = folly::dynamic::object;
+std::tuple<folly::dynamic, state::WarmbootState>
+HwSwitchEnsemble::gracefulExitState() const {
+  folly::dynamic follySwitchState = folly::dynamic::object;
   // For RIB we employ a optmization to serialize only unresolved routes
   // and recover others from FIB
-  switchState[kSwSwitch] = getProgrammedState()->toFollyDynamic();
+  follySwitchState[kSwSwitch] = getProgrammedState()->toFollyDynamic();
   if (routingInformationBase_) {
     // For RIB we employ a optmization to serialize only unresolved routes
     // and recover others from FIB
-    switchState[kRib] = routingInformationBase_->unresolvedRoutesFollyDynamic();
+    follySwitchState[kRib] =
+        routingInformationBase_->unresolvedRoutesFollyDynamic();
   }
-  return switchState;
+  state::WarmbootState thriftSwitchState;
+  *thriftSwitchState.swSwitchState() = getProgrammedState()->toThrift();
+  return std::make_tuple(follySwitchState, thriftSwitchState);
 }
 
 void HwSwitchEnsemble::stopObservers() {
@@ -416,8 +420,8 @@ void HwSwitchEnsemble::gracefulExit() {
   // Initiate warm boot
   getHwSwitch()->unregisterCallbacks();
   stopObservers();
-  auto switchState = gracefulExitState();
-  getHwSwitch()->gracefulExit(switchState);
+  auto [follySwitchState, thriftSwitchState] = gracefulExitState();
+  getHwSwitch()->gracefulExit(follySwitchState, thriftSwitchState);
 }
 
 /*

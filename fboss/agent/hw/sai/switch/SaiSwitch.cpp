@@ -1148,22 +1148,26 @@ void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
   fetchL2TableLocked(lock, l2Table);
 }
 
-void SaiSwitch::gracefulExitImpl(folly::dynamic& switchState) {
+void SaiSwitch::gracefulExitImpl(
+    folly::dynamic& follySwitchState,
+    state::WarmbootState& thriftSwitchState) {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
-  gracefulExitLocked(switchState, lock);
+  gracefulExitLocked(lock, follySwitchState, thriftSwitchState);
 }
 
 void SaiSwitch::gracefulExitLocked(
-    folly::dynamic& switchState,
-    const std::lock_guard<std::mutex>& lock) {
+    const std::lock_guard<std::mutex>& lock,
+    folly::dynamic& follySwitchState,
+    state::WarmbootState& thriftSwitchState) {
   std::chrono::steady_clock::time_point begin =
       std::chrono::steady_clock::now();
   XLOG(DBG2) << "[Exit] Starting SAI Switch graceful exit";
 
   SaiSwitchTraits::Attributes::SwitchRestartWarm restartWarm{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(switchId_, restartWarm);
-  switchState[kHwSwitch] = toFollyDynamicLocked(lock);
-  platform_->getWarmBootHelper()->storeWarmBootState(switchState);
+  follySwitchState[kHwSwitch] = toFollyDynamicLocked(lock);
+  platform_->getWarmBootHelper()->storeWarmBootState(
+      follySwitchState, thriftSwitchState);
   platform_->getWarmBootHelper()->setCanWarmBoot();
   std::chrono::steady_clock::time_point wbSaiSwitchWrite =
       std::chrono::steady_clock::now();

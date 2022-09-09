@@ -11,6 +11,7 @@
 
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -257,8 +258,10 @@ class HwSwitch {
    * Allow hardware to perform any warm boot related cleanup
    * before we exit the application.
    */
-  void gracefulExit(folly::dynamic& switchState) {
-    gracefulExitImpl(switchState);
+  void gracefulExit(
+      folly::dynamic& follySwitchState,
+      state::WarmbootState& thriftSwitchState) {
+    gracefulExitImpl(follySwitchState, thriftSwitchState);
   }
 
   /*
@@ -375,7 +378,9 @@ class HwSwitch {
 
   virtual void updateStatsImpl(SwitchStats* switchStats) = 0;
 
-  virtual void gracefulExitImpl(folly::dynamic& switchState) = 0;
+  virtual void gracefulExitImpl(
+      folly::dynamic& follySwitchState,
+      state::WarmbootState& thriftSwitchState) = 0;
 
   uint32_t featuresDesired_;
   SwitchRunState runState_{SwitchRunState::UNINITIALIZED};

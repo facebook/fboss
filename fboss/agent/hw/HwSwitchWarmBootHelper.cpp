@@ -29,6 +29,10 @@ DEFINE_string(
     thrift_switch_state_file,
     "thrift_switch_state",
     "File for dumping switch state in serialized thrift format on exit");
+DEFINE_bool(
+    dump_thrift_state,
+    false,
+    "Whether to dump thrift state during warmboot exit");
 
 namespace {
 constexpr auto wbFlagPrefix = "can_warm_boot_";
@@ -130,9 +134,11 @@ bool HwSwitchWarmBootHelper::checkAndClearWarmBootFlags() {
 }
 
 bool HwSwitchWarmBootHelper::storeWarmBootState(
-    const folly::dynamic& switchState) {
+    const folly::dynamic& follySwitchState,
+    const state::WarmbootState& thriftSwitchState) {
   warmBootStateWritten_ =
-      dumpStateToFile(warmBootFollySwitchStateFile(), switchState);
+      dumpStateToFile(warmBootFollySwitchStateFile(), follySwitchState);
+  // TODO: Dump thriftSwitchState to file
   return warmBootStateWritten_;
 }
 

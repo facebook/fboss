@@ -620,7 +620,9 @@ class BcmSwitch : public BcmSwitchIf {
    * state changes while we are calling cleanup
    * shutdown apis in the BCM sdk.
    */
-  void gracefulExitImpl(folly::dynamic& switchState) override;
+  void gracefulExitImpl(
+      folly::dynamic& follyWwitchState,
+      state::WarmbootState& thriftSwitchState) override;
   /*
    * Handle SwitchRunState changes
    */

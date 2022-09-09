@@ -15,6 +15,7 @@
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/StateUpdate.h"
@@ -198,7 +199,7 @@ class SwSwitch : public HwSwitch::Callback {
 
   void updateStats();
 
-  folly::dynamic gracefulExitState() const;
+  std::tuple<folly::dynamic, state::WarmbootState> gracefulExitState() const;
 
   /*
    * Get a pointer to the current switch state.

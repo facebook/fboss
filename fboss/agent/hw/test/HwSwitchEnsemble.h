@@ -185,7 +185,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       const std::vector<AggregatePortID>& aggregatePorts) = 0;
   HwTrunkStats getLatestAggregatePortStats(AggregatePortID port);
 
-  folly::dynamic gracefulExitState() const;
+  std::tuple<folly::dynamic, state::WarmbootState> gracefulExitState() const;
   /*
    * Initiate graceful exit
    */

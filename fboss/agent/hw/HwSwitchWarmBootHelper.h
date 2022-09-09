@@ -10,8 +10,8 @@
 #pragma once
 
 #include <folly/dynamic.h>
-
 #include <string>
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 
 namespace facebook::fboss {
 
@@ -40,7 +40,9 @@ class HwSwitchWarmBootHelper {
    */
   void setCanWarmBoot();
 
-  bool storeWarmBootState(const folly::dynamic& switchState);
+  bool storeWarmBootState(
+      const folly::dynamic& switchState,
+      const state::WarmbootState& switchStateThrift);
   folly::dynamic getWarmBootState() const;
 
   std::string startupSdkDumpFile() const;

@@ -27,6 +27,7 @@
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/LookupClassUpdater.h"
+#include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #if FOLLY_HAS_COROUTINES
 #include "fboss/agent/MKAServiceManager.h"
@@ -377,15 +378,18 @@ void SwSwitch::setFibSyncTimeForClient(ClientID clientId) {
   }
 }
 
-folly::dynamic SwSwitch::gracefulExitState() const {
-  folly::dynamic switchState = folly::dynamic::object;
-  switchState[kSwSwitch] = getAppliedState()->toFollyDynamic();
+std::tuple<folly::dynamic, state::WarmbootState> SwSwitch::gracefulExitState()
+    const {
+  folly::dynamic follySwitchState = folly::dynamic::object;
+  follySwitchState[kSwSwitch] = getAppliedState()->toFollyDynamic();
   if (rib_) {
     // For RIB we employ a optmization to serialize only unresolved routes
     // and recover others from FIB
-    switchState[kRib] = rib_->unresolvedRoutesFollyDynamic();
+    follySwitchState[kRib] = rib_->unresolvedRoutesFollyDynamic();
   }
-  return switchState;
+  state::WarmbootState thriftSwitchState;
+  *thriftSwitchState.swSwitchState() = getAppliedState()->toThrift();
+  return std::make_tuple(follySwitchState, thriftSwitchState);
 }
 
 void SwSwitch::gracefulExit() {
@@ -406,7 +410,7 @@ void SwSwitch::gracefulExit() {
                       stopThreadsAndHandlersDone - neighborFloodDone)
                       .count();
 
-    folly::dynamic switchState = gracefulExitState();
+    auto [follySwitchState, thriftSwitchState] = gracefulExitState();
 
     steady_clock::time_point switchStateToFollyDone = steady_clock::now();
     XLOG(DBG2) << "[Exit] Switch state to folly dynamic "
@@ -414,7 +418,7 @@ void SwSwitch::gracefulExit() {
                       switchStateToFollyDone - stopThreadsAndHandlersDone)
                       .count();
     // Cleanup if we ever initialized
-    hw_->gracefulExit(switchState);
+    hw_->gracefulExit(follySwitchState, thriftSwitchState);
     XLOG(DBG2)
         << "[Exit] SwSwitch Graceful Exit time "
         << duration_cast<duration<float>>(steady_clock::now() - begin).count();

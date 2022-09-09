@@ -49,7 +49,9 @@ class BcmUnit {
   /*
    * Flush warm boot state to disk,
    */
-  void writeWarmBootState(const folly::dynamic& switchState);
+  void writeWarmBootState(
+      const folly::dynamic& switchState,
+      const state::WarmbootState& thriftSwitchState);
 
   bool isAttached() const {
     return attached_.load(std::memory_order_acquire);

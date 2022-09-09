@@ -199,7 +199,9 @@ class SaiSwitch : public HwSwitch {
   phy::FecMode getPortFECMode(PortID port) const override;
 
  private:
-  void gracefulExitImpl(folly::dynamic& switchState) override;
+  void gracefulExitImpl(
+      folly::dynamic& switchState,
+      state::WarmbootState& thriftSwitchState) override;
 
   template <typename LockPolicyT>
   std::shared_ptr<SwitchState> stateChangedImpl(
@@ -263,7 +265,8 @@ class SaiSwitch : public HwSwitch {
 
   void gracefulExitLocked(
       const std::lock_guard<std::mutex>& lock,
-      folly::dynamic& switchState);
+      folly::dynamic& follySwitchState,
+      state::WarmbootState& thriftSwitchState);
 
   folly::dynamic toFollyDynamicLocked(
       const std::lock_guard<std::mutex>& lock) const;
