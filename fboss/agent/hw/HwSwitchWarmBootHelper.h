@@ -66,7 +66,8 @@ class HwSwitchWarmBootHelper {
 
   std::string warmBootFlag() const;
   std::string forceColdBootOnceFlag() const;
-  std::string warmBootSwitchStateFile() const;
+  std::string warmBootFollySwitchStateFile() const;
+  std::string warmBootThriftSwitchStateFile() const;
 
   void setupWarmBootFile();
   /*
