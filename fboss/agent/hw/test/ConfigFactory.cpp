@@ -100,6 +100,7 @@ cfg::Port createDefaultPortConfig(
   defaultConfig.logicalID() = id;
   defaultConfig.ingressVlan() = kDefaultVlanId;
   defaultConfig.state() = cfg::PortState::DISABLED;
+  defaultConfig.portType() = *entry.mapping()->portType();
   return defaultConfig;
 }
 
