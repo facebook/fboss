@@ -1205,6 +1205,9 @@ QueueConfig ThriftConfigApplier::updatePortQueues(
     } else {
       newPortQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(queueId));
       newPortQueue->setStreamType(streamType);
+      if (streamType == cfg::StreamType::FABRIC_TX) {
+        newPortQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
+      }
     }
     newPortQueues.push_back(newPortQueue);
   }
