@@ -515,6 +515,7 @@ struct SwitchState {
   29: map<switch_config.AclStage, AclTableGroupFields> aclTableGroupMap;
   30: map<i32, InterfaceFields> interfaceMap;
   31: QcmCfgFields qcmCfg;
+  32: optional QosPolicyFields defaultDataPlaneQosPolicy;
 }
 
 struct WarmbootState {

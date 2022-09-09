@@ -137,6 +137,9 @@ state::SwitchState SwitchStateFields::toThrift() const {
   state.fibs() = fibs->toThrift();
   state.labelFib() = labelFib->toThrift();
   state.qosPolicyMap() = qosPolicies->toThrift();
+  if (defaultDataPlaneQosPolicy) {
+    state.defaultDataPlaneQosPolicy() = defaultDataPlaneQosPolicy->toThrift();
+  }
   state.sflowCollectorMap() = sFlowCollectors->toThrift();
   state.teFlowTable() = teFlowTable->toThrift();
   state.aggregatePortMap() = aggPorts->toThrift();
@@ -186,6 +189,9 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.labelFib =
       LabelForwardingInformationBase::fromThrift(*state.labelFib());
   fields.qosPolicies = QosPolicyMap::fromThrift(*state.qosPolicyMap());
+  if (auto defaultQosPolicy = state.defaultDataPlaneQosPolicy()) {
+    fields.defaultDataPlaneQosPolicy = QosPolicy::fromThrift(*defaultQosPolicy);
+  }
   fields.transceivers = TransceiverMap::fromThrift(*state.transceiverMap());
   fields.ipTunnels = IpTunnelMap::fromThrift(*state.ipTunnelMap());
   fields.sFlowCollectors =
