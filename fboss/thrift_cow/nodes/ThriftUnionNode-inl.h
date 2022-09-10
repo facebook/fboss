@@ -229,7 +229,7 @@ struct ThriftUnionFields {
   using Members = typename Info::traits::descriptors;
 
   // Extracting useful common types out of each member via Traits.h
-  using MemberTypes = fatal::transform<Members, ExtractUnionFields>;
+  using MemberTypes = fatal::transform<Members, ExtractUnionFields<>>;
 
   // This is our ultimate storage type, which is effectively a
   // std::tuple with syntactic sugar for accessing based on

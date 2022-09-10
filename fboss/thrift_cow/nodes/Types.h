@@ -18,9 +18,19 @@ struct NodeType {};
 struct FieldsType {};
 
 template <typename TType>
+struct DefaultTypeResolver {
+  // if resolver is not specialized for given thrift type, don't specify a type
+  using type = void;
+};
+
+template <
+    typename TType,
+    template <typename> typename Resolver = DefaultTypeResolver>
 struct ThriftStructFields;
 
-template <typename TType>
+template <
+    typename TType,
+    template <typename> typename Resolver = DefaultTypeResolver>
 class ThriftStructNode;
 
 template <typename TType>

@@ -133,7 +133,7 @@ struct ChildInvoke {
 
 } // namespace struct_helpers
 
-template <typename TType>
+template <typename TType, template <typename> typename Resolver>
 struct ThriftStructFields {
   using Self = ThriftStructFields<TType>;
   using Info = apache::thrift::reflect_struct<TType>;
@@ -145,7 +145,7 @@ struct ThriftStructFields {
   using Members = typename Info::members;
 
   // Extracting useful common types out of each member via Traits.h
-  using MemberTypes = fatal::transform<Members, ExtractStructFields>;
+  using MemberTypes = fatal::transform<Members, ExtractStructFields<Resolver>>;
 
   // This is our ultimate storage type, which is effectively a
   // std::tuple with syntactic sugar for accessing based on
@@ -368,12 +368,13 @@ struct ThriftStructFields {
   NamedMemberTypes storage_;
 };
 
-template <typename TType>
-class ThriftStructNode
-    : public NodeBaseT<ThriftStructNode<TType>, ThriftStructFields<TType>> {
+template <typename TType, template <typename> typename Resolver>
+class ThriftStructNode : public NodeBaseT<
+                             ThriftStructNode<TType>,
+                             ThriftStructFields<TType, Resolver>> {
  public:
   using Self = ThriftStructNode<TType>;
-  using Fields = ThriftStructFields<TType>;
+  using Fields = ThriftStructFields<TType, Resolver>;
   using ThriftType = typename Fields::ThriftType;
   using BaseT = NodeBaseT<ThriftStructNode<TType>, Fields>;
   using CowType = NodeType;

@@ -14,7 +14,13 @@
 
 namespace facebook::fboss::thrift_cow {
 
-template <typename TC, typename TType>
+template <typename T>
+struct DefaultTypeResolver;
+
+template <
+    typename TC,
+    typename TType,
+    template <typename> typename Resolver = DefaultTypeResolver>
 struct ConvertToNodeTraits {
   // we put primitives in optionals so that access patterns are the
   // same for all node types. Either will get std::optional<Field> or
@@ -25,36 +31,62 @@ struct ConvertToNodeTraits {
   using isChild = std::false_type;
 };
 
-template <typename TType>
-struct ConvertToNodeTraits<apache::thrift::type_class::structure, TType> {
+template <typename TType, template <typename> typename Resolver>
+struct ConvertToNodeTraits<
+    apache::thrift::type_class::structure,
+    TType,
+    Resolver> {
   using type = std::shared_ptr<ThriftStructNode<TType>>;
   using isChild = std::true_type;
 };
 
-template <typename TType>
-struct ConvertToNodeTraits<apache::thrift::type_class::variant, TType> {
+template <typename TType, template <typename> typename Resolver>
+struct ConvertToNodeTraits<
+    apache::thrift::type_class::variant,
+    TType,
+    Resolver> {
   using type = std::shared_ptr<ThriftUnionNode<TType>>;
   using isChild = std::true_type;
 };
 
-template <typename ValueT, typename TType>
-struct ConvertToNodeTraits<apache::thrift::type_class::list<ValueT>, TType> {
+template <
+    typename ValueT,
+    typename TType,
+    template <typename>
+    typename Resolver>
+struct ConvertToNodeTraits<
+    apache::thrift::type_class::list<ValueT>,
+    TType,
+    Resolver> {
   using type = std::shared_ptr<
       ThriftListNode<apache::thrift::type_class::list<ValueT>, TType>>;
   using isChild = std::true_type;
 };
 
-template <typename KeyT, typename ValueT, typename TType>
+template <
+    typename KeyT,
+    typename ValueT,
+    typename TType,
+    template <typename>
+    typename Resolver>
 struct ConvertToNodeTraits<
     apache::thrift::type_class::map<KeyT, ValueT>,
-    TType> {
+    TType,
+    Resolver> {
   using type = std::shared_ptr<
       ThriftMapNode<apache::thrift::type_class::map<KeyT, ValueT>, TType>>;
   using isChild = std::true_type;
 };
 
-template <typename ValueT, typename TType>
-struct ConvertToNodeTraits<apache::thrift::type_class::set<ValueT>, TType> {
+template <
+    typename ValueT,
+    typename TType,
+    template <typename>
+    typename Resolver>
+struct ConvertToNodeTraits<
+    apache::thrift::type_class::set<ValueT>,
+    TType,
+    Resolver> {
   using type = std::shared_ptr<
       ThriftSetNode<apache::thrift::type_class::set<ValueT>, TType>>;
   using isChild = std::true_type;
@@ -71,36 +103,41 @@ struct ConvertToImmutableNodeTraits {
   using isChild = std::false_type;
 };
 
-template <typename Member>
+template <typename Member, template <typename> typename Resolver>
 struct StructMemberTraits {
   using member = Member;
-  using traits = StructMemberTraits<Member>;
+  using traits = StructMemberTraits<Member, Resolver>;
   using name = typename Member::name;
   using ttype = typename Member::type;
   using tc = typename Member::type_class;
-  using type = typename ConvertToNodeTraits<tc, ttype>::type;
-  using isChild = typename ConvertToNodeTraits<tc, ttype>::isChild;
+  // need to resolve here
+  using type = typename ConvertToNodeTraits<tc, ttype, Resolver>::type;
+  using isChild = typename ConvertToNodeTraits<tc, ttype, Resolver>::isChild;
 };
 
+template <template <typename> typename Resolver = DefaultTypeResolver>
 struct ExtractStructFields {
   template <typename T>
-  using apply = StructMemberTraits<T>;
+  using apply = StructMemberTraits<T, Resolver>;
 };
 
-template <typename Member>
+template <
+    typename Member,
+    template <typename> typename Resolver = DefaultTypeResolver>
 struct UnionMemberTraits {
   using member = Member;
-  using traits = UnionMemberTraits<Member>;
+  using traits = UnionMemberTraits<Member, Resolver>;
   using name = typename Member::metadata::name;
   using ttype = typename Member::type;
   using tc = typename Member::metadata::type_class;
-  using type = typename ConvertToNodeTraits<tc, ttype>::type;
-  using isChild = typename ConvertToNodeTraits<tc, ttype>::isChild;
+  using type = typename ConvertToNodeTraits<tc, ttype, Resolver>::type;
+  using isChild = typename ConvertToNodeTraits<tc, ttype, Resolver>::isChild;
 };
 
+template <template <typename> typename Resolver = DefaultTypeResolver>
 struct ExtractUnionFields {
   template <typename T>
-  using apply = UnionMemberTraits<T>;
+  using apply = UnionMemberTraits<T, Resolver>;
 };
 
 } // namespace facebook::fboss::thrift_cow
