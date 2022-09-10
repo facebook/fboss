@@ -234,6 +234,30 @@ struct formatter<sai_port_err_status_t> {
   }
 };
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+// Formatting for sai_port_lane_latch_status_list_t
+template <>
+struct formatter<sai_port_lane_latch_status_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const sai_port_lane_latch_status_t& latchStatus,
+      FormatContext& ctx) {
+    return format_to(
+        ctx.out(),
+        "(lane_latch_status: lane_latch_status.lane: {}, "
+        "lane_latch_status.value.current_status: {}, lane_latch_status.value.changed: {}",
+        latchStatus.lane,
+        latchStatus.value.current_status,
+        latchStatus.value.changed);
+  }
+};
+#endif
+
 // Formatting for AclEntryField<T>
 template <typename T>
 struct formatter<facebook::fboss::AclEntryField<T>> {

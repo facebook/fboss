@@ -1460,6 +1460,19 @@ std::vector<sai_port_lane_eye_values_t> SaiPortManager::getPortEyeValues(
       saiPortId, SaiPortTraits::Attributes::PortEyeValues{});
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxSignalDetect(
+    PortSaiId saiPortId) const {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::PMD_RX_SIGNAL_DETECT)) {
+    return std::vector<sai_port_lane_latch_status_t>();
+  }
+
+  return SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::RxSignalDetect{});
+}
+#endif
+
 std::vector<sai_port_err_status_t> SaiPortManager::getPortErrStatus(
     PortSaiId saiPortId) const {
   if (!platform_->getAsic()->isSupported(

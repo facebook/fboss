@@ -415,6 +415,23 @@ sai_status_t set_port_attribute_fn(
                 .list[j];
       }
     } break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+    case SAI_PORT_ATTR_RX_SIGNAL_DETECT: {
+      port.portRxSignalDetect.count =
+          static_cast<sai_port_lane_latch_status_list_t>(
+              attr->value.portlanelatchstatuslist)
+              .count;
+      auto& signalDetectList = port.portRxSignalDetect.list;
+      auto signalDetectVector = std::vector<sai_port_lane_eye_values_t>();
+      signalDetectVector.resize(port.portRxSignalDetect.count);
+      signalDetectList = signalDetectVector.data();
+      for (int j = 0; j < port.portRxSignalDetect.count; j++) {
+        signalDetectList[j] = static_cast<sai_port_lane_latch_status_list_t>(
+                                  attr->value.portlanelatchstatuslist)
+                                  .list[j];
+      }
+    } break;
+#endif
     case SAI_PORT_ATTR_ERR_STATUS_LIST: {
       port.portError.count =
           static_cast<sai_port_err_status_list_t>(attr->value.porterror).count;
@@ -428,6 +445,23 @@ sai_status_t set_port_attribute_fn(
                 .list[j];
       }
     } break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+    case SAI_PORT_ATTR_RX_SIGNAL_DETECT: {
+      port.portRxSignalDetect.count =
+          static_cast<sai_port_lane_latch_status_list_t>(
+              attr->value.portlanelatchstatuslist)
+              .count;
+      auto& signalDetectList = port.portRxSignalDetect.list;
+      auto signalDetectVector = std::vector<sai_port_lane_latch_status_t>();
+      signalDetectVector.resize(port.portRxSignalDetect.count);
+      signalDetectList = signalDetectVector.data();
+      for (int j = 0; j < port.portRxSignalDetect.count; j++) {
+        signalDetectList[j] = static_cast<sai_port_lane_latch_status_list_t>(
+                                  attr->value.portRxSignalDetect)
+                                  .list[j];
+      }
+    } break;
+#endif
     case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_MODE:
       port.priorityFlowControlMode =
           static_cast<sai_port_priority_flow_control_mode_t>(attr->value.u32);
@@ -621,6 +655,16 @@ sai_status_t get_port_attribute_fn(
           attr[i].value.porteyevalues.list[j] = port.portEyeValues.list[j];
         }
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+      case SAI_PORT_ATTR_RX_SIGNAL_DETECT:
+        attr[i].value.portlanelatchstatuslist.count =
+            port.portRxSignalDetect.count;
+        for (int j = 0; j < port.portRxSignalDetect.count; j++) {
+          attr[i].value.portlanelatchstatuslist.list[j] =
+              port.portRxSignalDetect.list[j];
+        }
+        break;
+#endif
       case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_MODE:
         attr[i].value.u32 = static_cast<int32_t>(port.priorityFlowControlMode);
         break;

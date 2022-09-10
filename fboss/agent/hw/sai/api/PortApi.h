@@ -214,6 +214,12 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP,
         SaiObjectIdT,
         SaiObjectIdDefault>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+    using RxSignalDetect = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_RX_SIGNAL_DETECT,
+        std::vector<sai_port_lane_latch_status_t>>;
+#endif
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -317,6 +323,9 @@ SAI_ATTRIBUTE_NAME(Port, IngressPriorityGroupList)
 SAI_ATTRIBUTE_NAME(Port, NumberOfIngressPriorityGroups)
 SAI_ATTRIBUTE_NAME(Port, QosTcToPriorityGroupMap)
 SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToQueueMap)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+SAI_ATTRIBUTE_NAME(Port, RxSignalDetect)
+#endif
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

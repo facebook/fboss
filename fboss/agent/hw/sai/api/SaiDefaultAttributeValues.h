@@ -115,6 +115,14 @@ struct SaiPortErrStatusDefault {
   }
 };
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+struct SaiPortLaneLatchStatusDefault {
+  sai_port_lane_latch_status_t operator()() const {
+    return sai_port_lane_latch_status_t{0, {false, false}};
+  }
+};
+#endif
+
 using SaiObjectIdListDefault = SaiListDefault<sai_object_list_t>;
 using SaiU32ListDefault = SaiListDefault<sai_u32_list_t>;
 using SaiS8ListDefault = SaiListDefault<sai_s8_list_t>;
