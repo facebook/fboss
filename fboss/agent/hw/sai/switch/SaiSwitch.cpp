@@ -1040,11 +1040,10 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
 void SaiSwitch::updatePmdInfo(
     phy::PhySideInfo& sideInfo,
     std::shared_ptr<SaiPort> port) {
+  std::map<int, phy::LaneInfo> laneInfos;
+
   auto eyeStatus =
       managerTable_->portManager().getPortEyeValues(port->adapterKey());
-  if (eyeStatus.empty()) {
-    return;
-  }
   // Collect eyeInfos for all lanes
   std::map<int, std::vector<phy::EyeInfo>> eyeInfos;
   for (int i = 0; i < eyeStatus.size(); i++) {
@@ -1069,12 +1068,48 @@ void SaiSwitch::updatePmdInfo(
     oneLaneEyeInfo.width() = width;
     eyeInfos[eyeStatus[i].lane].push_back(oneLaneEyeInfo);
   }
+
   for (auto eyeInfo : eyeInfos) {
     auto laneId = eyeInfo.first;
     phy::LaneInfo laneInfo;
+    if (laneInfos.find(laneId) != laneInfos.end()) {
+      laneInfo = laneInfos[laneId];
+    }
     laneInfo.lane() = laneId;
     laneInfo.eyes() = eyeInfo.second;
-    sideInfo.pmd()->lanes()[laneId] = laneInfo;
+    laneInfos[laneId] = laneInfo;
+  }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+  auto pmdSignalDetect =
+      managerTable_->portManager().getRxSignalDetect(port->adapterKey());
+  for (auto pmd : pmdSignalDetect) {
+    auto laneId = pmd.lane;
+    phy::LaneInfo laneInfo;
+    if (laneInfos.find(laneId) != laneInfos.end()) {
+      laneInfo = laneInfos[laneId];
+    }
+    laneInfo.signalDetectLive() = pmd.value.current_status;
+    laneInfo.signalDetectChanged() = pmd.value.changed;
+    laneInfos[laneId] = laneInfo;
+  }
+
+  auto pmdLockStatus =
+      managerTable_->portManager().getRxLockStatus(port->adapterKey());
+  for (auto pmd : pmdLockStatus) {
+    auto laneId = pmd.lane;
+    phy::LaneInfo laneInfo;
+    if (laneInfos.find(laneId) != laneInfos.end()) {
+      laneInfo = laneInfos[laneId];
+    }
+    laneInfo.cdrLockLive() = pmd.value.current_status;
+    laneInfo.cdrLockChanged() = pmd.value.changed;
+    laneInfos[laneId] = laneInfo;
+  }
+#endif
+
+  for (auto laneInfo : laneInfos) {
+    sideInfo.pmd()->lanes()[laneInfo.first] = laneInfo.second;
   }
 }
 
