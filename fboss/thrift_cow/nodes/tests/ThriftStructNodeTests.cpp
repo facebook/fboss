@@ -36,6 +36,22 @@ cfg::L4PortRange buildPortRange(int min, int max) {
   return portRange;
 }
 
+template <typename ThriftT>
+struct MemberForTestHelper {
+  template <typename Name>
+  using MemberFor =
+      typename ThriftStructFields<ThriftT>::template MemberFor<Name>;
+
+  template <typename Member>
+  void operator()(fatal::tag<Member>) {
+    using Name = typename Member::name;
+    using MemberFor = MemberFor<Name>;
+    // confirm reflected struct member from MemberFor is same as one seen in
+    // thrift's reflect_struct API
+    static_assert(std::is_same_v<MemberFor, Member>, "Something gone wrong");
+  }
+};
+
 } // namespace
 
 TEST(ThriftStructNodeTests, ThriftStructFieldsSimple) {
@@ -453,4 +469,9 @@ TEST(ThriftStructNodeTests, UnsignedInteger) {
   using UnderlyingType = folly::remove_cvref_t<
       decltype(*fields.get<k::unsigned_int64>())>::ThriftType;
   static_assert(std::is_same_v<UnderlyingType, uint64_t>);
+}
+
+TEST(ThriftStructNodeTests, MemberFor) {
+  using Members = apache::thrift::reflect_struct<TestStruct>::members;
+  fatal::foreach<Members>(MemberForTestHelper<TestStruct>());
 }
