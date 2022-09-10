@@ -431,6 +431,21 @@ sai_status_t set_port_attribute_fn(
                                   .list[j];
       }
     } break;
+    case SAI_PORT_ATTR_RX_LOCK_STATUS: {
+      port.portRxLockStatus.count =
+          static_cast<sai_port_lane_latch_status_list_t>(
+              attr->value.portlanelatchstatuslist)
+              .count;
+      auto& rxLockStatusList = port.portRxLockStatus.list;
+      auto rxLockStatusVector = std::vector<sai_port_lane_eye_values_t>();
+      rxLockStatusVector.resize(port.portRxLockStatus.count);
+      rxLockStatusList = rxLockStatusVector.data();
+      for (int j = 0; j < port.portRxLockStatus.count; j++) {
+        rxLockStatusList[j] = static_cast<sai_port_lane_latch_status_list_t>(
+                                  attr->value.portlanelatchstatuslist)
+                                  .list[j];
+      }
+    } break;
 #endif
     case SAI_PORT_ATTR_ERR_STATUS_LIST: {
       port.portError.count =
@@ -458,6 +473,21 @@ sai_status_t set_port_attribute_fn(
       for (int j = 0; j < port.portRxSignalDetect.count; j++) {
         signalDetectList[j] = static_cast<sai_port_lane_latch_status_list_t>(
                                   attr->value.portRxSignalDetect)
+                                  .list[j];
+      }
+    } break;
+    case SAI_PORT_ATTR_RX_LOCK_STATUS: {
+      port.portRxLockStatus.count =
+          static_cast<sai_port_lane_latch_status_list_t>(
+              attr->value.portlanelatchstatuslist)
+              .count;
+      auto& rxLockStatusList = port.portRxLockStatus.list;
+      auto rxLockStatusVector = std::vector<sai_port_lane_latch_status_t>();
+      rxLockStatusVector.resize(port.portRxLockStatus.count);
+      rxLockStatusList = rxLockStatusVector.data();
+      for (int j = 0; j < port.portRxLockStatus.count; j++) {
+        rxLockStatusList[j] = static_cast<sai_port_lane_latch_status_list_t>(
+                                  attr->value.portRxLockStatus)
                                   .list[j];
       }
     } break;
@@ -662,6 +692,14 @@ sai_status_t get_port_attribute_fn(
         for (int j = 0; j < port.portRxSignalDetect.count; j++) {
           attr[i].value.portlanelatchstatuslist.list[j] =
               port.portRxSignalDetect.list[j];
+        }
+        break;
+      case SAI_PORT_ATTR_RX_LOCK_STATUS:
+        attr[i].value.portlanelatchstatuslist.count =
+            port.portRxLockStatus.count;
+        for (int j = 0; j < port.portRxLockStatus.count; j++) {
+          attr[i].value.portlanelatchstatuslist.list[j] =
+              port.portRxLockStatus.list[j];
         }
         break;
 #endif

@@ -1471,6 +1471,16 @@ std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxSignalDetect(
   return SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId, SaiPortTraits::Attributes::RxSignalDetect{});
 }
+
+std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxLockStatus(
+    PortSaiId saiPortId) const {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::PMD_RX_LOCK_STATUS)) {
+    return std::vector<sai_port_lane_latch_status_t>();
+  }
+
+  return SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::RxLockStatus{});
+}
 #endif
 
 std::vector<sai_port_err_status_t> SaiPortManager::getPortErrStatus(

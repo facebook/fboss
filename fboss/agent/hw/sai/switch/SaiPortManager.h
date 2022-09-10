@@ -184,6 +184,8 @@ class SaiPortManager {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
   std::vector<sai_port_lane_latch_status_t> getRxSignalDetect(
       PortSaiId saiPortId) const;
+  std::vector<sai_port_lane_latch_status_t> getRxLockStatus(
+      PortSaiId saiPortId) const;
 #endif
 
   void enableAfeAdaptiveMode(PortID portId);

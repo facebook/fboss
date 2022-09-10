@@ -219,6 +219,10 @@ struct SaiPortTraits {
         EnumType,
         SAI_PORT_ATTR_RX_SIGNAL_DETECT,
         std::vector<sai_port_lane_latch_status_t>>;
+    using RxLockStatus = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_RX_LOCK_STATUS,
+        std::vector<sai_port_lane_latch_status_t>>;
 #endif
   };
   using AdapterKey = PortSaiId;
@@ -325,6 +329,7 @@ SAI_ATTRIBUTE_NAME(Port, QosTcToPriorityGroupMap)
 SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToQueueMap)
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
 SAI_ATTRIBUTE_NAME(Port, RxSignalDetect)
+SAI_ATTRIBUTE_NAME(Port, RxLockStatus)
 #endif
 
 template <>
