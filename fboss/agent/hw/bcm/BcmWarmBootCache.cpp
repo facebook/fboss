@@ -212,7 +212,10 @@ folly::dynamic BcmWarmBootCache::toFollyDynamic() const {
 }
 
 folly::dynamic BcmWarmBootCache::getWarmBootState() const {
-  return hw_->getPlatform()->getWarmBootHelper()->getWarmBootState();
+  // TODO: Use thrift representation for sw switch state.
+  auto [switchStateJson, _] =
+      hw_->getPlatform()->getWarmBootHelper()->getWarmBootState();
+  return switchStateJson;
 }
 
 void BcmWarmBootCache::populateFromWarmBootState(

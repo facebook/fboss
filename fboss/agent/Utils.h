@@ -93,6 +93,13 @@ bool dumpThriftStateToFile(
     const std::string& filename,
     const state::WarmbootState& thriftState);
 
+/*
+ * Deserialize thrift struct to from file and write into thriftState
+ */
+bool readThriftStateToFile(
+    const std::string& filename,
+    state::WarmbootState& thriftState);
+
 std::vector<ClientID> AllClientIDs();
 
 /*

@@ -1437,8 +1437,15 @@ HwInitResult SaiSwitch::initLocked(
   __gSaiIdToSwitch.insert_or_assign(switchId_, this);
   SaiApiTable::getInstance()->enableLogging(FLAGS_enable_sai_log);
   if (bootType_ == BootType::WARM_BOOT) {
-    auto switchStateJson = platform_->getWarmBootHelper()->getWarmBootState();
-    ret.switchState = SwitchState::fromFollyDynamic(switchStateJson[kSwSwitch]);
+    auto [switchStateJson, switchStateThrift] =
+        platform_->getWarmBootHelper()->getWarmBootState();
+    if (switchStateThrift) {
+      ret.switchState =
+          SwitchState::fromThrift(*switchStateThrift->swSwitchState());
+    } else {
+      ret.switchState =
+          SwitchState::fromFollyDynamic(switchStateJson[kSwSwitch]);
+    }
     if (platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE)) {
       adapterKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKeys]);

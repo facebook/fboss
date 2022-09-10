@@ -14,11 +14,12 @@
 #include "fboss/agent/SysError.h"
 #include "fboss/agent/Utils.h"
 
-#include "fboss/lib/CommonFileUtils.h"
-
 #include <folly/FileUtil.h>
 #include <folly/json.h>
 #include <folly/logging/xlog.h>
+#include <optional>
+#include <tuple>
+#include "fboss/lib/CommonFileUtils.h"
 
 DEFINE_bool(can_warm_boot, true, "Enable/disable warm boot functionality");
 DEFINE_string(
@@ -33,6 +34,10 @@ DEFINE_bool(
     dump_thrift_state,
     false,
     "Whether to dump thrift state during warmboot exit");
+DEFINE_bool(
+    read_thrift_state,
+    false,
+    "Whether to read thrift state during warmboot init");
 
 namespace {
 constexpr auto wbFlagPrefix = "can_warm_boot_";
@@ -145,7 +150,8 @@ bool HwSwitchWarmBootHelper::storeWarmBootState(
   return warmBootStateWritten_;
 }
 
-folly::dynamic HwSwitchWarmBootHelper::getWarmBootState() const {
+std::tuple<folly::dynamic, std::optional<state::WarmbootState>>
+HwSwitchWarmBootHelper::getWarmBootState() const {
   std::string warmBootJson;
   auto ret =
       folly::readFile(warmBootFollySwitchStateFile().c_str(), warmBootJson);
@@ -153,7 +159,12 @@ folly::dynamic HwSwitchWarmBootHelper::getWarmBootState() const {
       ret,
       "Unable to read switch state from : ",
       warmBootFollySwitchStateFile());
-  return folly::parseJson(warmBootJson);
+  state::WarmbootState thriftState;
+  if (FLAGS_read_thrift_state &&
+      readThriftStateToFile(warmBootThriftSwitchStateFile(), thriftState)) {
+    return std::make_tuple(folly::parseJson(warmBootJson), thriftState);
+  }
+  return std::make_tuple(folly::parseJson(warmBootJson), std::nullopt);
 }
 
 void HwSwitchWarmBootHelper::setupWarmBootFile() {

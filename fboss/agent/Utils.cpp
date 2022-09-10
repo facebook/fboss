@@ -130,6 +130,22 @@ bool dumpThriftStateToFile(
   return folly::writeFile(result, filename.c_str());
 }
 
+bool readThriftStateToFile(
+    const std::string& filename,
+    state::WarmbootState& thriftState) {
+  std::vector<std::byte> serializedThrift;
+  auto ret = folly::readFile(filename.c_str(), serializedThrift);
+  if (ret) {
+    auto buf = folly::IOBuf::copyBuffer(
+        serializedThrift.data(), serializedThrift.size());
+    apache::thrift::BinaryProtocolReader reader;
+    reader.setInput(buf.get());
+    thriftState.read(&reader);
+    return true;
+  }
+  return false;
+}
+
 std::string getLocalHostname() {
   const size_t kHostnameMaxLen = 256; // from gethostname man page
   char hostname[kHostnameMaxLen];

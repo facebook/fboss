@@ -911,7 +911,10 @@ HwInitResult BcmSwitch::initImpl(
     // This needs to be done after we have set
     // bcmSwitchL3EgressMode else the egress ids
     // in the host table don't show up correctly.
-    switchStateJson = getPlatform()->getWarmBootHelper()->getWarmBootState();
+    // TODO: Use thrift representation for sw switch state.
+    auto warmbootStates =
+        getPlatform()->getWarmBootHelper()->getWarmBootState();
+    switchStateJson = std::get<0>(warmbootStates);
     warmBootCache_->populate(switchStateJson);
   }
   setupToCpuEgress();
