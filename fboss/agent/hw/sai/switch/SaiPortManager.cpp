@@ -1053,6 +1053,9 @@ void SaiPortManager::setQosPolicy() {
 }
 
 void SaiPortManager::clearQosPolicy() {
+  if (managerTable_->switchManager().isGlobalQoSMapSupported()) {
+    return;
+  }
   setQosMapsOnAllPorts(
       QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
   globalDscpToTcQosMap_.reset();
