@@ -54,3 +54,7 @@ struct TestStruct {
   22: optional string optionalString;
   23: i64 (cpp.type = "uint64_t") unsigned_int64;
 }
+
+struct ParentTestStruct {
+  1: TestStruct childStruct;
+}

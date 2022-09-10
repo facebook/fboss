@@ -42,4 +42,36 @@ TEST(ThriftStructNodeResolverTests, DerivedTestStructNodeTest) {
   EXPECT_EQ(node.getInlineInt(), 123);
 }
 
+class DerivedParentTestNode;
+template <>
+struct TestResolver<ParentTestStruct> {
+  using type = DerivedParentTestNode;
+};
+
+class DerivedParentTestNode
+    : public ThriftStructNode<ParentTestStruct, TestResolver> {
+ public:
+  using Base = ThriftStructNode<ParentTestStruct, TestResolver>;
+  using Base::Base;
+
+  std::shared_ptr<DerivedTestStructNode> getChild() const {
+    return get<k::childStruct>();
+  }
+
+  void setChild(std::shared_ptr<DerivedTestStructNode> node) {
+    ref<k::childStruct>() = node;
+  }
+
+ private:
+  friend class CloneAllocator;
+};
+
+TEST(ThriftStructNodeResolverTests, DerivedParentTestStructNodeTest) {
+  DerivedParentTestNode node;
+  auto child = std::make_shared<DerivedTestStructNode>();
+  child->setInlineInt(321);
+  node.setChild(child);
+  EXPECT_EQ(node.getChild()->getInlineInt(), 321);
+}
+
 } // namespace facebook::fboss::thrift_cow
