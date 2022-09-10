@@ -211,17 +211,16 @@ folly::dynamic BcmWarmBootCache::toFollyDynamic() const {
   return warmBootCache;
 }
 
-folly::dynamic BcmWarmBootCache::getWarmBootState() const {
-  // TODO: Use thrift representation for sw switch state.
-  auto [switchStateJson, _] =
-      hw_->getPlatform()->getWarmBootHelper()->getWarmBootState();
-  return switchStateJson;
-}
-
 void BcmWarmBootCache::populateFromWarmBootState(
-    const folly::dynamic& warmBootState) {
-  dumpedSwSwitchState_ =
-      SwitchState::uniquePtrFromFollyDynamic(warmBootState[kSwSwitch]);
+    const folly::dynamic& warmBootState,
+    std::optional<state::WarmbootState> thriftState) {
+  if (thriftState) {
+    dumpedSwSwitchState_ =
+        SwitchState::uniquePtrFromThrift(*thriftState->swSwitchState());
+  } else {
+    dumpedSwSwitchState_ =
+        SwitchState::uniquePtrFromFollyDynamic(warmBootState[kSwSwitch]);
+  }
   dumpedSwSwitchState_->publish();
   CHECK(dumpedSwSwitchState_)
       << "Was not able to recover software state after warmboot";
@@ -448,8 +447,10 @@ BcmWarmBootCache::findEgressFromLabeledHostKey(const BcmLabeledHostKey& key) {
       : findEgress(iter->second);
 }
 
-void BcmWarmBootCache::populate(const folly::dynamic& warmBootState) {
-  populateFromWarmBootState(warmBootState);
+void BcmWarmBootCache::populate(
+    const folly::dynamic& warmBootState,
+    std::optional<state::WarmbootState> thriftState) {
+  populateFromWarmBootState(warmBootState, thriftState);
   bcm_vlan_data_t* vlanList = nullptr;
   int vlanCount = 0;
   SCOPE_EXIT {

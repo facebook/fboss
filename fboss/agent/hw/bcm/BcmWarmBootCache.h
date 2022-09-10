@@ -62,7 +62,9 @@ class BcmWarmBootCache {
  public:
   explicit BcmWarmBootCache(const BcmSwitchIf* hw);
   folly::dynamic getWarmBootStateFollyDynamic() const;
-  void populate(const folly::dynamic& warmBootState);
+  void populate(
+      const folly::dynamic& warmBootState,
+      std::optional<state::WarmbootState> thriftState);
   struct VlanInfo {
     VlanInfo(
         VlanID _vlan,
@@ -638,8 +640,9 @@ class BcmWarmBootCache {
    * map
    */
   const EgressId2Weight& getPathsForEcmp(EgressId ecmp) const;
-  folly::dynamic getWarmBootState() const;
-  void populateFromWarmBootState(const folly::dynamic& warmBootState);
+  void populateFromWarmBootState(
+      const folly::dynamic& warmBootState,
+      std::optional<state::WarmbootState> thriftState);
   // No copy or assignment.
   BcmWarmBootCache(const BcmWarmBootCache&) = delete;
   BcmWarmBootCache& operator=(const BcmWarmBootCache&) = delete;

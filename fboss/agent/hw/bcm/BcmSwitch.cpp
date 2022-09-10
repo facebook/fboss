@@ -30,6 +30,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/HwSwitchStats.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
@@ -907,6 +908,7 @@ HwInitResult BcmSwitch::initImpl(
   setupCos();
 
   folly::dynamic switchStateJson;
+  std::optional<state::WarmbootState> switchStateThrift;
   if (warmBoot) {
     // This needs to be done after we have set
     // bcmSwitchL3EgressMode else the egress ids
@@ -915,7 +917,8 @@ HwInitResult BcmSwitch::initImpl(
     auto warmbootStates =
         getPlatform()->getWarmBootHelper()->getWarmBootState();
     switchStateJson = std::get<0>(warmbootStates);
-    warmBootCache_->populate(switchStateJson);
+    switchStateThrift = std::get<1>(warmbootStates);
+    warmBootCache_->populate(switchStateJson, switchStateThrift);
   }
   setupToCpuEgress();
   portTable_->initPorts(&pcfg, warmBoot);
