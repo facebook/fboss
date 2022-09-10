@@ -135,7 +135,7 @@ struct ChildInvoke {
 
 template <typename TType, template <typename> typename Resolver>
 struct ThriftStructFields {
-  using Self = ThriftStructFields<TType>;
+  using Self = ThriftStructFields<TType, Resolver>;
   using Info = apache::thrift::reflect_struct<TType>;
   using CowType = FieldsType;
   using ThriftType = TType;
@@ -370,13 +370,14 @@ struct ThriftStructFields {
 
 template <typename TType, template <typename> typename Resolver>
 class ThriftStructNode : public NodeBaseT<
-                             ThriftStructNode<TType>,
+                             ResolvedType<TType, Resolver>,
                              ThriftStructFields<TType, Resolver>> {
  public:
-  using Self = ThriftStructNode<TType>;
+  using Self = ThriftStructNode<TType, Resolver>;
   using Fields = ThriftStructFields<TType, Resolver>;
   using ThriftType = typename Fields::ThriftType;
-  using BaseT = NodeBaseT<ThriftStructNode<TType>, Fields>;
+  using Derived = ResolvedType<TType, Resolver>;
+  using BaseT = NodeBaseT<Derived, Fields>;
   using CowType = NodeType;
   using TC = typename Fields::TC;
   using PathIter = typename std::vector<std::string>::const_iterator;

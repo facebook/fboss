@@ -17,6 +17,15 @@ namespace facebook::fboss::thrift_cow {
 template <typename T>
 struct DefaultTypeResolver;
 
+template <typename T, typename Default>
+using DefaultIfVoid =
+    typename std::conditional_t<std::is_same_v<T, void>, Default, T>;
+
+template <typename TType, template <typename> typename Resolver>
+using ResolvedType = DefaultIfVoid<
+    typename Resolver<TType>::type,
+    ThriftStructNode<TType, Resolver>>;
+
 template <
     typename TC,
     typename TType,
@@ -36,7 +45,16 @@ struct ConvertToNodeTraits<
     apache::thrift::type_class::structure,
     TType,
     Resolver> {
-  using type = std::shared_ptr<ThriftStructNode<TType>>;
+  using default_type = ThriftStructNode<TType, Resolver>;
+  using struct_type = ResolvedType<TType, Resolver>;
+  static_assert(
+      std::is_base_of_v<default_type, struct_type>,
+      "Resolved type needs to be a subclass of ThriftStructNode");
+  static_assert(
+      sizeof(default_type) == sizeof(struct_type),
+      "Resolved type should not define any members. All data needs to be stored in defined thrift struct");
+
+  using type = std::shared_ptr<struct_type>;
   using isChild = std::true_type;
 };
 
