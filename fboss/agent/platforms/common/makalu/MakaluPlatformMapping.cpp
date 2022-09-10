@@ -10,6 +10,8 @@
 
 #include "fboss/agent/platforms/common/makalu/MakaluPlatformMapping.h"
 
+// TODO(skhare) add platform mapping
+
 namespace {
 constexpr auto kJsonPlatformMappingStr = R"(
 {

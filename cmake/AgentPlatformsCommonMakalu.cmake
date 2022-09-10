@@ -4,7 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(makalu_platform_mapping
-  fboss/agent/platforms/common/makalu/oss/MakaluPlatformMapping.cpp
+  fboss/agent/platforms/common/makalu/MakaluPlatformMapping.cpp
 )
 
 target_link_libraries(makalu_platform_mapping
