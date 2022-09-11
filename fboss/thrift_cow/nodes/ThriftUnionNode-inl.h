@@ -17,6 +17,8 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/thrift_cow/nodes/Types.h"
 
+#include <variant>
+
 namespace facebook::fboss::thrift_cow {
 
 template <typename Fields>

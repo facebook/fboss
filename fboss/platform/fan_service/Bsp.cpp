@@ -3,7 +3,7 @@
 // Implementation of Bsp class. Refer to .h for functional description
 #include "Bsp.h"
 #include <string>
-#include "fboss/fsdb/Flags.h"
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_config_structs_types.h"
 // Additional FB helper funtion

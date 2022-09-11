@@ -2,8 +2,8 @@
 
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include <folly/logging/xlog.h>
-#include "fboss/fsdb/Flags.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>

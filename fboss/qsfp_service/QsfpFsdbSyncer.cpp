@@ -8,8 +8,8 @@
  *
  */
 
-#include "fboss/fsdb/Flags.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
+#include "fboss/fsdb/common/Flags.h"
 #include "folly/Singleton.h"
 
 #include "fboss/qsfp_service/TransceiverManager.h"

@@ -3,10 +3,10 @@
 #pragma once
 #include <folly/Synchronized.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
-#include "fboss/fsdb/Flags.h"
 #include "fboss/fsdb/client/FsdbDeltaSubscriber.h"
 #include "fboss/fsdb/client/FsdbStateSubscriber.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 #include <mutex>

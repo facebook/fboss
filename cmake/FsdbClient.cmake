@@ -35,6 +35,7 @@ add_library(fsdb_syncer
 )
 
 target_link_libraries(fsdb_syncer
+  cow_storage_mgr
   fsdb_common_cpp2
   fsdb_flags
   fsdb_oper_cpp2
