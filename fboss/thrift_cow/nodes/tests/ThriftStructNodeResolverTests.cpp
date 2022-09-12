@@ -9,19 +9,10 @@ namespace facebook::fboss::thrift_cow {
 
 using k = test_tags::strings;
 
-template <typename TType>
-struct TestResolver : public DefaultTypeResolver<TType> {};
-
-class DerivedTestStructNode;
-template <>
-struct TestResolver<TestStruct> {
-  using type = DerivedTestStructNode;
-};
-
-class DerivedTestStructNode
-    : public ThriftStructNode<TestStruct, TestResolver> {
+ADD_THRIFT_RESOLVER_MAPPING(TestStruct, DerivedTestStructNode);
+class DerivedTestStructNode : public ThriftStructNode<TestStruct> {
  public:
-  using Base = ThriftStructNode<TestStruct, TestResolver>;
+  using Base = ThriftStructNode<TestStruct>;
   using Base::Base;
 
   int getInlineInt() const {
@@ -42,16 +33,10 @@ TEST(ThriftStructNodeResolverTests, DerivedTestStructNodeTest) {
   EXPECT_EQ(node.getInlineInt(), 123);
 }
 
-class DerivedParentTestNode;
-template <>
-struct TestResolver<ParentTestStruct> {
-  using type = DerivedParentTestNode;
-};
-
-class DerivedParentTestNode
-    : public ThriftStructNode<ParentTestStruct, TestResolver> {
+ADD_THRIFT_RESOLVER_MAPPING(ParentTestStruct, DerivedParentTestNode);
+class DerivedParentTestNode : public ThriftStructNode<ParentTestStruct> {
  public:
-  using Base = ThriftStructNode<ParentTestStruct, TestResolver>;
+  using Base = ThriftStructNode<ParentTestStruct>;
   using Base::Base;
 
   std::shared_ptr<DerivedTestStructNode> getChild() const {
