@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <regex>
+
 namespace facebook::fboss {
 class FilterOp {
  public:
@@ -88,7 +90,6 @@ class FilterOpGt : public FilterOp {
       const std::string& predicateValue) override {
     std::cerr << "> operator on strings not supported" << std::endl;
     exit(1);
-    return false;
   }
   bool compare(const std::byte& resultValue, const std::byte& predicateValue)
       override {
@@ -112,7 +113,6 @@ class FilterOpLt : public FilterOp {
       const std::string& predicateValue) override {
     std::cerr << "< operator on strings not supported" << std::endl;
     exit(1);
-    return false;
   }
   bool compare(const std::byte& resultValue, const std::byte& predicateValue)
       override {
@@ -136,7 +136,6 @@ class FilterOpGte : public FilterOp {
       const std::string& predicateValue) override {
     std::cerr << ">= operator on strings not supported" << std::endl;
     exit(1);
-    return false;
   }
   bool compare(const std::byte& resultValue, const std::byte& predicateValue)
       override {
@@ -160,7 +159,6 @@ class FilterOpLte : public FilterOp {
       const std::string& predicateValue) override {
     std::cerr << "<= operator on strings not supported" << std::endl;
     exit(1);
-    return false;
   }
   bool compare(const std::byte& resultValue, const std::byte& predicateValue)
       override {
@@ -190,6 +188,37 @@ class FilterOpStartsWith : public FilterOp {
   bool compare(const std::byte& resultValue, const std::byte& predicateValue)
       override {
     std::cerr << "=^ operator on non-strings not supported" << std::endl;
+    exit(1);
+  }
+};
+
+class FilterOpRegex : public FilterOp {
+ public:
+  bool compare(const int& resultValue, const int& predicateValue) override {
+    std::cerr << "=~ operator on ints not supported" << std::endl;
+    exit(1);
+  }
+  bool compare(const long& resultValue, const long& predicateValue) override {
+    std::cerr << "=~ operator on longs not supported" << std::endl;
+    exit(1);
+  }
+  bool compare(const short& resultValue, const short& predicateValue) override {
+    std::cerr << "=~ operator on shorts not supported" << std::endl;
+    exit(1);
+  }
+  bool compare(
+      const std::string& resultValue,
+      const std::string& predicateValue) override {
+    auto matchPattern = [&predicateValue](const std::string& value) {
+      std::regex pattern{predicateValue};
+      std::smatch matches;
+      return regex_search(value, matches, pattern);
+    };
+    return matchPattern(resultValue);
+  }
+  bool compare(const std::byte& resultValue, const std::byte& predicateValue)
+      override {
+    std::cerr << "=~ operator on bytes not supported" << std::endl;
     exit(1);
   }
 };
