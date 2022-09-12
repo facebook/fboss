@@ -167,4 +167,30 @@ class FilterOpLte : public FilterOp {
     return resultValue <= predicateValue;
   }
 };
+
+class FilterOpStartsWith : public FilterOp {
+ public:
+  bool compare(const int& resultValue, const int& predicateValue) override {
+    std::cerr << "=^ operator on non-strings not supported" << std::endl;
+    exit(1);
+  }
+  bool compare(const long& resultValue, const long& predicateValue) override {
+    std::cerr << "=^ operator on non-strings not supported" << std::endl;
+    exit(1);
+  }
+  bool compare(const short& resultValue, const short& predicateValue) override {
+    std::cerr << "=^ operator on non-strings not supported" << std::endl;
+    exit(1);
+  }
+  bool compare(
+      const std::string& resultValue,
+      const std::string& predicateValue) override {
+    return resultValue.rfind(predicateValue, 0) == 0;
+  }
+  bool compare(const std::byte& resultValue, const std::byte& predicateValue)
+      override {
+    std::cerr << "=^ operator on non-strings not supported" << std::endl;
+    exit(1);
+  }
+};
 } // namespace facebook::fboss

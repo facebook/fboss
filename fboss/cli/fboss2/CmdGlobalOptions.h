@@ -183,6 +183,8 @@ class CmdGlobalOptions {
         return std::make_shared<FilterOpGte>();
       case hash("!="):
         return std::make_shared<FilterOpNeq>();
+      case hash("=^"):
+        return std::make_shared<FilterOpStartsWith>();
       default:
         throw std::invalid_argument("Invalid filter argument passed");
     }
