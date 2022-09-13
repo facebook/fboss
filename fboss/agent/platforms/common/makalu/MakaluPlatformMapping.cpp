@@ -54,6 +54,60 @@ cfg::PlatformMapping buildMapping() {
          portConfig});
     platformMapping.ports()->emplace(port, std::move(portEntry));
   }
+  auto nifBcCoreId = 49;
+  std::map<int, int> nifPortToLane = {
+      {1, 80},
+      {17, 88},
+      {25, 96},
+      {33, 104},
+      {41, 112},
+      {49, 120},
+      {57, 128},
+      {65, 136},
+      {73, 64},
+      {81, 56},
+      {89, 48},
+      {97, 40},
+      {105, 32},
+      {113, 24},
+      {121, 16},
+      {129, 8}};
+  for (auto& [port, lane] : nifPortToLane) {
+    phy::DataPlanePhyChip chip;
+    // TODO - Make BC core id map front panel mapping. So BC0 becomes
+    // first front panel port
+    chip.name() = folly::to<std::string>("BC", nifBcCoreId++);
+    chip.type() = phy::DataPlanePhyChipType::IPHY;
+    chip.physicalID() = lane;
+    platformMapping.chips()->push_back(chip);
+    cfg::PlatformPortEntry portEntry;
+    portEntry.mapping()->id() = port;
+    // FIXME - eth port id does not match front panel port
+    portEntry.mapping()->name() = folly::to<std::string>("eth1/", port, "/1");
+    portEntry.mapping()->controllingPort() = port;
+    phy::PortPinConfig portPinConfig;
+    for (auto pinIdx = 0; pinIdx < 4; ++pinIdx) {
+      phy::PinConnection pinConnect;
+      phy::PinID asicSerdesPinId;
+      asicSerdesPinId.chip() = *platformMapping.chips()->back().name();
+      asicSerdesPinId.lane() = pinIdx;
+      pinConnect.a() = asicSerdesPinId;
+      // FIXME - get z end and polarity swap info
+      portEntry.mapping()->pins()->push_back(pinConnect);
+      // Populate phy.PortPinConfig
+      phy::PinConfig pinConfig;
+      pinConfig.id() = asicSerdesPinId;
+      portPinConfig.iphy()->push_back(pinConfig);
+    }
+    portEntry.mapping()->portType() = cfg::PortType::INTERFACE_PORT;
+    cfg::PlatformPortConfig portConfig;
+    portConfig.subsumedPorts() =
+        std::vector<int32_t>({port + 1, port + 2, port + 3});
+    portConfig.pins() = portPinConfig;
+    portEntry.supportedProfiles()->insert(
+        {cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL, portConfig});
+    platformMapping.ports()->emplace(port, std::move(portEntry));
+  }
   // Fill in supported profiles
   {
     // Fabric port profile
