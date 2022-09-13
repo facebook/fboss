@@ -345,6 +345,12 @@ void from_json(const json& j, SpecialHandlerInfo& m) {
   j.at("info").get_to(m.info);
 }
 
+void from_json(const json& j, BaudrateConfig& m) {
+  m.isSet = true;
+  j.at("reg").get_to(m.reg);
+  j.at("baud_value_map").get_to(m.baudValueMap);
+}
+
 void from_json(const json& j, RegisterMap& m) {
   j.at("address_range").get_to(m.applicableAddresses);
   j.at("probe_register").get_to(m.probeRegister);
@@ -358,6 +364,9 @@ void from_json(const json& j, RegisterMap& m) {
   }
   if (j.contains("special_handlers")) {
     j.at("special_handlers").get_to(m.specialHandlers);
+  }
+  if (j.contains("baud_config")) {
+    j.at("baud_config").get_to(m.baudConfig);
   }
 }
 void to_json(json& j, const RegisterMap& m) {
