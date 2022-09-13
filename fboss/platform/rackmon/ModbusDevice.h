@@ -3,6 +3,8 @@
 #include <nlohmann/json.hpp>
 #include <ctime>
 #include <iostream>
+#include <optional>
+#include <set>
 #include "Modbus.h"
 #include "ModbusCmds.h"
 #include "Register.h"
@@ -10,6 +12,20 @@
 namespace rackmon {
 
 enum class ModbusDeviceMode { ACTIVE = 0, DORMANT = 1 };
+
+struct ModbusRegisterFilter {
+  std::optional<std::set<uint16_t>> addrFilter{};
+  std::optional<std::set<std::string>> nameFilter{};
+  operator bool() const {
+    return addrFilter || nameFilter;
+  }
+  bool contains(uint16_t addr) const {
+    return addrFilter && addrFilter->find(addr) != addrFilter->end();
+  }
+  bool contains(const std::string& name) const {
+    return nameFilter && nameFilter->find(name) != nameFilter->end();
+  }
+};
 
 class ModbusDevice;
 
@@ -94,6 +110,14 @@ class ModbusDevice {
   virtual void
   command(Msg& req, Msg& resp, ModbusTime timeout = ModbusTime::zero());
 
+  uint8_t getDeviceAddress() const {
+    return info_.deviceAddress;
+  }
+
+  const std::string& getDeviceType() const {
+    return info_.deviceType;
+  }
+
   void readHoldingRegisters(
       uint16_t registerOffset,
       std::vector<uint16_t>& regs,
@@ -136,7 +160,9 @@ class ModbusDevice {
   ModbusDeviceRawData getRawData();
 
   // Returns value formatted register data monitored for this device.
-  ModbusDeviceValueData getValueData();
+  ModbusDeviceValueData getValueData(
+      const ModbusRegisterFilter& filter = {},
+      bool latestValueOnly = false) const;
 };
 
 } // namespace rackmon

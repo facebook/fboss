@@ -386,6 +386,31 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   EXPECT_EQ(data.registerList[0].history[0].type, RegisterValueType::STRING);
   EXPECT_EQ(data.registerList[0].history[0].value.strValue, "abcd");
 
+  ModbusRegisterFilter filter1, filter2, filter3, filter4;
+  filter1.addrFilter = {0x0};
+  filter2.addrFilter = {0x10};
+  filter3.nameFilter = {"MFG_MODEL"};
+  filter4.nameFilter = {"HELLOWORLD"};
+  ModbusDeviceValueData filterData1 = dev.getValueData(filter1);
+  EXPECT_EQ(filterData1.deviceAddress, 0x32);
+  EXPECT_EQ(filterData1.registerList.size(), 1);
+  EXPECT_EQ(filterData1.registerList[0].regAddr, 0);
+  EXPECT_EQ(filterData1.registerList[0].history.size(), 1);
+
+  ModbusDeviceValueData filterData2 = dev.getValueData(filter2);
+  EXPECT_EQ(filterData2.deviceAddress, 0x32);
+  EXPECT_EQ(filterData2.registerList.size(), 0);
+
+  ModbusDeviceValueData filterData3 = dev.getValueData(filter3);
+  EXPECT_EQ(filterData3.deviceAddress, 0x32);
+  EXPECT_EQ(filterData3.registerList.size(), 1);
+  EXPECT_EQ(filterData3.registerList[0].regAddr, 0);
+  EXPECT_EQ(filterData3.registerList[0].history.size(), 1);
+
+  ModbusDeviceValueData filterData4 = dev.getValueData(filter4);
+  EXPECT_EQ(filterData4.deviceAddress, 0x32);
+  EXPECT_EQ(filterData4.registerList.size(), 0);
+
   dev.reloadRegisters();
   ModbusDeviceValueData data2 = dev.getValueData();
   EXPECT_EQ(data2.deviceAddress, 0x32);
@@ -436,6 +461,10 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   EXPECT_NEAR(j["registers"][0]["readings"][1]["time"], std::time(0), 10);
   EXPECT_EQ(j["registers"][0]["readings"][1]["value"], "bcde");
   EXPECT_EQ(j["registers"][0]["readings"][1]["type"], "string");
+
+  ModbusDeviceValueData data4 = dev.getValueData({}, true);
+  EXPECT_EQ(data4.registerList[0].history.size(), 1);
+  EXPECT_EQ(data3.registerList[0].history[0].value.strValue, "cdef");
 }
 
 TEST_F(ModbusDeviceTest, MonitorRawData) {

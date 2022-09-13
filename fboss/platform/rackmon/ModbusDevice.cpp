@@ -205,12 +205,25 @@ ModbusDeviceInfo ModbusDevice::getInfo() {
   return info_;
 }
 
-ModbusDeviceValueData ModbusDevice::getValueData() {
+ModbusDeviceValueData ModbusDevice::getValueData(
+    const ModbusRegisterFilter& filter,
+    bool latestValueOnly) const {
   std::unique_lock lk(registerListMutex_);
   ModbusDeviceValueData data;
   data.ModbusDeviceInfo::operator=(info_);
+  auto shouldPickRegister = [&filter](const RegisterStore& reg) {
+    return !filter || filter.contains(reg.regAddr()) ||
+        filter.contains(reg.name());
+  };
   for (const auto& reg : info_.registerList) {
-    data.registerList.emplace_back(reg);
+    if (shouldPickRegister(reg)) {
+      if (latestValueOnly) {
+        data.registerList.emplace_back(reg.regAddr(), reg.name());
+        data.registerList.back().history.emplace_back(reg.back());
+      } else {
+        data.registerList.emplace_back(reg);
+      }
+    }
   }
   return data;
 }
