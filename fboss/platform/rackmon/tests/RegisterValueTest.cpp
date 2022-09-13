@@ -11,7 +11,7 @@ TEST(RegisterValueTest, Hex) {
   RegisterValue val({1, 2});
   std::vector<uint8_t> exp{0x00, 0x01, 0x00, 0x02};
   EXPECT_EQ(val.type, RegisterValueType::HEX);
-  EXPECT_EQ(val.value.hexValue, exp);
+  EXPECT_EQ(std::get<std::vector<uint8_t>>(val.value), exp);
 
   nlohmann::json j = val;
   EXPECT_TRUE(j.is_object());
@@ -32,7 +32,7 @@ TEST(RegisterValueTest, STRING) {
       d,
       0x12345678);
   EXPECT_EQ(val.type, RegisterValueType::STRING);
-  EXPECT_EQ(val.value.strValue, "700-014671-0000 ");
+  EXPECT_EQ(std::get<std::string>(val.value), "700-014671-0000 ");
   EXPECT_EQ(val.timestamp, 0x12345678);
 
   nlohmann::json j = val;
@@ -50,7 +50,7 @@ TEST(RegisterValueTest, INTEGER) {
   d.format = RegisterValueType::INTEGER;
   RegisterValue val({0x1234, 0x5678}, d, 0x12345678);
   EXPECT_EQ(val.type, RegisterValueType::INTEGER);
-  EXPECT_EQ(val.value.intValue, 0x12345678);
+  EXPECT_EQ(std::get<int32_t>(val.value), 0x12345678);
 
   nlohmann::json j = val;
   EXPECT_TRUE(j.is_object());
@@ -69,7 +69,7 @@ TEST(RegisterValueTest, LITTLE_INTEGER) {
   d.endian = RegisterEndian::LITTLE;
   RegisterValue val({0x1234, 0x5678}, d, 0x12345678);
   EXPECT_EQ(val.type, RegisterValueType::INTEGER);
-  EXPECT_EQ(val.value.intValue, 0x78563412);
+  EXPECT_EQ(std::get<int32_t>(val.value), 0x78563412);
 }
 
 TEST(RegisterValueTest, FLOAT) {
@@ -78,7 +78,7 @@ TEST(RegisterValueTest, FLOAT) {
   d.precision = 11;
   RegisterValue val({0x64fc}, d, 0x12345678);
   EXPECT_EQ(val.type, RegisterValueType::FLOAT);
-  EXPECT_NEAR(val.value.floatValue, 12.623, 0.001);
+  EXPECT_NEAR(std::get<float>(val.value), 12.623, 0.001);
 
   nlohmann::json j = val;
   EXPECT_TRUE(j.is_object());
@@ -98,17 +98,17 @@ TEST(RegisterValueTest, FLAGS) {
   EXPECT_EQ(val1.type, RegisterValueType::FLAGS);
   std::string expstr1 = "\n*[1] <0> HELLO\n*[1] <1> WORLD";
   RegisterValue::FlagsType exp1 = {{true, "HELLO", 0}, {true, "WORLD", 1}};
-  EXPECT_EQ(val1.value.flagsValue, exp1);
+  EXPECT_EQ(std::get<RegisterValue::FlagsType>(val1.value), exp1);
 
   RegisterValue val2({0x0000}, d, 0x12345678);
   EXPECT_EQ(val1.type, RegisterValueType::FLAGS);
   RegisterValue::FlagsType exp2 = {{false, "HELLO", 0}, {false, "WORLD", 1}};
-  EXPECT_EQ(val2.value.flagsValue, exp2);
+  EXPECT_EQ(std::get<RegisterValue::FlagsType>(val2.value), exp2);
 
   RegisterValue val3({0x0002}, d, 0x12345678);
   EXPECT_EQ(val3.type, RegisterValueType::FLAGS);
   RegisterValue::FlagsType exp3 = {{false, "HELLO", 0}, {true, "WORLD", 1}};
-  EXPECT_EQ(val3.value.flagsValue, exp3);
+  EXPECT_EQ(std::get<RegisterValue::FlagsType>(val3.value), exp3);
 
   nlohmann::json j = val3;
   EXPECT_TRUE(j.is_object());
@@ -150,7 +150,7 @@ TEST(RegisterValueTest, LargeFlags) {
       {false, "WORLD", 31},
       {false, "HELLO2", 32},
       {true, "WORLD2", 63}};
-  EXPECT_EQ(val.value.flagsValue, exp1);
+  EXPECT_EQ(std::get<RegisterValue::FlagsType>(val.value), exp1);
 }
 
 TEST(RegisterValueTest, CopyMoveTest) {
@@ -162,13 +162,33 @@ TEST(RegisterValueTest, CopyMoveTest) {
       0x12345678);
   RegisterValue val2(val);
   EXPECT_EQ(val2.type, RegisterValueType::STRING);
-  EXPECT_EQ(val2.value.strValue, val.value.strValue);
+  EXPECT_EQ(val2.value, val.value);
   RegisterValue val3(std::move(val2));
   EXPECT_EQ(val3.type, RegisterValueType::STRING);
-  EXPECT_EQ(val3.value.strValue, val.value.strValue);
+  EXPECT_EQ(val3.value, val.value);
   // Ensure we are moving from 2 and not just copying.
   // XXX move symantics technically allows only destructor and a copy from a
   // moved object, but it supposedly leaves it in a semi-valid state, so
   // checking length for 0 seems a decent option.
-  EXPECT_EQ(val2.value.strValue.length(), 0);
+  EXPECT_EQ(std::get<std::string>(val2.value).length(), 0);
+}
+
+TEST(RegisterValueTest, AsignmentTest) {
+  RegisterDescriptor d1, d2;
+  d1.format = RegisterValueType::STRING;
+  d2.format = RegisterValueType::INTEGER;
+  RegisterValue strVal(
+      {0x3730, 0x302d, 0x3031, 0x3436, 0x3731, 0x2d30, 0x3030, 0x3020},
+      d1,
+      0x12345678);
+  RegisterValue intVal({0x1}, d2, 0x56781234);
+  RegisterValue val;
+  val = strVal;
+  EXPECT_EQ(val.type, RegisterValueType::STRING);
+  EXPECT_EQ(val.value, strVal.value);
+  EXPECT_EQ(val.timestamp, strVal.timestamp);
+  val = intVal;
+  EXPECT_EQ(val.type, RegisterValueType::INTEGER);
+  EXPECT_EQ(val.value, intVal.value);
+  EXPECT_EQ(val.timestamp, intVal.timestamp);
 }

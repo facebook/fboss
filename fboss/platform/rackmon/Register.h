@@ -5,6 +5,7 @@
 #include <map>
 #include <optional>
 #include <utility>
+#include <variant>
 #include <vector>
 
 namespace rackmon {
@@ -56,35 +57,22 @@ struct RegisterDescriptor {
 struct RegisterValue {
   using FlagType = std::tuple<bool, std::string, uint8_t>;
   using FlagsType = std::vector<FlagType>;
-  // Dictates which if the members of value is valid
-  RegisterValueType type = RegisterValueType::HEX;
+  using ValueType = std::
+      variant<int32_t, float, std::string, std::vector<uint8_t>, FlagsType>;
+
+  // Dictates which of the variants in value to expect
+  RegisterValueType type = RegisterValueType::INTEGER;
+  ValueType value{};
 
   // The timestamp of when the value was read
   uint32_t timestamp = 0;
 
-  union Value {
-    std::vector<uint8_t> hexValue;
-    std::string strValue;
-    int32_t intValue;
-    float floatValue;
-    FlagsType flagsValue;
-    Value() {}
-    ~Value() {}
-  } value;
-
+  RegisterValue() {}
   explicit RegisterValue(
       const std::vector<uint16_t>& reg,
       const RegisterDescriptor& desc,
       uint32_t tstamp);
   explicit RegisterValue(const std::vector<uint16_t>& reg);
-  RegisterValue(const RegisterValue& other);
-  RegisterValue(RegisterValue&& other) noexcept;
-
-  // Constructing a union with non-trivial members is
-  // is painful enough. Lets not support assignments.
-  void operator=(const RegisterValue& other) = delete;
-  void operator=(const RegisterValue&& other) = delete;
-  ~RegisterValue();
   operator std::string();
 
  private:

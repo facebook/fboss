@@ -306,7 +306,8 @@ TEST_F(RackmonTest, BasicScanFoundOneMon) {
   EXPECT_EQ(data[0].registerList[0].history.size(), 1);
   EXPECT_EQ(data[0].registerList[0].history[0].type, RegisterValueType::STRING);
   EXPECT_EQ(
-      data[0].registerList[0].history[0].value.strValue, "abcdefghijklmnop");
+      std::get<std::string>(data[0].registerList[0].history[0].value),
+      "abcdefghijklmnop");
   EXPECT_NEAR(data[0].registerList[0].history[0].timestamp, std::time(0), 10);
 
   ModbusDeviceFilter filter1, filter2, filter3, filter4;

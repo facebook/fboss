@@ -31,7 +31,7 @@ TEST(RegisterTest, BasicCreationCompare) {
   // Conversion to RegisterValue
   RegisterValue sval = reg;
   EXPECT_EQ(sval.type, RegisterValueType::STRING);
-  EXPECT_EQ(sval.value.strValue, "700-");
+  EXPECT_EQ(std::get<std::string>(sval.value), "700-");
 
   Register reg2(desc);
   reg2.value = {0x3730, 0x302d};
@@ -128,7 +128,7 @@ TEST(RegisterStoreTest, DataRetrievalConversions) {
   EXPECT_EQ(val.name, "HELLO");
   EXPECT_EQ(val.history.size(), 1);
   EXPECT_EQ(val.history[0].type, RegisterValueType::STRING);
-  EXPECT_EQ(val.history[0].value.strValue, "0123");
+  EXPECT_EQ(std::get<std::string>(val.history[0].value), "0123");
 
   reg.front().value = std::vector<uint16_t>({0x3132, 0x3334}); // "1234"
   reg.front().timestamp = 0x1234;
@@ -138,9 +138,9 @@ TEST(RegisterStoreTest, DataRetrievalConversions) {
   EXPECT_EQ(val.name, "HELLO");
   EXPECT_EQ(val.history.size(), 2);
   EXPECT_EQ(val.history[0].type, RegisterValueType::STRING);
-  EXPECT_EQ(val.history[0].value.strValue, "0123");
+  EXPECT_EQ(std::get<std::string>(val.history[0].value), "0123");
   EXPECT_EQ(val.history[1].type, RegisterValueType::STRING);
-  EXPECT_EQ(val.history[1].value.strValue, "1234");
+  EXPECT_EQ(std::get<std::string>(val.history[1].value), "1234");
 
   nlohmann::json j = val;
   EXPECT_TRUE(j.contains("regAddress") && j["regAddress"].is_number_integer());

@@ -14,8 +14,8 @@ bool AddrRange::contains(uint8_t addr) const {
 }
 
 void RegisterValue::makeString(const std::vector<uint16_t>& reg) {
-  // Manual construction of string (non-trivial member of union)
-  new (&value.strValue)(std::string);
+  value = "";
+  auto& strValue = std::get<std::string>(value);
   // String is stored normally H L H L, so we
   // need reswap the bytes in each nibble.
   for (const auto& r : reg) {
@@ -24,20 +24,20 @@ void RegisterValue::makeString(const std::vector<uint16_t>& reg) {
     if (ch == '\0') {
       break;
     }
-    value.strValue += ch;
+    strValue += ch;
     if (cl == '\0') {
       break;
     }
-    value.strValue += cl;
+    strValue += cl;
   }
 }
 
 void RegisterValue::makeHex(const std::vector<uint16_t>& reg) {
-  // Manual construction of vector (non-trivial member of union)
-  new (&value.hexValue)(std::vector<uint8_t>);
+  value = std::vector<uint8_t>{};
+  auto& hexValue = std::get<std::vector<uint8_t>>(value);
   for (uint16_t v : reg) {
-    value.hexValue.push_back(v >> 8);
-    value.hexValue.push_back(v & 0xff);
+    hexValue.push_back(v >> 8);
+    hexValue.push_back(v & 0xff);
   }
 }
 
@@ -55,14 +55,15 @@ void RegisterValue::makeInteger(
   // a 32bit value would be 2 16bit regs.
   // Then the first register would be the upper nibble of the
   // resulting 32bit value.
+  value = int32_t(0);
   if (end == BIG) {
-    value.intValue =
+    value =
         std::accumulate(reg.begin(), reg.end(), 0, [](int32_t ac, uint16_t v) {
           return (ac << 16) + v;
         });
 
   } else {
-    value.intValue = std::accumulate(
+    value = std::accumulate(
         reg.rbegin(), reg.rend(), 0, [](int32_t ac, uint16_t v) {
           // Swap the bytes
           return (ac << 16) + (((v & 0xff) << 8) | ((v >> 8) & 0xff));
@@ -74,14 +75,16 @@ void RegisterValue::makeFloat(
     const std::vector<uint16_t>& reg,
     uint16_t precision) {
   makeInteger(reg, RegisterEndian::BIG);
+  int32_t intValue = std::get<int32_t>(value);
   // Y = X / 2^N
-  value.floatValue = float(value.intValue) / float(1 << precision);
+  value = float(intValue) / float(1 << precision);
 }
 
 void RegisterValue::makeFlags(
     const std::vector<uint16_t>& reg,
     const RegisterDescriptor::FlagsDescType& flagsDesc) {
-  new (&value.flagsValue)(FlagsType);
+  value = FlagsType{};
+  auto& flagsValue = std::get<FlagsType>(value);
   for (const auto& [pos, name] : flagsDesc) {
     // The bit position is provided assuming the register contents
     // are combined together to form a big-endian larger integer.
@@ -90,7 +93,7 @@ void RegisterValue::makeFlags(
     uint16_t regIdx = reg.size() - (pos / 16) - 1;
     uint16_t regBit = pos % 16;
     bool bitVal = (reg[regIdx] & (1 << regBit)) != 0;
-    value.flagsValue.push_back(std::make_tuple(bitVal, name, pos));
+    flagsValue.push_back(std::make_tuple(bitVal, name, pos));
   }
 }
 
@@ -120,67 +123,6 @@ RegisterValue::RegisterValue(
 RegisterValue::RegisterValue(const std::vector<uint16_t>& reg)
     : type(RegisterValueType::HEX) {
   makeHex(reg);
-}
-
-RegisterValue::RegisterValue(const RegisterValue& other)
-    : type(other.type), timestamp(other.timestamp) {
-  switch (type) {
-    case RegisterValueType::HEX:
-      new (&value.hexValue) auto(other.value.hexValue);
-      break;
-    case RegisterValueType::INTEGER:
-      value.intValue = other.value.intValue;
-      break;
-    case RegisterValueType::FLOAT:
-      value.floatValue = other.value.floatValue;
-      break;
-    case RegisterValueType::STRING:
-      new (&value.strValue) auto(other.value.strValue);
-      break;
-    case RegisterValueType::FLAGS:
-      new (&value.flagsValue) auto(other.value.flagsValue);
-      break;
-  }
-}
-
-RegisterValue::RegisterValue(RegisterValue&& other) noexcept
-    : type(other.type), timestamp(other.timestamp) {
-  switch (type) {
-    case RegisterValueType::HEX:
-      new (&value.hexValue) auto(std::move(other.value.hexValue));
-      break;
-    case RegisterValueType::INTEGER:
-      value.intValue = other.value.intValue;
-      break;
-    case RegisterValueType::FLOAT:
-      value.floatValue = other.value.floatValue;
-      break;
-    case RegisterValueType::STRING:
-      new (&value.strValue) auto(std::move(other.value.strValue));
-      break;
-    case RegisterValueType::FLAGS:
-      new (&value.flagsValue) auto(std::move(other.value.flagsValue));
-      break;
-  }
-}
-
-RegisterValue::~RegisterValue() {
-  switch (type) {
-    case RegisterValueType::HEX:
-      value.hexValue.~vector<uint8_t>();
-      break;
-    case RegisterValueType::STRING:
-      value.strValue.~basic_string();
-      break;
-    case RegisterValueType::FLAGS:
-      value.flagsValue.~FlagsType();
-      break;
-    case RegisterValueType::INTEGER:
-      [[fallthrough]];
-    case RegisterValueType::FLOAT:
-      // Do nothing
-      break;
-  }
 }
 
 Register::operator RegisterValue() const {
@@ -278,23 +220,7 @@ void to_json(json& j, const RegisterDescriptor& i) {
 void to_json(json& j, const RegisterValue& m) {
   j["type"] = m.type;
   j["time"] = m.timestamp;
-  switch (m.type) {
-    case RegisterValueType::HEX:
-      j["value"] = m.value.hexValue;
-      break;
-    case RegisterValueType::STRING:
-      j["value"] = m.value.strValue;
-      break;
-    case RegisterValueType::INTEGER:
-      j["value"] = m.value.intValue;
-      break;
-    case RegisterValueType::FLOAT:
-      j["value"] = m.value.floatValue;
-      break;
-    case RegisterValueType::FLAGS:
-      j["value"] = m.value.flagsValue;
-      break;
-  }
+  std::visit([&j](auto&& v) { j["value"] = v; }, m.value);
 }
 
 void to_json(json& j, const Register& m) {

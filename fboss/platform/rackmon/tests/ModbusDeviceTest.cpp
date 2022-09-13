@@ -384,7 +384,8 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   EXPECT_EQ(data.registerList[0].history.size(), 1);
   EXPECT_NEAR(data.registerList[0].history[0].timestamp, std::time(0), 10);
   EXPECT_EQ(data.registerList[0].history[0].type, RegisterValueType::STRING);
-  EXPECT_EQ(data.registerList[0].history[0].value.strValue, "abcd");
+  EXPECT_EQ(
+      std::get<std::string>(data.registerList[0].history[0].value), "abcd");
 
   ModbusRegisterFilter filter1, filter2, filter3, filter4;
   filter1.addrFilter = {0x0};
@@ -426,9 +427,11 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   EXPECT_EQ(data2.registerList[0].name, "MFG_MODEL");
   EXPECT_EQ(data2.registerList[0].history.size(), 2);
   EXPECT_EQ(data2.registerList[0].history[0].type, RegisterValueType::STRING);
-  EXPECT_EQ(data2.registerList[0].history[0].value.strValue, "abcd");
+  EXPECT_EQ(
+      std::get<std::string>(data2.registerList[0].history[0].value), "abcd");
   EXPECT_EQ(data2.registerList[0].history[1].type, RegisterValueType::STRING);
-  EXPECT_EQ(data2.registerList[0].history[1].value.strValue, "bcde");
+  EXPECT_EQ(
+      std::get<std::string>(data2.registerList[0].history[1].value), "bcde");
   EXPECT_NEAR(data2.registerList[0].history[0].timestamp, std::time(0), 10);
   EXPECT_NEAR(data2.registerList[0].history[1].timestamp, std::time(0), 10);
   EXPECT_GE(
@@ -440,8 +443,10 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   EXPECT_EQ(data3.registerList[0].history.size(), 2);
   // TODO We probably need a circular iterator on the history.
   // Till then, we will probably get out of order stuff.
-  EXPECT_EQ(data3.registerList[0].history[1].value.strValue, "bcde");
-  EXPECT_EQ(data3.registerList[0].history[0].value.strValue, "cdef");
+  EXPECT_EQ(
+      std::get<std::string>(data3.registerList[0].history[1].value), "bcde");
+  EXPECT_EQ(
+      std::get<std::string>(data3.registerList[0].history[0].value), "cdef");
   nlohmann::json j = data3;
   EXPECT_EQ(j["deviceAddress"], 0x32);
   EXPECT_EQ(j["crcErrors"], 0);
@@ -464,7 +469,8 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
 
   ModbusDeviceValueData data4 = dev.getValueData({}, true);
   EXPECT_EQ(data4.registerList[0].history.size(), 1);
-  EXPECT_EQ(data3.registerList[0].history[0].value.strValue, "cdef");
+  EXPECT_EQ(
+      std::get<std::string>(data3.registerList[0].history[0].value), "cdef");
 }
 
 TEST_F(ModbusDeviceTest, MonitorRawData) {
@@ -760,7 +766,8 @@ TEST(ModbusDeviceBaudrate, BaudrateNegotiationTest) {
     EXPECT_EQ(data.registerList.size(), 1);
     EXPECT_EQ(data.registerList[0].regAddr, 0);
     EXPECT_EQ(data.registerList[0].name, "MFG_MODEL");
-    EXPECT_EQ(data.registerList[0].history[0].value.strValue, "abcd");
+    EXPECT_EQ(
+        std::get<std::string>(data.registerList[0].history[0].value), "abcd");
   }
 }
 
@@ -808,6 +815,7 @@ TEST(ModbusDeviceBaudrate, BaudrateNegotiationRejection) {
     EXPECT_EQ(data.registerList.size(), 1);
     EXPECT_EQ(data.registerList[0].regAddr, 0);
     EXPECT_EQ(data.registerList[0].name, "MFG_MODEL");
-    EXPECT_EQ(data.registerList[0].history[0].value.strValue, "abcd");
+    EXPECT_EQ(
+        std::get<std::string>(data.registerList[0].history[0].value), "abcd");
   }
 }

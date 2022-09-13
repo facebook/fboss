@@ -53,29 +53,29 @@ ModbusRegisterValue ThriftHandler::transformRegisterValue(
   switch (value.type) {
     case rackmon::RegisterValueType::HEX: {
       target.type() = RegisterValueType::RAW;
-      std::vector<int8_t> conv(value.value.hexValue.size());
-      std::copy(
-          value.value.hexValue.begin(),
-          value.value.hexValue.end(),
-          conv.begin());
+      auto& hexValue = std::get<std::vector<uint8_t>>(value.value);
+      std::vector<int8_t> conv(hexValue.size());
+      std::copy(hexValue.begin(), hexValue.end(), conv.begin());
       target.value()->set_rawValue(conv);
     } break;
     case rackmon::RegisterValueType::INTEGER:
       target.type() = RegisterValueType::INTEGER;
-      target.value()->set_intValue(value.value.intValue);
+      target.value()->set_intValue(std::get<int32_t>(value.value));
       break;
     case rackmon::RegisterValueType::STRING:
       target.type() = RegisterValueType::STRING;
-      target.value()->set_strValue(value.value.strValue);
+      target.value()->set_strValue(std::get<std::string>(value.value));
       break;
     case rackmon::RegisterValueType::FLOAT:
       target.type() = RegisterValueType::FLOAT;
-      target.value()->set_floatValue(value.value.floatValue);
+      target.value()->set_floatValue(std::get<float>(value.value));
       break;
     case rackmon::RegisterValueType::FLAGS: {
       target.type() = RegisterValueType::FLAGS;
+      auto& flagsValue =
+          std::get<rackmon::RegisterValue::FlagsType>(value.value);
       std::vector<FlagType> flags;
-      for (const auto& [flagVal, flagName, flagPos] : value.value.flagsValue) {
+      for (const auto& [flagVal, flagName, flagPos] : flagsValue) {
         FlagType flag;
         flag.name() = flagName;
         flag.value() = flagVal;
