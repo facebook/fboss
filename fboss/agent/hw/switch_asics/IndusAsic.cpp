@@ -59,8 +59,6 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ROUTE_PROGRAMMING:
     case HwAsic::Feature::ECMP_HASH_V4:
     case HwAsic::Feature::ECMP_HASH_V6:
-    case HwAsic::Feature::MEDIA_TYPE:
-    case HwAsic::Feature::FEC:
     case HwAsic::Feature::FABRIC_PORTS:
       return true;
 
@@ -95,6 +93,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
+    case HwAsic::Feature::SAI_FIRMWARE_PATH:
     // On indus ASIC we don't create any vlans but rather
     // associate RIFs directly with ports. Hence no bridge port
     // is created (or supported for now).
@@ -104,7 +103,8 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::FABRIC_PORT_MTU:
-    case HwAsic::Feature::SAI_FIRMWARE_PATH:
+    case HwAsic::Feature::MEDIA_TYPE:
+    case HwAsic::Feature::FEC:
       return false;
   }
   return false;
