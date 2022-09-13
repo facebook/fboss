@@ -270,6 +270,15 @@ class LinkNeighbor
     setExpirationTime(expiration);
   }
 
+  std::string getKey() const {
+    return fmt::format(
+        "{}_{}_{}_{}",
+        getPortId(),
+        getChassisId(),
+        getPortIdType(),
+        getChassisIdType());
+  }
+
  private:
   enum class LldpTlvType : uint8_t;
   enum class CdpTlvType : uint16_t;

@@ -1,7 +1,10 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #pragma once
 
+#include <thrift/lib/cpp2/TypeClass.h>
 #include "fboss/agent/lldp/LinkNeighbor.h"
+#include "fboss/agent/lldp/gen-cpp2/lldp_fatal_types.h"
+#include "fboss/agent/lldp/gen-cpp2/lldp_types.h"
 #include "fboss/agent/types.h"
 #include "folly/Synchronized.h"
 
@@ -52,20 +55,16 @@ class LinkNeighborDB {
   void portDown(PortID port);
 
  private:
-  class NeighborKey {
-   public:
-    explicit NeighborKey(const LinkNeighbor& neighbor);
-    bool operator<(const NeighborKey& other) const;
-    bool operator==(const NeighborKey& other) const;
-
-   private:
-    lldp::LldpChassisIdType chassisIdType_;
-    lldp::LldpPortIdType portIdType_;
-    std::string chassisId_;
-    std::string portId_;
-  };
-  using NeighborMap = std::map<NeighborKey, std::shared_ptr<LinkNeighbor>>;
-  using NeighborsByPort = std::map<PortID, NeighborMap>;
+  using NeighborMap = thrift_cow::ThriftMapNode<
+      apache::thrift::type_class::map<
+          apache::thrift::type_class::string,
+          apache::thrift::type_class::structure>,
+      lldp::NeighborMap>;
+  using NeighborsByPort = thrift_cow::ThriftMapNode<
+      apache::thrift::type_class::map<
+          apache::thrift::type_class::integral,
+          typename NeighborMap::TypeClass>,
+      lldp::NeighborsByPort>;
 
   // Returns number of entries left after pruning
   int pruneLocked(

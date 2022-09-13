@@ -57,3 +57,7 @@ struct LinkNeighborFields {
   14: i64 receivedTTL;
   15: i64 expirationTime;
 }
+
+// neighbor key is a string "<portId>_<chassisId>_<portIdType>_<chassisIdType>"
+typedef map<string, LinkNeighborFields> NeighborMap
+typedef map<i16, NeighborMap> NeighborsByPort
