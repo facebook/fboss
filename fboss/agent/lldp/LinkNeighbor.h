@@ -2,59 +2,63 @@
 #pragma once
 
 #include "fboss/agent/lldp/Lldp.h"
-#include "fboss/agent/lldp/gen-cpp2/lldp_types.h"
+#include "fboss/agent/lldp/lldp_thrift_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/thrift_cow/nodes/Types.h"
 #include "folly/MacAddress.h"
 
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
 #include <chrono>
 
-namespace folly {
-namespace io {
+namespace folly::io {
 class Cursor;
-}
-} // namespace folly
+} // namespace folly::io
 
 namespace facebook::fboss {
 
 /*
  * LinkNeighbor stores information about an LLDP or CDP neighbor.
  */
-struct LinkNeighbor {
+ADD_THRIFT_RESOLVER_MAPPING(lldp::LinkNeighborFields, LinkNeighbor);
+class LinkNeighbor
+    : public thrift_cow::ThriftStructNode<lldp::LinkNeighborFields> {
  public:
+  using BaseT = ThriftStructNode<lldp::LinkNeighborFields>;
+  using BaseT::BaseT;
+
   LinkNeighbor();
 
   /*
    * Return the protocol over which this neighbor was seen.
    */
   lldp::LinkProtocol getProtocol() const {
-    return *fields_.protocol();
+    return cref<lldp_tags::protocol>()->cref();
   }
 
   /*
    * Get the local port on which this neighbor was seen.
    */
   PortID getLocalPort() const {
-    return static_cast<PortID>(*fields_.localPort());
+    return static_cast<PortID>(cref<lldp_tags::localPort>()->cref());
   }
 
   /*
    * Get the VLAN on which this neighbor was seen.
    */
   VlanID getLocalVlan() const {
-    return static_cast<VlanID>(*fields_.localVlan());
+    return static_cast<VlanID>(cref<lldp_tags::localVlan>()->cref());
   }
 
   /*
    * Get this neighbor's source MAC address.
    */
   folly::MacAddress getMac() const {
-    return folly::MacAddress::fromNBO(*fields_.srcMac());
+    return folly::MacAddress::fromNBO(cref<lldp_tags::srcMac>()->cref());
   }
 
   lldp::LldpChassisIdType getChassisIdType() const {
-    return *fields_.chassisIdType();
+    return cref<lldp_tags::chassisIdType>()->cref();
   }
 
   /*
@@ -67,11 +71,11 @@ struct LinkNeighbor {
    * format.
    */
   const std::string& getChassisId() const {
-    return *fields_.chassisId();
+    return cref<lldp_tags::chassisId>()->cref();
   }
 
   lldp::LldpPortIdType getPortIdType() const {
-    return *fields_.portIdType();
+    return cref<lldp_tags::portIdType>()->cref();
   }
 
   /*
@@ -84,21 +88,21 @@ struct LinkNeighbor {
    * format.
    */
   const std::string& getPortId() const {
-    return *fields_.portId();
+    return cref<lldp_tags::portId>()->cref();
   }
 
   /*
    * Get the capabilities bitmap.
    */
   uint16_t getCapabilities() const {
-    return *fields_.capabilities();
+    return cref<lldp_tags::capabilities>()->cref();
   }
 
   /*
    * Get the enabled capabilities bitmap.
    */
   uint16_t getEnabledCapabilities() const {
-    return *fields_.enabledCapabilities();
+    return cref<lldp_tags::enabledCapabilities>()->cref();
   }
 
   /*
@@ -107,7 +111,7 @@ struct LinkNeighbor {
    * This may be empty if it was not specified by the neighbor.
    */
   const std::string& getSystemName() const {
-    return *fields_.systemName();
+    return cref<lldp_tags::systemName>()->cref();
   }
 
   /*
@@ -116,7 +120,7 @@ struct LinkNeighbor {
    * This may be empty if it was not specified by the neighbor.
    */
   const std::string& getPortDescription() const {
-    return *fields_.portDescription();
+    return cref<lldp_tags::portDescription>()->cref();
   }
 
   /*
@@ -125,7 +129,7 @@ struct LinkNeighbor {
    * This may be empty if it was not specified by the neighbor.
    */
   const std::string& getSystemDescription() const {
-    return *fields_.systemDescription();
+    return cref<lldp_tags::systemDescription>()->cref();
   }
 
   /*
@@ -136,7 +140,7 @@ struct LinkNeighbor {
    * neighbor information expires.
    */
   std::chrono::seconds getTTL() const {
-    return std::chrono::seconds(*fields_.receivedTTL());
+    return std::chrono::seconds(cref<lldp_tags::receivedTTL>()->cref());
   }
 
   /*
@@ -144,7 +148,7 @@ struct LinkNeighbor {
    */
   std::chrono::steady_clock::time_point getExpirationTime() const {
     return std::chrono::steady_clock::time_point(
-        std::chrono::seconds(*fields_.expirationTime()));
+        std::chrono::seconds(cref<lldp_tags::expirationTime>()->cref()));
   }
   bool isExpired(std::chrono::steady_clock::time_point now) const {
     return now > getExpirationTime();
@@ -210,41 +214,41 @@ struct LinkNeighbor {
    * These are mostly useful for testing purposes.
    */
   void setProtocol(lldp::LinkProtocol protocol) {
-    fields_.protocol() = protocol;
+    ref<lldp_tags::protocol>() = protocol;
   }
   void setLocalPort(PortID port) {
-    fields_.localPort() = port;
+    ref<lldp_tags::localPort>() = port;
   }
   void setLocalVlan(VlanID vlan) {
-    fields_.localVlan() = vlan;
+    ref<lldp_tags::localVlan>() = vlan;
   }
   void setMac(folly::MacAddress mac) {
-    fields_.srcMac() = mac.u64NBO();
+    ref<lldp_tags::srcMac>() = mac.u64NBO();
   }
 
   void setChassisId(folly::StringPiece id, lldp::LldpChassisIdType type) {
-    fields_.chassisIdType() = type;
-    fields_.chassisId() = id.str();
+    ref<lldp_tags::chassisIdType>() = type;
+    ref<lldp_tags::chassisId>() = id.str();
   }
 
   void setPortId(folly::StringPiece id, lldp::LldpPortIdType type) {
-    fields_.portIdType() = type;
-    fields_.portId() = id.str();
+    ref<lldp_tags::portIdType>() = type;
+    ref<lldp_tags::portId>() = id.str();
   }
   void setCapabilities(uint16_t caps) {
-    fields_.capabilities() = caps;
+    ref<lldp_tags::capabilities>() = caps;
   }
   void setEnabledCapabilities(uint16_t caps) {
-    fields_.enabledCapabilities() = caps;
+    ref<lldp_tags::enabledCapabilities>() = caps;
   }
   void setSystemName(folly::StringPiece name) {
-    fields_.systemName() = name.str();
+    ref<lldp_tags::systemName>() = name.str();
   }
   void setPortDescription(folly::StringPiece desc) {
-    fields_.portDescription() = desc.str();
+    ref<lldp_tags::portDescription>() = desc.str();
   }
   void setSystemDescription(folly::StringPiece desc) {
-    fields_.systemDescription() = desc.str();
+    ref<lldp_tags::systemDescription>() = desc.str();
   }
 
   /*
@@ -262,14 +266,9 @@ struct LinkNeighbor {
   void setTTL(
       std::chrono::seconds seconds,
       std::chrono::steady_clock::time_point expiration) {
-    fields_.receivedTTL() = seconds.count();
+    ref<lldp_tags::receivedTTL>() = seconds.count();
     setExpirationTime(expiration);
   }
-
-  LinkNeighbor& operator=(const LinkNeighbor&) = delete;
-  LinkNeighbor& operator=(LinkNeighbor&&) = delete;
-  LinkNeighbor(const LinkNeighbor&) = delete;
-  LinkNeighbor(LinkNeighbor&&) = delete;
 
  private:
   enum class LldpTlvType : uint8_t;
@@ -291,12 +290,13 @@ struct LinkNeighbor {
       folly::io::Cursor* cursor);
 
   void setExpirationTime(std::chrono::steady_clock::time_point expiration) {
-    fields_.expirationTime() = std::chrono::duration_cast<std::chrono::seconds>(
-                                   expiration.time_since_epoch())
-                                   .count();
+    ref<lldp_tags::expirationTime>() =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            expiration.time_since_epoch())
+            .count();
   }
 
-  lldp::LinkNeighborFields fields_;
+  friend class CloneAllocator;
 };
 
 } // namespace facebook::fboss

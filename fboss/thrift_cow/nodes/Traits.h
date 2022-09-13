@@ -22,12 +22,12 @@ struct ThriftStructResolver {
   using type = ThriftStructNode<TType>;
 };
 
-#define ADD_THRIFT_RESOLVER_MAPPING(ThriftType, CppType) \
-  /* make sure resolved type is declared */              \
-  class CppType;                                         \
-  template <>                                            \
-  struct ThriftStructResolver<ThriftType> {              \
-    using type = CppType;                                \
+#define ADD_THRIFT_RESOLVER_MAPPING(ThriftType, CppType)                 \
+  /* make sure resolved type is declared */                              \
+  class CppType;                                                         \
+  template <>                                                            \
+  struct facebook::fboss::thrift_cow::ThriftStructResolver<ThriftType> { \
+    using type = CppType;                                                \
   };
 
 template <typename TType>

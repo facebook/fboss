@@ -21,4 +21,5 @@ target_link_libraries(lldp
   fboss_types
   lldp_structs_cpp2
   Folly::folly
+  thrift_cow_nodes
 )
