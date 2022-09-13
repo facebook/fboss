@@ -25,9 +25,13 @@ ModbusDevice::ModbusDevice(
     uint8_t deviceAddress,
     const RegisterMap& registerMap,
     int numCommandRetries)
-    : interface_(interface), numCommandRetries_(numCommandRetries) {
+    : interface_(interface),
+      numCommandRetries_(numCommandRetries),
+      baudConfig_(registerMap.baudConfig) {
   info_.deviceAddress = deviceAddress;
-  info_.baudrate = registerMap.defaultBaudrate;
+  info_.preferredBaudrate = registerMap.preferredBaudrate;
+  info_.defaultBaudrate = registerMap.defaultBaudrate;
+  info_.baudrate = info_.defaultBaudrate;
   info_.deviceType = registerMap.name;
 
   for (auto& it : registerMap.registerDescriptors) {
@@ -128,7 +132,24 @@ void ModbusDevice::readFileRecord(
   command(req, resp, timeout);
 }
 
+void ModbusDevice::setBaudrate(uint32_t baud) {
+  // Return early if earlier setBaud failed, or
+  // we dont have configuration or if we already
+  // are at the requested baudrate.
+  if (!setBaudEnabled_ || !baudConfig_.isSet || baud == info_.baudrate) {
+    return;
+  }
+  try {
+    writeSingleRegister(baudConfig_.reg, baudConfig_.baudValueMap.at(baud));
+    info_.baudrate = baud;
+  } catch (std::exception&) {
+    setBaudEnabled_ = false;
+    logError << "Failed to set baudrate to " << baud << std::endl;
+  }
+}
+
 void ModbusDevice::reloadRegisters() {
+  setPreferredBaudrate();
   // If the number of consecutive failures has exceeded
   // a threshold, mark the device as dormant.
   uint32_t timestamp = std::time(nullptr);

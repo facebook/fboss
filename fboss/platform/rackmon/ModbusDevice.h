@@ -56,6 +56,8 @@ struct ModbusDeviceInfo {
   uint8_t deviceAddress = 0;
   std::string deviceType{"Unknown"};
   uint32_t baudrate = 0;
+  uint32_t preferredBaudrate = 0;
+  uint32_t defaultBaudrate = 0;
   ModbusDeviceMode mode = ModbusDeviceMode::ACTIVE;
   uint32_t crcErrors = 0;
   uint32_t timeouts = 0;
@@ -96,8 +98,18 @@ class ModbusDevice {
   ModbusDeviceRawData info_;
   mutable std::mutex registerListMutex_{};
   std::vector<ModbusSpecialHandler> specialHandlers_{};
+  const BaudrateConfig& baudConfig_;
+  bool setBaudEnabled_ = true;
 
   void handleCommandFailure(std::exception& baseException);
+
+  void setBaudrate(uint32_t baud);
+  void setDefaultBaudrate() {
+    setBaudrate(info_.defaultBaudrate);
+  }
+  void setPreferredBaudrate() {
+    setBaudrate(info_.preferredBaudrate);
+  }
 
  public:
   ModbusDevice(
@@ -105,7 +117,9 @@ class ModbusDevice {
       uint8_t deviceAddress,
       const RegisterMap& registerMap,
       int numCommandRetries = 5);
-  virtual ~ModbusDevice() {}
+  virtual ~ModbusDevice() {
+    setDefaultBaudrate();
+  }
 
   virtual void
   command(Msg& req, Msg& resp, ModbusTime timeout = ModbusTime::zero());
