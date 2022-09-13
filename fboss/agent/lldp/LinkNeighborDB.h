@@ -6,6 +6,7 @@
 #include "fboss/agent/lldp/gen-cpp2/lldp_fatal_types.h"
 #include "fboss/agent/lldp/gen-cpp2/lldp_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/thrift_storage/CowStorage.h"
 #include "folly/Synchronized.h"
 
 #include <chrono>
@@ -55,27 +56,16 @@ class LinkNeighborDB {
   void portDown(PortID port);
 
  private:
-  using NeighborMap = thrift_cow::ThriftMapNode<
-      apache::thrift::type_class::map<
-          apache::thrift::type_class::string,
-          apache::thrift::type_class::structure>,
-      lldp::NeighborMap>;
-  using NeighborsByPort = thrift_cow::ThriftMapNode<
-      apache::thrift::type_class::map<
-          apache::thrift::type_class::integral,
-          typename NeighborMap::TypeClass>,
-      lldp::NeighborsByPort>;
+  using LldpState = fsdb::CowStorage<lldp::LldpState>;
 
   // Returns number of entries left after pruning
-  int pruneLocked(
-      NeighborsByPort& neighborsByPort,
-      std::chrono::steady_clock::time_point now);
+  int pruneLocked(LldpState& state, std::chrono::steady_clock::time_point now);
 
   // Forbidden copy constructor and assignment operator
   LinkNeighborDB(LinkNeighborDB const&) = delete;
   LinkNeighborDB& operator=(LinkNeighborDB const&) = delete;
 
-  folly::Synchronized<NeighborsByPort> byLocalPort_;
+  folly::Synchronized<LldpState> byLocalPort_{LldpState(lldp::LldpState())};
 };
 
 } // namespace facebook::fboss

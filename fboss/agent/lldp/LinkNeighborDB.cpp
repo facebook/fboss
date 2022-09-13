@@ -7,13 +7,16 @@ using std::chrono::steady_clock;
 
 namespace facebook::fboss {
 
+using k = lldp::lldp_tags::strings;
+
 LinkNeighborDB::LinkNeighborDB() {}
 
 void LinkNeighborDB::update(std::shared_ptr<LinkNeighbor> neighbor) {
   auto neighborsLocked = byLocalPort_.wlock();
   // Go ahead and prune expired neighbors each time we get updated.
   pruneLocked(*neighborsLocked, steady_clock::now());
-  auto neighborMap = neighborsLocked->try_emplace(neighbor->getLocalPort());
+  auto neighborMapByPort = neighborsLocked->root()->ref<k::neighborMapByPort>();
+  auto neighborMap = neighborMapByPort->try_emplace(neighbor->getLocalPort());
   auto key = neighbor->getKey();
   neighborMap.first->second->insert(key, std::move(neighbor));
 }
@@ -21,7 +24,8 @@ void LinkNeighborDB::update(std::shared_ptr<LinkNeighbor> neighbor) {
 vector<std::shared_ptr<LinkNeighbor>> LinkNeighborDB::getNeighbors() {
   vector<std::shared_ptr<LinkNeighbor>> results;
   auto neighborsLocked = byLocalPort_.rlock();
-  for (const auto& portEntry : *neighborsLocked) {
+  for (const auto& portEntry :
+       *neighborsLocked->root()->ref<k::neighborMapByPort>()) {
     for (const auto& entry : *portEntry.second) {
       results.push_back(entry.second);
     }
@@ -34,7 +38,8 @@ vector<std::shared_ptr<LinkNeighbor>> LinkNeighborDB::getNeighbors(
     PortID port) {
   vector<std::shared_ptr<LinkNeighbor>> results;
   auto neighborsLocked = byLocalPort_.rlock();
-  if (auto it = neighborsLocked->find(port); it != neighborsLocked->end()) {
+  auto neighborMapByPort = neighborsLocked->root()->ref<k::neighborMapByPort>();
+  if (auto it = neighborMapByPort->find(port); it != neighborMapByPort->end()) {
     for (const auto& entry : *it->second) {
       results.push_back(entry.second);
     }
@@ -49,18 +54,20 @@ int LinkNeighborDB::pruneExpiredNeighbors() {
 
 int LinkNeighborDB::pruneExpiredNeighbors(steady_clock::time_point now) {
   return byLocalPort_.withWLock(
-      [this, now](auto& neighborMap) { return pruneLocked(neighborMap, now); });
+      [this, now](auto& state) { return pruneLocked(state, now); });
 }
 
 void LinkNeighborDB::portDown(PortID port) {
-  byLocalPort_.withWLock([port](auto& neighborMap) {
+  byLocalPort_.withWLock([port](auto& neighborsLocked) {
     // Port went down, prune lldp entries for that port
-    neighborMap.remove(port);
+    auto neighborMapByPort =
+        neighborsLocked.root()->template ref<k::neighborMapByPort>();
+    neighborMapByPort->remove(port);
   });
 }
 
 int LinkNeighborDB::pruneLocked(
-    NeighborsByPort& neighborsByPort,
+    LldpState& state,
     std::chrono::steady_clock::time_point now) {
   // We just do a linear scan for now.
   //
@@ -70,7 +77,8 @@ int LinkNeighborDB::pruneLocked(
   // implementing right now.
 
   int count = 0;
-  for (auto& portEntry : neighborsByPort) {
+  auto neighborsByPort = state.root()->ref<k::neighborMapByPort>();
+  for (auto& portEntry : *neighborsByPort) {
     // Advance the iterator manually to avoid make sure we don't
     // have invalid iterators to erased elements.
     auto& map = portEntry.second;

@@ -240,12 +240,11 @@ struct ThriftMapFields {
   StorageType storage_;
 };
 
-template <typename TypeClassT, typename TType>
+template <typename TypeClass, typename TType>
 class ThriftMapNode : public NodeBaseT<
-                          ThriftMapNode<TypeClassT, TType>,
-                          ThriftMapFields<TypeClassT, TType>> {
+                          ThriftMapNode<TypeClass, TType>,
+                          ThriftMapFields<TypeClass, TType>> {
  public:
-  using TypeClass = TypeClassT;
   using Self = ThriftMapNode<TypeClass, TType>;
   using Fields = ThriftMapFields<TypeClass, TType>;
   using ThriftType = typename Fields::ThriftType;

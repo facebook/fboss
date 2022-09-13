@@ -147,8 +147,6 @@ struct ExtendedPathVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
       epv_detail::ExtPathIter begin,
       epv_detail::ExtPathIter end,
       Func&& f) {
-    using ValueTType = typename Fields::ValueTType;
-
     const auto& elem = *begin++;
 
     for (auto& val : fields) {

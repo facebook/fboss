@@ -61,3 +61,7 @@ struct LinkNeighborFields {
 // neighbor key is a string "<portId>_<chassisId>_<portIdType>_<chassisIdType>"
 typedef map<string, LinkNeighborFields> NeighborMap
 typedef map<i16, NeighborMap> NeighborsByPort
+
+struct LldpState {
+  1: NeighborsByPort neighborMapByPort;
+}
