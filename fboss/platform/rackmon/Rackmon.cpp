@@ -309,13 +309,33 @@ void Rackmon::getRawData(std::vector<ModbusDeviceRawData>& data) const {
       });
 }
 
-void Rackmon::getValueData(std::vector<ModbusDeviceValueData>& data) const {
+void Rackmon::getValueData(
+    std::vector<ModbusDeviceValueData>& data,
+    const ModbusDeviceFilter& devFilter,
+    const ModbusRegisterFilter& regFilter,
+    bool latestValueOnly) const {
+  auto isInFilter = [&devFilter](const ModbusDevice& dev) {
+    return devFilter.contains(dev.getDeviceAddress()) ||
+        devFilter.contains(dev.getDeviceType());
+  };
   data.clear();
   std::shared_lock lock(devicesMutex_);
-  std::transform(
-      devices_.begin(), devices_.end(), std::back_inserter(data), [](auto& kv) {
-        return kv.second->getValueData();
-      });
+  if (!devFilter) {
+    std::transform(
+        devices_.begin(),
+        devices_.end(),
+        std::back_inserter(data),
+        [&regFilter, latestValueOnly](auto& kv) {
+          return kv.second->getValueData(regFilter, latestValueOnly);
+        });
+  } else {
+    for (auto& kv : devices_) {
+      ModbusDevice& dev = *kv.second;
+      if (isInFilter(dev)) {
+        data.push_back(dev.getValueData(regFilter, latestValueOnly));
+      }
+    }
+  }
 }
 
 } // namespace rackmon

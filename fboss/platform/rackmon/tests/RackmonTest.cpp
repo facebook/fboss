@@ -308,6 +308,37 @@ TEST_F(RackmonTest, BasicScanFoundOneMon) {
   EXPECT_EQ(
       data[0].registerList[0].history[0].value.strValue, "abcdefghijklmnop");
   EXPECT_NEAR(data[0].registerList[0].history[0].timestamp, std::time(0), 10);
+
+  ModbusDeviceFilter filter1, filter2, filter3, filter4;
+  ModbusRegisterFilter rFilter1, rFilter2;
+  filter1.addrFilter = {161, 162};
+  filter2.addrFilter = {162};
+  filter3.typeFilter = {"orv2_psu"};
+  filter4.typeFilter = {"orv3_psu"};
+  rFilter1.addrFilter = {0, 10};
+  rFilter2.addrFilter = {10};
+
+  mon.getValueData(data, filter1);
+  EXPECT_EQ(data.size(), 1);
+  EXPECT_EQ(data[0].registerList.size(), 1);
+
+  mon.getValueData(data, filter2);
+  EXPECT_EQ(data.size(), 0);
+
+  mon.getValueData(data, filter3);
+  EXPECT_EQ(data.size(), 1);
+
+  mon.getValueData(data, filter4);
+  EXPECT_EQ(data.size(), 0);
+
+  mon.getValueData(data, {}, rFilter1);
+  EXPECT_EQ(data.size(), 1);
+  EXPECT_EQ(data[0].registerList.size(), 1);
+  EXPECT_EQ(data[0].registerList[0].regAddr, 0);
+
+  mon.getValueData(data, {}, rFilter2, true);
+  EXPECT_EQ(data.size(), 1);
+  EXPECT_EQ(data[0].registerList.size(), 0);
 }
 
 TEST_F(RackmonTest, DormantRecovery) {
