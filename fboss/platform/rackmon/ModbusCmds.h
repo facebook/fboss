@@ -1,6 +1,7 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #pragma once
 
+#include <nlohmann/json.hpp>
 #include <optional>
 #include "ModbusError.h"
 #include "Msg.h"
@@ -147,6 +148,8 @@ struct FileRecord {
   explicit FileRecord(uint16_t file, uint16_t record, size_t num)
       : fileNum(file), recordNum(record), data(num) {}
 };
+void from_json(const nlohmann::json& j, FileRecord& file);
+void to_json(nlohmann::json& j, const FileRecord& file);
 
 struct ReadFileRecordReq : public Request {
  private:

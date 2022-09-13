@@ -215,4 +215,21 @@ void ReadFileRecordResp::decode() {
   checkValue("length", len, 0);
 }
 
+void from_json(const nlohmann::json& j, FileRecord& file) {
+  j.at("fileNum").get_to(file.fileNum);
+  j.at("recordNum").get_to(file.recordNum);
+  int size = j.value("dataSize", -1);
+  if (size >= 0) {
+    file.data.resize(size, 0);
+  } else {
+    j.at("data").get_to(file.data);
+  }
+}
+
+void to_json(nlohmann::json& j, const FileRecord& file) {
+  j["fileNum"] = file.fileNum;
+  j["recordNum"] = file.recordNum;
+  j["data"] = file.data;
+}
+
 } // namespace rackmon

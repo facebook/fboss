@@ -218,3 +218,58 @@ TEST(ReadFileRecord, Resp) {
   msg.Msg::operator=(0x04140C05060DFE0020050633CD0040_EM);
   Encoder::decode(msg);
 }
+
+TEST(FileRecord, FromJson) {
+  nlohmann::json desc = nlohmann::json::parse(R"([
+    {"fileNum": 4, "recordNum": 3, "dataSize": 2}
+  ])");
+  std::vector<FileRecord> records = desc;
+  ASSERT_EQ(records.size(), 1);
+  ASSERT_EQ(records[0].fileNum, 4);
+  ASSERT_EQ(records[0].recordNum, 3);
+  ASSERT_EQ(records[0].data.size(), 2);
+  nlohmann::json desc2 = nlohmann::json::parse(R"([
+    {"fileNum": 4, "recordNum": 3, "data": [1,2,3,4]}
+  ])");
+  std::vector<FileRecord> records2 = desc2;
+  ASSERT_EQ(records2.size(), 1);
+  ASSERT_EQ(records2[0].fileNum, 4);
+  ASSERT_EQ(records2[0].recordNum, 3);
+  ASSERT_EQ(records2[0].data.size(), 4);
+  std::vector<uint16_t> exp{1, 2, 3, 4};
+  ASSERT_EQ(records2[0].data, exp);
+  nlohmann::json desc3 = nlohmann::json::parse(R"([
+    {"fileNum": 4, "recordNum": 3, "dataSize": 2},
+    {"fileNum": 5, "recordNum": 6, "dataSize": 7}
+  ])");
+  std::vector<FileRecord> records3 = desc3;
+  ASSERT_EQ(records3.size(), 2);
+  ASSERT_EQ(records3[0].fileNum, 4);
+  ASSERT_EQ(records3[0].recordNum, 3);
+  ASSERT_EQ(records3[0].data.size(), 2);
+  ASSERT_EQ(records3[1].fileNum, 5);
+  ASSERT_EQ(records3[1].recordNum, 6);
+  ASSERT_EQ(records3[1].data.size(), 7);
+}
+
+TEST(FileRecord, ToJson) {
+  std::vector<FileRecord> records;
+  records.emplace_back(3, 2, 1);
+  records.emplace_back(6, 5, 4);
+  records[0].data[0] = 0xf;
+  records[1].data[0] = 0xe;
+  records[1].data[3] = 0xd;
+
+  nlohmann::json desc = records;
+  ASSERT_TRUE(desc.is_array());
+  ASSERT_EQ(desc.size(), 2);
+  ASSERT_EQ(desc.at(0).at("fileNum"), 3);
+  ASSERT_EQ(desc.at(0).at("recordNum"), 2);
+  ASSERT_EQ(desc.at(0).at("data").size(), 1);
+  ASSERT_EQ(desc.at(0).at("data").at(0), 0xf);
+  ASSERT_EQ(desc.at(1).at("fileNum"), 6);
+  ASSERT_EQ(desc.at(1).at("recordNum"), 5);
+  ASSERT_EQ(desc.at(1).at("data").size(), 4);
+  ASSERT_EQ(desc.at(1).at("data").at(0), 0xe);
+  ASSERT_EQ(desc.at(1).at("data").at(3), 0xd);
+}
