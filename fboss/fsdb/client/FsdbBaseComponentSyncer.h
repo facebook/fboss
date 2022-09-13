@@ -135,8 +135,11 @@ class FsdbStateComponentSyncer : public FsdbBaseDeltaComponentSyncer {
             getBasePath(),
             std::optional<DataT>(),
             std::optional<DataT>(getCurrentState()));
-        publishDelta(createDelta({deltaUnit}));
+        // Mark as started before publishing. Otherwise publishDelta() no-ops.
+        // Yes, it introduces a race condition if changes are published in
+        // between these 2 calls. To be addressed in D38564164.
         start();
+        publishDelta(createDelta({deltaUnit}));
       });
     } else if (newState != FsdbStreamClient::State::CONNECTED) {
       // stop publishing
