@@ -204,6 +204,9 @@ void Rackmon::start(PollThreadTime interval) {
 }
 
 void Rackmon::stop() {
+  for (auto& dev_it : devices_) {
+    dev_it.second->setExclusiveMode(true);
+  }
   // TODO We probably need a timer to ensure we
   // are not waiting here forever.
   if (monitorThread_ != nullptr) {
@@ -213,9 +216,6 @@ void Rackmon::stop() {
   if (scanThread_ != nullptr) {
     scanThread_->stop();
     scanThread_ = nullptr;
-  }
-  for (auto& dev_it : devices_) {
-    dev_it.second->setExclusiveMode(true);
   }
 }
 

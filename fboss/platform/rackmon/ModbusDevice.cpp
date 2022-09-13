@@ -151,12 +151,20 @@ void ModbusDevice::reloadRegisters() {
   // a threshold, mark the device as dormant.
   uint32_t timestamp = std::time(nullptr);
   for (auto& specialHandler : specialHandlers_) {
+    // Break early, if we are entering exclusive mode
+    if (exclusiveMode_) {
+      break;
+    }
     specialHandler.handle(*this);
   }
   std::unique_lock lk(registerListMutex_);
   for (auto& registerStore : info_.registerList) {
     uint16_t registerOffset = registerStore.regAddr();
     auto& nextRegister = registerStore.front();
+    // Break early, if we are entering exclusive mode
+    if (exclusiveMode_) {
+      break;
+    }
     if (!registerStore.isEnabled()) {
       continue;
     }

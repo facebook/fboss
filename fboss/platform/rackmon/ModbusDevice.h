@@ -88,7 +88,7 @@ class ModbusDevice {
   std::vector<ModbusSpecialHandler> specialHandlers_{};
   const BaudrateConfig& baudConfig_;
   bool setBaudEnabled_ = true;
-  bool exclusiveMode_ = false;
+  std::atomic<bool> exclusiveMode_{false};
 
   void handleCommandFailure(std::exception& baseException);
 
