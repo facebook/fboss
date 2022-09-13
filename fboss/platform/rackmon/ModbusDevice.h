@@ -52,7 +52,6 @@ class ModbusSpecialHandler : public SpecialHandlerInfo {
 
 // Generic Device information
 struct ModbusDeviceInfo {
-  static constexpr uint32_t kMaxConsecutiveFailures = 10;
   uint8_t deviceAddress = 0;
   std::string deviceType{"Unknown"};
   uint32_t baudrate = 0;
@@ -65,18 +64,6 @@ struct ModbusDeviceInfo {
   uint32_t deviceErrors = 0;
   time_t lastActive = 0;
   uint32_t numConsecutiveFailures = 0;
-  bool exclusiveMode_ = false;
-
-  void incErrors(uint32_t& counter);
-  void incTimeouts() {
-    incErrors(timeouts);
-  }
-  void incCRCErrors() {
-    incErrors(crcErrors);
-  }
-  void incMiscErrors() {
-    incErrors(miscErrors);
-  }
 };
 void to_json(nlohmann::json& j, const ModbusDeviceInfo& m);
 
@@ -93,6 +80,7 @@ struct ModbusDeviceValueData : public ModbusDeviceInfo {
 void to_json(nlohmann::json& j, const ModbusDeviceValueData& m);
 
 class ModbusDevice {
+  static constexpr uint32_t kMaxConsecutiveFailures = 10;
   Modbus& interface_;
   int numCommandRetries_;
   ModbusDeviceRawData info_;
@@ -100,6 +88,7 @@ class ModbusDevice {
   std::vector<ModbusSpecialHandler> specialHandlers_{};
   const BaudrateConfig& baudConfig_;
   bool setBaudEnabled_ = true;
+  bool exclusiveMode_ = false;
 
   void handleCommandFailure(std::exception& baseException);
 
@@ -164,7 +153,7 @@ class ModbusDevice {
   }
 
   void setExclusiveMode(bool enable) {
-    info_.exclusiveMode_ = enable;
+    exclusiveMode_ = enable;
   }
 
   // Return structured information of the device.

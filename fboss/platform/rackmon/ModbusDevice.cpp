@@ -8,18 +8,6 @@ using nlohmann::json;
 
 namespace rackmon {
 
-void ModbusDeviceInfo::incErrors(uint32_t& counter) {
-  counter++;
-  if ((++numConsecutiveFailures) >= kMaxConsecutiveFailures) {
-    // If we are in exclusive mode let it continue to
-    // fail. We will mark it as dormant when we exit
-    // exclusive mode.
-    if (!exclusiveMode_) {
-      mode = ModbusDeviceMode::DORMANT;
-    }
-  }
-}
-
 ModbusDevice::ModbusDevice(
     Modbus& interface,
     uint8_t deviceAddress,
@@ -48,23 +36,32 @@ ModbusDevice::ModbusDevice(
 void ModbusDevice::handleCommandFailure(std::exception& baseException) {
   if (TimeoutException * ex;
       (ex = dynamic_cast<TimeoutException*>(&baseException)) != nullptr) {
-    info_.incTimeouts();
+    info_.timeouts++;
   } else if (CRCError * ex;
              (ex = dynamic_cast<CRCError*>(&baseException)) != nullptr) {
-    info_.incCRCErrors();
+    info_.crcErrors++;
   } else if (ModbusError * ex;
              (ex = dynamic_cast<ModbusError*>(&baseException)) != nullptr) {
     // ModbusErrors can happen in normal operation. Do not let
     // it increment numConsecutiveFailures since it should not
     // account as a signal of a device being dormant.
     info_.deviceErrors++;
+    return;
   } else if (std::system_error * ex; (ex = dynamic_cast<std::system_error*>(
                                           &baseException)) != nullptr) {
-    info_.incMiscErrors();
+    info_.miscErrors++;
     logError << ex->what() << std::endl;
   } else {
-    info_.incMiscErrors();
+    info_.miscErrors++;
     logError << baseException.what() << std::endl;
+  }
+  if ((++info_.numConsecutiveFailures) >= kMaxConsecutiveFailures) {
+    // If we are in exclusive mode let it continue to
+    // fail. We will mark it as dormant when we exit
+    // exclusive mode.
+    if (!exclusiveMode_) {
+      info_.mode = ModbusDeviceMode::DORMANT;
+    }
   }
 }
 
@@ -75,7 +72,7 @@ void ModbusDevice::command(Msg& req, Msg& resp, ModbusTime timeout) {
   // to maintain stats on types of errors and re-throw (on
   // the last retry) in case the user wants to handle them
   // in a special way.
-  int numRetries = info_.exclusiveMode_ ? 1 : numCommandRetries_;
+  int numRetries = exclusiveMode_ ? 1 : numCommandRetries_;
   for (int retries = 0; retries < numRetries; retries++) {
     try {
       interface_.command(req, resp, info_.baudrate, timeout);
