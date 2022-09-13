@@ -7,6 +7,15 @@
     "probe_register": 104,
     "default_baudrate": 19200,
     "preferred_baudrate": 19200,
+    "baud_config": {
+      "reg": 163,
+      "baud_value_map": [
+        [19200, 1],
+        [38400, 2],
+        [57600, 3],
+        [115200, 4]
+      ]
+    },
     "special_handlers": [
       {
         "reg": 298,
