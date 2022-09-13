@@ -1,5 +1,6 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include "Msg.h"
+#include <iomanip>
 
 namespace rackmon {
 
@@ -138,6 +139,14 @@ Msg& Msg::operator>>(uint32_t& d) {
   *this >> upper;
   d = upper << 16 | lower;
   return *this;
+}
+
+std::ostream& operator<<(std::ostream& os, const Msg& msg) {
+  os << "0x";
+  for (size_t i = 0; i < msg.len; i++) {
+    os << std::hex << std::setw(2) << std::setfill('0') << int(msg.raw[i]);
+  }
+  return os;
 }
 
 } // namespace rackmon

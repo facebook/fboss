@@ -3,6 +3,7 @@
 #include <array>
 #include <exception>
 #include <memory>
+#include <ostream>
 #include <stdexcept>
 #include <vector>
 
@@ -114,6 +115,10 @@ struct Msg {
   friend class Modbus;
   friend class Encoder;
 };
+
+// Allows for a more understandable test failures
+// from gtest and potential debug prints.
+std::ostream& operator<<(std::ostream& os, const Msg& msg);
 
 // This template eventually allows us to use constant expressions
 // for Msg, example: `Msg msg = 0x12ab_M;`

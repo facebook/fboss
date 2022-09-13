@@ -220,3 +220,10 @@ TEST(Msg, AssignmentOperator) {
   msg2 = msg1;
   EXPECT_EQ(msg1, msg2);
 }
+
+TEST(Msg, StreamTest) {
+  Msg msg1 = 0x12345678_M;
+  std::stringstream ss;
+  ss << msg1;
+  EXPECT_EQ(ss.str(), "0x12345678");
+}
