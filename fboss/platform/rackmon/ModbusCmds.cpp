@@ -215,6 +215,62 @@ void ReadFileRecordResp::decode() {
   checkValue("length", len, 0);
 }
 
+static constexpr ModbusErrorCode toModbusErrorCode(uint8_t error) {
+  switch (error) {
+    case 1:
+      return ModbusErrorCode::ILLEGAL_FUNCTION;
+    case 2:
+      return ModbusErrorCode::ILLEGAL_DATA_ADDRESS;
+    case 3:
+      return ModbusErrorCode::ILLEGAL_DATA_VALUE;
+    case 4:
+      return ModbusErrorCode::SLAVE_DEVICE_FAILURE;
+    case 5:
+      return ModbusErrorCode::ACKNOWLEDGE;
+    case 6:
+      return ModbusErrorCode::SLAVE_DEVICE_BUSY;
+    case 7:
+      return ModbusErrorCode::NEGATIVE_ACKNOWLEDGE;
+    case 8:
+      return ModbusErrorCode::MEMORY_PARITY_ERROR;
+    default:
+      break;
+  }
+  return ModbusErrorCode::UNDEFINED_ERROR;
+}
+
+static constexpr const char* strError(uint8_t rawError) {
+  ModbusErrorCode error = toModbusErrorCode(rawError);
+  switch (error) {
+    case ModbusErrorCode::ILLEGAL_FUNCTION:
+      return "Modbus Error: ILLEGAL_FUNCTION";
+    case ModbusErrorCode::ILLEGAL_DATA_ADDRESS:
+      return "Modbus Error: ILLEGAL_DATA_ADDRESS";
+    case ModbusErrorCode::ILLEGAL_DATA_VALUE:
+      return "Modbus Error: ILLEGAL_DATA_VALUE";
+    case ModbusErrorCode::SLAVE_DEVICE_FAILURE:
+      return "Modbus Error: SLAVE_DEVICE_FAILURE";
+    case ModbusErrorCode::ACKNOWLEDGE:
+      return "Modbus Error: ACKNOWLEDGE";
+    case ModbusErrorCode::SLAVE_DEVICE_BUSY:
+      return "Modbus Error: SLAVE_DEVICE_BUSY";
+    case ModbusErrorCode::NEGATIVE_ACKNOWLEDGE:
+      return "Modbus Error: NEGATIVE_ACKNOWLEDGE";
+    case ModbusErrorCode::MEMORY_PARITY_ERROR:
+      return "Modbus Error: MEMORY_PARITY_ERROR";
+    default:
+      break;
+  }
+  return "Modbus Error: UNDEFINED_ERROR";
+}
+
+ModbusError::ModbusError(uint8_t error)
+    : std::runtime_error(
+          std::string(strError(error)) + "(" + std::to_string(int(error)) +
+          ")"),
+      errorData(error),
+      errorCode(toModbusErrorCode(error)) {}
+
 void from_json(const nlohmann::json& j, FileRecord& file) {
   j.at("fileNum").get_to(file.fileNum);
   j.at("recordNum").get_to(file.recordNum);
