@@ -27,8 +27,14 @@ void Modbus::command(
   }
   req.encode();
   device_->setBaudrate(baudrate);
+  if (debug_) {
+    logInfo << devicePath_ << " TX: " << req << std::endl;
+  }
   device_->write(req.raw.data(), req.len);
   resp.len = device_->read(resp.raw.data(), resp.len, timeout.count());
+  if (debug_) {
+    logInfo << devicePath_ << " RX: " << resp << std::endl;
+  }
   resp.decode();
   if (minDelay_ != ModbusTime::zero()) {
     // If the bus needs to be idle after each transaction for
@@ -89,6 +95,7 @@ void Modbus::initialize(const json& j) {
   j.at("device_path").get_to(devicePath_);
   j.at("baudrate").get_to(defaultBaudrate_);
   std::string deviceType = j.value("device_type", "default");
+  debug_ = j.value("debug", false);
 
   defaultTimeout_ = ModbusTime(j.value("default_timeout", 300));
   minDelay_ = ModbusTime(j.value("min_delay", 0));

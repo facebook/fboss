@@ -22,6 +22,7 @@ class Modbus {
   ModbusTime defaultTimeout_ = ModbusTime::zero();
   ModbusTime minDelay_ = ModbusTime::zero();
   std::atomic<bool> deviceValid_{false};
+  bool debug_{false};
   std::chrono::seconds healthCheckInterval_ = std::chrono::seconds(600);
   std::unique_ptr<PollThread<Modbus>> healthCheckThread_{};
 
