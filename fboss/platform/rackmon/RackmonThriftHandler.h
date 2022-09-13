@@ -42,6 +42,10 @@ class ThriftHandler : virtual public RackmonCtrlSvIf {
   void getMonitorData(
       std::vector<rackmonsvc::RackmonMonitorData>& data) override;
 
+  void getMonitorDataEx(
+      std::vector<rackmonsvc::RackmonMonitorData>& data,
+      std::unique_ptr<rackmonsvc::MonitorDataFilter> filter) override;
+
   void readHoldingRegisters(
       rackmonsvc::ReadWordRegistersResponse& response,
       std::unique_ptr<rackmonsvc::ReadWordRegistersRequest> request) override;

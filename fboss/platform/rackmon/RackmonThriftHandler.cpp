@@ -9,9 +9,27 @@
  */
 
 #include "fboss/platform/rackmon/RackmonThriftHandler.h"
+#include <glog/logging.h>
 #include "fboss/platform/rackmon/RackmonConfig.h"
 
 namespace rackmonsvc {
+
+ModbusDeviceType typeFromString(const std::string& str) {
+  if (str == "orv2_psu") {
+    return ModbusDeviceType::ORV2_PSU;
+  }
+  throw std::runtime_error("Unknown PSU: " + str);
+}
+
+std::string typeToString(ModbusDeviceType type) {
+  switch (type) {
+    case ModbusDeviceType::ORV2_PSU:
+      return "orv2_psu";
+    default:
+      break;
+  }
+  throw std::runtime_error("Unknown Type");
+}
 
 ModbusDeviceInfo ThriftHandler::transformModbusDeviceInfo(
     const rackmon::ModbusDeviceInfo& source) {
@@ -20,8 +38,7 @@ ModbusDeviceInfo ThriftHandler::transformModbusDeviceInfo(
   target.crcErrors() = source.crcErrors;
   target.miscErrors() = source.miscErrors;
   target.baudrate() = source.baudrate;
-  // TODO interpret string source.deviceType to support ORv3 devices.
-  target.deviceType() = ModbusDeviceType::ORV2_PSU;
+  target.deviceType() = typeFromString(source.deviceType);
   target.mode() = source.mode == rackmon::ModbusDeviceMode::ACTIVE
       ? ModbusDeviceMode::ACTIVE
       : ModbusDeviceMode::DORMANT;
@@ -116,6 +133,52 @@ void ThriftHandler::listModbusDevices(std::vector<ModbusDeviceInfo>& devices) {
 void ThriftHandler::getMonitorData(std::vector<RackmonMonitorData>& data) {
   std::vector<rackmon::ModbusDeviceValueData> indata;
   rackmond_.getValueData(indata);
+  for (auto& dev : indata) {
+    data.emplace_back(transformModbusDeviceValueData(dev));
+  }
+}
+
+void ThriftHandler::getMonitorDataEx(
+    std::vector<RackmonMonitorData>& data,
+    std::unique_ptr<MonitorDataFilter> filter) {
+  DeviceFilter* reqDevFilter = filter->get_deviceFilter();
+  RegisterFilter* reqRegFilter = filter->get_registerFilter();
+  bool latestOnly = filter->get_latestValueOnly();
+  std::vector<rackmon::ModbusDeviceValueData> indata;
+  rackmon::ModbusDeviceFilter devFilter{};
+  rackmon::ModbusRegisterFilter regFilter{};
+  if (reqDevFilter) {
+    if (reqDevFilter->addressFilter_ref().has_value()) {
+      std::set<int16_t> devs = reqDevFilter->get_addressFilter();
+      devFilter.addrFilter.emplace();
+      for (auto& dev : devs) {
+        devFilter.addrFilter->insert(uint8_t(dev));
+      }
+    } else if (reqDevFilter->typeFilter_ref().has_value()) {
+      std::set<ModbusDeviceType> types = reqDevFilter->get_typeFilter();
+      devFilter.typeFilter.emplace();
+      for (auto& type : types) {
+        devFilter.typeFilter->insert(typeToString(type));
+      }
+    } else {
+      LOG(ERROR) << "Unsupported empty dev filter" << std::endl;
+    }
+  }
+  if (reqRegFilter) {
+    if (reqRegFilter->addressFilter_ref().has_value()) {
+      std::set<int32_t> regs = reqRegFilter->get_addressFilter();
+      regFilter.addrFilter.emplace();
+      for (auto& addr : regs) {
+        regFilter.addrFilter->insert(uint16_t(addr));
+      }
+    } else if (reqRegFilter->nameFilter_ref().has_value()) {
+      regFilter.nameFilter = reqRegFilter->get_nameFilter();
+    } else {
+      LOG(ERROR) << "Unsupported empty reg filter" << std::endl;
+    }
+  }
+
+  rackmond_.getValueData(indata, devFilter, regFilter, latestOnly);
   for (auto& dev : indata) {
     data.emplace_back(transformModbusDeviceValueData(dev));
   }
