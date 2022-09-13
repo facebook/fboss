@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <fboss/thrift_cow/nodes/Types.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
 
 namespace facebook::fboss::thrift_cow {
@@ -130,5 +131,14 @@ struct ExtractUnionFields {
   template <typename T>
   using apply = UnionMemberTraits<T>;
 };
+
+template <typename Node, typename MemberName>
+struct TypeClassForT {
+  using type = typename ThriftStructFields<Node>::template MemberFor<
+      MemberName>::type_class;
+};
+
+template <typename Node, typename MemberName>
+using TypeClassFor = typename TypeClassForT<Node, MemberName>::type;
 
 } // namespace facebook::fboss::thrift_cow

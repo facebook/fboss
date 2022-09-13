@@ -52,6 +52,22 @@ struct MemberForTestHelper {
   }
 };
 
+template <typename ThriftT>
+struct TypeClassForTestHelper {
+  template <typename Name>
+  using TypeClass = TypeClassFor<ThriftT, Name>;
+
+  template <typename Member>
+  void operator()(fatal::tag<Member>) {
+    using Name = typename Member::name;
+    using TypeClass = TypeClass<Name>;
+    // confirm reflected struct member from MemberFor is same as one seen in
+    // thrift's reflect_struct API
+    static_assert(
+        std::is_same_v<TypeClass, typename Member::type_class>,
+        "Something gone wrong");
+  }
+};
 } // namespace
 
 TEST(ThriftStructNodeTests, ThriftStructFieldsSimple) {
@@ -474,4 +490,9 @@ TEST(ThriftStructNodeTests, UnsignedInteger) {
 TEST(ThriftStructNodeTests, MemberFor) {
   using Members = apache::thrift::reflect_struct<TestStruct>::members;
   fatal::foreach<Members>(MemberForTestHelper<TestStruct>());
+}
+
+TEST(ThriftStructNodeTests, TypeClassFor) {
+  using Members = apache::thrift::reflect_struct<TestStruct>::members;
+  fatal::foreach<Members>(TypeClassForTestHelper<TestStruct>());
 }
