@@ -78,7 +78,7 @@ class ModbusDevice {
   Modbus& interface_;
   int numCommandRetries_;
   ModbusDeviceRawData info_;
-  std::mutex registerListMutex_{};
+  mutable std::mutex registerListMutex_{};
   std::vector<ModbusSpecialHandler> specialHandlers_{};
 
   void handleCommandFailure(std::exception& baseException);
