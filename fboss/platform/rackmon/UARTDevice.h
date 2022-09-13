@@ -36,6 +36,7 @@ class UARTDevice : public Device {
   }
 
   void open() override;
+  void write(const uint8_t* buf, size_t len) override;
 };
 
 class AspeedRS485Device : public UARTDevice {

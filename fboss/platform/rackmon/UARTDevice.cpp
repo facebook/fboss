@@ -89,6 +89,11 @@ void AspeedRS485Device::waitWrite() {
   }
 }
 
+void UARTDevice::write(const uint8_t* buf, size_t len) {
+  ::tcflush(deviceFd_, TCIOFLUSH);
+  Device::write(buf, len);
+}
+
 void AspeedRS485Device::write(const uint8_t* buf, size_t len) {
   // Write with read disabled. Hence we need to do this
   // as fast as possible. So, muck around with the priorities
@@ -97,7 +102,7 @@ void AspeedRS485Device::write(const uint8_t* buf, size_t len) {
   sp.sched_priority = 50;
   pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp);
   readDisable();
-  Device::write(buf, len);
+  UARTDevice::write(buf, len);
   waitWrite();
   readEnable();
   pthread_setschedparam(pthread_self(), SCHED_OTHER, &sp);
@@ -105,7 +110,7 @@ void AspeedRS485Device::write(const uint8_t* buf, size_t len) {
 
 void LocalEchoUARTDevice::write(const uint8_t* buf, size_t len) {
   const int txTimeoutMs = 100;
-  Device::write(buf, len);
+  UARTDevice::write(buf, len);
   std::array<uint8_t, 256> txCheckBuf;
   size_t readBytes = read(txCheckBuf.data(), len, txTimeoutMs);
   if (readBytes != len) {
