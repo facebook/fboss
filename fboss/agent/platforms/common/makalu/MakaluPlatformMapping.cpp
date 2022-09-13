@@ -78,7 +78,7 @@ cfg::PlatformMapping buildMapping() {
     // first front panel port
     chip.name() = folly::to<std::string>("BC", nifBcCoreId++);
     chip.type() = phy::DataPlanePhyChipType::IPHY;
-    chip.physicalID() = lane;
+    chip.physicalID() = lane / 4;
     platformMapping.chips()->push_back(chip);
     cfg::PlatformPortEntry portEntry;
     portEntry.mapping()->id() = port;
