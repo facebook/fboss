@@ -176,6 +176,9 @@ struct RegisterStore {
   Register& back() {
     return idx_ == 0 ? history_.back() : history_[idx_ - 1];
   }
+  const Register& back() const {
+    return idx_ == 0 ? history_.back() : history_[idx_ - 1];
+  }
   // Returns the front (Next to write) reference
   Register& front() {
     return history_[idx_];
