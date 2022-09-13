@@ -155,7 +155,8 @@ class SaiPortManager {
 
   std::shared_ptr<Port> swPortFromAttributes(
       SaiPortTraits::CreateAttributes attributees,
-      PortSaiId portSaiId) const;
+      PortSaiId portSaiId,
+      cfg::SwitchType switchType) const;
 
   void updateStats(PortID portID, bool updateWatermarks = false);
 

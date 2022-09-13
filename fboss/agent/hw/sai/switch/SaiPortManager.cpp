@@ -762,13 +762,23 @@ bool SaiPortManager::createOnlyAttributeChanged(
 
 std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
     SaiPortTraits::CreateAttributes attributes,
-    PortSaiId portSaiId) const {
+    PortSaiId portSaiId,
+    cfg::SwitchType switchType) const {
   auto speed = static_cast<cfg::PortSpeed>(GET_ATTR(Port, Speed, attributes));
   auto lanes = GET_ATTR(Port, HwLaneList, attributes);
+  SaiPortTraits::Attributes::Type portType = SAI_PORT_TYPE_LOGICAL;
+  if (switchType == cfg::SwitchType::FABRIC ||
+      switchType == cfg::SwitchType::VOQ) {
+    portType = SaiApiTable::getInstance()->portApi().getAttribute(
+        portSaiId, SaiPortTraits::Attributes::Type{});
+  }
   auto portID = platform_->findPortID(speed, lanes, portSaiId);
   auto platformPort = platform_->getPort(portID);
   auto port = std::make_shared<Port>(portID, folly::to<std::string>(portID));
 
+  if (portType == SAI_PORT_TYPE_FABRIC) {
+    port->setPortType(cfg::PortType::FABRIC_PORT);
+  }
   // speed, hw lane list, fec mode
   port->setProfileId(platformPort->getProfileIDBySpeed(speed));
   PlatformPortProfileConfigMatcher matcher{port->getProfileID(), portID};
@@ -997,16 +1007,8 @@ std::shared_ptr<PortMap> SaiPortManager::reconstructPortsFromStore(
   auto portMap = std::make_shared<PortMap>();
   for (auto& iter : portStore.objects()) {
     auto saiPort = iter.second.lock();
-    auto port =
-        swPortFromAttributes(saiPort->attributes(), saiPort->adapterKey());
-    if (switchType == cfg::SwitchType::FABRIC ||
-        switchType == cfg::SwitchType::VOQ) {
-      auto portType = SaiApiTable::getInstance()->portApi().getAttribute(
-          saiPort->adapterKey(), SaiPortTraits::Attributes::Type{});
-      if (portType == SAI_PORT_TYPE_FABRIC) {
-        port->setPortType(cfg::PortType::FABRIC_PORT);
-      }
-    }
+    auto port = swPortFromAttributes(
+        saiPort->attributes(), saiPort->adapterKey(), switchType);
     portMap->addNode(port);
   }
   return portMap;

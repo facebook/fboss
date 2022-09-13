@@ -411,7 +411,8 @@ TEST_F(PortManagerTest, swPortFromAttributes) {
   auto& portMgr = saiManagerTable->portManager();
   portMgr.addPort(swPort);
   auto attrs = portMgr.attributesFromSwPort(swPort);
-  auto newPort = portMgr.swPortFromAttributes(attrs, PortSaiId(1));
+  auto newPort =
+      portMgr.swPortFromAttributes(attrs, PortSaiId(1), cfg::SwitchType::NPU);
   EXPECT_EQ(attrs, portMgr.attributesFromSwPort(newPort));
 }
 
