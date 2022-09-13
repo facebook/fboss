@@ -55,26 +55,50 @@ cfg::PlatformMapping buildMapping() {
     platformMapping.ports()->emplace(port, std::move(portEntry));
   }
   // Fill in supported profiles
-  cfg::PlatformPortConfigFactor configFactor;
-  configFactor.profileID() =
-      cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER;
-  phy::ProfileSideConfig profileSideConfig;
-  profileSideConfig.numLanes() = 1;
-  profileSideConfig.modulation() = phy::IpModulation::PAM4;
-  // TODO - set to RS545 fec
-  profileSideConfig.fec() = phy::FecMode::NONE;
-  profileSideConfig.medium() = TransmitterTechnology::COPPER;
+  {
+    // Fabric port profile
+    cfg::PlatformPortConfigFactor configFactor;
+    configFactor.profileID() =
+        cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER;
+    phy::ProfileSideConfig profileSideConfig;
+    profileSideConfig.numLanes() = 1;
+    profileSideConfig.modulation() = phy::IpModulation::PAM4;
+    // TODO - set to RS545 fec
+    profileSideConfig.fec() = phy::FecMode::NONE;
+    profileSideConfig.medium() = TransmitterTechnology::COPPER;
 
-  phy::PortProfileConfig profileConfig;
-  profileConfig.speed() = cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG;
-  profileConfig.iphy() = profileSideConfig;
+    phy::PortProfileConfig profileConfig;
+    profileConfig.speed() = cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG;
+    profileConfig.iphy() = profileSideConfig;
 
-  cfg::PlatformPortProfileConfigEntry portProfileConfigEntry;
-  portProfileConfigEntry.factor() = configFactor;
-  portProfileConfigEntry.profile() = profileConfig;
-  platformMapping.platformSupportedProfiles()->push_back(
-      portProfileConfigEntry);
+    cfg::PlatformPortProfileConfigEntry portProfileConfigEntry;
+    portProfileConfigEntry.factor() = configFactor;
+    portProfileConfigEntry.profile() = profileConfig;
+    platformMapping.platformSupportedProfiles()->push_back(
+        portProfileConfigEntry);
+  }
+  {
+    // NIF port profile
+    cfg::PlatformPortConfigFactor configFactor;
+    configFactor.profileID() =
+        cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL;
+    phy::ProfileSideConfig profileSideConfig;
+    profileSideConfig.numLanes() = 4;
+    profileSideConfig.modulation() = phy::IpModulation::PAM4;
+    // TODO - set to RS528 fec
+    profileSideConfig.fec() = phy::FecMode::NONE;
+    profileSideConfig.medium() = TransmitterTechnology::OPTICAL;
 
+    phy::PortProfileConfig profileConfig;
+    profileConfig.speed() = cfg::PortSpeed::HUNDREDG;
+    profileConfig.iphy() = profileSideConfig;
+
+    cfg::PlatformPortProfileConfigEntry portProfileConfigEntry;
+    portProfileConfigEntry.factor() = configFactor;
+    portProfileConfigEntry.profile() = profileConfig;
+    platformMapping.platformSupportedProfiles()->push_back(
+        portProfileConfigEntry);
+  }
   return platformMapping;
 }
 } // namespace
