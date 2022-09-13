@@ -297,7 +297,7 @@ std::set<std::pair<PortID, PortID>> LinkTest::getConnectedPairs() const {
                  << lldpNeighbors.size();
       continue;
     }
-    auto neighborPort = getPortID(lldpNeighbors.begin()->getPortId());
+    auto neighborPort = getPortID((*lldpNeighbors.begin())->getPortId());
     // Insert sorted pairs, so that the same pair does not show up twice in the
     // set
     auto connectedPair = cabledPort < neighborPort

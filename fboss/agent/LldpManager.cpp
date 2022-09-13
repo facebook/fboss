@@ -88,11 +88,11 @@ void LldpManager::handlePacket(
     folly::MacAddress /*dst*/,
     folly::MacAddress src,
     folly::io::Cursor cursor) {
-  LinkNeighbor neighbor;
+  auto neighbor = std::make_shared<LinkNeighbor>();
 
   sw_->stats()->LldpRecvdPkt();
 
-  bool ret = neighbor.parseLldpPdu(
+  bool ret = neighbor->parseLldpPdu(
       pkt->getSrcPort(), pkt->getSrcVlan(), src, ETHERTYPE_LLDP, &cursor);
 
   if (!ret) {
@@ -103,9 +103,9 @@ void LldpManager::handlePacket(
   }
 
   XLOG(DBG4) << "got LLDP packet: local_port=" << pkt->getSrcPort()
-             << " chassis=" << neighbor.humanReadableChassisId()
-             << " port=" << neighbor.humanReadablePortId()
-             << " name=" << neighbor.getSystemName();
+             << " chassis=" << neighbor->humanReadableChassisId()
+             << " port=" << neighbor->humanReadablePortId()
+             << " name=" << neighbor->getSystemName();
 
   auto plport = sw_->getPlatform()->getPlatformPort(pkt->getSrcPort());
   auto port = sw_->getState()->getPorts()->getPortIf(pkt->getSrcPort());
@@ -113,21 +113,21 @@ void LldpManager::handlePacket(
 
   XLOG(DBG4) << "Port " << pid << ", local name: " << port->getName()
              << ", local desc: " << port->getDescription()
-             << ", LLDP systemname: " << neighbor.getSystemName()
-             << ", LLDP hrPort: " << neighbor.humanReadablePortId()
-             << ", LLDP dsc: " << neighbor.getPortDescription();
+             << ", LLDP systemname: " << neighbor->getSystemName()
+             << ", LLDP hrPort: " << neighbor->humanReadablePortId()
+             << ", LLDP dsc: " << neighbor->getPortDescription();
 
   auto lldpmap = port->getLLDPValidations();
   if (!(checkTag(
             pid,
             lldpmap,
             cfg::LLDPTag::SYSTEM_NAME,
-            neighbor.getSystemName()) &&
+            neighbor->getSystemName()) &&
         checkTag(
             pid,
             lldpmap,
             cfg::LLDPTag::PORT,
-            neighbor.humanReadablePortId()))) {
+            neighbor->humanReadablePortId()))) {
     sw_->stats()->LldpValidateMisMatch();
     // TODO(pjakma): Figure out how to mock plport
     if (plport) {

@@ -26,21 +26,21 @@ class LinkNeighborDB {
   /*
    * Update the DB with new neighbor information.
    */
-  void update(const LinkNeighbor& neighbor);
+  void update(std::shared_ptr<LinkNeighbor> neighbor);
 
   /*
    * Get all known neighbors.
    *
    * This returns a new copy of the neighbor information.
    */
-  std::vector<LinkNeighbor> getNeighbors();
+  std::vector<std::shared_ptr<LinkNeighbor>> getNeighbors();
 
   /*
    * Get all known neighbors on a specific port.
    *
    * This returns a new copy of the neighbor information.
    */
-  std::vector<LinkNeighbor> getNeighbors(PortID port);
+  std::vector<std::shared_ptr<LinkNeighbor>> getNeighbors(PortID port);
 
   /*
    * Remove expired neighbor entries from the database and return number
@@ -64,7 +64,7 @@ class LinkNeighborDB {
     std::string chassisId_;
     std::string portId_;
   };
-  using NeighborMap = std::map<NeighborKey, LinkNeighbor>;
+  using NeighborMap = std::map<NeighborKey, std::shared_ptr<LinkNeighbor>>;
   using NeighborsByPort = std::map<PortID, NeighborMap>;
 
   // Returns number of entries left after pruning

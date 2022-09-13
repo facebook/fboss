@@ -266,15 +266,10 @@ struct LinkNeighbor {
     setExpirationTime(expiration);
   }
 
-  /*
-   * LinkNeighbor is a value type, and can be copied around and
-   * used directly on the stack.  Therefore we intentionally support
-   * copy and move operations.
-   */
-  LinkNeighbor& operator=(const LinkNeighbor&) = default;
-  LinkNeighbor& operator=(LinkNeighbor&&) = default;
-  LinkNeighbor(const LinkNeighbor&) = default;
-  LinkNeighbor(LinkNeighbor&&) = default;
+  LinkNeighbor& operator=(const LinkNeighbor&) = delete;
+  LinkNeighbor& operator=(LinkNeighbor&&) = delete;
+  LinkNeighbor(const LinkNeighbor&) = delete;
+  LinkNeighbor(LinkNeighbor&&) = delete;
 
  private:
   enum class LldpTlvType : uint8_t;

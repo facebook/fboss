@@ -33,17 +33,17 @@ bool LinkNeighborDB::NeighborKey::operator==(const NeighborKey& other) const {
 
 LinkNeighborDB::LinkNeighborDB() {}
 
-void LinkNeighborDB::update(const LinkNeighbor& neighbor) {
+void LinkNeighborDB::update(std::shared_ptr<LinkNeighbor> neighbor) {
   auto neighborsLocked = byLocalPort_.wlock();
   // Go ahead and prune expired neighbors each time we get updated.
   pruneLocked(*neighborsLocked, steady_clock::now());
   auto neighborMap =
-      neighborsLocked->try_emplace(neighbor.getLocalPort(), NeighborMap());
-  neighborMap.first->second[NeighborKey(neighbor)] = neighbor;
+      neighborsLocked->try_emplace(neighbor->getLocalPort(), NeighborMap());
+  neighborMap.first->second[NeighborKey(*neighbor)] = neighbor;
 }
 
-vector<LinkNeighbor> LinkNeighborDB::getNeighbors() {
-  vector<LinkNeighbor> results;
+vector<std::shared_ptr<LinkNeighbor>> LinkNeighborDB::getNeighbors() {
+  vector<std::shared_ptr<LinkNeighbor>> results;
   auto neighborsLocked = byLocalPort_.rlock();
   for (const auto& portEntry : *neighborsLocked) {
     for (const auto& entry : portEntry.second) {
@@ -54,8 +54,9 @@ vector<LinkNeighbor> LinkNeighborDB::getNeighbors() {
   return results;
 }
 
-vector<LinkNeighbor> LinkNeighborDB::getNeighbors(PortID port) {
-  vector<LinkNeighbor> results;
+vector<std::shared_ptr<LinkNeighbor>> LinkNeighborDB::getNeighbors(
+    PortID port) {
+  vector<std::shared_ptr<LinkNeighbor>> results;
   auto neighborsLocked = byLocalPort_.rlock();
   if (auto it = neighborsLocked->find(port); it != neighborsLocked->end()) {
     for (const auto& entry : it->second) {
@@ -101,7 +102,7 @@ int LinkNeighborDB::pruneLocked(
     while (it != map.end()) {
       auto current = it;
       ++it;
-      if (current->second.isExpired(now)) {
+      if (current->second->isExpired(now)) {
         map.erase(current);
       } else {
         count++;

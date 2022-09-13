@@ -447,31 +447,31 @@ AclEntryThrift populateAclEntryThrift(const AclEntry& aclEntry) {
 
 LinkNeighborThrift thriftLinkNeighbor(
     const SwSwitch& sw,
-    const LinkNeighbor& n,
+    const std::shared_ptr<LinkNeighbor>& n,
     steady_clock::time_point now) {
   LinkNeighborThrift tn;
-  *tn.localPort() = n.getLocalPort();
-  *tn.localVlan() = n.getLocalVlan();
-  *tn.srcMac() = n.getMac().toString();
-  *tn.chassisIdType() = static_cast<int32_t>(n.getChassisIdType());
-  *tn.chassisId() = n.getChassisId();
-  *tn.printableChassisId() = n.humanReadableChassisId();
-  *tn.portIdType() = static_cast<int32_t>(n.getPortIdType());
-  *tn.portId() = n.getPortId();
-  *tn.printablePortId() = n.humanReadablePortId();
-  *tn.originalTTL() = duration_cast<seconds>(n.getTTL()).count();
+  *tn.localPort() = n->getLocalPort();
+  *tn.localVlan() = n->getLocalVlan();
+  *tn.srcMac() = n->getMac().toString();
+  *tn.chassisIdType() = static_cast<int32_t>(n->getChassisIdType());
+  *tn.chassisId() = n->getChassisId();
+  *tn.printableChassisId() = n->humanReadableChassisId();
+  *tn.portIdType() = static_cast<int32_t>(n->getPortIdType());
+  *tn.portId() = n->getPortId();
+  *tn.printablePortId() = n->humanReadablePortId();
+  *tn.originalTTL() = duration_cast<seconds>(n->getTTL()).count();
   *tn.ttlSecondsLeft() =
-      duration_cast<seconds>(n.getExpirationTime() - now).count();
-  if (!n.getSystemName().empty()) {
-    tn.systemName() = n.getSystemName();
+      duration_cast<seconds>(n->getExpirationTime() - now).count();
+  if (!n->getSystemName().empty()) {
+    tn.systemName() = n->getSystemName();
   }
-  if (!n.getSystemDescription().empty()) {
-    tn.systemDescription() = n.getSystemDescription();
+  if (!n->getSystemDescription().empty()) {
+    tn.systemDescription() = n->getSystemDescription();
   }
-  if (!n.getPortDescription().empty()) {
-    tn.portDescription() = n.getPortDescription();
+  if (!n->getPortDescription().empty()) {
+    tn.portDescription() = n->getPortDescription();
   }
-  const auto port = sw.getState()->getPorts()->getPortIf(n.getLocalPort());
+  const auto port = sw.getState()->getPorts()->getPortIf(n->getLocalPort());
   if (port) {
     tn.localPortName() = port->getName();
   }
