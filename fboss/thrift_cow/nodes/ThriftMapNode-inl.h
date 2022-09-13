@@ -129,9 +129,18 @@ struct ThriftMapFields {
     return storage_.at(key);
   }
 
+  std::pair<iterator, bool> insert(key_type key, value_type&& val) {
+    return storage_.insert({key, val});
+  }
+
   template <typename... Args>
   std::pair<iterator, bool> emplace(key_type key, Args&&... args) {
     return storage_.emplace(key, childFactory(std::forward<Args>(args)...));
+  }
+
+  template <typename... Args>
+  std::pair<iterator, bool> try_emplace(key_type key, Args&&... args) {
+    return storage_.try_emplace(key, childFactory(std::forward<Args>(args)...));
   }
 
   bool remove(const std::string& token) {
@@ -164,6 +173,10 @@ struct ThriftMapFields {
           apache::thrift::type_class::string>,
       bool> {
     return storage_.erase(key);
+  }
+
+  auto erase(iterator it) {
+    return storage_.erase(it);
   }
   // iterators
 
@@ -289,11 +302,25 @@ class ThriftMapNode : public NodeBaseT<
     return this->getFields()->cref(key);
   }
 
+  std::pair<typename Fields::iterator, bool> insert(
+      key_type key,
+      value_type&& val) {
+    return this->writableFields()->insert(key, std::move(val));
+  }
+
   template <typename... Args>
   typename std::pair<typename Fields::iterator, bool> emplace(
       key_type key,
       Args&&... args) {
     return this->writableFields()->emplace(key, std::forward<Args>(args)...);
+  }
+
+  template <typename... Args>
+  typename std::pair<typename Fields::iterator, bool> try_emplace(
+      key_type key,
+      Args&&... args) {
+    return this->writableFields()->try_emplace(
+        key, std::forward<Args>(args)...);
   }
 
   bool remove(const std::string& token) {
@@ -309,6 +336,10 @@ class ThriftMapNode : public NodeBaseT<
     return this->writableFields()->remove(key);
   }
 
+  auto erase(typename Fields::iterator it) {
+    return this->writableFields()->erase(it);
+  }
+
   // iterators
 
   typename Fields::iterator begin() {
@@ -321,6 +352,10 @@ class ThriftMapNode : public NodeBaseT<
 
   typename Fields::iterator end() {
     return this->writableFields()->end();
+  }
+
+  typename Fields::const_iterator end() const {
+    return this->getFields()->end();
   }
 
   typename Fields::const_iterator cbegin() const {
