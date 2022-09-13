@@ -117,8 +117,12 @@ std::shared_ptr<TransceiverSpec> TransceiverSpec::createPresentTransceiver(
     }
     if (auto settings = tcvrInfo.settings();
         settings && settings->mediaInterface()) {
-      const auto& interface = (*settings->mediaInterface())[0];
-      newTransceiver->setMediaInterface(*interface.code());
+      if (settings->mediaInterface()->size() == 0) {
+        XLOG(WARNING) << "Missing media interface, skip setting it.";
+      } else {
+        const auto& interface = (*settings->mediaInterface())[0];
+        newTransceiver->setMediaInterface(*interface.code());
+      }
     }
     if (auto interface = tcvrInfo.transceiverManagementInterface()) {
       newTransceiver->setManagementInterface(*interface);
