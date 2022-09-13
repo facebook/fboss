@@ -24,7 +24,7 @@ class SaiMakaluPlatform : public SaiBcmPlatform {
   HwAsic* getAsic() const override;
 
   uint32_t numLanesPerCore() const override {
-    return 8;
+    return 4;
   }
 
   uint32_t numCellsAvailable() const override {

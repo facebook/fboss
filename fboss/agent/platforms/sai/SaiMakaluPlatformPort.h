@@ -9,21 +9,22 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/sai/SaiPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
 
 namespace facebook::fboss {
 
-class SaiMakaluPlatformPort : public SaiPlatformPort {
+class SaiMakaluPlatformPort : public SaiBcmPlatformPort {
  public:
-  explicit SaiMakaluPlatformPort(PortID id, SaiPlatform* platform)
-      : SaiPlatformPort(id, platform) {}
+  SaiMakaluPlatformPort(PortID id, SaiPlatform* platform)
+      : SaiBcmPlatformPort(id, platform) {}
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;
   uint32_t getCurrentLedState() const override;
 
   uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const override {
-    return 0;
+    // Lanes on Makalu platform are 0 indexed
+    return SaiBcmPlatformPort::getPhysicalLaneId(chipId, logicalLane) - 1;
   }
   void portChanged(
       std::shared_ptr<Port> /*newPort*/,
