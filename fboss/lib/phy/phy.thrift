@@ -131,6 +131,8 @@ struct TxSettings {
   15: optional i32 ffeCoeff4;
   16: optional i32 parityEncoderEn;
   17: optional i32 thpEn;
+  18: optional i32 setPrecode;
+  19: optional i32 pre3;
 }
 
 struct RxSettings {
@@ -147,6 +149,8 @@ struct RxSettings {
   11: optional i32 instgTableStartRow;
   12: optional i32 parityEncoderEn;
   13: optional i32 thpEn;
+  14: optional i32 dcTermEn;
+  15: optional i32 setPrecode;
 }
 
 struct LaneMap {
