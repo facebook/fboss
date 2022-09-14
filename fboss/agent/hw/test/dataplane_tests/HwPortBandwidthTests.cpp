@@ -209,7 +209,11 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
       GetQueueOutCntT getQueueOutCntFunc);
 
   void verifyQueueShaper();
+  void verifyPortRateTraffic(cfg::PortSpeed portSpeed);
 };
+class HwPortBandwidthParamTest
+    : public HwPortBandwidthTest,
+      public testing::WithParamInterface<cfg::PortSpeed> {};
 
 template <typename GetQueueOutCntT>
 void HwPortBandwidthTest::verifyRate(
@@ -338,6 +342,29 @@ void HwPortBandwidthTest::verifyQueueShaper() {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+void HwPortBandwidthTest::verifyPortRateTraffic(cfg::PortSpeed portSpeed) {
+  auto setup = [&]() {
+    auto newCfg{initialConfig()};
+    utility::updatePortSpeed(
+        *getHwSwitch(), newCfg, masterLogicalPortIds()[0], portSpeed);
+    XLOG(DBG0) << "Port " << masterLogicalPortIds()[0] << " speed set to "
+               << static_cast<int>(portSpeed) << " bps";
+    applyNewConfig(newCfg);
+    setupHelper();
+
+    auto pktsToSend =
+        getHwSwitchEnsemble()->getMinPktsForLineRate(masterLogicalPortIds()[0]);
+    sendUdpPkts(kQueueId0Dscp(), pktsToSend);
+  };
+
+  auto verify = [&]() {
+    EXPECT_NO_THROW(getHwSwitchEnsemble()->waitForLineRateOnPort(
+        masterLogicalPortIds()[0]));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwPortBandwidthTest, VerifyPps) {
   if (!isSupported(HwAsic::Feature::SCHEDULER_PPS)) {
     return;
@@ -393,4 +420,15 @@ TEST_F(HwPortBandwidthTest, VerifyQueueShaper) {
 
   verifyQueueShaper();
 }
+
+TEST_P(HwPortBandwidthParamTest, VerifyPortRateTraffic) {
+  verifyPortRateTraffic(static_cast<cfg::PortSpeed>(GetParam()));
+}
+INSTANTIATE_TEST_CASE_P(
+    HwPortBandwidthTest,
+    HwPortBandwidthParamTest,
+    ::testing::Values(
+        cfg::PortSpeed::FORTYG,
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortSpeed::TWOHUNDREDG));
 } // namespace facebook::fboss
