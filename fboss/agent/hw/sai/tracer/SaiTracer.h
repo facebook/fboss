@@ -373,7 +373,8 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_VIRTUAL_ROUTER, "virtualRouter_"},
       {SAI_OBJECT_TYPE_VLAN, "vlan_"},
       {SAI_OBJECT_TYPE_VLAN_MEMBER, "vlanMember_"},
-      {SAI_OBJECT_TYPE_WRED, "wred_"}};
+      {SAI_OBJECT_TYPE_WRED, "wred_"},
+      {SAI_OBJECT_TYPE_SYSTEM_PORT, "systemPort_"}};
 
   std::map<sai_object_type_t, std::string> fnPrefix_{
       {SAI_OBJECT_TYPE_ACL_COUNTER, "acl_api->"},
