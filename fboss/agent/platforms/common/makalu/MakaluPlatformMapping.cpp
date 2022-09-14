@@ -106,6 +106,8 @@ cfg::PlatformMapping buildMapping() {
     portConfig.pins() = portPinConfig;
     portEntry.supportedProfiles()->insert(
         {cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL, portConfig});
+    portEntry.supportedProfiles()->insert(
+        {cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER, portConfig});
     platformMapping.ports()->emplace(port, std::move(portEntry));
   }
   // Fill in supported profiles
@@ -147,11 +149,25 @@ cfg::PlatformMapping buildMapping() {
     profileConfig.speed() = cfg::PortSpeed::HUNDREDG;
     profileConfig.iphy() = profileSideConfig;
 
-    cfg::PlatformPortProfileConfigEntry portProfileConfigEntry;
-    portProfileConfigEntry.factor() = configFactor;
-    portProfileConfigEntry.profile() = profileConfig;
-    platformMapping.platformSupportedProfiles()->push_back(
-        portProfileConfigEntry);
+    {
+      cfg::PlatformPortProfileConfigEntry portProfileConfigEntry;
+      portProfileConfigEntry.factor() = configFactor;
+      portProfileConfigEntry.profile() = profileConfig;
+      platformMapping.platformSupportedProfiles()->push_back(
+          portProfileConfigEntry);
+    }
+    // 100G copper
+    configFactor.profileID() =
+        cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER;
+    profileSideConfig.medium() = TransmitterTechnology::COPPER;
+    profileConfig.iphy() = profileSideConfig;
+    {
+      cfg::PlatformPortProfileConfigEntry portProfileConfigEntry;
+      portProfileConfigEntry.factor() = configFactor;
+      portProfileConfigEntry.profile() = profileConfig;
+      platformMapping.platformSupportedProfiles()->push_back(
+          portProfileConfigEntry);
+    }
   }
   return platformMapping;
 }
