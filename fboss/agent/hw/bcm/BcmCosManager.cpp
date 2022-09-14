@@ -85,6 +85,26 @@ void BcmCosManager::statClear(PortID port, int32_t cosq, int32_t bid) {
   bcmCheckError(rv, "Failed to clear BST stat");
 }
 
+uint64_t BcmCosManager::statGetExtended(
+    int itm,
+    PortID port,
+    int32_t cosq,
+    int32_t bid,
+    bool clearAfter) {
+  uint64_t value;
+  auto gport = hw_->getPortTable()->getBcmPort(port)->getBcmGport();
+  uint32_t options = clearAfter ? BCM_COSQ_STAT_CLEAR : 0;
+  bcm_cosq_object_id_t id;
+  id.port = gport;
+  id.cosq = cosq;
+  id.buffer = itm;
+  auto rv = bcm_cosq_bst_stat_extended_get(
+      hw_->getUnit(), &id, (bcm_bst_stat_id_t)bid, options, &value);
+  bcmCheckError(
+      rv, "Failed to get extended BST stat for port: ", port, " itm: ", itm);
+  return value;
+}
+
 uint64_t BcmCosManager::statGet(
     PortID port,
     int32_t cosq,

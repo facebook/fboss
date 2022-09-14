@@ -90,10 +90,12 @@ void BcmBstStatsMgr::getAndPublishGlobalWatermarks(
     int itm = it->first;
     bcm_port_t bcmPortId = it->second;
     uint64_t maxGlobalHeadroomBytes =
-        cosMgr->statGet(PortID(bcmPortId), -1, bcmBstStatIdHeadroomPool) *
+        cosMgr->statGetExtended(
+            itm, PortID(bcmPortId), -1, bcmBstStatIdHeadroomPool) *
         hw_->getMMUCellBytes();
     uint64_t maxGlobalSharedBytes =
-        cosMgr->statGet(PortID(bcmPortId), -1, bcmBstStatIdIngPool) *
+        cosMgr->statGetExtended(
+            itm, PortID(bcmPortId), -1, bcmBstStatIdIngPool) *
         hw_->getMMUCellBytes();
     publishGlobalWatermarks(itm, maxGlobalHeadroomBytes, maxGlobalSharedBytes);
   }
