@@ -362,7 +362,8 @@ bool should_log(sai_object_type_t object_type) {
   return object_type != SAI_OBJECT_TYPE_INSEG_ENTRY &&
       object_type != SAI_OBJECT_TYPE_FDB_ENTRY &&
       object_type != SAI_OBJECT_TYPE_NEIGHBOR_ENTRY &&
-      object_type != SAI_OBJECT_TYPE_ROUTE_ENTRY;
+      object_type != SAI_OBJECT_TYPE_ROUTE_ENTRY &&
+      object_type != SAI_OBJECT_TYPE_SYSTEM_PORT;
 }
 
 sai_status_t __wrap_sai_get_object_key(
