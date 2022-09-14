@@ -334,6 +334,14 @@ struct VdmDiagsStats {
   8: double preFecBerHostAvg;
   9: double preFecBerHostCur;
   10: i64 statsCollectionTme;
+  11: double errFrameMediaMin;
+  12: double errFrameMediaMax;
+  13: double errFrameMediaAvg;
+  14: double errFrameMediaCur;
+  15: double errFrameHostMin;
+  16: double errFrameHostMax;
+  17: double errFrameHostAvg;
+  18: double errFrameHostCur;
 }
 
 struct TransceiverSettings {

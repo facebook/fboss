@@ -1282,6 +1282,51 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
     vdmStats.preFecBerMediaCur() = f16ToDouble(data[0], data[1]);
   }
 
+  // Fill in Media Post FEC Errored Frames values
+  getQsfpFieldAddress(
+      CmisField::VDM_CONF_ERR_FRAME_MEDIA_IN_MIN, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmConfType = data[1];
+  if (vdmConfType == ERR_FRAME_MEDIA_IN_MIN) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_ERR_FRAME_MEDIA_IN_MIN, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.errFrameMediaMin() = f16ToDouble(data[0], data[1]);
+  }
+
+  getQsfpFieldAddress(
+      CmisField::VDM_CONF_ERR_FRAME_MEDIA_IN_MAX, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmConfType = data[1];
+  if (vdmConfType == ERR_FRAME_MEDIA_IN_MAX) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_ERR_FRAME_MEDIA_IN_MAX, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.errFrameMediaMax() = f16ToDouble(data[0], data[1]);
+  }
+
+  getQsfpFieldAddress(
+      CmisField::VDM_CONF_ERR_FRAME_MEDIA_IN_AVG, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmConfType = data[1];
+  if (vdmConfType == ERR_FRAME_MEDIA_IN_AVG) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_ERR_FRAME_MEDIA_IN_AVG, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.errFrameMediaAvg() = f16ToDouble(data[0], data[1]);
+  }
+
+  getQsfpFieldAddress(
+      CmisField::VDM_CONF_ERR_FRAME_MEDIA_IN_CUR, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmConfType = data[1];
+  if (vdmConfType == ERR_FRAME_MEDIA_IN_CUR) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_ERR_FRAME_MEDIA_IN_CUR, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.errFrameMediaCur() = f16ToDouble(data[0], data[1]);
+  }
+
   // Fill in Host Pre FEC BER values
   getQsfpFieldAddress(
       CmisField::VDM_CONF_PRE_FEC_BER_HOST_IN_MIN, dataAddress, offset, length);
@@ -1337,6 +1382,51 @@ std::optional<VdmDiagsStats> CmisModule::getVdmDiagsStatsInfo() {
         length);
     data = getQsfpValuePtr(dataAddress, offset, length);
     vdmStats.preFecBerHostCur() = f16ToDouble(data[0], data[1]);
+  }
+
+  // Fill in Host Post FEC Errored Frame values
+  getQsfpFieldAddress(
+      CmisField::VDM_CONF_ERR_FRAME_HOST_IN_MIN, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmConfType = data[1];
+  if (vdmConfType == ERR_FRAME_HOST_IN_MIN) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_ERR_FRAME_HOST_IN_MIN, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.errFrameHostMin() = f16ToDouble(data[0], data[1]);
+  }
+
+  getQsfpFieldAddress(
+      CmisField::VDM_CONF_ERR_FRAME_HOST_IN_MAX, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmConfType = data[1];
+  if (vdmConfType == ERR_FRAME_HOST_IN_MAX) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_ERR_FRAME_HOST_IN_MAX, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.errFrameHostMax() = f16ToDouble(data[0], data[1]);
+  }
+
+  getQsfpFieldAddress(
+      CmisField::VDM_CONF_ERR_FRAME_HOST_IN_AVG, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmConfType = data[1];
+  if (vdmConfType == ERR_FRAME_HOST_IN_AVG) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_ERR_FRAME_HOST_IN_AVG, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.errFrameHostAvg() = f16ToDouble(data[0], data[1]);
+  }
+
+  getQsfpFieldAddress(
+      CmisField::VDM_CONF_ERR_FRAME_HOST_IN_CUR, dataAddress, offset, length);
+  data = getQsfpValuePtr(dataAddress, offset, length);
+  vdmConfType = data[1];
+  if (vdmConfType == ERR_FRAME_HOST_IN_CUR) {
+    getQsfpFieldAddress(
+        CmisField::VDM_VAL_ERR_FRAME_HOST_IN_CUR, dataAddress, offset, length);
+    data = getQsfpValuePtr(dataAddress, offset, length);
+    vdmStats.errFrameHostCur() = f16ToDouble(data[0], data[1]);
   }
 
   return vdmStats;
