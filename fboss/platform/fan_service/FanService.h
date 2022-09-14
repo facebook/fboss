@@ -36,6 +36,17 @@ class FanService {
   // (simulation for unit testing)
   int runMock(std::string mockInputFile, std::string mockOutputFile);
 
+  void getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) const {
+    return pBsp_->getSensorDataThrift(pConfig_, pSensorData);
+  }
+  const SensorData& sensorData() const {
+    return *(pSensorData_.get());
+  }
+  uint64_t lastSensorFetchTimeSec() const {
+    return lastSensorFetchTimeSec_;
+  }
+  unsigned int getSensorFetchFrequency() const;
+
  private:
   // Attributes
   // BSP contains platform specific I/O methonds
@@ -61,10 +72,9 @@ class FanService {
   // Methods
   // Control Logic Execution Frequency in seconds
   void setControlFrequency(uint64_t sec);
-  unsigned int getControlFrequency();
+  unsigned int getControlFrequency() const;
   // Sensor Fetch Frequency in seconds
   void setSensorFetchFrequency(uint64_t sec);
-  unsigned int getSensorFetchFrequency();
   // The factory method to return the proper BSP object,
   // based on the platform type specified in config file
   std::shared_ptr<Bsp> BspFactory();

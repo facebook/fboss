@@ -23,7 +23,7 @@ void FanService::setControlFrequency(uint64_t sec) {
   controlFrequencySec_ = sec;
 }
 
-unsigned int FanService::getControlFrequency() {
+unsigned int FanService::getControlFrequency() const {
   return controlFrequencySec_;
 }
 
@@ -31,7 +31,7 @@ void FanService::setSensorFetchFrequency(uint64_t sec) {
   sensorFetchFrequencySec_ = sec;
 }
 
-unsigned int FanService::getSensorFetchFrequency() {
+unsigned int FanService::getSensorFetchFrequency() const {
   return sensorFetchFrequencySec_;
 }
 

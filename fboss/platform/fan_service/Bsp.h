@@ -81,6 +81,9 @@ class Bsp {
   FsdbSensorSubscriber* fsdbSensorSubscriber() {
     return fsdbSensorSubscriber_.get();
   }
+  void getSensorDataThrift(
+      std::shared_ptr<ServiceConfig> pServiceConfig,
+      std::shared_ptr<SensorData> pSensorData);
 
  protected:
   // replaceAllString : String replace helper function
@@ -123,9 +126,6 @@ class Bsp {
 
   // Private Methods
   // Various handlers to fetch sensor data from Thrift / Utility / Rest / Sysfs
-  void getSensorDataThrift(
-      std::shared_ptr<ServiceConfig> pServiceConfig,
-      std::shared_ptr<SensorData> pSensorData);
   void getSensorDataThriftWithSensorList(
       std::shared_ptr<ServiceConfig> pServiceConfig,
       std::shared_ptr<SensorData> pSensorData,
