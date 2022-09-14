@@ -246,6 +246,29 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
     EXPECT_EQ(cmisData.page24()->data()[0], 0x15);
     EXPECT_TRUE(cmisData.page25());
     EXPECT_EQ(cmisData.page25()->data()[0], 0x00);
+    EXPECT_EQ(
+        int(info.vdmDiagsStats().value().errFrameMediaMin().value() * 10e9),
+        736);
+    EXPECT_EQ(
+        int(info.vdmDiagsStats().value().errFrameMediaMax().value() * 10e9),
+        743);
+    EXPECT_EQ(
+        int(info.vdmDiagsStats().value().errFrameMediaAvg().value() * 10e9),
+        738);
+    EXPECT_EQ(
+        int(info.vdmDiagsStats().value().errFrameMediaCur().value() * 10e9),
+        741);
+    EXPECT_EQ(
+        int(info.vdmDiagsStats().value().errFrameHostMin().value() * 10e10),
+        597);
+    EXPECT_EQ(
+        int(info.vdmDiagsStats().value().errFrameHostMax().value() * 10e10),
+        598);
+    EXPECT_EQ(
+        int(info.vdmDiagsStats().value().errFrameHostAvg().value() * 10e8), 6);
+    EXPECT_EQ(
+        int(info.vdmDiagsStats().value().errFrameHostCur().value() * 10e10),
+        601);
   } else {
     throw FbossError("Missing CMIS Module state");
   }
