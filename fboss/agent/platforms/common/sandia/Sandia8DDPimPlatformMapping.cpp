@@ -9,7 +9,7 @@
  *
  */
 
-#include "fboss/agent/platforms/common/sandia/SandiaPlatformMapping.h"
+#include "fboss/agent/platforms/common/sandia/Sandia8DDPimPlatformMapping.h"
 
 namespace {
 constexpr auto kJsonPlatformMappingStr = R"(
@@ -39182,7 +39182,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
 
 namespace facebook {
 namespace fboss {
-SandiaPlatformMapping::SandiaPlatformMapping()
-    : PlatformMapping(kJsonPlatformMappingStr) {}
+Sandia8DDPimPlatformMapping::Sandia8DDPimPlatformMapping()
+    : MultiPimPlatformMapping(kJsonPlatformMappingStr) {}
 } // namespace fboss
 } // namespace facebook

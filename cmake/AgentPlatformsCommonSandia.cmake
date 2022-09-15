@@ -4,7 +4,8 @@
 # cmake/FooBar.cmake
 
 add_library(sandia_platform_mapping
-    fboss/agent/platforms/common/sandia/SandiaPlatformMapping.cpp
+    fboss/agent/platforms/common/sandia/Sandia8DDPimPlatformMapping.cpp
+    fboss/agent/platforms/common/sandia/oss/SandiaPlatformMapping.cpp
 )
 
 target_link_libraries(sandia_platform_mapping

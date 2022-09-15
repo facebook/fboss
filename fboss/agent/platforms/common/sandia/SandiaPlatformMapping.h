@@ -11,9 +11,7 @@
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 
-namespace facebook {
-namespace fboss {
-
+namespace facebook::fboss {
 class SandiaPlatformMapping : public PlatformMapping {
  public:
   SandiaPlatformMapping();
@@ -23,5 +21,4 @@ class SandiaPlatformMapping : public PlatformMapping {
   SandiaPlatformMapping(SandiaPlatformMapping const&) = delete;
   SandiaPlatformMapping& operator=(SandiaPlatformMapping const&) = delete;
 };
-} // namespace fboss
-} // namespace facebook
+} // namespace facebook::fboss
