@@ -30,7 +30,10 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
         getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       auto streamType =
-          *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+          *(getPlatform()
+                ->getAsic()
+                ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+                .begin());
       utility::addOlympicQueueConfig(
           &cfg, streamType, getPlatform()->getAsic());
       utility::addOlympicQosMaps(cfg);
@@ -357,8 +360,10 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
 
   auto setupPostWarmboot = [=]() {
     auto newCfg{initialConfig()};
-    auto streamType =
-        *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+    auto streamType = *(getPlatform()
+                            ->getAsic()
+                            ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+                            .begin());
     utility::addOlympicAllSPQueueConfig(&newCfg, streamType);
     utility::addOlympicAllSPQosMaps(newCfg);
     applyNewConfig(newCfg);
@@ -384,8 +389,10 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
 
   auto setupPostWarmboot = [=]() {
     auto newCfg{initialConfig()};
-    auto streamType =
-        *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+    auto streamType = *(getPlatform()
+                            ->getAsic()
+                            ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+                            .begin());
     utility::addOlympicAllSPQueueConfig(&newCfg, streamType);
     utility::addOlympicAllSPQosMaps(newCfg);
     applyNewConfig(newCfg);

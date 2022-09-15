@@ -18,7 +18,7 @@ bool Mvl88X93161Asic::isSupported(Feature feature) const {
 }
 
 std::set<cfg::StreamType> Mvl88X93161Asic::getQueueStreamTypes(
-    bool /* cpu */) const {
+    cfg::PortType /*portType*/) const {
   throw FbossError("Mvl88X93161Asic doesn't support queue feature");
 }
 int Mvl88X93161Asic::getDefaultNumPortQueues(

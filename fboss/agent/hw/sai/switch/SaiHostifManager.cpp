@@ -459,7 +459,7 @@ HwPortStats SaiHostifManager::getCpuPortStats() const {
 
 uint32_t SaiHostifManager::getMaxCpuQueues() const {
   auto asic = platform_->getAsic();
-  auto cpuQueueTypes = asic->getQueueStreamTypes(true /*cpu*/);
+  auto cpuQueueTypes = asic->getQueueStreamTypes(cfg::PortType::CPU_PORT);
   CHECK_EQ(cpuQueueTypes.size(), 1);
   return asic->getDefaultNumPortQueues(*cpuQueueTypes.begin(), true /*cpu*/);
 }

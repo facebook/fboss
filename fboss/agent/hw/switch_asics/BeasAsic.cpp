@@ -15,9 +15,10 @@ bool BeasAsic::isSupported(Feature feature) const {
   return false;
 }
 
-std::set<cfg::StreamType> BeasAsic::getQueueStreamTypes(bool cpu) const {
+std::set<cfg::StreamType> BeasAsic::getQueueStreamTypes(
+    cfg::PortType portType) const {
   std::set<cfg::StreamType> streams;
-  if (!cpu) {
+  if (portType != cfg::PortType::CPU_PORT) {
     // On kamet we use a single fabric queue for all
     // traffic
     streams.insert(cfg::StreamType::FABRIC_TX);

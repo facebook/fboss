@@ -20,7 +20,8 @@ class GaronneAsic : public TajoAsic {
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::HUNDREDG;
   }
-  std::set<cfg::StreamType> getQueueStreamTypes(bool /* cpu */) const override {
+  std::set<cfg::StreamType> getQueueStreamTypes(
+      cfg::PortType /*portType*/) const override {
     return {cfg::StreamType::UNICAST};
   }
   int getDefaultNumPortQueues(cfg::StreamType streamType, bool /*cpu*/)

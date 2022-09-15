@@ -1351,7 +1351,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
 
   // For now, we only support update unicast port queues for ports
   QueueConfig portQueues;
-  for (auto streamType : platform_->getAsic()->getQueueStreamTypes(false)) {
+  for (auto streamType :
+       platform_->getAsic()->getQueueStreamTypes(*portConf->portType())) {
     auto maxQueues =
         platform_->getAsic()->getDefaultNumPortQueues(streamType, false);
     auto tmpPortQueues = updatePortQueues(
@@ -3038,7 +3039,8 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
 
   // check whether queue setting changed
   QueueConfig newQueues;
-  for (auto streamType : platform_->getAsic()->getQueueStreamTypes(true)) {
+  for (auto streamType :
+       platform_->getAsic()->getQueueStreamTypes(cfg::PortType::CPU_PORT)) {
     auto tmpPortQueues = updatePortQueues(
         origCPU->getQueues(),
         *cfg_->cpuQueues(),

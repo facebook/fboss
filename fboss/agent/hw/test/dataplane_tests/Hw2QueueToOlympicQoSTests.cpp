@@ -93,7 +93,10 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
       auto newCfg{initialConfig()};
       auto streamType =
-          *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+          *(getPlatform()
+                ->getAsic()
+                ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+                .begin());
       utility::add2QueueConfig(
           &newCfg,
           streamType,
@@ -111,7 +114,10 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
     auto setupPostWarmboot = [=]() {
       auto newCfg{initialConfig()};
       auto streamType =
-          *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+          *(getPlatform()
+                ->getAsic()
+                ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+                .begin());
       utility::addOlympicQueueConfig(
           &newCfg, streamType, getPlatform()->getAsic());
       utility::addOlympicQosMaps(newCfg);

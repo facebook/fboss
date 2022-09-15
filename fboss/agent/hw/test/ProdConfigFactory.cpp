@@ -38,7 +38,8 @@ void addOlympicQosToConfig(
     const HwSwitch* hwSwitch) {
   auto hwAsic = hwSwitch->getPlatform()->getAsic();
   addOlympicQosMaps(config);
-  auto streamType = *hwAsic->getQueueStreamTypes(false).begin();
+  auto streamType =
+      *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   addOlympicQueueConfig(&config, streamType, hwAsic);
 }
 
@@ -48,7 +49,8 @@ void addNetworkAIQosToConfig(
   auto hwAsic = hwSwitch->getPlatform()->getAsic();
   // network AI qos map is the same as olympic
   addOlympicQosMaps(config);
-  auto streamType = *hwAsic->getQueueStreamTypes(false).begin();
+  auto streamType =
+      *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   // queue configuration is different
   addNetworkAIQueueConfig(&config, streamType);
 }

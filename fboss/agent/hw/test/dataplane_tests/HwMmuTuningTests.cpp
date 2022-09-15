@@ -30,7 +30,10 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     if (HwTest::isSupported(HwAsic::Feature::L3_QOS)) {
       addQosMap(&cfg);
       auto streamType =
-          *(getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+          *(getPlatform()
+                ->getAsic()
+                ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+                .begin());
       addQueueConfig(
           &cfg,
           streamType,

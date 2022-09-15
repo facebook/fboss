@@ -89,7 +89,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
 
 cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic) {
   cfg::StreamType defaultStreamType = cfg::StreamType::MULTICAST;
-  auto streamTypes = hwAsic->getQueueStreamTypes(true);
+  auto streamTypes = hwAsic->getQueueStreamTypes(cfg::PortType::CPU_PORT);
   if (streamTypes.begin() != streamTypes.end()) {
     defaultStreamType = *streamTypes.begin();
   }

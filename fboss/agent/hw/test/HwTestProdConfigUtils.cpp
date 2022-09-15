@@ -39,8 +39,10 @@ void addProdFeaturesToConfig(
     /*
      * Enable Olympic Queue Config
      */
-    auto streamType = *(
-        hwSwitch->getPlatform()->getAsic()->getQueueStreamTypes(false).begin());
+    auto streamType = *(hwSwitch->getPlatform()
+                            ->getAsic()
+                            ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+                            .begin());
     utility::addOlympicQueueConfig(&config, streamType, hwAsic, true);
   }
   /*

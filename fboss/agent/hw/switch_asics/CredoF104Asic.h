@@ -26,7 +26,8 @@ class CredoF104Asic : public HwAsic {
     return cfg::PortSpeed::FOURHUNDREDG;
   }
 
-  std::set<cfg::StreamType> getQueueStreamTypes(bool cpu) const override;
+  std::set<cfg::StreamType> getQueueStreamTypes(
+      cfg::PortType portType) const override;
   int getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
       const override;
   uint32_t getMaxLabelStackDepth() const override;

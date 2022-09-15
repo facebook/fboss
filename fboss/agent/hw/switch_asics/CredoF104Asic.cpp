@@ -19,7 +19,7 @@ bool CredoF104Asic::isSupported(Feature feature) const {
 }
 
 std::set<cfg::StreamType> CredoF104Asic::getQueueStreamTypes(
-    bool /* cpu */) const {
+    cfg::PortType /*portType*/) const {
   throw FbossError("CredoF104Asic doesn't support queue feature");
 }
 int CredoF104Asic::getDefaultNumPortQueues(

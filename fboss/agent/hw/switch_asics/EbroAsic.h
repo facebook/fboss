@@ -30,7 +30,8 @@ class EbroAsic : public TajoAsic {
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::HUNDREDG;
   }
-  std::set<cfg::StreamType> getQueueStreamTypes(bool /* cpu */) const override {
+  std::set<cfg::StreamType> getQueueStreamTypes(
+      cfg::PortType portType) const override {
     /*
      * For Ebro asic, SDK 1.42.* queue type is ALL whereas SDK 1.56.* queue type
      * is unicast. Once SDK 1.56.* is rolled out after P4 warmboot support

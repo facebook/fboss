@@ -33,8 +33,9 @@ class Tomahawk4Asic : public BroadcomAsic {
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::FOURHUNDREDG;
   }
-  std::set<cfg::StreamType> getQueueStreamTypes(bool cpu) const override {
-    if (cpu) {
+  std::set<cfg::StreamType> getQueueStreamTypes(
+      cfg::PortType portType) const override {
+    if (portType == cfg::PortType::CPU_PORT) {
       return {cfg::StreamType::MULTICAST};
     } else {
       return {cfg::StreamType::UNICAST};
