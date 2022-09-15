@@ -214,6 +214,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwSwitchStateReplayTest.cpp
   fboss/agent/hw/test/HwParityErrorTest.cpp
   fboss/agent/hw/test/HwPtpTcTests.cpp
+  fboss/agent/hw/test/HwTeFlowTestUtils.cpp
   fboss/agent/hw/test/HwTeFlowTests.cpp
   # TODO: Compile takes too long. Commenting until addressing it
   # fboss/agent/hw/test/HwHashPolarizationTestUtils.cpp
@@ -257,6 +258,7 @@ add_library(hw_switch_test
   fboss/agent/hw/test/dataplane_tests/HwOlympicQosTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwOlympicQosSchedulerTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwOverflowTest.cpp
+  fboss/agent/hw/test/dataplane_tests/HwTeFlowTrafficTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwTrafficPfcTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwProdInvariantHelper.cpp
   fboss/agent/hw/test/dataplane_tests/HwProdInvariantTests.cpp

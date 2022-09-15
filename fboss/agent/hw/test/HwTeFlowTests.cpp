@@ -11,9 +11,13 @@
 #include <folly/IPAddress.h>
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTeFlowTestUtils.h"
 #include "fboss/agent/hw/test/HwTestTeFlowUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/TeFlowEntry.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
+
+using namespace facebook::fboss::utility;
 
 namespace facebook::fboss {
 
@@ -22,11 +26,13 @@ using folly::IPAddress;
 using folly::StringPiece;
 
 namespace {
-static TeCounterID kCounterID("counter0");
-static std::string kNhopAddrA("2620:0:1cfe:face:b00c::4");
-static std::string kNhopAddrB("2620:0:1cfe:face:b00c::5");
+static folly::IPAddressV6 kAddr1{"100::"};
+static std::string kNhopAddrA("1::1");
+static std::string kNhopAddrB("2::2");
 static std::string kIfName1("fboss2000");
 static std::string kIfName2("fboss2001");
+static TeCounterID kCounterID0("counter0");
+static TeCounterID kCounterID1("counter1");
 } // namespace
 
 class HwTeFlowTest : public HwLinkStateDependentTest {
@@ -34,6 +40,8 @@ class HwTeFlowTest : public HwLinkStateDependentTest {
   void SetUp() override {
     FLAGS_enable_exact_match = true;
     HwLinkStateDependentTest::SetUp();
+    ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
+        getProgrammedState(), RouterID(0));
   }
 
   cfg::SwitchConfig initialConfig() const override {
@@ -46,77 +54,19 @@ class HwTeFlowTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
+  void resolveNextHop(PortDescriptor port) {
+    applyNewState(ecmpHelper_->resolveNextHops(
+        getProgrammedState(),
+        {
+            port,
+        }));
+  }
+
   bool skipTest() {
     return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::EXACT_MATCH);
   }
 
-  IpPrefix ipPrefix(StringPiece ip, int length) {
-    IpPrefix result;
-    result.ip() = toBinaryAddress(IPAddress(ip));
-    result.prefixLength() = length;
-    return result;
-  }
-
-  TeFlow makeFlowKey(std::string dstIp) {
-    TeFlow flow;
-    flow.srcPort() = 100;
-    flow.dstPrefix() = ipPrefix(dstIp, 56);
-    return flow;
-  }
-
-  std::shared_ptr<TeFlowEntry> makeFlowEntry(
-      std::string dstIp,
-      std::string nhopAdd = kNhopAddrA,
-      std::string ifName = kIfName1) {
-    auto flow = makeFlowKey(dstIp);
-    auto flowEntry = std::make_shared<TeFlowEntry>(flow);
-    std::vector<NextHopThrift> nexthops;
-    NextHopThrift nhop;
-    nhop.address() = toBinaryAddress(IPAddress(nhopAdd));
-    nhop.address()->ifName() = ifName;
-    nexthops.push_back(nhop);
-    flowEntry->setEnabled(true);
-    flowEntry->setCounterID(kCounterID);
-    flowEntry->setNextHops(nexthops);
-    flowEntry->setResolvedNextHops(nexthops);
-    return flowEntry;
-  }
-
-  void addFlowEntry(std::shared_ptr<TeFlowEntry>& flowEntry) {
-    auto state = this->getProgrammedState()->clone();
-    auto teFlows = state->getTeFlowTable()->modify(&state);
-    teFlows->addNode(flowEntry);
-    this->applyNewState(state);
-  }
-
-  void deleteFlowEntry(std::shared_ptr<TeFlowEntry>& flowEntry) {
-    auto teFlows = this->getProgrammedState()->getTeFlowTable()->clone();
-    teFlows->removeNode(flowEntry);
-    auto newState = this->getProgrammedState()->clone();
-    newState->resetTeFlowTable(teFlows);
-    this->applyNewState(newState);
-  }
-
-  void modifyFlowEntry(std::string dstIp) {
-    auto flow = makeFlowKey(dstIp);
-    auto teFlows = this->getProgrammedState()->getTeFlowTable()->clone();
-    auto newFlowEntry = makeFlowEntry(dstIp, kNhopAddrB, kIfName2);
-    teFlows->updateNode(newFlowEntry);
-    auto newState = this->getProgrammedState()->clone();
-    newState->resetTeFlowTable(teFlows);
-    this->applyNewState(newState);
-  }
-
-  void modifyFlowEntry(
-      std::shared_ptr<TeFlowEntry>& newFlowEntry,
-      bool enable) {
-    auto teFlows = this->getProgrammedState()->getTeFlowTable()->clone();
-    newFlowEntry->setEnabled(enable);
-    teFlows->updateNode(newFlowEntry);
-    auto newState = this->getProgrammedState()->clone();
-    newState->resetTeFlowTable(teFlows);
-    this->applyNewState(newState);
-  }
+  std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
 };
 
 TEST_F(HwTeFlowTest, VerifyTeFlowGroupEnable) {
@@ -136,26 +86,42 @@ TEST_F(HwTeFlowTest, validateAddDeleteTeFlow) {
     return;
   }
 
-  auto flowEntry1 = makeFlowEntry("100::");
-  this->addFlowEntry(flowEntry1);
+  this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
+  this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
+  auto flowEntry1 = makeFlowEntry(
+      "100::", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], kCounterID0);
+  addFlowEntry(getHwSwitchEnsemble(), flowEntry1);
 
   EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
   utility::checkSwHwTeFlowMatch(
-      getHwSwitch(), getProgrammedState(), makeFlowKey("100::"));
+      getHwSwitch(),
+      getProgrammedState(),
+      makeFlowKey("100::", masterLogicalPortIds()[0]));
 
-  auto flowEntry2 = makeFlowEntry("101::");
-  this->addFlowEntry(flowEntry2);
+  auto flowEntry2 = makeFlowEntry(
+      "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
+  addFlowEntry(getHwSwitchEnsemble(), flowEntry2);
 
   EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 2);
   utility::checkSwHwTeFlowMatch(
-      getHwSwitch(), getProgrammedState(), makeFlowKey("101::"));
+      getHwSwitch(),
+      getProgrammedState(),
+      makeFlowKey("101::", masterLogicalPortIds()[1]));
 
-  this->modifyFlowEntry("100::");
+  modifyFlowEntry(
+      getHwSwitchEnsemble(),
+      "100::",
+      masterLogicalPortIds()[0],
+      kNhopAddrB,
+      kIfName2,
+      kCounterID0);
   EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 2);
   utility::checkSwHwTeFlowMatch(
-      getHwSwitch(), getProgrammedState(), makeFlowKey("100::"));
+      getHwSwitch(),
+      getProgrammedState(),
+      makeFlowKey("100::", masterLogicalPortIds()[0]));
 
-  this->deleteFlowEntry(flowEntry1);
+  deleteFlowEntry(getHwSwitchEnsemble(), flowEntry1);
 
   EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
 }
@@ -165,35 +131,52 @@ TEST_F(HwTeFlowTest, validateEnableDisableTeFlow) {
     return;
   }
 
-  auto flowEntry1 = makeFlowEntry("100::");
-  this->addFlowEntry(flowEntry1);
-  auto flowEntry2 = makeFlowEntry("101::");
-  this->addFlowEntry(flowEntry2);
+  this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
+  this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
+  auto flowEntry1 = makeFlowEntry(
+      "100::", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], kCounterID0);
+  addFlowEntry(getHwSwitchEnsemble(), flowEntry1);
+  auto flowEntry2 = makeFlowEntry(
+      "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
+  addFlowEntry(getHwSwitchEnsemble(), flowEntry2);
 
   EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 2);
   utility::checkSwHwTeFlowMatch(
-      getHwSwitch(), getProgrammedState(), makeFlowKey("100::"));
+      getHwSwitch(),
+      getProgrammedState(),
+      makeFlowKey("100::", masterLogicalPortIds()[0]));
   utility::checkSwHwTeFlowMatch(
-      getHwSwitch(), getProgrammedState(), makeFlowKey("101::"));
+      getHwSwitch(),
+      getProgrammedState(),
+      makeFlowKey("101::", masterLogicalPortIds()[1]));
 
-  auto newFlowEntry1 = makeFlowEntry("100::");
-  this->modifyFlowEntry(newFlowEntry1, false);
+  auto newFlowEntry1 = makeFlowEntry(
+      "100::", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], kCounterID0);
+  modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry1, false);
   utility::checkSwHwTeFlowMatch(
-      getHwSwitch(), getProgrammedState(), makeFlowKey("100::"));
+      getHwSwitch(),
+      getProgrammedState(),
+      makeFlowKey("100::", masterLogicalPortIds()[0]));
 
-  auto newFlowEntry2 = makeFlowEntry("101::");
-  this->modifyFlowEntry(newFlowEntry2, false);
+  auto newFlowEntry2 = makeFlowEntry(
+      "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
+  modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry2, false);
   utility::checkSwHwTeFlowMatch(
-      getHwSwitch(), getProgrammedState(), makeFlowKey("101::"));
+      getHwSwitch(),
+      getProgrammedState(),
+      makeFlowKey("101::", masterLogicalPortIds()[1]));
 
-  this->deleteFlowEntry(newFlowEntry1);
+  deleteFlowEntry(getHwSwitchEnsemble(), newFlowEntry1);
   EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
 
-  auto newFlowEntry3 = makeFlowEntry("101::");
-  this->modifyFlowEntry(newFlowEntry3, true);
+  auto newFlowEntry3 = makeFlowEntry(
+      "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
+  modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry3, true);
   EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
   utility::checkSwHwTeFlowMatch(
-      getHwSwitch(), getProgrammedState(), makeFlowKey("101::"));
+      getHwSwitch(),
+      getProgrammedState(),
+      makeFlowKey("101::", masterLogicalPortIds()[1]));
 }
 
 } // namespace facebook::fboss
