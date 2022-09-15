@@ -429,7 +429,12 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     if (portType == cfg::PortType::FABRIC_PORT) {
       continue;
     }
-    port2vlan[port] = VlanID(vlan);
+    // For non NPU switch type vendor SAI impls don't support
+    // tagging packet at port ingress.
+    port2vlan[port] = hwSwitch->getPlatform()->getAsic()->getSwitchType() ==
+            cfg::SwitchType::NPU
+        ? VlanID(vlan)
+        : VlanID(0);
     idx++;
     // If current vlan has portsPerVlan port,
     // then add a new vlan
