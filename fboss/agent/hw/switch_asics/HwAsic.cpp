@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/FbossError.h"
 
 DEFINE_int32(acl_gid, -1, "Content aware processor group ID for ACLs");
 DEFINE_int32(teFlow_gid, -1, "Exact Match group ID for TeFlows");
@@ -75,5 +76,35 @@ std::vector<HwAsic::AsicType> HwAsic::getAllHwAsicList() {
     result.push_back(asicType);
   }
   return result;
+}
+
+std::string HwAsic::getAsicTypeStr() const {
+  switch (getAsicType()) {
+    case AsicType::ASIC_TYPE_FAKE:
+      return "Fake";
+    case AsicType::ASIC_TYPE_MOCK:
+      return "Mock";
+    case AsicType::ASIC_TYPE_TRIDENT2:
+      return "TD2";
+    case AsicType::ASIC_TYPE_TOMAHAWK:
+      return "TH";
+    case AsicType::ASIC_TYPE_TOMAHAWK3:
+      return "TH3";
+    case AsicType::ASIC_TYPE_TOMAHAWK4:
+      return "TH4";
+    case AsicType::ASIC_TYPE_ELBERT_8DD:
+      return "Elbert_8DD";
+    case AsicType::ASIC_TYPE_EBRO:
+      return "Ebro";
+    case AsicType::ASIC_TYPE_GARONNE:
+      return "Garonne";
+    case AsicType::ASIC_TYPE_SANDIA_PHY:
+      return "Sandia_phy";
+    case AsicType::ASIC_TYPE_INDUS:
+      return "Indus";
+    case AsicType::ASIC_TYPE_BEAS:
+      return "Beas";
+  }
+  throw FbossError("Unhandled ASIC type: ", getAsicType());
 }
 } // namespace facebook::fboss

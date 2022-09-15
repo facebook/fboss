@@ -16,6 +16,7 @@ add_library(switch_asics
   fboss/agent/hw/switch_asics/CredoF104Asic.cpp
   fboss/agent/hw/switch_asics/IndusAsic.cpp
   fboss/agent/hw/switch_asics/BeasAsic.cpp
+  fboss/agent/hw/switch_asics/BroadcomXgsAsic.cpp
 )
 
 target_link_libraries(switch_asics

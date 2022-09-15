@@ -3,13 +3,13 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/hw/switch_asics/BroadcomAsic.h"
+#include "fboss/agent/hw/switch_asics/BroadcomXgsAsic.h"
 
 namespace facebook::fboss {
 
-class Tomahawk3Asic : public BroadcomAsic {
+class Tomahawk3Asic : public BroadcomXgsAsic {
  public:
-  using BroadcomAsic::BroadcomAsic;
+  using BroadcomXgsAsic::BroadcomXgsAsic;
   bool isSupported(Feature) const override;
   AsicType getAsicType() const override {
     return AsicType::ASIC_TYPE_TOMAHAWK3;
@@ -20,8 +20,6 @@ class Tomahawk3Asic : public BroadcomAsic {
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::FOURHUNDREDG;
   }
-  std::set<cfg::StreamType> getQueueStreamTypes(
-      cfg::PortType portType) const override;
   int getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
       const override;
   uint32_t getMaxLabelStackDepth() const override {

@@ -143,6 +143,7 @@ class HwAsic {
   virtual ~HwAsic() {}
   virtual bool isSupported(Feature) const = 0;
   virtual AsicType getAsicType() const = 0;
+  std::string getAsicTypeStr() const;
   virtual AsicVendor getAsicVendor() const = 0;
   virtual AsicMode getAsicMode() const {
     return AsicMode::ASIC_MODE_HW;
