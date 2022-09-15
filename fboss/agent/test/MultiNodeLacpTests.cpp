@@ -69,7 +69,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
  protected:
   cfg::SwitchConfig getConfigWithAggPort(
       cfg::LacpPortRate rate = cfg::LacpPortRate::SLOW) const {
-    auto config = utility::multiplePortsPerVlanConfig(
+    auto config = utility::multiplePortsPerIntfConfig(
         platform()->getHwSwitch(),
         testPorts(),
         cfg::PortLoopbackMode::NONE,

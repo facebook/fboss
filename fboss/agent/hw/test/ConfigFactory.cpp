@@ -399,7 +399,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     int baseIntfId) {
-  return multiplePortsPerVlanConfig(
+  return multiplePortsPerIntfConfig(
       hwSwitch,
       ports,
       lbMode,
@@ -409,7 +409,7 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       1);
 }
 
-cfg::SwitchConfig multiplePortsPerVlanConfig(
+cfg::SwitchConfig multiplePortsPerIntfConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
     cfg::PortLoopbackMode lbMode,

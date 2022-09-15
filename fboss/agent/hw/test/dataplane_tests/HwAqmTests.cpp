@@ -106,7 +106,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
   }
 
   cfg::SwitchConfig multiplePortConfig() const {
-    auto cfg = utility::multiplePortsPerVlanConfig(
+    auto cfg = utility::multiplePortsPerIntfConfig(
         getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       auto streamType =
