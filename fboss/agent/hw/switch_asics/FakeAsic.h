@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
@@ -50,11 +51,17 @@ class FakeAsic : public HwAsic {
   }
   std::set<cfg::StreamType> getQueueStreamTypes(
       cfg::PortType portType) const override {
-    if (portType == cfg::PortType::CPU_PORT) {
-      return {cfg::StreamType::MULTICAST};
-    } else {
-      return {cfg::StreamType::UNICAST};
+    switch (portType) {
+      case cfg::PortType::CPU_PORT:
+        return {cfg::StreamType::MULTICAST};
+      case cfg::PortType::INTERFACE_PORT:
+        return {cfg::StreamType::UNICAST};
+      case cfg::PortType::FABRIC_PORT:
+        return {cfg::StreamType::FABRIC_TX};
     }
+    throw FbossError(
+        "Fake ASIC does not support:",
+        apache::thrift::util::enumNameSafe(portType));
   }
   int getDefaultNumPortQueues(cfg::StreamType streamType, bool /*cpu*/)
       const override {

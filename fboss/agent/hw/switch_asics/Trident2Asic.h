@@ -21,13 +21,7 @@ class Trident2Asic : public BroadcomAsic {
     return cfg::PortSpeed::FORTYG;
   }
   std::set<cfg::StreamType> getQueueStreamTypes(
-      cfg::PortType portType) const override {
-    if (portType == cfg::PortType::CPU_PORT) {
-      return {cfg::StreamType::MULTICAST};
-    } else {
-      return {cfg::StreamType::UNICAST};
-    }
-  }
+      cfg::PortType portType) const override;
   int getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
       const override;
   uint32_t getMaxLabelStackDepth() const override {

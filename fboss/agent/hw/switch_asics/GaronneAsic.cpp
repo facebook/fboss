@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/switch_asics/GaronneAsic.h"
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook::fboss {
 
@@ -114,4 +115,17 @@ bool GaronneAsic::isSupported(Feature feature) const {
   return false;
 }
 
+std::set<cfg::StreamType> GaronneAsic::getQueueStreamTypes(
+    cfg::PortType portType) const {
+  switch (portType) {
+    case cfg::PortType::CPU_PORT:
+    case cfg::PortType::INTERFACE_PORT:
+      return {cfg::StreamType::UNICAST};
+    case cfg::PortType::FABRIC_PORT:
+      break;
+  }
+  throw FbossError(
+      "Garone ASIC does not support:",
+      apache::thrift::util::enumNameSafe(portType));
+}
 } // namespace facebook::fboss

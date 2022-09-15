@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/switch_asics/IndusAsic.h"
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook::fboss {
 
@@ -110,6 +111,20 @@ bool IndusAsic::isSupported(Feature feature) const {
   return false;
 }
 
+std::set<cfg::StreamType> IndusAsic::getQueueStreamTypes(
+    cfg::PortType portType) const {
+  switch (portType) {
+    case cfg::PortType::CPU_PORT:
+      return {cfg::StreamType::MULTICAST};
+    case cfg::PortType::INTERFACE_PORT:
+      return {cfg::StreamType::UNICAST};
+    case cfg::PortType::FABRIC_PORT:
+      return {cfg::StreamType::FABRIC_TX};
+  }
+  throw FbossError(
+      "Indus ASIC does not support:",
+      apache::thrift::util::enumNameSafe(portType));
+}
 int IndusAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
     const {
   switch (streamType) {

@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook::fboss {
 
@@ -121,5 +122,27 @@ bool EbroAsic::isSupportedFabric(Feature feature) const {
       return false;
   }
   return false;
+}
+
+std::set<cfg::StreamType> EbroAsic::getQueueStreamTypes(
+    cfg::PortType portType) const {
+  switch (portType) {
+    case cfg::PortType::CPU_PORT:
+    case cfg::PortType::INTERFACE_PORT:
+      /*
+       * For Ebro asic, SDK 1.42.* queue type is ALL whereas SDK 1.56.* queue
+       * type is unicast. Once SDK 1.56.* is rolled out after P4 warmboot
+       * support across the entire fleet, the stream type can be encoded as
+       * Unicast.
+       */
+      return {getDefaultStreamType()};
+    case cfg::PortType::FABRIC_PORT:
+      // TODO: return FABRIC_TX when fabric port support
+      // is available
+      break;
+  }
+  throw FbossError(
+      "Ebro ASIC does not support:",
+      apache::thrift::util::enumNameSafe(portType));
 }
 } // namespace facebook::fboss

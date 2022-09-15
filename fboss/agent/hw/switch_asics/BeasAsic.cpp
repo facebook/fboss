@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/switch_asics/BeasAsic.h"
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/FbossError.h"
 
 namespace facebook::fboss {
@@ -17,18 +18,23 @@ bool BeasAsic::isSupported(Feature feature) const {
 
 std::set<cfg::StreamType> BeasAsic::getQueueStreamTypes(
     cfg::PortType portType) const {
-  std::set<cfg::StreamType> streams;
-  if (portType != cfg::PortType::CPU_PORT) {
-    // On kamet we use a single fabric queue for all
-    // traffic
-    streams.insert(cfg::StreamType::FABRIC_TX);
+  switch (portType) {
+    case cfg::PortType::CPU_PORT:
+    case cfg::PortType::INTERFACE_PORT:
+      break;
+    case cfg::PortType::FABRIC_PORT:
+      return {cfg::StreamType::FABRIC_TX};
   }
-  return streams;
+  throw FbossError(
+      "Beas Asic does not support port type: ",
+      apache::thrift::util::enumNameSafe(portType));
 }
 
 int BeasAsic::getDefaultNumPortQueues(
     cfg::StreamType /* streamType */,
     bool cpu) const {
+  // On kamet we use a single fabric queue for all
+  // traffic
   return cpu ? 0 : 1;
 }
 uint64_t BeasAsic::getDefaultReservedBytes(

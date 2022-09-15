@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook::fboss {
 
@@ -128,5 +129,19 @@ int Trident2Asic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
   }
   throw FbossError(
       "Unexpected, stream: ", streamType, " cpu: ", cpu, "combination");
+}
+std::set<cfg::StreamType> Trident2Asic::getQueueStreamTypes(
+    cfg::PortType portType) const {
+  switch (portType) {
+    case cfg::PortType::CPU_PORT:
+      return {cfg::StreamType::MULTICAST};
+    case cfg::PortType::INTERFACE_PORT:
+      return {cfg::StreamType::UNICAST};
+    case cfg::PortType::FABRIC_PORT:
+      break;
+  }
+  throw FbossError(
+      "TD2 ASIC does not support:",
+      apache::thrift::util::enumNameSafe(portType));
 }
 } // namespace facebook::fboss
