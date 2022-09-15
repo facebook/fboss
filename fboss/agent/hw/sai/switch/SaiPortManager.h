@@ -184,9 +184,11 @@ class SaiPortManager {
       PortSaiId saiPortId) const;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
   std::vector<sai_port_lane_latch_status_t> getRxSignalDetect(
-      PortSaiId saiPortId) const;
+      PortSaiId saiPortId,
+      uint8_t numPmdLanes) const;
   std::vector<sai_port_lane_latch_status_t> getRxLockStatus(
-      PortSaiId saiPortId) const;
+      PortSaiId saiPortId,
+      uint8_t numPmdLanes) const;
 #endif
 
   void enableAfeAdaptiveMode(PortID portId);
@@ -196,6 +198,8 @@ class SaiPortManager {
   phy::InterfaceType getInterfaceType(PortID portID) const;
 
   TransmitterTechnology getMedium(PortID portID) const;
+
+  uint8_t getNumPmdLanes(PortSaiId saiPortId) const;
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);

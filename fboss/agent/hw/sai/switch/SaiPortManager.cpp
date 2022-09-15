@@ -1467,24 +1467,30 @@ std::vector<sai_port_lane_eye_values_t> SaiPortManager::getPortEyeValues(
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
 std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxSignalDetect(
-    PortSaiId saiPortId) const {
+    PortSaiId saiPortId,
+    uint8_t numPmdLanes) const {
   if (!platform_->getAsic()->isSupported(
           HwAsic::Feature::PMD_RX_SIGNAL_DETECT)) {
     return std::vector<sai_port_lane_latch_status_t>();
   }
 
   return SaiApiTable::getInstance()->portApi().getAttribute(
-      saiPortId, SaiPortTraits::Attributes::RxSignalDetect{});
+      saiPortId,
+      SaiPortTraits::Attributes::RxSignalDetect{
+          std::vector<sai_port_lane_latch_status_t>(numPmdLanes)});
 }
 
 std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxLockStatus(
-    PortSaiId saiPortId) const {
+    PortSaiId saiPortId,
+    uint8_t numPmdLanes) const {
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::PMD_RX_LOCK_STATUS)) {
     return std::vector<sai_port_lane_latch_status_t>();
   }
 
   return SaiApiTable::getInstance()->portApi().getAttribute(
-      saiPortId, SaiPortTraits::Attributes::RxLockStatus{});
+      saiPortId,
+      SaiPortTraits::Attributes::RxLockStatus{
+          std::vector<sai_port_lane_latch_status_t>(numPmdLanes)});
 }
 #endif
 
@@ -1532,6 +1538,12 @@ TransmitterTechnology SaiPortManager::getMedium(PortID portID) const {
   auto saiMediaType = SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId, SaiPortTraits::Attributes::MediaType{});
   return fromSaiMediaType(static_cast<sai_port_media_type_t>(saiMediaType));
+}
+
+uint8_t SaiPortManager::getNumPmdLanes(PortSaiId saiPortId) const {
+  auto lanes = SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::HwLaneList{});
+  return lanes.size();
 }
 
 } // namespace facebook::fboss

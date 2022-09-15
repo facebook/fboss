@@ -1040,6 +1040,12 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
 void SaiSwitch::updatePmdInfo(
     phy::PhySideInfo& sideInfo,
     std::shared_ptr<SaiPort> port) {
+  auto numPmdLanes =
+      managerTable_->portManager().getNumPmdLanes(port->adapterKey());
+  if (!numPmdLanes) {
+    return;
+  }
+
   std::map<int, phy::LaneInfo> laneInfos;
 
   auto eyeStatus =
@@ -1081,8 +1087,8 @@ void SaiSwitch::updatePmdInfo(
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
-  auto pmdSignalDetect =
-      managerTable_->portManager().getRxSignalDetect(port->adapterKey());
+  auto pmdSignalDetect = managerTable_->portManager().getRxSignalDetect(
+      port->adapterKey(), numPmdLanes);
   for (auto pmd : pmdSignalDetect) {
     auto laneId = pmd.lane;
     phy::LaneInfo laneInfo;
@@ -1094,8 +1100,8 @@ void SaiSwitch::updatePmdInfo(
     laneInfos[laneId] = laneInfo;
   }
 
-  auto pmdLockStatus =
-      managerTable_->portManager().getRxLockStatus(port->adapterKey());
+  auto pmdLockStatus = managerTable_->portManager().getRxLockStatus(
+      port->adapterKey(), numPmdLanes);
   for (auto pmd : pmdLockStatus) {
     auto laneId = pmd.lane;
     phy::LaneInfo laneInfo;
