@@ -55,6 +55,7 @@ class BcmTeFlowEntry {
   void createTeFlowActions();
   void installTeFlowEntry();
   void createTeFlowEntry();
+  void createTeFlowStat();
 
   BcmSwitch* hw_;
   int gid_;

@@ -98,8 +98,6 @@ void BcmTeFlowTable::processChangedTeFlow(
 
 BcmTeFlowTable::~BcmTeFlowTable() {
   if (FLAGS_enable_exact_match) {
-    // Release the TeFlows before deleting teflow group and hint id.
-    releaseTeFlows();
     if (teFlowGroupId_) {
       auto rv =
           bcm_field_group_destroy(hw_->getUnit(), getEMGroupID(teFlowGroupId_));
@@ -121,7 +119,7 @@ BcmTeFlowStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
   if (teFlowStatItr == teFlowStatMap_.end()) {
     auto counterTypes = {cfg::CounterType::BYTES};
     auto newStat = std::make_unique<BcmTeFlowStat>(
-        hw_, gid, counterTypes, BcmTeFlowStatType::EM);
+        hw_, getEMGroupID(gid), counterTypes, BcmTeFlowStatType::EM);
     auto stat = newStat.get();
     teFlowStatMap_.emplace(counterName, std::make_pair(std::move(newStat), 1));
     hw_->getStatUpdater()->toBeAddedTeFlowStat(
@@ -168,6 +166,24 @@ void BcmTeFlowTable::derefBcmTeFlowStat(const std::string& counterName) {
     hw_->getStatUpdater()->toBeRemovedTeFlowStat(bcmTeFlowStat->getHandle());
     teFlowStatMap_.erase(teFlowStatItr);
   }
+}
+
+BcmTeFlowStat* FOLLY_NULLABLE
+BcmTeFlowTable::getTeFlowStatIf(const std::string& name) const {
+  auto iter = teFlowStatMap_.find(name);
+  if (iter == teFlowStatMap_.end()) {
+    return nullptr;
+  } else {
+    return iter->second.first.get();
+  }
+}
+
+BcmTeFlowStat* BcmTeFlowTable::getTeFlowStat(const std::string& stat) const {
+  auto bcmStat = getTeFlowStatIf(stat);
+  if (!bcmStat) {
+    throw FbossError("Stat: ", stat, " does not exist");
+  }
+  return bcmStat;
 }
 
 } // namespace facebook::fboss

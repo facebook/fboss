@@ -74,10 +74,21 @@ void BcmTeFlowEntry::createTeFlowQualifiers() {
   }
 }
 
+void BcmTeFlowEntry::createTeFlowStat() {
+  auto teFlowTable = hw_->writableTeFlowTable();
+  auto counterName = teFlow_->getCounterID().value();
+  auto teFlowStat = teFlowTable->incRefOrCreateBcmTeFlowStat(counterName, gid_);
+  teFlowStat->attach(handle_);
+}
+
 void BcmTeFlowEntry::createTeFlowActions() {
   auto egressId = getEgressId(hw_, redirectNexthop_, teFlow_);
   auto rv = bcm_field_action_add(
       hw_->getUnit(), handle_, bcmFieldActionL3Switch, egressId, 0);
+
+  if (teFlow_->getCounterID().has_value()) {
+    createTeFlowStat();
+  }
   bcmCheckError(rv, "failed to action add");
 }
 
@@ -111,6 +122,14 @@ BcmTeFlowEntry::BcmTeFlowEntry(
 }
 
 BcmTeFlowEntry::~BcmTeFlowEntry() {
+  if (teFlow_->getCounterID().has_value() && teFlow_->getEnabled()) {
+    auto counterName = teFlow_->getCounterID().value();
+    auto teFlowTable = hw_->writableTeFlowTable();
+    auto teFlowStat = teFlowTable->getTeFlowStat(counterName);
+    teFlowStat->detach(handle_);
+    teFlowTable->derefBcmTeFlowStat(counterName);
+  }
+
   // Destroy the TeFlow entry
   auto rv = bcm_field_entry_destroy(hw_->getUnit(), handle_);
   bcmLogFatal(rv, hw_, "failed to destroy the TeFlow entry");

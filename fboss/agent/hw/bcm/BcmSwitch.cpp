@@ -393,6 +393,7 @@ void BcmSwitch::resetTables() {
   // route table
   aclTable_->releaseAcls();
   aclTable_.reset();
+  teFlowTable_->releaseTeFlows();
   teFlowTable_.reset();
   labelMap_.reset();
   routeTable_.reset();

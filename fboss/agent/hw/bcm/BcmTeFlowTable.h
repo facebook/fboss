@@ -60,6 +60,11 @@ class BcmTeFlowTable {
       const std::shared_ptr<TeFlowEntry>& oldTeFlow,
       const std::shared_ptr<TeFlowEntry>& newTeFlow);
 
+  // Throw exception if not found
+  BcmTeFlowStat* getTeFlowStat(const std::string& name) const;
+  // return nullptr if not found
+  BcmTeFlowStat* getTeFlowStatIf(const std::string& name) const;
+
  private:
   using BcmTeFlowEntryMap = std::map<TeFlow, std::unique_ptr<BcmTeFlowEntry>>;
   using BcmTeFlowStatMap = std::unordered_map<
