@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/hw/bcm/BcmIngressFieldProcessorFlexCounter.h"
 
+#include <fboss/agent/hw/bcm/BcmAclStat.h>
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSdkVer.h"
 
@@ -36,21 +37,34 @@ constexpr auto kIFPActionPacketOperationObj0Mask = 16;
 constexpr auto kIFPActionPacketOperationObj1Mask = 1;
 constexpr auto kNumDefaultIFPFlexCounterPerAcl = 1;
 
-void setIFPActionConfig(bcm_flexctr_action_t* action, int groupID) {
+void setIFPActionConfig(
+    bcm_flexctr_action_t* action,
+    int groupID,
+    facebook::fboss::BcmAclStatType type) {
   action->flags = 0;
   /* Group ID passed as hint and IFP as source */
   action->hint = groupID;
   action->hint_type = bcmFlexctrHintFieldGroupId;
-  action->source = bcmFlexctrSourceIfp;
   action->mode = bcmFlexctrCounterModeNormal;
   action->index_num = kIFPActionIndexNum;
   action->drop_count_mode = bcmFlexctrDropCountModeAll;
+  if (type == facebook::fboss::BcmAclStatType::IFP) {
+    action->source = bcmFlexctrSourceIfp;
+  } else {
+    action->source = bcmFlexctrSourceExactMatch;
+  }
 }
 
-void setIFPActionIndex(bcm_flexctr_action_t* action) {
+void setIFPActionIndex(
+    bcm_flexctr_action_t* action,
+    facebook::fboss::BcmAclStatType type) {
   bcm_flexctr_index_operation_t* index = &(action->index_operation);
   /* Counter index is PKT_ATTR_OBJ0. */
-  index->object[0] = bcmFlexctrObjectStaticIngFieldStageIngress;
+  if (type == facebook::fboss::BcmAclStatType::IFP) {
+    index->object[0] = bcmFlexctrObjectStaticIngFieldStageIngress;
+  } else {
+    index->object[0] = bcmFlexctrObjectStaticIngExactMatch;
+  }
   index->object_id[0] = 0;
   index->mask_size[0] = kIFPActionIndexObj0Mask;
   index->shift[0] = 0;
@@ -90,7 +104,8 @@ int getNumAclStatsCounterCallback(
     void* user_data) {
   auto* cbUserData = static_cast<BcmGetNumAclStatsCountUserData*>(user_data);
   // Check action config has the same group id
-  if (action->source != bcmFlexctrSourceIfp ||
+  if ((action->source != bcmFlexctrSourceIfp &&
+       action->source != bcmFlexctrSourceExactMatch) ||
       action->hint_type != bcmFlexctrHintFieldGroupId ||
       action->hint != cbUserData->groupID) {
     return 0;
@@ -107,8 +122,9 @@ namespace facebook::fboss {
 BcmIngressFieldProcessorFlexCounter::BcmIngressFieldProcessorFlexCounter(
     int unit,
     std::optional<int> groupID,
-    std::optional<BcmAclStatHandle> statHandle)
-    : BcmFlexCounter(unit) {
+    std::optional<BcmAclStatHandle> statHandle,
+    BcmAclStatType type)
+    : BcmFlexCounter(unit), statType_(type) {
   if (!groupID.has_value() && !statHandle.has_value()) {
     throw FbossError(
         "Failed to create BcmIngressFieldProcessorFlexCounter ",
@@ -131,10 +147,10 @@ BcmIngressFieldProcessorFlexCounter::BcmIngressFieldProcessorFlexCounter(
     bcm_flexctr_action_t_init(&action);
 
     // set counter action config
-    setIFPActionConfig(&action, *groupID);
+    setIFPActionConfig(&action, *groupID, statType_);
 
     // set counter action index
-    setIFPActionIndex(&action);
+    setIFPActionIndex(&action, statType_);
 
     // set counter action value
     setActionValue(&action);
@@ -199,8 +215,9 @@ BcmIngressFieldProcessorFlexCounter::getCounterTypeList(
   bcmCheckError(rv, "Failed to get FlexCounter action for id:", counterID);
   // Check the index object needs to be IFP
   if (action.index_operation.object[0] !=
-      bcmFlexctrObjectStaticIngFieldStageIngress) {
-    throw FbossError("FlexCounter id:", counterID, " is not a IFP counter");
+          bcmFlexctrObjectStaticIngFieldStageIngress &&
+      action.index_operation.object[0] != bcmFlexctrObjectStaticIngExactMatch) {
+    throw FbossError("FlexCounter id:", counterID, " is not a IFP/EM counter");
   }
   // Flex counter always have two operations
   for (auto* operation : {&action.operation_a, &action.operation_b}) {

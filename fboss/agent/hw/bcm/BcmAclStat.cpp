@@ -38,7 +38,7 @@ BcmAclStat::BcmAclStat(
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
     flexCounter_ = std::make_unique<BcmIngressFieldProcessorFlexCounter>(
-        hw_->getUnit(), gid, std::nullopt);
+        hw_->getUnit(), gid, std::nullopt, statType_);
     handle_ = flexCounter_->getID();
   } else {
     int statHandle;
@@ -61,7 +61,7 @@ BcmAclStat::BcmAclStat(
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
     flexCounter_ = std::make_unique<BcmIngressFieldProcessorFlexCounter>(
-        hw_->getUnit(), std::nullopt, statHandle);
+        hw_->getUnit(), std::nullopt, statHandle, statType_);
   }
 }
 

@@ -13,12 +13,14 @@
 
 namespace facebook::fboss {
 
+enum class BcmAclStatType;
 class BcmIngressFieldProcessorFlexCounter : public BcmFlexCounter {
  public:
   BcmIngressFieldProcessorFlexCounter(
       int unit,
       std::optional<int> groupID,
-      std::optional<BcmAclStatHandle> statHandle);
+      std::optional<BcmAclStatHandle> statHandle,
+      BcmAclStatType type);
   ~BcmIngressFieldProcessorFlexCounter() = default;
 
   void attach(BcmAclEntryHandle acl);
@@ -52,5 +54,6 @@ class BcmIngressFieldProcessorFlexCounter : public BcmFlexCounter {
       BcmIngressFieldProcessorFlexCounter const&) = delete;
   BcmIngressFieldProcessorFlexCounter& operator=(
       BcmIngressFieldProcessorFlexCounter const&) = delete;
+  BcmAclStatType statType_;
 };
 } // namespace facebook::fboss
