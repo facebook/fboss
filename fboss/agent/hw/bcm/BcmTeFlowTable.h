@@ -14,6 +14,7 @@ extern "C" {
 }
 
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/bcm/BcmAclStat.h"
 #include "fboss/agent/hw/bcm/BcmTeFlowEntry.h"
 #include "fboss/agent/hw/bcm/types.h"
 
@@ -32,6 +33,13 @@ class BcmTeFlowTable {
   bcm_field_hintid_t getHintId() const {
     return hintId_;
   }
+  BcmAclStat* incRefOrCreateBcmTeFlowStat(
+      const std::string& counterName,
+      int gid);
+  BcmAclStat* incRefOrCreateBcmTeFlowStat(
+      const std::string& counterName,
+      BcmAclStatHandle statHandle);
+  void derefBcmTeFlowStat(const std::string& name);
 
   void processAddedTeFlow(
       const int groupId,
@@ -50,10 +58,15 @@ class BcmTeFlowTable {
 
  private:
   using BcmTeFlowEntryMap = std::map<TeFlow, std::unique_ptr<BcmTeFlowEntry>>;
+  using BcmTeFlowStatMap = std::unordered_map<
+      std::string,
+      std::pair<std::unique_ptr<BcmAclStat>, uint32_t>>;
+
   BcmSwitch* hw_;
   bcm_field_hintid_t hintId_{0};
   int teFlowGroupId_{0};
   BcmTeFlowEntryMap teFlowEntryMap_;
+  BcmTeFlowStatMap teFlowStatMap_;
 };
 
 } // namespace facebook::fboss

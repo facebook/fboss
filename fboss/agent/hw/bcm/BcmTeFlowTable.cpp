@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/bcm/BcmTeFlowTable.h"
+#include <fboss/agent/hw/bcm/BcmAclStat.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/CounterUtils.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
@@ -110,6 +111,54 @@ BcmTeFlowTable::~BcmTeFlowTable() {
       bcmLogFatal(rv, hw_, "failed to delete hint id ", hintId_);
       hintId_ = 0;
     }
+  }
+}
+
+BcmAclStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
+    const std::string& counterName,
+    int gid) {
+  auto teFlowStatItr = teFlowStatMap_.find(counterName);
+  auto counterTypes = {cfg::CounterType::BYTES};
+  if (teFlowStatItr == teFlowStatMap_.end()) {
+    auto newStat = std::make_unique<BcmAclStat>(
+        hw_, gid, counterTypes, BcmAclStatType::EM);
+    auto stat = newStat.get();
+    teFlowStatMap_.emplace(counterName, std::make_pair(std::move(newStat), 1));
+    return stat;
+  } else {
+    teFlowStatItr->second.second++;
+    return teFlowStatItr->second.first.get();
+  }
+}
+
+BcmAclStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
+    const std::string& counterName,
+    BcmAclStatHandle statHandle) {
+  auto teFlowStatItr = teFlowStatMap_.find(counterName);
+  if (teFlowStatItr == teFlowStatMap_.end()) {
+    auto newStat =
+        std::make_unique<BcmAclStat>(hw_, statHandle, BcmAclStatType::EM);
+    auto stat = newStat.get();
+    teFlowStatMap_.emplace(counterName, std::make_pair(std::move(newStat), 1));
+    return stat;
+  } else {
+    CHECK(statHandle == teFlowStatItr->second.first->getHandle());
+    teFlowStatItr->second.second++;
+    return teFlowStatItr->second.first.get();
+  }
+}
+
+void BcmTeFlowTable::derefBcmTeFlowStat(const std::string& counterName) {
+  auto teFlowStatItr = teFlowStatMap_.find(counterName);
+  if (teFlowStatItr == teFlowStatMap_.end()) {
+    throw FbossError(
+        "Tried to delete a non-existent TE flow stat: ", counterName);
+  }
+  auto bcmTeFlowStat = teFlowStatItr->second.first.get();
+  auto& teFlowStatRefCnt = teFlowStatItr->second.second;
+  teFlowStatRefCnt--;
+  if (!teFlowStatRefCnt) {
+    teFlowStatMap_.erase(teFlowStatItr);
   }
 }
 
