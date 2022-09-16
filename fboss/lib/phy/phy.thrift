@@ -133,6 +133,7 @@ struct TxSettings {
   17: optional i32 thpEn;
   18: optional i32 setPrecode;
   19: optional i32 pre3;
+  20: optional i32 driverSwing;
 }
 
 struct RxSettings {
