@@ -223,6 +223,11 @@ cfg::SwitchConfig genPortVlanCfg(
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
     bool optimizePortProfile = true) {
   cfg::SwitchConfig config;
+  auto asic = hwSwitch->getPlatform()->getAsic();
+  config.switchSettings()->switchType() = asic->getSwitchType();
+  if (asic->getSwitchId()) {
+    config.switchSettings()->switchId() = *asic->getSwitchId();
+  }
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
   // of using PlatformMapping.
   // The main reason is to avoid using PlatformMapping is because some of the
