@@ -151,6 +151,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
     state.qcmCfg() = qcmCfg->toThrift();
   }
   state.loadBalancerMap() = loadBalancers->toThrift();
+  state.switchSettings() = switchSettings->toThrift();
   return state;
 }
 
@@ -209,6 +210,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
     fields.qcmCfg = QcmCfg::fromThrift(*qcmConfig);
   }
   fields.loadBalancers = LoadBalancerMap::fromThrift(*state.loadBalancerMap());
+  fields.switchSettings = SwitchSettings::fromThrift(*state.switchSettings());
   return fields;
 }
 
