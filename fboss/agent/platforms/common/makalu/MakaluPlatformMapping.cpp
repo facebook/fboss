@@ -12,6 +12,12 @@
 
 namespace facebook::fboss {
 namespace {
+struct NifInfo {
+  int lane;
+  int coreId;
+  int corePortIndex;
+};
+
 cfg::PlatformMapping buildMapping() {
   cfg::PlatformMapping platformMapping;
   // Fabric port mapping. For fabric ports only 40 out of the 48
@@ -55,24 +61,25 @@ cfg::PlatformMapping buildMapping() {
     platformMapping.ports()->emplace(port, std::move(portEntry));
   }
   auto nifBcCoreId = 49;
-  std::map<int, int> nifPortToLane = {
-      {1, 80},
-      {17, 88},
-      {25, 96},
-      {33, 104},
-      {41, 112},
-      {49, 120},
-      {57, 128},
-      {65, 136},
-      {73, 64},
-      {81, 56},
-      {89, 48},
-      {97, 40},
-      {105, 32},
-      {113, 24},
-      {121, 16},
-      {129, 8}};
-  for (auto& [port, lane] : nifPortToLane) {
+  std::map<int, NifInfo> nif2NifInfo = {
+      {1, {80, 1, 1}},
+      {17, {88, 1, 17}},
+      {25, {96, 1, 25}},
+      {33, {104, 1, 33}},
+      {41, {112, 1, 41}},
+      {49, {120, 1, 49}},
+      {57, {128, 1, 57}},
+      {65, {136, 1, 65}},
+      {73, {64, 0, 73}},
+      {81, {56, 0, 81}},
+      {89, {48, 0, 89}},
+      {97, {40, 0, 97}},
+      {105, {32, 0, 105}},
+      {113, {24, 0, 113}},
+      {121, {16, 0, 121}},
+      {129, {8, 0, 129}}};
+  for (auto& [port, nifInfo] : nif2NifInfo) {
+    auto [lane, core, corePortIndex] = nifInfo;
     phy::DataPlanePhyChip chip;
     // TODO - Make BC core id map front panel mapping. So BC0 becomes
     // first front panel port
@@ -85,6 +92,8 @@ cfg::PlatformMapping buildMapping() {
     // FIXME - eth port id does not match front panel port
     portEntry.mapping()->name() = folly::to<std::string>("eth1/", port, "/1");
     portEntry.mapping()->controllingPort() = port;
+    portEntry.mapping()->attachedCoreId() = core;
+    portEntry.mapping()->attachedCorePortIndex() = corePortIndex;
     phy::PortPinConfig portPinConfig;
     for (auto pinIdx = 0; pinIdx < 4; ++pinIdx) {
       phy::PinConnection pinConnect;
