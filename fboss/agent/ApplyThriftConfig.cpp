@@ -2973,6 +2973,14 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
 }
 
 shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
+    if (cfg_->cpuTrafficPolicy()) {
+      throw FbossError(
+          platform_->getAsic()->getAsicTypeStr(),
+          " ASIC does not support CPU port");
+    }
+    return nullptr;
+  }
   auto origCPU = orig_->getControlPlane();
   std::optional<std::string> qosPolicy;
   ControlPlane::RxReasonToQueue newRxReasonToQueue;
