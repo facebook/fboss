@@ -5,6 +5,7 @@
 
 add_library(sandia_platform_mapping
     fboss/agent/platforms/common/sandia/Sandia8DDPimPlatformMapping.cpp
+    fboss/agent/platforms/common/sandia/Sandia16QPimPlatformMapping.cpp
     fboss/agent/platforms/common/sandia/oss/SandiaPlatformMapping.cpp
 )
 
