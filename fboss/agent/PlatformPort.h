@@ -42,6 +42,9 @@ class PlatformPort {
     return platform_;
   }
 
+  std::optional<int> getAttachedCoreId() const;
+  std::optional<int> getCorePortIndex() const;
+
   const cfg::PlatformPortEntry& getPlatformPortEntry() const;
   cfg::PortType getPortType() const;
 

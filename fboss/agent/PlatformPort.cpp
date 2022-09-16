@@ -56,6 +56,24 @@ std::ostream& operator<<(std::ostream& os, PortLedExternalState lfs) {
   return os;
 }
 
+std::optional<int> PlatformPort::getAttachedCoreId() const {
+  const auto& mapping = getPlatformPortEntry().mapping();
+  std::optional<int> coreId;
+  if (mapping->attachedCoreId()) {
+    coreId = *mapping->attachedCoreId();
+  }
+  return coreId;
+}
+
+std::optional<int> PlatformPort::getCorePortIndex() const {
+  const auto& mapping = getPlatformPortEntry().mapping();
+  std::optional<int> corePortIndex;
+  if (mapping->attachedCorePortIndex()) {
+    corePortIndex = *mapping->attachedCorePortIndex();
+  }
+  return corePortIndex;
+}
+
 const cfg::PlatformPortEntry& PlatformPort::getPlatformPortEntry() const {
   const auto& platformPorts = platform_->getPlatformPorts();
   if (auto itPlatformPort = platformPorts.find(id_);
