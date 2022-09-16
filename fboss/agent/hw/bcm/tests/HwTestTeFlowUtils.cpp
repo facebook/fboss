@@ -10,8 +10,10 @@
 
 #include "fboss/agent/hw/test/HwTestTeFlowUtils.h"
 
+#include <fboss/agent/gen-cpp2/switch_config_types.h>
 #include "fboss/agent/hw/bcm/BcmExactMatchUtils.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
+#include "fboss/agent/hw/bcm/BcmIngressFieldProcessorFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTeFlowTable.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -59,6 +61,26 @@ void checkSwHwTeFlowMatch(
   ASSERT_NE(nullptr, hwTeFlows);
   ASSERT_TRUE(BcmTeFlowEntry::isStateSame(
       bcmSwitch, getEMGroupID(gid), hwTeFlows->getHandle(), flowEntry));
+}
+
+uint64_t getTeFlowOutBytes(const HwSwitch* hw, std::string statName) {
+  const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
+  auto statHandle =
+      bcmSwitch->getTeFlowTable()->getTeFlowStat(statName)->getHandle();
+  uint64_t value;
+  if (hw->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+    std::vector<cfg::CounterType> counterTypes = {cfg::CounterType::BYTES};
+    const auto& stats =
+        BcmIngressFieldProcessorFlexCounter::getAclTrafficFlexCounterStats(
+            bcmSwitch->getUnit(), statHandle, counterTypes);
+    value = stats.at(cfg::CounterType::BYTES);
+  } else {
+    auto rv = bcm_field_stat_sync_get(
+        bcmSwitch->getUnit(), statHandle, bcmFieldStatBytes, &value);
+    bcmCheckError(rv, "Failed to update stat=", statHandle);
+  }
+  return value;
 }
 
 } // namespace facebook::fboss::utility

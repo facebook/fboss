@@ -49,4 +49,6 @@ void modifyFlowEntry(
     std::shared_ptr<TeFlowEntry>& newFlowEntry,
     bool enable);
 
+uint64_t getTeFlowOutBytes(const HwSwitch* hw, std::string statName);
+
 } // namespace facebook::fboss::utility

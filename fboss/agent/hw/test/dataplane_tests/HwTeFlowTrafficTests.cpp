@@ -59,7 +59,7 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
     return !getPlatform()->getAsic()->isSupported(HwAsic::Feature::EXACT_MATCH);
   }
 
-  void sendL3Packet(
+  uint32_t sendL3Packet(
       folly::IPAddressV6 dst,
       PortID from,
       std::optional<DSCP> dscp = std::nullopt) {
@@ -79,13 +79,14 @@ class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
     }
     UDPHeader udp(4049, 4050, 1);
     utility::UDPDatagram datagram(udp, {0xff});
-    auto pkt = utility::EthFrame(
-                   eth, utility::IPPacket<folly::IPAddressV6>(ip6, datagram))
-                   .getTxPacket(getHwSwitch());
+    auto ethFrame = utility::EthFrame(
+        eth, utility::IPPacket<folly::IPAddressV6>(ip6, datagram));
+    auto pkt = ethFrame.getTxPacket(getHwSwitch());
     XLOG(DBG2) << "sending packet: ";
     XLOG(DBG2) << PktUtil::hexDump(pkt->buf());
     // send pkt on src port, let it loop back in switch and be l3 switched
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(pkt), from);
+    return ethFrame.length();
   }
 
   void resolveNextHop(PortDescriptor port) {
@@ -146,12 +147,14 @@ TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
     EXPECT_EQ((outPktsAfter0 - outPktsBefore0), 1);
     EXPECT_EQ((outPktsAfter1 - outPktsBefore1), 1);
 
+    auto byteCountBefore =
+        utility::getTeFlowOutBytes(getHwSwitch(), kCounterID);
     // Send a packet to hit TeFlow EM entry and verify
     outPktsBefore0 = getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
     outPktsBefore1 = getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[1]));
-    this->sendL3Packet(
+    auto expectedLen = this->sendL3Packet(
         folly::IPAddressV6("100::"), this->masterLogicalPortIds()[0], DSCP(16));
     outPktsAfter0 = getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
@@ -162,6 +165,10 @@ TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
     // Hence the outpacket count should increment both.
     EXPECT_EQ((outPktsAfter0 - outPktsBefore0), 1);
     EXPECT_EQ((outPktsAfter1 - outPktsBefore1), 1);
+
+    EXPECT_EQ(
+        utility::getTeFlowOutBytes(getHwSwitch(), kCounterID) - byteCountBefore,
+        expectedLen);
   };
 
   verify();

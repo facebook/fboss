@@ -39,4 +39,14 @@ void checkSwHwTeFlowMatch(
   EXPECT_TRUE(false);
 }
 
+uint64_t getTeFlowOutBytes(
+    const HwSwitch* /* hw */,
+    std::string /* statName */) {
+  // This function is not implemented yet.
+  // If the test is running on SAI Switches,
+  // it should throw an error.
+  EXPECT_TRUE(false);
+  return 0;
+}
+
 } // namespace facebook::fboss::utility
