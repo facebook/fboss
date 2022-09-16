@@ -20,6 +20,10 @@ extern "C" {
 
 namespace facebook::fboss {
 
+using BcmTeFlowStat = BcmAclStat;
+using BcmTeFlowStatHandle = BcmAclStatHandle;
+using BcmTeFlowStatType = BcmAclStatType;
+
 class BcmSwitch;
 
 /**
@@ -33,12 +37,12 @@ class BcmTeFlowTable {
   bcm_field_hintid_t getHintId() const {
     return hintId_;
   }
-  BcmAclStat* incRefOrCreateBcmTeFlowStat(
+  BcmTeFlowStat* incRefOrCreateBcmTeFlowStat(
       const std::string& counterName,
       int gid);
-  BcmAclStat* incRefOrCreateBcmTeFlowStat(
+  BcmTeFlowStat* incRefOrCreateBcmTeFlowStat(
       const std::string& counterName,
-      BcmAclStatHandle statHandle);
+      BcmTeFlowStatHandle statHandle);
   void derefBcmTeFlowStat(const std::string& name);
 
   void processAddedTeFlow(
@@ -60,7 +64,7 @@ class BcmTeFlowTable {
   using BcmTeFlowEntryMap = std::map<TeFlow, std::unique_ptr<BcmTeFlowEntry>>;
   using BcmTeFlowStatMap = std::unordered_map<
       std::string,
-      std::pair<std::unique_ptr<BcmAclStat>, uint32_t>>;
+      std::pair<std::unique_ptr<BcmTeFlowStat>, uint32_t>>;
 
   BcmSwitch* hw_;
   bcm_field_hintid_t hintId_{0};

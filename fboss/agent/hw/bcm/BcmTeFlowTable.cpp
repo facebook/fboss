@@ -114,16 +114,18 @@ BcmTeFlowTable::~BcmTeFlowTable() {
   }
 }
 
-BcmAclStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
+BcmTeFlowStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
     const std::string& counterName,
     int gid) {
   auto teFlowStatItr = teFlowStatMap_.find(counterName);
-  auto counterTypes = {cfg::CounterType::BYTES};
   if (teFlowStatItr == teFlowStatMap_.end()) {
-    auto newStat = std::make_unique<BcmAclStat>(
-        hw_, gid, counterTypes, BcmAclStatType::EM);
+    auto counterTypes = {cfg::CounterType::BYTES};
+    auto newStat = std::make_unique<BcmTeFlowStat>(
+        hw_, gid, counterTypes, BcmTeFlowStatType::EM);
     auto stat = newStat.get();
     teFlowStatMap_.emplace(counterName, std::make_pair(std::move(newStat), 1));
+    hw_->getStatUpdater()->toBeAddedTeFlowStat(
+        stat->getHandle(), counterName, counterTypes);
     return stat;
   } else {
     teFlowStatItr->second.second++;
@@ -131,15 +133,18 @@ BcmAclStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
   }
 }
 
-BcmAclStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
+BcmTeFlowStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
     const std::string& counterName,
-    BcmAclStatHandle statHandle) {
+    BcmTeFlowStatHandle statHandle) {
   auto teFlowStatItr = teFlowStatMap_.find(counterName);
   if (teFlowStatItr == teFlowStatMap_.end()) {
+    auto counterTypes = {cfg::CounterType::BYTES};
     auto newStat =
-        std::make_unique<BcmAclStat>(hw_, statHandle, BcmAclStatType::EM);
+        std::make_unique<BcmTeFlowStat>(hw_, statHandle, BcmTeFlowStatType::EM);
     auto stat = newStat.get();
     teFlowStatMap_.emplace(counterName, std::make_pair(std::move(newStat), 1));
+    hw_->getStatUpdater()->toBeAddedTeFlowStat(
+        stat->getHandle(), counterName, counterTypes);
     return stat;
   } else {
     CHECK(statHandle == teFlowStatItr->second.first->getHandle());
@@ -158,6 +163,9 @@ void BcmTeFlowTable::derefBcmTeFlowStat(const std::string& counterName) {
   auto& teFlowStatRefCnt = teFlowStatItr->second.second;
   teFlowStatRefCnt--;
   if (!teFlowStatRefCnt) {
+    utility::deleteCounter(
+        utility::statNameFromCounterType(counterName, cfg::CounterType::BYTES));
+    hw_->getStatUpdater()->toBeRemovedTeFlowStat(bcmTeFlowStat->getHandle());
     teFlowStatMap_.erase(teFlowStatItr);
   }
 }

@@ -74,6 +74,16 @@ class BcmStatUpdater {
       const std::vector<cfg::CounterType>& counterTypes);
   void toBeRemovedAclStat(BcmAclStatHandle handle);
 
+  void toBeAddedTeFlowStat(
+      BcmAclStatHandle handle,
+      const std::string& aclStatName,
+      const std::vector<cfg::CounterType>& counterTypes) {
+    return toBeAddedAclStat(handle, aclStatName, counterTypes);
+  }
+  void toBeRemovedTeFlowStat(BcmAclStatHandle handle) {
+    return toBeRemovedAclStat(handle);
+  }
+
   void refreshPostBcmStateChange(const StateDelta& delta);
 
   /* Functions to be called during stats collection (UpdateStatsThread) */
