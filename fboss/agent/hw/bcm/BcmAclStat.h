@@ -18,6 +18,11 @@ class BcmSwitch;
 class BcmSwitchIf;
 class BcmIngressFieldProcessorFlexCounter;
 
+/* Identifies whether a stat object is associated with tcam or
+ * exact match entry
+ */
+enum class BcmAclStatType { IFP, EM };
+
 /**
  *  BcmAclStat is the class to abstract a stat's resource and functions
  */
@@ -26,8 +31,12 @@ class BcmAclStat {
   BcmAclStat(
       BcmSwitch* hw,
       int gid,
-      const std::vector<cfg::CounterType>& counters);
-  BcmAclStat(BcmSwitch* hw, BcmAclStatHandle statHandle);
+      const std::vector<cfg::CounterType>& counters,
+      BcmAclStatType type = BcmAclStatType::IFP);
+  BcmAclStat(
+      BcmSwitch* hw,
+      BcmAclStatHandle statHandle,
+      BcmAclStatType type = BcmAclStatType::IFP);
   ~BcmAclStat();
 
   BcmAclStatHandle getHandle() const {
@@ -65,6 +74,7 @@ class BcmAclStat {
   BcmSwitch* hw_;
   BcmAclStatHandle handle_;
   std::unique_ptr<BcmIngressFieldProcessorFlexCounter> flexCounter_;
+  BcmAclStatType statType_;
 };
 
 } // namespace facebook::fboss

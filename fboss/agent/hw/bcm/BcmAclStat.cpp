@@ -32,8 +32,9 @@ using facebook::fboss::bcmCheckError;
 BcmAclStat::BcmAclStat(
     BcmSwitch* hw,
     int gid,
-    const std::vector<cfg::CounterType>& counters)
-    : hw_(hw) {
+    const std::vector<cfg::CounterType>& counters,
+    BcmAclStatType type)
+    : hw_(hw), statType_(type) {
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
     flexCounter_ = std::make_unique<BcmIngressFieldProcessorFlexCounter>(
@@ -52,8 +53,11 @@ BcmAclStat::BcmAclStat(
   }
 }
 
-BcmAclStat::BcmAclStat(BcmSwitch* hw, BcmAclStatHandle statHandle)
-    : hw_(hw), handle_(statHandle) {
+BcmAclStat::BcmAclStat(
+    BcmSwitch* hw,
+    BcmAclStatHandle statHandle,
+    BcmAclStatType type)
+    : hw_(hw), handle_(statHandle), statType_(type) {
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
     flexCounter_ = std::make_unique<BcmIngressFieldProcessorFlexCounter>(
