@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/util/QsfpUtilTx.h"
+#include "fboss/util/qsfp/QsfpUtilTx.h"
 #include <folly/logging/xlog.h>
 #include <sysexits.h>
 
