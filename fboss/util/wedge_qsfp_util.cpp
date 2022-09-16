@@ -13,6 +13,8 @@
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
 
+#include "fboss/util/qsfp/QsfpServiceDetector.h"
+
 #include <folly/Conv.h>
 #include <folly/Exception.h>
 #include <folly/FileUtil.h>
@@ -3249,29 +3251,14 @@ bool verifyDirectI2cCompliance() {
   if (FLAGS_tx_disable || FLAGS_tx_enable || FLAGS_pause_remediation ||
       FLAGS_get_remediation_until_time || FLAGS_read_reg || FLAGS_write_reg ||
       FLAGS_update_module_firmware || FLAGS_update_bulk_module_fw) {
-    bool qsfpServiceActive = false;
-
-    try {
-      auto qsfpServiceClient = utils::createQsfpServiceClient();
-
-      if (qsfpServiceClient &&
-          facebook::fb303::cpp2::fb_status::ALIVE ==
-              qsfpServiceClient.get()->sync_getStatus()) {
-        qsfpServiceActive = true;
-      }
-    } catch (const std::exception& ex) {
-      XLOG(DBG5) << fmt::format(
-          "Exception connecting to qsfp_service: {}", folly::exceptionStr(ex));
-    }
-
-    if (qsfpServiceActive) {
+    if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
       XLOG(INFO) << "qsfp_service is running";
     } else {
       XLOG(INFO) << "qsfp_service is not running";
     }
 
     if (FLAGS_direct_i2c) {
-      if (qsfpServiceActive) {
+      if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
         XLOG(ERR)
             << "--direct_i2c option is used while QSFP service is running. Please stop QSFP service first or do not use the --direct_i2c option";
         return false;
@@ -3284,7 +3271,7 @@ bool verifyDirectI2cCompliance() {
         return false;
       }
     } else {
-      if (!qsfpServiceActive) {
+      if (!QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
         XLOG(ERR)
             << "--direct_i2c option is not used while QSFP service is not running. Please run QSFP service first or use the --direct_i2c option";
         return false;
