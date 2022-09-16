@@ -33,6 +33,7 @@ namespace {
 static folly::IPAddressV6 kAddr1{"100::"};
 static std::string kNhopAddrB("2::2");
 static std::string kIfName2("fboss2001");
+static std::string kCounterID("counter0");
 } // namespace
 
 class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
@@ -115,7 +116,7 @@ TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
 
   // Add TeFlow EM entry
   auto flowEntry1 = makeFlowEntry(
-      "100::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], "counter0");
+      "100::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID);
   addFlowEntry(getHwSwitchEnsemble(), flowEntry1);
 
   // verfiy the EM entry programming
