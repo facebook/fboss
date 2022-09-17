@@ -47,6 +47,12 @@ class MockPlatformPort : public PlatformPort {
   MOCK_CONST_METHOD0(
       getFutureTransceiverInfo,
       folly::Future<TransceiverInfo>());
+  std::optional<int> getAttachedCoreId() const override {
+    return 0;
+  }
+  std::optional<int> getCorePortIndex() const override {
+    return getPortID();
+  }
 };
 
 } // namespace facebook::fboss
