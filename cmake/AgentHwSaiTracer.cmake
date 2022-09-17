@@ -28,6 +28,7 @@ add_library(sai_tracer
   fboss/agent/hw/sai/tracer/SamplePacketApiTracer.cpp
   fboss/agent/hw/sai/tracer/SchedulerApiTracer.cpp
   fboss/agent/hw/sai/tracer/SwitchApiTracer.cpp
+  fboss/agent/hw/sai/tracer/SystemPortApiTracer.cpp
   fboss/agent/hw/sai/tracer/TamApiTracer.cpp
   fboss/agent/hw/sai/tracer/TunnelApiTracer.cpp
   fboss/agent/hw/sai/tracer/Utils.cpp

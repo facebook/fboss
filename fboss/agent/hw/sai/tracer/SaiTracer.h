@@ -223,6 +223,7 @@ class SaiTracer {
   sai_samplepacket_api_t* samplepacketApi_;
   sai_scheduler_api_t* schedulerApi_;
   sai_switch_api_t* switchApi_;
+  sai_system_port_api_t* systemPortApi_;
   sai_tam_api_t* tamApi_;
   sai_tunnel_api_t* tunnelApi_;
   sai_virtual_router_api_t* virtualRouterApi_;

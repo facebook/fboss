@@ -39,6 +39,7 @@
 #include "fboss/agent/hw/sai/tracer/SamplePacketApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SchedulerApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/SystemPortApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/TamApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/TunnelApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/VirtualRouterApiTracer.h"
@@ -319,6 +320,12 @@ sai_status_t __wrap_sai_api_query(
           static_cast<sai_switch_api_t*>(*api_method_table);
       *api_method_table = facebook::fboss::wrappedSwitchApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "switch_api");
+      break;
+    case SAI_API_SYSTEM_PORT:
+      SaiTracer::getInstance()->systemPortApi_ =
+          static_cast<sai_system_port_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedSystemPortApi();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "system_port_api");
       break;
     case SAI_API_TAM:
       SaiTracer::getInstance()->tamApi_ =
@@ -1437,6 +1444,9 @@ vector<string> SaiTracer::setAttrList(
       break;
     case SAI_OBJECT_TYPE_SWITCH:
       setSwitchAttributes(attr_list, attr_count, attrLines);
+      break;
+    case SAI_OBJECT_TYPE_SYSTEM_PORT:
+      setSystemPortAttributes(attr_list, attr_count, attrLines);
       break;
     case SAI_OBJECT_TYPE_TAM:
       setTamAttributes(attr_list, attr_count, attrLines);
