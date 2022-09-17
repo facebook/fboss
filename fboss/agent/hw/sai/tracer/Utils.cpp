@@ -271,6 +271,77 @@ void systemPortConfigAttr(
       to<string>(prefix, "num_voq=", attr_list[i].value.sysportconfig.num_voq));
 }
 
+void systemPortConfigListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    vector<string>& attrLines) {
+  // First make sure we have enough lists for use
+  uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
+      listIndex + 1,
+      sizeof(sai_uint32_t),
+      attr_list[i].value.sysportconfiglist.count);
+
+  string prefix = to<string>("s_a", "[", i, "].value.sysportconfiglist.");
+  attrLines.push_back(
+      to<string>(prefix, "count=", attr_list[i].value.sysportconfiglist.count));
+  if (attr_list[i].value.sysportconfiglist.list) {
+    attrLines.push_back(to<string>(
+        prefix, "list=(sai_system_port_config_t*)(list_", listIndex, ")"));
+    for (int j = 0;
+         j < std::min(attr_list[i].value.sysportconfiglist.count, listLimit);
+         ++j) {
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].",
+          "port_id=",
+          attr_list[i].value.sysportconfiglist.list[j].port_id));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].",
+          "attached_switch_id=",
+          attr_list[i].value.sysportconfiglist.list[j].attached_switch_id));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].",
+          "attached_core_index=",
+          attr_list[i].value.sysportconfiglist.list[j].attached_core_index));
+
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].",
+          "attached_core_port_index=",
+          attr_list[i]
+              .value.sysportconfiglist.list[j]
+              .attached_core_port_index));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].",
+          "speed=",
+          attr_list[i].value.sysportconfiglist.list[j].speed));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].",
+          "num_voq=",
+          attr_list[i].value.sysportconfiglist.list[j].num_voq));
+    }
+  } else {
+    attrLines.push_back(to<string>(prefix, "list=NULL"));
+  }
+}
+
 std::string boolAttr(const sai_attribute_t* attr_list, int i) {
   return to<string>(
       "s_a[",
