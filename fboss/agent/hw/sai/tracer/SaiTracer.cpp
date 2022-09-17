@@ -1777,6 +1777,7 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_SCHEDULER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SCHEDULER_GROUP, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_SWITCH, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_SYSTEM_PORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_REPORT, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_EVENT_ACTION, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM_EVENT, 0);
@@ -1788,7 +1789,6 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_VLAN_MEMBER, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_WRED, 0);
-  varCounts_.emplace(SAI_OBJECT_TYPE_SYSTEM_PORT, 0);
 }
 
 } // namespace facebook::fboss
