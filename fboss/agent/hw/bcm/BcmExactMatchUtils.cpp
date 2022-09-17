@@ -13,9 +13,9 @@
 using facebook::fboss::bcmCheckError;
 
 namespace {
-// From start bit 72 to end bit 127 matches the
-// 56 bits MSB of destination Ip.
-constexpr int kDefaultExactMatchDestIpHintStartBit = 72;
+// From start bit 69 to end bit 127 matches the
+// 59 bits MSB of destination Ip.
+constexpr int kDefaultExactMatchDestIpHintStartBit = 69;
 constexpr int kDefaultExactMatchDestIpHintEndBit = 127;
 } // namespace
 
