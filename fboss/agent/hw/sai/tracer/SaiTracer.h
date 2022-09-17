@@ -260,7 +260,8 @@ class SaiTracer {
       {TYPE_INDEX(AclEntryFieldU8), &aclEntryFieldU8Attr},
       {TYPE_INDEX(AclEntryActionU8), &aclEntryActionU8Attr},
       {TYPE_INDEX(AclEntryFieldMac), &aclEntryFieldMacAttr},
-
+      // System port
+      {TYPE_INDEX(sai_system_port_config_t), &systemPortConfigAttr},
   };
 
   std::unordered_map<std::size_t, ListFunction> listFuncMap_{

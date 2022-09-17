@@ -149,6 +149,11 @@ void qosMapListAttr(
     uint32_t listIndex,
     std::vector<std::string>& attrLines);
 
+void systemPortConfigAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
 /* Other types */
 void s8ListAttr(
     const sai_attribute_t* attr_list,

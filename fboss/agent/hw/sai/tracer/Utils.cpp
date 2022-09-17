@@ -245,6 +245,32 @@ void aclEntryFieldMacAttr(
   }
 }
 
+void systemPortConfigAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("s_a", "[", i, "].value.sysportconfig.");
+  attrLines.push_back(
+      to<string>(prefix, "port_id=", attr_list[i].value.sysportconfig.port_id));
+  attrLines.push_back(to<string>(
+      prefix,
+      "attached_switch_id=",
+      attr_list[i].value.sysportconfig.attached_switch_id));
+  attrLines.push_back(to<string>(
+      prefix,
+      "attached_core_index=",
+      attr_list[i].value.sysportconfig.attached_core_index));
+
+  attrLines.push_back(to<string>(
+      prefix,
+      "attached_core_port_index=",
+      attr_list[i].value.sysportconfig.attached_core_port_index));
+  attrLines.push_back(
+      to<string>(prefix, "speed=", attr_list[i].value.sysportconfig.speed));
+  attrLines.push_back(
+      to<string>(prefix, "num_voq=", attr_list[i].value.sysportconfig.num_voq));
+}
+
 std::string boolAttr(const sai_attribute_t* attr_list, int i) {
   return to<string>(
       "s_a[",
