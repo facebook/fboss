@@ -846,9 +846,9 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     sysPort->setSwitchId(SwitchID(switchId));
     sysPort->setPortName(
         port->getName() + "_" + folly::to<std::string>(switchId));
-    // TODO - get core and core port index from platform
-    sysPort->setCoreIndex(0);
-    sysPort->setCorePortIndex(1);
+    auto platformPort = platform_->getPlatformPort(port->getID());
+    sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
+    sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
     sysPort->setSpeedMbps(static_cast<int>(port->getSpeed()));
     sysPort->setNumVoqs(8);
     sysPort->setEnabled(port->isEnabled());
