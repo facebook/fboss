@@ -841,8 +841,10 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     if (port->getPortType() != cfg::PortType::INTERFACE_PORT) {
       continue;
     }
+    // TODO - get this from config
+    constexpr auto kSystemPortBase = 100;
     auto sysPort = std::make_shared<SystemPort>(
-        SystemPortID{switchId << 16 | port->getID()});
+        SystemPortID{kSystemPortBase + port->getID()});
     sysPort->setSwitchId(SwitchID(switchId));
     sysPort->setPortName(
         port->getName() + "_" + folly::to<std::string>(switchId));
