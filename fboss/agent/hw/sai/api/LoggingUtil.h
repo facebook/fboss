@@ -388,7 +388,7 @@ struct formatter<sai_system_port_config_t> {
   auto format(const sai_system_port_config_t& sysPortConf, FormatContext& ctx) {
     return format_to(
         ctx.out(),
-        "(port_id: port_id: {}, switch_id: {}, "
+        "(port_id: {}, switch_id: {}, "
         " attached_core_index: {}, attached_core_port_index: {}, "
         " speed: {}, num_voqs: {})",
         sysPortConf.port_id,
