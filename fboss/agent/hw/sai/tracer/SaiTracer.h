@@ -96,8 +96,7 @@ class SaiTracer {
       sai_object_id_t switch_id,
       uint32_t attr_count,
       const sai_attribute_t* attr_list,
-      sai_object_type_t object_type,
-      sai_status_t rv);
+      sai_object_type_t object_type);
 
   void logRouteEntryRemoveFn(
       const sai_route_entry_t* route_entry,
@@ -195,7 +194,11 @@ class SaiTracer {
   uint32_t
   checkListCount(uint32_t list_count, uint32_t elem_size, uint32_t elem_count);
 
-  void writeToFile(const std::vector<std::string>& strVec);
+  void writeToFile(
+      const std::vector<std::string>& strVec,
+      bool linefeed = true);
+
+  void logPostInvocation(sai_status_t rv, sai_object_id_t object_id);
 
   sai_acl_api_t* aclApi_;
   sai_bridge_api_t* bridgeApi_;
@@ -514,17 +517,16 @@ class SaiTracer {
       sai_object_id_t switch_id,                                           \
       uint32_t attr_count,                                                 \
       const sai_attribute_t* attr_list) {                                  \
-    auto rv = SaiTracer::getInstance()->api_type##Api_->create_##obj_type( \
-        obj_type##_id, switch_id, attr_count, attr_list);                  \
-                                                                           \
     SaiTracer::getInstance()->logCreateFn(                                 \
         "create_" #obj_type,                                               \
         obj_type##_id,                                                     \
         switch_id,                                                         \
         attr_count,                                                        \
         attr_list,                                                         \
-        sai_obj_type,                                                      \
-        rv);                                                               \
+        sai_obj_type);                                                     \
+    auto rv = SaiTracer::getInstance()->api_type##Api_->create_##obj_type( \
+        obj_type##_id, switch_id, attr_count, attr_list);                  \
+    SaiTracer::getInstance()->logPostInvocation(rv, *obj_type##_id);       \
     return rv;                                                             \
   }
 

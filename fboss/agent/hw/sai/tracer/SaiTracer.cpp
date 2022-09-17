@@ -456,13 +456,13 @@ void SaiTracer::printHex(std::ostringstream& outStringStream, uint8_t u8) {
                   << static_cast<int>(u8);
 }
 
-void SaiTracer::writeToFile(const vector<string>& strVec) {
+void SaiTracer::writeToFile(const vector<string>& strVec, bool linefeed) {
   if (!FLAGS_enable_replayer) {
     return;
   }
 
   auto constexpr lineEnd = ";\n";
-  auto lines = folly::join(lineEnd, strVec) + lineEnd + "\n";
+  auto lines = folly::join(lineEnd, strVec) + lineEnd + (linefeed ? "\n" : "");
 
   asyncLogger_->appendLog(lines.c_str(), lines.size());
 }
@@ -719,8 +719,7 @@ void SaiTracer::logCreateFn(
     sai_object_id_t switch_id,
     uint32_t attr_count,
     const sai_attribute_t* attr_list,
-    sai_object_type_t object_type,
-    sai_status_t rv) {
+    sai_object_type_t object_type) {
   if (!FLAGS_enable_replayer) {
     return;
   }
@@ -734,17 +733,11 @@ void SaiTracer::logCreateFn(
   auto [declaration, varName] = declareVariable(create_object_id, object_type);
   lines.push_back(declaration);
 
-  // Log current timestamp, object id and return value
-  lines.push_back(logTimeAndRv(rv, *create_object_id));
-
   // Make the function call & write to file
   lines.push_back(createFnCall(
       fn_name, varName, getVariable(switch_id), attr_count, object_type));
 
-  // Check return value to be the same as the original run
-  lines.push_back(rvCheck(rv));
-
-  writeToFile(lines);
+  writeToFile(lines, false);
 }
 
 void SaiTracer::logRouteEntryRemoveFn(
@@ -1670,6 +1663,17 @@ uint32_t SaiTracer::checkListCount(
 
   // Return the maximum number of elements can be written into the list
   return FLAGS_default_list_size * sizeof(int) / elem_size;
+}
+
+void SaiTracer::logPostInvocation(sai_status_t rv, sai_object_id_t object_id) {
+  vector<string> lines;
+  // Log current timestamp, object id and return value
+  lines.push_back(logTimeAndRv(rv, object_id));
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
 }
 
 void SaiTracer::setupGlobals() {
