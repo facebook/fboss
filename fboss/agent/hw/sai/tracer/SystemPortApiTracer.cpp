@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/tracer/SystemPortApiTracer.h"
 #include <typeindex>
 #include <utility>
+#include "fboss/agent/hw/sai/tracer/SystemPortApiTracer.h"
 
 #include "fboss/agent/hw/sai/api/SystemPortApi.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"

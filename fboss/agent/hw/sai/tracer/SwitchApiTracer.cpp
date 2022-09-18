@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
 #include <typeindex>
 #include <utility>
 

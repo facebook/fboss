@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/hw/sai/tracer/LagApiTracer.h"
 #include <typeindex>
 #include <utility>
 

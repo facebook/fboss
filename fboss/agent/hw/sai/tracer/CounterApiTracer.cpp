@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/hw/sai/tracer/CounterApiTracer.h"
 #include <typeindex>
 #include <utility>
 

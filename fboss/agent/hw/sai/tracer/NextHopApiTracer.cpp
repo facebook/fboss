@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/hw/sai/tracer/NextHopApiTracer.h"
 #include <typeindex>
 #include <utility>
 

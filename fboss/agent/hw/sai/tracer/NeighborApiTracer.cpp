@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/hw/sai/tracer/NeighborApiTracer.h"
 #include <typeindex>
 #include <utility>
 

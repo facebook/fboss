@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/hw/sai/tracer/TunnelApiTracer.h"
 #include <typeindex>
 #include <utility>
 
