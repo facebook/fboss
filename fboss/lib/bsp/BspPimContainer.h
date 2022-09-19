@@ -19,6 +19,14 @@ class BspPimContainer {
   void initAllTransceivers() const;
   void clearAllTransceiverReset() const;
   void triggerTcvrHardReset(int tcvrID) const;
+  void tcvrRead(
+      unsigned int tcvrID,
+      const TransceiverAccessParameter& param,
+      uint8_t* buf) const;
+  void tcvrWrite(
+      unsigned int tcvrID,
+      const TransceiverAccessParameter& param,
+      const uint8_t* buf) const;
 
  private:
   std::unordered_map<int, std::unique_ptr<BspTransceiverContainer>>

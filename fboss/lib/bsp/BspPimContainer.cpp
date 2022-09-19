@@ -45,5 +45,19 @@ bool BspPimContainer::isTcvrPresent(int tcvrID) const {
   return getTransceiverContainer(tcvrID)->isTcvrPresent();
 }
 
+void BspPimContainer::tcvrRead(
+    unsigned int tcvrID,
+    const TransceiverAccessParameter& param,
+    uint8_t* buf) const {
+  return getTransceiverContainer(tcvrID)->tcvrRead(param, buf);
+}
+
+void BspPimContainer::tcvrWrite(
+    unsigned int tcvrID,
+    const TransceiverAccessParameter& param,
+    const uint8_t* buf) const {
+  return getTransceiverContainer(tcvrID)->tcvrWrite(param, buf);
+}
+
 } // namespace fboss
 } // namespace facebook

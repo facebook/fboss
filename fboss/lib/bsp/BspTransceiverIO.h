@@ -19,8 +19,8 @@ class BspTransceiverIO : public I2cController {
  public:
   BspTransceiverIO(uint32_t tcvr, BspTransceiverMapping& tcvrMapping);
   ~BspTransceiverIO() {}
-  void read(uint8_t addr, uint8_t offset, uint8_t* buf, int len);
-  void write(uint8_t addr, uint8_t offset, const uint8_t* buf, int len);
+  void read(const TransceiverAccessParameter& param, uint8_t* buf);
+  void write(const TransceiverAccessParameter& param, const uint8_t* buf);
 
  private:
   std::unique_ptr<I2cDevIo> i2cDev_;

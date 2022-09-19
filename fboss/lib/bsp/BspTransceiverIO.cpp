@@ -32,10 +32,12 @@ BspTransceiverIO::BspTransceiverIO(
 }
 
 void BspTransceiverIO::write(
-    uint8_t addr,
-    uint8_t offset,
-    const uint8_t* buf,
-    int len) {
+    const TransceiverAccessParameter& param,
+    const uint8_t* buf) {
+  uint8_t addr =
+      param.i2cAddress ? *param.i2cAddress : TransceiverI2CApi::ADDR_QSFP;
+  uint8_t offset = param.offset;
+  uint8_t len = param.len;
   // Increment the counter for I2C write transaction issued
   incrWriteTotal();
 
@@ -57,10 +59,12 @@ void BspTransceiverIO::write(
 }
 
 void BspTransceiverIO::read(
-    uint8_t addr,
-    uint8_t offset,
-    uint8_t* buf,
-    int len) {
+    const TransceiverAccessParameter& param,
+    uint8_t* buf) {
+  uint8_t addr =
+      param.i2cAddress ? *param.i2cAddress : TransceiverI2CApi::ADDR_QSFP;
+  uint8_t offset = param.offset;
+  uint8_t len = param.len;
   // Increment the counter for I2C read transaction issued
   incrReadTotal();
 

@@ -25,6 +25,15 @@ class BspSystemContainer {
   void clearAllTransceiverReset() const;
   void triggerQsfpHardReset(int tcvrID) const;
 
+  void tcvrRead(
+      unsigned int tcvrID,
+      const TransceiverAccessParameter& param,
+      uint8_t* buf) const;
+  void tcvrWrite(
+      unsigned int tcvrID,
+      const TransceiverAccessParameter& param,
+      const uint8_t* buf) const;
+
  private:
   std::unordered_map<int, std::unique_ptr<BspPimContainer>> pimContainers_;
   BspPlatformMapping* bspMapping_;

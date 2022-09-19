@@ -20,6 +20,9 @@ class BspTransceiverContainer {
   void initTransceiver() {}
   void clearTransceiverReset() const;
   void triggerTcvrHardReset() const;
+  void tcvrRead(const TransceiverAccessParameter& param, uint8_t* buf) const;
+  void tcvrWrite(const TransceiverAccessParameter& param, const uint8_t* buf)
+      const;
 
  private:
   BspTransceiverMapping tcvrMapping_;

@@ -27,5 +27,17 @@ bool BspTransceiverContainer::isTcvrPresent() const {
   return tcvrAccess_->isPresent();
 }
 
+void BspTransceiverContainer::tcvrRead(
+    const TransceiverAccessParameter& param,
+    uint8_t* buf) const {
+  return tcvrIO_->read(param, buf);
+}
+
+void BspTransceiverContainer::tcvrWrite(
+    const TransceiverAccessParameter& param,
+    const uint8_t* buf) const {
+  return tcvrIO_->write(param, buf);
+}
+
 } // namespace fboss
 } // namespace facebook
