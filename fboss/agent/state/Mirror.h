@@ -236,6 +236,8 @@ struct MirrorFields : public ThriftyFields<MirrorFields, state::MirrorFields> {
   static void migrateFromThrifty(folly::dynamic& dyn);
 };
 
+USE_THRIFT_COW(state::MirrorFields, Mirror);
+
 class Mirror : public ThriftyBaseT<state::MirrorFields, Mirror, MirrorFields> {
  public:
   enum Type { SPAN = 1, ERSPAN = 2, SFLOW = 3 };
@@ -265,13 +267,11 @@ class Mirror : public ThriftyBaseT<state::MirrorFields, Mirror, MirrorFields> {
       const folly::dynamic& json);
   folly::dynamic toFollyDynamicLegacy() const;
 
-  bool operator==(const Mirror& rhs) const;
-  bool operator!=(const Mirror& rhs) const;
-
   Type type() const;
 
  private:
   // Inherit the constructors required for clone()
+  void markResolved();
 
   using ThriftyBaseT::ThriftyBaseT;
   friend class CloneAllocator;

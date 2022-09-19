@@ -546,6 +546,13 @@ class ThriftyBaseT : public ThriftyBaseBase<NodeT, FieldsT> {
 
   template <
       typename T = NodeT,
+      std::enable_if_t<kUseThriftStructNodeBase<T>, bool> = true,
+      typename... Args>
+  ThriftyBaseT(Args&&... args)
+      : BaseT(FieldsT(std::forward<Args>(args)...).toThrift()) {}
+
+  template <
+      typename T = NodeT,
       std::enable_if_t<!kUseThriftStructNodeBase<T>, bool> = true>
   static std::shared_ptr<NodeT> fromThrift(const ThriftT& obj) {
     auto fields = FieldsT::fromThrift(obj);

@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/state/Mirror.h"
+#include <fboss/agent/state/Thrifty.h>
 #include <memory>
 #include "common/network/if/gen-cpp2/Address_types.h"
 #include "fboss/agent/AddressUtil.h"
@@ -109,46 +110,68 @@ Mirror::Mirror(
           srcIp,
           udpPorts,
           dscp,
-          truncate) {}
+          truncate) {
+  // span mirror is resolved as soon as it is created
+  // erspan and sflow are resolved when tunnel is set
+  markResolved();
+  if (egressPort) {
+    set<switch_state_tags::configHasEgressPort>(true);
+  }
+}
 
 std::string Mirror::getID() const {
-  return getFields()->name();
+  return get<switch_state_tags::name>()->cref();
 }
 
 std::optional<PortID> Mirror::getEgressPort() const {
-  return getFields()->egressPort();
+  if (auto port = get<switch_state_tags::egressPort>()) {
+    return PortID(port->cref());
+  }
+  return std::nullopt;
 }
 
 std::optional<TunnelUdpPorts> Mirror::getTunnelUdpPorts() const {
-  return getFields()->udpPorts();
+  auto srcPort = get<switch_state_tags::udpSrcPort>();
+  auto dstPort = get<switch_state_tags::udpDstPort>();
+  if (srcPort && dstPort) {
+    return TunnelUdpPorts(srcPort->cref(), dstPort->cref());
+  }
+  return std::nullopt;
 }
 
 std::optional<MirrorTunnel> Mirror::getMirrorTunnel() const {
-  return getFields()->resolvedTunnel();
+  auto tunnel = get<switch_state_tags::tunnel>();
+  if (tunnel) {
+    return MirrorTunnel::fromThrift(tunnel->toThrift());
+  }
+  return std::nullopt;
 }
 
 uint8_t Mirror::getDscp() const {
-  return getFields()->dscp();
+  return get<switch_state_tags::dscp>()->cref();
 }
 
 bool Mirror::getTruncate() const {
-  return getFields()->truncate();
+  return get<switch_state_tags::truncate>()->cref();
 }
 
 void Mirror::setTruncate(bool truncate) {
-  writableFields()->writableData().truncate() = truncate;
+  set<switch_state_tags::truncate>(truncate);
 }
 
 void Mirror::setEgressPort(PortID egressPort) {
-  writableFields()->writableData().egressPort() = egressPort;
+  set<switch_state_tags::egressPort>(egressPort);
 }
 
 void Mirror::setMirrorTunnel(const MirrorTunnel& tunnel) {
-  writableFields()->writableData().tunnel() = tunnel.toThrift();
+  set<switch_state_tags::tunnel>(tunnel.toThrift());
+  // sflow or erspan mirror is resolved.
+  markResolved();
 }
 
 folly::dynamic Mirror::toFollyDynamicLegacy() const {
-  auto mirror = getFields()->toFollyDynamicLegacy();
+  auto fields = MirrorFields(toThrift());
+  auto mirror = fields.toFollyDynamicLegacy();
   mirror[kIsResolved] = isResolved();
   return mirror;
 }
@@ -171,13 +194,16 @@ MirrorFields MirrorFields::fromFollyDynamicLegacy(const folly::dynamic& json) {
   if (!json[kEgressPort].empty()) {
     egressPort = PortID(json[kEgressPort].asInt());
   }
+  bool isResolved = true;
   if (!json[kDestinationIp].empty()) {
+    isResolved = false;
     destinationIp = folly::IPAddress(json[kDestinationIp].asString());
   }
   if (json.find(kSrcIp) != json.items().end()) {
     srcIp = folly::IPAddress(json[kSrcIp].asString());
   }
   if (!json[kTunnel].empty()) {
+    isResolved = true;
     tunnel = MirrorTunnel::fromFollyDynamic(json[kTunnel]);
   }
 
@@ -199,47 +225,51 @@ MirrorFields MirrorFields::fromFollyDynamicLegacy(const folly::dynamic& json) {
   if (tunnel) {
     fields.writableData().tunnel() = tunnel->toThrift();
   }
+  fields.writableData().isResolved() = isResolved;
   return fields;
 }
 
 std::shared_ptr<Mirror> Mirror::fromFollyDynamicLegacy(
     const folly::dynamic& json) {
   auto fields = MirrorFields::fromFollyDynamicLegacy(json);
-  return std::make_shared<Mirror>(fields);
-}
-
-bool Mirror::operator==(const Mirror& rhs) const {
-  auto f1 = getFields();
-  auto f2 = rhs.getFields();
-  auto b = (*f1 == *f2);
-  return b;
+  return std::make_shared<Mirror>(fields.toThrift());
 }
 
 bool Mirror::isResolved() const {
+  // either mirror has no destination ip (which means it is span)
+  // or its destination ip is resolved.
   return getMirrorTunnel().has_value() || !getDestinationIp().has_value();
 }
 
-bool Mirror::operator!=(const Mirror& rhs) const {
-  return !(*this == rhs);
+void Mirror::markResolved() {
+  set<switch_state_tags::isResolved>(isResolved());
 }
 
 bool Mirror::configHasEgressPort() const {
-  return getFields()->configHasEgressPort();
+  return get<switch_state_tags::configHasEgressPort>()->cref();
 }
 
 std::optional<folly::IPAddress> Mirror::getDestinationIp() const {
-  return getFields()->destinationIp();
+  auto ip = get<switch_state_tags::destinationIp>();
+  if (!ip) {
+    return std::nullopt;
+  }
+  return network::toIPAddress(ip->toThrift());
 }
 
 std::optional<folly::IPAddress> Mirror::getSrcIp() const {
-  return getFields()->srcIp();
+  auto ip = get<switch_state_tags::srcIp>();
+  if (!ip) {
+    return std::nullopt;
+  }
+  return network::toIPAddress(ip->toThrift());
 }
 
 Mirror::Type Mirror::type() const {
-  if (!getFields()->destinationIp()) {
+  if (!getDestinationIp()) {
     return Mirror::Type::SPAN;
   }
-  if (!getFields()->udpPorts()) {
+  if (!getTunnelUdpPorts()) {
     return Mirror::Type::ERSPAN;
   }
   return Mirror::Type::SFLOW;
