@@ -531,6 +531,11 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       managerTable_->systemPortManager(),
       lockPolicy,
       &SaiSystemPortManager::changeSystemPort);
+  processChangedDelta(
+      delta.getPortsDelta(),
+      managerTable_->portManager(),
+      lockPolicy,
+      &SaiPortManager::loadPortQueuesForChangedPort);
   processAddedDelta(
       delta.getPortsDelta(),
       managerTable_->portManager(),
@@ -541,6 +546,11 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       managerTable_->systemPortManager(),
       lockPolicy,
       &SaiSystemPortManager::addSystemPort);
+  processAddedDelta(
+      delta.getPortsDelta(),
+      managerTable_->portManager(),
+      lockPolicy,
+      &SaiPortManager::loadPortQueuesForAddedPort);
   processDelta(
       delta.getVlansDelta(),
       managerTable_->vlanManager(),

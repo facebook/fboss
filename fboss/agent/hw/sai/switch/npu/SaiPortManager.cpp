@@ -152,7 +152,6 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   auto portSaiId = saiPort->adapterKey();
   uint32_t hwLogicalPortId = static_cast<uint32_t>(portSaiId);
   platformPort->setHwLogicalPortId(hwLogicalPortId);
-  loadPortQueues(*swPort);
   return portSaiId;
 }
 
