@@ -1188,7 +1188,7 @@ struct Interface {
   /**
    * is_virtual is set to true for logical interfaces
    * (e.g. loopbacks) which are associated with
-   * a reserver vlan. This VLAN has no ports in it
+   * a reserved vlan. This VLAN has no ports in it
    * and the interface is expected to always be up.
    */
   9: bool isVirtual = 0;
