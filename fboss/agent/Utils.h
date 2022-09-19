@@ -96,9 +96,16 @@ bool dumpThriftStateToFile(
 /*
  * Deserialize thrift struct to from file and write into thriftState
  */
-bool readThriftStateToFile(
+bool readThriftStateFromFile(
     const std::string& filename,
     state::WarmbootState& thriftState);
+
+/*
+ * Whether thrift state is valid for sw switch state recovery
+ */
+bool isValidThriftStateFile(
+    const std::string& follyStateFileName,
+    const std::string& thriftStateFileName);
 
 std::vector<ClientID> AllClientIDs();
 

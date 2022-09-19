@@ -165,7 +165,9 @@ HwSwitchWarmBootHelper::getWarmBootState() const {
       warmBootFollySwitchStateFile());
   state::WarmbootState thriftState;
   if (FLAGS_read_thrift_state &&
-      readThriftStateToFile(warmBootThriftSwitchStateFile(), thriftState)) {
+      isValidThriftStateFile(
+          warmBootFollySwitchStateFile(), warmBootThriftSwitchStateFile()) &&
+      readThriftStateFromFile(warmBootThriftSwitchStateFile(), thriftState)) {
     return std::make_tuple(folly::parseJson(warmBootJson), thriftState);
   }
   return std::make_tuple(folly::parseJson(warmBootJson), std::nullopt);

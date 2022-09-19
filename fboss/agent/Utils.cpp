@@ -130,7 +130,7 @@ bool dumpThriftStateToFile(
   return folly::writeFile(result, filename.c_str());
 }
 
-bool readThriftStateToFile(
+bool readThriftStateFromFile(
     const std::string& filename,
     state::WarmbootState& thriftState) {
   std::vector<std::byte> serializedThrift;
@@ -143,6 +143,23 @@ bool readThriftStateToFile(
     thriftState.read(&reader);
     return true;
   }
+  return false;
+}
+
+bool isValidThriftStateFile(
+    const std::string& follyStateFileName,
+    const std::string& thriftStateFileName) {
+  // Folly state is dumped before thrift state. Hence if folly state has a newer
+  // timestamp than thrift state, thrift state should be dumped by previous
+  // warmboot exits. This could happen during trunk->prod->trunk or
+  // prod->trunk->prod.
+  if (boost::filesystem::exists(thriftStateFileName) &&
+      boost::filesystem::last_write_time(thriftStateFileName) >=
+          boost::filesystem::last_write_time(follyStateFileName)) {
+    return true;
+  }
+  XLOG(DBG2) << "Thrift state file does not exist or has timestamp older "
+             << "than folly state. Using only folly file.";
   return false;
 }
 
