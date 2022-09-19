@@ -9,6 +9,13 @@ namespace py.asyncio neteng.fboss.asyncio.qsfp_service_config
 
 include "fboss/qsfp_service/if/transceiver.thrift"
 
+struct QsfpSdkVersion {
+  // A vendor for the particular version requested
+  1: string vendor;
+  // The version associated with the desired Sdk
+  2: string version;
+}
+
 enum TransceiverPartNumber {
   UNKNOWN = 1,
 }
@@ -47,4 +54,7 @@ struct QsfpServiceConfig {
   // This has a list of overrides of settings on the optic together with the
   // factor that specify the condition to apply.
   2: list<TransceiverConfigOverride> transceiverConfigOverrides = [];
+
+  // Sdk versions for QSFP service
+  3: optional QsfpSdkVersion sdk_version;
 }
