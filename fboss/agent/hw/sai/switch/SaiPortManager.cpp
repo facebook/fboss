@@ -316,12 +316,10 @@ void SaiPortManager::releasePorts() {
   }
 }
 
-void SaiPortManager::loadPortQueues(
-    SaiPortHandle* portHandle,
-    const Port& swPort) {
-  SaiPortHandle* handle = getPortHandle(swPort.getID());
-  CHECK(handle) << " Port handle must be created before loading queues";
-  const auto& saiPort = handle->port;
+void SaiPortManager::loadPortQueues(const Port& swPort) {
+  SaiPortHandle* portHandle = getPortHandle(swPort.getID());
+  CHECK(portHandle) << " Port handle must be created before loading queues";
+  const auto& saiPort = portHandle->port;
   std::vector<sai_object_id_t> queueList;
   queueList.resize(1);
   SaiPortTraits::Attributes::QosQueueList queueListAttribute{queueList};
@@ -346,8 +344,8 @@ void SaiPortManager::loadPortQueues(
   for (auto portQueue : swPort.getPortQueues()) {
     auto queueKey =
         std::make_pair(portQueue->getID(), portQueue->getStreamType());
-    const auto& configuredQueue = handle->queues[queueKey];
-    handle->configuredQueues.push_back(configuredQueue.get());
+    const auto& configuredQueue = portHandle->queues[queueKey];
+    portHandle->configuredQueues.push_back(configuredQueue.get());
     if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
       portQueue->setReservedBytes(
           portQueue->getReservedBytes()
@@ -374,7 +372,7 @@ void SaiPortManager::loadPortQueues(
     }
   }
   managerTable_->queueManager().ensurePortQueueConfig(
-      saiPort->adapterKey(), handle->queues, swPort.getPortQueues());
+      saiPort->adapterKey(), portHandle->queues, swPort.getPortQueues());
 }
 
 void SaiPortManager::addMirror(const std::shared_ptr<Port>& swPort) {

@@ -227,7 +227,7 @@ class SaiPortManager {
   SaiQueueHandle* getQueueHandleImpl(
       PortID swId,
       const SaiQueueConfig& saiQueueConfig) const;
-  void loadPortQueues(SaiPortHandle* portHandle, const Port& swPort);
+  void loadPortQueues(const Port& swPort);
   void programSerdes(
       std::shared_ptr<SaiPort> saiPort,
       std::shared_ptr<Port> swPort,
