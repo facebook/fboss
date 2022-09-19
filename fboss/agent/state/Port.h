@@ -277,11 +277,11 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
     writableFields()->vlans.emplace(std::make_pair(id, VlanInfo(tagged)));
   }
 
-  const QueueConfig& getPortQueues() {
+  const QueueConfig& getPortQueues() const {
     return getFields()->queues;
   }
 
-  bool hasValidPortQueues() {
+  bool hasValidPortQueues() const {
     constexpr auto kDefaultProbability = 100;
     for (auto& portQueue : getFields()->queues) {
       for (auto& entry : portQueue->getAqms()) {
