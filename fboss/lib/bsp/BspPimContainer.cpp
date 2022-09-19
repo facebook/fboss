@@ -21,5 +21,29 @@ const BspTransceiverContainer* BspPimContainer::getTransceiverContainer(
   return tcvrContainers_.at(tcvrID).get();
 }
 
+void BspPimContainer::initAllTransceivers() const {
+  for (auto tcvrContainerIt = tcvrContainers_.begin();
+       tcvrContainerIt != tcvrContainers_.end();
+       tcvrContainerIt++) {
+    tcvrContainerIt->second->initTransceiver();
+  }
+}
+
+void BspPimContainer::clearAllTransceiverReset() const {
+  for (auto tcvrContainerIt = tcvrContainers_.begin();
+       tcvrContainerIt != tcvrContainers_.end();
+       tcvrContainerIt++) {
+    tcvrContainerIt->second->clearTransceiverReset();
+  }
+}
+
+void BspPimContainer::triggerTcvrHardReset(int tcvrID) const {
+  getTransceiverContainer(tcvrID)->triggerTcvrHardReset();
+}
+
+bool BspPimContainer::isTcvrPresent(int tcvrID) const {
+  return getTransceiverContainer(tcvrID)->isTcvrPresent();
+}
+
 } // namespace fboss
 } // namespace facebook

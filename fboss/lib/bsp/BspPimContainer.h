@@ -15,6 +15,11 @@ class BspPimContainer {
   explicit BspPimContainer(BspPimMapping& bspPimMapping);
   const BspTransceiverContainer* getTransceiverContainer(int tcvrID) const;
 
+  bool isTcvrPresent(int tcvrID) const;
+  void initAllTransceivers() const;
+  void clearAllTransceiverReset() const;
+  void triggerTcvrHardReset(int tcvrID) const;
+
  private:
   std::unordered_map<int, std::unique_ptr<BspTransceiverContainer>>
       tcvrContainers_;

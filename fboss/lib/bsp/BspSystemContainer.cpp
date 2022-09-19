@@ -41,5 +41,29 @@ int BspSystemContainer::getNumPims() const {
   return bspMapping_->numPims();
 }
 
+void BspSystemContainer::initAllTransceivers() const {
+  for (auto pimContainerIt = pimContainers_.begin();
+       pimContainerIt != pimContainers_.end();
+       pimContainerIt++) {
+    pimContainerIt->second->initAllTransceivers();
+  }
+}
+
+void BspSystemContainer::clearAllTransceiverReset() const {
+  for (auto pimContainerIt = pimContainers_.begin();
+       pimContainerIt != pimContainers_.end();
+       pimContainerIt++) {
+    pimContainerIt->second->clearAllTransceiverReset();
+  }
+}
+
+void BspSystemContainer::triggerQsfpHardReset(int tcvrID) const {
+  getPimContainerFromTcvrID(tcvrID)->triggerTcvrHardReset(tcvrID);
+}
+
+bool BspSystemContainer::isPresent(int tcvrID) const {
+  return getPimContainerFromTcvrID(tcvrID)->isTcvrPresent(tcvrID);
+}
+
 } // namespace fboss
 } // namespace facebook

@@ -20,6 +20,11 @@ class BspSystemContainer {
   int getPimIDFromTcvrID(int tcvrID) const;
   int getNumPims() const;
 
+  bool isPresent(int tcvrID) const;
+  void initAllTransceivers() const;
+  void clearAllTransceiverReset() const;
+  void triggerQsfpHardReset(int tcvrID) const;
+
  private:
   std::unordered_map<int, std::unique_ptr<BspPimContainer>> pimContainers_;
   BspPlatformMapping* bspMapping_;
