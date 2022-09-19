@@ -200,6 +200,10 @@ class SaiPortManager {
   TransmitterTechnology getMedium(PortID portID) const;
 
   uint8_t getNumPmdLanes(PortSaiId saiPortId) const;
+  void loadPortQueuesForAddedPort(const std::shared_ptr<Port>& swPort);
+  void loadPortQueuesForChangedPort(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);

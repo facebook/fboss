@@ -156,6 +156,23 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   return portSaiId;
 }
 
+void SaiPortManager::loadPortQueuesForAddedPort(
+    const std::shared_ptr<Port>& swPort) {
+  loadPortQueues(getPortHandle(swPort->getID()), *swPort);
+}
+void SaiPortManager::loadPortQueuesForChangedPort(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  SaiPortTraits::CreateAttributes oldAttributes = attributesFromSwPort(oldPort);
+  SaiPortTraits::CreateAttributes newAttributes = attributesFromSwPort(newPort);
+
+  if (createOnlyAttributeChanged(oldAttributes, newAttributes)) {
+    // If createOnly attributes did not change we would have
+    // handled queue updates in changePortImpl itself
+    loadPortQueues(getPortHandle(newPort->getID()), *newPort);
+  }
+}
+
 void SaiPortManager::changePortImpl(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {

@@ -110,6 +110,12 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   return saiLinePort->adapterKey();
 }
 
+void SaiPortManager::loadPortQueuesForAddedPort(
+    const std::shared_ptr<Port>& /*swPort*/) {}
+void SaiPortManager::loadPortQueuesForChangedPort(
+    const std::shared_ptr<Port>& /*oldPort*/,
+    const std::shared_ptr<Port>& /*newPort*/) {}
+
 void SaiPortManager::changePortImpl(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
