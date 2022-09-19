@@ -72,7 +72,7 @@ add_library(utils
 target_link_libraries(utils
   error
   ctrl_cpp2
-  switch_state_cpp2
+  state
   Folly::folly
 )
 

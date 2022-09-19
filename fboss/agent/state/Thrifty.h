@@ -18,7 +18,37 @@
 
 #include "common/network/if/gen-cpp2/Address_types.h"
 
+#include "fboss/agent/gen-cpp2/switch_state_fatal.h"
+#include "fboss/agent/gen-cpp2/switch_state_fatal_types.h"
+#include "fboss/thrift_cow/nodes/Types.h"
+
 namespace facebook::fboss {
+
+using switch_state_tags = state::switch_state_tags::strings;
+
+template <typename TType>
+using ThriftStructNode = thrift_cow::ThriftStructNode<TType>;
+
+template <typename NodeT>
+struct ThriftStructNodeBase {
+  static constexpr bool value = false;
+};
+
+template <typename NodeT>
+static constexpr bool kUseThriftStructNodeBase =
+    ThriftStructNodeBase<NodeT>::value;
+
+template <typename NodeT, typename FieldsT>
+struct ThriftyBaseBaseT {
+  using ThriftT = typename FieldsT::ThriftType;
+  using type = std::conditional_t<
+      kUseThriftStructNodeBase<NodeT>,
+      ThriftStructNode<ThriftT>,
+      NodeBaseT<NodeT, FieldsT>>;
+};
+
+template <typename NodeT, typename FieldsT>
+using ThriftyBaseBase = typename ThriftyBaseBaseT<NodeT, FieldsT>::type;
 
 // All thrift state maps need to have an items field
 inline constexpr folly::StringPiece kItems{"items"};
@@ -230,6 +260,7 @@ class ThriftyUtils {
 template <typename Derived, typename ThriftT>
 class ThriftyFields {
  public:
+  using ThriftType = ThriftT;
   ThriftyFields() {}
   explicit ThriftyFields(const ThriftT& data) : data_(data) {}
 
@@ -478,11 +509,12 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
 // TODO: in future, FieldsT and ThrifT should be one type
 //
 template <typename ThriftT, typename NodeT, typename FieldsT>
-class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
+class ThriftyBaseT : public ThriftyBaseBase<NodeT, FieldsT> {
   static_assert(std::is_base_of_v<ThriftyFields<FieldsT, ThriftT>, FieldsT>);
 
  public:
-  using NodeBaseT<NodeT, FieldsT>::NodeBaseT;
+  using BaseT = ThriftyBaseBase<NodeT, FieldsT>;
+  using BaseT::BaseT;
   using Fields = FieldsT;
   using ThriftType = ThriftT;
 
@@ -535,7 +567,7 @@ class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
     return std::make_shared<NodeT>(FieldsT::fromFollyDynamicLegacy(dyn));
   }
 
-  bool operator==(const ThriftyBaseT<ThriftT, NodeT, FieldsT>& rhs) const {
+  bool operator==(const BaseT& rhs) const {
     return *this->getFields() == *rhs.getFields();
   }
 

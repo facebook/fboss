@@ -200,6 +200,9 @@ add_fbthrift_cpp_library(
   common/fb303/if/fb303.thrift
   SERVICES
     FacebookService
+  OPTIONS
+    json
+    reflection
 )
 add_fbthrift_cpp_library(
   network_address_cpp2
@@ -262,12 +265,14 @@ add_fbthrift_cpp_library(
   fboss/lib/phy/prbs.thrift
   OPTIONS
     json
+    reflection
 )
 add_fbthrift_cpp_library(
   transceiver_cpp2
   fboss/qsfp_service/if/transceiver.thrift
   OPTIONS
     json
+    reflection
   DEPENDS
     prbs_cpp2
 )
@@ -276,6 +281,7 @@ add_fbthrift_cpp_library(
   fboss/qsfp_service/if/qsfp_service_config.thrift
   OPTIONS
     json
+    reflection
   DEPENDS
     transceiver_cpp2
 )
@@ -284,18 +290,21 @@ add_fbthrift_cpp_library(
   fboss/qsfp_service/if/qsfp_state.thrift
   OPTIONS
     json
+    reflection
 )
 add_fbthrift_cpp_library(
   qsfp_stats_cpp2
   fboss/qsfp_service/if/qsfp_stats.thrift
   OPTIONS
     json
+    reflection
 )
 add_fbthrift_cpp_library(
   sensor_service_stats_cpp2
   fboss/platform/sensor_service/sensor_service_stats.thrift
   OPTIONS
     json
+    reflection
   DEPENDS
     sensor_service_cpp2
 )
@@ -380,6 +389,7 @@ add_fbthrift_cpp_library(
   fboss/agent/hw/bcm/bcm_config.thrift
   OPTIONS
     json
+    reflection
 )
 add_fbthrift_cpp_library(
   asic_config_cpp2
@@ -943,6 +953,7 @@ if (NOT SAI_ONLY)
       fsdb_flags
       qsfp_lib
       thread_heartbeat
+      phy_utils
   )
 
   set_target_properties(fboss_agent PROPERTIES COMPILE_FLAGS

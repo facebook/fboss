@@ -116,6 +116,7 @@ target_link_libraries(bcm
   ${OPENNSA}
   ${YAML-CPP}
   ${YAML}
+  phy_utils
 )
 
 set_target_properties(bcm PROPERTIES COMPILE_FLAGS

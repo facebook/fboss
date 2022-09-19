@@ -20,6 +20,7 @@ target_link_libraries(standalone_rib
   state_utils
   Folly::folly
   switch_state_cpp2
+  thrift_cow_nodes
 )
 
 add_library(network_to_route_map

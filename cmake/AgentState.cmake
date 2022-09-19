@@ -98,6 +98,7 @@ target_link_libraries(state
   state_utils
   radix_tree
   phy_cpp2
+  thrift_cow_nodes
   Folly::folly
 )
 
