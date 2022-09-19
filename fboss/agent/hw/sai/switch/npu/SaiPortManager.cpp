@@ -119,45 +119,11 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   auto saiPort = portStore.setObject(portKey, attributes, swPort->getID());
   handle->port = saiPort;
   programSerdes(saiPort, swPort, handle.get());
-  loadPortQueues(handle.get());
 
-  const auto asic = platform_->getAsic();
   if (swPort->isEnabled()) {
     portStats_.emplace(
         swPort->getID(), std::make_unique<HwPortFb303Stats>(swPort->getName()));
   }
-  for (auto portQueue : swPort->getPortQueues()) {
-    auto queueKey =
-        std::make_pair(portQueue->getID(), portQueue->getStreamType());
-    const auto& configuredQueue = handle->queues[queueKey];
-    handle->configuredQueues.push_back(configuredQueue.get());
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
-      portQueue->setReservedBytes(
-          portQueue->getReservedBytes()
-              ? *portQueue->getReservedBytes()
-              : asic->getDefaultReservedBytes(
-                    portQueue->getStreamType(), false /* not cpu port*/));
-      portQueue->setScalingFactor(
-          portQueue->getScalingFactor()
-              ? *portQueue->getScalingFactor()
-              : asic->getDefaultScalingFactor(
-                    portQueue->getStreamType(), false /* not cpu port*/));
-    } else if (portQueue->getReservedBytes() || portQueue->getScalingFactor()) {
-      throw FbossError("Reserved bytes, scaling factor setting not supported");
-    }
-    auto pitr = portStats_.find(swPort->getID());
-
-    if (pitr != portStats_.end()) {
-      auto queueName = portQueue->getName()
-          ? *portQueue->getName()
-          : folly::to<std::string>("queue", portQueue->getID());
-      // Port stats map is sparse, since we don't maintain/publish stats
-      // for disabled ports
-      pitr->second->queueChanged(portQueue->getID(), queueName);
-    }
-  }
-  managerTable_->queueManager().ensurePortQueueConfig(
-      saiPort->adapterKey(), handle->queues, swPort->getPortQueues());
 
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
       swPort->getSampleDestination() == cfg::SampleDestination::MIRROR;
@@ -186,6 +152,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   auto portSaiId = saiPort->adapterKey();
   uint32_t hwLogicalPortId = static_cast<uint32_t>(portSaiId);
   platformPort->setHwLogicalPortId(hwLogicalPortId);
+  loadPortQueues(getPortHandle(swPort->getID()), *swPort);
   return portSaiId;
 }
 

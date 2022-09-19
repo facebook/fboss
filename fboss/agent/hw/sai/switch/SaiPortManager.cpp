@@ -316,7 +316,12 @@ void SaiPortManager::releasePorts() {
   }
 }
 
-void SaiPortManager::loadPortQueues(SaiPortHandle* portHandle) {
+void SaiPortManager::loadPortQueues(
+    SaiPortHandle* portHandle,
+    const Port& swPort) {
+  SaiPortHandle* handle = getPortHandle(swPort.getID());
+  CHECK(handle) << " Port handle must be created before loading queues";
+  const auto& saiPort = handle->port;
   std::vector<sai_object_id_t> queueList;
   queueList.resize(1);
   SaiPortTraits::Attributes::QosQueueList queueListAttribute{queueList};
@@ -336,6 +341,40 @@ void SaiPortManager::loadPortQueues(SaiPortHandle* portHandle) {
       });
   portHandle->queues = managerTable_->queueManager().loadQueues(
       portHandle->port->adapterKey(), queueSaiIds);
+
+  auto asic = platform_->getAsic();
+  for (auto portQueue : swPort.getPortQueues()) {
+    auto queueKey =
+        std::make_pair(portQueue->getID(), portQueue->getStreamType());
+    const auto& configuredQueue = handle->queues[queueKey];
+    handle->configuredQueues.push_back(configuredQueue.get());
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
+      portQueue->setReservedBytes(
+          portQueue->getReservedBytes()
+              ? *portQueue->getReservedBytes()
+              : asic->getDefaultReservedBytes(
+                    portQueue->getStreamType(), false /* not cpu port*/));
+      portQueue->setScalingFactor(
+          portQueue->getScalingFactor()
+              ? *portQueue->getScalingFactor()
+              : asic->getDefaultScalingFactor(
+                    portQueue->getStreamType(), false /* not cpu port*/));
+    } else if (portQueue->getReservedBytes() || portQueue->getScalingFactor()) {
+      throw FbossError("Reserved bytes, scaling factor setting not supported");
+    }
+    auto pitr = portStats_.find(swPort.getID());
+
+    if (pitr != portStats_.end()) {
+      auto queueName = portQueue->getName()
+          ? *portQueue->getName()
+          : folly::to<std::string>("queue", portQueue->getID());
+      // Port stats map is sparse, since we don't maintain/publish stats
+      // for disabled ports
+      pitr->second->queueChanged(portQueue->getID(), queueName);
+    }
+  }
+  managerTable_->queueManager().ensurePortQueueConfig(
+      saiPort->adapterKey(), handle->queues, swPort.getPortQueues());
 }
 
 void SaiPortManager::addMirror(const std::shared_ptr<Port>& swPort) {
