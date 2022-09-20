@@ -230,6 +230,7 @@ class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
   void SetUp() override {
     FLAGS_mmu_lossless_mode = true;
     FLAGS_qgroup_guarantee_enable = true;
+    FLAGS_enable_exact_match = true;
 
     HwLinkStateDependentTest::SetUp();
     prodInvariants_ = std::make_unique<HwProdRtswInvariantHelper>(
