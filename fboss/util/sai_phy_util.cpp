@@ -9,6 +9,23 @@ using namespace apache::thrift;
 DEFINE_bool(phy_port_info, false, "Print PHY port SAI info, use with --port");
 DEFINE_string(port, "", "Switch port");
 DEFINE_bool(
+    set_phy_loopback,
+    false,
+    "Set PHY port in loopback mode, use with --port --side");
+DEFINE_bool(
+    clear_phy_loopback,
+    false,
+    "Clear PHY port loopback mode, use with --port --side");
+DEFINE_bool(
+    set_admin_up,
+    false,
+    "Set PHY port Admin Up, use with --port --side");
+DEFINE_bool(
+    set_admin_down,
+    false,
+    "Set PHY port Admin Down, use with --port --side");
+DEFINE_string(side, "line", "line side or system side");
+DEFINE_bool(
     read_reg,
     false,
     "Read PHY register, use with --port --mdio --dev --offset");
@@ -30,6 +47,48 @@ void printPhyPortInfo(QsfpServiceAsyncClient* qsfpHandler) {
   qsfpHandler->sync_getSaiPortInfo(output, FLAGS_port);
 
   printf("%s\n", output.c_str());
+}
+
+void setPhyLoopback(QsfpServiceAsyncClient* qsfpHandler, bool setLoopback) {
+  if (FLAGS_port == "") {
+    printf("Port name is required\n");
+    return;
+  }
+  if (FLAGS_side != "line" && FLAGS_side != "host") {
+    printf("side should be either line or host\n");
+    return;
+  }
+
+  phy::PortComponent component = (FLAGS_side == "line")
+      ? phy::PortComponent::GB_LINE
+      : phy::PortComponent::GB_SYSTEM;
+
+  qsfpHandler->sync_setSaiPortLoopbackState(FLAGS_port, component, setLoopback);
+  printf(
+      "Port Loopback %s got %s\n",
+      FLAGS_port.c_str(),
+      (setLoopback ? "Set" : "Clear"));
+}
+
+void setPhyAdminState(QsfpServiceAsyncClient* qsfpHandler, bool adminUp) {
+  if (FLAGS_port == "") {
+    printf("Port name is required\n");
+    return;
+  }
+  if (FLAGS_side != "line" && FLAGS_side != "host") {
+    printf("side should be either line or host\n");
+    return;
+  }
+
+  phy::PortComponent component = (FLAGS_side == "line")
+      ? phy::PortComponent::GB_LINE
+      : phy::PortComponent::GB_SYSTEM;
+
+  qsfpHandler->sync_setSaiPortAdminState(FLAGS_port, component, adminUp);
+  printf(
+      "Port %s Admin state set to %s\n",
+      FLAGS_port.c_str(),
+      (adminUp ? "Up" : "Down"));
 }
 
 void saiPhyRegisterAccess(QsfpServiceAsyncClient* qsfpHandler, bool opRead) {
@@ -69,6 +128,22 @@ int main(int argc, char* argv[]) {
 
   if (FLAGS_phy_port_info) {
     printPhyPortInfo(client.get());
+    return 0;
+  }
+  if (FLAGS_set_phy_loopback) {
+    setPhyLoopback(client.get(), true);
+    return 0;
+  }
+  if (FLAGS_clear_phy_loopback) {
+    setPhyLoopback(client.get(), false);
+    return 0;
+  }
+  if (FLAGS_set_admin_up) {
+    setPhyAdminState(client.get(), true);
+    return 0;
+  }
+  if (FLAGS_set_admin_down) {
+    setPhyAdminState(client.get(), false);
     return 0;
   }
   if (FLAGS_read_reg) {
