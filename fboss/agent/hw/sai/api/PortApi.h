@@ -58,6 +58,13 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE,
         sai_int32_t,
         SaiIntDefault<sai_int32_t>>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    using PortLoopbackMode = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LOOPBACK_MODE,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
+#endif
     using MediaType = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_MEDIA_TYPE,
@@ -287,6 +294,9 @@ SAI_ATTRIBUTE_NAME(Port, AdminState)
 SAI_ATTRIBUTE_NAME(Port, FecMode)
 SAI_ATTRIBUTE_NAME(Port, OperStatus)
 SAI_ATTRIBUTE_NAME(Port, InternalLoopbackMode)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+SAI_ATTRIBUTE_NAME(Port, PortLoopbackMode)
+#endif
 SAI_ATTRIBUTE_NAME(Port, MediaType)
 SAI_ATTRIBUTE_NAME(Port, GlobalFlowControlMode)
 SAI_ATTRIBUTE_NAME(Port, PortVlanId)
