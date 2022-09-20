@@ -33,7 +33,7 @@ from fboss.cli.utils.click_utils import AliasedGroup
 from fboss.cli.utils.utils import KEYWORD_CONFIG_RELOAD, KEYWORD_CONFIG_SHOW
 from fboss.fb_thrift_clients import FbossAgentClient
 from neteng.fboss.ctrl.ttypes import HwObjectType, PortLedExternalState
-from neteng.fboss.phy.ttypes import PrbsComponent
+from neteng.fboss.phy.ttypes import PortComponent
 from neteng.fboss.ttypes import FbossBaseError
 from thrift.Thrift import TApplicationException
 from thrift.transport.TTransport import TTransportException
@@ -412,21 +412,21 @@ class PortPrbsCli(object):
     @click.pass_context
     def system(ctx):  # noqa: B902
         """Port prbs gearbox system commands"""
-        ctx.obj = PrbsContext(ctx.obj, PrbsComponent.GB_SYSTEM)
+        ctx.obj = PrbsContext(ctx.obj, PortComponent.GB_SYSTEM)
         pass
 
     @click.group(cls=AliasedGroup)  # noqa: B902
     @click.pass_context
     def line(ctx):  # noqa: B902
         """Port prbs gearbox system commands"""
-        ctx.obj = PrbsContext(ctx.obj, PrbsComponent.GB_LINE)
+        ctx.obj = PrbsContext(ctx.obj, PortComponent.GB_LINE)
         pass
 
     @click.group(cls=AliasedGroup)  # noqa: B902
     @click.pass_context
     def asic(ctx):  # noqa: B902
         """Port prbs asic commands"""
-        ctx.obj = PrbsContext(ctx.obj, PrbsComponent.ASIC)
+        ctx.obj = PrbsContext(ctx.obj, PortComponent.ASIC)
         pass
 
     @click.command()

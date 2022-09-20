@@ -201,7 +201,7 @@ class DebugLevel : public BaseObjectArgType<std::string> {
       ObjectArgTypeId::OBJECT_ARG_TYPE_DEBUG_LEVEL;
 };
 
-class PrbsComponent : public BaseObjectArgType<phy::PrbsComponent> {
+class PrbsComponent : public BaseObjectArgType<phy::PortComponent> {
  public:
   /* implicit */ PrbsComponent(std::vector<std::string> components) {
     // existing helper function from PrbsUtils.h

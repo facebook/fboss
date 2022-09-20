@@ -890,7 +890,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    */
   void setPortPrbs(
     1: i32 portId,
-    2: phy.PrbsComponent component,
+    2: phy.PortComponent component,
     3: bool enable,
     4: i32 polynominal,
   ) throws (1: fboss.FbossBaseError error);
@@ -901,7 +901,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    */
   phy.PrbsStats getPortPrbsStats(
     1: i32 portId,
-    2: phy.PrbsComponent component,
+    2: phy.PortComponent component,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
@@ -918,7 +918,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    */
   void clearPortPrbsStats(
     1: i32 portId,
-    2: phy.PrbsComponent component,
+    2: phy.PortComponent component,
   ) throws (1: fboss.FbossBaseError error);
 
   /*

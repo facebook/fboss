@@ -1436,15 +1436,15 @@ void TransceiverManager::restoreWarmBootPhyState() {
 }
 
 namespace {
-phy::Side prbsComponentToPhySide(phy::PrbsComponent component) {
+phy::Side prbsComponentToPhySide(phy::PortComponent component) {
   switch (component) {
-    case phy::PrbsComponent::ASIC:
+    case phy::PortComponent::ASIC:
       throw FbossError("qsfp_service doesn't support program ASIC prbs");
-    case phy::PrbsComponent::GB_SYSTEM:
-    case phy::PrbsComponent::TRANSCEIVER_SYSTEM:
+    case phy::PortComponent::GB_SYSTEM:
+    case phy::PortComponent::TRANSCEIVER_SYSTEM:
       return phy::Side::SYSTEM;
-    case phy::PrbsComponent::GB_LINE:
-    case phy::PrbsComponent::TRANSCEIVER_LINE:
+    case phy::PortComponent::GB_LINE:
+    case phy::PortComponent::TRANSCEIVER_LINE:
       return phy::Side::LINE;
   };
   throw FbossError(
@@ -1455,7 +1455,7 @@ phy::Side prbsComponentToPhySide(phy::PrbsComponent component) {
 
 void TransceiverManager::setInterfacePrbs(
     std::string portName,
-    phy::PrbsComponent component,
+    phy::PortComponent component,
     const prbs::InterfacePrbsState& state) {
   // Get the port ID first
   auto portId = getPortIDByPortName(portName);
@@ -1469,8 +1469,8 @@ void TransceiverManager::setInterfacePrbs(
     throw FbossError("Neither generator or checker specified for PRBS setting");
   }
 
-  if (component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
-      component == phy::PrbsComponent::TRANSCEIVER_LINE) {
+  if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
+      component == phy::PortComponent::TRANSCEIVER_LINE) {
     if (auto tcvrID = getTransceiverID(portId.value())) {
       phy::Side side = prbsComponentToPhySide(component);
       auto lockedTransceivers = transceivers_.rlock();
@@ -1502,10 +1502,10 @@ void TransceiverManager::setInterfacePrbs(
 
 phy::PrbsStats TransceiverManager::getPortPrbsStats(
     PortID portId,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   phy::Side side = prbsComponentToPhySide(component);
-  if (component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
-      component == phy::PrbsComponent::TRANSCEIVER_LINE) {
+  if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
+      component == phy::PortComponent::TRANSCEIVER_LINE) {
     auto lockedTransceivers = transceivers_.rlock();
     if (auto tcvrID = getTransceiverID(portId)) {
       if (auto it = lockedTransceivers->find(*tcvrID);
@@ -1531,10 +1531,10 @@ phy::PrbsStats TransceiverManager::getPortPrbsStats(
 
 void TransceiverManager::clearPortPrbsStats(
     PortID portId,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   phy::Side side = prbsComponentToPhySide(component);
-  if (component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
-      component == phy::PrbsComponent::TRANSCEIVER_LINE) {
+  if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
+      component == phy::PortComponent::TRANSCEIVER_LINE) {
     auto lockedTransceivers = transceivers_.rlock();
     if (auto tcvrID = getTransceiverID(portId)) {
       if (auto it = lockedTransceivers->find(*tcvrID);
@@ -1568,10 +1568,10 @@ TransceiverManager::getTransceiverPrbsCapabilities(
 void TransceiverManager::getSupportedPrbsPolynomials(
     std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
     std::string portName,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   phy::Side side = prbsComponentToPhySide(component);
-  if (component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
-      component == phy::PrbsComponent::TRANSCEIVER_LINE) {
+  if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
+      component == phy::PortComponent::TRANSCEIVER_LINE) {
     if (portNameToModule_.find(portName) == portNameToModule_.end()) {
       throw FbossError("Can't find transceiver module for port ", portName);
     }
@@ -1587,7 +1587,7 @@ void TransceiverManager::getSupportedPrbsPolynomials(
 
 void TransceiverManager::setPortPrbs(
     PortID portId,
-    phy::PrbsComponent component,
+    phy::PortComponent component,
     const phy::PortPrbsState& state) {
   auto portName = getPortNameByPortId(portId);
   if (!portName.has_value()) {
@@ -1604,10 +1604,10 @@ void TransceiverManager::setPortPrbs(
 void TransceiverManager::getInterfacePrbsState(
     prbs::InterfacePrbsState& prbsState,
     std::string portName,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   if (auto portID = getPortIDByPortName(portName)) {
-    if (component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
-        component == phy::PrbsComponent::TRANSCEIVER_LINE) {
+    if (component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
+        component == phy::PortComponent::TRANSCEIVER_LINE) {
       if (auto tcvrID = getTransceiverID(*portID)) {
         phy::Side side = prbsComponentToPhySide(component);
         auto lockedTransceivers = transceivers_.rlock();
@@ -1633,7 +1633,7 @@ void TransceiverManager::getInterfacePrbsState(
 
 phy::PrbsStats TransceiverManager::getInterfacePrbsStats(
     std::string portName,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   if (auto portID = getPortIDByPortName(portName)) {
     return getPortPrbsStats(*portID, component);
   }
@@ -1642,7 +1642,7 @@ phy::PrbsStats TransceiverManager::getInterfacePrbsStats(
 
 void TransceiverManager::clearInterfacePrbsStats(
     std::string portName,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   if (auto portID = getPortIDByPortName(portName)) {
     clearPortPrbsStats(*portID, component);
   } else {

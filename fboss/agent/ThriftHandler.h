@@ -187,36 +187,36 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::unique_ptr<TransceiverInfo> transceiver,
       bool force) override;
 
-  void clearPortPrbsStats(int32_t portId, phy::PrbsComponent component)
+  void clearPortPrbsStats(int32_t portId, phy::PortComponent component)
       override;
   void getPortPrbsStats(
       phy::PrbsStats& prbsStats,
       int32_t portId,
-      phy::PrbsComponent component) override;
+      phy::PortComponent component) override;
   void setPortPrbs(
       int32_t portId,
-      phy::PrbsComponent component,
+      phy::PortComponent component,
       bool enable,
       int32_t polynominal) override;
   void getSupportedPrbsPolynomials(
       std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
       std::unique_ptr<std::string> portName,
-      phy::PrbsComponent component) override;
+      phy::PortComponent component) override;
   void getInterfacePrbsState(
       prbs::InterfacePrbsState& prbsState,
       std::unique_ptr<std::string> portName,
-      phy::PrbsComponent component) override;
+      phy::PortComponent component) override;
   void setInterfacePrbs(
       std::unique_ptr<std::string> portName,
-      phy::PrbsComponent component,
+      phy::PortComponent component,
       std::unique_ptr<prbs::InterfacePrbsState> state) override;
   void getInterfacePrbsStats(
       phy::PrbsStats& response,
       std::unique_ptr<std::string> portName,
-      phy::PrbsComponent component) override;
+      phy::PortComponent component) override;
   void clearInterfacePrbsStats(
       std::unique_ptr<std::string> portName,
-      phy::PrbsComponent component) override;
+      phy::PortComponent component) override;
   void getInterfaceDetail(
       InterfaceDetail& interfaceDetails,
       int32_t interfaceId) override;

@@ -34,7 +34,7 @@ class CmdClearInterfacePrbsStats : public CmdHandler<
       const std::vector<std::string>& queriedIfs,
       const std::vector<std::string>& components) {
     // Since clearing stats could make a write to hardware, don't clear stats on
-    // uninteded components. Set returnAllIfEmpty to false in prbsComponents()
+    // uninteded components. Set returnAllIfEmpty to false in PortComponents()
     return createModel(
         hostInfo,
         queriedIfs,
@@ -48,9 +48,9 @@ class CmdClearInterfacePrbsStats : public CmdHandler<
   RetType createModel(
       const HostInfo& hostInfo,
       const std::vector<std::string>& queriedIfs,
-      const std::vector<phy::PrbsComponent>& components) {
+      const std::vector<phy::PortComponent>& components) {
     auto componentsStrings = folly::gen::from(components) |
-        folly::gen::mapped([](phy::PrbsComponent p) {
+        folly::gen::mapped([](phy::PortComponent p) {
                                return apache::thrift::util::enumNameSafe(p);
                              }) |
         folly::gen::as<std::vector>();
@@ -68,14 +68,14 @@ class CmdClearInterfacePrbsStats : public CmdHandler<
   void clearPrbsStats(
       const HostInfo& hostInfo,
       const std::string& interfaceName,
-      const phy::PrbsComponent& component) {
-    if (component == phy::PrbsComponent::TRANSCEIVER_LINE ||
-        component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
-        component == phy::PrbsComponent::GB_LINE ||
-        component == phy::PrbsComponent::GB_SYSTEM) {
+      const phy::PortComponent& component) {
+    if (component == phy::PortComponent::TRANSCEIVER_LINE ||
+        component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
+        component == phy::PortComponent::GB_LINE ||
+        component == phy::PortComponent::GB_SYSTEM) {
       auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
       qsfpClient->sync_clearInterfacePrbsStats(interfaceName, component);
-    } else if (component == phy::PrbsComponent::ASIC) {
+    } else if (component == phy::PortComponent::ASIC) {
       auto agentClient =
           utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
       if (portEntries_.empty()) {

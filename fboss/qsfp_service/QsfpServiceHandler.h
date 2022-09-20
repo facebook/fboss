@@ -109,7 +109,7 @@ class QsfpServiceHandler
    */
   void setPortPrbs(
       int32_t portId,
-      phy::PrbsComponent component,
+      phy::PortComponent component,
       std::unique_ptr<phy::PortPrbsState> state) override;
 
   /*
@@ -119,7 +119,7 @@ class QsfpServiceHandler
    */
   void setInterfacePrbs(
       std::unique_ptr<std::string> portName,
-      phy::PrbsComponent component,
+      phy::PortComponent component,
       std::unique_ptr<prbs::InterfacePrbsState> state) override;
 
   /*
@@ -128,7 +128,7 @@ class QsfpServiceHandler
   void getInterfacePrbsState(
       prbs::InterfacePrbsState& prbsState,
       std::unique_ptr<std::string> portName,
-      phy::PrbsComponent component) override;
+      phy::PortComponent component) override;
 
   /*
    * Get the PRBS stats on an interface. Useful when debugging a link
@@ -137,7 +137,7 @@ class QsfpServiceHandler
   void getInterfacePrbsStats(
       phy::PrbsStats& response,
       std::unique_ptr<std::string> portName,
-      phy::PrbsComponent component) override;
+      phy::PortComponent component) override;
 
   /*
    * Get the PRBS stats on a port. Useful when debugging a link
@@ -146,11 +146,11 @@ class QsfpServiceHandler
   void getPortPrbsStats(
       phy::PrbsStats& response,
       int32_t portId,
-      phy::PrbsComponent component) override;
+      phy::PortComponent component) override;
 
   void clearInterfacePrbsStats(
       std::unique_ptr<std::string> portName,
-      phy::PrbsComponent component) override;
+      phy::PortComponent component) override;
 
   /*
    * Get the list of supported PRBS polynomials for the given port and
@@ -159,7 +159,7 @@ class QsfpServiceHandler
   void getSupportedPrbsPolynomials(
       std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
       std::unique_ptr<std::string> portName,
-      phy::PrbsComponent component) override;
+      phy::PortComponent component) override;
 
   /*
    * Clear the PRBS stats counter on a port. Useful when debugging a link
@@ -173,7 +173,7 @@ class QsfpServiceHandler
    * 6. locked status not changed
    * 7. timeLastCollect not changed
    */
-  void clearPortPrbsStats(int32_t portId, phy::PrbsComponent component)
+  void clearPortPrbsStats(int32_t portId, phy::PortComponent component)
       override;
 
   void getMacsecCapablePorts(std::vector<int32_t>& ports) override;

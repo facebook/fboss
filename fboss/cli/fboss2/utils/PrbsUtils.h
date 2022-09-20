@@ -6,7 +6,7 @@
 
 namespace facebook::fboss {
 
-std::vector<phy::PrbsComponent> prbsComponents(
+std::vector<phy::PortComponent> prbsComponents(
     const std::vector<std::string>& components,
     bool returnAllIfEmpty);
 

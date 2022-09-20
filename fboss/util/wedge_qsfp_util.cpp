@@ -3207,7 +3207,7 @@ void setModulePrbs(
   auto client = getQsfpClient(evb);
   for (auto port : portList) {
     client->sync_setInterfacePrbs(
-        port, phy::PrbsComponent::TRANSCEIVER_LINE, prbsState);
+        port, phy::PortComponent::TRANSCEIVER_LINE, prbsState);
   }
 }
 
@@ -3222,7 +3222,7 @@ void getModulePrbsStats(folly::EventBase& evb, std::vector<PortID> portList) {
   for (auto port : portList) {
     phy::PrbsStats prbsStats;
     client->sync_getPortPrbsStats(
-        prbsStats, port, phy::PrbsComponent::TRANSCEIVER_LINE);
+        prbsStats, port, phy::PortComponent::TRANSCEIVER_LINE);
 
     printf(
         "PRBS time collected: %s\n",

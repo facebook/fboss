@@ -976,8 +976,8 @@ phy::PrbsStats SffModule::getPortPrbsStatsSideLocked(
     phy::PrbsStats stats;
     stats.portId() = getID();
     stats.component() = side == Side::SYSTEM
-        ? phy::PrbsComponent::TRANSCEIVER_SYSTEM
-        : phy::PrbsComponent::TRANSCEIVER_LINE;
+        ? phy::PortComponent::TRANSCEIVER_SYSTEM
+        : phy::PortComponent::TRANSCEIVER_LINE;
     int lanes = side == Side::SYSTEM ? numHostLanes() : numMediaLanes();
     for (int lane = 0; lane < lanes; lane++) {
       phy::PrbsLaneStats laneStat;

@@ -65,7 +65,7 @@ class CmdShowInterfacePrbsCapabilities
   RetType createModel(
       const HostInfo& hostInfo,
       const std::vector<std::string>& queriedIfs,
-      const std::vector<phy::PrbsComponent>& components) {
+      const std::vector<phy::PortComponent>& components) {
     RetType model;
     for (const auto& intf : queriedIfs) {
       cli::InterfaceEntry intfEntry;
@@ -86,14 +86,14 @@ class CmdShowInterfacePrbsCapabilities
   std::vector<prbs::PrbsPolynomial> getPrbsPolynomials(
       const HostInfo& hostInfo,
       const std::string& interfaceName,
-      const phy::PrbsComponent& component) {
+      const phy::PortComponent& component) {
     std::vector<prbs::PrbsPolynomial> polynomials;
-    if (component == phy::PrbsComponent::TRANSCEIVER_LINE ||
-        component == phy::PrbsComponent::TRANSCEIVER_SYSTEM) {
+    if (component == phy::PortComponent::TRANSCEIVER_LINE ||
+        component == phy::PortComponent::TRANSCEIVER_SYSTEM) {
       auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
       qsfpClient->sync_getSupportedPrbsPolynomials(
           polynomials, interfaceName, component);
-    } else if (component == phy::PrbsComponent::ASIC) {
+    } else if (component == phy::PortComponent::ASIC) {
       auto agentClient =
           utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
       agentClient->sync_getSupportedPrbsPolynomials(

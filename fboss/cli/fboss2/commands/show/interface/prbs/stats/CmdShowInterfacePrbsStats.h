@@ -96,7 +96,7 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
   RetType createModel(
       const HostInfo& hostInfo,
       const std::vector<std::string>& queriedIfs,
-      const std::vector<phy::PrbsComponent>& components) {
+      const std::vector<phy::PortComponent>& components) {
     RetType model;
     for (const auto& intf : queriedIfs) {
       cli::PrbsStatsInterfaceEntry intfEntry;
@@ -117,17 +117,17 @@ class CmdShowInterfacePrbsStats : public CmdHandler<
   phy::PrbsStats getPrbsStats(
       const HostInfo& hostInfo,
       const std::string& interfaceName,
-      const phy::PrbsComponent& component) {
+      const phy::PortComponent& component) {
     phy::PrbsStats prbsStats;
     try {
-      if (component == phy::PrbsComponent::TRANSCEIVER_LINE ||
-          component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
-          component == phy::PrbsComponent::GB_LINE ||
-          component == phy::PrbsComponent::GB_SYSTEM) {
+      if (component == phy::PortComponent::TRANSCEIVER_LINE ||
+          component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
+          component == phy::PortComponent::GB_LINE ||
+          component == phy::PortComponent::GB_SYSTEM) {
         auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
         qsfpClient->sync_getInterfacePrbsStats(
             prbsStats, interfaceName, component);
-      } else if (component == phy::PrbsComponent::ASIC) {
+      } else if (component == phy::PortComponent::ASIC) {
         auto agentClient =
             utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(
                 hostInfo);

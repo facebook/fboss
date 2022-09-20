@@ -174,14 +174,14 @@ void QsfpServiceHandler::getXphyInfo(phy::PhyInfo& response, int32_t portID) {
 void QsfpServiceHandler::getSupportedPrbsPolynomials(
     std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
     std::unique_ptr<std::string> portName,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(INFO);
   manager_->getSupportedPrbsPolynomials(prbsCapabilities, *portName, component);
 }
 
 void QsfpServiceHandler::setInterfacePrbs(
     std::unique_ptr<std::string> portName,
-    phy::PrbsComponent component,
+    phy::PortComponent component,
     std::unique_ptr<prbs::InterfacePrbsState> state) {
   auto log = LOG_THRIFT_CALL(INFO);
   manager_->setInterfacePrbs(*portName, component, *state);
@@ -190,7 +190,7 @@ void QsfpServiceHandler::setInterfacePrbs(
 void QsfpServiceHandler::getInterfacePrbsState(
     prbs::InterfacePrbsState& prbsState,
     std::unique_ptr<std::string> portName,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(INFO);
   manager_->getInterfacePrbsState(prbsState, *portName, component);
 }
@@ -198,21 +198,21 @@ void QsfpServiceHandler::getInterfacePrbsState(
 void QsfpServiceHandler::getInterfacePrbsStats(
     phy::PrbsStats& response,
     std::unique_ptr<std::string> portName,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(INFO);
   response = manager_->getInterfacePrbsStats(*portName, component);
 }
 
 void QsfpServiceHandler::clearInterfacePrbsStats(
     std::unique_ptr<std::string> portName,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(INFO);
   manager_->clearInterfacePrbsStats(*portName, component);
 }
 
 void QsfpServiceHandler::setPortPrbs(
     int32_t portId,
-    phy::PrbsComponent component,
+    phy::PortComponent component,
     std::unique_ptr<phy::PortPrbsState> state) {
   auto log = LOG_THRIFT_CALL(INFO);
   manager_->setPortPrbs(PortID(portId), component, *state);
@@ -221,14 +221,14 @@ void QsfpServiceHandler::setPortPrbs(
 void QsfpServiceHandler::getPortPrbsStats(
     phy::PrbsStats& response,
     int32_t portId,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(INFO);
   response = manager_->getPortPrbsStats(PortID(portId), component);
 }
 
 void QsfpServiceHandler::clearPortPrbsStats(
     int32_t portId,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(INFO);
   manager_->clearPortPrbsStats(PortID(portId), component);
 }

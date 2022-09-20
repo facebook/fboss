@@ -16,7 +16,7 @@ from math import log10
 from fboss.cli.commands import commands as cmds
 from fboss.cli.utils import utils
 from neteng.fboss.ctrl.ttypes import PortLedExternalState
-from neteng.fboss.phy.ttypes import PortPrbsState, PrbsComponent
+from neteng.fboss.phy.ttypes import PortComponent, PortPrbsState
 from neteng.fboss.switch_config.ttypes import QueueCongestionBehavior
 from neteng.fboss.transceiver import ttypes as transceiver_ttypes
 from neteng.fboss.ttypes import FbossBaseError
@@ -275,7 +275,7 @@ class PortPrbsCmd(cmds.FbossCmd):
         # TODO Try to call qsfp_service to handle xphy prbs logic first
         # If it throws exception, probably due to unsupported, fall back to use
         # wedge_agent
-        if self.component in [PrbsComponent.GB_LINE, PrbsComponent.GB_SYSTEM]:
+        if self.component in [PortComponent.GB_LINE, PortComponent.GB_SYSTEM]:
             with self._create_qsfp_client() as client:
                 try:
                     for port in self.ports:
@@ -294,7 +294,7 @@ class PortPrbsCmd(cmds.FbossCmd):
         # TODO Try to call qsfp_service to handle xphy prbs logic first
         # If it throws exception, probably due to unsupported, fall back to use
         # wedge_agent
-        if self.component in [PrbsComponent.GB_LINE, PrbsComponent.GB_SYSTEM]:
+        if self.component in [PortComponent.GB_LINE, PortComponent.GB_SYSTEM]:
             with self._create_qsfp_client() as client:
                 try:
                     for port in self.ports:
@@ -316,7 +316,7 @@ class PortPrbsCmd(cmds.FbossCmd):
         # TODO Try to call qsfp_service to handle xphy prbs logic first
         # If it throws exception, probably due to unsupported, fall back to use
         # wedge_agent
-        if self.component in [PrbsComponent.GB_LINE, PrbsComponent.GB_SYSTEM]:
+        if self.component in [PortComponent.GB_LINE, PortComponent.GB_SYSTEM]:
             with self._create_qsfp_client() as client:
                 state = PortPrbsState()
                 state.enabled = enable

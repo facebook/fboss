@@ -326,12 +326,12 @@ class TransceiverManager {
 
   void setPortPrbs(
       PortID portId,
-      phy::PrbsComponent component,
+      phy::PortComponent component,
       const phy::PortPrbsState& state);
 
-  phy::PrbsStats getPortPrbsStats(PortID portId, phy::PrbsComponent component);
+  phy::PrbsStats getPortPrbsStats(PortID portId, phy::PortComponent component);
 
-  void clearPortPrbsStats(PortID portId, phy::PrbsComponent component);
+  void clearPortPrbsStats(PortID portId, phy::PortComponent component);
 
   std::vector<prbs::PrbsPolynomial> getTransceiverPrbsCapabilities(
       TransceiverID tcvrID,
@@ -340,25 +340,25 @@ class TransceiverManager {
   void getSupportedPrbsPolynomials(
       std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
       std::string portName,
-      phy::PrbsComponent component);
+      phy::PortComponent component);
 
   void setInterfacePrbs(
       std::string portName,
-      phy::PrbsComponent component,
+      phy::PortComponent component,
       const prbs::InterfacePrbsState& state);
 
   void getInterfacePrbsState(
       prbs::InterfacePrbsState& prbsState,
       std::string portName,
-      phy::PrbsComponent component);
+      phy::PortComponent component);
 
   phy::PrbsStats getInterfacePrbsStats(
       std::string portName,
-      phy::PrbsComponent component);
+      phy::PortComponent component);
 
   void clearInterfacePrbsStats(
       std::string portName,
-      phy::PrbsComponent component);
+      phy::PortComponent component);
 
   std::optional<DiagsCapability> getDiagsCapability(TransceiverID id) const;
 

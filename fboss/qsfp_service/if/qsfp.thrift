@@ -118,7 +118,7 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
    */
   void setPortPrbs(
     1: i32 portId,
-    2: phy.PrbsComponent component,
+    2: phy.PortComponent component,
     3: phy.PortPrbsState state,
   ) throws (1: fboss.FbossBaseError error);
 
@@ -128,7 +128,7 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
    */
   phy.PrbsStats getPortPrbsStats(
     1: i32 portId,
-    2: phy.PrbsComponent component,
+    2: phy.PortComponent component,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
@@ -145,7 +145,7 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
    */
   void clearPortPrbsStats(
     1: i32 portId,
-    2: phy.PrbsComponent component,
+    2: phy.PortComponent component,
   ) throws (1: fboss.FbossBaseError error);
 
   string listHwObjects(

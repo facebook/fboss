@@ -281,7 +281,7 @@ struct PortPrbsState {
   2: i32 polynominal;
 }
 
-enum PrbsComponent {
+enum PortComponent {
   ASIC = 0,
   GB_SYSTEM = 1,
   GB_LINE = 2,
@@ -301,7 +301,7 @@ struct PrbsLaneStats {
 
 struct PrbsStats {
   1: i32 portId;
-  2: PrbsComponent component;
+  2: PortComponent component;
   3: list<PrbsLaneStats> laneStats;
   4: i32 timeCollected;
 }
@@ -399,7 +399,7 @@ service FbossCommonPhyCtrl extends fb303.FacebookService {
    */
   list<prbs.PrbsPolynomial> getSupportedPrbsPolynomials(
     1: string portName,
-    2: PrbsComponent component,
+    2: PortComponent component,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
@@ -407,7 +407,7 @@ service FbossCommonPhyCtrl extends fb303.FacebookService {
    */
   prbs.InterfacePrbsState getInterfacePrbsState(
     1: string portName,
-    2: PrbsComponent component,
+    2: PortComponent component,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
@@ -416,7 +416,7 @@ service FbossCommonPhyCtrl extends fb303.FacebookService {
    */
   void setInterfacePrbs(
     1: string portName,
-    2: PrbsComponent component,
+    2: PortComponent component,
     3: prbs.InterfacePrbsState state,
   ) throws (1: fboss.FbossBaseError error);
 
@@ -425,7 +425,7 @@ service FbossCommonPhyCtrl extends fb303.FacebookService {
    */
   PrbsStats getInterfacePrbsStats(
     1: string portName,
-    2: PrbsComponent component,
+    2: PortComponent component,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
@@ -439,6 +439,6 @@ service FbossCommonPhyCtrl extends fb303.FacebookService {
    */
   void clearInterfacePrbsStats(
     1: string portName,
-    2: PrbsComponent component,
+    2: PortComponent component,
   ) throws (1: fboss.FbossBaseError error);
 }

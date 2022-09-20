@@ -123,9 +123,9 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
 
     auto verify = [wedgeManager, enable, &portToProfileAndPoly]() {
       auto* phyManager = wedgeManager->getPhyManager();
-      phy::PrbsComponent component =
-          (Side == phy::Side::SYSTEM ? phy::PrbsComponent::GB_SYSTEM
-                                     : phy::PrbsComponent::GB_LINE);
+      phy::PortComponent component =
+          (Side == phy::Side::SYSTEM ? phy::PortComponent::GB_SYSTEM
+                                     : phy::PortComponent::GB_LINE);
       // Verify all programmed xphy prbs matching with the desired values
       for (const auto& [port, profileAndPoly] : portToProfileAndPoly) {
         const auto& hwPrbs = wedgeManager->getXphyPortPrbs(port, Side);

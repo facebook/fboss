@@ -1131,9 +1131,9 @@ void ThriftHandler::getPortStatus(
 void ThriftHandler::getSupportedPrbsPolynomials(
     std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
     std::unique_ptr<std::string> portName,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  if (component != phy::PrbsComponent::ASIC) {
+  if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
   auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(*portName);
@@ -1143,9 +1143,9 @@ void ThriftHandler::getSupportedPrbsPolynomials(
 void ThriftHandler::getInterfacePrbsState(
     prbs::InterfacePrbsState& prbsState,
     std::unique_ptr<std::string> portName,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  if (component != phy::PrbsComponent::ASIC) {
+  if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
   auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(*portName);
@@ -1154,9 +1154,9 @@ void ThriftHandler::getInterfacePrbsState(
 
 void ThriftHandler::clearInterfacePrbsStats(
     std::unique_ptr<std::string> portName,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  if (component != phy::PrbsComponent::ASIC) {
+  if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
   auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(*portName);
@@ -1166,9 +1166,9 @@ void ThriftHandler::clearInterfacePrbsStats(
 void ThriftHandler::getInterfacePrbsStats(
     phy::PrbsStats& response,
     std::unique_ptr<std::string> portName,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  if (component != phy::PrbsComponent::ASIC) {
+  if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
   auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(*portName);
@@ -1177,10 +1177,10 @@ void ThriftHandler::getInterfacePrbsStats(
 
 void ThriftHandler::setInterfacePrbs(
     std::unique_ptr<std::string> portName,
-    phy::PrbsComponent component,
+    phy::PortComponent component,
     std::unique_ptr<prbs::InterfacePrbsState> state) {
   auto log = LOG_THRIFT_CALL(DBG1);
-  if (component != phy::PrbsComponent::ASIC) {
+  if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
   if (!state->generatorEnabled().has_value() &&
@@ -1197,15 +1197,15 @@ void ThriftHandler::setInterfacePrbs(
 
 void ThriftHandler::clearPortPrbsStats(
     int32_t portId,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  if (component == phy::PrbsComponent::ASIC) {
+  if (component == phy::PortComponent::ASIC) {
     sw_->clearPortAsicPrbsStats(portId);
   } else if (
-      component == phy::PrbsComponent::GB_SYSTEM ||
-      component == phy::PrbsComponent::GB_LINE) {
-    phy::Side side = (component == phy::PrbsComponent::GB_SYSTEM)
+      component == phy::PortComponent::GB_SYSTEM ||
+      component == phy::PortComponent::GB_LINE) {
+    phy::Side side = (component == phy::PortComponent::GB_SYSTEM)
         ? phy::Side::SYSTEM
         : phy::Side::LINE;
     sw_->clearPortGearboxPrbsStats(portId, side);
@@ -1218,23 +1218,23 @@ void ThriftHandler::clearPortPrbsStats(
 void ThriftHandler::getPortPrbsStats(
     phy::PrbsStats& prbsStats,
     int32_t portId,
-    phy::PrbsComponent component) {
+    phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
 
-  if (component == phy::PrbsComponent::ASIC) {
+  if (component == phy::PortComponent::ASIC) {
     auto asicPrbsStats = sw_->getPortAsicPrbsStats(portId);
     prbsStats.portId() = portId;
-    prbsStats.component() = phy::PrbsComponent::ASIC;
+    prbsStats.component() = phy::PortComponent::ASIC;
     for (const auto& lane : asicPrbsStats) {
       prbsStats.laneStats()->push_back(lane);
     }
     auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
     prbsStats.timeCollected() = now.count();
   } else if (
-      component == phy::PrbsComponent::GB_SYSTEM ||
-      component == phy::PrbsComponent::GB_LINE) {
-    phy::Side side = (component == phy::PrbsComponent::GB_SYSTEM)
+      component == phy::PortComponent::GB_SYSTEM ||
+      component == phy::PortComponent::GB_LINE) {
+    phy::Side side = (component == phy::PortComponent::GB_SYSTEM)
         ? phy::Side::SYSTEM
         : phy::Side::LINE;
     auto gearboxPrbsStats = sw_->getPortGearboxPrbsStats(portId, side);
@@ -1251,7 +1251,7 @@ void ThriftHandler::getPortPrbsStats(
 
 void ThriftHandler::setPortPrbs(
     int32_t portNum,
-    phy::PrbsComponent component,
+    phy::PortComponent component,
     bool enable,
     int32_t polynominal) {
   auto log = LOG_THRIFT_CALL(DBG1, portNum, enable);
@@ -1275,7 +1275,7 @@ void ThriftHandler::setPortPrbs(
   *newPrbsState.enabled() = enable;
   *newPrbsState.polynominal() = polynominal;
 
-  if (component == phy::PrbsComponent::ASIC) {
+  if (component == phy::PortComponent::ASIC) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
       auto newPort = port->modify(&newState);
@@ -1283,7 +1283,7 @@ void ThriftHandler::setPortPrbs(
       return newState;
     };
     sw_->updateStateBlocking("set port asic prbs", updateFn);
-  } else if (component == phy::PrbsComponent::GB_SYSTEM) {
+  } else if (component == phy::PortComponent::GB_SYSTEM) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
       auto newPort = port->modify(&newState);
@@ -1291,7 +1291,7 @@ void ThriftHandler::setPortPrbs(
       return newState;
     };
     sw_->updateStateBlocking("set port gearbox system side prbs", updateFn);
-  } else if (component == phy::PrbsComponent::GB_LINE) {
+  } else if (component == phy::PortComponent::GB_LINE) {
     auto updateFn = [=](const shared_ptr<SwitchState>& state) {
       shared_ptr<SwitchState> newState{state};
       auto newPort = port->modify(&newState);

@@ -2558,8 +2558,8 @@ phy::PrbsStats CmisModule::getPortPrbsStatsSideLocked(
 
   prbsStats.portId() = getID();
   prbsStats.component() = side == Side::SYSTEM
-      ? phy::PrbsComponent::TRANSCEIVER_SYSTEM
-      : phy::PrbsComponent::TRANSCEIVER_LINE;
+      ? phy::PortComponent::TRANSCEIVER_SYSTEM
+      : phy::PortComponent::TRANSCEIVER_LINE;
 
   if (!checkerEnabled || !lastStats.laneStats()->size()) {
     // If the checker is not enabled or the stats are uninitialized, return the

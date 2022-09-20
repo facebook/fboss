@@ -12,6 +12,6 @@ struct PrbsStatsInterfaceEntry {
 
 struct PrbsStatsComponentEntry {
   1: string interfaceName;
-  2: phy.PrbsComponent component;
+  2: phy.PortComponent component;
   3: phy.PrbsStats prbsStats;
 }

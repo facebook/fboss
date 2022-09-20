@@ -67,7 +67,7 @@ class CmdShowInterfacePrbsState : public CmdHandler<
   RetType createModel(
       const HostInfo& hostInfo,
       const std::vector<std::string>& queriedIfs,
-      const std::vector<phy::PrbsComponent>& components) {
+      const std::vector<phy::PortComponent>& components) {
     RetType model;
     for (const auto& intf : queriedIfs) {
       cli::PrbsStateInterfaceEntry intfEntry;
@@ -88,12 +88,12 @@ class CmdShowInterfacePrbsState : public CmdHandler<
   prbs::InterfacePrbsState getPrbsState(
       const HostInfo& hostInfo,
       const std::string& interfaceName,
-      const phy::PrbsComponent& component) {
+      const phy::PortComponent& component) {
     prbs::InterfacePrbsState prbsState;
-    if (component == phy::PrbsComponent::TRANSCEIVER_LINE ||
-        component == phy::PrbsComponent::TRANSCEIVER_SYSTEM ||
-        component == phy::PrbsComponent::GB_LINE ||
-        component == phy::PrbsComponent::GB_SYSTEM) {
+    if (component == phy::PortComponent::TRANSCEIVER_LINE ||
+        component == phy::PortComponent::TRANSCEIVER_SYSTEM ||
+        component == phy::PortComponent::GB_LINE ||
+        component == phy::PortComponent::GB_SYSTEM) {
       auto qsfpClient = utils::createClient<QsfpServiceAsyncClient>(hostInfo);
       qsfpClient->sync_getInterfacePrbsState(
           prbsState, interfaceName, component);
