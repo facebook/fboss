@@ -79,5 +79,10 @@ void BspSystemContainer::tcvrWrite(
   return getPimContainerFromTcvrID(tcvrID)->tcvrWrite(tcvrID, param, buf);
 }
 
+const I2cControllerStats BspSystemContainer::getI2cControllerStats(
+    int tcvrID) const {
+  return getPimContainerFromTcvrID(tcvrID)->getI2cControllerStats(tcvrID);
+}
+
 } // namespace fboss
 } // namespace facebook

@@ -47,12 +47,11 @@ std::vector<I2cControllerStats> BspIOBus::getI2cControllerStats() {
   XLOG(DBG1) << "BspTrace: getI2cControllerStats()";
   std::vector<I2cControllerStats> i2cControllerCurrentStats;
 
-  // TODO
-  //   for (auto module = 1; module <= systemContainer_->getNumTransceivers();
-  //        ++module) {
-  //     i2cControllerCurrentStats.push_back(
-  //         systemContainer_->getI2cControllerPlatformStats(module);
-  //   }
+  for (auto module = 1; module <= systemContainer_->getNumTransceivers();
+       ++module) {
+    i2cControllerCurrentStats.push_back(
+        systemContainer_->getI2cControllerStats(module));
+  }
 
   return i2cControllerCurrentStats;
 }

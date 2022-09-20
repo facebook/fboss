@@ -39,5 +39,10 @@ void BspTransceiverContainer::tcvrWrite(
   return tcvrIO_->write(param, buf);
 }
 
+const I2cControllerStats BspTransceiverContainer::getI2cControllerStats()
+    const {
+  return tcvrIO_->getI2cControllerPlatformStats();
+}
+
 } // namespace fboss
 } // namespace facebook

@@ -27,6 +27,7 @@ class BspPimContainer {
       unsigned int tcvrID,
       const TransceiverAccessParameter& param,
       const uint8_t* buf) const;
+  const I2cControllerStats getI2cControllerStats(int tcvrID) const;
 
  private:
   std::unordered_map<int, std::unique_ptr<BspTransceiverContainer>>

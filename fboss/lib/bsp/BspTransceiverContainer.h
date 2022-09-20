@@ -23,6 +23,7 @@ class BspTransceiverContainer {
   void tcvrRead(const TransceiverAccessParameter& param, uint8_t* buf) const;
   void tcvrWrite(const TransceiverAccessParameter& param, const uint8_t* buf)
       const;
+  const I2cControllerStats getI2cControllerStats() const;
 
  private:
   BspTransceiverMapping tcvrMapping_;
