@@ -541,6 +541,78 @@ std::string SaiPhyManager::getSaiPortInfo(PortID swPort) {
   return output;
 }
 
+void SaiPhyManager::setSaiPortLoopbackState(
+    PortID swPort,
+    phy::PortComponent component,
+    bool setLoopback) {
+  XLOG(INFO) << "SaiPhyManager::setSaiPortLoopbackState";
+  auto globalPhyID = getGlobalXphyIDbyPortID(swPort);
+  auto saiPlatform = getSaiPlatform(globalPhyID);
+  auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+
+  auto switchId = saiSwitch->getSwitchId();
+
+  // Get port handle and then get port attributes
+  auto portHandle =
+      saiSwitch->managerTable()->portManager().getPortHandle(swPort);
+
+  if (portHandle == nullptr) {
+    XLOG(INFO) << "Port Handle is null";
+    return;
+  }
+
+  auto portAdapterKey = (component == phy::PortComponent::GB_LINE)
+      ? portHandle->port->adapterKey()
+      : portHandle->sysPort->adapterKey();
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  auto loopbackMode =
+      setLoopback ? SAI_PORT_LOOPBACK_MODE_PHY : SAI_PORT_LOOPBACK_MODE_NONE;
+
+  SaiApiTable::getInstance()->portApi().setAttribute(
+      portAdapterKey,
+      SaiPortTraits::Attributes::PortLoopbackMode{loopbackMode});
+  XLOG(INFO) << folly::sformat(
+      "Port {} Side {:s} Loopback state set to {:d}",
+      static_cast<int>(swPort),
+      ((component == phy::PortComponent::GB_LINE) ? "line" : "system"),
+      static_cast<int>(loopbackMode));
+#endif
+}
+
+void SaiPhyManager::setSaiPortAdminState(
+    PortID swPort,
+    phy::PortComponent component,
+    bool setAdminUp) {
+  XLOG(INFO) << "SaiPhyManager::setSaiPortAdminState";
+  auto globalPhyID = getGlobalXphyIDbyPortID(swPort);
+  auto saiPlatform = getSaiPlatform(globalPhyID);
+  auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+
+  auto switchId = saiSwitch->getSwitchId();
+
+  // Get port handle and then get port attributes
+  auto portHandle =
+      saiSwitch->managerTable()->portManager().getPortHandle(swPort);
+
+  if (portHandle == nullptr) {
+    XLOG(INFO) << "Port Handle is null";
+    return;
+  }
+
+  auto portAdapterKey = (component == phy::PortComponent::GB_LINE)
+      ? portHandle->port->adapterKey()
+      : portHandle->sysPort->adapterKey();
+
+  SaiApiTable::getInstance()->portApi().setAttribute(
+      portAdapterKey, SaiPortTraits::Attributes::AdminState{setAdminUp});
+  XLOG(INFO) << folly::sformat(
+      "Port {} Side {:s} Admin state set to {:s}",
+      static_cast<int>(swPort),
+      ((component == phy::PortComponent::GB_LINE) ? "line" : "system"),
+      (setAdminUp ? "Up" : "Down"));
+}
+
 std::unique_ptr<ExternalPhyPortStatsUtils>
 SaiPhyManager::createExternalPhyPortStats(PortID portID) {
   // TODO(joseph5wu) Need to check what kinda stas we can get from

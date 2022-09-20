@@ -92,6 +92,16 @@ class SaiPhyManager : public PhyManager {
   void updateAllXphyPortsStats() override;
   std::string getSaiPortInfo(PortID swPort);
 
+  void setSaiPortLoopbackState(
+      PortID swPort,
+      phy::PortComponent component,
+      bool setLoopback);
+
+  void setSaiPortAdminState(
+      PortID swPort,
+      phy::PortComponent component,
+      bool setAdminUp);
+
   bool getSdkState(const std::string& fileName) override;
 
   bool setupMacsecState(
