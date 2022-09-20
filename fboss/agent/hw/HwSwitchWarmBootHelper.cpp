@@ -32,15 +32,15 @@ DEFINE_string(
     "File for dumping switch state in serialized thrift format on exit");
 DEFINE_bool(
     dump_thrift_state,
-    false,
+    true,
     "Whether to dump thrift state during warmboot exit");
 DEFINE_bool(
     read_thrift_state,
-    false,
+    true,
     "Whether to read thrift state during warmboot init");
 DEFINE_bool(
     check_thrift_state,
-    false,
+    true,
     "Whether to check switch state recovered from thrift binary is the same as folly.");
 
 namespace {
