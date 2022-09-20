@@ -61,7 +61,7 @@ void BspSystemContainer::triggerQsfpHardReset(int tcvrID) const {
   getPimContainerFromTcvrID(tcvrID)->triggerTcvrHardReset(tcvrID);
 }
 
-bool BspSystemContainer::isPresent(int tcvrID) const {
+bool BspSystemContainer::isTcvrPresent(int tcvrID) const {
   return getPimContainerFromTcvrID(tcvrID)->isTcvrPresent(tcvrID);
 }
 

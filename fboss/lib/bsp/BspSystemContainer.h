@@ -20,7 +20,7 @@ class BspSystemContainer {
   int getPimIDFromTcvrID(int tcvrID) const;
   int getNumPims() const;
 
-  bool isPresent(int tcvrID) const;
+  bool isTcvrPresent(int tcvrID) const;
   void initAllTransceivers() const;
   void clearAllTransceiverReset() const;
   void triggerQsfpHardReset(int tcvrID) const;
