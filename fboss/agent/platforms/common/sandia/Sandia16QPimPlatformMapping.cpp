@@ -11,7 +11,7 @@
 #include "fboss/agent/platforms/common/sandia/Sandia16QPimPlatformMapping.h"
 
 namespace {
-constexpr auto kJsonPlatformMappingStr = R"(
+constexpr auto kJsonPlatformMappingStr = R"({}
 )";
 } // namespace
 
