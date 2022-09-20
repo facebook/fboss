@@ -74,7 +74,8 @@ class SaiAclTableGroupTest : public HwTest {
         &cfg,
         kAclTable2(),
         2 /* priority */,
-        {cfg::AclTableActionType::COUNTER},
+        {cfg::AclTableActionType::PACKET_ACTION,
+         cfg::AclTableActionType::COUNTER},
         {cfg::AclTableQualifier::TTL});
   }
 

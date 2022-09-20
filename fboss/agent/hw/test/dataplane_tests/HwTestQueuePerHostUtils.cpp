@@ -227,7 +227,8 @@ void addTtlAclTable(cfg::SwitchConfig* config, int16_t priority) {
       config,
       getTtlAclTableName(),
       priority, // priority
-      {cfg::AclTableActionType::COUNTER},
+      {cfg::AclTableActionType::PACKET_ACTION,
+       cfg::AclTableActionType::COUNTER},
       {cfg::AclTableQualifier::TTL});
 
   addTtlAclEntry(config, getTtlAclTableName());
@@ -278,7 +279,7 @@ void addQueuePerHostAclTables(cfg::SwitchConfig* config, int16_t priority) {
       config,
       getQueuePerHostAclTableName(),
       priority, // priority
-      {cfg::AclTableActionType::PACKET_ACTION},
+      {cfg::AclTableActionType::PACKET_ACTION, cfg::AclTableActionType::SET_TC},
       {cfg::AclTableQualifier::LOOKUP_CLASS_L2,
        cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
        cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE});
