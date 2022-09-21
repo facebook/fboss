@@ -1159,8 +1159,9 @@ struct Interface {
   /** The VRF where the interface belongs to */
   2: i32 routerID = 0;
   /**
-   * The VLAN where the interface sits.
-   * There shall be maximum one interface per VLAN
+   * The VLAN where the interface sits. Valid only
+   * for interface of type VLAN. When present
+   * there shall be maximum one interface per VLAN
    */
   3: i32 vlanID;
   /** The description of the interface */
