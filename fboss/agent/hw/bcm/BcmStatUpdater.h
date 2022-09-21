@@ -127,18 +127,22 @@ class BcmStatUpdater {
 
   /* ACL stats */
   struct BcmAclStatDescriptor {
-    BcmAclStatDescriptor(BcmAclStatHandle hdl, const std::string& aclStatName)
-        : handle(hdl), aclStatName(aclStatName) {}
+    BcmAclStatDescriptor(
+        BcmAclStatHandle hdl,
+        const std::string& aclStatName,
+        bool add)
+        : handle(hdl), aclStatName(aclStatName), addStat(add) {}
     bool operator<(const BcmAclStatDescriptor& d) const {
-      return std::tie(handle, aclStatName) < std::tie(d.handle, d.aclStatName);
+      return std::tie(handle, aclStatName, addStat) <
+          std::tie(d.handle, d.aclStatName, d.addStat);
     }
     BcmAclStatHandle handle;
     std::string aclStatName;
+    bool addStat;
   };
 
-  std::queue<BcmAclStatHandle> toBeRemovedAclStats_;
   std::queue<std::pair<BcmAclStatDescriptor, cfg::CounterType>>
-      toBeAddedAclStats_;
+      toBeUpdatedAclStats_;
   // Outer-map key: BcmAclStatHandle
   // Inner-map key: counter type, value: MonotonicCounter
   // Usually one BcmAclStatHandle can get both packets and bytes counters back
