@@ -1150,7 +1150,10 @@ struct NdpConfig {
    */
   8: optional string routerAddress;
 }
-
+enum InterfaceType {
+  VLAN = 1,
+  SYSTEM_PORT = 2,
+}
 /**
  * The configuration for an interface
  */
@@ -1188,16 +1191,18 @@ struct Interface {
   8: optional i32 mtu;
   /**
    * is_virtual is set to true for logical interfaces
-   * (e.g. loopbacks) which are associated with
-   * a reserved vlan. This VLAN has no ports in it
-   * and the interface is expected to always be up.
+   * (e.g. loopbacks). No ports are thus associated with
+   * such a interface and the interface is expected to
+   * always be up.
    */
   9: bool isVirtual = 0;
   /**
   * this flag is set to true if we need to
-  * disable auto-state feature for SVI
+  * disable auto-state feature for interface.
   */
   10: bool isStateSyncDisabled = 0;
+
+  11: InterfaceType type = InterfaceType.VLAN;
 }
 
 struct StaticRouteWithNextHops {
