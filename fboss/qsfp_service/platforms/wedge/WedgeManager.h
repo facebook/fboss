@@ -11,11 +11,17 @@
 #include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/usb/WedgeI2CBus.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
+#include "fboss/qsfp_service/fsdb/QsfpConfigFsdbSyncer.h"
+#include "fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.h"
 
 DECLARE_bool(override_program_iphy_ports_for_test);
 
 namespace facebook::fboss {
+
+namespace fsdb {
+class FsdbPubSubManager;
+}
 
 class PhyManager;
 
@@ -28,7 +34,7 @@ class WedgeManager : public TransceiverManager {
       std::unique_ptr<TransceiverPlatformApi> api,
       std::unique_ptr<PlatformMapping> platformMapping,
       PlatformMode mode);
-  ~WedgeManager() override {}
+  ~WedgeManager() override;
 
   void getTransceiversInfo(
       TransceiverMap& info,
@@ -145,6 +151,10 @@ class WedgeManager : public TransceiverManager {
       std::optional<OverrideTcvrToPortAndProfile> overrideTcvrToPortAndProfile =
           std::nullopt) override;
 
+  fsdb::FsdbPubSubManager* getPubSubMgrForTesting() {
+    return (fsdbSyncManager_) ? fsdbSyncManager_->pubSubMgr() : nullptr;
+  }
+
  protected:
   void initTransceiverMap() override;
 
@@ -170,5 +180,9 @@ class WedgeManager : public TransceiverManager {
   void triggerQsfpHardResetLocked(
       int idx,
       LockedTransceiversPtr& lockedTransceivers);
+
+  std::unique_ptr<folly::ScopedEventBaseThread> fsdbUpdateThread_;
+  std::unique_ptr<QsfpFsdbSyncManager> fsdbSyncManager_;
+  std::unique_ptr<QsfpConfigFsdbSyncer> fsdbConfigSyncer_;
 };
 } // namespace facebook::fboss

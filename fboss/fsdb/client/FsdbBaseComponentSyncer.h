@@ -154,7 +154,7 @@ class FsdbStateComponentSyncer : public FsdbBaseDeltaComponentSyncer {
         [this] { FsdbBaseComponentSyncer::stop(); });
   }
 
- private:
+ protected:
   folly::EventBase* evb_;
 };
 

@@ -4,9 +4,10 @@
 # cmake/FooBar.cmake
 
 add_library(qsfp_lib
-  fboss/qsfp_service/QsfpFsdbSyncer.cpp
+  fboss/qsfp_service/fsdb/QsfpConfigFsdbSyncer.cpp
+  fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.cpp
+  fboss/qsfp_service/fsdb/oss/QsfpFsdbSyncManager.cpp
   fboss/qsfp_service/oss/StatsPublisher.cpp
-  fboss/qsfp_service/oss/QsfpFsdbSyncer.cpp
   fboss/qsfp_service/platforms/wedge/WedgeI2CBusLock.cpp
   fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
   fboss/qsfp_service/lib/QsfpCache.cpp

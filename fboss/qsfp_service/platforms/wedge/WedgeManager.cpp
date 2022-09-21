@@ -3,6 +3,7 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
@@ -56,6 +57,27 @@ WedgeManager::WedgeManager(
    * on FPGA managed platforms and the wedgeI2cBus_ will be used to control
    * the QSFP devices on I2C/CPLD managed platforms
    */
+  if (FLAGS_publish_state_to_fsdb || FLAGS_publish_stats_to_fsdb) {
+    fsdbUpdateThread_ =
+        std::make_unique<folly::ScopedEventBaseThread>("FsdbUpdateThread");
+    fsdbSyncManager_ = std::make_unique<QsfpFsdbSyncManager>();
+    std::vector<folly::SemiFuture<folly::Unit>> dataReady;
+    if (FLAGS_publish_state_to_fsdb) {
+      fsdbConfigSyncer_ = std::make_unique<QsfpConfigFsdbSyncer>(
+          fsdbUpdateThread_->getEventBase());
+      fsdbSyncManager_->registerStateSyncer(fsdbConfigSyncer_.get());
+      dataReady.push_back(fsdbConfigSyncer_->dataReady());
+    }
+    folly::collectAll(dataReady)
+        .via(fsdbUpdateThread_->getEventBase())
+        .then([this](auto&& /* unused */) { fsdbSyncManager_->start(); });
+  }
+}
+
+WedgeManager::~WedgeManager() {
+  if (fsdbSyncManager_) {
+    fsdbSyncManager_->stop();
+  }
 }
 
 void WedgeManager::loadConfig() {
@@ -88,6 +110,9 @@ void WedgeManager::loadConfig() {
 
   // Process QSFP config here
   qsfpConfig_ = QsfpConfig::fromDefaultFile();
+  if (fsdbConfigSyncer_) {
+    fsdbConfigSyncer_->configUpdated(qsfpConfig_->thrift);
+  }
 }
 
 void WedgeManager::initTransceiverMap() {
