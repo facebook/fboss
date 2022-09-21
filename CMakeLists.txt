@@ -559,6 +559,7 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/switch_asics/Trident2Asic.cpp
       fboss/agent/hw/switch_asics/IndusAsic.cpp
       fboss/agent/hw/switch_asics/BeasAsic.cpp
+      fboss/agent/hw/switch_asics/BroadcomXgsAsic.cpp
   )
 
   add_library(fboss_agent STATIC
@@ -999,7 +1000,8 @@ if (NOT SAI_ONLY)
       fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
       fboss/util/wedge_qsfp_util.cpp
       fboss/util/qsfp_util_main.cpp
-      fboss/util/QsfpUtilTx.cpp
+      fboss/util/qsfp/QsfpUtilTx.cpp
+      fboss/util/qsfp/QsfpServiceDetector.cpp
       fboss/util/oss/wedge_qsfp_util.cpp
       fboss/lib/firmware_storage/FbossFirmware.cpp
       fboss/lib/firmware_storage/FbossFirmware.h
