@@ -34,6 +34,14 @@ int main(int argc, char* argv[]) {
   struct sockaddr_in peer;
   std::string msg("debug_shell");
 
+  if (argc > 1 &&
+      (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)) {
+    printf(
+        "Use command \'fboss2 show interface phymap\'"
+        " to get the PHY Slice Id for a port\n");
+    return 0;
+  }
+
   // Create a socket interface for communication
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0) {
