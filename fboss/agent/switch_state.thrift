@@ -385,7 +385,7 @@ struct SflowCollectorFields {
 struct InterfaceFields {
   1: i32 interfaceId;
   2: i32 routerId;
-  3: i32 vlanId;
+  3: optional i32 vlanId;
   4: string name;
   // network byte order
   5: i64 mac (cpp2.type = "std::uint64_t");
@@ -395,6 +395,7 @@ struct InterfaceFields {
   8: i32 mtu;
   9: bool isVirtual = false;
   10: bool isStateSyncDisabled = false;
+  11: switch_config.InterfaceType type = switch_config.InterfaceType.VLAN;
 }
 
 enum LacpState {
