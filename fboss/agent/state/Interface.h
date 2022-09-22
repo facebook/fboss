@@ -35,7 +35,7 @@ struct InterfaceFields
   InterfaceFields(
       InterfaceID id,
       RouterID router,
-      VlanID vlan,
+      std::optional<VlanID> vlan,
       folly::StringPiece name,
       folly::MacAddress mac,
       int mtu,
@@ -43,7 +43,9 @@ struct InterfaceFields
       bool isStateSyncDisabled) {
     writableData().interfaceId() = id;
     writableData().routerId() = router;
-    writableData().vlanId() = vlan;
+    if (vlan) {
+      writableData().vlanId() = *vlan;
+    }
     writableData().name() = name;
     writableData().mac() = mac.u64NBO();
     writableData().mtu() = mtu;
@@ -84,7 +86,7 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
   Interface(
       InterfaceID id,
       RouterID router,
-      VlanID vlan,
+      std::optional<VlanID> vlan,
       folly::StringPiece name,
       folly::MacAddress mac,
       int mtu,
