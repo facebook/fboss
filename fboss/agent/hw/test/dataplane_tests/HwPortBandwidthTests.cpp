@@ -425,7 +425,19 @@ TEST_F(HwPortBandwidthTest, VerifyQueueShaper) {
 }
 
 TEST_P(HwPortBandwidthParamTest, VerifyPortRateTraffic) {
-  verifyPortRateTraffic(static_cast<cfg::PortSpeed>(GetParam()));
+  cfg::PortSpeed portSpeed = static_cast<cfg::PortSpeed>(GetParam());
+  auto platformPort =
+      getHwSwitch()->getPlatform()->getPlatformPort(masterLogicalPortIds()[0]);
+  auto profileID = platformPort->getProfileIDBySpeedIf(portSpeed);
+  if (!profileID.has_value()) {
+    XLOG(DBG0) << "No profile supporting speed " << static_cast<int>(portSpeed)
+               << " for the this platform, skipping test!";
+#if defined(GTEST_SKIP)
+    GTEST_SKIP();
+#endif
+    return;
+  }
+  verifyPortRateTraffic(portSpeed);
 }
 INSTANTIATE_TEST_CASE_P(
     HwPortBandwidthTest,
