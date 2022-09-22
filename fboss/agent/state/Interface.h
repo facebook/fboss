@@ -40,9 +40,14 @@ struct InterfaceFields
       folly::MacAddress mac,
       int mtu,
       bool isVirtual,
-      bool isStateSyncDisabled) {
+      bool isStateSyncDisabled,
+      cfg::InterfaceType type = cfg::InterfaceType::VLAN) {
     writableData().interfaceId() = id;
     writableData().routerId() = router;
+    writableData().type() = type;
+    if (type == cfg::InterfaceType::VLAN) {
+      CHECK(vlan) << " Vlan ID must be set for interface types VLAN";
+    }
     if (vlan) {
       writableData().vlanId() = *vlan;
     }
@@ -91,7 +96,8 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
       folly::MacAddress mac,
       int mtu,
       bool isVirtual,
-      bool isStateSyncDisabled)
+      bool isStateSyncDisabled,
+      cfg::InterfaceType type = cfg::InterfaceType::VLAN)
       : NodeBaseT(
             id,
             router,
@@ -100,7 +106,8 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
             mac,
             mtu,
             isVirtual,
-            isStateSyncDisabled) {}
+            isStateSyncDisabled,
+            type) {}
 
   InterfaceID getID() const {
     return InterfaceID(*getFields()->data().interfaceId());
