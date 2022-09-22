@@ -154,7 +154,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     cfg::BufferPoolConfig poolConfig;
     // provide small shared buffer size
     // idea is to hit the limit and trigger XOFF (PFC)
-    poolConfig.sharedBytes() = 10000;
+    poolConfig.sharedBytes() = 20000;
     poolConfig.headroomBytes() = 4771136;
     bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
     newCfg.bufferPoolConfigs() = bufferPoolCfgMap;
