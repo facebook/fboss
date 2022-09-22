@@ -441,8 +441,7 @@ std::map<int32_t, TransceiverManagementInterface> getModuleTypeViaService(
   const int offset = 0;
   const int length = 1;
   const int page = 0;
-  std::vector<int32_t> idx =
-      zeroBasedPortIds(const_cast<std::vector<unsigned int>&>(ports));
+  std::vector<int32_t> idx = zeroBasedPortIds(ports);
   std::map<int32_t, ReadResponse> readResp =
       doReadRegViaService(idx, offset, length, page, evb);
 
@@ -480,30 +479,44 @@ bool flipModuleUpperPage(
   return true;
 }
 
-bool overrideLowPower(
-    TransceiverI2CApi* bus,
-    unsigned int port,
-    bool lowPower) {
-  std::array<uint8_t, 1> buf;
-  try {
-    // First figure out whether this module follows CMIS or Sff8636.
-    auto managementInterface = getModuleType(bus, port);
-    if (managementInterface == TransceiverManagementInterface::CMIS) {
-      bus->moduleRead(port, {TransceiverI2CApi::ADDR_QSFP, 26, 1}, buf.data());
-      lowPower ? buf[0] |= kCmisPowerModeMask : buf[0] &= ~kCmisPowerModeMask;
-      bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 26, 1}, buf.data());
-    } else if (managementInterface == TransceiverManagementInterface::SFF) {
-      buf[0] = {lowPower ? kSffLowPowerMode : kSffHighPowerMode};
-      bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 93, 1}, buf.data());
-    } else {
-      fprintf(stderr, "QSFP %d: Unrecognizable management interface\n", port);
+bool overrideLowPower(unsigned int port, bool lowPower) {
+  TransceiverManagementInterface managementInterface =
+      TransceiverManagementInterface::NONE;
+
+  if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
+    folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
+    std::map<int32_t, TransceiverManagementInterface> moduleTypes =
+        getModuleTypeViaService({port}, evb);
+
+    if (moduleTypes.empty()) {
+      XLOG(ERR) << "Error in getting module type";
       return false;
     }
-  } catch (const I2cError& ex) {
-    // This generally means the QSFP module is not present.
-    fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
+
+    for (auto [portIdx, moduleType] : moduleTypes) {
+      managementInterface = moduleType;
+    }
+  } else {
+    TransceiverI2CApi* bus =
+        QsfpUtilContainer::getInstance()->getTransceiverBus();
+
+    managementInterface = getModuleType(bus, port);
+  }
+
+  uint8_t buf;
+
+  if (managementInterface == TransceiverManagementInterface::CMIS) {
+    readRegister(port, 26, 1, 0, &buf);
+    lowPower ? buf |= kCmisPowerModeMask : buf &= ~kCmisPowerModeMask;
+    writeRegister({port}, 26, 0, buf);
+  } else if (managementInterface == TransceiverManagementInterface::SFF) {
+    buf = {lowPower ? kSffLowPowerMode : kSffHighPowerMode};
+    writeRegister({port}, 93, 0, buf);
+  } else {
+    fprintf(stderr, "QSFP %d: Unrecognizable management interface\n", port);
     return false;
   }
+
   return true;
 }
 
@@ -616,7 +629,7 @@ bool appSel(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   return true;
 }
 
-std::vector<int32_t> zeroBasedPortIds(std::vector<unsigned int>& ports) {
+std::vector<int32_t> zeroBasedPortIds(const std::vector<unsigned int>& ports) {
   std::vector<int32_t> idx;
   for (auto port : ports) {
     // Direct I2C bus starts from 1 instead of 0, however qsfp_service
@@ -856,8 +869,10 @@ int readRegister(
 
   if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
     folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
-    std::map<int32_t, ReadResponse> readResp = doReadRegViaService(
-        {static_cast<int32_t>(port)}, offset, length, page, evb);
+    std::vector<int32_t> portIdx = zeroBasedPortIds({port});
+
+    std::map<int32_t, ReadResponse> readResp =
+        doReadRegViaService(portIdx, offset, length, page, evb);
 
     if (readResp.empty()) {
       fprintf(stderr, "QSFP %d: indirect read error", port);
@@ -901,11 +916,12 @@ int doWriteReg(
     std::vector<int32_t> idx = zeroBasedPortIds(ports);
     doWriteRegViaService(idx, offset, page, data, evb);
   }
+
   return EX_OK;
 }
 
 int writeRegister(
-    std::vector<unsigned int>& ports,
+    const std::vector<unsigned int>& ports,
     int offset,
     int page,
     uint8_t data) {
@@ -949,7 +965,8 @@ int writeRegister(
  * R       130         0x0      5
  *
  * CLI format:
- *   wedge_qsfp_util <module> --batch_ops --batchfile <filename> [--direct_i2c]
+ *   wedge_qsfp_util <module> --batch_ops --batchfile <filename>
+ * [--direct_i2c]
  */
 int doBatchOps(
     TransceiverI2CApi* bus,
@@ -1310,8 +1327,8 @@ void printHostLaneSignals(const std::vector<HostLaneSignals>& signals) {
     return;
   }
   printLaneLine("  Host Lane Signals: ", numLanes);
-  // Assumption: If a signal is valid for first lane, it is also valid for other
-  // lanes.
+  // Assumption: If a signal is valid for first lane, it is also valid for
+  // other lanes.
   if (signals[0].dataPathDeInit()) {
     printf("\n    %-22s", "Datapath de-init");
     for (const auto& signal : signals) {
@@ -1336,8 +1353,8 @@ void printMediaLaneSignals(const std::vector<MediaLaneSignals>& signals) {
     return;
   }
   printLaneLine("  Media Lane Signals: ", numLanes);
-  // Assumption: If a signal is valid for first lane, it is also valid for other
-  // lanes.
+  // Assumption: If a signal is valid for first lane, it is also valid for
+  // other lanes.
   if (signals[0].txLos()) {
     printf("\n    %-22s", "Tx LOS");
     for (const auto& signal : signals) {
@@ -2291,11 +2308,11 @@ void tryOpenBus(TransceiverI2CApi* bus) {
 /* This function does a hard reset of the QSFP in a given platform. The reset
  * is done by Fpga or I2C function. This function calls another function which
  * creates and returns TransceiverPlatformApi object. For Fpga controlled
- * platform the called function creates Platform specific TransceiverApi object
- * and returns it. For I2c controlled platform the called function creates
- * TransceiverPlatformI2cApi object and keeps the platform specific I2CBus
- * object raw pointer inside it. The returned object's Qsfp control function
- * is called here to use appropriate Fpga/I2c Api in this function.
+ * platform the called function creates Platform specific TransceiverApi
+ * object and returns it. For I2c controlled platform the called function
+ * creates TransceiverPlatformI2cApi object and keeps the platform specific
+ * I2CBus object raw pointer inside it. The returned object's Qsfp control
+ * function is called here to use appropriate Fpga/I2c Api in this function.
  */
 bool doQsfpHardReset(TransceiverI2CApi* bus, unsigned int port) {
   // Call the function to get TransceiverPlatformApi object. For Fpga
@@ -2496,8 +2513,8 @@ std::vector<int> getPidForProcess(std::string proccessName) {
  * cliModulefirmwareUpgrade
  *
  * This function does the firmware upgrade on the optics module in the current
- * thread. This directly invokes the bus->moduleRead/Write API to do the module
- * CDB based firnware upgrade
+ * thread. This directly invokes the bus->moduleRead/Write API to do the
+ * module CDB based firnware upgrade
  */
 bool cliModulefirmwareUpgrade(
     DirectI2cInfo i2cInfo,
@@ -2521,9 +2538,9 @@ bool cliModulefirmwareUpgrade(
   // Confirm module type is CMIS
   auto moduleType = getModuleType(i2cInfo.bus, port);
   if (moduleType != TransceiverManagementInterface::CMIS) {
-    // If device can't be determined as cmis then check page 0 register 128 also
-    // to identify its type as in some case corrupted image wipes out all lower
-    // page registers
+    // If device can't be determined as cmis then check page 0 register 128
+    // also to identify its type as in some case corrupted image wipes out all
+    // lower page registers
     if (dataUpper[0] ==
             static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS) ||
         dataUpper[0] ==
@@ -2596,14 +2613,14 @@ bool cliModulefirmwareUpgrade(
  *
  * This is multi-threaded version of the module upgrade trigger function.
  * This multi-threaded overloaded function gets the list of optics on which
- * the upgrade needs to be performed. It calls the function bucketize to create
- * separate buckets of optics for upgrade. Then the threads are created for
- * each bucket and each thread takes care of upgrading the optics in that
+ * the upgrade needs to be performed. It calls the function bucketize to
+ * create separate buckets of optics for upgrade. Then the threads are created
+ * for each bucket and each thread takes care of upgrading the optics in that
  * bucket. The idea here is that one thread will take care of upgrading the
  * optics belonging to one controller so that two ports of the same controller
- * can't upgrade at the same time whereas multiple ports belonging to different
- * controller can upgrade at the same time. This function waits for all
- * threads to finish.
+ * can't upgrade at the same time whereas multiple ports belonging to
+ * different controller can upgrade at the same time. This function waits for
+ * all threads to finish.
  */
 bool cliModulefirmwareUpgrade(
     DirectI2cInfo i2cInfo,
@@ -2765,7 +2782,8 @@ void fwUpgradeThreadHandler(
  *   - Module's current running version is not same as specified in input
  *     argument
  *
- * This function returns the list of such eligible modules for firmware upgrade
+ * This function returns the list of such eligible modules for firmware
+ * upgrade
  */
 std::vector<unsigned int> getUpgradeModList(
     TransceiverI2CApi* bus,
@@ -2834,11 +2852,9 @@ std::vector<unsigned int> getUpgradeModList(
  * This function takes the list of optics to upgrade the firmware and then
  * bucketize them to the rows where each row contains the list of optics
  * which can be upgraded in a thread. For example: In yamp platform which has
- * one i2c controller for 8 modules, if the input  is the list of these modules:
- *  1 3 5 8 12 15 21 32 38 46 55 59 60 83 88 122 124 128
- * Then these will be divided in following 9 buckets:
- *  Bucket: 1 3 5 8
- *  Bucket: 12 15
+ * one i2c controller for 8 modules, if the input  is the list of these
+ * modules: 1 3 5 8 12 15 21 32 38 46 55 59 60 83 88 122 124 128 Then these
+ * will be divided in following 9 buckets: Bucket: 1 3 5 8 Bucket: 12 15
  *  Bucket: 21
  *  Bucket: 32 38
  *  Bucket: 46
@@ -2898,7 +2914,8 @@ std::vector<unsigned int> portRangeStrToPortList(std::string portQualifier) {
   std::vector<unsigned int> portRangeList;
 
   // Create a list of substrings separated by command ","
-  // These substrings will contain single port like "5" or port range like "7-9"
+  // These substrings will contain single port like "5" or port range like
+  // "7-9"
   while ((nextPos = portQualifier.find(std::string(","), lastPos)) !=
          std::string::npos) {
     tempString = portQualifier.substr(lastPos, nextPos - lastPos);
@@ -3010,7 +3027,8 @@ void get_module_fw_info(
  *
  * [2] wedge_qsfp_util <module-id> --cdb_command --command_code <command-code>
  *     --cdb_payload <cdb-payload>
- *     Here the cdb-payload is a string containing payload bytes, ie: "100 200"
+ *     Here the cdb-payload is a string containing payload bytes, ie: "100
+ * 200"
  */
 
 void doCdbCommand(TransceiverI2CApi* bus, unsigned int module) {
@@ -3143,8 +3161,8 @@ bool printVdmInfo(DirectI2cInfo i2cInfo, unsigned int port) {
       }
 
       // Get the VDM value corresponding to config type and convert it
-      // appropriately. The U16 value will be = byte0 + byte1 * lsbScale For F16
-      // value:
+      // appropriately. The U16 value will be = byte0 + byte1 * lsbScale For
+      // F16 value:
       //   exponent = (byte0 >> 3) - 24
       //   mantissa = (byte0 & 0x7) << 8 | byte1
       //   value = mantissa * 10^exponent
@@ -3331,25 +3349,19 @@ void getModulePrbsStats(folly::EventBase& evb, std::vector<PortID> portList) {
 }
 
 /*
- * Verify the select command is working properly with regard to the --direct-i2c
- * option
+ * Verify the select command is working properly with regard to the
+ * --direct-i2c option
  */
 bool verifyDirectI2cCompliance() {
-  // TODO (sampham): the commands in the if statement below are working properly
-  // with regard to the --direct-i2c option. After the remaining commands do
-  // the same, delete the if statement below. The if statement below allows an
-  // incremental addition of properly behaved commands to force users to use
-  // them correctly right away without having to wait for all commands to be
-  // compliant at once
+  // TODO (sampham): the commands in the if statement below are working
+  // properly with regard to the --direct-i2c option. After the remaining
+  // commands do the same, delete the if statement below. The if statement
+  // below allows an incremental addition of properly behaved commands to
+  // force users to use them correctly right away without having to wait for
+  // all commands to be compliant at once
   if (FLAGS_tx_disable || FLAGS_tx_enable || FLAGS_pause_remediation ||
       FLAGS_get_remediation_until_time || FLAGS_read_reg || FLAGS_write_reg ||
       FLAGS_update_module_firmware || FLAGS_update_bulk_module_fw) {
-    if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
-      XLOG(INFO) << "qsfp_service is running";
-    } else {
-      XLOG(INFO) << "qsfp_service is not running";
-    }
-
     if (FLAGS_direct_i2c) {
       if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
         XLOG(ERR)
@@ -3357,8 +3369,8 @@ bool verifyDirectI2cCompliance() {
         return false;
       }
 
-      // It does not make sense to use the below commands while qsfp_service is
-      // not running
+      // It does not make sense to use the below commands while qsfp_service
+      // is not running
       if (FLAGS_pause_remediation || FLAGS_get_remediation_until_time) {
         XLOG(ERR) << "This command does not support the --direct_i2c option";
         return false;

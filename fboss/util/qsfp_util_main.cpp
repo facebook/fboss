@@ -235,10 +235,10 @@ int main(int argc, char* argv[]) {
 
   int retcode = EX_OK;
   for (unsigned int portNum : ports) {
-    if (FLAGS_clear_low_power && overrideLowPower(bus, portNum, false)) {
+    if (FLAGS_clear_low_power && overrideLowPower(portNum, false)) {
       printf("QSFP %d: cleared low power flags\n", portNum);
     }
-    if (FLAGS_set_low_power && overrideLowPower(bus, portNum, true)) {
+    if (FLAGS_set_low_power && overrideLowPower(portNum, true)) {
       printf("QSFP %d: set low power flags\n", portNum);
     }
 

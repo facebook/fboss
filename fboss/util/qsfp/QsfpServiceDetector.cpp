@@ -29,6 +29,12 @@ void QsfpServiceDetector::detectQsfpService() {
             qsfpServiceClient.get()->sync_getStatus()) {
       qsfpServiceActive_ = true;
     }
+
+    if (qsfpServiceActive_) {
+      printf("qsfp_service is running\n");
+    } else {
+      printf("qsfp_service is not running\n");
+    }
   } catch (const std::exception& ex) {
     XLOG(DBG5) << fmt::format(
         "Exception connecting to qsfp_service: {}", folly::exceptionStr(ex));
