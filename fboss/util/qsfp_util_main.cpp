@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
-  folly::EventBase evb;
+  folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
 
   if (FLAGS_list_commands) {
     listCommands();

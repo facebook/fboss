@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <memory>
 #include "fboss/util/wedge_qsfp_util.h"
+#include "folly/gen/Base.h"
 
 namespace facebook::fboss {
 
@@ -27,6 +27,10 @@ class QsfpUtilContainer {
     return bus_.get();
   }
 
+  folly::EventBase& getEventBase() {
+    return evb_;
+  }
+
   // Forbidden copy constructor and assignment operator
   QsfpUtilContainer(QsfpUtilContainer const&) = delete;
   QsfpUtilContainer& operator=(QsfpUtilContainer const&) = delete;
@@ -35,6 +39,7 @@ class QsfpUtilContainer {
   void detectTransceiverBus();
 
   std::unique_ptr<TransceiverI2CApi> bus_;
+  folly::EventBase evb_;
 };
 
 } // namespace facebook::fboss
