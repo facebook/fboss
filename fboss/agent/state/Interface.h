@@ -110,11 +110,15 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
   void setRouterID(RouterID id) {
     writableFields()->writableData().routerId() = id;
   }
-
+  cfg::InterfaceType getType() const {
+    return *getFields()->data().type();
+  }
   VlanID getVlanID() const {
+    CHECK(getType() == cfg::InterfaceType::VLAN);
     return VlanID(*getFields()->data().vlanId());
   }
   void setVlanID(VlanID id) {
+    CHECK(getType() == cfg::InterfaceType::VLAN);
     writableFields()->writableData().vlanId() = id;
   }
 
