@@ -14,6 +14,7 @@
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
 
 #include "fboss/util/qsfp/QsfpServiceDetector.h"
+#include "fboss/util/qsfp/QsfpUtilContainer.h"
 
 #include <folly/Conv.h>
 #include <folly/Exception.h>
@@ -810,6 +811,69 @@ bool doWriteRegViaService(
   }
 
   return retVal;
+}
+
+void readRegisterDirect(
+    TransceiverI2CApi* bus,
+    unsigned int port,
+    int offset,
+    int length,
+    int page,
+    uint8_t* buf) {
+  try {
+    if (page != -1) {
+      setPageDirect(bus, port, page);
+    }
+
+    bus->moduleRead(
+        port, {static_cast<uint8_t>(FLAGS_i2c_address), offset, length}, buf);
+  } catch (const I2cError& ex) {
+    fprintf(stderr, "QSFP %d: fail to read module\n", port);
+  }
+}
+
+int readRegister(
+    unsigned int port,
+    int offset,
+    int length,
+    int page,
+    uint8_t* buf) {
+  if (offset == -1) {
+    fprintf(
+        stderr,
+        "QSFP %d: Fail to read register. Specify offset using --offset\n",
+        port);
+    return EX_SOFTWARE;
+  }
+
+  if (length > 128) {
+    fprintf(
+        stderr,
+        "QSFP %d: Fail to read register. The --length value should be between 1 to 128\n",
+        port);
+    return EX_SOFTWARE;
+  }
+
+  if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
+    folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
+    std::map<int32_t, ReadResponse> readResp = doReadRegViaService(
+        {static_cast<int32_t>(port)}, offset, length, page, evb);
+
+    if (readResp.empty()) {
+      fprintf(stderr, "QSFP %d: indirect read error", port);
+      return EX_SOFTWARE;
+    }
+
+    for (const auto& response : readResp) {
+      buf = const_cast<uint8_t*>(response.second.data()->data());
+    }
+  } else {
+    TransceiverI2CApi* bus =
+        QsfpUtilContainer::getInstance()->getTransceiverBus();
+    readRegisterDirect(bus, port, offset, length, page, buf);
+  }
+
+  return EX_OK;
 }
 
 int doWriteReg(
