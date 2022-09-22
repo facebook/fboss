@@ -51,10 +51,6 @@ class SaiBufferManager {
   void setupIngressBufferPool(const PortPgConfig& cfg);
   void updateStats();
   void createIngressBufferPool(const std::shared_ptr<Port> port);
-  void createIngressBufferProfiles(
-      const std::shared_ptr<Port> port,
-      folly::F14FastMap<uint16_t, std::shared_ptr<SaiBufferProfile>>&
-          pgBufferProfiles);
   uint64_t getDeviceWatermarkBytes() const {
     return deviceWatermarkBytes_;
   }

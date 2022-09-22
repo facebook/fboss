@@ -148,7 +148,7 @@ void SaiBufferManager::setupIngressBufferPool(const PortPgConfig& portPgCfg) {
   auto bufferPoolCfg = portPgCfg.getBufferPoolConfig().value();
   SaiBufferPoolTraits::CreateAttributes c {
     SAI_BUFFER_POOL_TYPE_INGRESS, bufferPoolCfg->getSharedBytes(),
-        SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC
+        SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC
 #if defined(TAJO_SDK)
         ,
         bufferPoolCfg->getHeadroomBytes()
@@ -216,6 +216,9 @@ SaiBufferManager::ingressProfileCreateAttrs(const PortPgConfig& config) const {
   SaiBufferProfileTraits::Attributes::XoffTh xoffTh{0};
   if (config.getHeadroomLimitBytes()) {
     xoffTh = config.getHeadroomLimitBytes().value();
+    // Reserved = headroom + min
+    reservedBytes =
+        config.getHeadroomLimitBytes().value() + config.getMinLimitBytes();
   }
   SaiBufferProfileTraits::Attributes::XonTh xonTh{0}; // Not configured!
   SaiBufferProfileTraits::Attributes::XonOffsetTh xonOffsetTh{0};
@@ -253,19 +256,10 @@ void SaiBufferManager::createIngressBufferPool(
    */
   if (!ingressBufferPoolHandle_) {
     const auto& portPgCfgs = port->getPortPgConfigs();
-    const auto& portPgCfg = (*portPgCfgs)[0];
-    setupIngressBufferPool(*portPgCfg);
-  }
-}
-
-void SaiBufferManager::createIngressBufferProfiles(
-    const std::shared_ptr<Port> port,
-    folly::F14FastMap<uint16_t, std::shared_ptr<SaiBufferProfile>>&
-        pgBufferProfiles) {
-  const auto& portPgCfgs = port->getPortPgConfigs();
-  for (const auto& portPgCfg : *portPgCfgs) {
-    pgBufferProfiles[portPgCfg->getID()] =
-        getOrCreateIngressProfile(*portPgCfg);
+    if (portPgCfgs.has_value()) {
+      const auto& portPgCfg = (*portPgCfgs)[0];
+      setupIngressBufferPool(*portPgCfg);
+    }
   }
 }
 
