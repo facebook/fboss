@@ -59,6 +59,9 @@ class SaiBufferManager {
     return deviceWatermarkBytes_;
   }
   static uint64_t getMaxEgressPoolBytes(const SaiPlatform* platform);
+  void setIngressPriorityGroupBufferProfile(
+      IngressPriorityGroupSaiId pdId,
+      std::shared_ptr<SaiBufferProfile> bufferProfile);
 
  private:
   void publishDeviceWatermark(uint64_t peakBytes) const;

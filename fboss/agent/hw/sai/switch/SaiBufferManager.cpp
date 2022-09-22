@@ -269,4 +269,16 @@ void SaiBufferManager::createIngressBufferProfiles(
   }
 }
 
+void SaiBufferManager::setIngressPriorityGroupBufferProfile(
+    IngressPriorityGroupSaiId pgId,
+    std::shared_ptr<SaiBufferProfile> bufferProfile) {
+  SaiIngressPriorityGroupTraits::Attributes::BufferProfile bufferProfileId{
+      SAI_NULL_OBJECT_ID};
+  if (bufferProfile) {
+    bufferProfileId = SaiIngressPriorityGroupTraits::Attributes::BufferProfile{
+        bufferProfile->adapterKey()};
+  }
+  SaiApiTable::getInstance()->bufferApi().setAttribute(pgId, bufferProfileId);
+}
+
 } // namespace facebook::fboss
