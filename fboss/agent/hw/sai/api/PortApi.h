@@ -64,6 +64,13 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_LOOPBACK_MODE,
         sai_int32_t,
         SaiIntDefault<sai_int32_t>>;
+    using UseExtendedFec =
+        SaiAttribute<EnumType, SAI_PORT_ATTR_USE_EXTENDED_FEC, bool>;
+    using ExtendedFecMode = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_FEC_MODE_EXTENDED,
+        sai_int32_t,
+        SaiIntDefault<sai_int32_t>>;
 #endif
     using MediaType = SaiAttribute<
         EnumType,
@@ -296,6 +303,8 @@ SAI_ATTRIBUTE_NAME(Port, OperStatus)
 SAI_ATTRIBUTE_NAME(Port, InternalLoopbackMode)
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
 SAI_ATTRIBUTE_NAME(Port, PortLoopbackMode)
+SAI_ATTRIBUTE_NAME(Port, UseExtendedFec)
+SAI_ATTRIBUTE_NAME(Port, ExtendedFecMode)
 #endif
 SAI_ATTRIBUTE_NAME(Port, MediaType)
 SAI_ATTRIBUTE_NAME(Port, GlobalFlowControlMode)
