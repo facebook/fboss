@@ -681,6 +681,11 @@ struct Range {
   2: i32 maximum;
 }
 
+struct Range64 {
+  1: i64 minimum;
+  2: i64 maximum;
+}
+
 union PortQueueRate {
   1: Range pktsPerSec;
   2: Range kbitsPerSec;
@@ -1480,6 +1485,18 @@ struct IpInIpTunnel {
   9: optional IpTunnelMode ecnMode;
 }
 
+enum DsfNodeType {
+  FABRIC_NODE = 1,
+  INTERFACE_NODE = 2,
+}
+
+struct DsfNode {
+  1: string name;
+  2: i64 switchId;
+  3: DsfNodeType type;
+  4: list<string> loopbackIps;
+  5: Range64 systemPortRange;
+}
 /**
  * The configuration for a switch.
  *
@@ -1601,4 +1618,7 @@ struct SwitchConfig {
   // agent sdk versions
   46: optional SdkVersion sdkVersion;
   47: optional list<IpInIpTunnel> ipInIpTunnels;
+  // When part of a DSF cluster, the following info
+  // will be populated to reflect global DSF node info
+  48: map<i64, DsfNode> dsfNodes;
 }
