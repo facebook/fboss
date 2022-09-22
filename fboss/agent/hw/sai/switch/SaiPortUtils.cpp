@@ -179,6 +179,56 @@ phy::FecMode getFecModeFromSaiFecMode(
   return mode;
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+sai_port_fec_mode_extended_t getSaiPortExtendedFecMode(phy::FecMode fec) {
+  sai_port_fec_mode_extended_t mode = SAI_PORT_FEC_MODE_EXTENDED_NONE;
+  switch (fec) {
+    case phy::FecMode::NONE:
+    case phy::FecMode::CL91:
+    case phy::FecMode::RS545:
+      mode = SAI_PORT_FEC_MODE_EXTENDED_NONE;
+      break;
+    case phy::FecMode::RS528:
+      mode = SAI_PORT_FEC_MODE_EXTENDED_RS528;
+      break;
+    case phy::FecMode::RS544:
+      mode = SAI_PORT_FEC_MODE_EXTENDED_RS544;
+      break;
+    case phy::FecMode::RS544_2N:
+      mode = SAI_PORT_FEC_MODE_EXTENDED_RS544_INTERLEAVED;
+      break;
+    case phy::FecMode::CL74:
+      mode = SAI_PORT_FEC_MODE_EXTENDED_FC;
+      break;
+  }
+  return mode;
+}
+
+phy::FecMode getFecModeFromSaiExtendedFecMode(
+    sai_port_fec_mode_extended_t fec,
+    cfg::PortProfileID /* profileID */) {
+  phy::FecMode mode = phy::FecMode::NONE;
+  switch (fec) {
+    case SAI_PORT_FEC_MODE_EXTENDED_NONE:
+      mode = phy::FecMode::NONE;
+      break;
+    case SAI_PORT_FEC_MODE_EXTENDED_RS528:
+      mode = phy::FecMode::RS528;
+      break;
+    case SAI_PORT_FEC_MODE_EXTENDED_RS544:
+      mode = phy::FecMode::RS544;
+      break;
+    case SAI_PORT_FEC_MODE_EXTENDED_RS544_INTERLEAVED:
+      mode = phy::FecMode::RS544_2N;
+      break;
+    case SAI_PORT_FEC_MODE_EXTENDED_FC:
+      mode = phy::FecMode::CL74;
+      break;
+  }
+  return mode;
+}
+#endif
+
 sai_port_ptp_mode_t getSaiPortPtpMode(bool enable) {
   // NOTE: SAI_PORT_PTP_MODE_TWO_STEP_TIMESTAMP is not supported
   return enable ? SAI_PORT_PTP_MODE_SINGLE_STEP_TIMESTAMP

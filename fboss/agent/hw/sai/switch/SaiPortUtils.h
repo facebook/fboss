@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -42,4 +43,11 @@ phy::FecMode getFecModeFromSaiFecMode(
     sai_port_fec_mode_t fec,
     cfg::PortProfileID profileID);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+sai_port_fec_mode_extended_t getSaiPortExtendedFecMode(phy::FecMode fec);
+
+phy::FecMode getFecModeFromSaiExtendedFecMode(
+    sai_port_fec_mode_extended_t fec,
+    cfg::PortProfileID profileID);
+#endif
 } // namespace facebook::fboss::utility
