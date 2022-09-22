@@ -26,6 +26,7 @@ target_link_libraries(qsfp_lib
     fsdb_stream_client
     fsdb_pub_sub
     fsdb_flags
+    qsfp_bsp_core
 )
 
 add_library(qsfp_config
@@ -37,4 +38,22 @@ target_link_libraries(qsfp_config
   qsfp_config_cpp2
   Folly::folly
   FBThrift::thriftcpp2
+)
+
+add_library(qsfp_bsp_core
+  fboss/lib/bsp/BspIOBus.cpp
+  fboss/lib/bsp/BspPimContainer.cpp
+  fboss/lib/bsp/BspPlatformMapping.cpp
+  fboss/lib/bsp/BspSystemContainer.cpp
+  fboss/lib/bsp/BspTransceiverAccess.cpp
+  fboss/lib/bsp/BspTransceiverApi.cpp
+  fboss/lib/bsp/BspTransceiverContainer.cpp
+  fboss/lib/bsp/BspTransceiverIO.cpp
+)
+
+target_link_libraries(qsfp_bsp_core
+  bsp_platform_mapping_cpp2
+  common_file_utils
+  i2c_controller_stats_cpp2
+  Folly::folly
 )

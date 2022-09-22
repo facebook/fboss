@@ -434,6 +434,11 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  bsp_platform_mapping_cpp2
+  fboss/lib/bsp/bsp_platform_mapping.thrift
+)
+
+add_fbthrift_cpp_library(
   qsfp_cpp2
   fboss/qsfp_service/if/qsfp.thrift
   SERVICES
@@ -539,6 +544,7 @@ if (NOT SAI_ONLY)
       fboss/qsfp_service/Main.cpp
       fboss/qsfp_service/QsfpServiceHandler.cpp
       fboss/qsfp_service/QsfpServiceSignalHandler.cpp
+      fboss/qsfp_service/platforms/wedge/BspWedgeManager.cpp
       fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
       fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
       fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
@@ -992,6 +998,7 @@ if (NOT SAI_ONLY)
   target_link_libraries(cp2112_util fboss_agent)
 
   add_executable(wedge_qsfp_util
+      fboss/qsfp_service/platforms/wedge/BspWedgeManager.cpp
       fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
       fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
       fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
