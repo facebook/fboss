@@ -104,9 +104,12 @@ class PortManagerTest : public ManagerTestBase {
     SaiPortTraits::Attributes::HwLaneList lanes(ls);
     SaiPortTraits::Attributes::Speed speed{static_cast<int>(portSpeed)};
     SaiPortTraits::CreateAttributes a {
-      lanes, speed, adminState, std::nullopt, std::nullopt, std::nullopt,
+      lanes, speed, adminState, std::nullopt,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+          std::nullopt, std::nullopt,
+#endif
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-          std::nullopt, std::nullopt, std::nullopt,
+          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, // Ingress Mirror Session
           std::nullopt, // Egress Mirror Session
           std::nullopt, // Ingress Sample Packet

@@ -350,6 +350,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   auto systemPortId = getSystemPortId(platform_, swPort->getID());
   return SaiPortTraits::CreateAttributes {
     hwLaneList, static_cast<uint32_t>(speed), adminState, fecMode,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+        std::nullopt, std::nullopt,
+#endif
         internalLoopbackMode, mediaType, globalFlowControlMode, vlanId,
         swPort->getMaxFrameSize(), std::nullopt, std::nullopt, std::nullopt,
         interfaceType, std::nullopt,

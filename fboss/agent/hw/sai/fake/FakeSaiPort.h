@@ -29,6 +29,10 @@ struct FakePort {
   std::vector<uint32_t> lanes;
   uint32_t speed{0};
   sai_port_fec_mode_t fecMode{SAI_PORT_FEC_MODE_NONE};
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  bool useExtendedFec{false};
+  sai_port_fec_mode_extended_t extendedFecMode{SAI_PORT_FEC_MODE_EXTENDED_NONE};
+#endif
   sai_port_internal_loopback_mode_t internalLoopbackMode{
       SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE};
   sai_port_flow_control_mode_t globalFlowControlMode{

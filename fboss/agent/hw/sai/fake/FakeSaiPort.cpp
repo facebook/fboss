@@ -28,6 +28,10 @@ sai_status_t create_port_fn(
   std::vector<uint32_t> lanes;
   std::optional<sai_uint32_t> speed;
   std::optional<sai_port_fec_mode_t> fecMode;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  std::optional<bool> useExtendedFec;
+  std::optional<sai_port_fec_mode_extended_t> extendedFecMode;
+#endif
   std::optional<sai_port_internal_loopback_mode_t> internalLoopbackMode;
   std::optional<sai_port_flow_control_mode_t> flowControlMode;
   std::optional<sai_port_media_type_t> mediaType;
@@ -71,6 +75,15 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_FEC_MODE:
         fecMode = static_cast<sai_port_fec_mode_t>(attr_list[i].value.u32);
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      case SAI_PORT_ATTR_USE_EXTENDED_FEC:
+        useExtendedFec = attr_list[i].value.booldata;
+        break;
+      case SAI_PORT_ATTR_FEC_MODE_EXTENDED:
+        extendedFecMode =
+            static_cast<sai_port_fec_mode_extended_t>(attr_list[i].value.u32);
+        break;
+#endif
       case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:
         internalLoopbackMode = static_cast<sai_port_internal_loopback_mode_t>(
             attr_list[i].value.u32);
@@ -187,6 +200,14 @@ sai_status_t create_port_fn(
   if (fecMode.has_value()) {
     port.fecMode = fecMode.value();
   }
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  if (useExtendedFec.has_value()) {
+    port.useExtendedFec = useExtendedFec.value();
+  }
+  if (extendedFecMode.has_value()) {
+    port.extendedFecMode = extendedFecMode.value();
+  }
+#endif
   if (internalLoopbackMode.has_value()) {
     port.internalLoopbackMode = internalLoopbackMode.value();
   }
@@ -307,6 +328,15 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_FEC_MODE:
       port.fecMode = static_cast<sai_port_fec_mode_t>(attr->value.s32);
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    case SAI_PORT_ATTR_USE_EXTENDED_FEC:
+      port.useExtendedFec = attr->value.booldata;
+      break;
+    case SAI_PORT_ATTR_FEC_MODE_EXTENDED:
+      port.extendedFecMode =
+          static_cast<sai_port_fec_mode_extended_t>(attr->value.u32);
+      break;
+#endif
     case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:
       port.internalLoopbackMode =
           static_cast<sai_port_internal_loopback_mode_t>(attr->value.s32);
@@ -561,6 +591,14 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_FEC_MODE:
         attr[i].value.s32 = static_cast<int32_t>(port.fecMode);
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      case SAI_PORT_ATTR_USE_EXTENDED_FEC:
+        attr[i].value.booldata = port.useExtendedFec;
+        break;
+      case SAI_PORT_ATTR_FEC_MODE_EXTENDED:
+        attr[i].value.u32 = static_cast<uint32_t>(port.extendedFecMode);
+        break;
+#endif
       case SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE:
         attr[i].value.s32 = static_cast<int32_t>(port.internalLoopbackMode);
         break;

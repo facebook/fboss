@@ -247,6 +247,10 @@ struct SaiPortTraits {
       Attributes::Speed,
       std::optional<Attributes::AdminState>,
       std::optional<Attributes::FecMode>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+      std::optional<Attributes::UseExtendedFec>,
+      std::optional<Attributes::ExtendedFecMode>,
+#endif
       std::optional<Attributes::InternalLoopbackMode>,
       std::optional<Attributes::MediaType>,
       std::optional<Attributes::GlobalFlowControlMode>,

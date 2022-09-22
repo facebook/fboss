@@ -229,10 +229,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   XLOG(DBG2) << dbgOutput;
 
   return SaiPortTraits::CreateAttributes {
-    laneList, static_cast<uint32_t>(speed), enabled, fecMode, std::nullopt,
+    laneList, static_cast<uint32_t>(speed), enabled, fecMode,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+        std::nullopt, std::nullopt,
+#endif
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-        std::nullopt, std::nullopt, intfType, std::nullopt, std::nullopt,
-        std::nullopt, std::nullopt, std::nullopt,
+        std::nullopt, std::nullopt, std::nullopt, intfType, std::nullopt,
+        std::nullopt, std::nullopt, std::nullopt, std::nullopt,
 #if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
         std::nullopt, std::nullopt,
 #endif

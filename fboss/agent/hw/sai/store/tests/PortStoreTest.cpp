@@ -26,9 +26,12 @@ class PortStoreTest : public SaiStoreTest {
     std::vector<uint32_t> lanes;
     lanes.push_back(lane);
     return SaiPortTraits::CreateAttributes {
-      lanes, speed, adminStateOpt, std::nullopt, std::nullopt, std::nullopt,
+      lanes, speed, adminStateOpt, std::nullopt,
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+          std::nullopt, std::nullopt,
+#endif
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-          std::nullopt, std::nullopt, std::nullopt,
+          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, // Ingress Mirror Session
           std::nullopt, // Egress Mirror Session
           std::nullopt, // Ingress Sample Packet
