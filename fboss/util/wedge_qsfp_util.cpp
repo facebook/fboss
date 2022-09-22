@@ -904,6 +904,35 @@ int doWriteReg(
   return EX_OK;
 }
 
+int writeRegister(
+    std::vector<unsigned int>& ports,
+    int offset,
+    int page,
+    uint8_t data) {
+  if (offset == -1) {
+    fprintf(
+        stderr,
+        "QSFP %s: Fail to write register. Specify offset using --offset\n",
+        folly::join(",", ports).c_str());
+    return EX_SOFTWARE;
+  }
+
+  if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
+    folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
+    std::vector<int32_t> idx = zeroBasedPortIds(ports);
+    doWriteRegViaService(idx, offset, page, data, evb);
+  } else {
+    TransceiverI2CApi* bus =
+        QsfpUtilContainer::getInstance()->getTransceiverBus();
+
+    for (unsigned int portNum : ports) {
+      doWriteRegDirect(bus, portNum, offset, page, data);
+    }
+  }
+
+  return EX_OK;
+}
+
 /*
  * doBatchOps
  *
