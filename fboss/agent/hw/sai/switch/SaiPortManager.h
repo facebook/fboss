@@ -84,6 +84,9 @@ struct SaiPortHandle {
   std::shared_ptr<SaiSamplePacket> egressSamplePacket;
   SaiQueueHandles queues;
   SaiPortMirrorInfo mirrorInfo;
+  folly::
+      F14FastMap<IngressPriorityGroupSaiId, std::shared_ptr<SaiBufferProfile>>
+          priorityGroupBufferProfiles;
 };
 
 class SaiPortManager {
@@ -277,6 +280,13 @@ class SaiPortManager {
       const std::shared_ptr<Port>& newPort);
   void removePfc(const std::shared_ptr<Port>& swPort);
   void setPortType(PortID portId, cfg::PortType portType);
+  void programPfcBuffers(const std::shared_ptr<Port>& swPort);
+  void applyPriorityGroupBufferProfile(
+      const std::shared_ptr<Port>& swPort,
+      std::shared_ptr<SaiBufferProfile> bufferProfile,
+      IngressPriorityGroupSaiId ingressPgSaiId);
+  std::vector<IngressPriorityGroupSaiId> getIngressPriorityGroupSaiIds(
+      const std::shared_ptr<Port>& swPort);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
