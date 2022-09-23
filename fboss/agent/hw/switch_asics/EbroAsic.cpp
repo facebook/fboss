@@ -109,6 +109,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
      * Set to true once fabric ports support comes in
      */
     case HwAsic::Feature::FABRIC_PORTS:
+    case HwAsic::Feature::EXTENDED_FEC:
       return false;
   }
   return false;

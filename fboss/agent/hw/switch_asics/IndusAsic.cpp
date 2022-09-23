@@ -106,6 +106,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_PORT_MTU:
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::FEC:
+    case HwAsic::Feature::EXTENDED_FEC:
       return false;
   }
   return false;

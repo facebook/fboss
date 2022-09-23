@@ -122,6 +122,7 @@ class HwAsic {
     ECMP_MEMBER_WIDTH_INTROSPECTION,
     FABRIC_PORT_MTU,
     SAI_FIRMWARE_PATH,
+    EXTENDED_FEC,
   };
 
   enum class AsicType ASIC_TYPE_LIST;
