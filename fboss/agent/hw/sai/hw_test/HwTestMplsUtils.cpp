@@ -295,7 +295,7 @@ void verifyProgrammedStack(
   auto intfHandle = saiSwitch->managerTable()
                         ->routerInterfaceManager()
                         .getRouterInterfaceHandle(intfID);
-  auto intfKey = intfHandle->routerInterface->adapterKey();
+  auto intfKey = intfHandle->vlanRouterInterface->adapterKey();
   bool found = false;
   for (auto nextHopId : nexthopIds) {
     auto intfObjId = nextHopApi.getAttribute(

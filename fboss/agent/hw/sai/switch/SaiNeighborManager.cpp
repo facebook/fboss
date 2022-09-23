@@ -48,7 +48,7 @@ SaiNeighborTraits::NeighborEntry SaiNeighborManager::saiEntryFromSwEntry(
   }
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
   return SaiNeighborTraits::NeighborEntry(
-      switchId, routerInterfaceHandle->routerInterface->adapterKey(), ip);
+      switchId, routerInterfaceHandle->vlanRouterInterface->adapterKey(), ip);
 }
 
 template <typename NeighborEntryT>
@@ -115,7 +115,7 @@ void SaiNeighborManager::addNeighbor(
   auto subscriber = std::make_shared<ManagedNeighbor>(
       this,
       std::make_tuple(
-          saiPortDesc, saiRouterIntf->routerInterface->adapterKey()),
+          saiPortDesc, saiRouterIntf->vlanRouterInterface->adapterKey()),
       std::make_tuple(
           swEntry->getIntfID(), swEntry->getIP(), swEntry->getMac()),
       metadata,

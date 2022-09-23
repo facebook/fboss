@@ -98,7 +98,9 @@ SaiFdbTraits::FdbEntry ManagedFdbEntry::makeFdbEntry(
       managerTable->routerInterfaceManager().getRouterInterfaceHandle(
           getInterfaceID());
   auto vlan = GET_ATTR(
-      VlanRouterInterface, VlanId, rifHandle->routerInterface->attributes());
+      VlanRouterInterface,
+      VlanId,
+      rifHandle->vlanRouterInterface->attributes());
   return SaiFdbTraits::FdbEntry{switchId_, vlan, getMac()};
 }
 
@@ -168,7 +170,7 @@ void SaiFdbManager::addFdbEntry(
   auto managedFdbEntry = std::make_shared<ManagedFdbEntry>(
       this,
       switchId,
-      std::make_tuple(port, saiRouterIntf->routerInterface->adapterKey()),
+      std::make_tuple(port, saiRouterIntf->vlanRouterInterface->adapterKey()),
       std::make_tuple(interfaceId, mac),
       type,
       metadata);

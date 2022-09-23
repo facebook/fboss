@@ -200,7 +200,7 @@ TEST_F(RouterInterfaceManagerTest, getRouterInterface) {
       saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
           InterfaceID(0));
   EXPECT_TRUE(routerInterfaceHandle);
-  EXPECT_EQ(routerInterfaceHandle->routerInterface->adapterKey(), saiId);
+  EXPECT_EQ(routerInterfaceHandle->vlanRouterInterface->adapterKey(), saiId);
 }
 
 TEST_F(RouterInterfaceManagerTest, getNonexistentRouterInterface) {

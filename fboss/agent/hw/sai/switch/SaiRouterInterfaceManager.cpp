@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 
@@ -27,7 +28,7 @@ SaiRouterInterfaceManager::SaiRouterInterfaceManager(
     const SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
-RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateRouterInterface(
+RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
     const std::shared_ptr<Interface>& swInterface) {
   // compute the virtual router id for this router interface
   RouterID routerId = swInterface->getRouterID();
@@ -41,7 +42,6 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateRouterInterface(
   SaiVlanRouterInterfaceTraits::Attributes::VirtualRouterId
       virtualRouterIdAttribute{saiVirtualRouterId};
 
-  // we only use VLAN based router interfaces
   SaiVlanRouterInterfaceTraits::Attributes::Type typeAttribute{
       SAI_ROUTER_INTERFACE_TYPE_VLAN};
 
@@ -76,18 +76,18 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateRouterInterface(
       vlanIdAttribute,
   };
   auto& store = saiStore_->get<SaiVlanRouterInterfaceTraits>();
-  std::shared_ptr<SaiRouterInterface> routerInterface =
+  std::shared_ptr<SaiVlanRouterInterface> vlanRouterInterface =
       store.setObject(k, attributes, swInterface->getID());
-  auto routerInterfaceHandle = std::make_unique<SaiRouterInterfaceHandle>();
-  routerInterfaceHandle->routerInterface = routerInterface;
+  auto vlanRouterInterfaceHandle = std::make_unique<SaiRouterInterfaceHandle>();
+  vlanRouterInterfaceHandle->vlanRouterInterface = vlanRouterInterface;
 
   // create the ToMe routes for this router interface
   auto toMeRoutes =
       managerTable_->routeManager().makeInterfaceToMeRoutes(swInterface);
-  routerInterfaceHandle->toMeRoutes = std::move(toMeRoutes);
+  vlanRouterInterfaceHandle->toMeRoutes = std::move(toMeRoutes);
 
-  handles_[swInterface->getID()] = std::move(routerInterfaceHandle);
-  return routerInterface->adapterKey();
+  handles_[swInterface->getID()] = std::move(vlanRouterInterfaceHandle);
+  return vlanRouterInterface->adapterKey();
 }
 
 void SaiRouterInterfaceManager::removeRouterInterface(
@@ -109,7 +109,7 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addRouterInterface(
     throw FbossError(
         "Attempted to add duplicate router interface with InterfaceID ", swId);
   }
-  return addOrUpdateRouterInterface(swInterface);
+  return addOrUpdateVlanRouterInterface(swInterface);
 }
 
 void SaiRouterInterfaceManager::changeRouterInterface(
@@ -123,7 +123,7 @@ void SaiRouterInterfaceManager::changeRouterInterface(
         "Attempted to change non existent router interface with InterfaceID ",
         swId);
   }
-  addOrUpdateRouterInterface(newInterface);
+  addOrUpdateVlanRouterInterface(newInterface);
 }
 
 SaiRouterInterfaceHandle* SaiRouterInterfaceManager::getRouterInterfaceHandle(

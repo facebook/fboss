@@ -40,7 +40,7 @@ TunnelSaiId SaiTunnelManager::addTunnel(
         "No SaiRouterInterface for InterfaceID: ",
         swTunnel->getUnderlayIntfId());
   }
-  RouterInterfaceSaiId saiIntfId{intfHandle->routerInterface->adapterKey()};
+  RouterInterfaceSaiId saiIntfId{intfHandle->vlanRouterInterface->adapterKey()};
   auto& tunnelStore = saiStore_->get<SaiTunnelTraits>();
   // TTL and DSCP mode options: UNIFORM and PIPE
   // ECN has three modes instead of 2, with a customized one
