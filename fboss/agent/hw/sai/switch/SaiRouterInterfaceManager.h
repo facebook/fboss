@@ -32,9 +32,11 @@ class SaiPlatform;
 class SaiStore;
 
 using SaiVlanRouterInterface = SaiObject<SaiVlanRouterInterfaceTraits>;
+using SaiPortRouterInterface = SaiObject<SaiPortRouterInterfaceTraits>;
 
 struct SaiRouterInterfaceHandle {
   std::shared_ptr<SaiVlanRouterInterface> vlanRouterInterface;
+  std::shared_ptr<SaiPortRouterInterface> portRouterInterface;
   std::vector<std::shared_ptr<SaiRoute>> toMeRoutes;
 };
 
@@ -57,7 +59,11 @@ class SaiRouterInterfaceManager {
   void processInterfaceDelta(const StateDelta& stateDelta, std::mutex& lock);
 
  private:
+  RouterInterfaceSaiId addOrUpdateRouterInterface(
+      const std::shared_ptr<Interface>& swInterface);
   RouterInterfaceSaiId addOrUpdateVlanRouterInterface(
+      const std::shared_ptr<Interface>& swInterface);
+  RouterInterfaceSaiId addOrUpdatePortRouterInterface(
       const std::shared_ptr<Interface>& swInterface);
   SaiRouterInterfaceHandle* getRouterInterfaceHandleImpl(
       const InterfaceID& swId) const;
