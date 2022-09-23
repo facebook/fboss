@@ -180,6 +180,10 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     6: i32 data,
   ) throws (1: fboss.FbossBaseError error);
 
+  string phyConfigCheckHw(1: string portName) throws (
+    1: fboss.FbossBaseError error,
+  );
+
   bool sakInstallRx(
     1: mka_structs.MKASak sak,
     2: mka_structs.MKASci sciToAdd,

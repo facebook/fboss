@@ -207,6 +207,9 @@ class QsfpServiceHandler
       int regOffset,
       int data) override;
 
+  void phyConfigCheckHw(std::string& out, std::unique_ptr<std::string> portName)
+      override;
+
   void publishLinkSnapshots(
       std::unique_ptr<std::vector<std::string>> portNames) override;
 

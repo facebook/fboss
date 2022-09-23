@@ -295,6 +295,13 @@ void QsfpServiceHandler::saiPhyRegisterAccess(
       *portName, opRead, phyAddr, devId, regOffset, data);
 }
 
+void QsfpServiceHandler::phyConfigCheckHw(
+    std::string& out,
+    std::unique_ptr<std::string> portName) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  out = manager_->phyConfigCheckHw(*portName);
+}
+
 void QsfpServiceHandler::publishLinkSnapshots(
     std::unique_ptr<std::vector<std::string>> portNames) {
   auto log = LOG_THRIFT_CALL(INFO);

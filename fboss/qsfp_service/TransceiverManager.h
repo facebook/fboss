@@ -217,6 +217,10 @@ class TransceiverManager {
     return "";
   }
 
+  virtual std::string phyConfigCheckHw(std::string /* portName */) {
+    return "The function phyConfigCheckHw not implemented for this platform";
+  }
+
   // Returns the interface names for a given transceiverId
   // Returns empty list when there is no corresponding name for a given
   // transceiver ID
