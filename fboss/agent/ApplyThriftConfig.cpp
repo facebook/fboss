@@ -758,6 +758,9 @@ void ThriftConfigApplier::processVlanPorts() {
 }
 
 void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
+  if (intf->getType() != cfg::InterfaceType::VLAN) {
+    return;
+  }
   auto& entry = vlanInterfaces_[intf->getVlanID()];
 
   // Each VLAN can only be used with a single virtual router
