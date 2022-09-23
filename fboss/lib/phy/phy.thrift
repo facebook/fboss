@@ -364,6 +364,8 @@ struct LaneInfo {
   8: optional list<EyeInfo> eyes;
   9: optional float snr;
   10: optional i16 rxFrequencyPPM;
+  11: optional i32 signalDetectChangedCount;
+  12: optional i32 cdrLockChangedCount;
 }
 
 struct LinkFaultStatus {

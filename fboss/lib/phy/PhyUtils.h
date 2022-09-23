@@ -19,4 +19,16 @@ void updateCorrectedBitsAndPreFECBer(
     int timeDeltaInSeconds,
     phy::FecMode fecMode,
     cfg::PortSpeed speed);
+
+void updateSignalDetectChangedCount(
+    int changedCount,
+    int lane,
+    phy::LaneInfo& curr,
+    phy::PmdInfo& prev);
+void updateCdrLockChangedCount(
+    int changedCount,
+    int lane,
+    phy::LaneInfo& curr,
+    phy::PmdInfo& prev);
+
 } // namespace facebook::fboss::utility

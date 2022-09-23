@@ -66,4 +66,32 @@ void updateCorrectedBitsAndPreFECBer(
       utility::ber(correctedBitsDelta, speed, timeDeltaInSeconds);
 }
 
+void updateSignalDetectChangedCount(
+    int changedCount,
+    int lane,
+    phy::LaneInfo& curr,
+    phy::PmdInfo& prev) {
+  auto prevChangedCount = 0;
+  auto it = prev.lanes_ref()->find(lane);
+  if (it != prev.lanes_ref()->end()) {
+    prevChangedCount =
+        prev.lanes_ref()[lane].signalDetectChangedCount_ref().value_or(0);
+  }
+  curr.signalDetectChangedCount_ref() = changedCount + prevChangedCount;
+}
+
+void updateCdrLockChangedCount(
+    int changedCount,
+    int lane,
+    phy::LaneInfo& curr,
+    phy::PmdInfo& prev) {
+  auto prevChangedCount = 0;
+  auto it = prev.lanes_ref()->find(lane);
+  if (it != prev.lanes_ref()->end()) {
+    prevChangedCount =
+        prev.lanes_ref()[lane].cdrLockChangedCount_ref().value_or(0);
+  }
+  curr.cdrLockChangedCount_ref() = changedCount + prevChangedCount;
+}
+
 } // namespace facebook::fboss::utility
