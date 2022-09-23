@@ -41,6 +41,12 @@ DEFINE_int32(mdio, -1, "PHY Mdio address");
 DEFINE_int32(dev, -1, "Clause45 Device Id for register access");
 DEFINE_int32(offset, -1, "Register offset");
 DEFINE_int32(val, -1, "Value to be written");
+DEFINE_bool(
+    create_port,
+    false,
+    "Create a PHY port, use with --sw_port --profile");
+DEFINE_int32(sw_port, -1, "Software port id");
+DEFINE_int32(profile, -1, "Profile Id value");
 
 void printPhyPortInfo(QsfpServiceAsyncClient* qsfpHandler) {
   if (FLAGS_port == "") {
@@ -133,6 +139,21 @@ void phyConfigCheckHw(QsfpServiceAsyncClient* qsfpHandler) {
   printf("%s\n", output.c_str());
 }
 
+void saiPhyCreatePort(QsfpServiceAsyncClient* qsfpHandler) {
+  if (FLAGS_sw_port == -1) {
+    printf("Port name is required\n");
+    return;
+  }
+  if (FLAGS_profile == -1) {
+    printf("Profile Id value is required\n");
+    return;
+  }
+
+  qsfpHandler->sync_programXphyPort(
+      FLAGS_sw_port, cfg::PortProfileID(FLAGS_profile));
+  printf("SW Port %d got create\n", FLAGS_sw_port);
+}
+
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
@@ -171,6 +192,10 @@ int main(int argc, char* argv[]) {
   }
   if (FLAGS_phy_cfg_check) {
     phyConfigCheckHw(client.get());
+    return 0;
+  }
+  if (FLAGS_create_port) {
+    saiPhyCreatePort(client.get());
     return 0;
   }
   return 0;
