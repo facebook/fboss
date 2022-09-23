@@ -40,10 +40,26 @@ target_link_libraries(qsfp_config
   FBThrift::thriftcpp2
 )
 
+add_library(bsp_platform_mapping
+  fboss/lib/bsp/BspPlatformMapping.cpp
+)
+
+target_link_libraries(bsp_platform_mapping
+  bsp_platform_mapping_cpp2
+)
+
+add_library(kamet_bsp
+  fboss/lib/bsp/kamet/KametBspPlatformMapping.cpp
+)
+
+target_link_libraries(kamet_bsp
+  bsp_platform_mapping_cpp2
+)
+
 add_library(qsfp_bsp_core
+  fboss/lib/bsp/BspGenericSystemContainer.cpp
   fboss/lib/bsp/BspIOBus.cpp
   fboss/lib/bsp/BspPimContainer.cpp
-  fboss/lib/bsp/BspPlatformMapping.cpp
   fboss/lib/bsp/BspSystemContainer.cpp
   fboss/lib/bsp/BspTransceiverAccess.cpp
   fboss/lib/bsp/BspTransceiverApi.cpp
@@ -53,7 +69,9 @@ add_library(qsfp_bsp_core
 
 target_link_libraries(qsfp_bsp_core
   bsp_platform_mapping_cpp2
+  bsp_platform_mapping
   common_file_utils
   i2c_controller_stats_cpp2
   Folly::folly
+  kamet_bsp
 )
