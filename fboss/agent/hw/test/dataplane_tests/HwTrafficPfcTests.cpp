@@ -21,7 +21,6 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
  private:
   void SetUp() override {
     FLAGS_mmu_lossless_mode = true;
-    FLAGS_enable_exact_match = true;
     HwLinkStateDependentTest::SetUp();
   }
 
