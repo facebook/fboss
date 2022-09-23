@@ -2666,7 +2666,8 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
       mac,
       mtu,
       *config->isVirtual(),
-      *config->isStateSyncDisabled());
+      *config->isStateSyncDisabled(),
+      *config->type());
   intf->setAddresses(addrs);
   if (auto ndp = config->ndp()) {
     if (ndp->routerAddress() &&
@@ -2752,7 +2753,8 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
       orig->getName() == name && orig->getMac() == mac &&
       orig->getAddresses() == addrs && orig->getNdpConfig() == ndp &&
       orig->getMtu() == mtu && orig->isVirtual() == *config->isVirtual() &&
-      orig->isStateSyncDisabled() == *config->isStateSyncDisabled()) {
+      orig->isStateSyncDisabled() == *config->isStateSyncDisabled() &&
+      orig->getType() == *config->type()) {
     // No change
     return nullptr;
   }
@@ -2767,6 +2769,7 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setMtu(mtu);
   newIntf->setIsVirtual(*config->isVirtual());
   newIntf->setIsStateSyncDisabled(*config->isStateSyncDisabled());
+  newIntf->setType(*config->type());
   return newIntf;
 }
 

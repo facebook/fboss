@@ -122,6 +122,9 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
   cfg::InterfaceType getType() const {
     return *getFields()->data().type();
   }
+  void setType(cfg::InterfaceType type) {
+    writableFields()->writableData().type() = type;
+  }
   VlanID getVlanID() const {
     CHECK(getType() == cfg::InterfaceType::VLAN);
     return VlanID(*getFields()->data().vlanId());
