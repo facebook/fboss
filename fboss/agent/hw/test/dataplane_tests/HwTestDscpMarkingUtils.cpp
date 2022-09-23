@@ -19,7 +19,7 @@
 
 namespace facebook::fboss::utility {
 
-// 53: DNS, 88: Kerberos, 123: NTP, 319/320: PTP, 514: syslog, 636: LDAP
+// 53: DNS, 88: Kerberos, 123: NTP, 546/547: DHCPV6, 514: syslog, 636: LDAP
 
 const std::vector<uint32_t>& kTcpPorts() {
   static const std::vector<uint32_t> tcpPorts = {53, 88, 123, 636};
@@ -28,7 +28,7 @@ const std::vector<uint32_t>& kTcpPorts() {
 }
 
 const std::vector<uint32_t>& kUdpPorts() {
-  static const std::vector<uint32_t> udpPorts = {53, 88, 123, 319, 320, 514};
+  static const std::vector<uint32_t> udpPorts = {53, 88, 123, 546, 547, 514};
 
   return udpPorts;
 }
