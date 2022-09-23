@@ -171,6 +171,21 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     fecMode = utility::getSaiPortFecMode(phyFecMode);
   }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  std::optional<SaiPortTraits::Attributes::UseExtendedFec> useExtendedFec(
+      std::nullopt);
+  std::optional<SaiPortTraits::Attributes::ExtendedFecMode> extendedFecMode(
+      std::nullopt);
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::EXTENDED_FEC)) {
+    auto phyFecMode = lineSide ? *swPort->getLineProfileConfig()->fec()
+                               : *swPort->getProfileConfig().fec();
+    useExtendedFec = true;
+    extendedFecMode = utility::getSaiPortExtendedFecMode(phyFecMode);
+    // Once extended FEC is defined then undefine the regular FEC
+    fecMode = std::nullopt;
+  }
+#endif
+
   std::optional<SaiPortTraits::Attributes::InterfaceType> intfType(
       std::nullopt);
 
@@ -231,7 +246,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   return SaiPortTraits::CreateAttributes {
     laneList, static_cast<uint32_t>(speed), enabled, fecMode,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-        std::nullopt, std::nullopt,
+        useExtendedFec, extendedFecMode,
 #endif
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
         std::nullopt, std::nullopt, std::nullopt, intfType, std::nullopt,
