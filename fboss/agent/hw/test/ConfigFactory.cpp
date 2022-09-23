@@ -449,27 +449,33 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     }
   }
   auto config = genPortVlanCfg(hwSwitch, vlanPorts, port2vlan, vlans, lbMode);
-  if (vlans.size()) {
-    config.interfaces()->resize(vlans.size());
-    for (auto i = 0; i < vlans.size(); ++i) {
-      *config.interfaces()[i].intfID() = baseVlanId + i;
-      *config.interfaces()[i].vlanID() = baseVlanId + i;
-      *config.interfaces()[i].routerID() = 0;
-      if (setInterfaceMac) {
-        config.interfaces()[i].mac() = getLocalCpuMacStr();
-      }
-      config.interfaces()[i].mtu() = 9000;
-      if (interfaceHasSubnet) {
-        config.interfaces()[i].ipAddresses()->resize(2);
-        auto ipDecimal = folly::sformat("{}", i + 1);
-        config.interfaces()[i].ipAddresses()[0] = FLAGS_nodeZ
-            ? folly::sformat("{}.0.0.2/24", ipDecimal)
-            : folly::sformat("{}.0.0.1/24", ipDecimal);
-        config.interfaces()[i].ipAddresses()[1] = FLAGS_nodeZ
-            ? folly::sformat("{}::1/64", ipDecimal)
-            : folly::sformat("{}::0/64", ipDecimal);
-      }
-    }
+  auto addInterface =
+      [&config, baseVlanId, setInterfaceMac, interfaceHasSubnet](
+          int32_t intfId, int32_t vlanId, cfg::InterfaceType type) {
+        auto i = config.interfaces()->size();
+        config.interfaces()->push_back(cfg::Interface{});
+        *config.interfaces()[i].intfID() = intfId;
+        *config.interfaces()[i].vlanID() = vlanId;
+        *config.interfaces()[i].routerID() = 0;
+        *config.interfaces()[i].type() = type;
+        if (setInterfaceMac) {
+          config.interfaces()[i].mac() = getLocalCpuMacStr();
+        }
+        config.interfaces()[i].mtu() = 9000;
+        if (interfaceHasSubnet) {
+          config.interfaces()[i].ipAddresses()->resize(2);
+          auto ipDecimal = folly::sformat("{}", i + 1);
+          config.interfaces()[i].ipAddresses()[0] = FLAGS_nodeZ
+              ? folly::sformat("{}.0.0.2/24", ipDecimal)
+              : folly::sformat("{}.0.0.1/24", ipDecimal);
+          config.interfaces()[i].ipAddresses()[1] = FLAGS_nodeZ
+              ? folly::sformat("{}::1/64", ipDecimal)
+              : folly::sformat("{}::0/64", ipDecimal);
+        }
+      };
+
+  for (auto i = 0; i < vlans.size(); ++i) {
+    addInterface(baseVlanId + i, baseVlanId + i, cfg::InterfaceType::VLAN);
   }
   return config;
 }
