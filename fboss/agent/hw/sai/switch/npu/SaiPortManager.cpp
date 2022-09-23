@@ -143,6 +143,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   addSamplePacket(swPort);
   addMirror(swPort);
   addPfc(swPort);
+  programPfcBuffers(swPort);
 
   // set platform port's speed
   auto platformPort = platform_->getPort(swPort->getID());
@@ -211,6 +212,7 @@ void SaiPortManager::changePortImpl(
   changeSamplePacket(oldPort, newPort);
   changeMirror(oldPort, newPort);
   changePfc(oldPort, newPort);
+  programPfcBuffers(newPort);
 
   if (newPort->isEnabled()) {
     if (!oldPort->isEnabled()) {

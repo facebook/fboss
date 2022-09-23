@@ -285,6 +285,7 @@ SaiPortManager::~SaiPortManager() {
   if (globalDscpToTcQosMap_) {
     clearQosPolicy();
   }
+  releasePortPfcBuffers();
   releasePorts();
 }
 
@@ -298,6 +299,13 @@ void SaiPortManager::resetSamplePacket(SaiPortHandle* portHandle) {
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::EgressSamplePacketEnable{
             SAI_NULL_OBJECT_ID});
+  }
+}
+
+void SaiPortManager::releasePortPfcBuffers() {
+  for (const auto& handle : handles_) {
+    const auto& saiPortHandle = handle.second;
+    removePriorityGroupBufferProfile(saiPortHandle.get());
   }
 }
 
@@ -491,6 +499,20 @@ void SaiPortManager::removePfc(const std::shared_ptr<Port>& swPort) {
   }
 }
 
+void SaiPortManager::removePfcBuffers(const std::shared_ptr<Port>& swPort) {
+  removePriorityGroupBufferProfile(getPortHandle(swPort->getID()));
+}
+
+void SaiPortManager::removePriorityGroupBufferProfile(
+    SaiPortHandle* portHandle) {
+  // Unset the bufferProfile applied per IngressPriorityGroup
+  for (const auto& pgEntries : portHandle->priorityGroupBufferProfiles) {
+    managerTable_->bufferManager().setIngressPriorityGroupBufferProfile(
+        pgEntries.first, std::nullptr_t());
+  }
+  portHandle->priorityGroupBufferProfiles.clear();
+}
+
 void SaiPortManager::setPortType(PortID port, cfg::PortType type) {
   port2PortType_.insert({port, type});
   // If Port type changed, supported stats need to be updated
@@ -659,6 +681,7 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
 
   removeMirror(swPort);
   removeSamplePacket(swPort);
+  removePfcBuffers(swPort);
   removePfc(swPort);
 
   concurrentIndices_->portIds.erase(itr->second->port->adapterKey());

@@ -216,6 +216,7 @@ class SaiPortManager {
   void addRemovedHandle(PortID portID);
   void removeRemovedHandleIf(PortID portID);
   void releasePorts();
+  void releasePortPfcBuffers();
 
   void setQosMaps(
       QosMapSaiId dscpToTc,
@@ -281,6 +282,8 @@ class SaiPortManager {
   void removePfc(const std::shared_ptr<Port>& swPort);
   void setPortType(PortID portId, cfg::PortType portType);
   void programPfcBuffers(const std::shared_ptr<Port>& swPort);
+  void removePfcBuffers(const std::shared_ptr<Port>& swPort);
+  void removePriorityGroupBufferProfile(SaiPortHandle* portHandle);
   void applyPriorityGroupBufferProfile(
       const std::shared_ptr<Port>& swPort,
       std::shared_ptr<SaiBufferProfile> bufferProfile,
