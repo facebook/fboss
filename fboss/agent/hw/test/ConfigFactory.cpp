@@ -421,7 +421,7 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     const int baseVlanId,
-    const int portsPerVlan) {
+    const int portsPerIntf) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<VlanID> vlans;
   std::vector<PortID> vlanPorts;
@@ -441,9 +441,9 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
         ? VlanID(vlan)
         : VlanID(0);
     idx++;
-    // If current vlan has portsPerVlan port,
+    // If current vlan has portsPerIntf port,
     // then add a new vlan
-    if (idx % portsPerVlan == 0) {
+    if (idx % portsPerIntf == 0) {
       vlans.push_back(VlanID(vlan));
       vlan++;
     }
@@ -476,6 +476,21 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
 
   for (auto i = 0; i < vlans.size(); ++i) {
     addInterface(baseVlanId + i, baseVlanId + i, cfg::InterfaceType::VLAN);
+  }
+  // Create interfaces for local sys ports on VOQ switches
+  if (hwSwitch->getPlatform()->getAsic()->getSwitchType() ==
+      cfg::SwitchType::VOQ) {
+    CHECK_EQ(portsPerIntf, 1) << " For VOQ switches sys port to interface "
+                                 "mapping must by 1:1";
+    for (const auto& port : *config.ports()) {
+      if (*port.portType() != cfg::PortType::INTERFACE_PORT) {
+        continue;
+      }
+      // TODO - consume sys port range begin from config
+      auto constexpr kSysportRangeBegin = 100;
+      auto intfId = kSysportRangeBegin + *port.logicalID();
+      addInterface(intfId, 0, cfg::InterfaceType::SYSTEM_PORT);
+    }
   }
   return config;
 }
