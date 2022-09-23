@@ -182,6 +182,9 @@ DEFINE_extract(facebook::fboss::AclEntryActionU32, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionSaiObjectIdT, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionSaiObjectIdList, aclaction);
 DEFINE_extract(std::vector<sai_system_port_config_t>, sysportconfiglist);
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+DEFINE_extract(sai_prbs_rx_state_t, rx_state);
+#endif
 
 // TODO:
 DEFINE_extract(sai_vlan_list_t, vlanlist);

@@ -123,6 +123,14 @@ struct SaiPortLaneLatchStatusDefault {
 };
 #endif
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+struct SaiPrbsRxStateDefault {
+  sai_prbs_rx_state_t operator()() const {
+    return sai_prbs_rx_state_t();
+  }
+};
+#endif
+
 using SaiObjectIdListDefault = SaiListDefault<sai_object_list_t>;
 using SaiU32ListDefault = SaiListDefault<sai_u32_list_t>;
 using SaiS8ListDefault = SaiListDefault<sai_s8_list_t>;

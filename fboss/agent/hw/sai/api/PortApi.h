@@ -166,7 +166,8 @@ struct SaiPortTraits {
     using PrbsRxState = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_PRBS_RX_STATE,
-        sai_prbs_rx_state_t>;
+        sai_prbs_rx_state_t,
+        SaiPrbsRxStateDefault>;
 #endif
     using IngressMacSecAcl = SaiAttribute<
         EnumType,

@@ -68,6 +68,13 @@ struct WrappedSaiType<folly::CIDRNetwork> {
   using value = sai_ip_prefix_t;
 };
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+template <>
+struct WrappedSaiType<sai_prbs_rx_state_t> {
+  using value = sai_prbs_rx_state_t;
+};
+#endif
+
 template <>
 struct WrappedSaiType<std::vector<sai_object_id_t>> {
   using value = sai_object_list_t;
