@@ -31,8 +31,7 @@ void disableTTLDecrements(
   auto managerTable = static_cast<SaiSwitch*>(hw)->managerTable();
   auto rintfHandle =
       managerTable->routerInterfaceManager().getRouterInterfaceHandle(intf);
-  SaiIpNextHopTraits::AdapterHostKey key(
-      rintfHandle->vlanRouterInterface->adapterKey(), nhopIp);
+  SaiIpNextHopTraits::AdapterHostKey key(rintfHandle->adapterKey(), nhopIp);
   auto nhop = managerTable->nextHopManager().getManagedNextHop(key);
   SaiIpNextHopTraits::Attributes::DisableTtlDecrement disableTtl{true};
   SaiApiTable::getInstance()->nextHopApi().setAttribute(

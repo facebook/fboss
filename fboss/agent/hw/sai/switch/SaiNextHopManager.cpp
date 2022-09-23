@@ -46,7 +46,7 @@ SaiNextHopTraits::AdapterHostKey SaiNextHopManager::getAdapterHostKey(
   if (!routerInterfaceHandle) {
     throw FbossError("Missing SAI router interface for ", interfaceId);
   }
-  auto rifId = routerInterfaceHandle->vlanRouterInterface->adapterKey();
+  auto rifId = routerInterfaceHandle->adapterKey();
   folly::IPAddress ip = swNextHop.addr();
 
   auto labelForwardingAction = swNextHop.labelForwardingAction();

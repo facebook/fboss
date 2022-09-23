@@ -36,7 +36,7 @@ const SaiNeighborHandle* getNbrHandle(
   auto rintfHandle = getRouterInterfaceHandle(managerTable, intf);
   SaiNeighborTraits::NeighborEntry entry(
       managerTable->switchManager().getSwitchSaiId(),
-      rintfHandle->vlanRouterInterface->adapterKey(),
+      rintfHandle->adapterKey(),
       ip);
   return managerTable->neighborManager().getNeighborHandle(entry);
 }

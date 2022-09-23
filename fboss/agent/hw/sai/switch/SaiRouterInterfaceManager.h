@@ -23,6 +23,7 @@
 
 #include <memory>
 #include <mutex>
+#include <variant>
 #include <vector>
 
 namespace facebook::fboss {
@@ -35,8 +36,14 @@ using SaiVlanRouterInterface = SaiObject<SaiVlanRouterInterfaceTraits>;
 using SaiPortRouterInterface = SaiObject<SaiPortRouterInterfaceTraits>;
 
 struct SaiRouterInterfaceHandle {
-  std::shared_ptr<SaiVlanRouterInterface> vlanRouterInterface;
-  std::shared_ptr<SaiPortRouterInterface> portRouterInterface;
+  using SaiRouterInterface = std::variant<
+      std::shared_ptr<SaiVlanRouterInterface>,
+      std::shared_ptr<SaiPortRouterInterface>>;
+  SaiRouterInterface routerInterface;
+  RouterInterfaceSaiId adapterKey() const {
+    return std::visit(
+        [](auto& handle) { return handle->adapterKey(); }, routerInterface);
+  }
   std::vector<std::shared_ptr<SaiRoute>> toMeRoutes;
 };
 

@@ -178,7 +178,7 @@ void SaiRouteManager::addOrUpdateRoute(
             interfaceId);
       }
       RouterInterfaceSaiId routerInterfaceId{
-          routerInterfaceHandle->vlanRouterInterface->adapterKey()};
+          routerInterfaceHandle->adapterKey()};
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       attributes = SaiRouteTraits::CreateAttributes{
           packetAction, std::move(routerInterfaceId), metadata, std::nullopt};

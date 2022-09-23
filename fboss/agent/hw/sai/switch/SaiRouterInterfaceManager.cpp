@@ -80,7 +80,7 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdateVlanRouterInterface(
   std::shared_ptr<SaiVlanRouterInterface> vlanRouterInterface =
       store.setObject(k, attributes, swInterface->getID());
   auto vlanRouterInterfaceHandle = std::make_unique<SaiRouterInterfaceHandle>();
-  vlanRouterInterfaceHandle->vlanRouterInterface = vlanRouterInterface;
+  vlanRouterInterfaceHandle->routerInterface = vlanRouterInterface;
 
   // create the ToMe routes for this router interface
   auto toMeRoutes =
@@ -144,7 +144,7 @@ RouterInterfaceSaiId SaiRouterInterfaceManager::addOrUpdatePortRouterInterface(
   std::shared_ptr<SaiPortRouterInterface> portRouterInterface =
       store.setObject(k, attributes, swInterface->getID());
   auto portRouterInterfaceHandle = std::make_unique<SaiRouterInterfaceHandle>();
-  portRouterInterfaceHandle->portRouterInterface = portRouterInterface;
+  portRouterInterfaceHandle->routerInterface = portRouterInterface;
 
   // create the ToMe routes for this router interface
   auto toMeRoutes =

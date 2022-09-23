@@ -57,8 +57,7 @@ class TunnelManagerTest : public ManagerTestBase {
     SaiRouterInterfaceHandle* intfHandle =
         saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
             InterfaceID(intf0.id));
-    RouterInterfaceSaiId saiIntfId{
-        intfHandle->vlanRouterInterface->adapterKey()};
+    RouterInterfaceSaiId saiIntfId{intfHandle->adapterKey()};
     auto underlay = saiApiTable->tunnelApi().getAttribute(
         saiId, SaiTunnelTraits::Attributes::UnderlayInterface());
     EXPECT_EQ(underlay, saiIntfId);
