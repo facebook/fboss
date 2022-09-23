@@ -26,6 +26,10 @@ DEFINE_bool(
     "Set PHY port Admin Down, use with --port --side");
 DEFINE_string(side, "line", "line side or system side");
 DEFINE_bool(
+    phy_cfg_check,
+    false,
+    "Check PHY config  in Hardware and report, use with --port");
+DEFINE_bool(
     read_reg,
     false,
     "Read PHY register, use with --port --mdio --dev --offset");
@@ -118,6 +122,17 @@ void saiPhyRegisterAccess(QsfpServiceAsyncClient* qsfpHandler, bool opRead) {
   printf("%s\n", output.c_str());
 }
 
+void phyConfigCheckHw(QsfpServiceAsyncClient* qsfpHandler) {
+  if (FLAGS_port == "") {
+    printf("Port name is required\n");
+    return;
+  }
+
+  std::string output;
+  qsfpHandler->sync_phyConfigCheckHw(output, FLAGS_port);
+  printf("%s\n", output.c_str());
+}
+
 int main(int argc, char* argv[]) {
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
@@ -152,6 +167,10 @@ int main(int argc, char* argv[]) {
   }
   if (FLAGS_write_reg) {
     saiPhyRegisterAccess(client.get(), false);
+    return 0;
+  }
+  if (FLAGS_phy_cfg_check) {
+    phyConfigCheckHw(client.get());
     return 0;
   }
   return 0;
