@@ -15,7 +15,7 @@ class BeasAsic : public BroadcomAsic {
     return AsicType::ASIC_TYPE_BEAS;
   }
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
-    return phy::DataPlanePhyChipType::XPHY;
+    return phy::DataPlanePhyChipType::IPHY;
   }
 
   cfg::PortSpeed getMaxPortSpeed() const override {
