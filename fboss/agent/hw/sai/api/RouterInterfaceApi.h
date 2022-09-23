@@ -37,11 +37,22 @@ struct RouterInterfaceAttributesTypes<SAI_ROUTER_INTERFACE_TYPE_VLAN> {
       sai_router_interface_attr_t,
       SAI_ROUTER_INTERFACE_ATTR_VLAN_ID,
       SaiObjectIdT>;
+  using PortId = void;
 };
 
 template <>
 struct RouterInterfaceAttributesTypes<SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER> {
   using VlanId = void;
+  using PortId = void;
+};
+
+template <>
+struct RouterInterfaceAttributesTypes<SAI_ROUTER_INTERFACE_TYPE_PORT> {
+  using VlanId = void;
+  using PortId = SaiAttribute<
+      sai_router_interface_attr_t,
+      SAI_ROUTER_INTERFACE_ATTR_PORT_ID,
+      SaiObjectIdT>;
 };
 
 template <typename Attributes, sai_router_interface_type_t type>
@@ -59,6 +70,20 @@ struct RouterInterfaceTraitsAttributes<
       std::optional<typename Attributes::Mtu>>;
   using AdapterHostKey = std::
       tuple<typename Attributes::VirtualRouterId, typename Attributes::VlanId>;
+};
+
+template <typename Attributes>
+struct RouterInterfaceTraitsAttributes<
+    Attributes,
+    SAI_ROUTER_INTERFACE_TYPE_PORT> {
+  using CreateAttributes = std::tuple<
+      typename Attributes::VirtualRouterId,
+      typename Attributes::Type,
+      typename Attributes::PortId,
+      std::optional<typename Attributes::SrcMac>,
+      std::optional<typename Attributes::Mtu>>;
+  using AdapterHostKey = std::
+      tuple<typename Attributes::VirtualRouterId, typename Attributes::PortId>;
 };
 
 template <typename Attributes>
@@ -90,6 +115,8 @@ struct SaiRouterInterfaceTraitsT {
         SaiObjectIdT>;
     using VlanId =
         typename detail::RouterInterfaceAttributesTypes<type>::VlanId;
+    using PortId =
+        typename detail::RouterInterfaceAttributesTypes<type>::PortId;
     using Mtu =
         SaiAttribute<EnumType, SAI_ROUTER_INTERFACE_ATTR_MTU, sai_uint32_t>;
   };
@@ -106,9 +133,14 @@ using SaiVlanRouterInterfaceTraits =
     SaiRouterInterfaceTraitsT<SAI_ROUTER_INTERFACE_TYPE_VLAN>;
 using SaiMplsRouterInterfaceTraits =
     SaiRouterInterfaceTraitsT<SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER>;
+using SaiPortRouterInterfaceTraits =
+    SaiRouterInterfaceTraitsT<SAI_ROUTER_INTERFACE_TYPE_PORT>;
 
 template <>
 struct SaiObjectHasConditionalAttributes<SaiVlanRouterInterfaceTraits>
+    : public std::true_type {};
+template <>
+struct SaiObjectHasConditionalAttributes<SaiPortRouterInterfaceTraits>
     : public std::true_type {};
 template <>
 struct SaiObjectHasConditionalAttributes<SaiMplsRouterInterfaceTraits>
@@ -116,6 +148,7 @@ struct SaiObjectHasConditionalAttributes<SaiMplsRouterInterfaceTraits>
 
 using SaiRouterInterfaceTraits = ConditionObjectTraits<
     SaiVlanRouterInterfaceTraits,
+    SaiPortRouterInterfaceTraits,
     SaiMplsRouterInterfaceTraits>;
 using SaiRouterInterfaceAdaptertKey =
     typename SaiRouterInterfaceTraits::AdapterKey<RouterInterfaceSaiId>;
@@ -124,6 +157,7 @@ SAI_ATTRIBUTE_NAME(VlanRouterInterface, SrcMac)
 SAI_ATTRIBUTE_NAME(VlanRouterInterface, Type)
 SAI_ATTRIBUTE_NAME(VlanRouterInterface, VirtualRouterId)
 SAI_ATTRIBUTE_NAME(VlanRouterInterface, VlanId)
+SAI_ATTRIBUTE_NAME(PortRouterInterface, PortId)
 SAI_ATTRIBUTE_NAME(VlanRouterInterface, Mtu)
 
 class RouterInterfaceApi : public SaiApi<RouterInterfaceApi> {
