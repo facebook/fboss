@@ -136,7 +136,9 @@ class CmdShowInterfacePhy
           {prefix + "PMD",
            "Lane",
            "RX Signal Detect Live",
+           "RX Signal Detect Changed",
            "RX CDR Lock Live",
+           "RX CDR Lock Changed",
            "Eye Heights",
            "Eye Widths",
            "Rx PPM"});
@@ -144,14 +146,22 @@ class CmdShowInterfacePhy
         auto lane = laneInfo.second;
         std::string sigDetLive = "N/A";
         std::string cdrLockLive = "N/A";
+        std::string sigDetChanged = "N/A";
+        std::string cdrLockChanged = "N/A";
         std::string rxPPM = "N/A";
         std::vector<float> eyeHeights = {};
         std::vector<float> eyeWidths = {};
         if (auto rxSigDetLive = lane.signalDetectLive()) {
           sigDetLive = std::to_string(*rxSigDetLive);
         }
+        if (auto rxSigDetChanged = lane.signalDetectChangedCount()) {
+          sigDetChanged = std::to_string(*rxSigDetChanged);
+        }
         if (auto rxCdrLockLive = lane.cdrLockLive()) {
           cdrLockLive = std::to_string(*rxCdrLockLive);
+        }
+        if (auto rxCdrLockChanged = lane.cdrLockChangedCount()) {
+          cdrLockChanged = std::to_string(*rxCdrLockChanged);
         }
         if (auto rxFreqPPM = lane.rxFrequencyPPM()) {
           rxPPM = std::to_string(*rxFreqPPM);
@@ -170,7 +180,9 @@ class CmdShowInterfacePhy
             {"",
              std::to_string(*lane.lane()),
              makeColorCellForLiveFlag(sigDetLive),
+             sigDetChanged,
              makeColorCellForLiveFlag(cdrLockLive),
+             cdrLockChanged,
              folly::join(",", eyeHeights),
              folly::join(",", eyeWidths),
              rxPPM});
