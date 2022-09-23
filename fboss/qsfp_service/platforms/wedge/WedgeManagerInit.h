@@ -43,5 +43,7 @@ std::unique_ptr<WedgeManager> createSandiaWedgeManager();
 
 std::unique_ptr<WedgeManager> createKametWedgeManager();
 
+std::unique_ptr<WedgeManager> createMakaluWedgeManager();
+
 } // namespace fboss
 } // namespace facebook

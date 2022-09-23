@@ -56,6 +56,14 @@ target_link_libraries(kamet_bsp
   bsp_platform_mapping_cpp2
 )
 
+add_library(makalu_bsp
+  fboss/lib/bsp/makalu/MakaluBspPlatformMapping.cpp
+)
+
+target_link_libraries(makalu_bsp
+  bsp_platform_mapping_cpp2
+)
+
 add_library(qsfp_bsp_core
   fboss/lib/bsp/BspGenericSystemContainer.cpp
   fboss/lib/bsp/BspIOBus.cpp
@@ -74,4 +82,5 @@ target_link_libraries(qsfp_bsp_core
   i2c_controller_stats_cpp2
   Folly::folly
   kamet_bsp
+  makalu_bsp
 )

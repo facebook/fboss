@@ -43,6 +43,8 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     return createSandiaWedgeManager();
   } else if (mode == PlatformMode::KAMET) {
     return createKametWedgeManager();
+  } else if (mode == PlatformMode::MAKALU) {
+    return createMakaluWedgeManager();
   } else if (
       mode == PlatformMode::FUJI || mode == PlatformMode::MINIPACK ||
       mode == PlatformMode::WEDGE400 || mode == PlatformMode::WEDGE400C ||
