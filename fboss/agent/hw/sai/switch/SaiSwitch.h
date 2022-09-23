@@ -307,7 +307,10 @@ class SaiSwitch : public HwSwitch {
 
   std::map<PortID, phy::PhyInfo> updateAllPhyInfoLocked();
 
-  void updatePmdInfo(phy::PhySideInfo& sideInfo, std::shared_ptr<SaiPort> port);
+  void updatePmdInfo(
+      phy::PhySideInfo& sideInfo,
+      std::shared_ptr<SaiPort> port,
+      phy::PmdInfo& lastPmdInfo);
 
   void updatePcsInfo(
       phy::PhySideInfo& sideInfo,

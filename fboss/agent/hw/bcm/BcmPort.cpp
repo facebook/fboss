@@ -1195,6 +1195,7 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
   // PMD Parameters
   phy::PmdInfo pmd;
   int totalPmdLanes = numLanes_;
+  phy::PmdInfo lastPmd = *lastPhyInfo_.line()->pmd();
   for (int lane = 0; lane < totalPmdLanes; lane++) {
     phy::LaneInfo laneInfo;
     laneInfo.lane_ref() = lane;
@@ -1218,8 +1219,10 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
         pmd.lanes_ref()[lane].lane_ref() = lane;
         pmd.lanes_ref()[lane].cdrLockLive_ref() =
             lock_status.rx_lock_bmp & (1 << lane);
-        pmd.lanes_ref()[lane].cdrLockChanged_ref() =
-            lock_status.rx_lock_change_bmp & (1 << lane);
+        bool changed = lock_status.rx_lock_change_bmp & (1 << lane);
+        pmd.lanes_ref()[lane].cdrLockChanged_ref() = changed;
+        utility::updateCdrLockChangedCount(
+            changed, lane, pmd.lanes_ref()[lane], lastPmd);
       }
     } else {
       XLOG(ERR) << "Failed to read rx_lock_status for port " << port_ << " :"
@@ -1237,8 +1240,10 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
         pmd.lanes_ref()[lane].lane_ref() = lane;
         pmd.lanes_ref()[lane].signalDetectLive_ref() =
             sd_status.signal_detect_bmp & (1 << lane);
-        pmd.lanes_ref()[lane].signalDetectChanged_ref() =
-            sd_status.signal_detect_change_bmp & (1 << lane);
+        bool changed = sd_status.signal_detect_change_bmp & (1 << lane);
+        pmd.lanes_ref()[lane].signalDetectChanged_ref() = changed;
+        utility::updateSignalDetectChangedCount(
+            changed, lane, pmd.lanes_ref()[lane], lastPmd);
       }
     } else {
       XLOG(ERR) << "Failed to read rx_signal_detect_status for port " << port_

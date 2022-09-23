@@ -1020,10 +1020,15 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     phyParams.line()->interfaceType() = getInterfaceType(swPort, chipType);
     phyParams.line()->medium() = managerTable_->portManager().getMedium(swPort);
     // Update PMD Info
-    updatePmdInfo(*phyParams.line(), portHandle->port);
+    phy::PmdInfo lastLinePmdInfo = *lastPhyInfo.line()->pmd();
+    updatePmdInfo(*phyParams.line(), portHandle->port, lastLinePmdInfo);
     if (isXphy) {
       CHECK(phyParams.system().has_value());
-      updatePmdInfo(*phyParams.system(), portHandle->sysPort);
+      phy::PmdInfo lastSysPmdInfo;
+      if (auto lastSys = lastPhyInfo.system()) {
+        lastSysPmdInfo = *lastSys->pmd();
+      }
+      updatePmdInfo(*phyParams.system(), portHandle->sysPort, lastSysPmdInfo);
     }
 
     // Update PCS Info
@@ -1049,7 +1054,8 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
 
 void SaiSwitch::updatePmdInfo(
     phy::PhySideInfo& sideInfo,
-    std::shared_ptr<SaiPort> port) {
+    std::shared_ptr<SaiPort> port,
+    [[maybe_unused]] phy::PmdInfo& lastPmdInfo) {
   auto numPmdLanes =
       managerTable_->portManager().getNumPmdLanes(port->adapterKey());
   if (!numPmdLanes) {
@@ -1107,6 +1113,8 @@ void SaiSwitch::updatePmdInfo(
     }
     laneInfo.signalDetectLive() = pmd.value.current_status;
     laneInfo.signalDetectChanged() = pmd.value.changed;
+    utility::updateSignalDetectChangedCount(
+        pmd.value.changed, laneId, laneInfo, lastPmdInfo);
     laneInfos[laneId] = laneInfo;
   }
 
@@ -1120,6 +1128,8 @@ void SaiSwitch::updatePmdInfo(
     }
     laneInfo.cdrLockLive() = pmd.value.current_status;
     laneInfo.cdrLockChanged() = pmd.value.changed;
+    utility::updateCdrLockChangedCount(
+        pmd.value.changed, laneId, laneInfo, lastPmdInfo);
     laneInfos[laneId] = laneInfo;
   }
 #endif
