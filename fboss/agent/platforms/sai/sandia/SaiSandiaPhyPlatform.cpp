@@ -10,7 +10,7 @@
 
 #include "fboss/agent/platforms/sai/sandia/SaiSandiaPhyPlatform.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
-#include "fboss/agent/hw/switch_asics/Mvl88X93161Asic.h"
+#include "fboss/agent/hw/switch_asics/MarvelPhyAsic.h"
 #include "fboss/agent/platforms/common/MultiPimPlatformMapping.h"
 #include "fboss/agent/platforms/common/sandia/SandiaPlatformMapping.h"
 
@@ -91,7 +91,7 @@ SaiSandiaPhyPlatform::SaiSandiaPhyPlatform(
 void SaiSandiaPhyPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId) {
-  asic_ = std::make_unique<Mvl88X93161Asic>(switchType, switchId);
+  asic_ = std::make_unique<MarvelPhyAsic>(switchType, switchId);
 }
 SaiSandiaPhyPlatform::~SaiSandiaPhyPlatform() {}
 

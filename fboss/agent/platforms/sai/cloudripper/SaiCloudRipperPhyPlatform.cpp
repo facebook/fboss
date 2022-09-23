@@ -11,7 +11,7 @@
 #include "fboss/agent/platforms/sai/cloudripper/SaiCloudRipperPhyPlatform.h"
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
-#include "fboss/agent/hw/switch_asics/CredoF104Asic.h"
+#include "fboss/agent/hw/switch_asics/CredoPhyAsic.h"
 #include "fboss/agent/platforms/common/cloud_ripper/CloudRipperPlatformMapping.h"
 
 namespace facebook::fboss {
@@ -81,7 +81,7 @@ SaiCloudRipperPhyPlatform::SaiCloudRipperPhyPlatform(
 void SaiCloudRipperPhyPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId) {
-  asic_ = std::make_unique<CredoF104Asic>(switchType, switchId);
+  asic_ = std::make_unique<CredoPhyAsic>(switchType, switchId);
 }
 
 SaiCloudRipperPhyPlatform::~SaiCloudRipperPhyPlatform() {}

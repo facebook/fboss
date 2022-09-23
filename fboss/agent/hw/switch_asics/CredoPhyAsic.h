@@ -6,9 +6,9 @@
 
 namespace facebook::fboss {
 
-class CredoF104Asic : public HwAsic {
+class CredoPhyAsic : public HwAsic {
  public:
-  CredoF104Asic(cfg::SwitchType type, std::optional<int64_t> id)
+  CredoPhyAsic(cfg::SwitchType type, std::optional<int64_t> id)
       : HwAsic(type, id, {cfg::SwitchType::PHY}) {}
   bool isSupported(Feature feature) const override;
   AsicType getAsicType() const override {

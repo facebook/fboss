@@ -11,7 +11,7 @@
 #include "fboss/agent/platforms/sai/elbert/SaiElbert8DDPhyPlatform.h"
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
-#include "fboss/agent/hw/switch_asics/CredoF104Asic.h"
+#include "fboss/agent/hw/switch_asics/CredoPhyAsic.h"
 #include "fboss/agent/platforms/common/elbert/facebook/Elbert8DDPimPlatformMapping.h"
 
 namespace facebook::fboss {
@@ -92,7 +92,7 @@ SaiElbert8DDPhyPlatform::SaiElbert8DDPhyPlatform(
 void SaiElbert8DDPhyPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId) {
-  asic_ = std::make_unique<CredoF104Asic>(switchType, switchId);
+  asic_ = std::make_unique<CredoPhyAsic>(switchType, switchId);
 }
 SaiElbert8DDPhyPlatform::~SaiElbert8DDPhyPlatform() {}
 
