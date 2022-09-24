@@ -38,8 +38,7 @@ TEST_F(HwVoqSwitchTest, applyConfig) {
     auto config = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        cfg::PortLoopbackMode::NONE,
-        false /*interfaceHasSubnet*/);
+        getAsic()->desiredLoopbackMode());
     applyNewConfig(config);
   };
   auto verify = [this]() {
