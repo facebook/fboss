@@ -207,6 +207,16 @@ class QsfpServiceHandler
       int regOffset,
       int data) override;
 
+  void saiPhySerdesRegisterAccess(
+      std::string& out,
+      std::unique_ptr<std::string> portName,
+      bool opRead,
+      int16_t mdioAddr,
+      bool lineSide,
+      int serdesLane,
+      int64_t regOffset,
+      int64_t data) override;
+
   void phyConfigCheckHw(std::string& out, std::unique_ptr<std::string> portName)
       override;
 

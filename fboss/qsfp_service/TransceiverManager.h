@@ -217,6 +217,17 @@ class TransceiverManager {
     return "";
   }
 
+  virtual std::string saiPhySerdesRegisterAccess(
+      std::string /* portName */,
+      bool /* opRead */,
+      int /* mdioAddr */,
+      bool /* lineSide */,
+      int /* serdesLane */,
+      uint32_t /* regOffset */,
+      uint32_t /* data */) {
+    return "Function not implemented for this platform";
+  }
+
   virtual std::string phyConfigCheckHw(std::string /* portName */) {
     return "The function phyConfigCheckHw not implemented for this platform";
   }

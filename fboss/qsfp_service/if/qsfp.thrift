@@ -180,6 +180,16 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     6: i32 data,
   ) throws (1: fboss.FbossBaseError error);
 
+  string saiPhySerdesRegisterAccess(
+    1: string portName,
+    2: bool opRead = true,
+    3: i16 mdioAddr,
+    4: bool lineSide,
+    5: i32 serdesLane,
+    6: i64 regOffset,
+    7: i64 data,
+  ) throws (1: fboss.FbossBaseError error);
+
   string phyConfigCheckHw(1: string portName) throws (
     1: fboss.FbossBaseError error,
   );
