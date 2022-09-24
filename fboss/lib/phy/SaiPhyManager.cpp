@@ -417,8 +417,10 @@ void SaiPhyManager::programOnePort(
       wLockedCache, portId, portProfileId, desiredPhyPortConfig);
   // Only reset phy port stats when there're changes on the xphy ports
   if (isChanged &&
-      getExternalPhyLocked(wLockedCache)
-          ->isSupported(phy::ExternalPhy::Feature::PORT_STATS)) {
+      (getExternalPhyLocked(wLockedCache)
+           ->isSupported(phy::ExternalPhy::Feature::PORT_STATS) ||
+       (getExternalPhyLocked(wLockedCache)
+            ->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)))) {
     setPortToExternalPhyPortStats(portId, createExternalPhyPortStats(portId));
   }
 }
