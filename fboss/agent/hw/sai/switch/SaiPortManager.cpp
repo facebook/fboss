@@ -221,6 +221,10 @@ phy::InterfaceType fromSaiInterfaceType(
       return phy::InterfaceType::CAUI4;
     case SAI_PORT_INTERFACE_TYPE_SR2:
       return phy::InterfaceType::SR2;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    case SAI_PORT_INTERFACE_TYPE_SR8:
+      return phy::InterfaceType::SR8;
+#endif
 
     // Don't seem to currently have an equivalent fboss interface type
     case SAI_PORT_INTERFACE_TYPE_NONE:
