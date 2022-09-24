@@ -42,6 +42,17 @@ DEFINE_int32(dev, -1, "Clause45 Device Id for register access");
 DEFINE_int32(offset, -1, "Register offset");
 DEFINE_int32(val, -1, "Value to be written");
 DEFINE_bool(
+    read_serdes_reg,
+    false,
+    "Read PHY register, use with --port --mdio --side --lane --serdes_offset");
+DEFINE_bool(
+    write_serdes_reg,
+    false,
+    "Write PHY register, use with --port --mdio --side --lane --serdes_reg --serdes_val");
+DEFINE_int32(lane, -1, "Serdes Lane id");
+DEFINE_int64(serdes_reg, -1, "Serdes Register offset");
+DEFINE_int64(serdes_val, -1, "Serdes Value to be written");
+DEFINE_bool(
     create_port,
     false,
     "Create a PHY port, use with --sw_port --profile");
@@ -128,6 +139,36 @@ void saiPhyRegisterAccess(QsfpServiceAsyncClient* qsfpHandler, bool opRead) {
   printf("%s\n", output.c_str());
 }
 
+void saiPhySerdesRegisterAccess(
+    QsfpServiceAsyncClient* qsfpHandler,
+    bool opRead) {
+  if (FLAGS_port == "") {
+    printf("Port name is required\n");
+    return;
+  }
+  if (FLAGS_mdio == -1 || FLAGS_lane == -1 || FLAGS_serdes_reg == -1) {
+    printf("MDIO address, Serdes lane and Register offset are required\n");
+    return;
+  }
+  if (!opRead && FLAGS_serdes_val == -1) {
+    printf("Serdes Register value is required\n");
+    return;
+  }
+
+  std::string output;
+  qsfpHandler->sync_saiPhySerdesRegisterAccess(
+      output,
+      FLAGS_port,
+      opRead,
+      FLAGS_mdio,
+      (FLAGS_side == "line"),
+      FLAGS_lane,
+      FLAGS_serdes_reg,
+      FLAGS_serdes_val);
+
+  printf("%s\n", output.c_str());
+}
+
 void phyConfigCheckHw(QsfpServiceAsyncClient* qsfpHandler) {
   if (FLAGS_port == "") {
     printf("Port name is required\n");
@@ -188,6 +229,14 @@ int main(int argc, char* argv[]) {
   }
   if (FLAGS_write_reg) {
     saiPhyRegisterAccess(client.get(), false);
+    return 0;
+  }
+  if (FLAGS_read_serdes_reg) {
+    saiPhySerdesRegisterAccess(client.get(), true);
+    return 0;
+  }
+  if (FLAGS_write_serdes_reg) {
+    saiPhySerdesRegisterAccess(client.get(), false);
     return 0;
   }
   if (FLAGS_phy_cfg_check) {
