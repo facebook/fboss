@@ -114,6 +114,8 @@ class SaiPhyManager : public PhyManager {
       phy::Side side,
       const phy::PortPrbsState& prbs) override;
 
+  phy::PortPrbsState getPortPrbs(PortID portID, phy::Side side) override;
+
  protected:
   void addSaiPlatform(
       GlobalXphyID xphyID,
