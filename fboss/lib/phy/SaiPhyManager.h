@@ -109,6 +109,11 @@ class SaiPhyManager : public PhyManager {
       bool macsecDesired,
       bool dropUnencrypted) override;
 
+  void setPortPrbs(
+      PortID portID,
+      phy::Side side,
+      const phy::PortPrbsState& prbs) override;
+
  protected:
   void addSaiPlatform(
       GlobalXphyID xphyID,

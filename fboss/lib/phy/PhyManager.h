@@ -170,7 +170,7 @@ class PhyManager {
 
   folly::EventBase* getPimEventBase(PimID pimID) const;
 
-  void
+  virtual void
   setPortPrbs(PortID portID, phy::Side side, const phy::PortPrbsState& prbs);
 
   phy::PortPrbsState getPortPrbs(PortID portID, phy::Side side);
@@ -309,6 +309,17 @@ class PhyManager {
   using XphyMap = std::map<PimID, PimXphyMap>;
   XphyMap xphyMap_;
 
+  // Xphy port related stats and prbs stats
+  struct PortStatsInfo {
+    std::unique_ptr<ExternalPhyPortStatsUtils> stats;
+    std::optional<folly::Future<folly::Unit>> ongoingStatCollection;
+    std::optional<folly::Future<folly::Unit>> ongoingPrbsStatCollection;
+  };
+  using PortStatsRLockedPtr = folly::Synchronized<PortStatsInfo>::RLockedPtr;
+  using PortStatsWLockedPtr = folly::Synchronized<PortStatsInfo>::WLockedPtr;
+  PortStatsRLockedPtr getRLockedStats(PortID portID) const;
+  PortStatsWLockedPtr getWLockedStats(PortID portID) const;
+
  private:
   virtual void createExternalPhy(
       const phy::PhyIDInfo& phyIDInfo,
@@ -327,21 +338,10 @@ class PhyManager {
   // longer than the other to collect stats. Split PortCacheInfo and
   // PortStatsInfo into two const map so that each map doesn't affect the other
   // map performance.
-  // Xphy port related stats and prbs stats
-  struct PortStatsInfo {
-    std::unique_ptr<ExternalPhyPortStatsUtils> stats;
-    std::optional<folly::Future<folly::Unit>> ongoingStatCollection;
-    std::optional<folly::Future<folly::Unit>> ongoingPrbsStatCollection;
-  };
   using PortToStatsInfo = std::unordered_map<
       PortID,
       std::unique_ptr<folly::Synchronized<PortStatsInfo>>>;
   PortToStatsInfo setupPortToStatsInfo(const PlatformMapping* platformMapping);
-
-  using PortStatsRLockedPtr = folly::Synchronized<PortStatsInfo>::RLockedPtr;
-  using PortStatsWLockedPtr = folly::Synchronized<PortStatsInfo>::WLockedPtr;
-  PortStatsRLockedPtr getRLockedStats(PortID portID) const;
-  PortStatsWLockedPtr getWLockedStats(PortID portID) const;
 
   // Update PortStatsInfo::stats
   void updatePortStats(

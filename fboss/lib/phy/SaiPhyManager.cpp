@@ -889,4 +889,49 @@ bool SaiPhyManager::getSdkState(const std::string& fileName) {
   return true;
 }
 
+void SaiPhyManager::setPortPrbs(
+    PortID portID,
+    phy::Side side,
+    const phy::PortPrbsState& prbs) {
+  const auto& wLockedCache = getWLockedCache(portID);
+
+  auto* xphy = getExternalPhyLocked(wLockedCache);
+  if (!xphy->isSupported(phy::ExternalPhy::Feature::PRBS)) {
+    throw FbossError("Port:", portID, " xphy can't support PRBS");
+  }
+  if (wLockedCache->systemLanes.empty() || wLockedCache->lineLanes.empty()) {
+    throw FbossError(
+        "Port:", portID, " is not programmed and can't find cached lanes");
+  }
+
+  // Configure PRBS using SAI
+  auto* saiSwitch = getSaiSwitch(portID);
+  auto portHandle =
+      saiSwitch->managerTable()->portManager().getPortHandle(portID);
+  const auto& sideLanes = side == phy::Side::SYSTEM ? wLockedCache->systemLanes
+                                                    : wLockedCache->lineLanes;
+  auto portAdapterKey = side == phy::Side::SYSTEM
+      ? portHandle->sysPort->adapterKey()
+      : portHandle->port->adapterKey();
+  XLOG(INFO) << "Setting the PRBS on port " << portAdapterKey.t;
+
+  if (prbs.enabled().value()) {
+    SaiApiTable::getInstance()->portApi().setAttribute(
+        portAdapterKey,
+        SaiPortTraits::Attributes::PrbsPolynomial{prbs.polynominal().value()});
+  }
+  SaiApiTable::getInstance()->portApi().setAttribute(
+      portAdapterKey,
+      SaiPortTraits::Attributes::PrbsConfig{prbs.enabled().value() ? 1 : 0});
+
+  // Enable stats collection
+  const auto& wLockedStats = getWLockedStats(portID);
+  if (*prbs.enabled()) {
+    const auto& phyPortConfig = getHwPhyPortConfigLocked(wLockedCache, portID);
+    wLockedStats->stats->setupPrbsCollection(
+        side, sideLanes, phyPortConfig.getLaneSpeedInMb(side));
+  } else {
+    wLockedStats->stats->disablePrbsCollection(side);
+  }
+}
 } // namespace facebook::fboss
