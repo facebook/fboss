@@ -965,4 +965,47 @@ phy::PortPrbsState SaiPhyManager::getPortPrbs(PortID portID, phy::Side side) {
   return prbsState;
 }
 
+std::vector<phy::PrbsLaneStats> SaiPhyManager::getPortPrbsStats(
+    PortID portID,
+    phy::Side side) {
+  const auto& rLockedCache = getRLockedCache(portID);
+  auto* xphy = getExternalPhyLocked(rLockedCache);
+  if (!xphy->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)) {
+    throw FbossError("Port:", portID, " xphy can't support PRBS_STATS");
+  }
+  if (rLockedCache->lineLanes.empty() || rLockedCache->systemLanes.empty()) {
+    throw FbossError(
+        "Port:", portID, " xphy syslem and line lanes not configured yet");
+  }
+
+  // Get PRBS info from SAI
+  auto* saiSwitch = getSaiSwitch(portID);
+  auto portHandle =
+      saiSwitch->managerTable()->portManager().getPortHandle(portID);
+  auto portAdapterKey = side == phy::Side::SYSTEM
+      ? portHandle->sysPort->adapterKey()
+      : portHandle->port->adapterKey();
+  XLOG(INFO) << "Getting the PRBS state from port " << portAdapterKey.t;
+
+  std::vector<phy::PrbsLaneStats> lanePrbs;
+  phy::PrbsLaneStats oneLanePrbs;
+  oneLanePrbs.laneId() = 0;
+
+  bool prbsEnabled =
+      SaiApiTable::getInstance()->portApi().getAttribute(
+          portAdapterKey, SaiPortTraits::Attributes::PrbsConfig{}) != 0;
+
+  if (prbsEnabled) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+    auto prbsState = SaiApiTable::getInstance()->portApi().getAttribute(
+        portAdapterKey, SaiPortTraits::Attributes::PrbsRxState{});
+    oneLanePrbs.locked() = prbsState.rx_status > 0;
+    oneLanePrbs.ber() = prbsState.error_count;
+#endif
+  }
+
+  lanePrbs.push_back(oneLanePrbs);
+  return lanePrbs;
+}
+
 } // namespace facebook::fboss

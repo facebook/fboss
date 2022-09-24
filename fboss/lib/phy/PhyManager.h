@@ -175,7 +175,7 @@ class PhyManager {
 
   virtual phy::PortPrbsState getPortPrbs(PortID portID, phy::Side side);
 
-  std::vector<phy::PrbsLaneStats> getPortPrbsStats(
+  virtual std::vector<phy::PrbsLaneStats> getPortPrbsStats(
       PortID portID,
       phy::Side side);
   void clearPortPrbsStats(PortID portID, phy::Side side);

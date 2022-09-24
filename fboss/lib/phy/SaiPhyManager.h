@@ -116,6 +116,10 @@ class SaiPhyManager : public PhyManager {
 
   phy::PortPrbsState getPortPrbs(PortID portID, phy::Side side) override;
 
+  std::vector<phy::PrbsLaneStats> getPortPrbsStats(
+      PortID portID,
+      phy::Side side) override;
+
  protected:
   void addSaiPlatform(
       GlobalXphyID xphyID,
