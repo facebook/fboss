@@ -188,6 +188,12 @@ class SaiPhyManager : public PhyManager {
   std::unique_ptr<ExternalPhyPortStatsUtils> createExternalPhyPortStats(
       PortID portID) override;
 
+  virtual bool isPortCreateAllowed(
+      GlobalXphyID /* globalXphyId */,
+      const phy::PhyPortConfig& /* portCfg */) {
+    return true;
+  }
+
   // Due to SaiPhyManager usually has more than one phy, and each phy has its
   // own SaiHwPlatform, which needs a local mac address. As local mac address
   // will be the same mac address for the running system, all these phys and

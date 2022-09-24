@@ -367,6 +367,12 @@ void SaiPhyManager::programOnePort(
   const auto& desiredPhyPortConfig =
       getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo);
 
+  // Is port create allowed
+  if (!isPortCreateAllowed(globalPhyID, desiredPhyPortConfig)) {
+    XLOG(INFO) << "PHY Port create not allowed for port " << portId;
+    return;
+  }
+
   // Before actually calling sai sdk to program the port again, we should
   // check whether the port has been programmed in HW with the same config.
   if (!(wLockedCache->systemLanes.empty() || wLockedCache->lineLanes.empty())) {
