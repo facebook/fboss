@@ -49,4 +49,37 @@ TEST_F(HwVoqSwitchTest, applyConfig) {
   };
   verifyAcrossWarmBoots(setup, verify);
 }
+
+TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
+  folly::IPAddressV6 neighborIp{"1::2"};
+  const VlanID kVlanID{0};
+  auto addRemoveNeighbor = [this, neighborIp, kVlanID](
+                               const std::shared_ptr<SwitchState>& inState,
+                               bool add) {
+    auto ip = neighborIp;
+    auto outState{inState->clone()};
+    auto neighborTable =
+        outState->getVlans()->getVlan(kVlanID)->getNdpTable()->modify(
+            kVlanID, &outState);
+    if (add) {
+      neighborTable->addPendingEntry(ip, InterfaceID(101));
+    } else {
+      neighborTable->removeEntry(ip);
+    }
+    return outState;
+  };
+
+  auto setup = [this, addRemoveNeighbor]() {
+    auto config = utility::onePortPerInterfaceConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode());
+    applyNewConfig(config);
+    // Add neighbor
+    applyNewState(addRemoveNeighbor(getProgrammedState(), true));
+    // Remove neighbor
+    applyNewState(addRemoveNeighbor(getProgrammedState(), false));
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
 } // namespace facebook::fboss
