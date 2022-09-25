@@ -56,11 +56,15 @@ class HwNeighborTest : public HwLinkStateDependentTest {
 
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::oneL3IntfTwoPortConfig(
-        getHwSwitch(),
-        masterLogicalPortIds()[0],
-        masterLogicalPortIds()[1],
-        cfg::PortLoopbackMode::MAC);
+    auto cfg = programToTrunk ? utility::oneL3IntfTwoPortConfig(
+                                    getHwSwitch(),
+                                    masterLogicalPortIds()[0],
+                                    masterLogicalPortIds()[1],
+                                    cfg::PortLoopbackMode::MAC)
+                              : utility::onePortPerInterfaceConfig(
+                                    getHwSwitch(),
+                                    masterLogicalPortIds(),
+                                    cfg::PortLoopbackMode::MAC);
     if (programToTrunk) {
       // Keep member size to be less than/equal to HW limitation, but first add
       // the two ports for testing.
