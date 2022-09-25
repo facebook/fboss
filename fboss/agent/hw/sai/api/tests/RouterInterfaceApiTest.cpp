@@ -40,7 +40,7 @@ class RouterInterfaceApiTest : public ::testing::Test {
         0);
     EXPECT_EQ(rifId, fs->routeInterfaceManager.get(rifId).id);
     EXPECT_EQ(vr, fs->routeInterfaceManager.get(rifId).virtualRouterId);
-    EXPECT_EQ(vlan, fs->routeInterfaceManager.get(rifId).vlanId);
+    EXPECT_EQ(vlan, fs->routeInterfaceManager.get(rifId).portOrVlanId);
     return rifId;
   }
 

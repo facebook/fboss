@@ -23,10 +23,11 @@ class FakeRouterInterface {
  public:
   FakeRouterInterface(
       const sai_object_id_t& virtualRouterId,
-      const sai_object_id_t vlanId)
+      const sai_object_id_t portOrVlanId,
+      int32_t type)
       : virtualRouterId(virtualRouterId),
-        type(SAI_ROUTER_INTERFACE_TYPE_VLAN),
-        vlanId(vlanId) {}
+        type(type),
+        portOrVlanId(portOrVlanId) {}
   explicit FakeRouterInterface(const sai_object_id_t& virtualRouterId)
       : virtualRouterId(virtualRouterId),
         type(SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER) {}
@@ -43,7 +44,7 @@ class FakeRouterInterface {
   }
   sai_object_id_t virtualRouterId;
   int32_t type;
-  sai_object_id_t vlanId{0};
+  sai_object_id_t portOrVlanId{0};
   sai_object_id_t id;
   sai_uint32_t mtu{1514};
 

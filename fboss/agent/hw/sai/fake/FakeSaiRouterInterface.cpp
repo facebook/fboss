@@ -24,7 +24,7 @@ sai_status_t create_router_interface_fn(
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
   std::optional<int32_t> type;
-  std::optional<sai_object_id_t> vlanId;
+  std::optional<sai_object_id_t> portOrVlanId;
   std::optional<sai_object_id_t> vrId;
   std::optional<folly::MacAddress> mac;
   std::optional<sai_uint32_t> mtu;
@@ -42,7 +42,8 @@ sai_status_t create_router_interface_fn(
         vrId = attr_list[i].value.oid;
         break;
       case SAI_ROUTER_INTERFACE_ATTR_VLAN_ID:
-        vlanId = attr_list[i].value.oid;
+      case SAI_ROUTER_INTERFACE_ATTR_PORT_ID:
+        portOrVlanId = attr_list[i].value.oid;
         break;
       case SAI_ROUTER_INTERFACE_ATTR_MTU:
         mtu = attr_list[i].value.u32;
@@ -56,8 +57,10 @@ sai_status_t create_router_interface_fn(
   }
   switch (type.value()) {
     case SAI_ROUTER_INTERFACE_TYPE_VLAN:
-      *router_interface_id = fs->routeInterfaceManager.create(
-          FakeRouterInterface(vrId.value(), vlanId.value()));
+    case SAI_ROUTER_INTERFACE_TYPE_PORT:
+      *router_interface_id =
+          fs->routeInterfaceManager.create(FakeRouterInterface(
+              vrId.value(), portOrVlanId.value(), type.value()));
       break;
     case SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER:
       *router_interface_id =
@@ -123,7 +126,13 @@ sai_status_t get_router_interface_attribute_fn(
         if (ri.type != SAI_ROUTER_INTERFACE_TYPE_VLAN) {
           return SAI_STATUS_IS_ATTR_NOT_SUPPORTED(i);
         }
-        attr[i].value.oid = ri.vlanId;
+        attr[i].value.oid = ri.portOrVlanId;
+        break;
+      case SAI_ROUTER_INTERFACE_ATTR_PORT_ID:
+        if (ri.type != SAI_ROUTER_INTERFACE_TYPE_PORT) {
+          return SAI_STATUS_IS_ATTR_NOT_SUPPORTED(i);
+        }
+        attr[i].value.oid = ri.portOrVlanId;
         break;
       case SAI_ROUTER_INTERFACE_ATTR_MTU:
         attr[i].value.u32 = ri.mtu;
