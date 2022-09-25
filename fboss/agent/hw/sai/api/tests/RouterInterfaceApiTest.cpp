@@ -55,6 +55,27 @@ class RouterInterfaceApiTest : public ::testing::Test {
     EXPECT_EQ(vr, fs->routeInterfaceManager.get(rifId).virtualRouterId);
     return rifId;
   }
+  RouterInterfaceSaiId createPortRouterInterface(
+      sai_object_id_t vr = 42,
+      sai_object_id_t port = 43) {
+    SaiPortRouterInterfaceTraits::Attributes::Type typeAttribute(
+        SAI_ROUTER_INTERFACE_TYPE_PORT);
+    SaiPortRouterInterfaceTraits::Attributes::VirtualRouterId
+        virtualRouterIdAttribute(vr);
+    SaiPortRouterInterfaceTraits::Attributes::PortId portIdAttribute(port);
+    auto rifId = routerInterfaceApi->create<SaiPortRouterInterfaceTraits>(
+        {virtualRouterIdAttribute,
+         typeAttribute,
+         portIdAttribute,
+         std::nullopt,
+         std::nullopt},
+        0);
+    EXPECT_EQ(rifId, fs->routeInterfaceManager.get(rifId).id);
+    EXPECT_EQ(vr, fs->routeInterfaceManager.get(rifId).virtualRouterId);
+    EXPECT_EQ(port, fs->routeInterfaceManager.get(rifId).portOrVlanId);
+    return rifId;
+  }
+
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<RouterInterfaceApi> routerInterfaceApi;
   sai_object_id_t switchId;
@@ -142,4 +163,82 @@ TEST_F(RouterInterfaceApiTest, mplsRouterInterface) {
   auto rifId = createMplsRouterInterface();
   auto intf = fs->routeInterfaceManager.get(rifId);
   EXPECT_EQ(intf.type, SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER);
+}
+
+TEST_F(RouterInterfaceApiTest, createPortRif) {
+  createPortRouterInterface();
+}
+
+TEST_F(RouterInterfaceApiTest, setSrcMacPortRif) {
+  auto rifId = createPortRouterInterface();
+  folly::MacAddress mac("42:42:42:42:42:42");
+  SaiPortRouterInterfaceTraits::Attributes::SrcMac ma(mac);
+  SaiPortRouterInterfaceTraits::Attributes::SrcMac ma2;
+  EXPECT_NE(mac, routerInterfaceApi->getAttribute(rifId, ma2));
+  routerInterfaceApi->setAttribute(rifId, ma);
+  EXPECT_EQ(mac, routerInterfaceApi->getAttribute(rifId, ma2));
+}
+
+TEST_F(RouterInterfaceApiTest, setVrIdPortRif) {
+  auto rifId = createPortRouterInterface();
+  SaiPortRouterInterfaceTraits::Attributes::VirtualRouterId
+      virtualRouterIdAttribute(10);
+  SaiPortRouterInterfaceTraits::Attributes::VirtualRouterId
+      virtualRouterIdAttribute2;
+  EXPECT_EQ(
+      42, routerInterfaceApi->getAttribute(rifId, virtualRouterIdAttribute2));
+  EXPECT_THROW(
+      try {
+        routerInterfaceApi->setAttribute(rifId, virtualRouterIdAttribute);
+      } catch (const SaiApiError& e) {
+        EXPECT_EQ(e.getSaiStatus(), SAI_STATUS_INVALID_PARAMETER);
+        throw;
+      },
+      SaiApiError);
+  EXPECT_EQ(
+      42, routerInterfaceApi->getAttribute(rifId, virtualRouterIdAttribute2));
+}
+
+TEST_F(RouterInterfaceApiTest, setPortId) {
+  auto rifId = createPortRouterInterface();
+  SaiPortRouterInterfaceTraits::Attributes::PortId portIdAttribute(10);
+  SaiPortRouterInterfaceTraits::Attributes::PortId portIdAttribute2;
+  EXPECT_EQ(43, routerInterfaceApi->getAttribute(rifId, portIdAttribute2));
+  EXPECT_THROW(
+      try {
+        routerInterfaceApi->setAttribute(rifId, portIdAttribute);
+      } catch (const SaiApiError& e) {
+        EXPECT_EQ(e.getSaiStatus(), SAI_STATUS_INVALID_PARAMETER);
+        throw;
+      },
+      SaiApiError);
+
+  EXPECT_EQ(43, routerInterfaceApi->getAttribute(rifId, portIdAttribute2));
+}
+
+TEST_F(RouterInterfaceApiTest, setMtuPortRif) {
+  auto rifId = createPortRouterInterface();
+  sai_uint32_t mtu{9000};
+  SaiPortRouterInterfaceTraits::Attributes::Mtu mtu1{mtu};
+  SaiPortRouterInterfaceTraits::Attributes::Mtu mtu2;
+  EXPECT_NE(mtu, routerInterfaceApi->getAttribute(rifId, mtu2));
+  EXPECT_EQ(1514 /*default*/, routerInterfaceApi->getAttribute(rifId, mtu2));
+  routerInterfaceApi->setAttribute(rifId, mtu1);
+  EXPECT_EQ(mtu, routerInterfaceApi->getAttribute(rifId, mtu2));
+}
+
+TEST_F(RouterInterfaceApiTest, formatPortRouterInterfaceAttributes) {
+  std::string macStr{"42:42:42:42:42:42"};
+  SaiPortRouterInterfaceTraits::Attributes::SrcMac sm{
+      folly::MacAddress{macStr}};
+  EXPECT_EQ(fmt::format("SrcMac: {}", macStr), fmt::format("{}", sm));
+  SaiPortRouterInterfaceTraits::Attributes::Type t{
+      SAI_ROUTER_INTERFACE_TYPE_VLAN};
+  EXPECT_EQ("Type: 1", fmt::format("{}", t));
+  SaiPortRouterInterfaceTraits::Attributes::VirtualRouterId vrid{0};
+  EXPECT_EQ("VirtualRouterId: 0", fmt::format("{}", vrid));
+  SaiPortRouterInterfaceTraits::Attributes::PortId pid{42};
+  EXPECT_EQ("PortId: 42", fmt::format("{}", pid));
+  SaiPortRouterInterfaceTraits::Attributes::Mtu m{9000};
+  EXPECT_EQ("Mtu: 9000", fmt::format("{}", m));
 }
