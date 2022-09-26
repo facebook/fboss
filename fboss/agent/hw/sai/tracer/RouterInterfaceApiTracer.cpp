@@ -25,6 +25,11 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _RouterInterfaceMap{
     SAI_ATTR_MAP(VlanRouterInterface, VirtualRouterId),
     SAI_ATTR_MAP(VlanRouterInterface, VlanId),
     SAI_ATTR_MAP(VlanRouterInterface, Mtu),
+    SAI_ATTR_MAP(PortRouterInterface, SrcMac),
+    SAI_ATTR_MAP(PortRouterInterface, Type),
+    SAI_ATTR_MAP(PortRouterInterface, VirtualRouterId),
+    SAI_ATTR_MAP(PortRouterInterface, PortId),
+    SAI_ATTR_MAP(PortRouterInterface, Mtu),
 };
 } // namespace
 
