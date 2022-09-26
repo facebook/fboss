@@ -850,5 +850,6 @@ void ServiceConfig::prepareDict() {
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmRangeMin;
   configDict_["pwm_range_max"] =
       fan_config_structs::FsvcConfigDictIndex::kFsvcCfgPwmRangeMax;
+  configDict_["value"] = fan_config_structs::FsvcConfigDictIndex::kFsvcCfgValue;
 }
 } // namespace facebook::fboss::platform
