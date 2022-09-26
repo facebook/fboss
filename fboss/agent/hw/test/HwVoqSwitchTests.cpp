@@ -51,18 +51,22 @@ TEST_F(HwVoqSwitchTest, applyConfig) {
 }
 
 TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
-  folly::IPAddressV6 neighborIp{"1::2"};
-  const VlanID kVlanID{0};
-  auto addRemoveNeighbor = [this, neighborIp, kVlanID](
+  auto addRemoveNeighbor = [this](
                                const std::shared_ptr<SwitchState>& inState,
                                bool add) {
+    const VlanID kVlanID{utility::kBaseVlanId};
+    folly::IPAddressV6 neighborIp{"1::2"};
     auto ip = neighborIp;
     auto outState{inState->clone()};
     auto neighborTable =
         outState->getVlans()->getVlan(kVlanID)->getNdpTable()->modify(
             kVlanID, &outState);
     if (add) {
+      const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
+      const InterfaceID kIntfID(101);
       neighborTable->addPendingEntry(ip, InterfaceID(101));
+      neighborTable->updateEntry(
+          ip, kNeighborMac, PortDescriptor(masterLogicalPortIds()[0]), kIntfID);
     } else {
       neighborTable->removeEntry(ip);
     }
