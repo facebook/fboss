@@ -295,7 +295,6 @@ cfg::SwitchConfig genPortVlanCfg(
       config.vlanPorts()->push_back(vlanPort);
     }
   }
-
   return config;
 }
 } // namespace
@@ -427,6 +426,7 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
   std::vector<PortID> vlanPorts;
   auto idx = 0;
   auto vlan = baseVlanId;
+  auto switchType = hwSwitch->getPlatform()->getAsic()->getSwitchType();
   for (auto port : ports) {
     vlanPorts.push_back(port);
     auto portType =
@@ -436,46 +436,54 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     }
     // For non NPU switch type vendor SAI impls don't support
     // tagging packet at port ingress.
-    port2vlan[port] = hwSwitch->getPlatform()->getAsic()->getSwitchType() ==
-            cfg::SwitchType::NPU
-        ? VlanID(vlan)
-        : VlanID(0);
-    idx++;
-    // If current vlan has portsPerIntf port,
-    // then add a new vlan
-    if (idx % portsPerIntf == 0) {
-      vlans.push_back(VlanID(vlan));
-      vlan++;
+    if (switchType == cfg::SwitchType::NPU) {
+      port2vlan[port] = VlanID(vlan);
+      idx++;
+      // If current vlan has portsPerIntf port,
+      // then add a new vlan
+      if (idx % portsPerIntf == 0) {
+        vlans.push_back(VlanID(vlan));
+        vlan++;
+      }
+    } else {
+      port2vlan[port] = VlanID(0);
     }
   }
   auto config = genPortVlanCfg(hwSwitch, vlanPorts, port2vlan, vlans, lbMode);
-  auto addInterface =
-      [&config, baseVlanId, setInterfaceMac, interfaceHasSubnet](
-          int32_t intfId, int32_t vlanId, cfg::InterfaceType type) {
-        auto i = config.interfaces()->size();
-        config.interfaces()->push_back(cfg::Interface{});
-        *config.interfaces()[i].intfID() = intfId;
-        *config.interfaces()[i].vlanID() = vlanId;
-        *config.interfaces()[i].routerID() = 0;
-        *config.interfaces()[i].type() = type;
-        if (setInterfaceMac) {
-          config.interfaces()[i].mac() = getLocalCpuMacStr();
-        }
-        config.interfaces()[i].mtu() = 9000;
-        if (interfaceHasSubnet) {
-          config.interfaces()[i].ipAddresses()->resize(2);
-          auto ipDecimal = folly::sformat("{}", i + 1);
-          config.interfaces()[i].ipAddresses()[0] = FLAGS_nodeZ
-              ? folly::sformat("{}.0.0.2/24", ipDecimal)
-              : folly::sformat("{}.0.0.1/24", ipDecimal);
-          config.interfaces()[i].ipAddresses()[1] = FLAGS_nodeZ
-              ? folly::sformat("{}::1/64", ipDecimal)
-              : folly::sformat("{}::0/64", ipDecimal);
-        }
-      };
-
+  auto addInterface = [&config, baseVlanId](
+                          int32_t intfId,
+                          int32_t vlanId,
+                          cfg::InterfaceType type,
+                          bool setMac,
+                          bool hasSubnet) {
+    auto i = config.interfaces()->size();
+    config.interfaces()->push_back(cfg::Interface{});
+    *config.interfaces()[i].intfID() = intfId;
+    *config.interfaces()[i].vlanID() = vlanId;
+    *config.interfaces()[i].routerID() = 0;
+    *config.interfaces()[i].type() = type;
+    if (setMac) {
+      config.interfaces()[i].mac() = getLocalCpuMacStr();
+    }
+    config.interfaces()[i].mtu() = 9000;
+    if (hasSubnet) {
+      config.interfaces()[i].ipAddresses()->resize(2);
+      auto ipDecimal = folly::sformat("{}", i + 1);
+      config.interfaces()[i].ipAddresses()[0] = FLAGS_nodeZ
+          ? folly::sformat("{}.0.0.2/24", ipDecimal)
+          : folly::sformat("{}.0.0.1/24", ipDecimal);
+      config.interfaces()[i].ipAddresses()[1] = FLAGS_nodeZ
+          ? folly::sformat("{}::1/64", ipDecimal)
+          : folly::sformat("{}::0/64", ipDecimal);
+    }
+  };
   for (auto i = 0; i < vlans.size(); ++i) {
-    addInterface(baseVlanId + i, baseVlanId + i, cfg::InterfaceType::VLAN);
+    addInterface(
+        vlans[i],
+        vlans[i],
+        cfg::InterfaceType::VLAN,
+        setInterfaceMac,
+        interfaceHasSubnet);
   }
   // Create interfaces for local sys ports on VOQ switches
   if (hwSwitch->getPlatform()->getAsic()->getSwitchType() ==
@@ -489,8 +497,27 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       // TODO - consume sys port range begin from config
       auto constexpr kSysportRangeBegin = 100;
       auto intfId = kSysportRangeBegin + *port.logicalID();
-      addInterface(intfId, 0, cfg::InterfaceType::SYSTEM_PORT);
+      addInterface(
+          intfId,
+          0,
+          cfg::InterfaceType::SYSTEM_PORT,
+          setInterfaceMac,
+          interfaceHasSubnet);
     }
+    // Add a dummy VLAN/RIF pair to hold neighbor entries. Ultimately
+    // we will just move neighbor entry table to RIFs, but for now
+    // we continue to hold them with VLAN objects in switch state
+    cfg::Vlan dummyVlan;
+    dummyVlan.id() = kBaseVlanId;
+    dummyVlan.name() = "vlan" + std::to_string(*dummyVlan.id());
+    dummyVlan.routable() = true;
+    config.vlans()->push_back(dummyVlan);
+    addInterface(
+        *dummyVlan.id(),
+        *dummyVlan.id(),
+        cfg::InterfaceType::VLAN,
+        true,
+        false);
   }
   return config;
 }
