@@ -74,13 +74,16 @@ class SaiSwitch : public HwSwitch {
 
   void unregisterCallbacks() noexcept override;
   /*
-   * SaiSwitch requires L2/FDB entries to be created for resolved
-   * neighbors to be able to compute egress ports for nhops. A join
+   * SaiSwitch in NPU mode requires L2/FDB entries to be created for
+   * resolved neighbors to be able to compute egress ports for nhops. A join
    * b/w the FDB (mac, port), neighbor (ip, mac) is done to figure
-   * out the nhop ip-> mac, egress port information
+   * out the nhop ip-> mac, egress port information.
+   * In non NPU mode, we use port based RIFs, where a each port is
+   * associated with a RIF. There just the neighbor (ip, mac) and associated
+   * port RIF is enough to get the egress port.
    */
   bool needL2EntryForNeighbor() const override {
-    return true;
+    return switchType_ == cfg::SwitchType::NPU;
   }
 
   std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
