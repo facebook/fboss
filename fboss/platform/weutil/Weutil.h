@@ -6,6 +6,5 @@
 
 namespace facebook::fboss::platform {
 
-std::unique_ptr<WeutilInterface> get_plat_weutil(void);
-
-}
+std::unique_ptr<WeutilInterface> get_plat_weutil(std::string eeprom = "");
+} // namespace facebook::fboss::platform

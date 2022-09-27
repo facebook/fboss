@@ -19,17 +19,21 @@ using namespace facebook::fboss;
 using namespace facebook;
 
 DEFINE_bool(json, false, "output in JSON format");
+DEFINE_string(eeprom, "", "EEPROM device type");
 
 FOLLY_INIT_LOGGING_CONFIG(".=FATAL; default:async=true");
+
 /*
  * This utility program will output Chassis info for Darwin
  */
 int main(int argc, char* argv[]) {
+  std::unique_ptr<WeutilInterface> weutilInstance;
   folly::init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
 
-  std::unique_ptr<WeutilInterface> weutilInstance = get_plat_weutil();
+  weutilInstance = get_plat_weutil(FLAGS_eeprom);
+
   if (weutilInstance) {
     if (FLAGS_json) {
       weutilInstance->printInfoJson();

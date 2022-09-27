@@ -8,16 +8,21 @@
 
 namespace facebook::fboss::platform {
 
-std::unique_ptr<WeutilInterface> get_plat_weutil(void) {
+std::unique_ptr<WeutilInterface> get_plat_weutil(std::string eeprom) {
   facebook::fboss::PlatformProductInfo prodInfo{FLAGS_fruid_filepath};
   prodInfo.initialize();
   if (prodInfo.getMode() == PlatformMode::DARWIN) {
-    return std::make_unique<WeutilDarwin>();
+    std::unique_ptr<WeutilDarwin> pDarwinIntf;
+    pDarwinIntf = std::make_unique<WeutilDarwin>(eeprom);
+    if (pDarwinIntf->verifyOptions()) {
+      return std::move(pDarwinIntf);
+    } else {
+      return nullptr;
+    }
   }
 
   XLOG(INFO) << "The platform (" << toString(prodInfo.getMode())
              << ") is not supported" << std::endl;
   return nullptr;
 }
-
 } // namespace facebook::fboss::platform

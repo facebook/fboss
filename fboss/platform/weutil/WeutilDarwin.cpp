@@ -13,6 +13,7 @@
 #include "fboss/platform/weutil/prefdl/Prefdl.h"
 
 using namespace facebook::fboss::platform::helpers;
+DEFINE_bool(h, false, "Help");
 
 namespace {
 const std::string kPathPrefix = "/tmp/WeutilDarwin";
@@ -26,6 +27,14 @@ const std::string kFlashromGetContent = " -l " + kPathPrefix +
 
 const std::string kddComands = "dd if=" + kPathPrefix + "/bios of=" + kPredfl +
     " bs=1 skip=8192 count=61440 > /dev/null 2>&1";
+
+// Map eeprom_dev_type to symlink of sysfs path
+const std::unordered_map<std::string, std::string> eeprom_dev_mapping{
+    {"pem", "/run/devmap/eeproms/PEM_EEPROM"},
+    {"fanspinner", "/run/devmap/eeproms/FANSPINNER_EEPROM"},
+    {"rackmon", "/run/devmap/eeproms/RACKMON_EEPROM"},
+    {"chassis", "/tmp/WeutilDarwin/system-prefdl-bin"},
+};
 
 // Map weutil fields to prefld fields
 const std::unordered_map<std::string, std::string> kMapping{
@@ -43,8 +52,23 @@ const std::unordered_map<std::string, std::string> kMapping{
 } // namespace
 
 namespace facebook::fboss::platform {
+WeutilDarwin::WeutilDarwin(std::string eeprom) : eeprom_(eeprom) {
+  std::transform(eeprom_.begin(), eeprom_.end(), eeprom_.begin(), ::tolower);
+  if (eeprom_ == "" || eeprom_ == "chassis") {
+    genSpiPrefdlFile();
+  } else {
+    // the symblink file should be created by udev rule already.
+    auto _it = eeprom_dev_mapping.find(eeprom_);
+    if (_it != eeprom_dev_mapping.end()) {
+      if (!std::filesystem::exists(_it->second)) {
+        throw std::runtime_error(
+            "eeprom device: " + _it->second + " does not exist!");
+      }
+    }
+  }
+}
 
-WeutilDarwin::WeutilDarwin() {
+void WeutilDarwin::genSpiPrefdlFile(void) {
   int retVal = 0;
   std::string ret;
 
@@ -55,7 +79,6 @@ WeutilDarwin::WeutilDarwin() {
   }
 
   ret = execCommandUnchecked(kCreteLayout, retVal);
-
   if (retVal != 0) {
     throw std::runtime_error("Cannot create layout file with: " + kCreteLayout);
   }
@@ -84,7 +107,6 @@ WeutilDarwin::WeutilDarwin() {
   }
 
   ret = execCommandUnchecked(getPrefdl, retVal);
-
   if (retVal != 0) {
     throw std::runtime_error(folly::to<std::string>(
         "Cannot create BIOS file with: ",
@@ -95,13 +117,13 @@ WeutilDarwin::WeutilDarwin() {
   }
 
   ret = execCommandUnchecked(kddComands, retVal);
-
   if (retVal != 0) {
     throw std::runtime_error("Cannot create prefdl file with: " + kddComands);
   }
 }
 
-std::vector<std::pair<std::string, std::string>> WeutilDarwin::getInfo() {
+std::vector<std::pair<std::string, std::string>> WeutilDarwin::getInfo(
+    __attribute__((unused)) std::string eeprom) {
   PrefdlBase prefdl(kPredfl);
 
   std::vector<std::pair<std::string, std::string>> ret;
@@ -117,7 +139,17 @@ std::vector<std::pair<std::string, std::string>> WeutilDarwin::getInfo() {
 }
 
 void WeutilDarwin::printInfo() {
-  PrefdlBase prefdl(kPredfl);
+  std::unique_ptr<PrefdlBase> pPrefdl;
+
+  if (eeprom_ != "") {
+    auto _it = eeprom_dev_mapping.find(eeprom_);
+    if (_it == eeprom_dev_mapping.end()) {
+      throw std::runtime_error("invalid eeprom type: " + eeprom_);
+    }
+    pPrefdl = std::make_unique<PrefdlBase>(_it->second);
+  } else {
+    pPrefdl = std::make_unique<PrefdlBase>(kPredfl);
+  }
 
   for (auto item : weFields_) {
     if (item.first == "Wedge EEPROM") {
@@ -127,15 +159,26 @@ void WeutilDarwin::printInfo() {
       auto it = kMapping.find(item.first);
       std::cout << folly::to<std::string>(item.first, ": ")
                 << (it == kMapping.end() ? item.second
-                                         : prefdl.getField(it->second))
+                                         : pPrefdl->getField(it->second))
                 << std::endl;
     }
   }
 }
 
 void WeutilDarwin::printInfoJson() {
-  PrefdlBase prefdl(kPredfl);
+  std::unique_ptr<PrefdlBase> pPrefdl;
   folly::dynamic wedgeInfo = folly::dynamic::object;
+
+  if (eeprom_ != "") {
+    auto _it = eeprom_dev_mapping.find(eeprom_);
+    if (_it == eeprom_dev_mapping.end()) {
+      throw std::runtime_error("invalid eeprom type: " + eeprom_);
+    }
+    pPrefdl = std::make_unique<PrefdlBase>(_it->second);
+
+  } else {
+    pPrefdl = std::make_unique<PrefdlBase>(kPredfl);
+  }
 
   wedgeInfo["Actions"] = folly::dynamic::array();
   wedgeInfo["Resources"] = folly::dynamic::array();
@@ -145,7 +188,7 @@ void WeutilDarwin::printInfoJson() {
     if (item.first != "Wedge EEPROM") {
       auto it = kMapping.find(item.first);
       wedgeInfo["Information"][item.first] =
-          (it == kMapping.end() ? item.second : prefdl.getField(it->second));
+          (it == kMapping.end() ? item.second : pPrefdl->getField(it->second));
     }
   }
 
@@ -158,6 +201,31 @@ void WeutilDarwin::printInfoJson() {
     wedgeInfo["Information"]["Extended MAC Address Size"] = "1";
   }
   std::cout << folly::toPrettyJson(wedgeInfo);
+}
+
+bool WeutilDarwin::verifyOptions(void) {
+  if (FLAGS_h) {
+    printUsage();
+    return false;
+  }
+  if (eeprom_ != "") {
+    if (eeprom_ != "pem" && eeprom_ != "fanspinner" && eeprom_ != "rackmon" &&
+        eeprom_ != "chassis") {
+      printUsage();
+      return false;
+    }
+  }
+  return true;
+}
+
+void WeutilDarwin::printUsage(void) {
+  std::cout
+      << "weutil [--h] [-json] [--eeprom pem|fanspinner|rackmon|chassis(default)]"
+      << std::endl;
+
+  std::cout << "usage examples:" << std::endl;
+  std::cout << "    weutil" << std::endl;
+  std::cout << "    weutil --eeprom pem" << std::endl;
 }
 
 } // namespace facebook::fboss::platform
