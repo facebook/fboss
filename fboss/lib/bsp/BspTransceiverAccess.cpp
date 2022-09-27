@@ -2,17 +2,8 @@
 
 #include "fboss/lib/bsp/BspTransceiverAccess.h"
 
-#include <fcntl.h>
-#include <folly/Format.h>
-#include <folly/Range.h>
-#include <folly/lang/Bits.h>
-#include <folly/logging/xlog.h>
-#include <gflags/gflags.h>
-#include <linux/i2c-dev.h>
-#include <linux/i2c.h>
-#include <stdint.h>
-#include <sys/ioctl.h>
-#include "fboss/lib/CommonFileUtils.h"
+#include <thrift/lib/cpp/util/EnumUtils.h>
+#include "fboss/lib/bsp/BspTransceiverCpldAccess.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 
 namespace facebook {
@@ -23,46 +14,22 @@ BspTransceiverAccess::BspTransceiverAccess(
     BspTransceiverMapping& tcvrMapping) {
   tcvrMapping_ = tcvrMapping;
   tcvrID_ = tcvr;
+  auto accessControlType = *tcvrMapping_.accessControl()->type();
+  if (accessControlType == ResetAndPresenceAccessType::CPLD) {
+    impl_ = std::make_unique<BspTransceiverCpldAccess>(tcvr, tcvrMapping);
+  } else {
+    throw BspTransceiverAccessError(
+        "Invalid AccessControlType " +
+        apache::thrift::util::enumNameSafe(accessControlType));
+  }
 }
 
 void BspTransceiverAccess::init(bool forceReset) {
-  // TODO: Check access type (GPIO/CPLD) and handle accordingly
-  CHECK(tcvrMapping_.accessControl()->reset()->sysfsPath());
-  CHECK(tcvrMapping_.accessControl()->reset()->mask());
-  auto resetPath = *tcvrMapping_.accessControl()->reset()->sysfsPath();
-  uint8_t resetMask =
-      static_cast<uint8_t>(*tcvrMapping_.accessControl()->reset()->mask());
-  try {
-    auto status = std::stoi(readSysfs(resetPath), nullptr, 16);
-    if (forceReset) {
-      status = status & ~resetMask;
-      writeSysfs(resetPath, std::to_string(status));
-    }
-    status = status | resetMask;
-    writeSysfs(resetPath, std::to_string(status));
-  } catch (std::exception& ex) {
-    XLOG(ERR) << fmt::format(
-        "BspTransceiverIOTrace: init() failed to reset/unreset TCVR {:d} (1 base)",
-        tcvrID_);
-  }
+  impl_->init(forceReset);
 }
 
 bool BspTransceiverAccess::isPresent() {
-  // TODO: Check access type (GPIO/CPLD) and handle accordingly
-  bool retVal = false;
-  CHECK(tcvrMapping_.accessControl()->presence()->sysfsPath());
-  CHECK(tcvrMapping_.accessControl()->presence()->mask());
-  auto presencePath = *tcvrMapping_.accessControl()->presence()->sysfsPath();
-  auto presenceMask = *tcvrMapping_.accessControl()->presence()->mask();
-  try {
-    auto status = std::stoi(readSysfs(presencePath), nullptr, 16);
-    retVal = !(status & presenceMask);
-  } catch (std::exception& ex) {
-    XLOG(ERR) << fmt::format(
-        "BspTransceiverIOTrace: isPresent() failed to get Present status for TCVR {:d} (1 base)",
-        tcvrID_);
-  }
-  return retVal;
+  return impl_->isPresent();
 }
 
 } // namespace fboss

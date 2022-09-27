@@ -70,6 +70,8 @@ add_library(qsfp_bsp_core
   fboss/lib/bsp/BspPimContainer.cpp
   fboss/lib/bsp/BspSystemContainer.cpp
   fboss/lib/bsp/BspTransceiverAccess.cpp
+  fboss/lib/bsp/BspTransceiverAccessImpl.cpp
+  fboss/lib/bsp/BspTransceiverCpldAccess.cpp
   fboss/lib/bsp/BspTransceiverApi.cpp
   fboss/lib/bsp/BspTransceiverContainer.cpp
   fboss/lib/bsp/BspTransceiverIO.cpp
