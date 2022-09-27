@@ -1112,6 +1112,12 @@ void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
     routeCounterTable_->setMaxRouteCounterIDs(
         newSwitchSettings->getMaxRouteCounterIDs());
   }
+
+  if (oldSwitchSettings->getExactMatchTableConfig() !=
+      newSwitchSettings->getExactMatchTableConfig()) {
+    XLOG(DBG3) << "ExactMatch table setting changed";
+    // TODO use the settings to init hw table
+  }
 }
 
 void BcmSwitch::processMacTableChanges(const StateDelta& stateDelta) {
