@@ -102,6 +102,8 @@ target_link_libraries(state
   Folly::folly
 )
 
+set_target_properties(state PROPERTIES COMPILE_FLAGS "-DENABLE_DYNAMIC_APIS")
+
 add_library(state_utils
   fboss/agent/state/StateUtils.cpp
 )
