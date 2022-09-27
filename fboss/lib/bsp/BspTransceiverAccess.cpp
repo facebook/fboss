@@ -30,11 +30,12 @@ void BspTransceiverAccess::init(bool forceReset) {
   CHECK(tcvrMapping_.accessControl()->reset()->sysfsPath());
   CHECK(tcvrMapping_.accessControl()->reset()->mask());
   auto resetPath = *tcvrMapping_.accessControl()->reset()->sysfsPath();
-  auto resetMask = *tcvrMapping_.accessControl()->reset()->mask();
+  uint8_t resetMask =
+      static_cast<uint8_t>(*tcvrMapping_.accessControl()->reset()->mask());
   try {
     auto status = std::stoi(readSysfs(resetPath), nullptr, 16);
     if (forceReset) {
-      status = status & ~(1 << resetMask);
+      status = status & ~resetMask;
       writeSysfs(resetPath, std::to_string(status));
     }
     status = status | resetMask;

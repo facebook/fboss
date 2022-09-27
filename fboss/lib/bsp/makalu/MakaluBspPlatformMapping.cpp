@@ -61,7 +61,7 @@ static BspPlatformMappingThrift buildMakaluPlatformMapping() {
     int tcvrIDForMask = tcvr >= 37 ? (tcvr - 37) : tcvr;
     resetInfo.sysfsPath() = resetPath;
     presenceInfo.sysfsPath() = presencePath;
-    resetInfo.mask() = ~(1 << ((tcvrIDForMask - 1) % 8));
+    resetInfo.mask() = 1 << (tcvrIDForMask % 8);
     presenceInfo.mask() = 1 << (tcvrIDForMask % 8);
     BspTransceiverAccessControllerInfo accessControl;
     accessControl.controllerId() = fmt::format("accessController-{}", tcvr);
