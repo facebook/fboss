@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include <fboss/agent/gen-cpp2/switch_config_types.h>
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -277,6 +278,11 @@ TEST(SwitchSettingsTest, ThrifyMigration) {
 
   *config.switchSettings()->qcmEnable() = true;
 
+  cfg::ExactMatchTableConfig exactMatchTableConfig;
+  exactMatchTableConfig.name() = "TeFlowTable";
+  exactMatchTableConfig.dstPrefixLength() = 59;
+  *config.switchSettings()->exactMatchTableConfigs() = {exactMatchTableConfig};
+
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   validateThriftyMigration(*stateV1->getSwitchSettings());
@@ -320,4 +326,50 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_FALSE(switchSettingsV2->getSwitchId().has_value());
   validateNodeSerialization(*switchSettingsV2);
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV2, &config, platform.get()));
+}
+
+TEST(SwitchSettingsTest, applyExactMatchTableConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  // Check default value
+  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV0);
+  EXPECT_EQ(switchSettingsV0->getExactMatchTableConfig().size(), 0);
+
+  // Check if value is updated
+  cfg::SwitchConfig config;
+
+  cfg::ExactMatchTableConfig tableConfig;
+  tableConfig.name() = "TeFlowTable";
+  tableConfig.dstPrefixLength() = 59;
+
+  config.switchSettings()->exactMatchTableConfigs() = {tableConfig};
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_EQ(switchSettingsV1->getExactMatchTableConfig().size(), 1);
+  EXPECT_EQ(
+      switchSettingsV1->getExactMatchTableConfig()[0].name(), "TeFlowTable");
+
+  EXPECT_EQ(
+      switchSettingsV1->getExactMatchTableConfig()[0].dstPrefixLength(), 59);
+
+  // update prefix length
+  (*config.switchSettings()->exactMatchTableConfigs())[0].dstPrefixLength() =
+      51;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  EXPECT_EQ(
+      stateV2->getSwitchSettings()
+          ->getExactMatchTableConfig()[0]
+          .dstPrefixLength(),
+      51);
+
+  // delete the config
+  cfg::SwitchConfig emptyConfig;
+  auto stateV3 = publishAndApplyConfig(stateV2, &emptyConfig, platform.get());
+  EXPECT_NE(nullptr, stateV3);
+  EXPECT_EQ(stateV3->getSwitchSettings()->getExactMatchTableConfig().size(), 0);
 }
