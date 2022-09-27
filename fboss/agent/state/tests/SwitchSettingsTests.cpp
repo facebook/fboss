@@ -219,7 +219,8 @@ TEST(SwitchSettingsTest, ToFromJSON) {
           "maxRouteCounterIDs": 10,
           "blockNeighbors": [],
           "macAddrsToBlock": [],
-          "switchType": 0
+          "switchType": 0,
+          "exactMatchTableConfigs": [{"name": "teFlows", "dstPrefixLength": 59}]
         }
   )";
 
@@ -230,6 +231,10 @@ TEST(SwitchSettingsTest, ToFromJSON) {
   EXPECT_TRUE(switchSettings->isPtpTcEnable());
   EXPECT_EQ(600, switchSettings->getL2AgeTimerSeconds());
   EXPECT_EQ(10, switchSettings->getMaxRouteCounterIDs());
+  EXPECT_EQ(switchSettings->getExactMatchTableConfig().size(), 1);
+  EXPECT_EQ(
+      59, switchSettings->getExactMatchTableConfig()[0].dstPrefixLength());
+  EXPECT_EQ("teFlows", switchSettings->getExactMatchTableConfig()[0].name());
 
   auto dyn1 = switchSettings->toFollyDynamic();
   auto dyn2 = folly::parseJson(jsonStr);

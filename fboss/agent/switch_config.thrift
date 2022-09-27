@@ -1400,6 +1400,12 @@ enum SwitchType {
   VOQ = 2,
   FABRIC = 3,
 }
+
+struct ExactMatchTableConfig {
+  1: string name;
+  2: optional i32 dstPrefixLength;
+}
+
 /*
  * Switch specific settings: global to the switch
  */
@@ -1426,6 +1432,7 @@ struct SwitchSettings {
   8: SwitchType switchType = SwitchType.NPU;
   // Switch id (only applicable for VOQ based systems)
   9: optional i64 switchId;
+  10: list<ExactMatchTableConfig> exactMatchTableConfigs;
 }
 
 // Global buffer pool shared by {port, pgs}

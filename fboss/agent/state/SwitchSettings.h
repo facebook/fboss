@@ -42,7 +42,8 @@ struct SwitchSettingsFields
                l2AgeTimerSeconds,
                maxRouteCounterIDs,
                blockNeighbors,
-               macAddrsToBlock) ==
+               macAddrsToBlock,
+               exactMatchTableConfigs) ==
         std::tie(
                other.l2LearningMode,
                other.qcmEnable,
@@ -50,7 +51,8 @@ struct SwitchSettingsFields
                other.l2AgeTimerSeconds,
                other.maxRouteCounterIDs,
                other.blockNeighbors,
-               other.macAddrsToBlock);
+               other.macAddrsToBlock,
+               other.exactMatchTableConfigs);
   }
 
   cfg::L2LearningMode l2LearningMode = cfg::L2LearningMode::HARDWARE;
@@ -62,6 +64,7 @@ struct SwitchSettingsFields
   std::vector<std::pair<VlanID, folly::MacAddress>> macAddrsToBlock;
   cfg::SwitchType switchType = cfg::SwitchType::NPU;
   std::optional<int64_t> switchId;
+  std::vector<cfg::ExactMatchTableConfig> exactMatchTableConfigs;
 };
 
 /*
@@ -154,6 +157,15 @@ class SwitchSettings : public ThriftyBaseT<
   }
   void setSwitchId(std::optional<int64_t> switchId) {
     writableFields()->switchId = switchId;
+  }
+
+  std::vector<cfg::ExactMatchTableConfig> getExactMatchTableConfig() const {
+    return getFields()->exactMatchTableConfigs;
+  }
+
+  void setExactMatchTableConfig(
+      const std::vector<cfg::ExactMatchTableConfig>& exactMatchConfigs) {
+    writableFields()->exactMatchTableConfigs = exactMatchConfigs;
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);

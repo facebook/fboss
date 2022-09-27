@@ -289,6 +289,7 @@ struct SwitchSettingsFields {
   8: switch_config.SwitchType switchType = switch_config.SwitchType.NPU;
   // Switch id (only applicable for VOQ based systems)
   9: optional i64 switchId;
+  10: list<switch_config.ExactMatchTableConfig> exactMatchTableConfigs;
 }
 
 struct RoutePrefix {

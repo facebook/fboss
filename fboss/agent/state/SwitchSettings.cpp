@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/state/SwitchSettings.h"
+#include <fboss/agent/gen-cpp2/switch_config_types.h>
 #include "common/network/if/gen-cpp2/Address_types.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -30,6 +31,9 @@ constexpr auto kMacAddrToBlockVlanID = "macAddrToBlockVlanID";
 constexpr auto kMacAddrToBlockAddr = "macAddrToBlockAddr";
 constexpr auto kSwitchType = "switchType";
 constexpr auto kSwitchId = "switchId";
+constexpr auto kExactMatchTableConfigs = "exactMatchTableConfigs";
+constexpr auto kExactMatchTableName = "name";
+constexpr auto kExactMatchTableDstPrefixLength = "dstPrefixLength";
 
 } // namespace
 
@@ -62,6 +66,17 @@ folly::dynamic SwitchSettingsFields::toFollyDynamicLegacy() const {
   switchSettings[kSwitchType] = static_cast<int>(switchType);
   if (switchId) {
     switchSettings[kSwitchId] = *switchId;
+  }
+
+  switchSettings[kExactMatchTableConfigs] = folly::dynamic::array;
+  for (const auto& exactMatchTableConfig : exactMatchTableConfigs) {
+    folly::dynamic jsonEntry = folly::dynamic::object;
+    jsonEntry[kExactMatchTableName] = *exactMatchTableConfig.name();
+    if (exactMatchTableConfig.dstPrefixLength()) {
+      jsonEntry[kExactMatchTableDstPrefixLength] =
+          *exactMatchTableConfig.dstPrefixLength();
+    }
+    switchSettings[kExactMatchTableConfigs].push_back(jsonEntry);
   }
 
   return switchSettings;
@@ -110,6 +125,17 @@ SwitchSettingsFields SwitchSettingsFields::fromFollyDynamicLegacy(
   if (json.find(kSwitchId) != json.items().end()) {
     switchSettings.switchId = json[kSwitchId].asInt();
   }
+  if (json.find(kExactMatchTableConfigs) != json.items().end()) {
+    for (const auto& entry : json[kExactMatchTableConfigs]) {
+      cfg::ExactMatchTableConfig tableConfig;
+      tableConfig.name() = entry[kExactMatchTableName].asString();
+      if (entry.find(kExactMatchTableDstPrefixLength) != entry.items().end()) {
+        tableConfig.dstPrefixLength() =
+            entry[kExactMatchTableDstPrefixLength].asInt();
+      }
+      switchSettings.exactMatchTableConfigs.emplace_back(tableConfig);
+    }
+  }
 
   return switchSettings;
 }
@@ -140,7 +166,9 @@ bool SwitchSettings::operator==(const SwitchSettings& switchSettings) const {
       getFields()->blockNeighbors == switchSettings.getBlockNeighbors() &&
       getFields()->macAddrsToBlock == switchSettings.getMacAddrsToBlock() &&
       getFields()->switchType == switchSettings.getSwitchType() &&
-      getFields()->switchId == switchSettings.getSwitchId());
+      getFields()->switchId == switchSettings.getSwitchId() &&
+      getFields()->exactMatchTableConfigs ==
+          switchSettings.getExactMatchTableConfig());
 }
 
 state::SwitchSettingsFields SwitchSettingsFields::toThrift() const {
@@ -168,6 +196,7 @@ state::SwitchSettingsFields SwitchSettingsFields::toThrift() const {
   if (switchId) {
     thriftFields.switchId() = *switchId;
   }
+  thriftFields.exactMatchTableConfigs() = exactMatchTableConfigs;
   return thriftFields;
 }
 
@@ -194,6 +223,7 @@ SwitchSettingsFields SwitchSettingsFields::fromThrift(
   if (fields.switchId()) {
     settings.switchId = *fields.switchId();
   }
+  settings.exactMatchTableConfigs = *fields.exactMatchTableConfigs();
 
   return settings;
 }
