@@ -2977,6 +2977,18 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     switchSettingsChange = true;
   }
 
+  auto originalExactMatchTableConfig =
+      origSwitchSettings->getExactMatchTableConfig();
+  if (originalExactMatchTableConfig !=
+      *cfg_->switchSettings()->exactMatchTableConfigs()) {
+    if (cfg_->switchSettings()->exactMatchTableConfigs()->size() > 1) {
+      throw FbossError("Multiple EM tables not supported yet");
+    }
+    newSwitchSettings->setExactMatchTableConfig(
+        *cfg_->switchSettings()->exactMatchTableConfigs());
+    switchSettingsChange = true;
+  }
+
   return switchSettingsChange ? newSwitchSettings : nullptr;
 }
 
