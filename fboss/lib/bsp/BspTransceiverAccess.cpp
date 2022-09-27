@@ -4,6 +4,10 @@
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/lib/bsp/BspTransceiverCpldAccess.h"
+// LibGpiod is not yet supported with OSS - See T126740581
+#ifndef IS_OSS
+#include "fboss/lib/bsp/BspTransceiverGpioAccess.h"
+#endif
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 
 namespace facebook {
@@ -17,6 +21,11 @@ BspTransceiverAccess::BspTransceiverAccess(
   auto accessControlType = *tcvrMapping_.accessControl()->type();
   if (accessControlType == ResetAndPresenceAccessType::CPLD) {
     impl_ = std::make_unique<BspTransceiverCpldAccess>(tcvr, tcvrMapping);
+// LibGpiod is not yet supported with OSS - See T126740581
+#ifndef IS_OSS
+  } else if (accessControlType == ResetAndPresenceAccessType::GPIO) {
+    impl_ = std::make_unique<BspTransceiverGpioAccess>(tcvr, tcvrMapping);
+#endif
   } else {
     throw BspTransceiverAccessError(
         "Invalid AccessControlType " +
