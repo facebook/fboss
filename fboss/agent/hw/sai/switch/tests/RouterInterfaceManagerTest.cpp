@@ -237,12 +237,44 @@ TEST_F(RouterInterfaceManagerTest, removeRouterInterfaceSubnets) {
   checkSubnets(oldToMeRoutes, false /* should no longer exist*/);
 }
 
+TEST_F(RouterInterfaceManagerTest, removePortRouterInterfaceSubnets) {
+  auto swSysPort = makeSystemPort();
+  auto oldInterface = makeInterface(*swSysPort, {intf0.subnet});
+  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
+      oldInterface);
+  checkPortRouterInterface(saiId, sysPort1, oldInterface->getMac());
+  auto newInterface = oldInterface->clone();
+  newInterface->setAddresses({});
+
+  auto oldToMeRoutes = getSubnetKeys(oldInterface->getID());
+  saiManagerTable->routerInterfaceManager().changeRouterInterface(
+      oldInterface, newInterface);
+  checkSubnets(oldToMeRoutes, false /* should no longer exist*/);
+}
+
 TEST_F(RouterInterfaceManagerTest, changeRouterInterfaceSubnets) {
   auto oldInterface = makeInterface(intf0);
   auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
       oldInterface);
   checkRouterInterface(
       saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
+  auto newInterface = oldInterface->clone();
+  newInterface->setAddresses({{folly::IPAddress{"100.100.100.1"}, 24}});
+
+  auto oldToMeRoutes = getSubnetKeys(oldInterface->getID());
+  saiManagerTable->routerInterfaceManager().changeRouterInterface(
+      oldInterface, newInterface);
+  auto newToMeRoutes = getSubnetKeys(oldInterface->getID());
+  checkSubnets(oldToMeRoutes, false /* should no longer exist*/);
+  checkSubnets(newToMeRoutes, true /* should  exist*/);
+}
+
+TEST_F(RouterInterfaceManagerTest, changePortRouterInterfaceSubnets) {
+  auto swSysPort = makeSystemPort();
+  auto oldInterface = makeInterface(*swSysPort, {intf0.subnet});
+  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
+      oldInterface);
+  checkPortRouterInterface(saiId, sysPort1, oldInterface->getMac());
   auto newInterface = oldInterface->clone();
   newInterface->setAddresses({{folly::IPAddress{"100.100.100.1"}, 24}});
 
@@ -275,6 +307,26 @@ TEST_F(RouterInterfaceManagerTest, addRouterInterfaceSubnets) {
   checkSubnets(newToMeRoutes, true /* should  exist*/);
 }
 
+TEST_F(RouterInterfaceManagerTest, addPortRouterInterfaceSubnets) {
+  auto swSysPort = makeSystemPort();
+  auto oldInterface = makeInterface(*swSysPort, {intf0.subnet});
+  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
+      oldInterface);
+  checkPortRouterInterface(saiId, sysPort1, oldInterface->getMac());
+  auto newInterface = oldInterface->clone();
+  auto addresses = newInterface->getAddresses();
+  addresses.emplace(folly::IPAddress{"100.100.100.1"}, 24);
+  EXPECT_EQ(oldInterface->getAddresses().size() + 1, addresses.size());
+  newInterface->setAddresses(addresses);
+
+  auto oldToMeRoutes = getSubnetKeys(oldInterface->getID());
+  saiManagerTable->routerInterfaceManager().changeRouterInterface(
+      oldInterface, newInterface);
+  auto newToMeRoutes = getSubnetKeys(oldInterface->getID());
+  checkSubnets(oldToMeRoutes, true /* should exist*/);
+  checkSubnets(newToMeRoutes, true /* should  exist*/);
+}
+
 TEST_F(RouterInterfaceManagerTest, getRouterInterface) {
   auto oldInterface = makeInterface(intf0);
   auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
@@ -282,6 +334,19 @@ TEST_F(RouterInterfaceManagerTest, getRouterInterface) {
   auto routerInterfaceHandle =
       saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
           InterfaceID(0));
+  EXPECT_TRUE(routerInterfaceHandle);
+  EXPECT_EQ(routerInterfaceHandle->adapterKey(), saiId);
+}
+
+TEST_F(RouterInterfaceManagerTest, getPortRouterInterface) {
+  auto swSysPort = makeSystemPort();
+  auto oldInterface = makeInterface(*swSysPort, {intf0.subnet});
+  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
+      oldInterface);
+  checkPortRouterInterface(saiId, sysPort1, oldInterface->getMac());
+  auto routerInterfaceHandle =
+      saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
+          InterfaceID(swSysPort->getID()));
   EXPECT_TRUE(routerInterfaceHandle);
   EXPECT_EQ(routerInterfaceHandle->adapterKey(), saiId);
 }
@@ -303,6 +368,19 @@ TEST_F(RouterInterfaceManagerTest, removeRouterInterface) {
   routerInterfaceManager.removeRouterInterface(swInterface);
   auto routerInterfaceHandle =
       saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(swId);
+  EXPECT_FALSE(routerInterfaceHandle);
+}
+
+TEST_F(RouterInterfaceManagerTest, removePortRouterInterface) {
+  auto swSysPort = makeSystemPort();
+  auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
+  std::ignore =
+      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  auto& routerInterfaceManager = saiManagerTable->routerInterfaceManager();
+  routerInterfaceManager.removeRouterInterface(swInterface);
+  auto routerInterfaceHandle =
+      saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
+          InterfaceID(swSysPort->getID()));
   EXPECT_FALSE(routerInterfaceHandle);
 }
 
