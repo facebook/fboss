@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/types.h"
@@ -29,6 +30,10 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
     ManagerTestBase::SetUp();
     intf0 = testInterfaces[0];
     intf1 = testInterfaces[1];
+    sysPort1 =
+        saiManagerTable->systemPortManager().addSystemPort(makeSystemPort());
+    sysPort2 = saiManagerTable->systemPortManager().addSystemPort(
+        makeSystemPort(std::nullopt, 2));
   }
 
   void checkRouterInterface(
@@ -47,6 +52,23 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
     auto mtuGot = saiApiTable->routerInterfaceApi().getAttribute(
         saiRouterInterfaceId, SaiVlanRouterInterfaceTraits::Attributes::Mtu{});
     EXPECT_EQ(VlanSaiId{vlanIdGot}, expectedSaiVlanId);
+    EXPECT_EQ(srcMacGot, expectedSrcMac);
+    EXPECT_EQ(mtuGot, expectedMtu);
+  }
+  void checkPortRouterInterface(
+      RouterInterfaceSaiId saiRouterInterfaceId,
+      SystemPortSaiId expectedSaiPortId,
+      const folly::MacAddress& expectedSrcMac,
+      int expectedMtu = 1500) {
+    SystemPortSaiId saiPortIdGot{saiApiTable->routerInterfaceApi().getAttribute(
+        saiRouterInterfaceId,
+        SaiPortRouterInterfaceTraits::Attributes::PortId{})};
+    auto srcMacGot = saiApiTable->routerInterfaceApi().getAttribute(
+        saiRouterInterfaceId,
+        SaiPortRouterInterfaceTraits::Attributes::SrcMac{});
+    auto mtuGot = saiApiTable->routerInterfaceApi().getAttribute(
+        saiRouterInterfaceId, SaiPortRouterInterfaceTraits::Attributes::Mtu{});
+    EXPECT_EQ(saiPortIdGot, expectedSaiPortId);
     EXPECT_EQ(srcMacGot, expectedSrcMac);
     EXPECT_EQ(mtuGot, expectedMtu);
   }
@@ -78,6 +100,7 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
 
   TestInterface intf0;
   TestInterface intf1;
+  SystemPortSaiId sysPort1, sysPort2;
 };
 
 TEST_F(RouterInterfaceManagerTest, addRouterInterface) {
@@ -86,6 +109,14 @@ TEST_F(RouterInterfaceManagerTest, addRouterInterface) {
       saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
   checkRouterInterface(
       saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
+}
+
+TEST_F(RouterInterfaceManagerTest, addPortRouterInterface) {
+  auto swSysPort = makeSystemPort();
+  auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
+  auto saiId =
+      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  checkPortRouterInterface(saiId, sysPort1, swInterface->getMac());
 }
 
 TEST_F(RouterInterfaceManagerTest, addTwoRouterInterfaces) {
@@ -101,9 +132,32 @@ TEST_F(RouterInterfaceManagerTest, addTwoRouterInterfaces) {
       saiId1, static_cast<VlanSaiId>(intf1.id), intf1.routerMac);
 }
 
+TEST_F(RouterInterfaceManagerTest, addTwoPortRouterInterfaces) {
+  auto swSysPort0 = makeSystemPort();
+  auto swInterface = makeInterface(*swSysPort0, {intf0.subnet});
+  auto saiId =
+      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  checkPortRouterInterface(saiId, sysPort1, swInterface->getMac());
+  auto swSysPort1 = makeSystemPort(std::nullopt, 2);
+  auto swInterface1 = makeInterface(*swSysPort1, {intf0.subnet});
+  auto saiId1 = saiManagerTable->routerInterfaceManager().addRouterInterface(
+      swInterface1);
+  checkPortRouterInterface(saiId1, sysPort2, swInterface1->getMac());
+}
+
 TEST_F(RouterInterfaceManagerTest, addDupRouterInterface) {
   auto swInterface = makeInterface(intf0);
   saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  EXPECT_THROW(
+      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface),
+      FbossError);
+}
+
+TEST_F(RouterInterfaceManagerTest, addDupPortRouterInterface) {
+  auto swSysPort = makeSystemPort();
+  auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
+  std::ignore =
+      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
   EXPECT_THROW(
       saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface),
       FbossError);
@@ -124,6 +178,21 @@ TEST_F(RouterInterfaceManagerTest, changeRouterInterfaceMac) {
   checkRouterInterface(saiId, static_cast<VlanSaiId>(intf0.id), newMac);
 }
 
+TEST_F(RouterInterfaceManagerTest, changePortRouterInterfaceMac) {
+  auto swSysPort = makeSystemPort();
+  auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
+  auto saiId =
+      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  checkPortRouterInterface(saiId, sysPort1, swInterface->getMac());
+  auto newMac = intf0.routerMac;
+  CHECK_NE(swInterface->getMac(), newMac);
+  auto newInterface = swInterface->clone();
+  newInterface->setMac(newMac);
+  saiManagerTable->routerInterfaceManager().changeRouterInterface(
+      swInterface, newInterface);
+  checkPortRouterInterface(saiId, sysPort1, newMac);
+}
+
 TEST_F(RouterInterfaceManagerTest, changeRouterInterfaceMtu) {
   auto swInterface = makeInterface(intf0);
   auto saiId =
@@ -137,6 +206,20 @@ TEST_F(RouterInterfaceManagerTest, changeRouterInterfaceMtu) {
       swInterface, newInterface);
   checkRouterInterface(
       saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac, newMtu);
+}
+
+TEST_F(RouterInterfaceManagerTest, changePortRouterInterfaceMtu) {
+  auto swSysPort = makeSystemPort();
+  auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
+  auto saiId =
+      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  checkPortRouterInterface(saiId, sysPort1, swInterface->getMac());
+  auto newMtu = swInterface->getMtu() + 1000;
+  auto newInterface = swInterface->clone();
+  newInterface->setMtu(newMtu);
+  saiManagerTable->routerInterfaceManager().changeRouterInterface(
+      swInterface, newInterface);
+  checkPortRouterInterface(saiId, sysPort1, swInterface->getMac(), newMtu);
 }
 
 TEST_F(RouterInterfaceManagerTest, removeRouterInterfaceSubnets) {
