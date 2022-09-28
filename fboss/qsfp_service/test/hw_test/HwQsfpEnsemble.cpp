@@ -87,7 +87,8 @@ bool HwQsfpEnsemble::isXphyPlatform() const {
       PlatformMode::YAMP,
       PlatformMode::FUJI,
       PlatformMode::ELBERT,
-      PlatformMode::CLOUDRIPPER};
+      PlatformMode::CLOUDRIPPER,
+      PlatformMode::SANDIA};
 
   return xphyPlatforms.find(getWedgeManager()->getPlatformMode()) !=
       xphyPlatforms.end();
@@ -95,7 +96,7 @@ bool HwQsfpEnsemble::isXphyPlatform() const {
 
 bool HwQsfpEnsemble::isSaiPlatform() const {
   static const std::set<PlatformMode> saiPlatforms = {
-      PlatformMode::ELBERT, PlatformMode::CLOUDRIPPER};
+      PlatformMode::ELBERT, PlatformMode::CLOUDRIPPER, PlatformMode::SANDIA};
 
   return saiPlatforms.find(getWedgeManager()->getPlatformMode()) !=
       saiPlatforms.end();
