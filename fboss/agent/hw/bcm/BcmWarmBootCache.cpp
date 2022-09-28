@@ -211,40 +211,11 @@ folly::dynamic BcmWarmBootCache::toFollyDynamic() const {
   return warmBootCache;
 }
 
-void BcmWarmBootCache::populateFromWarmBootState(
-    const folly::dynamic& warmBootState,
-    std::optional<state::WarmbootState> thriftState) {
-  if (thriftState) {
-    dumpedSwSwitchState_ =
-        SwitchState::uniquePtrFromThrift(*thriftState->swSwitchState());
-    if (FLAGS_check_thrift_state) {
-      CHECK_EQ(
-          dumpedSwSwitchState_->toFollyDynamic(), warmBootState[kSwSwitch]);
-    }
-  } else {
-    dumpedSwSwitchState_ =
-        SwitchState::uniquePtrFromFollyDynamic(warmBootState[kSwSwitch]);
-  }
-  dumpedSwSwitchState_->publish();
-  CHECK(dumpedSwSwitchState_)
-      << "Was not able to recover software state after warmboot";
-
-  // Extract ecmps for dumped host table
-  auto& hostTable = warmBootState[kHwSwitch][kHostTable];
-  for (const auto& ecmpEntry : hostTable[kEcmpHosts]) {
-    auto ecmpEgressId = ecmpEntry[kEcmpEgressId].asInt();
-    if (ecmpEgressId == BcmEgressBase::INVALID) {
-      continue;
-    }
-    // If the entry is valid, then there must be paths associated with it.
-    for (auto path : ecmpEntry[kEcmpEgress][kPaths]) {
-      EgressId e = path.asInt();
-      hwSwitchEcmp2EgressIds_[ecmpEgressId][e]++;
-    }
-  }
+void BcmWarmBootCache::populateEcmpEntryFromWarmBootState(
+    const folly::dynamic& hwWarmBootState) {
   // Extract ecmps from dumped warm boot cache. We
   // may have shut down before a FIB sync
-  auto& ecmpObjects = warmBootState[kHwSwitch][kWarmBootCache][kEcmpObjects];
+  auto& ecmpObjects = hwWarmBootState[kWarmBootCache][kEcmpObjects];
   for (const auto& ecmpEntry : ecmpObjects) {
     auto ecmpEgressId = ecmpEntry[kEcmpEgressId].asInt();
     CHECK(ecmpEgressId != BcmEgressBase::INVALID);
@@ -258,8 +229,11 @@ void BcmWarmBootCache::populateFromWarmBootState(
     XLOG(DBG1) << ecmpIdAndEgress.first << " (from warmboot file) ==> "
                << toEgressId2WeightStr(ecmpIdAndEgress.second);
   }
+}
 
-  auto& wbCache = warmBootState[kHwSwitch][kWarmBootCache];
+void BcmWarmBootCache::populateTrunksFromWarmBootState(
+    const folly::dynamic& hwWarmBootState) {
+  auto& wbCache = hwWarmBootState[kWarmBootCache];
   if (auto it = wbCache.find(kTrunks); it != wbCache.items().end()) {
     auto& trunks = it->second;
     for (const auto& e : trunks.items()) {
@@ -270,7 +244,11 @@ void BcmWarmBootCache::populateFromWarmBootState(
       XLOG(DBG0) << "Aggregate port " << e.first << " => trunk ID " << e.second;
     }
   }
+}
 
+void BcmWarmBootCache::populateRouteCountersFromWarmBootState(
+    const folly::dynamic& hwWarmBootState) {
+  auto& wbCache = hwWarmBootState[kWarmBootCache];
   if (wbCache.find(BcmRouteCounterTableBase::kRouteCounters) !=
       wbCache.items().end()) {
     auto& routeCounterInfo = wbCache[BcmRouteCounterTableBase::kRouteCounters];
@@ -305,8 +283,10 @@ void BcmWarmBootCache::populateFromWarmBootState(
                  << e.second.str();
     }
   }
+}
 
-  // Extract BcmHost and its egress object from the warm boot file
+void BcmWarmBootCache::populateHostEntryFromWarmBootState(
+    const folly::dynamic& hostTable) {
   for (const auto& hostEntry : hostTable[kHosts]) {
     auto egressId = hostEntry[kEgressId].asInt();
     if (egressId == BcmEgressBase::INVALID) {
@@ -343,11 +323,13 @@ void BcmWarmBootCache::populateFromWarmBootState(
                << ") pointing to the egress entry, id=" << egressId
                << " classID: " << classID;
   }
+}
 
-  // extract MPLS next hop and its egress object from the  warm boot file
-  const auto& mplsNextHops = (warmBootState[kHwSwitch].find(kMplsNextHops) !=
-                              warmBootState[kHwSwitch].items().end())
-      ? warmBootState[kHwSwitch][kMplsNextHops]
+void BcmWarmBootCache::populateMplsNextHopFromWarmBootState(
+    const folly::dynamic& hwWarmBootState) {
+  const auto& mplsNextHops =
+      (hwWarmBootState.find(kMplsNextHops) != hwWarmBootState.items().end())
+      ? hwWarmBootState[kMplsNextHops]
       : folly::dynamic::array();
 
   for (const auto& mplsNextHop : mplsNextHops) {
@@ -377,25 +359,30 @@ void BcmWarmBootCache::populateFromWarmBootState(
           BcmLabeledHostKey(vrf, std::move(labels), ip, intfID), egressId);
     }
   }
+}
 
+void BcmWarmBootCache::populateIntfFromWarmBootState(
+    const folly::dynamic& hwWarmBootState) {
   // get l3 intfs for each known vlan in warmboot state file
   // TODO(pshaikh): in earlier warm boot state file, kIntfTable could be
   // absent after two pushes this condition can be removed
-  const auto& intfTable = (warmBootState[kHwSwitch].find(kIntfTable) !=
-                           warmBootState[kHwSwitch].items().end())
-      ? warmBootState[kHwSwitch][kIntfTable]
+  const auto& intfTable =
+      (hwWarmBootState.find(kIntfTable) != hwWarmBootState.items().end())
+      ? hwWarmBootState[kIntfTable]
       : folly::dynamic::array();
   for (const auto& intfTableEntry : intfTable) {
     vlan2BcmIfIdInWarmBootFile_.emplace(
         VlanID(intfTableEntry[kVlan].asInt()), intfTableEntry[kIntfId].asInt());
   }
+}
 
+void BcmWarmBootCache::populateQosPolicyFromWarmBootState(
+    const folly::dynamic& hwWarmBootState) {
   // TODO(pshaikh): in earlier warm boot state file, kQosPolicyTable could be
   // absent after two pushes this condition can be removed
   const auto& qosPolicyTable =
-      (warmBootState[kHwSwitch].find(kQosPolicyTable) !=
-       warmBootState[kHwSwitch].items().end())
-      ? warmBootState[kHwSwitch][kQosPolicyTable]
+      (hwWarmBootState.find(kQosPolicyTable) != hwWarmBootState.items().end())
+      ? hwWarmBootState[kQosPolicyTable]
       : folly::dynamic::object();
   for (const auto& qosPolicy : qosPolicyTable.keys()) {
     auto policyName = qosPolicy.asString();
@@ -418,6 +405,56 @@ void BcmWarmBootCache::populateFromWarmBootState(
           qosPolicyTable[policyName][kOutExp].asInt());
     }
   }
+}
+
+void BcmWarmBootCache::populateFromWarmBootState(
+    const folly::dynamic& warmBootState,
+    std::optional<state::WarmbootState> thriftState) {
+  if (thriftState) {
+    dumpedSwSwitchState_ =
+        SwitchState::uniquePtrFromThrift(*thriftState->swSwitchState());
+    if (FLAGS_check_thrift_state) {
+      CHECK_EQ(
+          dumpedSwSwitchState_->toFollyDynamic(), warmBootState[kSwSwitch]);
+    }
+  } else {
+    dumpedSwSwitchState_ =
+        SwitchState::uniquePtrFromFollyDynamic(warmBootState[kSwSwitch]);
+  }
+  dumpedSwSwitchState_->publish();
+  CHECK(dumpedSwSwitchState_)
+      << "Was not able to recover software state after warmboot";
+
+  auto& hwWarmBootState = warmBootState[kHwSwitch];
+  // Extract ecmps for dumped host table
+  auto& hostTable = hwWarmBootState[kHostTable];
+  for (const auto& ecmpEntry : hostTable[kEcmpHosts]) {
+    auto ecmpEgressId = ecmpEntry[kEcmpEgressId].asInt();
+    if (ecmpEgressId == BcmEgressBase::INVALID) {
+      continue;
+    }
+    // If the entry is valid, then there must be paths associated with it.
+    for (auto path : ecmpEntry[kEcmpEgress][kPaths]) {
+      EgressId e = path.asInt();
+      hwSwitchEcmp2EgressIds_[ecmpEgressId][e]++;
+    }
+  }
+
+  populateEcmpEntryFromWarmBootState(hwWarmBootState);
+
+  populateTrunksFromWarmBootState(hwWarmBootState);
+
+  populateRouteCountersFromWarmBootState(hwWarmBootState);
+
+  // Extract BcmHost and its egress object from the warm boot file
+  populateHostEntryFromWarmBootState(hostTable);
+
+  // extract MPLS next hop and its egress object from the  warm boot file
+  populateMplsNextHopFromWarmBootState(hwWarmBootState);
+
+  populateIntfFromWarmBootState(hwWarmBootState);
+
+  populateQosPolicyFromWarmBootState(hwWarmBootState);
 }
 
 BcmWarmBootCache::EgressId2EgressCitr BcmWarmBootCache::findEgressFromHost(
@@ -768,17 +805,7 @@ std::string BcmWarmBootCache::toEgressId2WeightStr(
   return ss.str();
 }
 
-void BcmWarmBootCache::clear() {
-  // Get rid of all unclaimed entries. The order is important here
-  // since we want to delete entries only after there are no more
-  // references to them.
-  XLOG(DBG1) << "Warm boot: removing unreferenced entries";
-  dumpedSwSwitchState_.reset();
-  hwSwitchEcmp2EgressIds_.clear();
-  // First delete routes (fully qualified and others).
-  //
-  // Nothing references routes, but routes reference ecmp egress and egress
-  // entries which are deleted later
+void BcmWarmBootCache::removeUnclaimedRoutes() {
   for (auto vrfPfxAndRoute : vrfPrefix2Route_) {
     const std::string& routeInfo = folly::to<std::string>(
         "unreferenced route in vrf : ",
@@ -812,12 +839,9 @@ void BcmWarmBootCache::clear() {
     }
   }
   vrfAndIP2Route_.clear();
+}
 
-  // purge any lingering label FIB entries
-  removeUnclaimedLabelSwitchActions();
-
-  // Delete bcm host entries. Nobody references bcm hosts, but
-  // hosts reference egress objects
+void BcmWarmBootCache::removeUnclaimedHostEntries() {
   for (auto vrfIpAndHost : vrfIp2Host_) {
     XLOG(DBG1) << "Deleting host entry in vrf: " << vrfIpAndHost.first.first
                << " for : " << vrfIpAndHost.first.second;
@@ -831,10 +855,9 @@ void BcmWarmBootCache::clear() {
         vrfIpAndHost.first.second);
   }
   vrfIp2Host_.clear();
+}
 
-  // Both routes and host entries (which have been deleted earlier) can refer
-  // to ecmp egress objects.  Ecmp egress objects in turn refer to egress
-  // objects which we delete later
+void BcmWarmBootCache::removeUnclaimedEcmpEgressObjects() {
   for (auto idsAndEcmp : egressIds2Ecmp_) {
     auto& ecmp = idsAndEcmp.second;
     XLOG(DBG1) << "Deleting ecmp egress object  " << ecmp.ecmp_intf
@@ -854,10 +877,9 @@ void BcmWarmBootCache::clear() {
         toEgressId2WeightStr(idsAndEcmp.first));
   }
   egressIds2Ecmp_.clear();
+}
 
-  // Delete bcm egress entries. These are referenced by routes, ecmp egress
-  // and host objects all of which we deleted above. Egress objects in turn
-  // my point to a interface which we delete later
+void BcmWarmBootCache::removeUnclaimedEgressObjects() {
   for (auto egressIdAndEgress : egressId2Egress_) {
     // This is not used yet
     XLOG(DBG1) << "Deleting egress object: " << egressIdAndEgress.first;
@@ -866,11 +888,9 @@ void BcmWarmBootCache::clear() {
         rv, hw_, "failed to destroy egress object ", egressIdAndEgress.first);
   }
   egressId2Egress_.clear();
+}
 
-  // delete any MPLS tunnels
-  removeUnclaimedLabeledTunnels();
-
-  // Delete interfaces
+void BcmWarmBootCache::removeUnclaimedInterfaces() {
   for (auto vlanMacAndIntf : vlanAndMac2Intf_) {
     XLOG(DBG1) << "Deleting l3 interface for vlan: "
                << vlanMacAndIntf.first.first
@@ -885,7 +905,9 @@ void BcmWarmBootCache::clear() {
         vlanMacAndIntf.first.second);
   }
   vlanAndMac2Intf_.clear();
-  // Delete stations
+}
+
+void BcmWarmBootCache::removeUnclaimedStations() {
   for (auto vlanAndStation : vlan2Station_) {
     XLOG(DBG1) << "Deleting station for vlan : " << vlanAndStation.first;
     auto stationId =
@@ -895,6 +917,9 @@ void BcmWarmBootCache::clear() {
         rv, hw_, "failed to delete station for vlan : ", vlanAndStation.first);
   }
   vlan2Station_.clear();
+}
+
+void BcmWarmBootCache::removeUnclaimedVlans() {
   bcm_vlan_t defaultVlan;
   auto rv = bcm_vlan_default_get(hw_->getUnit(), &defaultVlan);
   bcmLogFatal(rv, hw_, "failed to get default VLAN");
@@ -910,10 +935,9 @@ void BcmWarmBootCache::clear() {
     bcmLogFatal(rv, hw_, "failed to destroy vlan: ", vlanItr->first);
     vlanItr = vlan2VlanInfo_.erase(vlanItr);
   }
+}
 
-  egressId2WeightInWarmBootFile_.clear();
-  vrfIp2EgressFromBcmHostInWarmBootFile_.clear();
-
+void BcmWarmBootCache::removeUnclaimedAclStats() {
   // Detach the unclaimed bcm acl stats
   flat_set<BcmAclStatHandle> statsUsed;
   for (auto aclStatItr = aclEntry2AclStat_.begin();
@@ -941,7 +965,9 @@ void BcmWarmBootCache::clear() {
     }
   }
   aclEntry2AclStat_.clear();
+}
 
+void BcmWarmBootCache::removeUnclaimedAcls() {
   // Delete acls, since acl(field process) doesn't support
   // bcm, we call BcmAclTable to remove the unclaimed acls
   XLOG(DBG1) << "Unclaimed acl count=" << priority2BcmAclEntryHandle_.size();
@@ -951,7 +977,10 @@ void BcmWarmBootCache::clear() {
     removeBcmAcl(aclItr.second);
   }
   priority2BcmAclEntryHandle_.clear();
+}
 
+void BcmWarmBootCache::removeUnclaimedCosqMappings() {
+  int rv;
   bool useHSDK = (dynamic_cast<const BcmSwitch*>(hw_))->useHSDK();
   for (auto reasonToQueueEntry : index2ReasonToQueue_) {
     const auto index = reasonToQueueEntry.first;
@@ -972,6 +1001,59 @@ void BcmWarmBootCache::clear() {
     bcmCheckError(rv, "failed to delete CPU cosq mapping for index ", index);
   }
   index2ReasonToQueue_.clear();
+}
+
+void BcmWarmBootCache::clear() {
+  // Get rid of all unclaimed entries. The order is important here
+  // since we want to delete entries only after there are no more
+  // references to them.
+  XLOG(DBG1) << "Warm boot: removing unreferenced entries";
+  dumpedSwSwitchState_.reset();
+  hwSwitchEcmp2EgressIds_.clear();
+  // First delete routes (fully qualified and others).
+  //
+  // Nothing references routes, but routes reference ecmp egress and egress
+  // entries which are deleted later
+  removeUnclaimedRoutes();
+
+  // purge any lingering label FIB entries
+  removeUnclaimedLabelSwitchActions();
+
+  // Delete bcm host entries. Nobody references bcm hosts, but
+  // hosts reference egress objects
+  removeUnclaimedHostEntries();
+
+  // Both routes and host entries (which have been deleted earlier) can refer
+  // to ecmp egress objects.  Ecmp egress objects in turn refer to egress
+  // objects which we delete later
+  removeUnclaimedEcmpEgressObjects();
+
+  // Delete bcm egress entries. These are referenced by routes, ecmp egress
+  // and host objects all of which we deleted above. Egress objects in turn
+  // my point to a interface which we delete later
+  removeUnclaimedEgressObjects();
+
+  // delete any MPLS tunnels
+  removeUnclaimedLabeledTunnels();
+
+  // Delete interfaces
+  removeUnclaimedInterfaces();
+  // Delete stations
+  removeUnclaimedStations();
+  // Finally delete the vlans
+  removeUnclaimedVlans();
+
+  egressId2WeightInWarmBootFile_.clear();
+  vrfIp2EgressFromBcmHostInWarmBootFile_.clear();
+
+  // Delete the unclaimed bcm acl stats
+  removeUnclaimedAclStats();
+
+  // Delete acls
+  removeUnclaimedAcls();
+
+  // Delete CosQMappings
+  removeUnclaimedCosqMappings();
 
   /* remove unclaimed mirrors and mirrored ports/acls, if any */
   checkUnclaimedMirrors();
@@ -1575,7 +1657,8 @@ void BcmWarmBootCache::populateLabelStack2TunnelId(bcm_l3_egress_t* egress) {
   }
 
   XLOG(DBG4) << "found "
-             << tunnelInitiatorString(intf.l3a_intf_id, intf.l3a_vid, labels);
+             << tunnelInitiatorString(
+                    intf.l3a_intf_id, intf.l3a_vid, key.second);
   labelStackKey2TunnelId_.emplace(std::move(key), intf.l3a_intf_id);
 }
 

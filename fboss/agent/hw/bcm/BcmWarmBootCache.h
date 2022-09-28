@@ -237,6 +237,20 @@ class BcmWarmBootCache {
 
   void populateLabelStack2TunnelId(bcm_l3_egress_t* egress);
   void removeUnclaimedLabeledTunnels();
+
+  void removeUnclaimedRoutes();
+  void removeUnclaimedHostEntries();
+  void removeUnclaimedEcmpEgressObjects();
+  void removeUnclaimedEgressObjects();
+
+  void removeUnclaimedInterfaces();
+  void removeUnclaimedStations();
+  void removeUnclaimedVlans();
+
+  void removeUnclaimedAclStats();
+  void removeUnclaimedAcls();
+
+  void removeUnclaimedCosqMappings();
   void checkUnclaimedQosMaps();
 
   void populateSwitchSettings();
@@ -643,6 +657,20 @@ class BcmWarmBootCache {
   void populateFromWarmBootState(
       const folly::dynamic& warmBootState,
       std::optional<state::WarmbootState> thriftState);
+
+  void populateEcmpEntryFromWarmBootState(
+      const folly::dynamic& hwWarmBootState);
+  void populateTrunksFromWarmBootState(const folly::dynamic& hwWarmBootState);
+  void populateRouteCountersFromWarmBootState(
+      const folly::dynamic& hwWarmBootState);
+  void populateHostEntryFromWarmBootState(const folly::dynamic& hostTable);
+
+  void populateMplsNextHopFromWarmBootState(
+      const folly::dynamic& hwWarmBootState);
+  void populateIntfFromWarmBootState(const folly::dynamic& hwWarmBootState);
+  void populateQosPolicyFromWarmBootState(
+      const folly::dynamic& hwWarmBootState);
+
   // No copy or assignment.
   BcmWarmBootCache(const BcmWarmBootCache&) = delete;
   BcmWarmBootCache& operator=(const BcmWarmBootCache&) = delete;
