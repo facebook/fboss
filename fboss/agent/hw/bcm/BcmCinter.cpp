@@ -49,6 +49,8 @@ DEFINE_int32(
     "Log timeout value in milliseconds. Logger will periodically"
     "flush logs even if the buffer is not full");
 
+DEFINE_int32(pbmp_word_max, 8, "Max pbmp width as suggested by Vendor.");
+
 using folly::join;
 using folly::to;
 using std::array;
@@ -2364,7 +2366,7 @@ int BcmCinter::bcm_vlan_create(int unit, bcm_vlan_t vid) {
 pair<string, vector<string>> BcmCinter::cintForPortBitmap(bcm_pbmp_t pbmp) {
   auto pbmpVar = getNextTmpPortBitmapVar();
   vector<string> pbmpCint;
-  for (int i = 0; i < _SHR_PBMP_WORD_MAX; i++) {
+  for (int i = 0; i < FLAGS_pbmp_word_max; i++) {
     pbmpCint.push_back(to<string>("pbmp.pbits[", i, "] = ", pbmp.pbits[i]));
   }
   pbmpCint.push_back(to<string>("bcm_pbmp_t ", pbmpVar, " = (auto) pbmp"));
@@ -3699,7 +3701,7 @@ int BcmCinter::sh_process_command(int unit, char* cmd) {
   /* Add cmd in the output to associate output with the command */
   vector<string> cmdShowCint = {to<string>("printf(\"\\n== ", cmd, ":\\n\")")};
   writeCintLines(std::move(cmdShowCint));
-  auto funcCint = wrapFunc(to<string>("bshell(", unit, ", \"", cmd, "\")"));
+  auto funcCint = wrapFunc(to<string>("bshell(", unit, ", \'", cmd, "\')"));
   vector<string> cintLine = {funcCint};
   writeCintLines(cintLine);
   return 0;
