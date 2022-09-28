@@ -35,7 +35,6 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformMode::WEDGE400:
     case PlatformMode::DARWIN:
     case PlatformMode::LASSEN:
-    case PlatformMode::SANDIA:
     case PlatformMode::MAKALU:
     case PlatformMode::KAMET:
       throw FbossError("No xphys to check FW version on");
@@ -63,6 +62,11 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
       desiredFw.crc() = 0x5B4C;
       desiredFw.dateCode() = 18423;
       break;
+    case PlatformMode::SANDIA:
+      desiredFw.version() = 0;
+      desiredFw.versionStr() = "0.0";
+      desiredFw.minorVersion() = 0;
+      break;
   }
 
   auto chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
@@ -73,8 +77,20 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
     if (chip.second.get_type() != phy::DataPlanePhyChipType::XPHY) {
       continue;
     }
-    auto xphy = getHwQsfpEnsemble()->getPhyManager()->getExternalPhy(
-        GlobalXphyID(chip.second.get_physicalID()));
+
+    // There are some Sandia PIM's which does not have XPHY but the platform
+    // mapping is generic so we need to first check if the external Phy is
+    // present before attempting this test
+    phy::ExternalPhy* xphy;
+    try {
+      xphy = getHwQsfpEnsemble()->getPhyManager()->getExternalPhy(
+          GlobalXphyID(chip.second.get_physicalID()));
+    } catch (FbossError& e) {
+      XLOG(ERR) << "XPHY not present in system "
+                << GlobalXphyID(chip.second.get_physicalID());
+      continue;
+    }
+
     const auto& actualFw = xphy->fwVersion();
     EXPECT_EQ(actualFw.version(), desiredFw.version());
     EXPECT_EQ(actualFw.versionStr(), desiredFw.versionStr());
