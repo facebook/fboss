@@ -75,6 +75,11 @@ class ManagedVlanRifNeighbor : public SaiObjectEventAggregateSubscriber<
     return handle_.get();
   }
 
+  void notifySubscribers() const;
+
+  std::string toString() const;
+
+ private:
   SaiPortDescriptor getSaiPortDesc() const {
     return std::get<SaiPortDescriptor>(saiPortAndIntf_);
   }
@@ -83,11 +88,6 @@ class ManagedVlanRifNeighbor : public SaiObjectEventAggregateSubscriber<
     return std::get<RouterInterfaceSaiId>(saiPortAndIntf_);
   }
 
-  void notifySubscribers() const;
-
-  std::string toString() const;
-
- private:
   SaiNeighborManager* manager_;
   std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf_;
   std::tuple<InterfaceID, folly::IPAddress, folly::MacAddress>
