@@ -64,10 +64,12 @@ class FsdbSyncManager2 {
   FsdbSyncManager2(
       const std::string& clientId,
       const std::vector<std::string>& basePath,
-      bool isStats)
+      bool isStats,
+      bool publishDeltas)
       : pubSubMgr_(std::make_unique<fsdb::FsdbPubSubManager>(clientId)),
         basePath_(basePath),
         isStats_(isStats),
+        publishDeltas_(publishDeltas),
         storage_([this](const auto& oldState, const auto& newState) {
           processDelta(oldState, newState);
         }) {}
@@ -87,12 +89,22 @@ class FsdbSyncManager2 {
       publisherStateChanged(oldState, newState);
     };
 
-    // TODO: support path publisher
     if (isStats_ && FLAGS_publish_stats_to_fsdb) {
-      pubSubMgr_->createStatDeltaPublisher(basePath_, std::move(stateChangeCb));
+      if (publishDeltas_) {
+        pubSubMgr_->createStatDeltaPublisher(
+            basePath_, std::move(stateChangeCb));
+      } else {
+        pubSubMgr_->createStatPathPublisher(
+            basePath_, std::move(stateChangeCb));
+      }
     } else if (!isStats_ && FLAGS_publish_state_to_fsdb) {
-      pubSubMgr_->createStateDeltaPublisher(
-          basePath_, std::move(stateChangeCb));
+      if (publishDeltas_) {
+        pubSubMgr_->createStateDeltaPublisher(
+            basePath_, std::move(stateChangeCb));
+      } else {
+        pubSubMgr_->createStatePathPublisher(
+            basePath_, std::move(stateChangeCb));
+      }
     }
   }
 
@@ -118,28 +130,11 @@ class FsdbSyncManager2 {
       const std::shared_ptr<CowState>& newState) {
     // TODO: hold lock here to sync with stop()?
     if (readyForPublishing_) {
-      std::vector<OperDeltaUnit> deltas;
-      auto processChange = [this, &deltas](
-                               const std::vector<std::string>& path,
-                               auto oldNode,
-                               auto newNode,
-                               thrift_cow::DeltaElemTag /* visitTag */) {
-        std::vector<std::string> fullPath;
-        fullPath.reserve(basePath_.size() + path.size());
-        fullPath.insert(fullPath.end(), basePath_.begin(), basePath_.end());
-        fullPath.insert(fullPath.end(), path.begin(), path.end());
-        // TODO: metadata
-        deltas.push_back(buildOperDeltaUnit(
-            fullPath, oldNode, newNode, OperProtocol::BINARY));
-      };
-
-      thrift_cow::RootDeltaVisitor::visit(
-          oldState,
-          newState,
-          thrift_cow::DeltaVisitMode::MINIMAL,
-          std::move(processChange));
-
-      publish(createDelta(std::move(deltas)));
+      if (publishDeltas_) {
+        publishDelta(oldState, newState);
+      } else {
+        publishPath(newState);
+      }
     }
   }
 
@@ -161,12 +156,16 @@ class FsdbSyncManager2 {
   void doInitialSync() {
     CHECK(storage_.getEventBase()->isInEventBaseThread());
     const auto currentState = storage_.getState();
-    auto deltaUnit = buildOperDeltaUnit(
-        basePath_,
-        std::shared_ptr<CowState>(),
-        currentState,
-        OperProtocol::BINARY);
-    publish(createDelta({deltaUnit}));
+    if (publishDeltas_) {
+      auto deltaUnit = buildOperDeltaUnit(
+          basePath_,
+          std::shared_ptr<CowState>(),
+          currentState,
+          OperProtocol::BINARY);
+      publish(createDelta({deltaUnit}));
+    } else {
+      publishPath(currentState);
+    }
   }
 
   OperDelta createDelta(std::vector<OperDeltaUnit>&& deltaUnits) {
@@ -176,17 +175,53 @@ class FsdbSyncManager2 {
     return delta;
   }
 
-  void publish(OperDelta&& deltas) {
+  void publishDelta(
+      const std::shared_ptr<CowState>& oldState,
+      const std::shared_ptr<CowState>& newState) {
+    std::vector<OperDeltaUnit> deltas;
+    auto processChange = [this, &deltas](
+                             const std::vector<std::string>& path,
+                             auto oldNode,
+                             auto newNode,
+                             thrift_cow::DeltaElemTag /* visitTag */) {
+      std::vector<std::string> fullPath;
+      fullPath.reserve(basePath_.size() + path.size());
+      fullPath.insert(fullPath.end(), basePath_.begin(), basePath_.end());
+      fullPath.insert(fullPath.end(), path.begin(), path.end());
+      // TODO: metadata
+      deltas.push_back(
+          buildOperDeltaUnit(fullPath, oldNode, newNode, OperProtocol::BINARY));
+    };
+
+    thrift_cow::RootDeltaVisitor::visit(
+        oldState,
+        newState,
+        thrift_cow::DeltaVisitMode::MINIMAL,
+        std::move(processChange));
+
+    publish(createDelta(std::move(deltas)));
+  }
+
+  void publishPath(const std::shared_ptr<CowState>& newState) {
+    OperState state;
+    state.contents() = newState->encode(OperProtocol::BINARY);
+    state.protocol() = fsdb::OperProtocol::BINARY;
+    publish(std::move(state));
+  }
+
+  template <typename T>
+  void publish(T&& state) {
     if (isStats_) {
-      pubSubMgr_->publishStat(std::move(deltas));
+      pubSubMgr_->publishStat(std::forward<T>(state));
     } else {
-      pubSubMgr_->publishState(std::move(deltas));
+      pubSubMgr_->publishState(std::forward<T>(state));
     }
   }
 
   std::unique_ptr<FsdbPubSubManager> pubSubMgr_;
   std::vector<std::string> basePath_;
   bool isStats_;
+  bool publishDeltas_;
   CowStorageManager storage_;
   std::atomic_bool readyForPublishing_ = false;
 };
