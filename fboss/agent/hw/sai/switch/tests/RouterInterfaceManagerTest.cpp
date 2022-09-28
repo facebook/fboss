@@ -82,6 +82,16 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
             ->adapterKey(),
         saiRouterInterfaceId);
   }
+  void checkType(
+      RouterInterfaceSaiId saiRouterInterfaceId,
+      InterfaceID intfId,
+      cfg::InterfaceType expectedType) const {
+    EXPECT_EQ(
+        saiManagerTable->routerInterfaceManager()
+            .getRouterInterfaceHandle(intfId)
+            ->type(),
+        expectedType);
+  }
 
   void checkSubnets(
       const std::vector<SaiRouteTraits::RouteEntry>& subnetRoutes,
@@ -403,17 +413,19 @@ TEST_F(RouterInterfaceManagerTest, removeNonexistentRouterInterface) {
       routerInterfaceManager.removeRouterInterface(swInterface2), FbossError);
 }
 
-TEST_F(RouterInterfaceManagerTest, adapterKeyRouterInterface) {
+TEST_F(RouterInterfaceManagerTest, adapterKeyAndTypeRouterInterface) {
   auto swInterface = makeInterface(intf1);
   auto saiId =
       saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
   checkAdapterKey(saiId, swInterface->getID());
+  checkType(saiId, swInterface->getID(), cfg::InterfaceType::VLAN);
 }
 
-TEST_F(RouterInterfaceManagerTest, adapterKeyPortRouterInterface) {
+TEST_F(RouterInterfaceManagerTest, adapterKeyAndTypePortRouterInterface) {
   auto swSysPort = makeSystemPort();
   auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
   auto saiId =
       saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
   checkAdapterKey(saiId, swInterface->getID());
+  checkType(saiId, swInterface->getID(), cfg::InterfaceType::SYSTEM_PORT);
 }

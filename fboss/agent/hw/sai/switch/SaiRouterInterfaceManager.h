@@ -19,6 +19,7 @@
 
 #include "folly/MacAddress.h"
 
+#include "folly/Overload.h"
 #include "folly/container/F14Map.h"
 
 #include <memory>
@@ -43,6 +44,18 @@ struct SaiRouterInterfaceHandle {
   RouterInterfaceSaiId adapterKey() const {
     return std::visit(
         [](auto& handle) { return handle->adapterKey(); }, routerInterface);
+  }
+  cfg::InterfaceType type() const {
+    return std::visit(
+        folly::overload(
+            [](const std::shared_ptr<SaiVlanRouterInterface>& handle) {
+              return cfg::InterfaceType::VLAN;
+            },
+            [](const std::shared_ptr<SaiPortRouterInterface>& handle) {
+              return cfg::InterfaceType::SYSTEM_PORT;
+            }),
+        routerInterface);
+    CHECK(false) << " Unhandled interface type: ";
   }
   std::vector<std::shared_ptr<SaiRoute>> toMeRoutes;
 };
