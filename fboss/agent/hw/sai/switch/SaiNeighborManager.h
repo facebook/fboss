@@ -36,19 +36,19 @@ struct SaiNeighborHandle {
   const SaiFdbEntry* fdbEntry;
 };
 
-class ManagedNeighbor : public SaiObjectEventAggregateSubscriber<
-                            ManagedNeighbor,
-                            SaiNeighborTraits,
-                            SaiFdbTraits> {
+class ManagedVlanRifNeighbor : public SaiObjectEventAggregateSubscriber<
+                                   ManagedVlanRifNeighbor,
+                                   SaiNeighborTraits,
+                                   SaiFdbTraits> {
  public:
   using Base = SaiObjectEventAggregateSubscriber<
-      ManagedNeighbor,
+      ManagedVlanRifNeighbor,
       SaiNeighborTraits,
       SaiFdbTraits>;
   using FdbWeakptr = std::weak_ptr<const SaiObject<SaiFdbTraits>>;
   using PublisherObjects = std::tuple<FdbWeakptr>;
 
-  ManagedNeighbor(
+  ManagedVlanRifNeighbor(
       SaiNeighborManager* manager,
       std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf,
       std::tuple<InterfaceID, folly::IPAddress, folly::MacAddress>
@@ -146,8 +146,8 @@ class SaiNeighborManager {
   const SaiPlatform* platform_;
   folly::F14FastMap<
       SaiNeighborTraits::NeighborEntry,
-      std::shared_ptr<ManagedNeighbor>>
-      managedNeighbors_;
+      std::shared_ptr<ManagedVlanRifNeighbor>>
+      neighbors_;
 };
 
 } // namespace facebook::fboss

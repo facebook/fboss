@@ -71,8 +71,8 @@ void SaiNeighborManager::changeNeighbor(
     } else {
       /* attempt to resolve next hops if not already resolved, if already
        * resolved, it would be no-op */
-      auto iter = managedNeighbors_.find(saiEntryFromSwEntry(newSwEntry));
-      CHECK(iter != managedNeighbors_.end());
+      auto iter = neighbors_.find(saiEntryFromSwEntry(newSwEntry));
+      CHECK(iter != neighbors_.end());
       iter->second->notifySubscribers();
     }
   }
@@ -90,7 +90,7 @@ void SaiNeighborManager::addNeighbor(
   }
   XLOG(DBG2) << "addNeighbor " << swEntry->getIP();
   auto subscriberKey = saiEntryFromSwEntry(swEntry);
-  if (managedNeighbors_.find(subscriberKey) != managedNeighbors_.end()) {
+  if (neighbors_.find(subscriberKey) != neighbors_.end()) {
     throw FbossError(
         "Attempted to add duplicate neighbor: ", swEntry->getIP().str());
   }
@@ -112,7 +112,7 @@ void SaiNeighborManager::addNeighbor(
       managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
           swEntry->getIntfID());
 
-  auto subscriber = std::make_shared<ManagedNeighbor>(
+  auto subscriber = std::make_shared<ManagedVlanRifNeighbor>(
       this,
       std::make_tuple(saiPortDesc, saiRouterIntf->adapterKey()),
       std::make_tuple(
@@ -123,8 +123,8 @@ void SaiNeighborManager::addNeighbor(
 
   SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().subscribe(
       subscriber);
-  managedNeighbors_.emplace(subscriberKey, std::move(subscriber));
-  XLOG(DBG2) << "Add Neighbor: create ManagedNeighbor" << swEntry->str();
+  neighbors_.emplace(subscriberKey, std::move(subscriber));
+  XLOG(DBG2) << "Add Neighbor: create ManagedVlanRifNeighbor" << swEntry->str();
 }
 
 template <typename NeighborEntryT>
@@ -136,16 +136,16 @@ void SaiNeighborManager::removeNeighbor(
   }
   XLOG(DBG2) << "removeNeighbor " << swEntry->getIP();
   auto subscriberKey = saiEntryFromSwEntry(swEntry);
-  if (managedNeighbors_.find(subscriberKey) == managedNeighbors_.end()) {
+  if (neighbors_.find(subscriberKey) == neighbors_.end()) {
     throw FbossError(
         "Attempted to remove non-existent neighbor: ", swEntry->getIP());
   }
-  managedNeighbors_.erase(subscriberKey);
+  neighbors_.erase(subscriberKey);
   XLOG(DBG2) << "Remove Neighbor: " << swEntry->str();
 }
 
 void SaiNeighborManager::clear() {
-  managedNeighbors_.clear();
+  neighbors_.clear();
 }
 
 std::shared_ptr<SaiNeighbor> SaiNeighborManager::createSaiObject(
@@ -165,8 +165,8 @@ SaiNeighborHandle* SaiNeighborManager::getNeighborHandle(
 }
 SaiNeighborHandle* SaiNeighborManager::getNeighborHandleImpl(
     const SaiNeighborTraits::NeighborEntry& saiEntry) const {
-  auto itr = managedNeighbors_.find(saiEntry);
-  if (itr == managedNeighbors_.end()) {
+  auto itr = neighbors_.find(saiEntry);
+  if (itr == neighbors_.end()) {
     return nullptr;
   }
   auto subscriber = itr->second.get();
@@ -190,14 +190,14 @@ bool SaiNeighborManager::isLinkUp(SaiPortDescriptor port) {
 
 std::string SaiNeighborManager::listManagedObjects() const {
   std::string output{};
-  for (auto entry : managedNeighbors_) {
+  for (auto entry : neighbors_) {
     output += entry.second->toString();
     output += "\n";
   }
   return output;
 }
 
-void ManagedNeighbor::createObject(PublisherObjects objects) {
+void ManagedVlanRifNeighbor::createObject(PublisherObjects objects) {
   auto fdbEntry = std::get<FdbWeakptr>(objects).lock();
   const auto& ip = std::get<folly::IPAddress>(intfIDAndIpAndMac_);
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
@@ -222,7 +222,7 @@ void ManagedNeighbor::createObject(PublisherObjects objects) {
   XLOG(DBG2) << "ManagedNeigbhor::createObject: " << toString();
 }
 
-void ManagedNeighbor::removeObject(size_t, PublisherObjects) {
+void ManagedVlanRifNeighbor::removeObject(size_t, PublisherObjects) {
   XLOG(DBG2) << "ManagedNeigbhor::removeObject: " << toString();
 
   this->resetObject();
@@ -230,7 +230,7 @@ void ManagedNeighbor::removeObject(size_t, PublisherObjects) {
   handle_->fdbEntry = nullptr;
 }
 
-void ManagedNeighbor::notifySubscribers() const {
+void ManagedVlanRifNeighbor::notifySubscribers() const {
   auto neighbor = this->getObject();
   if (!neighbor) {
     return;
@@ -238,7 +238,7 @@ void ManagedNeighbor::notifySubscribers() const {
   neighbor->notifyAfterCreate(neighbor);
 }
 
-std::string ManagedNeighbor::toString() const {
+std::string ManagedVlanRifNeighbor::toString() const {
   auto metadataStr =
       metadata_.has_value() ? std::to_string(metadata_.value()) : "none";
   auto encapStr =
@@ -270,7 +270,7 @@ std::string ManagedNeighbor::toString() const {
       fdbEntryStr);
 }
 
-void ManagedNeighbor::handleLinkDown() {
+void ManagedVlanRifNeighbor::handleLinkDown() {
   auto* object = getSaiObject();
   if (!object) {
     XLOG(DBG2)
