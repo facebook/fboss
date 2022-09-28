@@ -31,9 +31,6 @@ TEST(findFileFromRegexTests, Equal) {
   EXPECT_EQ(
       findFileFromRegex("/tmp/sandbox/.+/file2.txt"),
       "/tmp/sandbox/dir1/dir2/file2.txt");
-  EXPECT_EQ(
-      findFileFromRegex("/tmp/sandbox/.+/file3.txt"),
-      "/tmp/sandbox/dir1/dir2/dir3:dir4/file3.txt");
   // delete the sandbox dir and all contents within it, including subdirs
   std::filesystem::remove_all(sandbox);
 }
