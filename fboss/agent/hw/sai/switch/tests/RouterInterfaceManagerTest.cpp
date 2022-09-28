@@ -40,7 +40,7 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
       RouterInterfaceSaiId saiRouterInterfaceId,
       VlanSaiId expectedSaiVlanId,
       const folly::MacAddress& expectedSrcMac,
-      int expectedMtu = 1500) {
+      int expectedMtu = 1500) const {
     auto saiVlanIdGot = saiApiTable->routerInterfaceApi().getAttribute(
         saiRouterInterfaceId,
         SaiVlanRouterInterfaceTraits::Attributes::VlanId{});
@@ -59,7 +59,7 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
       RouterInterfaceSaiId saiRouterInterfaceId,
       SystemPortSaiId expectedSaiPortId,
       const folly::MacAddress& expectedSrcMac,
-      int expectedMtu = 1500) {
+      int expectedMtu = 1500) const {
     SystemPortSaiId saiPortIdGot{saiApiTable->routerInterfaceApi().getAttribute(
         saiRouterInterfaceId,
         SaiPortRouterInterfaceTraits::Attributes::PortId{})};
@@ -73,9 +73,19 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
     EXPECT_EQ(mtuGot, expectedMtu);
   }
 
+  void checkAdapterKey(
+      RouterInterfaceSaiId saiRouterInterfaceId,
+      InterfaceID intfId) const {
+    EXPECT_EQ(
+        saiManagerTable->routerInterfaceManager()
+            .getRouterInterfaceHandle(intfId)
+            ->adapterKey(),
+        saiRouterInterfaceId);
+  }
+
   void checkSubnets(
       const std::vector<SaiRouteTraits::RouteEntry>& subnetRoutes,
-      bool shouldExist) {
+      bool shouldExist) const {
     for (const auto& route : subnetRoutes) {
       auto& store = saiStore->get<SaiRouteTraits>();
       auto routeObj = store.get(route);
@@ -87,7 +97,7 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
     }
   }
 
-  std::vector<SaiRouteTraits::RouteEntry> getSubnetKeys(InterfaceID id) {
+  std::vector<SaiRouteTraits::RouteEntry> getSubnetKeys(InterfaceID id) const {
     std::vector<SaiRouteTraits::RouteEntry> keys;
     auto toMeRoutes = saiManagerTable->routerInterfaceManager()
                           .getRouterInterfaceHandle(id)
@@ -391,4 +401,19 @@ TEST_F(RouterInterfaceManagerTest, removeNonexistentRouterInterface) {
   auto swInterface2 = makeInterface(testInterfaces[2]);
   EXPECT_THROW(
       routerInterfaceManager.removeRouterInterface(swInterface2), FbossError);
+}
+
+TEST_F(RouterInterfaceManagerTest, adapterKeyRouterInterface) {
+  auto swInterface = makeInterface(intf1);
+  auto saiId =
+      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  checkAdapterKey(saiId, swInterface->getID());
+}
+
+TEST_F(RouterInterfaceManagerTest, adapterKeyPortRouterInterface) {
+  auto swSysPort = makeSystemPort();
+  auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
+  auto saiId =
+      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  checkAdapterKey(saiId, swInterface->getID());
 }
