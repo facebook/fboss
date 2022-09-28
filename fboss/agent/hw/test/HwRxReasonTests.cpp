@@ -18,7 +18,9 @@ class HwRxReasonTests : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
-        getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
+        getHwSwitch(),
+        masterLogicalPortIds()[0],
+        getAsic()->desiredLoopbackMode());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     // Remove DHCP from rxReason list
     auto rxReasonListWithoutDHCP = utility::getCoppRxReasonToQueues(getAsic());

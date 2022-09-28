@@ -61,7 +61,7 @@ class HwSwitchStateReplayTest : public HwTest {
       auto wbState = getWarmBootState();
       for (auto port : *wbState->getPorts()) {
         if (port->isUp()) {
-          port->setLoopbackMode(cfg::PortLoopbackMode::MAC);
+          port->setLoopbackMode(getAsic()->desiredLoopbackMode());
           XLOG(DBG2) << " Setting loopback mode for : " << port->getID();
         }
       }

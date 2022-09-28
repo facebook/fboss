@@ -105,7 +105,10 @@ class HwMPLSTest : public HwLinkStateDependentTest {
         masterLogicalPortIds()[2],
     };
     auto config = utility::onePortPerInterfaceConfig(
-        getHwSwitch(), std::move(ports), cfg::PortLoopbackMode::MAC, true);
+        getHwSwitch(),
+        std::move(ports),
+        getAsic()->desiredLoopbackMode(),
+        true);
 
     if constexpr (std::is_same_v<PortType, AggregatePortID>) {
       utility::addAggPort(1, {masterLogicalPortIds()[0]}, &config);

@@ -24,7 +24,9 @@ class HwSwitchStatsTxCounterTest : public HwTest {
  protected:
   cfg::SwitchConfig initialConfig() const {
     return utility::oneL3IntfConfig(
-        getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
+        getHwSwitch(),
+        masterLogicalPortIds()[0],
+        getAsic()->desiredLoopbackMode());
   }
   void checkTxCounters();
 };

@@ -80,7 +80,7 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
-        cfg::PortLoopbackMode::MAC,
+        getAsic()->desiredLoopbackMode(),
         true);
   }
 

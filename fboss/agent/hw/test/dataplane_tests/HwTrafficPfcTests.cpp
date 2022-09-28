@@ -30,7 +30,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
         masterLogicalPortIds()[1],
     };
     auto cfg = utility::onePortPerInterfaceConfig(
-        getHwSwitch(), std::move(ports), cfg::PortLoopbackMode::MAC);
+        getHwSwitch(), std::move(ports), getAsic()->desiredLoopbackMode());
     return cfg;
   }
   folly::IPAddressV6 kDestIp1() const {

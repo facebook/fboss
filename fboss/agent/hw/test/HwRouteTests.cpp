@@ -47,7 +47,7 @@ class HwRouteTest : public HwLinkStateDependentTest {
          masterLogicalPortIds()[1],
          masterLogicalPortIds()[2],
          masterLogicalPortIds()[3]},
-        cfg::PortLoopbackMode::MAC);
+        getAsic()->desiredLoopbackMode());
   }
 
   HwSwitchEnsemble::Features featuresDesired() const override {

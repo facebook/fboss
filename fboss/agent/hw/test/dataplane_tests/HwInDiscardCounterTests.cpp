@@ -28,7 +28,9 @@ class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
-        getHwSwitch(), masterLogicalPortIds(), cfg::PortLoopbackMode::MAC);
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode());
     cfg.staticRoutesToNull()->resize(2);
     *cfg.staticRoutesToNull()[0].routerID() =
         *cfg.staticRoutesToNull()[1].routerID() = 0;

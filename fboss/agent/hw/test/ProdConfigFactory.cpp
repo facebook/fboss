@@ -189,7 +189,7 @@ cfg::SwitchConfig createProdRtswConfig(
       const_cast<HwSwitchEnsemble*>(ensemble),
       masterLogicalPortIds,
       portSpeed,
-      cfg::PortLoopbackMode::MAC,
+      hwAsic->desiredLoopbackMode(),
       uplinks,
       downlinks);
 
@@ -238,7 +238,7 @@ cfg::SwitchConfig createProdRswConfig(
       numUplinks,
       uplinkSpeed,
       downlinkSpeed,
-      cfg::PortLoopbackMode::MAC);
+      hwAsic->desiredLoopbackMode());
 
   addCpuQueueConfig(config, hwAsic);
 
@@ -279,7 +279,7 @@ cfg::SwitchConfig createProdFswConfig(
       numUplinks,
       uplinkSpeed,
       downlinkSpeed,
-      cfg::PortLoopbackMode::MAC);
+      hwAsic->desiredLoopbackMode());
 
   addCpuQueueConfig(config, hwAsic);
   if (hwAsic->isSupported(HwAsic::Feature::L3_QOS)) {
@@ -312,7 +312,7 @@ cfg::SwitchConfig createProdRswMhnicConfig(
       numUplinks,
       uplinkSpeed,
       downlinkSpeed,
-      cfg::PortLoopbackMode::MAC);
+      hwAsic->desiredLoopbackMode());
 
   addCpuQueueConfig(config, hwAsic);
   setDefaultCpuTrafficPolicyConfig(config, hwAsic);

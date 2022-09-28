@@ -60,11 +60,11 @@ class HwNeighborTest : public HwLinkStateDependentTest {
                                     getHwSwitch(),
                                     masterLogicalPortIds()[0],
                                     masterLogicalPortIds()[1],
-                                    cfg::PortLoopbackMode::MAC)
+                                    getAsic()->desiredLoopbackMode())
                               : utility::onePortPerInterfaceConfig(
                                     getHwSwitch(),
                                     masterLogicalPortIds(),
-                                    cfg::PortLoopbackMode::MAC);
+                                    getAsic()->desiredLoopbackMode());
     if (programToTrunk) {
       // Keep member size to be less than/equal to HW limitation, but first add
       // the two ports for testing.

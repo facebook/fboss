@@ -17,7 +17,9 @@ class HwConfigVerifyQosTest : public HwConfigSetupTest {
  private:
   cfg::SwitchConfig getFallbackConfig() const override {
     return utility::oneL3IntfConfig(
-        getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
+        getHwSwitch(),
+        masterLogicalPortIds()[0],
+        getAsic()->desiredLoopbackMode());
   }
 };
 

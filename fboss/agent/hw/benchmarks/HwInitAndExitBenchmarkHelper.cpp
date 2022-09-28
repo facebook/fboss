@@ -169,7 +169,7 @@ void initandExitBenchmarkHelper(
       numUplinks.value(),
       uplinkSpeed,
       downlinkSpeed,
-      cfg::PortLoopbackMode::MAC);
+      hwSwitch->getPlatform()->getAsic()->desiredLoopbackMode());
   utility::addProdFeaturesToConfig(config, hwSwitch);
 
   /*

@@ -28,7 +28,7 @@ cfg::SwitchConfig HwConfigSetupTest::setPortsToLoopback(
 
   for (auto& port : *cfg.ports()) {
     if (*port.state() == cfg::PortState::ENABLED) {
-      port.loopbackMode() = cfg::PortLoopbackMode::MAC;
+      port.loopbackMode() = getAsic()->desiredLoopbackMode();
     }
   }
   return cfg;

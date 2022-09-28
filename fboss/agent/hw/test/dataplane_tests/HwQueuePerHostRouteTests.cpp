@@ -34,7 +34,7 @@ class HwQueuePerHostRouteTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
-        cfg::PortLoopbackMode::MAC);
+        getAsic()->desiredLoopbackMode());
   }
 
   RouterID kRouterID() const {

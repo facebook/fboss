@@ -33,7 +33,9 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
   }
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::oneL3IntfConfig(
-        getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
+        getHwSwitch(),
+        masterLogicalPortIds()[0],
+        getAsic()->desiredLoopbackMode());
     return cfg;
   }
   void pumpTraffic(bool isV6) {

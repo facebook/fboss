@@ -64,7 +64,9 @@ class HwCoppTest : public HwLinkStateDependentTest {
       return getTrunkInitialConfig();
     }
     auto cfg = utility::oneL3IntfConfig(
-        getHwSwitch(), masterLogicalPortIds()[0], cfg::PortLoopbackMode::MAC);
+        getHwSwitch(),
+        masterLogicalPortIds()[0],
+        getAsic()->desiredLoopbackMode());
     utility::addOlympicQosMaps(cfg);
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     utility::addCpuQueueConfig(cfg, getAsic());
@@ -76,7 +78,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
-        cfg::PortLoopbackMode::MAC);
+        getAsic()->desiredLoopbackMode());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, this->getAsic());
     utility::addCpuQueueConfig(cfg, this->getAsic());
     utility::addAggPort(
@@ -433,7 +435,7 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
-        cfg::PortLoopbackMode::MAC);
+        getAsic()->desiredLoopbackMode());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     addCustomCpuQueueConfig(cfg, getAsic());
     return cfg;
@@ -706,7 +708,7 @@ class HwCoppQueueStuckTest : public HwCoppQosTest {
         getHwSwitch(),
         masterLogicalPortIds()[0],
         masterLogicalPortIds()[1],
-        cfg::PortLoopbackMode::MAC);
+        getAsic()->desiredLoopbackMode());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     addCustomCpuQueueConfig(cfg, getAsic(), true /*addEcnConfig*/);
     return cfg;
