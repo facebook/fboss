@@ -297,6 +297,48 @@ std::shared_ptr<Interface> ManagerTestBase::makeInterface(
   return interface;
 }
 
+std::shared_ptr<SystemPort> ManagerTestBase::makeSystemPort(
+    const std::optional<std::string>& qosPolicy,
+    int64_t sysPortId,
+    int64_t switchId) const {
+  auto sysPort = std::make_shared<SystemPort>(SystemPortID(sysPortId));
+  sysPort->setSwitchId(SwitchID(switchId));
+  sysPort->setPortName("sysPort1");
+  sysPort->setCoreIndex(42);
+  sysPort->setCorePortIndex(24);
+  sysPort->setSpeedMbps(10000);
+  sysPort->setNumVoqs(8);
+  sysPort->setEnabled(true);
+  sysPort->setQosPolicy(qosPolicy);
+  return sysPort;
+}
+
+std::shared_ptr<Interface> ManagerTestBase::makeInterface(
+    const SystemPort& sysPort,
+    const std::vector<folly::CIDRNetwork>& subnets) const {
+  auto interface = std::make_shared<Interface>(
+      InterfaceID(sysPort.getID()),
+      RouterID(0),
+      std::nullopt,
+      folly::sformat("intf{}", static_cast<int>(sysPort.getID())),
+      folly::MacAddress{folly::sformat(
+          "42:42:42:42:42:0{}", static_cast<int>(sysPort.getID()))},
+      1500, // mtu
+      false, // isVirtual
+      false, // isStateSyncDisabled
+      cfg::InterfaceType::SYSTEM_PORT);
+  Interface::Addresses addresses;
+  for (const auto& subnet : subnets) {
+    if (subnet.first.isV4()) {
+      addresses.emplace(subnet.first.asV4(), subnet.second);
+    } else {
+      addresses.emplace(subnet.first.asV6(), subnet.second);
+    }
+  }
+  interface->setAddresses(addresses);
+  return interface;
+}
+
 std::shared_ptr<ArpEntry> ManagerTestBase::makePendingArpEntry(
     int id,
     const TestRemoteHost& testRemoteHost) const {

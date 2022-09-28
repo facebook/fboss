@@ -17,22 +17,6 @@
 
 using namespace facebook::fboss;
 
-std::shared_ptr<SystemPort> makeSystemPort(
-    const std::optional<std::string>& qosPolicy,
-    int64_t sysPortId = 1,
-    int64_t switchId = 1) {
-  auto sysPort = std::make_shared<SystemPort>(SystemPortID(sysPortId));
-  sysPort->setSwitchId(SwitchID(switchId));
-  sysPort->setPortName("sysPort1");
-  sysPort->setCoreIndex(42);
-  sysPort->setCorePortIndex(24);
-  sysPort->setSpeedMbps(10000);
-  sysPort->setNumVoqs(8);
-  sysPort->setEnabled(true);
-  sysPort->setQosPolicy(qosPolicy);
-  return sysPort;
-}
-
 class SystemPortManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {

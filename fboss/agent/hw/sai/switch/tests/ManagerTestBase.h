@@ -154,6 +154,15 @@ class ManagerTestBase : public ::testing::Test {
   std::shared_ptr<Interface> makeInterface(
       const TestInterface& testInterface) const;
 
+  std::shared_ptr<SystemPort> makeSystemPort(
+      const std::optional<std::string>& qosPolicy = std::nullopt,
+      int64_t sysPortId = 1,
+      int64_t switchId = 1) const;
+
+  std::shared_ptr<Interface> makeInterface(
+      const SystemPort& sysPort,
+      const std::vector<folly::CIDRNetwork>& addresses) const;
+
   ResolvedNextHop makeNextHop(const TestInterface& testInterface) const;
 
   ResolvedNextHop makeMplsNextHop(
