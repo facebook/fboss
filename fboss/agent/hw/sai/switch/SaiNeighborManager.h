@@ -136,6 +136,7 @@ class SaiNeighborManager {
   bool isLinkUp(SaiPortDescriptor port);
 
   std::string listManagedObjects() const;
+  SwitchSaiId getSwitchSaiId() const;
 
  private:
   SaiNeighborHandle* getNeighborHandleImpl(

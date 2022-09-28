@@ -46,9 +46,12 @@ SaiNeighborTraits::NeighborEntry SaiNeighborManager::saiEntryFromSwEntry(
         "No SaiRouterInterface for InterfaceID: ",
         swEntry->getIntfID());
   }
-  auto switchId = managerTable_->switchManager().getSwitchSaiId();
   return SaiNeighborTraits::NeighborEntry(
-      switchId, routerInterfaceHandle->adapterKey(), ip);
+      getSwitchSaiId(), routerInterfaceHandle->adapterKey(), ip);
+}
+
+SwitchSaiId SaiNeighborManager::getSwitchSaiId() const {
+  return managerTable_->switchManager().getSwitchSaiId();
 }
 
 template <typename NeighborEntryT>
@@ -201,7 +204,7 @@ void ManagedVlanRifNeighbor::createObject(PublisherObjects objects) {
   auto fdbEntry = std::get<FdbWeakptr>(objects).lock();
   const auto& ip = std::get<folly::IPAddress>(intfIDAndIpAndMac_);
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
-      fdbEntry->adapterHostKey().switchId(), getRouterInterfaceSaiId(), ip);
+      manager_->getSwitchSaiId(), getRouterInterfaceSaiId(), ip);
 
   std::optional<bool> isLocal;
   if (encapIndex_) {
