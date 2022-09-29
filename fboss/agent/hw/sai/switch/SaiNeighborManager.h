@@ -144,6 +144,7 @@ class SaiNeighborEntry {
     std::visit([](auto& handle) { handle->handleLinkDown(); }, neighbor_);
   }
 
+  cfg::InterfaceType getRifType() const;
   SaiNeighborHandle* getHandle() const {
     return std::visit(
         [](auto& handle) { return handle->getHandle(); }, neighbor_);

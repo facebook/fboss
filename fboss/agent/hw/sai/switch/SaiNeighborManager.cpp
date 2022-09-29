@@ -229,6 +229,19 @@ SaiNeighborEntry::SaiNeighborEntry(
   }
 }
 
+cfg::InterfaceType SaiNeighborEntry::getRifType() const {
+  return std::visit(
+      folly::overload(
+          [](const std::shared_ptr<ManagedVlanRifNeighbor>& /*handle*/) {
+            return cfg::InterfaceType::VLAN;
+          },
+          [](const std::shared_ptr<PortRifNeighbor>& /*handle*/) {
+            return cfg::InterfaceType::SYSTEM_PORT;
+          }),
+      neighbor_);
+  CHECK(false) << " Unknown neighbor rif type: ";
+}
+
 PortRifNeighbor::PortRifNeighbor(
     SaiNeighborManager* manager,
     std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf,
