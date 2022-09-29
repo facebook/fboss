@@ -115,6 +115,9 @@ class PortRifNeighbor {
   SaiNeighborHandle* getHandle() const {
     return handle_.get();
   }
+  void notifySubscribers() const {
+    // TODO
+  }
 
   std::string toString() const {
     return "TODO";
@@ -124,6 +127,41 @@ class PortRifNeighbor {
   SaiNeighborManager* manager_;
   std::shared_ptr<SaiNeighbor> neighbor_;
   std::unique_ptr<SaiNeighborHandle> handle_;
+};
+
+class SaiNeighborEntry {
+ public:
+  SaiNeighborEntry(
+      SaiNeighborManager* manager,
+      std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf,
+      std::tuple<InterfaceID, folly::IPAddress, folly::MacAddress>
+          intfIDAndIpAndMac,
+      std::optional<sai_uint32_t> metadata,
+      std::optional<sai_uint32_t> encapIndex,
+      bool isLocal,
+      cfg::InterfaceType intfType);
+  void handleLinkDown() {
+    std::visit([](auto& handle) { handle->handleLinkDown(); }, neighbor_);
+  }
+
+  SaiNeighborHandle* getHandle() const {
+    return std::visit(
+        [](auto& handle) { return handle->getHandle(); }, neighbor_);
+  }
+  void notifySubscribers() const {
+    std::visit([](auto& handle) { handle->notifySubscribers(); }, neighbor_);
+  }
+
+  std::string toString() const {
+    return std::visit(
+        [](auto& handle) { return handle->toString(); }, neighbor_);
+  }
+
+ private:
+  std::variant<
+      std::shared_ptr<ManagedVlanRifNeighbor>,
+      std::shared_ptr<PortRifNeighbor>>
+      neighbor_;
 };
 
 class SaiNeighborManager {

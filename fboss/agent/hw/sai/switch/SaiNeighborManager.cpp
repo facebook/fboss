@@ -200,6 +200,35 @@ std::string SaiNeighborManager::listManagedObjects() const {
   return output;
 }
 
+SaiNeighborEntry::SaiNeighborEntry(
+    SaiNeighborManager* manager,
+    std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf,
+    std::tuple<InterfaceID, folly::IPAddress, folly::MacAddress>
+        intfIDAndIpAndMac,
+    std::optional<sai_uint32_t> metadata,
+    std::optional<sai_uint32_t> encapIndex,
+    bool isLocal,
+    cfg::InterfaceType intfType) {
+  switch (intfType) {
+    case cfg::InterfaceType::VLAN:
+      neighbor_ = std::make_shared<ManagedVlanRifNeighbor>(
+          manager,
+          saiPortAndIntf,
+          intfIDAndIpAndMac,
+          metadata,
+          encapIndex,
+          isLocal);
+    case cfg::InterfaceType::SYSTEM_PORT:
+      neighbor_ = std::make_shared<PortRifNeighbor>(
+          manager,
+          saiPortAndIntf,
+          intfIDAndIpAndMac,
+          metadata,
+          encapIndex,
+          isLocal);
+  }
+}
+
 PortRifNeighbor::PortRifNeighbor(
     SaiNeighborManager* manager,
     std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf,
