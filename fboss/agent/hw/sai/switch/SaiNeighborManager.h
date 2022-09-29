@@ -98,6 +98,34 @@ class ManagedVlanRifNeighbor : public SaiObjectEventAggregateSubscriber<
   bool isLocal_{true};
 };
 
+class PortRifNeighbor {
+ public:
+  PortRifNeighbor(
+      SaiNeighborManager* manager,
+      std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf,
+      std::tuple<InterfaceID, folly::IPAddress, folly::MacAddress>
+          intfIDAndIpAndMac,
+      std::optional<sai_uint32_t> metadata,
+      std::optional<sai_uint32_t> encapIndex,
+      bool isLocal);
+  void handleLinkDown() {
+    // TODO
+  }
+
+  SaiNeighborHandle* getHandle() const {
+    return handle_.get();
+  }
+
+  std::string toString() const {
+    return "TODO";
+  }
+
+ private:
+  SaiNeighborManager* manager_;
+  std::shared_ptr<SaiNeighbor> neighbor_;
+  std::unique_ptr<SaiNeighborHandle> handle_;
+};
+
 class SaiNeighborManager {
  public:
   SaiNeighborManager(

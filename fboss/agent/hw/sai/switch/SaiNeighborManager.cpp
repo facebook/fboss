@@ -200,6 +200,28 @@ std::string SaiNeighborManager::listManagedObjects() const {
   return output;
 }
 
+PortRifNeighbor::PortRifNeighbor(
+    SaiNeighborManager* manager,
+    std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf,
+    std::tuple<InterfaceID, folly::IPAddress, folly::MacAddress>
+        intfIDAndIpAndMac,
+    std::optional<sai_uint32_t> metadata,
+    std::optional<sai_uint32_t> encapIndex,
+    bool isLocal)
+    : manager_(manager), handle_(std::make_unique<SaiNeighborHandle>()) {
+  const auto& ip = std::get<folly::IPAddress>(intfIDAndIpAndMac);
+  auto rifSaiId = std::get<RouterInterfaceSaiId>(saiPortAndIntf);
+  auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
+      manager_->getSwitchSaiId(), rifSaiId, ip);
+  auto createAttributes = SaiNeighborTraits::CreateAttributes{
+      std::get<folly::MacAddress>(intfIDAndIpAndMac),
+      metadata,
+      encapIndex,
+      isLocal};
+  neighbor_ = manager_->createSaiObject(adapterHostKey, createAttributes);
+  handle_->neighbor = neighbor_.get();
+}
+
 void ManagedVlanRifNeighbor::createObject(PublisherObjects objects) {
   auto fdbEntry = std::get<FdbWeakptr>(objects).lock();
   const auto& ip = std::get<folly::IPAddress>(intfIDAndIpAndMac_);
