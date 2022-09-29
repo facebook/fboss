@@ -52,7 +52,14 @@ class NeighborManagerTest : public ManagerTestBase {
         saiManagerTable->neighborManager().getNeighborHandle(saiEntry);
     EXPECT_TRUE(saiNeighborHandle);
     EXPECT_TRUE(saiNeighborHandle->neighbor);
-    EXPECT_TRUE(saiNeighborHandle->fdbEntry);
+    switch (saiManagerTable->neighborManager().getNeighborRifType(saiEntry)) {
+      case cfg::InterfaceType::VLAN:
+        EXPECT_TRUE(saiNeighborHandle->fdbEntry);
+        break;
+      case cfg::InterfaceType::SYSTEM_PORT:
+        EXPECT_EQ(saiNeighborHandle->fdbEntry, nullptr);
+        break;
+    }
   }
 
   template <typename NeighborEntryT>

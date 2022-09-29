@@ -194,6 +194,9 @@ class SaiNeighborManager {
   const SaiNeighborHandle* getNeighborHandle(
       const SaiNeighborTraits::NeighborEntry& entry) const;
 
+  cfg::InterfaceType getNeighborRifType(
+      const SaiNeighborTraits::NeighborEntry& entry) const;
+
   void clear();
 
   std::shared_ptr<SaiNeighbor> createSaiObject(
@@ -214,7 +217,7 @@ class SaiNeighborManager {
   const SaiPlatform* platform_;
   folly::F14FastMap<
       SaiNeighborTraits::NeighborEntry,
-      std::shared_ptr<ManagedVlanRifNeighbor>>
+      std::unique_ptr<SaiNeighborEntry>>
       neighbors_;
 };
 

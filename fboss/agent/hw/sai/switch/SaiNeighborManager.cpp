@@ -115,19 +115,18 @@ void SaiNeighborManager::addNeighbor(
       managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
           swEntry->getIntfID());
 
-  auto subscriber = std::make_shared<ManagedVlanRifNeighbor>(
+  auto neighbor = std::make_unique<SaiNeighborEntry>(
       this,
       std::make_tuple(saiPortDesc, saiRouterIntf->adapterKey()),
       std::make_tuple(
           swEntry->getIntfID(), swEntry->getIP(), swEntry->getMac()),
       metadata,
       encapIndex,
-      swEntry->getIsLocal());
+      swEntry->getIsLocal(),
+      saiRouterIntf->type());
 
-  SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().subscribe(
-      subscriber);
-  neighbors_.emplace(subscriberKey, std::move(subscriber));
-  XLOG(DBG2) << "Add Neighbor: create ManagedVlanRifNeighbor" << swEntry->str();
+  neighbors_.emplace(subscriberKey, std::move(neighbor));
+  XLOG(DBG2) << "Add Neighbor: create neighbor" << swEntry->str();
 }
 
 template <typename NeighborEntryT>
@@ -179,6 +178,15 @@ SaiNeighborHandle* SaiNeighborManager::getNeighborHandleImpl(
   return subscriber->getHandle();
 }
 
+cfg::InterfaceType SaiNeighborManager::getNeighborRifType(
+    const SaiNeighborTraits::NeighborEntry& saiEntry) const {
+  auto itr = neighbors_.find(saiEntry);
+  if (itr != neighbors_.end()) {
+    return itr->second->getRifType();
+  }
+  throw FbossError("Could not find neighbor: ", saiEntry.ip().str());
+}
+
 bool SaiNeighborManager::isLinkUp(SaiPortDescriptor port) {
   if (port.isPhysicalPort()) {
     auto portHandle =
@@ -193,7 +201,7 @@ bool SaiNeighborManager::isLinkUp(SaiPortDescriptor port) {
 
 std::string SaiNeighborManager::listManagedObjects() const {
   std::string output{};
-  for (auto entry : neighbors_) {
+  for (const auto& entry : neighbors_) {
     output += entry.second->toString();
     output += "\n";
   }
@@ -210,14 +218,18 @@ SaiNeighborEntry::SaiNeighborEntry(
     bool isLocal,
     cfg::InterfaceType intfType) {
   switch (intfType) {
-    case cfg::InterfaceType::VLAN:
-      neighbor_ = std::make_shared<ManagedVlanRifNeighbor>(
+    case cfg::InterfaceType::VLAN: {
+      auto subscriber = std::make_shared<ManagedVlanRifNeighbor>(
           manager,
           saiPortAndIntf,
           intfIDAndIpAndMac,
           metadata,
           encapIndex,
           isLocal);
+      SaiObjectEventPublisher::getInstance()->get<SaiFdbTraits>().subscribe(
+          subscriber);
+      neighbor_ = subscriber;
+    } break;
     case cfg::InterfaceType::SYSTEM_PORT:
       neighbor_ = std::make_shared<PortRifNeighbor>(
           manager,
@@ -226,6 +238,7 @@ SaiNeighborEntry::SaiNeighborEntry(
           metadata,
           encapIndex,
           isLocal);
+      break;
   }
 }
 
