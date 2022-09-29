@@ -187,6 +187,13 @@ void ThriftHandler::getMonitorDataEx(
 void ThriftHandler::readHoldingRegisters(
     ReadWordRegistersResponse& response,
     std::unique_ptr<ReadWordRegistersRequest> request) {
+  if (request->get_numRegisters() > kMaxNumRegisters) {
+    // Modbus protocol has a 1 byte size field, anything
+    // more than 128 registers would fail. Return error
+    // early.
+    response.status() = RackmonStatusCode::ERR_INVALID_ARGS;
+    return;
+  }
   try {
     std::vector<uint16_t> regs(request->get_numRegisters());
     int32_t* timeout = request->get_timeout();
@@ -245,6 +252,9 @@ RackmonStatusCode ThriftHandler::writeSingleRegister(
 
 RackmonStatusCode ThriftHandler::presetMultipleRegisters(
     std::unique_ptr<PresetMultipleRegistersRequest> request) {
+  if (request->get_regValue().size() > kMaxNumRegisters) {
+    return RackmonStatusCode::ERR_INVALID_ARGS;
+  }
   try {
     int32_t* timeout = request->get_timeout();
     uint8_t devAddr = request->get_devAddress();
@@ -283,6 +293,9 @@ void ThriftHandler::readFileRecord(
     uint8_t devAddr = request->get_devAddress();
     std::vector<rackmon::FileRecord> records;
     for (const auto& rec : request->get_records()) {
+      if (rec.get_dataSize() > kMaxNumRegisters) {
+        throw std::out_of_range("Request Registers");
+      }
       records.emplace_back(
           (uint16_t)rec.get_fileNum(),
           (uint16_t)rec.get_recordNum(),

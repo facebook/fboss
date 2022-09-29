@@ -21,6 +21,10 @@
 namespace rackmonsvc {
 
 class ThriftHandler : virtual public RackmonCtrlSvIf {
+  // Modbus limits the total 2-byte words to 127
+  // since the internal size field is just a byte,
+  // anything larger than 127 will roll-over.
+  static const size_t kMaxNumRegisters = 127;
   rackmon::Rackmon rackmond_{};
   RackmonPlsManager plsManager_{};
 
