@@ -109,7 +109,8 @@ class FsdbSyncManager2 {
   }
 
   void stop() {
-    pubSubMgr_.reset();
+    storage_.getEventBase()->runInEventBaseThreadAndWait(
+        [this]() { pubSubMgr_.reset(); });
   }
 
   //  update internal storage of SyncManager which will then automatically be
