@@ -43,11 +43,4 @@ float computeExpression(
     float input,
     const std::string& symbol = "x");
 
-/*
- * Find a file in system from a pattern string contains that ".+", for example:
- * There is a file "/tmp/abc/def/ghi/jklmb_reg"
- * The pattern = "/tmp/abc/.+/jklmb_reg" matches that file and return it
- */
-std::string findFileFromRegex(const std::string& pattern);
-
 } // namespace facebook::fboss::platform::helpers

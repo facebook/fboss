@@ -78,19 +78,11 @@ void SensorServiceImpl::init() {
   liveDataTable_.withWLock([&](auto& table) {
     for (auto& sensor : *sensorTable_.sensorMapList()) {
       for (auto& sensorIter : sensor.second) {
-        // Check if file exists, if not, check if the path is regex pattern
         std::string path = *sensorIter.second.path();
         if (std::filesystem::exists(std::filesystem::path(path))) {
           table[sensorIter.first].path = path;
           sensorNameMap_[path] = sensorIter.first;
-        } else {
-          std::string realPath = findFileFromRegex(path);
-          if (!realPath.empty()) {
-            table[sensorIter.first].path = realPath;
-            sensorNameMap_[realPath] = sensorIter.first;
-          }
         }
-
         table[sensorIter.first].fru = sensor.first;
         if (sensorIter.second.compute().has_value()) {
           table[sensorIter.first].compute = *sensorIter.second.compute();

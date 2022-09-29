@@ -176,25 +176,4 @@ float computeExpression(
   return expr.value();
 }
 
-std::string findFileFromRegex(const std::string& pattern) {
-  static const re2::RE2 getDirRegex(R"((.*)/\.\+/.+)");
-
-  std::string prePath;
-  if (re2::RE2::FullMatch(pattern, getDirRegex, &prePath) &&
-      std::filesystem::exists(std::filesystem::path{prePath})) {
-    // Search directoy to find a full match
-    for (auto const& dir_entry :
-         std::filesystem::recursive_directory_iterator{prePath}) {
-      re2::RE2 dirPattern(pattern);
-      if (re2::RE2::FullMatch(dir_entry.path().string(), dirPattern)) {
-        std::cout << "string:object => matched : " << dir_entry.path().string()
-                  << std::endl;
-        return dir_entry.path().string();
-      }
-    }
-  }
-
-  return std::string();
-}
-
 } // namespace facebook::fboss::platform::helpers
