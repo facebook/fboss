@@ -62,7 +62,8 @@ class HwVoqSwitchTest : public HwTest {
   void addRemoveNeighbor(
       const folly::IPAddressV6& neighborIp,
       InterfaceID intfID,
-      bool add) {
+      bool add,
+      std::optional<int64_t> encapIndex = std::nullopt) {
     const VlanID kVlanID{utility::kBaseVlanId};
     auto ip = neighborIp;
     auto outState{getProgrammedState()->clone()};
@@ -73,7 +74,14 @@ class HwVoqSwitchTest : public HwTest {
       const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
       neighborTable->addPendingEntry(ip, intfID);
       neighborTable->updateEntry(
-          ip, kNeighborMac, PortDescriptor(masterLogicalPortIds()[0]), intfID);
+          ip,
+          kNeighborMac,
+          // TODO - get system port ID for remote neighbors
+          PortDescriptor(masterLogicalPortIds()[0]),
+          intfID,
+          std::nullopt,
+          encapIndex,
+          encapIndex == std::nullopt);
     } else {
       neighborTable->removeEntry(ip);
     }
@@ -165,6 +173,37 @@ TEST_F(HwVoqSwitchTest, remoteRouterInterface) {
             {folly::IPAddress("100::1"), 64},
             {folly::IPAddress("100.0.0.1"), 24},
         });
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
+
+TEST_F(HwVoqSwitchTest, addRemoveRemoteNeighbor) {
+  auto setup = [this]() {
+    auto config = utility::onePortPerInterfaceConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode());
+    applyNewConfig(config);
+    auto constexpr remotePortId = 301;
+    addRemoteSysPort(SystemPortID(remotePortId));
+    const InterfaceID kIntfId(remotePortId);
+    addRemoteInterface(
+        kIntfId,
+        // TODO - following assumes we haven't
+        // already used up the subnets below for
+        // local interfaces. In that sense it
+        // has a implicit coupling with how ConfigFactory
+        // generates subnets for local interfaces
+        {
+            {folly::IPAddress("100::1"), 64},
+            {folly::IPAddress("100.0.0.1"), 24},
+        });
+    folly::IPAddressV6 kNeighborIp("100::2");
+    uint64_t dummyEncapIndex = 301;
+    // Add neighbor
+    addRemoveNeighbor(kNeighborIp, kIntfId, true, dummyEncapIndex);
+    // Remove neighbor
+    addRemoveNeighbor(kNeighborIp, kIntfId, false);
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
