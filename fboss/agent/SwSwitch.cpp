@@ -295,14 +295,18 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
 #endif
   phySnapshotManager_.reset();
 
-  // reset explicitly since it uses observer
-  pcapMgr_.reset();
-  pktObservers_.reset();
   if (fsdbSyncer_) {
     fsdbSyncer_->stop();
   }
   // stops the background and update threads.
   stopThreads();
+
+  // reset explicitly since it uses observer. Make sure to reset after bg thread
+  // is stopped, else we'll race with bg thread sending packets such as route
+  // advertisements
+  pcapMgr_.reset();
+  pktObservers_.reset();
+
   fsdbSyncer_.reset();
   // reset tunnel manager only after pkt thread is stopped
   // as there could be state updates in progress which will

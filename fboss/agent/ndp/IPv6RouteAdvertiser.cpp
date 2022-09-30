@@ -125,6 +125,7 @@ void IPv6RAImpl::stop(IPv6RAImpl* ra) {
    * advertisement to avoid RA's timing out while
    * controller is restarted
    */
+  ra->cancelTimeout();
   ra->sendRouteAdvertisement();
   delete ra;
 }
