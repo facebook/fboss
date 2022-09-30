@@ -277,23 +277,36 @@ PortRifNeighbor::PortRifNeighbor(
   handle_->neighbor = neighbor_.get();
 }
 
+ManagedVlanRifNeighbor::ManagedVlanRifNeighbor(
+    SaiNeighborManager* manager,
+    std::tuple<SaiPortDescriptor, RouterInterfaceSaiId> saiPortAndIntf,
+    std::tuple<InterfaceID, folly::IPAddress, folly::MacAddress>
+        intfIDAndIpAndMac,
+    std::optional<sai_uint32_t> metadata,
+    std::optional<sai_uint32_t> encapIndex,
+    bool isLocal)
+    : Base(std::make_tuple(
+          std::get<InterfaceID>(intfIDAndIpAndMac),
+          std::get<folly::MacAddress>(intfIDAndIpAndMac))),
+      manager_(manager),
+      saiPortAndIntf_(saiPortAndIntf),
+      intfIDAndIpAndMac_(intfIDAndIpAndMac),
+      handle_(std::make_unique<SaiNeighborHandle>()),
+      metadata_(metadata) {
+  if (encapIndex || !isLocal) {
+    throw FbossError(
+        "Remote nbrs or nbrs with encap index not supported with VLAN RIFs");
+  }
+}
+
 void ManagedVlanRifNeighbor::createObject(PublisherObjects objects) {
   auto fdbEntry = std::get<FdbWeakptr>(objects).lock();
   const auto& ip = std::get<folly::IPAddress>(intfIDAndIpAndMac_);
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
       manager_->getSwitchSaiId(), getRouterInterfaceSaiId(), ip);
 
-  std::optional<bool> isLocal;
-  if (encapIndex_) {
-    // Encap index programmed via the sw layer corresponds to a non
-    // local neighbor entry. That's when we want to set isLocal attribute.
-    // Ideally we would like to set isLocal to true (default sai spec value)
-    // always. But some sai adaptors are not happy with that on non VOQ
-    // systems
-    isLocal = isLocal_;
-  }
   auto createAttributes = SaiNeighborTraits::CreateAttributes{
-      fdbEntry->adapterHostKey().mac(), metadata_, encapIndex_, isLocal};
+      fdbEntry->adapterHostKey().mac(), metadata_, std::nullopt, std::nullopt};
   auto object = manager_->createSaiObject(adapterHostKey, createAttributes);
   this->setObject(object);
   handle_->neighbor = getSaiObject();
@@ -321,8 +334,6 @@ void ManagedVlanRifNeighbor::notifySubscribers() const {
 std::string ManagedVlanRifNeighbor::toString() const {
   auto metadataStr =
       metadata_.has_value() ? std::to_string(metadata_.value()) : "none";
-  auto encapStr =
-      encapIndex_.has_value() ? std::to_string(encapIndex_.value()) : "none";
   auto neighborStr = handle_->neighbor
       ? handle_->neighbor->adapterKey().toString()
       : "NeighborEntry: none";
@@ -340,10 +351,6 @@ std::string ManagedVlanRifNeighbor::toString() const {
       saiPortDesc.str(),
       " metadata: ",
       metadataStr,
-      " encapIndex: ",
-      encapStr,
-      " isLocal: ",
-      (isLocal_ ? "Y" : "N"),
       " ",
       neighborStr,
       " ",

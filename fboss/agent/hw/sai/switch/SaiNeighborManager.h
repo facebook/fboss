@@ -55,17 +55,7 @@ class ManagedVlanRifNeighbor : public SaiObjectEventAggregateSubscriber<
           intfIDAndIpAndMac,
       std::optional<sai_uint32_t> metadata,
       std::optional<sai_uint32_t> encapIndex,
-      bool isLocal)
-      : Base(std::make_tuple(
-            std::get<InterfaceID>(intfIDAndIpAndMac),
-            std::get<folly::MacAddress>(intfIDAndIpAndMac))),
-        manager_(manager),
-        saiPortAndIntf_(saiPortAndIntf),
-        intfIDAndIpAndMac_(intfIDAndIpAndMac),
-        handle_(std::make_unique<SaiNeighborHandle>()),
-        metadata_(metadata),
-        encapIndex_(encapIndex),
-        isLocal_(isLocal) {}
+      bool isLocal);
 
   void createObject(PublisherObjects objects);
   void removeObject(size_t index, PublisherObjects objects);
@@ -94,8 +84,6 @@ class ManagedVlanRifNeighbor : public SaiObjectEventAggregateSubscriber<
       intfIDAndIpAndMac_;
   std::unique_ptr<SaiNeighborHandle> handle_;
   std::optional<sai_uint32_t> metadata_;
-  std::optional<sai_uint32_t> encapIndex_;
-  bool isLocal_{true};
 };
 
 class PortRifNeighbor {
