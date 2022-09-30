@@ -17,6 +17,7 @@ typedef i64 (cpp.type = "uint64_t") u64
 enum PortDescriptorType {
   Physical = 0,
   Aggregate = 1,
+  SystemPort = 2,
 }
 
 struct PortDescriptor {

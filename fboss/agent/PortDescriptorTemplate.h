@@ -103,6 +103,8 @@ class PortDescriptorTemplate {
         return PortDescriptorTemplate(PortIdType(portTh.get_portId()));
       case cfg::PortDescriptorType::Aggregate:
         return PortDescriptorTemplate(TrunkIdType(portTh.get_portId()));
+      case cfg::PortDescriptorType::SystemPort:
+        break;
     }
     XLOG(FATAL) << "Unknown port type";
   }
