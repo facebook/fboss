@@ -3,6 +3,9 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 namespace {
@@ -33,6 +36,25 @@ class HwVoqSwitchTest : public HwTest {
     systemPorts->addSystemPort(remoteSysPort);
     applyNewState(newState);
     EXPECT_EQ(getProgrammedState()->getSystemPorts()->size(), numPrevPorts + 1);
+  }
+  void addRemoteInterface(InterfaceID intfId) {
+    auto newState = getProgrammedState()->clone();
+    auto newInterfaces = newState->getInterfaces()->clone();
+    auto numPrevIntfs = newInterfaces->size();
+    auto newInterface = std::make_shared<Interface>(
+        intfId,
+        RouterID(0),
+        std::nullopt,
+        "RemoteIntf",
+        folly::MacAddress("c6:ca:2b:2a:b1:b6"),
+        9000,
+        false,
+        false,
+        cfg::InterfaceType::SYSTEM_PORT);
+    newInterfaces->addInterface(newInterface);
+    newState->resetIntfs(newInterfaces);
+    applyNewState(newState);
+    EXPECT_EQ(getProgrammedState()->getInterfaces()->size(), numPrevIntfs + 1);
   }
 };
 
@@ -116,6 +138,20 @@ TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
     applyNewState(addRemoveNeighbor(getProgrammedState(), true));
     // Remove neighbor
     applyNewState(addRemoveNeighbor(getProgrammedState(), false));
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
+
+TEST_F(HwVoqSwitchTest, remoteRouterInterface) {
+  auto setup = [this]() {
+    auto config = utility::onePortPerInterfaceConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode());
+    applyNewConfig(config);
+    auto constexpr remotePortId = 301;
+    addRemoteSysPort(SystemPortID(remotePortId));
+    addRemoteInterface(InterfaceID(remotePortId));
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
