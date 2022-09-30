@@ -125,6 +125,11 @@ class BcmSdkInterface {
       uint32 param0,
       uint32 param1) = 0;
 
+  virtual int bcm_field_action_remove(
+      int unit,
+      bcm_field_entry_t entry,
+      bcm_field_action_t action) = 0;
+
   virtual int bcm_field_action_delete(
       int unit,
       bcm_field_entry_t entry,

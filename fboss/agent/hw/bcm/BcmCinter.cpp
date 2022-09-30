@@ -1440,6 +1440,17 @@ int BcmCinter::bcm_field_action_add(
   return 0;
 }
 
+int BcmCinter::bcm_field_action_remove(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_field_action_t action) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_field_action_remove(",
+      makeParamStr(unit, getCintVar(fieldEntryVars, entry), action),
+      ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_field_action_delete(
     int unit,
     bcm_field_entry_t entry,

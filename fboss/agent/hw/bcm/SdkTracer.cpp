@@ -468,6 +468,11 @@ int __real_bcm_field_action_add(
     uint32 param0,
     uint32 param1);
 
+int __real_bcm_field_action_remove(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_field_action_t action);
+
 int __real_bcm_field_action_delete(
     int unit,
     bcm_field_entry_t entry,
@@ -2542,6 +2547,13 @@ int __wrap_bcm_field_action_add(
     uint32 param0,
     uint32 param1) {
   CALL_WRAPPERS_RV(bcm_field_action_add(unit, entry, action, param0, param1));
+}
+
+int __wrap_bcm_field_action_remove(
+    int unit,
+    bcm_field_entry_t entry,
+    bcm_field_action_t action) {
+  CALL_WRAPPERS_RV(bcm_field_action_remove(unit, entry, action));
 }
 
 int __wrap_bcm_field_action_delete(
