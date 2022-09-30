@@ -59,6 +59,26 @@ class HwVoqSwitchTest : public HwTest {
     applyNewState(newState);
     EXPECT_EQ(getProgrammedState()->getInterfaces()->size(), numPrevIntfs + 1);
   }
+  void addRemoveNeighbor(
+      const folly::IPAddressV6& neighborIp,
+      InterfaceID intfID,
+      bool add) {
+    const VlanID kVlanID{utility::kBaseVlanId};
+    auto ip = neighborIp;
+    auto outState{getProgrammedState()->clone()};
+    auto neighborTable =
+        outState->getVlans()->getVlan(kVlanID)->getNdpTable()->modify(
+            kVlanID, &outState);
+    if (add) {
+      const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
+      neighborTable->addPendingEntry(ip, intfID);
+      neighborTable->updateEntry(
+          ip, kNeighborMac, PortDescriptor(masterLogicalPortIds()[0]), intfID);
+    } else {
+      neighborTable->removeEntry(ip);
+    }
+    applyNewState(outState);
+  }
 };
 
 TEST_F(HwVoqSwitchTest, init) {
@@ -109,38 +129,18 @@ TEST_F(HwVoqSwitchTest, remoteSystemPort) {
 }
 
 TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
-  auto addRemoveNeighbor = [this](
-                               const std::shared_ptr<SwitchState>& inState,
-                               bool add) {
-    const VlanID kVlanID{utility::kBaseVlanId};
-    folly::IPAddressV6 neighborIp{"1::2"};
-    auto ip = neighborIp;
-    auto outState{inState->clone()};
-    auto neighborTable =
-        outState->getVlans()->getVlan(kVlanID)->getNdpTable()->modify(
-            kVlanID, &outState);
-    if (add) {
-      const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
-      const InterfaceID kIntfID(101);
-      neighborTable->addPendingEntry(ip, kIntfID);
-      neighborTable->updateEntry(
-          ip, kNeighborMac, PortDescriptor(masterLogicalPortIds()[0]), kIntfID);
-    } else {
-      neighborTable->removeEntry(ip);
-    }
-    return outState;
-  };
-
-  auto setup = [this, addRemoveNeighbor]() {
+  auto setup = [this]() {
     auto config = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
     applyNewConfig(config);
+    folly::IPAddressV6 kNeighborIp("1::2");
+    InterfaceID kIntfId{101};
     // Add neighbor
-    applyNewState(addRemoveNeighbor(getProgrammedState(), true));
+    addRemoveNeighbor(kNeighborIp, kIntfId, true);
     // Remove neighbor
-    applyNewState(addRemoveNeighbor(getProgrammedState(), false));
+    addRemoveNeighbor(kNeighborIp, kIntfId, false);
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
