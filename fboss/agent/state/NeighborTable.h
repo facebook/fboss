@@ -100,7 +100,9 @@ class NeighborTable : public ThriftyNodeMapT<
       folly::MacAddress mac,
       PortDescriptor port,
       InterfaceID intfID,
-      std::optional<cfg::AclLookupClass> classID = std::nullopt);
+      std::optional<cfg::AclLookupClass> classID = std::nullopt,
+      std::optional<int64_t> encapIndex = std::nullopt,
+      bool isLocal = true);
   void updateEntry(const NeighborEntryFields<AddressType>& fields);
   void updateEntry(AddressType ip, std::shared_ptr<ENTRY>);
   void addPendingEntry(AddressType ip, InterfaceID intfID);
