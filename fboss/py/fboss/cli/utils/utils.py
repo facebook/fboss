@@ -11,8 +11,10 @@
 import re
 import socket
 import sys
+import time
 import typing as t
 from collections import defaultdict
+from enum import Enum
 from functools import wraps
 from typing import DefaultDict, Dict, List, Tuple
 
@@ -318,27 +320,50 @@ def nexthop_to_str(
 fboss2_warning = f"""
 ============================================================================
 {TTY_RED}DEPRECATION WARNING{TTY_RESET}
-This command is now deprecated in favor of `fboss2 {{fboss2_cmd}}`.
+This command is now {{status}} in favor of `fboss2 {{fboss2_cmd}}`.
 Please try to migrate to the new CLI if possible. Undoubtably there
 may still be missing features / bugs in the new CLI, please use
 `fboss2 rage <msg>` to provide feedback so we can fix these issues.
 Post in the FBOSS2 WP Group or contact fboss2_cli oncall for questions. {{notes}}
 ============================================================================
 """
+fboss2_deprecation_delay = 10
+
+
+class DeprecationLevel(Enum):
+    WARN = 1
+    DELAY = 2
+    REMOVED = 3
+
+
 # Decorator that will output a deprecation warning when a command is run
-def fboss2_deprecate(fboss2_cmd: str, notes=""):
+def fboss2_deprecate(fboss2_cmd: str, notes="", level=DeprecationLevel.WARN):
     def dec(func: t.Callable):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            if sys.stdout.isatty():
+            removed = level == DeprecationLevel.REMOVED
+            delay = level == DeprecationLevel.DELAY
+            # Always output when command is removed instead of failing
+            if sys.stdout.isatty() or removed:
                 extra_notes = f"\nNote: {notes}" if notes else ""
                 print(
                     fboss2_warning.format(
                         fboss2_cmd=fboss2_cmd,
                         notes=extra_notes,
+                        status=f"{TTY_RED}disabled{TTY_RESET}"
+                        if removed
+                        else "deprecated",
                     ),
                     file=sys.stderr,
                 )
+            if delay:
+                print(
+                    f"Sleeping {fboss2_deprecation_delay}s to discourage use",
+                    file=sys.stderr,
+                )
+                time.sleep(fboss2_deprecation_delay)
+            elif removed:
+                sys.exit(1)
             return func(*args, **kwargs)
 
         return wrapper
