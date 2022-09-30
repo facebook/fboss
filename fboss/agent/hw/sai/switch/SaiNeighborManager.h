@@ -19,6 +19,7 @@
 
 #include "folly/container/F14Map.h"
 
+#include <fmt/format.h>
 #include <memory>
 #include <mutex>
 
@@ -108,7 +109,7 @@ class PortRifNeighbor {
   }
 
   std::string toString() const {
-    return "TODO";
+    return fmt::format("{}", neighbor_->attributes());
   }
 
  private:
