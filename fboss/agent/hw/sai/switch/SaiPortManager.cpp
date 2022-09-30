@@ -676,12 +676,8 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   if (itr == handles_.end()) {
     throw FbossError("Attempted to remove non-existent port: ", swId);
   }
-  if (globalDscpToTcQosMap_) {
-    setQosMaps(
-        QosMapSaiId(SAI_NULL_OBJECT_ID),
-        QosMapSaiId(SAI_NULL_OBJECT_ID),
-        {swPort->getID()});
-  }
+  auto qosMaps = getNullSaiIdsForQosMaps();
+  setQosMaps(qosMaps, {swPort->getID()});
 
   removeMirror(swPort);
   removeSamplePacket(swPort);
@@ -1129,51 +1125,101 @@ std::shared_ptr<PortMap> SaiPortManager::reconstructPortsFromStore(
 }
 
 void SaiPortManager::setQosMaps(
-    QosMapSaiId dscpToTc,
-    QosMapSaiId tcToQueue,
+    std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps,
     const folly::F14FastSet<PortID>& ports) {
+  if (!qosMaps.size()) {
+    return;
+  }
+
   for (auto& portIdAndHandle : handles_) {
     if (ports.find(portIdAndHandle.first) == ports.end()) {
       continue;
     }
     auto& port = portIdAndHandle.second->port;
-    port->setOptionalAttribute(
-        SaiPortTraits::Attributes::QosDscpToTcMap{dscpToTc});
-    port->setOptionalAttribute(
-        SaiPortTraits::Attributes::QosTcToQueueMap{tcToQueue});
+    for (auto qosMapTypeToSaiId : qosMaps) {
+      auto mapping = qosMapTypeToSaiId.second;
+      switch (qosMapTypeToSaiId.first) {
+        case SAI_QOS_MAP_TYPE_DSCP_TO_TC:
+          port->setOptionalAttribute(
+              SaiPortTraits::Attributes::QosDscpToTcMap{mapping});
+          break;
+        case SAI_QOS_MAP_TYPE_TC_TO_QUEUE:
+          port->setOptionalAttribute(
+              SaiPortTraits::Attributes::QosTcToQueueMap{mapping});
+          break;
+        case SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP:
+          port->setOptionalAttribute(
+              SaiPortTraits::Attributes::QosTcToPriorityGroupMap{mapping});
+          break;
+        default:
+          throw FbossError("Unhandled qos map ", qosMapTypeToSaiId.first);
+      }
+    }
   }
 }
 
 void SaiPortManager::setQosMapsOnAllPorts(
-    QosMapSaiId dscpToTc,
-    QosMapSaiId tcToQueue) {
+    std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps) {
   folly::F14FastSet<PortID> allPorts;
   for (const auto& portIdAndHandle : handles_) {
     allPorts.insert(portIdAndHandle.first);
   }
-  setQosMaps(dscpToTc, tcToQueue, allPorts);
+  setQosMaps(qosMaps, allPorts);
+}
+
+std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>
+SaiPortManager::getNullSaiIdsForQosMaps() {
+  std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>> qosMaps{};
+  auto nullObjId = QosMapSaiId(SAI_NULL_OBJECT_ID);
+  if (!managerTable_->switchManager().isGlobalQoSMapSupported()) {
+    qosMaps.push_back({SAI_QOS_MAP_TYPE_DSCP_TO_TC, nullObjId});
+    qosMaps.push_back({SAI_QOS_MAP_TYPE_TC_TO_QUEUE, nullObjId});
+  }
+
+  auto qosMapHandle = managerTable_->qosMapManager().getQosMap();
+  if (qosMapHandle && qosMapHandle->tcToPgMap) {
+    qosMaps.push_back({SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP, nullObjId});
+  }
+
+  return qosMaps;
+}
+
+std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>
+SaiPortManager::getSaiIdsForQosMaps() {
+  auto qosMapHandle = managerTable_->qosMapManager().getQosMap();
+  std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>> qosMaps{};
+  if (!managerTable_->switchManager().isGlobalQoSMapSupported()) {
+    qosMaps.push_back(
+        {SAI_QOS_MAP_TYPE_DSCP_TO_TC, globalDscpToTcQosMap_->adapterKey()});
+    qosMaps.push_back(
+        {SAI_QOS_MAP_TYPE_TC_TO_QUEUE, globalTcToQueueQosMap_->adapterKey()});
+  }
+  if (qosMapHandle && qosMapHandle->tcToPgMap) {
+    qosMaps.push_back(
+        {SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP,
+         qosMapHandle->tcToPgMap->adapterKey()});
+  }
+  return qosMaps;
 }
 
 void SaiPortManager::setQosPolicy() {
-  if (managerTable_->switchManager().isGlobalQoSMapSupported()) {
-    return;
+  if (!managerTable_->switchManager().isGlobalQoSMapSupported()) {
+    auto& qosMapManager = managerTable_->qosMapManager();
+    auto qosMapHandle = qosMapManager.getQosMap();
+    globalDscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
+    globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
   }
-  auto& qosMapManager = managerTable_->qosMapManager();
-  XLOG(DBG2) << "Set default qos map";
-  auto qosMapHandle = qosMapManager.getQosMap();
-  globalDscpToTcQosMap_ = qosMapHandle->dscpToTcMap;
-  globalTcToQueueQosMap_ = qosMapHandle->tcToQueueMap;
-  setQosMapsOnAllPorts(
-      globalDscpToTcQosMap_->adapterKey(),
-      globalTcToQueueQosMap_->adapterKey());
+
+  auto qosMaps = getSaiIdsForQosMaps();
+  if (qosMaps.size()) {
+    XLOG(DBG2) << "Set qos maps";
+    setQosMapsOnAllPorts(qosMaps);
+  }
 }
 
 void SaiPortManager::clearQosPolicy() {
-  if (managerTable_->switchManager().isGlobalQoSMapSupported()) {
-    return;
-  }
-  setQosMapsOnAllPorts(
-      QosMapSaiId(SAI_NULL_OBJECT_ID), QosMapSaiId(SAI_NULL_OBJECT_ID));
+  auto qosMaps = getNullSaiIdsForQosMaps();
+  setQosMapsOnAllPorts(qosMaps);
   globalDscpToTcQosMap_.reset();
   globalTcToQueueQosMap_.reset();
 }

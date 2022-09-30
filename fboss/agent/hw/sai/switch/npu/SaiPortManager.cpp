@@ -134,10 +134,8 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   if (globalDscpToTcQosMap_) {
     // Both global maps must exist in one of them exists
     CHECK(globalTcToQueueQosMap_);
-    setQosMaps(
-        globalDscpToTcQosMap_->adapterKey(),
-        globalTcToQueueQosMap_->adapterKey(),
-        {swPort->getID()});
+    auto qosMaps = getSaiIdsForQosMaps();
+    setQosMaps(qosMaps, {swPort->getID()});
   }
 
   addSamplePacket(swPort);

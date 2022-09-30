@@ -219,11 +219,14 @@ class SaiPortManager {
   void releasePortPfcBuffers();
 
   void setQosMaps(
-      QosMapSaiId dscpToTc,
-      QosMapSaiId tcToQueue,
+      std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps,
       const folly::F14FastSet<PortID>& ports);
+  std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>
+  getNullSaiIdsForQosMaps();
+  std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>> getSaiIdsForQosMaps();
 
-  void setQosMapsOnAllPorts(QosMapSaiId dscpToTc, QosMapSaiId tcToQueue);
+  void setQosMapsOnAllPorts(
+      std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps);
   const std::vector<sai_stat_id_t>& supportedStats(PortID port);
   void fillInSupportedStats(PortID port);
   const std::vector<sai_stat_id_t>& fecStatIds(PortID portID) const;
