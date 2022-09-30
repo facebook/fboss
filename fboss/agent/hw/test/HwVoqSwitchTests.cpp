@@ -50,6 +50,34 @@ TEST_F(HwVoqSwitchTest, applyConfig) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwVoqSwitchTest, remoteSystemPort) {
+  auto setup = [this]() {
+    auto config = utility::onePortPerInterfaceConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode());
+    applyNewConfig(config);
+    auto newState = getProgrammedState();
+    auto systemPorts = newState->getSystemPorts()->modify(&newState);
+    auto numLocalPorts = systemPorts->size();
+    EXPECT_GT(numLocalPorts, 0);
+    auto localPort = *systemPorts->begin();
+    auto remoteSysPort = std::make_shared<SystemPort>(SystemPortID(301));
+    remoteSysPort->setSwitchId(SwitchID(2));
+    remoteSysPort->setNumVoqs(localPort->getNumVoqs());
+    remoteSysPort->setCoreIndex(localPort->getCoreIndex());
+    remoteSysPort->setCorePortIndex(localPort->getCorePortIndex());
+
+    remoteSysPort->setSpeedMbps(localPort->getSpeedMbps());
+    remoteSysPort->setEnabled(true);
+    systemPorts->addSystemPort(remoteSysPort);
+    applyNewState(newState);
+    EXPECT_EQ(
+        getProgrammedState()->getSystemPorts()->size(), numLocalPorts + 1);
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
+
 TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
   auto addRemoveNeighbor = [this](
                                const std::shared_ptr<SwitchState>& inState,
