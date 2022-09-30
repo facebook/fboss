@@ -1151,6 +1151,10 @@ void SaiPortManager::setQosMaps(
           port->setOptionalAttribute(
               SaiPortTraits::Attributes::QosTcToPriorityGroupMap{mapping});
           break;
+        case SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE:
+          port->setOptionalAttribute(
+              SaiPortTraits::Attributes::QosPfcPriorityToQueueMap{mapping});
+          break;
         default:
           throw FbossError("Unhandled qos map ", qosMapTypeToSaiId.first);
       }
@@ -1177,8 +1181,13 @@ SaiPortManager::getNullSaiIdsForQosMaps() {
   }
 
   auto qosMapHandle = managerTable_->qosMapManager().getQosMap();
-  if (qosMapHandle && qosMapHandle->tcToPgMap) {
-    qosMaps.push_back({SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP, nullObjId});
+  if (qosMapHandle) {
+    if (qosMapHandle->tcToPgMap) {
+      qosMaps.push_back({SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP, nullObjId});
+    }
+    if (qosMapHandle->pfcPriorityToQueueMap) {
+      qosMaps.push_back({SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE, nullObjId});
+    }
   }
 
   return qosMaps;
@@ -1194,10 +1203,17 @@ SaiPortManager::getSaiIdsForQosMaps() {
     qosMaps.push_back(
         {SAI_QOS_MAP_TYPE_TC_TO_QUEUE, globalTcToQueueQosMap_->adapterKey()});
   }
-  if (qosMapHandle && qosMapHandle->tcToPgMap) {
-    qosMaps.push_back(
-        {SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP,
-         qosMapHandle->tcToPgMap->adapterKey()});
+  if (qosMapHandle) {
+    if (qosMapHandle->tcToPgMap) {
+      qosMaps.push_back(
+          {SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP,
+           qosMapHandle->tcToPgMap->adapterKey()});
+    }
+    if (qosMapHandle->pfcPriorityToQueueMap) {
+      qosMaps.push_back(
+          {SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE,
+           qosMapHandle->pfcPriorityToQueueMap->adapterKey()});
+    }
   }
   return qosMaps;
 }
