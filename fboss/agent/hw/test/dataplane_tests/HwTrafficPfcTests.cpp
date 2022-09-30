@@ -225,6 +225,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       // ensure counter is > 0, after the traffic
       validatePfcCounters(
           pfcPriority, {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+      // stop traffic so that unconfiguration can happen without issues
+      stopTraffic({masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
     };
     verifyAcrossWarmBoots(setup, verify);
   }
@@ -271,6 +273,13 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
 
         getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
       }
+    }
+  }
+  void stopTraffic(const std::vector<PortID>& portIds) {
+    // Toggle the link to break looping traffic
+    for (auto portId : portIds) {
+      bringDownPort(portId);
+      bringUpPort(portId);
     }
   }
 
