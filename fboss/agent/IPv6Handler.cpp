@@ -176,6 +176,15 @@ void IPv6Handler::handlePacket(
   std::shared_ptr<Interface> intf{nullptr};
   auto interfaceMap = state->getInterfaces();
   if (ipv6.dstAddr.isMulticast()) {
+    // If packet is received on a lag member port, ensure that
+    // LAG is in forwarding state
+    if (!AggregatePort::isIngressValid(state, pkt)) {
+      XLOG_EVERY_MS(DBG2, 5000)
+          << "Dropping multicast ipv6 pkt ingressing on disabled agg member port "
+          << pkt->getSrcPort();
+      return;
+    }
+
     // Forward multicast packet directly to corresponding host interface
     // and let Linux handle it. In software we consume ICMPv6 Multicast
     // packets for function of NDP protocol, rest all are forwarded to host.

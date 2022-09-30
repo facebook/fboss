@@ -167,6 +167,14 @@ void IPv4Handler::handlePacket(
   std::shared_ptr<Interface> intf{nullptr};
   auto interfaceMap = state->getInterfaces();
   if (v4Hdr.dstAddr.isMulticast()) {
+    // If packet is received on a lag member port, ensure that
+    // LAG is in forwarding state
+    if (!AggregatePort::isIngressValid(state, pkt)) {
+      XLOG_EVERY_MS(DBG2, 5000)
+          << "Dropping multicast ipv4 pkt ingressing on disabled agg member port "
+          << pkt->getSrcPort();
+      return;
+    }
     // Forward multicast packet directly to corresponding host interface
     intf = interfaceMap->getInterfaceInVlanIf(pkt->getSrcVlan());
   } else if (v4Hdr.dstAddr.isLinkLocal()) {
