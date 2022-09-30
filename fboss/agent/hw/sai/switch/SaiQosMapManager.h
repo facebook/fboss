@@ -34,6 +34,7 @@ struct SaiQosMapHandle {
   std::shared_ptr<SaiQosMap> expToTcMap;
   std::shared_ptr<SaiQosMap> tcToExpMap;
   std::shared_ptr<SaiQosMap> tcToPgMap;
+  std::shared_ptr<SaiQosMap> pfcPriorityToQueueMap;
 };
 
 class SaiQosMapManager {
@@ -59,6 +60,8 @@ class SaiQosMapManager {
   std::shared_ptr<SaiQosMap> setTcToExpQosMap(const ExpMap& newExpMap);
   std::shared_ptr<SaiQosMap> setTcToPgQosMap(
       const std::map<int16_t, int16_t>& newTcToPgMap);
+  std::shared_ptr<SaiQosMap> setPfcPriorityToQueueQosMap(
+      const std::map<int16_t, int16_t>& newPfcPriorityToQueueMap);
   void setQosMaps(const std::shared_ptr<QosPolicy>& newQosPolicy);
 
   SaiStore* saiStore_;

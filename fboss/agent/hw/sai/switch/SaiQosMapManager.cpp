@@ -142,6 +142,28 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToPgQosMap(
   return store.setObject(k, c);
 }
 
+std::shared_ptr<SaiQosMap> SaiQosMapManager::setPfcPriorityToQueueQosMap(
+    const std::map<int16_t, int16_t>& newPfcPriorityToQueueMap) {
+  std::vector<sai_qos_map_t> mapToValueList;
+  mapToValueList.reserve(newPfcPriorityToQueueMap.size());
+  for (const auto& pfcPriority2queue : newPfcPriorityToQueueMap) {
+    auto [pfcPriority, queue] = pfcPriority2queue;
+    sai_qos_map_t mapping{};
+    mapping.key.prio = pfcPriority;
+    mapping.value.queue_index = queue;
+    mapToValueList.push_back(mapping);
+  }
+  // set the pfcPriority->queue mapping in SAI
+  SaiQosMapTraits::Attributes::Type typeAttribute{
+      SAI_QOS_MAP_TYPE_PFC_PRIORITY_TO_QUEUE};
+  SaiQosMapTraits::Attributes::MapToValueList mapToValueListAttribute{
+      mapToValueList};
+  auto& store = saiStore_->get<SaiQosMapTraits>();
+  SaiQosMapTraits::AdapterHostKey k{typeAttribute};
+  SaiQosMapTraits::CreateAttributes c{typeAttribute, mapToValueListAttribute};
+  return store.setObject(k, c);
+}
+
 void SaiQosMapManager::setQosMaps(
     const std::shared_ptr<QosPolicy>& newQosPolicy) {
   XLOG(DBG2) << "Setting global QoS map: " << newQosPolicy->getName();
@@ -155,6 +177,10 @@ void SaiQosMapManager::setQosMaps(
     if (newQosPolicy->getTrafficClassToPgId()) {
       handle_->tcToPgMap =
           setTcToPgQosMap(*newQosPolicy->getTrafficClassToPgId());
+    }
+    if (newQosPolicy->getPfcPriorityToQueueId()) {
+      handle_->pfcPriorityToQueueMap =
+          setPfcPriorityToQueueQosMap(*newQosPolicy->getPfcPriorityToQueueId());
     }
   }
 }
