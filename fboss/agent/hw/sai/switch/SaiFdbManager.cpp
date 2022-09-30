@@ -58,6 +58,12 @@ void ManagedFdbEntry::createObject(PublisherObjects objects) {
   // - While processing the state delta for changed MAC entry, we try to
   // delete the dynamic entry before adding static entry
   fdbEntry->setIgnoreMissingInHwOnDelete(true);
+  // If pending_L2_entry is not supported, l2 entry is already deleted from HW
+  // table upon receiving the l2 age event. Therefore, no need to make the
+  // remove call down to SDK layer.
+  if (!supportsPending_) {
+    fdbEntry->setSkipRemove(true);
+  }
   setObject(fdbEntry);
   XLOG(DBG2) << "ManagedFdbEntry::createObject: " << toL2Entry().str();
 }
@@ -173,7 +179,8 @@ void SaiFdbManager::addFdbEntry(
       std::make_tuple(port, saiRouterIntf->adapterKey()),
       std::make_tuple(interfaceId, mac),
       type,
-      metadata);
+      metadata,
+      platform_->getAsic()->isSupported(HwAsic::Feature::PENDING_L2_ENTRY));
 
   SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
       managedFdbEntry);

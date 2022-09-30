@@ -379,6 +379,10 @@ class SaiObject {
     ignoreMissingInHwOnDelete_ = ignore;
   }
 
+  void setSkipRemove(bool skipRemove) {
+    skipRemove_ = skipRemove;
+  }
+
   bool isOwnedByAdapter() const {
     return ownedByAdapter_;
   }
@@ -417,7 +421,7 @@ class SaiObject {
     if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
       notifyBeforeDestroy();
     }
-    if (isOwnedByAdapter()) {
+    if (isOwnedByAdapter() || skipRemove_) {
       return;
     }
     if constexpr (not IsSaiObjectOwnedByAdapter<SaiObjectTraits>::value) {
@@ -434,8 +438,8 @@ class SaiObject {
           // - Later we get a state update to transform this into a STATIC FDB
           // entry
           // - Meanwhile the dynamic MAC ages out and gets deleted
-          // - While processing the state delta for changed MAC entry, we try to
-          // delete the dynamic entry before adding static entry
+          // - While processing the state delta for changed MAC entry, we try
+          // to delete the dynamic entry before adding static entry
           XLOGF(
               INFO,
               "Ignoring not found error on {} remove, entry already "
@@ -495,6 +499,8 @@ class SaiObject {
   // For some object types we can ignore missing in HW errors
   // on when deleting.
   bool ignoreMissingInHwOnDelete_{false};
+  // For some object types we want to skip remove call when deleting
+  bool skipRemove_{false};
   typename SaiObjectTraits::AdapterKey adapterKey_;
   typename SaiObjectTraits::AdapterHostKey adapterHostKey_;
   typename SaiObjectTraits::CreateAttributes attributes_;
