@@ -37,7 +37,9 @@ class HwVoqSwitchTest : public HwTest {
     applyNewState(newState);
     EXPECT_EQ(getProgrammedState()->getSystemPorts()->size(), numPrevPorts + 1);
   }
-  void addRemoteInterface(InterfaceID intfId) {
+  void addRemoteInterface(
+      InterfaceID intfId,
+      const Interface::Addresses& subnets) {
     auto newState = getProgrammedState()->clone();
     auto newInterfaces = newState->getInterfaces()->clone();
     auto numPrevIntfs = newInterfaces->size();
@@ -51,6 +53,7 @@ class HwVoqSwitchTest : public HwTest {
         false,
         false,
         cfg::InterfaceType::SYSTEM_PORT);
+    newInterface->setAddresses(subnets);
     newInterfaces->addInterface(newInterface);
     newState->resetIntfs(newInterfaces);
     applyNewState(newState);
@@ -151,7 +154,17 @@ TEST_F(HwVoqSwitchTest, remoteRouterInterface) {
     applyNewConfig(config);
     auto constexpr remotePortId = 301;
     addRemoteSysPort(SystemPortID(remotePortId));
-    addRemoteInterface(InterfaceID(remotePortId));
+    addRemoteInterface(
+        InterfaceID(remotePortId),
+        // TODO - following assumes we haven't
+        // already used up the subnets below for
+        // local interfaces. In that sense it
+        // has a implicit coupling with how ConfigFactory
+        // generates subnets for local interfaces
+        {
+            {folly::IPAddress("100::1"), 64},
+            {folly::IPAddress("100.0.0.1"), 24},
+        });
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
