@@ -5,13 +5,34 @@
 #include "fboss/agent/hw/test/HwTest.h"
 
 namespace facebook::fboss {
-
+namespace {
+const SwitchID kRemoteSwitchId(2);
+}
 class HwVoqSwitchTest : public HwTest {
  public:
   void SetUp() override {
     HwTest::SetUp();
     ASSERT_EQ(getHwSwitch()->getSwitchType(), cfg::SwitchType::VOQ);
     ASSERT_TRUE(getHwSwitch()->getSwitchId().has_value());
+  }
+
+ protected:
+  void addRemoteSysPort(SystemPortID portId) {
+    auto newState = getProgrammedState()->clone();
+    auto systemPorts = newState->getSystemPorts()->modify(&newState);
+    auto numPrevPorts = systemPorts->size();
+    EXPECT_GT(numPrevPorts, 0);
+    auto localPort = *systemPorts->begin();
+    auto remoteSysPort = std::make_shared<SystemPort>(portId);
+    remoteSysPort->setSwitchId(kRemoteSwitchId);
+    remoteSysPort->setNumVoqs(localPort->getNumVoqs());
+    remoteSysPort->setCoreIndex(localPort->getCoreIndex());
+    remoteSysPort->setCorePortIndex(localPort->getCorePortIndex());
+    remoteSysPort->setSpeedMbps(localPort->getSpeedMbps());
+    remoteSysPort->setEnabled(true);
+    systemPorts->addSystemPort(remoteSysPort);
+    applyNewState(newState);
+    EXPECT_EQ(getProgrammedState()->getSystemPorts()->size(), numPrevPorts + 1);
   }
 };
 
@@ -57,23 +78,7 @@ TEST_F(HwVoqSwitchTest, remoteSystemPort) {
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
     applyNewConfig(config);
-    auto newState = getProgrammedState();
-    auto systemPorts = newState->getSystemPorts()->modify(&newState);
-    auto numLocalPorts = systemPorts->size();
-    EXPECT_GT(numLocalPorts, 0);
-    auto localPort = *systemPorts->begin();
-    auto remoteSysPort = std::make_shared<SystemPort>(SystemPortID(301));
-    remoteSysPort->setSwitchId(SwitchID(2));
-    remoteSysPort->setNumVoqs(localPort->getNumVoqs());
-    remoteSysPort->setCoreIndex(localPort->getCoreIndex());
-    remoteSysPort->setCorePortIndex(localPort->getCorePortIndex());
-
-    remoteSysPort->setSpeedMbps(localPort->getSpeedMbps());
-    remoteSysPort->setEnabled(true);
-    systemPorts->addSystemPort(remoteSysPort);
-    applyNewState(newState);
-    EXPECT_EQ(
-        getProgrammedState()->getSystemPorts()->size(), numLocalPorts + 1);
+    addRemoteSysPort(SystemPortID(301));
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
@@ -92,7 +97,7 @@ TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
     if (add) {
       const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
       const InterfaceID kIntfID(101);
-      neighborTable->addPendingEntry(ip, InterfaceID(101));
+      neighborTable->addPendingEntry(ip, kIntfID);
       neighborTable->updateEntry(
           ip, kNeighborMac, PortDescriptor(masterLogicalPortIds()[0]), kIntfID);
     } else {
@@ -114,4 +119,5 @@ TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
+
 } // namespace facebook::fboss
