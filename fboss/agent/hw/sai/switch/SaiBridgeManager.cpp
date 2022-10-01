@@ -36,8 +36,7 @@ std::shared_ptr<SaiBridgePort> SaiBridgeManager::addBridgePort(
     CHECK(bridgeHandle_->bridge);
   }
   auto& store = saiStore_->get<SaiBridgePortTraits>();
-  auto saiObjectId =
-      saiId.isPhysicalPort() ? saiId.phyPortID() : saiId.aggPortID();
+  auto saiObjectId = saiId.intID();
   SaiBridgePortTraits::AdapterHostKey k{saiObjectId};
   SaiBridgePortTraits::CreateAttributes attributes{
       SAI_BRIDGE_PORT_TYPE_PORT, saiObjectId, true, fdbLearningMode_};
