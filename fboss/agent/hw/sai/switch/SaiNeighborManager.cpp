@@ -196,18 +196,6 @@ cfg::InterfaceType SaiNeighborManager::getNeighborRifType(
   throw FbossError("Could not find neighbor: ", saiEntry.ip().str());
 }
 
-bool SaiNeighborManager::isLinkUp(SaiPortDescriptor port) {
-  if (port.isPhysicalPort()) {
-    auto portHandle =
-        managerTable_->portManager().getPortHandle(port.phyPortID());
-    auto portOperStatus = SaiApiTable::getInstance()->portApi().getAttribute(
-        portHandle->port->adapterKey(),
-        SaiPortTraits::Attributes::OperStatus{});
-    return (portOperStatus == SAI_PORT_OPER_STATUS_UP);
-  }
-  return managerTable_->lagManager().isMinimumLinkMet(port.aggPortID());
-}
-
 std::string SaiNeighborManager::listManagedObjects() const {
   std::string output{};
   for (const auto& entry : neighbors_) {

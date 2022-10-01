@@ -192,8 +192,6 @@ class SaiNeighborManager {
       const SaiNeighborTraits::AdapterHostKey& key,
       const SaiNeighborTraits::CreateAttributes& attributes);
 
-  bool isLinkUp(SaiPortDescriptor port);
-
   std::string listManagedObjects() const;
   SwitchSaiId getSwitchSaiId() const;
 
