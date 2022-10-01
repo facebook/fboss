@@ -199,6 +199,9 @@ void BcmMacTable::unprogramMacEntry(const MacEntry* macEntry, VlanID vlan) {
       // No bcm_l2_addr_delete_by_mac_trunk API, CS9347300 requests the same.
       rv = bcm_l2_addr_delete(hw_->getUnit(), macBytes, vlan);
       break;
+    case PortDescriptor::PortType::SYSTEM_PORT:
+      XLOG(FATAL) << " Mac entries over system ports are not expected";
+      break;
   }
 
   if (!(rv == BCM_E_NONE || rv == BCM_E_NOT_FOUND)) {

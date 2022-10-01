@@ -13,6 +13,9 @@ bcm_gport_t BcmPortDescriptor::asGPort() const {
       return BcmPort::asGPort(phyPortID());
     case PortType::AGGREGATE:
       return BcmTrunk::asGPort(aggPortID());
+    case PortType::SYSTEM_PORT:
+      XLOG(FATAL) << " System ports not implemented in Bcm layer";
+      break;
   }
   throw FbossError("Unknown type for BcmPortDescriptor");
 }

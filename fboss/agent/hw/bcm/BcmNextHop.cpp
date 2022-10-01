@@ -190,6 +190,9 @@ bcm_gport_t BcmMplsNextHop::getGPort() {
         gport = BcmPort::asGPort(
             hw_->getPortTable()->getBcmPortId(egressPort_->phyPortID()));
         break;
+      case PortDescriptor::PortType::SYSTEM_PORT:
+        XLOG(FATAL) << " MPLS next hops not expected over system ports";
+        break;
     }
   }
   return gport;

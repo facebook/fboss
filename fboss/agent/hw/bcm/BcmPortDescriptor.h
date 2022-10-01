@@ -12,12 +12,14 @@ extern "C" {
 
 FBOSS_STRONG_TYPE(bcm_port_t, BcmPortId)
 FBOSS_STRONG_TYPE(bcm_trunk_t, BcmTrunkId)
+FBOSS_STRONG_TYPE(bcm_port_t, BcmSystemPortId)
 
 namespace facebook::fboss {
 
-class BcmPortDescriptor : public PortDescriptorTemplate<BcmPortId, BcmTrunkId> {
+class BcmPortDescriptor
+    : public PortDescriptorTemplate<BcmPortId, BcmTrunkId, BcmSystemPortId> {
  public:
-  using BaseT = PortDescriptorTemplate<BcmPortId, BcmTrunkId>;
+  using BaseT = PortDescriptorTemplate<BcmPortId, BcmTrunkId, BcmSystemPortId>;
   explicit BcmPortDescriptor(BcmPortId port) : BaseT(port) {}
   explicit BcmPortDescriptor(BcmTrunkId trunk) : BaseT(trunk) {}
   bcm_gport_t asGPort() const;

@@ -22,18 +22,21 @@ constexpr auto kPortType = "portType";
 
 namespace facebook::fboss {
 
-template <typename PortIdType, typename TrunkIdType>
+template <typename PortIdType, typename TrunkIdType, typename SystemPortIdType>
 class PortDescriptorTemplate {
  public:
   enum class PortType {
     PHYSICAL,
     AGGREGATE,
+    SYSTEM_PORT,
   };
   PortDescriptorTemplate() {}
   explicit PortDescriptorTemplate(PortIdType p)
       : type_(PortType::PHYSICAL), physicalPortID_(p) {}
   explicit PortDescriptorTemplate(TrunkIdType p)
       : type_(PortType::AGGREGATE), aggregatePortID_(p) {}
+  explicit PortDescriptorTemplate(SystemPortIdType p)
+      : type_(PortType::SYSTEM_PORT), systemPortID_(p) {}
 
   PortType type() const {
     return type_;
@@ -45,22 +48,37 @@ class PortDescriptorTemplate {
     return type() == PortType::AGGREGATE;
   }
 
+  bool isSystemPort() const {
+    return type() == PortType::SYSTEM_PORT;
+  }
   PortIdType phyPortID() const {
-    CHECK(type() == PortType::PHYSICAL);
+    CHECK(isPhysicalPort());
     return physicalPortID_;
   }
   TrunkIdType aggPortID() const {
-    CHECK(type() == PortType::AGGREGATE);
+    CHECK(isAggregatePort());
     return aggregatePortID_;
+  }
+  SystemPortIdType sysPortID() const {
+    CHECK(isSystemPort());
+    return systemPortID_;
   }
 
   bool operator==(const PortDescriptorTemplate& rhs) const {
-    return std::tie(type_, physicalPortID_, aggregatePortID_) ==
-        std::tie(rhs.type_, rhs.physicalPortID_, rhs.aggregatePortID_);
+    return std::tie(type_, physicalPortID_, aggregatePortID_, systemPortID_) ==
+        std::tie(
+               rhs.type_,
+               rhs.physicalPortID_,
+               rhs.aggregatePortID_,
+               rhs.systemPortID_);
   }
   bool operator<(const PortDescriptorTemplate& rhs) const {
-    return std::tie(type_, physicalPortID_, aggregatePortID_) <
-        std::tie(rhs.type_, rhs.physicalPortID_, rhs.aggregatePortID_);
+    return std::tie(type_, physicalPortID_, aggregatePortID_, systemPortID_) <
+        std::tie(
+               rhs.type_,
+               rhs.physicalPortID_,
+               rhs.aggregatePortID_,
+               rhs.systemPortID_);
   }
   bool operator!=(const PortDescriptorTemplate& rhs) const {
     return !(*this == rhs);
@@ -86,6 +104,8 @@ class PortDescriptorTemplate {
         return static_cast<int32_t>(physicalPortID_);
       case PortType::AGGREGATE:
         return static_cast<int32_t>(aggregatePortID_);
+      case PortType::SYSTEM_PORT:
+        return static_cast<int32_t>(systemPortID_);
     }
     XLOG(FATAL) << "Unknown port type";
   }
@@ -104,7 +124,7 @@ class PortDescriptorTemplate {
       case cfg::PortDescriptorType::Aggregate:
         return PortDescriptorTemplate(TrunkIdType(portTh.get_portId()));
       case cfg::PortDescriptorType::SystemPort:
-        break;
+        return PortDescriptorTemplate(SystemPortIdType(portTh.get_portId()));
     }
     XLOG(FATAL) << "Unknown port type";
   }
@@ -120,6 +140,10 @@ class PortDescriptorTemplate {
         entry[kPortType] = static_cast<uint16_t>(PortType::AGGREGATE);
         entry[kPortId] = static_cast<uint16_t>(aggregatePortID_);
         break;
+      case PortType::SYSTEM_PORT:
+        entry[kPortType] = static_cast<uint16_t>(PortType::SYSTEM_PORT);
+        entry[kPortId] = static_cast<uint16_t>(systemPortID_);
+        break;
       default:
         XLOG(FATAL) << "Unknown port type";
     }
@@ -132,29 +156,40 @@ class PortDescriptorTemplate {
         return PortDescriptorTemplate(PortIdType(descJSON[kPortId].asInt()));
       case PortType::AGGREGATE:
         return PortDescriptorTemplate(TrunkIdType(descJSON[kPortId].asInt()));
+      case PortType::SYSTEM_PORT:
+        return PortDescriptorTemplate(
+            SystemPortIdType(descJSON[kPortId].asInt()));
     }
     XLOG(FATAL) << "Unknown port type";
   }
   std::string str() const {
-    return isPhysicalPort()
-        ? folly::to<std::string>("PhysicalPort-", physicalPortID_)
-        : folly::to<std::string>("AggregatePort-", aggregatePortID_);
+    switch (type()) {
+      case PortType::PHYSICAL:
+        return folly::to<std::string>("PhysicalPort-", physicalPortID_);
+      case PortType::AGGREGATE:
+        return folly::to<std::string>("AggregatePort-", aggregatePortID_);
+      case PortType::SYSTEM_PORT:
+        return folly::to<std::string>("SystemPort-", systemPortID_);
+    }
+    XLOG(FATAL) << "Unknown port type";
   }
 
  private:
   PortType type_{PortType::PHYSICAL};
   PortIdType physicalPortID_{0};
   TrunkIdType aggregatePortID_{0};
+  SystemPortIdType systemPortID_{0};
 };
 
-template <typename PortIdT, typename TrunkIdT>
+template <typename PortIdT, typename TrunkIdT, typename SystemPortIdTypeT>
 inline std::ostream& operator<<(
     std::ostream& out,
-    const PortDescriptorTemplate<PortIdT, TrunkIdT>& pd) {
+    const PortDescriptorTemplate<PortIdT, TrunkIdT, SystemPortIdTypeT>& pd) {
   return out << pd.str();
 }
 
-using BasePortDescriptor = PortDescriptorTemplate<PortID, AggregatePortID>;
+using BasePortDescriptor =
+    PortDescriptorTemplate<PortID, AggregatePortID, SystemPortID>;
 
 } // namespace facebook::fboss
 

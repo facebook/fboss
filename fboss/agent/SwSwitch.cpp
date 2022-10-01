@@ -1493,6 +1493,9 @@ void SwSwitch::sendNetworkControlPacketAsync(
         sendPacketOutOfPortAsync(
             std::move(pkt), portVal.aggPortID(), kNCStrictPriorityQueue);
         break;
+      case PortDescriptor::PortType::SYSTEM_PORT:
+        XLOG(FATAL) << " Packet send over system ports not handled yet";
+        break;
     };
   } else {
     this->sendPacketSwitchedAsync(std::move(pkt));
