@@ -29,6 +29,7 @@ class PortDescriptor
   explicit PortDescriptor(PortID p) : BaseT(p) {}
   explicit PortDescriptor(AggregatePortID p) : BaseT(p) {}
   explicit PortDescriptor(SystemPortID p) : BaseT(p) {}
+  explicit PortDescriptor(const BaseT& b) : BaseT(b) {}
 
   static PortDescriptor fromRxPacket(const RxPacket& pkt) {
     if (pkt.isFromAggregatePort()) {
@@ -45,9 +46,6 @@ class PortDescriptor
   static PortDescriptor fromFollyDynamic(const folly::dynamic& descJSON) {
     return PortDescriptor(BaseT::fromFollyDynamic(descJSON));
   }
-
- private:
-  explicit PortDescriptor(const BaseT& b) : BaseT(b) {}
 };
 
 // helper so port descriptors work directly in folly::to<string> expressions.

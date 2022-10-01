@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -89,8 +90,7 @@ L2Entry ManagedFdbEntry::toL2Entry() const {
       mac,
       // For FBOSS Vlan and interface ids are always 1:1
       VlanID(getInterfaceID()),
-      port.isPhysicalPort() ? PortDescriptor(port.phyPortID())
-                            : PortDescriptor(port.aggPortID()),
+      PortDescriptor(port),
       // Since this entry is already programmed, its validated.
       // In vlan traffic to this MAC will be unicast and not
       // flooded.
@@ -189,11 +189,8 @@ void SaiFdbManager::addFdbEntry(
 }
 
 void ManagedFdbEntry::update(const std::shared_ptr<MacEntry>& updated) {
-  if (updated->getPort().isPhysicalPort()) {
-    CHECK_EQ(getPortId(), updated->getPort().phyPortID());
-  } else {
-    CHECK_EQ(getPortId(), updated->getPort().aggPortID());
-  }
+  CHECK(updated->getPort().type() == getPortId().type());
+  CHECK_EQ(updated->getPort().intID(), getPortId().intID());
   CHECK_EQ(getMac(), updated->getMac());
   auto fdbEntry = getSaiObject();
   CHECK(fdbEntry != nullptr) << "updating non-programmed fdb entry";
@@ -239,10 +236,10 @@ void SaiFdbManager::addMac(const std::shared_ptr<MacEntry>& macEntry) {
       type = SAI_FDB_ENTRY_TYPE_DYNAMIC;
       break;
   };
+  SaiPortDescriptor portDesc;
+
   addFdbEntry(
-      macEntry->getPort().isPhysicalPort()
-          ? SaiPortDescriptor(macEntry->getPort().phyPortID())
-          : SaiPortDescriptor(macEntry->getPort().aggPortID()),
+      macEntry->getPort(),
       getInterfaceId(macEntry),
       macEntry->getMac(),
       type,
@@ -290,14 +287,25 @@ void SaiFdbManager::changeMac(
 
 PortDescriptorSaiId SaiFdbManager::getPortDescriptorSaiId(
     const PortDescriptor& portDesc) const {
-  if (portDesc.isPhysicalPort()) {
-    auto const portHandle =
-        managerTable_->portManager().getPortHandle(portDesc.phyPortID());
-    return PortDescriptorSaiId(portHandle->port->adapterKey());
+  switch (portDesc.type()) {
+    case PortDescriptor::PortType::PHYSICAL: {
+      auto const portHandle =
+          managerTable_->portManager().getPortHandle(portDesc.phyPortID());
+      return PortDescriptorSaiId(portHandle->port->adapterKey());
+    } break;
+    case PortDescriptor::PortType::AGGREGATE: {
+      auto lagHandle =
+          managerTable_->lagManager().getLagHandle(portDesc.aggPortID());
+      return PortDescriptorSaiId(lagHandle->lag->adapterKey());
+    } break;
+    case PortDescriptor::PortType::SYSTEM_PORT: {
+      auto sysPortHandle =
+          managerTable_->systemPortManager().getSystemPortHandle(
+              portDesc.sysPortID());
+      return PortDescriptorSaiId(sysPortHandle->systemPort->adapterKey());
+    } break;
   }
-  auto lagHandle =
-      managerTable_->lagManager().getLagHandle(portDesc.aggPortID());
-  return PortDescriptorSaiId(lagHandle->lag->adapterKey());
+  XLOG(FATAL) << " Unknown port type";
 }
 
 InterfaceID SaiFdbManager::getInterfaceId(
