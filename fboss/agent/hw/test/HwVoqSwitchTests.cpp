@@ -62,6 +62,7 @@ class HwVoqSwitchTest : public HwTest {
   void addRemoveNeighbor(
       const folly::IPAddressV6& neighborIp,
       InterfaceID intfID,
+      PortDescriptor port,
       bool add,
       std::optional<int64_t> encapIndex = std::nullopt) {
     const VlanID kVlanID{utility::kBaseVlanId};
@@ -76,8 +77,7 @@ class HwVoqSwitchTest : public HwTest {
       neighborTable->updateEntry(
           ip,
           kNeighborMac,
-          // TODO - get system port ID for remote neighbors
-          PortDescriptor(masterLogicalPortIds()[0]),
+          port,
           intfID,
           std::nullopt,
           encapIndex,
@@ -144,11 +144,12 @@ TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
         getAsic()->desiredLoopbackMode());
     applyNewConfig(config);
     folly::IPAddressV6 kNeighborIp("1::2");
-    InterfaceID kIntfId{101};
+    const InterfaceID kIntfId{101};
+    const PortDescriptor kPort(masterLogicalPortIds()[0]);
     // Add neighbor
-    addRemoveNeighbor(kNeighborIp, kIntfId, true);
+    addRemoveNeighbor(kNeighborIp, kIntfId, kPort, true);
     // Remove neighbor
-    addRemoveNeighbor(kNeighborIp, kIntfId, false);
+    addRemoveNeighbor(kNeighborIp, kIntfId, kPort, false);
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
@@ -185,7 +186,8 @@ TEST_F(HwVoqSwitchTest, addRemoveRemoteNeighbor) {
         getAsic()->desiredLoopbackMode());
     applyNewConfig(config);
     auto constexpr remotePortId = 301;
-    addRemoteSysPort(SystemPortID(remotePortId));
+    const SystemPortID kRemoteSysPortId(remotePortId);
+    addRemoteSysPort(kRemoteSysPortId);
     const InterfaceID kIntfId(remotePortId);
     addRemoteInterface(
         kIntfId,
@@ -200,10 +202,11 @@ TEST_F(HwVoqSwitchTest, addRemoveRemoteNeighbor) {
         });
     folly::IPAddressV6 kNeighborIp("100::2");
     uint64_t dummyEncapIndex = 301;
+    PortDescriptor kPort(kRemoteSysPortId);
     // Add neighbor
-    addRemoveNeighbor(kNeighborIp, kIntfId, true, dummyEncapIndex);
+    addRemoveNeighbor(kNeighborIp, kIntfId, kPort, true, dummyEncapIndex);
     // Remove neighbor
-    addRemoveNeighbor(kNeighborIp, kIntfId, false);
+    addRemoveNeighbor(kNeighborIp, kIntfId, kPort, false);
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
