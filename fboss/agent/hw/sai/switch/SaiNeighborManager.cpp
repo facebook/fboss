@@ -98,9 +98,18 @@ void SaiNeighborManager::addNeighbor(
         "Attempted to add duplicate neighbor: ", swEntry->getIP().str());
   }
 
-  SaiPortDescriptor saiPortDesc = swEntry->getPort().isPhysicalPort()
-      ? SaiPortDescriptor(swEntry->getPort().phyPortID())
-      : SaiPortDescriptor(swEntry->getPort().aggPortID());
+  SaiPortDescriptor saiPortDesc;
+  switch (swEntry->getPort().type()) {
+    case PortDescriptor::PortType::PHYSICAL:
+      saiPortDesc = SaiPortDescriptor(swEntry->getPort().phyPortID());
+      break;
+    case PortDescriptor::PortType::AGGREGATE:
+      saiPortDesc = SaiPortDescriptor(swEntry->getPort().aggPortID());
+      break;
+    case PortDescriptor::PortType::SYSTEM_PORT:
+      saiPortDesc = SaiPortDescriptor(swEntry->getPort().sysPortID());
+      break;
+  }
 
   std::optional<sai_uint32_t> metadata;
   if (swEntry->getClassID()) {

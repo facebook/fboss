@@ -28,6 +28,7 @@ class PortDescriptor
   using BaseT::PortType;
   explicit PortDescriptor(PortID p) : BaseT(p) {}
   explicit PortDescriptor(AggregatePortID p) : BaseT(p) {}
+  explicit PortDescriptor(SystemPortID p) : BaseT(p) {}
 
   static PortDescriptor fromRxPacket(const RxPacket& pkt) {
     if (pkt.isFromAggregatePort()) {
