@@ -9,8 +9,7 @@ namespace std {
 size_t hash<facebook::fboss::PortDescriptorSaiId>::operator()(
     const facebook::fboss::PortDescriptorSaiId& key) const {
   size_t seed = 0;
-  uint64_t keyValue = key.isPhysicalPort() ? key.phyPortID() : key.aggPortID();
-  boost::hash_combine(seed, keyValue);
+  boost::hash_combine(seed, key.intID());
   return seed;
 }
 } // namespace std

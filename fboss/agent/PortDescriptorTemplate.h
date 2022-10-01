@@ -64,6 +64,17 @@ class PortDescriptorTemplate {
     return systemPortID_;
   }
 
+  uint64_t intID() const {
+    switch (type()) {
+      case PortType::PHYSICAL:
+        return phyPortID();
+      case PortType::AGGREGATE:
+        return aggPortID();
+      case PortType::SYSTEM_PORT:
+        return sysPortID();
+    }
+    XLOG(FATAL) << "Unknown port type ";
+  }
   bool operator==(const PortDescriptorTemplate& rhs) const {
     return std::tie(type_, physicalPortID_, aggregatePortID_, systemPortID_) ==
         std::tie(
