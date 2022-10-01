@@ -33,7 +33,8 @@ class NeighborManagerTest : public ManagerTestBase {
       const folly::MacAddress& expectedDstMac,
       sai_uint32_t expectedMetadata = 0,
       sai_uint32_t expectedEncapIndex = 0,
-      bool expectedIsLocal = true) {
+      bool expectedIsLocal = true,
+      cfg::InterfaceType expectedRifType = cfg::InterfaceType::VLAN) {
     auto saiEntry =
         saiManagerTable->neighborManager().saiEntryFromSwEntry(neighborEntry);
     auto gotMac = saiApiTable->neighborApi().getAttribute(
@@ -52,7 +53,10 @@ class NeighborManagerTest : public ManagerTestBase {
         saiManagerTable->neighborManager().getNeighborHandle(saiEntry);
     EXPECT_TRUE(saiNeighborHandle);
     EXPECT_TRUE(saiNeighborHandle->neighbor);
-    switch (saiManagerTable->neighborManager().getNeighborRifType(saiEntry)) {
+    auto rifType =
+        saiManagerTable->neighborManager().getNeighborRifType(saiEntry);
+    EXPECT_EQ(rifType, expectedRifType);
+    switch (rifType) {
       case cfg::InterfaceType::VLAN:
         EXPECT_TRUE(saiNeighborHandle->fdbEntry);
         break;
