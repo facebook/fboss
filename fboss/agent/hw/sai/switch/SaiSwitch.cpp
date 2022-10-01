@@ -2357,17 +2357,25 @@ std::optional<L2Entry> SaiSwitch::getL2Entry(
       ? PortDescriptorSaiId(PortSaiId(portOrLagSaiId))
       : PortDescriptorSaiId(LagSaiId(portOrLagSaiId));
   std::optional<PortDescriptor> portDesc{};
-  if (portDescSaiId.isPhysicalPort()) {
-    auto portItr = concurrentIndices_->portIds.find(portDescSaiId.phyPortID());
-    if (portItr != concurrentIndices_->portIds.end()) {
-      portDesc = PortDescriptor(portItr->second);
-    }
-  } else {
-    auto aggregatePortItr =
-        concurrentIndices_->aggregatePortIds.find(portDescSaiId.aggPortID());
-    if (aggregatePortItr != concurrentIndices_->aggregatePortIds.end()) {
-      portDesc = PortDescriptor(aggregatePortItr->second);
-    }
+  switch (portDescSaiId.type()) {
+    case PortDescriptorSaiId::PortType::PHYSICAL: {
+      auto portItr =
+          concurrentIndices_->portIds.find(portDescSaiId.phyPortID());
+      if (portItr != concurrentIndices_->portIds.end()) {
+        portDesc = PortDescriptor(portItr->second);
+      }
+    } break;
+
+    case PortDescriptorSaiId::PortType::AGGREGATE: {
+      auto aggregatePortItr =
+          concurrentIndices_->aggregatePortIds.find(portDescSaiId.aggPortID());
+      if (aggregatePortItr != concurrentIndices_->aggregatePortIds.end()) {
+        portDesc = PortDescriptor(aggregatePortItr->second);
+      }
+    }; break;
+    case PortDescriptorSaiId::PortType::SYSTEM_PORT:
+      XLOG(FATAL) << " Unexpected fdb event for sys port";
+      break;
   }
 
   if (!portDesc) {
