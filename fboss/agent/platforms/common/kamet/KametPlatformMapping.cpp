@@ -7431,6 +7431,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
 }
 )";
 
+/*
 cfg::PlatformMapping buildMapping() {
   cfg::PlatformMapping platformMapping;
   for (auto i = 0; i < 192; ++i) {
@@ -7493,9 +7494,23 @@ cfg::PlatformMapping buildMapping() {
 
   return platformMapping;
 }
+*/
+
 } // namespace
 
+/*
+ * Use configerator generated kJsonPlatformMappingStr by default.
+ * Alternatively, we could programmatically generate the platform mappings
+ * by using another PlatformMapping constructor as below:
+ *
+ * TODO(skhare) Once configerator platform mapping support is complete, remove
+ * this programmatic generation logic.
+ *
+ * KametPlatformMapping::KametPlatformMapping()
+ *    : PlatformMapping(buildMapping()) {}
+ */
+
 KametPlatformMapping::KametPlatformMapping()
-    : PlatformMapping(buildMapping()) {}
+    : PlatformMapping(kJsonPlatformMappingStr) {}
 
 } // namespace facebook::fboss
