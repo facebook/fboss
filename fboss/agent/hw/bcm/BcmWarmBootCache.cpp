@@ -415,7 +415,9 @@ void BcmWarmBootCache::populateFromWarmBootState(
         SwitchState::uniquePtrFromThrift(*thriftState->swSwitchState());
     if (FLAGS_check_thrift_state) {
       CHECK_EQ(
-          dumpedSwSwitchState_->toFollyDynamic(), warmBootState[kSwSwitch]);
+          dumpedSwSwitchState_->toFollyDynamic(),
+          SwitchState::fromFollyDynamic(warmBootState[kSwSwitch])
+              ->toFollyDynamic());
     }
   } else {
     dumpedSwSwitchState_ =

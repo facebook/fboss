@@ -1469,7 +1469,10 @@ HwInitResult SaiSwitch::initLocked(
       ret.switchState =
           SwitchState::fromThrift(*switchStateThrift->swSwitchState());
       if (FLAGS_check_thrift_state) {
-        CHECK_EQ(ret.switchState->toFollyDynamic(), switchStateJson[kSwSwitch]);
+        CHECK_EQ(
+            ret.switchState->toFollyDynamic(),
+            SwitchState::fromFollyDynamic(switchStateJson[kSwSwitch])
+                ->toFollyDynamic());
       }
     } else {
       ret.switchState =
