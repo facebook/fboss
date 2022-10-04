@@ -86,7 +86,9 @@ class HwDataPlaneMirrorTest : public HwLinkStateDependentTest {
 
   std::shared_ptr<Mirror> getSpanMirror() {
     return std::make_shared<Mirror>(
-        kSpan, std::make_optional(mirrorToPort_), std::nullopt);
+        kSpan,
+        std::make_optional<PortID>(mirrorToPort_),
+        std::optional<folly::IPAddress>());
   }
 
   std::shared_ptr<Mirror> getErSpanMirror() {

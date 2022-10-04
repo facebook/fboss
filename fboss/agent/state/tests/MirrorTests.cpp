@@ -657,40 +657,4 @@ TEST_F(MirrorTest, MirrorThrifty) {
   EXPECT_EQ(mirrorsThrift, newMirrors->toThrift());
 }
 
-TEST_F(MirrorTest, MirrorMapThrifty) {
-  config_.mirrors()->push_back(
-      utility::getSPANMirror("mirror0", MirrorTest::egressPort));
-  config_.mirrors()->push_back(
-      utility::getGREMirror("mirror1", MirrorTest::tunnelDestination));
-  config_.mirrors()->push_back(utility::getSFlowMirror(
-      "mirror2",
-      8998,
-      9889,
-      MirrorTest::tunnelDestination,
-      folly::IPAddress("10.0.0.1"),
-      MirrorTest::dscp,
-      true));
-  publishWithStateUpdate();
-  auto mirrors = state_->getMirrors()->modify(&state_);
-  auto mirror2 = mirrors->getNode("mirror2")->clone();
-
-  MirrorTunnel tunnel(
-      mirror2->getSrcIp().value(),
-      mirror2->getDestinationIp().value(),
-      folly::MacAddress("1:2:3:4:5:6"),
-      folly::MacAddress("6:5:4:3:2:1"),
-      mirror2->getTunnelUdpPorts().value());
-
-  mirror2->setMirrorTunnel(tunnel);
-  mirror2->setEgressPort(PortID(1));
-  mirrors->updateNode(mirror2);
-
-  validateThriftyMigration(*mirrors);
-  for (auto name : {"mirror0", "mirror1", "mirror2"}) {
-    auto mirror = mirrors->getNode(name);
-    validateThriftyMigration(*mirror);
-    auto dyn = mirror->toFollyDynamicLegacy();
-  }
-}
-
 } // namespace facebook::fboss

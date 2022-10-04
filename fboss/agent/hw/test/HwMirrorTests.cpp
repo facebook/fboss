@@ -1176,7 +1176,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPorts) {
         mirror->getEgressPort(),
         mirror->getDestinationIp(),
         mirror->getSrcIp(),
-        mirror->getTunnelUdpPorts().value());
+        mirror->getTunnelUdpPorts());
     newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
     newMirror->setMirrorTunnel(MirrorTunnel(
         params.ipAddrs[0],
@@ -1236,7 +1236,7 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirror) {
                 mirror->getEgressPort(),
                 mirror->getDestinationIp(),
                 mirror->getSrcIp(),
-                mirror->getTunnelUdpPorts().value())
+                mirror->getTunnelUdpPorts())
           : std::make_shared<Mirror>(
                 mirror->getID(),
                 mirror->getEgressPort(),
@@ -1331,7 +1331,7 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
                 mirror->getEgressPort(),
                 mirror->getDestinationIp(),
                 mirror->getSrcIp(),
-                mirror->getTunnelUdpPorts().value())
+                mirror->getTunnelUdpPorts())
           : std::make_shared<Mirror>(
                 mirror->getID(),
                 mirror->getEgressPort(),
@@ -1432,7 +1432,7 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
                 mirror->getEgressPort(),
                 mirror->getDestinationIp(),
                 mirror->getSrcIp(),
-                mirror->getTunnelUdpPorts().value())
+                mirror->getTunnelUdpPorts())
           : std::make_shared<Mirror>(
                 mirror->getID(),
                 mirror->getEgressPort(),
@@ -1528,7 +1528,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolved) {
         mirror->getEgressPort(),
         mirror->getDestinationIp(),
         mirror->getSrcIp(),
-        mirror->getTunnelUdpPorts().value());
+        mirror->getTunnelUdpPorts());
     newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
     newMirror->setMirrorTunnel(MirrorTunnel(
         params.ipAddrs[0],
@@ -1549,7 +1549,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolved) {
         mirror->getEgressPort(),
         mirror->getDestinationIp(),
         mirror->getSrcIp(),
-        mirror->getTunnelUdpPorts().value());
+        mirror->getTunnelUdpPorts());
 
     mirrors->updateNode(newMirror);
     newState = this->getProgrammedState()->clone();
@@ -1598,7 +1598,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
         mirror->getEgressPort(),
         mirror->getDestinationIp(),
         mirror->getSrcIp(),
-        mirror->getTunnelUdpPorts().value());
+        mirror->getTunnelUdpPorts());
     newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
     newMirror->setMirrorTunnel(MirrorTunnel(
         params.ipAddrs[0],
@@ -1619,7 +1619,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
         mirror->getEgressPort(),
         mirror->getDestinationIp(),
         mirror->getSrcIp(),
-        mirror->getTunnelUdpPorts().value());
+        mirror->getTunnelUdpPorts());
 
     mirrors->updateNode(newMirror);
     newState = this->getProgrammedState()->clone();
@@ -1634,7 +1634,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUnresolvedResolved) {
         mirror->getEgressPort(),
         mirror->getDestinationIp(),
         mirror->getSrcIp(),
-        mirror->getTunnelUdpPorts().value());
+        mirror->getTunnelUdpPorts());
     newMirror->setMirrorTunnel(MirrorTunnel(
         params.ipAddrs[0],
         params.ipAddrs[1],
@@ -1687,7 +1687,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUpdate) {
         mirror->getEgressPort(),
         mirror->getDestinationIp(),
         mirror->getSrcIp(),
-        mirror->getTunnelUdpPorts().value());
+        mirror->getTunnelUdpPorts());
     newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
     newMirror->setMirrorTunnel(MirrorTunnel(
         params.ipAddrs[0],
@@ -1740,7 +1740,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsMirrorUpdate) {
         mirror->getEgressPort(),
         mirror->getDestinationIp(),
         mirror->getSrcIp(),
-        mirror->getTunnelUdpPorts().value());
+        mirror->getTunnelUdpPorts());
     newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
     newMirror->setMirrorTunnel(MirrorTunnel(
         params.ipAddrs[0],
@@ -1780,7 +1780,7 @@ TYPED_TEST(HwMirrorTest, RemoveSampleAllPorts) {
         mirror->getEgressPort(),
         mirror->getDestinationIp(),
         mirror->getSrcIp(),
-        mirror->getTunnelUdpPorts().value());
+        mirror->getTunnelUdpPorts());
     newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
     newMirror->setMirrorTunnel(MirrorTunnel(
         params.ipAddrs[0],
@@ -1837,7 +1837,7 @@ TYPED_TEST(HwMirrorTest, RemoveSampleAllPortsAfterWarmBoot) {
         mirror->getEgressPort(),
         mirror->getDestinationIp(),
         mirror->getSrcIp(),
-        mirror->getTunnelUdpPorts().value());
+        mirror->getTunnelUdpPorts());
     newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
     newMirror->setMirrorTunnel(MirrorTunnel(
         params.ipAddrs[0],
@@ -1910,7 +1910,7 @@ TYPED_TEST(HwMirrorTest, SampleAllPortsReloadConfig) {
         mirror->getEgressPort(),
         mirror->getDestinationIp(),
         mirror->getSrcIp(),
-        mirror->getTunnelUdpPorts().value());
+        mirror->getTunnelUdpPorts());
     newMirror->setEgressPort(PortID(this->masterLogicalPortIds()[0]));
     newMirror->setMirrorTunnel(MirrorTunnel(
         params.ipAddrs[0],

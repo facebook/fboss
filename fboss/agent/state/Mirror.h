@@ -6,6 +6,7 @@
 #include <list>
 
 #include <folly/IPAddress.h>
+#include <memory>
 #include <optional>
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Utils.h"
@@ -238,8 +239,9 @@ struct MirrorFields : public ThriftyFields<MirrorFields, state::MirrorFields> {
 
 USE_THRIFT_COW(state::MirrorFields, Mirror);
 
-class Mirror : public ThriftyBaseT<state::MirrorFields, Mirror, MirrorFields> {
+class Mirror : public ThriftStructNode<state::MirrorFields> {
  public:
+  using BaseT = ThriftStructNode<state::MirrorFields>;
   enum Type { SPAN = 1, ERSPAN = 2, SFLOW = 3 };
   Mirror(
       std::string name,
@@ -267,13 +269,28 @@ class Mirror : public ThriftyBaseT<state::MirrorFields, Mirror, MirrorFields> {
       const folly::dynamic& json);
   folly::dynamic toFollyDynamicLegacy() const;
 
+  static std::shared_ptr<Mirror> fromFollyDynamic(const folly::dynamic& json) {
+    // for backward compatibility until warm boot moves to thrift switch state
+    return fromFollyDynamicLegacy(json);
+  }
+  folly::dynamic toFollyDynamic() const override {
+    // for backward compatibility until warm boot moves to thrift switch state
+    return toFollyDynamicLegacy();
+  }
+
   Type type() const;
+  bool operator==(const Mirror& that) const {
+    return this->toThrift() == that.toThrift();
+  }
+  bool operator!=(const Mirror& that) const {
+    return !(this->toThrift() == that.toThrift());
+  }
 
  private:
   // Inherit the constructors required for clone()
   void markResolved();
 
-  using ThriftyBaseT::ThriftyBaseT;
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 
