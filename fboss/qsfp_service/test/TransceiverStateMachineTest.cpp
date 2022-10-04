@@ -1022,35 +1022,11 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
         /* sleep override */
         sleep(1);
 
-        // CmisModule only allows reset 5 times in remediateFlakyTransceiver()
+        // We trigger a hard reset as remediation
         MockTransceiverPlatformApi* xcvrApi =
             static_cast<MockTransceiverPlatformApi*>(
                 transceiverManager_->getQsfpPlatformApi());
-        ::testing::Sequence s;
-        MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
-        for (int i = 0; i < 5; ++i) {
-          EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1)).InSequence(s);
-          // Expect updateQsfpData and updateCachedTransceiverInfoLocked to be
-          // called from refreshStateMachines() we do in verify() below
-          EXPECT_CALL(*mockXcvr, updateQsfpData(true)).Times(1).InSequence(s);
-          EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(1).InSequence(s);
-          EXPECT_CALL(
-              *mockXcvr, updateCachedTransceiverInfoLocked(::testing::_))
-              .Times(1)
-              .InSequence(s);
-          setProgramCmisModuleExpectation(true, s);
-        }
-
-        // The sixth times should not trigger hard reset any more or xcvr
-        // reprogramming
-        EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1))
-            .Times(0)
-            .InSequence(s);
-        EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(1).InSequence(s);
-        EXPECT_CALL(*mockXcvr, updateCachedTransceiverInfoLocked(::testing::_))
-            .Times(1)
-            .InSequence(s);
-        setProgramCmisModuleExpectation(false, s);
+        EXPECT_CALL(*xcvrApi, triggerQsfpHardReset(id_ + 1)).Times(1);
       },
       [this]() { triggerRemediateEvents(); },
       [this]() {
@@ -1066,7 +1042,6 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
         EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
-        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
         // Refresh the state machine again which will first do a successful
         // refresh and clear the dirty_ flag and then trigger
         // PROGRAM_TRANSCEIVER
@@ -1079,31 +1054,6 @@ TEST_F(TransceiverStateMachineTest, remediateCmisTransceiver) {
             transceiverManager_->getStateMachineForTesting(id_);
         // Now isTransceiverProgrammed should be true
         EXPECT_TRUE(newStateMachine.get_attribute(isTransceiverProgrammed));
-
-        // And then we try to remediate 5 more times, but only the first 4 times
-        // will actually call triggerQsfpHardReset()
-        auto remediateTimes = 0;
-        while (++remediateTimes <= 5) {
-          // First bring down the port
-          updateTransceiverActiveState(false /* up */, true /* enabled */);
-          // Then trigger remediate and program transceiver events
-          transceiverManager_->updateStateBlocking(
-              id_, TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER);
-          if (remediateTimes <= 4) {
-            // Remediation is only done the first 4 times
-            EXPECT_TRUE(xcvr_->getDirty_());
-          }
-          // Refresh the state machine again which will first do a successful
-          // refresh and clear the dirty_ flag and then trigger
-          // PROGRAM_TRANSCEIVER
-          transceiverManager_->refreshStateMachines();
-          EXPECT_FALSE(xcvr_->getDirty_());
-        }
-
-        auto curState = transceiverManager_->getCurrentState(id_);
-        EXPECT_EQ(curState, TransceiverStateMachineState::INACTIVE)
-            << "Transceiver=0 state doesn't match state expected=INACTIVE"
-            << ", actual=" << apache::thrift::util::enumNameSafe(curState);
       },
       TransceiverType::MOCK_CMIS,
       kRemediateTransceiverFnStr);

@@ -38,7 +38,6 @@ namespace {
 constexpr int kUsecBetweenPowerModeFlap = 100000;
 constexpr int kUsecBetweenLaneInit = 10000;
 constexpr int kUsecVdmLatchHold = 100000;
-constexpr int kResetCounterLimit = 5;
 
 std::array<std::string, 9> channelConfigErrorMsg = {
     "No status available, config under progress",
@@ -1818,27 +1817,20 @@ bool CmisModule::checkLaneConfigError() {
  * Put logic here that should only be run on ports that have been
  * down for a long time. These are actions that are potentially more
  * disruptive, but have worked in the past to recover a transceiver.
- * Only return true if there's an actual remediation happened
+ * Always return true
  */
 bool CmisModule::remediateFlakyTransceiver() {
   QSFP_LOG(INFO, this) << "Performing potentially disruptive remediations";
 
-  bool isRemediationTriggered = false;
-  if (moduleResetCounter_ < kResetCounterLimit) {
-    // This api accept 1 based module id however the module id in WedgeManager
-    // is 0 based.
-    getTransceiverManager()->getQsfpPlatformApi()->triggerQsfpHardReset(
-        static_cast<unsigned int>(getID()) + 1);
-    moduleResetCounter_++;
-    isRemediationTriggered = true;
-  } else {
-    QSFP_LOG(DBG2, this) << "Reached reset limit";
-  }
+  // This api accept 1 based module id however the module id in WedgeManager
+  // is 0 based.
+  getTransceiverManager()->getQsfpPlatformApi()->triggerQsfpHardReset(
+      static_cast<unsigned int>(getID()) + 1);
+  moduleResetCounter_++;
 
-  // Even though remediation might not trigger, we still need to update the
-  // lastRemediateTime_ so that we can use cool down before next remediation
+  // Reset lastRemediateTime_ so we can use cool down before next remediation
   lastRemediateTime_ = std::time(nullptr);
-  return isRemediationTriggered;
+  return true;
 }
 
 void CmisModule::setPowerOverrideIfSupportedLocked(
