@@ -290,6 +290,15 @@ void SwitchSettingsFields::migrateFromThrifty(folly::dynamic& dyn) {
     auto vlan = static_cast<uint16_t>(macDyn["macAddrToBlockVlanID"].asInt());
     macDyn["macAddrToBlockVlanID"] = vlan;
   }
+
+  // Temporarily not dumping this field in folly dynamic. See
+  // https://fb.workplace.com/groups/1015730552263827/permalink/1452005081969703/
+  // for more details.
+  // TODO(zecheng): remove this after the config is available in prod.
+  auto exactMatchSP = folly::StringPiece("exactMatchTableConfigs");
+  if (dyn.find(exactMatchSP) != dyn.items().end()) {
+    dyn.erase(exactMatchSP);
+  }
 }
 
 template class ThriftyBaseT<
