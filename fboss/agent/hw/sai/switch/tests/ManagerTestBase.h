@@ -51,6 +51,7 @@ class ManagerTestBase : public ::testing::Test {
     NEIGHBOR = 8,
     QUEUE = 16,
     LAG = 32,
+    SYSTEM_PORT = 64,
   };
   ~ManagerTestBase() override;
   void setupSaiPlatform();
@@ -151,8 +152,14 @@ class ManagerTestBase : public ::testing::Test {
       std::optional<sai_uint32_t> encapIndex = std::nullopt,
       bool isLocal = true);
 
+  InterfaceID getIntfID(
+      const TestInterface& testInterface,
+      cfg::InterfaceType type) const;
+  int64_t getSysPortId(const TestInterface& testInterface) const;
+
   std::shared_ptr<Interface> makeInterface(
-      const TestInterface& testInterface) const;
+      const TestInterface& testInterface,
+      cfg::InterfaceType type = cfg::InterfaceType::VLAN) const;
 
   std::shared_ptr<SystemPort> makeSystemPort(
       const std::optional<std::string>& qosPolicy = std::nullopt,
@@ -227,6 +234,7 @@ class ManagerTestBase : public ::testing::Test {
   std::shared_ptr<SwitchState> programmedState;
 
  private:
+  static constexpr int kSysPortOffset = 100;
   static constexpr uint8_t kPortQueueMax = 8;
 };
 

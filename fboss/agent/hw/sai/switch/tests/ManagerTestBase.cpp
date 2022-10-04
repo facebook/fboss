@@ -93,6 +93,13 @@ void ManagerTestBase::setupSaiPlatform() {
       }
     }
   }
+  if (setupStage & SetupStage::SYSTEM_PORT) {
+    for (const auto& testInterface : testInterfaces) {
+      auto swPort =
+          makeSystemPort(std::nullopt, kSysPortOffset + testInterface.id);
+      setupState->getSystemPorts()->addSystemPort(swPort);
+    }
+  }
   if (setupStage & SetupStage::VLAN) {
     for (const auto& testInterface : testInterfaces) {
       auto swVlan = makeVlan(testInterface);
@@ -103,6 +110,11 @@ void ManagerTestBase::setupSaiPlatform() {
     for (const auto& testInterface : testInterfaces) {
       auto swInterface = makeInterface(testInterface);
       setupState->getInterfaces()->addInterface(swInterface);
+      if (setupStage & SetupStage::SYSTEM_PORT) {
+        auto swPortInterface =
+            makeInterface(testInterface, cfg::InterfaceType::SYSTEM_PORT);
+        setupState->getInterfaces()->addInterface(swPortInterface);
+      }
     }
   }
   if (setupStage & SetupStage::NEIGHBOR) {
@@ -279,17 +291,41 @@ std::shared_ptr<AggregatePort> ManagerTestBase::makeAggregatePort(
       folly::range(subports.begin(), subports.end()));
 }
 
-std::shared_ptr<Interface> ManagerTestBase::makeInterface(
+int64_t ManagerTestBase::getSysPortId(
     const TestInterface& testInterface) const {
-  auto interface = std::make_shared<Interface>(
-      InterfaceID(testInterface.id),
+  return testInterface.id + kSysPortOffset;
+}
+InterfaceID ManagerTestBase::getIntfID(
+    const TestInterface& testInterface,
+    cfg::InterfaceType type) const {
+  switch (type) {
+    case cfg::InterfaceType::VLAN:
+      return InterfaceID(testInterface.id);
+    case cfg::InterfaceType::SYSTEM_PORT:
+      return InterfaceID(getSysPortId(testInterface));
+  }
+  XLOG(FATAL) << "Unhandled interface type";
+}
+
+std::shared_ptr<Interface> ManagerTestBase::makeInterface(
+    const TestInterface& testInterface,
+    cfg::InterfaceType type) const {
+  std::shared_ptr<Interface> interface;
+  std::optional<VlanID> vlan;
+
+  if (type == cfg::InterfaceType::VLAN) {
+    vlan = VlanID(testInterface.id);
+  }
+  interface = std::make_shared<Interface>(
+      getIntfID(testInterface, type),
       RouterID(0),
-      VlanID(testInterface.id),
+      vlan,
       folly::sformat("intf{}", testInterface.id),
       testInterface.routerMac,
       1500, // mtu
       false, // isVirtual
-      false); // isStateSyncDisabled
+      false, // isStateSyncDisabled
+      type);
   Interface::Addresses addresses;
   addresses.emplace(
       testInterface.subnet.first.asV4(), testInterface.subnet.second);

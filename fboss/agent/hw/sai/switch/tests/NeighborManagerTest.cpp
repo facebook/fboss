@@ -21,7 +21,8 @@ using namespace facebook::fboss;
 class NeighborManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
-    setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::INTERFACE;
+    setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::INTERFACE |
+        SetupStage::SYSTEM_PORT;
     ManagerTestBase::SetUp();
     intf0 = testInterfaces[0];
     h0 = intf0.remoteHosts[0];
