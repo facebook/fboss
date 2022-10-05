@@ -283,10 +283,30 @@ TEST_F(NeighborManagerTest, addUnresolvedNeighbor) {
   checkMissing(pendingEntry);
 }
 
+TEST_F(NeighborManagerTest, addUnresolvedPortRifNeighbor) {
+  auto pendingEntry =
+      makePendingArpEntry(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
+  EXPECT_TRUE(pendingEntry->isPending());
+  saiManagerTable->neighborManager().addNeighbor(pendingEntry);
+  // unresolved entries will not be found by getNeighbor
+  checkMissing(pendingEntry);
+}
+
 TEST_F(NeighborManagerTest, removeUnresolvedNeighbor) {
   auto pendingEntry = makePendingArpEntry(intf0.id, h0);
   EXPECT_TRUE(pendingEntry->isPending());
   saiManagerTable->neighborManager().addNeighbor(pendingEntry);
+  checkMissing(pendingEntry);
+  saiManagerTable->neighborManager().removeNeighbor(pendingEntry);
+  checkMissing(pendingEntry);
+}
+
+TEST_F(NeighborManagerTest, removeUnresolvedPortRifNeighbor) {
+  auto pendingEntry =
+      makePendingArpEntry(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
+  EXPECT_TRUE(pendingEntry->isPending());
+  saiManagerTable->neighborManager().addNeighbor(pendingEntry);
+  // unresolved entries will not be found by getNeighbor
   checkMissing(pendingEntry);
   saiManagerTable->neighborManager().removeNeighbor(pendingEntry);
   checkMissing(pendingEntry);
@@ -300,10 +320,29 @@ TEST_F(NeighborManagerTest, resolveNeighbor) {
   checkEntry(arpEntry, h0.mac);
 }
 
+TEST_F(NeighborManagerTest, resolvePortRifNeighbor) {
+  auto pendingEntry =
+      makePendingArpEntry(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
+  EXPECT_TRUE(pendingEntry->isPending());
+  saiManagerTable->neighborManager().addNeighbor(pendingEntry);
+  auto arpEntry = resolveArp(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
+  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT);
+}
+
 TEST_F(NeighborManagerTest, unresolveNeighbor) {
   auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
   auto pendingEntry = makePendingArpEntry(intf0.id, h0);
+  EXPECT_TRUE(pendingEntry->isPending());
+  saiManagerTable->neighborManager().changeNeighbor(arpEntry, pendingEntry);
+  checkMissing(pendingEntry);
+}
+
+TEST_F(NeighborManagerTest, unresolvePortRifNeighbor) {
+  auto arpEntry = resolveArp(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
+  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT);
+  auto pendingEntry =
+      makePendingArpEntry(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
   EXPECT_TRUE(pendingEntry->isPending());
   saiManagerTable->neighborManager().changeNeighbor(arpEntry, pendingEntry);
   checkMissing(pendingEntry);
@@ -314,8 +353,31 @@ TEST_F(NeighborManagerTest, getNonexistentNeighbor) {
   checkMissing(arpEntry);
 }
 
+TEST_F(NeighborManagerTest, getNonexistentPortRifNeighbor) {
+  auto arpEntry = makeArpEntry(
+      intf0.id,
+      h0,
+      std::nullopt,
+      std::nullopt,
+      true,
+      cfg::InterfaceType::SYSTEM_PORT);
+  checkMissing(arpEntry);
+}
+
 TEST_F(NeighborManagerTest, removeNonexistentNeighbor) {
   auto arpEntry = makeArpEntry(intf0.id, h0);
+  EXPECT_THROW(
+      saiManagerTable->neighborManager().removeNeighbor(arpEntry), FbossError);
+}
+
+TEST_F(NeighborManagerTest, removeNonexistentPortRifNeighbor) {
+  auto arpEntry = makeArpEntry(
+      intf0.id,
+      h0,
+      std::nullopt,
+      std::nullopt,
+      true,
+      cfg::InterfaceType::SYSTEM_PORT);
   EXPECT_THROW(
       saiManagerTable->neighborManager().removeNeighbor(arpEntry), FbossError);
 }
@@ -324,11 +386,22 @@ TEST_F(NeighborManagerTest, addDuplicateResolvedNeighbor) {
   auto arpEntry = makeArpEntry(intf0.id, h0);
   saiManagerTable->neighborManager().addNeighbor(arpEntry);
   EXPECT_THROW(
-      saiManagerTable->neighborManager().addNeighbor(arpEntry), FbossError);
+      saiManagerTable->neighborManager().addNeighbor(arpEntry->clone()),
+      FbossError);
 }
 
-TEST_F(NeighborManagerTest, addDuplicateUnresolvedNeighbor) {
-  // TODO (D13604051)
+TEST_F(NeighborManagerTest, addDuplicateResolvedPortRifNeighbor) {
+  auto arpEntry = makeArpEntry(
+      intf0.id,
+      h0,
+      std::nullopt,
+      std::nullopt,
+      true,
+      cfg::InterfaceType::SYSTEM_PORT);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  EXPECT_THROW(
+      saiManagerTable->neighborManager().addNeighbor(arpEntry->clone()),
+      FbossError);
 }
 
 TEST_F(NeighborManagerTest, linkDown) {

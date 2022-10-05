@@ -374,9 +374,12 @@ std::shared_ptr<Interface> ManagerTestBase::makeInterface(
 
 std::shared_ptr<ArpEntry> ManagerTestBase::makePendingArpEntry(
     int id,
-    const TestRemoteHost& testRemoteHost) const {
+    const TestRemoteHost& testRemoteHost,
+    cfg::InterfaceType intfType) const {
   return std::make_shared<ArpEntry>(
-      testRemoteHost.ip.asV4(), InterfaceID(id), NeighborState::PENDING);
+      testRemoteHost.ip.asV4(),
+      getIntfID(id, intfType),
+      NeighborState::PENDING);
 }
 
 std::shared_ptr<ArpEntry> ManagerTestBase::makeArpEntry(

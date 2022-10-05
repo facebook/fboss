@@ -131,7 +131,8 @@ class ManagerTestBase : public ::testing::Test {
 
   std::shared_ptr<ArpEntry> makePendingArpEntry(
       int id,
-      const TestRemoteHost& testRemoteHost) const;
+      const TestRemoteHost& testRemoteHost,
+      cfg::InterfaceType type = cfg::InterfaceType::VLAN) const;
 
   std::shared_ptr<ArpEntry> makeArpEntry(
       int id,
