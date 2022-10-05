@@ -118,10 +118,11 @@ struct SwitchStateFields
   std::shared_ptr<SystemPortMap> systemPorts;
   std::shared_ptr<IpTunnelMap> ipTunnels;
   std::shared_ptr<TeFlowTable> teFlowTable;
-
   VlanID defaultVlan{0};
 
   std::shared_ptr<QosPolicy> defaultDataPlaneQosPolicy;
+  // Remote objects
+  std::shared_ptr<SystemPortMap> remoteSystemPorts;
 
   // Timeout settings
   // TODO(aeckert): Figure out a nicer way to store these config fields
@@ -418,6 +419,12 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->teFlowTable;
   }
 
+  /*
+   * Remote objects
+   */
+  const std::shared_ptr<SystemPortMap>& getRemoteSystemPorts() const {
+    return getFields()->remoteSystemPorts;
+  }
   /*
    * The following functions modify the static state.
    * The should only be called on newly created SwitchState objects that are

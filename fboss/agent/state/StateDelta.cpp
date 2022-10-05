@@ -160,6 +160,11 @@ NodeMapDelta<SystemPortMap> StateDelta::getSystemPortsDelta() const {
       old_->getSystemPorts().get(), new_->getSystemPorts().get());
 }
 
+NodeMapDelta<SystemPortMap> StateDelta::getRemoteSystemPortsDelta() const {
+  return NodeMapDelta<SystemPortMap>(
+      old_->getRemoteSystemPorts().get(), new_->getRemoteSystemPorts().get());
+}
+
 NodeMapDelta<IpTunnelMap> StateDelta::getIpTunnelsDelta() const {
   return NodeMapDelta<IpTunnelMap>(
       old_->getTunnels().get(), new_->getTunnels().get());

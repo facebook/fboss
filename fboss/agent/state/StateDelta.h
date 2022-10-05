@@ -89,6 +89,8 @@ class StateDelta {
   NodeMapDelta<SystemPortMap> getSystemPortsDelta() const;
   NodeMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
   NodeMapDelta<TeFlowTable> getTeFlowEntriesDelta() const;
+  // Remote object deltas
+  NodeMapDelta<SystemPortMap> getRemoteSystemPortsDelta() const;
 
  private:
   // Forbidden copy constructor and assignment operator

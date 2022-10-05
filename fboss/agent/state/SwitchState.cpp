@@ -99,7 +99,8 @@ SwitchStateFields::SwitchStateFields()
       transceivers(make_shared<TransceiverMap>()),
       systemPorts(make_shared<SystemPortMap>()),
       ipTunnels(make_shared<IpTunnelMap>()),
-      teFlowTable(make_shared<TeFlowTable>()) {}
+      teFlowTable(make_shared<TeFlowTable>()),
+      remoteSystemPorts(make_shared<SystemPortMap>()) {}
 
 state::SwitchState SwitchStateFields::toThrift() const {
   auto state = state::SwitchState();
@@ -152,6 +153,8 @@ state::SwitchState SwitchStateFields::toThrift() const {
   }
   state.loadBalancerMap() = loadBalancers->toThrift();
   state.switchSettings() = switchSettings->toThrift();
+  // Remote objects
+  state.remoteSystemPortMap() = remoteSystemPorts->toThrift();
   return state;
 }
 
@@ -211,6 +214,8 @@ SwitchStateFields SwitchStateFields::fromThrift(
   }
   fields.loadBalancers = LoadBalancerMap::fromThrift(*state.loadBalancerMap());
   fields.switchSettings = SwitchSettings::fromThrift(*state.switchSettings());
+  fields.remoteSystemPorts =
+      SystemPortMap::fromThrift(*state.remoteSystemPortMap());
   return fields;
 }
 
@@ -223,8 +228,13 @@ bool SwitchStateFields::operator==(const SwitchStateFields& other) const {
     bufferPoolCfgsSame = false;
   }
   return bufferPoolCfgsSame &&
-      std::tie(*ports, *vlans, *acls, *systemPorts) ==
-      std::tie(*other.ports, *other.vlans, *other.acls, *other.systemPorts);
+      std::tie(*ports, *vlans, *acls, *systemPorts, *remoteSystemPorts) ==
+      std::tie(
+          *other.ports,
+          *other.vlans,
+          *other.acls,
+          *other.systemPorts,
+          *other.remoteSystemPorts);
 }
 
 folly::dynamic SwitchStateFields::toFollyDynamic() const {
