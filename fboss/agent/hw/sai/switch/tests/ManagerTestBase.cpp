@@ -291,18 +291,15 @@ std::shared_ptr<AggregatePort> ManagerTestBase::makeAggregatePort(
       folly::range(subports.begin(), subports.end()));
 }
 
-int64_t ManagerTestBase::getSysPortId(
-    const TestInterface& testInterface) const {
-  return testInterface.id + kSysPortOffset;
+int64_t ManagerTestBase::getSysPortId(int id) const {
+  return id + kSysPortOffset;
 }
-InterfaceID ManagerTestBase::getIntfID(
-    const TestInterface& testInterface,
-    cfg::InterfaceType type) const {
+InterfaceID ManagerTestBase::getIntfID(int id, cfg::InterfaceType type) const {
   switch (type) {
     case cfg::InterfaceType::VLAN:
-      return InterfaceID(testInterface.id);
+      return InterfaceID(id);
     case cfg::InterfaceType::SYSTEM_PORT:
-      return InterfaceID(getSysPortId(testInterface));
+      return InterfaceID(getSysPortId(id));
   }
   XLOG(FATAL) << "Unhandled interface type";
 }
@@ -387,12 +384,13 @@ std::shared_ptr<ArpEntry> ManagerTestBase::makeArpEntry(
     const TestRemoteHost& testRemoteHost,
     std::optional<sai_uint32_t> metadata,
     std::optional<sai_uint32_t> encapIndex,
-    bool isLocal) const {
+    bool isLocal,
+    cfg::InterfaceType intfType) const {
   auto arpEntry = std::make_shared<ArpEntry>(
       testRemoteHost.ip.asV4(),
       testRemoteHost.mac,
       PortDescriptor(PortID(testRemoteHost.port.id)),
-      InterfaceID(id));
+      InterfaceID(getIntfID(id, intfType)));
   if (metadata) {
     arpEntry->setClassID(static_cast<cfg::AclLookupClass>(metadata.value()));
   }
@@ -406,18 +404,21 @@ std::shared_ptr<ArpEntry> ManagerTestBase::makeArpEntry(
 std::shared_ptr<ArpEntry> ManagerTestBase::resolveArp(
     int id,
     const TestRemoteHost& testRemoteHost,
+    cfg::InterfaceType intfType,
     std::optional<sai_uint32_t> metadata,
     std::optional<sai_uint32_t> encapIndex,
     bool isLocal) {
   auto arpEntry =
-      makeArpEntry(id, testRemoteHost, metadata, encapIndex, isLocal);
+      makeArpEntry(id, testRemoteHost, metadata, encapIndex, isLocal, intfType);
   saiManagerTable->neighborManager().addNeighbor(arpEntry);
-  saiManagerTable->fdbManager().addFdbEntry(
-      SaiPortDescriptor(arpEntry->getPort().phyPortID()),
-      arpEntry->getIntfID(),
-      arpEntry->getMac(),
-      SAI_FDB_ENTRY_TYPE_STATIC,
-      metadata);
+  if (intfType == cfg::InterfaceType::VLAN) {
+    saiManagerTable->fdbManager().addFdbEntry(
+        SaiPortDescriptor(arpEntry->getPort().phyPortID()),
+        arpEntry->getIntfID(),
+        arpEntry->getMac(),
+        SAI_FDB_ENTRY_TYPE_STATIC,
+        metadata);
+  }
   return arpEntry;
 }
 

@@ -32,10 +32,10 @@ class NeighborManagerTest : public ManagerTestBase {
   void checkEntry(
       const NeighborEntryT& neighborEntry,
       const folly::MacAddress& expectedDstMac,
+      cfg::InterfaceType expectedRifType = cfg::InterfaceType::VLAN,
       sai_uint32_t expectedMetadata = 0,
       sai_uint32_t expectedEncapIndex = 0,
-      bool expectedIsLocal = true,
-      cfg::InterfaceType expectedRifType = cfg::InterfaceType::VLAN) {
+      bool expectedIsLocal = true) {
     auto saiEntry =
         saiManagerTable->neighborManager().saiEntryFromSwEntry(neighborEntry);
     auto gotMac = saiApiTable->neighborApi().getAttribute(
@@ -94,17 +94,27 @@ TEST_F(NeighborManagerTest, addResolvedNeighbor) {
   checkEntry(arpEntry, h0.mac);
 }
 
+TEST_F(NeighborManagerTest, addResolvedPortRifNeighbor) {
+  auto arpEntry = resolveArp(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
+  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT);
+}
+
 TEST_F(NeighborManagerTest, addResolvedNeighborWithMetadata) {
-  auto arpEntry = resolveArp(intf0.id, h0, 42);
-  checkEntry(arpEntry, h0.mac, 42);
+  auto arpEntry = resolveArp(intf0.id, h0, cfg::InterfaceType::VLAN, 42);
+  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::VLAN, 42);
 }
 
 TEST_F(NeighborManagerTest, addResolvedNeighborWithEncapIndex) {
-  EXPECT_THROW(resolveArp(intf0.id, h0, std::nullopt, 42), FbossError);
+  EXPECT_THROW(
+      resolveArp(intf0.id, h0, cfg::InterfaceType::VLAN, std::nullopt, 42),
+      FbossError);
 }
 
 TEST_F(NeighborManagerTest, addResolvedNeighborWithEncapIndexRemote) {
-  EXPECT_THROW(resolveArp(intf0.id, h0, std::nullopt, 42, false), FbossError);
+  EXPECT_THROW(
+      resolveArp(
+          intf0.id, h0, cfg::InterfaceType::VLAN, std::nullopt, 42, false),
+      FbossError);
 }
 
 TEST_F(NeighborManagerTest, removeResolvedNeighbor) {
@@ -128,7 +138,11 @@ TEST_F(NeighborManagerTest, changeResolvedNeighborAddMetadata) {
   auto arpEntryNew =
       makeArpEntry(intf0.id, testInterfaces[1].remoteHosts[0], 42);
   saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew);
-  checkEntry(arpEntryNew, testInterfaces[1].remoteHosts[0].mac, 42);
+  checkEntry(
+      arpEntryNew,
+      testInterfaces[1].remoteHosts[0].mac,
+      cfg::InterfaceType::VLAN,
+      42);
 }
 
 TEST_F(NeighborManagerTest, changeResolvedNeighborAddEncapIndex) {

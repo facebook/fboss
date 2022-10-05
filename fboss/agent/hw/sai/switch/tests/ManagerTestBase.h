@@ -137,25 +137,34 @@ class ManagerTestBase : public ::testing::Test {
       int id,
       folly::IPAddressV4 ip,
       folly::MacAddress mac,
-      std::optional<sai_uint32_t> metadata = std::nullopt) const;
+      std::optional<sai_uint32_t> metadata = std::nullopt,
+      cfg::InterfaceType type = cfg::InterfaceType::VLAN) const;
   std::shared_ptr<ArpEntry> makeArpEntry(
       int id,
       const TestRemoteHost& testRemoteHost,
       std::optional<sai_uint32_t> metadata = std::nullopt,
       std::optional<sai_uint32_t> encapIndex = std::nullopt,
-      bool isLocal = true) const;
+      bool isLocal = true,
+      cfg::InterfaceType type = cfg::InterfaceType::VLAN) const;
 
   std::shared_ptr<ArpEntry> resolveArp(
       int id,
       const TestRemoteHost& testRemoteHost,
+      cfg::InterfaceType type = cfg::InterfaceType::VLAN,
       std::optional<sai_uint32_t> metadata = std::nullopt,
       std::optional<sai_uint32_t> encapIndex = std::nullopt,
       bool isLocal = true);
 
   InterfaceID getIntfID(
       const TestInterface& testInterface,
-      cfg::InterfaceType type) const;
-  int64_t getSysPortId(const TestInterface& testInterface) const;
+      cfg::InterfaceType type) const {
+    return getIntfID(testInterface.id, type);
+  }
+  InterfaceID getIntfID(int id, cfg::InterfaceType type) const;
+  int64_t getSysPortId(const TestInterface& testInterface) const {
+    return getSysPortId(testInterface.id);
+  }
+  int64_t getSysPortId(int id) const;
 
   std::shared_ptr<Interface> makeInterface(
       const TestInterface& testInterface,
