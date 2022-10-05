@@ -521,6 +521,8 @@ struct SwitchState {
   30: map<i32, InterfaceFields> interfaceMap;
   31: optional QcmCfgFields qcmCfg;
   32: optional QosPolicyFields defaultDataPlaneQosPolicy;
+  // Remote objects
+  500: map<i64, SystemPortFields> remoteSystemPortMap;
 }
 
 struct WarmbootState {
