@@ -64,8 +64,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_LOOPBACK_MODE,
         sai_int32_t,
         SaiIntDefault<sai_int32_t>>;
-    using UseExtendedFec =
-        SaiAttribute<EnumType, SAI_PORT_ATTR_USE_EXTENDED_FEC, bool>;
+    using UseExtendedFec = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_USE_EXTENDED_FEC,
+        bool,
+        SaiBoolDefaultFalse>;
     using ExtendedFecMode = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_FEC_MODE_EXTENDED,
