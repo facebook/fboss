@@ -523,6 +523,7 @@ struct SwitchState {
   32: optional QosPolicyFields defaultDataPlaneQosPolicy;
   // Remote objects
   500: map<i64, SystemPortFields> remoteSystemPortMap;
+  501: map<i32, InterfaceFields> remoteInterfaceMap;
 }
 
 struct WarmbootState {
