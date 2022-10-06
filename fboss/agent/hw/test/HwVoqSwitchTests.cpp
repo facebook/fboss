@@ -22,10 +22,10 @@ class HwVoqSwitchTest : public HwTest {
  protected:
   void addRemoteSysPort(SystemPortID portId) {
     auto newState = getProgrammedState()->clone();
-    auto systemPorts = newState->getSystemPorts()->modify(&newState);
-    auto numPrevPorts = systemPorts->size();
-    EXPECT_GT(numPrevPorts, 0);
-    auto localPort = *systemPorts->begin();
+    auto localPort = *newState->getSystemPorts()->begin();
+    auto remoteSystemPorts =
+        newState->getRemoteSystemPorts()->modify(&newState);
+    auto numPrevPorts = remoteSystemPorts->size();
     auto remoteSysPort = std::make_shared<SystemPort>(portId);
     remoteSysPort->setSwitchId(kRemoteSwitchId);
     remoteSysPort->setNumVoqs(localPort->getNumVoqs());
@@ -33,9 +33,10 @@ class HwVoqSwitchTest : public HwTest {
     remoteSysPort->setCorePortIndex(localPort->getCorePortIndex());
     remoteSysPort->setSpeedMbps(localPort->getSpeedMbps());
     remoteSysPort->setEnabled(true);
-    systemPorts->addSystemPort(remoteSysPort);
+    remoteSystemPorts->addSystemPort(remoteSysPort);
     applyNewState(newState);
-    EXPECT_EQ(getProgrammedState()->getSystemPorts()->size(), numPrevPorts + 1);
+    EXPECT_EQ(
+        getProgrammedState()->getRemoteSystemPorts()->size(), numPrevPorts + 1);
   }
   void addRemoteInterface(
       InterfaceID intfId,
