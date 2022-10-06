@@ -633,6 +633,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       &SaiRouterInterfaceManager::addRouterInterface,
       &SaiRouterInterfaceManager::removeRouterInterface);
 
+  processDelta(
+      delta.getRemoteIntfsDelta(),
+      managerTable_->routerInterfaceManager(),
+      lockPolicy,
+      &SaiRouterInterfaceManager::changeRouterInterface,
+      &SaiRouterInterfaceManager::addRouterInterface,
+      &SaiRouterInterfaceManager::removeRouterInterface);
+
   for (const auto& vlanDelta : delta.getVlansDelta()) {
     processDelta(
         vlanDelta.getArpDelta(),
