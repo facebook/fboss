@@ -469,6 +469,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetTunnels(std::shared_ptr<IpTunnelMap> tunnels);
   void resetTeFlowTable(std::shared_ptr<TeFlowTable> teFlowTable);
 
+  void resetRemoteIntfs(std::shared_ptr<InterfaceMap> intfs);
   void publish() override {
     using BaseT = NodeBaseT<SwitchState, SwitchStateFields>;
     if (auto defaultDataPlaneQosPolicy = getDefaultDataPlaneQosPolicy()) {

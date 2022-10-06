@@ -42,9 +42,9 @@ class HwVoqSwitchTest : public HwTest {
       InterfaceID intfId,
       const Interface::Addresses& subnets) {
     auto newState = getProgrammedState()->clone();
-    auto newInterfaces = newState->getInterfaces()->clone();
-    auto numPrevIntfs = newInterfaces->size();
-    auto newInterface = std::make_shared<Interface>(
+    auto newRemoteInterfaces = newState->getRemoteInterfaces()->clone();
+    auto numPrevIntfs = newRemoteInterfaces->size();
+    auto newRemoteInterface = std::make_shared<Interface>(
         intfId,
         RouterID(0),
         std::nullopt,
@@ -54,11 +54,12 @@ class HwVoqSwitchTest : public HwTest {
         false,
         false,
         cfg::InterfaceType::SYSTEM_PORT);
-    newInterface->setAddresses(subnets);
-    newInterfaces->addInterface(newInterface);
-    newState->resetIntfs(newInterfaces);
+    newRemoteInterface->setAddresses(subnets);
+    newRemoteInterfaces->addInterface(newRemoteInterface);
+    newState->resetRemoteIntfs(newRemoteInterfaces);
     applyNewState(newState);
-    EXPECT_EQ(getProgrammedState()->getInterfaces()->size(), numPrevIntfs + 1);
+    EXPECT_EQ(
+        getProgrammedState()->getRemoteInterfaces()->size(), numPrevIntfs + 1);
   }
   void addRemoveNeighbor(
       const folly::IPAddressV6& neighborIp,
