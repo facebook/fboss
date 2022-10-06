@@ -426,6 +426,9 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   const std::shared_ptr<SystemPortMap>& getRemoteSystemPorts() const {
     return getFields()->remoteSystemPorts;
   }
+  const std::shared_ptr<InterfaceMap>& getRemoteInterfaces() const {
+    return getFields()->remoteInterfaces;
+  }
   /*
    * The following functions modify the static state.
    * The should only be called on newly created SwitchState objects that are

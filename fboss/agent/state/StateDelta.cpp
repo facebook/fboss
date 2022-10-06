@@ -54,6 +54,11 @@ NodeMapDelta<InterfaceMap> StateDelta::getIntfsDelta() const {
       old_->getInterfaces().get(), new_->getInterfaces().get());
 }
 
+NodeMapDelta<InterfaceMap> StateDelta::getRemoteIntfsDelta() const {
+  return NodeMapDelta<InterfaceMap>(
+      old_->getRemoteInterfaces().get(), new_->getRemoteInterfaces().get());
+}
+
 AclMapDelta StateDelta::getAclsDelta(
     cfg::AclStage aclStage,
     std::optional<std::string> tableName) const {
