@@ -123,6 +123,7 @@ struct SwitchStateFields
   std::shared_ptr<QosPolicy> defaultDataPlaneQosPolicy;
   // Remote objects
   std::shared_ptr<SystemPortMap> remoteSystemPorts;
+  std::shared_ptr<InterfaceMap> remoteInterfaces;
 
   // Timeout settings
   // TODO(aeckert): Figure out a nicer way to store these config fields

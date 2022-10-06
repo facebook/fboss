@@ -100,7 +100,8 @@ SwitchStateFields::SwitchStateFields()
       systemPorts(make_shared<SystemPortMap>()),
       ipTunnels(make_shared<IpTunnelMap>()),
       teFlowTable(make_shared<TeFlowTable>()),
-      remoteSystemPorts(make_shared<SystemPortMap>()) {}
+      remoteSystemPorts(make_shared<SystemPortMap>()),
+      remoteInterfaces(make_shared<InterfaceMap>()) {}
 
 state::SwitchState SwitchStateFields::toThrift() const {
   auto state = state::SwitchState();
@@ -155,6 +156,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
   state.switchSettings() = switchSettings->toThrift();
   // Remote objects
   state.remoteSystemPortMap() = remoteSystemPorts->toThrift();
+  state.remoteInterfaceMap() = remoteInterfaces->toThrift();
   return state;
 }
 
@@ -216,6 +218,8 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.switchSettings = SwitchSettings::fromThrift(*state.switchSettings());
   fields.remoteSystemPorts =
       SystemPortMap::fromThrift(*state.remoteSystemPortMap());
+  fields.remoteInterfaces =
+      InterfaceMap::fromThrift(*state.remoteInterfaceMap());
   return fields;
 }
 
