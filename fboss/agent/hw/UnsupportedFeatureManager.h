@@ -17,9 +17,9 @@
 
 namespace facebook::fboss {
 
-class SaiUnsupportedFeatureManager {
+class UnsupportedFeatureManager {
  public:
-  explicit SaiUnsupportedFeatureManager(const std::string& name)
+  explicit UnsupportedFeatureManager(const std::string& name)
       : featureName_(name) {}
 
   template <typename Node>

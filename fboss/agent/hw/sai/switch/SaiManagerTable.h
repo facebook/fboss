@@ -52,7 +52,6 @@ class SaiTamManager;
 class SaiTunnelManager;
 class SaiVirtualRouterManager;
 class SaiVlanManager;
-class SaiUnsupportedFeatureManager;
 class SaiWredManager;
 class SaiStore;
 
