@@ -236,7 +236,6 @@ void SaiFdbManager::addMac(const std::shared_ptr<MacEntry>& macEntry) {
       type = SAI_FDB_ENTRY_TYPE_DYNAMIC;
       break;
   };
-  SaiPortDescriptor portDesc;
 
   addFdbEntry(
       macEntry->getPort(),
@@ -402,6 +401,33 @@ std::shared_ptr<SaiFdbEntry> SaiFdbManager::createSaiObject(
     const typename SaiFdbTraits::CreateAttributes& attributes,
     const PublisherKey<SaiFdbTraits>::custom_type& publisherKey) {
   auto& store = saiStore_->get<SaiFdbTraits>();
+  // For platform does not support pending l2 entry (no real hw learning),
+  // agent should check the existence of fdb entry in sai adapter, and create
+  // fdb entry only when it does not exist in the adapter. This is to avoid the
+  // l2 churn of the creation of existing l2 entry would trigger another age &
+  // learn, which then triggers another learn event (and the cycle continues).
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::PENDING_L2_ENTRY)) {
+    auto& fdbApi = SaiApiTable::getInstance()->fdbApi();
+    try {
+      fdbApi.getAttribute(key, SaiFdbTraits::Attributes::Type());
+    } catch (const SaiApiError& e) {
+      // If no fdb entry is sai adapter, create the entry.
+      if (e.getSaiStatus() == SAI_STATUS_ITEM_NOT_FOUND) {
+        return store.setObject(key, attributes, publisherKey);
+      } else {
+        throw;
+      }
+    }
+    // FDB entry already exists in sai adapter -
+    // 1. Reload the fdb entry from adapter
+    // 2. Set on the object if the intended attributes differ
+    // 3. Notify subscribers as if the object is created.
+    auto obj = store.reloadObject(key);
+    store.setObject(key, attributes, publisherKey);
+    obj->setCustomPublisherKey(publisherKey);
+    obj->notifyAfterCreate(obj);
+    return obj;
+  }
   return store.setObject(key, attributes, publisherKey);
 }
 
