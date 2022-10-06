@@ -101,6 +101,7 @@ class BcmQcmManager;
 class BcmPtpTcMgr;
 class BcmEgressQueueFlexCounterManager;
 class TeFlowEntry;
+class UnsupportedFeatureManager;
 
 /*
  * Virtual interface to BcmSwitch, primarily for mocking/testing
@@ -1059,6 +1060,8 @@ class BcmSwitch : public BcmSwitchIf {
 
   std::unique_ptr<BcmEgressQueueFlexCounterManager> queueFlexCounterMgr_;
 
+  std::unique_ptr<UnsupportedFeatureManager> sysPortMgr_;
+  std::unique_ptr<UnsupportedFeatureManager> remoteRifMgr_;
   /*
    * Lock to synchronize access to all BCM* data structures
    */

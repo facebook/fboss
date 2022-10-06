@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
@@ -47,6 +48,17 @@ struct HwInitResult {
   float initializedTime{0.0};
   float bootTime{0.0};
 };
+
+template <typename Delta, typename Mgr>
+void checkUnsupportedDelta(const Delta& delta, Mgr& mgr) {
+  DeltaFunctions::forEachChanged(
+      delta,
+      [&](const auto& oldNode, const auto& newNode) {
+        mgr.processChanged(oldNode, newNode);
+      },
+      [&](const auto& newNode) { mgr.processAdded(newNode); },
+      [&](const auto& oldNode) { mgr.processRemoved(oldNode); });
+}
 
 /*
  * HwSwitch contains the hardware-specific switching logic.

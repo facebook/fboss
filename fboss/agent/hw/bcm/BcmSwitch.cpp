@@ -33,6 +33,7 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/hw/BufferStatsLogger.h"
 #include "fboss/agent/hw/HwSwitchStats.h"
+#include "fboss/agent/hw/UnsupportedFeatureManager.h"
 #include "fboss/agent/hw/bcm/BcmAPI.h"
 #include "fboss/agent/hw/bcm/BcmAclEntry.h"
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
@@ -368,7 +369,9 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       switchSettings_(new BcmSwitchSettings(this)),
       macTable_(new BcmMacTable(this)),
       qcmManager_(new BcmQcmManager(this)),
-      ptpTcMgr_(new BcmPtpTcMgr(this)) {}
+      ptpTcMgr_(new BcmPtpTcMgr(this)),
+      sysPortMgr_(new UnsupportedFeatureManager("system ports")),
+      remoteRifMgr_(new UnsupportedFeatureManager("remote RIF")) {}
 
 BcmSwitch::~BcmSwitch() {
   XLOG(DBG2) << "Destroying BcmSwitch";
@@ -1155,6 +1158,10 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedTransaction(
 
 std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
     const StateDelta& delta) {
+  // Sys ports not supported
+  checkUnsupportedDelta(delta.getSystemPortsDelta(), *sysPortMgr_);
+  checkUnsupportedDelta(delta.getRemoteSystemPortsDelta(), *sysPortMgr_);
+
   // Reconfigure port groups in case we are changing between using a port as
   // 1, 2 or 4 ports. Only do this if flexports are enabled
   // Calling reconfigure port group first to make sure the ports of SW state
