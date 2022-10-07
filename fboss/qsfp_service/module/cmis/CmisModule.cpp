@@ -407,19 +407,6 @@ void getQsfpFieldAddress(
   length = info.length;
 }
 
-cfg::TransceiverConfigOverrideFactor getModuleConfigOverrideFactor(
-    std::optional<cfg::TransceiverPartNumber> partNumber,
-    std::optional<SMFMediaInterfaceCode> applicationCode) {
-  cfg::TransceiverConfigOverrideFactor moduleFactor;
-  if (partNumber) {
-    moduleFactor.transceiverPartNumber() = *partNumber;
-  }
-  if (applicationCode) {
-    moduleFactor.applicationCode() = *applicationCode;
-  }
-  return moduleFactor;
-}
-
 CmisModule::CmisModule(
     TransceiverManager* transceiverManager,
     std::unique_ptr<TransceiverImpl> qsfpImpl)

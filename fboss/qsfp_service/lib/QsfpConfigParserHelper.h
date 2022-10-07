@@ -20,5 +20,9 @@ std::optional<unsigned int> sffRxAmplitudeOverride(
     const cfg::TransceiverOverrides& overrides);
 std::optional<unsigned int> sffTxEqualizationOverride(
     const cfg::TransceiverOverrides& overrides);
+
+cfg::TransceiverConfigOverrideFactor getModuleConfigOverrideFactor(
+    std::optional<cfg::TransceiverPartNumber> partNumber,
+    std::optional<SMFMediaInterfaceCode> applicationCode);
 } // namespace fboss
 } // namespace facebook
