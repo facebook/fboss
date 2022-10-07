@@ -49,5 +49,6 @@ class SystemPortMap
   // Inherit the constructors required for clone()
   using ThriftyNodeMapT::ThriftyNodeMapT;
   friend class CloneAllocator;
+  bool isRemote_;
 };
 } // namespace facebook::fboss

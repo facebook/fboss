@@ -39,12 +39,18 @@ SystemPortMap* SystemPortMap::modify(std::shared_ptr<SwitchState>* state) {
     return this;
   }
 
+  bool isRemote = (this == (*state)->getRemoteSystemPorts().get());
   SwitchState::modify(state);
   auto newSystemPorts = clone();
   auto* ptr = newSystemPorts.get();
-  (*state)->resetSystemPorts(std::move(newSystemPorts));
+  if (isRemote) {
+    (*state)->resetRemoteSystemPorts(std::move(newSystemPorts));
+  } else {
+    (*state)->resetSystemPorts(std::move(newSystemPorts));
+  }
   return ptr;
 }
+
 FBOSS_INSTANTIATE_NODE_MAP(SystemPortMap, SystemPortMapTraits);
 
 } // namespace facebook::fboss
