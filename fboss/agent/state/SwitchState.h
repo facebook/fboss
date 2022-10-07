@@ -80,6 +80,8 @@ struct SwitchStateFields
     fn(systemPorts.get());
     fn(ipTunnels.get());
     fn(teFlowTable.get());
+    fn(remoteSystemPorts.get());
+    fn(remoteInterfaces.get());
   }
 
   state::SwitchState toThrift() const override;
@@ -469,6 +471,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetTunnels(std::shared_ptr<IpTunnelMap> tunnels);
   void resetTeFlowTable(std::shared_ptr<TeFlowTable> teFlowTable);
 
+  void resetRemoteSystemPorts(std::shared_ptr<SystemPortMap> systemPorts);
   void resetRemoteIntfs(std::shared_ptr<InterfaceMap> intfs);
   void publish() override {
     using BaseT = NodeBaseT<SwitchState, SwitchStateFields>;

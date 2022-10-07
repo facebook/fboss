@@ -446,6 +446,11 @@ void SwitchState::resetRemoteIntfs(std::shared_ptr<InterfaceMap> intfs) {
   writableFields()->remoteInterfaces.swap(intfs);
 }
 
+void SwitchState::resetRemoteSystemPorts(
+    std::shared_ptr<SystemPortMap> sysPorts) {
+  writableFields()->remoteSystemPorts.swap(sysPorts);
+}
+
 void SwitchState::addAcl(const std::shared_ptr<AclEntry>& acl) {
   auto* fields = writableFields();
   // For ease-of-use, automatically clone the AclMap if we are still
