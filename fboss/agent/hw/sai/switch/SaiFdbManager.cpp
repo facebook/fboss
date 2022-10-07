@@ -59,10 +59,10 @@ void ManagedFdbEntry::createObject(PublisherObjects objects) {
   // - While processing the state delta for changed MAC entry, we try to
   // delete the dynamic entry before adding static entry
   fdbEntry->setIgnoreMissingInHwOnDelete(true);
-  // If pending_L2_entry is not supported, l2 entry is already deleted from HW
-  // table upon receiving the l2 age event. Therefore, no need to make the
-  // remove call down to SDK layer.
-  if (!supportsPending_) {
+  // If pending_L2_entry is not supported, dynamic l2 entry is already deleted
+  // from HW table upon receiving the l2 age event. Therefore, no need to make
+  // the remove call down to SDK layer.
+  if (!supportsPending_ && type_ != SAI_FDB_ENTRY_TYPE_STATIC) {
     fdbEntry->setSkipRemove(true);
   }
   setObject(fdbEntry);
@@ -198,6 +198,11 @@ void ManagedFdbEntry::update(const std::shared_ptr<MacEntry>& updated) {
       updated->getType() == MacEntryType::STATIC_ENTRY
           ? SAI_FDB_ENTRY_TYPE_STATIC
           : SAI_FDB_ENTRY_TYPE_DYNAMIC));
+  // When dynamic entry is updated to static entry, need to remove the entry
+  // when neighbor is removed.
+  if (!supportsPending_ && updated->getType() == MacEntryType::STATIC_ENTRY) {
+    fdbEntry->setSkipRemove(false);
+  }
   sai_uint32_t metadata = updated->getClassID()
       ? static_cast<sai_uint32_t>(updated->getClassID().value())
       : 0;
