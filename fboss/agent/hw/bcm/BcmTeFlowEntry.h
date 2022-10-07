@@ -47,15 +47,21 @@ class BcmTeFlowEntry {
       const std::shared_ptr<TeFlowEntry>& teFlow);
   static bcm_if_t getEgressId(
       const BcmSwitch* hw,
+      std::shared_ptr<BcmMultiPathNextHop>& redirectNexthop);
+  static void setRedirectNexthop(
+      const BcmSwitch* hw,
       std::shared_ptr<BcmMultiPathNextHop>& redirectNexthop,
       const std::shared_ptr<TeFlowEntry>& teFlow);
+  void updateTeFlowEntry(const std::shared_ptr<TeFlowEntry>& newTeFlow);
 
  private:
   void createTeFlowQualifiers();
   void createTeFlowActions();
+  void removeTeFlowActions();
   void installTeFlowEntry();
   void createTeFlowEntry();
   void createTeFlowStat();
+  void deleteTeFlowStat();
 
   BcmSwitch* hw_;
   int gid_;

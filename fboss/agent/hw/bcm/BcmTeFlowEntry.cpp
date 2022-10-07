@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTeFlowTable.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/state/TeFlowEntry.h"
@@ -29,17 +30,24 @@ namespace facebook::fboss {
 using facebook::network::toIPAddress;
 using namespace facebook::fboss::utility;
 
-bcm_if_t BcmTeFlowEntry::getEgressId(
+void BcmTeFlowEntry::setRedirectNexthop(
     const BcmSwitch* hw,
     std::shared_ptr<BcmMultiPathNextHop>& redirectNexthop,
     const std::shared_ptr<TeFlowEntry>& teFlow) {
-  bcm_if_t egressId;
   auto nhts = teFlow->getResolvedNextHops();
   RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts, true);
   if (nexthops.size() > 0) {
     redirectNexthop =
         hw->writableMultiPathNextHopTable()->referenceOrEmplaceNextHop(
             BcmMultiPathNextHopKey(0, nexthops));
+  }
+}
+
+bcm_if_t BcmTeFlowEntry::getEgressId(
+    const BcmSwitch* hw,
+    std::shared_ptr<BcmMultiPathNextHop>& redirectNexthop) {
+  bcm_if_t egressId;
+  if (redirectNexthop) {
     egressId = redirectNexthop->getEgressId();
   } else {
     egressId = hw->getDropEgressId();
@@ -81,15 +89,29 @@ void BcmTeFlowEntry::createTeFlowStat() {
   teFlowStat->attach(handle_);
 }
 
+void BcmTeFlowEntry::deleteTeFlowStat() {
+  if (teFlow_->getCounterID().has_value() && teFlow_->getEnabled()) {
+    auto counterName = teFlow_->getCounterID().value();
+    auto teFlowTable = hw_->writableTeFlowTable();
+    auto teFlowStat = teFlowTable->getTeFlowStat(counterName);
+    teFlowStat->detach(handle_);
+    teFlowTable->derefBcmTeFlowStat(counterName);
+  }
+}
+
 void BcmTeFlowEntry::createTeFlowActions() {
-  auto egressId = getEgressId(hw_, redirectNexthop_, teFlow_);
+  setRedirectNexthop(hw_, redirectNexthop_, teFlow_);
+  auto egressId = getEgressId(hw_, redirectNexthop_);
+  XLOG(DBG3) << "Setting egress Id:" << egressId << " for handle :" << handle_;
   auto rv = bcm_field_action_add(
       hw_->getUnit(), handle_, bcmFieldActionL3Switch, egressId, 0);
-
-  if (teFlow_->getCounterID().has_value()) {
-    createTeFlowStat();
-  }
   bcmCheckError(rv, "failed to action add");
+}
+
+void BcmTeFlowEntry::removeTeFlowActions() {
+  auto rv =
+      bcm_field_action_remove(hw_->getUnit(), handle_, bcmFieldActionL3Switch);
+  bcmCheckError(rv, "failed to action remove ");
 }
 
 void BcmTeFlowEntry::installTeFlowEntry() {
@@ -109,6 +131,52 @@ void BcmTeFlowEntry::createTeFlowEntry() {
   // actions.
   if (enabled) {
     createTeFlowActions();
+    if (teFlow_->getCounterID().has_value()) {
+      createTeFlowStat();
+    }
+  }
+  installTeFlowEntry();
+}
+
+void BcmTeFlowEntry::updateTeFlowEntry(
+    const std::shared_ptr<TeFlowEntry>& newTeFlow) {
+  // Entry disabled
+  if (!teFlow_->getEnabled() && !newTeFlow->getEnabled()) {
+    return;
+  }
+
+  // disabled to enabled
+  if (!teFlow_->getEnabled() && newTeFlow->getEnabled()) {
+    teFlow_ = newTeFlow;
+    createTeFlowActions();
+    if (teFlow_->getCounterID().has_value()) {
+      createTeFlowStat();
+    }
+    installTeFlowEntry();
+    return;
+  }
+
+  // enabled to disabled
+  if (teFlow_->getEnabled() && !newTeFlow->getEnabled()) {
+    removeTeFlowActions();
+    redirectNexthop_ = nullptr;
+    if (teFlow_->getCounterID().has_value()) {
+      deleteTeFlowStat();
+    }
+    teFlow_ = newTeFlow;
+    installTeFlowEntry();
+    return;
+  }
+
+  // enabled to enabled
+  if (teFlow_->getCounterID().has_value()) {
+    deleteTeFlowStat();
+  }
+  removeTeFlowActions();
+  teFlow_ = newTeFlow;
+  createTeFlowActions();
+  if (teFlow_->getCounterID().has_value()) {
+    createTeFlowStat();
   }
   installTeFlowEntry();
 }
@@ -122,13 +190,8 @@ BcmTeFlowEntry::BcmTeFlowEntry(
 }
 
 BcmTeFlowEntry::~BcmTeFlowEntry() {
-  if (teFlow_->getCounterID().has_value() && teFlow_->getEnabled()) {
-    auto counterName = teFlow_->getCounterID().value();
-    auto teFlowTable = hw_->writableTeFlowTable();
-    auto teFlowStat = teFlowTable->getTeFlowStat(counterName);
-    teFlowStat->detach(handle_);
-    teFlowTable->derefBcmTeFlowStat(counterName);
-  }
+  // Delete the TeFlow stat
+  deleteTeFlowStat();
 
   // Destroy the TeFlow entry
   auto rv = bcm_field_entry_destroy(hw_->getUnit(), handle_);
@@ -199,7 +262,8 @@ bool BcmTeFlowEntry::isStateSame(
   }
 
   std::shared_ptr<BcmMultiPathNextHop> redirectNexthop;
-  auto expectedEgressId = getEgressId(hw, redirectNexthop, teFlow);
+  setRedirectNexthop(hw, redirectNexthop, teFlow);
+  auto expectedEgressId = getEgressId(hw, redirectNexthop);
   if (egressId != static_cast<uint32_t>(expectedEgressId)) {
     XLOG(ERR) << teFlowMsg
               << " redirect nexthop egressId mismatched. SW expected="

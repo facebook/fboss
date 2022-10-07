@@ -90,10 +90,7 @@ void BcmTeFlowTable::processChangedTeFlow(
     const int groupId,
     const std::shared_ptr<TeFlowEntry>& oldTeFlow,
     const std::shared_ptr<TeFlowEntry>& newTeFlow) {
-  // TODO - Modify the code for Make before break or
-  // inplace update to prevent any traffic loss in this case
-  processRemovedTeFlow(oldTeFlow);
-  processAddedTeFlow(groupId, newTeFlow);
+  getTeFlow(oldTeFlow)->updateTeFlowEntry(newTeFlow);
 }
 
 BcmTeFlowTable::~BcmTeFlowTable() {

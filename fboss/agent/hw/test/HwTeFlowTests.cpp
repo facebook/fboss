@@ -33,6 +33,7 @@ static std::string kIfName1("fboss2000");
 static std::string kIfName2("fboss2001");
 static TeCounterID kCounterID0("counter0");
 static TeCounterID kCounterID1("counter1");
+static TeCounterID kCounterID2("counter2");
 } // namespace
 
 class HwTeFlowTest : public HwLinkStateDependentTest {
@@ -108,6 +109,7 @@ TEST_F(HwTeFlowTest, validateAddDeleteTeFlow) {
       getProgrammedState(),
       makeFlowKey("101::", masterLogicalPortIds()[1]));
 
+  // Modify nexthop
   modifyFlowEntry(
       getHwSwitchEnsemble(),
       "100::",
@@ -116,6 +118,19 @@ TEST_F(HwTeFlowTest, validateAddDeleteTeFlow) {
       kIfName2,
       kCounterID0);
   EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 2);
+  utility::checkSwHwTeFlowMatch(
+      getHwSwitch(),
+      getProgrammedState(),
+      makeFlowKey("100::", masterLogicalPortIds()[0]));
+
+  // Modify counter id
+  modifyFlowEntry(
+      getHwSwitchEnsemble(),
+      "100::",
+      masterLogicalPortIds()[0],
+      kNhopAddrB,
+      kIfName2,
+      kCounterID2);
   utility::checkSwHwTeFlowMatch(
       getHwSwitch(),
       getProgrammedState(),
@@ -150,6 +165,7 @@ TEST_F(HwTeFlowTest, validateEnableDisableTeFlow) {
       getProgrammedState(),
       makeFlowKey("101::", masterLogicalPortIds()[1]));
 
+  // Disable entry 1
   auto newFlowEntry1 = makeFlowEntry(
       "100::", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], kCounterID0);
   modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry1, false);
@@ -158,6 +174,7 @@ TEST_F(HwTeFlowTest, validateEnableDisableTeFlow) {
       getProgrammedState(),
       makeFlowKey("100::", masterLogicalPortIds()[0]));
 
+  // Disable entry 2
   auto newFlowEntry2 = makeFlowEntry(
       "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
   modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry2, false);
@@ -166,12 +183,21 @@ TEST_F(HwTeFlowTest, validateEnableDisableTeFlow) {
       getProgrammedState(),
       makeFlowKey("101::", masterLogicalPortIds()[1]));
 
+  // Modify nexthop, enable, verify and delete entry 1
+  newFlowEntry1 = makeFlowEntry(
+      "100::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID0);
+  modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry1, true);
+  utility::checkSwHwTeFlowMatch(
+      getHwSwitch(),
+      getProgrammedState(),
+      makeFlowKey("100::", masterLogicalPortIds()[0]));
   deleteFlowEntry(getHwSwitchEnsemble(), newFlowEntry1);
   EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
 
-  auto newFlowEntry3 = makeFlowEntry(
+  // Enable entry 2
+  newFlowEntry2 = makeFlowEntry(
       "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
-  modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry3, true);
+  modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry2, true);
   EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
   utility::checkSwHwTeFlowMatch(
       getHwSwitch(),
