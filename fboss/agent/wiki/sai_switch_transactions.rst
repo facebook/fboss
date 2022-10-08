@@ -24,13 +24,13 @@ Consider the following 2 modes for transactions
    extended to other resources. For such objects, each object will be applied in sequence,
    stopping at the first failure. Any state created as a result of this overflowing object
    will be cleaned up and the actual applied switch state will be returned to higher layers.
-   https://github.com/facebook/fboss/blob/master/fboss/agent/HwSwitch.h#L153
+   https://github.com/facebook/fboss/blob/main/fboss/agent/HwSwitch.h#L153
    Overflow protection is always on post HwSwitch transition to CONFIGURED state,  modulo 
    switch state transactions (described next)
 #. SwitchState transaction - This applies to a use case where entire StateDelta must be 
    applied as a whole. Such StateDeltas maybe conveyed down as transaction by means 
    of a flag. Now when a failure occurs we try to rollback to previous switch state
-   or oldSwitchState in StateDelta parlance - https://github.com/facebook/fboss/blob/master/fboss/agent/state/StateDelta.h#L81
+   or oldSwitchState in StateDelta parlance - https://github.com/facebook/fboss/blob/main/fboss/agent/state/StateDelta.h#L81
    For SwitchState transactions, we will handle only a subset of errors, as a starting
    point, we may only consider table overflow error. 
 
@@ -60,11 +60,11 @@ SwitchStateFailed. Where failure occurred somewhere in the process of getting fr
 SwitchStateGood to SwitchStateFailed. Our goal is to restore SaiSwitch to SwitchStateGood.
 Now we do the following.
 
-#. Acquire SaiSwitch mutex - https://github.com/facebook/fboss/blob/master/fboss/agent/hw/sai/switch/SaiSwitch.h#L343
-#. Block Hw writes from this thread (extending the mechanism here - https://github.com/facebook/fboss/blob/master/fboss/agent/hw/sai/api/SaiApi.h#L74)
-#. Clear out SaiManagerTable https://github.com/facebook/fboss/blob/master/fboss/agent/hw/sai/switch/SaiSwitch.h#L351
+#. Acquire SaiSwitch mutex - https://github.com/facebook/fboss/blob/main/fboss/agent/hw/sai/switch/SaiSwitch.h#L343
+#. Block Hw writes from this thread (extending the mechanism here - https://github.com/facebook/fboss/blob/main/fboss/agent/hw/sai/api/SaiApi.h#L74)
+#. Clear out SaiManagerTable https://github.com/facebook/fboss/blob/main/fboss/agent/hw/sai/switch/SaiSwitch.h#L351
 #. Unblock HW writes
-#. Now perform steps simialr to what we do during WB here - https://github.com/facebook/fboss/blob/master/fboss/agent/hw/sai/switch/SaiSwitch.cpp#L837-L874 and here - https://github.com/facebook/fboss/blob/master/fboss/agent/hw/sai/switch/SaiSwitch.cpp#L197-L234 (SaiSwitchManager may need soome tweaking since we don't want to do a actual warmboot from a adapter's perspective). Essentially what we are doing above is this 
+#. Now perform steps simialr to what we do during WB here - https://github.com/facebook/fboss/blob/main/fboss/agent/hw/sai/switch/SaiSwitch.cpp#L837-L874 and here - https://github.com/facebook/fboss/blob/main/fboss/agent/hw/sai/switch/SaiSwitch.cpp#L197-L234 (SaiSwitchManager may need soome tweaking since we don't want to do a actual warmboot from a adapter's perspective). Essentially what we are doing above is this 
     * Populate SaiStore with all objects in HW
     * Apply state delta of StateDelta(EmptySwitchState, SwitchStateGood)
     * As during WB, anything matched in SaiStores would not require going to the HW
@@ -81,10 +81,10 @@ in StateDelta. For the overflow case, I am thinking of the following (ordered by
 
 #. Track iter in delta application and then in case of a failed delta (say RouteTableDelta)
    pass back this information to the caller. The caller then uses it to construct SwitchStateGood.
-   Thus modifications here https://github.com/facebook/fboss/blob/master/fboss/agent/hw/sai/switch/SaiSwitch.cpp#L1367-L1418
-   and here - https://github.com/facebook/fboss/blob/master/fboss/agent/state/DeltaFunctions.h#L57-L108
+   Thus modifications here https://github.com/facebook/fboss/blob/main/fboss/agent/hw/sai/switch/SaiSwitch.cpp#L1367-L1418
+   and here - https://github.com/facebook/fboss/blob/main/fboss/agent/state/DeltaFunctions.h#L57-L108
    Note that iterators would need to be tracked for all SwitchState nodes. This should not be a
-   big deal given that not too many leve1 nodes in SwitchState https://github.com/facebook/fboss/blob/master/fboss/agent/state/SwitchState.h
+   big deal given that not too many leve1 nodes in SwitchState https://github.com/facebook/fboss/blob/main/fboss/agent/state/SwitchState.h
 #. If the above proves expensive, we have one more trick in our toolbox. 
    Say we want to get from SwitchState A to SwitchState C and failure occurs 
    at SwitchState B. Now we can do the following
@@ -105,7 +105,7 @@ it gets into some kind of "almost full" state.
 
 Alternatives considered
 ------------------------
-* Use HwResourceStats to preemptively reject about to fail updates - https://github.com/facebook/fboss/blob/master/fboss/agent/hw/hardware_stats.thrift#L73-L137
+* Use HwResourceStats to preemptively reject about to fail updates - https://github.com/facebook/fboss/blob/main/fboss/agent/hw/hardware_stats.thrift#L73-L137
   This is tempting but unfortunately does not work. Most notably resource stats assume exclusive use, viz. if we added on /64 routes, how many could be added. This means we can't use them to evaulate 
   a enitre state delta. We would thus need to refresh these (from HW) after each node application and evaluate whether the next node can be applied or not. Secondly, not all resources have resource
   counters, meaning this design coukd come to a halt when we try to protect aginst overflow of next ressource. 

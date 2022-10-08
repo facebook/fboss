@@ -259,7 +259,7 @@ TEST_F(
 // For details regarding traffic loss during short period
 // of time during warmboot init, please check the wiki -
 //
-// https://github.com/facebook/fboss/blob/master/fboss/agent/wiki/warmboot_link_flaps.rst
+// https://github.com/facebook/fboss/blob/main/fboss/agent/wiki/warmboot_link_flaps.rst
 TEST_F(HwEcmpTrunkTest, TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp) {
   uint8_t minlinks = 2;
   uint8_t numEcmpMembersToExclude = 1;
