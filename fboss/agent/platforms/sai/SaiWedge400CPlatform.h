@@ -32,6 +32,8 @@ class SaiWedge400CPlatform : public SaiTajoPlatform {
   void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
       override;
 
+  std::unique_ptr<PlatformMapping> createWedge400CPlatformMapping();
+
  protected:
   SaiWedge400CPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,

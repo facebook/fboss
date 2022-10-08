@@ -5,6 +5,7 @@
 
 add_library(wedge400c_platform_mapping
     fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.cpp
+    fboss/agent/platforms/common/wedge400c/Wedge400CGrandTetonPlatformMapping.cpp
 )
 
 target_link_libraries(wedge400c_platform_mapping
@@ -18,4 +19,8 @@ add_library(wedge400c_ebb_lab_platform_mapping
 
 target_link_libraries(wedge400c_ebb_lab_platform_mapping
   platform_mapping
+)
+
+add_library(wedge400c_platform_utils
+  fboss/agent/platforms/common/wedge400c/oss/Wedge400CPlatformUtil.cpp
 )

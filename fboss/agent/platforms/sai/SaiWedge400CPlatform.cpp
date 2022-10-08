@@ -11,7 +11,9 @@
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/platforms/common/ebb_lab/Wedge400CEbbLabPlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge400c/Wedge400CGrandTetonPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformUtil.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 
 #include <algorithm>
@@ -23,7 +25,7 @@ SaiWedge400CPlatform::SaiWedge400CPlatform(
     folly::MacAddress localMac)
     : SaiTajoPlatform(
           std::move(productInfo),
-          std::make_unique<Wedge400CPlatformMapping>(),
+          createWedge400CPlatformMapping(),
           localMac) {}
 
 SaiWedge400CPlatform::SaiWedge400CPlatform(
@@ -79,5 +81,13 @@ SaiWedge400CEbbLabPlatform::SaiWedge400CEbbLabPlatform(
           std::move(productInfo),
           std::make_unique<Wedge400CEbbLabPlatformMapping>(),
           localMac) {}
+
+std::unique_ptr<PlatformMapping>
+SaiWedge400CPlatform::createWedge400CPlatformMapping() {
+  if (utility::isWedge400CPlatformRackTypeGrandTeton()) {
+    return std::make_unique<Wedge400CGrandTetonPlatformMapping>();
+  }
+  return std::make_unique<Wedge400CPlatformMapping>();
+}
 
 } // namespace facebook::fboss
