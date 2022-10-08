@@ -66,4 +66,12 @@ void BcmLinkStateToggler::setPortPreemphasis(
   bcmCheckError(rv, "Failed to set port preemphasis");
 }
 
+void BcmLinkStateToggler::setLinkTraining(
+    const std::shared_ptr<Port>& /* port */,
+    bool /* enable */) {
+  // At the moment, we don't have any use case to set link training on
+  // BcmSwitch. We could consider adding it if needed later.
+  CHECK(false) << "Setting Link Training is not supported";
+}
+
 } // namespace facebook::fboss

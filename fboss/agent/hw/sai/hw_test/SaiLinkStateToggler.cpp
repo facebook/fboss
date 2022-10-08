@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 namespace facebook::fboss {
+
 void SaiLinkStateToggler::setPortPreemphasis(
     const std::shared_ptr<Port>& port,
     int preemphasis) {
@@ -69,4 +70,22 @@ void SaiLinkStateToggler::setPortPreemphasis(
     portHandle->serdes->setAttributes(serDesAttributes);
   }
 }
+
+void SaiLinkStateToggler::setLinkTraining(
+    const std::shared_ptr<Port>& port,
+    bool enable) {
+  auto& portManager = static_cast<SaiSwitchEnsemble*>(getHwSwitchEnsemble())
+                          ->getHwSwitch()
+                          ->managerTable()
+                          ->portManager();
+  auto portHandle = portManager.getPortHandle(port->getID());
+  if (!portHandle) {
+    throw FbossError(
+        "Cannot set link training on non existent port: ", port->getID());
+  }
+
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::LinkTrainingEnable{enable});
+}
+
 } // namespace facebook::fboss
