@@ -123,6 +123,7 @@ class HwAsic {
     FABRIC_PORT_MTU,
     SAI_FIRMWARE_PATH,
     EXTENDED_FEC,
+    LINK_TRAINING,
   };
 
   enum class AsicType ASIC_TYPE_LIST;
