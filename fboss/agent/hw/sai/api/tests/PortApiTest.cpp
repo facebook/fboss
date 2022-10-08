@@ -54,6 +54,7 @@ class PortApiTest : public ::testing::Test {
           std::nullopt, // PFC Priorities
           std::nullopt, // TC to Priority Group map
           std::nullopt, // PFC Priority to Queue map
+          std::nullopt, // Link Training Enable
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }

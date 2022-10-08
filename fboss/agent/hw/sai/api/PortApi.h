@@ -242,6 +242,11 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_RX_LOCK_STATUS,
         std::vector<sai_port_lane_latch_status_t>>;
 #endif
+    using LinkTrainingEnable = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LINK_TRAINING_ENABLE,
+        bool,
+        SaiBoolDefaultTrue>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -280,7 +285,8 @@ struct SaiPortTraits {
       std::optional<Attributes::PriorityFlowControlMode>,
       std::optional<Attributes::PriorityFlowControl>,
       std::optional<Attributes::QosTcToPriorityGroupMap>,
-      std::optional<Attributes::QosPfcPriorityToQueueMap>>;
+      std::optional<Attributes::QosPfcPriorityToQueueMap>,
+      std::optional<Attributes::LinkTrainingEnable>>;
 
   static constexpr std::array<sai_stat_id_t, 32> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,          SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -358,6 +364,7 @@ SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToQueueMap)
 SAI_ATTRIBUTE_NAME(Port, RxSignalDetect)
 SAI_ATTRIBUTE_NAME(Port, RxLockStatus)
 #endif
+SAI_ATTRIBUTE_NAME(Port, LinkTrainingEnable)
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};
