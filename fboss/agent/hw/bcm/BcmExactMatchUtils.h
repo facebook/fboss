@@ -27,7 +27,20 @@ int getEMGroupID(int gid);
 /*
  * init EM Table
  */
-void initEMTable(int unit, bcm_field_group_t gid, bcm_field_hintid_t& hintId);
+void initEMTable(
+    int unit,
+    bcm_field_group_t gid,
+    bcm_field_hintid_t& hintId,
+    int dstIpPrefixLength);
+
+/*
+ * reInit EM Table
+ */
+void reInitEMTable(
+    int unit,
+    bcm_field_group_t gid,
+    bcm_field_hintid_t& hintId,
+    int dstIpPrefixLength);
 
 /*
  * validate Dst IP hint
@@ -41,7 +54,7 @@ bool validateDstIpHint(
 /*
  * get EM DstIp hint start bit
  */
-int getEmDstIpHintStartBit();
+int getEmDstIpHintStartBit(int dstIpPrefixLength);
 
 /*
  * get EM DstIp hint end bit

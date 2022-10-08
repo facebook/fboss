@@ -162,6 +162,8 @@ struct PortPause {
 */
 const PortPause NO_PAUSE = {"tx": false, "rx": false};
 
+const string TeFlowTableName = "TeFlowTable";
+
 /**
  *  [DEPRECATED] TODO(joseph5wu)
  *  A Range for L4 port range checker

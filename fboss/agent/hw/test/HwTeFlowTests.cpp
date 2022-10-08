@@ -34,6 +34,9 @@ static std::string kIfName2("fboss2001");
 static TeCounterID kCounterID0("counter0");
 static TeCounterID kCounterID1("counter1");
 static TeCounterID kCounterID2("counter2");
+static int kPrefixLength0(0);
+static int kPrefixLength1(61);
+static int kPrefixLength2(64);
 } // namespace
 
 class HwTeFlowTest : public HwLinkStateDependentTest {
@@ -75,17 +78,22 @@ TEST_F(HwTeFlowTest, VerifyTeFlowGroupEnable) {
     return;
   }
 
-  auto verify = [&]() {
-    EXPECT_TRUE(utility::validateTeFlowGroupEnabled(getHwSwitch()));
+  setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
+
+  auto verify = [&](int prefixLength) {
+    EXPECT_TRUE(
+        utility::validateTeFlowGroupEnabled(getHwSwitch(), prefixLength));
   };
 
-  verify();
+  verify(kPrefixLength1);
 }
 
 TEST_F(HwTeFlowTest, validateAddDeleteTeFlow) {
   if (this->skipTest()) {
     return;
   }
+
+  setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
 
   this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
   this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
@@ -146,6 +154,8 @@ TEST_F(HwTeFlowTest, validateEnableDisableTeFlow) {
     return;
   }
 
+  setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
+
   this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
   this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
   auto flowEntry1 = makeFlowEntry(
@@ -203,6 +213,65 @@ TEST_F(HwTeFlowTest, validateEnableDisableTeFlow) {
       getHwSwitch(),
       getProgrammedState(),
       makeFlowKey("101::", masterLogicalPortIds()[1]));
+}
+
+TEST_F(HwTeFlowTest, validateExactMatchTableConfigs) {
+  if (this->skipTest()) {
+    return;
+  }
+
+  auto setup = [&]() {
+    setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
+  };
+
+  auto addDeleteFlowEntries = [&](bool isAdd) {
+    auto flowEntry1 = makeFlowEntry(
+        "100::", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], kCounterID0);
+    auto flowEntry2 = makeFlowEntry(
+        "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
+    if (isAdd) {
+      addFlowEntry(getHwSwitchEnsemble(), flowEntry1);
+      addFlowEntry(getHwSwitchEnsemble(), flowEntry2);
+    } else {
+      deleteFlowEntry(getHwSwitchEnsemble(), flowEntry1);
+      deleteFlowEntry(getHwSwitchEnsemble(), flowEntry2);
+    }
+  };
+
+  auto verify = [&](int prefixLength) {
+    EXPECT_TRUE(
+        utility::validateTeFlowGroupEnabled(getHwSwitch(), prefixLength));
+    EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 2);
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("100::", masterLogicalPortIds()[0]));
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("101::", masterLogicalPortIds()[1]));
+  };
+
+  setup();
+  addDeleteFlowEntries(true);
+  verify(kPrefixLength1);
+
+  // TODO- verify the prefix length change without removing entries
+  addDeleteFlowEntries(false);
+
+  // Modify prefixLength
+  setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength2);
+
+  addDeleteFlowEntries(true);
+  verify(kPrefixLength2);
+
+  // Delete prefixLength config
+  addDeleteFlowEntries(false);
+  setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength0);
+  EXPECT_TRUE(
+      utility::validateTeFlowGroupEnabled(getHwSwitch(), kPrefixLength0));
 }
 
 } // namespace facebook::fboss

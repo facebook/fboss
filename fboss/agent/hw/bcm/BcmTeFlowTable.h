@@ -17,6 +17,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmAclStat.h"
 #include "fboss/agent/hw/bcm/BcmTeFlowEntry.h"
 #include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/state/SwitchSettings.h"
 
 namespace facebook::fboss {
 
@@ -33,9 +34,15 @@ class BcmTeFlowTable {
  public:
   explicit BcmTeFlowTable(BcmSwitch* hw) : hw_(hw) {}
   ~BcmTeFlowTable();
-  void createTeFlowGroup();
+  void processTeFlowConfigChanged(
+      const std::shared_ptr<SwitchSettings>& switchSettings);
+  void createTeFlowGroup(int dstIpPrefixLength);
+  void deleteTeFlowGroup();
   bcm_field_hintid_t getHintId() const {
     return hintId_;
+  }
+  int getDstIpPrefixLength() const {
+    return dstIpPrefixLength_;
   }
   BcmTeFlowStat* incRefOrCreateBcmTeFlowStat(
       const std::string& counterName,
@@ -74,6 +81,7 @@ class BcmTeFlowTable {
   BcmSwitch* hw_;
   bcm_field_hintid_t hintId_{0};
   int teFlowGroupId_{0};
+  int dstIpPrefixLength_{0};
   BcmTeFlowEntryMap teFlowEntryMap_;
   BcmTeFlowStatMap teFlowStatMap_;
 };

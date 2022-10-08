@@ -110,6 +110,8 @@ TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
     return;
   }
 
+  setExactMatchCfg(getHwSwitchEnsemble(), 61);
+
   // Add 100::/32 lpm route entry
   this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
   this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
