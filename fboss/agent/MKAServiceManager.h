@@ -41,6 +41,9 @@ class MKAServiceManager : public BidirectionalPacketAcceptor {
   bool isConnectedToMkaServer() const {
     return stream_ ? stream_->isConnectedToServer() : false;
   }
+  void pause_mkpdu_for_testing(bool pause) {
+    pausePduForTest_ = pause;
+  }
 
  private:
   std::string getPortName(PortID portId) const;
@@ -49,6 +52,7 @@ class MKAServiceManager : public BidirectionalPacketAcceptor {
   std::unique_ptr<apache::thrift::ScopedServerInterfaceThread> serverThread_;
   std::unique_ptr<folly::ScopedEventBaseThread> clientThread_;
   std::unique_ptr<folly::ScopedEventBaseThread> timerThread_;
+  bool pausePduForTest_{false};
 };
 
 } // namespace facebook::fboss
