@@ -51,6 +51,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
       SAI_ATTR_MAP(Port, RxSignalDetect),
 #endif
+      SAI_ATTR_MAP(Port, LinkTrainingEnable),
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _PortSerdesMap{
