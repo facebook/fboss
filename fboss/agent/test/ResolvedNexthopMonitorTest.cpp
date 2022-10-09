@@ -85,10 +85,7 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
     auto mirrors = newState->getMirrors()->clone();
     auto mirror = newState->getMirrors()->getMirrorIf("mirror");
     if (!mirror) {
-      mirror = std::make_shared<Mirror>(
-          std::string("mirror"),
-          std::make_optional<PortID>(PortID(5)),
-          std::optional<folly::IPAddress>());
+      mirror = std::make_shared<Mirror>("mirror", PortID(5), std::nullopt);
       mirrors->addNode(mirror);
     } else {
       mirrors->removeNode(mirror);

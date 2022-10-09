@@ -103,31 +103,20 @@ Mirror::Mirror(
     std::optional<TunnelUdpPorts> udpPorts,
     uint8_t dscp,
     bool truncate)
-    : ThriftStructNode<state::MirrorFields>() {
+    : ThriftyBaseT(
+          name,
+          egressPort,
+          destinationIp,
+          srcIp,
+          udpPorts,
+          dscp,
+          truncate) {
   // span mirror is resolved as soon as it is created
   // erspan and sflow are resolved when tunnel is set
-  set<switch_state_tags::name>(name);
-  set<switch_state_tags::dscp>(dscp);
-  set<switch_state_tags::truncate>(truncate);
-  set<switch_state_tags::configHasEgressPort>(false);
-  set<switch_state_tags::isResolved>(false);
-
+  markResolved();
   if (egressPort) {
-    set<switch_state_tags::egressPort>(*egressPort);
     set<switch_state_tags::configHasEgressPort>(true);
   }
-  if (destinationIp) {
-    set<switch_state_tags::destinationIp>(
-        network::toBinaryAddress(*destinationIp));
-  }
-  if (srcIp) {
-    set<switch_state_tags::srcIp>(network::toBinaryAddress(*srcIp));
-  }
-  if (udpPorts) {
-    set<switch_state_tags::udpSrcPort>(udpPorts->udpSrcPort);
-    set<switch_state_tags::udpDstPort>(udpPorts->udpDstPort);
-  }
-  markResolved();
 }
 
 std::string Mirror::getID() const {
@@ -249,16 +238,11 @@ std::shared_ptr<Mirror> Mirror::fromFollyDynamicLegacy(
 bool Mirror::isResolved() const {
   // either mirror has no destination ip (which means it is span)
   // or its destination ip is resolved.
-  return get<switch_state_tags::isResolved>()->cref();
+  return getMirrorTunnel().has_value() || !getDestinationIp().has_value();
 }
 
 void Mirror::markResolved() {
-  set<switch_state_tags::isResolved>(false);
-  if (type() == Mirror::Type::SPAN || get<switch_state_tags::tunnel>()) {
-    // either mirror has no destination ip (which means it is span)
-    // or its destination ip is resolved.
-    set<switch_state_tags::isResolved>(true);
-  }
+  set<switch_state_tags::isResolved>(isResolved());
 }
 
 bool Mirror::configHasEgressPort() const {
@@ -361,6 +345,6 @@ void MirrorFields::migrateFromThrifty(folly::dynamic& dyn) {
   dyn[kIsResolved] = isResolved;
 }
 
-template class thrift_cow::ThriftStructNode<state::MirrorFields>;
+template class ThriftyBaseT<state::MirrorFields, Mirror, MirrorFields>;
 
 } // namespace facebook::fboss

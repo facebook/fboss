@@ -26,9 +26,11 @@ struct MirrorMapThriftTraits
   }
 };
 
-class MirrorMap : public NodeMapT<MirrorMap, MirrorMapTraits> {
+class MirrorMap : public ThriftyNodeMapT<
+                      MirrorMap,
+                      MirrorMapTraits,
+                      MirrorMapThriftTraits> {
  public:
-  using BaseT = NodeMapT<MirrorMap, MirrorMapTraits>;
   MirrorMap();
   ~MirrorMap();
 
@@ -37,54 +39,9 @@ class MirrorMap : public NodeMapT<MirrorMap, MirrorMapTraits> {
 
   void addMirror(const std::shared_ptr<Mirror>& mirror);
 
-  static std::shared_ptr<MirrorMap> fromThrift(
-      const std::map<std::string, state::MirrorFields>& mirrors) {
-    auto map = std::make_shared<MirrorMap>();
-    for (auto mirror : mirrors) {
-      auto node = std::make_shared<Mirror>();
-      node->fromThrift(mirror.second);
-      map->addNode(node);
-    }
-    return map;
-  }
-
-  std::map<std::string, state::MirrorFields> toThrift() const {
-    std::map<std::string, state::MirrorFields> map{};
-    for (auto entry : getAllNodes()) {
-      map.emplace(entry.first, entry.second->toThrift());
-    }
-    return map;
-  }
-
-  bool operator==(const MirrorMap& that) const {
-    if (size() != that.size()) {
-      return false;
-    }
-    auto iter = begin();
-
-    while (iter != end()) {
-      auto mirror = *iter;
-      auto other = that.getMirrorIf(mirror->getID());
-      if (!other || *mirror != *other) {
-        return false;
-      }
-      iter++;
-    }
-    return true;
-  }
-
-  static std::shared_ptr<MirrorMap> fromFollyDynamicLegacy(
-      const folly::dynamic& dyn) {
-    return BaseT::fromFollyDynamic(dyn);
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    return this->toFollyDynamic();
-  }
-
  private:
   // Inherit the constructors required for clone()
-  using BaseT::BaseT;
+  using ThriftyNodeMapT::ThriftyNodeMapT;
   friend class CloneAllocator;
 };
 

@@ -227,10 +227,7 @@ TEST_F(AclTableManagerTest, checkNonExistentAclEntry) {
 
 TEST_F(AclTableManagerTest, aclMirroring) {
   std::string mirrorId = "mirror1";
-  auto mirror = std::make_shared<Mirror>(
-      mirrorId,
-      std::make_optional<PortID>(PortID(1)),
-      std::optional<folly::IPAddress>());
+  auto mirror = std::make_shared<Mirror>(mirrorId, PortID(1), std::nullopt);
   saiManagerTable->mirrorManager().addMirror(mirror);
   auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
   aclEntry->setDscp(kDscp());
