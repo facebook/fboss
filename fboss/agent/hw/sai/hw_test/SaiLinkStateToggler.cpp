@@ -38,7 +38,7 @@ void SaiLinkStateToggler::setPortPreemphasis(
 
   auto setTxRxAttr = [](auto& attrs, auto type, const auto& val) {
     auto& attr = std::get<std::optional<std::decay_t<decltype(type)>>>(attrs);
-    if (attr != std::nullopt) {
+    if (!val.empty()) {
       attr = val;
     }
   };
