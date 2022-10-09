@@ -450,10 +450,7 @@ void SaiPortManager::programSerdes(
     std::shared_ptr<SaiPort> saiPort,
     std::shared_ptr<Port> swPort,
     SaiPortHandle* portHandle) {
-  if (!platform_->isSerdesApiSupported() ||
-      swPort->getPortType() == cfg::PortType::FABRIC_PORT) {
-    // TODO: do we need serdes programming support for Fabric ports?
-    // If so work with our vendors to implement this
+  if (!platform_->isSerdesApiSupported()) {
     return;
   }
 

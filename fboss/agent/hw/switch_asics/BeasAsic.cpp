@@ -10,6 +10,7 @@ bool BeasAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
     case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::LINK_TRAINING:
+    case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
       return true;
     default:
       return false;
