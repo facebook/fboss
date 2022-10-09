@@ -48,6 +48,7 @@ class PortStoreTest : public SaiStoreTest {
           std::nullopt, // PFC Priorities
           std::nullopt, // TC to Priority Group map
           std::nullopt, // PFC Priority to Queue map
+          std::nullopt, // Link Training Enable
     };
   }
 
@@ -267,4 +268,24 @@ TEST_F(PortStoreTest, portSetPtpMode) {
   auto apiPtpMode = saiApiTable->portApi().getAttribute(
       portId, SaiPortTraits::Attributes::PtpMode{});
   EXPECT_EQ(apiPtpMode, kPtpMode);
+}
+
+TEST_F(PortStoreTest, portSetDisableLinkTraining) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+  EXPECT_FALSE(GET_OPT_ATTR(Port, LinkTrainingEnable, portObj.attributes()));
+  auto newAttrs = makeAttrs(0, 25000);
+  std::get<std::optional<SaiPortTraits::Attributes::LinkTrainingEnable>>(
+      newAttrs) = true;
+  portObj.setAttributes(newAttrs);
+  EXPECT_TRUE(GET_OPT_ATTR(Port, LinkTrainingEnable, portObj.attributes()));
+  EXPECT_TRUE(saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::LinkTrainingEnable{}));
+
+  std::get<std::optional<SaiPortTraits::Attributes::LinkTrainingEnable>>(
+      newAttrs) = false;
+  portObj.setAttributes(newAttrs);
+  EXPECT_FALSE(GET_OPT_ATTR(Port, LinkTrainingEnable, portObj.attributes()));
+  EXPECT_FALSE(saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::LinkTrainingEnable{}));
 }

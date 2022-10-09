@@ -32,11 +32,7 @@ class SaiKametPlatform : public SaiBcmPlatform {
   }
 
   bool isSerdesApiSupported() const override {
-    /*
-     * Ungate this when serdes api support is provided
-     * by vendor for Kamet platform.
-     */
-    return false;
+    return true;
   }
 
   void initLEDs() override;

@@ -372,6 +372,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // PFC Priorities
         std::nullopt, // TC to Priority Group map
         std::nullopt, // PFC Priority to Queue map
+        std::nullopt, // Link Training Enable
   };
 }
 
@@ -449,10 +450,7 @@ void SaiPortManager::programSerdes(
     std::shared_ptr<SaiPort> saiPort,
     std::shared_ptr<Port> swPort,
     SaiPortHandle* portHandle) {
-  if (!platform_->isSerdesApiSupported() ||
-      swPort->getPortType() == cfg::PortType::FABRIC_PORT) {
-    // TODO: do we need serdes programming support for Fabric ports?
-    // If so work with our vendors to implement this
+  if (!platform_->isSerdesApiSupported()) {
     return;
   }
 

@@ -123,6 +123,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_PORT_MTU:
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
     case HwAsic::Feature::EXTENDED_FEC:
+    case HwAsic::Feature::LINK_TRAINING:
       return false;
   }
   return false;

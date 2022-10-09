@@ -9,13 +9,13 @@
  */
 
 #include "fboss/agent/hw/bcm/BcmExactMatchUtils.h"
+#include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 
 using facebook::fboss::bcmCheckError;
 
 namespace {
-// From start bit 69 to end bit 127 matches the
-// 59 bits MSB of destination Ip.
-constexpr int kDefaultExactMatchDestIpHintStartBit = 69;
+// From start bit i.e (128-prefixLength) to end bit 127 matches the
+// number of bits MSB of destination Ip.
 constexpr int kDefaultExactMatchDestIpHintEndBit = 127;
 } // namespace
 
@@ -25,7 +25,11 @@ int getEMGroupID(int gid) {
   return BCM_FIELD_EM_ID_BASE + gid;
 }
 
-void initEMTable(int unit, bcm_field_group_t gid, bcm_field_hintid_t& hintId) {
+void initEMTable(
+    int unit,
+    bcm_field_group_t gid,
+    bcm_field_hintid_t& hintId,
+    int dstIpPrefixLength) {
   bcm_field_group_config_t groupConfig;
   bcm_field_hint_t hint;
 
@@ -41,7 +45,7 @@ void initEMTable(int unit, bcm_field_group_t gid, bcm_field_hintid_t& hintId) {
 #endif
   hint.hint_type = bcmFieldHintTypeExtraction;
   hint.qual = bcmFieldQualifyDstIp6;
-  hint.start_bit = kDefaultExactMatchDestIpHintStartBit;
+  hint.start_bit = getEmDstIpHintStartBit(dstIpPrefixLength);
   hint.end_bit = kDefaultExactMatchDestIpHintEndBit;
 
   /* Associating the above configured hints to hint id */
@@ -67,6 +71,35 @@ void initEMTable(int unit, bcm_field_group_t gid, bcm_field_hintid_t& hintId) {
   bcmCheckError(rv, "init EM Table:bcm_field_group_config_create failed");
 }
 
+void reInitEMTable(
+    int unit,
+    bcm_field_group_t gid,
+    bcm_field_hintid_t& hintId,
+    int dstIpPrefixLength) {
+  XLOG(DBG1) << "Delete EM group: " << gid;
+
+  int entryCount = 0;
+  auto rv = bcm_field_entry_multi_get(
+      unit, getEMGroupID(gid), 0, nullptr, &entryCount);
+  bcmCheckError(rv, "Could not get number of entries in EM table: ", gid);
+  if (entryCount) {
+    throw FbossError("EM table has entries. Reinit of EM table not allowed");
+  }
+  // TODO -store all old entries
+  // Delete all EM entries, EM group
+  clearFPGroup(unit, getEMGroupID(gid));
+
+  // Delete hint id
+  if (hintId) {
+    rv = bcm_field_hints_destroy(unit, hintId);
+    bcmCheckError(rv, "Failed to destroy hint id: ", hintId);
+  }
+
+  // init again with new hint start bit
+  initEMTable(unit, gid, hintId, getEmDstIpHintStartBit(dstIpPrefixLength));
+  // TODO -recreate old entries
+}
+
 bool validateDstIpHint(
     int unit,
     bcm_field_hintid_t hintId,
@@ -85,8 +118,8 @@ bool validateDstIpHint(
   return (hint.start_bit == hintStartBit) && (hint.end_bit == hintEndBit);
 }
 
-int getEmDstIpHintStartBit() {
-  return kDefaultExactMatchDestIpHintStartBit;
+int getEmDstIpHintStartBit(int dstIpPrefixLength) {
+  return kDefaultExactMatchDestIpHintEndBit - dstIpPrefixLength + 1;
 }
 
 int getEmDstIpHintEndBit() {

@@ -14,7 +14,9 @@
 
 namespace facebook::fboss::utility {
 
-bool validateTeFlowGroupEnabled(const facebook::fboss::HwSwitch* hw);
+bool validateTeFlowGroupEnabled(
+    const facebook::fboss::HwSwitch* hw,
+    int prefixLength);
 
 int getNumTeFlowEntries(const facebook::fboss::HwSwitch* hw);
 

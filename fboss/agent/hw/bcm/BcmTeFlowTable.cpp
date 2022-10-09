@@ -25,14 +25,56 @@ namespace facebook::fboss {
 
 using namespace facebook::fboss::utility;
 
-void BcmTeFlowTable::createTeFlowGroup() {
+void BcmTeFlowTable::processTeFlowConfigChanged(
+    const std::shared_ptr<SwitchSettings>& switchSettings) {
+  auto dstIpPrefixLength = 0;
+  auto exactMatchTableConfigs = switchSettings->getExactMatchTableConfig();
+  std::string teFlowTableName(cfg::switch_config_constants::TeFlowTableName());
+  for (const auto& tableConfig : exactMatchTableConfigs) {
+    if ((tableConfig.name() == teFlowTableName) &&
+        tableConfig.dstPrefixLength().has_value()) {
+      dstIpPrefixLength = tableConfig.dstPrefixLength().value();
+    }
+  }
+  if (dstIpPrefixLength) {
+    createTeFlowGroup(dstIpPrefixLength);
+  } else if (dstIpPrefixLength_) {
+    deleteTeFlowGroup();
+  }
+}
+
+void BcmTeFlowTable::createTeFlowGroup(int dstIpPrefixLength) {
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::EXACT_MATCH)) {
     teFlowGroupId_ = hw_->getPlatform()->getAsic()->getDefaultTeFlowGroupID();
-    initEMTable(hw_->getUnit(), teFlowGroupId_, hintId_);
+    if (!dstIpPrefixLength_) {
+      initEMTable(hw_->getUnit(), teFlowGroupId_, hintId_, dstIpPrefixLength);
+    } else {
+      reInitEMTable(hw_->getUnit(), teFlowGroupId_, hintId_, dstIpPrefixLength);
+    }
+    dstIpPrefixLength_ = dstIpPrefixLength;
   } else {
     throw FbossError("Enabling exact match is not supported on this platform");
   }
+}
+
+void BcmTeFlowTable::deleteTeFlowGroup() {
+  if (!teFlowEntryMap_.empty()) {
+    throw FbossError(
+        "TeFlow table has entries. Delete of TeFlow group not allowed");
+  }
+  if (teFlowGroupId_) {
+    auto rv =
+        bcm_field_group_destroy(hw_->getUnit(), getEMGroupID(teFlowGroupId_));
+    bcmLogFatal(rv, hw_, "failed to delete field group id ", teFlowGroupId_);
+    teFlowGroupId_ = 0;
+  }
+  if (hintId_) {
+    auto rv = bcm_field_hints_destroy(hw_->getUnit(), hintId_);
+    bcmLogFatal(rv, hw_, "failed to delete hint id ", hintId_);
+    hintId_ = 0;
+  }
+  dstIpPrefixLength_ = 0;
 }
 
 /*
@@ -63,7 +105,8 @@ void BcmTeFlowTable::processRemovedTeFlow(
     const std::shared_ptr<TeFlowEntry>& teFlow) {
   auto iter = teFlowEntryMap_.find(teFlow->getFlow());
   if (iter == teFlowEntryMap_.end()) {
-    throw FbossError("Failed to erase an non-existing TeFlow=", teFlow->str());
+    XLOG(DBG3) << "Failed to erase an non-existing TeFlow=", teFlow->str();
+    return;
   }
   teFlowEntryMap_.erase(iter);
 }
@@ -94,19 +137,7 @@ void BcmTeFlowTable::processChangedTeFlow(
 }
 
 BcmTeFlowTable::~BcmTeFlowTable() {
-  if (FLAGS_enable_exact_match) {
-    if (teFlowGroupId_) {
-      auto rv =
-          bcm_field_group_destroy(hw_->getUnit(), getEMGroupID(teFlowGroupId_));
-      bcmLogFatal(rv, hw_, "failed to delete field group id ", teFlowGroupId_);
-      teFlowGroupId_ = 0;
-    }
-    if (hintId_) {
-      auto rv = bcm_field_hints_destroy(hw_->getUnit(), hintId_);
-      bcmLogFatal(rv, hw_, "failed to delete hint id ", hintId_);
-      hintId_ = 0;
-    }
-  }
+  deleteTeFlowGroup();
 }
 
 BcmTeFlowStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(

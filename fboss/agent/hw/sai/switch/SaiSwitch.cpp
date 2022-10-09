@@ -62,6 +62,7 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
+#include "fboss/agent/hw/UnsupportedFeatureManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "folly/MacAddress.h"
 
@@ -505,6 +506,9 @@ template <typename LockPolicyT>
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
     const StateDelta& delta,
     const LockPolicyT& lockPolicy) {
+  // Unsupported features
+  checkUnsupportedDelta(
+      delta.getTeFlowEntriesDelta(), managerTable_->teFlowEntryManager());
   // update switch settings first
   processSwitchSettingsChanged(delta, lockPolicy);
 

@@ -23,6 +23,7 @@ class MockAsic : public HwAsic {
       case Feature::PTP_TC_PCS:
       case Feature::EGRESS_QUEUE_FLEX_COUNTER:
       case Feature::WIDE_ECMP:
+      case HwAsic::Feature::LINK_TRAINING:
         return false;
 
       default:

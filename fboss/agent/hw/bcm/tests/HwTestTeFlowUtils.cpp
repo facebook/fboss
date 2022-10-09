@@ -22,15 +22,21 @@
 
 namespace facebook::fboss::utility {
 
-bool validateTeFlowGroupEnabled(const facebook::fboss::HwSwitch* hw) {
+bool validateTeFlowGroupEnabled(
+    const facebook::fboss::HwSwitch* hw,
+    int prefixLength) {
   const auto bcmSwitch = static_cast<const BcmSwitch*>(hw);
+
+  if (!prefixLength) {
+    return bcmSwitch->getTeFlowTable()->getDstIpPrefixLength() == prefixLength;
+  }
 
   int gid = bcmSwitch->getPlatform()->getAsic()->getDefaultTeFlowGroupID();
   return fpGroupExists(bcmSwitch->getUnit(), getEMGroupID(gid)) &&
       validateDstIpHint(
              bcmSwitch->getUnit(),
              bcmSwitch->getTeFlowTable()->getHintId(),
-             getEmDstIpHintStartBit(),
+             getEmDstIpHintStartBit(prefixLength),
              getEmDstIpHintEndBit());
 }
 

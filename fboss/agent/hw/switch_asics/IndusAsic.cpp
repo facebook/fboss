@@ -61,6 +61,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_HASH_V4:
     case HwAsic::Feature::ECMP_HASH_V6:
     case HwAsic::Feature::FABRIC_PORTS:
+    case HwAsic::Feature::LINK_TRAINING:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

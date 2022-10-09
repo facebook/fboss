@@ -19,6 +19,8 @@
 
 namespace facebook::fboss::utility {
 
+void setExactMatchCfg(HwSwitchEnsemble* hwSwitchEnsemble, int prefixLength);
+
 TeFlow makeFlowKey(std::string dstIp, uint16_t srcPort);
 
 std::shared_ptr<TeFlowEntry> makeFlowEntry(

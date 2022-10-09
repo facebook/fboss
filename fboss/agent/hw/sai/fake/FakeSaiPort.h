@@ -75,6 +75,7 @@ struct FakePort {
   sai_uint32_t numberOfIngressPriorityGroups{0};
   sai_object_id_t qosTcToPriorityGroupMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosPfcPriorityToQueueMap{SAI_NULL_OBJECT_ID};
+  bool linkTrainingEnable{false};
 };
 
 struct FakePortSerdes {

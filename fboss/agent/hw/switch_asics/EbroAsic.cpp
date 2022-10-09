@@ -110,6 +110,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
      */
     case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::EXTENDED_FEC:
+    case HwAsic::Feature::LINK_TRAINING:
       return false;
   }
   return false;

@@ -888,10 +888,6 @@ HwInitResult BcmSwitch::initImpl(
     setupFPGroups();
   }
 
-  if (FLAGS_enable_exact_match && !warmBoot) {
-    teFlowTable_->createTeFlowGroup();
-  }
-
   dropDhcpPackets();
   setL3MtuFailPackets();
   mmuState_ = BcmAPI::getMmuState();
@@ -1119,7 +1115,7 @@ void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
   if (oldSwitchSettings->getExactMatchTableConfig() !=
       newSwitchSettings->getExactMatchTableConfig()) {
     XLOG(DBG3) << "ExactMatch table setting changed";
-    // TODO use the settings to init hw table
+    teFlowTable_->processTeFlowConfigChanged(newSwitchSettings);
   }
 }
 

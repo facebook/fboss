@@ -13,7 +13,9 @@
 
 namespace facebook::fboss::utility {
 
-bool validateTeFlowGroupEnabled(const HwSwitch* /* unused */) {
+bool validateTeFlowGroupEnabled(
+    const HwSwitch* /* unused */,
+    int /* unused */) {
   // This function is not implemented yet.
   // If the test is running on SAI Switches,
   // it should throw an error.

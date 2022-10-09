@@ -18,6 +18,18 @@ using facebook::network::toBinaryAddress;
 using folly::IPAddress;
 using folly::StringPiece;
 
+void setExactMatchCfg(HwSwitchEnsemble* hwSwitchEnsemble, int prefixLength) {
+  cfg::ExactMatchTableConfig exactMatchTableConfigs;
+  std::string teFlowTableName(cfg::switch_config_constants::TeFlowTableName());
+  exactMatchTableConfigs.name() = teFlowTableName;
+  exactMatchTableConfigs.dstPrefixLength() = prefixLength;
+  auto newState = hwSwitchEnsemble->getProgrammedState()->clone();
+  auto newSwitchSettings = newState->getSwitchSettings()->clone();
+  newSwitchSettings->setExactMatchTableConfig({exactMatchTableConfigs});
+  newState->resetSwitchSettings(newSwitchSettings);
+  hwSwitchEnsemble->applyNewState(newState);
+}
+
 IpPrefix ipPrefix(StringPiece ip, int length) {
   IpPrefix result;
   result.ip() = toBinaryAddress(IPAddress(ip));

@@ -59,6 +59,8 @@ sai_status_t create_port_fn(
   std::optional<sai_uint32_t> numberOfIngressPriorityGroups;
   std::optional<sai_object_id_t> qosTcToPriorityGroupMap;
   std::optional<sai_object_id_t> qosPfcPriorityToQueueMap;
+  std::optional<bool> linkTrainingEnable;
+
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
@@ -185,6 +187,9 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
         qosPfcPriorityToQueueMap = attr_list[i].value.oid;
         break;
+      case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
+        linkTrainingEnable = attr_list[i].value.booldata;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -285,6 +290,10 @@ sai_status_t create_port_fn(
   if (qosPfcPriorityToQueueMap.has_value()) {
     port.qosPfcPriorityToQueueMap = qosPfcPriorityToQueueMap.value();
   }
+  if (linkTrainingEnable.has_value()) {
+    port.linkTrainingEnable = linkTrainingEnable.value();
+  }
+
   return SAI_STATUS_SUCCESS;
 }
 
@@ -545,6 +554,9 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
       port.qosPfcPriorityToQueueMap = attr->value.oid;
       break;
+    case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
+      port.linkTrainingEnable = attr->value.booldata;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -766,6 +778,9 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_QOS_PFC_PRIORITY_TO_QUEUE_MAP:
         attr[i].value.oid = port.qosPfcPriorityToQueueMap;
+        break;
+      case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
+        attr->value.booldata = port.linkTrainingEnable;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

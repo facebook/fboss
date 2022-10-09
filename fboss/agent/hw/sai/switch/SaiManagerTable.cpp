@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 
+#include "fboss/agent/hw/UnsupportedFeatureManager.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
@@ -110,6 +111,8 @@ void SaiManagerTable::createSaiTableManagers(
   tamManager_ = std::make_unique<SaiTamManager>(saiStore, this, platform);
 #endif
   tunnelManager_ = std::make_unique<SaiTunnelManager>(saiStore, this, platform);
+  teFlowEntryManager_ =
+      std::make_unique<UnsupportedFeatureManager>("EM entries");
 }
 
 SaiManagerTable::~SaiManagerTable() {
@@ -185,6 +188,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   queueManager_.reset();
   routeManager_.reset();
   schedulerManager_.reset();
+  teFlowEntryManager_.reset();
   if (!skipSwitchManager) {
     switchManager_.reset();
   }
@@ -230,6 +234,13 @@ SaiDebugCounterManager& SaiManagerTable::debugCounterManager() {
 }
 const SaiDebugCounterManager& SaiManagerTable::debugCounterManager() const {
   return *debugCounterManager_;
+}
+
+UnsupportedFeatureManager& SaiManagerTable::teFlowEntryManager() {
+  return *teFlowEntryManager_;
+}
+const UnsupportedFeatureManager& SaiManagerTable::teFlowEntryManager() const {
+  return *teFlowEntryManager_;
 }
 
 SaiFdbManager& SaiManagerTable::fdbManager() {

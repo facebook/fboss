@@ -31,6 +31,7 @@ class FakeAsic : public HwAsic {
       case Feature::SAI_PORT_SPEED_CHANGE:
       case Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER: // TODO(pshaikh):
                                                         // support in fake
+      case HwAsic::Feature::LINK_TRAINING:
         return false;
 
       default:
