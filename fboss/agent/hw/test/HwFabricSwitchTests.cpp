@@ -64,21 +64,4 @@ TEST_F(HwFabricSwitchTest, collectStats) {
   verifyAcrossWarmBoots([] {}, verify);
 }
 
-TEST_F(HwFabricSwitchTest, applyConfig) {
-  auto setup = [this]() {
-    auto config = utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        cfg::PortLoopbackMode::NONE,
-        false /*interfaceHasSubnet*/);
-    applyNewConfig(config);
-  };
-  auto verify = [this]() {
-    auto state = getProgrammedState();
-    for (auto& port : *state->getPorts()) {
-      EXPECT_EQ(port->getAdminState(), cfg::PortState::ENABLED);
-    }
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
 } // namespace facebook::fboss
