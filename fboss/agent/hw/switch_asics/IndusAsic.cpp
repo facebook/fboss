@@ -108,6 +108,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::EXTENDED_FEC:
+    case HwAsic::Feature::SAI_RX_REASON_COUNTER:
       return false;
   }
   return false;
