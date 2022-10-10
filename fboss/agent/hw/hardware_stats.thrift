@@ -182,3 +182,7 @@ struct HwAsicErrors {
 struct HwTeFlowStats {
   1: i64 bytes;
 }
+
+struct HwRxReasonStats {
+  1: map<i64, i64> rxReasonStats;
+}

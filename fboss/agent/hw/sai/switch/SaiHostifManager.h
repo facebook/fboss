@@ -129,6 +129,7 @@ class SaiHostifManager {
   std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
   std::unique_ptr<SaiCpuPortHandle> cpuPortHandle_;
   HwCpuFb303Stats cpuStats_;
+  HwRxReasonStats rxReasonStats_;
 };
 
 } // namespace facebook::fboss
