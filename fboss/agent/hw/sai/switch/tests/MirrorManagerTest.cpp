@@ -7,7 +7,6 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include <optional>
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
@@ -30,10 +29,7 @@ class MirrorManagerTest : public ManagerTestBase {
   void createLocalMirror(
       std::string mirrorId = "mirror1",
       PortID portId = PortID(1)) {
-    auto mirror = std::make_shared<Mirror>(
-        mirrorId,
-        std::make_optional<PortID>(portId),
-        std::optional<folly::IPAddress>());
+    auto mirror = std::make_shared<Mirror>(mirrorId, portId, std::nullopt);
     saiManagerTable->mirrorManager().addMirror(mirror);
   }
 
@@ -50,12 +46,7 @@ class MirrorManagerTest : public ManagerTestBase {
       uint32_t udpSrcPort = 1246,
       uint32_t udpDstPort = 7962) {
     auto mirror = std::make_shared<Mirror>(
-        mirrorId,
-        std::make_optional<PortID>(portId),
-        std::make_optional<folly::IPAddress>(dstIp),
-        std::make_optional<folly::IPAddress>(srcIp),
-        std::optional<TunnelUdpPorts>(),
-        tos);
+        mirrorId, portId, dstIp, srcIp, std::nullopt, tos);
     auto mirrorTunnel = type == SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE
         ? MirrorTunnel{srcIp, dstIp, srcMac, dstMac, ttl}
         : MirrorTunnel{
@@ -198,10 +189,8 @@ TEST_F(MirrorManagerTest, removeMirror) {
   std::string mirrorId = "mirror1";
   std::shared_ptr<Port> swPort1 = makePort(p1);
   saiManagerTable->portManager().addPort(swPort1);
-  auto mirror = std::make_shared<Mirror>(
-      mirrorId,
-      std::make_optional<PortID>(swPort1->getID()),
-      std::optional<folly::IPAddress>());
+  auto mirror =
+      std::make_shared<Mirror>(mirrorId, swPort1->getID(), std::nullopt);
   saiManagerTable->mirrorManager().addMirror(mirror);
   saiManagerTable->mirrorManager().removeMirror(mirror);
   EXPECT_THROW(

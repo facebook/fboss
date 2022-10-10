@@ -1495,10 +1495,19 @@ HwInitResult SaiSwitch::initLocked(
       ret.switchState =
           SwitchState::fromThrift(*switchStateThrift->swSwitchState());
       if (FLAGS_check_thrift_state) {
-        CHECK_EQ(
-            ret.switchState->toFollyDynamic(),
+        // Folly state produced by current image (including changes in switch
+        // state fields)
+        auto updatedDyn =
             SwitchState::fromFollyDynamic(switchStateJson[kSwSwitch])
-                ->toFollyDynamic());
+                ->toFollyDynamic();
+        if (updatedDyn != ret.switchState->toFollyDynamic()) {
+          folly::writeFile(
+              folly::toPrettyJson(ret.switchState->toFollyDynamic()),
+              "/tmp/thriftState_dbg.json");
+          folly::writeFile(
+              folly::toPrettyJson(updatedDyn), "/tmp/follyState_dbg.json");
+          CHECK_EQ(ret.switchState->toFollyDynamic(), updatedDyn);
+        }
       }
     } else {
       ret.switchState =

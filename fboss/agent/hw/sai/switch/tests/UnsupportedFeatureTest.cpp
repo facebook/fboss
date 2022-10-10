@@ -35,3 +35,13 @@ TEST_F(ManagerTestBase, checkInvalidL2LearningModeTransition) {
   newState->resetSwitchSettings(newSwitchSettings);
   EXPECT_THROW(applyNewState(newState), FbossError);
 }
+
+TEST_F(ManagerTestBase, checkTeFlowSupport) {
+  auto newState = std::make_shared<SwitchState>();
+  auto newFlowTable = newState->getTeFlowTable();
+  TeFlow flow;
+  flow.srcPort() = 42;
+  newFlowTable->addNode(std::make_shared<TeFlowEntry>(flow));
+  newState->resetTeFlowTable(newFlowTable);
+  EXPECT_THROW(applyNewState(newState), FbossError);
+}

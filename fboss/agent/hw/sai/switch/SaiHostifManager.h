@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 
 #include "fboss/agent/hw/HwCpuFb303Stats.h"
+#include "fboss/agent/hw/sai/api/CounterApi.h"
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
@@ -34,6 +35,7 @@ class SaiStore;
 
 using SaiHostifTrapGroup = SaiObject<SaiHostifTrapGroupTraits>;
 using SaiHostifTrap = SaiObject<SaiHostifTrapTraits>;
+using SaiHostifTrapCounter = SaiObject<SaiCounterTraits>;
 
 struct SaiCpuPortHandle {
   PortSaiId cpuPortId;
@@ -44,6 +46,7 @@ struct SaiCpuPortHandle {
 struct SaiHostifTrapHandle {
   std::shared_ptr<SaiHostifTrapGroup> trapGroup;
   std::shared_ptr<SaiHostifTrap> trap;
+  std::shared_ptr<SaiHostifTrapCounter> counter;
 };
 
 class SaiHostifManager {
@@ -87,6 +90,8 @@ class SaiHostifManager {
   const SaiHostifTrapHandle* getHostifTrapHandle(
       cfg::PacketRxReason rxReason) const;
   SaiHostifTrapHandle* getHostifTrapHandle(cfg::PacketRxReason rxReason);
+  std::shared_ptr<SaiHostifTrapCounter> createHostifTrapCounter(
+      cfg::PacketRxReason rxReason);
 
  private:
   uint32_t getMaxCpuQueues() const;
@@ -124,6 +129,7 @@ class SaiHostifManager {
   std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
   std::unique_ptr<SaiCpuPortHandle> cpuPortHandle_;
   HwCpuFb303Stats cpuStats_;
+  HwRxReasonStats rxReasonStats_;
 };
 
 } // namespace facebook::fboss

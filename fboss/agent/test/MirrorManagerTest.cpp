@@ -32,7 +32,7 @@ using folly::MacAddress;
 namespace facebook::fboss {
 
 namespace {
-const std::string kMirrorName = "mirror";
+constexpr auto kMirrorName = "mirror";
 constexpr AdminDistance DISTANCE = AdminDistance::STATIC_ROUTE;
 const PortID kMirrorEgressPort{5};
 
@@ -178,9 +178,7 @@ class MirrorManagerTest : public ::testing::Test {
       const std::string& name,
       PortID egressPort) {
     auto mirror = std::make_shared<Mirror>(
-        name,
-        std::make_optional<PortID>(egressPort),
-        std::optional<IPAddress>());
+        name, std::optional<PortID>(egressPort), std::optional<IPAddress>());
     auto newState = state->isPublished() ? state->clone() : state;
     auto mirrors = newState->getMirrors()->modify(&newState);
     mirrors->addMirror(mirror);
@@ -192,7 +190,7 @@ class MirrorManagerTest : public ::testing::Test {
       const std::string& name,
       AddrT remoteIp) {
     auto mirror = std::make_shared<Mirror>(
-        name, std::optional<PortID>(), std::make_optional<IPAddress>(remoteIp));
+        name, std::optional<PortID>(), std::optional<IPAddress>(remoteIp));
 
     auto newState = state->isPublished() ? state->clone() : state;
     auto mirrors = newState->getMirrors()->modify(&newState);
@@ -207,8 +205,8 @@ class MirrorManagerTest : public ::testing::Test {
       PortID egressPort) {
     auto mirror = std::make_shared<Mirror>(
         name,
-        std::make_optional<PortID>(PortID(egressPort)),
-        std::make_optional<IPAddress>(remoteIp));
+        std::optional<PortID>(PortID(egressPort)),
+        std::optional<IPAddress>(remoteIp));
 
     auto newState = state->isPublished() ? state->clone() : state;
     auto mirrors = newState->getMirrors()->modify(&newState);
@@ -225,7 +223,7 @@ class MirrorManagerTest : public ::testing::Test {
     auto mirror = std::make_shared<Mirror>(
         name,
         std::optional<PortID>(),
-        std::make_optional<IPAddress>(remoteIp),
+        std::optional<IPAddress>(remoteIp),
         std::optional<IPAddress>(),
         std::make_optional<TunnelUdpPorts>(srcPort, dstPort));
     auto newState = state->isPublished() ? state->clone() : state;

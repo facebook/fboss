@@ -124,6 +124,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::LINK_TRAINING:
+    case HwAsic::Feature::SAI_RX_REASON_COUNTER:
       return false;
   }
   return false;

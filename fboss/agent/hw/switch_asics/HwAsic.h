@@ -124,6 +124,7 @@ class HwAsic {
     SAI_FIRMWARE_PATH,
     EXTENDED_FEC,
     LINK_TRAINING,
+    SAI_RX_REASON_COUNTER,
   };
 
   enum class AsicType ASIC_TYPE_LIST;

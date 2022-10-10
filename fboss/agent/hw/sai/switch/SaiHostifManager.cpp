@@ -169,6 +169,25 @@ std::shared_ptr<SaiHostifTrapGroup> SaiHostifManager::ensureHostifTrapGroup(
   return store.setObject(k, attributes);
 }
 
+std::shared_ptr<SaiHostifTrapCounter> SaiHostifManager::createHostifTrapCounter(
+    cfg::PacketRxReason rxReason) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  auto rxReasonLabelStr = packetRxReasonToString(rxReason);
+  SaiCharArray32 rxReasonLabel{};
+  std::copy(
+      rxReasonLabelStr.begin(), rxReasonLabelStr.end(), rxReasonLabel.begin());
+  SaiCounterTraits::Attributes::Type type{SAI_COUNTER_TYPE_REGULAR};
+  SaiCounterTraits::Attributes::Label label{rxReasonLabel};
+  SaiCounterTraits::CreateAttributes attributes{label, type};
+  SaiCounterTraits::AdapterHostKey k{attributes};
+  auto& store = saiStore_->get<SaiCounterTraits>();
+  return store.setObject(k, attributes);
+#else
+  std::ignore = rxReason;
+  return nullptr;
+#endif
+}
+
 HostifTrapSaiId SaiHostifManager::addHostifTrap(
     cfg::PacketRxReason trapId,
     uint32_t queueId,
@@ -194,6 +213,10 @@ HostifTrapSaiId SaiHostifManager::addHostifTrap(
   auto handle = std::make_unique<SaiHostifTrapHandle>();
   handle->trap = hostifTrap;
   handle->trapGroup = hostifTrapGroup;
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_RX_REASON_COUNTER)) {
+    handle->counter = createHostifTrapCounter(trapId);
+  }
   concurrentIndices_->hostifTrapIds.emplace(handle->trap->adapterKey(), trapId);
   handles_.emplace(trapId, std::move(handle));
   return hostifTrap->adapterKey();
