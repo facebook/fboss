@@ -17,7 +17,7 @@ class WeutilInterface {
   virtual ~WeutilInterface() = default;
 
  protected:
-  // wetuil output fields and default value for all FBOSS switches w/wo OpenBMC
+  // weutil output fields and default value for all FBOSS switches w/wo OpenBMC
   const std::vector<std::pair<std::string, std::string>> weFields_{
       {"Wedge EEPROM", "CHASSIS"},
       {"Version", "0"},

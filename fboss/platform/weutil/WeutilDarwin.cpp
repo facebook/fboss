@@ -1,15 +1,16 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include "fboss/platform/weutil/WeutilDarwin.h"
-#include <fboss/platform/helpers/Utils.h>
+#include <iostream>
+#include <unordered_map>
+#include <utility>
+
 #include <folly/Conv.h>
 #include <folly/Format.h>
 #include <folly/json.h>
 #include <filesystem>
-#include <iostream>
-#include <unordered_map>
-#include <utility>
+
 #include "fboss/platform/helpers/Utils.h"
+#include "fboss/platform/weutil/WeutilDarwin.h"
 #include "fboss/platform/weutil/prefdl/Prefdl.h"
 
 using namespace facebook::fboss::platform::helpers;

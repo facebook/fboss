@@ -1,10 +1,11 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/platform/weutil/Weutil.h"
-#include <fboss/lib/platforms/PlatformProductInfo.h>
+
 #include <folly/logging/xlog.h>
-#include <memory>
+
 #include "fboss/lib/platforms/PlatformMode.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 
 namespace facebook::fboss::platform {
 

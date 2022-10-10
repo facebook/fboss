@@ -1,11 +1,5 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-/*
- * For parsing system metadata (known as prefdl) for selected Darwin
- * switches The prefdl is a block of ASCII text, decoded into a set of key:value
- * pairs
- */
-
 #pragma once
 
 #include <sstream>
@@ -14,6 +8,8 @@
 #include <vector>
 namespace facebook::fboss::platform {
 
+// For parsing system metadata (known as prefdl) for selected Darwin switches
+// The prefdl is a block of ASCII text, decoded into a set of key:value pairs
 class PrefdlBase {
  public:
   explicit PrefdlBase(const std::string& fileName);
@@ -35,9 +31,8 @@ class PrefdlBase {
   std::vector<std::string> fields_;
   std::unordered_map<std::string, std::string> dict_;
 
-  /* map to parse prefdl fields:  {ID: [description, length]}
-   *  If length is -1, then the length will come from prefdl
-   */
+  // Map to parse prefdl fields:  {ID: [description, length]}. If length is -1,
+  // then the length will come from prefdl
   std::unordered_map<int, std::pair<std::string, int>> table_{
       {0x00, std::make_pair("END", 0)},
       {0x01, std::make_pair("Deviation", -1)},

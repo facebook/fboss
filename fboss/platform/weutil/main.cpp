@@ -1,13 +1,14 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include <string.h>
+#include <sysexits.h>
+#include <memory>
+
 #include <folly/init/Init.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
-#include <string.h>
-#include <sysexits.h>
-#include <memory>
 
 #include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/weutil/Weutil.h"
@@ -23,9 +24,7 @@ DEFINE_string(eeprom, "", "EEPROM device type");
 
 FOLLY_INIT_LOGGING_CONFIG(".=FATAL; default:async=true");
 
-/*
- * This utility program will output Chassis info for Darwin
- */
+// This utility program will output Chassis info for Darwin
 int main(int argc, char* argv[]) {
   std::unique_ptr<WeutilInterface> weutilInstance;
   folly::init(&argc, &argv, true);
