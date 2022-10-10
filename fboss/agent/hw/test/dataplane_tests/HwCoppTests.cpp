@@ -107,6 +107,15 @@ class HwCoppTest : public HwLinkStateDependentTest {
     }
   }
 
+  void sendPkt(std::unique_ptr<TxPacket> pkt, bool outOfPort) {
+    if (outOfPort) {
+      getHwSwitch()->sendPacketOutOfPortSync(
+          std::move(pkt), PortID(masterLogicalPortIds()[0]));
+    } else {
+      getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
+    }
+  }
+
   void sendUdpPkts(
       int numPktsToSend,
       const folly::IPAddress& dstIpAddress,
@@ -132,14 +141,14 @@ class HwCoppTest : public HwLinkStateDependentTest {
           l4DstPort,
           0 /* dscp */,
           ttl);
-      if (outOfPort) {
-        getHwSwitch()->sendPacketOutOfPortSync(
-            std::move(txPacket), PortID(masterLogicalPortIds()[0]));
-      } else {
-        getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
-      }
+      sendPkt(std::move(txPacket), outOfPort);
     }
   }
+
+  /*
+  const auto  srcIp = folly::IPAddress("1::10");
+  auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+  */
 
   void sendEthPkts(
       int numPktsToSend,
@@ -156,8 +165,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
           dstMac ? *dstMac : intfMac,
           etherType,
           payload);
-      getHwSwitch()->sendPacketOutOfPortSync(
-          std::move(txPacket), PortID(masterLogicalPortIds()[0]));
+      sendPkt(std::move(txPacket), true);
     }
   }
 
@@ -180,12 +188,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
           folly::IPAddress("1.1.1.2"),
           dstIpAddress,
           arpType);
-      if (outOfPort) {
-        getHwSwitch()->sendPacketOutOfPortSync(
-            std::move(txPacket), PortID(masterLogicalPortIds()[0]));
-      } else {
-        getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
-      }
+      sendPkt(std::move(txPacket), outOfPort);
     }
   }
 
@@ -216,12 +219,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
                 intfMac, // my mac
                 neighborIp, // sender ip
                 folly::IPAddressV6("1::1")); // sent to me
-      if (outOfPort) {
-        getHwSwitch()->sendPacketOutOfPortSync(
-            std::move(txPacket), PortID(masterLogicalPortIds()[0]));
-      } else {
-        getHwSwitch()->sendPacketSwitchedSync(std::move(txPacket));
-      }
+      sendPkt(std::move(txPacket), outOfPort);
     }
   }
 
