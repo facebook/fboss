@@ -33,8 +33,13 @@ void initEMTable(
   bcm_field_group_config_t groupConfig;
   bcm_field_hint_t hint;
 
+  /* Set hash multi move depth for EM */
+  auto rv =
+      bcm_switch_control_set(unit, bcmSwitchHashMultiMoveDepthExactMatch, 0x3);
+  bcmCheckError(rv, "failed to set hash multi move for EM");
+
   /* Creating hint id to associate with EM Group */
-  auto rv = bcm_field_hints_create(unit, &hintId);
+  rv = bcm_field_hints_create(unit, &hintId);
   bcmCheckError(rv, "init EM Table:bcm_field_hints_create failed");
 
   /* configuring hint type, number of bits and the qualifier */
