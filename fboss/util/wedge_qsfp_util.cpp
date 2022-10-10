@@ -558,41 +558,24 @@ bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
   return true;
 }
 
-bool rateSelect(TransceiverI2CApi* bus, unsigned int port, uint8_t value) {
+bool rateSelect(unsigned int port, uint8_t value) {
   // If v1 is used, both at 10, if v2
   // 0b10 - 25G channels
   // 0b00 - 10G channels
-  uint8_t version[1];
-  try {
-    // ensure we have page0 selected
-    uint8_t page0 = 0;
-    bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 127, 1}, &page0);
+  uint8_t version;
+  uint8_t buf;
 
-    bus->moduleRead(port, {TransceiverI2CApi::ADDR_QSFP, 141, 1}, version);
-  } catch (const I2cError& ex) {
-    fprintf(
-        stderr,
-        "Port %d: Unable to determine rate select version in use, defaulting \
-        to V1\n",
-        port);
-    version[0] = 0b01;
-  }
+  readRegister(port, 141, 1, 0, &version);
 
-  uint8_t buf[1];
-  if (version[0] & 1) {
-    buf[0] = 0b10;
+  if (version & 1) {
+    buf = 0b10;
   } else {
-    buf[0] = value;
+    buf = value;
   }
 
-  try {
-    bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 87, 1}, buf);
-    bus->moduleWrite(port, {TransceiverI2CApi::ADDR_QSFP, 88, 1}, buf);
-  } catch (const I2cError& ex) {
-    // This generally means the QSFP module is not present.
-    fprintf(stderr, "QSFP %d: not present or unwritable\n", port);
-    return false;
-  }
+  writeRegister({port}, 87, 0, buf);
+  writeRegister({port}, 88, 0, buf);
+
   return true;
 }
 
@@ -3361,7 +3344,8 @@ bool verifyDirectI2cCompliance() {
   // all commands to be compliant at once
   if (FLAGS_tx_disable || FLAGS_tx_enable || FLAGS_pause_remediation ||
       FLAGS_get_remediation_until_time || FLAGS_read_reg || FLAGS_write_reg ||
-      FLAGS_update_module_firmware || FLAGS_update_bulk_module_fw) {
+      FLAGS_update_module_firmware || FLAGS_update_bulk_module_fw ||
+      FLAGS_set_40g || FLAGS_set_100g) {
     if (FLAGS_direct_i2c) {
       if (QsfpServiceDetector::getInstance()->isQsfpServiceActive()) {
         XLOG(ERR)

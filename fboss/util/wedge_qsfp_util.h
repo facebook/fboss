@@ -90,7 +90,7 @@ bool overrideLowPower(unsigned int port, bool lowPower);
 
 bool setCdr(TransceiverI2CApi* bus, unsigned int port, uint8_t value);
 
-bool rateSelect(TransceiverI2CApi* bus, unsigned int port, uint8_t value);
+bool rateSelect(unsigned int port, uint8_t value);
 
 bool appSel(TransceiverI2CApi* bus, unsigned int port, uint8_t value);
 

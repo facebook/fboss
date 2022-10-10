@@ -242,10 +242,10 @@ int main(int argc, char* argv[]) {
       printf("QSFP %d: set low power flags\n", portNum);
     }
 
-    if (FLAGS_set_40g && rateSelect(bus, portNum, 0x0)) {
+    if (FLAGS_set_40g && rateSelect(portNum, 0x0)) {
       printf("QSFP %d: set to optimize for 10G channels\n", portNum);
     }
-    if (FLAGS_set_100g && rateSelect(bus, portNum, 0xaa)) {
+    if (FLAGS_set_100g && rateSelect(portNum, 0xaa)) {
       printf("QSFP %d: set to optimize for 25G channels\n", portNum);
     }
     if (FLAGS_app_sel && appSel(bus, portNum, FLAGS_app_sel)) {
