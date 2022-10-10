@@ -74,6 +74,8 @@ struct SaiHostifTrapTraits {
         sai_uint32_t>;
     using TrapType =
         SaiAttribute<EnumType, SAI_HOSTIF_TRAP_ATTR_TRAP_TYPE, sai_int32_t>;
+    using TrapCounterId =
+        SaiAttribute<EnumType, SAI_HOSTIF_TRAP_ATTR_COUNTER_ID, SaiObjectIdT>;
   };
   using AdapterKey = HostifTrapSaiId;
   using AdapterHostKey = Attributes::TrapType;
@@ -88,6 +90,7 @@ SAI_ATTRIBUTE_NAME(HostifTrap, TrapType)
 SAI_ATTRIBUTE_NAME(HostifTrap, PacketAction)
 SAI_ATTRIBUTE_NAME(HostifTrap, TrapPriority)
 SAI_ATTRIBUTE_NAME(HostifTrap, TrapGroup)
+SAI_ATTRIBUTE_NAME(HostifTrap, TrapCounterId)
 
 // TX and RX packets aren't proper SaiObjectTraits, but we'll follow the pattern
 // for defining their attributes
