@@ -91,8 +91,17 @@ class CounterApi : public SaiApi<CounterApi> {
       const sai_stat_id_t* counter_ids,
       sai_stats_mode_t mode,
       uint64_t* counters) const {
-    return api_->get_counter_stats_ext(
-        id, num_of_counters, counter_ids, mode, counters);
+    return mode == SAI_STATS_MODE_READ
+        ? api_->get_counter_stats(id, num_of_counters, counter_ids, counters)
+        : api_->get_counter_stats_ext(
+              id, num_of_counters, counter_ids, mode, counters);
+  }
+
+  sai_status_t _clearStats(
+      CounterSaiId id,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids) const {
+    return api_->clear_counter_stats(id, num_of_counters, counter_ids);
   }
 
   sai_counter_api_t* api_;
