@@ -21,13 +21,12 @@ FsdbStreamClient::FsdbStreamClient(
     folly::EventBase* streamEvb,
     folly::EventBase* connRetryEvb,
     const std::string& counterPrefix,
-    FsdbStreamStateChangeCb stateChangeCb)
+    FsdbStreamStateChangeCb stateChangeCb,
+    folly::EventBase* clientEvb)
     : clientId_(clientId),
       streamEvb_(streamEvb),
       connRetryEvb_(connRetryEvb),
       counterPrefix_(counterPrefix),
-      clientEvbThread_(
-          std::make_unique<folly::ScopedEventBaseThread>(clientId)),
       stateChangeCb_(stateChangeCb),
       timer_(folly::AsyncTimeout::make(
           *connRetryEvb,
@@ -44,6 +43,15 @@ FsdbStreamClient::FsdbStreamClient(
   fb303::fbData->setCounter(getConnectedCounterName(), 0);
   connRetryEvb_->runInEventBaseThread(
       [this] { timer_->scheduleTimeout(FLAGS_fsdb_reconnect_ms); });
+  if (clientEvb) {
+    // use passed along client evb if it is not null
+    clientEvb_ = clientEvb;
+  } else {
+    // otherwise spawn own client thread
+    clientEvbThread_ =
+        std::make_unique<folly::ScopedEventBaseThread>(clientId_);
+    clientEvb_ = clientEvbThread_->getEventBase();
+  }
 }
 
 FsdbStreamClient::~FsdbStreamClient() {
@@ -164,7 +172,10 @@ void FsdbStreamClient::cancel() {
   setState(State::CANCELLED);
   resetClient();
   // terminate event base getting ready for clean-up
-  clientEvbThread_->getEventBase()->terminateLoopSoon();
+  // if and only if client event base thread is created locally
+  if (clientEvbThread_) {
+    clientEvb_->terminateLoopSoon();
+  }
   XLOG(DBG2) << " Cancelled: " << clientId();
 }
 

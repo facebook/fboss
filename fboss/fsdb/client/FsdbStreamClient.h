@@ -6,6 +6,7 @@
 #include <folly/SocketAddress.h>
 #include <folly/experimental/coro/AsyncScope.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
+#include <gtest/gtest_prod.h>
 #include <thrift/lib/cpp2/async/ClientBufferedStream.h>
 #include <thrift/lib/cpp2/async/Sink.h>
 #ifndef IS_OSS
@@ -39,7 +40,8 @@ class FsdbStreamClient {
       folly::EventBase* connRetryEvb,
       const std::string& counterPrefix,
       FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
-                                                 State /*newState*/) {});
+                                                 State /*newState*/) {},
+      folly::EventBase* clientEvb = nullptr);
   virtual ~FsdbStreamClient();
 
   void setServerToConnect(
@@ -106,9 +108,10 @@ class FsdbStreamClient {
   std::string clientId_;
   folly::EventBase* streamEvb_;
   folly::EventBase* connRetryEvb_;
+  folly::EventBase* clientEvb_;
   folly::Synchronized<State> state_{State::DISCONNECTED};
   std::string counterPrefix_;
-  std::unique_ptr<folly::ScopedEventBaseThread> clientEvbThread_;
+  std::unique_ptr<folly::ScopedEventBaseThread> clientEvbThread_{nullptr};
   folly::Synchronized<std::optional<folly::SocketAddress>> serverAddress_;
   FsdbStreamStateChangeCb stateChangeCb_;
   std::atomic<bool> serviceLoopRunning_{false};
@@ -117,6 +120,12 @@ class FsdbStreamClient {
   folly::coro::CancellableAsyncScope serviceLoopScope_;
 #endif
   fb303::ThreadCachedServiceData::TLTimeseries disconnectEvents_;
+
+// per class placeholder for test code injection
+// only need to be setup once here
+#ifdef FsdbStreamClient_TEST_FRIENDS
+  FsdbStreamClient_TEST_FRIENDS;
+#endif
 };
 
 } // namespace facebook::fboss::fsdb
