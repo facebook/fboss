@@ -11,17 +11,27 @@
 #pragma once
 
 #include "fboss/fsdb/client/FsdbSyncManager.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_state_types.h"
 
 namespace facebook {
 namespace fboss {
 
-class QsfpFsdbSyncManager : public facebook::fboss::fsdb::FsdbSyncManager {
+class QsfpFsdbSyncManager {
  public:
   QsfpFsdbSyncManager();
 
   static std::vector<std::string> getStatePath();
   static std::vector<std::string> getStatsPath();
   static std::vector<std::string> getConfigPath();
+
+  void start();
+  void stop();
+
+  void updateConfig(cfg::QsfpServiceConfig newConfig);
+
+ private:
+  std::unique_ptr<fsdb::FsdbSyncManager2<state::QsfpServiceData>> stateSyncer_;
 };
 
 } // namespace fboss

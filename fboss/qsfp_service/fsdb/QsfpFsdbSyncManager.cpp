@@ -10,11 +10,43 @@
 
 #include "fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.h"
 
+#include "fboss/fsdb/common/Flags.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_state_fatal_types.h"
+
 namespace facebook {
 namespace fboss {
 
-QsfpFsdbSyncManager::QsfpFsdbSyncManager()
-    : fsdb::FsdbSyncManager("qsfp_service", getStatePath(), getStatsPath()) {}
+QsfpFsdbSyncManager::QsfpFsdbSyncManager() {
+  if (FLAGS_publish_state_to_fsdb) {
+    stateSyncer_ =
+        std::make_unique<fsdb::FsdbSyncManager2<state::QsfpServiceData>>(
+            "qsfp_service", getStatePath(), false, true);
+  }
+}
+
+void QsfpFsdbSyncManager::start() {
+  if (FLAGS_publish_state_to_fsdb) {
+    stateSyncer_->start();
+  }
+}
+void QsfpFsdbSyncManager::stop() {
+  if (FLAGS_publish_state_to_fsdb) {
+    stateSyncer_->stop();
+  }
+}
+
+void QsfpFsdbSyncManager::updateConfig(cfg::QsfpServiceConfig newConfig) {
+  if (FLAGS_publish_state_to_fsdb) {
+    stateSyncer_->updateState([newConfig =
+                                   std::move(newConfig)](const auto& in) {
+      auto out = in->clone();
+      out->template modify<state::qsfp_state_tags::strings::config>();
+      out->template ref<state::qsfp_state_tags::strings::config>()->fromThrift(
+          newConfig);
+      return out;
+    });
+  }
+}
 
 } // namespace fboss
 } // namespace facebook

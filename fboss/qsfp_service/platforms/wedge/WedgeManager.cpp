@@ -58,19 +58,7 @@ WedgeManager::WedgeManager(
    * the QSFP devices on I2C/CPLD managed platforms
    */
   if (FLAGS_publish_state_to_fsdb || FLAGS_publish_stats_to_fsdb) {
-    fsdbUpdateThread_ =
-        std::make_unique<folly::ScopedEventBaseThread>("FsdbUpdateThread");
     fsdbSyncManager_ = std::make_unique<QsfpFsdbSyncManager>();
-    std::vector<folly::SemiFuture<folly::Unit>> dataReady;
-    if (FLAGS_publish_state_to_fsdb) {
-      fsdbConfigSyncer_ = std::make_unique<QsfpConfigFsdbSyncer>(
-          fsdbUpdateThread_->getEventBase());
-      fsdbSyncManager_->registerStateSyncer(fsdbConfigSyncer_.get());
-      dataReady.push_back(fsdbConfigSyncer_->dataReady());
-    }
-    folly::collectAll(dataReady)
-        .via(fsdbUpdateThread_->getEventBase())
-        .then([this](auto&& /* unused */) { fsdbSyncManager_->start(); });
   }
 }
 
@@ -110,8 +98,9 @@ void WedgeManager::loadConfig() {
 
   // Process QSFP config here
   qsfpConfig_ = QsfpConfig::fromDefaultFile();
-  if (fsdbConfigSyncer_) {
-    fsdbConfigSyncer_->configUpdated(qsfpConfig_->thrift);
+  if (FLAGS_publish_state_to_fsdb) {
+    fsdbSyncManager_->updateConfig(qsfpConfig_->thrift);
+    fsdbSyncManager_->start();
   }
 }
 
