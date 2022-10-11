@@ -1,10 +1,12 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 #pragma once
 
-#include <folly/init/Init.h>
 #include <sysexits.h>
 #include <algorithm>
 #include <unordered_set>
+
+#include <folly/init/Init.h>
+
 #include "fboss/platform/fw_util/darwinFwUtil/FirmwareUpgradeDarwin.h"
 #include "fboss/platform/fw_util/firmware_helpers/FirmwareUpgradeHelper.h"
 
@@ -20,21 +22,20 @@ class UpgradeBinaryDarwin : public FirmwareUpgradeDarwin {
   virtual ~UpgradeBinaryDarwin() override = default;
 
  protected:
-  std::unordered_set<std::string> jamUpgradableBinaries = {
+  std::unordered_set<std::string> jamUpgradableBinaries_ = {
       "cpu_cpld",
       "sc_cpld",
       "sc_sat_cpld0",
       "sc_sat_cpld1"};
-  std::string sc_bus;
-  std::string fan_bus;
-  bool failedPath = false;
-  const std::string darwin_sc_sat_path = "/sys/bus/pci/devices/0000:07:00.0/";
-  const std::string darwin_fan_cpld_path =
+  std::string scBus_;
+  std::string fanBus_;
+  bool failedPath_ = false;
+  const std::string darwinScSatPath_ = "/sys/bus/pci/devices/0000:07:00.0/";
+  const std::string darwinFanCpldPath_ =
       "/sys/bus/i2c/drivers/rook-fan-cpld/*/*/*/";
-  const std::string darwin_sc_cpld_path =
-      "/sys/bus/i2c/drivers/blackhawk-cpld/";
-  const std::string blackhawkRegister = "0023";
-  const std::string darwin_cpu_cpld_path =
+  const std::string darwinScCpldPath_ = "/sys/bus/i2c/drivers/blackhawk-cpld/";
+  const std::string blackhawkRegister_ = "0023";
+  const std::string darwinCpuCpldPath_ =
       "/sys/bus/pci/drivers/scd/0000\\:ff\\:0b.3/";
   void upgradeThroughJam(std::string, std::string, std::string);
   void upgradeThroughXapp(std::string, std::string, std::string);

@@ -1,20 +1,22 @@
 //  Copyright 2021-present Facebook. All Rights Reserved.
 
 #include "fboss/platform/fw_util/darwinFwUtil/UpgradeBinaryDarwin.h"
-#include <gflags/gflags.h>
+
 #include <filesystem>
 #include <iostream>
+
+#include <gflags/gflags.h>
 
 DEFINE_bool(h, false, "Help");
 
 namespace facebook::fboss::platform::fw_util {
 
 UpgradeBinaryDarwin::UpgradeBinaryDarwin() {
-  /*Detect the sc_bus # on master 2 bus 0 */
-  sc_bus = getBusNumber("2", "0");
+  // Detect the scBus_ # on master 2 bus 0
+  scBus_ = getBusNumber("2", "0");
 
-  /* Detect the fan_bus number of master 3 bus 0 */
-  fan_bus = getBusNumber("3", "0");
+  // Detect the fanBus_ number of master 3 bus 0
+  fanBus_ = getBusNumber("3", "0");
 }
 
 std::string UpgradeBinaryDarwin::getBusNumber(
@@ -34,31 +36,31 @@ std::string UpgradeBinaryDarwin::getBusNumber(
 void UpgradeBinaryDarwin::setJtagMux(std::string fpga) {
   if (fpga == "cpu_cpld") {
     i2cRegWrite(
-        sc_bus,
+        scBus_,
         std::to_string(DARWIN_CPLD_ADDR),
         std::to_string(DARWIN_CPLD_JTAG_REG_ADDR),
         0x00);
   } else if (fpga == "sc_scd") {
     i2cRegWrite(
-        sc_bus,
+        scBus_,
         std::to_string(DARWIN_CPLD_ADDR),
         std::to_string(DARWIN_CPLD_JTAG_REG_ADDR),
         0x01);
   } else if (fpga == "sc_cpld") {
     i2cRegWrite(
-        sc_bus,
+        scBus_,
         std::to_string(DARWIN_CPLD_ADDR),
         std::to_string(DARWIN_CPLD_JTAG_REG_ADDR),
         0x00);
   } else if (fpga == "sc_sat_cpld0") {
     i2cRegWrite(
-        sc_bus,
+        scBus_,
         std::to_string(DARWIN_CPLD_ADDR),
         std::to_string(DARWIN_CPLD_JTAG_REG_ADDR),
         0x02);
   } else if (fpga == "sc_sat_cpld1") {
     i2cRegWrite(
-        sc_bus,
+        scBus_,
         std::to_string(DARWIN_CPLD_ADDR),
         std::to_string(DARWIN_CPLD_JTAG_REG_ADDR),
         0x04);
@@ -71,7 +73,7 @@ void UpgradeBinaryDarwin::upgradeThroughJam(
   setJtagMux(fpga);
   jamUpgrade(fpga, action, fpgaFile);
   i2cRegWrite(
-      sc_bus,
+      scBus_,
       std::to_string(DARWIN_CPLD_ADDR),
       std::to_string(DARWIN_CPLD_JTAG_REG_ADDR),
       0x00);
@@ -84,7 +86,7 @@ void UpgradeBinaryDarwin::upgradeThroughXapp(
   setJtagMux(fpga);
   xappUpgrade(fpga, action, fpgaFile);
   i2cRegWrite(
-      sc_bus,
+      scBus_,
       std::to_string(DARWIN_CPLD_ADDR),
       std::to_string(DARWIN_CPLD_JTAG_REG_ADDR),
       0x00);
@@ -94,13 +96,11 @@ std::string UpgradeBinaryDarwin::getRegValue(std::string path) {
   try {
     regVal = readSysfs(path);
   } catch (std::exception& e) {
-    /* Since we want the flow of the program to continue,
-     * We will only print a message in case something happen so
-     * that we can continue with printing the version information
-     * for the remaining cpld/fpgas
-     * */
+    // Since we want the flow of the program to continue, we will only print a
+    // message in case something happen so that we can continue with printing
+    // the version information for the remaining cpld/fpgas
     std::cout << "failed to read path " << path << std::endl;
-    failedPath = true;
+    failedPath_ = true;
   }
   return regVal;
 }
@@ -119,9 +119,9 @@ std::string UpgradeBinaryDarwin::getSysfsCpldVersion(
 
 std::string UpgradeBinaryDarwin::getFanCpldVersion(void) {
   std::string majorVer =
-      i2cRegRead(fan_bus, std::to_string(DARWIN_FAN_ADDR), "0x1");
+      i2cRegRead(fanBus_, std::to_string(DARWIN_FAN_ADDR), "0x1");
   std::string minorVer =
-      i2cRegRead(fan_bus, std::to_string(DARWIN_FAN_ADDR), "0x0");
+      i2cRegRead(fanBus_, std::to_string(DARWIN_FAN_ADDR), "0x0");
   return folly::to<std::string>(
       std::to_string(std::stoul(majorVer, nullptr, 0)),
       ".",
@@ -153,10 +153,10 @@ std::string UpgradeBinaryDarwin::getBiosVersion() {
 }
 
 std::string UpgradeBinaryDarwin::getFullScCpldPath() {
-  if (checkFileExists(darwin_sc_cpld_path)) {
+  if (checkFileExists(darwinScCpldPath_)) {
     for (auto const& dir_entry :
-         std::filesystem::recursive_directory_iterator(darwin_sc_cpld_path)) {
-      if (dir_entry.path().string().find(blackhawkRegister) !=
+         std::filesystem::recursive_directory_iterator(darwinScCpldPath_)) {
+      if (dir_entry.path().string().find(blackhawkRegister_) !=
           std::string::npos) {
         return dir_entry.path().string() + "/";
       }
@@ -164,15 +164,12 @@ std::string UpgradeBinaryDarwin::getFullScCpldPath() {
   }
   // Code should never get here because path must always exist
   throw std::runtime_error(
-      "couldn't find path" + darwin_sc_cpld_path + " for sc_cpld version");
+      "couldn't find path" + darwinScCpldPath_ + " for sc_cpld version");
 }
 void UpgradeBinaryDarwin::cleanPath(std::string upgradable_component) {
-  /*
-   * removing the generated path prevent the tool from
-   * getting spurious permission errors when running it
-   * under a lower privillege user such as cybord for cases
-   * when the path already existed.
-   */
+  // Removing the generated path prevent the tool from getting spurious
+  // permission errors when running it under a lower privillege user such as
+  // cybord for cases when the path already existed.
   if (upgradable_component == "cpu_cpld") {
     const std::string cpu_cpld_temp_path_ver_cmd = folly::to<std::string>(
         "rm -rf /tmp/", upgradable_component, "_fpga_ver");
@@ -188,23 +185,22 @@ void UpgradeBinaryDarwin::cleanPath(std::string upgradable_component) {
         "rm -rf /tmp/", upgradable_component, "_cpld_sub_ver");
     execCommand(fan_cpld_sub_ver_cmd);
   } else {
-    // should never get there unless there is a logic bug in the code
+    // Should never get here unless there is a logic bug in the code
     throw std::runtime_error(
         "fatal error... Please check code logic for trying to access non existent temporary path");
   }
 }
 void UpgradeBinaryDarwin::printAllVersion(void) {
-  constructCpldPath(darwin_cpu_cpld_path, "cpu_cpld", "fpga_ver");
-  constructCpldPath(darwin_cpu_cpld_path, "cpu_cpld", "fpga_sub_ver");
-  constructCpldPath(darwin_fan_cpld_path, "fan_cpld", "cpld_ver");
-  constructCpldPath(darwin_fan_cpld_path, "fan_cpld", "cpld_sub_ver");
+  constructCpldPath(darwinCpuCpldPath_, "cpu_cpld", "fpga_ver");
+  constructCpldPath(darwinCpuCpldPath_, "cpu_cpld", "fpga_sub_ver");
+  constructCpldPath(darwinFanCpldPath_, "fan_cpld", "cpld_ver");
+  constructCpldPath(darwinFanCpldPath_, "fan_cpld", "cpld_sub_ver");
   std::cout << "BIOS:" << getBiosVersion() << std::endl;
   std::cout << "CPU_CPLD:"
             << getSysfsCpldVersion("/tmp/cpu_cpld_", "fpga_ver", "fpga_sub_ver")
             << std::endl;
   std::cout << "SC_SCD:"
-            << getSysfsCpldVersion(
-                   darwin_sc_sat_path, "fpga_ver", "fpga_sub_ver")
+            << getSysfsCpldVersion(darwinScSatPath_, "fpga_ver", "fpga_sub_ver")
             << std::endl;
   std::string darwin_sc_cpld_full_path = getFullScCpldPath();
   std::cout << "SC_CPLD:"
@@ -216,15 +212,15 @@ void UpgradeBinaryDarwin::printAllVersion(void) {
             << std::endl;
   std::cout << "SC_SAT_CPLD0: "
             << getSysfsCpldVersion(
-                   darwin_sc_sat_path, "sat0_cpld_ver", "sat0_cpld_sub_ver")
+                   darwinScSatPath_, "sat0_cpld_ver", "sat0_cpld_sub_ver")
             << std::endl;
   std::cout << "SC_SAT_CPLD1: "
             << getSysfsCpldVersion(
-                   darwin_sc_sat_path, "sat1_cpld_ver", "sat1_cpld_sub_ver")
+                   darwinScSatPath_, "sat1_cpld_ver", "sat1_cpld_sub_ver")
             << std::endl;
   cleanPath("cpu_cpld");
   cleanPath("fan_cpld");
-  if (failedPath) {
+  if (failedPath_) {
     throw std::runtime_error("reading some path failed");
   }
 }
@@ -237,8 +233,8 @@ void UpgradeBinaryDarwin::printVersion(
   } else if (binary == "bios") {
     std::cout << "BIOS:" << getBiosVersion() << std::endl;
   } else if (binary == "cpu_cpld") {
-    constructCpldPath(darwin_cpu_cpld_path, "cpu_cpld", "fpga_ver");
-    constructCpldPath(darwin_cpu_cpld_path, "cpu_cpld", "fpga_sub_ver");
+    constructCpldPath(darwinCpuCpldPath_, "cpu_cpld", "fpga_ver");
+    constructCpldPath(darwinCpuCpldPath_, "cpu_cpld", "fpga_sub_ver");
     std::cout << "CPU_CPLD:"
               << getSysfsCpldVersion(
                      "/tmp/cpu_cpld_", "fpga_ver", "fpga_sub_ver")
@@ -247,7 +243,7 @@ void UpgradeBinaryDarwin::printVersion(
   } else if (binary == "sc_scd") {
     std::cout << "SC_SCD:"
               << getSysfsCpldVersion(
-                     darwin_sc_sat_path, "fpga_ver", "fpga_sub_ver")
+                     darwinScSatPath_, "fpga_ver", "fpga_sub_ver")
               << std::endl;
   } else if (binary == "sc_cpld") {
     std::string darwin_sc_cpld_full_path = getFullScCpldPath();
@@ -256,8 +252,8 @@ void UpgradeBinaryDarwin::printVersion(
                      darwin_sc_cpld_full_path, "cpld_ver", "cpld_sub_ver")
               << std::endl;
   } else if (binary == "fan_cpld") {
-    constructCpldPath(darwin_fan_cpld_path, "fan_cpld", "cpld_ver");
-    constructCpldPath(darwin_fan_cpld_path, "fan_cpld", "cpld_sub_ver");
+    constructCpldPath(darwinFanCpldPath_, "fan_cpld", "cpld_ver");
+    constructCpldPath(darwinFanCpldPath_, "fan_cpld", "cpld_sub_ver");
     std::cout << "FAN_CPLD:"
               << getSysfsCpldVersion(
                      "/tmp/fan_cpld_", "cpld_ver", "cpld_sub_ver")
@@ -266,12 +262,12 @@ void UpgradeBinaryDarwin::printVersion(
   } else if (binary == "sc_sat_cpld0") {
     std::cout << "SC_SAT_CPLD0: "
               << getSysfsCpldVersion(
-                     darwin_sc_sat_path, "sat0_cpld_ver", "sat0_cpld_sub_ver")
+                     darwinScSatPath_, "sat0_cpld_ver", "sat0_cpld_sub_ver")
               << std::endl;
   } else if (binary == "sc_sat_cpld1") {
     std::cout << "SC_SAT_CPLD1: "
               << getSysfsCpldVersion(
-                     darwin_sc_sat_path, "sat1_cpld_ver", "sat1_cpld_sub_ver")
+                     darwinScSatPath_, "sat1_cpld_ver", "sat1_cpld_sub_ver")
               << std::endl;
   } else {
     std::cout << "unsupported binary option. please follow the usage"
@@ -314,27 +310,26 @@ int UpgradeBinaryDarwin::parseCommandLine(
       toLower(std::string(argv[2])) == std::string("verify") ||
       toLower(std::string(argv[2])) == std::string("read")) {
     std::unordered_set<std::string>::const_iterator fpga =
-        jamUpgradableBinaries.find(toLower(std::string(argv[1])));
-    if (fpga != jamUpgradableBinaries.end()) {
-      /* call function to perform upgrade/verify through jam
-        argument is (fpga, action, file_path)
-      */
+        jamUpgradableBinaries_.find(toLower(std::string(argv[1])));
+    if (fpga != jamUpgradableBinaries_.end()) {
+      // Call function to perform upgrade/verify through jam argument is (fpga,
+      // action, file_path)
       upgradeThroughJam(
           toLower(std::string(argv[1])),
           toLower(std::string(argv[2])),
           std::string(argv[3]));
     } else if (toLower(std::string(argv[1])) == std::string("sc_scd")) {
-      /* call function to perform the upgrade through xapp */
+      // Call function to perform the upgrade through xapp
       upgradeThroughXapp(
           toLower(std::string(argv[1])),
           toLower(std::string(argv[2])),
           std::string(argv[3]));
     } else if (toLower(std::string(argv[1])) == std::string("bios")) {
-      /* argument is action and the filepath */
+      // Argument is action and the filepath
       flashromBiosUpgrade(
           toLower(std::string(argv[2])),
           std::string(argv[3]),
-          chip,
+          chip_,
           "/tmp/bios_spi_layout");
     } else if (toLower(std::string(argv[1])) == std::string("fan_cpld")) {
       // TODO: Upgrade the fan_cpld through I2C

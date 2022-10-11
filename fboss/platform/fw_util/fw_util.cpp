@@ -1,11 +1,13 @@
 //  Copyright 2021-present Facebook. All Rights Reserved.
 
-#include <folly/init/Init.h>
-#include <glog/logging.h>
 #include <string.h>
 #include <sysexits.h>
 #include <iostream>
 #include <memory>
+
+#include <folly/init/Init.h>
+#include <glog/logging.h>
+
 #include "fboss/platform/fw_util/FirmwareUpgradeInterface.h"
 #include "fboss/platform/fw_util/darwinFwUtil/FirmwareUpgradeDarwin.h"
 #include "fboss/platform/fw_util/firmware_helpers/Utils.h"
@@ -24,17 +26,17 @@ std::unique_ptr<FirmwareUpgradeInterface> get_plat_type(
 }
 /*
  * This utility will perform firmware upgrade for
- * TOR BMC less platform. Firmware upgrade will
+ * TOR BMC Lite platform. Firmware upgrade will
  * include cpld, fpga, and bios.
  */
 int main(int argc, char* argv[]) {
-  // TODO: Add file lock to prevent multiple instace of fw-util from running
+  // TODO: Add file lock to prevent multiple instance of fw-util from running
   // simultaneously.
   std::string upgradable_components = "";
-  std::unique_ptr<FirmwareUpgradeInterface> FirmwareUpgradeInstance =
+  std::unique_ptr<FirmwareUpgradeInterface> firmwareUpgradeInstance =
       get_plat_type(upgradable_components);
-  if (FirmwareUpgradeInstance) {
-    FirmwareUpgradeInstance->upgradeFirmware(argc, argv, upgradable_components);
+  if (firmwareUpgradeInstance) {
+    firmwareUpgradeInstance->upgradeFirmware(argc, argv, upgradable_components);
   } else {
     showDeviceInfo();
   }

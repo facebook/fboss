@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/platform/fw_util/firmware_helpers/FirmwareUpgradeHelper.h"
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
