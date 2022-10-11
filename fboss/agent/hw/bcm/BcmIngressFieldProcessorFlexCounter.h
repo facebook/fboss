@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/bcm/BcmAclStat.h"
 #include "fboss/agent/hw/bcm/BcmFlexCounter.h"
 
 namespace facebook::fboss {
@@ -23,14 +24,17 @@ class BcmIngressFieldProcessorFlexCounter : public BcmFlexCounter {
       BcmAclStatType type);
   ~BcmIngressFieldProcessorFlexCounter() = default;
 
-  void attach(BcmAclEntryHandle acl);
+  void attach(BcmAclEntryHandle acl, BcmAclStatActionIndex actionIndex);
 
-  void detach(BcmAclEntryHandle acl) {
-    detach(unit_, acl, static_cast<BcmAclStatHandle>(counterID_));
+  void detach(BcmAclEntryHandle acl, BcmAclStatActionIndex actionIndex) {
+    detach(unit_, acl, static_cast<BcmAclStatHandle>(counterID_), actionIndex);
   }
 
-  static void
-  detach(int unit, BcmAclEntryHandle acl, BcmAclStatHandle aclStatHandle);
+  static void detach(
+      int unit,
+      BcmAclEntryHandle acl,
+      BcmAclStatHandle aclStatHandle,
+      BcmAclStatActionIndex actionIndex);
 
   static std::set<cfg::CounterType> getCounterTypeList(
       int unit,
@@ -40,13 +44,18 @@ class BcmIngressFieldProcessorFlexCounter : public BcmFlexCounter {
 
   static void removeAllCountersInFpGroup(int unit, int gid);
 
-  static std::optional<uint32_t>
+  static std::optional<std::pair<uint32_t, uint32_t>>
   getFlexCounterIDFromAttachedAcl(int unit, int groupID, BcmAclEntryHandle acl);
 
   static BcmTrafficCounterStats getAclTrafficFlexCounterStats(
       int unit,
       BcmAclStatHandle handle,
+      BcmAclStatActionIndex actionIndex,
       const std::vector<cfg::CounterType>& counters);
+
+  void setHwCounterID(uint32_t counterID) {
+    counterID_ = counterID;
+  }
 
  private:
   // Forbidden copy constructor and assignment operator

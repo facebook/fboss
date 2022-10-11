@@ -115,8 +115,8 @@ void BcmAclTable::derefBcmAclStat(const std::string& counterName) {
   auto& aclStatRefCnt = aclStatItr->second.second;
   aclStatRefCnt--;
   if (!aclStatRefCnt) {
-    auto counterTypes =
-        hw_->getStatUpdater()->getAclStatCounterType(bcmAclStat->getHandle());
+    auto counterTypes = hw_->getStatUpdater()->getAclStatCounterType(
+        bcmAclStat->getHandle(), bcmAclStat->getActionIndex());
     for (auto counterType : counterTypes) {
       utility::deleteCounter(
           utility::statNameFromCounterType(counterName, counterType));

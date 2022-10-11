@@ -799,7 +799,9 @@ bool BcmAclEntry::isStateSame(
   if (aclStatHandle && acl->getAclAction() &&
       acl->getAclAction()->getTrafficCounter()) {
     auto counter = acl->getAclAction()->getTrafficCounter().value();
-    isSame &= ((BcmAclStat::isStateSame(hw, *aclStatHandle, counter)) ? 1 : 0);
+    isSame &=
+        ((BcmAclStat::isStateSame(hw, (*aclStatHandle).first, counter)) ? 1
+                                                                        : 0);
   } else {
     isSame &= ((!aclStatHandle.has_value()) ? 1 : 0);
   }

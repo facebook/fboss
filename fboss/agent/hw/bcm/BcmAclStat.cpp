@@ -33,8 +33,9 @@ BcmAclStat::BcmAclStat(
     BcmSwitch* hw,
     int gid,
     const std::vector<cfg::CounterType>& counters,
-    BcmAclStatType type)
-    : hw_(hw), statType_(type) {
+    BcmAclStatType type,
+    BcmAclStatActionIndex actionIndex)
+    : hw_(hw), statType_(type), actionIndex_(actionIndex) {
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
     flexCounter_ = std::make_unique<BcmIngressFieldProcessorFlexCounter>(
@@ -56,8 +57,9 @@ BcmAclStat::BcmAclStat(
 BcmAclStat::BcmAclStat(
     BcmSwitch* hw,
     BcmAclStatHandle statHandle,
-    BcmAclStatType type)
-    : hw_(hw), handle_(statHandle), statType_(type) {
+    BcmAclStatType type,
+    BcmAclStatActionIndex actionIndex)
+    : hw_(hw), handle_(statHandle), statType_(type), actionIndex_(actionIndex) {
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
     flexCounter_ = std::make_unique<BcmIngressFieldProcessorFlexCounter>(
@@ -67,6 +69,11 @@ BcmAclStat::BcmAclStat(
 
 BcmAclStat::~BcmAclStat() {
   if (flexCounter_) {
+    if (statType_ == BcmAclStatType::EM) {
+      // EM stats share flex counter. Set the hwid to 0 so that
+      // hw entry is not freed. it will be freed when table is destroyed
+      flexCounter_->setHwCounterID(0);
+    }
     flexCounter_.reset();
   } else {
     auto rv = bcm_field_stat_destroy(hw_->getUnit(), handle_);
@@ -152,7 +159,7 @@ bool BcmAclStat::isStateSame(
 void BcmAclStat::attach(BcmAclEntryHandle acl) {
   if (hw_->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
-    flexCounter_->attach(acl);
+    flexCounter_->attach(acl, actionIndex_);
   } else {
     auto rv = bcm_field_entry_stat_attach(hw_->getUnit(), acl, handle_);
     bcmCheckError(rv, "Failed to attach stat=", handle_, " to acl=", acl);
@@ -164,7 +171,7 @@ void BcmAclStat::detach(BcmAclEntryHandle acl) {
   // so we can't use HwAsic::isSupported() because destructor is not allowed to
   // call pure virtual method.
   if (flexCounter_) {
-    flexCounter_->detach(acl);
+    flexCounter_->detach(acl, actionIndex_);
   } else {
     auto rv = bcm_field_entry_stat_detach(hw_->getUnit(), acl, handle_);
     bcmCheckError(rv, "Failed to detach stat=", handle_, " from acl=", acl);
@@ -174,11 +181,12 @@ void BcmAclStat::detach(BcmAclEntryHandle acl) {
 void BcmAclStat::detach(
     const BcmSwitchIf* hw,
     BcmAclEntryHandle acl,
-    BcmAclStatHandle aclStatHandle) {
+    BcmAclStatHandle aclStatHandle,
+    BcmAclStatActionIndex actionIndex) {
   if (hw->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
     BcmIngressFieldProcessorFlexCounter::detach(
-        hw->getUnit(), acl, aclStatHandle);
+        hw->getUnit(), acl, aclStatHandle, actionIndex);
   } else {
     auto rv = bcm_field_entry_stat_detach(hw->getUnit(), acl, aclStatHandle);
     bcmCheckError(
@@ -200,7 +208,8 @@ int BcmAclStat::getNumAclStatsInFpGroup(const BcmSwitch* hw, int gid) {
   }
 }
 
-std::optional<BcmAclStatHandle> BcmAclStat::getAclStatHandleFromAttachedAcl(
+std::optional<std::pair<BcmAclStatHandle, BcmAclStatActionIndex>>
+BcmAclStat::getAclStatHandleFromAttachedAcl(
     const BcmSwitchIf* hw,
     int groupID,
     BcmAclEntryHandle acl) {
@@ -208,7 +217,8 @@ std::optional<BcmAclStatHandle> BcmAclStat::getAclStatHandleFromAttachedAcl(
           HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
     if (auto flexCounterID = BcmIngressFieldProcessorFlexCounter::
             getFlexCounterIDFromAttachedAcl(hw->getUnit(), groupID, acl)) {
-      return std::optional<BcmAclStatHandle>{*flexCounterID};
+      return std::optional<std::pair<BcmAclStatHandle, BcmAclStatActionIndex>>{
+          std::make_pair((*flexCounterID).first, (*flexCounterID).second)};
     } else {
       return std::nullopt;
     }
@@ -219,7 +229,8 @@ std::optional<BcmAclStatHandle> BcmAclStat::getAclStatHandleFromAttachedAcl(
       return std::nullopt;
     }
     bcmCheckError(rv, "Unable to get stat_id of field entry=", acl);
-    return std::optional<BcmAclStatHandle>{statHandle};
+    return std::optional<std::pair<BcmAclStatHandle, BcmAclStatActionIndex>>{
+        std::make_pair(statHandle, kDefaultAclActionIndex)};
   }
 }
 } // namespace facebook::fboss

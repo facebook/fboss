@@ -15,6 +15,7 @@ extern "C" {
 
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/bcm/BcmAclStat.h"
+#include "fboss/agent/hw/bcm/BcmIngressFieldProcessorFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmTeFlowEntry.h"
 #include "fboss/agent/hw/bcm/types.h"
 #include "fboss/agent/state/SwitchSettings.h"
@@ -49,7 +50,8 @@ class BcmTeFlowTable {
       int gid);
   BcmTeFlowStat* incRefOrCreateBcmTeFlowStat(
       const std::string& counterName,
-      BcmTeFlowStatHandle statHandle);
+      BcmTeFlowStatHandle statHandle,
+      BcmAclStatActionIndex actionIndex);
   void derefBcmTeFlowStat(const std::string& name);
 
   void processAddedTeFlow(
@@ -78,12 +80,18 @@ class BcmTeFlowTable {
       std::string,
       std::pair<std::unique_ptr<BcmTeFlowStat>, uint32_t>>;
 
+  uint32_t allocateActionIndex();
+  void clearActionIndex(uint32_t offset);
+
   BcmSwitch* hw_;
   bcm_field_hintid_t hintId_{0};
   int teFlowGroupId_{0};
   int dstIpPrefixLength_{0};
   BcmTeFlowEntryMap teFlowEntryMap_;
   BcmTeFlowStatMap teFlowStatMap_;
+  std::unique_ptr<BcmIngressFieldProcessorFlexCounter> exactMatchFlexCounter_{
+      nullptr};
+  std::bitset<BcmAclStat::kMaxExactMatchStatEntries> actionIndexMap_;
 };
 
 } // namespace facebook::fboss

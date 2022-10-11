@@ -33,7 +33,9 @@ namespace {
 static folly::IPAddressV6 kAddr1{"100::"};
 static std::string kNhopAddrB("2::2");
 static std::string kIfName2("fboss2001");
-static std::string kCounterID("counter0");
+static std::string kCounterID0("counter0");
+static std::string kCounterID1("counter1");
+static std::string kCounterID2("counter2");
 } // namespace
 
 class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
@@ -117,13 +119,22 @@ TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
   this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
   this->addRoute(kAddr1, 32, PortDescriptor(masterLogicalPortIds()[0]));
 
-  // Add TeFlow EM entry
+  // Add three TeFlow EM entries so that stats increments on non zero
+  // action index for TH4.
+  auto flowEntry0 = makeFlowEntry(
+      "102::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID1);
+  addFlowEntry(getHwSwitchEnsemble(), flowEntry0);
+
   auto flowEntry1 = makeFlowEntry(
-      "100::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID);
+      "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID2);
   addFlowEntry(getHwSwitchEnsemble(), flowEntry1);
 
+  auto flowEntry2 = makeFlowEntry(
+      "100::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID0);
+  addFlowEntry(getHwSwitchEnsemble(), flowEntry2);
+
   // verfiy the EM entry programming
-  EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
+  EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 3);
   utility::checkSwHwTeFlowMatch(
       getHwSwitch(),
       getProgrammedState(),
@@ -150,7 +161,7 @@ TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
     EXPECT_EQ((outPktsAfter1 - outPktsBefore1), 1);
 
     auto byteCountBefore =
-        utility::getTeFlowOutBytes(getHwSwitch(), kCounterID);
+        utility::getTeFlowOutBytes(getHwSwitch(), kCounterID0);
     // Send a packet to hit TeFlow EM entry and verify
     outPktsBefore0 = getPortOutPkts(
         this->getLatestPortStats(this->masterLogicalPortIds()[0]));
@@ -169,7 +180,9 @@ TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
     EXPECT_EQ((outPktsAfter1 - outPktsBefore1), 1);
 
     EXPECT_EQ(
-        utility::getTeFlowOutBytes(getHwSwitch(), kCounterID) - byteCountBefore,
+        utility::getTeFlowOutBytes(getHwSwitch(), kCounterID0) -
+            byteCountBefore,
+
         expectedLen);
   };
 

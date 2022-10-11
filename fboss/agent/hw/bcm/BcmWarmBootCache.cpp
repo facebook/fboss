@@ -957,7 +957,11 @@ void BcmWarmBootCache::removeUnclaimedAclStats() {
     if (!aclStatStatus.claimed) {
       XLOG(DBG1) << "Detaching unclaimed acl_stat=" << aclStatStatus.stat
                  << "from acl=" << aclStatItr->first;
-      BcmAclStat::detach(hw_, aclStatItr->first, aclStatStatus.stat);
+      BcmAclStat::detach(
+          hw_,
+          aclStatItr->first,
+          aclStatStatus.stat,
+          BcmAclStat::kDefaultAclActionIndex);
     } else {
       statsUsed.insert(aclStatStatus.stat);
     }
@@ -1455,7 +1459,7 @@ void BcmWarmBootCache::populateAclStats(
     return;
   }
   AclStatStatus statStatus;
-  statStatus.stat = *aclStatHandle;
+  statStatus.stat = (*aclStatHandle).first;
   stats.emplace(aclHandle, statStatus);
 }
 

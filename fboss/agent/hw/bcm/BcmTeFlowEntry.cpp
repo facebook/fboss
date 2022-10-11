@@ -279,7 +279,9 @@ bool BcmTeFlowEntry::isStateSame(
     counter.name() = teFlow->getCounterID().value();
     counter.types() = {cfg::CounterType::BYTES};
     isSame &=
-        ((BcmTeFlowStat::isStateSame(hw, *teFlowStatHandle, counter)) ? 1 : 0);
+        ((BcmTeFlowStat::isStateSame(hw, (*teFlowStatHandle).first, counter))
+             ? 1
+             : 0);
   } else {
     isSame &= ((!teFlowStatHandle.has_value()) ? 1 : 0);
   }

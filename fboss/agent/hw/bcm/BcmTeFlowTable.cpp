@@ -145,13 +145,34 @@ BcmTeFlowStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
     int gid) {
   auto teFlowStatItr = teFlowStatMap_.find(counterName);
   if (teFlowStatItr == teFlowStatMap_.end()) {
+    std::unique_ptr<BcmTeFlowStat> newStat;
     auto counterTypes = {cfg::CounterType::BYTES};
-    auto newStat = std::make_unique<BcmTeFlowStat>(
-        hw_, getEMGroupID(gid), counterTypes, BcmTeFlowStatType::EM);
+    uint32_t actionIndex{BcmAclStat::kDefaultAclActionIndex};
+    if (hw_->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+      if (!exactMatchFlexCounter_) {
+        exactMatchFlexCounter_ =
+            std::make_unique<BcmIngressFieldProcessorFlexCounter>(
+                hw_->getUnit(),
+                getEMGroupID(gid),
+                std::nullopt,
+                BcmTeFlowStatType::EM);
+      }
+      actionIndex = allocateActionIndex();
+      newStat = std::make_unique<BcmTeFlowStat>(
+          hw_,
+          BcmAclStatHandle(exactMatchFlexCounter_->getID()),
+          BcmTeFlowStatType::EM,
+          actionIndex);
+    } else {
+      newStat = std::make_unique<BcmTeFlowStat>(
+          hw_, getEMGroupID(gid), counterTypes, BcmTeFlowStatType::EM);
+    }
     auto stat = newStat.get();
-    teFlowStatMap_.emplace(counterName, std::make_pair(std::move(newStat), 1));
+    teFlowStatMap_.emplace(
+        counterName, std::make_pair(std::move(newStat), actionIndex));
     hw_->getStatUpdater()->toBeAddedTeFlowStat(
-        stat->getHandle(), counterName, counterTypes);
+        stat->getHandle(), counterName, counterTypes, actionIndex);
     return stat;
   } else {
     teFlowStatItr->second.second++;
@@ -161,7 +182,8 @@ BcmTeFlowStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
 
 BcmTeFlowStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
     const std::string& counterName,
-    BcmTeFlowStatHandle statHandle) {
+    BcmTeFlowStatHandle statHandle,
+    BcmAclStatActionIndex actionIndex) {
   auto teFlowStatItr = teFlowStatMap_.find(counterName);
   if (teFlowStatItr == teFlowStatMap_.end()) {
     auto counterTypes = {cfg::CounterType::BYTES};
@@ -170,7 +192,7 @@ BcmTeFlowStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
     auto stat = newStat.get();
     teFlowStatMap_.emplace(counterName, std::make_pair(std::move(newStat), 1));
     hw_->getStatUpdater()->toBeAddedTeFlowStat(
-        stat->getHandle(), counterName, counterTypes);
+        stat->getHandle(), counterName, counterTypes, actionIndex);
     return stat;
   } else {
     CHECK(statHandle == teFlowStatItr->second.first->getHandle());
@@ -189,9 +211,14 @@ void BcmTeFlowTable::derefBcmTeFlowStat(const std::string& counterName) {
   auto& teFlowStatRefCnt = teFlowStatItr->second.second;
   teFlowStatRefCnt--;
   if (!teFlowStatRefCnt) {
+    auto actionIndex = bcmTeFlowStat->getActionIndex();
+    if (bcmTeFlowStat->hasFlexCounter()) {
+      clearActionIndex(actionIndex);
+    }
     utility::deleteCounter(
         utility::statNameFromCounterType(counterName, cfg::CounterType::BYTES));
-    hw_->getStatUpdater()->toBeRemovedTeFlowStat(bcmTeFlowStat->getHandle());
+    hw_->getStatUpdater()->toBeRemovedTeFlowStat(
+        bcmTeFlowStat->getHandle(), actionIndex);
     teFlowStatMap_.erase(teFlowStatItr);
   }
 }
@@ -212,6 +239,22 @@ BcmTeFlowStat* BcmTeFlowTable::getTeFlowStat(const std::string& stat) const {
     throw FbossError("Stat: ", stat, " does not exist");
   }
   return bcmStat;
+}
+
+uint32_t BcmTeFlowTable::allocateActionIndex() {
+  for (auto i = 0; i < BcmAclStat::kMaxExactMatchStatEntries; i++) {
+    if (!actionIndexMap_.test(i)) {
+      actionIndexMap_.set(i);
+      return i;
+    }
+  }
+  // throw Bcm full error so that overflow error handling kicks in
+  throw BcmError(BCM_E_FULL, "Route Flexcounter offsets exhausted");
+}
+
+void BcmTeFlowTable::clearActionIndex(uint32_t offset) {
+  DCHECK_EQ(actionIndexMap_.test(offset), true);
+  actionIndexMap_.reset(offset);
 }
 
 } // namespace facebook::fboss

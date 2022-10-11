@@ -77,9 +77,11 @@ uint64_t getTeFlowOutBytes(const HwSwitch* hw, std::string statName) {
   if (hw->getPlatform()->getAsic()->isSupported(
           HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
     std::vector<cfg::CounterType> counterTypes = {cfg::CounterType::BYTES};
+    auto actionIndex =
+        bcmSwitch->getTeFlowTable()->getTeFlowStat(statName)->getActionIndex();
     const auto& stats =
         BcmIngressFieldProcessorFlexCounter::getAclTrafficFlexCounterStats(
-            bcmSwitch->getUnit(), statHandle, counterTypes);
+            bcmSwitch->getUnit(), statHandle, actionIndex, counterTypes);
     value = stats.at(cfg::CounterType::BYTES);
   } else {
     auto rv = bcm_field_stat_sync_get(
