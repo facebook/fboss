@@ -291,6 +291,8 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     reflection
+  DEPENDS
+    qsfp_config_cpp2
 )
 add_fbthrift_cpp_library(
   qsfp_stats_cpp2

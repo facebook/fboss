@@ -21,7 +21,6 @@ add_fbthrift_cpp_library(
     agent_config_cpp2
     agent_stats_cpp2
     fsdb_common_cpp2
-    qsfp_config_cpp2
     qsfp_state_cpp2
     qsfp_stats_cpp2
     sensor_service_stats_cpp2
