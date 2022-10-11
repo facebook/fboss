@@ -37,12 +37,12 @@ FsdbStreamClient::FsdbStreamClient(
           counterPrefix_ + ".disconnects",
           fb303::SUM,
           fb303::RATE) {
-  if (!streamEvb_ || !connRetryEvb) {
+  if (!streamEvb_ || !connRetryEvb_) {
     throw std::runtime_error(
         "Must pass valid stream, connRetry evbs to ctor, but passed null");
   }
   fb303::fbData->setCounter(getConnectedCounterName(), 0);
-  connRetryEvb->runInEventBaseThread(
+  connRetryEvb_->runInEventBaseThread(
       [this] { timer_->scheduleTimeout(FLAGS_fsdb_reconnect_ms); });
 }
 
