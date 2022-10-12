@@ -13,15 +13,6 @@
 
 namespace facebook::fboss {
 
-enum TunnelType {
-  IPINIP,
-};
-
-enum TunnelTermType {
-  MP2MP,
-  P2MP,
-};
-
 struct IpTunnelFields
     : public ThriftyFields<IpTunnelFields, state::IpTunnelFields> {
   // TODO(yijunli): BetterThriftyFields?
@@ -45,11 +36,11 @@ class IpTunnel
   std::string getID() const {
     return *getFields()->data().ipTunnelId();
   }
-  TunnelType getType() const {
-    return static_cast<TunnelType>(*getFields()->data().type());
+  cfg::TunnelType getType() const {
+    return static_cast<cfg::TunnelType>(*getFields()->data().type());
   }
-  void setType(TunnelType type) {
-    writableFields()->writableData().type() = type;
+  void setType(cfg::TunnelType type) {
+    writableFields()->writableData().type() = static_cast<int32_t>(type);
   }
   InterfaceID getUnderlayIntfId() const {
     return InterfaceID(*getFields()->data().underlayIntfId());
@@ -75,13 +66,14 @@ class IpTunnel
   void setEcnMode(cfg::IpTunnelMode mode) {
     writableFields()->writableData().ecnMode() = static_cast<int32_t>(mode);
   }
-  TunnelTermType getTunnelTermType() const {
-    return static_cast<TunnelTermType>(*getFields()->data().tunnelTermType());
+  cfg::TunnelTerminationType getTunnelTermType() const {
+    return static_cast<cfg::TunnelTerminationType>(
+        *getFields()->data().tunnelTermType());
   }
-  void setTunnelTermType(TunnelTermType type) {
-    writableFields()->writableData().tunnelTermType() = type;
+  void setTunnelTermType(cfg::TunnelTerminationType type) {
+    writableFields()->writableData().tunnelTermType() =
+        static_cast<int32_t>(type);
   }
-  // TODO: move the type conversion to elsewhere?
   folly::IPAddress getDstIP() const {
     return folly::IPAddress(*getFields()->data().dstIp());
   }

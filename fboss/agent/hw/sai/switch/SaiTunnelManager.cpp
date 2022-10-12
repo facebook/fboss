@@ -63,7 +63,7 @@ TunnelSaiId SaiTunnelManager::addTunnel(
       managerTable_->virtualRouterManager().getVirtualRouterHandle(RouterID(0));
   VirtualRouterSaiId saiVirtualRouterId{
       virtualRouterHandle->virtualRouter->adapterKey()};
-  if (swTunnel->getTunnelTermType() == P2MP) {
+  if (swTunnel->getTunnelTermType() == cfg::TunnelTerminationType::P2MP) {
     SaiTunnelTermTraits::CreateAttributes k2{
         getSaiTunnelTermType(swTunnel->getTunnelTermType()),
         saiVirtualRouterId,
@@ -125,9 +125,9 @@ SaiTunnelManager::getTunnelHandleImpl(std::string swId) const {
   return itr->second.get();
 }
 
-sai_tunnel_type_t SaiTunnelManager::getSaiTunnelType(TunnelType type) {
+sai_tunnel_type_t SaiTunnelManager::getSaiTunnelType(cfg::TunnelType type) {
   switch (type) {
-    case IPINIP:
+    case cfg::TunnelType::IP_IN_IP:
       return SAI_TUNNEL_TYPE_IPINIP;
     default:
       throw FbossError("Failed to convert IpTunnel type to SAI type: ", type);
@@ -135,11 +135,11 @@ sai_tunnel_type_t SaiTunnelManager::getSaiTunnelType(TunnelType type) {
 }
 
 sai_tunnel_term_table_entry_type_t SaiTunnelManager::getSaiTunnelTermType(
-    TunnelTermType type) {
+    cfg::TunnelTerminationType type) {
   switch (type) {
-    case P2MP:
+    case cfg::TunnelTerminationType::P2MP:
       return SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP;
-    case MP2MP:
+    case cfg::TunnelTerminationType::MP2MP:
       return SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2MP;
     default:
       throw FbossError(

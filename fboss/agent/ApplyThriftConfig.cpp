@@ -3495,8 +3495,8 @@ shared_ptr<IpTunnel> ThriftConfigApplier::updateIpInIpTunnel(
 shared_ptr<IpTunnel> ThriftConfigApplier::createIpInIpTunnel(
     const cfg::IpInIpTunnel& config) {
   auto tunnel = make_shared<IpTunnel>(*config.ipInIpTunnelId());
-  tunnel->setType(IPINIP);
-  tunnel->setTunnelTermType(P2MP);
+  tunnel->setType(cfg::TunnelType::IP_IN_IP);
+  tunnel->setTunnelTermType(cfg::TunnelTerminationType::P2MP);
   tunnel->setUnderlayIntfId(InterfaceID(*config.underlayIntfID()));
   if (auto ttl = config.ttlMode()) {
     tunnel->setTTLMode(static_cast<cfg::IpTunnelMode>(*ttl));
