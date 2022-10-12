@@ -7,9 +7,9 @@
 #include <iomanip>
 #include <string>
 #include "fboss/agent/FbossError.h"
-#include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/qsfp_service/StatsPublisher.h"
+#include "fboss/qsfp_service/lib/QsfpConfigParserHelper.h"
 #include "fboss/qsfp_service/module/QsfpFieldInfo.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
@@ -1332,15 +1332,45 @@ void SffModule::overwriteChannelControlSettings() {
     return;
   }
 
-  std::array<uint8_t, 2> buf = {{0}};
-  writeSffField(SffField::TX_EQUALIZATION, buf.data());
-  writeSffField(SffField::RX_EMPHASIS, buf.data(), /* skipPageChange */ true);
+  auto getSettingForAllLanes =
+      [](uint8_t oneLaneValue) -> std::array<uint8_t, 2> {
+    std::array<uint8_t, 2> buf = {{0}};
+    // Example: If oneLaneValue = 2, we need to return {0x22, 0x22} for all 4
+    // lanes.
+    buf.fill(((oneLaneValue & 0xF) << 4) | (oneLaneValue & 0xF));
+    return buf;
+  };
 
-  buf.fill(0x22);
-  writeSffField(SffField::RX_AMPLITUDE, buf.data(), /* skipPageChange */ true);
+  bool settingsOverwritten = false;
+  // Set the Equalizer setting based on QSFP config.
+  // TODO: Skip configuring settings if the current values are same as what we
+  // want to configure
+  const auto& qsfpCfg = getTransceiverManager()->getQsfpConfig()->thrift;
+  for (const auto& override : *qsfpCfg.transceiverConfigOverrides()) {
+    // Check if this override factor requires overriding TxEqualization
+    if (auto txEqualization = sffTxEqualizationOverride(*override.config())) {
+      auto settingValue = getSettingForAllLanes(*txEqualization);
+      writeSffField(SffField::TX_EQUALIZATION, settingValue.data());
+      settingsOverwritten = true;
+    }
+    // Check if this override factor requires overriding RxPreEmphasis
+    if (auto rxPreemphasis = sffRxPreemphasisOverride(*override.config())) {
+      auto settingValue = getSettingForAllLanes(*rxPreemphasis);
+      writeSffField(SffField::RX_EMPHASIS, settingValue.data());
+      settingsOverwritten = true;
+    }
+    // Check if this override factor requires overriding RxAmplitude
+    if (auto rxAmplitude = sffRxAmplitudeOverride(*override.config())) {
+      auto settingValue = getSettingForAllLanes(*rxAmplitude);
+      writeSffField(SffField::RX_AMPLITUDE, settingValue.data());
+      settingsOverwritten = true;
+    }
+  }
 
-  // Bump up the ODS counter.
-  StatsPublisher::bumpAOIOverride();
+  if (settingsOverwritten) {
+    // Bump up the ODS counter.
+    StatsPublisher::bumpAOIOverride();
+  }
 }
 
 void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
@@ -1352,11 +1382,7 @@ void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
 
     // Before turning up power, check whether we want to override
     // channel control settings or no.
-    // TODO(clin82) Remove aoi_override flag once this solution has been
-    // deployed.
-    if (getTransceiverManager()->getPlatformMode() == PlatformMode::YAMP) {
-      overwriteChannelControlSettings();
-    }
+    overwriteChannelControlSettings();
 
     // We want this on regardless of speed
     setPowerOverrideIfSupportedLocked(*settings.powerControl());

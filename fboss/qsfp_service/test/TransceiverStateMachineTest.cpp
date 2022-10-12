@@ -468,9 +468,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     EXPECT_CALL(*mockXcvr, customizeTransceiverLocked(cfg::PortSpeed::HUNDREDG))
         .Times(callTimes)
         .InSequence(s);
-    EXPECT_CALL(*mockXcvr, updateQsfpData(false))
-        .Times(callTimes)
-        .InSequence(s);
+    EXPECT_CALL(*mockXcvr, updateQsfpData(true)).Times(callTimes).InSequence(s);
     EXPECT_CALL(*mockXcvr, configureModule()).Times(callTimes).InSequence(s);
 
     const auto& info = transceiverManager_->getTransceiverInfo(id_);
@@ -838,11 +836,11 @@ TEST_F(TransceiverStateMachineTest, programTransceiverFailed) {
         // 2 update qsfp data: one immediately after the successful
         // customizeTransceiverLocked(), the second one is before
         // updateCachedTransceiverInfoLocked() at the end
-        EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(2);
+        EXPECT_CALL(*mockXcvr, updateQsfpData(true)).Times(1);
         ModuleStatus moduleStatus;
         EXPECT_CALL(*mockXcvr, updateCachedTransceiverInfoLocked(moduleStatus))
             .Times(1);
-
+        EXPECT_CALL(*mockXcvr, updateQsfpData(false)).Times(1);
         // Normal transceiver programming shouldn't trigger resetDataPath()
         EXPECT_CALL(*mockXcvr, resetDataPath()).Times(0);
       },
