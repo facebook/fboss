@@ -124,7 +124,7 @@ HwPortStats getInitedStats() {
       {{0, 2}, {7, 2}}, // inPfcXon_
       {{0, 3}, {7, 3}}, // outPfc_
       {{1, 5}, {2, 5}}, // queueWredDroppedPackets
-      {{1, 4}, {2, 4}}, // queueEcnMarkedPackets
+      {{1, 6}, {2, 6}}, // queueEcnMarkedPackets
       0, // timestamp
       "test", // portName
       macsecStats,
@@ -196,7 +196,7 @@ void updateStats(HwPortFb303Stats& portStats) {
   // maps are empty
   *empty.queueOutDiscardPackets_() = *empty.queueOutDiscardBytes_() =
       *empty.queueOutBytes_() = *empty.queueOutPackets_() =
-          *empty.queueWatermarkBytes_() =
+          *empty.queueWatermarkBytes_() = *empty.queueEcnMarkedPackets_() =
               *empty.queueWredDroppedPackets_() = {{1, 0}, {2, 0}};
   portStats.updateStats(empty, now);
   portStats.updateStats(getInitedStats(), now);
