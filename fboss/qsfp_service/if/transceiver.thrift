@@ -303,18 +303,21 @@ struct HostLaneSettings {
 
 struct MediaLaneSignals {
   1: i32 lane;
-  2: optional bool txLos;
+  2: optional bool txLos; // DEPRECATED - Use HostLaneSignals instead
   3: optional bool rxLos;
-  4: optional bool txLol;
+  4: optional bool txLol; // DEPRECATED - Use HostLaneSignals instead
   5: optional bool rxLol;
   6: optional bool txFault;
-  7: optional bool txAdaptEqFault;
+  7: optional bool txAdaptEqFault; // DEPRECATED - Use HostLaneSignals instead
 }
 
 struct HostLaneSignals {
   1: i32 lane;
   2: optional bool dataPathDeInit;
   3: optional CmisLaneState cmisLaneState;
+  4: optional bool txLos;
+  5: optional bool txLol;
+  6: optional bool txAdaptEqFault;
 }
 
 struct RxEqualizerSettings {
