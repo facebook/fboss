@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
+#include <fboss/agent/hw/sai/api/QueueApi.h>
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -52,6 +53,9 @@ void fillHwQueueStats(
         break;
       case SAI_QUEUE_STAT_WRED_DROPPED_PACKETS:
         hwPortStats.queueWredDroppedPackets_()[queueId] = value;
+        break;
+      case SAI_QUEUE_STAT_WRED_ECN_MARKED_PACKETS:
+        hwPortStats.queueEcnMarkedPackets_()[queueId] = value;
         break;
       default:
         throw FbossError("Got unexpected queue counter id: ", counterId);
@@ -234,32 +238,52 @@ SaiQueueHandles SaiQueueManager::loadQueues(
 
 const std::vector<sai_stat_id_t>&
 SaiQueueManager::supportedNonWatermarkCounterIdsRead(int queueType) const {
-  static std::vector<sai_stat_id_t> nonWredCounterIds(
+  static std::vector<sai_stat_id_t> baseCounterIds(
       SaiQueueTraits::NonWatermarkCounterIdsToRead.begin(),
       SaiQueueTraits::NonWatermarkCounterIdsToRead.end());
-  static std::vector<sai_stat_id_t> wredCounterIds{};
-  if (wredCounterIds.size() == 0) {
-    std::set_union(
-        SaiQueueTraits::NonWatermarkCounterIdsToRead.begin(),
-        SaiQueueTraits::NonWatermarkCounterIdsToRead.end(),
-        SaiQueueTraits::NonWatermarkWredCounterIdsToRead.begin(),
-        SaiQueueTraits::NonWatermarkWredCounterIdsToRead.end(),
-        std::back_inserter(wredCounterIds));
-  }
 
   /*
-   * Per-queue WRED discard counters need to be fetched for platforms
-   * supporting this feature and for non-multicast queues in Broadcom
-   * platforms.
+   * Per-queue WRED discard counters are not supported for
+   * multicast queues in Broadcom platforms.
+   * So return baseCounterIds in that case, or if SAI_ECN_WRED
+   * feature is unsupported by the HwAsic.
    */
   if (((queueType == SAI_QUEUE_TYPE_MULTICAST) &&
        (platform_->getAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_BCM)) ||
       !platform_->getAsic()->isSupported(HwAsic::Feature::SAI_ECN_WRED)) {
-    return nonWredCounterIds;
+    return baseCounterIds;
   }
 
-  return wredCounterIds;
+  /*
+   * All platforms supporting SAI_ECN_WRED have WRED counters.
+   */
+  static std::vector<sai_stat_id_t> extendedCounterIds{};
+  if (extendedCounterIds.size() == 0) {
+    extendedCounterIds.insert(
+        extendedCounterIds.end(), baseCounterIds.begin(), baseCounterIds.end());
+
+    extendedCounterIds.insert(
+        extendedCounterIds.end(),
+        SaiQueueTraits::NonWatermarkWredCounterIdsToRead.begin(),
+        SaiQueueTraits::NonWatermarkWredCounterIdsToRead.end());
+
+    if (platform_->getAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+      /*
+       * Per-queue ECN counters are supported on TAJO with SDK
+       * version 1.42.4 onwards.
+       */
+#if !defined(TAJO_SDK_VERSION_1_42_1)
+      extendedCounterIds.insert(
+          extendedCounterIds.end(),
+          SaiQueueTraits::NonWatermarkEcnCounterIdsToRead.begin(),
+          SaiQueueTraits::NonWatermarkEcnCounterIdsToRead.end());
+#endif
+    }
+  }
+
+  return extendedCounterIds;
 }
 
 void SaiQueueManager::updateStats(

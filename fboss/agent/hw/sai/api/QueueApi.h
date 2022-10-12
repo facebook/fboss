@@ -79,6 +79,10 @@ struct SaiQueueTraits {
       SAI_QUEUE_STAT_WRED_DROPPED_PACKETS,
   };
 
+  static constexpr std::array<sai_stat_id_t, 1> EcnCounterIdsToRead = {
+      SAI_QUEUE_STAT_WRED_ECN_MARKED_PACKETS,
+  };
+
   static constexpr std::array<sai_stat_id_t, 1> CounterIdsToReadAndClear = {
       SAI_QUEUE_STAT_WATERMARK_BYTES,
   };
@@ -87,6 +91,7 @@ struct SaiQueueTraits {
   static constexpr std::array<sai_stat_id_t, 0>
       NonWatermarkCounterIdsToReadAndClear = {};
   static constexpr auto NonWatermarkWredCounterIdsToRead = WredCounterIdsToRead;
+  static constexpr auto NonWatermarkEcnCounterIdsToRead = EcnCounterIdsToRead;
   // Watermark stats
   static constexpr auto WatermarkCounterIdsToReadAndClear =
       CounterIdsToReadAndClear;
