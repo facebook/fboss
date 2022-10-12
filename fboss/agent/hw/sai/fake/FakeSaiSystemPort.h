@@ -35,6 +35,7 @@ struct FakeSystemPort {
   sai_object_id_t switchId;
   bool adminState{false};
   sai_object_id_t qosToTcMapId;
+  std::vector<sai_object_id_t> queueIdList;
 };
 
 using FakeSystemPortManager = FakeManager<sai_object_id_t, FakeSystemPort>;

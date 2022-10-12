@@ -42,6 +42,13 @@ sai_status_t create_system_port_fn(
   }
   *id =
       fs->systemPortManager.create(config, switch_id, adminState, qosToTcMapId);
+  auto& port = fs->systemPortManager.get(*id);
+  for (uint8_t queueId = 0; queueId < config.num_voq; ++queueId) {
+    auto saiQueueId =
+        fs->queueManager.create(SAI_QUEUE_TYPE_UNICAST_VOQ, *id, queueId, *id);
+    port.queueIdList.push_back(saiQueueId);
+  }
+
   return SAI_STATUS_SUCCESS;
 }
 
