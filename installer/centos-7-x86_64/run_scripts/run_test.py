@@ -99,8 +99,8 @@ class TestRunner(abc.ABC):
         with open(args.skip_known_bad_tests) as f:
             lines = f.readlines()
             lines = [line.strip().strip('"') for line in lines]
-        known_bad_tests = "|".join(lines)
-        return re.compile(known_bad_tests)
+        known_bad_tests = ":".join(lines)
+        return known_bad_tests
 
     def _parse_list_test_output(self, output):
         ret = []
@@ -121,16 +121,10 @@ class TestRunner(abc.ABC):
             else:
                 if not class_name:
                     raise "error"
-            func_name = line.strip()
-            ret.append("%s.%s" % (class_name, func_name))
+                func_name = line.strip()
+                ret.append("%s.%s" % (class_name, func_name))
 
-        known_bad_test_regex = self._get_known_bad_test_regex()
-
-        return (
-            [test for test in ret if not known_bad_test_regex.match(test)]
-            if known_bad_test_regex
-            else ret
-        )
+        return ret
 
     def _parse_gtest_run_output(self, test_output):
         test_summary = []
@@ -142,7 +136,25 @@ class TestRunner(abc.ABC):
         return test_summary
 
     def _get_tests_to_run(self, args):
-        filter = ("--gtest_filter=" + args.filter) if (args.filter is not None) else ""
+        # GTEST filter syntax is -
+        #   --gtest_filter=<include_regexes>-<exclude_regexes>
+        #   in case of multiple regexes, each one should be separated by ':'
+        #
+        # For example, to run all tests matching "Vlan" and "Port" but
+        # excluding "Mac" tests in the list is -
+        #   --gtest_filter=*Vlan*:*Port*:-*Mac*
+        #
+        # Also, multiple '-' is allowed but all regexes following the first '-'
+        # are part of exclude list. This means following code would still work
+        # as expected even if user provides an exclude list in the args.filter.
+        filter = (args.filter + ":") if (args.filter is not None) else ""
+        known_bad_tests_regex = self._get_known_bad_test_regex()
+        filter = (
+            (filter + "-" + known_bad_tests_regex)
+            if (known_bad_tests_regex is not None)
+            else filter
+        )
+        filter = "--gtest_filter=" + filter
         output = subprocess.check_output(
             [self._get_test_binary_name(), "--gtest_list_tests", filter]
         )
