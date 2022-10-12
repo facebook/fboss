@@ -58,8 +58,24 @@ TEST_F(SystemPortManagerTest, addDupSystemPort) {
 
 TEST_F(SystemPortManagerTest, addSystemPortViaSwitchState) {
   std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
-  auto state = programmedState->clone();
-  state->addSystemPort(swSystemPort);
+  auto state = programmedState;
+  auto sysPortMgr = state->getSystemPorts()->modify(&state);
+  sysPortMgr->addSystemPort(swSystemPort);
+  applyNewState(state);
+  auto handle =
+      saiManagerTable->systemPortManager().getSystemPortHandle(SystemPortID(1));
+  EXPECT_NE(handle, nullptr);
+  auto configInfo =
+      GET_ATTR(SystemPort, ConfigInfo, handle->systemPort->attributes());
+  EXPECT_EQ(configInfo.port_id, 1);
+}
+
+TEST_F(SystemPortManagerTest, addRemoteSystemPortViaSwitchState) {
+  std::shared_ptr<SystemPort> swSystemPort =
+      makeSystemPort(std::nullopt, 1, 42 /*remote switch id*/);
+  auto state = programmedState;
+  auto sysPortMgr = state->getRemoteSystemPorts()->modify(&state);
+  sysPortMgr->addSystemPort(swSystemPort);
   applyNewState(state);
   auto handle =
       saiManagerTable->systemPortManager().getSystemPortHandle(SystemPortID(1));
@@ -86,11 +102,34 @@ TEST_F(SystemPortManagerTest, changeSystemPort) {
 
 TEST_F(SystemPortManagerTest, changeSystemPortViaSwitchState) {
   std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
-  auto state = programmedState->clone();
-  state->addSystemPort(swSystemPort);
+  auto state = programmedState;
+  auto sysPorts = state->getSystemPorts()->modify(&state);
+  sysPorts->addSystemPort(swSystemPort);
   applyNewState(state);
   auto newState = state->clone();
-  auto sysPorts = newState->getSystemPorts()->modify(&newState);
+  sysPorts = newState->getSystemPorts()->modify(&newState);
+  auto newSysPort = sysPorts->getNodeIf(SystemPortID(1))->clone();
+  newSysPort->setSwitchId(SwitchID(0));
+  sysPorts->updateNode(newSysPort);
+  applyNewState(newState);
+  auto handle =
+      saiManagerTable->systemPortManager().getSystemPortHandle(SystemPortID(1));
+  EXPECT_NE(handle, nullptr);
+  auto configInfo =
+      GET_ATTR(SystemPort, ConfigInfo, handle->systemPort->attributes());
+  EXPECT_EQ(configInfo.port_id, 1);
+  EXPECT_EQ(configInfo.attached_switch_id, 0);
+}
+
+TEST_F(SystemPortManagerTest, changeRemoteSystemPortViaSwitchState) {
+  std::shared_ptr<SystemPort> swSystemPort =
+      makeSystemPort(std::nullopt, 1, 42 /*remote switch id*/);
+  auto state = programmedState;
+  auto sysPorts = state->getRemoteSystemPorts()->modify(&state);
+  sysPorts->addSystemPort(swSystemPort);
+  applyNewState(state);
+  auto newState = state->clone();
+  sysPorts = newState->getRemoteSystemPorts()->modify(&newState);
   auto newSysPort = sysPorts->getNodeIf(SystemPortID(1))->clone();
   newSysPort->setSwitchId(SwitchID(0));
   sysPorts->updateNode(newSysPort);
@@ -118,11 +157,28 @@ TEST_F(SystemPortManagerTest, removeSystemPort) {
 
 TEST_F(SystemPortManagerTest, removeSystemPortViaSwitchState) {
   std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
-  auto state = programmedState->clone();
-  state->addSystemPort(swSystemPort);
+  auto state = programmedState;
+  auto sysPorts = state->getSystemPorts()->modify(&state);
+  sysPorts->addSystemPort(swSystemPort);
   applyNewState(state);
   auto newState = state->clone();
-  auto sysPorts = newState->getSystemPorts()->modify(&newState);
+  sysPorts = newState->getSystemPorts()->modify(&newState);
+  sysPorts->removeNode(swSystemPort->getID());
+  applyNewState(newState);
+  auto handle =
+      saiManagerTable->systemPortManager().getSystemPortHandle(SystemPortID(1));
+  EXPECT_EQ(handle, nullptr);
+}
+
+TEST_F(SystemPortManagerTest, removeRemoteSystemPortViaSwitchState) {
+  std::shared_ptr<SystemPort> swSystemPort =
+      makeSystemPort(std::nullopt, 1, 42 /*remote switch id*/);
+  auto state = programmedState;
+  auto sysPorts = state->getRemoteSystemPorts()->modify(&state);
+  sysPorts->addSystemPort(swSystemPort);
+  applyNewState(state);
+  auto newState = state->clone();
+  sysPorts = newState->getRemoteSystemPorts()->modify(&newState);
   sysPorts->removeNode(swSystemPort->getID());
   applyNewState(newState);
   auto handle =
