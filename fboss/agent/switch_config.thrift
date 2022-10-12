@@ -1481,6 +1481,10 @@ enum IpTunnelMode {
   USER = 2,
 }
 
+enum TunnelType {
+  IP_IN_IP = 0,
+}
+
 enum TunnelTerminationType {
   P2P = 1,
   P2MP = 2,
@@ -1499,6 +1503,7 @@ struct IpInIpTunnel {
   8: optional IpTunnelMode dscpMode;
   9: optional IpTunnelMode ecnMode;
   10: optional TunnelTerminationType tunnelTermType;
+  11: optional TunnelType tunnelType;
 }
 
 enum DsfNodeType {
