@@ -124,6 +124,7 @@ HwPortStats getInitedStats() {
       {{0, 2}, {7, 2}}, // inPfcXon_
       {{0, 3}, {7, 3}}, // outPfc_
       {{1, 5}, {2, 5}}, // queueWredDroppedPackets
+      {{1, 4}, {2, 4}}, // queueEcnMarkedPackets
       0, // timestamp
       "test", // portName
       macsecStats,

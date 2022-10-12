@@ -70,6 +70,7 @@ struct HwPortStats {
   32: map<i16, i64> inPfcXon_ = {};
   33: map<i16, i64> outPfc_ = {};
   34: map<i16, i64> queueWredDroppedPackets_ = {};
+  35: map<i16, i64> queueEcnMarkedPackets_ = {};
 
   // seconds from epoch
   50: i64 timestamp_ = STAT_UNINITIALIZED;
