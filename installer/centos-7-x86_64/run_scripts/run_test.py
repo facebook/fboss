@@ -14,6 +14,8 @@ from argparse import ArgumentParser
 #  ./run_test.py sai --config $confFile # run ALL Hw SAI tests: coldboot + #  warmboot
 #  ./run_test.py sai --config $confFile --coldboot_only # run cold boot only
 #  ./run_test.py sai --config $confFile --filter=*Route*V6* # run tests #  matching filter
+#  ./run_test.py sai --config $confFile --filter=*Vlan*:*Port* # run tests matching "Vlan" and "Port" filters
+#  ./run_test.py sai --config $confFile --filter=*Vlan*:*Port*:-*Mac*:*Intf* # run tests matching "Vlan" and "Port" filters, but excluding "Mac" and "Intf" tests in that list
 
 #  ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig # single test
 #  ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --sdk_logging /tmp/XYZ # SAI replayer logging
