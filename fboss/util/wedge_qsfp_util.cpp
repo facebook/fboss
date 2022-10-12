@@ -442,8 +442,8 @@ std::map<int32_t, TransceiverManagementInterface> getModuleTypeViaService(
   const int length = 1;
   const int page = 0;
   std::vector<int32_t> idx = zeroBasedPortIds(ports);
-  std::map<int32_t, ReadResponse> readResp =
-      doReadRegViaService(idx, offset, length, page, evb);
+  std::map<int32_t, ReadResponse> readResp;
+  doReadRegViaService(idx, offset, length, page, evb, readResp);
 
   if (readResp.empty()) {
     XLOG(ERR) << "Indirect read error in getting module type";
@@ -643,12 +643,13 @@ void displayReadRegData(const uint8_t* buf, int offset, int length) {
   printf("\n");
 }
 
-std::map<int32_t, ReadResponse> doReadRegViaService(
+void doReadRegViaService(
     const std::vector<int32_t>& ports,
     int offset,
     int length,
     int page,
-    folly::EventBase& evb) {
+    folly::EventBase& evb,
+    std::map<int32_t, ReadResponse>& response) {
   auto client = getQsfpClient(evb);
   ReadRequest request;
   TransceiverIOParameters param;
@@ -659,7 +660,6 @@ std::map<int32_t, ReadResponse> doReadRegViaService(
     param.page() = page;
   }
   request.parameter() = param;
-  std::map<int32_t, ReadResponse> response;
 
   try {
     client->sync_readTransceiverRegister(response, request);
@@ -668,7 +668,7 @@ std::map<int32_t, ReadResponse> doReadRegViaService(
       auto data = iterator.second.data()->data();
       if (iterator.second.data()->length() < length) {
         fprintf(stderr, "QSFP %d: fail to read module\n", iterator.first + 1);
-        return std::map<int32_t, ReadResponse>();
+        return;
       } else {
         displayReadRegData(data, offset, iterator.second.data()->length());
       }
@@ -676,10 +676,7 @@ std::map<int32_t, ReadResponse> doReadRegViaService(
   } catch (const std::exception& ex) {
     fprintf(
         stderr, "error reading register from qsfp_service: %s\n", ex.what());
-    return std::map<int32_t, ReadResponse>();
   }
-
-  return response;
 }
 
 void setPageDirect(TransceiverI2CApi* bus, unsigned int port, uint8_t page) {
@@ -743,7 +740,8 @@ int doReadReg(
     // Release the bus access for QSFP service
     bus->close();
     std::vector<int32_t> idx = zeroBasedPortIds(ports);
-    doReadRegViaService(idx, offset, length, page, evb);
+    std::map<int32_t, ReadResponse> resp;
+    doReadRegViaService(idx, offset, length, page, evb, resp);
   }
   return EX_OK;
 }
@@ -854,17 +852,26 @@ int readRegister(
     folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
     std::vector<int32_t> portIdx = zeroBasedPortIds({port});
 
-    std::map<int32_t, ReadResponse> readResp =
-        doReadRegViaService(portIdx, offset, length, page, evb);
+    std::map<int32_t, ReadResponse> readResp;
+    doReadRegViaService(portIdx, offset, length, page, evb, readResp);
 
     if (readResp.empty()) {
       fprintf(stderr, "QSFP %d: indirect read error", port);
       return EX_SOFTWARE;
     }
 
-    for (const auto& response : readResp) {
-      buf = const_cast<uint8_t*>(response.second.data()->data());
+    if (readResp.size() != 1) {
+      fprintf(
+          stderr,
+          "Got %lu responses for the read but expected 1",
+          readResp.size());
+      return EX_SOFTWARE;
     }
+
+    auto dataPtr = readResp.begin()->second.data()->data();
+    // The underlying buffer in ReadResponse will get cleaned up when it goes
+    // out of scope, so copy the data to the buffer the user requested
+    memcpy(buf, dataPtr, length);
   } else {
     TransceiverI2CApi* bus =
         QsfpUtilContainer::getInstance()->getTransceiverBus();

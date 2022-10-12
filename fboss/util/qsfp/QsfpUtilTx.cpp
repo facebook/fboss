@@ -201,8 +201,8 @@ bool QsfpUtilTx::setSffTxDisableViaService(const std::vector<int32_t>& ports) {
   const int offset = 86;
   const int length = 1;
   const int page = 0;
-  std::map<int32_t, ReadResponse> readResp =
-      doReadRegViaService(ports, offset, length, page, evb_);
+  std::map<int32_t, ReadResponse> readResp;
+  doReadRegViaService(ports, offset, length, page, evb_, readResp);
 
   if (readResp.empty()) {
     XLOG(ERR) << "TxDisableTrace: indirect read error";
@@ -237,8 +237,9 @@ bool QsfpUtilTx::setCmisTxDisableViaService(const std::vector<int32_t>& ports) {
   const int length = 1;
   const uint8_t moduleControlPage = 0x10;
   const int cmisTxDisableReg = 130;
-  std::map<int32_t, ReadResponse> readResp = doReadRegViaService(
-      ports, cmisTxDisableReg, length, moduleControlPage, evb_);
+  std::map<int32_t, ReadResponse> readResp;
+  doReadRegViaService(
+      ports, cmisTxDisableReg, length, moduleControlPage, evb_, readResp);
 
   if (readResp.empty()) {
     XLOG(ERR) << "TxDisableTrace: indirect read error";

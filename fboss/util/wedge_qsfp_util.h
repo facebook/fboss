@@ -104,12 +104,13 @@ std::map<int32_t, TransceiverManagementInterface> getModuleTypeViaService(
 
 std::vector<int32_t> zeroBasedPortIds(const std::vector<unsigned int>& ports);
 
-std::map<int32_t, ReadResponse> doReadRegViaService(
+void doReadRegViaService(
     const std::vector<int32_t>& ports,
     int offset,
     int length,
     int page,
-    folly::EventBase& evb);
+    folly::EventBase& evb,
+    std::map<int32_t, ReadResponse>& response);
 
 int doReadReg(
     TransceiverI2CApi* bus,
