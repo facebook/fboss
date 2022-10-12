@@ -1476,11 +1476,16 @@ struct SdkVersion {
 }
 
 enum IpTunnelMode {
-  // will map to sai_tunnel_ttl_mode_t and sai_tunnel_dscp_mode_t and
-  // sai_tunnel_decap_ecn_mode_t
   UNIFORM = 0,
   PIPE = 1,
   USER = 2,
+}
+
+enum TunnelTerminationType {
+  P2P = 1,
+  P2MP = 2,
+  MP2P = 3,
+  MP2MP = 4,
 }
 
 struct IpInIpTunnel {
@@ -1493,6 +1498,7 @@ struct IpInIpTunnel {
   7: optional IpTunnelMode ttlMode;
   8: optional IpTunnelMode dscpMode;
   9: optional IpTunnelMode ecnMode;
+  10: optional TunnelTerminationType tunnelTermType;
 }
 
 enum DsfNodeType {
