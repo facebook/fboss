@@ -106,7 +106,7 @@ sai_status_t get_system_port_attribute_fn(
         }
         sai_object_list_t objlist;
         for (auto v = 0; v < voqs; ++v) {
-          objlist.list[v] = v + 1;
+          objlist.list[v] = systemPort.queueIdList[v];
         }
         attr_list[i].value.objlist = objlist;
       } break;
