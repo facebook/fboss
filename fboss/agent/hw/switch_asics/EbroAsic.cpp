@@ -47,7 +47,6 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CPU_PORT:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
-    case HwAsic::Feature::BRIDGE_PORT_8021Q:
     case HwAsic::Feature::PTP_TC:
     case HwAsic::Feature::PTP_TC_PCS:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
@@ -59,6 +58,9 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     case HwAsic::Feature::FABRIC_PORT_MTU:
       return true;
+    // VOQ vs NPU mode dependent features
+    case HwAsic::Feature::BRIDGE_PORT_8021Q:
+      return getSwitchType() == cfg::SwitchType::NPU;
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::QCM:
