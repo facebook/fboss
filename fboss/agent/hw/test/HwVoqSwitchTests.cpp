@@ -2,6 +2,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -11,10 +12,17 @@ namespace facebook::fboss {
 namespace {
 const SwitchID kRemoteSwitchId(2);
 }
-class HwVoqSwitchTest : public HwTest {
+class HwVoqSwitchTest : public HwLinkStateDependentTest {
  public:
+  cfg::SwitchConfig initialConfig() const override {
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode(),
+        false /*interfaceHasSubnet*/);
+  }
   void SetUp() override {
-    HwTest::SetUp();
+    HwLinkStateDependentTest::SetUp();
     ASSERT_EQ(getHwSwitch()->getSwitchType(), cfg::SwitchType::VOQ);
     ASSERT_TRUE(getHwSwitch()->getSwitchId().has_value());
   }
@@ -92,18 +100,13 @@ class HwVoqSwitchTest : public HwTest {
 };
 
 TEST_F(HwVoqSwitchTest, init) {
-  auto setup = [this]() {
-    auto newState = getProgrammedState()->clone();
-    for (auto& port : *newState->getPorts()) {
-      auto newPort = port->modify(&newState);
-      newPort->setAdminState(cfg::PortState::ENABLED);
-    }
-    applyNewState(newState);
-  };
+  auto setup = [this]() {};
+
   auto verify = [this]() {
     auto state = getProgrammedState();
     for (auto& port : *state->getPorts()) {
       EXPECT_EQ(port->getAdminState(), cfg::PortState::ENABLED);
+      EXPECT_EQ(port->getLoopbackMode(), getAsic()->desiredLoopbackMode());
     }
   };
   verifyAcrossWarmBoots(setup, verify);
