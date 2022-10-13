@@ -57,12 +57,6 @@ class SaiTunnelManager {
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   Handles handles_;
-  sai_tunnel_type_t getSaiTunnelType(cfg::TunnelType type);
-  sai_tunnel_term_table_entry_type_t getSaiTunnelTermType(
-      cfg::TunnelTerminationType type);
-  sai_tunnel_ttl_mode_t getSaiTtlMode(cfg::IpTunnelMode mode);
-  sai_tunnel_dscp_mode_t getSaiDscpMode(cfg::IpTunnelMode mode);
-  sai_tunnel_decap_ecn_mode_t getSaiDecapEcnMode(cfg::IpTunnelMode mode);
 };
 
 } // namespace facebook::fboss
