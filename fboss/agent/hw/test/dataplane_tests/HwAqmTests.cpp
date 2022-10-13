@@ -8,6 +8,7 @@
  *
  */
 
+#include <fboss/agent/hw/switch_asics/HwAsic.h>
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
@@ -23,6 +24,7 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 
 #include <folly/IPAddress.h>
+#include <optional>
 
 namespace {
 /*
@@ -575,6 +577,88 @@ class HwAqmTest : public HwLinkStateDependentTest {
         shaperSetup);
   }
 
+  void runPerQueueEcnMarkedStatsTest() {
+    const auto portId = masterLogicalPortIds()[0];
+    const int queueId = utility::kOlympicSilverQueueId;
+
+    auto setup = [=]() {
+      auto config{initialConfig()};
+      queueEcnWredThresholdSetup(
+          true, // isEcn
+          {queueId},
+          config);
+      queueEcnWredThresholdSetup(
+          false, // !isEcn
+          {queueId},
+          config);
+      applyNewConfig(config);
+
+      // Setup traffic loop
+      auto kEcmpWidthForTest = 1;
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6{
+          getProgrammedState(), getIntfMac()};
+      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+      disableTTLDecrements(ecmpHelper6);
+
+      // Send traffic
+      const int kNumPacketsToSend =
+          getHwSwitchEnsemble()->getMinPktsForLineRate(portId);
+      sendPkts(
+          utility::kOlympicQueueToDscp().at(queueId).front(),
+          true,
+          kNumPacketsToSend);
+    };
+
+    auto verify = [=]() {
+      getHwSwitchEnsemble()->waitForLineRateOnPort(portId);
+
+      // Get stats to verify if additional packets are getting ECN marked
+      auto before = getHwSwitchEnsemble()->getLatestPortStats(portId);
+
+      auto verifyPerQueueEcnMarkedStats = [&](const auto& newStats) {
+        auto portStatsIter = newStats.find(portId);
+        auto after = portStatsIter->second;
+
+        auto deltaQueueEcnMarkedPackets =
+            after.queueEcnMarkedPackets_()->find(queueId)->second -
+            before.queueEcnMarkedPackets_()->find(queueId)->second;
+
+        if (deltaQueueEcnMarkedPackets == 0) {
+          XLOG(DBG0) << "queue(" << queueId << "): No ECN marked packets seen!";
+
+          // detail for debugging test failures
+          auto deltaOutPackets = getPortOutPkts(after) - getPortOutPkts(before);
+          auto deltaQueueOutPackets =
+              after.queueOutPackets_()->find(queueId)->second -
+              before.queueOutPackets_()->find(queueId)->second;
+          auto deltaEcnMarkedPackets =
+              *after.outEcnCounter_() - *before.outEcnCounter_();
+          XLOG(DBG3) << "queue(" << queueId << "): delta/total"
+                     << " EcnMarked: " << deltaQueueEcnMarkedPackets << "/"
+                     << after.queueEcnMarkedPackets_()->find(queueId)->second
+                     << " outPackets: " << deltaQueueOutPackets << "/"
+                     << after.queueOutPackets_()->find(queueId)->second
+                     << "; Port.EcnMarked: " << deltaEcnMarkedPackets << "/"
+                     << *after.outEcnCounter_()
+                     << ", Port.outPackets: " << deltaOutPackets << "/"
+                     << getPortOutPkts(after);
+
+          return false;
+        }
+
+        // ECN marked packets seen for the queue
+        XLOG(DBG0) << "queue(" << queueId << "): " << deltaQueueEcnMarkedPackets
+                   << " ECN marked packets seen!";
+        return true;
+      };
+
+      EXPECT_TRUE(getHwSwitchEnsemble()->waitPortStatsCondition(
+          verifyPerQueueEcnMarkedStats, 20, std::chrono::milliseconds(200)));
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
   void runPerQueueWredDropStatsTest() {
     const std::vector<int> wredQueueIds = {
         utility::kOlympicSilverQueueId,
@@ -791,6 +875,10 @@ TEST_F(HwAqmTest, verifyEcnTrafficNoDrop) {
 
 TEST_F(HwAqmTest, verifyEcnThreshold) {
   runEcnThresholdTest();
+}
+
+TEST_F(HwAqmTest, verifyPerQueueEcnMarkedStats) {
+  runPerQueueEcnMarkedStatsTest();
 }
 
 } // namespace facebook::fboss
