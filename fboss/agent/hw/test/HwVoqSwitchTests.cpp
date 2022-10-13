@@ -112,23 +112,6 @@ TEST_F(HwVoqSwitchTest, init) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwVoqSwitchTest, applyConfig) {
-  auto setup = [this]() {
-    auto config = utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
-    applyNewConfig(config);
-  };
-  auto verify = [this]() {
-    auto state = getProgrammedState();
-    for (auto& port : *state->getPorts()) {
-      EXPECT_EQ(port->getAdminState(), cfg::PortState::ENABLED);
-    }
-  };
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 TEST_F(HwVoqSwitchTest, remoteSystemPort) {
   auto setup = [this]() {
     auto config = utility::onePortPerInterfaceConfig(
