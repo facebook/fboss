@@ -28,7 +28,6 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiPlatformPort.cpp
   fboss/agent/platforms/sai/SaiPlatformInit.cpp
   fboss/agent/platforms/sai/SaiSandiaPlatform.cpp
-  fboss/agent/platforms/sai/SaiSandiaPlatformPort.cpp
   fboss/agent/platforms/sai/SaiWedge400CPlatform.cpp
   fboss/agent/platforms/sai/SaiCloudRipperPlatform.cpp
   fboss/agent/platforms/sai/SaiCloudRipperPlatformPort.cpp
@@ -57,6 +56,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/oss/SaiMakaluPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiKametPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiKametPlatformPort.cpp
+  fboss/agent/platforms/sai/oss/SaiSandiaPlatformPort.cpp
 )
 
 target_link_libraries(sai_platform
