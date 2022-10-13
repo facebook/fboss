@@ -403,19 +403,23 @@ sai_status_t __wrap_sai_get_object_key(
   };
 
   vector<string> declarationLines;
-  declarationLines.reserve(*object_count);
-  for (int i = 0; i < *object_count; ++i) {
-    sai_object_key_t object = object_list[i];
-    string declaration = std::get<0>(SaiTracer::getInstance()->declareVariable(
-        &object.key.object_id, object_type));
-    declarationLines.push_back(to<string>(
-        declaration,
-        "=assignObject(object_list.data(), object_count, ",
-        i,
-        ", ",
-        object.key.object_id,
-        ")"));
+  if (object_list != nullptr) {
+    declarationLines.reserve(*object_count);
+    for (int i = 0; i < *object_count; ++i) {
+      sai_object_key_t object = object_list[i];
+      string declaration =
+          std::get<0>(SaiTracer::getInstance()->declareVariable(
+              &object.key.object_id, object_type));
+      declarationLines.push_back(to<string>(
+          declaration,
+          "=assignObject(object_list.data(), object_count, ",
+          i,
+          ", ",
+          object.key.object_id,
+          ")"));
+    }
   }
+
   vector<string> lines;
   lines.insert(lines.end(), getObjectKeyLines.begin(), getObjectKeyLines.end());
   lines.insert(lines.end(), declarationLines.begin(), declarationLines.end());
