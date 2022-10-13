@@ -129,6 +129,13 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
     CHECK(getType() == cfg::InterfaceType::VLAN);
     return VlanID(*getFields()->data().vlanId());
   }
+  std::optional<VlanID> getVlanIDIf() const {
+    if (getType() == cfg::InterfaceType::VLAN) {
+      return VlanID(*getFields()->data().vlanId());
+    } else {
+      return std::nullopt;
+    }
+  }
   void setVlanID(VlanID id) {
     CHECK(getType() == cfg::InterfaceType::VLAN);
     writableFields()->writableData().vlanId() = id;

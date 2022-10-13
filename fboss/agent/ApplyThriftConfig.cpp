@@ -2752,7 +2752,8 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   auto mac = getInterfaceMac(config);
   auto mtu = config->mtu().value_or(Interface::kDefaultMtu);
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
-      orig->getVlanID() == VlanID(*config->vlanID()) &&
+      (!orig->getVlanIDIf().has_value() ||
+       orig->getVlanIDIf().value() == VlanID(*config->vlanID())) &&
       orig->getName() == name && orig->getMac() == mac &&
       orig->getAddresses() == addrs && orig->getNdpConfig() == ndp &&
       orig->getMtu() == mtu && orig->isVirtual() == *config->isVirtual() &&
@@ -2764,7 +2765,9 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
 
   auto newIntf = orig->clone();
   newIntf->setRouterID(RouterID(*config->routerID()));
-  newIntf->setVlanID(VlanID(*config->vlanID()));
+  if (newIntf->getType() == cfg::InterfaceType::VLAN) {
+    newIntf->setVlanID(VlanID(*config->vlanID()));
+  }
   newIntf->setName(name);
   newIntf->setMac(mac);
   newIntf->setAddresses(addrs);
