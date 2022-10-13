@@ -349,8 +349,7 @@ void SaiPortManager::loadPortQueues(const Port& swPort) {
       [](sai_object_id_t queueId) -> QueueSaiId {
         return QueueSaiId(queueId);
       });
-  portHandle->queues = managerTable_->queueManager().loadQueues(
-      portHandle->port->adapterKey(), queueSaiIds);
+  portHandle->queues = managerTable_->queueManager().loadQueues(queueSaiIds);
 
   auto asic = platform_->getAsic();
   for (auto portQueue : swPort.getPortQueues()) {

@@ -449,8 +449,8 @@ void SaiHostifManager::loadCpuPortQueues() {
       [](sai_object_id_t queueId) -> QueueSaiId {
         return QueueSaiId(queueId);
       });
-  cpuPortHandle_->queues = managerTable_->queueManager().loadQueues(
-      cpuPortHandle_->cpuPortId, queueSaiIds);
+  cpuPortHandle_->queues =
+      managerTable_->queueManager().loadQueues(queueSaiIds);
 }
 
 void SaiHostifManager::loadCpuPort() {

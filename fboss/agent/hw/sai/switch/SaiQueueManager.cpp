@@ -221,7 +221,6 @@ void SaiQueueManager::ensurePortQueueConfig(
 }
 
 SaiQueueHandles SaiQueueManager::loadQueues(
-    PortSaiId portSaiId,
     const std::vector<QueueSaiId>& queueSaiIds) {
   SaiQueueHandles queueHandles;
   auto& store = saiStore_->get<SaiQueueTraits>();

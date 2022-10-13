@@ -54,9 +54,7 @@ class SaiQueueManager {
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
-  SaiQueueHandles loadQueues(
-      PortSaiId portSaiId,
-      const std::vector<QueueSaiId>& queueSaiIds);
+  SaiQueueHandles loadQueues(const std::vector<QueueSaiId>& queueSaiIds);
   void changeQueue(SaiQueueHandle* queueHandle, const PortQueue& newPortQueue);
   void ensurePortQueueConfig(
       PortSaiId portSaiId,

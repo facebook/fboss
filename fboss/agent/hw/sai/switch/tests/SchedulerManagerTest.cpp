@@ -131,7 +131,6 @@ TEST_F(SchedulerManagerTest, createDuplicateScheduler) {
 
 TEST_F(SchedulerManagerTest, shareSchedulerWithMultipleQueues) {
   auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(1));
-  PortSaiId portSaiId = portHandle->port->adapterKey();
   std::vector<uint8_t> queueIds = {1, 2, 3, 4};
   auto schedType = cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN;
   uint8_t weight = 32;
@@ -146,8 +145,7 @@ TEST_F(SchedulerManagerTest, shareSchedulerWithMultipleQueues) {
       minPps,
       maxPps);
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
-  auto queueHandles =
-      saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
+  auto queueHandles = saiManagerTable->queueManager().loadQueues(queueSaiIds);
   std::shared_ptr<SaiScheduler> scheduler = nullptr;
   for (auto& queueHandle : queueHandles) {
     if (!scheduler) {
@@ -172,7 +170,6 @@ TEST_F(SchedulerManagerTest, shareSchedulerWithMultipleQueues) {
 
 TEST_F(SchedulerManagerTest, checkSchedulerProfileIdOnQueue) {
   auto portHandle = saiManagerTable->portManager().getPortHandle(PortID(1));
-  PortSaiId portSaiId = portHandle->port->adapterKey();
   std::vector<uint8_t> queueIds = {1, 2};
   uint64_t minPps = 12000;
   uint64_t maxPps = 88000;
@@ -184,8 +181,7 @@ TEST_F(SchedulerManagerTest, checkSchedulerProfileIdOnQueue) {
       minPps,
       maxPps);
   auto queueSaiIds = getPortQueueSaiIds(portHandle);
-  auto queueHandles =
-      saiManagerTable->queueManager().loadQueues(portSaiId, queueSaiIds);
+  auto queueHandles = saiManagerTable->queueManager().loadQueues(queueSaiIds);
   for (const auto& queueHandle : queueHandles) {
     auto scheduler = queueHandle.second->scheduler;
     if (!scheduler) {
