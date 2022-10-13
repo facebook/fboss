@@ -129,9 +129,8 @@ sai_tunnel_type_t SaiTunnelManager::getSaiTunnelType(cfg::TunnelType type) {
   switch (type) {
     case cfg::TunnelType::IP_IN_IP:
       return SAI_TUNNEL_TYPE_IPINIP;
-    default:
-      throw FbossError("Failed to convert IpTunnel type to SAI type: ", type);
   }
+  throw FbossError("Failed to convert tunnel type to SAI type: ", type);
 }
 
 sai_tunnel_term_table_entry_type_t SaiTunnelManager::getSaiTunnelTermType(
@@ -141,10 +140,12 @@ sai_tunnel_term_table_entry_type_t SaiTunnelManager::getSaiTunnelTermType(
       return SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP;
     case cfg::TunnelTerminationType::MP2MP:
       return SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2MP;
-    default:
-      throw FbossError(
-          "Failed to convert IpTunnel term type to SAI type: ", type);
+    case cfg::TunnelTerminationType::P2P:
+      return SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2P;
+    case cfg::TunnelTerminationType::MP2P:
+      return SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_MP2P;
   }
+  throw FbossError("Failed to convert tunnel term type to SAI type: ", type);
 }
 sai_tunnel_ttl_mode_t SaiTunnelManager::getSaiTtlMode(cfg::IpTunnelMode m) {
   switch (m) {
@@ -152,9 +153,10 @@ sai_tunnel_ttl_mode_t SaiTunnelManager::getSaiTtlMode(cfg::IpTunnelMode m) {
       return SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL;
     case cfg::IpTunnelMode::PIPE:
       return SAI_TUNNEL_TTL_MODE_PIPE_MODEL;
-    default:
-      throw FbossError("Failed to convert TTL mode to SAI type: ", m);
+    case cfg::IpTunnelMode::USER:
+      break;
   }
+  throw FbossError("Failed to convert TTL mode to SAI type: ", m);
 }
 sai_tunnel_dscp_mode_t SaiTunnelManager::getSaiDscpMode(cfg::IpTunnelMode m) {
   switch (m) {
@@ -162,10 +164,12 @@ sai_tunnel_dscp_mode_t SaiTunnelManager::getSaiDscpMode(cfg::IpTunnelMode m) {
       return SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL;
     case cfg::IpTunnelMode::PIPE:
       return SAI_TUNNEL_DSCP_MODE_PIPE_MODEL;
-    default:
-      throw FbossError("Failed to convert DSCP mode to SAI type: ", m);
+    case cfg::IpTunnelMode::USER:
+      break;
   }
+  throw FbossError("Failed to convert DSCP mode to SAI type: ", m);
 }
+
 sai_tunnel_decap_ecn_mode_t SaiTunnelManager::getSaiDecapEcnMode(
     cfg::IpTunnelMode m) {
   switch (m) {
@@ -175,9 +179,8 @@ sai_tunnel_decap_ecn_mode_t SaiTunnelManager::getSaiDecapEcnMode(
       return SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER;
     case cfg::IpTunnelMode::USER:
       return SAI_TUNNEL_DECAP_ECN_MODE_USER_DEFINED;
-    default:
-      throw FbossError("Failed to convert ECN mode to SAI type: ", m);
   }
+  throw FbossError("Failed to convert ECN mode to SAI type: ", m);
 }
 
 } // namespace facebook::fboss
