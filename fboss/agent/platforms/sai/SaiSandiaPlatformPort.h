@@ -27,9 +27,7 @@ class SaiSandiaPlatformPort : public SaiTajoPlatformPort, MultiPimPlatformPort {
       std::shared_ptr<Port> /*oldPort*/) override {}
 
  private:
-  FbDomFpga::LedColor getLedState(bool up, bool adminUp) const;
-  void setLedStatus(FbDomFpga::LedColor state) const;
-  FbDomFpga::LedColor currentLedState_;
+  uint32_t currentLedState_;
 };
 
 } // namespace facebook::fboss
