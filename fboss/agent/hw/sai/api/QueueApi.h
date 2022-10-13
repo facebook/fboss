@@ -55,7 +55,8 @@ struct SaiQueueTraits {
     using SchedulerProfileId = SaiAttribute<
         EnumType,
         SAI_QUEUE_ATTR_SCHEDULER_PROFILE_ID,
-        SaiObjectIdT>;
+        SaiObjectIdT,
+        SaiObjectIdDefault>;
   };
   using AdapterKey = QueueSaiId;
   using AdapterHostKey =
