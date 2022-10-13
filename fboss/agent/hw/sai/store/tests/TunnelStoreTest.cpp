@@ -38,20 +38,21 @@ class TunnelStoreTest : public SaiStoreTest {
     return tunnelApi.create<SaiTunnelTraits>(createTunnelAttrs(), 0);
   }
 
-  SaiTunnelTermTraits::CreateAttributes createTunnelTermAttrs(
+  SaiP2MPTunnelTermTraits::CreateAttributes createTunnelTermAttrs(
       TunnelSaiId _id) const {
-    SaiTunnelTermTraits::Attributes::Type type{
+    SaiP2MPTunnelTermTraits::Attributes::Type type{
         SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP};
-    SaiTunnelTermTraits::Attributes::VrId vrId{43};
-    SaiTunnelTermTraits::Attributes::DstIp dstIp{folly::IPAddress(dip)};
-    SaiTunnelTermTraits::Attributes::TunnelType tunnelType{
+    SaiP2MPTunnelTermTraits::Attributes::VrId vrId{43};
+    SaiP2MPTunnelTermTraits::Attributes::DstIp dstIp{folly::IPAddress(dip)};
+    SaiP2MPTunnelTermTraits::Attributes::TunnelType tunnelType{
         SAI_TUNNEL_TYPE_IPINIP};
-    SaiTunnelTermTraits::Attributes::ActionTunnelId tunnelId{_id};
+    SaiP2MPTunnelTermTraits::Attributes::ActionTunnelId tunnelId{_id};
     return {type, vrId, dstIp, tunnelType, tunnelId};
   }
   TunnelTermSaiId createTunnelTerm(TunnelSaiId _id) {
     auto& tunnelApi = saiApiTable->tunnelApi();
-    return tunnelApi.create<SaiTunnelTermTraits>(createTunnelTermAttrs(_id), 0);
+    return tunnelApi.create<SaiP2MPTunnelTermTraits>(
+        createTunnelTermAttrs(_id), 0);
   }
 };
 
@@ -79,14 +80,15 @@ TEST_F(TunnelStoreTest, loadTunnelTerm) {
   auto termId = createTunnelTerm(tunnelId);
   SaiStore s(0);
   s.reload();
-  auto& store = s.get<SaiTunnelTermTraits>();
+  auto& store = s.get<SaiP2MPTunnelTermTraits>();
   auto got = store.get(createTunnelTermAttrs(tunnelId));
   EXPECT_EQ(got->adapterKey(), termId);
   EXPECT_EQ(
-      GET_ATTR(TunnelTerm, TunnelType, got->attributes()),
+      GET_ATTR(P2MPTunnelTerm, TunnelType, got->attributes()),
       SAI_TUNNEL_TYPE_IPINIP);
   EXPECT_EQ(
-      GET_ATTR(TunnelTerm, DstIp, got->attributes()), folly::IPAddress(dip));
+      GET_ATTR(P2MPTunnelTerm, DstIp, got->attributes()),
+      folly::IPAddress(dip));
 }
 
 TEST_F(TunnelStoreTest, tunnelLoadCtor) {
@@ -102,9 +104,10 @@ TEST_F(TunnelStoreTest, tunnelLoadCtor) {
 TEST_F(TunnelStoreTest, tunnelTermLoadCtor) {
   auto tunnelId = createTunnel();
   auto termId = createTunnelTerm(tunnelId);
-  SaiObject<SaiTunnelTermTraits> obj = createObj<SaiTunnelTermTraits>(termId);
+  SaiObject<SaiP2MPTunnelTermTraits> obj =
+      createObj<SaiP2MPTunnelTermTraits>(termId);
   EXPECT_EQ(obj.adapterKey(), termId);
-  EXPECT_EQ(GET_ATTR(TunnelTerm, VrId, obj.attributes()), 43);
+  EXPECT_EQ(GET_ATTR(P2MPTunnelTerm, VrId, obj.attributes()), 43);
 }
 
 TEST_F(TunnelStoreTest, tunnelCreateCtor) {
@@ -120,15 +123,16 @@ TEST_F(TunnelStoreTest, tunnelCreateCtor) {
 
 TEST_F(TunnelStoreTest, tunnelTermCreateCtor) {
   auto tunnelId = createTunnel();
-  SaiTunnelTermTraits::AdapterHostKey k{
+  SaiP2MPTunnelTermTraits::AdapterHostKey k{
       SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP,
       43,
       folly::IPAddress(dip),
       SAI_TUNNEL_TYPE_IPINIP,
       tunnelId};
-  SaiObject<SaiTunnelTermTraits> obj = createObj<SaiTunnelTermTraits>(k, k, 0);
+  SaiObject<SaiP2MPTunnelTermTraits> obj =
+      createObj<SaiP2MPTunnelTermTraits>(k, k, 0);
   EXPECT_EQ(
-      GET_ATTR(TunnelTerm, TunnelType, obj.attributes()),
+      GET_ATTR(P2MPTunnelTerm, TunnelType, obj.attributes()),
       SAI_TUNNEL_TYPE_IPINIP);
 }
 
@@ -140,7 +144,7 @@ TEST_F(TunnelStoreTest, serDeserTunnel) {
 TEST_F(TunnelStoreTest, serDeserTunnelTerm) {
   auto tunnelId = createTunnel();
   auto termId = createTunnelTerm(tunnelId);
-  verifyAdapterKeySerDeser<SaiTunnelTermTraits>({termId});
+  verifyAdapterKeySerDeser<SaiP2MPTunnelTermTraits>({termId});
 }
 
 TEST_F(TunnelStoreTest, toStrTunnel) {
@@ -151,7 +155,7 @@ TEST_F(TunnelStoreTest, toStrTunnel) {
 TEST_F(TunnelStoreTest, toStrTunnelTerm) {
   auto _id = createTunnel();
   std::ignore = createTunnelTerm(_id);
-  verifyToStr<SaiTunnelTermTraits>();
+  verifyToStr<SaiP2MPTunnelTermTraits>();
 }
 
 TEST_F(TunnelStoreTest, tunnelSetOnlyTtl) {

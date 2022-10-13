@@ -80,19 +80,20 @@ class TunnelManagerTest : public ManagerTestBase {
     VirtualRouterSaiId saiVirtualRouterId{
         virtualRouterHandle->virtualRouter->adapterKey()};
     EXPECT_EQ(
-        GET_ATTR(TunnelTerm, VrId, handle->tunnelTerm->attributes()),
+        GET_ATTR(P2MPTunnelTerm, VrId, handle->tunnelTerm->attributes()),
         saiVirtualRouterId);
     EXPECT_EQ(
-        GET_ATTR(TunnelTerm, Type, handle->tunnelTerm->attributes()),
+        GET_ATTR(P2MPTunnelTerm, Type, handle->tunnelTerm->attributes()),
         expTermType);
     EXPECT_EQ(
-        GET_ATTR(TunnelTerm, TunnelType, handle->tunnelTerm->attributes()),
+        GET_ATTR(P2MPTunnelTerm, TunnelType, handle->tunnelTerm->attributes()),
         expType);
     EXPECT_EQ(
-        GET_ATTR(TunnelTerm, DstIp, handle->tunnelTerm->attributes()),
+        GET_ATTR(P2MPTunnelTerm, DstIp, handle->tunnelTerm->attributes()),
         expSrcIp);
     EXPECT_EQ(
-        GET_ATTR(TunnelTerm, ActionTunnelId, handle->tunnelTerm->attributes()),
+        GET_ATTR(
+            P2MPTunnelTerm, ActionTunnelId, handle->tunnelTerm->attributes()),
         saiId);
   }
 
@@ -161,7 +162,7 @@ TEST_F(TunnelManagerTest, changeTunnel) {
       GET_OPT_ATTR(Tunnel, DecapTtlMode, handle->tunnel->attributes()), 0);
   // Term obj has reversed semantics of src and dst
   EXPECT_EQ(
-      GET_ATTR(TunnelTerm, DstIp, handle->tunnelTerm->attributes()),
+      GET_ATTR(P2MPTunnelTerm, DstIp, handle->tunnelTerm->attributes()),
       folly::IPAddressV6("2001:db8:3333:4444:5555:6666:7777:8888"));
   SaiVirtualRouterHandle* virtualRouterHandle =
       saiManagerTable->virtualRouterManager().getVirtualRouterHandle(
@@ -169,7 +170,7 @@ TEST_F(TunnelManagerTest, changeTunnel) {
   VirtualRouterSaiId saiVirtualRouterId{
       virtualRouterHandle->virtualRouter->adapterKey()};
   EXPECT_EQ(
-      GET_ATTR(TunnelTerm, VrId, handle->tunnelTerm->attributes()),
+      GET_ATTR(P2MPTunnelTerm, VrId, handle->tunnelTerm->attributes()),
       saiVirtualRouterId);
 }
 

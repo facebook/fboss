@@ -22,11 +22,11 @@ class SaiPlatform;
 class SaiStore;
 
 using SaiTunnel = SaiObject<SaiTunnelTraits>;
-using SaiTunnelTerm = SaiObject<SaiTunnelTermTraits>;
+using SaiP2MPTunnelTerm = SaiObject<SaiP2MPTunnelTermTraits>;
 
 struct SaiTunnelHandle {
   std::shared_ptr<SaiTunnel> tunnel;
-  std::shared_ptr<SaiTunnelTerm> tunnelTerm;
+  std::shared_ptr<SaiP2MPTunnelTerm> tunnelTerm;
 };
 
 class SaiTunnelManager {

@@ -69,30 +69,30 @@ class TunnelApiTest : public ::testing::Test {
       folly::IPAddress /*_srcIp*/,
       sai_tunnel_type_t _tunnelType,
       TunnelSaiId _tunnelId) {
-    SaiTunnelTermTraits::Attributes::Type type{_type};
-    SaiTunnelTermTraits::Attributes::VrId vrId{_vrId};
-    SaiTunnelTermTraits::Attributes::DstIp dstIp{_dstIp};
+    SaiP2MPTunnelTermTraits::Attributes::Type type{_type};
+    SaiP2MPTunnelTermTraits::Attributes::VrId vrId{_vrId};
+    SaiP2MPTunnelTermTraits::Attributes::DstIp dstIp{_dstIp};
     // src ip should be nullopt in P2MP, but Brm is only
     // supporting P2P, so P2MP will have issues in warmboot
-    SaiTunnelTermTraits::Attributes::TunnelType tunnelType{_tunnelType};
-    SaiTunnelTermTraits::Attributes::ActionTunnelId tunnelId{_tunnelId};
+    SaiP2MPTunnelTermTraits::Attributes::TunnelType tunnelType{_tunnelType};
+    SaiP2MPTunnelTermTraits::Attributes::ActionTunnelId tunnelId{_tunnelId};
 
-    SaiTunnelTermTraits::CreateAttributes a{
+    SaiP2MPTunnelTermTraits::CreateAttributes a{
         type, vrId, dstIp, tunnelType, tunnelId};
-    return tunnelApi->create<SaiTunnelTermTraits>(a, 0);
+    return tunnelApi->create<SaiP2MPTunnelTermTraits>(a, 0);
   }
 
   void checkTunnelTerm(TunnelTermSaiId id) const {
-    SaiTunnelTermTraits::Attributes::Type type;
+    SaiP2MPTunnelTermTraits::Attributes::Type type;
     auto gotType = tunnelApi->getAttribute(id, type);
     EXPECT_EQ(fs->tunnelTermManager.get(id).type, gotType);
-    SaiTunnelTermTraits::Attributes::VrId vrId;
+    SaiP2MPTunnelTermTraits::Attributes::VrId vrId;
     auto gotVrId = tunnelApi->getAttribute(id, vrId);
     EXPECT_EQ(fs->tunnelTermManager.get(id).vrId, gotVrId);
-    SaiTunnelTermTraits::Attributes::TunnelType tunnelType;
+    SaiP2MPTunnelTermTraits::Attributes::TunnelType tunnelType;
     auto gotTunnelType = tunnelApi->getAttribute(id, tunnelType);
     EXPECT_EQ(fs->tunnelTermManager.get(id).tunnelType, gotTunnelType);
-    SaiTunnelTermTraits::Attributes::ActionTunnelId tunnelId;
+    SaiP2MPTunnelTermTraits::Attributes::ActionTunnelId tunnelId;
     auto gotTunnelId = tunnelApi->getAttribute(id, tunnelId);
     EXPECT_EQ(fs->tunnelTermManager.get(id).tunnelId, gotTunnelId);
   }
@@ -161,7 +161,8 @@ TEST_F(TunnelApiTest, removeTunnelTerm) {
       saiTunnelId);
   tunnelApi->remove(termId);
   EXPECT_THROW(
-      tunnelApi->getAttribute(termId, SaiTunnelTermTraits::CreateAttributes{}),
+      tunnelApi->getAttribute(
+          termId, SaiP2MPTunnelTermTraits::CreateAttributes{}),
       std::exception);
 }
 
@@ -175,21 +176,24 @@ TEST_F(TunnelApiTest, getTunnelTermAttributes) {
       SAI_TUNNEL_TYPE_IPINIP,
       saiTunnelId);
   EXPECT_EQ(
-      tunnelApi->getAttribute(termId, SaiTunnelTermTraits::Attributes::Type{}),
+      tunnelApi->getAttribute(
+          termId, SaiP2MPTunnelTermTraits::Attributes::Type{}),
       SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP);
   EXPECT_EQ(
-      tunnelApi->getAttribute(termId, SaiTunnelTermTraits::Attributes::VrId{}),
+      tunnelApi->getAttribute(
+          termId, SaiP2MPTunnelTermTraits::Attributes::VrId{}),
       43);
   EXPECT_EQ(
-      tunnelApi->getAttribute(termId, SaiTunnelTermTraits::Attributes::DstIp{}),
+      tunnelApi->getAttribute(
+          termId, SaiP2MPTunnelTermTraits::Attributes::DstIp{}),
       folly::IPAddress(dip));
   EXPECT_EQ(
       tunnelApi->getAttribute(
-          termId, SaiTunnelTermTraits::Attributes::TunnelType{}),
+          termId, SaiP2MPTunnelTermTraits::Attributes::TunnelType{}),
       SAI_TUNNEL_TYPE_IPINIP);
   EXPECT_EQ(
       tunnelApi->getAttribute(
-          termId, SaiTunnelTermTraits::Attributes::ActionTunnelId{}),
+          termId, SaiP2MPTunnelTermTraits::Attributes::ActionTunnelId{}),
       saiTunnelId);
 }
 

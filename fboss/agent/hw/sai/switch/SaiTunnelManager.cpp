@@ -118,13 +118,13 @@ TunnelSaiId SaiTunnelManager::addTunnel(
 
   std::shared_ptr<SaiTunnel> tunnelObj = tunnelStore.setObject(k1, k1);
 
-  auto& tunnelTermStore = saiStore_->get<SaiTunnelTermTraits>();
+  auto& tunnelTermStore = saiStore_->get<SaiP2MPTunnelTermTraits>();
   SaiVirtualRouterHandle* virtualRouterHandle =
       managerTable_->virtualRouterManager().getVirtualRouterHandle(RouterID(0));
   VirtualRouterSaiId saiVirtualRouterId{
       virtualRouterHandle->virtualRouter->adapterKey()};
   if (swTunnel->getTunnelTermType() == cfg::TunnelTerminationType::P2MP) {
-    SaiTunnelTermTraits::CreateAttributes k2{
+    SaiP2MPTunnelTermTraits::CreateAttributes k2{
         getSaiTunnelTermType(swTunnel->getTunnelTermType()),
         saiVirtualRouterId,
         swTunnel->getSrcIP(), // Term Dest Ip
@@ -132,7 +132,7 @@ TunnelSaiId SaiTunnelManager::addTunnel(
         // SAI id of the tunnel, not the IpTunnel id in state
         tunnelObj->adapterKey()};
 
-    std::shared_ptr<SaiTunnelTerm> tunnelTermObj =
+    std::shared_ptr<SaiP2MPTunnelTerm> tunnelTermObj =
         tunnelTermStore.setObject(k2, k2);
     auto tunnelHandle = std::make_unique<SaiTunnelHandle>();
     tunnelHandle->tunnel = tunnelObj;

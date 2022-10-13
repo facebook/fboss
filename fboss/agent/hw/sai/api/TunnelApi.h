@@ -53,12 +53,15 @@ SAI_ATTRIBUTE_NAME(Tunnel, DecapTtlMode);
 SAI_ATTRIBUTE_NAME(Tunnel, DecapDscpMode);
 SAI_ATTRIBUTE_NAME(Tunnel, DecapEcnMode);
 
-struct SaiTunnelTermTraits {
-  static constexpr sai_object_type_t ObjectType =
-      SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY;
-  using SaiApiT = TunnelApi;
+namespace detail {
+
+template <sai_tunnel_term_table_entry_type_t type>
+struct SaiTunnelTermTraits;
+
+template <>
+struct SaiTunnelTermTraits<SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP> {
+  using EnumType = sai_tunnel_term_table_entry_attr_t;
   struct Attributes {
-    using EnumType = sai_tunnel_term_table_entry_attr_t;
     using Type = SaiAttribute<
         EnumType,
         SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_TYPE,
@@ -93,7 +96,6 @@ struct SaiTunnelTermTraits {
         SaiObjectIdT>;
   };
   using AdapterKey = TunnelTermSaiId;
-  // will not use dst and src mask since Bcm doesn't support it
   using CreateAttributes = std::tuple<
       Attributes::Type,
       Attributes::VrId,
@@ -103,14 +105,45 @@ struct SaiTunnelTermTraits {
   using AdapterHostKey = CreateAttributes;
 };
 
-SAI_ATTRIBUTE_NAME(TunnelTerm, Type);
-SAI_ATTRIBUTE_NAME(TunnelTerm, VrId);
-SAI_ATTRIBUTE_NAME(TunnelTerm, DstIp);
-SAI_ATTRIBUTE_NAME(TunnelTerm, DstIpMask);
-SAI_ATTRIBUTE_NAME(TunnelTerm, SrcIp);
-SAI_ATTRIBUTE_NAME(TunnelTerm, SrcIpMask);
-SAI_ATTRIBUTE_NAME(TunnelTerm, TunnelType);
-SAI_ATTRIBUTE_NAME(TunnelTerm, ActionTunnelId);
+} // namespace detail
+
+template <sai_tunnel_term_table_entry_type_t type>
+struct SaiTunnelTermTraitsT {
+  static constexpr sai_object_type_t ObjectType =
+      SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY;
+  using SaiApiT = TunnelApi;
+  using AdapterKey = TunnelTermSaiId;
+  using Attributes = typename detail::SaiTunnelTermTraits<type>::Attributes;
+  using CreateAttributes =
+      typename detail::SaiTunnelTermTraits<type>::CreateAttributes;
+  using AdapterHostKey =
+      typename detail::SaiTunnelTermTraits<type>::AdapterHostKey;
+  using ConditionAttributes =
+      std::tuple<typename detail::SaiTunnelTermTraits<type>::Attributes::Type>;
+  inline const static ConditionAttributes kConditionAttributes{type};
+};
+
+using SaiP2MPTunnelTermTraits =
+    SaiTunnelTermTraitsT<SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP>;
+
+template <>
+struct SaiObjectHasConditionalAttributes<SaiP2MPTunnelTermTraits>
+    : public std::true_type {};
+
+using SaiTunnelTermTraits = ConditionObjectTraits<SaiP2MPTunnelTermTraits>;
+using SaiTunnelTermAdapterHostKey =
+    typename SaiTunnelTermTraits::AdapterHostKey;
+using SaiTunnelTermAdaptertKey =
+    typename SaiTunnelTermTraits::AdapterKey<TunnelTermSaiId>;
+
+SAI_ATTRIBUTE_NAME(P2MPTunnelTerm, Type);
+SAI_ATTRIBUTE_NAME(P2MPTunnelTerm, VrId);
+SAI_ATTRIBUTE_NAME(P2MPTunnelTerm, DstIp);
+SAI_ATTRIBUTE_NAME(P2MPTunnelTerm, DstIpMask);
+SAI_ATTRIBUTE_NAME(P2MPTunnelTerm, SrcIp);
+SAI_ATTRIBUTE_NAME(P2MPTunnelTerm, SrcIpMask);
+SAI_ATTRIBUTE_NAME(P2MPTunnelTerm, TunnelType);
+SAI_ATTRIBUTE_NAME(P2MPTunnelTerm, ActionTunnelId);
 
 class TunnelApi : public SaiApi<TunnelApi> {
  public:
