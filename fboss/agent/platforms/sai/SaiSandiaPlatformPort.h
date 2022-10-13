@@ -14,10 +14,11 @@
 
 namespace facebook::fboss {
 
-class SaiSandiaPlatformPort : public SaiTajoPlatformPort {
+class SaiSandiaPlatformPort : public SaiTajoPlatformPort, MultiPimPlatformPort {
  public:
   explicit SaiSandiaPlatformPort(PortID id, SaiPlatform* platform)
-      : SaiTajoPlatformPort(id, platform) {}
+      : SaiTajoPlatformPort(id, platform),
+        MultiPimPlatformPort(id, getPlatformPortEntry()) {}
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;
   uint32_t getCurrentLedState() const override;
