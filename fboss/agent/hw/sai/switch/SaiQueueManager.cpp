@@ -101,9 +101,11 @@ SaiQueueConfig makeSaiQueueConfig(
   cfg::StreamType streamType;
   switch (queueType.value()) {
     case SAI_QUEUE_TYPE_UNICAST:
+    case SAI_QUEUE_TYPE_UNICAST_VOQ:
       streamType = cfg::StreamType::UNICAST;
       break;
     case SAI_QUEUE_TYPE_MULTICAST:
+    case SAI_QUEUE_TYPE_MULTICAST_VOQ:
       streamType = cfg::StreamType::MULTICAST;
       break;
     case SAI_QUEUE_TYPE_ALL:
