@@ -3,6 +3,11 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+include_directories(
+    ${LIBGMOCK_INCLUDE_DIR}
+    ${GTEST_INCLUDE_DIRS}
+)
+
 add_library(fsdb_stream_client
   fboss/fsdb/client/FsdbStreamClient.cpp
   fboss/fsdb/client/oss/FsdbStreamClient.cpp
