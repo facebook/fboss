@@ -25,6 +25,8 @@ class SwitchState;
 class RouteUpdateWrapper;
 class AclNexthopHandler;
 
+// TODO - get this from config
+constexpr auto kSystemPortBase = 100;
 /*
  * Apply a thrift config structure to a SwitchState object.
  *
