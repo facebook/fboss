@@ -105,7 +105,7 @@ bool FsdbStreamClient::isConnectedToServer() const {
 void FsdbStreamClient::connectToServer(const std::string& ip, uint16_t port) {
   CHECK(getState() == State::DISCONNECTED);
 
-  streamEvb_->runInEventBaseThreadAndWait([this, ip, port]() {
+  streamEvb_->runImmediatelyOrRunInEventBaseThreadAndWait([this, ip, port]() {
     try {
       createClient(ip, port);
       setState(State::CONNECTED);
@@ -151,7 +151,7 @@ void FsdbStreamClient::cancel() {
     return;
   }
   serverAddress_.wlock()->reset();
-  connRetryEvb_->runInEventBaseThreadAndWait(
+  connRetryEvb_->runImmediatelyOrRunInEventBaseThreadAndWait(
       [this] { timer_->cancelTimeout(); });
   setState(State::CANCELLED);
   streamEvb_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
