@@ -50,7 +50,9 @@ flat_map<PortDescriptor, VlanID> computePortDesc2Vlan(
   boost::container::flat_map<PortDescriptor, VlanID> portDesc2Vlan;
   flat_set<PortID> portIds;
   for (const auto& port : *inputState->getPorts().get()) {
-    portIds.insert(port->getID());
+    if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
+      portIds.insert(port->getID());
+    }
   }
   for (const auto& portId : portIds) {
     PortDescriptor portDesc = PortDescriptor(portId);
