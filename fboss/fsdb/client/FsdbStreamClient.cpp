@@ -169,12 +169,8 @@ void FsdbStreamClient::cancel() {
   connRetryEvb_->runInEventBaseThreadAndWait(
       [this] { timer_->cancelTimeout(); });
   setState(State::CANCELLED);
-  resetClient();
-  // terminate event base getting ready for clean-up
-  // if and only if client event base thread is created locally
-  if (clientEvbThread_) {
-    clientEvb_->terminateLoopSoon();
-  }
+  streamEvb_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
+      [this] { resetClient(); });
   XLOG(DBG2) << " Cancelled: " << clientId();
 }
 
