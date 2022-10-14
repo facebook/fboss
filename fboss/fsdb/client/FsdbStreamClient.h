@@ -40,8 +40,7 @@ class FsdbStreamClient {
       folly::EventBase* connRetryEvb,
       const std::string& counterPrefix,
       FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
-                                                 State /*newState*/) {},
-      folly::EventBase* clientEvb = nullptr);
+                                                 State /*newState*/) {});
   virtual ~FsdbStreamClient();
 
   void setServerToConnect(
@@ -108,10 +107,8 @@ class FsdbStreamClient {
   std::string clientId_;
   folly::EventBase* streamEvb_;
   folly::EventBase* connRetryEvb_;
-  folly::EventBase* clientEvb_;
   folly::Synchronized<State> state_{State::DISCONNECTED};
   std::string counterPrefix_;
-  std::unique_ptr<folly::ScopedEventBaseThread> clientEvbThread_{nullptr};
   folly::Synchronized<std::optional<folly::SocketAddress>> serverAddress_;
   FsdbStreamStateChangeCb stateChangeCb_;
   std::atomic<bool> serviceLoopRunning_{false};
@@ -120,12 +117,6 @@ class FsdbStreamClient {
   folly::coro::CancellableAsyncScope serviceLoopScope_;
 #endif
   fb303::TimeseriesWrapper disconnectEvents_;
-
-// per class placeholder for test code injection
-// only need to be setup once here
-#ifdef FsdbStreamClient_TEST_FRIENDS
-  FsdbStreamClient_TEST_FRIENDS;
-#endif
 };
 
 } // namespace facebook::fboss::fsdb

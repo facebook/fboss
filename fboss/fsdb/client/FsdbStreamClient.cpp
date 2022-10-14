@@ -21,8 +21,7 @@ FsdbStreamClient::FsdbStreamClient(
     folly::EventBase* streamEvb,
     folly::EventBase* connRetryEvb,
     const std::string& counterPrefix,
-    FsdbStreamStateChangeCb stateChangeCb,
-    folly::EventBase* clientEvb)
+    FsdbStreamStateChangeCb stateChangeCb)
     : clientId_(clientId),
       streamEvb_(streamEvb),
       connRetryEvb_(connRetryEvb),
@@ -42,15 +41,6 @@ FsdbStreamClient::FsdbStreamClient(
   fb303::fbData->setCounter(getConnectedCounterName(), 0);
   connRetryEvb_->runInEventBaseThread(
       [this] { timer_->scheduleTimeout(FLAGS_fsdb_reconnect_ms); });
-  if (clientEvb) {
-    // use passed along client evb if it is not null
-    clientEvb_ = clientEvb;
-  } else {
-    // otherwise spawn own client thread
-    clientEvbThread_ =
-        std::make_unique<folly::ScopedEventBaseThread>(clientId_);
-    clientEvb_ = clientEvbThread_->getEventBase();
-  }
 }
 
 FsdbStreamClient::~FsdbStreamClient() {

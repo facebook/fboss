@@ -2,9 +2,6 @@
 
 #include <gtest/gtest.h>
 
-#define FsdbStreamClient_TEST_FRIENDS \
-  FRIEND_TEST(StreamClientTest, passClientEvbOrNot);
-
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/CommonUtils.h"
@@ -21,10 +18,7 @@ namespace facebook::fboss::fsdb {
 
 class TestFsdbStreamClient : public FsdbStreamClient {
  public:
-  TestFsdbStreamClient(
-      folly::EventBase* streamEvb,
-      folly::EventBase* timerEvb,
-      folly::EventBase* clientEvb = nullptr)
+  TestFsdbStreamClient(folly::EventBase* streamEvb, folly::EventBase* timerEvb)
       : FsdbStreamClient(
             "test_fsdb_client",
             streamEvb,
@@ -33,8 +27,7 @@ class TestFsdbStreamClient : public FsdbStreamClient {
             [this](auto oldState, auto newState) {
               EXPECT_NE(oldState, newState);
               lastStateUpdateSeen_ = newState;
-            },
-            clientEvb) {}
+            }) {}
 
   ~TestFsdbStreamClient() {
     cancel();
@@ -139,33 +132,5 @@ TEST_F(StreamClientTest, multipleStreamClientsOnSameEvb) {
   streamClient_->cancel();
   streamClient2->cancel();
   verifyServiceLoopRunning(false, {streamClient_.get(), streamClient2.get()});
-}
-
-TEST_F(StreamClientTest, passClientEvbOrNot) {
-  // local thread client
-  auto localThreadClient = std::move(streamClient_);
-
-  // create stream client with client evb pass through
-  auto externalThread = std::make_unique<folly::ScopedEventBaseThread>();
-  auto externalThreadClient = std::make_unique<TestFsdbStreamClient>(
-      streamEvbThread_->getEventBase(),
-      connRetryEvbThread_->getEventBase(),
-      externalThread->getEventBase());
-
-  // default stream client will have its local client thread
-  EXPECT_TRUE(localThreadClient->clientEvbThread_);
-
-  // don't spawn local client thread if client evb is given
-  EXPECT_FALSE(externalThreadClient->clientEvbThread_);
-
-  // the other behavior should be comparable between those clients
-  localThreadClient->markConnected();
-  externalThreadClient->markConnected();
-  verifyServiceLoopRunning(
-      true, {localThreadClient.get(), externalThreadClient.get()});
-  localThreadClient->cancel();
-  externalThreadClient->cancel();
-  verifyServiceLoopRunning(
-      false, {localThreadClient.get(), externalThreadClient.get()});
 }
 } // namespace facebook::fboss::fsdb
