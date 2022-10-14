@@ -83,6 +83,7 @@ struct SaiPortHandle {
   std::shared_ptr<SaiSamplePacket> ingressSamplePacket;
   std::shared_ptr<SaiSamplePacket> egressSamplePacket;
   SaiQueueHandles queues;
+  void resetQueues();
   SaiPortMirrorInfo mirrorInfo;
   folly::
       F14FastMap<IngressPriorityGroupSaiId, std::shared_ptr<SaiBufferProfile>>
@@ -100,6 +101,7 @@ class SaiPortManager {
       SaiPlatform* platform,
       ConcurrentIndices* concurrentIndices_);
   ~SaiPortManager();
+  void resetQueues();
   PortSaiId addPort(const std::shared_ptr<Port>& swPort);
   void removePort(const std::shared_ptr<Port>& swPort);
   void changePort(

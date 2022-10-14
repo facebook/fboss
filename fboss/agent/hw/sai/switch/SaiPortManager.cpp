@@ -260,6 +260,12 @@ TransmitterTechnology fromSaiMediaType(sai_port_media_type_t saiMediaType) {
 }
 } // namespace
 
+void SaiPortHandle::resetQueues() {
+  for (auto& cfgAndQueue : queues) {
+    cfgAndQueue.second->resetQueue();
+  }
+}
+
 SaiPortManager::SaiPortManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
@@ -1725,4 +1731,9 @@ uint8_t SaiPortManager::getNumPmdLanes(PortSaiId saiPortId) const {
   return lanes.size();
 }
 
+void SaiPortManager::resetQueues() {
+  for (auto& idAndHandle : handles_) {
+    idAndHandle.second->resetQueues();
+  }
+}
 } // namespace facebook::fboss

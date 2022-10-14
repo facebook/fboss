@@ -154,6 +154,10 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // dependency with mirror and can be removed.
   mirrorManager_.reset();
   macsecManager_.reset();
+  // On Silicon one family chips, queues are tied to system
+  // ports. So before we delete system ports, its required
+  // to reset the queue associations.
+  portManager_->resetQueues();
   systemPortManager_.reset();
   portManager_.reset();
   // Hash manager is going away, reset hashes
