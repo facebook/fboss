@@ -573,7 +573,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY200",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -613,7 +613,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY200",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -752,7 +752,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY200",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -772,7 +772,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY200",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -978,7 +978,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY200",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -998,7 +998,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY200",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -1661,7 +1661,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY200",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -1701,7 +1701,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY200",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -1840,7 +1840,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY200",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -1860,7 +1860,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY200",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -2066,7 +2066,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY200",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -2086,7 +2086,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY200",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -2749,7 +2749,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY210",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -2789,7 +2789,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY210",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -2928,7 +2928,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY210",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -2948,7 +2948,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY210",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -3154,7 +3154,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY210",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -3174,7 +3174,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY210",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -3837,7 +3837,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY210",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -3877,7 +3877,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY210",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -4016,7 +4016,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY210",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -4036,7 +4036,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY210",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -4242,7 +4242,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY210",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -4262,7 +4262,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY210",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -4925,7 +4925,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY220",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -4965,7 +4965,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY220",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -5104,7 +5104,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY220",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -5124,7 +5124,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY220",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -5330,7 +5330,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY220",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -5350,7 +5350,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY220",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -6013,7 +6013,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY220",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -6053,7 +6053,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY220",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -6192,7 +6192,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY220",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -6212,7 +6212,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY220",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -6418,7 +6418,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY220",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -6438,7 +6438,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY220",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -7101,7 +7101,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY230",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -7141,7 +7141,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY230",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -7280,7 +7280,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY230",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -7300,7 +7300,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY230",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -7506,7 +7506,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY230",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -7526,7 +7526,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY230",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -8189,7 +8189,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY230",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -8229,7 +8229,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY230",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -8368,7 +8368,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY230",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -8388,7 +8388,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY230",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -8594,7 +8594,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY230",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -8614,7 +8614,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY230",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -9277,7 +9277,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY300",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -9317,7 +9317,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY300",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -9456,7 +9456,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY300",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -9476,7 +9476,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY300",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -9682,7 +9682,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY300",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -9702,7 +9702,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY300",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -10365,7 +10365,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY300",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -10405,7 +10405,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY300",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -10544,7 +10544,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY300",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -10564,7 +10564,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY300",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -10770,7 +10770,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY300",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -10790,7 +10790,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY300",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -11453,7 +11453,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY310",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -11493,7 +11493,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY310",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -11632,7 +11632,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY310",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -11652,7 +11652,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY310",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -11858,7 +11858,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY310",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -11878,7 +11878,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY310",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -12541,7 +12541,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY310",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -12581,7 +12581,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY310",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -12720,7 +12720,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY310",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -12740,7 +12740,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY310",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -12946,7 +12946,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY310",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -12966,7 +12966,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY310",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -13629,7 +13629,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY320",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -13669,7 +13669,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY320",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -13808,7 +13808,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY320",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -13828,7 +13828,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY320",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -14034,7 +14034,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY320",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -14054,7 +14054,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY320",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -14717,7 +14717,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY320",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -14757,7 +14757,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY320",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -14896,7 +14896,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY320",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -14916,7 +14916,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY320",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -15122,7 +15122,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY320",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -15142,7 +15142,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY320",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -15805,7 +15805,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY330",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -15845,7 +15845,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY330",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -15984,7 +15984,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY330",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -16004,7 +16004,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY330",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -16210,7 +16210,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY330",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -16230,7 +16230,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY330",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -16893,7 +16893,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY330",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -16933,7 +16933,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY330",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -17072,7 +17072,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY330",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -17092,7 +17092,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY330",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -17298,7 +17298,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY330",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -17318,7 +17318,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY330",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -17981,7 +17981,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY400",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -18021,7 +18021,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY400",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -18160,7 +18160,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY400",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -18180,7 +18180,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY400",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -18386,7 +18386,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY400",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -18406,7 +18406,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY400",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -19069,7 +19069,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY400",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -19109,7 +19109,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY400",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -19248,7 +19248,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY400",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -19268,7 +19268,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY400",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -19474,7 +19474,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY400",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -19494,7 +19494,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY400",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -20157,7 +20157,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY410",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -20197,7 +20197,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY410",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -20336,7 +20336,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY410",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -20356,7 +20356,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY410",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -20562,7 +20562,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY410",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -20582,7 +20582,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY410",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -21245,7 +21245,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY410",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -21285,7 +21285,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY410",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -21424,7 +21424,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY410",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -21444,7 +21444,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY410",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -21650,7 +21650,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY410",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -21670,7 +21670,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY410",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -22333,7 +22333,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY420",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -22373,7 +22373,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY420",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -22512,7 +22512,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY420",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -22532,7 +22532,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY420",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -22738,7 +22738,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY420",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -22758,7 +22758,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY420",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -23421,7 +23421,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY420",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -23461,7 +23461,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY420",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -23600,7 +23600,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY420",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -23620,7 +23620,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY420",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -23826,7 +23826,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY420",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -23846,7 +23846,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY420",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -24509,7 +24509,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY430",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -24549,7 +24549,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY430",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -24688,7 +24688,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY430",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -24708,7 +24708,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY430",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -24914,7 +24914,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY430",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -24934,7 +24934,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY430",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -25597,7 +25597,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY430",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -25637,7 +25637,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY430",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -25776,7 +25776,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY430",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -25796,7 +25796,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY430",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -26002,7 +26002,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY430",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -26022,7 +26022,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY430",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -26685,7 +26685,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY500",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -26725,7 +26725,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY500",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -26864,7 +26864,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY500",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -26884,7 +26884,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY500",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -27090,7 +27090,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY500",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -27110,7 +27110,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY500",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -27773,7 +27773,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY500",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -27813,7 +27813,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY500",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -27952,7 +27952,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY500",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -27972,7 +27972,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY500",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -28178,7 +28178,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY500",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -28198,7 +28198,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY500",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -28861,7 +28861,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY510",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -28901,7 +28901,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY510",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -29040,7 +29040,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY510",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -29060,7 +29060,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY510",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -29266,7 +29266,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY510",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -29286,7 +29286,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY510",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -29949,7 +29949,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY510",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -29989,7 +29989,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY510",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -30128,7 +30128,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY510",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -30148,7 +30148,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY510",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -30354,7 +30354,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY510",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -30374,7 +30374,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY510",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -31037,7 +31037,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY520",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -31077,7 +31077,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY520",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -31216,7 +31216,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY520",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -31236,7 +31236,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY520",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -31442,7 +31442,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY520",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -31462,7 +31462,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY520",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -32125,7 +32125,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY520",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -32165,7 +32165,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY520",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -32304,7 +32304,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY520",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -32324,7 +32324,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY520",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -32530,7 +32530,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY520",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -32550,7 +32550,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY520",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -33213,7 +33213,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY530",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -33253,7 +33253,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY530",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -33392,7 +33392,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY530",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -33412,7 +33412,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY530",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -33618,7 +33618,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY530",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -33638,7 +33638,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY530",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -34301,7 +34301,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY530",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -34341,7 +34341,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY530",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -34480,7 +34480,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY530",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -34500,7 +34500,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY530",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -34706,7 +34706,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY530",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -34726,7 +34726,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY530",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -35389,7 +35389,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY600",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -35429,7 +35429,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY600",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -35568,7 +35568,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY600",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -35588,7 +35588,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY600",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -35794,7 +35794,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY600",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -35814,7 +35814,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY600",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -36477,7 +36477,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY600",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -36517,7 +36517,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY600",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -36656,7 +36656,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY600",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -36676,7 +36676,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY600",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -36882,7 +36882,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY600",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -36902,7 +36902,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY600",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -37565,7 +37565,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY610",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -37605,7 +37605,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY610",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -37744,7 +37744,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY610",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -37764,7 +37764,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY610",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -37970,7 +37970,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY610",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -37990,7 +37990,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY610",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -38653,7 +38653,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY610",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -38693,7 +38693,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY610",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -38832,7 +38832,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY610",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -38852,7 +38852,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY610",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -39058,7 +39058,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY610",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -39078,7 +39078,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY610",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -39741,7 +39741,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY620",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -39781,7 +39781,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY620",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -39920,7 +39920,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY620",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -39940,7 +39940,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY620",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -40146,7 +40146,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY620",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -40166,7 +40166,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY620",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -40829,7 +40829,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY620",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -40869,7 +40869,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY620",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -41008,7 +41008,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY620",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -41028,7 +41028,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY620",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -41234,7 +41234,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY620",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -41254,7 +41254,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY620",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -41917,7 +41917,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY630",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -41957,7 +41957,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY630",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -42096,7 +42096,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY630",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -42116,7 +42116,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY630",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -42322,7 +42322,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY630",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -42342,7 +42342,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY630",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -43005,7 +43005,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY630",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -43045,7 +43045,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY630",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -43184,7 +43184,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY630",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -43204,7 +43204,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY630",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -43410,7 +43410,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY630",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -43430,7 +43430,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY630",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -44093,7 +44093,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY700",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -44133,7 +44133,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY700",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -44272,7 +44272,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY700",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -44292,7 +44292,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY700",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -44498,7 +44498,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY700",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -44518,7 +44518,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY700",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -45181,7 +45181,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY700",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -45221,7 +45221,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY700",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -45360,7 +45360,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY700",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -45380,7 +45380,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY700",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -45586,7 +45586,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY700",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -45606,7 +45606,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY700",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -46269,7 +46269,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY710",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -46309,7 +46309,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY710",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -46448,7 +46448,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY710",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -46468,7 +46468,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY710",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -46674,7 +46674,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY710",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -46694,7 +46694,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY710",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -47357,7 +47357,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY710",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -47397,7 +47397,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY710",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -47536,7 +47536,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY710",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -47556,7 +47556,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY710",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -47762,7 +47762,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY710",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -47782,7 +47782,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY710",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -48445,7 +48445,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY720",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -48485,7 +48485,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY720",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -48624,7 +48624,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY720",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -48644,7 +48644,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY720",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -48850,7 +48850,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY720",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -48870,7 +48870,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY720",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -49533,7 +49533,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY720",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -49573,7 +49573,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY720",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -49712,7 +49712,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY720",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -49732,7 +49732,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY720",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -49938,7 +49938,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY720",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -49958,7 +49958,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY720",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -50621,7 +50621,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY730",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -50661,7 +50661,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY730",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -50800,7 +50800,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY730",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -50820,7 +50820,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY730",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -51026,7 +51026,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY730",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -51046,7 +51046,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY730",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -51709,7 +51709,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY730",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -51749,7 +51749,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY730",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -51888,7 +51888,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY730",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -51908,7 +51908,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY730",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -52114,7 +52114,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY730",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -52134,7 +52134,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY730",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -52797,7 +52797,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY800",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -52837,7 +52837,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY800",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -52976,7 +52976,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY800",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -52996,7 +52996,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY800",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -53202,7 +53202,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY800",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -53222,7 +53222,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY800",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -53885,7 +53885,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY800",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -53925,7 +53925,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY800",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -54064,7 +54064,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY800",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -54084,7 +54084,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY800",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -54290,7 +54290,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY800",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -54310,7 +54310,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY800",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -54973,7 +54973,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY810",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -55013,7 +55013,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY810",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -55152,7 +55152,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY810",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -55172,7 +55172,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY810",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -55378,7 +55378,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY810",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -55398,7 +55398,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY810",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -56061,7 +56061,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY810",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -56101,7 +56101,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY810",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -56240,7 +56240,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY810",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -56260,7 +56260,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY810",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -56466,7 +56466,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY810",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -56486,7 +56486,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY810",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -57149,7 +57149,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY820",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -57189,7 +57189,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY820",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -57328,7 +57328,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY820",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -57348,7 +57348,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY820",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -57554,7 +57554,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY820",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -57574,7 +57574,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY820",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -58237,7 +58237,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY820",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -58277,7 +58277,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY820",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -58416,7 +58416,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY820",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -58436,7 +58436,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY820",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -58642,7 +58642,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY820",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -58662,7 +58662,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY820",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -59325,7 +59325,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY830",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -59365,7 +59365,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY830",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -59504,7 +59504,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY830",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -59524,7 +59524,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY830",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -59730,7 +59730,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY830",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -59750,7 +59750,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY830",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -60413,7 +60413,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY830",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -60453,7 +60453,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY830",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -60592,7 +60592,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY830",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -60612,7 +60612,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY830",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -60818,7 +60818,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY830",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -60838,7 +60838,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY830",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -61501,7 +61501,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY900",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -61541,7 +61541,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY900",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -61680,7 +61680,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY900",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -61700,7 +61700,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY900",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -61906,7 +61906,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY900",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -61926,7 +61926,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY900",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -62589,7 +62589,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY900",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -62629,7 +62629,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY900",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -62768,7 +62768,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY900",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -62788,7 +62788,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY900",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -62994,7 +62994,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY900",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -63014,7 +63014,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY900",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -63677,7 +63677,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY910",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -63717,7 +63717,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY910",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -63856,7 +63856,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY910",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -63876,7 +63876,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY910",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -64082,7 +64082,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY910",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -64102,7 +64102,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY910",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -64765,7 +64765,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY910",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -64805,7 +64805,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY910",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -64944,7 +64944,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY910",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -64964,7 +64964,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY910",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -65170,7 +65170,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY910",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -65190,7 +65190,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY910",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -65853,7 +65853,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY920",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -65893,7 +65893,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY920",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -66032,7 +66032,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY920",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -66052,7 +66052,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY920",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -66258,7 +66258,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY920",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -66278,7 +66278,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY920",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -66941,7 +66941,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY920",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -66981,7 +66981,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY920",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -67120,7 +67120,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY920",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -67140,7 +67140,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY920",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -67346,7 +67346,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY920",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -67366,7 +67366,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY920",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
@@ -68029,7 +68029,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY930",
-                    "lane": 10
+                    "lane": 12
                   },
                   "line": [
                     {
@@ -68069,7 +68069,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY930",
-                    "lane": 11
+                    "lane": 13
                   },
                   "line": [
                     {
@@ -68208,7 +68208,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY930",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 9,
@@ -68228,7 +68228,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY930",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 9,
@@ -68434,7 +68434,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY930",
-                      "lane": 10
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 17,
@@ -68454,7 +68454,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY930",
-                      "lane": 11
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 17,
@@ -69117,7 +69117,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY930",
-                    "lane": 2
+                    "lane": 4
                   },
                   "line": [
                     {
@@ -69157,7 +69157,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "junction": {
                   "system": {
                     "chip": "XPHY930",
-                    "lane": 3
+                    "lane": 5
                   },
                   "line": [
                     {
@@ -69296,7 +69296,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY930",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 9,
@@ -69316,7 +69316,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY930",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 9,
@@ -69522,7 +69522,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY930",
-                      "lane": 2
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 17,
@@ -69542,7 +69542,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "XPHY930",
-                      "lane": 3
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 17,
