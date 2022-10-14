@@ -6,6 +6,7 @@
 #include <folly/String.h>
 #include <folly/concurrency/DynamicBoundedQueue.h>
 #include <folly/experimental/coro/AsyncGenerator.h>
+#include <folly/experimental/coro/AsyncPipe.h>
 #include "fboss/fsdb/client/FsdbStreamClient.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
@@ -15,11 +16,16 @@
 namespace facebook::fboss::fsdb {
 template <typename PubUnit>
 class FsdbPublisher : public FsdbStreamClient {
-  using QueueT = folly::DMPSCQueue<PubUnit, true /*may block*/>;
   static constexpr auto kPubQueueCapacity{2000};
-  static std::unique_ptr<QueueT> makeQueue() {
-    return std::make_unique<QueueT>(kPubQueueCapacity);
+#if FOLLY_HAS_COROUTINES
+  using PipeT =
+      folly::coro::BoundedAsyncPipe<PubUnit, false /* SingleProducer */>;
+  using GenT = folly::coro::AsyncGenerator<PubUnit&&>;
+  using GenPipeT = std::pair<GenT, PipeT>;
+  static std::unique_ptr<GenPipeT> makePipe() {
+    return std::make_unique<GenPipeT>(PipeT::create(kPubQueueCapacity));
   }
+#endif
   std::string typeStr() {
     return std::is_same_v<PubUnit, OperDelta> ? "Delta" : "Path";
   }
@@ -59,20 +65,22 @@ class FsdbPublisher : public FsdbStreamClient {
                 handleStateChange(oldState, newState);
               }
             }),
-        toPublishQueue_(makeQueue()),
+#if FOLLY_HAS_COROUTINES
+        asyncPipe_(makePipe()),
+#endif
         publishPath_(publishPath),
         publishStats_(publishStats),
         writeErrors_(
             fb303::ThreadCachedServiceData::get()->getThreadStats(),
             getCounterPrefix() + ".writeErrors",
             fb303::SUM,
-            fb303::RATE) {}
+            fb303::RATE) {
+  }
 
-  bool write(PubUnit pubUnit);
+  bool write(PubUnit&& pubUnit);
 
   ssize_t queueSize() const {
-    auto toPublishQueueRPtr = toPublishQueue_.rlock();
-    return *toPublishQueueRPtr ? (*toPublishQueueRPtr)->size() : 0;
+    return queueSize_;
   }
   size_t queueCapacity() const {
     return kPubQueueCapacity;
@@ -83,15 +91,18 @@ class FsdbPublisher : public FsdbStreamClient {
 
  protected:
 #if FOLLY_HAS_COROUTINES
-  folly::coro::AsyncGenerator<std::optional<PubUnit>> createGenerator();
+  folly::coro::AsyncGenerator<PubUnit&&> createGenerator();
 #endif
   OperPubRequest createRequest() const;
 
  private:
   void handleStateChange(State oldState, State newState);
-  // Note unique_ptr is synchronized, not QueueT. The latter manages its
-  // own synchronization
-  folly::Synchronized<std::unique_ptr<QueueT>> toPublishQueue_;
+// Note unique_ptr is synchronized, not GenT/PipeT. The latter manages its
+// own synchronization
+#if FOLLY_HAS_COROUTINES
+  folly::Synchronized<std::unique_ptr<GenPipeT>> asyncPipe_;
+#endif
+  std::atomic<ssize_t> queueSize_{0};
   const std::vector<std::string> publishPath_;
   const bool publishStats_;
   fb303::ThreadCachedServiceData::TLTimeseries writeErrors_;

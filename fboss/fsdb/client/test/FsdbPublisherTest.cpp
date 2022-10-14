@@ -93,6 +93,7 @@ TEST_F(StreamPublisherTest, overflowQueue) {
     streamPublisher_->write(OperDelta{});
   }
   EXPECT_EQ(streamPublisher_->queueSize(), streamPublisher_->queueCapacity());
+#if FOLLY_HAS_COROUTINES
   // Queue capacity is not precise (~10% slack is typical), try to
   // push 2Xcapacity elements
   bool writeFailed = false;
@@ -111,7 +112,6 @@ TEST_F(StreamPublisherTest, overflowQueue) {
   EXPECT_EQ(streamPublisher_->queueSize(), 0);
   // Generator should break the service loop
   streamPublisher_->startGenerator();
-#if FOLLY_HAS_COROUTINES
   WITH_RETRIES({
     EXPECT_EVENTUALLY_FALSE(streamPublisher_->isConnectedToServer());
     fb303::ThreadCachedServiceData::get()->publishStats();
