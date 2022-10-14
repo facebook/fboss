@@ -13,6 +13,10 @@ auto constexpr kDelta = "delta";
 auto constexpr kState = "state";
 auto constexpr kStats = "stats";
 auto constexpr kPath = "path";
+auto constexpr kReconnectThread = "FsdbReconnectThread";
+auto constexpr kSubscriberThread = "FsdbSubscriberThread";
+auto constexpr kStatsPublisherThread = "FsdbStatsPublisherThread";
+auto constexpr kStatePublisherThread = "FsdbStatePublisherThread";
 
 std::string toSubscriptionStr(
     const std::string& fsdbHost,
@@ -31,8 +35,45 @@ std::string toSubscriptionStr(
 } // namespace
 namespace facebook::fboss::fsdb {
 
-FsdbPubSubManager::FsdbPubSubManager(const std::string& clientId)
-    : clientId_(clientId) {}
+FsdbPubSubManager::FsdbPubSubManager(
+    const std::string& clientId,
+    folly::EventBase* reconnectEvb,
+    folly::EventBase* subscriberEvb,
+    folly::EventBase* statsPublisherEvb,
+    folly::EventBase* statePublisherEvb)
+    : clientId_(clientId),
+      // if event base pointer is passed in, no need to spawn local thread
+      reconnectEvbThread_(
+          reconnectEvb ? nullptr
+                       : std::make_unique<folly::ScopedEventBaseThread>(
+                             kReconnectThread)),
+      subscriberEvbThread_(
+          subscriberEvb ? nullptr
+                        : std::make_unique<folly::ScopedEventBaseThread>(
+                              kSubscriberThread)),
+      statsPublisherStreamEvbThread_(
+          statsPublisherEvb ? nullptr
+                            : std::make_unique<folly::ScopedEventBaseThread>(
+                                  kStatsPublisherThread)),
+      statePublisherStreamEvbThread_(
+          statePublisherEvb ? nullptr
+                            : std::make_unique<folly::ScopedEventBaseThread>(
+                                  kStatePublisherThread)),
+      // if local thread available, use local event base otherwise use passed in
+      reconnectEvb_(
+          reconnectEvbThread_ ? reconnectEvbThread_->getEventBase()
+                              : reconnectEvb),
+      subscriberEvb_(
+          subscriberEvbThread_ ? subscriberEvbThread_->getEventBase()
+                               : subscriberEvb),
+      statsPublisherEvb_(
+          statsPublisherStreamEvbThread_
+              ? statsPublisherStreamEvbThread_->getEventBase()
+              : statsPublisherEvb),
+      statePublisherEvb_(
+          statePublisherStreamEvbThread_
+              ? statePublisherStreamEvbThread_->getEventBase()
+              : statePublisherEvb) {}
 
 FsdbPubSubManager::~FsdbPubSubManager() {
   std::lock_guard<std::mutex> lk(publisherMutex_);
@@ -63,13 +104,12 @@ std::unique_ptr<PublisherT> FsdbPubSubManager::createPublisherImpl(
     throw std::runtime_error(
         "Only one instance of delta or state publisher allowed");
   }
-  auto& evbThread = publishStats ? statsPublisherStreamEvbThread_
-                                 : statePublisherStreamEvbThread_;
+  auto& publisherEvb = publishStats ? statsPublisherEvb_ : statePublisherEvb_;
   auto publisher = std::make_unique<PublisherT>(
       clientId_,
       publishPath,
-      evbThread.getEventBase(),
-      reconnectThread_.getEventBase(),
+      publisherEvb,
+      reconnectEvb_,
       publishStats,
       publisherStateChangeCb);
   publisher->setServerToConnect("::1", fsdbPort);
@@ -250,8 +290,8 @@ void FsdbPubSubManager::addSubscriptionImpl(
         std::make_unique<SubscriberT>(
             clientId_,
             subscribePath,
-            subscribersStreamEvbThread_.getEventBase(),
-            reconnectThread_.getEventBase(),
+            subscriberEvb_,
+            reconnectEvb_,
             subUnitAvailableCb,
             subscribeStats,
             stateChangeCb)));

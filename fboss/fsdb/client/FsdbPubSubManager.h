@@ -3,6 +3,7 @@
 #pragma once
 #include <folly/Synchronized.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
+#include <gtest/gtest_prod.h>
 #include "fboss/fsdb/client/FsdbDeltaSubscriber.h"
 #include "fboss/fsdb/client/FsdbStateSubscriber.h"
 #include "fboss/fsdb/client/FsdbStreamClient.h"
@@ -18,7 +19,12 @@ class FsdbDeltaPublisher;
 class FsdbStatePublisher;
 class FsdbPubSubManager {
  public:
-  explicit FsdbPubSubManager(const std::string& clientId);
+  explicit FsdbPubSubManager(
+      const std::string& clientId,
+      folly::EventBase* reconnectEvb = nullptr,
+      folly::EventBase* subscriberEvb = nullptr,
+      folly::EventBase* statsPublisherEvb = nullptr,
+      folly::EventBase* statePublisherEvb = nullptr);
   ~FsdbPubSubManager();
 
   /* Publisher create APIs */
@@ -136,14 +142,22 @@ class FsdbPubSubManager {
       const std::string& fsdbHost,
       int32_t fsdbPort = FLAGS_fsdbPort);
 
-  folly::ScopedEventBaseThread reconnectThread_{"FsdbReconnectThread"};
-  folly::ScopedEventBaseThread statsPublisherStreamEvbThread_{
-      "FsdbStatsPublisherThread"};
-  folly::ScopedEventBaseThread statePublisherStreamEvbThread_{
-      "FsdbStatePublisherThread"};
-  folly::ScopedEventBaseThread subscribersStreamEvbThread_{
-      "FSdbSubscriberThread"};
   const std::string clientId_;
+
+  // local threads are only needed when there are no external eventbases
+  std::unique_ptr<folly::ScopedEventBaseThread> reconnectEvbThread_{nullptr};
+  std::unique_ptr<folly::ScopedEventBaseThread> subscriberEvbThread_{nullptr};
+  std::unique_ptr<folly::ScopedEventBaseThread> statsPublisherStreamEvbThread_{
+      nullptr};
+  std::unique_ptr<folly::ScopedEventBaseThread> statePublisherStreamEvbThread_{
+      nullptr};
+
+  // eventbase pointers from either external/internal threads
+  folly::EventBase* reconnectEvb_;
+  folly::EventBase* subscriberEvb_;
+  folly::EventBase* statsPublisherEvb_;
+  folly::EventBase* statePublisherEvb_;
+
   std::mutex publisherMutex_;
   // State Publishers
   std::unique_ptr<FsdbDeltaPublisher> stateDeltaPublisher_;
@@ -154,5 +168,11 @@ class FsdbPubSubManager {
   folly::Synchronized<
       std::unordered_map<std::string, std::unique_ptr<FsdbStreamClient>>>
       path2Subscriber_;
+
+// per class placeholder for test code injection
+// only need to be setup once here
+#ifdef FsdbPubSubManager_TEST_FRIENDS
+  FsdbPubSubManager_TEST_FRIENDS;
+#endif
 };
 } // namespace facebook::fboss::fsdb
