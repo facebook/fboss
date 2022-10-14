@@ -119,7 +119,7 @@ class FsdbStreamClient {
 #if FOLLY_HAS_COROUTINES
   folly::coro::CancellableAsyncScope serviceLoopScope_;
 #endif
-  fb303::ThreadCachedServiceData::TLTimeseries disconnectEvents_;
+  fb303::TimeseriesWrapper disconnectEvents_;
 
 // per class placeholder for test code injection
 // only need to be setup once here

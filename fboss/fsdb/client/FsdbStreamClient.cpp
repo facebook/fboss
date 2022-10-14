@@ -32,7 +32,6 @@ FsdbStreamClient::FsdbStreamClient(
           *connRetryEvb,
           [this]() noexcept { timeoutExpired(); })),
       disconnectEvents_(
-          fb303::ThreadCachedServiceData::get()->getThreadStats(),
           counterPrefix_ + ".disconnects",
           fb303::SUM,
           fb303::RATE) {
@@ -84,7 +83,7 @@ void FsdbStreamClient::setState(State state) {
 #endif
     fb303::fbData->setCounter(getConnectedCounterName(), 0);
   } else if (state == State::DISCONNECTED) {
-    disconnectEvents_.addValue(1);
+    disconnectEvents_.add(1);
     fb303::fbData->setCounter(getConnectedCounterName(), 0);
   }
   stateChangeCb_(oldState, state);
