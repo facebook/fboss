@@ -12,6 +12,7 @@
 
 #include <iterator>
 
+#include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/RouteUpdateWrapper.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/Interface.h"
@@ -98,9 +99,8 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::computePortDesc2Interface(
       portDesc = PortDescriptor(*aggId);
     }
 
-    if (auto vlan = getVlan(portDesc, inputState)) {
-      // FIXME - assumes 1:1 mapping b/w VlanID and InterfaceID
-      portDesc2Interface.insert(std::make_pair(portDesc, InterfaceID(*vlan)));
+    if (auto intf = getInterface(portDesc, inputState)) {
+      portDesc2Interface.insert(std::make_pair(portDesc, *intf));
     }
   }
   return portDesc2Interface;
@@ -192,6 +192,30 @@ std::vector<PortDescriptor> BaseEcmpSetupHelper<AddrT, NextHopT>::ecmpPortDescs(
   return portDescs;
 }
 
+template <typename AddrT, typename NextHopT>
+std::optional<InterfaceID> BaseEcmpSetupHelper<AddrT, NextHopT>::getInterface(
+    const PortDescriptor& port,
+    const std::shared_ptr<SwitchState>& state) const {
+  if (auto vlan = getVlan(port, state)) {
+    auto intf = state->getInterfaces()->getInterface(
+        InterfaceID(static_cast<int>(*vlan)));
+    CHECK(intf->getType() == cfg::InterfaceType::VLAN);
+    CHECK(intf->getVlanID() == *vlan);
+    return intf->getID();
+  } else {
+    // Look for port RIF
+    if (!port.isPhysicalPort()) {
+      return std::nullopt;
+    }
+    // TODO: calculate sysport id using sys port range begin
+    SystemPortID sysPortId{port.intID() + kSystemPortBase};
+    if (auto intf = state->getInterfaces()->getInterfaceIf(
+            InterfaceID(static_cast<int>(sysPortId)))) {
+      return intf->getID();
+    }
+  }
+  return std::nullopt;
+}
 template <typename AddrT, typename NextHopT>
 std::optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
     const PortDescriptor& port,

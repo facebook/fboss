@@ -145,6 +145,10 @@ class BaseEcmpSetupHelper {
       bool resolve,
       bool useLinkLocal) const;
 
+  std::optional<InterfaceID> getInterface(
+      const PortDescriptor& port,
+      const std::shared_ptr<SwitchState>& state) const;
+
  protected:
   boost::container::flat_map<PortDescriptor, InterfaceID>
   computePortDesc2Interface(
