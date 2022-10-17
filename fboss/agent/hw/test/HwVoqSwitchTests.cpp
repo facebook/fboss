@@ -105,8 +105,9 @@ TEST_F(HwVoqSwitchTest, init) {
   auto verify = [this]() {
     auto state = getProgrammedState();
     for (auto& port : *state->getPorts()) {
-      EXPECT_EQ(port->getAdminState(), cfg::PortState::ENABLED);
-      EXPECT_EQ(port->getLoopbackMode(), getAsic()->desiredLoopbackMode());
+      if (port->isEnabled()) {
+        EXPECT_EQ(port->getLoopbackMode(), getAsic()->desiredLoopbackMode());
+      }
     }
   };
   verifyAcrossWarmBoots(setup, verify);
