@@ -41,6 +41,7 @@ void initEMTable(
   /* Creating hint id to associate with EM Group */
   rv = bcm_field_hints_create(unit, &hintId);
   bcmCheckError(rv, "init EM Table:bcm_field_hints_create failed");
+  XLOG(DBG1) << "init EM Table:Created HintId: " << hintId;
 
   /* configuring hint type, number of bits and the qualifier */
 #if (defined(IS_OPENNSA))

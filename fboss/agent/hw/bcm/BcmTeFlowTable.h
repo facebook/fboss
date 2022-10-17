@@ -39,11 +39,20 @@ class BcmTeFlowTable {
       const std::shared_ptr<SwitchSettings>& switchSettings);
   void createTeFlowGroup(int dstIpPrefixLength);
   void deleteTeFlowGroup();
+  int getDstIpPrefixLength() const {
+    return dstIpPrefixLength_;
+  }
   bcm_field_hintid_t getHintId() const {
     return hintId_;
   }
-  int getDstIpPrefixLength() const {
-    return dstIpPrefixLength_;
+  int getTeFlowGroupId() const {
+    return teFlowGroupId_;
+  }
+  int getTeFlowFlexCounterId() const {
+    if (exactMatchFlexCounter_) {
+      return exactMatchFlexCounter_->getID();
+    }
+    return 0;
   }
   BcmTeFlowStat* incRefOrCreateBcmTeFlowStat(
       const std::string& counterName,
@@ -82,6 +91,7 @@ class BcmTeFlowTable {
 
   uint32_t allocateActionIndex();
   void clearActionIndex(uint32_t offset);
+  void setActionIndex(uint32_t offset);
 
   BcmSwitch* hw_;
   bcm_field_hintid_t hintId_{0};

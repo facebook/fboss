@@ -29,6 +29,7 @@
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmExactMatchUtils.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorFBConvertors.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
@@ -82,6 +83,7 @@ using std::shared_ptr;
 using std::string;
 using std::vector;
 using namespace facebook::fboss;
+using namespace facebook::fboss::utility;
 
 namespace {
 auto constexpr kEcmpObjects = "ecmpObjects";
@@ -124,6 +126,7 @@ folly::dynamic BcmWarmBootCache::getWarmBootStateFollyDynamic() const {
   bcmWarmBootState[kWarmBootCache] = toFollyDynamic();
   bcmWarmBootState[kQosPolicyTable] =
       bcmWarmBootState_->qosTableToFollyDynamic();
+  bcmWarmBootState[kTeFlow] = bcmWarmBootState_->teFlowToFollyDynamic();
 
   return bcmWarmBootState;
 }
@@ -161,6 +164,21 @@ BcmWarmBootCache::AclEntry2AclStatItr BcmWarmBootCache::findAclStat(
     return aclEntry2AclStat_.end();
   }
   return aclStatItr;
+}
+
+void BcmWarmBootCache::programmed(TeFlowEntry2TeFlowStatItr itr) {
+  XLOG(DBG1) << "Programmed teflow stat=" << itr->second.stat;
+  itr->second.claimed = true;
+}
+
+BcmWarmBootCache::TeFlowEntry2TeFlowStatItr BcmWarmBootCache::findTeFlowStat(
+    const BcmTeFlowEntryHandle& bcmTeFlowEntry) {
+  auto teFlowStatItr = teFlowEntry2TeFlowStat_.find(bcmTeFlowEntry);
+  if (teFlowStatItr != teFlowEntry2TeFlowStat_.end() &&
+      teFlowStatItr->second.claimed) {
+    return teFlowEntry2TeFlowStat_.end();
+  }
+  return teFlowStatItr;
 }
 
 const BcmWarmBootCache::EgressId2Weight& BcmWarmBootCache::getPathsForEcmp(
@@ -407,6 +425,22 @@ void BcmWarmBootCache::populateQosPolicyFromWarmBootState(
   }
 }
 
+void BcmWarmBootCache::populateTeFlowFromWarmBootState(
+    const folly::dynamic& hwWarmBootState) {
+  // Recover Teflow warmboot state when force_init_fp is false
+  // force_init_fp is true, switch setting config change will setup Teflow group
+  if (!FLAGS_force_init_fp) {
+    // get teFlowGroup id and hint id from warmboot state file
+    if (hwWarmBootState.find(kTeFlow) != hwWarmBootState.items().end()) {
+      const auto& teFlow = hwWarmBootState[kTeFlow];
+      teFlowDstIpPrefixLength_ = teFlow[kDstIpPrefixLength].asInt();
+      teFlowHintId_ = teFlow[kHintId].asInt();
+      teFlowGroupId_ = teFlow[kTeFlowGroupId].asInt();
+      teFlowFlexCounterId_ = teFlow[kTeFlowFlexCounterId].asInt();
+    }
+  }
+}
+
 void BcmWarmBootCache::populateFromWarmBootState(
     const folly::dynamic& warmBootState,
     std::optional<state::WarmbootState> thriftState) {
@@ -465,6 +499,8 @@ void BcmWarmBootCache::populateFromWarmBootState(
   populateIntfFromWarmBootState(hwWarmBootState);
 
   populateQosPolicyFromWarmBootState(hwWarmBootState);
+
+  populateTeFlowFromWarmBootState(hwWarmBootState);
 }
 
 BcmWarmBootCache::EgressId2EgressCitr BcmWarmBootCache::findEgressFromHost(
@@ -629,6 +665,12 @@ void BcmWarmBootCache::populate(
       hw_->getPlatform()->getAsic()->getDefaultACLGroupID(),
       this->aclEntry2AclStat_,
       this->priority2BcmAclEntryHandle_);
+
+  // populate teflows, teflow stats
+  populateTeFlows(
+      teFlowGroupId_,
+      this->teFlowEntry2TeFlowStat_,
+      this->teFlow2BcmTeFlowEntryHandle_);
 
   populateRtag7State();
   populateMirrors();
@@ -993,6 +1035,55 @@ void BcmWarmBootCache::removeUnclaimedAcls() {
   priority2BcmAclEntryHandle_.clear();
 }
 
+void BcmWarmBootCache::removeUnclaimedTeFlowStats() {
+  // Detach the unclaimed bcm teflow stats
+  std::set<BcmTeFlowStatHandle> teFlowStatsUsed;
+  for (auto teFlowStatItr = teFlowEntry2TeFlowStat_.begin();
+       teFlowStatItr != teFlowEntry2TeFlowStat_.end();
+       ++teFlowStatItr) {
+    auto& teFlowStatStatus = teFlowStatItr->second;
+    if (!teFlowStatStatus.claimed) {
+      XLOG(DBG1) << "Detaching unclaimed teflow_stat=" << teFlowStatStatus.stat
+                 << "from teflow=" << teFlowStatItr->first;
+      BcmTeFlowStat::detach(
+          hw_,
+          teFlowStatItr->first,
+          teFlowStatStatus.stat,
+          teFlowStatStatus.actionIndex);
+    } else {
+      teFlowStatsUsed.insert(teFlowStatStatus.stat);
+    }
+  }
+
+  // Delete the unclaimed bcm teflow stats
+  for (auto statItr : teFlowEntry2TeFlowStat_) {
+    auto statHandle = statItr.second.stat;
+    if (teFlowStatsUsed.find(statHandle) == teFlowStatsUsed.end()) {
+      if (!hw_->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+        XLOG(DBG1) << "Deleting unclaimed teflow_stat=" << statHandle;
+        BcmTeFlowStat::destroy(hw_, statHandle);
+        // add the stat to the set to prevent this loop from attempting to
+        // delete the same stat twice
+        teFlowStatsUsed.insert(statHandle);
+      }
+    }
+  }
+  teFlowEntry2TeFlowStat_.clear();
+}
+
+void BcmWarmBootCache::removeUnclaimedTeFlows() {
+  XLOG(DBG1) << "Unclaimed teflow count="
+             << teFlow2BcmTeFlowEntryHandle_.size();
+  for (auto teFlowItr : teFlow2BcmTeFlowEntryHandle_) {
+    XLOG(DBG1) << "Deleting unclaimed TeFlow: srcPort=" << teFlowItr.first.first
+               << " dstIp=" << teFlowItr.first.second
+               << ", handle=" << teFlowItr.second;
+    removeBcmTeFlow(teFlowItr.second);
+  }
+  teFlow2BcmTeFlowEntryHandle_.clear();
+}
+
 void BcmWarmBootCache::removeUnclaimedCosqMappings() {
   int rv;
   bool useHSDK = (dynamic_cast<const BcmSwitch*>(hw_))->useHSDK();
@@ -1066,6 +1157,12 @@ void BcmWarmBootCache::clear() {
   // Delete acls
   removeUnclaimedAcls();
 
+  // Delete the unclaimed bcm teflow stats
+  removeUnclaimedTeFlowStats();
+
+  // Delete TeFlows.
+  removeUnclaimedTeFlows();
+
   // Delete CosQMappings
   removeUnclaimedCosqMappings();
 
@@ -1074,6 +1171,11 @@ void BcmWarmBootCache::clear() {
   checkUnclaimedQosMaps();
 
   ptpTcEnabled_ = std::nullopt;
+  // Clear TeFlow
+  teFlowDstIpPrefixLength_ = 0;
+  teFlowHintId_ = 0;
+  teFlowGroupId_ = 0;
+  teFlowFlexCounterId_ = 0;
 }
 
 void BcmWarmBootCache::populateRtag7State() {
@@ -1466,6 +1568,79 @@ void BcmWarmBootCache::populateAclStats(
 void BcmWarmBootCache::removeBcmAcl(BcmAclEntryHandle handle) {
   auto rv = bcm_field_entry_destroy(hw_->getUnit(), handle);
   bcmLogFatal(rv, hw_, "failed to destroy the acl entry");
+}
+
+void BcmWarmBootCache::populateTeFlows(
+    const int groupId,
+    TeFlowEntry2TeFlowStat& stats,
+    TeFlow2BcmTeFlowEntryHandle& teflows) {
+  int entryCount = 0;
+  // first get the count of EM entries of this group
+  auto rv = bcm_field_entry_multi_get(
+      hw_->getUnit(), getEMGroupID(groupId), 0, nullptr, &entryCount);
+  if (rv == BCM_E_NOT_FOUND) {
+    XLOG(DBG1) << "EM group does not exist";
+    return;
+  }
+  bcmCheckError(rv, "Unable to get count of EM entry for group: ", groupId);
+  XLOG(DBG1) << "Existing EM entry count=" << entryCount
+             << " for group=" << groupId;
+
+  if (!entryCount) {
+    return;
+  }
+  std::vector<bcm_field_entry_t> bcmEntries(entryCount);
+  rv = bcm_field_entry_multi_get(
+      hw_->getUnit(),
+      getEMGroupID(groupId),
+      entryCount,
+      bcmEntries.data(),
+      &entryCount);
+  bcmCheckError(rv, "Unable to get EM entry information for group=", groupId);
+  for (auto bcmEntry : bcmEntries) {
+    // Get teflow stat associated to each teflow entry
+    populateTeFlowStats(groupId, bcmEntry, stats);
+    // Get srcPort of teflow  entry
+    bcm_module_t data_modid;
+    bcm_module_t mask_modid;
+    bcm_port_t hwSrcPort;
+    bcm_port_t mask;
+    rv = bcm_field_qualify_SrcPort_get(
+        hw_->getUnit(), bcmEntry, &data_modid, &mask_modid, &hwSrcPort, &mask);
+    bcmCheckError(rv, "Unable to get src port for entry=", bcmEntry);
+
+    // Get destIp of teflow  entry
+    bcm_ip6_t hwAddr{};
+    bcm_ip6_t hwMask{};
+    rv = bcm_field_qualify_DstIp6_get(
+        hw_->getUnit(), bcmEntry, &hwAddr, &hwMask);
+    bcmCheckError(rv, "Unable to get Dst Ip6 for entry=", bcmEntry);
+
+    auto destIp = ipFromBcm(hwAddr);
+    CHECK(teflows.find({hwSrcPort, destIp}) == teflows.end());
+    teflows.emplace(std::make_pair(hwSrcPort, destIp), bcmEntry);
+  }
+}
+
+void BcmWarmBootCache::populateTeFlowStats(
+    int groupId,
+    BcmTeFlowEntryHandle teFlowHandle,
+    TeFlowEntry2TeFlowStat& stats) {
+  auto teFlowStatHandle = BcmTeFlowStat::getAclStatHandleFromAttachedAcl(
+      hw_, getEMGroupID(groupId), teFlowHandle);
+  if (!teFlowStatHandle) {
+    // This teflow doesn't have any BcmTeFlowStat attached
+    return;
+  }
+  TeFlowStatStatus statStatus;
+  statStatus.stat = (*teFlowStatHandle).first;
+  statStatus.actionIndex = (*teFlowStatHandle).second;
+  stats.emplace(teFlowHandle, statStatus);
+}
+
+void BcmWarmBootCache::removeBcmTeFlow(BcmTeFlowEntryHandle handle) {
+  auto rv = bcm_field_entry_destroy(hw_->getUnit(), handle);
+  bcmLogFatal(rv, hw_, "failed to destroy the teflow entry");
 }
 
 void BcmWarmBootCache::populateRxReasonToQueue() {

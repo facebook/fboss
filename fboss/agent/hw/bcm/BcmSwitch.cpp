@@ -44,6 +44,7 @@
 #include "fboss/agent/hw/bcm/BcmEgressManager.h"
 #include "fboss/agent/hw/bcm/BcmEgressQueueFlexCounter.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmExactMatchUtils.h"
 #include "fboss/agent/hw/bcm/BcmFacebookAPI.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
@@ -3056,6 +3057,11 @@ void BcmSwitch::initFieldProcessor() const {
     for (auto grpId : {platform_->getAsic()->getDefaultACLGroupID()}) {
       BcmIngressFieldProcessorFlexCounter::removeAllCountersInFpGroup(
           unit_, grpId);
+    }
+    if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::EXACT_MATCH)) {
+      auto grpId = platform_->getAsic()->getDefaultTeFlowGroupID();
+      BcmIngressFieldProcessorFlexCounter::removeAllCountersInFpGroup(
+          unit_, getEMGroupID(grpId));
     }
   }
 

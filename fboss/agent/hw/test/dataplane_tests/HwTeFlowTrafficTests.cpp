@@ -36,6 +36,7 @@ static std::string kIfName2("fboss2001");
 static std::string kCounterID0("counter0");
 static std::string kCounterID1("counter1");
 static std::string kCounterID2("counter2");
+static int kPrefixLength1(61);
 } // namespace
 
 class HwTeFlowTrafficTest : public HwLinkStateDependentTest {
@@ -112,33 +113,34 @@ TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
     return;
   }
 
-  setExactMatchCfg(getHwSwitchEnsemble(), 61);
+  auto setup = [=]() {
+    setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
+    // Add 100::/32 lpm route entry
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
+    this->addRoute(kAddr1, 32, PortDescriptor(masterLogicalPortIds()[0]));
 
-  // Add 100::/32 lpm route entry
-  this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
-  this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
-  this->addRoute(kAddr1, 32, PortDescriptor(masterLogicalPortIds()[0]));
+    // Add three TeFlow EM entries so that stats increments on non zero
+    // action index for TH4.
+    auto flowEntry0 = makeFlowEntry(
+        "102::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID1);
+    addFlowEntry(getHwSwitchEnsemble(), flowEntry0);
 
-  // Add three TeFlow EM entries so that stats increments on non zero
-  // action index for TH4.
-  auto flowEntry0 = makeFlowEntry(
-      "102::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID1);
-  addFlowEntry(getHwSwitchEnsemble(), flowEntry0);
+    auto flowEntry1 = makeFlowEntry(
+        "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID2);
+    addFlowEntry(getHwSwitchEnsemble(), flowEntry1);
 
-  auto flowEntry1 = makeFlowEntry(
-      "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID2);
-  addFlowEntry(getHwSwitchEnsemble(), flowEntry1);
+    auto flowEntry2 = makeFlowEntry(
+        "100::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID0);
+    addFlowEntry(getHwSwitchEnsemble(), flowEntry2);
 
-  auto flowEntry2 = makeFlowEntry(
-      "100::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID0);
-  addFlowEntry(getHwSwitchEnsemble(), flowEntry2);
-
-  // verfiy the EM entry programming
-  EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 3);
-  utility::checkSwHwTeFlowMatch(
-      getHwSwitch(),
-      getProgrammedState(),
-      makeFlowKey("100::", masterLogicalPortIds()[0]));
+    // verfiy the EM entry programming
+    EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 3);
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("100::", masterLogicalPortIds()[0]));
+  };
 
   auto verify = [=]() {
     // Send a packet to hit lpm route entry and verify
@@ -186,7 +188,7 @@ TEST_F(HwTeFlowTrafficTest, validateTeFlow) {
         expectedLen);
   };
 
-  verify();
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

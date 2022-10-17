@@ -78,14 +78,16 @@ TEST_F(HwTeFlowTest, VerifyTeFlowGroupEnable) {
     return;
   }
 
-  setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
-
-  auto verify = [&](int prefixLength) {
-    EXPECT_TRUE(
-        utility::validateTeFlowGroupEnabled(getHwSwitch(), prefixLength));
+  auto setup = [&]() {
+    setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
   };
 
-  verify(kPrefixLength1);
+  auto verify = [&]() {
+    EXPECT_TRUE(
+        utility::validateTeFlowGroupEnabled(getHwSwitch(), kPrefixLength1));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwTeFlowTest, validateAddDeleteTeFlow) {
@@ -93,60 +95,72 @@ TEST_F(HwTeFlowTest, validateAddDeleteTeFlow) {
     return;
   }
 
-  setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
+  auto setup = [&]() {
+    setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
 
-  this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
-  this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
-  auto flowEntry1 = makeFlowEntry(
-      "100::", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], kCounterID0);
-  addFlowEntry(getHwSwitchEnsemble(), flowEntry1);
+    auto flowEntry1 = makeFlowEntry(
+        "100::", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], kCounterID0);
+    addFlowEntry(getHwSwitchEnsemble(), flowEntry1);
 
-  EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
-  utility::checkSwHwTeFlowMatch(
-      getHwSwitch(),
-      getProgrammedState(),
-      makeFlowKey("100::", masterLogicalPortIds()[0]));
+    auto flowEntry2 = makeFlowEntry(
+        "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
+    addFlowEntry(getHwSwitchEnsemble(), flowEntry2);
+  };
 
-  auto flowEntry2 = makeFlowEntry(
-      "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
-  addFlowEntry(getHwSwitchEnsemble(), flowEntry2);
+  auto verify = [&]() {
+    EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 2);
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("100::", masterLogicalPortIds()[0]));
 
-  EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 2);
-  utility::checkSwHwTeFlowMatch(
-      getHwSwitch(),
-      getProgrammedState(),
-      makeFlowKey("101::", masterLogicalPortIds()[1]));
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("101::", masterLogicalPortIds()[1]));
 
-  // Modify nexthop
-  modifyFlowEntry(
-      getHwSwitchEnsemble(),
-      "100::",
-      masterLogicalPortIds()[0],
-      kNhopAddrB,
-      kIfName2,
-      kCounterID0);
-  EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 2);
-  utility::checkSwHwTeFlowMatch(
-      getHwSwitch(),
-      getProgrammedState(),
-      makeFlowKey("100::", masterLogicalPortIds()[0]));
+    // Modify nexthop
+    modifyFlowEntry(
+        getHwSwitchEnsemble(),
+        "100::",
+        masterLogicalPortIds()[0],
+        kNhopAddrB,
+        kIfName2,
+        kCounterID0);
+    EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 2);
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("100::", masterLogicalPortIds()[0]));
 
-  // Modify counter id
-  modifyFlowEntry(
-      getHwSwitchEnsemble(),
-      "100::",
-      masterLogicalPortIds()[0],
-      kNhopAddrB,
-      kIfName2,
-      kCounterID2);
-  utility::checkSwHwTeFlowMatch(
-      getHwSwitch(),
-      getProgrammedState(),
-      makeFlowKey("100::", masterLogicalPortIds()[0]));
+    // Modify counter id
+    modifyFlowEntry(
+        getHwSwitchEnsemble(),
+        "100::",
+        masterLogicalPortIds()[0],
+        kNhopAddrB,
+        kIfName2,
+        kCounterID2);
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("100::", masterLogicalPortIds()[0]));
 
-  deleteFlowEntry(getHwSwitchEnsemble(), flowEntry1);
+    auto newFlowEntry1 = makeFlowEntry(
+        "100::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID2);
+    deleteFlowEntry(getHwSwitchEnsemble(), newFlowEntry1);
+    EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
 
-  EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
+    addFlowEntry(getHwSwitchEnsemble(), newFlowEntry1);
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("100::", masterLogicalPortIds()[0]));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwTeFlowTest, validateEnableDisableTeFlow) {
@@ -154,65 +168,92 @@ TEST_F(HwTeFlowTest, validateEnableDisableTeFlow) {
     return;
   }
 
-  setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
+  auto setup = [&]() {
+    setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
+    auto flowEntry1 = makeFlowEntry(
+        "100::", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], kCounterID0);
+    addFlowEntry(getHwSwitchEnsemble(), flowEntry1);
+    auto flowEntry2 = makeFlowEntry(
+        "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
+    addFlowEntry(getHwSwitchEnsemble(), flowEntry2);
+    auto flowEntry3 = makeFlowEntry(
+        "102::", kNhopAddrA, kIfName1, masterLogicalPortIds()[1], kCounterID2);
+    addFlowEntry(getHwSwitchEnsemble(), flowEntry3);
+  };
 
-  this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
-  this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
-  auto flowEntry1 = makeFlowEntry(
-      "100::", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], kCounterID0);
-  addFlowEntry(getHwSwitchEnsemble(), flowEntry1);
-  auto flowEntry2 = makeFlowEntry(
-      "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
-  addFlowEntry(getHwSwitchEnsemble(), flowEntry2);
+  auto verify = [&]() {
+    EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 3);
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("100::", masterLogicalPortIds()[0]));
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("101::", masterLogicalPortIds()[1]));
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("102::", masterLogicalPortIds()[1]));
 
-  EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 2);
-  utility::checkSwHwTeFlowMatch(
-      getHwSwitch(),
-      getProgrammedState(),
-      makeFlowKey("100::", masterLogicalPortIds()[0]));
-  utility::checkSwHwTeFlowMatch(
-      getHwSwitch(),
-      getProgrammedState(),
-      makeFlowKey("101::", masterLogicalPortIds()[1]));
+    // Disable entry 1
+    auto newFlowEntry1 = makeFlowEntry(
+        "100::", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], kCounterID0);
+    modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry1, false);
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("100::", masterLogicalPortIds()[0]));
 
-  // Disable entry 1
-  auto newFlowEntry1 = makeFlowEntry(
-      "100::", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], kCounterID0);
-  modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry1, false);
-  utility::checkSwHwTeFlowMatch(
-      getHwSwitch(),
-      getProgrammedState(),
-      makeFlowKey("100::", masterLogicalPortIds()[0]));
+    // Disable entry 2
+    auto newFlowEntry2 = makeFlowEntry(
+        "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
+    modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry2, false);
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("101::", masterLogicalPortIds()[1]));
 
-  // Disable entry 2
-  auto newFlowEntry2 = makeFlowEntry(
-      "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
-  modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry2, false);
-  utility::checkSwHwTeFlowMatch(
-      getHwSwitch(),
-      getProgrammedState(),
-      makeFlowKey("101::", masterLogicalPortIds()[1]));
+    // Modify nexthop, enable, verify and delete entry 1
+    newFlowEntry1 = makeFlowEntry(
+        "100::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID0);
+    modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry1, true);
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("100::", masterLogicalPortIds()[0]));
+    deleteFlowEntry(getHwSwitchEnsemble(), newFlowEntry1);
+    EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 2);
 
-  // Modify nexthop, enable, verify and delete entry 1
-  newFlowEntry1 = makeFlowEntry(
-      "100::", kNhopAddrB, kIfName2, masterLogicalPortIds()[0], kCounterID0);
-  modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry1, true);
-  utility::checkSwHwTeFlowMatch(
-      getHwSwitch(),
-      getProgrammedState(),
-      makeFlowKey("100::", masterLogicalPortIds()[0]));
-  deleteFlowEntry(getHwSwitchEnsemble(), newFlowEntry1);
-  EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
+    // Enable entry 2
+    newFlowEntry2 = makeFlowEntry(
+        "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
+    modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry2, true);
+    EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 2);
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("101::", masterLogicalPortIds()[1]));
 
-  // Enable entry 2
-  newFlowEntry2 = makeFlowEntry(
-      "101::", kNhopAddrB, kIfName2, masterLogicalPortIds()[1], kCounterID1);
-  modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry2, true);
-  EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 1);
-  utility::checkSwHwTeFlowMatch(
-      getHwSwitch(),
-      getProgrammedState(),
-      makeFlowKey("101::", masterLogicalPortIds()[1]));
+    addFlowEntry(getHwSwitchEnsemble(), newFlowEntry1);
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("100::", masterLogicalPortIds()[0]));
+
+    // Disable entry 3
+    auto newFlowEntry3 = makeFlowEntry(
+        "102::", kNhopAddrA, kIfName1, masterLogicalPortIds()[1], kCounterID2);
+    modifyFlowEntry(getHwSwitchEnsemble(), newFlowEntry3, false);
+    utility::checkSwHwTeFlowMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        makeFlowKey("102::", masterLogicalPortIds()[1]));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwTeFlowTest, validateExactMatchTableConfigs) {
@@ -240,7 +281,7 @@ TEST_F(HwTeFlowTest, validateExactMatchTableConfigs) {
     }
   };
 
-  auto verify = [&](int prefixLength) {
+  auto verifyHelper = [&](int prefixLength) {
     EXPECT_TRUE(
         utility::validateTeFlowGroupEnabled(getHwSwitch(), prefixLength));
     EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 2);
@@ -254,24 +295,32 @@ TEST_F(HwTeFlowTest, validateExactMatchTableConfigs) {
         makeFlowKey("101::", masterLogicalPortIds()[1]));
   };
 
-  setup();
-  addDeleteFlowEntries(true);
-  verify(kPrefixLength1);
+  auto verify = [&]() {
+    addDeleteFlowEntries(true);
+    verifyHelper(kPrefixLength1);
 
-  // TODO- verify the prefix length change without removing entries
-  addDeleteFlowEntries(false);
+    // TODO- verify the prefix length change without removing entries
+    addDeleteFlowEntries(false);
 
-  // Modify prefixLength
-  setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength2);
+    // Modify prefixLength
+    setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength2);
 
-  addDeleteFlowEntries(true);
-  verify(kPrefixLength2);
+    addDeleteFlowEntries(true);
+    verifyHelper(kPrefixLength2);
 
-  // Delete prefixLength config
-  addDeleteFlowEntries(false);
-  setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength0);
-  EXPECT_TRUE(
-      utility::validateTeFlowGroupEnabled(getHwSwitch(), kPrefixLength0));
+    // Delete prefixLength config
+    addDeleteFlowEntries(false);
+    setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength0);
+    EXPECT_TRUE(
+        utility::validateTeFlowGroupEnabled(getHwSwitch(), kPrefixLength0));
+
+    // Set EMcfg for warm boot
+    setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
+    EXPECT_TRUE(
+        utility::validateTeFlowGroupEnabled(getHwSwitch(), kPrefixLength1));
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

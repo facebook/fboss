@@ -36,6 +36,33 @@ void BcmTeFlowTable::processTeFlowConfigChanged(
       dstIpPrefixLength = tableConfig.dstPrefixLength().value();
     }
   }
+  const auto warmBootCache = hw_->getWarmBootCache();
+  if (warmBootCache->getTeFlowDstIpPrefixLength()) {
+    XLOG(DBG3) << "Warm boot -Teflow group already exists";
+    // Recover from warmboot cache
+    dstIpPrefixLength_ = warmBootCache->getTeFlowDstIpPrefixLength();
+    hintId_ = warmBootCache->getTeFlowHintId();
+    teFlowGroupId_ = warmBootCache->getTeFlowGroupId();
+    CHECK(hintId_);
+    CHECK(teFlowGroupId_);
+    CHECK_EQ(dstIpPrefixLength_, dstIpPrefixLength);
+    // Recover Counter Id from warmboot cache if flex counter supported
+    if (hw_->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+      auto flexCounterHandle = warmBootCache->getTeFlowFlexCounterId();
+      if (flexCounterHandle) {
+        exactMatchFlexCounter_ =
+            std::make_unique<BcmIngressFieldProcessorFlexCounter>(
+                hw_->getUnit(),
+                getEMGroupID(teFlowGroupId_),
+                std::optional<BcmTeFlowStatHandle>(flexCounterHandle),
+                BcmTeFlowStatType::EM);
+      }
+    }
+    // clear warmboot cache
+    warmBootCache->teFlowTableProgrammed();
+    return;
+  }
   if (dstIpPrefixLength) {
     createTeFlowGroup(dstIpPrefixLength);
   } else if (dstIpPrefixLength_) {
@@ -169,8 +196,7 @@ BcmTeFlowStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
           hw_, getEMGroupID(gid), counterTypes, BcmTeFlowStatType::EM);
     }
     auto stat = newStat.get();
-    teFlowStatMap_.emplace(
-        counterName, std::make_pair(std::move(newStat), actionIndex));
+    teFlowStatMap_.emplace(counterName, std::make_pair(std::move(newStat), 1));
     hw_->getStatUpdater()->toBeAddedTeFlowStat(
         stat->getHandle(), counterName, counterTypes, actionIndex);
     return stat;
@@ -187,8 +213,17 @@ BcmTeFlowStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
   auto teFlowStatItr = teFlowStatMap_.find(counterName);
   if (teFlowStatItr == teFlowStatMap_.end()) {
     auto counterTypes = {cfg::CounterType::BYTES};
-    auto newStat =
-        std::make_unique<BcmTeFlowStat>(hw_, statHandle, BcmTeFlowStatType::EM);
+    std::unique_ptr<BcmTeFlowStat> newStat;
+    if (hw_->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER)) {
+      // Recover flex counter
+      setActionIndex(actionIndex);
+      newStat = std::make_unique<BcmTeFlowStat>(
+          hw_, statHandle, BcmTeFlowStatType::EM, actionIndex);
+    } else {
+      newStat = std::make_unique<BcmTeFlowStat>(
+          hw_, statHandle, BcmTeFlowStatType::EM);
+    }
     auto stat = newStat.get();
     teFlowStatMap_.emplace(counterName, std::make_pair(std::move(newStat), 1));
     hw_->getStatUpdater()->toBeAddedTeFlowStat(
@@ -196,8 +231,13 @@ BcmTeFlowStat* BcmTeFlowTable::incRefOrCreateBcmTeFlowStat(
     return stat;
   } else {
     CHECK(statHandle == teFlowStatItr->second.first->getHandle());
+    // check the action index
+    auto bcmTeFlowStat = teFlowStatItr->second.first.get();
+    if (bcmTeFlowStat->hasFlexCounter()) {
+      CHECK_EQ(actionIndex, bcmTeFlowStat->getActionIndex());
+    }
     teFlowStatItr->second.second++;
-    return teFlowStatItr->second.first.get();
+    return bcmTeFlowStat;
   }
 }
 
@@ -255,6 +295,11 @@ uint32_t BcmTeFlowTable::allocateActionIndex() {
 void BcmTeFlowTable::clearActionIndex(uint32_t offset) {
   DCHECK_EQ(actionIndexMap_.test(offset), true);
   actionIndexMap_.reset(offset);
+}
+
+void BcmTeFlowTable::setActionIndex(uint32_t offset) {
+  DCHECK_EQ(actionIndexMap_.test(offset), false);
+  actionIndexMap_.set(offset);
 }
 
 } // namespace facebook::fboss

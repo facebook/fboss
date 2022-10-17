@@ -36,6 +36,7 @@ extern "C" {
 #include "fboss/agent/hw/bcm/BcmQosMap.h"
 #include "fboss/agent/hw/bcm/BcmRouteCounter.h"
 #include "fboss/agent/hw/bcm/BcmRtag7Module.h"
+#include "fboss/agent/hw/bcm/BcmTeFlowTable.h"
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
 #include "fboss/agent/hw/bcm/BcmTypes.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootState.h"
@@ -169,6 +170,16 @@ class BcmWarmBootCache {
   using AclEntry2AclStat =
       boost::container::flat_map<BcmAclEntryHandle, AclStatStatus>;
 
+  struct TeFlowStatStatus {
+    BcmTeFlowStatHandle stat{-1};
+    BcmAclStatActionIndex actionIndex{BcmAclStat::kDefaultAclActionIndex};
+    bool claimed{false};
+  };
+  // current h/w teflow stats: key = BcmTeFlowEntryHandle, value =
+  // TeFlowStatStatus
+  using TeFlowEntry2TeFlowStat =
+      std::map<BcmTeFlowEntryHandle, TeFlowStatStatus>;
+
   using QosMapKey = std::pair<std::string, BcmQosMap::Type>;
   using QosMapKey2QosMapId =
       boost::container::flat_map<QosMapKey, BcmQosPolicyHandle>;
@@ -181,6 +192,10 @@ class BcmWarmBootCache {
       RouteCounterIDMap;
   using RouteCounterIDMapItr = typename RouteCounterIDMap::const_iterator;
 
+  // current h/w TeFlows: key = TeFlowMapKey, value = BcmTeFlowEntryHandle
+  using TeFlowMapKey = std::pair<bcm_port_t, folly::IPAddress>;
+  using TeFlow2BcmTeFlowEntryHandle =
+      std::map<TeFlowMapKey, BcmTeFlowEntryHandle>;
   /*
    * Callbacks for traversing entries in BCM h/w tables
    */
@@ -250,12 +265,28 @@ class BcmWarmBootCache {
   void removeUnclaimedAclStats();
   void removeUnclaimedAcls();
 
+  void removeUnclaimedTeFlowStats();
+  void removeUnclaimedTeFlows();
+
   void removeUnclaimedCosqMappings();
   void checkUnclaimedQosMaps();
 
   void populateSwitchSettings();
 
   void populateRxReasonToQueue();
+
+  // retrieve all bcm teflows of the specified group
+  void populateTeFlows(
+      const int groupId,
+      TeFlowEntry2TeFlowStat& stats,
+      TeFlow2BcmTeFlowEntryHandle& teflows);
+  void populateTeFlowStats(
+      int groupID,
+      BcmTeFlowEntryHandle teflow,
+      TeFlowEntry2TeFlowStat& stats);
+
+  // remove bcm teflow directly from h/w
+  void removeBcmTeFlow(BcmTeFlowEntryHandle handle);
 
  public:
   /*
@@ -479,6 +510,27 @@ class BcmWarmBootCache {
     priority2BcmAclEntryHandle_.erase(itr);
   }
 
+  /*
+   * Iterators and find functions for teflows
+   */
+  using TeFlow2BcmTeFlowItr = TeFlow2BcmTeFlowEntryHandle::const_iterator;
+  TeFlow2BcmTeFlowItr teFlow2BcmTeFlowEntryHandle_begin() {
+    return teFlow2BcmTeFlowEntryHandle_.begin();
+  }
+  TeFlow2BcmTeFlowItr teFlow2BcmTeFlowEntryHandle_end() {
+    return teFlow2BcmTeFlowEntryHandle_.end();
+  }
+  TeFlow2BcmTeFlowItr findTeFlow(uint16_t srcPort, folly::IPAddress destIp) {
+    return teFlow2BcmTeFlowEntryHandle_.find({srcPort, destIp});
+  }
+  void programmed(TeFlow2BcmTeFlowItr itr) {
+    XLOG(DBG1) << "Programmed TeFlowEntry, removing from warm boot cache. "
+               << "Teflow: srcPort=" << itr->first.first
+               << " destIp= " << itr->first.second
+               << " teflow entry=" << itr->second;
+    teFlow2BcmTeFlowEntryHandle_.erase(itr);
+  }
+
   typedef Index2ReasonToQueue::const_iterator Index2ReasonToQueueCItr;
   Index2ReasonToQueueCItr index2ReasonToQueue_begin() const {
     return index2ReasonToQueue_.begin();
@@ -514,6 +566,14 @@ class BcmWarmBootCache {
   }
   AclEntry2AclStatItr findAclStat(const BcmAclEntryHandle& bcmAclEntry);
   void programmed(AclEntry2AclStatItr itr);
+
+  using TeFlowEntry2TeFlowStatItr = TeFlowEntry2TeFlowStat::iterator;
+  TeFlowEntry2TeFlowStatItr TeFlowEntry2TeFlowStat_end() {
+    return teFlowEntry2TeFlowStat_.end();
+  }
+  TeFlowEntry2TeFlowStatItr findTeFlowStat(
+      const BcmTeFlowEntryHandle& bcmTeFlowEntry);
+  void programmed(TeFlowEntry2TeFlowStatItr itr);
 
   /*
    * Iterators and find functions for trunks
@@ -647,6 +707,29 @@ class BcmWarmBootCache {
     routeCounterIDs_.erase(itr);
   }
 
+  int getTeFlowDstIpPrefixLength() const {
+    return teFlowDstIpPrefixLength_;
+  }
+
+  int getTeFlowHintId() const {
+    return teFlowHintId_;
+  }
+
+  int getTeFlowGroupId() const {
+    return teFlowGroupId_;
+  }
+
+  int getTeFlowFlexCounterId() const {
+    return teFlowFlexCounterId_;
+  }
+
+  void teFlowTableProgrammed() {
+    teFlowDstIpPrefixLength_ = 0;
+    teFlowHintId_ = 0;
+    teFlowGroupId_ = 0;
+    teFlowFlexCounterId_ = 0;
+  }
+
  private:
   /*
    * Get egress ids for a ECMP Id. Will throw FbossError
@@ -670,6 +753,7 @@ class BcmWarmBootCache {
   void populateIntfFromWarmBootState(const folly::dynamic& hwWarmBootState);
   void populateQosPolicyFromWarmBootState(
       const folly::dynamic& hwWarmBootState);
+  void populateTeFlowFromWarmBootState(const folly::dynamic& hwWarmBootState);
 
   // No copy or assignment.
   BcmWarmBootCache(const BcmWarmBootCache&) = delete;
@@ -729,6 +813,9 @@ class BcmWarmBootCache {
   // acls
   Priority2BcmAclEntryHandle priority2BcmAclEntryHandle_;
 
+  // TeFlows
+  TeFlow2BcmTeFlowEntryHandle teFlow2BcmTeFlowEntryHandle_;
+
   Index2ReasonToQueue index2ReasonToQueue_;
 
   // trunks
@@ -741,6 +828,9 @@ class BcmWarmBootCache {
 
   // acl stats
   AclEntry2AclStat aclEntry2AclStat_;
+
+  // TeFlow  stats
+  TeFlowEntry2TeFlowStat teFlowEntry2TeFlowStat_;
 
   std::unique_ptr<SwitchState> dumpedSwSwitchState_;
   MirrorEgressPath2Handle mirrorEgressPath2Handle_;
@@ -757,6 +847,10 @@ class BcmWarmBootCache {
   RouteCounterIDMap routeCounterIDs_;
   int routeCounterModeId_{-1};
   int v6FlexCounterAction_{0};
+  int teFlowDstIpPrefixLength_{0};
+  int teFlowHintId_{0};
+  int teFlowGroupId_{0};
+  int teFlowFlexCounterId_{0};
 };
 
 } // namespace facebook::fboss

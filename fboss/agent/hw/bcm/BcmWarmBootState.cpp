@@ -262,4 +262,15 @@ folly::dynamic BcmWarmBootState::qosTableToFollyDynamic() const {
   return qosTableDynamic;
 }
 
+folly::dynamic BcmWarmBootState::teFlowToFollyDynamic() const {
+  folly::dynamic teFlowDynamic = folly::dynamic::object;
+  teFlowDynamic[kDstIpPrefixLength] =
+      hw_->getTeFlowTable()->getDstIpPrefixLength();
+  teFlowDynamic[kHintId] = hw_->getTeFlowTable()->getHintId();
+  teFlowDynamic[kTeFlowGroupId] = hw_->getTeFlowTable()->getTeFlowGroupId();
+  teFlowDynamic[kTeFlowFlexCounterId] =
+      hw_->getTeFlowTable()->getTeFlowFlexCounterId();
+  return teFlowDynamic;
+}
+
 } // namespace facebook::fboss

@@ -85,8 +85,20 @@ void BcmTeFlowEntry::createTeFlowQualifiers() {
 void BcmTeFlowEntry::createTeFlowStat() {
   auto teFlowTable = hw_->writableTeFlowTable();
   auto counterName = teFlow_->getCounterID().value();
-  auto teFlowStat = teFlowTable->incRefOrCreateBcmTeFlowStat(counterName, gid_);
-  teFlowStat->attach(handle_);
+  const auto warmBootCache = hw_->getWarmBootCache();
+  auto warmBootItr = warmBootCache->findTeFlowStat(handle_);
+  if (warmBootItr != warmBootCache->TeFlowEntry2TeFlowStat_end()) {
+    // If we are re-using an existing stat, call programmed() to indicate
+    // that it has been claimed and must not be detached when cleaning the
+    // warmboot cache
+    teFlowTable->incRefOrCreateBcmTeFlowStat(
+        counterName, warmBootItr->second.stat, warmBootItr->second.actionIndex);
+    warmBootCache->programmed(warmBootItr);
+  } else {
+    auto teFlowStat =
+        teFlowTable->incRefOrCreateBcmTeFlowStat(counterName, gid_);
+    teFlowStat->attach(handle_);
+  }
 }
 
 void BcmTeFlowEntry::deleteTeFlowStat() {
@@ -186,7 +198,27 @@ BcmTeFlowEntry::BcmTeFlowEntry(
     int gid,
     const std::shared_ptr<TeFlowEntry>& teFlow)
     : hw_(hw), gid_(gid), teFlow_(teFlow) {
-  createTeFlowEntry();
+  if (teFlow_->getFlow().srcPort().has_value() &&
+      teFlow_->getFlow().dstPrefix().has_value()) {
+    const auto srcPort = teFlow_->getFlow().srcPort().value();
+    const auto prefix = teFlow_->getFlow().dstPrefix().value();
+    const auto destIp = toIPAddress(*prefix.ip());
+    const auto warmBootCache = hw_->getWarmBootCache();
+    auto warmbootItr = warmBootCache->findTeFlow(srcPort, destIp);
+    if (warmbootItr != warmBootCache->teFlow2BcmTeFlowEntryHandle_end()) {
+      handle_ = warmbootItr->second;
+      setRedirectNexthop(hw_, redirectNexthop_, teFlow_);
+      // check whether teflow in S/W and H/W in sync
+      CHECK(BcmTeFlowEntry::isStateSame(hw_, gid_, handle_, teFlow_))
+          << "Warmboot TeFlow doesn't match the one from H/W";
+      if (teFlow_->getEnabled() && teFlow_->getCounterID().has_value()) {
+        createTeFlowStat();
+      }
+      warmBootCache->programmed(warmbootItr);
+    } else {
+      createTeFlowEntry();
+    }
+  }
 }
 
 BcmTeFlowEntry::~BcmTeFlowEntry() {

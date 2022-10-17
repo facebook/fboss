@@ -28,6 +28,8 @@ class BcmWarmBootState {
 
   folly::dynamic qosTableToFollyDynamic() const;
 
+  folly::dynamic teFlowToFollyDynamic() const;
+
  private:
   template <typename Key, typename Value>
   folly::dynamic toFollyDynamic(

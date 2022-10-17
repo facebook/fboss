@@ -41,7 +41,7 @@ extern "C" {
 }
 
 DECLARE_bool(flexports);
-DECLARE_bool(enable_exact_match);
+DECLARE_bool(force_init_fp);
 
 namespace facebook::fboss {
 
