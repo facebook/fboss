@@ -949,6 +949,7 @@ bool CmisModule::getSignalsPerMediaLane(
     return false;
   }
 
+  // TODO(ccpowers): remove the TX flags once nobody reads them anymore
   auto txLos = getSettingsValue(CmisField::TX_LOS_FLAG);
   auto rxLos = getSettingsValue(CmisField::RX_LOS_FLAG);
   auto txLol = getSettingsValue(CmisField::TX_LOL_FLAG);
@@ -989,6 +990,10 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
   getQsfpFieldAddress(CmisField::DATA_PATH_STATE, dataAddress, offset, length);
   data = getQsfpValuePtr(dataAddress, offset, length);
 
+  auto txLos = getSettingsValue(CmisField::TX_LOS_FLAG);
+  auto txLol = getSettingsValue(CmisField::TX_LOL_FLAG);
+  auto txEq = getSettingsValue(CmisField::TX_EQ_FLAG);
+
   for (int lane = 0; lane < signals.size(); lane++) {
     signals[lane].lane() = lane;
     signals[lane].dataPathDeInit() = dataPathDeInit & (1 << lane);
@@ -996,6 +1001,12 @@ bool CmisModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
     bool evenLane = (lane % 2 == 0);
     signals[lane].cmisLaneState() =
         (CmisLaneState)(evenLane ? data[lane / 2] & 0xF : (data[lane / 2] >> 4) & 0xF);
+
+    auto laneMask = (1 << lane);
+    signals[lane].lane() = lane;
+    signals[lane].txLos() = txLos & laneMask;
+    signals[lane].txLol() = txLol & laneMask;
+    signals[lane].txAdaptEqFault() = txEq & laneMask;
   }
 
   return true;

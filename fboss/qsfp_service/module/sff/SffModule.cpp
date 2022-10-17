@@ -544,8 +544,20 @@ PowerControlState SffModule::getPowerControlValue() {
 
 bool SffModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
   assert(signals.size() == numHostLanes());
-  // Currently no signals to report on host lanes
-  return false;
+
+  auto txLos = getSettingsValue(SffField::LOS, UPPER_BITS_MASK) >> 4;
+  auto txLol = getSettingsValue(SffField::LOL, UPPER_BITS_MASK) >> 4;
+  auto txAdaptEqFault = getSettingsValue(SffField::FAULT, UPPER_BITS_MASK) >> 4;
+
+  for (int lane = 0; lane < signals.size(); lane++) {
+    auto laneMask = (1 << lane);
+    signals[lane].lane() = lane;
+    signals[lane].txLos() = txLos & laneMask;
+    signals[lane].txLol() = txLol & laneMask;
+    signals[lane].txAdaptEqFault() = txAdaptEqFault & laneMask;
+  }
+
+  return true;
 }
 
 /*
@@ -554,6 +566,7 @@ bool SffModule::getSignalsPerHostLane(std::vector<HostLaneSignals>& signals) {
 bool SffModule::getSignalsPerMediaLane(std::vector<MediaLaneSignals>& signals) {
   assert(signals.size() == numMediaLanes());
 
+  // TODO(ccpowers): Remove tx flags once everyone uses hostLaneSignals
   auto txLos = getSettingsValue(SffField::LOS, UPPER_BITS_MASK) >> 4;
   auto rxLos = getSettingsValue(SffField::LOS, LOWER_BITS_MASK);
   auto txLol = getSettingsValue(SffField::LOL, UPPER_BITS_MASK) >> 4;
