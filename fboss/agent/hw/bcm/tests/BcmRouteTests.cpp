@@ -1017,7 +1017,7 @@ TEST_F(BcmRouteTest, UnresolveResolveNextHop) {
     auto state0 = getProgrammedState();
     for (auto port : ports) {
       auto ecmpNextHop = helper.nhop(port);
-      auto vlanId = helper.getVlan(port);
+      auto vlanId = helper.getVlan(port, getProgrammedState());
       auto ntable = state0->getVlans()->getVlan(*vlanId)->getNdpTable()->modify(
           *vlanId, &state0);
       auto entry = ntable->getEntry(ecmpNextHop.ip);
@@ -1031,7 +1031,7 @@ TEST_F(BcmRouteTest, UnresolveResolveNextHop) {
     // mark neighbors connected over ports reachable
     auto state1 = getProgrammedState();
     for (auto port : ports) {
-      auto vlanId = helper.getVlan(port);
+      auto vlanId = helper.getVlan(port, getProgrammedState());
       auto ntable = state1->getVlans()->getVlan(*vlanId)->getNdpTable()->modify(
           *vlanId, &state1);
       auto entry = entries[port];

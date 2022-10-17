@@ -134,7 +134,9 @@ class BaseEcmpSetupHelper {
       const std::shared_ptr<SwitchState>& inputState,
       std::optional<folly::MacAddress> mac) = 0;
 
-  std::optional<VlanID> getVlan(const PortDescriptor& port) const;
+  std::optional<VlanID> getVlan(
+      const PortDescriptor& port,
+      const std::shared_ptr<SwitchState>& state) const;
 
  private:
   std::shared_ptr<SwitchState> resolveNextHopsImpl(
@@ -348,8 +350,10 @@ class EcmpSetupAnyNPorts {
       std::unique_ptr<RouteUpdateWrapper> wrapper,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}}) const;
 
-  std::optional<VlanID> getVlan(const PortDescriptor& port) const {
-    return ecmpSetupTargetedPorts_.getVlan(port);
+  std::optional<VlanID> getVlan(
+      const PortDescriptor& port,
+      const std::shared_ptr<SwitchState>& state) const {
+    return ecmpSetupTargetedPorts_.getVlan(port, state);
   }
 
   boost::container::flat_set<PortDescriptor> getPortDescs(int width) const;

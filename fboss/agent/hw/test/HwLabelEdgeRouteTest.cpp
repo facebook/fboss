@@ -234,7 +234,7 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
       long refCount) {
     PrefixT prefix{nexthopAddr, mask};
     auto* ecmpHelper = ecmpHelpers_[prefix].get();
-    auto vlanID = ecmpHelper->getVlan(port);
+    auto vlanID = ecmpHelper->getVlan(port, getProgrammedState());
     EXPECT_TRUE(vlanID.has_value());
     auto intfID = getProgrammedState()
                       ->getVlans()

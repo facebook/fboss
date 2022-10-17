@@ -193,7 +193,8 @@ std::vector<PortDescriptor> BaseEcmpSetupHelper<AddrT, NextHopT>::ecmpPortDescs(
 
 template <typename AddrT, typename NextHopT>
 std::optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
-    const PortDescriptor& port) const {
+    const PortDescriptor& port,
+    const std::shared_ptr<SwitchState>& /*state*/) const {
   auto iter = portDesc2Interface_.find(port);
   if (iter == portDesc2Interface_.end()) {
     return std::nullopt;

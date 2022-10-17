@@ -444,7 +444,7 @@ TEST_F(HwEcmpTest, ResolvePendingResolveNexthop) {
     for (auto i = 0; i < 2; i++) {
       const auto& ecmpNextHop = ecmpHelper_->nhop(i);
       auto port = ecmpNextHop.portDesc;
-      auto vlanId = ecmpHelper_->getVlan(port);
+      auto vlanId = ecmpHelper_->getVlan(port, getProgrammedState());
       auto ntable = state0->getVlans()->getVlan(*vlanId)->getNdpTable()->modify(
           *vlanId, &state0);
       auto entry = ntable->getEntry(ecmpNextHop.ip);
@@ -460,7 +460,7 @@ TEST_F(HwEcmpTest, ResolvePendingResolveNexthop) {
     for (auto i = 0; i < 2; i++) {
       const auto& ecmpNextHop = ecmpHelper_->nhop(i);
       auto port = ecmpNextHop.portDesc;
-      auto vlanId = ecmpHelper_->getVlan(port);
+      auto vlanId = ecmpHelper_->getVlan(port, getProgrammedState());
       auto ntable = state1->getVlans()->getVlan(*vlanId)->getNdpTable()->modify(
           *vlanId, &state1);
 
