@@ -129,7 +129,8 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
       {"Tx_Fault", {0, 1, 0, 1}},
       {"Tx_AdaptFault", {1, 0, 1, 1}},
   };
-  tests.verifyMediaLaneSignals(expectedMediaSignals, xcvr->numMediaLanes());
+  tests.verifyLaneSignals(
+      expectedMediaSignals, xcvr->numHostLanes(), xcvr->numMediaLanes());
 
   std::array<bool, 4> expectedDatapathDeinit = {0, 1, 1, 0};
   std::array<CmisLaneState, 4> expectedLaneState = {

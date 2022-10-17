@@ -16,8 +16,15 @@ class TransceiverTestsHelper {
   void verifyLaneDom(
       std::map<std::string, std::vector<double>>& laneDom,
       int lanes);
+  void verifyLaneSignals(
+      std::map<std::string, std::vector<bool>>& expectedSignals,
+      int numHostLanes,
+      int numMediaLanes);
   void verifyMediaLaneSignals(
       std::map<std::string, std::vector<bool>>& expectedMediaSignals,
+      int lanes);
+  void verifyHostLaneSignals(
+      std::map<std::string, std::vector<bool>>& expectedHostSignals,
       int lanes);
   void verifyMediaLaneSettings(
       std::map<std::string, std::vector<bool>>& expectedLaneSettings,

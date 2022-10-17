@@ -89,7 +89,8 @@ TEST_F(SffTest, cwdm4TransceiverInfoTest) {
       {"Tx_Fault", {0, 0, 1, 1}},
       {"Tx_AdaptFault", {1, 1, 0, 1}},
   };
-  tests.verifyMediaLaneSignals(expectedMediaSignals, xcvr->numMediaLanes());
+  tests.verifyLaneSignals(
+      expectedMediaSignals, xcvr->numHostLanes(), xcvr->numMediaLanes());
 
   std::map<std::string, std::vector<bool>> expectedMediaLaneSettings = {
       {"TxDisable", {0, 1, 1, 1}},
@@ -363,6 +364,7 @@ TEST_F(SfpTest, sfp10GTransceiverInfoTest) {
       {"Rx_Los", {1}},
       {"Tx_Fault", {1}},
   };
+  // Only check media signals, we don't have any host signals on sfp10g
   tests.verifyMediaLaneSignals(expectedMediaSignals, xcvr->numMediaLanes());
 
   std::map<std::string, std::vector<bool>> expectedMediaLaneSettings = {
