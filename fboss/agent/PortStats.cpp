@@ -216,6 +216,22 @@ void PortStats::MkPduSendFailure() {
 void PortStats::MkPduPortNotRegistered() {
   switchStats_->MkPduPortNotRegistered();
 }
+
+void PortStats::MkPduInterval() {
+  auto now = std::chrono::steady_clock::now();
+  std::chrono::steady_clock::time_point epoch;
+  if (lastMkPduTime_ != epoch) {
+    auto diffMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                      now - lastMkPduTime_)
+                      .count();
+    if (!portName_.empty()) {
+      switchStats_->MkPduInterval(diffMs, portName_);
+    }
+  }
+
+  lastMkPduTime_ = now;
+}
+
 void PortStats::MKAServiceSendFailue() {
   switchStats_->MKAServiceSendFailue();
 }

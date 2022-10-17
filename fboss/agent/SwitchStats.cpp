@@ -22,6 +22,9 @@ namespace facebook::fboss {
 // set to empty string, we'll prepend prefix when fbagent collects counters
 std::string SwitchStats::kCounterPrefix = "";
 
+// Temporary until we get this into fb303 with D40324952
+static constexpr const std::array<double, 1> kP100{{1.0}};
+
 SwitchStats::SwitchStats()
     : SwitchStats(fb303::ThreadCachedServiceData::get()->getThreadStats()) {}
 
@@ -203,6 +206,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map)
           kCounterPrefix + "mkpdu.err.port_not_regd",
           SUM,
           RATE),
+      // key param is port name
+      mkPduInterval_(
+          "{}.mkpdu.interval.ms",
+          facebook::fb303::ExportTypeConsts::kNone,
+          kP100),
       MKAServiceSendFailure_(
           map,
           kCounterPrefix + "mka_service.err.send_failure",

@@ -12,6 +12,7 @@
 #include <boost/container/flat_map.hpp>
 #include <boost/noncopyable.hpp>
 #include <fb303/ThreadCachedServiceData.h>
+#include <fb303/detail/QuantileStatWrappers.h>
 #include <chrono>
 #include "fboss/agent/AggregatePortStats.h"
 #include "fboss/agent/InterfaceStats.h"
@@ -344,6 +345,9 @@ class SwitchStats : public boost::noncopyable {
   void MkPduPortNotRegistered() {
     MkPduPortNotRegistered_.addValue(1);
   }
+  void MkPduInterval(double value, std::string_view port) {
+    mkPduInterval_.addValue(value, port);
+  }
   void MKAServiceSendFailue() {
     MKAServiceSendFailure_.addValue(1);
   }
@@ -565,6 +569,8 @@ class SwitchStats : public boost::noncopyable {
   TLTimeseries MkPduSendFailure_;
   // Number of pkt recv when port is not registered.
   TLTimeseries MkPduPortNotRegistered_;
+  // MkPdu interval (per port)
+  fb303::detail::DynamicQuantileStatWrapper<1> mkPduInterval_;
   // Number of Send Pkt to MkaService Failure.
   TLTimeseries MKAServiceSendFailure_;
   // Number of Pkts Send to MKAService.

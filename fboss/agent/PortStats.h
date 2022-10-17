@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <chrono>
+
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -76,6 +78,7 @@ class PortStats {
   void MkPduSendPkt();
   void MkPduSendFailure();
   void MkPduPortNotRegistered();
+  void MkPduInterval();
   void MKAServiceSendFailue();
   void MKAServiceSendSuccess();
   void MKAServiceRecvSuccess();
@@ -103,6 +106,8 @@ class PortStats {
   // Pointer to main SwitchStats object so that we can forward method calls
   // that we do not want to track ourselves.
   SwitchStats* switchStats_;
+
+  std::chrono::steady_clock::time_point lastMkPduTime_;
 };
 
 } // namespace facebook::fboss
