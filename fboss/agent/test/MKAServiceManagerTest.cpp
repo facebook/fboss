@@ -20,6 +20,7 @@
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/lib/CommonUtils.h"
 #include "gmock/gmock.h"
 
 using ::testing::_;
@@ -239,5 +240,32 @@ TEST_F(MKAServiceManagerTest, SendPktToMkaServerUnregisteredPort) {
   counters.checkDelta(
       SwitchStats::kCounterPrefix + "mkpdu.err.port_not_regd", 0);
 }
+
+TEST_F(MKAServiceManagerTest, MkPduLate) {
+  init();
+  baton_->reset();
+  EXPECT_FALSE(baton_->try_wait_for(std::chrono::milliseconds(100)));
+
+  CounterCache counters(sw_);
+
+  sendPktToMka();
+  EXPECT_TRUE(baton_->try_wait_for(std::chrono::milliseconds(200)));
+
+  // sleep override
+  std::this_thread::sleep_for(1000ms);
+
+  sendPktToMka();
+  EXPECT_TRUE(baton_->try_wait_for(std::chrono::milliseconds(200)));
+
+  auto portName = sw_->getState()->getPorts()->getPort(activePort_)->getName();
+  auto counterName = portName + ".mkpdu.interval.ms.p100";
+  WITH_RETRIES({
+    SCOPED_TRACE(counterName);
+    counters.update();
+    EXPECT_EVENTUALLY_TRUE(counters.checkExist(counterName));
+    EXPECT_EVENTUALLY_GE(counters.value(counterName), 1000);
+  });
+}
+
 #endif
 } // unnamed namespace
