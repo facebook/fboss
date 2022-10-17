@@ -45,31 +45,6 @@ std::optional<AggregatePortID> getAggPortID(
   return std::nullopt;
 }
 
-flat_map<PortDescriptor, InterfaceID> computePortDesc2Interface(
-    const std::shared_ptr<SwitchState>& inputState) {
-  boost::container::flat_map<PortDescriptor, InterfaceID> portDesc2Interface;
-  flat_set<PortID> portIds;
-  for (const auto& port : *inputState->getPorts().get()) {
-    if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
-      portIds.insert(port->getID());
-    }
-  }
-  for (const auto& portId : portIds) {
-    PortDescriptor portDesc = PortDescriptor(portId);
-    auto aggId = getAggPortID(inputState, portId);
-    if (aggId) {
-      portDesc = PortDescriptor(*aggId);
-    }
-    auto port = inputState->getPorts()->getPort(portId);
-    for (const auto& vlanMember : port->getVlans()) {
-      // FIXME - assumes 1:1 mapping b/w VlanID and InterfaceID
-      portDesc2Interface.insert(
-          std::make_pair(portDesc, InterfaceID(vlanMember.first)));
-    }
-  }
-  return portDesc2Interface;
-}
-
 flat_map<InterfaceID, folly::CIDRNetwork> computeInterface2Subnet(
     const std::shared_ptr<SwitchState>& inputState,
     bool v6) {
@@ -104,6 +79,32 @@ boost::container::flat_set<PortDescriptor> getPortsWithExclusiveVlanMembership(
 
 template <typename AddrT, typename NextHopT>
 BaseEcmpSetupHelper<AddrT, NextHopT>::BaseEcmpSetupHelper() {}
+
+template <typename AddrT, typename NextHopT>
+flat_map<PortDescriptor, InterfaceID>
+BaseEcmpSetupHelper<AddrT, NextHopT>::computePortDesc2Interface(
+    const std::shared_ptr<SwitchState>& inputState) const {
+  boost::container::flat_map<PortDescriptor, InterfaceID> portDesc2Interface;
+  flat_set<PortID> portIds;
+  for (const auto& port : *inputState->getPorts().get()) {
+    if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
+      portIds.insert(port->getID());
+    }
+  }
+  for (const auto& portId : portIds) {
+    PortDescriptor portDesc = PortDescriptor(portId);
+    auto aggId = getAggPortID(inputState, portId);
+    if (aggId) {
+      portDesc = PortDescriptor(*aggId);
+    }
+
+    if (auto vlan = getVlan(portDesc, inputState)) {
+      // FIXME - assumes 1:1 mapping b/w VlanID and InterfaceID
+      portDesc2Interface.insert(std::make_pair(portDesc, InterfaceID(*vlan)));
+    }
+  }
+  return portDesc2Interface;
+}
 
 template <typename AddrT, typename NextHopT>
 std::shared_ptr<SwitchState>
@@ -194,13 +195,33 @@ std::vector<PortDescriptor> BaseEcmpSetupHelper<AddrT, NextHopT>::ecmpPortDescs(
 template <typename AddrT, typename NextHopT>
 std::optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
     const PortDescriptor& port,
-    const std::shared_ptr<SwitchState>& /*state*/) const {
-  auto iter = portDesc2Interface_.find(port);
-  if (iter == portDesc2Interface_.end()) {
-    return std::nullopt;
+    const std::shared_ptr<SwitchState>& state) const {
+  // Get physical port and extract first vlan from it. We assume
+  // port is always part of a single vlan
+  auto getPhysicalPortId = [&port, &state]() -> std::optional<PortID> {
+    std::optional<PortID> portId;
+    switch (port.type()) {
+      case PortDescriptor::PortType::PHYSICAL:
+        portId = port.phyPortID();
+        break;
+      case PortDescriptor::PortType::AGGREGATE: {
+        auto aggPort =
+            state->getAggregatePorts()->getAggregatePort(port.aggPortID());
+        portId = aggPort->sortedSubports().begin()->portID;
+      } break;
+
+      case PortDescriptor::PortType::SYSTEM_PORT:
+        break;
+    }
+    return portId;
+  };
+  if (auto phyPortId = getPhysicalPortId()) {
+    auto phyPort = state->getPorts()->getPort(*phyPortId);
+    for (const auto& vlanMember : phyPort->getVlans()) {
+      return vlanMember.first;
+    }
   }
-  // FIXME - assumes 1:1 mapping b/w VlanID and InterfaceID
-  return VlanID(static_cast<int>(iter->second));
+  return std::nullopt;
 }
 
 template <typename IPAddrT>
@@ -217,7 +238,7 @@ void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     const std::shared_ptr<SwitchState>& inputState,
     std::optional<folly::MacAddress> nextHopMac) {
   BaseEcmpSetupHelperT::portDesc2Interface_ =
-      computePortDesc2Interface(inputState);
+      BaseEcmpSetupHelperT::computePortDesc2Interface(inputState);
   auto intf2Subnet =
       computeInterface2Subnet(inputState, BaseEcmpSetupHelperT::kIsV6);
   int offset = 0;
@@ -555,7 +576,7 @@ void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     const std::shared_ptr<SwitchState>& inputState,
     std::optional<folly::MacAddress> nextHopMac) {
   BaseEcmpSetupHelperT::portDesc2Interface_ =
-      computePortDesc2Interface(inputState);
+      BaseEcmpSetupHelperT::computePortDesc2Interface(inputState);
   auto intf2Subnet =
       computeInterface2Subnet(inputState, BaseEcmpSetupHelperT::kIsV6);
   int offset = 0;
