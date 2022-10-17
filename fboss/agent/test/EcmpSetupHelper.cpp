@@ -143,17 +143,15 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHopsImpl(
 
 template <typename AddrT, typename NextHopT>
 std::shared_ptr<SwitchState>
-BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHop(
+BaseEcmpSetupHelper<AddrT, NextHopT>::resolveVlanRifNextHop(
     const std::shared_ptr<SwitchState>& inputState,
     const NextHopT& nhop,
+    std::shared_ptr<Interface>& intf,
     bool useLinkLocal) const {
   auto outputState{inputState->clone()};
-  // FIXME - assumes 1:1 mapping b/w VlanID and InterfaceID
-  auto vlanId =
-      VlanID(static_cast<int>(portDesc2Interface_.find(nhop.portDesc)->second));
-  auto vlan = outputState->getVlans()->getVlan(vlanId);
+  auto vlan = outputState->getVlans()->getVlan(intf->getVlanID());
   auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-      vlanId, &outputState);
+      vlan->getID(), &outputState);
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   if (nbrTable->getEntryIf(nhop.ip)) {
     nbrTable->updateEntry(
@@ -166,20 +164,75 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHop(
 
 template <typename AddrT, typename NextHopT>
 std::shared_ptr<SwitchState>
+BaseEcmpSetupHelper<AddrT, NextHopT>::resolvePortRifNextHop(
+    const std::shared_ptr<SwitchState>& inputState,
+    const NextHopT& /*nhop*/,
+    std::shared_ptr<Interface>& /*intf*/,
+    bool /*useLinkLocal*/) const {
+  auto outputState{inputState->clone()};
+  return outputState;
+}
+
+template <typename AddrT, typename NextHopT>
+std::shared_ptr<SwitchState>
+BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveVlanRifNextHop(
+    const std::shared_ptr<SwitchState>& inputState,
+    const NextHopT& nhop,
+    std::shared_ptr<Interface>& intf,
+    bool useLinkLocal) const {
+  auto outputState{inputState->clone()};
+  auto vlan = outputState->getVlans()->getVlan(intf->getVlanID());
+  auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
+      vlan->getID(), &outputState);
+  auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
+  nbrTable->removeEntry(nhopIp);
+  return outputState;
+}
+
+template <typename AddrT, typename NextHopT>
+std::shared_ptr<SwitchState>
+BaseEcmpSetupHelper<AddrT, NextHopT>::unresolvePortRifNextHop(
+    const std::shared_ptr<SwitchState>& inputState,
+    const NextHopT& /*nhop*/,
+    std::shared_ptr<Interface>& /*intf*/,
+    bool /*useLinkLocal*/) const {
+  return inputState->clone();
+}
+
+template <typename AddrT, typename NextHopT>
+std::shared_ptr<SwitchState>
+BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHop(
+    const std::shared_ptr<SwitchState>& inputState,
+    const NextHopT& nhop,
+    bool useLinkLocal) const {
+  auto intfID = portDesc2Interface_.find(nhop.portDesc)->second;
+  auto intf = inputState->getInterfaces()->getInterface(intfID);
+  switch (intf->getType()) {
+    case cfg::InterfaceType::VLAN:
+      return resolveVlanRifNextHop(inputState, nhop, intf, useLinkLocal);
+    case cfg::InterfaceType::SYSTEM_PORT:
+      return resolvePortRifNextHop(inputState, nhop, intf, useLinkLocal);
+  }
+  CHECK(false) << " Unhandled interface type: ";
+  return nullptr;
+}
+
+template <typename AddrT, typename NextHopT>
+std::shared_ptr<SwitchState>
 BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveNextHop(
     const std::shared_ptr<SwitchState>& inputState,
     const NextHopT& nhop,
     bool useLinkLocal) const {
-  auto outputState{inputState->clone()};
-  // FIXME - assumes 1:1 mapping b/w VlanID and InterfaceID
-  auto vlanId =
-      VlanID(static_cast<int>(portDesc2Interface_.find(nhop.portDesc)->second));
-  auto vlan = outputState->getVlans()->getVlan(vlanId);
-  auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-      vlanId, &outputState);
-  auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
-  nbrTable->removeEntry(nhopIp);
-  return outputState;
+  auto intfID = portDesc2Interface_.find(nhop.portDesc)->second;
+  auto intf = inputState->getInterfaces()->getInterface(intfID);
+  switch (intf->getType()) {
+    case cfg::InterfaceType::VLAN:
+      return unresolveVlanRifNextHop(inputState, nhop, intf, useLinkLocal);
+    case cfg::InterfaceType::SYSTEM_PORT:
+      return unresolvePortRifNextHop(inputState, nhop, intf, useLinkLocal);
+  }
+  CHECK(false) << " Unhandled interface type: ";
+  return nullptr;
 }
 
 template <typename AddrT, typename NextHopT>
