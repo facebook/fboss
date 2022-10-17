@@ -70,23 +70,22 @@ flat_map<PortDescriptor, InterfaceID> computePortDesc2Interface(
   return portDesc2Interface;
 }
 
-flat_map<VlanID, folly::CIDRNetwork> computeVlan2Subnet(
+flat_map<InterfaceID, folly::CIDRNetwork> computeInterface2Subnet(
     const std::shared_ptr<SwitchState>& inputState,
     bool v6) {
-  boost::container::flat_map<VlanID, folly::CIDRNetwork> vlan2Network;
+  boost::container::flat_map<InterfaceID, folly::CIDRNetwork> intf2Network;
   for (const auto& intf : *inputState->getInterfaces().get()) {
     for (const auto& cidrStr : intf->getAddresses()) {
       auto subnet = folly::IPAddress::createNetwork(cidrStr.first.str());
       if (!v6 && subnet.first.isV4()) {
-        vlan2Network[intf->getVlanID()] = subnet;
+        intf2Network[intf->getID()] = subnet;
       } else if (v6 && subnet.first.isV6() && !subnet.first.isLinkLocal()) {
-        vlan2Network[intf->getVlanID()] = subnet;
+        intf2Network[intf->getID()] = subnet;
       }
     }
   }
-  return vlan2Network;
+  return intf2Network;
 }
-
 } // namespace
 
 namespace facebook::fboss::utility {
@@ -218,24 +217,23 @@ void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     std::optional<folly::MacAddress> nextHopMac) {
   BaseEcmpSetupHelperT::portDesc2Interface_ =
       computePortDesc2Interface(inputState);
-  auto vlan2Subnet =
-      computeVlan2Subnet(inputState, BaseEcmpSetupHelperT::kIsV6);
+  auto intf2Subnet =
+      computeInterface2Subnet(inputState, BaseEcmpSetupHelperT::kIsV6);
   int offset = 0;
   // Locally administered, unicast MACs
   auto baseMac = folly::MacAddress("06:00:00:00:00:00").u64HBO();
   for (const auto& portDescAndInterface :
        BaseEcmpSetupHelperT::portDesc2Interface_) {
-    // FIXME - assumes 1:1 mapping b/w VlanID and InterfaceID
-    auto vlan = VlanID(static_cast<int>(portDescAndInterface.second));
-    auto ipAddrStr = vlan2Subnet[vlan].first.str();
+    auto intf = portDescAndInterface.second;
+    auto ipAddrStr = intf2Subnet[intf].first.str();
     if (ipAddrStr.empty()) {
-      // Ignore vlans without ip addresses
+      // Ignore intfs without ip addresses
       continue;
     }
     auto subnetIp = IPAddrT(ipAddrStr);
     auto bytes = subnetIp.toByteArray();
     // Add a offset to compute next in subnet next hop IP.
-    // Essentially for vlan/l3 intf with subnet X, we
+    // Essentially for l3 intf with subnet X, we
     // would compute next hops by incrementing last octet
     // of subnet.
     int lastOctet = bytes[bytes.size() - 1] + (++offset);
@@ -247,7 +245,7 @@ void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
         portDescAndInterface.first,
         nextHopMac ? MacAddress::fromHBO(nextHopMac.value().u64HBO())
                    : MacAddress::fromHBO(baseMac + offset),
-        InterfaceID(vlan)));
+        intf));
   }
 }
 
@@ -557,18 +555,17 @@ void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     std::optional<folly::MacAddress> nextHopMac) {
   BaseEcmpSetupHelperT::portDesc2Interface_ =
       computePortDesc2Interface(inputState);
-  auto vlan2Subnet =
-      computeVlan2Subnet(inputState, BaseEcmpSetupHelperT::kIsV6);
+  auto intf2Subnet =
+      computeInterface2Subnet(inputState, BaseEcmpSetupHelperT::kIsV6);
   int offset = 0;
   auto baseMac = folly::MacAddress("06:00:00:00:00:00").u64HBO();
   for (const auto& portDescAndInterface :
        BaseEcmpSetupHelperT::portDesc2Interface_) {
-    // FIXME - assumes 1:1 mapping b/w VlanID and InterfaceID
-    auto vlan = VlanID(static_cast<int>(portDescAndInterface.second));
-    auto subnetIp = IPAddrT(vlan2Subnet[vlan].first.str());
+    auto intf = portDescAndInterface.second;
+    auto subnetIp = IPAddrT(intf2Subnet[intf].first.str());
     auto bytes = subnetIp.toByteArray();
     // Add a offset to compute next in subnet next hop IP.
-    // Essentially for vlan/l3 intf with subnet X, we
+    // Essentially for l3 intf with subnet X, we
     // would compute next hops by incrementing last octet
     // of subnet.
     int lastOctet = bytes[bytes.size() - 1] + (++offset);
@@ -580,7 +577,7 @@ void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
         portDescAndInterface.first,
         nextHopMac ? MacAddress::fromHBO(nextHopMac.value().u64HBO())
                    : MacAddress::fromHBO(baseMac + offset),
-        InterfaceID(vlan),
+        intf,
         getLabelForwardingAction(portDescAndInterface.first)));
   }
 }
