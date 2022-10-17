@@ -145,7 +145,7 @@ class BaseEcmpSetupHelper {
 
  protected:
   std::vector<NextHopT> nhops_;
-  boost::container::flat_map<PortDescriptor, VlanID> portDesc2Vlan_;
+  boost::container::flat_map<PortDescriptor, InterfaceID> portDesc2Interface_;
 };
 
 template <typename IPAddrT>
