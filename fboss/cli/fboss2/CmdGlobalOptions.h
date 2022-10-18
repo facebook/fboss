@@ -378,6 +378,10 @@ class CmdGlobalOptions {
     return detail_;
   }
 
+  bool tag2name() const {
+    return tag2name_;
+  }
+
   std::string getLogUsage() const {
     return logUsage_;
   }
@@ -496,6 +500,7 @@ class CmdGlobalOptions {
   SSLPolicy sslPolicy_{"plaintext"};
   OutputFormat fmt_;
   bool detail_{false};
+  bool tag2name_{false};
   std::string logUsage_{"scuba"};
   int fsdbThriftPort_{5908};
   int agentThriftPort_{5909};
