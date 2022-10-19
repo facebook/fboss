@@ -15,8 +15,6 @@ TEST(LinkNeighborDB, test) {
   // Define a neighbor
   auto n1 = std::make_shared<LinkNeighbor>();
   n1->setChassisId("neighbor1", lldp::LldpChassisIdType::LOCALLY_ASSIGNED);
-  n1->getChassisId();
-
   MacAddress n1mac("00:11:22:33:44:55");
   n1->setProtocol(lldp::LinkProtocol::LLDP);
   n1->setLocalPort(PortID(1));
@@ -25,10 +23,10 @@ TEST(LinkNeighborDB, test) {
   n1->setPortId("1/1", lldp::LldpPortIdType::LOCALLY_ASSIGNED);
   n1->setSystemName("neighbor1 name");
 
-  n1->getChassisId();
-  n1->getPortId();
-  n1->getChassisIdType();
-  n1->getPortId();
+  EXPECT_EQ(n1->getChassisId(), "neighbor1");
+  EXPECT_EQ(n1->getChassisIdType(), lldp::LldpChassisIdType::LOCALLY_ASSIGNED);
+  EXPECT_EQ(n1->getPortId(), "1/1");
+  EXPECT_EQ(n1->getPortIdType(), lldp::LldpPortIdType::LOCALLY_ASSIGNED);
 
   n1->setTTL(seconds(5));
 
@@ -113,4 +111,30 @@ TEST(LinkNeighborDB, test) {
   neighbors = db.getNeighbors(PortID(3));
   ASSERT_EQ(1, neighbors.size());
   EXPECT_EQ("neighbor3 name", neighbors[0]->getSystemName());
+}
+
+TEST(LinkNeighborDB, updatingNeighborTtl) {
+  LinkNeighborDB db;
+  auto n = std::make_shared<LinkNeighbor>();
+  n->setChassisId("neighbor1", lldp::LldpChassisIdType::LOCALLY_ASSIGNED);
+  n->setPortId("1/1", lldp::LldpPortIdType::LOCALLY_ASSIGNED);
+  n->setTTL(seconds(5));
+  auto oldExpirationTime = n->getExpirationTime();
+  db.update(n);
+  auto neighbors = db.getNeighbors();
+  ASSERT_EQ(1, neighbors.size());
+
+  // create new identical neighbor
+  n = std::make_shared<LinkNeighbor>();
+  n->setChassisId("neighbor1", lldp::LldpChassisIdType::LOCALLY_ASSIGNED);
+  n->setPortId("1/1", lldp::LldpPortIdType::LOCALLY_ASSIGNED);
+  n->setTTL(seconds(10));
+  auto newExpirationTime = n->getExpirationTime();
+  db.update(n);
+
+  EXPECT_GT(newExpirationTime, oldExpirationTime);
+  neighbors = db.getNeighbors();
+  ASSERT_EQ(1, neighbors.size());
+  EXPECT_GT(neighbors[0]->getExpirationTime(), oldExpirationTime);
+  EXPECT_EQ(neighbors[0]->getExpirationTime(), newExpirationTime);
 }

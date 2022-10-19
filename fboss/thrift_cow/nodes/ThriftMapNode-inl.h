@@ -117,6 +117,10 @@ struct ThriftMapFields {
     return storage_.at(key);
   }
 
+  value_type& operator[](key_type key) {
+    return storage_[key];
+  }
+
   value_type& ref(key_type key) {
     return storage_.at(key);
   }
@@ -288,6 +292,10 @@ class ThriftMapNode : public NodeBaseT<
 
   value_type at(key_type key) const {
     return this->getFields()->at(key);
+  }
+
+  value_type& operator[](key_type key) {
+    return this->writableFields()->operator[](key);
   }
 
   value_type& ref(key_type key) {

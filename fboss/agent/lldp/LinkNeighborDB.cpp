@@ -16,9 +16,10 @@ void LinkNeighborDB::update(std::shared_ptr<LinkNeighbor> neighbor) {
   // Go ahead and prune expired neighbors each time we get updated.
   pruneLocked(*neighborsLocked, steady_clock::now());
   auto neighborMapByPort = neighborsLocked->root()->ref<k::neighborMapByPort>();
-  auto neighborMap = neighborMapByPort->try_emplace(neighbor->getLocalPort());
+  auto neighborMapIt = neighborMapByPort->try_emplace(neighbor->getLocalPort());
+  auto neighborMap = neighborMapIt.first->second;
   auto key = neighbor->getKey();
-  neighborMap.first->second->insert(key, std::move(neighbor));
+  (*neighborMap)[key] = std::move(neighbor);
 }
 
 vector<std::shared_ptr<LinkNeighbor>> LinkNeighborDB::getNeighbors() {
