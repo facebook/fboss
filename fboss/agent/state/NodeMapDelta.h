@@ -48,11 +48,11 @@ class MapUniquePointerTraits {
   }
 };
 
-template <typename NODE>
+template <typename NODE, typename NODE_WRAPPER = std::shared_ptr<NODE>>
 class DeltaValue {
  public:
   using Node = NODE;
-  using NodeWrapper = std::shared_ptr<NODE>;
+  using NodeWrapper = NODE_WRAPPER;
   DeltaValue(const NodeWrapper& o, const NodeWrapper& n) : old_(o), new_(n) {}
 
   void reset(const NodeWrapper& o, const NodeWrapper& n) {
@@ -227,7 +227,8 @@ const typename VALUE::NodeWrapper
  */
 template <
     typename MAP,
-    typename VALUE = DeltaValue<typename MAP::Node>,
+    typename VALUE =
+        DeltaValue<typename MAP::Node, std::shared_ptr<typename MAP::Node>>,
     typename MAPPOINTERTRAITS = MapPointerTraits<MAP>>
 class NodeMapDelta {
  public:
