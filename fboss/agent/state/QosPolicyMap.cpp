@@ -10,7 +10,7 @@
 #include "fboss/agent/state/QosPolicyMap.h"
 
 #include "fboss/agent/state/NodeMap-defs.h"
-#include "fboss/agent/state/NodeMapDelta-defs.h"
+
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {

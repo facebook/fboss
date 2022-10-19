@@ -9,8 +9,6 @@
  */
 #include "fboss/agent/state/VlanMapDelta.h"
 
-#include "fboss/agent/state/NodeMapDelta-defs.h"
-
 namespace facebook::fboss {
 
 template class NodeMapDelta<ArpTable>;

@@ -31,8 +31,6 @@
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/state/VlanMapDelta.h"
 
-#include "fboss/agent/state/NodeMapDelta-defs.h"
-
 #include <folly/dynamic.h>
 
 using std::shared_ptr;
@@ -212,8 +210,6 @@ std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
 }
 
 // Explicit instantiations of NodeMapDelta that are used by StateDelta.
-// This prevents users of StateDelta from needing to include
-// NodeMapDelta-defs.h
 template class NodeMapDelta<InterfaceMap>;
 template class NodeMapDelta<PortMap>;
 template class NodeMapDelta<AclMap>;

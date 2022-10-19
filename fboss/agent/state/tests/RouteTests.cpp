@@ -15,7 +15,7 @@
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
-#include "fboss/agent/state/NodeMapDelta-defs.h"
+
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"

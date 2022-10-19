@@ -7,9 +7,12 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#pragma once
+#include "fboss/agent/state/InterfaceMapDelta.h"
 
-#include <glog/logging.h>
-#include "fboss/agent/state/NodeMapDelta.h"
+namespace facebook::fboss {
 
-namespace facebook::fboss {} // namespace facebook::fboss
+template class NodeMapDelta<ArpTable>;
+template class NodeMapDelta<NdpTable>;
+template class NodeMapDelta<InterfaceMap, InterfaceDelta>;
+
+} // namespace facebook::fboss
