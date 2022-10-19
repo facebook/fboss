@@ -528,6 +528,22 @@ void SaiPortManager::programSerdes(
   }
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
+
+  if (platform_->getAsic()->getAsicType() ==
+      HwAsic::AsicType::ASIC_TYPE_GARONNE) {
+    /*
+     * SI settings are not programmed to the hardware when the port is
+     * created with admin UP. We need to explicitly toggle the admin
+     * state temporarily on Garonne to bring the port up to unblock testing.
+     * NOTE this will cause flaps during warmboots and cannot be deployed.
+     */
+    SaiPortTraits::Attributes::AdminState adminDisable{false};
+    SaiApiTable::getInstance()->portApi().setAttribute(
+        portHandle->port->adapterKey(), adminDisable);
+    SaiPortTraits::Attributes::AdminState adminEnable{true};
+    SaiApiTable::getInstance()->portApi().setAttribute(
+        portHandle->port->adapterKey(), adminEnable);
+  }
 }
 
 SaiPortSerdesTraits::CreateAttributes
