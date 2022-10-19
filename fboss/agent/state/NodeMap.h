@@ -92,11 +92,14 @@ class NodeMapT : public NodeBaseT<MapTypeT, NodeMapFields<TraitsT>> {
   using Traits = TraitsT;
   using KeyType = typename TraitsT::KeyType;
   using Node = typename TraitsT::Node;
+  using mapped_type = std::shared_ptr<Node>;
   using ExtraFields = typename TraitsT::ExtraFields;
   using MapType = MapTypeT;
   using Fields = NodeMapFields<TraitsT>;
   using NodeContainer = typename Fields::NodeContainer;
   using Iterator = NodeMapIterator<Node, NodeContainer>;
+  // Iterator internally uses NodeContainer::const_iterator
+  using const_iterator = Iterator;
   using ReverseIterator = ReverseNodeMapIterator<Node, NodeContainer>;
 
   const std::shared_ptr<Node>& getNode(KeyType key) const;

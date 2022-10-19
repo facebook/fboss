@@ -15,6 +15,7 @@
 #include <type_traits>
 
 #include <folly/functional/ApplyTuple.h>
+#include <glog/logging.h>
 
 namespace facebook::fboss {
 
@@ -78,6 +79,145 @@ class DeltaValue {
   NodeWrapper old_;
   NodeWrapper new_;
 };
+
+template <typename MAP, typename VALUE, typename MAP_EXTRACTOR>
+class DeltaValueIterator {
+ private:
+  using InnerIter = typename MAP::const_iterator;
+  auto getKey(InnerIter it) {
+    return MAP_EXTRACTOR::getKey(it);
+  }
+  auto getValue(InnerIter it) {
+    return MAP_EXTRACTOR::getValue(it);
+  }
+
+ public:
+  using MapType = MAP;
+  using Node = typename MAP::mapped_type;
+
+  // Iterator properties
+  using iterator_category = std::forward_iterator_tag;
+  using value_type = VALUE;
+  using difference_type = ptrdiff_t;
+  using pointer = VALUE*;
+  using reference = VALUE&;
+
+  DeltaValueIterator(
+      const MapType* oldMap,
+      typename MapType::const_iterator oldIt,
+      const MapType* newMap,
+      typename MapType::const_iterator newIt)
+      : oldIt_(oldIt),
+        newIt_(newIt),
+        oldMap_(oldMap),
+        newMap_(newMap),
+        value_(nullNode_, nullNode_) {
+    // Advance to the first difference
+    while (oldIt_ != oldMap_->end() && newIt_ != newMap_->end() &&
+           *oldIt_ == *newIt_) {
+      ++oldIt_;
+      ++newIt_;
+    }
+    updateValue();
+  }
+
+  const value_type& operator*() const {
+    return value_;
+  }
+  const value_type* operator->() const {
+    return &value_;
+  }
+
+  DeltaValueIterator& operator++() {
+    advance();
+    return *this;
+  }
+  DeltaValueIterator operator++(int) {
+    DeltaValueIterator tmp(*this);
+    advance();
+    return tmp;
+  }
+
+  bool operator==(const DeltaValueIterator& other) const {
+    return oldIt_ == other.oldIt_ && newIt_ == other.newIt_;
+  }
+  bool operator!=(const DeltaValueIterator& other) const {
+    return !operator==(other);
+  }
+
+ private:
+  void advance() {
+    // If we have already hit the end of one side, advance the other.
+    // We are immediately done after this.
+    if (oldIt_ == oldMap_->end()) {
+      // advance() shouldn't be called if we are already at the end
+      CHECK(newIt_ != newMap_->end());
+      ++newIt_;
+      updateValue();
+      return;
+    } else if (newIt_ == newMap_->end()) {
+      ++oldIt_;
+      updateValue();
+      return;
+    }
+
+    // We aren't at the end of either side.
+    // Check to see which one (or both) needs to be advanced.
+    const auto& oldKey = getKey(oldIt_);
+    const auto& newKey = getKey(newIt_);
+    if (oldKey < newKey) {
+      ++oldIt_;
+    } else if (oldKey > newKey) {
+      ++newIt_;
+    } else {
+      ++oldIt_;
+      ++newIt_;
+    }
+
+    // Advance past any unchanged nodes.
+    while (oldIt_ != oldMap_->end() && newIt_ != newMap_->end() &&
+           *oldIt_ == *newIt_) {
+      ++oldIt_;
+      ++newIt_;
+    }
+    updateValue();
+  }
+  void updateValue() {
+    if (oldIt_ == oldMap_->end()) {
+      if (newIt_ == newMap_->end()) {
+        value_.reset(nullNode_, nullNode_);
+      } else {
+        value_.reset(nullNode_, getValue(newIt_));
+      }
+      return;
+    }
+    if (newIt_ == newMap_->end()) {
+      value_.reset(getValue(oldIt_), nullNode_);
+      return;
+    }
+    const auto& oldKey = getKey(oldIt_);
+    const auto& newKey = getKey(newIt_);
+    if (oldKey < newKey) {
+      value_.reset(getValue(oldIt_), nullNode_);
+    } else if (newKey < oldKey) {
+      value_.reset(nullNode_, getValue(newIt_));
+    } else {
+      value_.reset(getValue(oldIt_), getValue(newIt_));
+    }
+  }
+
+ public:
+  InnerIter oldIt_;
+  InnerIter newIt_;
+  const MapType* oldMap_;
+  const MapType* newMap_;
+  VALUE value_;
+  static const typename VALUE::NodeWrapper nullNode_;
+};
+
+template <typename MAP, typename VALUE, typename MAP_EXTRACTOR>
+const typename VALUE::NodeWrapper
+    DeltaValueIterator<MAP, VALUE, MAP_EXTRACTOR>::nullNode_ = nullptr;
 /*
  * NodeMapDelta contains code for examining the differences between two NodeMap
  * objects.
@@ -96,7 +236,18 @@ class NodeMapDelta {
   using MapType = MAP;
   using Node = typename MAP::Node;
   using NodeWrapper = std::shared_ptr<Node>;
-  class Iterator;
+
+  struct NodeMapExtractor {
+    using KeyType = typename MAP::KeyType;
+    static KeyType getKey(typename MAP::const_iterator i) {
+      return MAP::Traits::getKey(*i);
+    }
+    static const std::shared_ptr<Node> getValue(
+        typename MAP::const_iterator i) {
+      return *i;
+    }
+  };
+  using Iterator = DeltaValueIterator<MAP, VALUE, NodeMapExtractor>;
 
   NodeMapDelta(MapPointerType&& oldMap, MapPointerType&& newMap)
       : old_(std::move(oldMap)), new_(std::move(newMap)) {}
@@ -137,25 +288,25 @@ class NodeMapDelta {
  * An iterator for walking over the Nodes that changed between the two
  * NodeMaps.
  */
-template <typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
-class NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator {
+template <typename MAP, typename VALUE>
+class NodeMapDeltaIterator {
  public:
   using MapType = MAP;
   using Node = typename MAP::Node;
 
-  // Iterator properties
+  // NodeMapDeltaIterator properties
   using iterator_category = std::forward_iterator_tag;
   using value_type = VALUE;
   using difference_type = ptrdiff_t;
   using pointer = VALUE*;
   using reference = VALUE&;
 
-  Iterator(
+  NodeMapDeltaIterator(
       const MapType* oldMap,
-      typename MapType::Iterator oldIt,
+      typename MapType::NodeMapDeltaIterator oldIt,
       const MapType* newMap,
-      typename MapType::Iterator newIt);
-  Iterator();
+      typename MapType::NodeMapDeltaIterator newIt);
+  NodeMapDeltaIterator();
 
   const value_type& operator*() const {
     return value_;
@@ -164,25 +315,25 @@ class NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator {
     return &value_;
   }
 
-  Iterator& operator++() {
+  NodeMapDeltaIterator& operator++() {
     advance();
     return *this;
   }
-  Iterator operator++(int) {
-    Iterator tmp(*this);
+  NodeMapDeltaIterator operator++(int) {
+    NodeMapDeltaIterator tmp(*this);
     advance();
     return tmp;
   }
 
-  bool operator==(const Iterator& other) const {
+  bool operator==(const NodeMapDeltaIterator& other) const {
     return oldIt_ == other.oldIt_ && newIt_ == other.newIt_;
   }
-  bool operator!=(const Iterator& other) const {
+  bool operator!=(const NodeMapDeltaIterator& other) const {
     return !operator==(other);
   }
 
  private:
-  using InnerIter = typename MapType::Iterator;
+  using InnerIter = typename MapType::const_iterator;
   using Traits = typename MapType::Traits;
 
   void advance();
