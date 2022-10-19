@@ -261,7 +261,10 @@ std::optional<InterfaceID> BaseEcmpSetupHelper<AddrT, NextHopT>::getInterface(
       return std::nullopt;
     }
     // TODO: calculate sysport id using sys port range begin
-    SystemPortID sysPortId{port.intID() + kSystemPortBase};
+    SystemPortID sysPortId{
+        // static_cast to avoid spurious narrowing conversion
+        // compiler warning. PortID is just 16 bits
+        static_cast<int64_t>(port.intID()) + kSystemPortBase};
     if (auto intf = state->getInterfaces()->getInterfaceIf(
             InterfaceID(static_cast<int>(sysPortId)))) {
       return intf->getID();
