@@ -28,10 +28,12 @@ TeFlowTable* TeFlowTable::addTeFlowEntry(
     std::vector<NextHopThrift> resolvedNextHops;
     for (const auto& nexthop : *entry.nextHops()) {
       if (!TeFlowTable::isNexthopResolved(nexthop, *state)) {
-        std::string nhJson;
-        apache::thrift::SimpleJSONSerializer::serialize(nexthop, &nhJson);
+        auto nhop = util::fromThrift(nexthop, true);
         throw FbossError(
-            "Invalid redirection nexthop for TE flow. NH: ", nhJson);
+            "Invalid redirection nexthop. NH: ",
+            nhop.str(),
+            " TeFlow entry: ",
+            tableEntry->str());
       }
       resolvedNextHops.emplace_back(nexthop);
     }
