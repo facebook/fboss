@@ -18,9 +18,6 @@
 
 namespace facebook::fboss {
 
-template <typename NODE>
-class DeltaValue;
-
 template <typename MAP>
 class MapPointerTraits {
  public:
@@ -48,6 +45,38 @@ class MapUniquePointerTraits {
   static RawConstPointerType getRawPointer(const MapPointerType& map) {
     return map.get();
   }
+};
+
+template <typename NODE>
+class DeltaValue {
+ public:
+  using Node = NODE;
+  using NodeWrapper = std::shared_ptr<NODE>;
+  DeltaValue(const NodeWrapper& o, const NodeWrapper& n) : old_(o), new_(n) {}
+
+  void reset(const NodeWrapper& o, const NodeWrapper& n) {
+    old_ = o;
+    new_ = n;
+  }
+
+  const NodeWrapper& getOld() const {
+    return old_;
+  }
+  const NodeWrapper& getNew() const {
+    return new_;
+  }
+
+ private:
+  // TODO: We should probably change this to store raw pointers.
+  // Storing shared_ptrs means a lot of unnecessary reference count increments
+  // and decrements as we iterate through the changes.
+  //
+  // It should be sufficient for users to receive raw pointers rather than
+  // shared_ptrs.  Callers should always maintain a shared_ptr to the top-level
+  // SwitchState object, so they should never need the shared_ptr reference
+  // count on individual nodes.
+  NodeWrapper old_;
+  NodeWrapper new_;
 };
 /*
  * NodeMapDelta contains code for examining the differences between two NodeMap
@@ -102,38 +131,6 @@ class NodeMapDelta {
    */
   MapPointerType old_;
   MapPointerType new_;
-};
-
-template <typename NODE>
-class DeltaValue {
- public:
-  using Node = NODE;
-  using NodeWrapper = std::shared_ptr<NODE>;
-  DeltaValue(const NodeWrapper& o, const NodeWrapper& n) : old_(o), new_(n) {}
-
-  void reset(const NodeWrapper& o, const NodeWrapper& n) {
-    old_ = o;
-    new_ = n;
-  }
-
-  const NodeWrapper& getOld() const {
-    return old_;
-  }
-  const NodeWrapper& getNew() const {
-    return new_;
-  }
-
- private:
-  // TODO: We should probably change this to store raw pointers.
-  // Storing shared_ptrs means a lot of unnecessary reference count increments
-  // and decrements as we iterate through the changes.
-  //
-  // It should be sufficient for users to receive raw pointers rather than
-  // shared_ptrs.  Callers should always maintain a shared_ptr to the top-level
-  // SwitchState object, so they should never need the shared_ptr reference
-  // count on individual nodes.
-  NodeWrapper old_;
-  NodeWrapper new_;
 };
 
 /*
