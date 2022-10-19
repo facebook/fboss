@@ -104,6 +104,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::LINK_TRAINING:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
+    case HwAsic::Feature::SAI_MPLS_INSEGMENT:
       return false;
   }
   return false;

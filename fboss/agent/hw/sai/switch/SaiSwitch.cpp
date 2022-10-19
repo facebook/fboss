@@ -710,13 +710,16 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
     }
   }
 
-  processDelta(
-      delta.getLabelForwardingInformationBaseDelta(),
-      managerTable_->inSegEntryManager(),
-      lockPolicy,
-      &SaiInSegEntryManager::processChangedInSegEntry,
-      &SaiInSegEntryManager::processAddedInSegEntry,
-      &SaiInSegEntryManager::processRemovedInSegEntry);
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_INSEGMENT)) {
+    processDelta(
+        delta.getLabelForwardingInformationBaseDelta(),
+        managerTable_->inSegEntryManager(),
+        lockPolicy,
+        &SaiInSegEntryManager::processChangedInSegEntry,
+        &SaiInSegEntryManager::processAddedInSegEntry,
+        &SaiInSegEntryManager::processRemovedInSegEntry);
+  }
+
   processDelta(
       delta.getLoadBalancersDelta(),
       managerTable_->switchManager(),

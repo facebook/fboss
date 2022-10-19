@@ -109,6 +109,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
+    case HwAsic::Feature::SAI_MPLS_INSEGMENT:
       return false;
   }
   return false;

@@ -125,6 +125,7 @@ class HwAsic {
     EXTENDED_FEC,
     LINK_TRAINING,
     SAI_RX_REASON_COUNTER,
+    SAI_MPLS_INSEGMENT,
   };
 
   enum class AsicType ASIC_TYPE_LIST;
