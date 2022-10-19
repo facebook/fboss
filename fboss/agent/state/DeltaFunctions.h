@@ -52,7 +52,7 @@ detail::EnableIfChangedAddRmFn<
     ChangedFn,
     AddFn,
     RemoveFn,
-    typename Delta::Node,
+    typename Delta::NodeWrapper,
     Args...>
 forEachChanged(
     const Delta& delta,
@@ -84,7 +84,7 @@ forEachChanged(
  * Invoke the specified function for each modified node.
  */
 template <typename Delta, typename ChangedFn, typename... Args>
-detail::EnableIfChangedFn<ChangedFn, typename Delta::Node, Args...>
+detail::EnableIfChangedFn<ChangedFn, typename Delta::NodeWrapper, Args...>
 forEachChanged(const Delta& delta, ChangedFn changedFn, const Args&... args) {
   for (const auto& entry : delta) {
     const auto& oldNode = entry.getOld();
@@ -104,7 +104,7 @@ forEachChanged(const Delta& delta, ChangedFn changedFn, const Args&... args) {
  * Invoke the specified function for each added node.
  */
 template <typename Delta, typename AddedFn, typename... Args>
-detail::EnableIfAddRmFn<AddedFn, typename Delta::Node, Args...>
+detail::EnableIfAddRmFn<AddedFn, typename Delta::NodeWrapper, Args...>
 forEachAdded(const Delta& delta, AddedFn addedFn, const Args&... args) {
   for (const auto& entry : delta) {
     if (!entry.getOld()) {
@@ -121,7 +121,7 @@ forEachAdded(const Delta& delta, AddedFn addedFn, const Args&... args) {
  * Invoke the specified function for each removed node.
  */
 template <typename Delta, typename RemovedFn, typename... Args>
-detail::EnableIfAddRmFn<RemovedFn, typename Delta::Node, Args...>
+detail::EnableIfAddRmFn<RemovedFn, typename Delta::NodeWrapper, Args...>
 forEachRemoved(const Delta& delta, RemovedFn removedFn, const Args&... args) {
   for (const auto& entry : delta) {
     if (!entry.getNew()) {
@@ -139,13 +139,13 @@ forEachRemoved(const Delta& delta, RemovedFn removedFn, const Args&... args) {
  */
 template <typename Delta>
 bool isEmpty(const Delta& delta) {
-  using NodePtr = std::shared_ptr<typename Delta::Node>;
+  using NodeWrapper = typename Delta::NodeWrapper;
   bool empty = true;
-  auto hasChanged = [&empty](const NodePtr&, const NodePtr&) {
+  auto hasChanged = [&empty](const NodeWrapper&, const NodeWrapper&) {
     empty = false;
     return LoopAction::BREAK;
   };
-  auto hasAdded = [&empty](const NodePtr&) {
+  auto hasAdded = [&empty](const NodeWrapper&) {
     empty = false;
     return LoopAction::BREAK;
   };

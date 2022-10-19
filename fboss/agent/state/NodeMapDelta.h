@@ -66,6 +66,7 @@ class NodeMapDelta {
   using RawConstPointerType = typename MAPPOINTERTRAITS::RawConstPointerType;
   using MapType = MAP;
   using Node = typename MAP::Node;
+  using NodeWrapper = std::shared_ptr<Node>;
   class Iterator;
 
   NodeMapDelta(MapPointerType&& oldMap, MapPointerType&& newMap)
@@ -107,18 +108,18 @@ template <typename NODE>
 class DeltaValue {
  public:
   using Node = NODE;
-  DeltaValue(const std::shared_ptr<Node>& o, const std::shared_ptr<Node>& n)
-      : old_(o), new_(n) {}
+  using NodeWrapper = std::shared_ptr<NODE>;
+  DeltaValue(const NodeWrapper& o, const NodeWrapper& n) : old_(o), new_(n) {}
 
-  void reset(const std::shared_ptr<Node>& o, const std::shared_ptr<Node>& n) {
+  void reset(const NodeWrapper& o, const NodeWrapper& n) {
     old_ = o;
     new_ = n;
   }
 
-  const std::shared_ptr<Node>& getOld() const {
+  const NodeWrapper& getOld() const {
     return old_;
   }
-  const std::shared_ptr<Node>& getNew() const {
+  const NodeWrapper& getNew() const {
     return new_;
   }
 
@@ -131,8 +132,8 @@ class DeltaValue {
   // shared_ptrs.  Callers should always maintain a shared_ptr to the top-level
   // SwitchState object, so they should never need the shared_ptr reference
   // count on individual nodes.
-  std::shared_ptr<Node> old_;
-  std::shared_ptr<Node> new_;
+  NodeWrapper old_;
+  NodeWrapper new_;
 };
 
 /*

@@ -73,17 +73,11 @@ invokeFn(const Fn& fn, const Args&... args) {
  */
 template <typename ChangedFn, typename Node, typename... Args>
 using IsActionChangedFn = std::is_same<
-    std::result_of_t<ChangedFn(
-        Args...,
-        const std::shared_ptr<Node>&,
-        const std::shared_ptr<Node>&)>,
+    std::result_of_t<ChangedFn(Args..., const Node&, const Node&)>,
     LoopAction>;
 template <typename ChangedFn, typename Node, typename... Args>
 using IsVoidChangedFn = std::is_same<
-    std::result_of_t<ChangedFn(
-        Args...,
-        const std::shared_ptr<Node>&,
-        const std::shared_ptr<Node>&)>,
+    std::result_of_t<ChangedFn(Args..., const Node&, const Node&)>,
     void>;
 template <typename ChangedFn, typename Node, typename... Args>
 using IsValidChangedFn = std::integral_constant<
@@ -91,13 +85,11 @@ using IsValidChangedFn = std::integral_constant<
     IsActionChangedFn<ChangedFn, Node, Args...>::value ||
         IsVoidChangedFn<ChangedFn, Node, Args...>::value>;
 template <typename AddRmFn, typename Node, typename... Args>
-using IsActionAddRmFn = std::is_same<
-    std::result_of_t<AddRmFn(Args..., const std::shared_ptr<Node>&)>,
-    LoopAction>;
+using IsActionAddRmFn =
+    std::is_same<std::result_of_t<AddRmFn(Args..., const Node&)>, LoopAction>;
 template <typename AddRmFn, typename Node, typename... Args>
-using IsVoidAddRmFn = std::is_same<
-    std::result_of_t<AddRmFn(Args..., const std::shared_ptr<Node>&)>,
-    void>;
+using IsVoidAddRmFn =
+    std::is_same<std::result_of_t<AddRmFn(Args..., const Node&)>, void>;
 template <typename AddRmFn, typename Node, typename... Args>
 using IsValidAddRmFn = std::integral_constant<
     bool,
