@@ -54,7 +54,6 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
-    case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::ROUTE_PROGRAMMING:
@@ -107,6 +106,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_PORT_MTU:
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::FEC:
+    case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
