@@ -10,7 +10,6 @@ add_library(nodebase
   fboss/agent/state/NodeMap.h
   fboss/agent/state/NodeMap-defs.h
   fboss/agent/state/NodeMapDelta.h
-  fboss/agent/state/NodeMapDelta-defs.h
   fboss/agent/state/NodeMapIterator.h
 )
 
