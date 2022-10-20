@@ -31,8 +31,8 @@ export DOCKER_NAME=FBOSS_BUSTER
 ## Download container images
 
 - Create /opt/app/FBOSS_DIR directory in VM (sudo mkdir -p /opt/app/FBOSS_DIR)
-- Download $CONTAINER_TAR # TODO
-- Copy to host VM /opt/app/FBOSS_DIR/
+- Download $CONTAINER_TAR:- git clone https://fboss@bitbucket.org/fboss/build-containers.git
+- Copy build-containers/centos/fboss_centos8.tar to host VM in /opt/app/FBOSS_DIR/
 
 
 ## Create docker container
