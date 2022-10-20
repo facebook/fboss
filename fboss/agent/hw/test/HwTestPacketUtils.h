@@ -129,7 +129,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddressV6& srcIp,
@@ -143,7 +143,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddressV4& srcIp,
@@ -157,7 +157,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddress& srcIp,

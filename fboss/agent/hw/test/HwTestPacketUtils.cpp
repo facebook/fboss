@@ -42,13 +42,33 @@ auto kDefaultPayload = std::vector<uint8_t>(256, 0xff);
 EthHdr makeEthHdr(
     MacAddress srcMac,
     MacAddress dstMac,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     ETHERTYPE etherType) {
   EthHdr::VlanTags_t vlanTags;
-  vlanTags.push_back(
-      VlanTag(vlan, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+
+  if (vlan.has_value()) {
+    vlanTags.push_back(VlanTag(
+        vlan.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+  }
+
   EthHdr ethHdr(dstMac, srcMac, vlanTags, static_cast<uint16_t>(etherType));
   return ethHdr;
+}
+
+template <typename CursorType>
+void writeEthHeader(
+    const std::unique_ptr<TxPacket>& txPacket,
+    CursorType* cursor,
+    folly::MacAddress dst,
+    folly::MacAddress src,
+    std::vector<VlanTag> vlanTags,
+    uint16_t protocol) {
+  if (vlanTags.size() != 0) {
+    txPacket->writeEthHeader(
+        cursor, dst, src, VlanID(vlanTags[0].vid()), protocol);
+  } else {
+    txPacket->writeEthHeader(cursor, dst, src, protocol);
+  }
 }
 
 } // namespace
@@ -113,11 +133,12 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
 
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   // Write EthHdr
-  txPacket->writeEthHeader(
+  writeEthHeader(
+      txPacket,
       &rwCursor,
       ethHdr.getDstMac(),
       ethHdr.getSrcMac(),
-      VlanID(ethHdr.getVlanTags()[0].vid()),
+      ethHdr.getVlanTags(),
       ethHdr.getEtherType());
   ipHdr.serialize(&rwCursor);
 
@@ -287,11 +308,12 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
 
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   // Write EthHdr
-  txPacket->writeEthHeader(
+  writeEthHeader(
+      txPacket,
       &rwCursor,
       ethHdr.getDstMac(),
       ethHdr.getSrcMac(),
-      VlanID(ethHdr.getVlanTags()[0].vid()),
+      ethHdr.getVlanTags(),
       ethHdr.getEtherType());
   ipHdr.serialize(&rwCursor);
 
@@ -321,12 +343,14 @@ std::unique_ptr<facebook::fboss::TxPacket> makePTPUDPTxPacket(
 
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   // Write EthHdr
-  txPacket->writeEthHeader(
+  writeEthHeader(
+      txPacket,
       &rwCursor,
       ethHdr.getDstMac(),
       ethHdr.getSrcMac(),
-      VlanID(ethHdr.getVlanTags()[0].vid()),
+      ethHdr.getVlanTags(),
       ethHdr.getEtherType());
+
   ipHdr.serialize(&rwCursor);
 
   // write UDP header, payload and compute checksum
@@ -373,7 +397,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makePTPTxPacket(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddressV6& srcIp,
@@ -405,7 +429,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddressV4& srcIp,
@@ -440,7 +464,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddress& srcIp,
@@ -491,11 +515,12 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
 
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   // Write EthHdr
-  txPacket->writeEthHeader(
+  writeEthHeader(
+      txPacket,
       &rwCursor,
       ethHdr.getDstMac(),
       ethHdr.getSrcMac(),
-      VlanID(ethHdr.getVlanTags()[0].vid()),
+      ethHdr.getVlanTags(),
       ethHdr.getEtherType());
   ipHdr.serialize(&rwCursor);
 
@@ -651,11 +676,12 @@ std::unique_ptr<facebook::fboss::TxPacket> makeARPTxPacket(
   auto ethHdr = makeEthHdr(srcMac, dstMac, vlan, ETHERTYPE::ETHERTYPE_ARP);
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   // Write EthHdr
-  txPacket->writeEthHeader(
+  writeEthHeader(
+      txPacket,
       &rwCursor,
       ethHdr.getDstMac(),
       ethHdr.getSrcMac(),
-      VlanID(ethHdr.getVlanTags()[0].vid()),
+      ethHdr.getVlanTags(),
       ethHdr.getEtherType());
 
   // write ARP header
