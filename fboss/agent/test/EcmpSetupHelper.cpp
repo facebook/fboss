@@ -250,8 +250,12 @@ std::optional<InterfaceID> BaseEcmpSetupHelper<AddrT, NextHopT>::getInterface(
     const PortDescriptor& port,
     const std::shared_ptr<SwitchState>& state) const {
   if (auto vlan = getVlan(port, state)) {
-    auto intf = state->getInterfaces()->getInterface(
+    auto intf = state->getInterfaces()->getInterfaceIf(
         InterfaceID(static_cast<int>(*vlan)));
+    if (!intf) {
+      // No interface config for this vlan
+      return std::nullopt;
+    }
     CHECK(intf->getType() == cfg::InterfaceType::VLAN);
     CHECK(intf->getVlanID() == *vlan);
     return intf->getID();
