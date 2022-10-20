@@ -4,6 +4,8 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -96,6 +98,59 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
       neighborTable->removeEntry(ip);
     }
     applyNewState(outState);
+  }
+
+  void sendPacketHelper(bool isFrontPanel) {
+    auto kPort = masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0];
+    folly::IPAddressV6 kNeighborIp("1::2");
+
+    auto setup = [this, kPort, kNeighborIp]() {
+      auto config = utility::onePortPerInterfaceConfig(
+          getHwSwitch(),
+          masterLogicalPortIds(),
+          getAsic()->desiredLoopbackMode());
+      applyNewConfig(config);
+      const InterfaceID kIntfId{101};
+      addRemoveNeighbor(
+          kNeighborIp, kIntfId, PortDescriptor(kPort), true /*add neighbor */);
+    };
+
+    auto verify = [this, isFrontPanel, kPort, kNeighborIp]() {
+      folly::IPAddressV6 kSrcIp("1::1");
+      const auto srcMac = utility::kLocalCpuMac();
+      const auto dstMac = utility::kLocalCpuMac();
+
+      auto txPacket = utility::makeUDPTxPacket(
+          getHwSwitch(),
+          VlanID(1),
+          srcMac,
+          dstMac,
+          kSrcIp,
+          kNeighborIp,
+          8000, // l4 src port
+          8001); // l4 dst port
+
+      XLOG(DBG3) << "\n"
+                 << folly::hexDump(
+                        txPacket->buf()->data(), txPacket->buf()->length());
+
+      auto beforeOutPkts = getLatestPortStats(kPort).get_outUnicastPkts_();
+
+      if (isFrontPanel) {
+        const PortID port =
+            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[1];
+        getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+            std::move(txPacket), port);
+      } else {
+        getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+      }
+
+      auto afterOutPkts = getLatestPortStats(kPort).get_outUnicastPkts_();
+
+      EXPECT_EQ(afterOutPkts - 1, beforeOutPkts);
+    };
+
+    verifyAcrossWarmBoots(setup, verify);
   }
 };
 
@@ -198,6 +253,14 @@ TEST_F(HwVoqSwitchTest, addRemoveRemoteNeighbor) {
     addRemoveNeighbor(kNeighborIp, kIntfId, kPort, false);
   };
   verifyAcrossWarmBoots(setup, [] {});
+}
+
+TEST_F(HwVoqSwitchTest, sendPacketCpu) {
+  sendPacketHelper(false /* cpu */);
+}
+
+TEST_F(HwVoqSwitchTest, sendPacketFrontPanel) {
+  sendPacketHelper(true /* front panel */);
 }
 
 } // namespace facebook::fboss
