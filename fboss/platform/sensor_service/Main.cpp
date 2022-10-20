@@ -30,7 +30,6 @@ DEFINE_int32(
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
 int main(int argc, char** argv) {
-
   fb303::registerFollyLoggingOptionHandlers();
 
   helpers::fbInit(argc, argv);
@@ -60,7 +59,7 @@ int main(int argc, char** argv) {
 #ifndef IS_OSS
   facebook::services::ServiceFrameworkLight service("Sensor Service");
   // Finally, run the Thrift server
-  runServer(service, server, handler.get());
+  runServer(service, server, handler.get(), FLAGS_thrift_port);
 #endif
 
   return 0;
