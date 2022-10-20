@@ -122,7 +122,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
 
       auto txPacket = utility::makeUDPTxPacket(
           getHwSwitch(),
-          VlanID(1),
+          std::nullopt, // vlanID
           srcMac,
           dstMac,
           kSrcIp,
