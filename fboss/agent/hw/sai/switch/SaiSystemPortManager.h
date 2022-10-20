@@ -45,10 +45,7 @@ class SaiSystemPortManager {
   void removeSystemPort(const std::shared_ptr<SystemPort>& swSystemPort);
   void changeSystemPort(
       const std::shared_ptr<SystemPort>& oldSystemPort,
-      const std::shared_ptr<SystemPort>& newSystemPort) {
-    removeSystemPort(oldSystemPort);
-    addSystemPort(newSystemPort);
-  }
+      const std::shared_ptr<SystemPort>& newSystemPort);
 
   const SaiSystemPortHandle* getSystemPortHandle(SystemPortID swId) const {
     return getSystemPortHandleImpl(swId);

@@ -22,6 +22,14 @@
 using namespace std::chrono;
 
 namespace facebook::fboss {
+namespace {
+bool createOnlyAttributesChanged(
+    const SaiSystemPortTraits::CreateAttributes& oldAttrs,
+    const SaiSystemPortTraits::CreateAttributes& newAttrs) {
+  return GET_ATTR(SystemPort, ConfigInfo, oldAttrs) !=
+      GET_ATTR(SystemPort, ConfigInfo, newAttrs);
+}
+} // namespace
 SaiSystemPortManager::SaiSystemPortManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
@@ -71,6 +79,20 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
   return saiSystemPort->adapterKey();
 }
 
+void SaiSystemPortManager::changeSystemPort(
+    const std::shared_ptr<SystemPort>& oldSystemPort,
+    const std::shared_ptr<SystemPort>& newSystemPort) {
+  CHECK_EQ(oldSystemPort->getID(), newSystemPort->getID());
+  auto handle = getSystemPortHandleImpl(newSystemPort->getID());
+  auto newAttributes = attributesFromSwSystemPort(newSystemPort);
+  if (createOnlyAttributesChanged(
+          handle->systemPort->attributes(), newAttributes)) {
+    removeSystemPort(oldSystemPort);
+    addSystemPort(newSystemPort);
+  } else {
+    handle->systemPort->setAttributes(newAttributes);
+  }
+}
 void SaiSystemPortManager::removeSystemPort(
     const std::shared_ptr<SystemPort>& swSystemPort) {
   auto swId = swSystemPort->getID();

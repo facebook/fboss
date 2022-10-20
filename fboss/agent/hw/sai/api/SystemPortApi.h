@@ -28,6 +28,9 @@ extern "C" {
 bool operator==(
     const sai_system_port_config_t& lhs,
     const sai_system_port_config_t& rhs);
+bool operator!=(
+    const sai_system_port_config_t& lhs,
+    const sai_system_port_config_t& rhs);
 namespace facebook::fboss {
 
 class SystemPortApi;

@@ -28,3 +28,9 @@ bool operator==(
              rhs.speed,
              rhs.num_voq);
 }
+
+bool operator!=(
+    const sai_system_port_config_t& lhs,
+    const sai_system_port_config_t& rhs) {
+  return !(rhs == lhs);
+}
