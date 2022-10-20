@@ -10,6 +10,7 @@
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/validated_shell_commands_constants.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestProdConfigUtils.h"
@@ -194,6 +195,11 @@ void ProdInvariantTest::verifyLoadBalancing() {
   XLOG(DBG2) << "Verify loadbalancing done";
 }
 
+void ProdInvariantTest::verifyAcl() {
+  auto isEnabled = utility::verifyAclEnabled(sw()->getHw());
+  EXPECT_TRUE(isEnabled);
+}
+
 void ProdInvariantTest::verifyCopp() {
   utility::verifyCoppInvariantHelper(
       sw()->getHw(),
@@ -215,6 +221,7 @@ int ProdInvariantTestMain(
 TEST_F(ProdInvariantTest, verifyInvariants) {
   auto setup = [&]() {};
   auto verify = [&]() {
+    verifyAcl();
     verifyCopp();
     verifyLoadBalancing();
     verifyDscpToQueueMapping();
@@ -404,6 +411,7 @@ TEST_F(ProdInvariantRswMhnicTest, verifyInvariants) {
         updaterPointer.get());
   };
   auto verify = [&]() {
+    verifyAcl();
     verifyCopp();
     verifyLoadBalancing();
     verifyDscpToQueueMapping();

@@ -99,6 +99,8 @@ class SaiAclTableManager {
     return macMask;
   }
 
+  std::vector<std::string> getAllHandleNames() const;
+
   AclTableSaiId addAclTable(
       const std::shared_ptr<AclTable>& addedAclTable,
       cfg::AclStage aclStage);

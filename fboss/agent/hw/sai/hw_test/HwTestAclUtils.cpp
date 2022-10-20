@@ -374,6 +374,29 @@ bool isAclTableEnabled(
   return aclTableHandle != nullptr;
 }
 
+bool verifyAclEnabled(const HwSwitch* hwSwitch) {
+  const auto& aclTableManager = static_cast<const SaiSwitch*>(hwSwitch)
+                                    ->managerTable()
+                                    ->aclTableManager();
+  auto aclTableNames = aclTableManager.getAllHandleNames();
+  for (const auto& name : aclTableNames) {
+    auto isTableEnabled = isAclTableEnabled(hwSwitch, name);
+    if (!isTableEnabled) {
+      return false;
+    }
+    for (const auto& member :
+         aclTableManager.getAclTableHandle(name)->aclTableMembers) {
+      auto entryId = member.second->aclEntry->adapterKey();
+      auto entryEnabled = SaiApiTable::getInstance()->aclApi().getAttribute(
+          entryId, SaiAclEntryTraits::Attributes::Enabled());
+      if (!entryEnabled) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 template bool isQualifierPresent<cfg::IpFragMatch>(
     const HwSwitch* hwSwitch,
     const std::shared_ptr<SwitchState>& state,

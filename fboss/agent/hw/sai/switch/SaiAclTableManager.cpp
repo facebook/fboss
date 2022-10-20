@@ -84,6 +84,14 @@ sai_uint32_t SaiAclTableManager::getMetaDataMask(
   return metaDataMax - 1;
 }
 
+std::vector<std::string> SaiAclTableManager::getAllHandleNames() const {
+  std::vector<std::string> handleNames;
+  for (const auto& [name, handle] : handles_) {
+    handleNames.push_back(name);
+  }
+  return handleNames;
+}
+
 AclTableSaiId SaiAclTableManager::addAclTable(
     const std::shared_ptr<AclTable>& addedAclTable,
     cfg::AclStage aclStage) {

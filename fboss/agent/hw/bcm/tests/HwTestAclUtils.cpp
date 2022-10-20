@@ -86,6 +86,10 @@ bool isAclTableEnabled(
   return (enable == 1);
 }
 
+bool verifyAclEnabled(const HwSwitch* hwSwitch) {
+  return isAclTableEnabled(hwSwitch);
+}
+
 template bool isQualifierPresent<cfg::IpFragMatch>(
     const HwSwitch* hwSwitch,
     const std::shared_ptr<SwitchState>& state,

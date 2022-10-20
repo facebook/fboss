@@ -11,6 +11,7 @@ class ProdInvariantTest : public ProdAgentTests {
   virtual void SetUp() override;
   virtual void setupConfigFlag() override;
   virtual cfg::SwitchConfig initialConfig();
+  void verifyAcl();
   void verifyCopp();
   void verifySafeDiagCommands();
   void verifyLoadBalancing();
