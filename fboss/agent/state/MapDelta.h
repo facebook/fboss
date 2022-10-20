@@ -17,7 +17,7 @@ template <
     typename MAP,
     typename VALUE =
         DeltaValue<typename MAP::mapped_type, const typename MAP::mapped_type*>>
-class NonNodeMapDelta {
+class MapDelta {
  public:
   using MapType = MAP;
   using Node = typename MAP::mapped_type;
@@ -32,8 +32,7 @@ class NonNodeMapDelta {
   };
   using Iterator = DeltaValueIterator<MAP, VALUE, NodeMapExtractor>;
 
-  NonNodeMapDelta(const MAP* oldMap, const MAP* newMap)
-      : old_(oldMap), new_(newMap) {}
+  MapDelta(const MAP* oldMap, const MAP* newMap) : old_(oldMap), new_(newMap) {}
 
   /*
    * Return an iterator pointing to the first change.

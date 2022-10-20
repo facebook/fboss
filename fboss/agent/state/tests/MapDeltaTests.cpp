@@ -9,13 +9,13 @@
  */
 
 #include "fboss/agent/state/DeltaFunctions.h"
-#include "fboss/agent/state/NonNodeMapDelta.h"
+#include "fboss/agent/state/MapDelta.h"
 
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
 
-class NonNodeMapDeltaTest : public ::testing::Test {
+class MapDeltaTest : public ::testing::Test {
  public:
   void SetUp() override {
     added.clear();
@@ -26,15 +26,15 @@ class NonNodeMapDeltaTest : public ::testing::Test {
       const std::map<int, std::string>& oldMap,
       const std::map<int, std::string>& newMap) {
     DeltaFunctions::forEachChanged(
-        NonNodeMapDelta(&oldMap, &newMap),
-        [&](auto oldStr, auto newStr) { changed.push_back(*newStr); },
+        MapDelta(&oldMap, &newMap),
+        [&](auto /*oldStr*/, auto newStr) { changed.push_back(*newStr); },
         [&](auto addStr) { added.push_back(*addStr); },
         [&](auto rmStr) { removed.push_back(*rmStr); });
   }
   std::vector<std::string> added, removed, changed;
 };
 
-TEST_F(NonNodeMapDeltaTest, addRemoveChange) {
+TEST_F(MapDeltaTest, addRemoveChange) {
   std::map<int, std::string> oldMap{{1, "one"}, {2, "too"}};
   std::map<int, std::string> newMap{{2, "two"}, {3, "three"}};
   computeDelta(oldMap, newMap);
@@ -43,7 +43,7 @@ TEST_F(NonNodeMapDeltaTest, addRemoveChange) {
   EXPECT_EQ(changed, std::vector<std::string>({newMap[2]}));
 }
 
-TEST_F(NonNodeMapDeltaTest, addRemove) {
+TEST_F(MapDeltaTest, addRemove) {
   std::map<int, std::string> oldMap{{1, "one"}};
   std::map<int, std::string> newMap{{2, "two"}};
   computeDelta(oldMap, newMap);
@@ -52,7 +52,7 @@ TEST_F(NonNodeMapDeltaTest, addRemove) {
   EXPECT_EQ(changed.size(), 0);
 }
 
-TEST_F(NonNodeMapDeltaTest, addOnly) {
+TEST_F(MapDeltaTest, addOnly) {
   std::map<int, std::string> oldMap{{1, "one"}};
   std::map<int, std::string> newMap{{1, "one"}, {2, "two"}};
   computeDelta(oldMap, newMap);
@@ -61,7 +61,7 @@ TEST_F(NonNodeMapDeltaTest, addOnly) {
   EXPECT_EQ(changed.size(), 0);
 }
 
-TEST_F(NonNodeMapDeltaTest, removeOnly) {
+TEST_F(MapDeltaTest, removeOnly) {
   std::map<int, std::string> oldMap{{1, "one"}};
   std::map<int, std::string> newMap;
   computeDelta(oldMap, newMap);
@@ -70,7 +70,7 @@ TEST_F(NonNodeMapDeltaTest, removeOnly) {
   EXPECT_EQ(changed.size(), 0);
 }
 
-TEST_F(NonNodeMapDeltaTest, changeOnly) {
+TEST_F(MapDeltaTest, changeOnly) {
   std::map<int, std::string> oldMap{{1, "1"}};
   std::map<int, std::string> newMap{{1, "one"}};
   computeDelta(oldMap, newMap);
@@ -79,7 +79,7 @@ TEST_F(NonNodeMapDeltaTest, changeOnly) {
   EXPECT_EQ(changed, std::vector<std::string>({newMap[1]}));
 }
 
-TEST_F(NonNodeMapDeltaTest, noChange) {
+TEST_F(MapDeltaTest, noChange) {
   std::map<int, std::string> oldMap{{1, "one"}};
   std::map<int, std::string> newMap(oldMap);
   computeDelta(oldMap, newMap);
