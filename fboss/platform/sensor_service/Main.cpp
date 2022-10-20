@@ -30,9 +30,6 @@ DEFINE_int32(
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
 int main(int argc, char** argv) {
-  // Set version info
-  gflags::SetCommandLineOptionWithMode(
-      "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
 
   fb303::registerFollyLoggingOptionHandlers();
 
