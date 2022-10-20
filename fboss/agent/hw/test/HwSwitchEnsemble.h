@@ -165,7 +165,8 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(20));
 
-  virtual std::vector<PortID> masterLogicalPortIds() const = 0;
+  virtual std::vector<PortID> masterLogicalPortIds(
+      const std::set<cfg::PortType>& filter = {}) const = 0;
   virtual std::vector<PortID> getAllPortsInGroup(PortID portID) const = 0;
   virtual std::vector<FlexPortMode> getSupportedFlexPortModes() const = 0;
   virtual bool isRouteScaleEnabled() const = 0;
@@ -218,6 +219,10 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
       const int totalLinkCount);
 
   virtual bool isSai() const = 0;
+
+  std::vector<PortID> filterByPortTypes(
+      const std::set<cfg::PortType>& filter,
+      const std::vector<PortID>& portIDs) const;
 
  protected:
   /*

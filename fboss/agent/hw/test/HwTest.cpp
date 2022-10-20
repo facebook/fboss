@@ -70,8 +70,9 @@ std::shared_ptr<SwitchState> HwTest::getProgrammedState() const {
   return hwSwitchEnsemble_->getProgrammedState();
 }
 
-std::vector<PortID> HwTest::masterLogicalPortIds() const {
-  return hwSwitchEnsemble_->masterLogicalPortIds();
+std::vector<PortID> HwTest::masterLogicalPortIds(
+    const std::set<cfg::PortType>& filter) const {
+  return hwSwitchEnsemble_->masterLogicalPortIds(filter);
 }
 
 std::vector<PortID> HwTest::getAllPortsInGroup(PortID portID) const {

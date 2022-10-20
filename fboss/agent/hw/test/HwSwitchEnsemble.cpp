@@ -32,6 +32,7 @@
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include <folly/experimental/FunctionScheduler.h>
+#include <folly/gen/Base.h>
 
 DEFINE_bool(
     setup_thrift,
@@ -578,4 +579,26 @@ void HwSwitchEnsemble::clearPfcWatchdogCounter(
     watchdogCounterMap[port] = 0;
   }
 }
+
+std::vector<PortID> HwSwitchEnsemble::filterByPortTypes(
+    const std::set<cfg::PortType>& filter,
+    const std::vector<PortID>& portIDs) const {
+  std::vector<PortID> filteredPortIDs;
+
+  folly::gen::from(portIDs) |
+      folly::gen::filter([this, filter](const auto& portID) {
+        if (filter.empty()) {
+          // if no filter is requested, allow all
+          return true;
+        }
+        auto portType =
+            getProgrammedState()->getPorts()->getPort(portID)->getPortType();
+
+        return filter.find(portType) != filter.end();
+      }) |
+      folly::gen::appendTo(filteredPortIDs);
+
+  return filteredPortIDs;
+}
+
 } // namespace facebook::fboss
