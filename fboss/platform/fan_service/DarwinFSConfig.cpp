@@ -13,7 +13,7 @@ std::string getDarwinFSConfig() {
   "boost_on_dead_fan" : true,
   "boost_on_dead_sensor" : false,
   "boost_on_no_qsfp_after" : 90,
-  "pwm_boost_value" : 100,
+  "pwm_boost_value" : 60,
   "pwm_transition_value" : 50,
   "pwm_percent_lower_limit" : 24,
   "pwm_percent_upper_limit" : 100,
