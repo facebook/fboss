@@ -69,10 +69,10 @@ struct SaiSystemPortTraits {
   using AdapterKey = SystemPortSaiId;
   using AdapterHostKey = Attributes::ConfigInfo;
 
-  using CreateAttributes = std::tuple<
-      Attributes::ConfigInfo,
-      std::optional<Attributes::AdminState>,
-      std::optional<Attributes::QosTcToQueueMap>>;
+  // TODO - Add AdminState to CreateAttributes
+  // one our vendors support setting AdminState
+  using CreateAttributes = std::
+      tuple<Attributes::ConfigInfo, std::optional<Attributes::QosTcToQueueMap>>;
 };
 
 SAI_ATTRIBUTE_NAME(SystemPort, Type)

@@ -25,7 +25,7 @@ sai_status_t create_system_port_fn(
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
   sai_system_port_config_t config;
-  bool adminState;
+  bool adminState{false};
   sai_object_id_t qosToTcMapId;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {

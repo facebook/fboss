@@ -40,9 +40,10 @@ class SystemPortApiTest : public ::testing::Test {
     };
     SaiSystemPortTraits::Attributes::ConfigInfo confInfo{config};
     SaiSystemPortTraits::Attributes::AdminState admin{enabled};
-    SaiSystemPortTraits::CreateAttributes sysPort{
-        confInfo, admin, std::nullopt};
-    return systemPortApi->create<SaiSystemPortTraits>(sysPort, 0);
+    SaiSystemPortTraits::CreateAttributes sysPort{confInfo, std::nullopt};
+    auto saiId = systemPortApi->create<SaiSystemPortTraits>(sysPort, 0);
+    systemPortApi->setAttribute(saiId, admin);
+    return saiId;
   }
 };
 

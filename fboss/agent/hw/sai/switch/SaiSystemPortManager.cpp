@@ -49,9 +49,10 @@ SaiSystemPortManager::attributesFromSwSystemPort(
       .speed = static_cast<uint32_t>(swSystemPort->getSpeedMbps()),
       .num_voq = static_cast<uint32_t>(swSystemPort->getNumVoqs()),
   };
-  // TODO - honor the qos config
-  return SaiSystemPortTraits::CreateAttributes{
-      config, swSystemPort->getEnabled(), std::nullopt};
+  // TODO
+  // Honor the qos config
+  // Honor adminState, when our vendor SAI supports it
+  return SaiSystemPortTraits::CreateAttributes{config, std::nullopt};
 }
 
 SystemPortSaiId SaiSystemPortManager::addSystemPort(
