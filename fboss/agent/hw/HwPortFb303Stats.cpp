@@ -250,10 +250,14 @@ void HwPortFb303Stats::updateStats(
                              int queueId,
                              const std::map<int16_t, int64_t>& queueStats) {
     auto qitr = queueStats.find(queueId);
-    CHECK(qitr != queueStats.end())
-        << "Missing stat: " << statKey
-        << " for queue: :" << queueId2Name_[queueId];
-    updateStat(timeRetrieved_, statKey, queueId, qitr->second);
+    /*
+     * TODO(skhare) Some ASICs don't yet support querying queue stats, so skip
+     * updateStat. Once that support is added, ASSERT for queue stat to be
+     * present.
+     */
+    if (qitr != queueStats.end()) {
+      updateStat(timeRetrieved_, statKey, queueId, qitr->second);
+    }
   };
   for (const auto& queueIdAndName : queueId2Name_) {
     updateQueueStat(

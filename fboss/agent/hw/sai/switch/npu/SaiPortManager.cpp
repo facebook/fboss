@@ -50,6 +50,22 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
       };
       return counterIds;
     }
+    if (platform_->getAsic()->getAsicType() ==
+        HwAsic::AsicType::ASIC_TYPE_INDUS) {
+      /*
+       * TODO(skhare) INDUS ASIC supports only a small set of stats today.
+       * Remove this check once INDUS ASIC supports querying all (most) of the
+       * port stats.
+       */
+      counterIds = std::vector<sai_stat_id_t>{
+          SAI_PORT_STAT_IF_IN_OCTETS,
+          SAI_PORT_STAT_IF_IN_UCAST_PKTS,
+          SAI_PORT_STAT_IF_OUT_OCTETS,
+          SAI_PORT_STAT_IF_OUT_UCAST_PKTS,
+      };
+      return counterIds;
+    }
+
     std::set<sai_stat_id_t> countersToFilter;
     if (!platform_->getAsic()->isSupported(HwAsic::Feature::ECN)) {
       countersToFilter.insert(SAI_PORT_STAT_ECN_MARKED_PACKETS);

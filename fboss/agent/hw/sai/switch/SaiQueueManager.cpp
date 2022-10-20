@@ -291,6 +291,13 @@ void SaiQueueManager::updateStats(
     const std::vector<SaiQueueHandle*>& queueHandles,
     HwPortStats& hwPortStats,
     bool updateWatermarks) {
+  if (platform_->getAsic()->getAsicType() ==
+      HwAsic::AsicType::ASIC_TYPE_INDUS) {
+    // TODO(skhare) Remove this check once INDUS ASIC supports querying queue
+    // stats.
+    return;
+  }
+
   hwPortStats.outCongestionDiscardPkts_() = 0;
   static std::vector<sai_stat_id_t> nonWatermarkStatsReadAndClear(
       SaiQueueTraits::NonWatermarkCounterIdsToReadAndClear.begin(),
