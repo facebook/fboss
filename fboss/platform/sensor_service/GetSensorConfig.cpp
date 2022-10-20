@@ -5,7 +5,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/platforms/PlatformMode.h"
-#include "fboss/lib/platforms/PlatformProductInfo.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h" // @manual=//fboss/lib/platforms:product-info
 
 namespace facebook::fboss::platform::sensor_service {
 
