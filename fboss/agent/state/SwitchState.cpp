@@ -71,6 +71,8 @@ constexpr auto kAclTableGroups = "aclTableGroups";
 constexpr auto kSystemPorts = "systemPorts";
 constexpr auto kTunnels = "ipTunnels";
 constexpr auto kTeFlows = "teFlows";
+constexpr auto kRemoteSystemPorts = "remoteSystemPorts";
+constexpr auto kRemoteInterfaces = "remoteInterfaces";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
@@ -274,6 +276,9 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
     switchState[kAclTableGroups] = aclTableGroups->toFollyDynamic();
   }
   switchState[kSystemPorts] = systemPorts->toFollyDynamic();
+  // Remote objects
+  switchState[kRemoteSystemPorts] = remoteSystemPorts->toFollyDynamic();
+  switchState[kRemoteInterfaces] = remoteInterfaces->toFollyDynamic();
   return switchState;
 }
 
@@ -358,6 +363,15 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
   }
   if (swJson.find(kTeFlows) != swJson.items().end()) {
     switchState.teFlowTable = TeFlowTable::fromFollyDynamic(swJson[kTeFlows]);
+  }
+  // Remote objects
+  if (swJson.find(kRemoteSystemPorts) != swJson.items().end()) {
+    switchState.remoteSystemPorts =
+        SystemPortMap::fromFollyDynamic(swJson[kRemoteSystemPorts]);
+  }
+  if (swJson.find(kRemoteInterfaces) != swJson.items().end()) {
+    switchState.remoteInterfaces =
+        InterfaceMap::fromFollyDynamic(swJson[kRemoteInterfaces]);
   }
   // TODO verify that created state here is internally consistent t4155406
   return switchState;
