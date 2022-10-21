@@ -799,7 +799,8 @@ void ThriftHandler::getAllInterfaces(
     std::map<int32_t, InterfaceDetail>& interfaces) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  for (const auto& intf : (*sw_->getState()->getInterfaces())) {
+  const auto interfaceMap = sw_->getState()->getInterfaces();
+  for (const auto& intf : *interfaceMap) {
     auto& interfaceDetail = interfaces[intf->getID()];
     populateInterfaceDetail(interfaceDetail, intf);
   }
@@ -808,7 +809,8 @@ void ThriftHandler::getAllInterfaces(
 void ThriftHandler::getInterfaceList(std::vector<std::string>& interfaceList) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  for (const auto& intf : (*sw_->getState()->getInterfaces())) {
+  const auto interfaceMap = sw_->getState()->getInterfaces();
+  for (const auto& intf : *interfaceMap) {
     interfaceList.push_back(intf->getName());
   }
 }
@@ -818,7 +820,7 @@ void ThriftHandler::getInterfaceDetail(
     int32_t interfaceId) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  const auto& intf = sw_->getState()->getInterfaces()->getInterfaceIf(
+  const auto intf = sw_->getState()->getInterfaces()->getInterfaceIf(
       InterfaceID(interfaceId));
 
   if (!intf) {
@@ -898,9 +900,8 @@ void ThriftHandler::getAggregatePortTable(
   // parameter, make sure it's clear() first
   aggregatePortsThrift.clear();
 
-  aggregatePortsThrift.reserve(sw_->getState()->getAggregatePorts()->size());
-
   auto aggregatePortMap = sw_->getState()->getAggregatePorts();
+  aggregatePortsThrift.reserve(aggregatePortMap->size());
   for (const auto& aggregatePort : *aggregatePortMap) {
     aggregatePortsThrift.emplace_back();
 
@@ -1666,7 +1667,7 @@ void ThriftHandler::getLldpNeighbors(vector<LinkNeighborThrift>& results) {
   auto neighbors = db->getNeighbors();
   results.reserve(neighbors.size());
   auto now = steady_clock::now();
-  for (const auto& entry : db->getNeighbors()) {
+  for (const auto& entry : neighbors) {
     results.push_back(thriftLinkNeighbor(*sw_, entry, now));
   }
 }
@@ -1935,7 +1936,9 @@ void ThriftHandler::getVlanAddresses(
     ADDR_CONVERTER& converter) {
   ensureConfigured(__func__);
   CHECK(vlan);
-  for (auto intf : (*sw_->getState()->getInterfaces())) {
+  // Explicitly take ownership of interface map
+  auto interfaces = sw_->getState()->getInterfaces();
+  for (auto intf : *interfaces) {
     if (intf->getVlanID() == vlan->getID()) {
       for (const auto& addrAndMask : intf->getAddresses()) {
         addrs.push_back(converter(addrAndMask.first));
