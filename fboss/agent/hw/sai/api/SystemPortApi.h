@@ -48,7 +48,7 @@ struct SaiSystemPortTraits {
     using QosVoqList = SaiAttribute<
         EnumType,
         SAI_SYSTEM_PORT_ATTR_QOS_VOQ_LIST,
-        std::vector<SaiObjectIdT>>;
+        std::vector<sai_object_id_t>>;
     using Port =
         SaiAttribute<EnumType, SAI_SYSTEM_PORT_ATTR_PORT, SaiObjectIdT>;
     using AdminState = SaiAttribute<

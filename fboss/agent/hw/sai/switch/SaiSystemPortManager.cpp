@@ -12,7 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
-#include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
+#include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/logging/xlog.h>
@@ -76,6 +76,7 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
   auto saiSystemPort = systemPortStore.setObject(
       systemPortKey, attributes, swSystemPort->getID());
   handle->systemPort = saiSystemPort;
+  loadQueues(*handle);
   handles_.emplace(swSystemPort->getID(), std::move(handle));
   return saiSystemPort->adapterKey();
 }
@@ -94,6 +95,30 @@ void SaiSystemPortManager::changeSystemPort(
     handle->systemPort->setAttributes(newAttributes);
   }
 }
+
+void SaiSystemPortManager::loadQueues(
+    SaiSystemPortHandle& sysPortHandle) const {
+  std::vector<sai_object_id_t> queueList;
+  queueList.resize(1);
+  SaiSystemPortTraits::Attributes::QosVoqList queueListAttribute{queueList};
+  auto queueSaiIdList =
+      SaiApiTable::getInstance()->systemPortApi().getAttribute(
+          sysPortHandle.systemPort->adapterKey(), queueListAttribute);
+  if (queueSaiIdList.size() == 0) {
+    throw FbossError("no queues exist for system port ");
+  }
+  std::vector<QueueSaiId> queueSaiIds;
+  queueSaiIds.reserve(queueSaiIdList.size());
+  std::transform(
+      queueSaiIdList.begin(),
+      queueSaiIdList.end(),
+      std::back_inserter(queueSaiIds),
+      [](sai_object_id_t queueId) -> QueueSaiId {
+        return QueueSaiId(queueId);
+      });
+  sysPortHandle.queues = managerTable_->queueManager().loadQueues(queueSaiIds);
+}
+
 void SaiSystemPortManager::removeSystemPort(
     const std::shared_ptr<SystemPort>& swSystemPort) {
   auto swId = swSystemPort->getID();

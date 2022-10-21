@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/SystemPortApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SystemPort.h"
 #include "fboss/agent/types.h"
@@ -29,6 +30,7 @@ using SaiSystemPort = SaiObject<SaiSystemPortTraits>;
 
 struct SaiSystemPortHandle {
   std::shared_ptr<SaiSystemPort> systemPort;
+  SaiQueueHandles queues;
 };
 
 class SaiSystemPortManager {
@@ -61,6 +63,7 @@ class SaiSystemPortManager {
   }
 
  private:
+  void loadQueues(SaiSystemPortHandle& sysPortHandle) const;
   SaiSystemPortTraits::CreateAttributes attributesFromSwSystemPort(
       const std::shared_ptr<SystemPort>& swSystemPort) const;
 
