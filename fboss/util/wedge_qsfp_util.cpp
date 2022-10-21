@@ -320,6 +320,8 @@ struct ModulePartInfo_s modulePartInfo[] = {
   {{'F','T','C','D','4','3','1','3','E','2','P','C','L','F','B','2'}, 64},
   // Finisar 400G module info
   {{'F','T','C','D','4','3','1','3','E','2','P','C','L','F','B','3'}, 64},
+  // Finisar 400G module info
+  {{'F','T','C','D','4','3','1','3','E','2','P','C','L','F','B','4'}, 64},
   // Finisar 400G LR4 module info
   {{'F','T','C','D','4','3','2','3','E','2','P','C','L',0x20,0x20,0x20}, 64},
   // Innolight 200G module info
@@ -332,6 +334,8 @@ struct ModulePartInfo_s modulePartInfo[] = {
   {{'T','-','D','Q','4','C','N','T','-','N','F','B',0x20,0x20,0x20,0x20}, 48},
   // Innolight 400G module info
   {{'T','-','D','Q','4','C','N','T','-','N','F','2',0x20,0x20,0x20,0x20}, 48},
+  // Innolight 400G module info
+  {{'T','-','D','Q','4','C','N','T','-','N','F','M',0x20,0x20,0x20,0x20}, 48},
   // Intel 200G module info
   {{'S','P','T','S','M','P','3','C','L','C','K','8',0x20,0x20,0x20,0x20}, 48},
   // Intel 200G module info
