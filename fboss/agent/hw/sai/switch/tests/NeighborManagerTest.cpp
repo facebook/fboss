@@ -34,8 +34,12 @@ class NeighborManagerTest : public ManagerTestBase {
     auto newState = programmedState;
     auto sysPortMap = newState->getRemoteSystemPorts()->modify(&newState);
     sysPortMap->addSystemPort(remoteSysPort);
-    remoteRif =
-        makeInterface(*remoteSysPort, {{folly::IPAddress("100::1"), 64}});
+    remoteRif = makeInterface(
+        *remoteSysPort,
+        {
+            {folly::IPAddress("100::1"), 64},
+            {folly::IPAddress("100.0.0.1"), 24},
+        });
     auto rifMap = newState->getRemoteInterfaces()->modify(&newState);
     rifMap->addInterface(remoteRif);
     applyNewState(newState);
@@ -102,6 +106,9 @@ class NeighborManagerTest : public ManagerTestBase {
   TestRemoteHost h0;
   std::shared_ptr<SystemPort> remoteSysPort;
   std::shared_ptr<Interface> remoteRif;
+  const folly::MacAddress kRemoteMac{"1:2:3:4:5:6"};
+  const folly::IPAddressV4 kRemoteIp4{"100.0.0.2"};
+  const int32_t kRemoteEncapIdx{42};
 };
 
 TEST_F(NeighborManagerTest, addResolvedNeighbor) {
@@ -112,6 +119,18 @@ TEST_F(NeighborManagerTest, addResolvedNeighbor) {
 TEST_F(NeighborManagerTest, addResolvedPortRifNeighbor) {
   auto arpEntry = resolveArp(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
   checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT);
+}
+
+TEST_F(NeighborManagerTest, addResolvedPortRifNeighborRemote) {
+  auto arpEntry =
+      resolveArp(*remoteSysPort, kRemoteIp4, kRemoteMac, kRemoteEncapIdx);
+  checkEntry(
+      arpEntry,
+      kRemoteMac,
+      cfg::InterfaceType::SYSTEM_PORT,
+      0,
+      kRemoteEncapIdx,
+      false);
 }
 
 TEST_F(NeighborManagerTest, addResolvedNeighborWithMetadata) {
