@@ -31,14 +31,14 @@ class InterfaceDelta : public DeltaValue<Interface> {
   using DeltaValue<Interface>::DeltaValue;
 
   ArpTableDelta getArpDelta() const {
-    auto oldArpTable = getArpTable(getOld());
-    auto newArpTable = getArpTable(getNew());
-    return ArpTableDelta(oldArpTable.get(), newArpTable.get());
+    oldArpTable_ = oldArpTable_ ? oldArpTable_ : getArpTable(getOld());
+    newArpTable_ = newArpTable_ ? newArpTable_ : getArpTable(getNew());
+    return ArpTableDelta(oldArpTable_.get(), newArpTable_.get());
   }
   NdpTableDelta getNdpDelta() const {
-    auto oldNdpTable = getNdpTable(getOld());
-    auto newNdpTable = getNdpTable(getNew());
-    return NdpTableDelta(oldNdpTable.get(), newNdpTable.get());
+    oldNdpTable_ = oldNdpTable_ ? oldNdpTable_ : getNdpTable(getOld());
+    newNdpTable_ = newNdpTable_ ? newNdpTable_ : getNdpTable(getNew());
+    return NdpTableDelta(oldNdpTable_.get(), newNdpTable_.get());
   }
   template <typename NTableT>
   NodeMapDelta<NTableT> getNeighborDelta() const;
@@ -61,6 +61,15 @@ class InterfaceDelta : public DeltaValue<Interface> {
     return NTableT::fromThrift(
         intf->template getNeighborEntryTable<typename NTableT::AddressType>());
   }
+
+ private:
+  /*
+   * Convert from state::NeighborEntries to Arp, Ndp table to
+   * be able to reuse NodeMapDelta. Mutable since we do a
+   * lazy conversion for when delta is asked for
+   */
+  mutable std::shared_ptr<ArpTable> oldArpTable_, newArpTable_;
+  mutable std::shared_ptr<NdpTable> oldNdpTable_, newNdpTable_;
 };
 
 typedef NodeMapDelta<InterfaceMap, InterfaceDelta> InterfaceMapDelta;

@@ -22,6 +22,7 @@
 #include "fboss/agent/state/ForwardingInformationBaseDelta.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/InterfaceMapDelta.h"
 #include "fboss/agent/state/IpTunnelMap.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
@@ -68,7 +69,7 @@ class StateDelta {
 
   NodeMapDelta<PortMap> getPortsDelta() const;
   VlanMapDelta getVlansDelta() const;
-  NodeMapDelta<InterfaceMap> getIntfsDelta() const;
+  InterfaceMapDelta getIntfsDelta() const;
   DeltaValue<QosPolicy> getDefaultDataPlaneQosPolicyDelta() const;
   AclMapDelta getAclsDelta(
       cfg::AclStage aclStage = cfg::AclStage::INGRESS,
@@ -91,7 +92,7 @@ class StateDelta {
   NodeMapDelta<TeFlowTable> getTeFlowEntriesDelta() const;
   // Remote object deltas
   NodeMapDelta<SystemPortMap> getRemoteSystemPortsDelta() const;
-  NodeMapDelta<InterfaceMap> getRemoteIntfsDelta() const;
+  InterfaceMapDelta getRemoteIntfsDelta() const;
 
  private:
   // Forbidden copy constructor and assignment operator

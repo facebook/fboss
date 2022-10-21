@@ -47,13 +47,13 @@ VlanMapDelta StateDelta::getVlansDelta() const {
   return VlanMapDelta(old_->getVlans().get(), new_->getVlans().get());
 }
 
-NodeMapDelta<InterfaceMap> StateDelta::getIntfsDelta() const {
-  return NodeMapDelta<InterfaceMap>(
+InterfaceMapDelta StateDelta::getIntfsDelta() const {
+  return InterfaceMapDelta(
       old_->getInterfaces().get(), new_->getInterfaces().get());
 }
 
-NodeMapDelta<InterfaceMap> StateDelta::getRemoteIntfsDelta() const {
-  return NodeMapDelta<InterfaceMap>(
+InterfaceMapDelta StateDelta::getRemoteIntfsDelta() const {
+  return InterfaceMapDelta(
       old_->getRemoteInterfaces().get(), new_->getRemoteInterfaces().get());
 }
 
