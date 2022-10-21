@@ -2991,6 +2991,22 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
         *cfg_->switchSettings()->exactMatchTableConfigs());
     switchSettingsChange = true;
   }
+  if (newSwitchSettings->getSwitchType() != cfg::SwitchType::NPU) {
+    CHECK(newSwitchSettings->getSwitchId() != std::nullopt);
+    auto dsfItr = *cfg_->dsfNodes()->find(
+        static_cast<int64_t>(*newSwitchSettings->getSwitchId()));
+    if (dsfItr == *cfg_->dsfNodes()->end()) {
+      throw FbossError(
+          "Missing dsf config for switch id: ",
+          *newSwitchSettings->getSwitchId());
+    }
+    auto myNode = dsfItr.second;
+    auto origSysPortRange = origSwitchSettings->getSystemPortRange();
+    if (!origSysPortRange || *origSysPortRange != myNode.systemPortRange()) {
+      newSwitchSettings->setSystemPortRange(*myNode.systemPortRange());
+      switchSettingsChange = true;
+    }
+  }
 
   return switchSettingsChange ? newSwitchSettings : nullptr;
 }

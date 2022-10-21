@@ -102,9 +102,7 @@ TEST(SystemPort, Modify) {
 TEST(SystemPort, sysPortApplyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
-  auto config = testConfigA();
-  config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
-  config.switchSettings()->switchId() = 1;
+  auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   EXPECT_EQ(stateV1->getSystemPorts()->size(), stateV1->getPorts()->size());
@@ -118,9 +116,7 @@ TEST(SystemPort, sysPortApplyConfig) {
 TEST(SystemPort, sysPortApplyConfigSwitchTypeChange) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
-  auto config = testConfigA();
-  config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
-  config.switchSettings()->switchId() = 1;
+  auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   EXPECT_EQ(stateV1->getSystemPorts()->size(), stateV1->getPorts()->size());
@@ -134,13 +130,15 @@ TEST(SystemPort, sysPortApplyConfigSwitchTypeChange) {
 TEST(SystemPort, sysPortApplyConfigSwitchIdChange) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
-  auto config = testConfigA();
-  config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
-  config.switchSettings()->switchId() = 1;
+  auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   EXPECT_EQ(stateV1->getSystemPorts()->size(), stateV1->getPorts()->size());
+  auto prevSwitchId = *config.switchSettings()->switchId();
   config.switchSettings()->switchId() = 2;
+  config.dsfNodes()->insert(
+      {*config.switchSettings()->switchId(), config.dsfNodes()[prevSwitchId]});
+
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);
   EXPECT_EQ(

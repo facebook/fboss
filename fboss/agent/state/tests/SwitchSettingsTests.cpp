@@ -288,17 +288,15 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_EQ(switchSettingsV0->getBlockNeighbors().size(), 0);
 
   // Check if value is updated
-  cfg::SwitchConfig config;
+  cfg::SwitchConfig config = testConfigA(cfg::SwitchType::VOQ);
   *config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
-  config.switchSettings()->switchId() = 100;
-
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
   auto switchSettingsV1 = stateV1->getSwitchSettings();
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
   EXPECT_EQ(switchSettingsV1->getSwitchType(), cfg::SwitchType::VOQ);
-  EXPECT_EQ(switchSettingsV1->getSwitchId(), 100);
+  EXPECT_EQ(switchSettingsV1->getSwitchId(), 1);
   validateNodeSerialization(*switchSettingsV1);
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
 
