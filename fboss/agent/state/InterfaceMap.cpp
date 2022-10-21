@@ -12,6 +12,7 @@
 #include <string>
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/NodeMap-defs.h"
+#include "fboss/agent/state/SwitchState.h"
 
 using folly::IPAddress;
 using std::string;
@@ -93,6 +94,24 @@ const std::shared_ptr<Interface> InterfaceMap::getIntfToReach(
 
 void InterfaceMap::addInterface(const std::shared_ptr<Interface>& interface) {
   addNode(interface);
+}
+
+InterfaceMap* InterfaceMap::modify(std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  bool isRemote = (this == (*state)->getRemoteInterfaces().get());
+  SwitchState::modify(state);
+  auto newInterfaces = clone();
+  auto* ptr = newInterfaces.get();
+  if (isRemote) {
+    (*state)->resetRemoteIntfs(std::move(newInterfaces));
+  } else {
+    (*state)->resetIntfs(std::move(newInterfaces));
+  }
+  return ptr;
 }
 
 folly::dynamic InterfaceMap::toFollyDynamic() const {

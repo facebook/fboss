@@ -205,6 +205,26 @@ TEST_F(InterfaceTest, getSetNdpTable) {
   EXPECT_NE(ndpTable, intf1->getNeighborEntryTable<folly::IPAddressV4>());
 }
 
+TEST(Interface, Modify) {
+  {
+    auto state = std::make_shared<SwitchState>();
+    auto origIntfs = state->getInterfaces();
+    EXPECT_EQ(origIntfs.get(), origIntfs->modify(&state));
+    state->publish();
+    EXPECT_NE(origIntfs.get(), origIntfs->modify(&state));
+    EXPECT_NE(origIntfs.get(), state->getInterfaces().get());
+  }
+  {
+    // Remote sys ports modify
+    auto state = std::make_shared<SwitchState>();
+    auto origRemoteIntfs = state->getRemoteInterfaces();
+    EXPECT_EQ(origRemoteIntfs.get(), origRemoteIntfs->modify(&state));
+    state->publish();
+    EXPECT_NE(origRemoteIntfs.get(), origRemoteIntfs->modify(&state));
+    EXPECT_NE(origRemoteIntfs.get(), state->getRemoteInterfaces().get());
+  }
+}
+
 TEST(Interface, applyConfig) {
   auto platform = createMockPlatform();
   cfg::SwitchConfig config;

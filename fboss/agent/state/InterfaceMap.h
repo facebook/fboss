@@ -17,6 +17,7 @@
 namespace facebook::fboss {
 
 class Interface;
+class SwitchState;
 typedef NodeMapTraits<InterfaceID, Interface> InterfaceMapTraits;
 
 /*
@@ -110,6 +111,7 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
       const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
+  InterfaceMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:
   // Inherit the constructors required for clone()
