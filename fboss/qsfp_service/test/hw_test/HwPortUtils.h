@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/platforms/PlatformMode.h"
 
 #include <optional>
 
@@ -35,7 +36,8 @@ struct IphyAndXphyPorts {
 void verifyPhyPortConfig(
     PortID portID,
     PhyManager* phyManager,
-    const phy::PhyPortConfig& expectedConfig);
+    const phy::PhyPortConfig& expectedConfig,
+    PlatformMode platformMode);
 
 void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble);
 

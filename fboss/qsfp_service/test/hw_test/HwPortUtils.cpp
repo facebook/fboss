@@ -41,7 +41,8 @@ void fillDefaultTxSettings(PhyManager* phyManager, phy::PhyPortConfig& config) {
 void verifyPhyPortConfig(
     PortID portID,
     PhyManager* phyManager,
-    const phy::PhyPortConfig& expectedConfig) {
+    const phy::PhyPortConfig& expectedConfig,
+    PlatformMode platformMode) {
   phy::PhyPortConfig filledConfig = expectedConfig;
   // fill default TX settings in the expectedConfig
   fillDefaultTxSettings(phyManager, filledConfig);
@@ -75,7 +76,9 @@ void verifyPhyPortConfig(
   // Only check phy::ExternalPhyConfig when the actual config exists
   const auto& actualSysLanesConf = actualPortConfig.config.system.lanes;
   const auto& acutualLineLanesConf = actualPortConfig.config.line.lanes;
-  if (!actualSysLanesConf.empty() && !acutualLineLanesConf.empty()) {
+  // FIXME: remove Sandia check when we start reading tx settings on Sandia XPHY
+  if (!actualSysLanesConf.empty() && !acutualLineLanesConf.empty() &&
+      platformMode != PlatformMode::SANDIA) {
     EXPECT_EQ(filledConfig.config, actualPortConfig.config)
         << " Mismatch between expected and actual port config.\nExpected "
         << filledConfig.config.toDynamic()
@@ -86,7 +89,11 @@ void verifyPhyPortConfig(
 }
 
 void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble) {
-  if (!qsfpEnsemble->isSaiPlatform()) {
+  // FIXME: remove Sandia check when Sandia XPHY supports getattr for
+  // PortConnector object in SAI
+  if (!qsfpEnsemble->isSaiPlatform() ||
+      qsfpEnsemble->getWedgeManager()->getPlatformMode() ==
+          PlatformMode::SANDIA) {
     return;
   }
 
@@ -273,7 +280,10 @@ void verifyXphyPort(
       expectedPhyPortConfig.profile.speed);
 
   utility::verifyPhyPortConfig(
-      portID, ensemble->getPhyManager(), expectedPhyPortConfig);
+      portID,
+      ensemble->getPhyManager(),
+      expectedPhyPortConfig,
+      ensemble->getWedgeManager()->getPlatformMode());
 
   utility::verifyPhyPortConnector(portID, ensemble);
 }
