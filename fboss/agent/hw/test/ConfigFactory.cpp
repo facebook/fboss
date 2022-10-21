@@ -504,20 +504,6 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
           setInterfaceMac,
           interfaceHasSubnet);
     }
-    // Add a dummy VLAN/RIF pair to hold neighbor entries. Ultimately
-    // we will just move neighbor entry table to RIFs, but for now
-    // we continue to hold them with VLAN objects in switch state
-    cfg::Vlan dummyVlan;
-    dummyVlan.id() = kBaseVlanId;
-    dummyVlan.name() = "vlan" + std::to_string(*dummyVlan.id());
-    dummyVlan.routable() = true;
-    config.vlans()->push_back(dummyVlan);
-    addInterface(
-        *dummyVlan.id(),
-        *dummyVlan.id(),
-        cfg::InterfaceType::VLAN,
-        true,
-        false);
   }
   return config;
 }
