@@ -292,6 +292,7 @@ struct SwitchSettingsFields {
   // Switch id (only applicable for VOQ based systems)
   9: optional i64 switchId;
   10: list<switch_config.ExactMatchTableConfig> exactMatchTableConfigs;
+  11: optional switch_config.Range64 systemPortRange;
 }
 
 struct RoutePrefix {
