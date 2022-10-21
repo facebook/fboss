@@ -12,6 +12,7 @@
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
+#include "fboss/agent/state/MapDelta.h"
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 
@@ -25,8 +26,9 @@ namespace facebook::fboss {
  */
 class InterfaceDelta : public DeltaValue<Interface> {
  public:
-  typedef NodeMapDelta<ArpTable> ArpTableDelta;
-  typedef NodeMapDelta<NdpTable> NdpTableDelta;
+  using ArpTableDelta = NodeMapDelta<ArpTable>;
+  using NdpTableDelta = NodeMapDelta<NdpTable>;
+  using NeighborEntriesDelta = MapDelta<state::NeighborEntries>;
 
   using DeltaValue<Interface>::DeltaValue;
 
@@ -42,6 +44,15 @@ class InterfaceDelta : public DeltaValue<Interface> {
   }
   template <typename NTableT>
   NodeMapDelta<NTableT> getNeighborDelta() const;
+
+  NeighborEntriesDelta getArpEntriesDelta() const {
+    return NeighborEntriesDelta(
+        getArpEntries(getOld()), getArpEntries(getNew()));
+  }
+  NeighborEntriesDelta getNdpEntriesDelta() const {
+    return NeighborEntriesDelta(
+        getNdpEntries(getOld()), getNdpEntries(getNew()));
+  }
 
  private:
   std::shared_ptr<ArpTable> getArpTable(
@@ -61,8 +72,15 @@ class InterfaceDelta : public DeltaValue<Interface> {
     return NTableT::fromThrift(
         intf->template getNeighborEntryTable<typename NTableT::AddressType>());
   }
+  const state::NeighborEntries* getArpEntries(
+      const std::shared_ptr<Interface>& intf) const {
+    return intf ? &intf->getArpTable() : nullptr;
+  }
+  const state::NeighborEntries* getNdpEntries(
+      const std::shared_ptr<Interface>& intf) const {
+    return intf ? &intf->getNdpTable() : nullptr;
+  }
 
- private:
   /*
    * Convert from state::NeighborEntries to Arp, Ndp table to
    * be able to reuse NodeMapDelta. Mutable since we do a
