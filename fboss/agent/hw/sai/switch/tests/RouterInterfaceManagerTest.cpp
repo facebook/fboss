@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 
 #include <string>
@@ -55,6 +56,16 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
     EXPECT_EQ(srcMacGot, expectedSrcMac);
     EXPECT_EQ(mtuGot, expectedMtu);
   }
+  void checkRouterInterface(
+      InterfaceID intfId,
+      VlanSaiId expectedSaiVlanId,
+      const folly::MacAddress& expectedSrcMac,
+      int expectedMtu = 1500) const {
+    auto saiId = saiManagerTable->routerInterfaceManager()
+                     .getRouterInterfaceHandle(intfId)
+                     ->adapterKey();
+    checkRouterInterface(saiId, expectedSaiVlanId, expectedSrcMac, expectedMtu);
+  }
   void checkPortRouterInterface(
       RouterInterfaceSaiId saiRouterInterfaceId,
       SystemPortSaiId expectedSaiPortId,
@@ -73,6 +84,17 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
     EXPECT_EQ(mtuGot, expectedMtu);
   }
 
+  void checkPortRouterInterface(
+      InterfaceID intfId,
+      SystemPortSaiId expectedSaiPortId,
+      const folly::MacAddress& expectedSrcMac,
+      int expectedMtu = 1500) const {
+    auto saiId = saiManagerTable->routerInterfaceManager()
+                     .getRouterInterfaceHandle(intfId)
+                     ->adapterKey();
+    checkPortRouterInterface(
+        saiId, expectedSaiPortId, expectedSrcMac, expectedMtu);
+  }
   void checkAdapterKey(
       RouterInterfaceSaiId saiRouterInterfaceId,
       InterfaceID intfId) const {
@@ -125,44 +147,57 @@ class RouterInterfaceManagerTest : public ManagerTestBase {
 
 TEST_F(RouterInterfaceManagerTest, addRouterInterface) {
   auto swInterface = makeInterface(intf0);
-  auto saiId =
-      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface);
+  applyNewState(state);
   checkRouterInterface(
-      saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
+      swInterface->getID(), static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
 }
 
 TEST_F(RouterInterfaceManagerTest, addPortRouterInterface) {
   auto swSysPort = makeSystemPort();
   auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
-  auto saiId =
-      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
-  checkPortRouterInterface(saiId, sysPort1, swInterface->getMac());
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface);
+  applyNewState(state);
+  checkPortRouterInterface(
+      swInterface->getID(), sysPort1, swInterface->getMac());
 }
 
 TEST_F(RouterInterfaceManagerTest, addTwoRouterInterfaces) {
   auto swInterface0 = makeInterface(intf0);
-  auto saiId0 = saiManagerTable->routerInterfaceManager().addRouterInterface(
-      swInterface0);
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface0);
+  applyNewState(state);
+  checkRouterInterface(
+      swInterface0->getID(), static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
   auto swInterface1 = makeInterface(intf1);
-  auto saiId1 = saiManagerTable->routerInterfaceManager().addRouterInterface(
-      swInterface1);
+  rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface1);
+  applyNewState(state);
   checkRouterInterface(
-      saiId0, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
-  checkRouterInterface(
-      saiId1, static_cast<VlanSaiId>(intf1.id), intf1.routerMac);
+      swInterface1->getID(), static_cast<VlanSaiId>(intf1.id), intf1.routerMac);
 }
 
 TEST_F(RouterInterfaceManagerTest, addTwoPortRouterInterfaces) {
   auto swSysPort0 = makeSystemPort();
-  auto swInterface = makeInterface(*swSysPort0, {intf0.subnet});
-  auto saiId =
-      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
-  checkPortRouterInterface(saiId, sysPort1, swInterface->getMac());
+  auto swInterface0 = makeInterface(*swSysPort0, {intf0.subnet});
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface0);
+  applyNewState(state);
+  checkPortRouterInterface(
+      swInterface0->getID(), sysPort1, swInterface0->getMac());
   auto swSysPort1 = makeSystemPort(std::nullopt, 2);
   auto swInterface1 = makeInterface(*swSysPort1, {intf0.subnet});
-  auto saiId1 = saiManagerTable->routerInterfaceManager().addRouterInterface(
-      swInterface1);
-  checkPortRouterInterface(saiId1, sysPort2, swInterface1->getMac());
+  rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface1);
+  applyNewState(state);
+  checkPortRouterInterface(
+      swInterface1->getID(), sysPort2, swInterface1->getMac());
 }
 
 TEST_F(RouterInterfaceManagerTest, addDupRouterInterface) {
@@ -185,166 +220,201 @@ TEST_F(RouterInterfaceManagerTest, addDupPortRouterInterface) {
 
 TEST_F(RouterInterfaceManagerTest, changeRouterInterfaceMac) {
   auto swInterface = makeInterface(intf0);
-  auto saiId =
-      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface);
+  applyNewState(state);
   checkRouterInterface(
-      saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
+      swInterface->getID(), static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
   auto newMac = intf1.routerMac;
   CHECK_NE(swInterface->getMac(), newMac);
   auto newInterface = swInterface->clone();
   newInterface->setMac(newMac);
-  saiManagerTable->routerInterfaceManager().changeRouterInterface(
-      swInterface, newInterface);
-  checkRouterInterface(saiId, static_cast<VlanSaiId>(intf0.id), newMac);
+  rifMap = state->getInterfaces()->modify(&state);
+  rifMap->updateNode(newInterface);
+  applyNewState(state);
+  EXPECT_EQ(swInterface->getID(), newInterface->getID());
+  checkRouterInterface(
+      newInterface->getID(), static_cast<VlanSaiId>(intf0.id), newMac);
 }
 
 TEST_F(RouterInterfaceManagerTest, changePortRouterInterfaceMac) {
   auto swSysPort = makeSystemPort();
   auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
-  auto saiId =
-      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
-  checkPortRouterInterface(saiId, sysPort1, swInterface->getMac());
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface);
+  applyNewState(state);
+  checkPortRouterInterface(
+      swInterface->getID(), sysPort1, swInterface->getMac());
   auto newMac = intf0.routerMac;
   CHECK_NE(swInterface->getMac(), newMac);
   auto newInterface = swInterface->clone();
   newInterface->setMac(newMac);
-  saiManagerTable->routerInterfaceManager().changeRouterInterface(
-      swInterface, newInterface);
-  checkPortRouterInterface(saiId, sysPort1, newMac);
+  rifMap = state->getInterfaces()->modify(&state);
+  rifMap->updateNode(newInterface);
+  applyNewState(state);
+  EXPECT_EQ(swInterface->getID(), newInterface->getID());
+  checkPortRouterInterface(newInterface->getID(), sysPort1, newMac);
 }
 
 TEST_F(RouterInterfaceManagerTest, changeRouterInterfaceMtu) {
   auto swInterface = makeInterface(intf0);
-  auto saiId =
-      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface);
+  applyNewState(state);
   checkRouterInterface(
-      saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
+      swInterface->getID(), static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
   auto newMtu = intf0.mtu + 1000;
   auto newInterface = swInterface->clone();
   newInterface->setMtu(newMtu);
-  saiManagerTable->routerInterfaceManager().changeRouterInterface(
-      swInterface, newInterface);
+  rifMap = state->getInterfaces()->modify(&state);
+  rifMap->updateNode(newInterface);
+  applyNewState(state);
+  EXPECT_EQ(swInterface->getID(), newInterface->getID());
   checkRouterInterface(
-      saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac, newMtu);
+      newInterface->getID(),
+      static_cast<VlanSaiId>(intf0.id),
+      newInterface->getMac(),
+      newMtu);
 }
 
 TEST_F(RouterInterfaceManagerTest, changePortRouterInterfaceMtu) {
   auto swSysPort = makeSystemPort();
   auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
-  auto saiId =
-      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
-  checkPortRouterInterface(saiId, sysPort1, swInterface->getMac());
-  auto newMtu = swInterface->getMtu() + 1000;
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface);
+  applyNewState(state);
+  checkPortRouterInterface(
+      swInterface->getID(), sysPort1, swInterface->getMac());
+  auto newMtu = intf0.mtu + 1000;
   auto newInterface = swInterface->clone();
   newInterface->setMtu(newMtu);
-  saiManagerTable->routerInterfaceManager().changeRouterInterface(
-      swInterface, newInterface);
-  checkPortRouterInterface(saiId, sysPort1, swInterface->getMac(), newMtu);
+  rifMap = state->getInterfaces()->modify(&state);
+  rifMap->updateNode(newInterface);
+  applyNewState(state);
+  EXPECT_EQ(swInterface->getID(), newInterface->getID());
+  checkPortRouterInterface(
+      newInterface->getID(), sysPort1, newInterface->getMac(), newMtu);
 }
 
 TEST_F(RouterInterfaceManagerTest, removeRouterInterfaceSubnets) {
-  auto oldInterface = makeInterface(intf0);
-  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
-      oldInterface);
+  auto swInterface = makeInterface(intf0);
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface);
+  applyNewState(state);
   checkRouterInterface(
-      saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
-  auto newInterface = oldInterface->clone();
+      swInterface->getID(), static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
+  auto oldToMeRoutes = getSubnetKeys(swInterface->getID());
+  auto newInterface = swInterface->clone();
   newInterface->setAddresses({});
-
-  auto oldToMeRoutes = getSubnetKeys(oldInterface->getID());
-  saiManagerTable->routerInterfaceManager().changeRouterInterface(
-      oldInterface, newInterface);
+  rifMap = state->getInterfaces()->modify(&state);
+  rifMap->updateNode(newInterface);
+  applyNewState(state);
   checkSubnets(oldToMeRoutes, false /* should no longer exist*/);
 }
 
 TEST_F(RouterInterfaceManagerTest, removePortRouterInterfaceSubnets) {
   auto swSysPort = makeSystemPort();
-  auto oldInterface = makeInterface(*swSysPort, {intf0.subnet});
-  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
-      oldInterface);
-  checkPortRouterInterface(saiId, sysPort1, oldInterface->getMac());
-  auto newInterface = oldInterface->clone();
+  auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface);
+  applyNewState(state);
+  checkPortRouterInterface(
+      swInterface->getID(), sysPort1, swInterface->getMac());
+  auto oldToMeRoutes = getSubnetKeys(swInterface->getID());
+  auto newInterface = swInterface->clone();
   newInterface->setAddresses({});
-
-  auto oldToMeRoutes = getSubnetKeys(oldInterface->getID());
-  saiManagerTable->routerInterfaceManager().changeRouterInterface(
-      oldInterface, newInterface);
+  rifMap = state->getInterfaces()->modify(&state);
+  rifMap->updateNode(newInterface);
+  applyNewState(state);
   checkSubnets(oldToMeRoutes, false /* should no longer exist*/);
 }
 
 TEST_F(RouterInterfaceManagerTest, changeRouterInterfaceSubnets) {
-  auto oldInterface = makeInterface(intf0);
-  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
-      oldInterface);
+  auto swInterface = makeInterface(intf0);
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface);
+  applyNewState(state);
   checkRouterInterface(
-      saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
-  auto newInterface = oldInterface->clone();
+      swInterface->getID(), static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
+  auto oldToMeRoutes = getSubnetKeys(swInterface->getID());
+  auto newInterface = swInterface->clone();
   newInterface->setAddresses({{folly::IPAddress{"100.100.100.1"}, 24}});
-
-  auto oldToMeRoutes = getSubnetKeys(oldInterface->getID());
-  saiManagerTable->routerInterfaceManager().changeRouterInterface(
-      oldInterface, newInterface);
-  auto newToMeRoutes = getSubnetKeys(oldInterface->getID());
+  rifMap = state->getInterfaces()->modify(&state);
+  rifMap->updateNode(newInterface);
+  applyNewState(state);
+  auto newToMeRoutes = getSubnetKeys(swInterface->getID());
   checkSubnets(oldToMeRoutes, false /* should no longer exist*/);
   checkSubnets(newToMeRoutes, true /* should  exist*/);
 }
 
 TEST_F(RouterInterfaceManagerTest, changePortRouterInterfaceSubnets) {
   auto swSysPort = makeSystemPort();
-  auto oldInterface = makeInterface(*swSysPort, {intf0.subnet});
-  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
-      oldInterface);
-  checkPortRouterInterface(saiId, sysPort1, oldInterface->getMac());
-  auto newInterface = oldInterface->clone();
+  auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface);
+  applyNewState(state);
+  checkPortRouterInterface(
+      swInterface->getID(), sysPort1, swInterface->getMac());
+  auto oldToMeRoutes = getSubnetKeys(swInterface->getID());
+  auto newInterface = swInterface->clone();
   newInterface->setAddresses({{folly::IPAddress{"100.100.100.1"}, 24}});
-
-  auto oldToMeRoutes = getSubnetKeys(oldInterface->getID());
-  saiManagerTable->routerInterfaceManager().changeRouterInterface(
-      oldInterface, newInterface);
-  auto newToMeRoutes = getSubnetKeys(oldInterface->getID());
+  rifMap = state->getInterfaces()->modify(&state);
+  rifMap->updateNode(newInterface);
+  applyNewState(state);
+  auto newToMeRoutes = getSubnetKeys(swInterface->getID());
   checkSubnets(oldToMeRoutes, false /* should no longer exist*/);
   checkSubnets(newToMeRoutes, true /* should  exist*/);
 }
 
 TEST_F(RouterInterfaceManagerTest, addRouterInterfaceSubnets) {
-  auto oldInterface = makeInterface(intf0);
-  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
-      oldInterface);
+  auto swInterface = makeInterface(intf0);
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface);
+  applyNewState(state);
   checkRouterInterface(
-      saiId, static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
-  auto newInterface = oldInterface->clone();
-
+      swInterface->getID(), static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
+  auto oldToMeRoutes = getSubnetKeys(swInterface->getID());
+  auto newInterface = swInterface->clone();
   auto addresses = newInterface->getAddresses();
   addresses.emplace(folly::IPAddress{"100.100.100.1"}, 24);
-  EXPECT_EQ(oldInterface->getAddresses().size() + 1, addresses.size());
-  newInterface->setAddresses(addresses);
-
-  auto oldToMeRoutes = getSubnetKeys(oldInterface->getID());
-  saiManagerTable->routerInterfaceManager().changeRouterInterface(
-      oldInterface, newInterface);
-  auto newToMeRoutes = getSubnetKeys(oldInterface->getID());
+  EXPECT_EQ(swInterface->getAddresses().size() + 1, addresses.size());
+  rifMap = state->getInterfaces()->modify(&state);
+  rifMap->updateNode(newInterface);
+  applyNewState(state);
+  auto newToMeRoutes = getSubnetKeys(swInterface->getID());
   checkSubnets(oldToMeRoutes, true /* should exist*/);
-  checkSubnets(newToMeRoutes, true /* should  exist*/);
+  checkSubnets(newToMeRoutes, true /* should exist*/);
 }
 
 TEST_F(RouterInterfaceManagerTest, addPortRouterInterfaceSubnets) {
   auto swSysPort = makeSystemPort();
-  auto oldInterface = makeInterface(*swSysPort, {intf0.subnet});
-  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
-      oldInterface);
-  checkPortRouterInterface(saiId, sysPort1, oldInterface->getMac());
-  auto newInterface = oldInterface->clone();
+  auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface);
+  applyNewState(state);
+  checkPortRouterInterface(
+      swInterface->getID(), sysPort1, swInterface->getMac());
+  auto oldToMeRoutes = getSubnetKeys(swInterface->getID());
+  auto newInterface = swInterface->clone();
   auto addresses = newInterface->getAddresses();
   addresses.emplace(folly::IPAddress{"100.100.100.1"}, 24);
-  EXPECT_EQ(oldInterface->getAddresses().size() + 1, addresses.size());
-  newInterface->setAddresses(addresses);
-
-  auto oldToMeRoutes = getSubnetKeys(oldInterface->getID());
-  saiManagerTable->routerInterfaceManager().changeRouterInterface(
-      oldInterface, newInterface);
-  auto newToMeRoutes = getSubnetKeys(oldInterface->getID());
+  EXPECT_EQ(swInterface->getAddresses().size() + 1, addresses.size());
+  rifMap = state->getInterfaces()->modify(&state);
+  rifMap->updateNode(newInterface);
+  applyNewState(state);
+  auto newToMeRoutes = getSubnetKeys(swInterface->getID());
   checkSubnets(oldToMeRoutes, true /* should exist*/);
-  checkSubnets(newToMeRoutes, true /* should  exist*/);
+  checkSubnets(newToMeRoutes, true /* should exist*/);
 }
 
 TEST_F(RouterInterfaceManagerTest, getRouterInterface) {
@@ -381,23 +451,34 @@ TEST_F(RouterInterfaceManagerTest, getNonexistentRouterInterface) {
 }
 
 TEST_F(RouterInterfaceManagerTest, removeRouterInterface) {
-  auto swInterface = makeInterface(intf1);
-  saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
-  auto& routerInterfaceManager = saiManagerTable->routerInterfaceManager();
-  InterfaceID swId(1);
-  routerInterfaceManager.removeRouterInterface(swInterface);
+  auto swInterface = makeInterface(intf0);
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface);
+  applyNewState(state);
+  checkRouterInterface(
+      swInterface->getID(), static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
+  rifMap = state->getInterfaces()->modify(&state);
+  rifMap->removeNode(swInterface->getID());
+  applyNewState(state);
   auto routerInterfaceHandle =
-      saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(swId);
+      saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
+          swInterface->getID());
   EXPECT_FALSE(routerInterfaceHandle);
 }
 
 TEST_F(RouterInterfaceManagerTest, removePortRouterInterface) {
   auto swSysPort = makeSystemPort();
   auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
-  std::ignore =
-      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
-  auto& routerInterfaceManager = saiManagerTable->routerInterfaceManager();
-  routerInterfaceManager.removeRouterInterface(swInterface);
+  auto state = programmedState;
+  auto rifMap = state->getInterfaces()->modify(&state);
+  rifMap->addInterface(swInterface);
+  applyNewState(state);
+  checkPortRouterInterface(
+      swInterface->getID(), sysPort1, swInterface->getMac());
+  rifMap = state->getInterfaces()->modify(&state);
+  rifMap->removeNode(swInterface->getID());
+  applyNewState(state);
   auto routerInterfaceHandle =
       saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
           InterfaceID(swSysPort->getID()));
