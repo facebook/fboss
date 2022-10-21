@@ -101,10 +101,21 @@ shared_ptr<SwitchState> setAllPortState(
   }
   return newState;
 }
-cfg::SwitchConfig testConfigAImpl(bool isMhnic) {
+cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
   cfg::SwitchConfig cfg;
-  static constexpr auto kPortCount = 20;
+  cfg.switchSettings()->switchType() = switchType;
+  if (switchType != cfg::SwitchType::NPU) {
+    cfg.switchSettings()->switchId() = 1;
+    cfg::DsfNode myNode;
+    myNode.switchId() = *cfg.switchSettings()->switchId();
+    myNode.name() = "switch1";
+    myNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
+    myNode.systemPortRange()->minimum() = 100;
+    myNode.systemPortRange()->maximum() = 200;
+    cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
+  }
 
+  static constexpr auto kPortCount = 20;
   cfg.ports()->resize(kPortCount);
   for (int p = 0; p < kPortCount; ++p) {
     cfg.ports()[p].logicalID() = p + 1;
@@ -183,12 +194,12 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic) {
 
 namespace facebook::fboss {
 
-cfg::SwitchConfig testConfigA() {
-  return testConfigAImpl(false);
+cfg::SwitchConfig testConfigA(cfg::SwitchType switchType) {
+  return testConfigAImpl(false, switchType);
 }
 
 cfg::SwitchConfig testConfigAWithLookupClasses() {
-  return testConfigAImpl(true);
+  return testConfigAImpl(true, cfg::SwitchType::NPU);
 }
 
 shared_ptr<SwitchState> bringAllPortsUp(const shared_ptr<SwitchState>& in) {
