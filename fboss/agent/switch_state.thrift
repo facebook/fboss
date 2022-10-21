@@ -397,6 +397,8 @@ struct InterfaceFields {
   9: bool isVirtual = false;
   10: bool isStateSyncDisabled = false;
   11: switch_config.InterfaceType type = switch_config.InterfaceType.VLAN;
+  12: map<string, NeighborEntryFields> arpTable;
+  13: map<string, NeighborEntryFields> ndpTable;
 }
 
 enum LacpState {
