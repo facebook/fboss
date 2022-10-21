@@ -355,7 +355,7 @@ std::shared_ptr<Interface> ManagerTestBase::makeInterface(
       std::nullopt,
       folly::sformat("intf{}", static_cast<int>(sysPort.getID())),
       folly::MacAddress{folly::sformat(
-          "42:42:42:42:42:0{}", static_cast<int>(sysPort.getID()))},
+          "42:42:42:42:42:{}", static_cast<int>(sysPort.getID()))},
       1500, // mtu
       false, // isVirtual
       false, // isStateSyncDisabled

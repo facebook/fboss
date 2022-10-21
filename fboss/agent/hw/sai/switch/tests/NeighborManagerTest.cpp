@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/NdpEntry.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 
 using namespace facebook::fboss;
@@ -26,6 +27,18 @@ class NeighborManagerTest : public ManagerTestBase {
     ManagerTestBase::SetUp();
     intf0 = testInterfaces[0];
     h0 = intf0.remoteHosts[0];
+    remoteSysPort = makeSystemPort(
+        std::nullopt,
+        42, /*sys port id*/
+        42 /* switch id */);
+    auto newState = programmedState;
+    auto sysPortMap = newState->getRemoteSystemPorts()->modify(&newState);
+    sysPortMap->addSystemPort(remoteSysPort);
+    remoteRif =
+        makeInterface(*remoteSysPort, {{folly::IPAddress("100::1"), 64}});
+    auto rifMap = newState->getRemoteInterfaces()->modify(&newState);
+    rifMap->addInterface(remoteRif);
+    applyNewState(newState);
   }
 
   template <typename NeighborEntryT>
@@ -87,6 +100,8 @@ class NeighborManagerTest : public ManagerTestBase {
 
   TestInterface intf0;
   TestRemoteHost h0;
+  std::shared_ptr<SystemPort> remoteSysPort;
+  std::shared_ptr<Interface> remoteRif;
 };
 
 TEST_F(NeighborManagerTest, addResolvedNeighbor) {
