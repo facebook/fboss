@@ -1435,7 +1435,7 @@ struct SwitchSettings {
   8: SwitchType switchType = SwitchType.NPU;
   // Switch id (only applicable for VOQ based systems)
   9: optional i64 switchId;
-  10: list<ExactMatchTableConfig> exactMatchTableConfigs;
+  10: list<ExactMatchTableConfig> exactMatchTableConfigs = [];
 }
 
 // Global buffer pool shared by {port, pgs}
