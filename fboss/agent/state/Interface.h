@@ -188,11 +188,18 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
   const state::NeighborEntries& getArpTable() const {
     return *getFields()->data().arpTable();
   }
-  void setArpTable(state::NeighborEntries arpTable) {
-    writableFields()->writableData().arpTable() = std::move(arpTable);
-  }
   const state::NeighborEntries& getNdpTable() const {
     return *getFields()->data().ndpTable();
+  }
+  template <typename AddressType>
+  void setNeighborEntryTable(state::NeighborEntries nbrTable) {
+    if constexpr (std::is_same_v<AddressType, folly::IPAddressV4>) {
+      return setArpTable(std::move(nbrTable));
+    }
+    return setNdpTable(std::move(nbrTable));
+  }
+  void setArpTable(state::NeighborEntries arpTable) {
+    writableFields()->writableData().arpTable() = std::move(arpTable);
   }
   void setNdpTable(state::NeighborEntries ndpTable) {
     writableFields()->writableData().ndpTable() = std::move(ndpTable);
