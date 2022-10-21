@@ -43,7 +43,8 @@ struct SwitchSettingsFields
                maxRouteCounterIDs,
                blockNeighbors,
                macAddrsToBlock,
-               exactMatchTableConfigs) ==
+               exactMatchTableConfigs,
+               systemPortRange) ==
         std::tie(
                other.l2LearningMode,
                other.qcmEnable,
@@ -52,7 +53,8 @@ struct SwitchSettingsFields
                other.maxRouteCounterIDs,
                other.blockNeighbors,
                other.macAddrsToBlock,
-               other.exactMatchTableConfigs);
+               other.exactMatchTableConfigs,
+               other.systemPortRange);
   }
 
   cfg::L2LearningMode l2LearningMode = cfg::L2LearningMode::HARDWARE;
@@ -65,6 +67,7 @@ struct SwitchSettingsFields
   cfg::SwitchType switchType = cfg::SwitchType::NPU;
   std::optional<int64_t> switchId;
   std::vector<cfg::ExactMatchTableConfig> exactMatchTableConfigs;
+  std::optional<cfg::Range64> systemPortRange;
 };
 
 /*
@@ -166,6 +169,13 @@ class SwitchSettings : public ThriftyBaseT<
   void setExactMatchTableConfig(
       const std::vector<cfg::ExactMatchTableConfig>& exactMatchConfigs) {
     writableFields()->exactMatchTableConfigs = exactMatchConfigs;
+  }
+
+  std::optional<cfg::Range64> getSystemPortRange() const {
+    return getFields()->systemPortRange;
+  }
+  void setSystemPortRange(std::optional<cfg::Range64> systemPortRange) {
+    writableFields()->systemPortRange = systemPortRange;
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);

@@ -197,6 +197,9 @@ state::SwitchSettingsFields SwitchSettingsFields::toThrift() const {
     thriftFields.switchId() = *switchId;
   }
   thriftFields.exactMatchTableConfigs() = exactMatchTableConfigs;
+  if (systemPortRange) {
+    thriftFields.systemPortRange() = *systemPortRange;
+  }
   return thriftFields;
 }
 
@@ -224,6 +227,9 @@ SwitchSettingsFields SwitchSettingsFields::fromThrift(
     settings.switchId = *fields.switchId();
   }
   settings.exactMatchTableConfigs = *fields.exactMatchTableConfigs();
+  if (fields.systemPortRange()) {
+    settings.systemPortRange = *fields.systemPortRange();
+  }
 
   return settings;
 }
