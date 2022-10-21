@@ -156,6 +156,18 @@ class ManagerTestBase : public ::testing::Test {
       std::optional<sai_uint32_t> encapIndex = std::nullopt,
       bool isLocal = true);
 
+  std::shared_ptr<ArpEntry> makeArpEntry(
+      const SystemPort& sysPort,
+      folly::IPAddressV4 ip,
+      folly::MacAddress mac,
+      std::optional<sai_uint32_t> encapIndex) const;
+
+  std::shared_ptr<ArpEntry> resolveArp(
+      const SystemPort& sysPort,
+      folly::IPAddressV4 ip,
+      folly::MacAddress mac,
+      std::optional<sai_uint32_t> encapIndex) const;
+
   InterfaceID getIntfID(
       const TestInterface& testInterface,
       cfg::InterfaceType type) const {

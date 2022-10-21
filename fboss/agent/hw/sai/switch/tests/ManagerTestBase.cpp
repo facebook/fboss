@@ -425,6 +425,31 @@ std::shared_ptr<ArpEntry> ManagerTestBase::resolveArp(
   return arpEntry;
 }
 
+std::shared_ptr<ArpEntry> ManagerTestBase::makeArpEntry(
+    const SystemPort& sysPort,
+    folly::IPAddressV4 ip,
+    folly::MacAddress mac,
+    std::optional<sai_uint32_t> encapIndex) const {
+  auto arpEntry = std::make_shared<ArpEntry>(
+      ip,
+      mac,
+      PortDescriptor(PortID(sysPort.getID())),
+      InterfaceID(static_cast<int>(sysPort.getID())));
+  arpEntry->setEncapIndex(static_cast<int64_t>(encapIndex.value()));
+  arpEntry->setIsLocal(false);
+  return arpEntry;
+}
+
+std::shared_ptr<ArpEntry> ManagerTestBase::resolveArp(
+    const SystemPort& sysPort,
+    folly::IPAddressV4 ip,
+    folly::MacAddress mac,
+    std::optional<sai_uint32_t> encapIndex) const {
+  auto arpEntry = makeArpEntry(sysPort, ip, mac, encapIndex);
+  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  return arpEntry;
+}
+
 ResolvedNextHop ManagerTestBase::makeNextHop(
     const TestInterface& testInterface) const {
   const auto& remote = testInterface.remoteHosts.at(0);
