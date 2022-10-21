@@ -227,6 +227,14 @@ cfg::SwitchConfig genPortVlanCfg(
   config.switchSettings()->switchType() = asic->getSwitchType();
   if (asic->getSwitchId()) {
     config.switchSettings()->switchId() = *asic->getSwitchId();
+    cfg::DsfNode myNode;
+    myNode.switchId() = *config.switchSettings()->switchId();
+    myNode.name() = "hwTestSwitch";
+    myNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
+    myNode.systemPortRange()->minimum() = 100 + *myNode.switchId() * 100;
+    myNode.systemPortRange()->maximum() =
+        *myNode.systemPortRange()->minimum() + 100;
+    config.dsfNodes()->insert({*myNode.switchId(), myNode});
   }
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
   // of using PlatformMapping.
