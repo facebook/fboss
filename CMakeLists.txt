@@ -811,6 +811,7 @@ if (NOT SAI_ONLY)
       fboss/agent/state/ForwardingInformationBaseMap.cpp
       fboss/agent/state/Interface.cpp
       fboss/agent/state/InterfaceMap.cpp
+      fboss/agent/state/InterfaceMapDelta.cpp
       fboss/agent/state/IpTunnel.cpp
       fboss/agent/state/IpTunnelMap.cpp
       fboss/agent/state/LabelForwardingAction.cpp
