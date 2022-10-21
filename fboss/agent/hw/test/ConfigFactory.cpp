@@ -502,9 +502,13 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       if (*port.portType() != cfg::PortType::INTERFACE_PORT) {
         continue;
       }
-      // TODO - consume sys port range begin from config
-      auto constexpr kSysportRangeBegin = 100;
-      auto intfId = kSysportRangeBegin + *port.logicalID();
+      // Make thrift linter happy. switchId must not be null
+      // for VOQ switch type
+      auto mySwitchId =
+          apache::thrift::can_throw(*config.switchSettings()->switchId());
+      auto sysportRangeBegin =
+          *config.dsfNodes()[mySwitchId].systemPortRange()->minimum();
+      auto intfId = sysportRangeBegin + *port.logicalID();
       addInterface(
           intfId,
           0,
