@@ -177,6 +177,14 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
         isStateSyncDisabled;
   }
 
+  template <typename AddressType>
+  const state::NeighborEntries& getNeighborEntryTable() const {
+    if constexpr (std::is_same_v<AddressType, folly::IPAddressV4>) {
+      return getArpTable();
+    }
+    return getNdpTable();
+  }
+
   const state::NeighborEntries& getArpTable() const {
     return *getFields()->data().arpTable();
   }

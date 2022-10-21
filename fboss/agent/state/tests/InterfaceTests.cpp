@@ -28,7 +28,7 @@ using std::make_shared;
 using std::shared_ptr;
 using ::testing::Return;
 
-class InterfaceAddrToReach : public ::testing::Test {
+class InterfaceTest : public ::testing::Test {
  private:
   cfg::SwitchConfig genConfigWithLLs(
       std::set<std::string> intfLinkLocals,
@@ -82,7 +82,7 @@ class InterfaceAddrToReach : public ::testing::Test {
   std::unique_ptr<Platform> platform_;
 };
 
-TEST_F(InterfaceAddrToReach, addrToReach) {
+TEST_F(InterfaceTest, addrToReach) {
   auto state = setup({"fe80::face:b00c/64"}, std::nullopt);
   ASSERT_NE(nullptr, state);
   const auto& intfs = state->getInterfaces();
@@ -122,7 +122,7 @@ TEST_F(InterfaceAddrToReach, addrToReach) {
       intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
 }
 
-TEST_F(InterfaceAddrToReach, addrToReachBackendNw) {
+TEST_F(InterfaceTest, addrToReachBackendNw) {
   auto state =
       setup({"fe80::face:b00b/64", "fe80::be:face:b00c/64"}, std::nullopt);
   const auto& intf1 = state->getInterfaces()->getInterface(InterfaceID(1));
@@ -131,7 +131,7 @@ TEST_F(InterfaceAddrToReach, addrToReachBackendNw) {
       intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
 }
 
-TEST_F(InterfaceAddrToReach, addrToReachBackendNwNewConfig) {
+TEST_F(InterfaceTest, addrToReachBackendNwNewConfig) {
   auto platform = createMockPlatform();
   auto state = setup({"fe80::be:face:b00c/64"}, std::nullopt);
   const auto& intf1 = state->getInterfaces()->getInterface(InterfaceID(1));
@@ -140,7 +140,7 @@ TEST_F(InterfaceAddrToReach, addrToReachBackendNwNewConfig) {
       intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
 }
 
-TEST_F(InterfaceAddrToReach, addrToReachWithRouterAddrConfigured) {
+TEST_F(InterfaceTest, addrToReachWithRouterAddrConfigured) {
   auto state = setup({"fe80::face:b00c/64"}, "fe80::face:b00c");
   const auto& intf1 = state->getInterfaces()->getInterface(InterfaceID(1));
   EXPECT_EQ(
@@ -148,7 +148,7 @@ TEST_F(InterfaceAddrToReach, addrToReachWithRouterAddrConfigured) {
       intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
 }
 
-TEST_F(InterfaceAddrToReach, addrToReachBackendRouterAddrConfigured) {
+TEST_F(InterfaceTest, addrToReachBackendRouterAddrConfigured) {
   auto state =
       setup({"fe80::face:b00b/64", "fe80::be:face:b00c/64"}, "fe80::face:b00b");
   const auto& intf1 = state->getInterfaces()->getInterface(InterfaceID(1));
@@ -157,12 +157,52 @@ TEST_F(InterfaceAddrToReach, addrToReachBackendRouterAddrConfigured) {
       intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
 }
 
-TEST_F(InterfaceAddrToReach, addrToReachBackendNewConfigRouterAddrConfigured) {
+TEST_F(InterfaceTest, addrToReachBackendNewConfigRouterAddrConfigured) {
   auto state = setup({"fe80::be:face:b00c/64"}, "fe80::be:face:b00c");
   const auto& intf1 = state->getInterfaces()->getInterface(InterfaceID(1));
   EXPECT_EQ(
       MockPlatform::getMockLinkLocalIp6(),
       intf1->getAddressToReach(IPAddress("fe80::9a03:9bff:fe7d:656a"))->first);
+}
+
+TEST_F(InterfaceTest, getSetArpTable) {
+  auto state = setup({}, std::nullopt);
+  state::NeighborEntries arpTable;
+  state::NeighborEntryFields arp;
+  arp.ipaddress() = "10.1.1.100";
+  arp.mac() = "02:00:00:00:00:01";
+  cfg::PortDescriptor port;
+  port.portId() = 1;
+  port.portType() = cfg::PortDescriptorType::Physical;
+  arp.portId() = port;
+  arp.interfaceId() = 1;
+  arp.state() = state::NeighborState::Reachable;
+  arpTable.insert({*arp.ipaddress(), arp});
+  auto intf1 = state->getInterfaces()->getInterface(InterfaceID(1))->clone();
+  intf1->setArpTable(arpTable);
+  EXPECT_EQ(arpTable, intf1->getArpTable());
+  EXPECT_EQ(arpTable, intf1->getNeighborEntryTable<folly::IPAddressV4>());
+  EXPECT_NE(arpTable, intf1->getNeighborEntryTable<folly::IPAddressV6>());
+}
+
+TEST_F(InterfaceTest, getSetNdpTable) {
+  auto state = setup({}, std::nullopt);
+  state::NeighborEntries ndpTable;
+  state::NeighborEntryFields ndp;
+  ndp.ipaddress() = "::22:33:4f";
+  ndp.mac() = "02:00:00:00:00:01";
+  cfg::PortDescriptor port;
+  port.portId() = 1;
+  port.portType() = cfg::PortDescriptorType::Physical;
+  ndp.portId() = port;
+  ndp.interfaceId() = 1;
+  ndp.state() = state::NeighborState::Reachable;
+  ndpTable.insert({*ndp.ipaddress(), ndp});
+  auto intf1 = state->getInterfaces()->getInterface(InterfaceID(1))->clone();
+  intf1->setNdpTable(ndpTable);
+  EXPECT_EQ(ndpTable, intf1->getNdpTable());
+  EXPECT_EQ(ndpTable, intf1->getNeighborEntryTable<folly::IPAddressV6>());
+  EXPECT_NE(ndpTable, intf1->getNeighborEntryTable<folly::IPAddressV4>());
 }
 
 TEST(Interface, applyConfig) {
