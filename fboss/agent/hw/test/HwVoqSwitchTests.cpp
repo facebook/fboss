@@ -175,7 +175,7 @@ TEST_F(HwVoqSwitchTest, remoteSystemPort) {
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
     applyNewConfig(config);
-    addRemoteSysPort(SystemPortID(301));
+    addRemoteSysPort(SystemPortID(401));
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
@@ -205,7 +205,7 @@ TEST_F(HwVoqSwitchTest, remoteRouterInterface) {
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
     applyNewConfig(config);
-    auto constexpr remotePortId = 301;
+    auto constexpr remotePortId = 401;
     addRemoteSysPort(SystemPortID(remotePortId));
     addRemoteInterface(
         InterfaceID(remotePortId),
@@ -229,7 +229,7 @@ TEST_F(HwVoqSwitchTest, addRemoveRemoteNeighbor) {
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
     applyNewConfig(config);
-    auto constexpr remotePortId = 301;
+    auto constexpr remotePortId = 401;
     const SystemPortID kRemoteSysPortId(remotePortId);
     addRemoteSysPort(kRemoteSysPortId);
     const InterfaceID kIntfId(remotePortId);
@@ -245,7 +245,7 @@ TEST_F(HwVoqSwitchTest, addRemoveRemoteNeighbor) {
             {folly::IPAddress("100.0.0.1"), 24},
         });
     folly::IPAddressV6 kNeighborIp("100::2");
-    uint64_t dummyEncapIndex = 301;
+    uint64_t dummyEncapIndex = 401;
     PortDescriptor kPort(kRemoteSysPortId);
     // Add neighbor
     addRemoveNeighbor(kNeighborIp, kIntfId, kPort, true, dummyEncapIndex);
