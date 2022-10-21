@@ -51,8 +51,9 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
   void addRemoteInterface(
       InterfaceID intfId,
       const Interface::Addresses& subnets) {
-    auto newState = getProgrammedState()->clone();
-    auto newRemoteInterfaces = newState->getRemoteInterfaces()->clone();
+    auto newState = getProgrammedState();
+    auto newRemoteInterfaces =
+        newState->getRemoteInterfaces()->modify(&newState);
     auto numPrevIntfs = newRemoteInterfaces->size();
     auto newRemoteInterface = std::make_shared<Interface>(
         intfId,
@@ -66,7 +67,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         cfg::InterfaceType::SYSTEM_PORT);
     newRemoteInterface->setAddresses(subnets);
     newRemoteInterfaces->addInterface(newRemoteInterface);
-    newState->resetRemoteIntfs(newRemoteInterfaces);
     applyNewState(newState);
     EXPECT_EQ(
         getProgrammedState()->getRemoteInterfaces()->size(), numPrevIntfs + 1);
@@ -77,26 +77,31 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
       PortDescriptor port,
       bool add,
       std::optional<int64_t> encapIndex = std::nullopt) {
-    const VlanID kVlanID{utility::kBaseVlanId};
-    auto ip = neighborIp;
-    auto outState{getProgrammedState()->clone()};
-    auto neighborTable =
-        outState->getVlans()->getVlan(kVlanID)->getNdpTable()->modify(
-            kVlanID, &outState);
+    auto outState = getProgrammedState();
+    auto isRemote = encapIndex != std::nullopt;
+    auto interfaceMap = isRemote
+        ? outState->getRemoteInterfaces()->modify(&outState)
+        : outState->getInterfaces()->modify(&outState);
+    auto interface = interfaceMap->getInterface(intfID)->clone();
+    auto ndpTable = interfaceMap->getInterface(intfID)->getNdpTable();
     if (add) {
       const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
-      neighborTable->addPendingEntry(ip, intfID);
-      neighborTable->updateEntry(
-          ip,
-          kNeighborMac,
-          port,
-          intfID,
-          std::nullopt,
-          encapIndex,
-          encapIndex == std::nullopt);
+      state::NeighborEntryFields ndp;
+      ndp.mac() = kNeighborMac.toString();
+      ndp.ipaddress() = neighborIp.str();
+      ndp.portId() = port.toThrift();
+      ndp.interfaceId() = static_cast<int>(intfID);
+      ndp.state() = state::NeighborState::Reachable;
+      if (encapIndex) {
+        ndp.encapIndex() = *encapIndex;
+      }
+      ndp.isLocal() = encapIndex == std::nullopt;
+      ndpTable.insert({*ndp.ipaddress(), ndp});
     } else {
-      neighborTable->removeEntry(ip);
+      ndpTable.erase(neighborIp.str());
     }
+    interface->setNdpTable(ndpTable);
+    interfaceMap->updateNode(interface);
     applyNewState(outState);
   }
 
@@ -250,7 +255,7 @@ TEST_F(HwVoqSwitchTest, addRemoveRemoteNeighbor) {
     // Add neighbor
     addRemoveNeighbor(kNeighborIp, kIntfId, kPort, true, dummyEncapIndex);
     // Remove neighbor
-    addRemoveNeighbor(kNeighborIp, kIntfId, kPort, false);
+    addRemoveNeighbor(kNeighborIp, kIntfId, kPort, false, dummyEncapIndex);
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
