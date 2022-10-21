@@ -900,7 +900,8 @@ void ThriftHandler::getAggregatePortTable(
 
   aggregatePortsThrift.reserve(sw_->getState()->getAggregatePorts()->size());
 
-  for (const auto& aggregatePort : *(sw_->getState()->getAggregatePorts())) {
+  auto aggregatePortMap = sw_->getState()->getAggregatePorts();
+  for (const auto& aggregatePort : *aggregatePortMap) {
     aggregatePortsThrift.emplace_back();
 
     populateAggregatePortThrift(aggregatePort, aggregatePortsThrift.back());
