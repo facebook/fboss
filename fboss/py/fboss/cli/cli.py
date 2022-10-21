@@ -57,11 +57,10 @@ DEFAULT_CLIENTID = 1
 class CliOptions(object):
     """Object for holding CLI state information"""
 
-    def __init__(self, hostname, file, port, timeout):
+    def __init__(self, hostname, port, timeout):
         self.hostname = hostname
         self.port = port
         self.timeout = timeout
-        self.snapshot_file = file
 
 
 class ArpCli(object):
@@ -378,7 +377,7 @@ class PrbsContext(CliOptions):  # noqa: B903
     def __init__(self, cli_opts, component):
         self.component = component
         super(PrbsContext, self).__init__(
-            cli_opts.hostname, cli_opts.snapshot_file, cli_opts.port, cli_opts.timeout
+            cli_opts.hostname, cli_opts.port, cli_opts.timeout
         )
 
 
@@ -794,16 +793,15 @@ class ListHwObjectsCli(object):
     type=str,
     help="Host to connect to (default = ::1)",
 )
-@click.option("--file", "-F", default=None, type=str, help="Snapshot file to read from")
 @click.option("--port", "-p", default=None, type=int, help="Thrift port to connect to")
 @click.option(
     "--timeout", "-t", default=None, type=int, help="Thrift client timeout in seconds"
 )
 @click.pass_context
-def main(ctx, hostname, file, port, timeout):
+def main(ctx, hostname, port, timeout):
     """Main CLI options, all options are passed to children via the context obj
     "ctx" and can be accessed accordingly"""
-    ctx.obj = CliOptions(hostname, file, port, timeout)
+    ctx.obj = CliOptions(hostname, port, timeout)
 
 
 def add_modules(main_func):
