@@ -63,7 +63,7 @@ class SaiSystemPortManager {
   }
 
  private:
-  void loadQueues(SaiSystemPortHandle& sysPortHandle) const;
+  void loadQueues(SaiSystemPortHandle& sysPortHandle, int64_t numVoqs) const;
   SaiSystemPortTraits::CreateAttributes attributesFromSwSystemPort(
       const std::shared_ptr<SystemPort>& swSystemPort) const;
 

@@ -76,7 +76,7 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
   auto saiSystemPort = systemPortStore.setObject(
       systemPortKey, attributes, swSystemPort->getID());
   handle->systemPort = saiSystemPort;
-  loadQueues(*handle);
+  loadQueues(*handle, swSystemPort->getNumVoqs());
   handles_.emplace(swSystemPort->getID(), std::move(handle));
   return saiSystemPort->adapterKey();
 }
@@ -97,9 +97,10 @@ void SaiSystemPortManager::changeSystemPort(
 }
 
 void SaiSystemPortManager::loadQueues(
-    SaiSystemPortHandle& sysPortHandle) const {
+    SaiSystemPortHandle& sysPortHandle,
+    int64_t numVoqs) const {
   std::vector<sai_object_id_t> queueList;
-  queueList.resize(1);
+  queueList.resize(numVoqs);
   SaiSystemPortTraits::Attributes::QosVoqList queueListAttribute{queueList};
   auto queueSaiIdList =
       SaiApiTable::getInstance()->systemPortApi().getAttribute(
