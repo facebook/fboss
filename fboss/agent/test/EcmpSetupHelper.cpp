@@ -146,7 +146,7 @@ std::shared_ptr<SwitchState>
 BaseEcmpSetupHelper<AddrT, NextHopT>::resolveVlanRifNextHop(
     const std::shared_ptr<SwitchState>& inputState,
     const NextHopT& nhop,
-    std::shared_ptr<Interface>& intf,
+    const std::shared_ptr<Interface>& intf,
     bool useLinkLocal) const {
   auto outputState{inputState->clone()};
   auto vlan = outputState->getVlans()->getVlan(intf->getVlanID());
@@ -166,10 +166,23 @@ template <typename AddrT, typename NextHopT>
 std::shared_ptr<SwitchState>
 BaseEcmpSetupHelper<AddrT, NextHopT>::resolvePortRifNextHop(
     const std::shared_ptr<SwitchState>& inputState,
-    const NextHopT& /*nhop*/,
-    std::shared_ptr<Interface>& /*intf*/,
-    bool /*useLinkLocal*/) const {
+    const NextHopT& nhop,
+    const std::shared_ptr<Interface>& intf,
+    bool useLinkLocal) const {
   auto outputState{inputState->clone()};
+  auto nbrTable = intf->getNeighborEntryTable<AddrT>();
+  auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
+  state::NeighborEntryFields nbr;
+  nbr.mac() = nhop.mac.toString();
+  nbr.interfaceId() = static_cast<int>(intf->getID());
+  nbr.ipaddress() = nhopIp.str();
+  nbr.portId() = nhop.portDesc.toThrift();
+  nbr.state() = state::NeighborState::Reachable;
+  nbrTable.insert({*nbr.ipaddress(), nbr});
+  auto interfaceMap = outputState->getInterfaces()->modify(&outputState);
+  auto interface = interfaceMap->getInterface(intf->getID())->clone();
+  interface->setNeighborEntryTable<AddrT>(nbrTable);
+  interfaceMap->updateNode(interface);
   return outputState;
 }
 
@@ -178,7 +191,7 @@ std::shared_ptr<SwitchState>
 BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveVlanRifNextHop(
     const std::shared_ptr<SwitchState>& inputState,
     const NextHopT& nhop,
-    std::shared_ptr<Interface>& intf,
+    const std::shared_ptr<Interface>& intf,
     bool useLinkLocal) const {
   auto outputState{inputState->clone()};
   auto vlan = outputState->getVlans()->getVlan(intf->getVlanID());
@@ -193,10 +206,18 @@ template <typename AddrT, typename NextHopT>
 std::shared_ptr<SwitchState>
 BaseEcmpSetupHelper<AddrT, NextHopT>::unresolvePortRifNextHop(
     const std::shared_ptr<SwitchState>& inputState,
-    const NextHopT& /*nhop*/,
-    std::shared_ptr<Interface>& /*intf*/,
-    bool /*useLinkLocal*/) const {
-  return inputState->clone();
+    const NextHopT& nhop,
+    const std::shared_ptr<Interface>& intf,
+    bool useLinkLocal) const {
+  auto outputState{inputState->clone()};
+  auto nbrTable = intf->getNeighborEntryTable<AddrT>();
+  auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
+  nbrTable.erase(nhopIp.str());
+  auto interfaceMap = outputState->getInterfaces()->modify(&outputState);
+  auto interface = interfaceMap->getInterface(intf->getID())->clone();
+  interface->setNeighborEntryTable<AddrT>(nbrTable);
+  interfaceMap->updateNode(interface);
+  return outputState;
 }
 
 template <typename AddrT, typename NextHopT>

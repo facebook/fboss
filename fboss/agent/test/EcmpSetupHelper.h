@@ -148,24 +148,24 @@ class BaseEcmpSetupHelper {
   std::shared_ptr<SwitchState> resolveVlanRifNextHop(
       const std::shared_ptr<SwitchState>& inputState,
       const NextHopT& nhop,
-      std::shared_ptr<Interface>& intf,
+      const std::shared_ptr<Interface>& intf,
       bool useLinkLocal) const;
 
   std::shared_ptr<SwitchState> unresolveVlanRifNextHop(
       const std::shared_ptr<SwitchState>& inputState,
       const NextHopT& nhop,
-      std::shared_ptr<Interface>& intf,
+      const std::shared_ptr<Interface>& intf,
       bool useLinkLocal) const;
   std::shared_ptr<SwitchState> resolvePortRifNextHop(
       const std::shared_ptr<SwitchState>& inputState,
       const NextHopT& nhop,
-      std::shared_ptr<Interface>& intf,
+      const std::shared_ptr<Interface>& intf,
       bool useLinkLocal) const;
 
   std::shared_ptr<SwitchState> unresolvePortRifNextHop(
       const std::shared_ptr<SwitchState>& inputState,
       const NextHopT& nhop,
-      std::shared_ptr<Interface>& intf,
+      const std::shared_ptr<Interface>& intf,
       bool useLinkLocal) const;
   std::optional<InterfaceID> getInterface(
       const PortDescriptor& port,
