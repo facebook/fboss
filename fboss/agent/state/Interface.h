@@ -177,6 +177,18 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
         isStateSyncDisabled;
   }
 
+  const state::NeighborEntries& getArpTable() const {
+    return *getFields()->data().arpTable();
+  }
+  void setArpTable(state::NeighborEntries arpTable) {
+    writableFields()->writableData().arpTable() = std::move(arpTable);
+  }
+  const state::NeighborEntries& getNdpTable() const {
+    return *getFields()->data().ndpTable();
+  }
+  void setNdpTable(state::NeighborEntries ndpTable) {
+    writableFields()->writableData().ndpTable() = std::move(ndpTable);
+  }
   Addresses getAddresses() const {
     Addresses addresses;
     for (const auto& [ipStr, mask] : *getFields()->data().addresses()) {

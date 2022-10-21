@@ -193,6 +193,8 @@ struct NeighborEntryFields {
   8: bool isLocal = true;
 }
 
+typedef map<string, NeighborEntryFields> NeighborEntries
+
 enum MacEntryType {
   DYNAMIC_ENTRY = 0,
   STATIC_ENTRY = 1,
@@ -220,9 +222,9 @@ struct VlanFields {
   6: map<string, string> dhcpRelayOverridesV4;
   7: map<string, string> dhcpRelayOverridesV6;
   8: map<i16, bool> ports;
-  9: map<string, NeighborEntryFields> arpTable;
+  9: NeighborEntries arpTable;
   10: map<string, NeighborResponseEntryFields> arpResponseTable;
-  11: map<string, NeighborEntryFields> ndpTable;
+  11: NeighborEntries ndpTable;
   12: map<string, NeighborResponseEntryFields> ndpResponseTable;
   13: map<string, MacEntryFields> macTable;
 }
@@ -397,8 +399,8 @@ struct InterfaceFields {
   9: bool isVirtual = false;
   10: bool isStateSyncDisabled = false;
   11: switch_config.InterfaceType type = switch_config.InterfaceType.VLAN;
-  12: map<string, NeighborEntryFields> arpTable;
-  13: map<string, NeighborEntryFields> ndpTable;
+  12: NeighborEntries arpTable;
+  13: NeighborEntries ndpTable;
 }
 
 enum LacpState {
