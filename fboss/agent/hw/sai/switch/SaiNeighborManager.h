@@ -180,18 +180,11 @@ class SaiNeighborManager {
   void removeNeighbor(const std::shared_ptr<NeighborEntryT>& swEntry);
 
   void changeNeighborEntry(
-      const state::NeighborEntryFields* /*oldSwEntry*/,
-      const state::NeighborEntryFields* /*newSwEntry*/) {
-    // TODO
-  }
+      const state::NeighborEntryFields* oldSwEntry,
+      const state::NeighborEntryFields* newSwEntry);
+  void addNeighborEntry(const state::NeighborEntryFields* swEntry);
 
-  void addNeighborEntry(const state::NeighborEntryFields* /*swEntry*/) {
-    // TODO
-  }
-
-  void removeNeighborEntry(const state::NeighborEntryFields* /*swEntry*/) {
-    // TODO
-  }
+  void removeNeighborEntry(const state::NeighborEntryFields* swEntry);
   SaiNeighborHandle* getNeighborHandle(
       const SaiNeighborTraits::NeighborEntry& entry);
   const SaiNeighborHandle* getNeighborHandle(

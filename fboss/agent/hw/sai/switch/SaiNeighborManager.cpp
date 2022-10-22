@@ -24,6 +24,18 @@
 #include "folly/IPAddress.h"
 
 namespace facebook::fboss {
+namespace {
+std::shared_ptr<ArpEntry> makeArpEntry(
+    const state::NeighborEntryFields* entry) {
+  return std::make_shared<ArpEntry>(
+      NeighborEntryFields<folly::IPAddressV4>::fromThrift(*entry));
+}
+std::shared_ptr<NdpEntry> makeNdpEntry(
+    const state::NeighborEntryFields* entry) {
+  return std::make_shared<NdpEntry>(
+      NeighborEntryFields<folly::IPAddressV6>::fromThrift(*entry));
+}
+} // namespace
 
 SaiNeighborManager::SaiNeighborManager(
     SaiStore* saiStore,
@@ -153,6 +165,28 @@ void SaiNeighborManager::removeNeighbor(
   }
   neighbors_.erase(subscriberKey);
   XLOG(DBG2) << "Remove Neighbor: " << swEntry->str();
+}
+
+void SaiNeighborManager::changeNeighborEntry(
+    const state::NeighborEntryFields* oldSwEntry,
+    const state::NeighborEntryFields* newSwEntry) {
+  auto isV6 = folly::IPAddress(*newSwEntry->ipaddress()).isV6();
+  isV6 ? changeNeighbor(makeNdpEntry(oldSwEntry), makeNdpEntry(newSwEntry))
+       : changeNeighbor(makeArpEntry(oldSwEntry), makeArpEntry(newSwEntry));
+}
+
+void SaiNeighborManager::addNeighborEntry(
+    const state::NeighborEntryFields* swEntry) {
+  auto isV6 = folly::IPAddress(*swEntry->ipaddress()).isV6();
+  isV6 ? addNeighbor(makeNdpEntry(swEntry))
+       : addNeighbor(makeArpEntry(swEntry));
+}
+
+void SaiNeighborManager::removeNeighborEntry(
+    const state::NeighborEntryFields* swEntry) {
+  auto isV6 = folly::IPAddress(*swEntry->ipaddress()).isV6();
+  isV6 ? removeNeighbor(makeNdpEntry(swEntry))
+       : removeNeighbor(makeArpEntry(swEntry));
 }
 
 void SaiNeighborManager::clear() {
