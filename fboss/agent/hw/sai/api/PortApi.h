@@ -207,6 +207,18 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL,
         sai_uint8_t,
         SaiIntDefault<sai_uint8_t>>;
+#if !defined(TAJO_SDK)
+    using PriorityFlowControlRx = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_RX,
+        sai_uint8_t,
+        SaiIntDefault<sai_uint8_t>>;
+    using PriorityFlowControlTx = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_TX,
+        sai_uint8_t,
+        SaiIntDefault<sai_uint8_t>>;
+#endif
     using PortErrStatus = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_ERR_STATUS_LIST,
@@ -284,6 +296,10 @@ struct SaiPortTraits {
       std::optional<Attributes::PtpMode>,
       std::optional<Attributes::PriorityFlowControlMode>,
       std::optional<Attributes::PriorityFlowControl>,
+#if !defined(TAJO_SDK)
+      std::optional<Attributes::PriorityFlowControlRx>,
+      std::optional<Attributes::PriorityFlowControlTx>,
+#endif
       std::optional<Attributes::QosTcToPriorityGroupMap>,
       std::optional<Attributes::QosPfcPriorityToQueueMap>,
       std::optional<Attributes::LinkTrainingEnable>>;
@@ -355,6 +371,10 @@ SAI_ATTRIBUTE_NAME(Port, PtpMode)
 SAI_ATTRIBUTE_NAME(Port, PortEyeValues)
 SAI_ATTRIBUTE_NAME(Port, PriorityFlowControlMode)
 SAI_ATTRIBUTE_NAME(Port, PriorityFlowControl)
+#if !defined(TAJO_SDK)
+SAI_ATTRIBUTE_NAME(Port, PriorityFlowControlRx)
+SAI_ATTRIBUTE_NAME(Port, PriorityFlowControlTx)
+#endif
 SAI_ATTRIBUTE_NAME(Port, PortErrStatus)
 SAI_ATTRIBUTE_NAME(Port, IngressPriorityGroupList)
 SAI_ATTRIBUTE_NAME(Port, NumberOfIngressPriorityGroups)

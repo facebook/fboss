@@ -43,6 +43,10 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap {
       SAI_ATTR_MAP(Port, PtpMode), SAI_ATTR_MAP(Port, PortEyeValues),
       SAI_ATTR_MAP(Port, PriorityFlowControlMode),
       SAI_ATTR_MAP(Port, PriorityFlowControl),
+#if !defined(TAJO_SDK)
+      SAI_ATTR_MAP(Port, PriorityFlowControlRx),
+      SAI_ATTR_MAP(Port, PriorityFlowControlTx),
+#endif
       SAI_ATTR_MAP(Port, PortErrStatus),
       SAI_ATTR_MAP(Port, IngressPriorityGroupList),
       SAI_ATTR_MAP(Port, NumberOfIngressPriorityGroups),

@@ -413,6 +413,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         ptpStatusOpt, // PTP Mode, can be std::nullopt
         std::nullopt, // PFC Mode
         std::nullopt, // PFC Priorities
+#if !defined(TAJO_SDK)
+        std::nullopt, // PFC Rx Priorities
+        std::nullopt, // PFC Tx Priorities
+#endif
         std::nullopt, // TC to Priority Group map
         std::nullopt, // PFC Priority to Queue map
         std::nullopt, // Link Training Enable
