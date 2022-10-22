@@ -9,19 +9,39 @@
  */
 #include "fboss/agent/hw/test/HwTestPfcUtils.h"
 #include <gtest/gtest.h>
+#include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 namespace facebook::fboss::utility {
 
 // Gets the PFC enabled/disabled status for RX/TX from HW
 void getPfcEnabledStatus(
-    const HwSwitch* /* unused */,
-    const PortID& /* unused */,
-    bool& /* unused */,
-    bool& /* unused */) {
-  // This function is not implemented yet.
-  // If the test is running on SAI Switches,
-  // it should throw an error.
-  EXPECT_TRUE(false);
+    const HwSwitch* hw,
+    const PortID& portId,
+    bool& rxPfc,
+    bool& txPfc) {
+  const auto& portManager =
+      static_cast<const SaiSwitch*>(hw)->managerTable()->portManager();
+  auto portHandle = portManager.getPortHandle(portId);
+  auto saiPortId = portHandle->port->adapterKey();
+  sai_uint8_t txPriorities{0}, rxPriorities{0};
+
+  auto pfcMode = SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::PriorityFlowControlMode{});
+  if (pfcMode == SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED) {
+    txPriorities = rxPriorities =
+        SaiApiTable::getInstance()->portApi().getAttribute(
+            saiPortId, SaiPortTraits::Attributes::PriorityFlowControl{});
+  } else {
+#if !defined(TAJO_SDK)
+    rxPriorities = SaiApiTable::getInstance()->portApi().getAttribute(
+        saiPortId, SaiPortTraits::Attributes::PriorityFlowControlRx{});
+    txPriorities = SaiApiTable::getInstance()->portApi().getAttribute(
+        saiPortId, SaiPortTraits::Attributes::PriorityFlowControlTx{});
+#endif
+  }
+  txPfc = txPriorities != 0;
+  rxPfc = rxPriorities != 0;
 }
 
 // Verifies if the PFC watchdog config provided matches the one
