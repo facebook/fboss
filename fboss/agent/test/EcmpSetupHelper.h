@@ -314,6 +314,9 @@ class EcmpSetupAnyNPorts {
   IPAddrT ip(size_t id) const {
     return nhop(id).ip;
   }
+  IPAddrT ip(PortDescriptor port) const {
+    return ecmpSetupTargetedPorts_.ip(port);
+  }
 
   RouterID getRouterId() const {
     return ecmpSetupTargetedPorts_.getRouterId();

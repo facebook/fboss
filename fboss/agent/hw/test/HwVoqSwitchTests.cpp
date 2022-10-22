@@ -115,17 +115,16 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
   }
 
   void sendPacketHelper(bool isFrontPanel) {
-    auto kPort = masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0];
-    folly::IPAddressV6 kNeighborIp("1::2");
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
 
-    auto setup = [this, kPort, kNeighborIp]() {
-      const InterfaceID kIntfId{101};
-      addRemoveNeighbor(
-          kNeighborIp, kIntfId, PortDescriptor(kPort), true /*add neighbor */);
+    auto setup = [this, kPort, ecmpHelper]() {
+      addRemoveNeighbor(kPort, true /* add neighbor*/);
     };
 
-    auto verify = [this, isFrontPanel, kPort, kNeighborIp]() {
+    auto verify = [this, ecmpHelper, kPort, isFrontPanel]() {
       folly::IPAddressV6 kSrcIp("1::1");
+      folly::IPAddressV6 kNeighborIp = ecmpHelper.ip(kPort);
       const auto srcMac = utility::kLocalCpuMac();
       const auto dstMac = utility::kLocalCpuMac();
 
@@ -143,18 +142,19 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
                  << folly::hexDump(
                         txPacket->buf()->data(), txPacket->buf()->length());
 
-      auto beforeOutPkts = getLatestPortStats(kPort).get_outUnicastPkts_();
+      auto beforeOutPkts =
+          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
 
       if (isFrontPanel) {
-        const PortID port =
-            masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[1];
+        const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
         getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
             std::move(txPacket), port);
       } else {
         getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
       }
 
-      auto afterOutPkts = getLatestPortStats(kPort).get_outUnicastPkts_();
+      auto afterOutPkts =
+          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
 
       EXPECT_EQ(afterOutPkts - 1, beforeOutPkts);
     };
