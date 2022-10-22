@@ -11,8 +11,6 @@
 
 namespace facebook::fboss {
 
-template class NodeMapDelta<ArpTable>;
-template class NodeMapDelta<NdpTable>;
 template class NodeMapDelta<InterfaceMap, InterfaceDelta>;
 
 } // namespace facebook::fboss
