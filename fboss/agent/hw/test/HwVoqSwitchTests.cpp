@@ -9,6 +9,7 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 
 namespace facebook::fboss {
 namespace {
@@ -104,6 +105,14 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     interfaceMap->updateNode(interface);
     applyNewState(outState);
   }
+  void addRemoveNeighbor(PortDescriptor port, bool add) {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    if (add) {
+      applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), {port}));
+    } else {
+      applyNewState(ecmpHelper.unresolveNextHops(getProgrammedState(), {port}));
+    }
+  }
 
   void sendPacketHelper(bool isFrontPanel) {
     auto kPort = masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0];
@@ -192,13 +201,11 @@ TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
     applyNewConfig(config);
-    folly::IPAddressV6 kNeighborIp("1::2");
-    const InterfaceID kIntfId{101};
     const PortDescriptor kPort(masterLogicalPortIds()[0]);
     // Add neighbor
-    addRemoveNeighbor(kNeighborIp, kIntfId, kPort, true);
+    addRemoveNeighbor(kPort, true);
     // Remove neighbor
-    addRemoveNeighbor(kNeighborIp, kIntfId, kPort, false);
+    addRemoveNeighbor(kPort, false);
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
