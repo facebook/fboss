@@ -55,6 +55,8 @@ sai_status_t create_port_fn(
   std::optional<sai_port_ptp_mode_t> ptpMode;
   std::optional<sai_port_priority_flow_control_mode_t> priorityFlowControlMode;
   std::optional<sai_uint8_t> priorityFlowControl;
+  std::optional<sai_uint8_t> priorityFlowControlRx;
+  std::optional<sai_uint8_t> priorityFlowControlTx;
   std::vector<sai_object_id_t> ingressPriorityGroupList;
   std::optional<sai_uint32_t> numberOfIngressPriorityGroups;
   std::optional<sai_object_id_t> qosTcToPriorityGroupMap;
@@ -172,6 +174,12 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL:
         priorityFlowControl = attr_list[i].value.u8;
         break;
+      case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_RX:
+        priorityFlowControlRx = attr_list[i].value.u8;
+        break;
+      case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_TX:
+        priorityFlowControlTx = attr_list[i].value.u8;
+        break;
       case SAI_PORT_ATTR_INGRESS_PRIORITY_GROUP_LIST: {
         for (int j = 0; j < attr_list[i].value.objlist.count; ++j) {
           ingressPriorityGroupList.push_back(
@@ -277,6 +285,12 @@ sai_status_t create_port_fn(
   }
   if (priorityFlowControl.has_value()) {
     port.priorityFlowControl = priorityFlowControl.value();
+  }
+  if (priorityFlowControlRx.has_value()) {
+    port.priorityFlowControlRx = priorityFlowControlRx.value();
+  }
+  if (priorityFlowControlTx.has_value()) {
+    port.priorityFlowControlTx = priorityFlowControlTx.value();
   }
   if (ingressPriorityGroupList.size()) {
     port.ingressPriorityGroupList = ingressPriorityGroupList;
@@ -538,6 +552,12 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL:
       port.priorityFlowControl = attr->value.u8;
       break;
+    case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_RX:
+      port.priorityFlowControlRx = attr->value.u8;
+      break;
+    case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_TX:
+      port.priorityFlowControlTx = attr->value.u8;
+      break;
     case SAI_PORT_ATTR_INGRESS_PRIORITY_GROUP_LIST: {
       auto& ingressPriorityGroupList = port.ingressPriorityGroupList;
       ingressPriorityGroupList.clear();
@@ -758,6 +778,12 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL:
         attr[i].value.u8 = port.priorityFlowControl;
+        break;
+      case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_RX:
+        attr[i].value.u8 = port.priorityFlowControlRx;
+        break;
+      case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_TX:
+        attr[i].value.u8 = port.priorityFlowControlTx;
         break;
       case SAI_PORT_ATTR_INGRESS_PRIORITY_GROUP_LIST: {
         if (port.ingressPriorityGroupList.size() >
