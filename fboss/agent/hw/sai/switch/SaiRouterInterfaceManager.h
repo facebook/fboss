@@ -76,8 +76,6 @@ class SaiRouterInterfaceManager {
   const SaiRouterInterfaceHandle* getRouterInterfaceHandle(
       const InterfaceID& swId) const;
 
-  void processInterfaceDelta(const StateDelta& stateDelta, std::mutex& lock);
-
  private:
   RouterInterfaceSaiId addOrUpdateRouterInterface(
       const std::shared_ptr<Interface>& swInterface);
