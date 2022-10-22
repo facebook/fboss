@@ -153,6 +153,9 @@ struct MirrorFields : public ThriftyFields<MirrorFields, state::MirrorFields> {
     }
     if (destinationIp) {
       data.destinationIp() = network::toBinaryAddress(*destinationIp);
+    } else {
+      // SPAN mirror always resolved.
+      data.isResolved() = true;
     }
     if (srcIp) {
       data.srcIp() = network::toBinaryAddress(*srcIp);
@@ -241,14 +244,6 @@ USE_THRIFT_COW(state::MirrorFields, Mirror);
 class Mirror : public ThriftyBaseT<state::MirrorFields, Mirror, MirrorFields> {
  public:
   enum Type { SPAN = 1, ERSPAN = 2, SFLOW = 3 };
-  Mirror(
-      std::string name,
-      std::optional<PortID> egressPort,
-      std::optional<folly::IPAddress> destinationIp,
-      std::optional<folly::IPAddress> srcIp = std::nullopt,
-      std::optional<TunnelUdpPorts> udpPorts = std::nullopt,
-      uint8_t dscp = cfg::switch_config_constants::DEFAULT_MIRROR_DSCP_,
-      bool truncate = false);
   std::string getID() const;
   std::optional<PortID> getEgressPort() const;
   std::optional<folly::IPAddress> getDestinationIp() const;

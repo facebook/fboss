@@ -95,30 +95,6 @@ folly::dynamic MirrorFields::toFollyDynamicLegacy() const {
   return mirrorFields;
 }
 
-Mirror::Mirror(
-    std::string name,
-    std::optional<PortID> egressPort,
-    std::optional<folly::IPAddress> destinationIp,
-    std::optional<folly::IPAddress> srcIp,
-    std::optional<TunnelUdpPorts> udpPorts,
-    uint8_t dscp,
-    bool truncate)
-    : ThriftyBaseT(
-          name,
-          egressPort,
-          destinationIp,
-          srcIp,
-          udpPorts,
-          dscp,
-          truncate) {
-  // span mirror is resolved as soon as it is created
-  // erspan and sflow are resolved when tunnel is set
-  markResolved();
-  if (egressPort) {
-    set<switch_state_tags::configHasEgressPort>(true);
-  }
-}
-
 std::string Mirror::getID() const {
   return get<switch_state_tags::name>()->cref();
 }
