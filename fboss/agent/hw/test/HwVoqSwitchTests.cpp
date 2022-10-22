@@ -119,11 +119,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     folly::IPAddressV6 kNeighborIp("1::2");
 
     auto setup = [this, kPort, kNeighborIp]() {
-      auto config = utility::onePortPerInterfaceConfig(
-          getHwSwitch(),
-          masterLogicalPortIds(),
-          getAsic()->desiredLoopbackMode());
-      applyNewConfig(config);
       const InterfaceID kIntfId{101};
       addRemoveNeighbor(
           kNeighborIp, kIntfId, PortDescriptor(kPort), true /*add neighbor */);
