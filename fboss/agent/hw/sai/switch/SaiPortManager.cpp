@@ -438,13 +438,6 @@ void SaiPortManager::programPfc(
     sai_uint8_t rxPfc) {
   auto portHandle = getPortHandle(swPort->getID());
 
-  /*
-   * TODO XXX: SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_SEPARATE is the only mode
-   * to support, however, will need to wait till TAJO implements the same.
-   * Till then, SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED which gives us
-   * an option to let the programming work for tx == rx case. WDG400C-448
-   * on TAJO tracks this support request.
-   */
   if (txPfc == rxPfc) {
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::PriorityFlowControlMode{
@@ -452,11 +445,21 @@ void SaiPortManager::programPfc(
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::PriorityFlowControl{txPfc});
   } else {
+#if defined(TAJO_SDK)
     /*
      * PFC tx enabled / rx disabled and vice versa is unsupported in the
-     * current PFC mode of SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED!
+     * current TAJO implementation, tracked via WDG400C-448!
      */
     throw FbossError("PFC TX and RX configured differently is unsupported!");
+#else
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::PriorityFlowControlMode{
+            SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_SEPARATE});
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::PriorityFlowControlRx{rxPfc});
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::PriorityFlowControlTx{txPfc});
+#endif
   }
   auto logHelper = [](uint8_t tx, uint8_t rx) {
     return folly::to<std::string>(
