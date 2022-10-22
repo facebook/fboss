@@ -22,7 +22,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode(),
-        false /*interfaceHasSubnet*/);
+        true /*interfaceHasSubnet*/);
   }
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
