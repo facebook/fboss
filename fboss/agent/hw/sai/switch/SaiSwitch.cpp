@@ -2487,16 +2487,15 @@ void SaiSwitch::processDelta(
     Args... args) {
   DeltaFunctions::forEachChanged(
       delta,
-      [&](const std::shared_ptr<typename Delta::Node>& removed,
-          const std::shared_ptr<typename Delta::Node>& added) {
+      [&](auto removed, auto added) {
         [[maybe_unused]] const auto& lock = lockPolicy.lock();
         (manager.*changedFunc)(removed, added, args...);
       },
-      [&](const std::shared_ptr<typename Delta::Node>& added) {
+      [&](auto added) {
         [[maybe_unused]] const auto& lock = lockPolicy.lock();
         (manager.*addedFunc)(added, args...);
       },
-      [&](const std::shared_ptr<typename Delta::Node>& removed) {
+      [&](auto removed) {
         [[maybe_unused]] const auto& lock = lockPolicy.lock();
         (manager.*removedFunc)(removed, args...);
       });
@@ -2514,13 +2513,10 @@ void SaiSwitch::processChangedDelta(
     const LockPolicyT& lockPolicy,
     ChangeFunc changedFunc,
     Args... args) {
-  DeltaFunctions::forEachChanged(
-      delta,
-      [&](const std::shared_ptr<typename Delta::Node>& added,
-          const std::shared_ptr<typename Delta::Node>& removed) {
-        [[maybe_unused]] const auto& lock = lockPolicy.lock();
-        (manager.*changedFunc)(added, removed, args...);
-      });
+  DeltaFunctions::forEachChanged(delta, [&](auto added, auto removed) {
+    [[maybe_unused]] const auto& lock = lockPolicy.lock();
+    (manager.*changedFunc)(added, removed, args...);
+  });
 }
 
 template <
@@ -2535,11 +2531,10 @@ void SaiSwitch::processAddedDelta(
     const LockPolicyT& lockPolicy,
     AddedFunc addedFunc,
     Args... args) {
-  DeltaFunctions::forEachAdded(
-      delta, [&](const std::shared_ptr<typename Delta::Node>& added) {
-        [[maybe_unused]] const auto& lock = lockPolicy.lock();
-        (manager.*addedFunc)(added, args...);
-      });
+  DeltaFunctions::forEachAdded(delta, [&](auto added) {
+    [[maybe_unused]] const auto& lock = lockPolicy.lock();
+    (manager.*addedFunc)(added, args...);
+  });
 }
 
 template <
@@ -2554,11 +2549,10 @@ void SaiSwitch::processRemovedDelta(
     const LockPolicyT& lockPolicy,
     RemovedFunc removedFunc,
     Args... args) {
-  DeltaFunctions::forEachRemoved(
-      delta, [&](const std::shared_ptr<typename Delta::Node>& removed) {
-        [[maybe_unused]] const auto& lock = lockPolicy.lock();
-        (manager.*removedFunc)(removed, args...);
-      });
+  DeltaFunctions::forEachRemoved(delta, [&](auto removed) {
+    [[maybe_unused]] const auto& lock = lockPolicy.lock();
+    (manager.*removedFunc)(removed, args...);
+  });
 }
 
 void SaiSwitch::dumpDebugState(const std::string& path) const {
