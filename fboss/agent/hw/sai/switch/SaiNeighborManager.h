@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
@@ -178,6 +179,19 @@ class SaiNeighborManager {
   template <typename NeighborEntryT>
   void removeNeighbor(const std::shared_ptr<NeighborEntryT>& swEntry);
 
+  void changeNeighborEntry(
+      const state::NeighborEntryFields* /*oldSwEntry*/,
+      const state::NeighborEntryFields* /*newSwEntry*/) {
+    // TODO
+  }
+
+  void addNeighborEntry(const state::NeighborEntryFields* /*swEntry*/) {
+    // TODO
+  }
+
+  void removeNeighborEntry(const state::NeighborEntryFields* /*swEntry*/) {
+    // TODO
+  }
   SaiNeighborHandle* getNeighborHandle(
       const SaiNeighborTraits::NeighborEntry& entry);
   const SaiNeighborHandle* getNeighborHandle(

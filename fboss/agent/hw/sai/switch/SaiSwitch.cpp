@@ -650,20 +650,20 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
                                        &lockPolicy](const auto& intfsDelta) {
     for (const auto& intfDelta : intfsDelta) {
       processDelta(
-          intfDelta.getArpDelta(),
+          intfDelta.getArpEntriesDelta(),
           managerTable_->neighborManager(),
           lockPolicy,
-          &SaiNeighborManager::changeNeighbor<ArpEntry>,
-          &SaiNeighborManager::addNeighbor<ArpEntry>,
-          &SaiNeighborManager::removeNeighbor<ArpEntry>);
+          &SaiNeighborManager::changeNeighborEntry,
+          &SaiNeighborManager::addNeighborEntry,
+          &SaiNeighborManager::removeNeighborEntry);
 
       processDelta(
-          intfDelta.getNdpDelta(),
+          intfDelta.getNdpEntriesDelta(),
           managerTable_->neighborManager(),
           lockPolicy,
-          &SaiNeighborManager::changeNeighbor<NdpEntry>,
-          &SaiNeighborManager::addNeighbor<NdpEntry>,
-          &SaiNeighborManager::removeNeighbor<NdpEntry>);
+          &SaiNeighborManager::changeNeighborEntry,
+          &SaiNeighborManager::addNeighborEntry,
+          &SaiNeighborManager::removeNeighborEntry);
     }
   };
   processNeighborDeltaForIntfs(delta.getIntfsDelta());
