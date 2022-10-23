@@ -46,11 +46,10 @@ struct LoadBalancerMapThriftTraits
 /*
  * A container for the set of load-balancing data-plane entities.
  */
-class LoadBalancerMap : public ThriftyNodeMapT<
-                            LoadBalancerMap,
-                            LoadBalancerMapTraits,
-                            LoadBalancerMapThriftTraits> {
+class LoadBalancerMap
+    : public NodeMapT<LoadBalancerMap, LoadBalancerMapTraits> {
  public:
+  using BaseT = NodeMapT<LoadBalancerMap, LoadBalancerMapTraits>;
   LoadBalancerMap();
   ~LoadBalancerMap() override;
 
@@ -62,9 +61,46 @@ class LoadBalancerMap : public ThriftyNodeMapT<
   static std::shared_ptr<LoadBalancerMap> fromFollyDynamicLegacy(
       const folly::dynamic& serializedLoadBalancers);
 
+  static std::shared_ptr<LoadBalancerMap> fromThrift(
+      const std::map<LoadBalancerID, state::LoadBalancerFields>& lbs) {
+    auto map = std::make_shared<LoadBalancerMap>();
+    for (auto& entry : lbs) {
+      map->addNode(LoadBalancer::fromThrift(entry.second));
+    }
+    return map;
+  }
+
+  std::map<LoadBalancerID, state::LoadBalancerFields> toThrift() const {
+    std::map<LoadBalancerID, state::LoadBalancerFields> lbs{};
+    for (auto entry : getAllNodes()) {
+      lbs.emplace(entry.first, entry.second->toThrift());
+    }
+    return lbs;
+  }
+
+  bool operator==(const LoadBalancerMap& that) const {
+    if (size() != that.size()) {
+      return false;
+    }
+    auto iter = begin();
+    while (iter != end()) {
+      auto lb = *iter;
+      auto other = that.getLoadBalancerIf(lb->getID());
+      if (!other || *lb != *other) {
+        return false;
+      }
+      iter++;
+    }
+    return true;
+  }
+
+  bool operator!=(const LoadBalancerMap& other) const {
+    return !(*this == other);
+  }
+
  private:
   // Inherit the constructors required for clone()
-  using ThriftyNodeMapT::ThriftyNodeMapT;
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 

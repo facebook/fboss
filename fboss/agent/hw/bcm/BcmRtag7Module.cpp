@@ -363,7 +363,7 @@ int BcmRtag7Module::computeIPv4Subfields(
   int subfields = 0;
 
   for (const auto& v4Field : v4FieldsRange) {
-    switch (v4Field) {
+    switch (v4Field->cref()) {
       case LoadBalancer::IPv4Field::SOURCE_ADDRESS:
         subfields |= (BCM_HASH_FIELD_IP4SRC_LO | BCM_HASH_FIELD_IP4SRC_HI);
         break;
@@ -381,7 +381,7 @@ int BcmRtag7Module::computeIPv6Subfields(
   int subfields = 0;
 
   for (const auto& v6Field : v6FieldsRange) {
-    switch (v6Field) {
+    switch (v6Field->cref()) {
       case LoadBalancer::IPv6Field::SOURCE_ADDRESS:
         subfields |= (BCM_HASH_FIELD_IP6SRC_LO | BCM_HASH_FIELD_IP6SRC_HI);
         break;
@@ -402,7 +402,7 @@ int BcmRtag7Module::computeTransportSubfields(
   int subfields = 0;
 
   for (const auto& transportField : transportFieldsRange) {
-    switch (transportField) {
+    switch (transportField->cref()) {
       case LoadBalancer::TransportField::SOURCE_PORT:
         subfields |= BCM_HASH_FIELD_SRCL4;
         break;
@@ -707,7 +707,7 @@ int BcmRtag7Module::computeL3MPLSPayloadSubfields(
   int fields = 0;
 
   for (const auto& v4Field : loadBalancer.getIPv4Fields()) {
-    switch (v4Field) {
+    switch (v4Field->cref()) {
       case LoadBalancer::IPv4Field::SOURCE_ADDRESS:
         // upper and lower 16 bits of v4 src address
         fields |=
@@ -722,7 +722,7 @@ int BcmRtag7Module::computeL3MPLSPayloadSubfields(
   }
 
   for (const auto& v6Field : loadBalancer.getIPv6Fields()) {
-    switch (v6Field) {
+    switch (v6Field->cref()) {
       case LoadBalancer::IPv6Field::SOURCE_ADDRESS:
         // upper and lower 16 bits of collapsed v6 src address
         fields |=
@@ -753,7 +753,7 @@ int BcmRtag7Module::computeL3MPLSHeaderSubfields(
     const LoadBalancer& loadBalancer) {
   int fields = 0;
   for (auto mplsLabel : loadBalancer.getMPLSFields()) {
-    switch (mplsLabel) {
+    switch (mplsLabel->cref()) {
       case LoadBalancer::MPLSField::TOP_LABEL:
         // pick lower 16 bits and 4 upper bits of top label
         fields |=

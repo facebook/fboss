@@ -263,32 +263,49 @@ void SaiSwitchManager::addOrUpdateEcmpLoadBalancer(
     const std::shared_ptr<LoadBalancer>& newLb) {
   programEcmpLoadBalancerParams(newLb->getSeed(), newLb->getAlgorithm());
 
-  if (newLb->getIPv4Fields().size()) {
+  if (newLb->getIPv4Fields().begin() != newLb->getIPv4Fields().end()) {
     // v4 ECMP
     auto programmedLoadBalancer =
         getProgrammedHashAttr<SaiSwitchTraits::Attributes::EcmpHashV4>();
 
     cfg::Fields v4EcmpHashFields;
-    v4EcmpHashFields.ipv4Fields()->insert(
-        newLb->getIPv4Fields().begin(), newLb->getIPv4Fields().end());
-    v4EcmpHashFields.transportFields()->insert(
-        newLb->getTransportFields().begin(), newLb->getTransportFields().end());
+    std::for_each(
+        newLb->getIPv4Fields().begin(),
+        newLb->getIPv4Fields().end(),
+        [&v4EcmpHashFields](const auto& entry) {
+          v4EcmpHashFields.ipv4Fields()->insert(entry->cref());
+        });
+    std::for_each(
+        newLb->getTransportFields().begin(),
+        newLb->getTransportFields().end(),
+        [&v4EcmpHashFields](const auto& entry) {
+          v4EcmpHashFields.transportFields()->insert(entry->cref());
+        });
     ecmpV4Hash_ = managerTable_->hashManager().getOrCreate(v4EcmpHashFields);
 
     // Set the new ecmp v4 hash attribute on switch obj
     setLoadBalancer<SaiSwitchTraits::Attributes::EcmpHashV4>(
         ecmpV4Hash_, programmedLoadBalancer);
   }
-  if (newLb->getIPv6Fields().size()) {
+  if (newLb->getIPv6Fields().begin() != newLb->getIPv6Fields().end()) {
     // v6 ECMP
     auto programmedLoadBalancer =
         getProgrammedHashAttr<SaiSwitchTraits::Attributes::EcmpHashV6>();
 
     cfg::Fields v6EcmpHashFields;
-    v6EcmpHashFields.ipv6Fields()->insert(
-        newLb->getIPv6Fields().begin(), newLb->getIPv6Fields().end());
-    v6EcmpHashFields.transportFields()->insert(
-        newLb->getTransportFields().begin(), newLb->getTransportFields().end());
+    std::for_each(
+        newLb->getIPv6Fields().begin(),
+        newLb->getIPv6Fields().end(),
+        [&v6EcmpHashFields](const auto& entry) {
+          v6EcmpHashFields.ipv6Fields()->insert(entry->cref());
+        });
+
+    std::for_each(
+        newLb->getTransportFields().begin(),
+        newLb->getTransportFields().end(),
+        [&v6EcmpHashFields](const auto& entry) {
+          v6EcmpHashFields.transportFields()->insert(entry->cref());
+        });
     ecmpV6Hash_ = managerTable_->hashManager().getOrCreate(v6EcmpHashFields);
 
     // Set the new ecmp v6 hash attribute on switch obj
@@ -323,25 +340,44 @@ void SaiSwitchManager::addOrUpdateLagLoadBalancer(
 #endif
   programLagLoadBalancerParams(newLb->getSeed(), newLb->getAlgorithm());
 
-  if (newLb->getIPv4Fields().size()) {
+  if (newLb->getIPv4Fields().begin() != newLb->getIPv4Fields().end()) {
     // v4 LAG
     cfg::Fields v4LagHashFields;
-    v4LagHashFields.ipv4Fields()->insert(
-        newLb->getIPv4Fields().begin(), newLb->getIPv4Fields().end());
-    v4LagHashFields.transportFields()->insert(
-        newLb->getTransportFields().begin(), newLb->getTransportFields().end());
+    std::for_each(
+        newLb->getIPv4Fields().begin(),
+        newLb->getIPv4Fields().end(),
+        [&v4LagHashFields](const auto& entry) {
+          v4LagHashFields.ipv4Fields()->insert(entry->cref());
+        });
+
+    std::for_each(
+        newLb->getTransportFields().begin(),
+        newLb->getTransportFields().end(),
+        [&v4LagHashFields](const auto& entry) {
+          v4LagHashFields.transportFields()->insert(entry->cref());
+        });
     lagV4Hash_ = managerTable_->hashManager().getOrCreate(v4LagHashFields);
     // Set the new lag v4 hash attribute on switch obj
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::LagHashV4{lagV4Hash_->adapterKey()});
   }
-  if (newLb->getIPv6Fields().size()) {
+  if (newLb->getIPv6Fields().begin() != newLb->getIPv6Fields().end()) {
     // v6 LAG
     cfg::Fields v6LagHashFields;
-    v6LagHashFields.ipv6Fields()->insert(
-        newLb->getIPv6Fields().begin(), newLb->getIPv6Fields().end());
-    v6LagHashFields.transportFields()->insert(
-        newLb->getTransportFields().begin(), newLb->getTransportFields().end());
+    std::for_each(
+        newLb->getIPv6Fields().begin(),
+        newLb->getIPv6Fields().end(),
+        [&v6LagHashFields](const auto& entry) {
+          v6LagHashFields.ipv6Fields()->insert(entry->cref());
+        });
+
+    std::for_each(
+        newLb->getTransportFields().begin(),
+        newLb->getTransportFields().end(),
+        [&v6LagHashFields](const auto& entry) {
+          v6LagHashFields.transportFields()->insert(entry->cref());
+        });
+
     lagV6Hash_ = managerTable_->hashManager().getOrCreate(v6LagHashFields);
     // Set the new lag v6 hash attribute on switch obj
     switch_->setOptionalAttribute(

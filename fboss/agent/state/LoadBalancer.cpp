@@ -55,46 +55,62 @@ LoadBalancer::LoadBalancer(
     LoadBalancer::IPv6Fields v6Fields,
     LoadBalancer::TransportFields transportFields,
     LoadBalancer::MPLSFields mplsFields)
-    : ThriftyBaseT(
-          id,
-          algorithm,
-          seed,
-          v4Fields,
-          v6Fields,
-          transportFields,
-          mplsFields) {}
+    : ThriftStructNode<state::LoadBalancerFields>() {
+  set<switch_state_tags::id>(id);
+  set<switch_state_tags::algorithm>(algorithm);
+  set<switch_state_tags::seed>(seed);
+  for (auto field : v4Fields) {
+    get<switch_state_tags::v4Fields>()->emplace(field);
+  }
+  for (auto field : v6Fields) {
+    get<switch_state_tags::v6Fields>()->emplace(field);
+  }
+  for (auto field : transportFields) {
+    get<switch_state_tags::transportFields>()->emplace(field);
+  }
+  for (auto field : mplsFields) {
+    get<switch_state_tags::mplsFields>()->emplace(field);
+  }
+}
 
 LoadBalancerID LoadBalancer::getID() const {
-  return getFields()->id_;
+  return get<switch_state_tags::id>()->cref();
 }
 
 uint32_t LoadBalancer::getSeed() const {
-  return getFields()->seed_;
+  return get<switch_state_tags::seed>()->cref();
 }
 
 cfg::HashingAlgorithm LoadBalancer::getAlgorithm() const {
-  return getFields()->algorithm_;
+  return get<switch_state_tags::algorithm>()->cref();
 }
 
 LoadBalancer::IPv4FieldsRange LoadBalancer::getIPv4Fields() const {
-  return folly::range(
-      getFields()->v4Fields_.begin(), getFields()->v4Fields_.end());
+  if (auto fields = get<switch_state_tags::v4Fields>()) {
+    return folly::range(fields->cbegin(), fields->cend());
+  }
+  return LoadBalancer::IPv4FieldsRange{};
 }
 
 LoadBalancer::IPv6FieldsRange LoadBalancer::getIPv6Fields() const {
-  return folly::range(
-      getFields()->v6Fields_.begin(), getFields()->v6Fields_.end());
+  if (auto fields = get<switch_state_tags::v6Fields>()) {
+    return folly::range(fields->cbegin(), fields->cend());
+  }
+  return LoadBalancer::IPv6FieldsRange{};
 }
 
 LoadBalancer::TransportFieldsRange LoadBalancer::getTransportFields() const {
-  return folly::range(
-      getFields()->transportFields_.begin(),
-      getFields()->transportFields_.end());
+  if (auto fields = get<switch_state_tags::transportFields>()) {
+    return folly::range(fields->cbegin(), fields->cend());
+  }
+  return LoadBalancer::TransportFieldsRange{};
 }
 
 LoadBalancer::MPLSFieldsRange LoadBalancer::getMPLSFields() const {
-  return folly::range(
-      getFields()->mplsFields_.begin(), getFields()->mplsFields_.end());
+  if (auto fields = get<switch_state_tags::mplsFields>()) {
+    return folly::range(fields->cbegin(), fields->cend());
+  }
+  return LoadBalancer::MPLSFieldsRange{};
 }
 
 std::shared_ptr<LoadBalancer> LoadBalancer::fromFollyDynamicLegacy(
@@ -178,8 +194,7 @@ std::shared_ptr<LoadBalancer> LoadBalancer::fromFollyDynamicLegacy(
       throw FbossError("Duplicate MPLS serialized field ", rawMPLSField);
     }
   }
-
-  return std::make_shared<LoadBalancer>(
+  auto fields = LoadBalancerFields(
       id,
       algorithm,
       seed,
@@ -187,6 +202,7 @@ std::shared_ptr<LoadBalancer> LoadBalancer::fromFollyDynamicLegacy(
       std::move(ipv6Fields),
       std::move(transportFields),
       mplsFields);
+  return std::make_shared<LoadBalancer>(fields.toThrift());
 }
 
 folly::dynamic LoadBalancer::toFollyDynamicLegacy() const {
@@ -202,23 +218,23 @@ folly::dynamic LoadBalancer::toFollyDynamicLegacy() const {
 
   serialized[kIPv4Fields] = folly::dynamic::array();
   for (const auto& ipv4Field : getIPv4Fields()) {
-    serialized[kIPv4Fields].push_back(static_cast<int64_t>(ipv4Field));
+    serialized[kIPv4Fields].push_back(static_cast<int64_t>(ipv4Field->cref()));
   }
 
   serialized[kIPv6Fields] = folly::dynamic::array();
   for (const auto& ipv6Field : getIPv6Fields()) {
-    serialized[kIPv6Fields].push_back(static_cast<int64_t>(ipv6Field));
+    serialized[kIPv6Fields].push_back(static_cast<int64_t>(ipv6Field->cref()));
   }
 
   serialized[kTransportFields] = folly::dynamic::array();
   for (const auto& transportField : getTransportFields()) {
     serialized[kTransportFields].push_back(
-        static_cast<int64_t>(transportField));
+        static_cast<int64_t>(transportField->cref()));
   }
 
   serialized[kMPLSFields] = folly::dynamic::array();
   for (const auto& mplsField : getMPLSFields()) {
-    serialized[kMPLSFields].push_back(static_cast<uint8_t>(mplsField));
+    serialized[kMPLSFields].push_back(static_cast<uint8_t>(mplsField->cref()));
   }
   return serialized;
 }
@@ -320,6 +336,9 @@ void LoadBalancerFields::migrateFromThrifty(folly::dynamic& dyn) {
   dyn["seed"] = static_cast<uint32_t>(seed);
 }
 
-// template class NodeBaseT<AggregatePort, AggregatePortFields>;
+std::shared_ptr<LoadBalancer> LoadBalancer::fromThrift(
+    const state::LoadBalancerFields& fields) {
+  return std::make_shared<LoadBalancer>(fields);
+}
 
 } // namespace facebook::fboss

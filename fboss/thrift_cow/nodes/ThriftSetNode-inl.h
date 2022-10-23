@@ -235,6 +235,8 @@ class ThriftSetNode : public NodeBaseT<
   using value_type = typename Fields::value_type;
   using ValueTType = typename Fields::ValueTType;
   using PathIter = typename std::vector<std::string>::const_iterator;
+  using NodeConstIter = typename Fields::const_iterator;
+  using NodeIter = typename Fields::iterator;
 
   using BaseT::BaseT;
 
@@ -301,6 +303,9 @@ class ThriftSetNode : public NodeBaseT<
 
   typename Fields::iterator end() {
     return this->writableFields()->end();
+  }
+  typename Fields::const_iterator end() const {
+    return this->getFields()->end();
   }
 
   typename Fields::const_iterator cbegin() const {

@@ -64,6 +64,8 @@ struct LoadBalancerFields
   MPLSFields mplsFields_;
 };
 
+ADD_THRIFT_RESOLVER_MAPPING(state::LoadBalancerFields, LoadBalancer);
+
 /* A LoadBalancer represents a logical point in the data-path which may
  * distribute traffic between any number of load-bearing elements.
  *
@@ -87,30 +89,39 @@ struct LoadBalancerFields
  * load-balancing are fixed and so it does not follow to support abitrary
  * handles on LoadBalancer SwitchState nodes.
  */
-class LoadBalancer : public ThriftyBaseT<
-                         state::LoadBalancerFields,
-                         LoadBalancer,
-                         LoadBalancerFields> {
+
+class LoadBalancer : public ThriftStructNode<state::LoadBalancerFields> {
  public:
+  template <typename T>
+  struct Fields {
+    using ElementType = T;
+    using ElemnentTC = apache::thrift::type_class::enumeration;
+    using FieldsTC = apache::thrift::type_class::set<ElemnentTC>;
+    using FieldsType =
+        thrift_cow::ThriftSetNode<FieldsTC, std::set<ElementType>>;
+    using const_iterator = typename FieldsType::Fields::const_iterator;
+  };
+
+  template <typename T>
+  using FieldsConstIter = typename Fields<T>::const_iterator;
+
+  using BaseT = ThriftStructNode<state::LoadBalancerFields>;
   using IPv4Field = LoadBalancerFields::IPv4Field;
   using IPv4Fields = LoadBalancerFields::IPv4Fields;
-  using IPv4FieldsRange =
-      folly::Range<LoadBalancerFields::IPv4Fields::const_iterator>;
+  using IPv4FieldsRange = folly::Range<FieldsConstIter<cfg::IPv4Field>>;
 
   using IPv6Field = LoadBalancerFields::IPv6Field;
   using IPv6Fields = LoadBalancerFields::IPv6Fields;
-  using IPv6FieldsRange =
-      folly::Range<LoadBalancerFields::IPv6Fields::const_iterator>;
+  using IPv6FieldsRange = folly::Range<FieldsConstIter<cfg::IPv6Field>>;
 
   using TransportField = LoadBalancerFields::TransportField;
   using TransportFields = LoadBalancerFields::TransportFields;
   using TransportFieldsRange =
-      folly::Range<LoadBalancerFields::TransportFields::const_iterator>;
+      folly::Range<FieldsConstIter<cfg::TransportField>>;
 
   using MPLSField = LoadBalancerFields::MPLSField;
   using MPLSFields = LoadBalancerFields::MPLSFields;
-  using MPLSFieldsRange =
-      folly::Range<LoadBalancerFields::MPLSFields::const_iterator>;
+  using MPLSFieldsRange = folly::Range<FieldsConstIter<cfg::MPLSField>>;
 
   LoadBalancer(
       LoadBalancerID id,
@@ -131,14 +142,24 @@ class LoadBalancer : public ThriftyBaseT<
 
   static std::shared_ptr<LoadBalancer> fromFollyDynamicLegacy(
       const folly::dynamic& json);
+  static std::shared_ptr<LoadBalancer> fromFollyDynamic(
+      const folly::dynamic& json) {
+    return fromFollyDynamicLegacy(json);
+  }
   folly::dynamic toFollyDynamicLegacy() const;
+  folly::dynamic toFollyDynamic() const override {
+    return toFollyDynamicLegacy();
+  }
+
+  static std::shared_ptr<LoadBalancer> fromThrift(
+      const state::LoadBalancerFields& fields);
 
   bool operator==(const LoadBalancer& rhs) const;
   bool operator!=(const LoadBalancer& rhs) const;
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyBaseT::ThriftyBaseT;
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 
