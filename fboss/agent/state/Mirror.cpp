@@ -95,6 +95,41 @@ folly::dynamic MirrorFields::toFollyDynamicLegacy() const {
   return mirrorFields;
 }
 
+Mirror::Mirror(
+    std::string name,
+    std::optional<PortID> egressPort,
+    std::optional<folly::IPAddress> destinationIp,
+    std::optional<folly::IPAddress> srcIp,
+    std::optional<TunnelUdpPorts> udpPorts,
+    uint8_t dscp,
+    bool truncate)
+    : ThriftStructNode<state::MirrorFields>() {
+  // span mirror is resolved as soon as it is created
+  // erspan and sflow are resolved when tunnel is set
+  set<switch_state_tags::name>(name);
+  set<switch_state_tags::dscp>(dscp);
+  set<switch_state_tags::truncate>(truncate);
+  set<switch_state_tags::configHasEgressPort>(false);
+  set<switch_state_tags::isResolved>(false);
+
+  if (egressPort) {
+    set<switch_state_tags::egressPort>(*egressPort);
+    set<switch_state_tags::configHasEgressPort>(true);
+  }
+  if (destinationIp) {
+    set<switch_state_tags::destinationIp>(
+        network::toBinaryAddress(*destinationIp));
+  }
+  if (srcIp) {
+    set<switch_state_tags::srcIp>(network::toBinaryAddress(*srcIp));
+  }
+  if (udpPorts) {
+    set<switch_state_tags::udpSrcPort>(udpPorts->udpSrcPort);
+    set<switch_state_tags::udpDstPort>(udpPorts->udpDstPort);
+  }
+  markResolved();
+}
+
 std::string Mirror::getID() const {
   return get<switch_state_tags::name>()->cref();
 }
@@ -214,11 +249,16 @@ std::shared_ptr<Mirror> Mirror::fromFollyDynamicLegacy(
 bool Mirror::isResolved() const {
   // either mirror has no destination ip (which means it is span)
   // or its destination ip is resolved.
-  return getMirrorTunnel().has_value() || !getDestinationIp().has_value();
+  return get<switch_state_tags::isResolved>()->cref();
 }
 
 void Mirror::markResolved() {
-  set<switch_state_tags::isResolved>(isResolved());
+  set<switch_state_tags::isResolved>(false);
+  if (type() == Mirror::Type::SPAN || get<switch_state_tags::tunnel>()) {
+    // either mirror has no destination ip (which means it is span)
+    // or its destination ip is resolved.
+    set<switch_state_tags::isResolved>(true);
+  }
 }
 
 bool Mirror::configHasEgressPort() const {
@@ -321,6 +361,6 @@ void MirrorFields::migrateFromThrifty(folly::dynamic& dyn) {
   dyn[kIsResolved] = isResolved;
 }
 
-template class ThriftyBaseT<state::MirrorFields, Mirror, MirrorFields>;
+template class thrift_cow::ThriftStructNode<state::MirrorFields>;
 
 } // namespace facebook::fboss
