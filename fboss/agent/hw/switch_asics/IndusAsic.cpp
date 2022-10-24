@@ -36,7 +36,6 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_SPEED_CHANGE: // CS00011784917
     case HwAsic::Feature::EGRESS_MIRRORING:
     case HwAsic::Feature::EGRESS_SFLOW:
-    case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::DEFAULT_VLAN:
     case HwAsic::Feature::L2_LEARNING:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
@@ -110,6 +109,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
+    case HwAsic::Feature::SAI_ECN_WRED: // CS00012266807, CS00012266838
       return false;
   }
   return false;

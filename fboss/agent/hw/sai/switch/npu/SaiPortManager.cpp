@@ -71,7 +71,6 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
           SAI_PORT_STAT_IF_OUT_DISCARDS,
           SAI_PORT_STAT_IF_OUT_ERRORS,
           SAI_PORT_STAT_PAUSE_TX_PKTS,
-          SAI_PORT_STAT_ECN_MARKED_PACKETS,
           SAI_PORT_STAT_PFC_0_RX_PKTS,
           SAI_PORT_STAT_PFC_1_RX_PKTS,
           SAI_PORT_STAT_PFC_2_RX_PKTS,
