@@ -293,6 +293,8 @@ add_fbthrift_cpp_library(
     reflection
   DEPENDS
     qsfp_config_cpp2
+    phy_cpp2
+    transceiver_cpp2
 )
 add_fbthrift_cpp_library(
   qsfp_stats_cpp2
@@ -300,6 +302,10 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     reflection
+  DEPENDS
+    hardware_stats_cpp2
+    phy_cpp2
+    transceiver_cpp2
 )
 add_fbthrift_cpp_library(
   sensor_service_stats_cpp2

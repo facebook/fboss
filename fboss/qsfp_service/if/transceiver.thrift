@@ -383,31 +383,89 @@ struct ModuleStatus {
   5: optional bool cmisStateChanged;
 }
 
-struct TransceiverInfo {
+struct TcvrState {
   1: bool present;
   2: TransceiverType transceiver;
   3: i32 port; // physical port number
-  4: optional GlobalSensors sensor;
   5: optional AlarmThreshold thresholds;
-  9: optional Vendor vendor;
-  10: optional Cable cable;
-  12: list<Channel> channels;
-  13: optional TransceiverSettings settings;
-  14: optional TransceiverStats stats;
-  15: optional SignalFlags signalFlag;
-  16: optional ExtendedSpecComplianceCode extendedSpecificationComplianceCode;
-  17: optional TransceiverManagementInterface transceiverManagementInterface;
-  18: optional TransceiverModuleIdentifier identifier;
-  19: optional ModuleStatus status;
-  20: optional list<MediaLaneSignals> mediaLaneSignals;
-  21: optional list<HostLaneSignals> hostLaneSignals;
-  22: optional i64 timeCollected;
-  23: optional i64 remediationCounter;
-  24: optional VdmDiagsStats vdmDiagsStats;
-  25: optional bool eepromCsumValid;
-  26: optional MediaInterfaceCode moduleMediaInterface;
-  27: optional TransceiverStateMachineState stateMachineState;
-  28: optional VdmDiagsStats vdmDiagsStatsForOds;
+  6: optional Vendor vendor;
+  7: optional Cable cable;
+  9: optional TransceiverSettings settings;
+  10: optional SignalFlags signalFlag;
+  11: optional ExtendedSpecComplianceCode extendedSpecificationComplianceCode;
+  12: optional TransceiverManagementInterface transceiverManagementInterface;
+  13: optional TransceiverModuleIdentifier identifier;
+  14: optional ModuleStatus status;
+  15: optional list<MediaLaneSignals> mediaLaneSignals;
+  16: optional list<HostLaneSignals> hostLaneSignals;
+  18: optional bool eepromCsumValid;
+  19: optional MediaInterfaceCode moduleMediaInterface;
+  20: optional TransceiverStateMachineState stateMachineState;
+}
+
+struct TcvrStats {
+  1: optional GlobalSensors sensor;
+  2: list<Channel> channels;
+  3: optional TransceiverStats stats;
+  4: optional i64 remediationCounter;
+  5: optional VdmDiagsStats vdmDiagsStats;
+  6: optional VdmDiagsStats vdmDiagsStatsForOds;
+}
+
+struct TransceiverInfo {
+  1: bool present (deprecated = "Moved to state/stats");
+  2: TransceiverType transceiver (deprecated = "Moved to state/stats");
+  3: i32 port (deprecated = "Moved to state/stats"); // physical port number
+  4: optional GlobalSensors sensor (deprecated = "Moved to state/stats");
+  5: optional AlarmThreshold thresholds (deprecated = "Moved to state/stats");
+  9: optional Vendor vendor (deprecated = "Moved to state/stats");
+  10: optional Cable cable (deprecated = "Moved to state/stats");
+  12: list<Channel> channels (deprecated = "Moved to state/stats");
+  13: optional TransceiverSettings settings (
+    deprecated = "Moved to state/stats",
+  );
+  14: optional TransceiverStats stats (deprecated = "Moved to state/stats");
+  15: optional SignalFlags signalFlag (deprecated = "Moved to state/stats");
+  16: optional ExtendedSpecComplianceCode extendedSpecificationComplianceCode (
+    deprecated = "Moved to state/stats",
+  );
+  17: optional TransceiverManagementInterface transceiverManagementInterface (
+    deprecated = "Moved to state/stats",
+  );
+  18: optional TransceiverModuleIdentifier identifier (
+    deprecated = "Moved to state/stats",
+  );
+  19: optional ModuleStatus status (deprecated = "Moved to state/stats");
+  20: optional list<MediaLaneSignals> mediaLaneSignals (
+    deprecated = "Moved to state/stats",
+  );
+  21: optional list<HostLaneSignals> hostLaneSignals (
+    deprecated = "Moved to state/stats",
+  );
+  22: optional i64 timeCollected (deprecated = "Moved to state/stats");
+  23: optional i64 remediationCounter (deprecated = "Moved to state/stats");
+  24: optional VdmDiagsStats vdmDiagsStats (
+    deprecated = "Moved to state/stats",
+  );
+  25: optional bool eepromCsumValid (deprecated = "Moved to state/stats");
+  26: optional MediaInterfaceCode moduleMediaInterface (
+    deprecated = "Moved to state/stats",
+  );
+  27: optional TransceiverStateMachineState stateMachineState (
+    deprecated = "Moved to state/stats",
+  );
+  28: optional VdmDiagsStats vdmDiagsStatsForOds (
+    deprecated = "Moved to state/stats",
+  );
+  // During the transition, the new state and states will be optional.
+  // Both new and old fields will be filled in by QSFP service. Users
+  // should checked the new fields and use it if available but fall back
+  // to old fields if it's not. Once all users can understand the new
+  // fields, we can then remove the old fields and make the new fields
+  // non-optional. If making changes during this transition, please
+  // make sure to change both the new and the old structs.
+  29: optional TcvrState tcvrState;
+  30: optional TcvrStats tcvrStats;
 }
 
 typedef binary (cpp2.type = "folly::IOBuf") IOBuf

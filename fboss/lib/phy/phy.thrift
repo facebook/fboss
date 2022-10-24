@@ -308,16 +308,25 @@ struct PrbsStats {
 
 // structs for Phy(both IPHY and XPHY) diagnostic info
 struct PhyInfo {
-  1: DataPlanePhyChip phyChip;
-  2: optional PhyFwVersion fwVersion;
-  3: switch_config.PortSpeed speed;
-  4: string name; // port name
-  5: optional bool linkState;
-  6: optional i64 linkFlapCount;
-  10: optional PhySideInfo system;
-  11: PhySideInfo line;
-  12: i32 timeCollected; // Time the diagnostic info was collected at
-  13: optional i32 switchID;
+  1: DataPlanePhyChip phyChip (deprecated = "Moved to state/stats");
+  2: optional PhyFwVersion fwVersion (deprecated = "Moved to state/stats");
+  3: switch_config.PortSpeed speed (deprecated = "Moved to state/stats");
+  4: string name (deprecated = "Moved to state/stats"); // port name
+  5: optional bool linkState (deprecated = "Moved to state/stats");
+  6: optional i64 linkFlapCount (deprecated = "Moved to state/stats");
+  10: optional PhySideInfo system (deprecated = "Moved to state/stats");
+  11: PhySideInfo line (deprecated = "Moved to state/stats");
+  12: i32 timeCollected (deprecated = "Moved to state/stats"); // Time the diagnostic info was collected at
+  13: optional i32 switchID (deprecated = "Moved to state/stats");
+  // During the transition, the new state and states will be optional.
+  // Both new and old fields will be filled in by QSFP service. Users
+  // should checked the new fields and use it if available but fall back
+  // to old fields if it's not. Once all users can understand the new
+  // fields, we can then remove the old fields and make the new fields
+  // non-optional. If making changes during this transition, please
+  // make sure to change both the new and the old structs.
+  14: optional PhyState state;
+  15: optional PhyStats stats;
 }
 
 struct PhySideInfo {
@@ -329,10 +338,34 @@ struct PhySideInfo {
   6: transceiver.TransmitterTechnology medium;
 }
 
+struct PhySideState {
+  1: Side side;
+  2: optional PcsState pcs;
+  3: PmdState pmd;
+  4: optional RsInfo rs; // Reconciliation sub-layer
+  5: optional InterfaceType interfaceType;
+  6: transceiver.TransmitterTechnology medium;
+}
+
+struct PhySideStats {
+  1: Side side;
+  2: optional PcsStats pcs;
+  3: PmdStats pmd;
+}
+
 struct PcsInfo {
   1: optional bool pcsRxStatusLive;
   2: optional bool pcsRxStatusLatched;
   20: optional RsFecInfo rsFec;
+}
+
+struct PcsState {
+  1: optional bool pcsRxStatusLive;
+  2: optional bool pcsRxStatusLatched;
+}
+
+struct PcsStats {
+  1: optional RsFecInfo rsFec;
 }
 
 struct RsFecInfo {
@@ -347,6 +380,14 @@ struct RsFecInfo {
 
 struct PmdInfo {
   1: map<i16, LaneInfo> lanes;
+}
+
+struct PmdState {
+  1: map<i16, LaneState> lanes;
+}
+
+struct PmdStats {
+  1: map<i16, LaneStats> lanes;
 }
 
 struct EyeInfo {
@@ -368,6 +409,24 @@ struct LaneInfo {
   12: optional i32 cdrLockChangedCount;
 }
 
+struct LaneState {
+  1: i16 lane;
+  2: optional bool signalDetectLive;
+  3: optional bool signalDetectChanged;
+  4: optional bool cdrLockLive;
+  5: optional bool cdrLockChanged;
+  6: TxSettings txSettings;
+  7: optional i16 rxFrequencyPPM;
+}
+
+struct LaneStats {
+  1: i16 lane;
+  2: optional list<EyeInfo> eyes;
+  3: optional float snr;
+  4: optional i32 signalDetectChangedCount;
+  5: optional i32 cdrLockChangedCount;
+}
+
 struct LinkFaultStatus {
   1: bool localFault;
   2: bool remoteFault;
@@ -375,6 +434,23 @@ struct LinkFaultStatus {
 
 struct RsInfo {
   1: LinkFaultStatus faultStatus;
+}
+
+struct PhyState {
+  1: DataPlanePhyChip phyChip;
+  2: optional PhyFwVersion fwVersion;
+  3: switch_config.PortSpeed speed;
+  4: string name; // port name
+  5: optional bool linkState;
+  6: optional PhySideState system;
+  7: PhySideState line;
+  8: optional i32 switchID;
+}
+
+struct PhyStats {
+  1: optional PhySideStats system;
+  2: PhySideStats line;
+  3: optional i64 linkFlapCount;
 }
 
 union LinkSnapshot {
