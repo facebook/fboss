@@ -261,13 +261,14 @@ struct DeltaVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
       const Fields& newFields,
       const DeltaVisitMode& mode,
       Func&& f) {
-    std::size_t minSize = std::min(oldFields.size(), newFields.size());
+    int minSize = std::min(oldFields.size(), newFields.size());
 
     bool hasDifferences{false};
 
-    if (oldFields.size() > newFields.size()) {
+    if (oldFields.size() > newFields.size()) { // entries removed
       hasDifferences = true;
-      for (int i = minSize; i < oldFields.size(); ++i) {
+      // loop in reverse order for removals
+      for (int i = oldFields.size() - 1; i >= minSize; --i) {
         path.push_back(folly::to<std::string>(i));
         dv_detail::visitAddedOrRemovedNode<ValueTypeClass>(
             path,
@@ -277,7 +278,7 @@ struct DeltaVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
             std::forward<Func>(f));
         path.pop_back();
       }
-    } else if (oldFields.size() < newFields.size()) {
+    } else if (oldFields.size() < newFields.size()) { // entries added
       hasDifferences = true;
       for (int i = minSize; i < newFields.size(); ++i) {
         path.push_back(folly::to<std::string>(i));
