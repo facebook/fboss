@@ -153,11 +153,18 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
             getLatestPortStats(kPort.phyPortID()).get_outBytes_());
       };
 
-      auto [beforeOutPkts, beforeOutBytes] = getPortOutPktsBytes();
+      auto getQueueOutPktsBytes = [kPort, this]() {
+        return std::make_pair(
+            getLatestPortStats(kPort.phyPortID())
+                .get_queueOutPackets_()
+                .at(kDefaultQueue),
+            getLatestPortStats(kPort.phyPortID())
+                .get_queueOutBytes_()
+                .at(kDefaultQueue));
+      };
 
-      auto beforeQueueOutPkts = getLatestPortStats(kPort.phyPortID())
-                                    .get_queueOutPackets_()
-                                    .at(kDefaultQueue);
+      auto [beforeOutPkts, beforeOutBytes] = getPortOutPktsBytes();
+      auto [beforeQueueOutPkts, beforeQueueOutBytes] = getQueueOutPktsBytes();
 
       if (isFrontPanel) {
         const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
@@ -168,22 +175,24 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
       }
 
       auto [afterOutPkts, afterOutBytes] = getPortOutPktsBytes();
-
-      auto afterQueueOutPkts = getLatestPortStats(kPort.phyPortID())
-                                   .get_queueOutPackets_()
-                                   .at(kDefaultQueue);
+      auto [afterQueueOutPkts, afterQueueOutBytes] = getQueueOutPktsBytes();
 
       XLOG(DBG2) << "Stats:: beforeOutPkts: " << beforeOutPkts
                  << " beforeOutBytes: " << beforeOutBytes
                  << " beforeQueueOutPkts: " << beforeQueueOutPkts
+                 << " beforeQueueOutBytes: " << beforeQueueOutBytes
+                 << " txPacketSize: " << txPacketSize
                  << " afterOutPkts: " << afterOutPkts
                  << " afterOutBytes: " << afterOutBytes
-                 << " afterQueueOutPkts: " << afterQueueOutPkts;
+                 << " afterQueueOutPkts: " << afterQueueOutPkts
+                 << " afterQueueOutBytes: " << afterQueueOutBytes;
 
       EXPECT_EQ(afterOutPkts - 1, beforeOutPkts);
-      // TODO(skhare) Debug why we get 4 extra bytes
+      // CS00012267635: debug why we get 4 extra bytes
       EXPECT_EQ(afterOutBytes - txPacketSize - 4, beforeOutBytes);
       EXPECT_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
+      // CS00012267635: debug why queue counter is 310, when txPacketSize is 322
+      EXPECT_GE(afterQueueOutBytes, beforeQueueOutBytes);
     };
 
     verifyAcrossWarmBoots(setup, verify);
