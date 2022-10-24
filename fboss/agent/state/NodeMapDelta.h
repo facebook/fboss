@@ -218,6 +218,67 @@ class DeltaValueIterator {
 template <typename MAP, typename VALUE, typename MAP_EXTRACTOR>
 const typename VALUE::NodeWrapper
     DeltaValueIterator<MAP, VALUE, MAP_EXTRACTOR>::nullNode_ = nullptr;
+template <
+    typename MAP,
+    typename VALUE,
+    typename ITERATOR,
+    typename MAPPOINTERTRAITS = MapPointerTraits<MAP>>
+class MapDeltaImpl {
+ public:
+  using MapPointerType = typename MAPPOINTERTRAITS::MapPointerType;
+  using RawConstPointerType = typename MAPPOINTERTRAITS::RawConstPointerType;
+  using MapType = MAP;
+  using Node = typename MAP::mapped_type;
+  using NodeWrapper = typename VALUE::NodeWrapper;
+  using Iterator = ITERATOR;
+
+  MapDeltaImpl(MapPointerType&& oldMap, MapPointerType&& newMap)
+      : old_(std::move(oldMap)), new_(std::move(newMap)) {}
+
+  RawConstPointerType getOld() const {
+    return MAPPOINTERTRAITS::getRawPointer(old_);
+  }
+  RawConstPointerType getNew() const {
+    return MAPPOINTERTRAITS::getRawPointer(new_);
+  }
+
+  /*
+   * Return an iterator pointing to the first change.
+   */
+  Iterator begin() const {
+    if (old_ == new_) {
+      return end();
+    }
+    // To support deltas where the old node is null (to represent newly created
+    // nodes), point the old side of the iterator at the new node, but start it
+    // at the end of the map.
+    if (!old_) {
+      return Iterator(getNew(), new_->end(), getNew(), new_->begin());
+    }
+    // And vice-versa for the new node being null (to represent removed nodes).
+    if (!new_) {
+      return Iterator(getOld(), old_->begin(), getOld(), old_->end());
+    }
+    return Iterator(getOld(), old_->begin(), getNew(), new_->begin());
+  }
+
+  /*
+   * Return an iterator pointing just past the last change.
+   */
+  Iterator end() const {
+    if (!old_) {
+      return Iterator(getNew(), new_->end(), getNew(), new_->end());
+    }
+    if (!new_) {
+      return Iterator(getOld(), old_->end(), getOld(), old_->end());
+    }
+    return Iterator(getOld(), old_->end(), getNew(), new_->end());
+  }
+
+ private:
+  MapPointerType old_;
+  MapPointerType new_;
+};
 /*
  * NodeMapDelta contains code for examining the differences between two NodeMap
  * objects.
@@ -249,71 +310,26 @@ class NodeMapDelta {
     }
   };
   using Iterator = DeltaValueIterator<MAP, VALUE, NodeMapExtractor>;
+  using Impl = MapDeltaImpl<MAP, VALUE, Iterator, MAPPOINTERTRAITS>;
 
   NodeMapDelta(MapPointerType&& oldMap, MapPointerType&& newMap)
-      : old_(std::move(oldMap)), new_(std::move(newMap)) {}
+      : impl_(std::move(oldMap), std::move(newMap)) {}
 
   RawConstPointerType getOld() const {
-    return MAPPOINTERTRAITS::getRawPointer(old_);
+    return impl_.getOld();
   }
   RawConstPointerType getNew() const {
-    return MAPPOINTERTRAITS::getRawPointer(new_);
+    return impl_.getNew();
   }
-
-  /*
-   * Return an iterator pointing to the first change.
-   */
-  Iterator begin() const;
-
-  /*
-   * Return an iterator pointing just past the last change.
-   */
-  Iterator end() const;
+  Iterator begin() const {
+    return impl_.begin();
+  }
+  Iterator end() const {
+    return impl_.end();
+  }
 
  private:
-  /*
-   * NodeMapDelta is used by StateDelta.  StateDelta holds a shared_ptr to
-   * the old and new SwitchState objects, which in turn holds
-   * shared_ptrs to NodeMaps, hence in the common case use raw pointers here
-   * and don't bother with ownership. However there are cases where collections
-   * are not easily mapped to a NodeMap structure, but we still want to box
-   * them into a NodeMap while computing delta. In this case NodeMap is created
-   * on the fly and we pass ownership to NodeMapDelta object via a unique_ptr.
-   * See MapPointerTraits and MapUniquePointerTraits classes for details.
-   */
-  MapPointerType old_;
-  MapPointerType new_;
+  Impl impl_;
 };
-
-template <typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
-typename NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator
-NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::begin() const {
-  if (old_ == new_) {
-    return end();
-  }
-  // To support deltas where the old node is null (to represent newly created
-  // nodes), point the old side of the iterator at the new node, but start it
-  // at the end of the map.
-  if (!old_) {
-    return Iterator(getNew(), new_->end(), getNew(), new_->begin());
-  }
-  // And vice-versa for the new node being null (to represent removed nodes).
-  if (!new_) {
-    return Iterator(getOld(), old_->begin(), getOld(), old_->end());
-  }
-  return Iterator(getOld(), old_->begin(), getNew(), new_->begin());
-}
-
-template <typename MAP, typename VALUE, typename MAPPOINTERTRAITS>
-typename NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::Iterator
-NodeMapDelta<MAP, VALUE, MAPPOINTERTRAITS>::end() const {
-  if (!old_) {
-    return Iterator(getNew(), new_->end(), getNew(), new_->end());
-  }
-  if (!new_) {
-    return Iterator(getOld(), old_->end(), getOld(), old_->end());
-  }
-  return Iterator(getOld(), old_->end(), getNew(), new_->end());
-}
 
 } // namespace facebook::fboss

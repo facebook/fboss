@@ -31,44 +31,21 @@ class MapDelta {
     }
   };
   using Iterator = DeltaValueIterator<MAP, VALUE, NodeMapExtractor>;
+  using Impl = MapDeltaImpl<MAP, VALUE, Iterator>;
 
-  MapDelta(const MAP* oldMap, const MAP* newMap) : old_(oldMap), new_(newMap) {}
+  MapDelta(const MAP* oldMap, const MAP* newMap)
+      : impl_(std::move(oldMap), std::move(newMap)) {}
 
-  /*
-   * Return an iterator pointing to the first change.
-   */
   Iterator begin() const {
-    if (old_ == new_) {
-      return end();
-    }
-    // To support deltas where the old node is null (to represent newly created
-    // nodes), point the old side of the iterator at the new node, but start it
-    // at the end of the map.
-    if (!old_) {
-      return Iterator(new_, new_->end(), new_, new_->begin());
-    }
-    // And vice-versa for the new node being null (to represent removed nodes).
-    if (!new_) {
-      return Iterator(old_, old_->begin(), old_, old_->end());
-    }
-    return Iterator(old_, old_->begin(), new_, new_->begin());
+    return impl_.begin();
   }
 
-  /*
-   * Return an iterator pointing just past the last change.
-   */
   Iterator end() const {
-    if (!old_) {
-      return Iterator(new_, new_->end(), new_, new_->end());
-    }
-    if (!new_) {
-      return Iterator(old_, old_->end(), old_, old_->end());
-    }
-    return Iterator(old_, old_->end(), new_, new_->end());
+    return impl_.end();
   }
 
  private:
-  const MAP *old_, *new_;
+  Impl impl_;
 };
 
 } // namespace facebook::fboss
