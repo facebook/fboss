@@ -54,6 +54,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
+    case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::ROUTE_PROGRAMMING:
@@ -61,6 +62,8 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_HASH_V6:
     case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::LINK_TRAINING:
+    case HwAsic::Feature::FEC:
+    case HwAsic::Feature::FEC_CORRECTED_BITS:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
@@ -91,7 +94,6 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_TTL_1_TRAP:
     case HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER:
     case HwAsic::Feature::EXACT_MATCH:
-    case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
@@ -105,8 +107,6 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::FABRIC_PORT_MTU:
     case HwAsic::Feature::MEDIA_TYPE:
-    case HwAsic::Feature::FEC:
-    case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
