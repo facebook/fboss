@@ -525,6 +525,12 @@ void SaiPortManager::removePriorityGroupBufferProfile(
   portHandle->priorityGroupBufferProfiles.clear();
 }
 
+cfg::PortType SaiPortManager::getPortType(PortID portId) const {
+  auto pitr = port2PortType_.find(portId);
+  CHECK(pitr != port2PortType_.end());
+  return pitr->second;
+}
+
 void SaiPortManager::setPortType(PortID port, cfg::PortType type) {
   port2PortType_.insert({port, type});
   // If Port type changed, supported stats need to be updated
