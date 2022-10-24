@@ -66,23 +66,56 @@ class SaiRouterInterfaceManager {
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
       const SaiPlatform* platform);
-  RouterInterfaceSaiId addRouterInterface(
-      const std::shared_ptr<Interface>& swInterface);
-  void removeRouterInterface(const std::shared_ptr<Interface>& swInterface);
-  void changeRouterInterface(
+  RouterInterfaceSaiId addLocalRouterInterface(
+      const std::shared_ptr<Interface>& swInterface) {
+    return addRouterInterface(swInterface, true /*isLocal*/);
+  }
+  void removeLocalRouterInterface(
+      const std::shared_ptr<Interface>& swInterface) {
+    removeRouterInterface(swInterface);
+  }
+  void changeLocalRouterInterface(
       const std::shared_ptr<Interface>& oldInterface,
-      const std::shared_ptr<Interface>& newInterface);
+      const std::shared_ptr<Interface>& newInterface) {
+    changeRouterInterface(oldInterface, newInterface, true /*isLocal*/);
+  }
+
+  RouterInterfaceSaiId addRemoteRouterInterface(
+      const std::shared_ptr<Interface>& swInterface) {
+    return addRouterInterface(swInterface, false /*remote*/);
+  }
+  void removeRemoteRouterInterface(
+      const std::shared_ptr<Interface>& swInterface) {
+    removeRouterInterface(swInterface);
+  }
+  void changeRemoteRouterInterface(
+      const std::shared_ptr<Interface>& oldInterface,
+      const std::shared_ptr<Interface>& newInterface) {
+    changeRouterInterface(oldInterface, newInterface, false /*remote*/);
+  }
+
   SaiRouterInterfaceHandle* getRouterInterfaceHandle(const InterfaceID& swId);
   const SaiRouterInterfaceHandle* getRouterInterfaceHandle(
       const InterfaceID& swId) const;
 
  private:
+  RouterInterfaceSaiId addRouterInterface(
+      const std::shared_ptr<Interface>& swInterface,
+      bool isLocal);
+  void removeRouterInterface(const std::shared_ptr<Interface>& swInterface);
+  void changeRouterInterface(
+      const std::shared_ptr<Interface>& oldInterface,
+      const std::shared_ptr<Interface>& newInterface,
+      bool isLocal);
   RouterInterfaceSaiId addOrUpdateRouterInterface(
-      const std::shared_ptr<Interface>& swInterface);
+      const std::shared_ptr<Interface>& swInterface,
+      bool isLocal);
   RouterInterfaceSaiId addOrUpdateVlanRouterInterface(
-      const std::shared_ptr<Interface>& swInterface);
+      const std::shared_ptr<Interface>& swInterface,
+      bool isLocal);
   RouterInterfaceSaiId addOrUpdatePortRouterInterface(
-      const std::shared_ptr<Interface>& swInterface);
+      const std::shared_ptr<Interface>& swInterface,
+      bool isLocal);
   SaiRouterInterfaceHandle* getRouterInterfaceHandleImpl(
       const InterfaceID& swId) const;
 

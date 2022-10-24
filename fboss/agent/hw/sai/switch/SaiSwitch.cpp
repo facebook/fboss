@@ -632,17 +632,17 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       delta.getIntfsDelta(),
       managerTable_->routerInterfaceManager(),
       lockPolicy,
-      &SaiRouterInterfaceManager::changeRouterInterface,
-      &SaiRouterInterfaceManager::addRouterInterface,
-      &SaiRouterInterfaceManager::removeRouterInterface);
+      &SaiRouterInterfaceManager::changeLocalRouterInterface,
+      &SaiRouterInterfaceManager::addLocalRouterInterface,
+      &SaiRouterInterfaceManager::removeLocalRouterInterface);
 
   processDelta(
       delta.getRemoteIntfsDelta(),
       managerTable_->routerInterfaceManager(),
       lockPolicy,
-      &SaiRouterInterfaceManager::changeRouterInterface,
-      &SaiRouterInterfaceManager::addRouterInterface,
-      &SaiRouterInterfaceManager::removeRouterInterface);
+      &SaiRouterInterfaceManager::changeRemoteRouterInterface,
+      &SaiRouterInterfaceManager::addRemoteRouterInterface,
+      &SaiRouterInterfaceManager::removeRemoteRouterInterface);
 
   // For VOQ switches, neighbor tables live on port based
   // RIFs

@@ -217,9 +217,11 @@ TEST_F(RouterInterfaceManagerTest, addTwoPortRouterInterfaces) {
 
 TEST_F(RouterInterfaceManagerTest, addDupRouterInterface) {
   auto swInterface = makeInterface(intf0);
-  saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
+      swInterface);
   EXPECT_THROW(
-      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface),
+      saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
+          swInterface),
       FbossError);
 }
 
@@ -227,9 +229,11 @@ TEST_F(RouterInterfaceManagerTest, addDupPortRouterInterface) {
   auto swSysPort = makeSystemPort();
   auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
   std::ignore =
-      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+      saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
+          swInterface);
   EXPECT_THROW(
-      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface),
+      saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
+          swInterface),
       FbossError);
 }
 
@@ -474,8 +478,9 @@ TEST_F(RouterInterfaceManagerTest, addPortRouterInterfaceSubnets) {
 
 TEST_F(RouterInterfaceManagerTest, getRouterInterface) {
   auto oldInterface = makeInterface(intf0);
-  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
-      oldInterface);
+  auto saiId =
+      saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
+          oldInterface);
   auto routerInterfaceHandle =
       saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
           InterfaceID(0));
@@ -486,8 +491,9 @@ TEST_F(RouterInterfaceManagerTest, getRouterInterface) {
 TEST_F(RouterInterfaceManagerTest, getPortRouterInterface) {
   auto swSysPort = makeSystemPort();
   auto oldInterface = makeInterface(*swSysPort, {intf0.subnet});
-  auto saiId = saiManagerTable->routerInterfaceManager().addRouterInterface(
-      oldInterface);
+  auto saiId =
+      saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
+          oldInterface);
   checkPortRouterInterface(saiId, sysPort1, oldInterface->getMac());
   auto routerInterfaceHandle =
       saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
@@ -498,7 +504,8 @@ TEST_F(RouterInterfaceManagerTest, getPortRouterInterface) {
 
 TEST_F(RouterInterfaceManagerTest, getNonexistentRouterInterface) {
   auto swInterface = makeInterface(intf0);
-  saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
+      swInterface);
   auto routerInterfaceHandle =
       saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
           InterfaceID(2));
@@ -550,17 +557,20 @@ TEST_F(RouterInterfaceManagerTest, removePortRouterInterface) {
 
 TEST_F(RouterInterfaceManagerTest, removeNonexistentRouterInterface) {
   auto swInterface = makeInterface(intf1);
-  saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+  saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
+      swInterface);
   auto& routerInterfaceManager = saiManagerTable->routerInterfaceManager();
   auto swInterface2 = makeInterface(testInterfaces[2]);
   EXPECT_THROW(
-      routerInterfaceManager.removeRouterInterface(swInterface2), FbossError);
+      routerInterfaceManager.removeLocalRouterInterface(swInterface2),
+      FbossError);
 }
 
 TEST_F(RouterInterfaceManagerTest, adapterKeyAndTypeRouterInterface) {
   auto swInterface = makeInterface(intf1);
   auto saiId =
-      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+      saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
+          swInterface);
   checkAdapterKey(saiId, swInterface->getID());
   checkType(saiId, swInterface->getID(), cfg::InterfaceType::VLAN);
 }
@@ -569,7 +579,8 @@ TEST_F(RouterInterfaceManagerTest, adapterKeyAndTypePortRouterInterface) {
   auto swSysPort = makeSystemPort();
   auto swInterface = makeInterface(*swSysPort, {intf0.subnet});
   auto saiId =
-      saiManagerTable->routerInterfaceManager().addRouterInterface(swInterface);
+      saiManagerTable->routerInterfaceManager().addLocalRouterInterface(
+          swInterface);
   checkAdapterKey(saiId, swInterface->getID());
   checkType(saiId, swInterface->getID(), cfg::InterfaceType::SYSTEM_PORT);
 }
