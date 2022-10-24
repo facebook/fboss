@@ -39,8 +39,7 @@ std::optional<SaiPortTraits::Attributes::SystemPortId> getSystemPortId(
 void SaiPortManager::fillInSupportedStats(PortID port) {
   auto getSupportedStats = [this, port]() {
     std::vector<sai_stat_id_t> counterIds;
-    auto portType = port2PortType_.find(port)->second;
-    if (portType == cfg::PortType::FABRIC_PORT) {
+    if (getPortType(port) == cfg::PortType::FABRIC_PORT) {
       counterIds = std::vector<sai_stat_id_t>{
           SAI_PORT_STAT_IF_IN_OCTETS,
           SAI_PORT_STAT_IF_IN_ERRORS,
@@ -371,7 +370,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     }
   }
   std::optional<SaiPortTraits::Attributes::FecMode> fecMode;
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::FEC)) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::FEC) &&
+      swPort->getPortType() ==
+          cfg::PortType::INTERFACE_PORT /* CS00012267634 */) {
     auto enableFec = (speed >= cfg::PortSpeed::HUNDREDG) ||
         !platformPort->shouldDisableFEC();
     if (!enableFec) {
