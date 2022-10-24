@@ -291,13 +291,6 @@ void SaiQueueManager::updateStats(
     const std::vector<SaiQueueHandle*>& queueHandles,
     HwPortStats& hwPortStats,
     bool updateWatermarks) {
-  if (platform_->getAsic()->getAsicType() ==
-      HwAsic::AsicType::ASIC_TYPE_INDUS) {
-    // TODO(skhare) Remove this check once INDUS ASIC supports querying queue
-    // stats.
-    return;
-  }
-
   hwPortStats.outCongestionDiscardPkts_() = 0;
   static std::vector<sai_stat_id_t> nonWatermarkStatsReadAndClear(
       SaiQueueTraits::NonWatermarkCounterIdsToReadAndClear.begin(),
@@ -314,6 +307,22 @@ void SaiQueueManager::updateStats(
      */
     auto queueType = SaiApiTable::getInstance()->queueApi().getAttribute(
         queueHandle->queue->adapterKey(), SaiQueueTraits::Attributes::Type{});
+
+    if (queueType == SAI_QUEUE_TYPE_FABRIC_TX) {
+      /*
+       * FABRIC_TX queues don't support any queue stats queried by FBOSS.
+       * Some SAI implements support querying following:
+       *     SAI_QUEUE_STAT_WATERMARK_LEVEL
+       *     SAI_QUEUE_STAT_CURR_OCCUPANCY_BYTES,
+       *     SAI_QUEUE_STAT_CURR_OCCUPANCY_LEVEL.
+       * TODO(skhare) Add FBOSS support to query above.
+       *
+       * Note: We create only one FABRIC_TX queue per FABRIC_PORT. Thus, Port
+       * counters corresponds 1:1 to FABRIC_TX queue counters.
+       */
+      continue;
+    }
+
     queueHandle->queue->updateStats(
         supportedNonWatermarkCounterIdsRead(queueType), SAI_STATS_MODE_READ);
     queueHandle->queue->updateStats(
