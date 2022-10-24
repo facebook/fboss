@@ -141,6 +141,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
           kNeighborIp,
           8000, // l4 src port
           8001); // l4 dst port
+      size_t txPacketSize = txPacket->buf()->length();
 
       XLOG(DBG3) << "\n"
                  << folly::hexDump(
@@ -148,6 +149,9 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
 
       auto beforeOutPkts =
           getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+      auto beforeOutBytes =
+          getLatestPortStats(kPort.phyPortID()).get_outBytes_();
+
       auto beforeQueueOutPkts = getLatestPortStats(kPort.phyPortID())
                                     .get_queueOutPackets_()
                                     .at(kDefaultQueue);
@@ -162,16 +166,22 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
 
       auto afterOutPkts =
           getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+      auto afterOutBytes =
+          getLatestPortStats(kPort.phyPortID()).get_outBytes_();
       auto afterQueueOutPkts = getLatestPortStats(kPort.phyPortID())
                                    .get_queueOutPackets_()
                                    .at(kDefaultQueue);
 
       XLOG(DBG2) << "Stats:: beforeOutPkts: " << beforeOutPkts
+                 << " beforeOutBytes: " << beforeOutBytes
                  << " beforeQueueOutPkts: " << beforeQueueOutPkts
                  << " afterOutPkts: " << afterOutPkts
+                 << " afterOutBytes: " << afterOutBytes
                  << " afterQueueOutPkts: " << afterQueueOutPkts;
 
       EXPECT_EQ(afterOutPkts - 1, beforeOutPkts);
+      // TODO(skhare) Debug why we get 4 extra bytes
+      EXPECT_EQ(afterOutBytes - txPacketSize - 4, beforeOutBytes);
       EXPECT_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
     };
 
