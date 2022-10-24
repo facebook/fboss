@@ -11,6 +11,10 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
+namespace {
+constexpr uint8_t kDefaultQueue = 0;
+}
+
 namespace facebook::fboss {
 namespace {
 const SwitchID kRemoteSwitchId(2);
@@ -144,6 +148,9 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
 
       auto beforeOutPkts =
           getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+      auto beforeQueueOutPkts = getLatestPortStats(kPort.phyPortID())
+                                    .get_queueOutPackets_()
+                                    .at(kDefaultQueue);
 
       if (isFrontPanel) {
         const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
@@ -155,8 +162,17 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
 
       auto afterOutPkts =
           getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+      auto afterQueueOutPkts = getLatestPortStats(kPort.phyPortID())
+                                   .get_queueOutPackets_()
+                                   .at(kDefaultQueue);
+
+      XLOG(DBG2) << "Stats:: beforeOutPkts: " << beforeOutPkts
+                 << " beforeQueueOutPkts: " << beforeQueueOutPkts
+                 << " afterOutPkts: " << afterOutPkts
+                 << " afterQueueOutPkts: " << afterQueueOutPkts;
 
       EXPECT_EQ(afterOutPkts - 1, beforeOutPkts);
+      EXPECT_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
     };
 
     verifyAcrossWarmBoots(setup, verify);
