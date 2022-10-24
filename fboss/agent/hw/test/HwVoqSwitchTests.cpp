@@ -147,10 +147,13 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
                  << folly::hexDump(
                         txPacket->buf()->data(), txPacket->buf()->length());
 
-      auto beforeOutPkts =
-          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
-      auto beforeOutBytes =
-          getLatestPortStats(kPort.phyPortID()).get_outBytes_();
+      auto getPortOutPktsBytes = [kPort, this]() {
+        return std::make_pair(
+            getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_(),
+            getLatestPortStats(kPort.phyPortID()).get_outBytes_());
+      };
+
+      auto [beforeOutPkts, beforeOutBytes] = getPortOutPktsBytes();
 
       auto beforeQueueOutPkts = getLatestPortStats(kPort.phyPortID())
                                     .get_queueOutPackets_()
@@ -164,10 +167,8 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
       }
 
-      auto afterOutPkts =
-          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
-      auto afterOutBytes =
-          getLatestPortStats(kPort.phyPortID()).get_outBytes_();
+      auto [afterOutPkts, afterOutBytes] = getPortOutPktsBytes();
+
       auto afterQueueOutPkts = getLatestPortStats(kPort.phyPortID())
                                    .get_queueOutPackets_()
                                    .at(kDefaultQueue);
