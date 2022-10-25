@@ -8,6 +8,10 @@
 // Additional FB helper funtion
 #include "common/time/Time.h"
 
+namespace {
+auto constexpr kFanWriteSuccessPrefix = "fan_write";
+}
+
 namespace facebook::fboss::platform {
 ControlLogic::ControlLogic(
     std::shared_ptr<ServiceConfig> pC,
@@ -512,7 +516,7 @@ void ControlLogic::programFan(Zone* zone, float pwmSoFar) {
     auto srcType = *fan->pwm.accessType();
     float pwmToProgram = 0;
     float currentPwm = fan->fanStatus.currentPwm;
-    bool writeSuccess;
+    bool writeSuccess{false};
     // If this fan does not belong to the current zone, do not do anything
     if (std::find(zone->fanNames.begin(), zone->fanNames.end(), fan->fanName) ==
         zone->fanNames.end()) {
@@ -565,6 +569,10 @@ void ControlLogic::programFan(Zone* zone, float pwmSoFar) {
         facebook::fboss::FbossError(
             "Unsupported PWM access type for : ", fan->fanName);
     }
+    fb303::fbData->setCounter(
+        fmt::format(
+            "{}_{}_{}", kFanWriteSuccessPrefix, zone->zoneName, fan->fanName),
+        writeSuccess);
     fan->fanStatus.currentPwm = pwmToProgram;
   }
 }
