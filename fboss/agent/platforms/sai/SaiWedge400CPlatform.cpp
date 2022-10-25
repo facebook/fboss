@@ -11,9 +11,11 @@
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/platforms/common/ebb_lab/Wedge400CEbbLabPlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge400c/Wedge400CFabricPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CGrandTetonPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CPlatformUtil.h"
+#include "fboss/agent/platforms/common/wedge400c/Wedge400CVoqPlatformMapping.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 
 #include <algorithm>
@@ -31,6 +33,18 @@ SaiWedge400CPlatform::SaiWedge400CPlatform(
 SaiWedge400CPlatform::SaiWedge400CPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     std::unique_ptr<Wedge400CEbbLabPlatformMapping> mapping,
+    folly::MacAddress localMac)
+    : SaiTajoPlatform(std::move(productInfo), std::move(mapping), localMac) {}
+
+SaiWedge400CPlatform::SaiWedge400CPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<Wedge400CVoqPlatformMapping> mapping,
+    folly::MacAddress localMac)
+    : SaiTajoPlatform(std::move(productInfo), std::move(mapping), localMac) {}
+
+SaiWedge400CPlatform::SaiWedge400CPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<Wedge400CFabricPlatformMapping> mapping,
     folly::MacAddress localMac)
     : SaiTajoPlatform(std::move(productInfo), std::move(mapping), localMac) {}
 
@@ -89,5 +103,21 @@ SaiWedge400CPlatform::createWedge400CPlatformMapping() {
   }
   return std::make_unique<Wedge400CPlatformMapping>();
 }
+
+SaiWedge400CVoqPlatform::SaiWedge400CVoqPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac)
+    : SaiWedge400CPlatform(
+          std::move(productInfo),
+          std::make_unique<Wedge400CVoqPlatformMapping>(),
+          localMac) {}
+
+SaiWedge400CFabricPlatform::SaiWedge400CFabricPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac)
+    : SaiWedge400CPlatform(
+          std::move(productInfo),
+          std::make_unique<Wedge400CFabricPlatformMapping>(),
+          localMac) {}
 
 } // namespace facebook::fboss
