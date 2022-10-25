@@ -142,6 +142,10 @@ std::set<cfg::StreamType> EbroAsic::getQueueStreamTypes(
        * Unicast.
        */
       return {getDefaultStreamType()};
+    case cfg::PortType::RECYCLE_PORT:
+      // TODO: handle when we start modeling
+      // recycle port for Ebro ASIC
+      break;
     case cfg::PortType::FABRIC_PORT:
       // TODO: return FABRIC_TX when fabric port support
       // is available

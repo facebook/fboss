@@ -842,6 +842,7 @@ enum PortType {
   INTERFACE_PORT = 0,
   FABRIC_PORT = 1,
   CPU_PORT = 2,
+  RECYCLE_PORT = 3,
 }
 /**
  * Configuration for a single logical port
