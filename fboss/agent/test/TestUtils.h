@@ -187,6 +187,8 @@ std::shared_ptr<SwitchState> testStateAWithPortsUp();
  */
 std::shared_ptr<SwitchState> testStateAWithLookupClasses();
 
+std::shared_ptr<SwitchState> testStateAWithoutIpv4VlanIntf(VlanID vlanId);
+
 /*
  * Bring all ports up for a given input state
  */

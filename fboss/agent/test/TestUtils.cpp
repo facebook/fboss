@@ -209,6 +209,24 @@ shared_ptr<SwitchState> bringAllPortsDown(const shared_ptr<SwitchState>& in) {
   return setAllPortState(in, false);
 }
 
+shared_ptr<SwitchState> removeVlanIPv4Address(
+    const shared_ptr<SwitchState>& in,
+    VlanID vlanID) {
+  auto newState = in->clone();
+  for (const auto& intf : *newState->getInterfaces()) {
+    if (intf->getVlanID() == vlanID) {
+      Interface::Addresses newAddresses;
+      for (const auto& address : intf->getAddresses()) {
+        if (address.first.isV6()) {
+          newAddresses.emplace(address);
+        }
+      }
+      intf->setAddresses(newAddresses);
+    }
+  }
+  return newState;
+}
+
 shared_ptr<SwitchState> publishAndApplyConfig(
     const shared_ptr<SwitchState>& state,
     const cfg::SwitchConfig* config,
@@ -408,6 +426,10 @@ shared_ptr<SwitchState> testStateAWithLookupClasses() {
   }
 
   return newState;
+}
+
+shared_ptr<SwitchState> testStateAWithoutIpv4VlanIntf(VlanID vlanId) {
+  return removeVlanIPv4Address(testStateA(), vlanId);
 }
 
 shared_ptr<SwitchState> testStateB() {
