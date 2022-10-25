@@ -32,6 +32,8 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformMode::FAKE_WEDGE40:
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
+    case PlatformMode::WEDGE400C_VOQ:
+    case PlatformMode::WEDGE400C_FABRIC:
     case PlatformMode::WEDGE400:
     case PlatformMode::DARWIN:
     case PlatformMode::LASSEN:

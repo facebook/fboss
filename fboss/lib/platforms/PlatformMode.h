@@ -34,6 +34,8 @@ enum class PlatformMode : char {
   SANDIA,
   MAKALU,
   KAMET,
+  WEDGE400C_VOQ,
+  WEDGE400C_FABRIC,
 };
 
 inline std::string toString(PlatformMode mode) {
@@ -76,6 +78,10 @@ inline std::string toString(PlatformMode mode) {
       return "MAKALU";
     case PlatformMode::KAMET:
       return "KAMET";
+    case PlatformMode::WEDGE400C_VOQ:
+      return "WEDGE400C_VOQ";
+    case PlatformMode::WEDGE400C_FABRIC:
+      return "WEDGE400C_FABRIC";
   }
   throw std::runtime_error("Unknown mode");
   return "Unknown";

@@ -154,6 +154,8 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
       return std::make_unique<SaiRepl>(hw_->getSwitchId());
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
+    case PlatformMode::WEDGE400C_VOQ:
+    case PlatformMode::WEDGE400C_FABRIC:
     case PlatformMode::CLOUDRIPPER:
     case PlatformMode::LASSEN:
     case PlatformMode::SANDIA:
@@ -361,6 +363,8 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
       return UUID + "\n";
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
+    case PlatformMode::WEDGE400C_VOQ:
+    case PlatformMode::WEDGE400C_FABRIC:
     case PlatformMode::CLOUDRIPPER:
     case PlatformMode::LASSEN:
     case PlatformMode::SANDIA:
@@ -409,6 +413,8 @@ std::string& DiagCmdServer::cleanUpOutput(
       return output;
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
+    case PlatformMode::WEDGE400C_VOQ:
+    case PlatformMode::WEDGE400C_FABRIC:
     case PlatformMode::LASSEN:
     case PlatformMode::SANDIA:
       return output;

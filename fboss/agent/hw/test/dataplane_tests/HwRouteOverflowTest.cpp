@@ -71,6 +71,8 @@ TEST_F(HwOverflowTest, overflowRoutes) {
       break;
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
+    case PlatformMode::WEDGE400C_VOQ:
+    case PlatformMode::WEDGE400C_FABRIC:
     case PlatformMode::CLOUDRIPPER:
     case PlatformMode::LASSEN:
     case PlatformMode::SANDIA:
