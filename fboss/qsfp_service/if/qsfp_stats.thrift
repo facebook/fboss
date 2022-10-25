@@ -9,7 +9,7 @@ include "fboss/lib/phy/phy.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 
 struct QsfpStats {
-  1: map<string, phy.PhyStats> phyInfos;
+  1: map<string, phy.PhyStats> phyStats;
   2: map<i32, transceiver.TcvrStats> tcvrStats;
   3: map<string, hardware_stats.HwPortStats> portStats;
 }
