@@ -66,6 +66,12 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
     }
     return std::make_unique<SaiWedge400CPlatform>(
         std::move(productInfo), localMac);
+  } else if (productInfo->getMode() == PlatformMode::WEDGE400C_VOQ) {
+    return std::make_unique<SaiWedge400CVoqPlatform>(
+        std::move(productInfo), localMac);
+  } else if (productInfo->getMode() == PlatformMode::WEDGE400C_FABRIC) {
+    return std::make_unique<SaiWedge400CFabricPlatform>(
+        std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::CLOUDRIPPER) {
     return std::make_unique<SaiCloudRipperPlatform>(
         std::move(productInfo), localMac);
