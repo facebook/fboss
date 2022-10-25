@@ -63,6 +63,30 @@ void utilCreateDir(folly::StringPiece path) {
   }
 }
 
+IPAddressV4 getAnyIntfIP(const std::shared_ptr<SwitchState>& state) {
+  IPAddressV4 intfIp;
+  for (const auto& intf : *state->getInterfaces()) {
+    for (const auto& address : intf->getAddresses()) {
+      if (address.first.isV4()) {
+        return address.first.asV4();
+      }
+    }
+  }
+  throw FbossError("Cannot find IPv4 address on any interface");
+}
+
+IPAddressV6 getAnyIntfIPv6(const std::shared_ptr<SwitchState>& state) {
+  IPAddressV6 intfIp;
+  for (const auto& intf : *state->getInterfaces()) {
+    for (const auto& address : intf->getAddresses()) {
+      if (address.first.isV6()) {
+        return address.first.asV6();
+      }
+    }
+  }
+  throw FbossError("Cannot find IPv6 address on any interface");
+}
+
 IPAddressV4 getSwitchVlanIP(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlan) {

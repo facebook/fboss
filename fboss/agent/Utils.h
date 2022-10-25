@@ -63,6 +63,11 @@ folly::IPAddressV4 getSwitchVlanIP(
     VlanID vlan);
 
 /**
+ * Helper function to get an IPv4 address of any(first) interface.
+ */
+folly::IPAddressV4 getAnyIntfIP(const std::shared_ptr<SwitchState>& state);
+
+/**
  * Helper function to get an IPv6 address for a particular vlan
  * used to set src IP address for DHCPv6 and ICMPv6 packets
  * throw an FbossError in case no IPv6 address exists.
@@ -70,6 +75,12 @@ folly::IPAddressV4 getSwitchVlanIP(
 folly::IPAddressV6 getSwitchVlanIPv6(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlan);
+
+/**
+ * Helper function to get an IPvv6 address of any(first) interface.
+ */
+folly::IPAddressV6 getAnyIntfIPv6(const std::shared_ptr<SwitchState>& state);
+
 /*
  * Increases the nice value of the calling thread by increment. Note that this
  * code relies on the fact that Linux is not POSIX compliant. Otherwise, there

@@ -577,7 +577,13 @@ void IPv6Handler::sendICMPv6TimeExceeded(
     sendCursor->push(cursor, remainingLength);
   };
 
-  IPAddressV6 srcIp = getSwitchVlanIPv6(state, srcVlan);
+  IPAddressV6 srcIp;
+  try {
+    srcIp = getSwitchVlanIPv6(state, srcVlan);
+  } catch (const std::exception& ex) {
+    srcIp = getAnyIntfIPv6(state);
+  }
+
   auto icmpPkt = createICMPv6Pkt(
       sw_,
       dst,

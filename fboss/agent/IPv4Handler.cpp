@@ -99,7 +99,12 @@ void IPv4Handler::sendICMPTimeExceeded(
     sendCursor->push(cursor.data(), ICMPHdr::ICMPV4_SENDER_BYTES);
   };
 
-  IPAddressV4 srcIp = getSwitchVlanIP(state, srcVlan);
+  IPAddressV4 srcIp;
+  try {
+    srcIp = getSwitchVlanIP(state, srcVlan);
+  } catch (const std::exception& ex) {
+    srcIp = getAnyIntfIP(state);
+  }
   auto icmpPkt = createICMPv4Pkt(
       sw_,
       dst,
