@@ -2757,7 +2757,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 1
         },
         "supportedProfiles": {
           "18": {
@@ -3417,7 +3417,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 1
         },
         "supportedProfiles": {
           "18": {
@@ -18441,7 +18441,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 1
         },
         "supportedProfiles": {
           "11": {
@@ -18981,7 +18981,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 1
         },
         "supportedProfiles": {
           "11": {
@@ -19107,7 +19107,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 1
         },
         "supportedProfiles": {
           "11": {
@@ -19296,7 +19296,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 1
         },
         "supportedProfiles": {
           "11": {
@@ -19422,7 +19422,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 1
         },
         "supportedProfiles": {
           "11": {
@@ -19962,7 +19962,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 1
         },
         "supportedProfiles": {
           "11": {
@@ -20088,7 +20088,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 1
         },
         "supportedProfiles": {
           "11": {
@@ -20277,7 +20277,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
             }
           ],
-          "portType": 0
+          "portType": 1
         },
         "supportedProfiles": {
           "11": {
