@@ -900,8 +900,21 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   auto platformPort = platform_->getPort(portID);
   auto port = std::make_shared<Port>(portID, folly::to<std::string>(portID));
 
-  if (portType == SAI_PORT_TYPE_FABRIC) {
-    port->setPortType(cfg::PortType::FABRIC_PORT);
+  switch (portType.value()) {
+    case SAI_PORT_TYPE_LOGICAL:
+      port->setPortType(cfg::PortType::INTERFACE_PORT);
+      break;
+    case SAI_PORT_TYPE_FABRIC:
+      port->setPortType(cfg::PortType::FABRIC_PORT);
+      break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    case SAI_PORT_TYPE_RECYCLE:
+      port->setPortType(cfg::PortType::RECYCLE_PORT);
+      break;
+#endif
+    case SAI_PORT_TYPE_CPU:
+      XLOG(FATAL) << " Unexpected port type, CPU";
+      break;
   }
   // speed, hw lane list, fec mode
   port->setProfileId(platformPort->getProfileIDBySpeed(speed));
