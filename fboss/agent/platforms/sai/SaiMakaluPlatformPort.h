@@ -23,8 +23,12 @@ class SaiMakaluPlatformPort : public SaiBcmPlatformPort {
 
   uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const override {
-    // Lanes on Makalu platform are 0 indexed
-    return SaiBcmPlatformPort::getPhysicalLaneId(chipId, logicalLane) - 1;
+    if (getPortType() != cfg::PortType::RECYCLE_PORT) {
+      // Lanes on Makalu platform are 0 indexed
+      return SaiBcmPlatformPort::getPhysicalLaneId(chipId, logicalLane) - 1;
+    }
+    // Recycle port lanes are 1 indexed
+    return SaiBcmPlatformPort::getPhysicalLaneId(chipId, logicalLane);
   }
   void portChanged(
       std::shared_ptr<Port> /*newPort*/,
