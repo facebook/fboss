@@ -843,8 +843,11 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
   }
   CHECK(switchIdOpt.has_value());
   auto switchId = *switchIdOpt;
+  std::set<cfg::PortType> kCreateSysPortsFor = {
+      cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
   for (const auto& port : *ports) {
-    if (port->getPortType() != cfg::PortType::INTERFACE_PORT) {
+    if (kCreateSysPortsFor.find(port->getPortType()) ==
+        kCreateSysPortsFor.end()) {
       continue;
     }
     auto sysPort = std::make_shared<SystemPort>(
