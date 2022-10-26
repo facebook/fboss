@@ -94,6 +94,9 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
   auto cfg = initCfg;
   boost::container::flat_map<int, cfg::PortState> portId2DesiredState;
   for (auto& port : *cfg.ports()) {
+    if (port.portType() == cfg::PortType::RECYCLE_PORT) {
+      continue;
+    }
     portId2DesiredState[*port.logicalID()] = *port.state();
     // Keep ports down by disabling them and setting loopback mode to NONE
     *port.state() = cfg::PortState::DISABLED;
@@ -108,6 +111,10 @@ HwLinkStateToggler::applyInitialConfigWithPortsDown(
   // application). iii) Start tests.
   hwEnsemble_->applyNewConfig(cfg);
   for (auto& port : *cfg.ports()) {
+    if (portId2DesiredState.find(*port.logicalID()) ==
+        portId2DesiredState.end()) {
+      continue;
+    }
     // Set all port preemphasis values to 0 so that we can bring ports up and
     // down by setting their loopback mode to PHY and NONE respectively.
     // TODO: use sw port's pinConfigs to set this
