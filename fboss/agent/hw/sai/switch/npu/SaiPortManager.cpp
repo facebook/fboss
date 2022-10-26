@@ -497,7 +497,8 @@ void SaiPortManager::programSerdes(
     std::shared_ptr<SaiPort> saiPort,
     std::shared_ptr<Port> swPort,
     SaiPortHandle* portHandle) {
-  if (!platform_->isSerdesApiSupported()) {
+  if (!platform_->isSerdesApiSupported() ||
+      swPort->getPortType() == cfg::PortType::RECYCLE_PORT) {
     return;
   }
 
