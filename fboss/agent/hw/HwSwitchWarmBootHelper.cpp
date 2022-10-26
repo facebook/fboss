@@ -40,7 +40,7 @@ DEFINE_bool(
     "Whether to read thrift state during warmboot init");
 DEFINE_bool(
     check_thrift_state,
-    true,
+    false,
     "Whether to check switch state recovered from thrift binary is the same as folly.");
 
 namespace {
