@@ -168,6 +168,12 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::MAKALU;
     } else if (FLAGS_mode == "kamet") {
       mode_ = PlatformMode::KAMET;
+    } else if (FLAGS_mode == "wedge400c") {
+      mode_ = PlatformMode::WEDGE400C;
+    } else if (FLAGS_mode == "wedge400c_voq") {
+      mode_ = PlatformMode::WEDGE400C_VOQ;
+    } else if (FLAGS_mode == "wedge400c_fabric") {
+      mode_ = PlatformMode::WEDGE400C_FABRIC;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }
