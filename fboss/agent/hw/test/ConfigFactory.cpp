@@ -231,9 +231,9 @@ cfg::SwitchConfig genPortVlanCfg(
     myNode.switchId() = *config.switchSettings()->switchId();
     myNode.name() = "hwTestSwitch";
     myNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-    myNode.systemPortRange()->minimum() = 100 + *myNode.switchId() * 100;
+    myNode.systemPortRange()->minimum() = 100 + *myNode.switchId() * 300;
     myNode.systemPortRange()->maximum() =
-        *myNode.systemPortRange()->minimum() + 100;
+        *myNode.systemPortRange()->minimum() + 300;
     config.dsfNodes()->insert({*myNode.switchId(), myNode});
   }
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
@@ -498,8 +498,10 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       cfg::SwitchType::VOQ) {
     CHECK_EQ(portsPerIntf, 1) << " For VOQ switches sys port to interface "
                                  "mapping must by 1:1";
+    const std::set<cfg::PortType> kCreateIntfsFor = {
+        cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
     for (const auto& port : *config.ports()) {
-      if (*port.portType() != cfg::PortType::INTERFACE_PORT) {
+      if (kCreateIntfsFor.find(*port.portType()) == kCreateIntfsFor.end()) {
         continue;
       }
       // Make thrift linter happy. switchId must not be null
