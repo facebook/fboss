@@ -19,7 +19,7 @@ namespace fboss {
 QsfpFsdbSyncManager::QsfpFsdbSyncManager() {
   if (FLAGS_publish_state_to_fsdb) {
     stateSyncer_ =
-        std::make_unique<fsdb::FsdbSyncManager2<state::QsfpServiceData>>(
+        std::make_unique<fsdb::FsdbSyncManager<state::QsfpServiceData>>(
             "qsfp_service", getStatePath(), false, true);
   }
 }

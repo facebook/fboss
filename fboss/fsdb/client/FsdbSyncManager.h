@@ -17,13 +17,13 @@
 namespace facebook::fboss::fsdb {
 
 template <typename PubRootT>
-class FsdbSyncManager2 {
+class FsdbSyncManager {
  public:
   using CowStorageManager = CowStorageMgr<PubRootT>;
   using CowState = typename CowStorageManager::CowState;
   using PubRoot = PubRootT;
 
-  FsdbSyncManager2(
+  FsdbSyncManager(
       const std::string& clientId,
       const std::vector<std::string>& basePath,
       bool isStats,
@@ -36,7 +36,7 @@ class FsdbSyncManager2 {
           processDelta(oldState, newState);
         }) {}
 
-  ~FsdbSyncManager2() {
+  ~FsdbSyncManager() {
     CHECK(!pubSubMgr_) << "Syncer not stopped";
     CHECK(!readyForPublishing_);
   }

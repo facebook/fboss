@@ -31,7 +31,7 @@ class QsfpFsdbSyncManager {
   void updateConfig(cfg::QsfpServiceConfig newConfig);
 
  private:
-  std::unique_ptr<fsdb::FsdbSyncManager2<state::QsfpServiceData>> stateSyncer_;
+  std::unique_ptr<fsdb::FsdbSyncManager<state::QsfpServiceData>> stateSyncer_;
 };
 
 } // namespace fboss
