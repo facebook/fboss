@@ -214,6 +214,11 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
 
     verifyAcrossWarmBoots(setup, verify);
   }
+
+ private:
+  HwSwitchEnsemble::Features featuresDesired() const override {
+    return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
+  }
 };
 
 TEST_F(HwVoqSwitchTest, init) {
