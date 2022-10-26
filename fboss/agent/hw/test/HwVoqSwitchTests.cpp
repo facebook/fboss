@@ -22,11 +22,13 @@ const SwitchID kRemoteSwitchId(2);
 class HwVoqSwitchTest : public HwLinkStateDependentTest {
  public:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerInterfaceConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode(),
         true /*interfaceHasSubnet*/);
+    addCpuTrafficPolicy(cfg);
+    return cfg;
   }
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
@@ -35,6 +37,21 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
   }
 
  protected:
+  void addCpuTrafficPolicy(cfg::SwitchConfig& cfg) const {
+    cfg::CPUTrafficPolicyConfig cpuConfig;
+    std::vector<cfg::PacketRxReasonToQueue> rxReasonToQueues;
+    std::vector<std::pair<cfg::PacketRxReason, uint16_t>>
+        rxReasonToQueueMappings = {
+            std::pair(cfg::PacketRxReason::CPU_IS_NHOP, kDefaultQueue)};
+    for (auto rxEntry : rxReasonToQueueMappings) {
+      auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
+      rxReasonToQueue.rxReason() = rxEntry.first;
+      rxReasonToQueue.queueId() = rxEntry.second;
+      rxReasonToQueues.push_back(rxReasonToQueue);
+    }
+    cpuConfig.rxReasonToQueueOrderedList() = rxReasonToQueues;
+    cfg.cpuTrafficPolicy() = cpuConfig;
+  }
   void addRemoteSysPort(SystemPortID portId) {
     auto newState = getProgrammedState()->clone();
     auto localPort = *newState->getSystemPorts()->begin();
