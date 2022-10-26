@@ -2128,6 +2128,41 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
+    "221": {
+        "mapping": {
+          "id": 221,
+          "name": "rcy1/1/1",
+          "controllingPort": 221,
+          "pins": [
+            {
+              "a": {
+                "chip": "rcy1",
+                "lane": 0
+              }
+            }
+          ],
+          "portType": 3,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 221
+        },
+        "supportedProfiles": {
+          "11": {
+              "subsumedPorts": [
+
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "rcy1",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "256": {
         "mapping": {
           "id": 256,
@@ -9459,6 +9494,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "name": "eth1/18",
       "type": 3,
       "physicalID": 17
+    },
+    {
+      "name": "rcy1",
+      "type": 1,
+      "physicalID": 55
     }
   ],
   "platformSettings": {
@@ -9510,6 +9550,22 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "medium": 2,
           "interfaceMode": 3,
           "interfaceType": 3
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 11
+      },
+      "profile": {
+        "speed": 10000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceMode": 10,
+          "interfaceType": 10
         }
       }
     }
