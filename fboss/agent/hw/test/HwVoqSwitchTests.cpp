@@ -4,6 +4,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/state/Interface.h"
@@ -326,6 +327,55 @@ TEST_F(HwVoqSwitchTest, sendPacketCpu) {
 
 TEST_F(HwVoqSwitchTest, sendPacketFrontPanel) {
   sendPacketHelper(true /* front panel */);
+}
+
+TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+
+  auto verify = [this, ecmpHelper, kPort]() {
+    // TODO(skhare)
+    // Send to only one IPv6 address for ease of debugging.
+    // Once SAI implementation bugs are fixed, send to ALL interface addresses.
+    auto ipAddrs = *(this->initialConfig().interfaces()[0].ipAddresses());
+    auto ipv6Addr =
+        std::find_if(ipAddrs.begin(), ipAddrs.end(), [](const auto& ipAddr) {
+          auto ip = folly::IPAddress::createNetwork(ipAddr, -1, false).first;
+          return ip.isV6();
+        });
+
+    auto dstIp = folly::IPAddress::createNetwork(*ipv6Addr, -1, false).first;
+    folly::IPAddressV6 kSrcIp("1::1");
+    const auto srcMac = folly::MacAddress("00:00:01:02:03:04");
+    const auto dstMac = utility::kLocalCpuMac();
+
+    auto [beforeOutPkts, beforeOutBytes] =
+        utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), kDefaultQueue);
+
+    auto txPacket = utility::makeUDPTxPacket(
+        getHwSwitch(),
+        std::nullopt, // vlanID
+        srcMac,
+        dstMac,
+        kSrcIp,
+        dstIp,
+        8000, // l4 src port
+        8001); // l4 dst port
+    XLOG(DBG3) << "\n"
+               << folly::hexDump(
+                      txPacket->buf()->data(), txPacket->buf()->length());
+
+    const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
+    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(txPacket), port);
+
+    auto [afterOutPkts, afterOutBytes] =
+        utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), kDefaultQueue);
+
+    // CS00012267860
+    EXPECT_EQ(afterOutPkts - 1, beforeOutPkts);
+  };
+
+  verifyAcrossWarmBoots([] {}, verify);
 }
 
 } // namespace facebook::fboss
