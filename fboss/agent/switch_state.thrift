@@ -526,6 +526,7 @@ struct SwitchState {
   30: map<i32, InterfaceFields> interfaceMap;
   31: optional QcmCfgFields qcmCfg;
   32: optional QosPolicyFields defaultDataPlaneQosPolicy;
+  33: map<i64, switch_config.DsfNode> dsfNodes;
   // Remote objects
   500: map<i64, SystemPortFields> remoteSystemPortMap;
   501: map<i32, InterfaceFields> remoteInterfaceMap;
