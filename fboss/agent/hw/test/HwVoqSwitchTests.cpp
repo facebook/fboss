@@ -37,7 +37,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     ASSERT_TRUE(getHwSwitch()->getSwitchId().has_value());
   }
 
- protected:
+ private:
   void addCpuTrafficPolicy(cfg::SwitchConfig& cfg) const {
     cfg::CPUTrafficPolicyConfig cpuConfig;
     std::vector<cfg::PacketRxReasonToQueue> rxReasonToQueues;
@@ -53,6 +53,8 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     cpuConfig.rxReasonToQueueOrderedList() = rxReasonToQueues;
     cfg.cpuTrafficPolicy() = cpuConfig;
   }
+
+ protected:
   void addRemoteSysPort(SystemPortID portId) {
     auto newState = getProgrammedState()->clone();
     auto localPort = *newState->getSystemPorts()->begin();
@@ -378,4 +380,14 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
   verifyAcrossWarmBoots([] {}, verify);
 }
 
+TEST_F(HwVoqSwitchTest, multipleDsfNodes) {
+  auto setup = [this]() {
+    auto cfg = initialConfig();
+    SwitchID otherSwitchId{4};
+    cfg.dsfNodes()->insert(
+        {otherSwitchId, utility::dsfNodeConfig(otherSwitchId)});
+    applyNewConfig(cfg);
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
 } // namespace facebook::fboss
