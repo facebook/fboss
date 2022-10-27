@@ -115,8 +115,9 @@ NodeMapDelta<SflowCollectorMap> StateDelta::getSflowCollectorsDelta() const {
       old_->getSflowCollectors().get(), new_->getSflowCollectors().get());
 }
 
-NodeMapDelta<LoadBalancerMap> StateDelta::getLoadBalancersDelta() const {
-  return NodeMapDelta<LoadBalancerMap>(
+thrift_cow::ThriftMapDelta<LoadBalancerMap> StateDelta::getLoadBalancersDelta()
+    const {
+  return thrift_cow::ThriftMapDelta<LoadBalancerMap>(
       old_->getLoadBalancers().get(), new_->getLoadBalancers().get());
 }
 
@@ -218,7 +219,7 @@ template class NodeMapDelta<AclTableMap>;
 template class NodeMapDelta<QosPolicyMap>;
 template class NodeMapDelta<AggregatePortMap>;
 template class NodeMapDelta<SflowCollectorMap>;
-template class NodeMapDelta<LoadBalancerMap>;
+template class thrift_cow::ThriftMapDelta<LoadBalancerMap>;
 template class thrift_cow::ThriftMapDelta<MirrorMap>;
 template class NodeMapDelta<TransceiverMap>;
 template class NodeMapDelta<

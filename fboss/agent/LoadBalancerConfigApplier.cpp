@@ -77,7 +77,7 @@ LoadBalancerConfigApplier::LoadBalancerConfigApplier(
 LoadBalancerConfigApplier::~LoadBalancerConfigApplier() {}
 
 void LoadBalancerConfigApplier::appendToLoadBalancerContainer(
-    LoadBalancerMap::NodeContainer* loadBalancerContainer,
+    LoadBalancerMap::StorageType* loadBalancerContainer,
     std::shared_ptr<LoadBalancer> loadBalancer) const {
   bool inserted = false;
   auto loadBalancerID = loadBalancer->getID();
@@ -88,7 +88,7 @@ void LoadBalancerConfigApplier::appendToLoadBalancerContainer(
 
 std::shared_ptr<LoadBalancerMap>
 LoadBalancerConfigApplier::updateLoadBalancers() {
-  LoadBalancerMap::NodeContainer newLoadBalancers;
+  LoadBalancerMap::StorageType newLoadBalancers{};
   bool changed = false;
 
   // This contains the set of LoadBalancerIDs for which loadBalancersConfig has

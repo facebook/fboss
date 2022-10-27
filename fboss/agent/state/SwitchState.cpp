@@ -216,7 +216,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
   if (auto qcmConfig = state.qcmCfg()) {
     fields.qcmCfg = QcmCfg::fromThrift(*qcmConfig);
   }
-  fields.loadBalancers = LoadBalancerMap::fromThrift(*state.loadBalancerMap());
+  fields.loadBalancers->fromThrift(*state.loadBalancerMap());
   fields.switchSettings = SwitchSettings::fromThrift(*state.switchSettings());
   fields.remoteSystemPorts =
       SystemPortMap::fromThrift(*state.remoteSystemPortMap());

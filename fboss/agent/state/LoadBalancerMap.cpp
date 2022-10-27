@@ -15,10 +15,6 @@
 
 namespace facebook::fboss {
 
-LoadBalancerMap::LoadBalancerMap() {}
-
-LoadBalancerMap::~LoadBalancerMap() {}
-
 std::shared_ptr<LoadBalancer> LoadBalancerMap::getLoadBalancerIf(
     LoadBalancerID id) const {
   return getNodeIf(id);
@@ -33,28 +29,6 @@ void LoadBalancerMap::updateLoadBalancer(
   updateNode(loadBalancer);
 }
 
-std::shared_ptr<LoadBalancerMap> LoadBalancerMap::fromFollyDynamicLegacy(
-    const folly::dynamic& serializedLoadBalancers) {
-  if (serializedLoadBalancers.isObject()) {
-    return NodeMapT<LoadBalancerMap, LoadBalancerMapTraits>::fromFollyDynamic(
-        serializedLoadBalancers);
-  }
-  // old way to save load balancer map was to save it as an array instead of map
-  // until the new way of saving it as a map is in prod. support both ways.
-  auto deserializedLoadBalancers = std::make_shared<LoadBalancerMap>();
-
-  const auto& entries = serializedLoadBalancers.isObject()
-      ? serializedLoadBalancers[kEntries]
-      : serializedLoadBalancers;
-  for (const auto& serializedLoadBalancer : entries) {
-    auto deserializedLoadBalancer =
-        LoadBalancer::fromFollyDynamicLegacy(serializedLoadBalancer);
-    deserializedLoadBalancers->addLoadBalancer(deserializedLoadBalancer);
-  }
-
-  return deserializedLoadBalancers;
-}
-
-FBOSS_INSTANTIATE_NODE_MAP(LoadBalancerMap, LoadBalancerMapTraits);
+template class ThriftMapNode2<LoadBalancerMap, ThriftLoadBalancerMapTraits>;
 
 } // namespace facebook::fboss

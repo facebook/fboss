@@ -70,7 +70,7 @@ class LoadBalancerConfigApplier {
       delete;
 
   void appendToLoadBalancerContainer(
-      LoadBalancerMap::NodeContainer* loadBalancerContainer,
+      LoadBalancerMap::StorageType* loadBalancerContainer,
       std::shared_ptr<LoadBalancer> loadBalancer) const;
 
   const std::shared_ptr<LoadBalancerMap>& originalLoadBalancers_;

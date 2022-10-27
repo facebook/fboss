@@ -73,6 +73,13 @@ struct ThriftMapFields {
     fromThrift(std::forward<T>(thrift));
   }
 
+  /* implicit */ ThriftMapFields(StorageType storage)
+      : storage_(std::move(storage)) {}
+
+  // TODO(pshaikh): fix this redunant constructor
+  ThriftMapFields(const ThriftMapFields&, StorageType storage)
+      : storage_(std::move(storage)) {}
+
   TType toThrift() const {
     TType thrift;
 

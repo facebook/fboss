@@ -25,7 +25,9 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <exception>
 #include <set>
+#include <type_traits>
 #include <unordered_set>
 
 using namespace facebook::fboss;
