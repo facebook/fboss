@@ -125,8 +125,8 @@ DeltaValue<ControlPlane> StateDelta::getControlPlaneDelta() const {
       old_->getControlPlane(), new_->getControlPlane());
 }
 
-NodeMapDelta<MirrorMap> StateDelta::getMirrorsDelta() const {
-  return NodeMapDelta<MirrorMap>(
+thrift_cow::ThriftMapDelta<MirrorMap> StateDelta::getMirrorsDelta() const {
+  return thrift_cow::ThriftMapDelta<MirrorMap>(
       old_->getMirrors().get(), new_->getMirrors().get());
 }
 
@@ -219,7 +219,7 @@ template class NodeMapDelta<QosPolicyMap>;
 template class NodeMapDelta<AggregatePortMap>;
 template class NodeMapDelta<SflowCollectorMap>;
 template class NodeMapDelta<LoadBalancerMap>;
-template class NodeMapDelta<MirrorMap>;
+template class thrift_cow::ThriftMapDelta<MirrorMap>;
 template class NodeMapDelta<TransceiverMap>;
 template class NodeMapDelta<
     ForwardingInformationBaseMap,

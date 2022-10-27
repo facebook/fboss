@@ -1837,7 +1837,8 @@ bool BcmSwitch::isValidStateUpdate(const StateDelta& delta) const {
       });
 
   int sflowMirrorCount = 0;
-  for (const auto& mirror : *(newState->getMirrors())) {
+  for (auto iter : std::as_const(*(newState->getMirrors()))) {
+    auto mirror = iter.second;
     if (mirror->type() == Mirror::Type::SFLOW) {
       sflowMirrorCount++;
     }

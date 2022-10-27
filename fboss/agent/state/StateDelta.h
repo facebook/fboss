@@ -39,6 +39,8 @@
 #include "fboss/agent/state/TransceiverMap.h"
 #include "fboss/agent/state/VlanMapDelta.h"
 
+#include "fboss/thrift_cow/nodes/Types.h"
+
 namespace facebook::fboss {
 
 class SwitchState;
@@ -81,7 +83,9 @@ class StateDelta {
   NodeMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;
   NodeMapDelta<LoadBalancerMap> getLoadBalancersDelta() const;
   DeltaValue<ControlPlane> getControlPlaneDelta() const;
-  NodeMapDelta<MirrorMap> getMirrorsDelta() const;
+
+  thrift_cow::ThriftMapDelta<MirrorMap> getMirrorsDelta() const;
+
   NodeMapDelta<TransceiverMap> getTransceiversDelta() const;
   ForwardingInformationBaseMapDelta getFibsDelta() const;
   NodeMapDelta<LabelForwardingInformationBase>

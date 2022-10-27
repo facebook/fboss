@@ -12,6 +12,14 @@
 
 namespace facebook::fboss {
 
+using MirrorMapTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::string,
+    apache::thrift::type_class::structure>;
+using MirrorMapThriftType = std::map<std::string, state::MirrorFields>;
+
+using ThriftMirrorMapNodeTraits =
+    thrift_cow::ThriftMapTraits<MirrorMapTypeClass, MirrorMapThriftType>;
+
 using MirrorMapTraits = NodeMapTraits<std::string, Mirror>;
 
 struct MirrorMapThriftTraits
@@ -26,11 +34,13 @@ struct MirrorMapThriftTraits
   }
 };
 
-class MirrorMap : public NodeMapT<MirrorMap, MirrorMapTraits> {
+ADD_THRIFT_MAP_RESOLVER_MAPPING(ThriftMirrorMapNodeTraits, MirrorMap);
+
+class MirrorMap : public thrift_cow::ThriftMapNode<ThriftMirrorMapNodeTraits> {
  public:
-  using BaseT = NodeMapT<MirrorMap, MirrorMapTraits>;
-  MirrorMap();
-  ~MirrorMap();
+  using BaseT = thrift_cow::ThriftMapNode<ThriftMirrorMapNodeTraits>;
+  MirrorMap() {}
+  virtual ~MirrorMap() {}
 
   MirrorMap* modify(std::shared_ptr<SwitchState>* state);
   std::shared_ptr<Mirror> getMirrorIf(const std::string& name) const;
@@ -45,15 +55,7 @@ class MirrorMap : public NodeMapT<MirrorMap, MirrorMapTraits> {
       node->fromThrift(mirror.second);
       // TODO(pshaikh): make this private
       node->markResolved();
-      map->addNode(node);
-    }
-    return map;
-  }
-
-  std::map<std::string, state::MirrorFields> toThrift() const {
-    std::map<std::string, state::MirrorFields> map{};
-    for (auto entry : getAllNodes()) {
-      map.emplace(entry.first, entry.second->toThrift());
+      map->insert(*mirror.second.name(), std::move(node));
     }
     return map;
   }
@@ -65,7 +67,7 @@ class MirrorMap : public NodeMapT<MirrorMap, MirrorMapTraits> {
     auto iter = begin();
 
     while (iter != end()) {
-      auto mirror = *iter;
+      auto mirror = iter->second;
       auto other = that.getMirrorIf(mirror->getID());
       if (!other || *mirror != *other) {
         return false;
@@ -75,13 +77,60 @@ class MirrorMap : public NodeMapT<MirrorMap, MirrorMapTraits> {
     return true;
   }
 
+  /*
+   * TODO: retire to and from dynamic methods once migrated to thrift cow.
+   */
   static std::shared_ptr<MirrorMap> fromFollyDynamicLegacy(
+      const folly::dynamic& dyn);
+
+  static std::shared_ptr<MirrorMap> fromFollyDynamic(
       const folly::dynamic& dyn) {
-    return BaseT::fromFollyDynamic(dyn);
+    return fromFollyDynamicLegacy(dyn);
   }
 
   folly::dynamic toFollyDynamicLegacy() const {
     return this->toFollyDynamic();
+  }
+
+  folly::dynamic toFollyDynamic() const override;
+
+  void addNode(const std::shared_ptr<Mirror>& node) {
+    auto key = node->getID();
+    auto value = node;
+    auto ret = insert(key, std::move(value));
+    if (!ret.second) {
+      throw FbossError("mirror ", key, " already exists");
+    }
+  }
+  void updateNode(const std::shared_ptr<Mirror>& node) {
+    removeNode(node);
+    addNode(node);
+  }
+  void removeNode(const std::shared_ptr<Mirror>& node) {
+    removeNode(node->getID());
+  }
+  std::shared_ptr<Mirror> removeNode(const std::string& key) {
+    if (auto node = removeNodeIf(key)) {
+      return node;
+    }
+    throw FbossError("mirror ", key, " does not exist");
+  }
+  std::shared_ptr<Mirror> removeNodeIf(const std::string& key) {
+    auto iter = find(key);
+    if (iter == end()) {
+      return nullptr;
+    }
+    auto mirror = iter->second;
+    erase(iter);
+    return mirror;
+  }
+
+  std::shared_ptr<Mirror> getNode(const std::string& key) {
+    auto mirror = getMirrorIf(key);
+    if (!mirror) {
+      throw FbossError("mirror ", key, " does not exist");
+    }
+    return mirror;
   }
 
  private:

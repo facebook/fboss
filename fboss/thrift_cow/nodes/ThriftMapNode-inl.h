@@ -312,7 +312,7 @@ class ThriftMapNode
   }
 
   const value_type& ref(key_type key) const {
-    return this->writableFields()->ref(key);
+    return this->getFields()->ref(key);
   }
 
   const value_type& cref(key_type key) const {

@@ -43,7 +43,8 @@ std::shared_ptr<SwitchState> MirrorManager::resolveMirrors(
   auto mirrors = state->getMirrors()->clone();
   bool mirrorsUpdated = false;
 
-  for (const auto& mirror : *state->getMirrors()) {
+  for (auto iter : std::as_const(*state->getMirrors())) {
+    auto mirror = iter.second;
     if (!mirror->getDestinationIp()) {
       /* SPAN mirror does not require resolving */
       continue;

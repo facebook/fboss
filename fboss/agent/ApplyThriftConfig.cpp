@@ -178,6 +178,20 @@ class ThriftConfigApplier {
     }
   }
 
+  template <typename Node, typename NodeMap>
+  bool updateThriftMapNode(
+      NodeMap* map,
+      std::shared_ptr<Node> origNode,
+      std::shared_ptr<Node> newNode) {
+    auto node = (newNode != nullptr) ? newNode : origNode;
+    auto key = node->getID();
+    auto ret = map->insert(key, std::move(node));
+    if (!ret.second) {
+      throw FbossError("duplicate entry ", key);
+    }
+    return newNode != nullptr;
+  }
+
   // Interface route prefix. IPAddress has mask applied
   typedef std::pair<InterfaceID, folly::IPAddress> IntfAddress;
   typedef boost::container::flat_map<folly::CIDRNetwork, IntfAddress> IntfRoute;
@@ -3200,7 +3214,8 @@ Interface::Addresses ThriftConfigApplier::getInterfaceAddresses(
 
 std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
   const auto& origMirrors = orig_->getMirrors();
-  MirrorMap::NodeContainer newMirrors;
+  auto newMirrors = std::make_shared<MirrorMap>();
+
   bool changed = false;
 
   size_t numExistingProcessed = 0;
@@ -3222,7 +3237,7 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
     if (sflowMirrorCount > 1) {
       throw FbossError("More than one sflow mirrors configured");
     }
-    changed |= updateMap(&newMirrors, origMirror, newMirror);
+    changed |= updateThriftMapNode(newMirrors.get(), origMirror, newMirror);
   }
 
   if (numExistingProcessed != origMirrors->size()) {
@@ -3235,8 +3250,8 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
     auto portInMirror = port->getIngressMirror();
     auto portEgMirror = port->getEgressMirror();
     if (portInMirror.has_value()) {
-      auto inMirrorMapEntry = newMirrors.find(portInMirror.value());
-      if (inMirrorMapEntry == newMirrors.end()) {
+      auto inMirrorMapEntry = newMirrors->find(portInMirror.value());
+      if (inMirrorMapEntry == newMirrors->end()) {
         throw FbossError(
             "Mirror ", portInMirror.value(), " for port is not found");
       }
@@ -3253,7 +3268,7 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
       }
     }
     if (portEgMirror.has_value() &&
-        newMirrors.find(portEgMirror.value()) == newMirrors.end()) {
+        newMirrors->find(portEgMirror.value()) == newMirrors->end()) {
       throw FbossError(
           "Mirror ", portEgMirror.value(), " for port is not found");
     }
@@ -3263,7 +3278,7 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
     return nullptr;
   }
 
-  return origMirrors->clone(std::move(newMirrors));
+  return newMirrors;
 }
 
 std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(

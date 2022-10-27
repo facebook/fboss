@@ -1229,7 +1229,8 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirror) {
     this->applyNewConfig(cfg);
     // resolve both mirror
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
-    for (auto mirror : *mirrors) {
+    for (auto iter : *mirrors) {
+      auto mirror = iter.second;
       auto newMirror = mirror->getTunnelUdpPorts()
           ? std::make_shared<Mirror>(
                 mirror->getID(),
@@ -1264,7 +1265,8 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirror) {
   };
   auto verify = [=]() {
     auto mirrors = this->getProgrammedState()->getMirrors();
-    for (auto mirror : *mirrors) {
+    for (auto iter : std::as_const(*mirrors)) {
+      auto mirror = iter.second;
       utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     }
     std::vector<uint64_t> destinations;
@@ -1324,7 +1326,8 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
     this->applyNewConfig(cfg);
     // resolve both mirror
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
-    for (auto mirror : *mirrors) {
+    for (auto iter : *mirrors) {
+      auto mirror = iter.second;
       auto newMirror = mirror->getTunnelUdpPorts()
           ? std::make_shared<Mirror>(
                 mirror->getID(),
@@ -1365,7 +1368,8 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorOnePortSflow) {
   };
   auto verify = [=]() {
     auto mirrors = this->getProgrammedState()->getMirrors();
-    for (auto mirror : *mirrors) {
+    for (auto iter : std::as_const(*mirrors)) {
+      auto mirror = iter.second;
       utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     }
     std::vector<uint64_t> destinations;
@@ -1425,7 +1429,8 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
     this->applyNewConfig(cfg);
     // resolve both mirror
     auto mirrors = this->getProgrammedState()->getMirrors()->clone();
-    for (auto mirror : *mirrors) {
+    for (auto iter : *mirrors) {
+      auto mirror = iter.second;
       auto newMirror = mirror->getTunnelUdpPorts()
           ? std::make_shared<Mirror>(
                 mirror->getID(),
@@ -1469,7 +1474,8 @@ TYPED_TEST(HwMirrorTest, SflowMirrorWithErspanMirrorNoPortSflow) {
   };
   auto verify = [=]() {
     auto mirrors = this->getProgrammedState()->getMirrors();
-    for (auto mirror : *mirrors) {
+    for (auto iter : std::as_const(*mirrors)) {
+      auto mirror = iter.second;
       utility::verifyResolvedMirror(this->getHwSwitch(), mirror);
     }
     std::vector<uint64_t> destinations;

@@ -7,17 +7,12 @@
 
 namespace facebook::fboss {
 
-MirrorMap::MirrorMap() {}
-
-MirrorMap::~MirrorMap() {}
-
 std::shared_ptr<Mirror> MirrorMap::getMirrorIf(const std::string& name) const {
-  for (const auto& mirror : *this) {
-    if (mirror->getID() == name) {
-      return mirror;
-    }
+  auto iter = find(name);
+  if (iter == cend()) {
+    return nullptr;
   }
-  return nullptr;
+  return iter->second;
 }
 
 void MirrorMap::addMirror(const std::shared_ptr<Mirror>& mirror) {
@@ -37,6 +32,30 @@ MirrorMap* MirrorMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(MirrorMap, MirrorMapTraits);
+folly::dynamic MirrorMap::toFollyDynamic() const {
+  // process old format for dynamic methods, for forward compat
+  folly::dynamic nodesJson = folly::dynamic::array;
+  for (auto iter : std::as_const(*this)) {
+    auto node = iter.second;
+    nodesJson.push_back(node->toFollyDynamic());
+  }
+  folly::dynamic json = folly::dynamic::object;
+  json[kEntries] = std::move(nodesJson);
+  json[kExtraFields] = folly::dynamic::object;
+  return json;
+}
+
+std::shared_ptr<MirrorMap> MirrorMap::fromFollyDynamicLegacy(
+    const folly::dynamic& dyn) {
+  // write old format for dynamic methods, for backward compat
+  auto mirrors = std::make_shared<MirrorMap>();
+  auto entries = dyn[kEntries];
+  for (const auto& entry : entries) {
+    mirrors->addNode(Mirror::fromFollyDynamic(entry));
+  }
+  return mirrors;
+}
+
+template class thrift_cow::ThriftMapNode<ThriftMirrorMapNodeTraits>;
 
 } // namespace facebook::fboss

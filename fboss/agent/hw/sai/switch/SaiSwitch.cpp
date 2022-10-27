@@ -2050,7 +2050,8 @@ bool SaiSwitch::isValidStateUpdateLocked(
 
   // Ensure only one sflow mirror session is configured
   int sflowMirrorCount = 0;
-  for (const auto& mirror : *(delta.newState()->getMirrors())) {
+  for (auto iter : std::as_const(*(delta.newState()->getMirrors()))) {
+    auto mirror = iter.second;
     if (mirror->type() == Mirror::Type::SFLOW) {
       sflowMirrorCount++;
     }
