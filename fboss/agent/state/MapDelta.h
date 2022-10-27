@@ -13,23 +13,34 @@
 
 namespace facebook::fboss {
 
-template <
-    typename MAP,
-    typename VALUE =
-        DeltaValue<typename MAP::mapped_type, const typename MAP::mapped_type*>>
+template <typename MAP>
+struct Extractor {
+  using key_type = typename MAP::key_type;
+  using mapped_type = typename MAP::mapped_type;
+
+  static const key_type& getKey(typename MAP::const_iterator i) {
+    return i->first;
+  }
+  static const mapped_type* getValue(typename MAP::const_iterator i) {
+    return &i->second;
+  }
+};
+
+template <typename MAP>
+struct MapDeltaTraits {
+  using mapped_type = typename MAP::mapped_type;
+  using DeltaValueT = DeltaValue<mapped_type, const mapped_type*>;
+  using ExtractorT = Extractor<MAP>;
+};
+
+template <typename MAP, template <typename> typename Traits = MapDeltaTraits>
 class MapDelta {
  public:
   using MapType = MAP;
+  using VALUE = typename Traits<MAP>::DeltaValueT;
   using Node = typename MAP::mapped_type;
   using NodeWrapper = typename VALUE::NodeWrapper;
-  struct NodeMapExtractor {
-    static const auto& getKey(typename MAP::const_iterator i) {
-      return i->first;
-    }
-    static auto getValue(typename MAP::const_iterator i) {
-      return &i->second;
-    }
-  };
+  using NodeMapExtractor = typename Traits<MAP>::ExtractorT;
   using Iterator = DeltaValueIterator<MAP, VALUE, NodeMapExtractor>;
   using Impl = MapDeltaImpl<MAP, VALUE, Iterator>;
 
