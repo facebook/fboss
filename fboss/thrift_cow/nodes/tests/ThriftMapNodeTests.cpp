@@ -18,6 +18,9 @@
 #include "fboss/thrift_cow/nodes/Types.h"
 #include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
 
+#include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/MapDelta.h"
+
 #include <gtest/gtest.h>
 #include <type_traits>
 
@@ -593,4 +596,47 @@ TEST(ThriftMapNodeTests, ThriftMapNodeStructsModify) {
   TestNodeType::modify(&node, "THIRD");
   ASSERT_EQ(node->size(), 3);
   ASSERT_NE(node->find(TestEnum::THIRD), node->end());
+}
+
+TEST(ThriftMapNodeTests, MapDelta) {
+  using Map = ThriftMapNode<
+      apache::thrift::type_class::map<
+          apache::thrift::type_class::enumeration,
+          apache::thrift::type_class::structure>,
+      std::unordered_map<TestEnum, cfg::L4PortRange>>;
+
+  std::unordered_map<TestEnum, cfg::L4PortRange> data = {
+      {TestEnum::FIRST, buildPortRange(1000, 1999)},
+      {TestEnum::SECOND, buildPortRange(2000, 2999)}};
+
+  auto map = std::make_shared<Map>(data);
+  auto map1 = map->clone();
+  map1->remove(TestEnum::SECOND);
+
+  auto map2 = map->clone();
+  map2->emplace(TestEnum::THIRD, buildPortRange(3000, 3999));
+
+  auto map3 = map->clone();
+  map3->remove(TestEnum::FIRST);
+  map3->emplace(TestEnum::FIRST, buildPortRange(1001, 1999));
+
+  auto addedDelta = MapDelta(map.get(), map2.get());
+  auto removedDelta = MapDelta(map.get(), map1.get());
+  auto changedDelta = MapDelta(map.get(), map3.get());
+
+  DeltaFunctions::forEachAdded(addedDelta, [&](auto addedNode) {
+    auto node = *addedNode;
+    auto thrift = node->toThrift();
+    EXPECT_EQ(*thrift.min(), 3000);
+  });
+  DeltaFunctions::forEachRemoved(removedDelta, [&](auto removedNode) {
+    auto node = *removedNode;
+    EXPECT_EQ(node->toThrift(), buildPortRange(2000, 2999));
+  });
+  DeltaFunctions::forEachChanged(changedDelta, [&](auto oldNode, auto newNode) {
+    auto node0 = *oldNode;
+    auto node1 = *newNode;
+    EXPECT_EQ(node0->toThrift(), buildPortRange(1000, 1999));
+    EXPECT_EQ(node1->toThrift(), buildPortRange(1001, 1999));
+  });
 }

@@ -50,7 +50,7 @@ struct ThriftMapFields {
   using ValueTraits = ConvertToNodeTraits<ValueTypeClass, ValueTType>;
   using key_type = typename TType::key_type;
   using value_type = typename ValueTraits::type;
-  using StorageType = std::unordered_map<key_type, value_type>;
+  using StorageType = std::map<key_type, value_type>;
   using iterator = typename StorageType::iterator;
   using const_iterator = typename StorageType::const_iterator;
 
@@ -257,6 +257,8 @@ class ThriftMapNode : public NodeBaseT<
   using key_type = typename Fields::key_type;
   using value_type = typename Fields::value_type;
   using PathIter = typename std::vector<std::string>::const_iterator;
+  using mapped_type = value_type;
+  using const_iterator = typename Fields::const_iterator;
 
   using BaseT::BaseT;
 

@@ -4,6 +4,9 @@
 # cmake/FooBar.cmake
 
 add_library(nodebase
+  fboss/agent/state/DeltaFunctions.h
+  fboss/agent/state/DeltaFunctions-detail.h
+  fboss/agent/state/MapDelta.h
   fboss/agent/state/NodeBase.cpp
   fboss/agent/state/NodeBase.h
   fboss/agent/state/NodeBase-defs.h
