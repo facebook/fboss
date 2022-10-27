@@ -42,21 +42,15 @@ namespace facebook::fboss {
 // and sw configs from test utility and set config flag to
 // point to the test config
 void MultiNodeTest::setupConfigFlag() {
-  cfg::AgentConfig testConfig;
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<PortMap>(), platform());
   parseTestPorts(FLAGS_multiNodeTestPorts);
-  *testConfig.sw() = initialConfig();
-  const auto& baseConfig = platform()->config();
-  *testConfig.platform() = *baseConfig->thrift.platform();
-  auto newcfg = AgentConfig(
-      testConfig,
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
+
   auto testConfigDir = platform()->getPersistentStateDir() + "/multinode_test/";
-  auto newCfgFile = testConfigDir + "/agent_multinode_test.conf";
-  utilCreateDir(testConfigDir);
-  newcfg.dumpConfig(newCfgFile);
-  FLAGS_config = newCfgFile;
+  auto newCfgFile = "agent_multinode_test.conf";
+
+  setupConfigFile(initialConfig(), testConfigDir, newCfgFile);
+
   // reload config so that test config is loaded
   platform()->reloadConfig();
 }

@@ -17,6 +17,8 @@ facebook::fboss::PlatformInitFn initPlatform{nullptr};
 DEFINE_bool(setup_for_warmboot, false, "Set up test for warmboot");
 DEFINE_bool(run_forever, false, "run the test forever");
 
+DECLARE_string(config);
+
 namespace facebook::fboss {
 
 void AgentTest::setupAgent() {
@@ -222,6 +224,30 @@ void AgentTest::dumpRunningConfig(const std::string& targetDir) {
       testConfig,
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
   newcfg.dumpConfig(targetDir);
+}
+
+void AgentTest::setupConfigFile(
+    const cfg::SwitchConfig& cfg,
+    const std::string& testConfigDir,
+    const std::string& configFile) const {
+  cfg::AgentConfig testConfig;
+  *testConfig.sw() = cfg;
+
+  const auto& baseConfig = platform()->config();
+  *testConfig.platform() = *baseConfig->thrift.platform();
+  auto newcfg = AgentConfig(
+      testConfig,
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(testConfig));
+  auto newCfgFile = testConfigDir + "/" + configFile;
+  // TODO check if file exists and don't write if it does
+  utilCreateDir(testConfigDir);
+  newcfg.dumpConfig(newCfgFile);
+  FLAGS_config = newCfgFile;
+}
+
+void AgentTest::reloadConfig(std::string reason) const {
+  // reload config so that test config is loaded
+  sw()->applyConfig(reason, true);
 }
 
 AgentTest::~AgentTest() {}

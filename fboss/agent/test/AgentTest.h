@@ -102,6 +102,12 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
 
   void dumpRunningConfig(const std::string& targetDir);
 
+  void setupConfigFile(
+      const cfg::SwitchConfig& cfg,
+      const std::string& configDir,
+      const std::string& configFile) const;
+  void reloadConfig(std::string reason) const;
+
  private:
   template <typename AddrT>
   void resolveNeighbor(
