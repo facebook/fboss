@@ -234,9 +234,9 @@ cfg::SwitchConfig genPortVlanCfg(
     myNode.switchId() = *config.switchSettings()->switchId();
     myNode.name() = "hwTestSwitch";
     myNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-    myNode.systemPortRange()->minimum() = 100 + *myNode.switchId() * 300;
+    myNode.systemPortRange()->minimum() = 100 + *myNode.switchId() * 130;
     myNode.systemPortRange()->maximum() =
-        *myNode.systemPortRange()->minimum() + 300;
+        *myNode.systemPortRange()->minimum() + 130;
     myNode.loopbackIps() = kLoopbackIps();
     config.dsfNodes()->insert({*myNode.switchId(), myNode});
   }
