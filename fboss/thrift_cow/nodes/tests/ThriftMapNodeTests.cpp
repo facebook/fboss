@@ -620,23 +620,20 @@ TEST(ThriftMapNodeTests, MapDelta) {
   map3->remove(TestEnum::FIRST);
   map3->emplace(TestEnum::FIRST, buildPortRange(1001, 1999));
 
-  auto addedDelta = MapDelta(map.get(), map2.get());
-  auto removedDelta = MapDelta(map.get(), map1.get());
-  auto changedDelta = MapDelta(map.get(), map3.get());
+  auto addedDelta = ThriftMapDelta(map.get(), map2.get());
+  auto removedDelta = ThriftMapDelta(map.get(), map1.get());
+  auto changedDelta = ThriftMapDelta(map.get(), map3.get());
 
   DeltaFunctions::forEachAdded(addedDelta, [&](auto addedNode) {
-    auto node = *addedNode;
-    auto thrift = node->toThrift();
+    auto thrift = addedNode->toThrift();
     EXPECT_EQ(*thrift.min(), 3000);
   });
+
   DeltaFunctions::forEachRemoved(removedDelta, [&](auto removedNode) {
-    auto node = *removedNode;
-    EXPECT_EQ(node->toThrift(), buildPortRange(2000, 2999));
+    EXPECT_EQ(removedNode->toThrift(), buildPortRange(2000, 2999));
   });
   DeltaFunctions::forEachChanged(changedDelta, [&](auto oldNode, auto newNode) {
-    auto node0 = *oldNode;
-    auto node1 = *newNode;
-    EXPECT_EQ(node0->toThrift(), buildPortRange(1000, 1999));
-    EXPECT_EQ(node1->toThrift(), buildPortRange(1001, 1999));
+    EXPECT_EQ(oldNode->toThrift(), buildPortRange(1000, 1999));
+    EXPECT_EQ(newNode->toThrift(), buildPortRange(1001, 1999));
   });
 }
