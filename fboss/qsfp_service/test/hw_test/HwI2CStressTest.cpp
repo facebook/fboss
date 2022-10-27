@@ -13,7 +13,7 @@
 #include <folly/logging/xlog.h>
 
 namespace {
-constexpr int kI2cStressTestIterations = 500;
+constexpr int kI2cStressTestIterations = 200;
 }
 
 namespace facebook::fboss {
