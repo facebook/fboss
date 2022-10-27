@@ -46,6 +46,10 @@ auto constexpr kUplinkBaseVlanId = 4000;
 
 folly::MacAddress kLocalCpuMac();
 
+std::vector<std::string> getLoopbackIps(SwitchID switchId);
+
+cfg::DsfNode dsfNodeConfig(SwitchID switchId);
+
 cfg::SwitchConfig oneL3IntfConfig(
     const HwSwitch* hwSwitch,
     PortID port,

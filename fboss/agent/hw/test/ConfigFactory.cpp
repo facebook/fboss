@@ -33,9 +33,6 @@ namespace {
 std::string getLocalCpuMacStr() {
   return kLocalCpuMac().toString();
 }
-std::vector<std::string> kLoopbackIps() {
-  return {"200::1/64", "200.0.0.1/24"};
-}
 
 void removePort(
     cfg::SwitchConfig& config,
@@ -86,6 +83,20 @@ namespace facebook::fboss::utility {
 std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap() {
   static std::unordered_map<PortID, cfg::PortProfileID> portProfileIDMap;
   return portProfileIDMap;
+}
+
+cfg::DsfNode dsfNodeConfig(SwitchID switchId) {
+  constexpr auto kSysPortBlockSize = 130;
+  cfg::DsfNode dsfNode;
+  dsfNode.switchId() = switchId;
+  dsfNode.name() =
+      folly::sformat("hwTestSwitch{}", static_cast<int64_t>(switchId));
+  dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
+  dsfNode.systemPortRange()->minimum() = 100 + switchId * kSysPortBlockSize;
+  dsfNode.systemPortRange()->maximum() =
+      *dsfNode.systemPortRange()->minimum() + kSysPortBlockSize;
+  dsfNode.loopbackIps() = getLoopbackIps(switchId);
+  return dsfNode;
 }
 
 namespace {
@@ -230,15 +241,8 @@ cfg::SwitchConfig genPortVlanCfg(
   config.switchSettings()->switchType() = asic->getSwitchType();
   if (asic->getSwitchId()) {
     config.switchSettings()->switchId() = *asic->getSwitchId();
-    cfg::DsfNode myNode;
-    myNode.switchId() = *config.switchSettings()->switchId();
-    myNode.name() = "hwTestSwitch";
-    myNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-    myNode.systemPortRange()->minimum() = 100 + *myNode.switchId() * 130;
-    myNode.systemPortRange()->maximum() =
-        *myNode.systemPortRange()->minimum() + 130;
-    myNode.loopbackIps() = kLoopbackIps();
-    config.dsfNodes()->insert({*myNode.switchId(), myNode});
+    config.dsfNodes()->insert(
+        {*asic->getSwitchId(), dsfNodeConfig(SwitchID(*asic->getSwitchId()))});
   }
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
   // of using PlatformMapping.
@@ -342,6 +346,17 @@ folly::MacAddress kLocalCpuMac() {
   static const folly::MacAddress kLocalMac(
       FLAGS_nodeZ ? "02:00:00:00:00:02" : "02:00:00:00:00:01");
   return kLocalMac;
+}
+
+std::vector<std::string> getLoopbackIps(SwitchID switchId) {
+  auto switchIdVal = static_cast<int64_t>(switchId);
+  CHECK_LT(switchIdVal, 10) << " Switch Id >= 10, not supported";
+
+  auto v6 = FLAGS_nodeZ ? folly::sformat("20{}::2/64", switchIdVal)
+                        : folly::sformat("20{}::1/64", switchIdVal);
+  auto v4 = FLAGS_nodeZ ? folly::sformat("20{}.0.0.2/24", switchIdVal)
+                        : folly::sformat("20{}.0.0.1/24", switchIdVal);
+  return {v6, v4};
 }
 
 cfg::SwitchConfig oneL3IntfConfig(
@@ -523,7 +538,7 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       auto intfId = sysportRangeBegin + *port.logicalID();
       std::optional<std::vector<std::string>> subnets;
       if (*port.portType() == cfg::PortType::RECYCLE_PORT) {
-        subnets = kLoopbackIps();
+        subnets = getLoopbackIps(SwitchID(mySwitchId));
       }
       addInterface(
           intfId,
