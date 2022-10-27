@@ -84,16 +84,46 @@ class MultiNodeLacpTest : public MultiNodeTest {
     }
     config.loadBalancers() =
         utility::getEcmpFullTrunkHalfHashConfig(platform());
-    config.staticRoutesWithNhops()->resize(2);
-    config.staticRoutesWithNhops()[0].prefix() = "::/0";
-    for (const auto& entry : getNeighborIpAddrs<folly::IPAddressV6>()) {
-      config.staticRoutesWithNhops()[0].nexthops()->push_back(entry.str());
-    }
-    config.staticRoutesWithNhops()[1].prefix() = "0.0.0.0/0";
-    for (const auto& entry : getNeighborIpAddrs<folly::IPAddressV4>()) {
-      config.staticRoutesWithNhops()[1].nexthops()->push_back(entry.str());
-    }
+
+    config.staticRoutesWithNhops()->clear();
+    setupDefaultRoutes(&config, 2);
     return config;
+  }
+
+  void setupDefaultRoutes(cfg::SwitchConfig* config, int numNextHops) const {
+    setupRoute(
+        config,
+        RoutePrefix<folly::IPAddressV4>(folly::IPAddressV4("0.0.0.0"), 0),
+        numNextHops);
+    setupRoute(
+        config,
+        RoutePrefix<folly::IPAddressV6>(folly::IPAddressV6("::"), 0),
+        numNextHops);
+  }
+
+  template <typename AddrT>
+  void setupRoute(
+      cfg::SwitchConfig* config,
+      const RoutePrefix<AddrT>& prefix,
+      int numNextHops) const {
+    cfg::StaticRouteWithNextHops route{};
+    auto prefixStr = prefix.str();
+    route.prefix() = prefixStr;
+    auto addrs = getNeighborIpAddrs<AddrT>();
+    addrs.resize(numNextHops);
+    for (auto addr : addrs) {
+      route.nexthops()->push_back(addr.str());
+    }
+    auto iter = config->staticRoutesWithNhops()->begin();
+    while (iter != config->staticRoutesWithNhops()->end()) {
+      // remove any route with existing prefix
+      if (*iter->prefix() == prefixStr) {
+        config->staticRoutesWithNhops()->erase(iter);
+        break;
+      }
+      iter++;
+    }
+    config->staticRoutesWithNhops()->push_back(route);
   }
 
   template <typename AddrT>
