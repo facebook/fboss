@@ -94,6 +94,7 @@ template <typename TypeClass, typename TType>
 struct ThriftMapTraits {
   using TC = TypeClass;
   using Type = TType;
+  using KeyType = typename TType::key_type;
 };
 
 template <typename KeyT, typename ValueT, typename TType>

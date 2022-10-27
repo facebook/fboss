@@ -6,6 +6,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+#include <memory>
 #include <type_traits>
 
 #include <fboss/agent/AddressUtil.h>
@@ -20,6 +21,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_state_fatal.h"
 #include "fboss/agent/gen-cpp2/switch_state_fatal_types.h"
+
 #include "fboss/thrift_cow/nodes/Types.h"
 
 namespace facebook::fboss {
@@ -659,6 +661,115 @@ class ThriftyBaseT : public ThriftyBaseBase<NodeT, FieldsT> {
 
   bool operator!=(const ThriftyBaseT<ThriftT, NodeT, FieldsT>& rhs) const {
     return !(*this == rhs);
+  }
+};
+
+template <typename MAP, typename Traits>
+struct ThriftMapNode2 : public thrift_cow::ThriftMapNode<Traits> {
+  using Base = thrift_cow::ThriftMapNode<Traits>;
+  using Node = typename Base::mapped_type::element_type;
+  using KeyType = typename Traits::KeyType;
+  using Base::Base;
+
+  virtual ~ThriftMapNode2() {}
+
+  void addNode(std::shared_ptr<Node> node) {
+    auto key = node->getID();
+    auto ret = this->insert(key, std::move(node));
+    if (!ret.second) {
+      throw FbossError("node ", key, " already exists");
+    }
+  }
+
+  void removeNode(std::shared_ptr<Node> node) {
+    removeNode(node->getID());
+  }
+
+  void updateNode(std::shared_ptr<Node> node) {
+    removeNode(node->getID());
+    addNode(node);
+  }
+
+  std::shared_ptr<Node> removeNode(KeyType key) {
+    auto node = removeNodeIf(key);
+    if (!node) {
+      throw FbossError("node ", key, " does not exist");
+    }
+    return node;
+  }
+
+  std::shared_ptr<Node> removeNodeIf(KeyType key) {
+    auto iter = this->find(key);
+    if (iter == this->end()) {
+      return nullptr;
+    }
+    auto node = iter->second;
+    this->erase(iter);
+    return node;
+  }
+
+  std::shared_ptr<Node> getNode(KeyType key) const {
+    auto node = getNodeIf(key);
+    if (!node) {
+      throw FbossError("node ", key, " does not exist");
+    }
+    return node;
+  }
+
+  std::shared_ptr<Node> getNodeIf(KeyType key) const {
+    auto iter = this->find(key);
+    if (iter == this->end()) {
+      return nullptr;
+    }
+    return iter->second;
+  }
+
+  static std::shared_ptr<MAP> fromFollyDynamicLegacy(
+      const folly::dynamic& dyn) {
+    auto map = std::make_shared<MAP>();
+    auto entries = dyn[kEntries];
+    for (const auto& entry : entries) {
+      map->addNode(Node::fromFollyDynamic(entry));
+    }
+    return map;
+  }
+
+  static std::shared_ptr<MAP> fromFollyDynamic(const folly::dynamic& dyn) {
+    return fromFollyDynamicLegacy(dyn);
+  }
+
+  folly::dynamic toFollyDynamic() const override {
+    return toFollyDynamicLegacy();
+  }
+
+  folly::dynamic toFollyDynamicLegacy() const {
+    folly::dynamic nodesJson = folly::dynamic::array;
+    for (auto iter : std::as_const(*this)) {
+      auto node = iter.second;
+      nodesJson.push_back(node->toFollyDynamic());
+    }
+    folly::dynamic json = folly::dynamic::object;
+    json[kEntries] = std::move(nodesJson);
+    // TODO: handle extra fields
+    json[kExtraFields] = folly::dynamic::object;
+    return json;
+  }
+
+  bool operator==(const MAP& that) const {
+    if (this->size() != that.size()) {
+      return false;
+    }
+    auto iter = this->begin();
+
+    while (iter != this->end()) {
+      auto node = iter->second;
+      auto other = that.getNodeIf(node->getID());
+      if (!other || *node != *other) {
+        return false;
+      }
+      iter++;
+    }
+    return true;
   }
 };
 } // namespace facebook::fboss
