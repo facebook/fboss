@@ -665,13 +665,13 @@ class ThriftyBaseT : public ThriftyBaseBase<NodeT, FieldsT> {
 };
 
 template <typename MAP, typename Traits>
-struct ThriftMapNode2 : public thrift_cow::ThriftMapNode<Traits> {
+struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits> {
   using Base = thrift_cow::ThriftMapNode<Traits>;
   using Node = typename Base::mapped_type::element_type;
   using KeyType = typename Traits::KeyType;
   using Base::Base;
 
-  virtual ~ThriftMapNode2() {}
+  virtual ~ThriftMapNode() {}
 
   void addNode(std::shared_ptr<Node> node) {
     auto key = node->getID();

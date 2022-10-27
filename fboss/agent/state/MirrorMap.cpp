@@ -28,6 +28,6 @@ MirrorMap* MirrorMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
-template class thrift_cow::ThriftMapNode<ThriftMirrorMapNodeTraits>;
+template class ThriftMapNode<MirrorMap, MirrorMapTraits>;
 
 } // namespace facebook::fboss

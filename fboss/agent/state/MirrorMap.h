@@ -17,28 +17,14 @@ using MirrorMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::structure>;
 using MirrorMapThriftType = std::map<std::string, state::MirrorFields>;
 
-using ThriftMirrorMapNodeTraits =
+using MirrorMapTraits =
     thrift_cow::ThriftMapTraits<MirrorMapTypeClass, MirrorMapThriftType>;
 
-using MirrorMapTraits = NodeMapTraits<std::string, Mirror>;
+ADD_THRIFT_MAP_RESOLVER_MAPPING(MirrorMapTraits, MirrorMap);
 
-struct MirrorMapThriftTraits
-    : public ThriftyNodeMapTraits<std::string, state::MirrorFields> {
-  static inline const std::string& getThriftKeyName() {
-    static const std::string _key = "name";
-    return _key;
-  }
-
-  static const KeyType parseKey(const folly::dynamic& key) {
-    return key.asString();
-  }
-};
-
-ADD_THRIFT_MAP_RESOLVER_MAPPING(ThriftMirrorMapNodeTraits, MirrorMap);
-
-class MirrorMap : public ThriftMapNode2<MirrorMap, ThriftMirrorMapNodeTraits> {
+class MirrorMap : public ThriftMapNode<MirrorMap, MirrorMapTraits> {
  public:
-  using BaseT = ThriftMapNode2<MirrorMap, ThriftMirrorMapNodeTraits>;
+  using BaseT = ThriftMapNode<MirrorMap, MirrorMapTraits>;
   MirrorMap() {}
   virtual ~MirrorMap() {}
 

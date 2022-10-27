@@ -26,18 +26,18 @@ using LoadBalancerMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::structure>;
 using LoadBalancerMapThriftType =
     std::map<cfg::LoadBalancerID, state::LoadBalancerFields>;
-using ThriftLoadBalancerMapTraits = thrift_cow::
+using LoadBalancerMapTraits = thrift_cow::
     ThriftMapTraits<LoadBalancerMapTypeClass, LoadBalancerMapThriftType>;
 
-ADD_THRIFT_MAP_RESOLVER_MAPPING(ThriftLoadBalancerMapTraits, LoadBalancerMap);
+ADD_THRIFT_MAP_RESOLVER_MAPPING(LoadBalancerMapTraits, LoadBalancerMap);
 
 /*
  * A container for the set of load-balancing data-plane entities.
  */
 class LoadBalancerMap
-    : public ThriftMapNode2<LoadBalancerMap, ThriftLoadBalancerMapTraits> {
+    : public ThriftMapNode<LoadBalancerMap, LoadBalancerMapTraits> {
  public:
-  using Base = ThriftMapNode2<LoadBalancerMap, ThriftLoadBalancerMapTraits>;
+  using Base = ThriftMapNode<LoadBalancerMap, LoadBalancerMapTraits>;
   using StorageType = typename Base::Fields::StorageType;
 
   using Base::Base;

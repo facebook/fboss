@@ -29,6 +29,6 @@ void LoadBalancerMap::updateLoadBalancer(
   updateNode(loadBalancer);
 }
 
-template class ThriftMapNode2<LoadBalancerMap, ThriftLoadBalancerMapTraits>;
+template class ThriftMapNode<LoadBalancerMap, LoadBalancerMapTraits>;
 
 } // namespace facebook::fboss
