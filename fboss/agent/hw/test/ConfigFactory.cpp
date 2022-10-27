@@ -33,6 +33,9 @@ namespace {
 std::string getLocalCpuMacStr() {
   return kLocalCpuMac().toString();
 }
+std::vector<std::string> kLoopbackIps() {
+  return {"200::1/64", "200.0.0.1/24"};
+}
 
 void removePort(
     cfg::SwitchConfig& config,
@@ -234,6 +237,7 @@ cfg::SwitchConfig genPortVlanCfg(
     myNode.systemPortRange()->minimum() = 100 + *myNode.switchId() * 300;
     myNode.systemPortRange()->maximum() =
         *myNode.systemPortRange()->minimum() + 300;
+    myNode.loopbackIps() = kLoopbackIps();
     config.dsfNodes()->insert({*myNode.switchId(), myNode});
   }
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
@@ -463,7 +467,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
                           int32_t vlanId,
                           cfg::InterfaceType type,
                           bool setMac,
-                          bool hasSubnet) {
+                          bool hasSubnet,
+                          std::optional<std::vector<std::string>> subnets) {
     auto i = config.interfaces()->size();
     config.interfaces()->push_back(cfg::Interface{});
     *config.interfaces()[i].intfID() = intfId;
@@ -475,14 +480,18 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     }
     config.interfaces()[i].mtu() = 9000;
     if (hasSubnet) {
-      config.interfaces()[i].ipAddresses()->resize(2);
-      auto ipDecimal = folly::sformat("{}", i + 1);
-      config.interfaces()[i].ipAddresses()[0] = FLAGS_nodeZ
-          ? folly::sformat("{}.0.0.2/24", ipDecimal)
-          : folly::sformat("{}.0.0.1/24", ipDecimal);
-      config.interfaces()[i].ipAddresses()[1] = FLAGS_nodeZ
-          ? folly::sformat("{}::1/64", ipDecimal)
-          : folly::sformat("{}::0/64", ipDecimal);
+      if (subnets) {
+        config.interfaces()[i].ipAddresses() = *subnets;
+      } else {
+        config.interfaces()[i].ipAddresses()->resize(2);
+        auto ipDecimal = folly::sformat("{}", i + 1);
+        config.interfaces()[i].ipAddresses()[0] = FLAGS_nodeZ
+            ? folly::sformat("{}.0.0.2/24", ipDecimal)
+            : folly::sformat("{}.0.0.1/24", ipDecimal);
+        config.interfaces()[i].ipAddresses()[1] = FLAGS_nodeZ
+            ? folly::sformat("{}::1/64", ipDecimal)
+            : folly::sformat("{}::0/64", ipDecimal);
+      }
     }
   };
   for (auto i = 0; i < vlans.size(); ++i) {
@@ -491,7 +500,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
         vlans[i],
         cfg::InterfaceType::VLAN,
         setInterfaceMac,
-        interfaceHasSubnet);
+        interfaceHasSubnet,
+        std::nullopt);
   }
   // Create interfaces for local sys ports on VOQ switches
   if (hwSwitch->getPlatform()->getAsic()->getSwitchType() ==
@@ -511,12 +521,17 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       auto sysportRangeBegin =
           *config.dsfNodes()[mySwitchId].systemPortRange()->minimum();
       auto intfId = sysportRangeBegin + *port.logicalID();
+      std::optional<std::vector<std::string>> subnets;
+      if (*port.portType() == cfg::PortType::RECYCLE_PORT) {
+        subnets = kLoopbackIps();
+      }
       addInterface(
           intfId,
           0,
           cfg::InterfaceType::SYSTEM_PORT,
           setInterfaceMac,
-          interfaceHasSubnet);
+          interfaceHasSubnet,
+          subnets);
     }
   }
   return config;
