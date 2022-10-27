@@ -57,6 +57,7 @@ class WedgeManager : public TransceiverManager {
     return 16;
   }
   std::vector<TransceiverID> refreshTransceivers() override;
+  void publishTransceiversToFsdb() override;
 
   int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) override;

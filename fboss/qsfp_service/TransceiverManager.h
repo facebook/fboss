@@ -42,6 +42,8 @@ class TransceiverManager {
   using PortNameIdMap = boost::bimap<std::string, PortID>;
 
  public:
+  using TcvrInfoMap = std::map<int32_t, TransceiverInfo>;
+
   explicit TransceiverManager(
       std::unique_ptr<TransceiverPlatformApi> api,
       std::unique_ptr<PlatformMapping> platformMapping);
@@ -89,6 +91,9 @@ class TransceiverManager {
   // Return: The refreshed transceiver ids
   std::vector<TransceiverID> refreshTransceivers(
       const std::unordered_set<TransceiverID>& transceivers);
+
+  /// Called to publish transceivers after a refresh
+  virtual void publishTransceiversToFsdb() {}
 
   virtual int scanTransceiverPresence(
       std::unique_ptr<std::vector<int32_t>> ids) = 0;

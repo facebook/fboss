@@ -1092,7 +1092,7 @@ TransceiverManager::TransceiverStateMachineHelper::
 }
 
 void TransceiverManager::TransceiverStateMachineHelper::startThread() {
-  updateEventBase_ = std::make_unique<folly::EventBase>();
+  updateEventBase_ = std::make_unique<folly::EventBase>("update thread");
   updateThread_.reset(
       new std::thread([this] { updateEventBase_->loopForever(); }));
   auto heartbeatStatsFunc = [this](int /* delay */, int /* backLog */) {};
@@ -1693,23 +1693,31 @@ std::vector<TransceiverID> TransceiverManager::refreshTransceivers(
   std::vector<TransceiverID> transceiverIds;
   std::vector<folly::Future<folly::Unit>> futs;
 
-  auto lockedTransceivers = transceivers_.rlock();
-  auto nTransceivers =
-      transceivers.empty() ? lockedTransceivers->size() : transceivers.size();
-  XLOG(INFO) << "Start refreshing " << nTransceivers << " transceivers...";
+  {
+    auto lockedTransceivers = transceivers_.rlock();
+    auto nTransceivers =
+        transceivers.empty() ? lockedTransceivers->size() : transceivers.size();
+    XLOG(INFO) << "Start refreshing " << nTransceivers << " transceivers...";
 
-  for (const auto& transceiver : *lockedTransceivers) {
-    TransceiverID id = TransceiverID(transceiver.second->getID());
-    if (!transceivers.empty() && transceivers.find(id) == transceivers.end()) {
-      continue;
+    for (const auto& transceiver : *lockedTransceivers) {
+      TransceiverID id = TransceiverID(transceiver.second->getID());
+      // If we're trying to refresh a subset and this transceiver is not in that
+      // subset, skip it.
+      if (!transceivers.empty() &&
+          transceivers.find(id) == transceivers.end()) {
+        continue;
+      }
+      XLOG(DBG3) << "Fired to refresh TransceiverID=" << id;
+      transceiverIds.push_back(id);
+      futs.push_back(transceiver.second->futureRefresh());
     }
-    XLOG(DBG3) << "Fired to refresh TransceiverID=" << id;
-    transceiverIds.push_back(id);
-    futs.push_back(transceiver.second->futureRefresh());
+
+    folly::collectAll(futs.begin(), futs.end()).wait();
+    XLOG(INFO) << "Finished refreshing " << nTransceivers << " transceivers";
   }
 
-  folly::collectAll(futs.begin(), futs.end()).wait();
-  XLOG(INFO) << "Finished refreshing " << nTransceivers << " transceivers";
+  publishTransceiversToFsdb();
+
   return transceiverIds;
 }
 

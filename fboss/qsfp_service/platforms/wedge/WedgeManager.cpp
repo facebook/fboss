@@ -370,6 +370,25 @@ std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
   return TransceiverManager::refreshTransceivers(kEmptryTransceiverIDs);
 }
 
+void WedgeManager::publishTransceiversToFsdb() {
+  if (!FLAGS_publish_stats_to_fsdb) {
+    return;
+  }
+
+  QsfpFsdbSyncManager::TcvrStatsMap stats;
+  TcvrInfoMap tcvrInfos;
+  getTransceiversInfo(
+      tcvrInfos,
+      std::make_unique<std::vector<int32_t>>(std::vector<int32_t>()));
+  for (const auto& [id, info] : tcvrInfos) {
+    if (info.tcvrStats()) {
+      stats[id] = *info.tcvrStats();
+    }
+  }
+  // TODO: tcvrState
+  fsdbSyncManager_->updateTcvrStats(std::move(stats));
+}
+
 int WedgeManager::scanTransceiverPresence(
     std::unique_ptr<std::vector<int32_t>> ids) {
   // If the id list is empty, we default to scan the presence of all the
