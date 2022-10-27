@@ -58,6 +58,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     case HwAsic::Feature::FABRIC_PORT_MTU:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
+    case HwAsic::Feature::FABRIC_PORTS:
       return true;
     // VOQ vs NPU mode dependent features
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
@@ -108,10 +109,6 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
-    /*
-     * Set to true once fabric ports support comes in
-     */
-    case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::LINK_TRAINING:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
@@ -123,6 +120,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
 bool EbroAsic::isSupportedFabric(Feature feature) const {
   switch (feature) {
     case HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT:
+    case HwAsic::Feature::FABRIC_PORTS:
       return true;
     default:
       return false;
@@ -142,13 +140,11 @@ std::set<cfg::StreamType> EbroAsic::getQueueStreamTypes(
        * Unicast.
        */
       return {getDefaultStreamType()};
+    case cfg::PortType::FABRIC_PORT:
+      return {cfg::StreamType::FABRIC_TX};
     case cfg::PortType::RECYCLE_PORT:
       // TODO: handle when we start modeling
       // recycle port for Ebro ASIC
-      break;
-    case cfg::PortType::FABRIC_PORT:
-      // TODO: return FABRIC_TX when fabric port support
-      // is available
       break;
   }
   throw FbossError(
