@@ -75,8 +75,6 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
   }
 }
 
-// Test always fails, disabling until it's debugged
-#if 0
 TEST_F(WedgeManagerTest, getTransceiverInfoWithReadExceptions) {
   // Cause read exceptions while refreshing transceivers and confirm that
   // transceiverInfo still has the old data (this is verified by comparing
@@ -100,12 +98,11 @@ TEST_F(WedgeManagerTest, getTransceiverInfoWithReadExceptions) {
         *cachedTransInfo[info.first].timeCollected());
     EXPECT_EQ(*info.second.present(), true);
   }
-  transceiverManager_->setReadException(false, false);
 
   // Cause read exceptions while reading the management interface. In this case,
-  // the qsfp_service should handle the exception gracefully and still mark
-  // presence for the transceivers but not adding any other data like the
-  // timeCollected timestamp to the transceiverInfo
+  // the qsfp_service should handle the exception gracefully. Since the
+  // management interface is not identified correctly so it will mark it not
+  // present but have the timestamp info there in transceiverInfo
   transceiverManager_->setReadException(
       true, false); // Read exception only while reading mgmt interface
   transceiverManager_->refreshStateMachines();
@@ -115,11 +112,10 @@ TEST_F(WedgeManagerTest, getTransceiverInfoWithReadExceptions) {
   transceiverManager_->getTransceiversInfo(
       transInfo, std::make_unique<std::vector<int32_t>>());
   for (const auto& info : transInfo) {
-    EXPECT_EQ(*info.second.present(), true);
-    EXPECT_EQ(info.second.timeCollected().has_value(), false);
+    EXPECT_EQ(*info.second.present(), false);
+    EXPECT_EQ(info.second.timeCollected().has_value(), true);
   }
 }
-#endif
 
 TEST_F(WedgeManagerTest, readTransceiver) {
   std::map<int32_t, ReadResponse> response;
