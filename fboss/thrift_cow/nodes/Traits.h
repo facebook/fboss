@@ -22,6 +22,13 @@ struct ThriftStructResolver {
   using type = ThriftStructNode<TType>;
 };
 
+template <typename Traits>
+struct ThriftMapResolver {
+  // if resolver is not specialized for given thrift type, default to
+  // ThriftStructNode
+  using type = ThriftMapNode<Traits>;
+};
+
 #define ADD_THRIFT_RESOLVER_MAPPING(ThriftType, CppType)                 \
   /* make sure resolved type is declared */                              \
   class CppType;                                                         \
@@ -30,8 +37,19 @@ struct ThriftStructResolver {
     using type = CppType;                                                \
   };
 
+#define ADD_THRIFT_MAP_RESOLVER_MAPPING(Traits, CppType)          \
+  /* make sure resolved type is declared */                       \
+  class CppType;                                                  \
+  template <>                                                     \
+  struct facebook::fboss::thrift_cow::ThriftMapResolver<Traits> { \
+    using type = CppType;                                         \
+  };
+
 template <typename TType>
 using ResolvedType = typename ThriftStructResolver<TType>::type;
+
+template <typename Traits>
+using ResolvedMapType = typename ThriftMapResolver<Traits>::type;
 
 template <typename TC, typename TType>
 struct ConvertToNodeTraits {
@@ -83,8 +101,8 @@ struct ConvertToNodeTraits<
     apache::thrift::type_class::map<KeyT, ValueT>,
     TType> {
   using type_class = apache::thrift::type_class::map<KeyT, ValueT>;
-  using type =
-      std::shared_ptr<ThriftMapNode<ThriftMapTraits<type_class, TType>>>;
+  using map_type = ResolvedMapType<ThriftMapTraits<type_class, TType>>;
+  using type = std::shared_ptr<map_type>;
   using isChild = std::true_type;
 };
 

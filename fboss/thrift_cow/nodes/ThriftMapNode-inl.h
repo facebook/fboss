@@ -250,7 +250,7 @@ struct ThriftMapFields {
 
 template <typename Traits>
 class ThriftMapNode
-    : public NodeBaseT<ThriftMapNode<Traits>, ThriftMapFields<Traits>> {
+    : public NodeBaseT<ResolvedMapType<Traits>, ThriftMapFields<Traits>> {
  public:
   using TypeClass = typename Traits::TC;
   using TType = typename Traits::Type;
@@ -258,7 +258,8 @@ class ThriftMapNode
   using Self = ThriftMapNode<Traits>;
   using Fields = ThriftMapFields<Traits>;
   using ThriftType = typename Fields::ThriftType;
-  using BaseT = NodeBaseT<ThriftMapNode<Traits>, Fields>;
+  using BaseT = NodeBaseT<ResolvedMapType<Traits>, Fields>;
+  using Derived = ResolvedMapType<Traits>;
   using CowType = NodeType;
   using key_type = typename Fields::key_type;
   using value_type = typename Fields::value_type;
