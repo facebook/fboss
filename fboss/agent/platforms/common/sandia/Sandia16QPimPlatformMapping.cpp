@@ -70552,7 +70552,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "xphySystem": {
           "numLanes": 2,
-          "modulation": 1,
+          "modulation": 2,
           "fec": 544,
           "medium": 3
         }
