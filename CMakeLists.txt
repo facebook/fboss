@@ -811,6 +811,7 @@ if (NOT SAI_ONLY)
       fboss/agent/state/ArpResponseTable.cpp
       fboss/agent/state/ArpTable.cpp
       fboss/agent/state/ControlPlane.cpp
+      fboss/agent/state/DsfNode.cpp
       fboss/agent/state/ForwardingInformationBase.cpp
       fboss/agent/state/ForwardingInformationBaseContainer.cpp
       fboss/agent/state/ForwardingInformationBaseDelta.cpp
