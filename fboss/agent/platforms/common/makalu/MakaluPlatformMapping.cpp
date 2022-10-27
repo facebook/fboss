@@ -19,8 +19,43 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1": {
         "mapping": {
           "id": 1,
-          "name": "eth1/1/1",
+          "name": "rcy1/1/1",
           "controllingPort": 1,
+          "pins": [
+            {
+              "a": {
+                "chip": "rcy1",
+                "lane": 0
+              }
+            }
+          ],
+          "portType": 3,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 1
+        },
+        "supportedProfiles": {
+          "11": {
+              "subsumedPorts": [
+
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "rcy1",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "9": {
+        "mapping": {
+          "id": 9,
+          "name": "eth1/1/1",
+          "controllingPort": 9,
           "pins": [
             {
               "a": {
@@ -73,14 +108,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 1
+          "attachedCorePortIndex": 9
         },
         "supportedProfiles": {
           "22": {
               "subsumedPorts": [
-                2,
-                3,
-                4
+                10,
+                11,
+                12
               ],
               "pins": {
                 "iphy": [
@@ -113,9 +148,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
           },
           "23": {
               "subsumedPorts": [
-                2,
-                3,
-                4
+                10,
+                11,
+                12
               ],
               "pins": {
                 "iphy": [
@@ -2121,41 +2156,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "BC64",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "221": {
-        "mapping": {
-          "id": 221,
-          "name": "rcy1/1/1",
-          "controllingPort": 221,
-          "pins": [
-            {
-              "a": {
-                "chip": "rcy1",
-                "lane": 0
-              }
-            }
-          ],
-          "portType": 3,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 221
-        },
-        "supportedProfiles": {
-          "11": {
-              "subsumedPorts": [
-
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "rcy1",
-                      "lane": 0
                     }
                   }
                 ]
