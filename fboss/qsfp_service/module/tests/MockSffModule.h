@@ -73,6 +73,12 @@ class MockSffModule : public SffModule {
     present_ = true;
     SffModule::updateQsfpData(full);
   }
+
+  void useActualGetTransceiverInfo() {
+    ON_CALL(*this, getTransceiverInfo())
+        .WillByDefault(testing::Return(SffModule::getTransceiverInfo()));
+  }
+
   void setFlatMem() {
     flatMem_ = false;
   }
