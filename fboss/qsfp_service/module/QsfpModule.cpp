@@ -160,19 +160,43 @@ QsfpModule::detectPresenceLocked() {
     // we need to fill in the essential info before parsing the DOM data
     // which may not be available.
     TransceiverInfo info;
+
     info.present() = present_;
     info.transceiver() = type();
     info.port() = qsfpImpl_->getNum();
+
+    auto& tcvrState = info.tcvrState().ensure();
+    tcvrState.present().copy_from(info.present());
+    tcvrState.transceiver().copy_from(info.transceiver());
+    tcvrState.port().copy_from(info.port());
+
     *info_.wlock() = info;
   }
   return {currentQsfpStatus, statusChanged};
 }
 
 void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
+  // Migration plan from fields in TransceiverInfo to being inside state/states:
+  // 1. Populate data to old fields then populate state/states from old fields
+  // 2. Migrate users to new fields.
+  // 3. Populate data to new fields then populate old fields from new fields
+  // guarded by a just knob.
+  // 4. Use the knob to slowly turn off old fields, check that nobody dies.
+  // 5. Remove old fields
+  //
+  // We're currently at step 1.
+
   TransceiverInfo info;
   info.present() = present_;
   info.transceiver() = type();
   info.port() = qsfpImpl_->getNum();
+
+  auto& tcvrState = info.tcvrState().ensure();
+  auto& tcvrStats = info.tcvrStats().ensure();
+  tcvrState.present().copy_from(info.present());
+  tcvrState.transceiver().copy_from(info.transceiver());
+  tcvrState.port().copy_from(info.port());
+
   if (present_) {
     auto nMediaLanes = numMediaLanes();
     info.mediaLaneSignals() = std::vector<MediaLaneSignals>(nMediaLanes);
@@ -225,6 +249,24 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     info.status() = currentStatus;
     cacheStatusFlags(currentStatus);
 
+    // Populate the new state/stats members as well from old fields
+    tcvrState.mediaLaneSignals().copy_from(info.mediaLaneSignals());
+    tcvrStats.sensor().copy_from(info.sensor());
+    tcvrState.vendor().copy_from(info.vendor());
+    tcvrState.cable().copy_from(info.cable());
+    tcvrState.thresholds().copy_from(info.thresholds());
+    tcvrState.settings().copy_from(info.settings());
+    tcvrStats.channels().copy_from(info.channels());
+    tcvrState.hostLaneSignals().copy_from(info.hostLaneSignals());
+    tcvrStats.stats().copy_from(info.stats());
+    tcvrState.signalFlag().copy_from(info.signalFlag());
+    tcvrState.extendedSpecificationComplianceCode().copy_from(
+        info.extendedSpecificationComplianceCode());
+    tcvrState.transceiverManagementInterface().copy_from(
+        info.transceiverManagementInterface());
+    tcvrState.identifier().copy_from(info.identifier());
+    tcvrState.status().copy_from(info.status());
+
     // If the StatsPublisher thread has triggered the VDM data capture then
     // latch, read data (page 24 and 25), release latch
     if (captureVdmStats_) {
@@ -247,6 +289,9 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
         }
       }
       captureVdmStats_ = false;
+
+      tcvrStats.vdmDiagsStats().copy_from(info.vdmDiagsStats());
+      tcvrStats.vdmDiagsStatsForOds().copy_from(info.vdmDiagsStatsForOds());
     }
 
     info.timeCollected() = lastRefreshTime_;
@@ -254,6 +299,10 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     info.eepromCsumValid() = verifyEepromChecksums();
 
     info.moduleMediaInterface() = getModuleMediaInterface();
+
+    tcvrStats.remediationCounter().copy_from(info.remediationCounter());
+    tcvrState.eepromCsumValid().copy_from(info.eepromCsumValid());
+    tcvrState.moduleMediaInterface().copy_from(info.moduleMediaInterface());
   }
 
   phy::LinkSnapshot snapshot;
