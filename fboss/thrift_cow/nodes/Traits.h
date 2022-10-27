@@ -72,12 +72,19 @@ struct ConvertToNodeTraits<apache::thrift::type_class::list<ValueT>, TType> {
   using isChild = std::true_type;
 };
 
+template <typename TypeClass, typename TType>
+struct ThriftMapTraits {
+  using TC = TypeClass;
+  using Type = TType;
+};
+
 template <typename KeyT, typename ValueT, typename TType>
 struct ConvertToNodeTraits<
     apache::thrift::type_class::map<KeyT, ValueT>,
     TType> {
-  using type = std::shared_ptr<
-      ThriftMapNode<apache::thrift::type_class::map<KeyT, ValueT>, TType>>;
+  using type_class = apache::thrift::type_class::map<KeyT, ValueT>;
+  using type =
+      std::shared_ptr<ThriftMapNode<ThriftMapTraits<type_class, TType>>>;
   using isChild = std::true_type;
 };
 

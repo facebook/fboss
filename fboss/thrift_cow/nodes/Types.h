@@ -35,10 +35,10 @@ struct ThriftListFields;
 template <typename TypeClass, typename TType>
 class ThriftListNode;
 
-template <typename TypeClass, typename TType>
+template <typename Traits>
 struct ThriftMapFields;
 
-template <typename TypeClass, typename TType>
+template <typename Traits>
 class ThriftMapNode;
 
 template <typename TypeClass, typename TType>

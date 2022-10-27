@@ -39,9 +39,11 @@ struct ExtractTypeClass<
 
 } // namespace map_helpers
 
-template <typename TypeClass, typename TType>
+template <typename Traits>
 struct ThriftMapFields {
-  using Self = ThriftMapFields<TypeClass, TType>;
+  using TypeClass = typename Traits::TC;
+  using TType = typename Traits::Type;
+  using Self = ThriftMapFields<Traits>;
   using CowType = FieldsType;
   using ThriftType = TType;
   using KeyTypeClass =
@@ -246,15 +248,17 @@ struct ThriftMapFields {
   StorageType storage_;
 };
 
-template <typename TypeClass, typename TType>
-class ThriftMapNode : public NodeBaseT<
-                          ThriftMapNode<TypeClass, TType>,
-                          ThriftMapFields<TypeClass, TType>> {
+template <typename Traits>
+class ThriftMapNode
+    : public NodeBaseT<ThriftMapNode<Traits>, ThriftMapFields<Traits>> {
  public:
-  using Self = ThriftMapNode<TypeClass, TType>;
-  using Fields = ThriftMapFields<TypeClass, TType>;
+  using TypeClass = typename Traits::TC;
+  using TType = typename Traits::Type;
+
+  using Self = ThriftMapNode<Traits>;
+  using Fields = ThriftMapFields<Traits>;
   using ThriftType = typename Fields::ThriftType;
-  using BaseT = NodeBaseT<ThriftMapNode<TypeClass, TType>, Fields>;
+  using BaseT = NodeBaseT<ThriftMapNode<Traits>, Fields>;
   using CowType = NodeType;
   using key_type = typename Fields::key_type;
   using value_type = typename Fields::value_type;
