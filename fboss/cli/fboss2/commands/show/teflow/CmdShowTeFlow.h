@@ -35,11 +35,13 @@ class CmdShowTeFlow : public CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits> {
 
   RetType queryClient(const HostInfo& hostInfo) {
     std::vector<TeFlowDetails> entries;
+    std::map<int32_t, facebook::fboss::PortInfoThrift> portInfo;
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     client->sync_getTeFlowTableDetails(entries);
-    return createModel(entries);
+    client->sync_getAllPortInfo(portInfo);
+    return createModel(entries, portInfo);
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
@@ -48,7 +50,7 @@ class CmdShowTeFlow : public CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits> {
           "\nFlow key: dst prefix {}/{}, src port {}\n",
           entry.get_dstIp(),
           entry.get_dstIpPrefixLength(),
-          entry.get_srcPort());
+          entry.get_srcPortName());
       out << fmt::format("Match Action:\n");
       out << fmt::format("  Counter ID: {}\n", entry.get_counterID());
       out << fmt::format("  Redirect to Nexthops:\n");
@@ -67,7 +69,8 @@ class CmdShowTeFlow : public CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits> {
   }
 
   RetType createModel(
-      std::vector<facebook::fboss::TeFlowDetails>& flowEntries) {
+      std::vector<facebook::fboss::TeFlowDetails>& flowEntries,
+      std::map<int32_t, facebook::fboss::PortInfoThrift> portInfo) {
     RetType model;
 
     for (const auto& entry : flowEntries) {
@@ -76,6 +79,8 @@ class CmdShowTeFlow : public CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits> {
       flowEntry.dstIpPrefixLength() =
           *entry.flow()->dstPrefix()->prefixLength();
       flowEntry.srcPort() = *(entry.flow()->srcPort());
+      flowEntry.srcPortName_ref() =
+          *portInfo[*(entry.flow()->srcPort())].name_ref();
       flowEntry.enabled() = *(entry.enabled());
       if (entry.counterID()) {
         flowEntry.counterID() = *(entry.counterID());

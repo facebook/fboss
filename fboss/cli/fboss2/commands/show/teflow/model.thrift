@@ -14,4 +14,5 @@ struct TeFlowEntry {
   5: string counterID;
   6: list<NextHopInfo> nextHops;
   7: list<NextHopInfo> resolvedNextHops;
+  8: string srcPortName;
 }

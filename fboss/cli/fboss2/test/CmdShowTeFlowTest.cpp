@@ -77,6 +77,24 @@ std::vector<TeFlowDetails> createTeFlowEntries() {
   return teFlowEntries;
 }
 
+std::map<int32_t, PortInfoThrift> createTeFlowTestPortEntries() {
+  std::map<int32_t, PortInfoThrift> portMap;
+
+  PortInfoThrift portEntry1;
+  portEntry1.portId() = 100;
+  portEntry1.name() = "eth1/5/1";
+  portEntry1.adminState() = PortAdminState::ENABLED;
+  portEntry1.operState() = PortOperState::DOWN;
+  portEntry1.speedMbps() = 100000;
+  portEntry1.profileID() = "PROFILE_100G_4_NRZ_CL91_COPPER";
+  TransceiverIdxThrift tcvr1;
+  tcvr1.transceiverId() = 0;
+  portEntry1.transceiverIdx() = tcvr1;
+
+  portMap[portEntry1.get_portId()] = portEntry1;
+  return portMap;
+}
+
 cli::ShowTeFlowEntryModel createTeFlowEntryModel() {
   cli::ShowTeFlowEntryModel model;
   cli::TeFlowEntry entry1, entry2;
@@ -85,6 +103,7 @@ cli::ShowTeFlowEntryModel createTeFlowEntryModel() {
   entry1.dstIp() = "2401:db00::";
   entry1.dstIpPrefixLength() = 32;
   entry1.srcPort() = 100;
+  entry1.srcPortName() = "eth1/5/1";
   entry1.enabled() = true;
 
   cli::NextHopInfo nextHopInfo1_1;
@@ -99,6 +118,7 @@ cli::ShowTeFlowEntryModel createTeFlowEntryModel() {
   entry2.dstIp() = "2401:db01::";
   entry2.dstIpPrefixLength() = 32;
   entry2.srcPort() = 100;
+  entry2.srcPortName() = "eth1/5/1";
   entry2.enabled() = true;
 
   cli::NextHopInfo nextHopInfo2_1;
@@ -120,11 +140,13 @@ cli::ShowTeFlowEntryModel createTeFlowEntryModel() {
 class CmdShowTeFlowTestFixture : public CmdHandlerTestBase {
  public:
   std::vector<facebook::fboss::TeFlowDetails> teFlowEntries;
+  std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
   cli::ShowTeFlowEntryModel normalizedModel;
 
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
     teFlowEntries = createTeFlowEntries();
+    portEntries = createTeFlowTestPortEntries();
     normalizedModel = createTeFlowEntryModel();
   }
 };
@@ -133,6 +155,8 @@ TEST_F(CmdShowTeFlowTestFixture, queryClient) {
   setupMockedAgentServer();
   EXPECT_CALL(getMockAgent(), getTeFlowTableDetails(_))
       .WillOnce(Invoke([&](auto& entries) { entries = teFlowEntries; }));
+  EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
+      .WillOnce(Invoke([&](auto& entries) { entries = portEntries; }));
 
   auto cmd = CmdShowTeFlow();
   auto model = cmd.queryClient(localhost());
@@ -146,7 +170,7 @@ TEST_F(CmdShowTeFlowTestFixture, printOutput) {
 
   std::string output = ss.str();
   std::string expectOutput = R"(
-Flow key: dst prefix 2401:db00::/32, src port 100
+Flow key: dst prefix 2401:db00::/32, src port eth1/5/1
 Match Action:
   Counter ID: counter1
   Redirect to Nexthops:
@@ -156,7 +180,7 @@ State:
   Resolved Nexthops:
     2401:db00:e32f:8fc::2 weight 1
 
-Flow key: dst prefix 2401:db01::/32, src port 100
+Flow key: dst prefix 2401:db01::/32, src port eth1/5/1
 Match Action:
   Counter ID: counter2
   Redirect to Nexthops:
