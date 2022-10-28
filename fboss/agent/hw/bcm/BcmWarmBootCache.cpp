@@ -1386,8 +1386,19 @@ void BcmWarmBootCache::programmed(TrunksItr itr) {
 }
 
 void BcmWarmBootCache::checkUnclaimedQosMaps() {
+  if (qosMapKey2QosMapId_.size()) {
+    XLOG(ERR) << "Unclaimed qosMapKey2QosMapId_ entries, count ="
+              << qosMapKey2QosMapId_.size() << " [ ";
+    for (const auto& qosMapKey2Qos : qosMapKey2QosMapId_) {
+      const auto& qosMapKey2QosPairKey = qosMapKey2Qos.first;
+      XLOG(ERR) << " Policy name: " << qosMapKey2QosPairKey.first
+                << ", type: " << (int)qosMapKey2QosPairKey.second;
+    }
+    XLOG(ERR) << "]";
+  }
   CHECK_EQ(qosMapKey2QosMapId_.size() + qosMapId2QosMap_.size(), 0)
-      << "unclaimed qos map entries found";
+      << "unclaimed qos map entries found. qosMapId2QosMap_ count ="
+      << qosMapId2QosMap_.size();
 }
 
 BcmWarmBootCache::QosMapId2QosMapItr BcmWarmBootCache::findQosMap(
@@ -1436,6 +1447,12 @@ BcmWarmBootCache::QosMapId2QosMapItr BcmWarmBootCache::findQosMap(
 
   if (qosMapId2QosMapItr->second->size() != mapEntries.size()) {
     /* sw switch qos policy rules are only subset of  rules in qos map */
+    XLOG(WARN) << " Mismatch in QosMap size of type: "
+               << qosMapId2QosMapItr->second->getType()
+               << " with id: " << qosMapId2QosMapItr->second->getHandle()
+               << " for policy: " << qosPolicy->getName()
+               << " Expected size: " << mapEntries.size()
+               << ", HW entry size: " << qosMapId2QosMapItr->second->size();
     return qosMapId2QosMap_.end();
   }
 
