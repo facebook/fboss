@@ -44,5 +44,12 @@ cfg::Range64 DsfNode::getSystemPortRange() const {
   return get<switch_config_tags::systemPortRange>()->toThrift();
 }
 
+std::shared_ptr<DsfNode> DsfNode::fromFollyDynamic(
+    const folly::dynamic& entry) {
+  auto node = std::make_shared<Node>();
+  node->fromFollyDynamic(entry);
+  return node;
+}
+
 template class thrift_cow::ThriftStructNode<cfg::DsfNode>;
 } // namespace facebook::fboss
