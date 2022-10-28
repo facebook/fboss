@@ -73,6 +73,7 @@ constexpr auto kTunnels = "ipTunnels";
 constexpr auto kTeFlows = "teFlows";
 constexpr auto kRemoteSystemPorts = "remoteSystemPorts";
 constexpr auto kRemoteInterfaces = "remoteInterfaces";
+constexpr auto kDsfNodes = "dsfNodes";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
@@ -102,6 +103,7 @@ SwitchStateFields::SwitchStateFields()
       systemPorts(make_shared<SystemPortMap>()),
       ipTunnels(make_shared<IpTunnelMap>()),
       teFlowTable(make_shared<TeFlowTable>()),
+      dsfNodes(make_shared<DsfNodeMap>()),
       remoteSystemPorts(make_shared<SystemPortMap>()),
       remoteInterfaces(make_shared<InterfaceMap>()) {}
 
@@ -156,6 +158,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
   }
   state.loadBalancerMap() = loadBalancers->toThrift();
   state.switchSettings() = switchSettings->toThrift();
+  state.dsfNodes() = dsfNodes->toThrift();
   // Remote objects
   state.remoteSystemPortMap() = remoteSystemPorts->toThrift();
   state.remoteInterfaceMap() = remoteInterfaces->toThrift();
@@ -218,6 +221,8 @@ SwitchStateFields SwitchStateFields::fromThrift(
   }
   fields.loadBalancers->fromThrift(*state.loadBalancerMap());
   fields.switchSettings = SwitchSettings::fromThrift(*state.switchSettings());
+  fields.dsfNodes->fromThrift(*state.dsfNodes());
+
   fields.remoteSystemPorts =
       SystemPortMap::fromThrift(*state.remoteSystemPortMap());
   fields.remoteInterfaces =
@@ -234,13 +239,15 @@ bool SwitchStateFields::operator==(const SwitchStateFields& other) const {
     bufferPoolCfgsSame = false;
   }
   return bufferPoolCfgsSame &&
-      std::tie(*ports, *vlans, *acls, *systemPorts, *remoteSystemPorts) ==
+      std::tie(
+          *ports, *vlans, *acls, *systemPorts, *remoteSystemPorts, *dsfNodes) ==
       std::tie(
           *other.ports,
           *other.vlans,
           *other.acls,
           *other.systemPorts,
-          *other.remoteSystemPorts);
+          *other.remoteSystemPorts,
+          *other.dsfNodes);
 }
 
 folly::dynamic SwitchStateFields::toFollyDynamic() const {
@@ -276,6 +283,7 @@ folly::dynamic SwitchStateFields::toFollyDynamic() const {
     switchState[kAclTableGroups] = aclTableGroups->toFollyDynamic();
   }
   switchState[kSystemPorts] = systemPorts->toFollyDynamic();
+  switchState[kDsfNodes] = dsfNodes->toFollyDynamic();
   // Remote objects
   switchState[kRemoteSystemPorts] = remoteSystemPorts->toFollyDynamic();
   switchState[kRemoteInterfaces] = remoteInterfaces->toFollyDynamic();
@@ -363,6 +371,9 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
   }
   if (swJson.find(kTeFlows) != swJson.items().end()) {
     switchState.teFlowTable = TeFlowTable::fromFollyDynamic(swJson[kTeFlows]);
+  }
+  if (swJson.find(kDsfNodes) != swJson.items().end()) {
+    switchState.dsfNodes = DsfNodeMap::fromFollyDynamic(swJson[kDsfNodes]);
   }
   // Remote objects
   if (swJson.find(kRemoteSystemPorts) != swJson.items().end()) {

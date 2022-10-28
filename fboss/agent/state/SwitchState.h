@@ -25,6 +25,7 @@
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/BufferPoolConfigMap.h"
 #include "fboss/agent/state/ControlPlane.h"
+#include "fboss/agent/state/DsfNodeMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/IpTunnelMap.h"
@@ -82,6 +83,7 @@ struct SwitchStateFields
     fn(teFlowTable.get());
     fn(remoteSystemPorts.get());
     fn(remoteInterfaces.get());
+    fn(dsfNodes.get());
   }
 
   state::SwitchState toThrift() const override;
@@ -120,6 +122,7 @@ struct SwitchStateFields
   std::shared_ptr<SystemPortMap> systemPorts;
   std::shared_ptr<IpTunnelMap> ipTunnels;
   std::shared_ptr<TeFlowTable> teFlowTable;
+  std::shared_ptr<DsfNodeMap> dsfNodes;
   VlanID defaultVlan{0};
 
   std::shared_ptr<QosPolicy> defaultDataPlaneQosPolicy;
@@ -420,6 +423,10 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   }
   const std::shared_ptr<TeFlowTable>& getTeFlowTable() const {
     return getFields()->teFlowTable;
+  }
+
+  const std::shared_ptr<DsfNodeMap>& dsfNodes() const {
+    return getFields()->dsfNodes;
   }
 
   /*
