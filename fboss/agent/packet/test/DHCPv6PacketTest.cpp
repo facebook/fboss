@@ -41,7 +41,7 @@ DHCPv6Packet makeDHCPv6Packet() {
 
 DHCPv6Packet makeDHCPv6RelayFwdPacket(DHCPv6Packet& dhcpPktIn) {
   IPAddressV6 la("::");
-  IPAddressV6 pa("fe08::01:1");
+  IPAddressV6 pa("fe80::01:1");
   DHCPv6Packet dhcpPktOut(
       static_cast<uint8_t>(DHCPv6Type::DHCPv6_RELAY_FORWARD), 0, la, pa);
   dhcpPktOut.addInterfaceIDOption(MacAddress("33:33:33:00:00:01"));
