@@ -59,6 +59,19 @@ void pumpTraffic(
     int hopLimit = 255,
     std::optional<folly::MacAddress> srcMac = std::nullopt);
 
+void pumpTraffic(
+    HwSwitch* hw,
+    folly::MacAddress dstMac,
+    std::vector<folly::IPAddress> srcIp,
+    std::vector<folly::IPAddress> dstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t streams,
+    VlanID vlan,
+    std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
+    int hopLimit = 255,
+    std::optional<folly::MacAddress> srcMac = std::nullopt);
+
 void pumpDeterministicRandomTraffic(
     bool isV6,
     HwSwitch* hw,

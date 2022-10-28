@@ -168,6 +168,46 @@ void pumpTraffic(
   }
 }
 
+void pumpTraffic(
+    HwSwitch* hw,
+    folly::MacAddress dstMac,
+    std::vector<folly::IPAddress> srcIps,
+    std::vector<folly::IPAddress> dstIps,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t streams,
+    VlanID vlan,
+    std::optional<PortID> frontPanelPortToLoopTraffic,
+    int hopLimit,
+    std::optional<folly::MacAddress> srcMacAddr) {
+  folly::MacAddress srcMac(
+      srcMacAddr.has_value() ? *srcMacAddr
+                             : MacAddressGenerator().get(dstMac.u64HBO() + 1));
+  for (auto srcIp : srcIps) {
+    for (auto dstIp : dstIps) {
+      CHECK_EQ(srcIp.isV4(), dstIp.isV4());
+      for (auto i = 0; i < streams; i++) {
+        auto pkt = makeUDPTxPacket(
+            hw,
+            vlan,
+            srcMac,
+            dstMac,
+            srcIp,
+            dstIp,
+            srcPort + i,
+            dstPort + i,
+            0,
+            hopLimit);
+        if (frontPanelPortToLoopTraffic) {
+          hw->sendPacketOutOfPortSync(
+              std::move(pkt), frontPanelPortToLoopTraffic.value());
+        } else {
+          hw->sendPacketSwitchedSync(std::move(pkt));
+        }
+      }
+    }
+  }
+}
 /*
  * Generate traffic with random source ip, destination ip, source port and
  * destination port. every run will pump same random traffic as random number
