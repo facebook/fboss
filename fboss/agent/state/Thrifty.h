@@ -754,22 +754,5 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits> {
     json[kExtraFields] = folly::dynamic::object;
     return json;
   }
-
-  bool operator==(const MAP& that) const {
-    if (this->size() != that.size()) {
-      return false;
-    }
-    auto iter = this->begin();
-
-    while (iter != this->end()) {
-      auto node = iter->second;
-      auto other = that.getNodeIf(node->getID());
-      if (!other || *node != *other) {
-        return false;
-      }
-      iter++;
-    }
-    return true;
-  }
 };
 } // namespace facebook::fboss

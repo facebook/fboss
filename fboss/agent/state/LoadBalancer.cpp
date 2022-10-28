@@ -239,35 +239,6 @@ folly::dynamic LoadBalancer::toFollyDynamicLegacy() const {
   return serialized;
 }
 
-bool LoadBalancer::operator==(const LoadBalancer& rhs) const {
-  return getID() == rhs.getID() && getSeed() == rhs.getSeed() &&
-      getAlgorithm() == rhs.getAlgorithm() &&
-      std::equal(
-             getIPv4Fields().begin(),
-             getIPv4Fields().end(),
-             rhs.getIPv4Fields().begin(),
-             rhs.getIPv4Fields().end()) &&
-      std::equal(
-             getIPv6Fields().begin(),
-             getIPv6Fields().end(),
-             rhs.getIPv6Fields().begin(),
-             rhs.getIPv6Fields().end()) &&
-      std::equal(
-             getTransportFields().begin(),
-             getTransportFields().end(),
-             rhs.getTransportFields().begin(),
-             rhs.getTransportFields().end()) &&
-      std::equal(
-             getMPLSFields().begin(),
-             getMPLSFields().end(),
-             rhs.getMPLSFields().begin(),
-             rhs.getMPLSFields().end());
-}
-
-bool LoadBalancer::operator!=(const LoadBalancer& rhs) const {
-  return !(*this == rhs);
-}
-
 state::LoadBalancerFields LoadBalancerFields::toThrift() const {
   state::LoadBalancerFields thriftLoadBalancerFields{};
   thriftLoadBalancerFields.id() = id_;

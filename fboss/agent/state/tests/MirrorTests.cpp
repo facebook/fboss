@@ -653,7 +653,6 @@ TEST_F(MirrorTest, MirrorThrifty) {
   auto& mirrors = state_->getMirrors();
   auto mirrorsThrift = mirrors->toThrift();
   auto newMirrors = MirrorMap::fromThrift(mirrorsThrift);
-  EXPECT_EQ(*mirrors, *newMirrors);
   EXPECT_EQ(mirrorsThrift, newMirrors->toThrift());
 }
 

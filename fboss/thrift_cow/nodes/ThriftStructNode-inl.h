@@ -570,6 +570,14 @@ class ThriftStructNode
         *this, begin, end, PathVisitMode::LEAF, std::forward<Func>(f));
   }
 
+  bool operator==(const Self& that) const {
+    return this->toThrift() == that.toThrift();
+  }
+
+  bool operator!=(const Self& that) const {
+    return !(*this == that);
+  }
+
  private:
   friend class CloneAllocator;
 };

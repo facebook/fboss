@@ -282,12 +282,6 @@ class Mirror : public ThriftStructNode<state::MirrorFields> {
   }
 
   Type type() const;
-  bool operator==(const Mirror& that) const {
-    return this->toThrift() == that.toThrift();
-  }
-  bool operator!=(const Mirror& that) const {
-    return !(this->toThrift() == that.toThrift());
-  }
 
   // TODO(pshaikh): make this private
   void markResolved();

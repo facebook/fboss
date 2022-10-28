@@ -240,6 +240,14 @@ struct ThriftMapFields {
     }
   }
 
+  bool operator==(const Self& that) const {
+    return storage_ == that.storage_;
+  }
+
+  bool operator!=(const Self& that) const {
+    return !(*this == that);
+  }
+
  private:
   template <typename... Args>
   value_type childFactory(Args&&... args) {
@@ -469,6 +477,13 @@ class ThriftMapNode
       const {
     return PathVisitor<TypeClass>::visit(
         *this, begin, end, PathVisitMode::LEAF, std::forward<Func>(f));
+  }
+
+  bool operator==(const Self& that) const {
+    return *this->getFields() == *that.getFields();
+  }
+  bool operator!=(const Self& that) const {
+    return !(*this == that);
   }
 
  private:

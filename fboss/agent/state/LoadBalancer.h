@@ -57,7 +57,7 @@ struct LoadBalancerFields
 
   const LoadBalancerID id_;
   cfg::HashingAlgorithm algorithm_;
-  int32_t seed_;
+  uint32_t seed_;
   IPv4Fields v4Fields_;
   IPv6Fields v6Fields_;
   TransportFields transportFields_;
@@ -153,9 +153,6 @@ class LoadBalancer : public ThriftStructNode<state::LoadBalancerFields> {
 
   static std::shared_ptr<LoadBalancer> fromThrift(
       const state::LoadBalancerFields& fields);
-
-  bool operator==(const LoadBalancer& rhs) const;
-  bool operator!=(const LoadBalancer& rhs) const;
 
  private:
   // Inherit the constructors required for clone()
