@@ -8,12 +8,41 @@
  *
  */
 #include "fboss/agent/state/DsfNode.h"
+#include "fboss/agent/gen-cpp2/switch_config_fatal.h"
+#include "fboss/agent/gen-cpp2/switch_config_fatal_types.h"
 
 namespace facebook::fboss {
-DsfNodeFields DsfNodeFields::fromThrift(const cfg::DsfNode& dsfNodeThrift) {
-  DsfNodeFields dsfNode(SwitchID(*dsfNodeThrift.switchId()));
-  dsfNode.writableData() = dsfNodeThrift;
-  return dsfNode;
+using switch_config_tags = cfg::switch_config_tags::strings;
+
+DsfNode::DsfNode(SwitchID switchId) : ThriftStructNode<cfg::DsfNode>() {
+  set<switch_config_tags::switchId>(switchId);
 }
 
+SwitchID DsfNode::getSwitchId() const {
+  return SwitchID(get<switch_config_tags::switchId>()->cref());
+}
+std::string DsfNode::getName() const {
+  return get<switch_config_tags::name>()->cref();
+}
+void DsfNode::setName(const std::string& name) {
+  set<switch_config_tags::name>(name);
+}
+
+cfg::DsfNodeType DsfNode::getType() const {
+  return get<switch_config_tags::type>()->cref();
+}
+
+auto DsfNode::getLoopbackIps() const {
+  return get<switch_config_tags::loopbackIps>();
+}
+
+void DsfNode::setLoopbackIps(const std::vector<std::string>& loopbackIps) {
+  set<switch_config_tags::loopbackIps>(loopbackIps);
+}
+
+cfg::Range64 DsfNode::getSystemPortRange() const {
+  return get<switch_config_tags::systemPortRange>()->toThrift();
+}
+
+template class thrift_cow::ThriftStructNode<cfg::DsfNode>;
 } // namespace facebook::fboss

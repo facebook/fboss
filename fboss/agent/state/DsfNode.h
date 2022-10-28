@@ -9,64 +9,35 @@
  */
 #pragma once
 
-#include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 
-struct DsfNodeFields : public ThriftyFields<DsfNodeFields, cfg::DsfNode> {
-  explicit DsfNodeFields(SwitchID id) {
-    auto& data = writableData();
-    *data.switchId() = id;
-  }
+USE_THRIFT_COW(cfg::DsfNode, DsfNode);
 
-  bool operator==(const DsfNodeFields& other) const {
-    return data() == other.data();
-  }
-
-  cfg::DsfNode toThrift() const override {
-    return data();
-  }
-
-  template <typename Fn>
-  void forEachChild(Fn /*fn*/) {}
-
-  static DsfNodeFields fromThrift(const cfg::DsfNode& systemPortThrift);
-};
-
-class DsfNode : public ThriftyBaseT<cfg::DsfNode, DsfNode, DsfNodeFields> {
+class DsfNode : public ThriftStructNode<cfg::DsfNode> {
  public:
-  SwitchID getID() const {
-    return SwitchID(*getFields()->data().switchId());
-  }
-  SwitchID getSwitchId() const {
-    return SwitchID(*getFields()->data().switchId());
-  }
-  std::string getName() const {
-    return *getFields()->data().name();
-  }
-  void setName(const std::string& name) {
-    writableFields()->writableData().name() = name;
-  }
-  cfg::DsfNodeType getType() const {
-    return *getFields()->data().type();
-  }
+  using BaseT = ThriftStructNode<cfg::DsfNode>;
+  explicit DsfNode(SwitchID switchId);
 
-  const std::vector<std::string>& getLoopbackIps() const {
-    return *getFields()->data().loopbackIps();
+  SwitchID getID() const {
+    return getSwitchId();
   }
-  void setLoopbackIps(const std::vector<std::string>& loopbackIps) {
-    *writableFields()->writableData().loopbackIps() = loopbackIps;
-  }
-  const cfg::Range64& getSystemPortRange() const {
-    return *getFields()->data().systemPortRange();
-  }
+  SwitchID getSwitchId() const;
+  std::string getName() const;
+  void setName(const std::string& name);
+  cfg::DsfNodeType getType() const;
+
+  auto getLoopbackIps() const;
+  void setLoopbackIps(const std::vector<std::string>& loopbackIps);
+  cfg::Range64 getSystemPortRange() const;
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyBaseT<cfg::DsfNode, DsfNode, DsfNodeFields>::ThriftyBaseT;
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 } // namespace facebook::fboss
