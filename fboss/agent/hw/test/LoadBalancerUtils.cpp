@@ -19,6 +19,7 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
@@ -179,7 +180,8 @@ void pumpTraffic(
     VlanID vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic,
     int hopLimit,
-    std::optional<folly::MacAddress> srcMacAddr) {
+    std::optional<folly::MacAddress> srcMacAddr,
+    int numPkts) {
   folly::MacAddress srcMac(
       srcMacAddr.has_value() ? *srcMacAddr
                              : MacAddressGenerator().get(dstMac.u64HBO() + 1));
@@ -187,22 +189,24 @@ void pumpTraffic(
     for (auto dstIp : dstIps) {
       CHECK_EQ(srcIp.isV4(), dstIp.isV4());
       for (auto i = 0; i < streams; i++) {
-        auto pkt = makeUDPTxPacket(
-            hw,
-            vlan,
-            srcMac,
-            dstMac,
-            srcIp,
-            dstIp,
-            srcPort + i,
-            dstPort + i,
-            0,
-            hopLimit);
-        if (frontPanelPortToLoopTraffic) {
-          hw->sendPacketOutOfPortSync(
-              std::move(pkt), frontPanelPortToLoopTraffic.value());
-        } else {
-          hw->sendPacketSwitchedSync(std::move(pkt));
+        while (numPkts--) {
+          auto pkt = makeUDPTxPacket(
+              hw,
+              vlan,
+              srcMac,
+              dstMac,
+              srcIp,
+              dstIp,
+              srcPort + i,
+              dstPort + i,
+              0,
+              hopLimit);
+          if (frontPanelPortToLoopTraffic) {
+            hw->sendPacketOutOfPortSync(
+                std::move(pkt), frontPanelPortToLoopTraffic.value());
+          } else {
+            hw->sendPacketSwitchedSync(std::move(pkt));
+          }
         }
       }
     }

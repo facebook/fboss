@@ -70,7 +70,8 @@ void pumpTraffic(
     VlanID vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
     int hopLimit = 255,
-    std::optional<folly::MacAddress> srcMac = std::nullopt);
+    std::optional<folly::MacAddress> srcMac = std::nullopt,
+    int numPkts = 1000);
 
 void pumpDeterministicRandomTraffic(
     bool isV6,

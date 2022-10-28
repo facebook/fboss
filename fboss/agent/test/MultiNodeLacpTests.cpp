@@ -11,6 +11,7 @@
 #include <folly/init/Init.h>
 #include <gtest/gtest.h>
 #include <memory>
+#include <thread>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/LacpMachines.h"
@@ -56,7 +57,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
     }
   }
 
- private:
+ protected:
   cfg::SwitchConfig initialConfig() const override {
     return getConfigWithAggPort();
   }
@@ -66,7 +67,6 @@ class MultiNodeLacpTest : public MultiNodeTest {
     MultiNodeTest::setCmdLineFlagOverrides();
   }
 
- protected:
   cfg::SwitchConfig getConfigWithAggPort(
       cfg::LacpPortRate rate = cfg::LacpPortRate::SLOW) const {
     auto config = utility::multiplePortsPerIntfConfig(
@@ -429,4 +429,69 @@ TEST_F(MultiNodeDisruptiveTest, LacpTimeout) {
     }
   };
   verifyAcrossWarmBoots(verify);
+}
+
+class MultiNodeRoutingLoop : public MultiNodeLacpTest {
+ public:
+  void SetUp() override {
+    MultiNodeLacpTest::SetUp();
+  }
+
+  cfg::SwitchConfig initialConfig() const override {
+    auto config = getConfigWithAggPort();
+
+    for (auto& lb : *config.loadBalancers()) {
+      if (*lb.id() != cfg::LoadBalancerID::AGGREGATE_PORT) {
+        continue;
+      }
+      // setting up as per prod, DUT is uu and REMOTE is DU
+      lb.seed() = isDUT() ? 0x35f25a4a : 0xd277bc20;
+    }
+    setupRoute(&config, prefix_, 1);
+    return config;
+  }
+
+  void createL3DataplaneFlood() {
+    XLOG(INFO) << "creating data plane flood";
+    disableTTLDecrementsForRoute<folly::IPAddressV6>(prefix_);
+    auto state = sw()->getState();
+    auto vlan = (*state->getVlans()->begin())->getID();
+    auto srcMac = state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
+    auto destMac =
+        getNeighborEntry(
+            getNeighborIpAddrs<folly::IPAddressV6>()[0],
+            state->getInterfaces()->getInterfaceInVlan(vlan)->getID())
+            .first;
+    utility::pumpTraffic(
+        sw()->getHw(),
+        destMac,
+        {folly::IPAddress("200::10")},
+        {folly::IPAddress("100::10")},
+        1024,
+        1024,
+        1,
+        vlan,
+        std::nullopt,
+        255,
+        srcMac);
+  }
+
+  const RoutePrefix<folly::IPAddressV6> prefix_{
+      folly::IPAddressV6("100::10"),
+      126};
+};
+
+TEST_F(MultiNodeRoutingLoop, LoopTraffic) {
+  auto setup = [=]() {
+    verifyInitialState();
+    verifyReachability(prefix_);
+    if (!isDUT()) {
+      createL3DataplaneFlood();
+    }
+  };
+  auto verify = [=]() {
+    std::this_thread::sleep_for(3s);
+    assertNoInDiscards(1000);
+  };
+  verifyAcrossWarmBoots(setup, verify, setup, verify);
 }
