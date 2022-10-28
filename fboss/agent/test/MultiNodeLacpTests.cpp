@@ -172,42 +172,69 @@ class MultiNodeLacpTest : public MultiNodeTest {
       }
     }
   }
-  void verifyReachability() const {
-    const auto dstIpV4s = getNeighborIpAddrs<folly::IPAddressV4>();
-    const auto dstIpV6s = getNeighborIpAddrs<folly::IPAddressV6>();
 
-    auto verifyNeighborEntries = [=](const auto& aggId,
-                                     const auto& vlanId,
-                                     const auto& dstIpV4,
-                                     const auto& dstIpV6) {
-      checkNeighborResolved(
-          folly::IPAddress(dstIpV4), vlanId, PortDescriptor(aggId));
-      checkNeighborResolved(
-          folly::IPAddress(dstIpV6), vlanId, PortDescriptor(aggId));
-    };
-    auto verify = [=](const auto& aggId,
-                      const auto& dstIpV4,
-                      const auto& dstIpV6,
-                      const auto& vlanId) {
-      std::string pingCmd = "ping -c 5 ";
-      std::string resultStr;
-      std::string errStr;
-      EXPECT_TRUE(facebook::process::Process::execShellCmd(
-          pingCmd + dstIpV4.str(), &resultStr, &errStr));
-      EXPECT_TRUE(facebook::process::Process::execShellCmd(
-          pingCmd + dstIpV6.str(), &resultStr, &errStr));
-      // Verify neighbor entries
-      verifyNeighborEntries(aggId, vlanId, dstIpV4, dstIpV6);
-    };
-    auto idx = 0;
-    for (const auto& aggId : getAggPorts()) {
-      verify(
-          aggId,
-          dstIpV4s[idx],
-          dstIpV6s[idx],
-          VlanID(*getConfigWithAggPort().interfaces()[idx].vlanID()));
-      idx++;
+  void verifyReachability(
+      folly::IPAddress& dstIp,
+      VlanID vlan,
+      AggregatePortID aggPort) const {
+    std::string pingCmd = dstIp.isV4() ? "ping -c 5 " : "ping6 -c 5 ";
+    std::string resultStr;
+    std::string errStr;
+    EXPECT_TRUE(facebook::process::Process::execShellCmd(
+        pingCmd + dstIp.str(), &resultStr, &errStr));
+    checkNeighborResolved(dstIp, vlan, PortDescriptor(aggPort));
+  }
+
+  template <typename AddrT>
+  void verifyReachability(const RoutePrefix<AddrT>& prefix) const {
+    std::vector<folly::IPAddress> nexthops{};
+    auto config = getConfigWithAggPort();
+    for (auto route : *config.staticRoutesWithNhops()) {
+      if (*route.prefix() == prefix.str()) {
+        for (auto nexthop : *route.nexthops()) {
+          nexthops.push_back(folly::IPAddress(nexthop));
+        }
+        break;
+      }
     }
+    auto vlans = getVlanIDs();
+    auto aggPorts = getAggPorts();
+    for (auto i = 0; i < nexthops.size(); i++) {
+      verifyReachability(nexthops[i], vlans[i], aggPorts[i]);
+    }
+  }
+
+  std::vector<VlanID> getVlanIDs() const {
+    std::vector<VlanID> vlans{};
+    for (auto aggPort : getAggPorts()) {
+      vlans.push_back(getVlanID(aggPort));
+    }
+    return vlans;
+  }
+
+  VlanID getVlanID(AggregatePortID aggPortID) const {
+    auto config = initialConfig();
+    PortID memberPort{};
+    for (auto aggPort : *config.aggregatePorts()) {
+      if (AggregatePortID(*aggPort.key()) != aggPortID) {
+        continue;
+      }
+      for (auto memberPort : *aggPort.memberPorts()) {
+        for (auto vlanPort : *config.vlanPorts()) {
+          if (*vlanPort.logicalPort() == *memberPort.memberPortID()) {
+            return VlanID(*vlanPort.vlanID());
+          }
+        }
+      }
+    }
+    throw FbossError("VLAN not found for aggPort:", aggPortID);
+  }
+
+  void verifyReachability() {
+    verifyReachability(
+        RoutePrefix<folly::IPAddressV4>({folly::IPAddressV4("0.0.0.0"), 0}));
+    verifyReachability(
+        RoutePrefix<folly::IPAddressV6>({folly::IPAddressV6("::"), 0}));
   }
 
   void verifyInitialState() {
