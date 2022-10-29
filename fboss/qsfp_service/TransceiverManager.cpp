@@ -1716,7 +1716,7 @@ std::vector<TransceiverID> TransceiverManager::refreshTransceivers(
     XLOG(INFO) << "Finished refreshing " << nTransceivers << " transceivers";
   }
 
-  publishTransceiversToFsdb();
+  publishTransceiversToFsdb(transceiverIds);
 
   return transceiverIds;
 }

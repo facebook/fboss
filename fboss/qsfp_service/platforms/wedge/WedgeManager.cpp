@@ -370,22 +370,37 @@ std::vector<TransceiverID> WedgeManager::refreshTransceivers() {
   return TransceiverManager::refreshTransceivers(kEmptryTransceiverIDs);
 }
 
-void WedgeManager::publishTransceiversToFsdb() {
+void WedgeManager::publishTransceiversToFsdb(
+    const std::vector<TransceiverID>& ids) {
   if (!FLAGS_publish_stats_to_fsdb) {
     return;
   }
 
-  QsfpFsdbSyncManager::TcvrStatsMap stats;
   TcvrInfoMap tcvrInfos;
-  getTransceiversInfo(
-      tcvrInfos,
-      std::make_unique<std::vector<int32_t>>(std::vector<int32_t>()));
+  getTransceiversInfo(tcvrInfos, std::make_unique<std::vector<int32_t>>());
+
+  // Publish states on refreshed transceivers
+  for (int32_t id : ids.empty() ? folly::gen::range(0, getNumQsfpModules()) |
+               folly::gen::eachAs<TransceiverID>() |
+               folly::gen::as<std::vector<TransceiverID>>()
+                                : ids) {
+    auto iter = tcvrInfos.find(id);
+    if (iter == tcvrInfos.end()) {
+      continue;
+    }
+    if (auto tcvrState = iter->second.tcvrState()) {
+      fsdbSyncManager_->updateTcvrState(id, std::move(*tcvrState));
+    }
+  }
+
+  // Publish all stats (No deltas. Just publish the best we have for all
+  // transceivers.)
+  QsfpFsdbSyncManager::TcvrStatsMap stats;
   for (const auto& [id, info] : tcvrInfos) {
     if (info.tcvrStats()) {
       stats[id] = *info.tcvrStats();
     }
   }
-  // TODO: tcvrState
   fsdbSyncManager_->updateTcvrStats(std::move(stats));
 }
 
