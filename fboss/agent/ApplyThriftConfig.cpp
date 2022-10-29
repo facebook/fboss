@@ -835,7 +835,8 @@ std::shared_ptr<DsfNodeMap> ThriftConfigApplier::updateDsfNodes() {
   auto newNodes = std::make_shared<DsfNodeMap>();
   newNodes->fromThrift(*cfg_->dsfNodes());
   bool changed = false;
-  for (const auto& [id, newNode] : *newNodes) {
+  for (const auto& idAndNode : *newNodes) {
+    auto newNode = idAndNode.second;
     auto origNode = origNodes->getDsfNodeIf(newNode->getID());
     if (!origNode || *origNode != *newNode) {
       changed |= true;
