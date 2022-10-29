@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/ApplyThriftConfig.h"
 
+#include <fboss/thrift_cow/nodes/ThriftMapNode-inl.h>
 #include <folly/FileUtil.h>
 #include <folly/gen/Base.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -394,6 +395,7 @@ class ThriftConfigApplier {
       const cfg::IpInIpTunnel* config);
   std::shared_ptr<IpTunnelMap> updateIpInIpTunnels();
   std::shared_ptr<DsfNodeMap> updateDsfNodes();
+  void processUpdatedDsfNodes();
 
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
@@ -747,6 +749,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newDsfNodes = updateDsfNodes();
     if (newDsfNodes) {
       new_->resetDsfNodes(std::move(newDsfNodes));
+      processUpdatedDsfNodes();
       changed = true;
     }
   }
@@ -755,6 +758,60 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     return nullptr;
   }
   return new_;
+}
+
+void ThriftConfigApplier::processUpdatedDsfNodes() {
+  thrift_cow::ThriftMapDelta delta(
+      orig_->getDsfNodes().get(), new_->getDsfNodes().get());
+  auto getRecyclePortId = [](const std::shared_ptr<DsfNode>& node) {
+    return *node->getSystemPortRange().minimum() + 1;
+  };
+  auto shouldProcess = [this](const std::shared_ptr<DsfNode>& node) {
+    auto mySwitchId = new_->getSwitchSettings()->getSwitchId();
+    CHECK(mySwitchId) << " Dsf node config requires switch ID to be set";
+    if (SwitchID(*mySwitchId) == node->getSwitchId()) {
+      // Local recycle port information is available in config itself.
+      return false;
+    }
+    // Only creating recycle ports for INs in current HW platforms
+    return node->getType() == cfg::DsfNodeType::INTERFACE_NODE;
+  };
+  auto addDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
+    if (!shouldProcess(node)) {
+      return;
+    }
+    auto recyclePortId = getRecyclePortId(node);
+    auto sysPort = std::make_shared<SystemPort>(SystemPortID(recyclePortId));
+    sysPort->setSwitchId(node->getSwitchId());
+    sysPort->setPortName(folly::sformat("{}:rcy1", node->getName()));
+    // TODO - make core idx, core port idx and speed ASIC dependent
+    sysPort->setCoreIndex(0);
+    sysPort->setCorePortIndex(1);
+    sysPort->setSpeedMbps(10000); // 10G
+    sysPort->setNumVoqs(8);
+    sysPort->setEnabled(true);
+    auto sysPorts = new_->getSystemPorts()->clone();
+    sysPorts->addNode(sysPort);
+    new_->resetSystemPorts(sysPorts);
+  };
+  auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
+    if (!shouldProcess(node)) {
+      return;
+    }
+    auto recyclePortId = getRecyclePortId(node);
+    auto sysPorts = new_->getSystemPorts()->clone();
+    sysPorts->removeNode(SystemPortID(recyclePortId));
+    new_->resetSystemPorts(sysPorts);
+  };
+
+  DeltaFunctions::forEachChanged(
+      delta,
+      [&](auto oldNode, auto newNode) {
+        rmDsfNode(oldNode);
+        addDsfNode(newNode);
+      },
+      [&](auto newNode) { addDsfNode(newNode); },
+      [&](auto oldNode) { rmDsfNode(oldNode); });
 }
 
 std::shared_ptr<DsfNodeMap> ThriftConfigApplier::updateDsfNodes() {

@@ -98,18 +98,25 @@ TEST(DsfNode, dsfNodeApplyConfig) {
 
   ASSERT_NE(nullptr, stateV2);
   EXPECT_EQ(stateV2->getDsfNodes()->size(), 2);
+  EXPECT_EQ(
+      stateV2->getSystemPorts()->size(), stateV1->getSystemPorts()->size() + 1);
 
   // Update node
   config.dsfNodes()->erase(2);
-  config.dsfNodes()->insert(
-      {2, makeDsfNodeCfg(2, cfg::DsfNodeType::FABRIC_NODE)});
+  auto updatedDsfNode = makeDsfNodeCfg(2);
+  updatedDsfNode.name() = "newName";
+  config.dsfNodes()->insert({2, updatedDsfNode});
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   ASSERT_NE(nullptr, stateV3);
   EXPECT_EQ(stateV3->getDsfNodes()->size(), 2);
+  EXPECT_EQ(
+      stateV3->getSystemPorts()->size(), stateV2->getSystemPorts()->size());
 
   // Erase node
   config.dsfNodes()->erase(2);
   auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   ASSERT_NE(nullptr, stateV4);
   EXPECT_EQ(stateV4->getDsfNodes()->size(), 1);
+  EXPECT_EQ(
+      stateV4->getSystemPorts()->size(), stateV3->getSystemPorts()->size() - 1);
 }
