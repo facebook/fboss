@@ -101,17 +101,21 @@ shared_ptr<SwitchState> setAllPortState(
   }
   return newState;
 }
+
+std::vector<std::string> getLoopbackIps(int64_t switchIdVal) {
+  CHECK_LT(switchIdVal, 10) << " Switch Id >= 10, not supported";
+
+  auto v6 = folly::sformat("20{}::1/64", switchIdVal);
+  auto v4 = folly::sformat("20{}.0.0.1/24", switchIdVal);
+  return {v6, v4};
+}
+
 cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
   cfg::SwitchConfig cfg;
   cfg.switchSettings()->switchType() = switchType;
   if (switchType != cfg::SwitchType::NPU) {
     cfg.switchSettings()->switchId() = 1;
-    cfg::DsfNode myNode;
-    myNode.switchId() = *cfg.switchSettings()->switchId();
-    myNode.name() = "switch1";
-    myNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-    myNode.systemPortRange()->minimum() = 100;
-    myNode.systemPortRange()->maximum() = 200;
+    cfg::DsfNode myNode = makeDsfNodeCfg(1);
     cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
   }
 
@@ -193,6 +197,18 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
 } // namespace
 
 namespace facebook::fboss {
+
+cfg::DsfNode makeDsfNodeCfg(int64_t switchId, cfg::DsfNodeType type) {
+  cfg::DsfNode dsfNodeCfg;
+  dsfNodeCfg.switchId() = switchId;
+  dsfNodeCfg.name() = folly::sformat("dsfNodeCfg{}", switchId);
+  dsfNodeCfg.type() = type;
+  const auto kBlockSize{100};
+  dsfNodeCfg.systemPortRange()->minimum() = switchId * kBlockSize;
+  dsfNodeCfg.systemPortRange()->maximum() = switchId * kBlockSize + kBlockSize;
+  dsfNodeCfg.loopbackIps() = getLoopbackIps(switchId);
+  return dsfNodeCfg;
+}
 
 cfg::SwitchConfig testConfigA(cfg::SwitchType switchType) {
   return testConfigAImpl(false, switchType);

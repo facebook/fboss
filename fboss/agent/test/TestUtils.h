@@ -86,6 +86,9 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithHW(
     std::unique_ptr<MockPlatform> platform,
     const std::shared_ptr<SwitchState>& state,
     SwitchFlags flags);
+cfg::DsfNode makeDsfNodeCfg(
+    int64_t switchId = 0,
+    cfg::DsfNodeType type = cfg::DsfNodeType::INTERFACE_NODE);
 /*
  * Get the MockHwSwitch from a SwSwitch.
  */

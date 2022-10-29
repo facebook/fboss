@@ -16,27 +16,11 @@
 
 using namespace facebook::fboss;
 
-std::vector<std::string> getLoopbackIps(int64_t switchIdVal) {
-  CHECK_LT(switchIdVal, 10) << " Switch Id >= 10, not supported";
-
-  auto v6 = folly::sformat("20{}::1/64", switchIdVal);
-  auto v4 = folly::sformat("20{}.0.0.1/24", switchIdVal);
-  return {v6, v4};
-}
-
 std::shared_ptr<DsfNode> makeDsfNode(
     int64_t switchId = 0,
     cfg::DsfNodeType type = cfg::DsfNodeType::INTERFACE_NODE) {
-  cfg::DsfNode dsfNodeCfg;
-  dsfNodeCfg.switchId() = switchId;
-  dsfNodeCfg.name() = folly::sformat("dsfNodeCfg{}", switchId);
-  dsfNodeCfg.type() = type;
-  const auto kBlockSize{100};
-  dsfNodeCfg.systemPortRange()->minimum() = switchId * kBlockSize;
-  dsfNodeCfg.systemPortRange()->maximum() = switchId * kBlockSize + kBlockSize;
-  dsfNodeCfg.loopbackIps() = getLoopbackIps(switchId);
   auto dsfNode = std::make_shared<DsfNode>(SwitchID(switchId));
-  dsfNode->fromThrift(dsfNodeCfg);
+  dsfNode->fromThrift(makeDsfNodeCfg(switchId, type));
   return dsfNode;
 }
 
@@ -93,4 +77,25 @@ TEST(DsfNode, update) {
   state->getDsfNodes()->updateNode(newDsfNode);
 
   EXPECT_NE(*dsfNode, *state->getDsfNodes()->getNode(1));
+}
+
+TEST(DsfNode, publish) {
+  auto state = std::make_shared<SwitchState>();
+  state->publish();
+  EXPECT_TRUE(state->getDsfNodes()->isPublished());
+}
+
+TEST(DsfNode, dsfNodeApplyConfigAddNodes) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigA(cfg::SwitchType::VOQ);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  EXPECT_EQ(stateV1->getDsfNodes()->size(), 1);
+  config.dsfNodes()->erase(2);
+  config.dsfNodes()->insert({2, makeDsfNodeCfg(2)});
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+
+  ASSERT_NE(nullptr, stateV2);
+  EXPECT_EQ(stateV2->getDsfNodes()->size(), 2);
 }
