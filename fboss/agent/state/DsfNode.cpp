@@ -44,6 +44,10 @@ cfg::Range64 DsfNode::getSystemPortRange() const {
   return get<switch_config_tags::systemPortRange>()->toThrift();
 }
 
+folly::MacAddress DsfNode::getMac() const {
+  return folly::MacAddress(get<switch_config_tags::nodeMac>()->cref());
+}
+
 std::shared_ptr<DsfNode> DsfNode::fromFollyDynamic(
     const folly::dynamic& entry) {
   auto node = std::make_shared<DsfNode>();

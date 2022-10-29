@@ -1518,6 +1518,7 @@ struct DsfNode {
   3: DsfNodeType type;
   4: list<string> loopbackIps;
   5: Range64 systemPortRange;
+  6: string nodeMac = "02:00:00:00:0F:0B";
 }
 /**
  * The configuration for a switch.
