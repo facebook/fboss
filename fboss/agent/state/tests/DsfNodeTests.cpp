@@ -85,17 +85,31 @@ TEST(DsfNode, publish) {
   EXPECT_TRUE(state->getDsfNodes()->isPublished());
 }
 
-TEST(DsfNode, dsfNodeApplyConfigAddNodes) {
+TEST(DsfNode, dsfNodeApplyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
   EXPECT_EQ(stateV1->getDsfNodes()->size(), 1);
-  config.dsfNodes()->erase(2);
+  // Add node
   config.dsfNodes()->insert({2, makeDsfNodeCfg(2)});
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
 
   ASSERT_NE(nullptr, stateV2);
   EXPECT_EQ(stateV2->getDsfNodes()->size(), 2);
+
+  // Update node
+  config.dsfNodes()->erase(2);
+  config.dsfNodes()->insert(
+      {2, makeDsfNodeCfg(2, cfg::DsfNodeType::FABRIC_NODE)});
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
+  ASSERT_NE(nullptr, stateV3);
+  EXPECT_EQ(stateV3->getDsfNodes()->size(), 2);
+
+  // Erase node
+  config.dsfNodes()->erase(2);
+  auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
+  ASSERT_NE(nullptr, stateV4);
+  EXPECT_EQ(stateV4->getDsfNodes()->size(), 1);
 }
