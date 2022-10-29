@@ -101,6 +101,9 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   EXPECT_EQ(
       stateV2->getRemoteSystemPorts()->size(),
       stateV1->getRemoteSystemPorts()->size() + 1);
+  EXPECT_EQ(
+      stateV2->getRemoteInterfaces()->size(),
+      stateV1->getRemoteInterfaces()->size() + 1);
 
   // Update node
   config.dsfNodes()->erase(2);
@@ -113,6 +116,9 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   EXPECT_EQ(
       stateV3->getRemoteSystemPorts()->size(),
       stateV2->getRemoteSystemPorts()->size());
+  EXPECT_EQ(
+      stateV3->getRemoteInterfaces()->size(),
+      stateV2->getRemoteInterfaces()->size());
 
   // Erase node
   config.dsfNodes()->erase(2);
@@ -122,4 +128,7 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   EXPECT_EQ(
       stateV4->getRemoteSystemPorts()->size(),
       stateV3->getRemoteSystemPorts()->size() - 1);
+  EXPECT_EQ(
+      stateV4->getRemoteInterfaces()->size(),
+      stateV3->getRemoteInterfaces()->size() - 1);
 }
