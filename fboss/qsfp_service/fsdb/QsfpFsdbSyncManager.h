@@ -32,6 +32,7 @@ class QsfpFsdbSyncManager {
   void stop();
 
   void updateConfig(cfg::QsfpServiceConfig newConfig);
+  void updateTcvrState(int32_t tcvrId, TcvrState&& state);
   void updateTcvrStats(TcvrStatsMap&& stats);
 
  private:

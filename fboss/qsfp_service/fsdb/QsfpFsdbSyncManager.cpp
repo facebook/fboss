@@ -61,6 +61,27 @@ void QsfpFsdbSyncManager::updateConfig(cfg::QsfpServiceConfig newConfig) {
   });
 }
 
+void QsfpFsdbSyncManager::updateTcvrState(
+    int32_t tcvrId,
+    TcvrState&& newState) {
+  if (!FLAGS_publish_state_to_fsdb) {
+    return;
+  }
+
+  stateSyncer_->updateState([tcvrId,
+                             newState = std::move(newState)](const auto& in) {
+    auto out = in->clone();
+    out->template modify<state::qsfp_state_tags::strings::state>();
+    auto& state = out->template ref<state::qsfp_state_tags::strings::state>();
+    state->template modify<state::qsfp_state_tags::strings::tcvrStates>();
+    auto& tcvrStates =
+        state->template ref<state::qsfp_state_tags::strings::tcvrStates>();
+    tcvrStates->modify(folly::to<std::string>(tcvrId));
+    tcvrStates->ref(tcvrId)->fromThrift(newState);
+    return out;
+  });
+}
+
 void QsfpFsdbSyncManager::updateTcvrStats(std::map<int, TcvrStats>&& stats) {
   if (!FLAGS_publish_stats_to_fsdb) {
     return;
