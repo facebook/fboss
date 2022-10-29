@@ -793,6 +793,19 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     auto sysPorts = new_->getRemoteSystemPorts()->clone();
     sysPorts->addNode(sysPort);
     new_->resetRemoteSystemPorts(sysPorts);
+    auto intf = std::make_shared<Interface>(
+        InterfaceID(recyclePortId),
+        RouterID(0),
+        std::nullopt,
+        sysPort->getPortName(),
+        node->getMac(),
+        9000,
+        true,
+        true,
+        cfg::InterfaceType::SYSTEM_PORT);
+    auto intfs = new_->getRemoteInterfaces()->clone();
+    intfs->addNode(intf);
+    new_->resetRemoteIntfs(intfs);
   };
   auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
     if (!shouldProcess(node)) {
@@ -802,6 +815,9 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     auto sysPorts = new_->getRemoteSystemPorts()->clone();
     sysPorts->removeNode(SystemPortID(recyclePortId));
     new_->resetRemoteSystemPorts(sysPorts);
+    auto intfs = new_->getRemoteInterfaces()->clone();
+    intfs->removeNode(InterfaceID(recyclePortId));
+    new_->resetRemoteIntfs(intfs);
   };
 
   DeltaFunctions::forEachChanged(
