@@ -393,6 +393,7 @@ class ThriftConfigApplier {
       const std::shared_ptr<IpTunnel>& orig,
       const cfg::IpInIpTunnel* config);
   std::shared_ptr<IpTunnelMap> updateIpInIpTunnels();
+  std::shared_ptr<DsfNodeMap> updateDsfNodes();
 
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
@@ -742,12 +743,46 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         << "Normalizer failed to initialize, skipping loading counter tags";
   }
 
+  {
+    auto newDsfNodes = updateDsfNodes();
+    if (newDsfNodes) {
+      new_->resetDsfNodes(std::move(newDsfNodes));
+      changed = true;
+    }
+  }
+
   if (!changed) {
     return nullptr;
   }
   return new_;
 }
 
+std::shared_ptr<DsfNodeMap> ThriftConfigApplier::updateDsfNodes() {
+  auto origNodes = orig_->getDsfNodes();
+  auto newNodes = std::make_shared<DsfNodeMap>();
+  newNodes->fromThrift(*cfg_->dsfNodes());
+  bool changed = false;
+  for (const auto& [id, newNode] : *newNodes) {
+    auto origNode = origNodes->getDsfNodeIf(newNode->getID());
+    if (!origNode || *origNode != *newNode) {
+      changed |= true;
+    } else {
+      newNodes->updateNode(origNode);
+    }
+  }
+  // We accounted for all nodes in config, now
+  // account of any old nodes that may not be
+  // present in config. For this just comparing
+  // size is enough, since
+  // a. If a node got removed, we would see a delta in size
+  // b. If size remained the same and nodes got updated we would
+  // see a delta in the loop above
+  changed |= (origNodes->size() != newNodes->size());
+  if (changed) {
+    return newNodes;
+  }
+  return nullptr;
+}
 void ThriftConfigApplier::processVlanPorts() {
   // Build the Port --> Vlan mappings
   //

@@ -425,7 +425,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->teFlowTable;
   }
 
-  const std::shared_ptr<DsfNodeMap>& dsfNodes() const {
+  const std::shared_ptr<DsfNodeMap>& getDsfNodes() const {
     return getFields()->dsfNodes;
   }
 
@@ -477,6 +477,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void addTunnel(const std::shared_ptr<IpTunnel>& tunnel);
   void resetTunnels(std::shared_ptr<IpTunnelMap> tunnels);
   void resetTeFlowTable(std::shared_ptr<TeFlowTable> teFlowTable);
+  void resetDsfNodes(std::shared_ptr<DsfNodeMap> dsfNodes);
 
   void resetRemoteSystemPorts(std::shared_ptr<SystemPortMap> systemPorts);
   void resetRemoteIntfs(std::shared_ptr<InterfaceMap> intfs);

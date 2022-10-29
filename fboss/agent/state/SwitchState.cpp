@@ -611,6 +611,10 @@ void SwitchState::resetTeFlowTable(std::shared_ptr<TeFlowTable> flowTable) {
   writableFields()->teFlowTable.swap(flowTable);
 }
 
+void SwitchState::resetDsfNodes(std::shared_ptr<DsfNodeMap> dsfNodes) {
+  writableFields()->dsfNodes.swap(dsfNodes);
+}
+
 std::shared_ptr<AclTableMap> SwitchState::getAclTablesForStage(
     cfg::AclStage aclStage) const {
   if (getAclTableGroups() &&
