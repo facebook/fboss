@@ -99,7 +99,8 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   ASSERT_NE(nullptr, stateV2);
   EXPECT_EQ(stateV2->getDsfNodes()->size(), 2);
   EXPECT_EQ(
-      stateV2->getSystemPorts()->size(), stateV1->getSystemPorts()->size() + 1);
+      stateV2->getRemoteSystemPorts()->size(),
+      stateV1->getRemoteSystemPorts()->size() + 1);
 
   // Update node
   config.dsfNodes()->erase(2);
@@ -110,7 +111,8 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   ASSERT_NE(nullptr, stateV3);
   EXPECT_EQ(stateV3->getDsfNodes()->size(), 2);
   EXPECT_EQ(
-      stateV3->getSystemPorts()->size(), stateV2->getSystemPorts()->size());
+      stateV3->getRemoteSystemPorts()->size(),
+      stateV2->getRemoteSystemPorts()->size());
 
   // Erase node
   config.dsfNodes()->erase(2);
@@ -118,5 +120,6 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   ASSERT_NE(nullptr, stateV4);
   EXPECT_EQ(stateV4->getDsfNodes()->size(), 1);
   EXPECT_EQ(
-      stateV4->getSystemPorts()->size(), stateV3->getSystemPorts()->size() - 1);
+      stateV4->getRemoteSystemPorts()->size(),
+      stateV3->getRemoteSystemPorts()->size() - 1);
 }

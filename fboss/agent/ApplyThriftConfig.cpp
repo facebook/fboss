@@ -790,18 +790,18 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     sysPort->setSpeedMbps(10000); // 10G
     sysPort->setNumVoqs(8);
     sysPort->setEnabled(true);
-    auto sysPorts = new_->getSystemPorts()->clone();
+    auto sysPorts = new_->getRemoteSystemPorts()->clone();
     sysPorts->addNode(sysPort);
-    new_->resetSystemPorts(sysPorts);
+    new_->resetRemoteSystemPorts(sysPorts);
   };
   auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
     if (!shouldProcess(node)) {
       return;
     }
     auto recyclePortId = getRecyclePortId(node);
-    auto sysPorts = new_->getSystemPorts()->clone();
+    auto sysPorts = new_->getRemoteSystemPorts()->clone();
     sysPorts->removeNode(SystemPortID(recyclePortId));
-    new_->resetSystemPorts(sysPorts);
+    new_->resetRemoteSystemPorts(sysPorts);
   };
 
   DeltaFunctions::forEachChanged(
