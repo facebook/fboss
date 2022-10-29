@@ -46,8 +46,8 @@ cfg::Range64 DsfNode::getSystemPortRange() const {
 
 std::shared_ptr<DsfNode> DsfNode::fromFollyDynamic(
     const folly::dynamic& entry) {
-  auto node = std::make_shared<Node>();
-  node->fromFollyDynamic(entry);
+  auto node = std::make_shared<DsfNode>();
+  static_cast<std::shared_ptr<BaseT>>(node)->fromFollyDynamic(entry);
   return node;
 }
 
