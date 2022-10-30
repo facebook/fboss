@@ -472,7 +472,7 @@ struct SaiPortSerdesTraits {
     using RxAfeAdaptiveEnable = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeRxAfeAdaptiveEnableWrapper>;
-#if defined(TAJO_SDK_VERSION_1_56_1)
+#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
     struct AttributeRxChannelReachWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -616,7 +616,7 @@ struct SaiPortSerdesTraits {
       std::optional<Attributes::RxAfeTrim>,
       std::optional<Attributes::RxAcCouplingByPass>,
       std::optional<Attributes::RxAfeAdaptiveEnable>
-#if defined(TAJO_SDK_VERSION_1_56_1)
+#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
       ,
       std::optional<Attributes::RxChannelReach>,
       std::optional<Attributes::RxDiffEncoderEn>,
@@ -655,7 +655,7 @@ SAI_ATTRIBUTE_NAME(PortSerdes, RxAfeTrim);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxAcCouplingByPass);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxAfeAdaptiveEnable);
 
-#if defined(TAJO_SDK_VERSION_1_56_1)
+#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
 SAI_ATTRIBUTE_NAME(PortSerdes, RxChannelReach);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxDiffEncoderEn);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxFbfCoefInitVal);

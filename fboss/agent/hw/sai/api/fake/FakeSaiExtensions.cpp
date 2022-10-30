@@ -68,7 +68,7 @@ std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
   return SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_AFE_ADAPTIVE_ENABLE;
 }
 
-#if defined(TAJO_SDK_VERSION_1_56_1)
+#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxChannelReachWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_RX_CHANNEL_REACH;

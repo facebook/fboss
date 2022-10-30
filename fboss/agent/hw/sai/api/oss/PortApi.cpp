@@ -29,7 +29,7 @@ std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
   return std::nullopt;
 }
 
-#if defined(TAJO_SDK_VERSION_1_56_1)
+#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxChannelReachWrapper::operator()() {
   return std::nullopt;

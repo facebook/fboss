@@ -612,7 +612,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
   SaiPortSerdesTraits::Attributes::RxAcCouplingByPass::ValueType
       rxAcCouplingByPass;
 
-#if defined(TAJO_SDK_VERSION_1_56_1)
+#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
   SaiPortSerdesTraits::Attributes::TxDiffEncoderEn::ValueType txDiffEncoderEn;
   SaiPortSerdesTraits::Attributes::TxDigGain::ValueType txDigGain;
   SaiPortSerdesTraits::Attributes::TxFfeCoeff0::ValueType txFfeCoeff0;
@@ -651,7 +651,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       if (auto driveCurrent = tx->driveCurrent()) {
         txIDriver.push_back(driveCurrent.value());
       }
-#if defined(TAJO_SDK_VERSION_1_56_1)
+#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
       if (auto diffEncoderEn = tx->diffEncoderEn()) {
         txDiffEncoderEn.push_back(diffEncoderEn.value());
       }
@@ -695,7 +695,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       if (auto acCouplingByPass = rx->acCouplingBypass()) {
         rxAcCouplingByPass.push_back(*acCouplingByPass);
       }
-#if defined(TAJO_SDK_VERSION_1_56_1)
+#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
       if (auto channelReach = rx->channelReach()) {
         rxChannelReach.push_back(*channelReach);
       }
@@ -749,7 +749,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         attrs, SaiPortSerdesTraits::Attributes::Preemphasis{}, preempahsis);
   }
 
-#if defined(TAJO_SDK_VERSION_1_56_1)
+#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
   setTxRxAttr(
       attrs,
       SaiPortSerdesTraits::Attributes::TxDiffEncoderEn{},
@@ -825,7 +825,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         attrs,
         SaiPortSerdesTraits::Attributes::RxAcCouplingByPass{},
         rxAcCouplingByPass);
-#if defined(TAJO_SDK_VERSION_1_56_1)
+#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
     setTxRxAttr(
         attrs,
         SaiPortSerdesTraits::Attributes::RxChannelReach{},

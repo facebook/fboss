@@ -88,7 +88,7 @@ class PortApiTest : public ::testing::Test {
 #endif
           rxCtlCode, rxDspMode, rxAfeTrim, rxAcCouplingByPass,
           rxAfeAdaptiveEnable
-#if defined(TAJO_SDK_VERSION_1_56_1)
+#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
           ,
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
