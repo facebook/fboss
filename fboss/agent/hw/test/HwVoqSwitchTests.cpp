@@ -363,7 +363,7 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
     const auto srcMac = folly::MacAddress("00:00:01:02:03:04");
     const auto dstMac = utility::kLocalCpuMac();
 
-    auto [beforeOutPkts, beforeOutBytes] =
+    auto [beforeQueueOutPkts, beforeQueueOutBytes] =
         utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), kDefaultQueue);
 
     auto txPacket = utility::makeUDPTxPacket(
@@ -375,6 +375,7 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
         dstIp,
         8000, // l4 src port
         8001); // l4 dst port
+    size_t txPacketSize = txPacket->buf()->length();
     XLOG(DBG3) << "\n"
                << folly::hexDump(
                       txPacket->buf()->data(), txPacket->buf()->length());
@@ -382,11 +383,18 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
     const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(txPacket), port);
 
-    auto [afterOutPkts, afterOutBytes] =
+    auto [afterQueueOutPkts, afterQueueOutBytes] =
         utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), kDefaultQueue);
 
-    // CS00012267860
-    EXPECT_EQ(afterOutPkts - 1, beforeOutPkts);
+    XLOG(DBG2) << "Stats:: beforeQueueOutPkts: " << beforeQueueOutPkts
+               << " beforeQueueOutBytes: " << beforeQueueOutBytes
+               << " txPacketSize: " << txPacketSize
+               << " afterQueueOutPkts: " << afterQueueOutPkts
+               << " afterQueueOutBytes: " << afterQueueOutBytes;
+
+    EXPECT_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
+    // CS00012267635: debug why queue counter is 362, when txPacketSize is 322
+    EXPECT_GE(afterQueueOutBytes, beforeQueueOutBytes);
   };
 
   verifyAcrossWarmBoots([] {}, verify);
