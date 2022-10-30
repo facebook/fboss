@@ -29,6 +29,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         getAsic()->desiredLoopbackMode(),
         true /*interfaceHasSubnet*/);
     addCpuTrafficPolicy(cfg);
+    addCpuDefaultQueueConfig(cfg);
     return cfg;
   }
   void SetUp() override {
@@ -52,6 +53,17 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     }
     cpuConfig.rxReasonToQueueOrderedList() = rxReasonToQueues;
     cfg.cpuTrafficPolicy() = cpuConfig;
+  }
+  void addCpuDefaultQueueConfig(cfg::SwitchConfig& cfg) const {
+    std::vector<cfg::PortQueue> cpuQueues;
+
+    cfg::PortQueue queue0;
+    queue0.id() = kDefaultQueue;
+    queue0.name() = "cpuQueue-default";
+    queue0.streamType() = utility::getCpuDefaultStreamType(this->getAsic());
+
+    cpuQueues.push_back(queue0);
+    *cfg.cpuQueues() = cpuQueues;
   }
 
  protected:
