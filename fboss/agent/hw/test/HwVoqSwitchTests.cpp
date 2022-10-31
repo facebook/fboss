@@ -21,6 +21,8 @@ namespace {
 const SwitchID kRemoteSwitchId(2);
 }
 class HwVoqSwitchTest : public HwLinkStateDependentTest {
+  using pktReceivedCb = folly::Function<void(RxPacket* pkt) const>;
+
  public:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
@@ -230,7 +232,23 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  void packetReceived(RxPacket* pkt) noexcept override {
+    auto receivedCallback = pktReceivedCallback_.lock();
+    if (*receivedCallback) {
+      (*receivedCallback)(pkt);
+    }
+  }
+
+  void registerPktReceivedCallback(pktReceivedCb callback) {
+    *pktReceivedCallback_.lock() = std::move(callback);
+  }
+
+  void unRegisterPktReceivedCallback() {
+    *pktReceivedCallback_.lock() = nullptr;
+  }
+
  private:
+  folly::Synchronized<pktReceivedCb, std::mutex> pktReceivedCallback_;
   HwSwitchEnsemble::Features featuresDesired() const override {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
   }
