@@ -57,27 +57,29 @@ sai_bridge_port_fdb_learning_mode_t SaiBridgeManager::getFdbLearningMode(
       fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW;
       break;
     case cfg::L2LearningMode::SOFTWARE:
-      fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION;
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::PENDING_L2_ENTRY)) {
+        // entry learnt and but not forwarding packets in hw (in pending state),
+        // fboss need to validate entry in fdb callback
+        fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION;
+      } else {
+        // entry learnt and forwarding packets in hw (in validated state),
+        // fboss may update fdb entry in fdb callback if necessary
+        fdbLearningMode = SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW;
+      }
       break;
   }
   return fdbLearningMode;
 }
 
 cfg::L2LearningMode SaiBridgeManager::getL2LearningMode() const {
-  switch (fdbLearningMode_) {
-    case SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW:
-      return cfg::L2LearningMode::HARDWARE;
-    case SAI_BRIDGE_PORT_FDB_LEARNING_MODE_FDB_NOTIFICATION:
-      return cfg::L2LearningMode::SOFTWARE;
-    default:
-      break;
-  }
-  throw FbossError("unsupported fdb learning mode ", fdbLearningMode_);
+  return mode_;
 }
 
 void SaiBridgeManager::setL2LearningMode(
     std::optional<cfg::L2LearningMode> l2LearningMode) {
   if (l2LearningMode) {
+    mode_ = l2LearningMode.value();
     fdbLearningMode_ = getFdbLearningMode(l2LearningMode.value());
   }
   XLOG(DBG2) << "FDB learning mode set to "

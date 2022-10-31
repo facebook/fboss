@@ -54,6 +54,7 @@ class SaiBridgeManager {
   std::unique_ptr<SaiBridgeHandle> bridgeHandle_;
   sai_bridge_port_fdb_learning_mode_t fdbLearningMode_{
       SAI_BRIDGE_PORT_FDB_LEARNING_MODE_HW};
+  cfg::L2LearningMode mode_{cfg::L2LearningMode::HARDWARE};
 };
 
 } // namespace facebook::fboss
