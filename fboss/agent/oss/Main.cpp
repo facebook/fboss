@@ -15,4 +15,6 @@ void fbossFinalize() {}
 
 void setVersionInfo() {}
 
+void initializeBitsflow() {}
+
 } // namespace facebook::fboss

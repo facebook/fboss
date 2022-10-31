@@ -125,5 +125,6 @@ int fbossMain(
     PlatformInitFn initPlatform);
 void fbossFinalize();
 void setVersionInfo();
+void initializeBitsflow();
 
 } // namespace facebook::fboss

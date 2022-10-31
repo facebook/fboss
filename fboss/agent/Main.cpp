@@ -252,6 +252,9 @@ void AgentInitializer::createSwitch(
     XLOG(DBG2) << "Could not open /dev/null ";
   }
 
+  // Initialize Bitsflow for agent
+  initializeBitsflow();
+
   // Now that we have parsed the command line flags, create the Platform
   // object
   unique_ptr<Platform> platform =
