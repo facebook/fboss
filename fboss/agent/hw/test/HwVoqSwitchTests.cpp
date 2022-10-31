@@ -381,20 +381,42 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
     const auto srcMac = folly::MacAddress("00:00:01:02:03:04");
     const auto dstMac = utility::kLocalCpuMac();
 
+    auto createTxPacket = [this, srcMac, dstMac, kSrcIp, dstIp]() {
+      return utility::makeUDPTxPacket(
+          getHwSwitch(),
+          std::nullopt, // vlanID
+          srcMac,
+          dstMac,
+          kSrcIp,
+          dstIp,
+          8000, // l4 src port
+          8001); // l4 dst port
+    };
+
+    auto pktReceiveHandler = [createTxPacket](RxPacket* rxPacket) {
+      XLOG(DBG3) << "RX Packet Dump::"
+                 << folly::hexDump(
+                        rxPacket->buf()->data(), rxPacket->buf()->length());
+
+      auto txPacket = createTxPacket();
+      EXPECT_EQ(txPacket->buf()->length(), rxPacket->buf()->length());
+      // CS00012268673: debug why trapped pkt is different from injected pkt
+      EXPECT_EQ(
+          0,
+          memcmp(
+              txPacket->buf()->data(),
+              rxPacket->buf()->data(),
+              rxPacket->buf()->length()));
+    };
+
+    registerPktReceivedCallback(pktReceiveHandler);
+
     auto [beforeQueueOutPkts, beforeQueueOutBytes] =
         utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), kDefaultQueue);
 
-    auto txPacket = utility::makeUDPTxPacket(
-        getHwSwitch(),
-        std::nullopt, // vlanID
-        srcMac,
-        dstMac,
-        kSrcIp,
-        dstIp,
-        8000, // l4 src port
-        8001); // l4 dst port
+    auto txPacket = createTxPacket();
     size_t txPacketSize = txPacket->buf()->length();
-    XLOG(DBG3) << "\n"
+    XLOG(DBG3) << "TX Packet Dump::"
                << folly::hexDump(
                       txPacket->buf()->data(), txPacket->buf()->length());
 
@@ -413,6 +435,8 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
     EXPECT_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
     // CS00012267635: debug why queue counter is 362, when txPacketSize is 322
     EXPECT_GE(afterQueueOutBytes, beforeQueueOutBytes);
+
+    unRegisterPktReceivedCallback();
   };
 
   verifyAcrossWarmBoots([] {}, verify);
