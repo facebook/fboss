@@ -38,7 +38,6 @@ class LoadBalancerMap
     : public ThriftMapNode<LoadBalancerMap, LoadBalancerMapTraits> {
  public:
   using Base = ThriftMapNode<LoadBalancerMap, LoadBalancerMapTraits>;
-  using StorageType = typename Base::Fields::StorageType;
 
   using Base::Base;
 

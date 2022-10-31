@@ -430,7 +430,11 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
       if (ThriftyUtils::nodeNeedsMigration(item)) {
         auto key = ThriftyTraitsT::template getKeyFromLegacyNode<KeyType>(
             item, ThriftyTraitsT::getThriftKeyName());
-        newItems[key] = TraitsT::Node::Fields::migrateToThrifty(item);
+        if constexpr (!kUseThriftStructNodeBase<typename TraitsT::Node>) {
+          newItems[key] = TraitsT::Node::Fields::migrateToThrifty(item);
+        } else {
+          newItems[key] = TraitsT::Node::LegacyFields::migrateToThrifty(item);
+        }
       } else {
         newItems[item[ThriftyTraitsT::getThriftKeyName()].asString()] = item;
       }
@@ -452,7 +456,11 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
 
     for (auto key : keys) {
       auto& item = dyn[key];
-      TraitsT::Node::Fields::migrateFromThrifty(item);
+      if constexpr (!kUseThriftStructNodeBase<typename TraitsT::Node>) {
+        TraitsT::Node::Fields::migrateFromThrifty(item);
+      } else {
+        TraitsT::Node::LegacyFields::migrateFromThrifty(item);
+      }
       if (!item.getDefault(ThriftyUtils::kThriftySchemaUpToDate, false)
                .asBool()) {
         schemaUpToDate = false;
@@ -670,6 +678,7 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits> {
   using Node = typename Base::mapped_type::element_type;
   using KeyType = typename Traits::KeyType;
   using Base::Base;
+  using NodeContainer = typename Base::Fields::StorageType;
 
   virtual ~ThriftMapNode() {}
 
