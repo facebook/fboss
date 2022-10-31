@@ -73,7 +73,6 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
-    case HwAsic::Feature::PFC:
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::SAI_ECN_WRED:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
@@ -98,6 +97,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
     case HwAsic::Feature::SFLOW_SAMPLING:
+    case HwAsic::Feature::PFC:
       return getAsicMode() != AsicMode::ASIC_MODE_SIM;
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::QCM:
