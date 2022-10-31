@@ -387,7 +387,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           platform_->getInterfaceType(transmitterTech, speed)) {
     interfaceType = saiInterfaceType.value();
   }
-
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+  std::optional<SaiPortTraits::Attributes::InterFrameGap> interFrameGap;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::MACSEC) &&
+      portProfileConfig.interPacketGapBits().has_value()) {
+    interFrameGap = *portProfileConfig.interPacketGapBits();
+  }
+#endif
   auto ptpStatusOpt = managerTable_->switchManager().getPtpTcEnabled();
   uint16_t vlanId = swPort->getIngressVlan();
   auto systemPortId = getSystemPortId(platform_, swPort->getID());
@@ -420,7 +426,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // TC to Priority Group map
         std::nullopt, // PFC Priority to Queue map
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
-        std::nullopt, // Inter Frame Gap
+        interFrameGap, // Inter Frame Gap
 #endif
         std::nullopt, // Link Training Enable
   };
