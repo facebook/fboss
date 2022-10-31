@@ -58,6 +58,9 @@ class PortApiTest : public ::testing::Test {
 #endif
           std::nullopt, // TC to Priority Group map
           std::nullopt, // PFC Priority to Queue map
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+          std::nullopt, // Inter frame gap
+#endif
           std::nullopt, // Link Training Enable
     };
     return portApi->create<SaiPortTraits>(a, 0);
@@ -317,6 +320,16 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   portApi->setAttribute(portId, ptpMode);
   auto gotPtpMode = portApi->getAttribute(portId, ptpMode);
   EXPECT_EQ(gotPtpMode, saiPtpMode);
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+  // Inter frame gap
+  uint32_t interFrameGap = 352;
+  portApi->setAttribute(
+      portId, SaiPortTraits::Attributes::InterFrameGap{interFrameGap});
+  auto gotInterFrameGap =
+      portApi->getAttribute(portId, SaiPortTraits::Attributes::InterFrameGap{});
+  EXPECT_EQ(interFrameGap, gotInterFrameGap);
+#endif
 }
 
 // ObjectApi tests

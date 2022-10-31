@@ -254,6 +254,13 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_RX_LOCK_STATUS,
         std::vector<sai_port_lane_latch_status_t>>;
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+    using InterFrameGap = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_IPG,
+        sai_uint32_t,
+        SaiInt96Default>;
+#endif
     using LinkTrainingEnable = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_LINK_TRAINING_ENABLE,
@@ -302,8 +309,10 @@ struct SaiPortTraits {
 #endif
       std::optional<Attributes::QosTcToPriorityGroupMap>,
       std::optional<Attributes::QosPfcPriorityToQueueMap>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      std::optional<Attributes::InterFrameGap>,
+#endif
       std::optional<Attributes::LinkTrainingEnable>>;
-
   static constexpr std::array<sai_stat_id_t, 32> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,          SAI_PORT_STAT_IF_IN_UCAST_PKTS,
       SAI_PORT_STAT_IF_IN_MULTICAST_PKTS,  SAI_PORT_STAT_IF_IN_BROADCAST_PKTS,
@@ -383,6 +392,9 @@ SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToQueueMap)
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
 SAI_ATTRIBUTE_NAME(Port, RxSignalDetect)
 SAI_ATTRIBUTE_NAME(Port, RxLockStatus)
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+SAI_ATTRIBUTE_NAME(Port, InterFrameGap)
 #endif
 SAI_ATTRIBUTE_NAME(Port, LinkTrainingEnable)
 

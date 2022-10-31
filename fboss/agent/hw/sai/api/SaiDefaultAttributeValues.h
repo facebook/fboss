@@ -40,6 +40,12 @@ struct SaiInt1Default {
   }
 };
 
+struct SaiInt96Default {
+  sai_uint32_t operator()() const {
+    return 96;
+  }
+};
+
 template <typename SaiIntT>
 struct SaiInt100Default {
   SaiIntT operator()() const {

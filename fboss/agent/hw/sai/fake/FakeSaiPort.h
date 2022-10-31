@@ -77,6 +77,9 @@ struct FakePort {
   sai_uint32_t numberOfIngressPriorityGroups{0};
   sai_object_id_t qosTcToPriorityGroupMap{SAI_NULL_OBJECT_ID};
   sai_object_id_t qosPfcPriorityToQueueMap{SAI_NULL_OBJECT_ID};
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+  sai_uint32_t interFrameGap{96};
+#endif
   bool linkTrainingEnable{false};
 };
 
