@@ -761,6 +761,15 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
 }
 
 void ThriftConfigApplier::processUpdatedDsfNodes() {
+  auto mySwitchId = new_->getSwitchSettings()->getSwitchId();
+  CHECK(mySwitchId) << " Dsf node config requires switch ID to be set";
+  auto origDsfNode = orig_->getDsfNodes()->getNodeIf(*mySwitchId);
+  if (origDsfNode &&
+      origDsfNode->getType() !=
+          new_->getDsfNodes()->getNodeIf(*mySwitchId)->getType()) {
+    throw FbossError("Change in DSF node type is not supported");
+  }
+
   thrift_cow::ThriftMapDelta delta(
       orig_->getDsfNodes().get(), new_->getDsfNodes().get());
   auto getRecyclePortId = [](const std::shared_ptr<DsfNode>& node) {
@@ -768,7 +777,6 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
   };
   auto shouldProcess = [this](const std::shared_ptr<DsfNode>& node) {
     auto mySwitchId = new_->getSwitchSettings()->getSwitchId();
-    CHECK(mySwitchId) << " Dsf node config requires switch ID to be set";
     if (SwitchID(*mySwitchId) == node->getSwitchId()) {
       // Local recycle port information is available in config itself.
       return false;
