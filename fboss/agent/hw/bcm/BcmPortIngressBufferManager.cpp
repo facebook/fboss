@@ -431,20 +431,14 @@ const PortPgConfig& getDefaultPriorityGroupSettings() {
 }
 
 const BufferPoolCfg& getTH3DefaultIngressPoolSettings() {
-  static const BufferPoolCfg bufferPoolCfg{BufferPoolCfgFields{
-      kDefaultBufferPoolName,
-      kDefaultSharedBytesTh3,
-      kDefaultHeadroomBytesTh3,
-  }};
+  static const BufferPoolCfg bufferPoolCfg(
+      kDefaultBufferPoolName, kDefaultSharedBytesTh3, kDefaultHeadroomBytesTh3);
   return bufferPoolCfg;
 }
 
 const BufferPoolCfg& getTH4DefaultIngressPoolSettings() {
-  static const BufferPoolCfg bufferPoolCfg{BufferPoolCfgFields{
-      kDefaultBufferPoolName,
-      kDefaultSharedBytesTh4,
-      kDefaultHeadroomBytesTh4,
-  }};
+  static const BufferPoolCfg bufferPoolCfg(
+      kDefaultBufferPoolName, kDefaultSharedBytesTh4, kDefaultHeadroomBytesTh4);
   return bufferPoolCfg;
 }
 

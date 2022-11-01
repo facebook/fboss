@@ -75,8 +75,8 @@ PortPgFields PortPgFields::fromThrift(state::PortPgFields const& portPgThrift) {
   }
   portPg.bufferPoolName = portPgThrift.bufferPoolName().value();
   if (auto bufferPoolConfig = portPgThrift.bufferPoolConfig()) {
-    portPg.bufferPoolConfigPtr = std::make_shared<BufferPoolCfg>(
-        BufferPoolCfgFields::fromThrift(*bufferPoolConfig));
+    portPg.bufferPoolConfigPtr =
+        std::make_shared<BufferPoolCfg>(*bufferPoolConfig);
   }
   return portPg;
 }
