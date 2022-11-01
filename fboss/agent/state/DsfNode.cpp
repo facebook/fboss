@@ -12,7 +12,6 @@
 #include "fboss/agent/gen-cpp2/switch_config_fatal_types.h"
 
 namespace facebook::fboss {
-using switch_config_tags = cfg::switch_config_tags::strings;
 
 DsfNode::DsfNode(SwitchID switchId) : ThriftStructNode<cfg::DsfNode>() {
   set<switch_config_tags::switchId>(switchId);
@@ -30,10 +29,6 @@ void DsfNode::setName(const std::string& name) {
 
 cfg::DsfNodeType DsfNode::getType() const {
   return get<switch_config_tags::type>()->cref();
-}
-
-auto DsfNode::getLoopbackIps() const {
-  return get<switch_config_tags::loopbackIps>();
 }
 
 void DsfNode::setLoopbackIps(const std::vector<std::string>& loopbackIps) {

@@ -31,7 +31,9 @@ class DsfNode : public ThriftStructNode<cfg::DsfNode> {
   void setName(const std::string& name);
   cfg::DsfNodeType getType() const;
 
-  auto getLoopbackIps() const;
+  auto getLoopbackIps() const {
+    return get<switch_config_tags::loopbackIps>();
+  }
   void setLoopbackIps(const std::vector<std::string>& loopbackIps);
   cfg::Range64 getSystemPortRange() const;
   folly::MacAddress getMac() const;
