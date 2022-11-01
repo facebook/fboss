@@ -87,7 +87,7 @@ class BcmQcmManager {
   void setupPortsForMonitoring(const Port2QosQueueIdMap& portMap);
   void setupConfiguredPortsForMonitoring(
       const std::shared_ptr<SwitchState>& swState,
-      const std::vector<int32_t>& qcmPortList);
+      auto* qcmPortList);
 
   // destroy routines
   void deleteIfpEntries();

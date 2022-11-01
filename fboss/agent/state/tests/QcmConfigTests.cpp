@@ -44,7 +44,7 @@ TEST(QcmConfigTest, applyConfig) {
   EXPECT_TRUE(qcmConfig1);
   EXPECT_FALSE(qcmConfig1->isPublished());
   EXPECT_EQ(qcmConfig1->getNumFlowsClear(), 22);
-  EXPECT_EQ(qcmConfig1->getFlowWeightMap(), map);
+  EXPECT_EQ(qcmConfig1->getFlowWeightMap()->toThrift(), map);
   // default should kick in
   EXPECT_EQ(
       qcmConfig1->getNumFlowSamplesPerView(),
@@ -60,18 +60,18 @@ TEST(QcmConfigTest, applyConfig) {
       folly::CIDRNetwork(folly::IPAddress("11.11.11.0"), 24));
   EXPECT_FALSE(qcmConfig1->getMonitorQcmCfgPortsOnly());
   auto portList = qcmConfig1->getMonitorQcmPortList();
-  EXPECT_EQ(portList.size(), 0);
+  EXPECT_EQ(portList->size(), 0);
   // verify port2QosQueueIds field
   int initPortId = 1;
   int initQosQueueId = 0;
   auto port2QosQueueIds = qcmConfig1->getPort2QosQueueIdMap();
-  for (const auto& perPortQosQueueIds : port2QosQueueIds) {
+  auto perPortQosQueueIdsThrift = port2QosQueueIds->toThrift();
+  for (const auto& perPortQosQueueIds : perPortQosQueueIdsThrift) {
     EXPECT_EQ(perPortQosQueueIds.first, initPortId++);
     for (const auto& qosQueueId : perPortQosQueueIds.second) {
       EXPECT_EQ(qosQueueId, initQosQueueId++);
     }
   }
-  validateThriftyMigration(*qcmConfig1);
 
   // re-program the map
   map.emplace(1, 9);
@@ -96,23 +96,23 @@ TEST(QcmConfigTest, applyConfig) {
   EXPECT_FALSE(qcmConfig2->isPublished());
   EXPECT_EQ(qcmConfig2->getNumFlowsClear(), 22);
   EXPECT_EQ(qcmConfig2->getNumFlowSamplesPerView(), 11);
-  EXPECT_EQ(qcmConfig2->getFlowWeightMap(), map);
+  EXPECT_EQ(qcmConfig2->getFlowWeightMap()->toThrift(), map);
   EXPECT_EQ(qcmConfig2->getFlowLimit(), 13);
   EXPECT_EQ(qcmConfig2->getAgingInterval(), 21);
   EXPECT_EQ(qcmConfig2->getCollectorDscp(), 20);
   EXPECT_EQ(qcmConfig2->getPpsToQcm(), 1000);
   EXPECT_TRUE(qcmConfig2->getMonitorQcmCfgPortsOnly());
   portList = qcmConfig2->getMonitorQcmPortList();
-  EXPECT_EQ(4, portList.size());
+  EXPECT_EQ(4, portList->size());
 
   port2QosQueueIds = qcmConfig2->getPort2QosQueueIdMap();
-  for (const auto& perPortQosQueueIds : port2QosQueueIds) {
+  auto port2QosQueueIdsThrift = port2QosQueueIds->toThrift();
+  for (const auto& perPortQosQueueIds : port2QosQueueIdsThrift) {
     EXPECT_EQ(perPortQosQueueIds.first, initPortId++);
     for (const auto& qosQueueId : perPortQosQueueIds.second) {
       EXPECT_EQ(qosQueueId, initQosQueueId++);
     }
   }
-  validateThriftyMigration(*qcmConfig2);
 
   // remove the cfg
   config.qcmConfig().reset();
@@ -162,8 +162,8 @@ TEST(QcmConfigTest, ToFromJSON) {
            "monitorQcmCfgPortsOnly": true
         }
   )";
-
-  auto qcmCfg = QcmCfg::fromFollyDynamic(folly::parseJson(jsonStr));
+  auto fields = QcmCfgFields::fromFollyDynamic(folly::parseJson(jsonStr));
+  auto qcmCfg = std::make_shared<QcmCfg>(fields.toThrift());
   EXPECT_EQ(10, qcmCfg->getAgingInterval());
   EXPECT_EQ(10, qcmCfg->getNumFlowSamplesPerView());
   EXPECT_EQ(10, qcmCfg->getFlowLimit());
@@ -175,7 +175,8 @@ TEST(QcmConfigTest, ToFromJSON) {
   int initPortId = 10;
   int initQosQueueId = 0;
   const auto& port2QosQueueIds = qcmCfg->getPort2QosQueueIdMap();
-  for (const auto& perPortQosQueueIds : port2QosQueueIds) {
+  auto port2QosQueueIdsThrift = port2QosQueueIds->toThrift();
+  for (const auto& perPortQosQueueIds : port2QosQueueIdsThrift) {
     EXPECT_EQ(perPortQosQueueIds.first, initPortId++);
     for (const auto& qosQueueId : perPortQosQueueIds.second) {
       EXPECT_EQ(qosQueueId, initQosQueueId++);
@@ -184,7 +185,7 @@ TEST(QcmConfigTest, ToFromJSON) {
 
   int weightKeyValues = 0;
   int weightDataValues = 1;
-  for (const auto& weight : qcmCfg->getFlowWeightMap()) {
+  for (const auto weight : std::as_const(*qcmCfg->getFlowWeightMap())) {
     EXPECT_EQ(weight.first, weightKeyValues++);
     EXPECT_EQ(weight.second, weightDataValues++);
   }
@@ -198,8 +199,7 @@ TEST(QcmConfigTest, ToFromJSON) {
       folly::CIDRNetwork(folly::IPAddress("10::01"), 128),
       qcmCfg->getCollectorSrcIp());
   auto portList = qcmCfg->getMonitorQcmPortList();
-  EXPECT_EQ(portList.size(), 3);
-  validateThriftyMigration(*qcmCfg);
+  EXPECT_EQ(portList->size(), 3);
 }
 
 // Intent of this test is to enable QCM, modify an
@@ -232,5 +232,4 @@ TEST(QcmConfigTest, verifyQcmWithSwitchSettingsChange) {
   auto qcmConfig1 = state1->getQcmCfg();
   EXPECT_NE(nullptr, qcmConfig1);
   EXPECT_EQ(qcmConfig1->getNumFlowsClear(), 22);
-  validateThriftyMigration(*qcmConfig1);
 }

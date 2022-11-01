@@ -452,13 +452,14 @@ QosQueueIds BcmQcmManager::getQosQueueIds(
   // QCM queues to be monitored comes from config
   // Today QCM will monitor icp, silver, gold, bronze queues on the port
   // (olympic qos model) or upto first 5 queues if queue_per_host is enabled.
-  const auto& port2QosQueueIdMap = qcmCfg->getPort2QosQueueIdMap();
+  const auto& port2QosQueueIdMap =
+      std::as_const(*qcmCfg->getPort2QosQueueIdMap());
   auto iter = port2QosQueueIdMap.find(portId);
   if (iter == port2QosQueueIdMap.end()) {
     XLOG(ERR) << "Unable to find QosQueueIds for port: " << portId;
     return {};
   }
-  return iter->second;
+  return iter->second->toThrift();
 }
 
 // find the candidate ports needed for monitoring
@@ -534,10 +535,11 @@ void BcmQcmManager::processQcmConfigChanged(
 // in programming (as qcm ports are limited)
 void BcmQcmManager::setupConfiguredPortsForMonitoring(
     const std::shared_ptr<SwitchState>& swState,
-    const std::vector<int32_t>& qcmPortList) {
+    auto* qcmPortList) {
   Port2QosQueueIdMap candidatePortMap{};
-  for (const auto& port : qcmPortList) {
-    candidatePortMap[port] = getQosQueueIds(swState->getQcmCfg(), port);
+  for (auto port : *qcmPortList) {
+    candidatePortMap[port->cref()] =
+        getQosQueueIds(swState->getQcmCfg(), port->cref());
   }
   updateQcmMonitoredPortsIfNeeded(candidatePortMap);
 }
@@ -600,7 +602,8 @@ void BcmQcmManager::init(const std::shared_ptr<SwitchState>& swState) {
 
   // Configured ports get priority in monitoring
   // these are the uplnk ports today, but can be configured differently
-  setupConfiguredPortsForMonitoring(swState, qcmCfg_->getMonitorQcmPortList());
+  setupConfiguredPortsForMonitoring(
+      swState, qcmCfg_->getMonitorQcmPortList().get());
   /* create collector */
   qcmCollector_->init(swState);
 

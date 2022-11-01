@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/state/SwitchState.h"
+#include <memory>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/AclEntry.h"
@@ -217,7 +218,8 @@ SwitchStateFields SwitchStateFields::fromThrift(
   }
   fields.interfaces = InterfaceMap::fromThrift(*state.interfaceMap());
   if (auto qcmConfig = state.qcmCfg()) {
-    fields.qcmCfg = QcmCfg::fromThrift(*qcmConfig);
+    fields.qcmCfg = std::make_shared<QcmCfg>();
+    fields.qcmCfg->fromThrift(*qcmConfig);
   }
   fields.loadBalancers->fromThrift(*state.loadBalancerMap());
   fields.switchSettings = SwitchSettings::fromThrift(*state.switchSettings());
@@ -342,7 +344,9 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
   }
 
   if (swJson.find(kQcmCfg) != swJson.items().end()) {
-    switchState.qcmCfg = QcmCfg::fromFollyDynamic(swJson[kQcmCfg]);
+    auto fields = QcmCfgFields::fromFollyDynamic(swJson[kQcmCfg]);
+    switchState.qcmCfg = std::make_shared<QcmCfg>();
+    switchState.qcmCfg->fromThrift(fields.toThrift());
   }
   if (swJson.find(kBufferPoolCfgs) != swJson.items().end()) {
     switchState.bufferPoolCfgs =
