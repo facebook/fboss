@@ -29,8 +29,6 @@ using LoadBalancerMapThriftType =
 using LoadBalancerMapTraits = thrift_cow::
     ThriftMapTraits<LoadBalancerMapTypeClass, LoadBalancerMapThriftType>;
 
-ADD_THRIFT_MAP_RESOLVER_MAPPING(LoadBalancerMapTraits, LoadBalancerMap);
-
 /*
  * A container for the set of load-balancing data-plane entities.
  */

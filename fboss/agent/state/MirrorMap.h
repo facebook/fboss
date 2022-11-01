@@ -20,8 +20,6 @@ using MirrorMapThriftType = std::map<std::string, state::MirrorFields>;
 using MirrorMapTraits =
     thrift_cow::ThriftMapTraits<MirrorMapTypeClass, MirrorMapThriftType>;
 
-ADD_THRIFT_MAP_RESOLVER_MAPPING(MirrorMapTraits, MirrorMap);
-
 class MirrorMap : public ThriftMapNode<MirrorMap, MirrorMapTraits> {
  public:
   using BaseT = ThriftMapNode<MirrorMap, MirrorMapTraits>;

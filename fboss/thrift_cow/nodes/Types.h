@@ -38,7 +38,7 @@ class ThriftListNode;
 template <typename Traits>
 struct ThriftMapFields;
 
-template <typename Traits>
+template <typename Traits, typename>
 class ThriftMapNode;
 
 template <typename TypeClass, typename TType>

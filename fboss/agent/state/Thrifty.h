@@ -675,9 +675,16 @@ class ThriftyBaseT : public ThriftyBaseBase<NodeT, FieldsT> {
   }
 };
 
-template <typename MAP, typename Traits>
-struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits> {
-  using Base = thrift_cow::ThriftMapNode<Traits>;
+template <
+    typename MAP,
+    typename Traits,
+#if __cplusplus <= 202001L
+    typename Resolver = std::enable_if<true, MAP>>
+#else
+    typename Resolver = std::type_identity<MAP>>
+#endif
+struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
+  using Base = thrift_cow::ThriftMapNode<Traits, Resolver>;
   using Node = typename Base::mapped_type::element_type;
   using KeyType = typename Traits::KeyType;
   using Base::Base;

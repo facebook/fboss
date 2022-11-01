@@ -26,7 +26,7 @@ template <typename Traits>
 struct ThriftMapResolver {
   // if resolver is not specialized for given thrift type, default to
   // ThriftStructNode
-  using type = ThriftMapNode<Traits>;
+  using type = ThriftMapNode<Traits, ThriftMapResolver<Traits>>;
 };
 
 #define ADD_THRIFT_RESOLVER_MAPPING(ThriftType, CppType)                 \
@@ -90,11 +90,16 @@ struct ConvertToNodeTraits<apache::thrift::type_class::list<ValueT>, TType> {
   using isChild = std::true_type;
 };
 
-template <typename TypeClass, typename TType>
+template <
+    typename TypeClass,
+    typename TType,
+    template <typename...> typename ConvertToNodeTraitsT = ConvertToNodeTraits>
 struct ThriftMapTraits {
   using TC = TypeClass;
   using Type = TType;
   using KeyType = typename TType::key_type;
+  template <typename... T>
+  using ConvertToNodeTraits = ConvertToNodeTraitsT<T...>;
 };
 
 template <typename KeyT, typename ValueT, typename TType>

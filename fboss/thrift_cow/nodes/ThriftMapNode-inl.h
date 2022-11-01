@@ -51,7 +51,8 @@ struct ThriftMapFields {
   using ValueTypeClass =
       typename map_helpers::ExtractTypeClass<TypeClass>::value_type;
   using ValueTType = typename TType::mapped_type;
-  using ValueTraits = ConvertToNodeTraits<ValueTypeClass, ValueTType>;
+  using ValueTraits =
+      typename Traits::template ConvertToNodeTraits<ValueTypeClass, ValueTType>;
   using key_type = typename TType::key_type;
   using value_type = typename ValueTraits::type;
   using StorageType = std::map<key_type, value_type>;
@@ -263,18 +264,18 @@ struct ThriftMapFields {
   StorageType storage_;
 };
 
-template <typename Traits>
+template <typename Traits, typename Resolver = ThriftMapResolver<Traits>>
 class ThriftMapNode
-    : public NodeBaseT<ResolvedMapType<Traits>, ThriftMapFields<Traits>> {
+    : public NodeBaseT<typename Resolver::type, ThriftMapFields<Traits>> {
  public:
   using TypeClass = typename Traits::TC;
   using TType = typename Traits::Type;
 
-  using Self = ThriftMapNode<Traits>;
+  using Self = ThriftMapNode<Traits, Resolver>;
   using Fields = ThriftMapFields<Traits>;
   using ThriftType = typename Fields::ThriftType;
-  using BaseT = NodeBaseT<ResolvedMapType<Traits>, Fields>;
-  using Derived = ResolvedMapType<Traits>;
+  using Derived = typename Resolver::type;
+  using BaseT = NodeBaseT<Derived, Fields>;
   using CowType = NodeType;
   using key_type = typename Fields::key_type;
   using value_type = typename Fields::value_type;
