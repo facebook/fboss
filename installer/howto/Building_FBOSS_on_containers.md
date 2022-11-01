@@ -99,6 +99,7 @@ From container running on VM -
 ```
 export SAI_ONLY=1
 export SAI_BRCM_IMPL=1 # Needed only for BRCM SAI
+export GETDEPS_USE_WGET=1
 cd /var/FBOSS/fboss.git
 time ./build/fbcode_builder/getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss
 ```
