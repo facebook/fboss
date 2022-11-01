@@ -803,6 +803,12 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         true,
         true,
         cfg::InterfaceType::SYSTEM_PORT);
+    InterfaceFields::Addresses addresses;
+    for (auto& loopbackSubnet : *node->getLoopbackIps()) {
+      addresses.insert(
+          folly::IPAddress::createNetwork(loopbackSubnet->toThrift()));
+    }
+    intf->setAddresses(std::move(addresses));
     auto intfs = new_->getRemoteInterfaces()->clone();
     intfs->addNode(intf);
     new_->resetRemoteIntfs(intfs);
