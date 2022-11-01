@@ -29,8 +29,10 @@ namespace facebook::fboss {
 using switch_state_tags = state::switch_state_tags::strings;
 using switch_config_tags = cfg::switch_config_tags::strings;
 
-template <typename TType>
-using ThriftStructNode = thrift_cow::ThriftStructNode<TType>;
+template <
+    typename TType,
+    typename Resolver = thrift_cow::ThriftStructResolver<TType>>
+using ThriftStructNode = thrift_cow::ThriftStructNode<TType, Resolver>;
 
 template <typename NodeT>
 struct ThriftStructNodeBase {

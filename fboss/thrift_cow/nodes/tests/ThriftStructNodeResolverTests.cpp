@@ -59,4 +59,41 @@ TEST(ThriftStructNodeResolverTests, DerivedParentTestStructNodeTest) {
   EXPECT_EQ(node.getChild()->getInlineInt(), 321);
 }
 
+template <typename Dervived, typename Resolver>
+struct ThriftStructNodeMulti : public ThriftStructNode<TestStruct, Resolver> {
+ public:
+  using Base = ThriftStructNode<TestStruct, Resolver>;
+  using Base::Base;
+
+  int getInlineInt() const {
+    return this->template get<k::inlineInt>()->ref();
+  }
+
+  void setInlineInt(int i) {
+    this->template set<k::inlineInt>(i);
+  }
+
+ private:
+  friend class CloneAllocator;
+};
+
+struct StructA;
+struct StructB;
+
+struct StructA
+    : public ThriftStructNodeMulti<StructA, std::type_identity<StructA>> {};
+
+struct StructB
+    : public ThriftStructNodeMulti<StructA, std::type_identity<StructB>> {};
+
+TEST(ThriftStructNodeResolverTests, MultipleResolversSameStruct) {
+  auto a = std::make_shared<StructA>();
+  auto b = std::make_shared<StructB>();
+  a->setInlineInt(100);
+  b->setInlineInt(100);
+  static_assert(!std::is_same_v<StructA, StructB>, "Same");
+  EXPECT_EQ(a->toThrift(), b->toThrift());
+  a->setInlineInt(200);
+  EXPECT_NE(a->toThrift(), b->toThrift());
+}
 } // namespace facebook::fboss::thrift_cow

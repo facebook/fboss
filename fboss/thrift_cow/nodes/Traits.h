@@ -19,7 +19,7 @@ template <typename TType>
 struct ThriftStructResolver {
   // if resolver is not specialized for given thrift type, default to
   // ThriftStructNode
-  using type = ThriftStructNode<TType>;
+  using type = ThriftStructNode<TType, ThriftStructResolver<TType>>;
 };
 
 template <typename Traits>
@@ -64,7 +64,7 @@ struct ConvertToNodeTraits {
 
 template <typename TType>
 struct ConvertToNodeTraits<apache::thrift::type_class::structure, TType> {
-  using default_type = ThriftStructNode<TType>;
+  using default_type = ThriftStructNode<TType, ThriftStructResolver<TType>>;
   using struct_type = ResolvedType<TType>;
   static_assert(
       std::is_base_of_v<default_type, struct_type>,

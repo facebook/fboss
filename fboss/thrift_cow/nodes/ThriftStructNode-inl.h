@@ -368,14 +368,14 @@ struct ThriftStructFields {
   NamedMemberTypes storage_;
 };
 
-template <typename TType>
+template <typename TType, typename Resolver = ThriftStructResolver<TType>>
 class ThriftStructNode
-    : public NodeBaseT<ResolvedType<TType>, ThriftStructFields<TType>> {
+    : public NodeBaseT<typename Resolver::type, ThriftStructFields<TType>> {
  public:
-  using Self = ThriftStructNode<TType>;
+  using Self = ThriftStructNode<TType, Resolver>;
   using Fields = ThriftStructFields<TType>;
   using ThriftType = typename Fields::ThriftType;
-  using Derived = ResolvedType<TType>;
+  using Derived = typename Resolver::type;
   using BaseT = NodeBaseT<Derived, Fields>;
   using CowType = NodeType;
   using TC = typename Fields::TC;

@@ -20,7 +20,7 @@ struct FieldsType {};
 template <typename TType>
 struct ThriftStructFields;
 
-template <typename TType>
+template <typename TType, typename>
 class ThriftStructNode;
 
 template <typename TType>
