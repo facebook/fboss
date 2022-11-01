@@ -4,6 +4,7 @@
 .. toctree::
    :maxdepth: 1
 
+   lag_lacp
    pktio_bechmarks_th3
    sai_replayer
    tunnel_intfs
