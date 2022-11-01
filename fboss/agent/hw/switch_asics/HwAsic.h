@@ -246,6 +246,8 @@ class HwAsic {
 
   virtual uint32_t getStaticQueueLimitBytes() const = 0;
 
+  virtual cfg::Range64 getReservedEncapIndexRange() const;
+
   cfg::SwitchType getSwitchType() const {
     return switchType_;
   }

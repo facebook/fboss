@@ -89,6 +89,7 @@ class IndusAsic : public BroadcomAsic {
       cfg::MMUScalingFactor /* scalingFactor */) const override {
     throw FbossError("Dynamic buffer threshold unsupported!");
   }
+  cfg::Range64 getReservedEncapIndexRange() const override;
 };
 
 } // namespace facebook::fboss

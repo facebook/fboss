@@ -151,4 +151,11 @@ int IndusAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
   throw FbossError(
       "Unexpected, stream: ", streamType, " cpu: ", cpu, "combination");
 }
+
+cfg::Range64 IndusAsic::getReservedEncapIndexRange() const {
+  cfg::Range64 kRange;
+  kRange.minimum() = 0x100001;
+  kRange.maximum() = 0x100010;
+  return kRange;
+}
 } // namespace facebook::fboss

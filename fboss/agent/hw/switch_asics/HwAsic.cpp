@@ -78,6 +78,11 @@ std::vector<HwAsic::AsicType> HwAsic::getAllHwAsicList() {
   return result;
 }
 
+cfg::Range64 HwAsic::getReservedEncapIndexRange() const {
+  throw FbossError(
+      "Reserved encap idx range unimplemented for: ", getAsicTypeStr());
+}
+
 std::string HwAsic::getAsicTypeStr() const {
   switch (getAsicType()) {
     case AsicType::ASIC_TYPE_FAKE:
