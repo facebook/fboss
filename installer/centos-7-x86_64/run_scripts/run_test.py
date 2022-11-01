@@ -22,6 +22,8 @@ from argparse import ArgumentParser
 #  ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig --coldboot_only # single test, cold boot
 #  ./run_test.py sai --config $confFile --filter=HwAclQualifierTest* # some control plane tests
 #  ./run_test.py sai --config $confFile --filter=HwOlympicQosSchedulerTest* # some dataplane tests
+#  ./run_test.py sai --config $confFile --list_tests # Print all the tests but do not run any test
+#  ./run_test.py sai --config $confFile --filter=<filter_regex> --list_tests # Print the matching tests but do not run any test
 #  ./run_test.py sai --config $confFile --sdk_logging /root/all_replayer_logs # ALL tests with SAI replayer logging
 
 #  ./run_test.py sai --config $confFile --skip-known-bad-tests $knownBadTestsFile --file HwRouteScaleTest.turboFabricScaleTest # skip running known bad tests
@@ -34,6 +36,7 @@ from argparse import ArgumentParser
 
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"
+OPT_ARG_LIST_TESTS = "--list_tests"
 OPT_ARG_CONFIG_FILE = "--config"
 OPT_ARG_SDK_LOGGING = "--sdk_logging"
 OPT_ARG_SKIP_KNOWN_BAD_TESTS = "--skip-known-bad-tests"
@@ -160,6 +163,10 @@ class TestRunner(abc.ABC):
         output = subprocess.check_output(
             [self._get_test_binary_name(), "--gtest_list_tests", filter]
         )
+
+        # Print all the matching tests
+        print(output.decode("utf-8"))
+
         return self._parse_list_test_output(output)
 
     def _run_test(
@@ -267,8 +274,11 @@ class TestRunner(abc.ABC):
 
     def run_test(self, args):
         tests_to_run = self._get_tests_to_run(args)
-        output = self._run_tests(tests_to_run, args)
-        self._print_output_summary(output)
+
+        # Check if tests need to be run or only listed
+        if args.list_tests is False:
+            output = self._run_tests(tests_to_run, args)
+            self._print_output_summary(output)
 
 
 class BcmTestRunner(TestRunner):
@@ -322,6 +332,12 @@ if __name__ == "__main__":
             + OPT_ARG_FILTER
             + "=*Route*V6*"
         ),
+    )
+    ap.add_argument(
+        OPT_ARG_LIST_TESTS,
+        action="store_true",
+        default=False,
+        help="Only lists the tests, do not run any test",
     )
     ap.add_argument(
         OPT_ARG_CONFIG_FILE,
