@@ -10,6 +10,7 @@
 #pragma once
 
 #include <folly/MacAddress.h>
+#include <optional>
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
@@ -131,10 +132,9 @@ struct NeighborEntryFields : public ThriftyFields<
 };
 
 template <typename IPADDR, typename SUBCLASS>
-class NeighborEntry : public ThriftyBaseT<
+class NeighborEntry : public thrift_cow::ThriftStructNode<
                           state::NeighborEntryFields,
-                          SUBCLASS,
-                          NeighborEntryFields<IPADDR>> {
+                          thrift_cow::TypeIdentity<SUBCLASS>> {
  public:
   typedef IPADDR AddressType;
 
@@ -142,66 +142,67 @@ class NeighborEntry : public ThriftyBaseT<
       AddressType ip,
       folly::MacAddress mac,
       PortDescriptor port,
-      InterfaceID interfaceID,
-      NeighborState state = NeighborState::REACHABLE);
+      InterfaceID intfID,
+      NeighborState state = NeighborState::REACHABLE,
+      std::optional<cfg::AclLookupClass> classID = std::nullopt,
+      std::optional<int64_t> encapIndex = std::nullopt,
+      bool isLocal = true);
 
-  NeighborEntry(AddressType ip, InterfaceID intfID, NeighborState ignored);
+  NeighborEntry(
+      AddressType ip,
+      InterfaceID interfaceID,
+      NeighborState pending,
+      std::optional<int64_t> encapIndex = std::nullopt,
+      bool isLocal = true);
 
   static std::shared_ptr<SUBCLASS> fromFollyDynamicLegacy(
       const folly::dynamic& json) {
-    const auto& fields =
-        NeighborEntryFields<IPADDR>::fromFollyDynamicLegacy(json);
-    return std::make_shared<SUBCLASS>(fields);
+    auto fields = NeighborEntryFields<IPADDR>::fromFollyDynamicLegacy(json);
+    return std::make_shared<SUBCLASS>(fields.toThrift());
+  }
+
+  static std::shared_ptr<SUBCLASS> fromFollyDynamic(
+      const folly::dynamic& json) {
+    return fromFollyDynamicLegacy(json);
   }
 
   folly::dynamic toFollyDynamicLegacy() const {
-    return this->getFields()->toFollyDynamicLegacy();
+    auto fields = NeighborEntryFields<IPADDR>::fromThrift(this->toThrift());
+    return fields.toFollyDynamicLegacy();
   }
 
-  bool operator==(const NeighborEntry& other) const {
-    return std::tie(
-               this->getFields()->ip,
-               this->getFields()->mac,
-               this->getFields()->port,
-               this->getFields()->interfaceID,
-               this->getFields()->state,
-               this->getFields()->classID,
-               this->getFields()->encapIndex,
-               this->getFields()->isLocal) ==
-        std::tie(
-               other.getFields()->ip,
-               other.getFields()->mac,
-               other.getFields()->port,
-               other.getFields()->interfaceID,
-               other.getFields()->state,
-               other.getFields()->classID,
-               other.getFields()->encapIndex,
-               other.getFields()->isLocal);
+  folly::dynamic toFollyDynamic() const override {
+    return toFollyDynamicLegacy();
   }
-  bool operator!=(const NeighborEntry& other) const {
-    return !operator==(other);
+
+  void setIP(AddressType ip) {
+    this->template set<switch_state_tags::ipaddress>(ip.str());
   }
 
   AddressType getIP() const {
-    return this->getFields()->ip;
+    return AddressType(
+        this->template get<switch_state_tags::ipaddress>()->cref());
   }
 
   folly::MacAddress getMac() const {
-    return this->getFields()->mac;
+    return folly::MacAddress(
+        this->template get<switch_state_tags::mac>()->cref());
   }
   void setMAC(folly::MacAddress mac) {
-    this->writableFields()->mac = mac;
+    this->template set<switch_state_tags::mac>(mac.toString());
   }
 
   void setPort(PortDescriptor port) {
-    this->writableFields()->port = port;
+    this->template set<switch_state_tags::portId>(port.toThrift());
   }
   PortDescriptor getPort() const {
-    return this->getFields()->port;
+    return PortDescriptor::fromThrift(
+        this->template get<switch_state_tags::portId>()->toThrift());
   }
 
   NeighborState getState() const {
-    return this->getFields()->state;
+    return static_cast<NeighborState>(
+        this->template get<switch_state_tags::state>()->cref());
   }
 
   bool nonZeroPort() const {
@@ -212,56 +213,72 @@ class NeighborEntry : public ThriftyBaseT<
   }
 
   InterfaceID getIntfID() const {
-    return this->getFields()->interfaceID;
+    return InterfaceID(
+        this->template get<switch_state_tags::interfaceId>()->cref());
   }
   void setIntfID(InterfaceID id) {
-    this->writableFields()->interfaceID = id;
+    this->template set<switch_state_tags::interfaceId>(id);
   }
 
   NeighborState setState(NeighborState state) {
-    return this->writableFields()->state = state;
+    this->template set<switch_state_tags::state>(
+        static_cast<state::NeighborState>(state));
+    return getState();
   }
 
   bool isPending() const {
-    return this->getFields()->state == NeighborState::PENDING;
+    return this->getState() == NeighborState::PENDING;
   }
 
   void setPending() {
-    this->writableFields()->state = NeighborState::PENDING;
+    this->setState(NeighborState::PENDING);
   }
 
   bool isReachable() const {
-    return this->getFields()->state == NeighborState::REACHABLE;
+    return this->getState() == NeighborState::REACHABLE;
   }
 
   std::optional<cfg::AclLookupClass> getClassID() const {
-    return this->getFields()->classID;
+    if (auto classID = this->template get<switch_state_tags::classID>()) {
+      return classID->cref();
+    }
+    return std::nullopt;
   }
 
   void setClassID(std::optional<cfg::AclLookupClass> classID = std::nullopt) {
-    this->writableFields()->classID = classID;
+    if (classID) {
+      this->template set<switch_state_tags::classID>(*classID);
+    } else {
+      this->template ref<switch_state_tags::classID>().reset();
+    }
   }
 
   std::optional<int64_t> getEncapIndex() const {
-    return this->getFields()->encapIndex;
+    if (auto encapIndex = this->template get<switch_state_tags::encapIndex>()) {
+      return encapIndex->cref();
+    }
+    return std::nullopt;
   }
   void setEncapIndex(std::optional<int64_t> encapIndex) {
-    this->writableFields()->encapIndex = encapIndex;
+    if (encapIndex) {
+      this->template set<switch_state_tags::encapIndex>(*encapIndex);
+    } else {
+      this->template ref<switch_state_tags::encapIndex>().reset();
+    }
   }
 
   bool getIsLocal() const {
-    return this->getFields()->isLocal;
+    return this->template get<switch_state_tags::isLocal>()->cref();
   }
   void setIsLocal(bool isLocal) {
-    this->writableFields()->isLocal = isLocal;
+    this->template set<switch_state_tags::isLocal>(isLocal);
   }
   std::string str() const;
 
  private:
-  typedef ThriftyBaseT<
+  typedef thrift_cow::ThriftStructNode<
       state::NeighborEntryFields,
-      SUBCLASS,
-      NeighborEntryFields<IPADDR>>
+      thrift_cow::TypeIdentity<SUBCLASS>>
       Parent;
   // Inherit the constructors required for clone()
   using Parent::Parent;

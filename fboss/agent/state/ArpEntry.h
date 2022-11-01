@@ -21,9 +21,18 @@ namespace facebook::fboss {
  * typedef purely to make it easier for other classes to forward declare
  * ArpEntry.
  */
+
+class ArpEntry;
+template <>
+struct ThriftStructNodeBase<ArpEntry> {
+  static constexpr bool value = true;
+};
+
 class ArpEntry : public NeighborEntry<folly::IPAddressV4, ArpEntry> {
  public:
-  using NeighborEntry::NeighborEntry;
+  using Base = NeighborEntry<folly::IPAddressV4, ArpEntry>;
+  using LegacyFields = NeighborEntryFields<folly::IPAddressV4>;
+  using Base::Base;
 };
 
 } // namespace facebook::fboss

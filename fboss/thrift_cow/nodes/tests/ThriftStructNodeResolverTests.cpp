@@ -82,18 +82,16 @@ struct ThriftStructNodeMulti : public ThriftStructNode<TestStruct, Resolver> {
 struct StructA;
 struct StructB;
 
-struct StructA
-    : public ThriftStructNodeMulti<StructA, std::type_identity<StructA>> {
-  using Base = ThriftStructNodeMulti<StructA, std::type_identity<StructA>>;
+struct StructA : public ThriftStructNodeMulti<StructA, TypeIdentity<StructA>> {
+  using Base = ThriftStructNodeMulti<StructA, TypeIdentity<StructA>>;
   using Base::Base;
 
  private:
   friend class CloneAllocator;
 };
 
-struct StructB
-    : public ThriftStructNodeMulti<StructB, std::type_identity<StructB>> {
-  using Base = ThriftStructNodeMulti<StructB, std::type_identity<StructB>>;
+struct StructB : public ThriftStructNodeMulti<StructB, TypeIdentity<StructB>> {
+  using Base = ThriftStructNodeMulti<StructB, TypeIdentity<StructB>>;
   using Base::Base;
 
  private:
@@ -138,9 +136,8 @@ struct ThriftMapTraitsB {
 };
 
 template <typename Derived, typename MapTraits>
-struct ThriftMapNodeMulti
-    : ThriftMapNode<MapTraits, std::type_identity<Derived>> {
-  using Base = ThriftMapNode<MapTraits, std::type_identity<Derived>>;
+struct ThriftMapNodeMulti : ThriftMapNode<MapTraits, TypeIdentity<Derived>> {
+  using Base = ThriftMapNode<MapTraits, TypeIdentity<Derived>>;
   using Base::Base;
 
  private:

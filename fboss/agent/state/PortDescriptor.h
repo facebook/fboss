@@ -46,6 +46,12 @@ class PortDescriptor
   static PortDescriptor fromFollyDynamic(const folly::dynamic& descJSON) {
     return PortDescriptor(BaseT::fromFollyDynamic(descJSON));
   }
+  cfg::PortDescriptor toCfgPortDescriptor() const {
+    cfg::PortDescriptor cfgPort{};
+
+    return cfgPort;
+  }
+  static PortDescriptor fromCfgCfgPortDescriptor(cfg::PortDescriptor cfg);
 };
 
 // helper so port descriptors work directly in folly::to<string> expressions.

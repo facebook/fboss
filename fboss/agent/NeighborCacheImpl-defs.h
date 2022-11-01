@@ -153,7 +153,7 @@ void NeighborCacheImpl<NTable>::repopulate(std::shared_ptr<NTable> table) {
     auto entry = *it;
     auto state = entry->isPending() ? NeighborEntryState::INCOMPLETE
                                     : NeighborEntryState::STALE;
-    setEntryInternal(*entry->getFields(), state);
+    setEntryInternal(EntryFields::fromThrift(entry->toThrift()), state);
   }
 }
 

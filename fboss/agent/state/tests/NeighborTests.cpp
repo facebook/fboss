@@ -8,14 +8,11 @@
  *
  */
 
-#include <fboss/agent/state/ArpResponseEntry.h>
-#include "fboss/agent/test/TestUtils.h"
-
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/NdpEntry.h"
-#include "fboss/agent/state/NeighborEntry.h"
-#include "fboss/agent/state/NeighborResponseTable.h"
 #include "fboss/agent/state/Vlan.h"
+
+#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -43,8 +40,8 @@ TEST(ArpEntry, serialize) {
       PortDescriptor(PortID(1)),
       InterfaceID(10),
       NeighborState::REACHABLE,
-      std::nullopt,
-      42,
+      std::optional<cfg::AclLookupClass>(std::nullopt),
+      std::optional<int64_t>(42),
       false);
   validateThriftyMigration(*entry);
   serializeTest(*entry);
@@ -57,8 +54,8 @@ TEST(NdpEntry, serialize) {
       PortDescriptor(PortID(10)),
       InterfaceID(10),
       NeighborState::REACHABLE,
-      std::nullopt,
-      42,
+      std::optional<cfg::AclLookupClass>(std::nullopt),
+      std::optional<int64_t>(42),
       false);
   validateThriftyMigration(*entry);
   serializeTest(*entry);

@@ -1036,7 +1036,8 @@ TEST_F(BcmRouteTest, UnresolveResolveNextHop) {
           *vlanId, &state1);
       auto entry = entries[port];
       auto* fields = entry->getFields();
-      ntable->updateEntry(*fields);
+      ntable->updateEntry(NeighborEntryFields<folly::IPAddressV6>::fromThrift(
+          entry->toThrift()));
     }
     applyNewState(state1);
     helper.programRoutes(getRouteUpdater(), ports, {route});

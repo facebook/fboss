@@ -383,6 +383,8 @@ class ThriftStructNode
 
   using BaseT::BaseT;
 
+  ThriftStructNode() : BaseT(ThriftType{}) {}
+
   TType toThrift() const {
     return this->getFields()->toThrift();
   }

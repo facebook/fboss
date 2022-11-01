@@ -27,13 +27,11 @@ namespace facebook::fboss {
 namespace {
 std::shared_ptr<ArpEntry> makeArpEntry(
     const state::NeighborEntryFields* entry) {
-  return std::make_shared<ArpEntry>(
-      NeighborEntryFields<folly::IPAddressV4>::fromThrift(*entry));
+  return std::make_shared<ArpEntry>(*entry);
 }
 std::shared_ptr<NdpEntry> makeNdpEntry(
     const state::NeighborEntryFields* entry) {
-  return std::make_shared<NdpEntry>(
-      NeighborEntryFields<folly::IPAddressV6>::fromThrift(*entry));
+  return std::make_shared<NdpEntry>(*entry);
 }
 } // namespace
 

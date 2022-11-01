@@ -66,7 +66,13 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     InterfaceID intfID,
     NeighborState state) {
   CHECK(!this->isPublished());
-  auto entry = std::make_shared<Entry>(ip, mac, port, intfID, state);
+  state::NeighborEntryFields thrift{};
+  thrift.ipaddress() = ip.str();
+  thrift.mac() = mac.toString();
+  thrift.portId() = port.toThrift();
+  thrift.interfaceId() = intfID;
+  thrift.state() = static_cast<state::NeighborState>(state);
+  auto entry = std::make_shared<Entry>(std::move(thrift));
   this->addNode(entry);
 }
 
@@ -128,8 +134,11 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addPendingEntry(
     IPADDR ip,
     InterfaceID intfID) {
   CHECK(!this->isPublished());
-  auto pendingEntry =
-      std::make_shared<Entry>(ip, intfID, NeighborState::PENDING);
+  state::NeighborEntryFields thrift{};
+  thrift.ipaddress() = ip.str();
+  thrift.interfaceId() = intfID;
+  thrift.state() = state::NeighborState::Pending;
+  auto pendingEntry = std::make_shared<Entry>(std::move(thrift));
   this->addNode(pendingEntry);
 }
 

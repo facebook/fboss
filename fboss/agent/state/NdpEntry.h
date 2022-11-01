@@ -14,6 +14,12 @@
 
 namespace facebook::fboss {
 
+class NdpEntry;
+template <>
+struct ThriftStructNodeBase<NdpEntry> {
+  static constexpr bool value = true;
+};
+
 /*
  * NdpEntry represents an entry in our IPv6 neighbor table.
  *
@@ -23,7 +29,9 @@ namespace facebook::fboss {
  */
 class NdpEntry : public NeighborEntry<folly::IPAddressV6, NdpEntry> {
  public:
-  using NeighborEntry::NeighborEntry;
+  using Base = NeighborEntry<folly::IPAddressV6, NdpEntry>;
+  using LegacyFields = NeighborEntryFields<folly::IPAddressV6>;
+  using Base::Base;
 };
 
 } // namespace facebook::fboss

@@ -89,16 +89,40 @@ NeighborEntry<IPADDR, SUBCLASS>::NeighborEntry(
     AddressType ip,
     folly::MacAddress mac,
     PortDescriptor port,
-    InterfaceID interfaceID,
-    NeighborState state)
-    : Parent(ip, mac, port, interfaceID, state) {}
+    InterfaceID intfID,
+    NeighborState state,
+    std::optional<cfg::AclLookupClass> classID,
+    std::optional<int64_t> encapIndex,
+    bool isLocal) {
+  this->setIP(ip);
+  this->setMAC(mac);
+  this->setPort(port);
+  this->setIntfID(intfID);
+  this->setState(state);
+  this->setClassID(classID);
+  this->setEncapIndex(encapIndex);
+  this->setIsLocal(isLocal);
+}
 
 template <typename IPADDR, typename SUBCLASS>
 NeighborEntry<IPADDR, SUBCLASS>::NeighborEntry(
     AddressType ip,
-    InterfaceID intfID,
-    NeighborState ignored)
-    : Parent(ip, intfID, ignored) {}
+    InterfaceID interfaceID,
+    NeighborState pending,
+    std::optional<int64_t> encapIndex,
+    bool isLocal) {
+  CHECK(pending == NeighborState::PENDING);
+
+  this->setIP(ip);
+  this->setIntfID(interfaceID);
+  this->setState(pending);
+  this->setEncapIndex(encapIndex);
+  this->setIsLocal(isLocal);
+
+  /* default */
+  this->setMAC(MacAddress::BROADCAST);
+  this->setPort(PortDescriptor(PortID(0)));
+}
 
 template <typename IPADDR, typename SUBCLASS>
 std::string NeighborEntry<IPADDR, SUBCLASS>::str() const {

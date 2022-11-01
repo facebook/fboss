@@ -172,4 +172,11 @@ struct TypeClassForT {
 template <typename Node, typename MemberName>
 using TypeClassFor = typename TypeClassForT<Node, MemberName>::type;
 
+#if __cplusplus <= 202001L
+template <typename T>
+using TypeIdentity = std::enable_if<true, T>;
+#else
+template <typename T>
+using TypeIdentity = std::type_identity<T>;
+#endif
 } // namespace facebook::fboss::thrift_cow
