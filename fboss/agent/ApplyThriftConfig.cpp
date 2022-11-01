@@ -804,11 +804,34 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         true,
         cfg::InterfaceType::SYSTEM_PORT);
     InterfaceFields::Addresses addresses;
+    auto arpTable = intf->getArpTable();
+    auto ndpTable = intf->getNdpTable();
     for (auto& loopbackSubnet : *node->getLoopbackIps()) {
-      addresses.insert(
-          folly::IPAddress::createNetwork(loopbackSubnet->toThrift()));
+      auto network =
+          folly::IPAddress::createNetwork(loopbackSubnet->toThrift());
+      addresses.insert(network);
+      state::NeighborEntryFields neighbor;
+      neighbor.ipaddress() = network.first.str();
+      neighbor.mac() = node->getMac().toString();
+      neighbor.portId()->portType() = cfg::PortDescriptorType::SystemPort;
+      neighbor.portId()->portId() = recyclePortId;
+      neighbor.interfaceId() = recyclePortId;
+      neighbor.state() = state::NeighborState::Reachable;
+      // TODO: Get encap index based on DSF Node asic type, not
+      // your own ASIC type. The current approach may not work with hybrid ASIC
+      // clusters (unless we can get the same reserved encap index block).
+      neighbor.encapIndex() =
+          *platform_->getAsic()->getReservedEncapIndexRange().minimum();
+      neighbor.isLocal() = false;
+      if (network.first.isV6()) {
+        ndpTable.insert({*neighbor.ipaddress(), neighbor});
+      } else {
+        arpTable.insert({*neighbor.ipaddress(), neighbor});
+      }
     }
     intf->setAddresses(std::move(addresses));
+    intf->setArpTable(std::move(arpTable));
+    intf->setNdpTable(std::move(ndpTable));
     auto intfs = new_->getRemoteInterfaces()->clone();
     intfs->addNode(intf);
     new_->resetRemoteIntfs(intfs);

@@ -153,9 +153,6 @@ int IndusAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
 }
 
 cfg::Range64 IndusAsic::getReservedEncapIndexRange() const {
-  cfg::Range64 kRange;
-  kRange.minimum() = 0x100001;
-  kRange.maximum() = 0x100010;
-  return kRange;
+  return makeRange(0x100001, 0x100010);
 }
 } // namespace facebook::fboss

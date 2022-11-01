@@ -263,6 +263,9 @@ class HwAsic {
     defaultStreamType_ = streamType;
   }
 
+ protected:
+  static cfg::Range64 makeRange(int64_t min, int64_t max);
+
  private:
   cfg::SwitchType switchType_;
   std::optional<int64_t> switchId_;

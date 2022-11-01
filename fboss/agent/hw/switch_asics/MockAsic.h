@@ -155,6 +155,9 @@ class MockAsic : public HwAsic {
   uint32_t getStaticQueueLimitBytes() const override {
     return 0;
   }
+  cfg::Range64 getReservedEncapIndexRange() const override {
+    return makeRange(1001, 1010);
+  }
 };
 
 } // namespace facebook::fboss
