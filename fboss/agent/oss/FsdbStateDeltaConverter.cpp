@@ -32,10 +32,17 @@ void FsdbStateDeltaConverter::processVlanMapDelta(
     std::vector<fsdb::OperDeltaUnit>& /* deltas */,
     const VlanMapDelta& /* vlanMapDelta */) const {}
 
-template <typename Path, typename MapDelta>
+template <typename Path, typename MapDeltaT, typename GetKey>
 void FsdbStateDeltaConverter::processNodeMapDelta(
     std::vector<fsdb::OperDeltaUnit>& /* operDeltas */,
-    const MapDelta& /* nodeMapDelta */,
+    const MapDeltaT& /* nodeMapDelta */,
+    const GetKey& /* getKey */,
+    const Path& /* basePath */) const {}
+
+template <typename Path, typename MapDeltaT>
+void FsdbStateDeltaConverter::processThriftyNodeMapDelta(
+    std::vector<fsdb::OperDeltaUnit>& /* operDeltas */,
+    const MapDeltaT& /* nodeMapDelta */,
     const Path& /* basePath */) const {}
 
 template <typename Path, typename Node, typename Key>
@@ -43,7 +50,7 @@ void FsdbStateDeltaConverter::processNodeDelta(
     std::vector<fsdb::OperDeltaUnit>& /* deltas */,
     const Path& /* basePath */,
     const Key& /* nodeID */,
-    const std::shared_ptr<Node>& /* oldNode */,
-    const std::shared_ptr<Node>& /* newNode */) const {}
+    const Node& /* oldNode */,
+    const Node& /* newNode */) const {}
 
 } // namespace facebook::fboss

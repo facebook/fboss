@@ -32,10 +32,18 @@ class FsdbStateDeltaConverter {
       const VlanMapDelta& vlanDelta) const;
 
   // creates deltas for each node in node map, does not traverse to child nodes
-  template <typename Path, typename MapDelta>
+  template <typename Path, typename MapDeltaT, typename GetKey>
   void processNodeMapDelta(
       std::vector<fsdb::OperDeltaUnit>& operDeltas,
-      const MapDelta& nodeMapDelta,
+      const MapDeltaT& nodeMapDelta,
+      const GetKey& getKey,
+      const Path& basePath) const;
+
+  // helper for nodes that define getThriftNodeKey
+  template <typename Path, typename MapDeltaT>
+  void processThriftyNodeMapDelta(
+      std::vector<fsdb::OperDeltaUnit>& operDeltas,
+      const MapDeltaT& nodeMapDelta,
       const Path& basePath) const;
 
   template <typename Path, typename Node, typename Key>
@@ -43,8 +51,8 @@ class FsdbStateDeltaConverter {
       std::vector<fsdb::OperDeltaUnit>& deltas,
       const Path& basePath,
       const Key& nodeID,
-      const std::shared_ptr<Node>& oldNode,
-      const std::shared_ptr<Node>& newNode) const;
+      const Node& oldNode,
+      const Node& newNode) const;
 };
 
 } // namespace facebook::fboss
