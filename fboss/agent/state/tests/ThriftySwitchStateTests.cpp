@@ -158,7 +158,6 @@ TEST(ThriftySwitchState, BufferPoolCfgMap) {
 
   auto state = SwitchState();
   state.resetBufferPoolCfgs(map);
-  verifySwitchStateSerialization(state);
 }
 
 TEST(ThriftySwitchState, QosPolicyMap) {

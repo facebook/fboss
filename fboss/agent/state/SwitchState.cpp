@@ -172,8 +172,8 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.vlans = VlanMap::fromThrift(state.get_vlanMap());
   fields.acls = AclMap::fromThrift(state.get_aclMap());
   if (!state.get_bufferPoolCfgMap().empty()) {
-    fields.bufferPoolCfgs =
-        BufferPoolCfgMap::fromThrift(state.get_bufferPoolCfgMap());
+    fields.bufferPoolCfgs = std::make_shared<BufferPoolCfgMap>();
+    fields.bufferPoolCfgs->fromThrift(*state.bufferPoolCfgMap());
   }
   fields.mirrors = MirrorMap::fromThrift(state.get_mirrorMap());
   fields.controlPlane = ControlPlane::fromThrift(*state.controlPlane());

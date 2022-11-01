@@ -17,8 +17,6 @@
 
 namespace facebook::fboss {
 
-using BufferPoolCfgMapTraits = NodeMapTraits<std::string, BufferPoolCfg>;
-
 struct BufferPoolCfgMapThriftTraits
     : public ThriftyNodeMapTraits<std::string, state::BufferPoolFields> {
   static inline const std::string& getThriftKeyName() {
@@ -29,20 +27,30 @@ struct BufferPoolCfgMapThriftTraits
     return key.asString();
   }
 };
+
+using BufferPoolCfgMapTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::string,
+    apache::thrift::type_class::structure>;
+using BufferPoolCfgMapThriftType =
+    std::map<std::string, state::BufferPoolFields>;
+
+using BufferPoolCfgMapTraits = thrift_cow::
+    ThriftMapTraits<BufferPoolCfgMapTypeClass, BufferPoolCfgMapThriftType>;
+ADD_THRIFT_MAP_RESOLVER_MAPPING(BufferPoolCfgMapTraits, BufferPoolCfgMap);
+
 /*
  * A container for the set of collectors.
  */
-class BufferPoolCfgMap : public ThriftyNodeMapT<
-                             BufferPoolCfgMap,
-                             BufferPoolCfgMapTraits,
-                             BufferPoolCfgMapThriftTraits> {
+class BufferPoolCfgMap
+    : public ThriftMapNode<BufferPoolCfgMap, BufferPoolCfgMapTraits> {
  public:
+  using Base = ThriftMapNode<BufferPoolCfgMap, BufferPoolCfgMapTraits>;
   BufferPoolCfgMap() = default;
-  ~BufferPoolCfgMap() override = default;
+  virtual ~BufferPoolCfgMap() override = default;
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyNodeMapT::ThriftyNodeMapT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 

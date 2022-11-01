@@ -14,6 +14,6 @@
 
 namespace facebook::fboss {
 
-FBOSS_INSTANTIATE_NODE_MAP(BufferPoolCfgMap, BufferPoolCfgMapTraits);
+template class ThriftMapNode<BufferPoolCfgMap, BufferPoolCfgMapTraits>;
 
 } // namespace facebook::fboss

@@ -134,13 +134,13 @@ TEST(BufferPoolConfigTest, applyConfig) {
   EXPECT_NE(nullptr, stateV1);
 
   auto bufferPools = stateV1->getBufferPoolCfgs();
-  validateThriftyMigration(*bufferPools);
 
   EXPECT_NE(nullptr, bufferPools);
   EXPECT_EQ(2, (*bufferPools).size());
 
   int index = 0;
-  for (const auto& bufferPool : *bufferPools) {
+  for (auto iter : std::as_const(*bufferPools)) {
+    auto bufferPool = iter.second;
     std::string bufferPoolName = folly::to<std::string>("bufferPool_", index);
     EXPECT_EQ(bufferPool->getID(), bufferPoolName);
     EXPECT_EQ(bufferPool->getSharedBytes(), kSharedBytes);
