@@ -31,6 +31,10 @@ class FsdbStateDeltaConverter {
       std::vector<fsdb::OperDeltaUnit>& deltas,
       const VlanMapDelta& vlanDelta) const;
 
+  void processInterfaceMapDelta(
+      std::vector<fsdb::OperDeltaUnit>& deltas,
+      const InterfaceMapDelta& interfaceMapDelta) const;
+
   // creates deltas for each node in node map, does not traverse to child nodes
   template <typename Path, typename MapDeltaT, typename GetKey>
   void processNodeMapDelta(

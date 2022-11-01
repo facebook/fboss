@@ -32,6 +32,10 @@ void FsdbStateDeltaConverter::processVlanMapDelta(
     std::vector<fsdb::OperDeltaUnit>& /* deltas */,
     const VlanMapDelta& /* vlanMapDelta */) const {}
 
+void FsdbStateDeltaConverter::processInterfaceMapDelta(
+    std::vector<fsdb::OperDeltaUnit>& /* deltas */,
+    const InterfaceMapDelta& /* interfaceMapDelta */) const {}
+
 template <typename Path, typename MapDeltaT, typename GetKey>
 void FsdbStateDeltaConverter::processNodeMapDelta(
     std::vector<fsdb::OperDeltaUnit>& /* operDeltas */,

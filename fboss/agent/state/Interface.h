@@ -87,6 +87,8 @@ struct InterfaceFields
  */
 class Interface : public NodeBaseT<Interface, InterfaceFields> {
  public:
+  using ThriftType = state::InterfaceFields;
+
   typedef InterfaceFields::Addresses Addresses;
   Interface(
       InterfaceID id,

@@ -24,6 +24,8 @@ typedef NodeMapTraits<InterfaceID, Interface> InterfaceMapTraits;
  * A container for the set of INTERFACEs.
  */
 class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
+  using ThriftType = std::map<int32_t, state::InterfaceFields>;
+
  public:
   InterfaceMap();
   ~InterfaceMap() override;
