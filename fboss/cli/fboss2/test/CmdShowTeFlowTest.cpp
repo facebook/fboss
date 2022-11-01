@@ -159,7 +159,8 @@ TEST_F(CmdShowTeFlowTestFixture, queryClient) {
       .WillOnce(Invoke([&](auto& entries) { entries = portEntries; }));
 
   auto cmd = CmdShowTeFlow();
-  auto model = cmd.queryClient(localhost());
+  CmdShowTeFlowTraits::ObjectArgType queriedEntries;
+  auto model = cmd.queryClient(localhost(), queriedEntries);
 
   EXPECT_THRIFT_EQ(model, normalizedModel);
 }

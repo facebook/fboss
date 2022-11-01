@@ -24,7 +24,9 @@
 namespace facebook::fboss {
 
 struct CmdShowTeFlowTraits : public BaseCommandTraits {
-  using ObjectArgType = utils::NoneArgType;
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST;
+  using ObjectArgType = std::vector<std::string>;
   using RetType = cli::ShowTeFlowEntryModel;
 };
 
@@ -33,7 +35,9 @@ class CmdShowTeFlow : public CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits> {
   using NextHopThrift = facebook::fboss::NextHopThrift;
   using TeFlowDetails = facebook::fboss::TeFlowDetails;
 
-  RetType queryClient(const HostInfo& hostInfo) {
+  RetType queryClient(
+      const HostInfo& hostInfo,
+      const ObjectArgType& queriedPrefixEntries) {
     std::vector<TeFlowDetails> entries;
     std::map<int32_t, facebook::fboss::PortInfoThrift> portInfo;
     auto client =
@@ -41,7 +45,7 @@ class CmdShowTeFlow : public CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits> {
 
     client->sync_getTeFlowTableDetails(entries);
     client->sync_getAllPortInfo(portInfo);
-    return createModel(entries, portInfo);
+    return createModel(entries, portInfo, queriedPrefixEntries);
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
@@ -70,35 +74,45 @@ class CmdShowTeFlow : public CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits> {
 
   RetType createModel(
       std::vector<facebook::fboss::TeFlowDetails>& flowEntries,
-      std::map<int32_t, facebook::fboss::PortInfoThrift> portInfo) {
+      std::map<int32_t, facebook::fboss::PortInfoThrift> portInfo,
+      const ObjectArgType& queriedPrefixEntries) {
     RetType model;
+    std::unordered_set<std::string> queriedSet(
+        queriedPrefixEntries.begin(), queriedPrefixEntries.end());
 
     for (const auto& entry : flowEntries) {
-      cli::TeFlowEntry flowEntry;
-      flowEntry.dstIp() = utils::getAddrStr(*entry.flow()->dstPrefix()->ip());
-      flowEntry.dstIpPrefixLength() =
-          *entry.flow()->dstPrefix()->prefixLength();
-      flowEntry.srcPort() = *(entry.flow()->srcPort());
-      flowEntry.srcPortName_ref() =
-          *portInfo[*(entry.flow()->srcPort())].name_ref();
-      flowEntry.enabled() = *(entry.enabled());
-      if (entry.counterID()) {
-        flowEntry.counterID() = *(entry.counterID());
-      }
-      for (const auto& nhop : *(entry.nexthops())) {
-        cli::NextHopInfo nhInfo;
-        show::route::utils::getNextHopInfoAddr(*nhop.address(), nhInfo);
-        nhInfo.weight() = *nhop.weight();
-        flowEntry.nextHops()->emplace_back(nhInfo);
-      }
-      for (const auto& nhop : *(entry.resolvedNexthops())) {
-        cli::NextHopInfo nhInfo;
-        show::route::utils::getNextHopInfoAddr(*nhop.address(), nhInfo);
-        nhInfo.weight() = *nhop.weight();
-        flowEntry.resolvedNextHops()->emplace_back(nhInfo);
-      }
+      auto dstIpStr = utils::getAddrStr(*entry.flow()->dstPrefix()->ip());
+      auto dstPrefix = dstIpStr + "/" +
+          std::to_string(*entry.flow()->dstPrefix()->prefixLength());
+      // Fill in entries if no prefix is specified or prefix specified is
+      // matching
+      if (queriedPrefixEntries.size() == 0 || queriedSet.count(dstPrefix)) {
+        cli::TeFlowEntry flowEntry;
+        flowEntry.dstIp() = dstIpStr;
+        flowEntry.dstIpPrefixLength() =
+            *entry.flow()->dstPrefix()->prefixLength();
+        flowEntry.srcPort() = *(entry.flow()->srcPort());
+        flowEntry.srcPortName_ref() =
+            *portInfo[*(entry.flow()->srcPort())].name_ref();
+        flowEntry.enabled() = *(entry.enabled());
+        if (entry.counterID()) {
+          flowEntry.counterID() = *(entry.counterID());
+        }
+        for (const auto& nhop : *(entry.nexthops())) {
+          cli::NextHopInfo nhInfo;
+          show::route::utils::getNextHopInfoAddr(*nhop.address(), nhInfo);
+          nhInfo.weight() = *nhop.weight();
+          flowEntry.nextHops()->emplace_back(nhInfo);
+        }
+        for (const auto& nhop : *(entry.resolvedNexthops())) {
+          cli::NextHopInfo nhInfo;
+          show::route::utils::getNextHopInfoAddr(*nhop.address(), nhInfo);
+          nhInfo.weight() = *nhop.weight();
+          flowEntry.resolvedNextHops()->emplace_back(nhInfo);
+        }
 
-      model.flowEntries()->emplace_back(flowEntry);
+        model.flowEntries()->emplace_back(flowEntry);
+      }
     }
     return model;
   }

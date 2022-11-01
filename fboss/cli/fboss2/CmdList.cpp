@@ -234,7 +234,7 @@ const CommandTree& kCommandTree() {
 
       {"show",
        "teflow",
-       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST,
        "Show teflow information",
        commandHandler<CmdShowTeFlow>},
 
