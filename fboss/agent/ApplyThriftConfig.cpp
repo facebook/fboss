@@ -775,46 +775,19 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
   auto getRecyclePortId = [](const std::shared_ptr<DsfNode>& node) {
     return *node->getSystemPortRange().minimum() + 1;
   };
-  auto shouldProcess = [this](const std::shared_ptr<DsfNode>& node) {
-    auto mySwitchId = new_->getSwitchSettings()->getSwitchId();
-    if (SwitchID(*mySwitchId) == node->getSwitchId()) {
-      // Local recycle port information is available in config itself.
-      return false;
-    }
-    // Only creating recycle ports for INs in current HW platforms
+  auto isLocal = [mySwitchId, this](const std::shared_ptr<DsfNode>& node) {
+    return SwitchID(*mySwitchId) == node->getSwitchId();
+  };
+  auto isInterfaceNode = [](const std::shared_ptr<DsfNode>& node) {
     return node->getType() == cfg::DsfNodeType::INTERFACE_NODE;
   };
-  auto addDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
-    if (!shouldProcess(node)) {
-      return;
-    }
-    auto asic = platform_->getAsic();
+  auto asic = platform_->getAsic();
+  auto processLoopbacks = [&](const std::shared_ptr<DsfNode>& node) {
     auto recyclePortId = getRecyclePortId(node);
-    auto sysPort = std::make_shared<SystemPort>(SystemPortID(recyclePortId));
-    sysPort->setSwitchId(node->getSwitchId());
-    sysPort->setPortName(folly::sformat("{}:rcy1", node->getName()));
-    // TODO - Get core id, core port id based on remote ASIC type
-    // not local ASIC type. This will matter in case of non
-    // homogeneous DSF clusters
-    const auto& recyclePortInfo = asic->getRecyclePortInfo();
-    sysPort->setCoreIndex(recyclePortInfo.coreId);
-    sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
-    sysPort->setSpeedMbps(recyclePortInfo.speedMbps); // 10G
-    sysPort->setNumVoqs(8);
-    sysPort->setEnabled(true);
-    auto sysPorts = new_->getRemoteSystemPorts()->clone();
-    sysPorts->addNode(sysPort);
-    new_->resetRemoteSystemPorts(sysPorts);
-    auto intf = std::make_shared<Interface>(
-        InterfaceID(recyclePortId),
-        RouterID(0),
-        std::nullopt,
-        sysPort->getPortName(),
-        node->getMac(),
-        9000,
-        true,
-        true,
-        cfg::InterfaceType::SYSTEM_PORT);
+    InterfaceID intfID(recyclePortId);
+    auto intf = isLocal(node)
+        ? new_->getInterfaces()->getInterface(intfID)
+        : new_->getRemoteInterfaces()->getInterface(intfID);
     InterfaceFields::Addresses addresses;
     auto arpTable = intf->getArpTable();
     auto ndpTable = intf->getNdpTable();
@@ -843,21 +816,62 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     intf->setAddresses(std::move(addresses));
     intf->setArpTable(std::move(arpTable));
     intf->setNdpTable(std::move(ndpTable));
-    auto intfs = new_->getRemoteInterfaces()->clone();
-    intfs->addNode(intf);
-    new_->resetRemoteIntfs(intfs);
   };
-  auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
-    if (!shouldProcess(node)) {
+  auto addDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
+    if (!isInterfaceNode(node)) {
+      // Only create recycle ports for INs
+      return;
+    }
+    if (isLocal(node)) {
+      // TODO - create neighbors for local loopback IPs
       return;
     }
     auto recyclePortId = getRecyclePortId(node);
+    auto sysPort = std::make_shared<SystemPort>(SystemPortID(recyclePortId));
+    sysPort->setSwitchId(node->getSwitchId());
+    sysPort->setPortName(folly::sformat("{}:rcy1", node->getName()));
+    // TODO - Get core id, core port id based on remote ASIC type
+    // not local ASIC type. This will matter in case of non
+    // homogeneous DSF clusters
+    const auto& recyclePortInfo = asic->getRecyclePortInfo();
+    sysPort->setCoreIndex(recyclePortInfo.coreId);
+    sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
+    sysPort->setSpeedMbps(recyclePortInfo.speedMbps); // 10G
+    sysPort->setNumVoqs(8);
+    sysPort->setEnabled(true);
     auto sysPorts = new_->getRemoteSystemPorts()->clone();
-    sysPorts->removeNode(SystemPortID(recyclePortId));
+    sysPorts->addNode(sysPort);
     new_->resetRemoteSystemPorts(sysPorts);
+    auto intf = std::make_shared<Interface>(
+        InterfaceID(recyclePortId),
+        RouterID(0),
+        std::nullopt,
+        sysPort->getPortName(),
+        node->getMac(),
+        9000,
+        true,
+        true,
+        cfg::InterfaceType::SYSTEM_PORT);
     auto intfs = new_->getRemoteInterfaces()->clone();
-    intfs->removeNode(InterfaceID(recyclePortId));
+    intfs->addNode(intf);
     new_->resetRemoteIntfs(intfs);
+    processLoopbacks(node);
+  };
+  auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
+    if (!isInterfaceNode(node)) {
+      return;
+    }
+    if (!isLocal(node)) {
+      auto recyclePortId = getRecyclePortId(node);
+      auto sysPorts = new_->getRemoteSystemPorts()->clone();
+      sysPorts->removeNode(SystemPortID(recyclePortId));
+      new_->resetRemoteSystemPorts(sysPorts);
+      auto intfs = new_->getRemoteInterfaces()->clone();
+      intfs->removeNode(InterfaceID(recyclePortId));
+      new_->resetRemoteIntfs(intfs);
+    } else {
+      // TODO - remove local recycle port neighbor
+    }
   };
 
   DeltaFunctions::forEachChanged(
