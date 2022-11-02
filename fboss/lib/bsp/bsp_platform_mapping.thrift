@@ -8,7 +8,25 @@ struct BspPlatformMappingThrift {
 struct BspPimMapping {
   1: i32 pimID;
   2: map<i32, BspTransceiverMapping> tcvrMapping;
-// TODO: Add LEDs, PHY mapping
+  3: map<i32, BspPhyMapping> phyMapping;
+// TODO: Add LEDs mapping
+}
+
+struct BspPhyMapping {
+  1: i32 xphyId;
+  2: BspPhyIOControllerInfo io;
+}
+
+struct BspPhyIOControllerInfo {
+  1: string controllerId;
+  2: i32 phyAddr;
+  3: PhyIOType type;
+  4: string devicePath;
+}
+
+enum PhyIOType {
+  UNKNOWN = 0,
+  MDIO = 1,
 }
 
 struct BspTransceiverMapping {
