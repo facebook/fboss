@@ -32,7 +32,8 @@ int main(int argc, char** argv) {
 
 #ifndef IS_OSS
   services::ServiceFrameworkLight service("Rackmon Service");
-  service.addThriftService(server, handler.get(), FLAGS_port);
+  // TODO(T123377436) CodeFrameworks Migration - Binary Contract
+  service.addPrimaryThriftService(server, handler.get());
   helpers::addCommonModules(service);
   service.go();
 #endif
