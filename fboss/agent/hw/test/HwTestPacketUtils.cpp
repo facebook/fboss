@@ -304,7 +304,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     const UDPHeader& udpHdr,
     const std::vector<uint8_t>& payload) {
   auto txPacket = hw->allocatePacket(
-      EthHdr::SIZE + ipHdr.size() + udpHdr.size() + payload.size());
+      ethHdr.size() + ipHdr.size() + udpHdr.size() + payload.size());
 
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   // Write EthHdr
