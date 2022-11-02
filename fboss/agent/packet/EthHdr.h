@@ -148,13 +148,18 @@ inline bool operator>=(const VlanTag& lhs, const VlanTag& rhs) {
 class EthHdr {
  public:
   /**
-   * The length of the ethernet header, with a single VLAN tag.
+   * The length of the ethernet header:
+   *  - no VLAN tag:: DA (6) + SA (6) + Protocol (2) => 14
+   *  - with a single VLAN tag:: no VLAN tag + vlan (4) => 18
    *
-   * DA (6), SA (6), VLAN (4), Protocol (2).
-   * When processing packets in software we always use a single VLAN tag in our
-   * internal representation.
+   * When processing packets in software, if using VLAN tag, we always use a
+   * single VLAN tag in our internal representation.
    */
-  enum { SIZE = 18 };
+  enum {
+    UNTAGGED_PKT_SIZE = 14,
+    // TODO(skhare) Fix all callsites and rename to TAGGED_PKT_SIZE
+    SIZE = 18
+  };
   typedef std::vector<VlanTag> VlanTags_t;
   /*
    * default constructor
@@ -216,6 +221,9 @@ class EthHdr {
   }
   uint16_t getEtherType() const {
     return etherType;
+  }
+  uint32_t size() const {
+    return getVlanTags().size() == 0 ? EthHdr::UNTAGGED_PKT_SIZE : EthHdr::SIZE;
   }
 
  public:
