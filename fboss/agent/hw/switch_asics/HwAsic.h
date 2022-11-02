@@ -143,7 +143,6 @@ class HwAsic {
     ASIC_VENDOR_MOCK,
     ASIC_VENDOR_FAKE,
   };
-
   virtual ~HwAsic() {}
   virtual bool isSupported(Feature) const = 0;
   virtual AsicType getAsicType() const = 0;
@@ -262,6 +261,13 @@ class HwAsic {
   void setDefaultStreamType(cfg::StreamType streamType) {
     defaultStreamType_ = streamType;
   }
+  struct RecyclePortInfo {
+    uint32_t coreId;
+    uint32_t corePortIndex;
+    uint32_t speedMbps;
+  };
+
+  virtual RecyclePortInfo getRecyclePortInfo() const;
 
  protected:
   static cfg::Range64 makeRange(int64_t min, int64_t max);

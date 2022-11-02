@@ -153,6 +153,17 @@ int IndusAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
 }
 
 cfg::Range64 IndusAsic::getReservedEncapIndexRange() const {
+  // Reserved range worked out with vendor. These ids
+  // are reserved in SAI-SDK implementation for use
+  // by NOS
   return makeRange(0x100001, 0x100010);
+}
+
+HwAsic::RecyclePortInfo IndusAsic::getRecyclePortInfo() const {
+  return {
+      .coreId = 0,
+      .corePortIndex = 1,
+      .speedMbps = 10000 // 10G
+  };
 }
 } // namespace facebook::fboss

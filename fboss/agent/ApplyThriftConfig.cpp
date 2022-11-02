@@ -788,14 +788,18 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     if (!shouldProcess(node)) {
       return;
     }
+    auto asic = platform_->getAsic();
     auto recyclePortId = getRecyclePortId(node);
     auto sysPort = std::make_shared<SystemPort>(SystemPortID(recyclePortId));
     sysPort->setSwitchId(node->getSwitchId());
     sysPort->setPortName(folly::sformat("{}:rcy1", node->getName()));
-    // TODO - make core idx, core port idx and speed ASIC dependent
-    sysPort->setCoreIndex(0);
-    sysPort->setCorePortIndex(1);
-    sysPort->setSpeedMbps(10000); // 10G
+    // TODO - Get core id, core port id based on remote ASIC type
+    // not local ASIC type. This will matter in case of non
+    // homogeneous DSF clusters
+    const auto& recyclePortInfo = asic->getRecyclePortInfo();
+    sysPort->setCoreIndex(recyclePortInfo.coreId);
+    sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
+    sysPort->setSpeedMbps(recyclePortInfo.speedMbps); // 10G
     sysPort->setNumVoqs(8);
     sysPort->setEnabled(true);
     auto sysPorts = new_->getRemoteSystemPorts()->clone();
@@ -828,8 +832,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       // TODO: Get encap index based on DSF Node asic type, not
       // your own ASIC type. The current approach may not work with hybrid ASIC
       // clusters (unless we can get the same reserved encap index block).
-      neighbor.encapIndex() =
-          *platform_->getAsic()->getReservedEncapIndexRange().minimum();
+      neighbor.encapIndex() = *asic->getReservedEncapIndexRange().minimum();
       neighbor.isLocal() = false;
       if (network.first.isV6()) {
         ndpTable.insert({*neighbor.ipaddress(), neighbor});
