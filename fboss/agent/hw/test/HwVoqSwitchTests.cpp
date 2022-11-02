@@ -399,8 +399,9 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
                         rxPacket->buf()->data(), rxPacket->buf()->length());
 
       auto txPacket = createTxPacket();
+      XLOG(DBG2) << "TX Packet Length: " << txPacket->buf()->length()
+                 << " RX Packet Length: " << rxPacket->buf()->length();
       EXPECT_EQ(txPacket->buf()->length(), rxPacket->buf()->length());
-      // CS00012268673: debug why trapped pkt is different from injected pkt
       EXPECT_EQ(
           0,
           memcmp(
