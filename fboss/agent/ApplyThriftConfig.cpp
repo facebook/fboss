@@ -3172,7 +3172,7 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
         *cfg_->switchSettings()->exactMatchTableConfigs());
     switchSettingsChange = true;
   }
-  if (newSwitchSettings->getSwitchType() != cfg::SwitchType::NPU) {
+  if (newSwitchSettings->getSwitchType() == cfg::SwitchType::VOQ) {
     CHECK(newSwitchSettings->getSwitchId() != std::nullopt);
     auto dsfItr = *cfg_->dsfNodes()->find(
         static_cast<int64_t>(*newSwitchSettings->getSwitchId()));
