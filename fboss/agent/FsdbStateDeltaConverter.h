@@ -20,6 +20,10 @@ class FsdbStateDeltaConverter {
       const std::optional<state::SwitchState>& oldState,
       const std::optional<state::SwitchState>& newState) const;
 
+  fsdb::OperDeltaUnit createBitsflowLockdownLevelDelta(
+      const std::optional<std::string>& oldState,
+      const std::optional<std::string>& newState) const;
+
  private:
   template <typename Path, typename Node>
   fsdb::OperDeltaUnit createDeltaUnit(

@@ -49,6 +49,7 @@ class FsdbSyncer : public StateObserver {
   void fsdbStatPublisherStateChanged(
       fsdb::FsdbStreamClient::State oldState,
       fsdb::FsdbStreamClient::State newState);
+  std::optional<std::string> getBitsflowLockdownLevel();
 
   void publishDeltas(std::vector<fsdb::OperDeltaUnit>&& deltas);
 

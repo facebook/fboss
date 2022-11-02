@@ -98,7 +98,9 @@ void FsdbSyncer::fsdbStatePublisherStateChanged(
       auto configDelta = deltaConverter_.createConfigDelta(
           std::optional<cfg::SwitchConfig>(),
           std::make_optional(sw_->getConfig()));
-      publishDeltas({switchStateDelta, configDelta});
+      auto bitsflowDelta = deltaConverter_.createBitsflowLockdownLevelDelta(
+          std::optional<std::string>(), getBitsflowLockdownLevel());
+      publishDeltas({switchStateDelta, configDelta, bitsflowDelta});
 
       readyForStatePublishing_.store(true);
     });

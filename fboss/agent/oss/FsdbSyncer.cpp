@@ -27,4 +27,9 @@ std::vector<std::string> FsdbSyncer::getAgentSwitchConfigPath() {
 std::vector<std::string> FsdbSyncer::getAgentStatsPath() {
   return {"agent"};
 }
+
+std::optional<std::string> FsdbSyncer::getBitsflowLockdownLevel() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss
