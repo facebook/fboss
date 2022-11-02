@@ -31,7 +31,7 @@ class SwitchState;
 struct InterfaceFields
     : public ThriftyFields<InterfaceFields, state::InterfaceFields> {
   using ThriftyFields::ThriftyFields;
-  typedef boost::container::flat_map<folly::IPAddress, uint8_t> Addresses;
+  using Addresses = std::map<folly::IPAddress, uint8_t>;
   InterfaceFields(
       InterfaceID id,
       RouterID router,

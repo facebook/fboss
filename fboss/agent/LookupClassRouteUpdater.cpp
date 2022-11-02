@@ -1199,7 +1199,7 @@ bool LookupClassRouteUpdater::isSubnetCachedByLookupClasses(
 
   if (searchInterfaceAddresses) {
     for (const auto& address : interface->getAddresses()) {
-      if (address == addressToSearch) {
+      if (folly::CIDRNetwork(address) == addressToSearch) {
         return true;
       }
     }
