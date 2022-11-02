@@ -6,11 +6,12 @@
 #include "fboss/lib/bsp/BspPlatformMapping.h"
 #include "fboss/lib/bsp/BspTransceiverContainer.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
+#include "fboss/lib/fpga/MultiPimPlatformPimContainer.h"
 
 namespace facebook {
 namespace fboss {
 
-class BspPimContainer {
+class BspPimContainer : public MultiPimPlatformPimContainer {
  public:
   explicit BspPimContainer(BspPimMapping& bspPimMapping);
   const BspTransceiverContainer* getTransceiverContainer(int tcvrID) const;
@@ -28,6 +29,10 @@ class BspPimContainer {
       const TransceiverAccessParameter& param,
       const uint8_t* buf) const;
   const I2cControllerStats getI2cControllerStats(int tcvrID) const;
+  virtual bool isPimPresent() const override {
+    return true;
+  };
+  virtual void initHW(bool forceReset = false) override{};
 
  private:
   std::unordered_map<int, std::unique_ptr<BspTransceiverContainer>>
