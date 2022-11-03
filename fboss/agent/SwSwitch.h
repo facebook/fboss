@@ -78,6 +78,7 @@ class Route;
 class Interface;
 class FsdbSyncer;
 class TeFlowNexthopHandler;
+class DsfSubscriber;
 
 enum class SwitchFlags : int {
   DEFAULT = 0,
@@ -987,6 +988,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<AclNexthopHandler> aclNexthopHandler_;
   std::unique_ptr<FsdbSyncer> fsdbSyncer_;
   std::unique_ptr<TeFlowNexthopHandler> teFlowNextHopHandler_;
+  std::unique_ptr<DsfSubscriber> dsfSubscriber_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>

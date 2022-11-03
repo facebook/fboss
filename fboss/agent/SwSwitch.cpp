@@ -33,6 +33,7 @@
 #include "fboss/agent/MKAServiceManager.h"
 #endif
 #include "fboss/agent/AclNexthopHandler.h"
+#include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/FsdbSyncer.h"
 #include "fboss/agent/MPLSHandler.h"
 #include "fboss/agent/MacTableManager.h"
@@ -212,7 +213,8 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
       phySnapshotManager_(
           new PhySnapshotManager<kIphySnapshotIntervalSeconds>()),
       aclNexthopHandler_(new AclNexthopHandler(this)),
-      teFlowNextHopHandler_(new TeFlowNexthopHandler(this)) {
+      teFlowNextHopHandler_(new TeFlowNexthopHandler(this)),
+      dsfSubscriber_(new DsfSubscriber(this)) {
   // Create the platform-specific state directories if they
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
