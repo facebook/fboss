@@ -2,9 +2,13 @@
 
 #pragma once
 
+#include <optional>
+
+#include <folly/experimental/exception_tracer/ExceptionTracer.h>
+#include <folly/logging/xlog.h>
+
 #include <fb303/ThreadCachedServiceData.h>
 #include <fb303/ThreadLocalStats.h>
-#include <optional>
 #include "fboss/agent/FbossError.h"
 
 // Exception not subclassing std::exception to avoid being caught by user code.
@@ -162,5 +166,19 @@ inline int64_t getCumulativeValue(
   _EXPECT_EVENTUALLY(expr1 >= expr2, EXPECT_GE(expr1, expr2))
 #define EXPECT_EVENTUALLY_LT(expr1, expr2) \
   _EXPECT_EVENTUALLY(expr1 < expr2, EXPECT_LT(expr1, expr2))
+
+template <typename Fn>
+void runWithExceptionTrace(Fn fn) {
+  try {
+    return fn();
+  } catch (std::exception& ex) {
+    XLOG(CRITICAL) << "Exception " << folly::exceptionStr(ex);
+    XLOG(CRITICAL) << "Trace:";
+    for (const auto& exInfo : folly::exception_tracer::getCurrentExceptions()) {
+      XLOG(CRITICAL) << "\n" << exInfo;
+    }
+    throw;
+  }
+}
 
 } // namespace facebook::fboss
