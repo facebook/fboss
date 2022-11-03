@@ -126,6 +126,7 @@ class HwAsic {
     LINK_TRAINING,
     SAI_RX_REASON_COUNTER,
     SAI_MPLS_INSEGMENT,
+    RESERVED_ENCAP_INDEX_RANGE,
   };
 
   enum class AsicType ASIC_TYPE_LIST;

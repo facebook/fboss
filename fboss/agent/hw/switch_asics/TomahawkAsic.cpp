@@ -105,6 +105,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_TRAINING:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
+    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
       return false;
   }
   return false;

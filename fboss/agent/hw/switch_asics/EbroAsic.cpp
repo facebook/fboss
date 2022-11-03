@@ -112,6 +112,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::LINK_TRAINING:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
+    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
       return false;
   }
   return false;

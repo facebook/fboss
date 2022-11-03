@@ -110,6 +110,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
     case HwAsic::Feature::SAI_ECN_WRED: // CS00012266807, CS00012266838
+    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE: // CS00012266425
       return false;
   }
   return false;
