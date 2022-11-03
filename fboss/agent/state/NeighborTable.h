@@ -57,36 +57,12 @@ using NbrTableTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::structure>;
 using NbrTableThriftType = std::map<std::string, state::NeighborEntryFields>;
 
-class ArpEntry;
-template <typename...>
-struct ConvertToArpEntryTraits {
-  using default_type = thrift_cow::ThriftStructNode<state::NeighborEntryFields>;
-  using struct_type = ArpEntry;
-  using type = std::shared_ptr<ArpEntry>;
-  using isChild = std::true_type;
-};
-
-class NdpEntry;
-template <typename...>
-struct ConvertToNdpEntryTraits {
-  using default_type = thrift_cow::ThriftStructNode<state::NeighborEntryFields>;
-  using struct_type = NdpEntry;
-  using type = std::shared_ptr<NdpEntry>;
-  using isChild = std::true_type;
-};
-
-class ArpTable;
-template <typename SUBCLASS>
-struct NbrTableTraits {
-  using TC = NbrTableTypeClass;
-  using Type = NbrTableThriftType;
-  using KeyType = typename NbrTableThriftType::key_type;
-  template <typename... T>
-  using ConvertToNodeTraits = std::conditional_t<
-      std::is_same_v<SUBCLASS, ArpTable>,
-      ConvertToArpEntryTraits<T...>,
-      ConvertToNdpEntryTraits<T...>>;
-};
+template <typename SUBCLASS, typename NODE>
+struct NbrTableTraits : ThriftMapNodeTraits<
+                            SUBCLASS,
+                            NbrTableTypeClass,
+                            NbrTableThriftType,
+                            NODE> {};
 
 /*
  * A map of IP --> MAC for the IP addresses of other nodes on a VLAN.
@@ -99,7 +75,8 @@ struct NbrTableTraits {
  * allow us to perform cheaper copy-on-write updates.
  */
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
-class NeighborTable : public ThriftMapNode<SUBCLASS, NbrTableTraits<SUBCLASS>> {
+class NeighborTable
+    : public ThriftMapNode<SUBCLASS, NbrTableTraits<SUBCLASS, ENTRY>> {
  public:
   using LegacyBaseT = ThriftyNodeMapT<
       SUBCLASS,
@@ -149,7 +126,7 @@ class NeighborTable : public ThriftMapNode<SUBCLASS, NbrTableTraits<SUBCLASS>> {
   void removeEntry(AddressType ip);
 
  private:
-  using Parent = ThriftMapNode<SUBCLASS, NbrTableTraits<SUBCLASS>>;
+  using Parent = ThriftMapNode<SUBCLASS, NbrTableTraits<SUBCLASS, ENTRY>>;
   // Inherit the constructors required for clone()
   using Parent::Parent;
   friend class CloneAllocator;

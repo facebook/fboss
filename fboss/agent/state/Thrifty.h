@@ -677,6 +677,30 @@ class ThriftyBaseT : public ThriftyBaseBase<NodeT, FieldsT> {
 
 template <
     typename MAP,
+    typename TypeClass,
+    typename MapThrift,
+    typename NODE =
+        thrift_cow::ThriftStructNode<typename MapThrift::mapped_type>,
+    typename NodeThrift = typename MapThrift::mapped_type>
+struct ThriftMapNodeTraits {
+  using TC = TypeClass;
+  using Type = MapThrift;
+  using KeyType = typename Type::key_type;
+  // for structure
+  template <typename...>
+  struct ValueTraits {
+    using default_type =
+        thrift_cow::ThriftStructNode<typename MapThrift::mapped_type>;
+    using struct_type = NODE;
+    using type = std::shared_ptr<struct_type>;
+    using isChild = std::true_type;
+  };
+  template <typename... T>
+  using ConvertToNodeTraits = ValueTraits<T...>;
+};
+
+template <
+    typename MAP,
     typename Traits,
     typename Resolver = thrift_cow::TypeIdentity<MAP>>
 struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
