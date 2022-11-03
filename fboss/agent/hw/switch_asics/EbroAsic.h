@@ -33,20 +33,7 @@ class EbroAsic : public TajoAsic {
   std::set<cfg::StreamType> getQueueStreamTypes(
       cfg::PortType portType) const override;
   int getDefaultNumPortQueues(cfg::StreamType streamType, bool /*cpu*/)
-      const override {
-    switch (streamType) {
-      case cfg::StreamType::MULTICAST:
-      // Handle FABRIC_TX when support is available for
-      // this feature in SDK
-      case cfg::StreamType::FABRIC_TX:
-        throw FbossError("no queue exist for this stream type");
-      case cfg::StreamType::UNICAST:
-      case cfg::StreamType::ALL:
-        return 8;
-    }
-
-    throw FbossError("Unknown streamType", streamType);
-  }
+      const override;
   uint32_t getMaxLabelStackDepth() const override {
     return 3;
   }

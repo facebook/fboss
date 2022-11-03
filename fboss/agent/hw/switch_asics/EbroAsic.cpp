@@ -129,6 +129,22 @@ bool EbroAsic::isSupportedFabric(Feature feature) const {
   return false;
 }
 
+int EbroAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool /*cpu*/)
+    const {
+  switch (streamType) {
+    case cfg::StreamType::MULTICAST:
+      throw FbossError(
+          "no queue exist for stream type: ",
+          apache::thrift::util::enumNameSafe(streamType));
+    case cfg::StreamType::FABRIC_TX:
+      return 1;
+    case cfg::StreamType::UNICAST:
+    case cfg::StreamType::ALL:
+      return 8;
+  }
+
+  throw FbossError("Unknown streamType", streamType);
+}
 std::set<cfg::StreamType> EbroAsic::getQueueStreamTypes(
     cfg::PortType portType) const {
   switch (portType) {
