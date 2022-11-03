@@ -37,7 +37,9 @@ HwAsic* SaiMakaluPlatform::getAsic() const {
 
 std::vector<sai_system_port_config_t>
 SaiMakaluPlatform::getInternalSystemPortConfig() const {
-  return {{0, 0, 0, 0, 10000, 8}};
+  CHECK(asic_) << " Asic must be set before getting sys port info";
+  CHECK(asic_->getSwitchId()) << " Switch Id must be set before sys port info";
+  return {{0, static_cast<uint32_t>(*asic_->getSwitchId()), 0, 0, 10000, 8}};
 }
 SaiMakaluPlatform::~SaiMakaluPlatform() {}
 
