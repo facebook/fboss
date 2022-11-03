@@ -51,18 +51,6 @@ static constexpr bool kUseThriftStructNodeBase =
   };                                    \
   ADD_THRIFT_RESOLVER_MAPPING(THRIFT, NODE);
 
-template <typename NodeT, typename FieldsT>
-struct ThriftyBaseBaseT {
-  using ThriftT = typename FieldsT::ThriftType;
-  using type = std::conditional_t<
-      kUseThriftStructNodeBase<NodeT>,
-      ThriftStructNode<ThriftT>,
-      NodeBaseT<NodeT, FieldsT>>;
-};
-
-template <typename NodeT, typename FieldsT>
-using ThriftyBaseBase = typename ThriftyBaseBaseT<NodeT, FieldsT>::type;
-
 // All thrift state maps need to have an items field
 inline constexpr folly::StringPiece kItems{"items"};
 
@@ -546,37 +534,18 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
 // TODO: in future, FieldsT and ThrifT should be one type
 //
 template <typename ThriftT, typename NodeT, typename FieldsT>
-class ThriftyBaseT : public ThriftyBaseBase<NodeT, FieldsT> {
+class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
   static_assert(std::is_base_of_v<ThriftyFields<FieldsT, ThriftT>, FieldsT>);
 
  public:
-  using BaseT = ThriftyBaseBase<NodeT, FieldsT>;
+  using BaseT = NodeBaseT<NodeT, FieldsT>;
   using BaseT::BaseT;
   using Fields = FieldsT;
   using ThriftType = ThriftT;
-  static constexpr bool kHasThriftStructNodeBase =
-      kUseThriftStructNodeBase<NodeT>;
 
-  template <
-      typename T = NodeT,
-      std::enable_if_t<kUseThriftStructNodeBase<T>, bool> = true,
-      typename... Args>
-  ThriftyBaseT(Args&&... args)
-      : BaseT(FieldsT(std::forward<Args>(args)...).toThrift()) {}
-
-  template <
-      typename T = NodeT,
-      std::enable_if_t<!kUseThriftStructNodeBase<T>, bool> = true>
   static std::shared_ptr<NodeT> fromThrift(const ThriftT& obj) {
     auto fields = FieldsT::fromThrift(obj);
     return std::make_shared<NodeT>(fields);
-  }
-
-  template <
-      typename T = NodeT,
-      std::enable_if_t<kUseThriftStructNodeBase<T>, bool> = true>
-  static std::shared_ptr<NodeT> fromThrift(const ThriftT& obj) {
-    return std::make_shared<NodeT>(obj);
   }
 
   static std::shared_ptr<NodeT> fromFollyDynamic(folly::dynamic const& dyn) {
@@ -596,18 +565,8 @@ class ThriftyBaseT : public ThriftyBaseBase<NodeT, FieldsT> {
     return ThriftyBaseT::fromThrift(obj);
   }
 
-  template <
-      typename T = NodeT,
-      std::enable_if_t<!kUseThriftStructNodeBase<T>, bool> = true>
   ThriftT toThrift() const {
     return this->getFields()->toThrift();
-  }
-
-  template <
-      typename T = NodeT,
-      std::enable_if_t<kUseThriftStructNodeBase<T>, bool> = true>
-  ThriftT toThrift() const {
-    return BaseT::toThrift();
   }
 
   std::string str() const {
@@ -624,50 +583,17 @@ class ThriftyBaseT : public ThriftyBaseBase<NodeT, FieldsT> {
   }
 
   // for testing purposes
-  template <
-      typename T = NodeT,
-      std::enable_if_t<!kUseThriftStructNodeBase<T>, bool> = true>
   folly::dynamic toFollyDynamicLegacy() const {
     return this->getFields()->toFollyDynamicLegacy();
   }
 
-  template <
-      typename T = NodeT,
-      std::enable_if_t<kUseThriftStructNodeBase<T>, bool> = true>
-  folly::dynamic toFollyDynamicLegacy() const {
-    auto fields = Fields::fromThrift(toThrift());
-    return fields.toFollyDynamicLegacy();
-  }
-
-  template <
-      typename T = NodeT,
-      std::enable_if_t<!kUseThriftStructNodeBase<T>, bool> = true>
   static std::shared_ptr<NodeT> fromFollyDynamicLegacy(
       folly::dynamic const& dyn) {
     return std::make_shared<NodeT>(FieldsT::fromFollyDynamicLegacy(dyn));
   }
 
-  template <
-      typename T = NodeT,
-      std::enable_if_t<kUseThriftStructNodeBase<T>, bool> = true>
-  static std::shared_ptr<NodeT> fromFollyDynamicLegacy(
-      folly::dynamic const& dyn) {
-    auto fields = FieldsT::fromFollyDynamicLegacy(dyn);
-    return std::make_shared<NodeT>(fields.toThrift());
-  }
-
-  template <
-      typename T = NodeT,
-      std::enable_if_t<!kUseThriftStructNodeBase<T>, bool> = true>
   bool operator==(const BaseT& rhs) const {
     return *this->getFields() == *rhs.getFields();
-  }
-
-  template <
-      typename T = NodeT,
-      std::enable_if_t<kUseThriftStructNodeBase<T>, bool> = true>
-  bool operator==(const BaseT& rhs) const {
-    return toThrift() == rhs.toThrift();
   }
 
   bool operator!=(const ThriftyBaseT<ThriftT, NodeT, FieldsT>& rhs) const {
