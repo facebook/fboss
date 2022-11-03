@@ -17,8 +17,12 @@ using MirrorMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::structure>;
 using MirrorMapThriftType = std::map<std::string, state::MirrorFields>;
 
-using MirrorMapTraits =
-    thrift_cow::ThriftMapTraits<MirrorMapTypeClass, MirrorMapThriftType>;
+class MirrorMap;
+using MirrorMapTraits = ThriftMapNodeTraits<
+    MirrorMap,
+    MirrorMapTypeClass,
+    MirrorMapThriftType,
+    Mirror>;
 
 class MirrorMap : public ThriftMapNode<MirrorMap, MirrorMapTraits> {
  public:

@@ -18,10 +18,12 @@ using DsfNodeMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::structure>;
 using DsfNodeMapThriftType = std::map<int64_t, cfg::DsfNode>;
 
-using DsfNodeMapTraits =
-    thrift_cow::ThriftMapTraits<DsfNodeMapTypeClass, DsfNodeMapThriftType>;
-
-ADD_THRIFT_MAP_RESOLVER_MAPPING(DsfNodeMapTraits, DsfNodeMap);
+class DsfNodeMap;
+using DsfNodeMapTraits = ThriftMapNodeTraits<
+    DsfNodeMap,
+    DsfNodeMapTypeClass,
+    DsfNodeMapThriftType,
+    DsfNode>;
 
 class DsfNodeMap : public ThriftMapNode<DsfNodeMap, DsfNodeMapTraits> {
  public:

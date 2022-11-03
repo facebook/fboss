@@ -187,6 +187,4 @@ void QcmCfgFields::migrateFromThrifty(folly::dynamic& dyn) {
   dyn["collectorSrcIp"] = fromIpPrefix(srcIp);
 }
 
-template class ThriftyBaseT<state::QcmCfgFields, QcmCfg, QcmCfgFields>;
-
 } // namespace facebook::fboss

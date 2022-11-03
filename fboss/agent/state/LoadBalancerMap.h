@@ -26,8 +26,12 @@ using LoadBalancerMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::structure>;
 using LoadBalancerMapThriftType =
     std::map<cfg::LoadBalancerID, state::LoadBalancerFields>;
-using LoadBalancerMapTraits = thrift_cow::
-    ThriftMapTraits<LoadBalancerMapTypeClass, LoadBalancerMapThriftType>;
+class LoadBalancerMap;
+using LoadBalancerMapTraits = ThriftMapNodeTraits<
+    LoadBalancerMap,
+    LoadBalancerMapTypeClass,
+    LoadBalancerMapThriftType,
+    LoadBalancer>;
 
 /*
  * A container for the set of load-balancing data-plane entities.

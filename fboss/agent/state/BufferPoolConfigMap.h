@@ -34,9 +34,12 @@ using BufferPoolCfgMapTypeClass = apache::thrift::type_class::map<
 using BufferPoolCfgMapThriftType =
     std::map<std::string, state::BufferPoolFields>;
 
-using BufferPoolCfgMapTraits = thrift_cow::
-    ThriftMapTraits<BufferPoolCfgMapTypeClass, BufferPoolCfgMapThriftType>;
-ADD_THRIFT_MAP_RESOLVER_MAPPING(BufferPoolCfgMapTraits, BufferPoolCfgMap);
+class BufferPoolCfgMap;
+using BufferPoolCfgMapTraits = ThriftMapNodeTraits<
+    BufferPoolCfgMap,
+    BufferPoolCfgMapTypeClass,
+    BufferPoolCfgMapThriftType,
+    BufferPoolCfg>;
 
 /*
  * A container for the set of collectors.
