@@ -143,7 +143,7 @@ TEST_F(TeFlowTest, serDeserSwitchState) {
   EXPECT_EQ(state->getTeFlowTable()->size(), 2);
   auto serialized = state->toFollyDynamic();
   auto stateBack = SwitchState::fromFollyDynamic(serialized);
-  EXPECT_EQ(*state, *stateBack);
+  EXPECT_EQ(state->toThrift(), stateBack->toThrift());
 }
 
 TEST_F(TeFlowTest, AddDeleteTeFlow) {

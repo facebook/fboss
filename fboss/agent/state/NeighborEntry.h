@@ -184,6 +184,11 @@ class NeighborEntry : public thrift_cow::ThriftStructNode<
         this->template get<switch_state_tags::ipaddress>()->cref());
   }
 
+  std::string getID() const {
+    auto ip = getIP();
+    return ip.str();
+  }
+
   folly::MacAddress getMac() const {
     return folly::MacAddress(
         this->template get<switch_state_tags::mac>()->cref());

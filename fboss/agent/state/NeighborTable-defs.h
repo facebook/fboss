@@ -92,13 +92,8 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     std::optional<cfg::AclLookupClass> classID,
     std::optional<int64_t> encapIndex,
     bool isLocal) {
-  CHECK(!this->isPublished());
-  auto& nodes = this->writableNodes();
-  auto it = nodes.find(ip);
-  if (it == nodes.end()) {
-    throw FbossError("Neighbor entry for ", ip, " does not exist");
-  }
-  auto entry = it->second->clone();
+  auto entry = this->getNode(ip.str());
+  entry = entry->clone();
   entry->setMAC(mac);
   entry->setPort(port);
   entry->setIntfID(intfID);
@@ -106,20 +101,14 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
   entry->setClassID(classID);
   entry->setEncapIndex(encapIndex);
   entry->setIsLocal(isLocal);
-  it->second = entry;
+  this->updateNode(std::move(entry));
 }
 
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
-    AddressType ip,
+    AddressType /*ip*/,
     std::shared_ptr<ENTRY> newEntry) {
-  auto& nodes = this->writableNodes();
-  auto it = nodes.find(ip);
-  if (it == nodes.end()) {
-    throw FbossError("Neighbor entry for ", ip, " does not exist");
-  }
-  it->second = newEntry;
-  return;
+  this->updateNode(std::move(newEntry));
 }
 
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
@@ -145,7 +134,7 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addPendingEntry(
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::removeEntry(AddressType ip) {
   CHECK(!this->isPublished());
-  this->removeNode(ip);
+  this->removeNode(ip.str());
 }
 
 } // namespace facebook::fboss

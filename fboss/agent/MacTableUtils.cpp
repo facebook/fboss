@@ -180,7 +180,8 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntryIfNbrExists(
     folly::MacAddress mac) {
   auto findNeighbor = [mac](const auto& nbrTable) {
     return std::find_if(
-        nbrTable.begin(), nbrTable.end(), [mac](const auto& nbrEntry) {
+        nbrTable.begin(), nbrTable.end(), [mac](const auto& iter) {
+          auto nbrEntry = iter.second;
           return nbrEntry->isReachable() && nbrEntry->getMac() == mac;
         });
   };
@@ -191,8 +192,8 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntryIfNbrExists(
   auto ndpItr = findNeighbor(ndpTable);
   if (arpItr != arpTable.end() || ndpItr != ndpTable.end()) {
     // For Static MAC entry, we miror the port neighbor was resolved on
-    auto port =
-        arpItr != arpTable.end() ? (*arpItr)->getPort() : (*ndpItr)->getPort();
+    auto port = arpItr != arpTable.end() ? (arpItr->second)->getPort()
+                                         : (ndpItr->second)->getPort();
     auto macTable = getMacTable(state, vlanId).get();
     auto existingMacEntry = macTable->getNodeIf(mac);
     if (existingMacEntry) {

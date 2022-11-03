@@ -11,8 +11,8 @@
 
 namespace facebook::fboss {
 
-template class NodeMapDelta<ArpTable>;
-template class NodeMapDelta<NdpTable>;
+template class thrift_cow::ThriftMapDelta<ArpTable>;
+template class thrift_cow::ThriftMapDelta<NdpTable>;
 template class NodeMapDelta<MacTable>;
 template class NodeMapDelta<VlanMap, VlanDelta>;
 

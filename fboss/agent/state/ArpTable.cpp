@@ -14,7 +14,6 @@
 namespace facebook::fboss {
 
 typedef NeighborTableTraits<folly::IPAddressV4, ArpEntry> ArpTableTraits;
-FBOSS_INSTANTIATE_NODE_MAP(ArpTable, ArpTableTraits);
 template class NeighborTable<folly::IPAddressV4, ArpEntry, ArpTable>;
 
 } // namespace facebook::fboss

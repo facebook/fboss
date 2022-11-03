@@ -30,9 +30,9 @@ namespace {
 
 void verifySwitchStateSerialization(const SwitchState& state) {
   auto stateBack = SwitchState::fromThrift(state.toThrift());
-  EXPECT_EQ(state, *stateBack);
+  EXPECT_EQ(state.toThrift(), stateBack->toThrift());
   stateBack = SwitchState::fromFollyDynamic(state.toFollyDynamic());
-  EXPECT_EQ(state, *stateBack);
+  EXPECT_EQ(state.toThrift(), stateBack->toThrift());
   // verify dynamic is still json serializable
   EXPECT_NO_THROW(folly::toJson(state.toFollyDynamic()));
 }
@@ -108,8 +108,6 @@ TEST(ThriftySwitchState, VlanMap) {
   auto vlanMap = std::make_shared<VlanMap>();
   vlanMap->addVlan(vlan1);
   vlanMap->addVlan(vlan2);
-
-  validateThriftyMigration(*vlanMap);
 
   auto state = SwitchState();
   state.resetVlans(vlanMap);

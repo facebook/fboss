@@ -106,7 +106,8 @@ TEST_F(SwSwitchTest, TestStateNonCoalescing) {
   auto verifyReachableCnt = [kVlan1, this](int expectedReachableNbrCnt) {
     auto getReachableCount = [](auto nbrTable) {
       auto reachableCnt = 0;
-      for (const auto entry : *nbrTable) {
+      for (auto iter : std::as_const(*nbrTable)) {
+        auto entry = iter.second;
         if (entry->getState() == NeighborState::REACHABLE) {
           ++reachableCnt;
         }

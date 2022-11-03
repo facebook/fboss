@@ -136,8 +136,8 @@ VlanFields VlanFields::fromThrift(const state::VlanFields& vlanTh) {
     vlan.dhcpRelayOverridesV6.emplace(MacAddress(mac), folly::IPAddressV6(ip));
   }
 
-  vlan.arpTable = ArpTable::fromThrift(vlanTh.get_arpTable());
-  vlan.ndpTable = NdpTable::fromThrift(vlanTh.get_ndpTable());
+  vlan.arpTable->fromThrift(vlanTh.get_arpTable());
+  vlan.ndpTable->fromThrift(vlanTh.get_ndpTable());
   vlan.arpResponseTable =
       ArpResponseTable::fromThrift(vlanTh.get_arpResponseTable());
   vlan.ndpResponseTable =
@@ -220,8 +220,10 @@ folly::dynamic VlanFields::migrateToThrifty(const folly::dynamic& dyn) {
     newPorts[portId] = portInfo.tagged;
   }
   newDyn["ports"] = newPorts;
-  newDyn[kArpTable] = ArpTable::migrateToThrifty(newDyn[kArpTable]);
-  newDyn[kNdpTable] = NdpTable::migrateToThrifty(newDyn[kNdpTable]);
+  newDyn[kArpTable] =
+      ArpTable::LegacyBaseT::migrateToThrifty(newDyn[kArpTable]);
+  newDyn[kNdpTable] =
+      NdpTable::LegacyBaseT::migrateToThrifty(newDyn[kNdpTable]);
   newDyn[kArpResponseTable] =
       ArpResponseTable::migrateToThrifty(newDyn[kArpResponseTable]);
   newDyn[kNdpResponseTable] =
@@ -238,8 +240,8 @@ void VlanFields::migrateFromThrifty(folly::dynamic& dyn) {
   }
   dyn[kMemberPorts] = legacyMemberPorts;
 
-  ArpTable::migrateFromThrifty(dyn[kArpTable]);
-  NdpTable::migrateFromThrifty(dyn[kNdpTable]);
+  ArpTable::LegacyBaseT::migrateFromThrifty(dyn[kArpTable]);
+  NdpTable::LegacyBaseT::migrateFromThrifty(dyn[kNdpTable]);
   ArpResponseTable::migrateFromThrifty(dyn[kArpResponseTable]);
   NdpResponseTable::migrateFromThrifty(dyn[kNdpResponseTable]);
   MacTable::migrateFromThrifty(dyn[kMacTable]);

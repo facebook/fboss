@@ -30,7 +30,7 @@ void serializeTest(const NeighborEntryT& entry) {
   auto serialized = entry.toFollyDynamic();
   auto entryBack = NeighborEntryT::fromFollyDynamic(serialized);
 
-  EXPECT_EQ(entry, *entryBack);
+  EXPECT_EQ(entry.toThrift(), entryBack->toThrift());
 }
 
 TEST(ArpEntry, serialize) {
@@ -76,7 +76,6 @@ TEST(ArpTable, serialize) {
       InterfaceID(11),
       NeighborState::PENDING);
 
-  validateThriftyMigration(table);
   serializeTest(table);
 }
 
@@ -95,7 +94,6 @@ TEST(NdpTable, serialize) {
       InterfaceID(11),
       NeighborState::PENDING);
 
-  validateThriftyMigration(table);
   serializeTest(table);
 }
 

@@ -362,7 +362,7 @@ TEST(ArpTest, TableUpdates) {
 
   // Check the new ArpTable does not have any entry
   auto arpTable = sw->getState()->getVlans()->getVlan(vlanID)->getArpTable();
-  EXPECT_EQ(0, arpTable->getAllNodes().size());
+  EXPECT_EQ(0, arpTable->size());
 
   // Create an ARP request for 10.0.0.1
   auto hex = PktUtil::parseHexData(
@@ -410,7 +410,7 @@ TEST(ArpTest, TableUpdates) {
 
   // Check the new ArpTable contents
   arpTable = sw->getState()->getVlans()->getVlan(vlanID)->getArpTable();
-  EXPECT_EQ(1, arpTable->getAllNodes().size());
+  EXPECT_EQ(1, arpTable->size());
   auto entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:03"), entry->getMac());
   EXPECT_EQ(PortDescriptor(PortID(1)), entry->getPort());
@@ -532,7 +532,7 @@ TEST(ArpTest, TableUpdates) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
 
   arpTable = sw->getState()->getVlans()->getVlan(vlanID)->getArpTable();
-  EXPECT_EQ(1, arpTable->getAllNodes().size());
+  EXPECT_EQ(1, arpTable->size());
   entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:08"), entry->getMac());
   EXPECT_EQ(PortDescriptor(PortID(2)), entry->getPort());
@@ -587,7 +587,7 @@ TEST(ArpTest, TableUpdates) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
 
   arpTable = sw->getState()->getVlans()->getVlan(vlanID)->getArpTable();
-  EXPECT_EQ(2, arpTable->getAllNodes().size());
+  EXPECT_EQ(2, arpTable->size());
   entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:08"), entry->getMac());
   EXPECT_EQ(PortDescriptor(PortID(2)), entry->getPort());
@@ -646,7 +646,7 @@ TEST(ArpTest, TableUpdates) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.error.sum", 0);
 
   arpTable = sw->getState()->getVlans()->getVlan(vlanID)->getArpTable();
-  EXPECT_EQ(3, arpTable->getAllNodes().size());
+  EXPECT_EQ(3, arpTable->size());
   entry = arpTable->getEntry(IPAddressV4("10.0.0.15"));
   EXPECT_EQ(MacAddress("00:02:00:01:02:08"), entry->getMac());
   EXPECT_EQ(PortDescriptor(PortID(2)), entry->getPort());

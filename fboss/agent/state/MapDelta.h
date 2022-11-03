@@ -55,6 +55,14 @@ class MapDelta {
     return impl_.end();
   }
 
+  auto getNew() const {
+    return impl_.getNew();
+  }
+
+  auto getOld() const {
+    return impl_.getOld();
+  }
+
  private:
   Impl impl_;
 };

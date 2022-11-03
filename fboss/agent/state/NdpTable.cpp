@@ -14,7 +14,6 @@
 namespace facebook::fboss {
 
 typedef NeighborTableTraits<folly::IPAddressV6, NdpEntry> NdpTableTraits;
-FBOSS_INSTANTIATE_NODE_MAP(NdpTable, NdpTableTraits);
 template class NeighborTable<folly::IPAddressV6, NdpEntry, NdpTable>;
 
 } // namespace facebook::fboss

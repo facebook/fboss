@@ -12,6 +12,7 @@
 #include <folly/MacAddress.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
+#include <type_traits>
 #include "fboss/agent/state/NeighborEntry.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/PortDescriptor.h"
@@ -51,6 +52,42 @@ struct NeighborTableThriftTraits
   }
 };
 
+using NbrTableTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::string,
+    apache::thrift::type_class::structure>;
+using NbrTableThriftType = std::map<std::string, state::NeighborEntryFields>;
+
+class ArpEntry;
+template <typename...>
+struct ConvertToArpEntryTraits {
+  using default_type = thrift_cow::ThriftStructNode<state::NeighborEntryFields>;
+  using struct_type = ArpEntry;
+  using type = std::shared_ptr<ArpEntry>;
+  using isChild = std::true_type;
+};
+
+class NdpEntry;
+template <typename...>
+struct ConvertToNdpEntryTraits {
+  using default_type = thrift_cow::ThriftStructNode<state::NeighborEntryFields>;
+  using struct_type = NdpEntry;
+  using type = std::shared_ptr<NdpEntry>;
+  using isChild = std::true_type;
+};
+
+class ArpTable;
+template <typename SUBCLASS>
+struct NbrTableTraits {
+  using TC = NbrTableTypeClass;
+  using Type = NbrTableThriftType;
+  using KeyType = typename NbrTableThriftType::key_type;
+  template <typename... T>
+  using ConvertToNodeTraits = std::conditional_t<
+      std::is_same_v<SUBCLASS, ArpTable>,
+      ConvertToArpEntryTraits<T...>,
+      ConvertToNdpEntryTraits<T...>>;
+};
+
 /*
  * A map of IP --> MAC for the IP addresses of other nodes on a VLAN.
  *
@@ -62,21 +99,23 @@ struct NeighborTableThriftTraits
  * allow us to perform cheaper copy-on-write updates.
  */
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
-class NeighborTable : public ThriftyNodeMapT<
-                          SUBCLASS,
-                          NeighborTableTraits<IPADDR, ENTRY>,
-                          NeighborTableThriftTraits<IPADDR, ENTRY>> {
+class NeighborTable : public ThriftMapNode<SUBCLASS, NbrTableTraits<SUBCLASS>> {
  public:
+  using LegacyBaseT = ThriftyNodeMapT<
+      SUBCLASS,
+      NeighborTableTraits<IPADDR, ENTRY>,
+      NeighborTableThriftTraits<IPADDR, ENTRY>>;
   typedef IPADDR AddressType;
   typedef ENTRY Entry;
 
   NeighborTable();
 
-  const std::shared_ptr<Entry>& getEntry(AddressType ip) const {
-    return this->getNode(ip);
+  const std::shared_ptr<Entry> getEntry(AddressType ip) const {
+    static_assert(std::is_same_v<typename Parent::Node, ENTRY>, "Not Entry");
+    return this->getNode(ip.str());
   }
   std::shared_ptr<Entry> getEntryIf(AddressType ip) const {
-    return this->getNodeIf(ip);
+    return this->getNodeIf(ip.str());
   }
 
   SUBCLASS* modify(Vlan** vlan, std::shared_ptr<SwitchState>* state);
@@ -110,11 +149,7 @@ class NeighborTable : public ThriftyNodeMapT<
   void removeEntry(AddressType ip);
 
  private:
-  typedef ThriftyNodeMapT<
-      SUBCLASS,
-      NeighborTableTraits<IPADDR, ENTRY>,
-      NeighborTableThriftTraits<IPADDR, ENTRY>>
-      Parent;
+  using Parent = ThriftMapNode<SUBCLASS, NbrTableTraits<SUBCLASS>>;
   // Inherit the constructors required for clone()
   using Parent::Parent;
   friend class CloneAllocator;

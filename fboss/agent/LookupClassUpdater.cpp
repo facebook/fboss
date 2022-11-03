@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/LookupClassUpdater.h"
+#include <type_traits>
+#include <utility>
 
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/MacTableUtils.h"
@@ -354,8 +356,15 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
       continue;
     }
 
-    for (const auto& entry :
-         *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)) {
+    using EntryType = typename detail::EntryType<AddrT>::type;
+    for (auto iter : std::as_const(
+             *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan))) {
+      EntryType entry = nullptr;
+      if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
+        entry = iter;
+      } else {
+        entry = iter.second;
+      }
       /*
        * At this point in time, queue-per-host fix is needed (and thus
        * supported) for physical link only.
@@ -393,8 +402,15 @@ void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(
       continue;
     }
 
-    for (const auto& entry :
-         *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)) {
+    using EntryType = typename detail::EntryType<AddrT>::type;
+    for (auto iter : std::as_const(
+             *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan))) {
+      EntryType entry = nullptr;
+      if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
+        entry = iter;
+      } else {
+        entry = iter.second;
+      }
       /*
        * At this point in time, queue-per-host fix is needed (and thus
        * supported) for physical link only.
@@ -416,8 +432,15 @@ void LookupClassUpdater::validateRemovedPortEntries(
    * supported) for physical link only.
    */
 
-  for (const auto& entry :
-       *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)) {
+  using EntryType = typename detail::EntryType<AddrT>::type;
+  for (auto iter :
+       std::as_const(*VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan))) {
+    EntryType entry = nullptr;
+    if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
+      entry = iter;
+    } else {
+      entry = iter.second;
+    }
     if (entry->getPort().isPhysicalPort()) {
       CHECK(entry->getPort().phyPortID() != portID);
     }
@@ -623,8 +646,15 @@ template <typename AddrT>
 void LookupClassUpdater::updateStateObserverLocalCacheHelper(
     const std::shared_ptr<Vlan>& vlan,
     const std::shared_ptr<Port>& port) {
-  for (const auto& entry :
-       *(VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan))) {
+  using EntryType = typename detail::EntryType<AddrT>::type;
+  for (auto iter : std::as_const(
+           *(VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)))) {
+    EntryType entry = nullptr;
+    if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
+      entry = iter;
+    } else {
+      entry = iter.second;
+    }
     if (entry->getPort().isPhysicalPort() &&
         entry->getPort().phyPortID() == port->getID() &&
         entry->getClassID().has_value()) {
@@ -782,8 +812,9 @@ void LookupClassUpdater::updateClassIDForEveryNeighborForMac(
     const std::shared_ptr<SwitchState>& switchState,
     const std::shared_ptr<Vlan>& vlan,
     folly::MacAddress macAddress) {
-  for (const auto& neighborEntry :
-       *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)) {
+  for (auto iter :
+       std::as_const(*VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan))) {
+    auto neighborEntry = iter.second;
     if (!isNoHostRoute(neighborEntry) && neighborEntry->isReachable() &&
         neighborEntry->getMac() == macAddress) {
       updateNeighborClassID(switchState, vlan->getID(), neighborEntry);
@@ -796,8 +827,9 @@ void LookupClassUpdater::removeClassIDForEveryNeighborForMac(
     const std::shared_ptr<SwitchState>& switchState,
     const std::shared_ptr<Vlan>& vlan,
     folly::MacAddress macAddress) {
-  for (const auto& neighborEntry :
-       *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)) {
+  for (auto iter :
+       std::as_const(*VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan))) {
+    auto neighborEntry = iter.second;
     if (!isNoHostRoute(neighborEntry) && neighborEntry->isReachable() &&
         neighborEntry->getMac() == macAddress) {
       removeClassIDForPortAndMac(switchState, vlan->getID(), neighborEntry);

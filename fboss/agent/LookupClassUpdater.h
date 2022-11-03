@@ -15,6 +15,26 @@
 namespace facebook::fboss {
 class SwSwitch;
 
+namespace detail {
+template <typename AddrT>
+struct EntryType;
+
+template <>
+struct EntryType<folly::IPAddressV4> {
+  using type = std::shared_ptr<ArpEntry>;
+};
+
+template <>
+struct EntryType<folly::IPAddressV6> {
+  using type = std::shared_ptr<NdpEntry>;
+};
+
+template <>
+struct EntryType<folly::MacAddress> {
+  using type = std::shared_ptr<MacEntry>;
+};
+} // namespace detail
+
 class LookupClassUpdater : public StateObserver {
  public:
   explicit LookupClassUpdater(SwSwitch* sw);

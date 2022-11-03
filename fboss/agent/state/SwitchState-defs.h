@@ -30,12 +30,12 @@ void SwitchState::revertNewNeighborEntry(
                               ->template getNeighborTable<NTableT>()
                               .get();
   // Check that the entry exists
-  auto entry = neighborTablePtr->getNodeIf(ip);
+  auto entry = neighborTablePtr->getNodeIf(ip.str());
   CHECK(entry);
   // In this call, we also modify appliedState
   neighborTablePtr = neighborTablePtr->modify(vlanId, appliedState);
   if (!oldEntry) {
-    neighborTablePtr->removeNode(ip);
+    neighborTablePtr->removeNode(ip.str());
   } else {
     neighborTablePtr->updateEntry(ip, oldEntry);
   }
