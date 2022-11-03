@@ -152,11 +152,11 @@ void LldpManager::sendLldpOnAllPorts() {
   // send lldp frames through all the ports here.
   std::shared_ptr<SwitchState> state = sw_->getState();
   for (const auto& port : *state->getPorts()) {
-    if (port->isPortUp()) {
+    if (port->getPortType() == cfg::PortType::INTERFACE_PORT &&
+        port->isPortUp()) {
       sendLldpInfo(port);
     } else {
-      XLOG(DBG5) << "Skipping LLDP send as this port is disabled "
-                 << port->getID();
+      XLOG(DBG5) << "Skipping LLDP send on port: " << port->getID();
     }
   }
 }
