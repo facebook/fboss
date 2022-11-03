@@ -21,6 +21,9 @@ class DsfSubscriber : public StateObserver {
   void stop();
 
  private:
+  // Paths
+  static std::vector<std::string> getSystemPortsPath();
+  static std::vector<std::string> getInterfacesPath();
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
 };

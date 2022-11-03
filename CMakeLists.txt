@@ -742,6 +742,7 @@ if (NOT SAI_ONLY)
       fboss/agent/normalization/TransformHandler.cpp
       fboss/agent/normalization/StatsExporter.cpp
       fboss/agent/normalization/CounterTagManager.cpp
+      fboss/agent/oss/DsfSubscriber.cpp
       fboss/agent/oss/AggregatePortStats.cpp
       fboss/agent/oss/FbossInit.cpp
       fboss/agent/oss/FsdbStateDeltaConverter.cpp
