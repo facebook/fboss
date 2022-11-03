@@ -19,6 +19,7 @@
 #include "fboss/agent/state/AclTableMap.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/DsfNodeMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseDelta.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -97,6 +98,7 @@ class StateDelta {
   // Remote object deltas
   NodeMapDelta<SystemPortMap> getRemoteSystemPortsDelta() const;
   InterfaceMapDelta getRemoteIntfsDelta() const;
+  thrift_cow::ThriftMapDelta<DsfNodeMap> getDsfNodesDelta() const;
 
  private:
   // Forbidden copy constructor and assignment operator

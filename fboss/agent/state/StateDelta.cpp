@@ -17,6 +17,7 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/ControlPlane.h"
+#include "fboss/agent/state/DsfNodeMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/LoadBalancer.h"
@@ -119,6 +120,11 @@ thrift_cow::ThriftMapDelta<LoadBalancerMap> StateDelta::getLoadBalancersDelta()
     const {
   return thrift_cow::ThriftMapDelta<LoadBalancerMap>(
       old_->getLoadBalancers().get(), new_->getLoadBalancers().get());
+}
+
+thrift_cow::ThriftMapDelta<DsfNodeMap> StateDelta::getDsfNodesDelta() const {
+  return thrift_cow::ThriftMapDelta<DsfNodeMap>(
+      old_->getDsfNodes().get(), new_->getDsfNodes().get());
 }
 
 DeltaValue<ControlPlane> StateDelta::getControlPlaneDelta() const {
