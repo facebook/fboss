@@ -135,8 +135,7 @@ TEST(SystemPort, sysPortApplyConfigSwitchIdChange) {
   ASSERT_NE(nullptr, stateV1);
   EXPECT_EQ(stateV1->getSystemPorts()->size(), stateV1->getPorts()->size());
   auto prevSwitchId = *config.switchSettings()->switchId();
-  config.switchSettings()->switchId() = 2;
-  config.dsfNodes()->insert({2, makeDsfNodeCfg(2)});
+  config = updateSwitchID(config, 2);
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);

@@ -110,19 +110,30 @@ std::vector<std::string> getLoopbackIps(int64_t switchIdVal) {
   return {v6, v4};
 }
 
+uint16_t recycleSysPortId(const cfg::DsfNode& node) {
+  return *node.systemPortRange()->minimum() + 1;
+}
+
+void addRecyclePortRif(const cfg::DsfNode& myNode, cfg::SwitchConfig& cfg) {
+  cfg::Interface recyclePortRif;
+  recyclePortRif.intfID() = recycleSysPortId(myNode);
+  recyclePortRif.type() = cfg::InterfaceType::SYSTEM_PORT;
+  for (const auto& address : getLoopbackIps(*myNode.switchId())) {
+    recyclePortRif.ipAddresses()->push_back(address);
+  }
+  cfg.interfaces()->push_back(recyclePortRif);
+}
+
 cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
   cfg::SwitchConfig cfg;
   cfg.switchSettings()->switchType() = switchType;
-  if (switchType != cfg::SwitchType::NPU) {
-    cfg.switchSettings()->switchId() = 1;
-    cfg::DsfNode myNode = makeDsfNodeCfg(1);
-    cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
-  }
-
   static constexpr auto kPortCount = 20;
   cfg.ports()->resize(kPortCount);
+  // For VOQ switches reserve port id 1 for recycle port
+  const auto kInterfacePortIdBegin =
+      (switchType == cfg::SwitchType::VOQ ? 5 : 1);
   for (int p = 0; p < kPortCount; ++p) {
-    cfg.ports()[p].logicalID() = p + 1;
+    cfg.ports()[p].logicalID() = p + kInterfacePortIdBegin;
     cfg.ports()[p].name() = folly::to<string>("port", p + 1);
     if (isMhnic) {
       cfg.ports()[p].state() = cfg::PortState::ENABLED;
@@ -162,8 +173,8 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
 
   cfg.vlanPorts()->resize(20);
   for (int p = 0; p < kPortCount; ++p) {
-    cfg.vlanPorts()[p].logicalPort() = p + 1;
-    cfg.vlanPorts()[p].vlanID() = p < 11 ? 1 : 55;
+    cfg.vlanPorts()[p].logicalPort() = p + kInterfacePortIdBegin;
+    cfg.vlanPorts()[p].vlanID() = p < 10 + kInterfacePortIdBegin ? 1 : 55;
   }
 
   cfg.interfaces()->resize(2);
@@ -191,12 +202,39 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
   cfg.interfaces()[1].ipAddresses()[2] = "2401:db00:2110:3055::0001/64";
   cfg.interfaces()[1].ipAddresses()[3] = "169.254.0.0/16"; // link local
 
+  if (switchType != cfg::SwitchType::NPU) {
+    cfg.switchSettings()->switchId() = 1;
+  }
+  if (switchType == cfg::SwitchType::VOQ) {
+    cfg::DsfNode myNode = makeDsfNodeCfg(1);
+    cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
+    cfg::Port recyclePort;
+    recyclePort.logicalID() = 1;
+    recyclePort.name() = "rcy1/1/1";
+    recyclePort.speed() = cfg::PortSpeed::HUNDREDG;
+    recyclePort.profileID() =
+        cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER;
+    recyclePort.portType() = cfg::PortType::RECYCLE_PORT;
+    cfg.ports()->push_back(recyclePort);
+    addRecyclePortRif(myNode, cfg);
+  }
   return cfg;
 }
 
 } // namespace
 
 namespace facebook::fboss {
+
+cfg::SwitchConfig updateSwitchID(
+    const cfg::SwitchConfig& origCfg,
+    int64_t newSwitchId) {
+  auto newCfg{origCfg};
+  CHECK(origCfg.switchSettings()->switchId());
+  newCfg.switchSettings()->switchId() = newSwitchId;
+  newCfg.dsfNodes()->insert({newSwitchId, makeDsfNodeCfg(newSwitchId)});
+  addRecyclePortRif(newCfg.dsfNodes()->find(newSwitchId)->second, newCfg);
+  return newCfg;
+}
 
 cfg::DsfNode makeDsfNodeCfg(int64_t switchId, cfg::DsfNodeType type) {
   cfg::DsfNode dsfNodeCfg;
