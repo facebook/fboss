@@ -11,9 +11,7 @@
 
 namespace facebook::fboss {
 
-DsfSubscriber::DsfSubscriber(SwSwitch* sw)
-    : sw_(sw),
-      fsdbPubSubMgr_(std::make_unique<fsdb::FsdbPubSubManager>("agent")) {
+DsfSubscriber::DsfSubscriber(SwSwitch* sw) : sw_(sw) {
   sw_->registerStateObserver(this, "DSFSubscriber");
 }
 
@@ -22,10 +20,20 @@ DsfSubscriber::~DsfSubscriber() {
 }
 
 void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
-  if (!fsdbPubSubMgr_) {
-    XLOG(WARN) << " Dsf subscriber already stopped, dropping state update";
+  const auto& oldSwitchSettings = stateDelta.oldState()->getSwitchSettings();
+  const auto& newSwitchSettings = stateDelta.newState()->getSwitchSettings();
+  if (newSwitchSettings->getSwitchType() == cfg::SwitchType::VOQ) {
+    if (!fsdbPubSubMgr_) {
+      fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>("agent");
+    }
+  } else {
+    fsdbPubSubMgr_.reset();
+    if (oldSwitchSettings->getSwitchType() == cfg::SwitchType::VOQ) {
+      XLOG(FATAL)
+          << " Transition from VOQ to non-VOQ swtich type is not supported";
+    }
   }
-  auto mySwitchId = stateDelta.newState()->getSwitchSettings()->getSwitchId();
+  auto mySwitchId = newSwitchSettings->getSwitchId();
 
   auto isLocal = [mySwitchId](const std::shared_ptr<DsfNode>& node) {
     CHECK(mySwitchId) << " Dsf node config requires local switch ID to be set";
