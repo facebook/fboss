@@ -37,6 +37,6 @@ BufferPoolCfgFields BufferPoolCfgFields::fromThrift(
   return bufferPool;
 }
 
-template class thrift_cow::ThriftStructNode<state::BufferPoolFields>;
+template class ThriftStructNode<BufferPoolCfg, state::BufferPoolFields>;
 
 } // namespace facebook::fboss

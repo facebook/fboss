@@ -13,7 +13,8 @@
 
 namespace facebook::fboss {
 
-DsfNode::DsfNode(SwitchID switchId) : ThriftStructNode<cfg::DsfNode>() {
+DsfNode::DsfNode(SwitchID switchId)
+    : ThriftStructNode<DsfNode, cfg::DsfNode>() {
   set<switch_config_tags::switchId>(switchId);
 }
 
@@ -50,5 +51,5 @@ std::shared_ptr<DsfNode> DsfNode::fromFollyDynamic(
   return node;
 }
 
-template class thrift_cow::ThriftStructNode<cfg::DsfNode>;
+template class ThriftStructNode<DsfNode, cfg::DsfNode>;
 } // namespace facebook::fboss

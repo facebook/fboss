@@ -103,7 +103,7 @@ Mirror::Mirror(
     std::optional<TunnelUdpPorts> udpPorts,
     uint8_t dscp,
     bool truncate)
-    : ThriftStructNode<state::MirrorFields>() {
+    : ThriftStructNode<Mirror, state::MirrorFields>() {
   // span mirror is resolved as soon as it is created
   // erspan and sflow are resolved when tunnel is set
   set<switch_state_tags::name>(name);
@@ -361,6 +361,6 @@ void MirrorFields::migrateFromThrifty(folly::dynamic& dyn) {
   dyn[kIsResolved] = isResolved;
 }
 
-template class thrift_cow::ThriftStructNode<state::MirrorFields>;
+template class ThriftStructNode<Mirror, state::MirrorFields>;
 
 } // namespace facebook::fboss

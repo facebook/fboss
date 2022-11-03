@@ -132,9 +132,8 @@ struct NeighborEntryFields : public ThriftyFields<
 };
 
 template <typename IPADDR, typename SUBCLASS>
-class NeighborEntry : public thrift_cow::ThriftStructNode<
-                          state::NeighborEntryFields,
-                          thrift_cow::TypeIdentity<SUBCLASS>> {
+class NeighborEntry
+    : public ThriftStructNode<SUBCLASS, state::NeighborEntryFields> {
  public:
   typedef IPADDR AddressType;
 
@@ -281,10 +280,7 @@ class NeighborEntry : public thrift_cow::ThriftStructNode<
   std::string str() const;
 
  private:
-  typedef thrift_cow::ThriftStructNode<
-      state::NeighborEntryFields,
-      thrift_cow::TypeIdentity<SUBCLASS>>
-      Parent;
+  typedef ThriftStructNode<SUBCLASS, state::NeighborEntryFields> Parent;
   // Inherit the constructors required for clone()
   using Parent::Parent;
   friend class CloneAllocator;

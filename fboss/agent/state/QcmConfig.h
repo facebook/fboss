@@ -166,11 +166,11 @@ struct QcmCfgFields : public ThriftyFields<QcmCfgFields, state::QcmCfgFields> {
   static void migrateFromThrifty(folly::dynamic& dyn);
 };
 
-USE_THRIFT_COW(state::QcmCfgFields, QcmCfg);
+USE_THRIFT_COW(QcmCfg);
 
-class QcmCfg : public ThriftStructNode<state::QcmCfgFields> {
+class QcmCfg : public ThriftStructNode<QcmCfg, state::QcmCfgFields> {
  public:
-  using Base = ThriftStructNode<state::QcmCfgFields>;
+  using Base = ThriftStructNode<QcmCfg, state::QcmCfgFields>;
   static std::shared_ptr<QcmCfg> fromFollyDynamicLegacy(
       const folly::dynamic& json) {
     auto fields = QcmCfgFields::fromFollyDynamicLegacy(json);

@@ -29,11 +29,6 @@ namespace facebook::fboss {
 using switch_state_tags = state::switch_state_tags::strings;
 using switch_config_tags = cfg::switch_config_tags::strings;
 
-template <
-    typename TType,
-    typename Resolver = thrift_cow::ThriftStructResolver<TType>>
-using ThriftStructNode = thrift_cow::ThriftStructNode<TType, Resolver>;
-
 template <typename NodeT>
 struct IsThriftCowNode {
   static constexpr bool value = false;
@@ -42,13 +37,12 @@ struct IsThriftCowNode {
 template <typename NodeT>
 static constexpr bool kIsThriftCowNode = IsThriftCowNode<NodeT>::value;
 
-#define USE_THRIFT_COW(THRIFT, NODE)    \
+#define USE_THRIFT_COW(NODE)            \
   class NODE;                           \
   template <>                           \
   struct IsThriftCowNode<NODE> {        \
     static constexpr bool value = true; \
-  };                                    \
-  ADD_THRIFT_RESOLVER_MAPPING(THRIFT, NODE);
+  };
 
 // All thrift state maps need to have an items field
 inline constexpr folly::StringPiece kItems{"items"};
@@ -598,6 +592,15 @@ class ThriftyBaseT : public NodeBaseT<NodeT, FieldsT> {
   bool operator!=(const ThriftyBaseT<ThriftT, NodeT, FieldsT>& rhs) const {
     return !(*this == rhs);
   }
+};
+
+template <typename NODE, typename TType>
+struct ThriftStructNode
+    : public thrift_cow::
+          ThriftStructNode<TType, thrift_cow::TypeIdentity<NODE>> {
+  using Base =
+      thrift_cow::ThriftStructNode<TType, thrift_cow::TypeIdentity<NODE>>;
+  using Base::Base;
 };
 
 template <

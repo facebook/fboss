@@ -14,11 +14,7 @@
 
 namespace facebook::fboss {
 
-class NdpEntry;
-template <>
-struct IsThriftCowNode<NdpEntry> {
-  static constexpr bool value = true;
-};
+USE_THRIFT_COW(NdpEntry);
 
 /*
  * NdpEntry represents an entry in our IPv6 neighbor table.

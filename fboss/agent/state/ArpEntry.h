@@ -22,11 +22,7 @@ namespace facebook::fboss {
  * ArpEntry.
  */
 
-class ArpEntry;
-template <>
-struct IsThriftCowNode<ArpEntry> {
-  static constexpr bool value = true;
-};
+USE_THRIFT_COW(ArpEntry);
 
 class ArpEntry : public NeighborEntry<folly::IPAddressV4, ArpEntry> {
  public:

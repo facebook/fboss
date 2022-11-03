@@ -55,7 +55,7 @@ LoadBalancer::LoadBalancer(
     LoadBalancer::IPv6Fields v6Fields,
     LoadBalancer::TransportFields transportFields,
     LoadBalancer::MPLSFields mplsFields)
-    : ThriftStructNode<state::LoadBalancerFields>() {
+    : ThriftStructNode<LoadBalancer, state::LoadBalancerFields>() {
   set<switch_state_tags::id>(id);
   set<switch_state_tags::algorithm>(algorithm);
   set<switch_state_tags::seed>(seed);
@@ -311,5 +311,7 @@ std::shared_ptr<LoadBalancer> LoadBalancer::fromThrift(
     const state::LoadBalancerFields& fields) {
   return std::make_shared<LoadBalancer>(fields);
 }
+
+template class ThriftStructNode<LoadBalancer, state::LoadBalancerFields>;
 
 } // namespace facebook::fboss

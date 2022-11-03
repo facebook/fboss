@@ -240,11 +240,11 @@ struct MirrorFields : public ThriftyFields<MirrorFields, state::MirrorFields> {
   static void migrateFromThrifty(folly::dynamic& dyn);
 };
 
-USE_THRIFT_COW(state::MirrorFields, Mirror);
+USE_THRIFT_COW(Mirror);
 
-class Mirror : public ThriftStructNode<state::MirrorFields> {
+class Mirror : public ThriftStructNode<Mirror, state::MirrorFields> {
  public:
-  using BaseT = ThriftStructNode<state::MirrorFields>;
+  using BaseT = ThriftStructNode<Mirror, state::MirrorFields>;
   Mirror(
       std::string name,
       std::optional<PortID> egressPort,

@@ -16,11 +16,11 @@
 
 namespace facebook::fboss {
 
-USE_THRIFT_COW(cfg::DsfNode, DsfNode);
+USE_THRIFT_COW(DsfNode);
 
-class DsfNode : public ThriftStructNode<cfg::DsfNode> {
+class DsfNode : public ThriftStructNode<DsfNode, cfg::DsfNode> {
  public:
-  using BaseT = ThriftStructNode<cfg::DsfNode>;
+  using BaseT = ThriftStructNode<DsfNode, cfg::DsfNode>;
   explicit DsfNode(SwitchID switchId);
 
   SwitchID getID() const {

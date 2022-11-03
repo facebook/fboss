@@ -45,13 +45,14 @@ struct BufferPoolCfgFields
   int headroomBytes;
 };
 
-USE_THRIFT_COW(state::BufferPoolFields, BufferPoolCfg)
+USE_THRIFT_COW(BufferPoolCfg)
 /*
  * BufferPoolCfg stores the buffer pool related properites as need by {port, PG}
  */
-class BufferPoolCfg : public ThriftStructNode<state::BufferPoolFields> {
+class BufferPoolCfg
+    : public ThriftStructNode<BufferPoolCfg, state::BufferPoolFields> {
  public:
-  using BaseT = ThriftStructNode<state::BufferPoolFields>;
+  using BaseT = ThriftStructNode<BufferPoolCfg, state::BufferPoolFields>;
   using LegacyFields = BufferPoolCfgFields;
 
   explicit BufferPoolCfg(const std::string& id) {

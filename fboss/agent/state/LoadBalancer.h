@@ -64,7 +64,7 @@ struct LoadBalancerFields
   MPLSFields mplsFields_;
 };
 
-ADD_THRIFT_RESOLVER_MAPPING(state::LoadBalancerFields, LoadBalancer);
+USE_THRIFT_COW(LoadBalancer);
 
 /* A LoadBalancer represents a logical point in the data-path which may
  * distribute traffic between any number of load-bearing elements.
@@ -90,7 +90,8 @@ ADD_THRIFT_RESOLVER_MAPPING(state::LoadBalancerFields, LoadBalancer);
  * handles on LoadBalancer SwitchState nodes.
  */
 
-class LoadBalancer : public ThriftStructNode<state::LoadBalancerFields> {
+class LoadBalancer
+    : public ThriftStructNode<LoadBalancer, state::LoadBalancerFields> {
  public:
   template <typename T>
   struct Fields {
@@ -105,7 +106,7 @@ class LoadBalancer : public ThriftStructNode<state::LoadBalancerFields> {
   template <typename T>
   using FieldsConstIter = typename Fields<T>::const_iterator;
 
-  using BaseT = ThriftStructNode<state::LoadBalancerFields>;
+  using BaseT = ThriftStructNode<LoadBalancer, state::LoadBalancerFields>;
   using IPv4Field = LoadBalancerFields::IPv4Field;
   using IPv4Fields = LoadBalancerFields::IPv4Fields;
   using IPv4FieldsRange = folly::Range<FieldsConstIter<cfg::IPv4Field>>;
