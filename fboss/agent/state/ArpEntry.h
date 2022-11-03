@@ -24,7 +24,7 @@ namespace facebook::fboss {
 
 class ArpEntry;
 template <>
-struct ThriftStructNodeBase<ArpEntry> {
+struct IsThriftCowNode<ArpEntry> {
   static constexpr bool value = true;
 };
 

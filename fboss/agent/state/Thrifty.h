@@ -35,18 +35,17 @@ template <
 using ThriftStructNode = thrift_cow::ThriftStructNode<TType, Resolver>;
 
 template <typename NodeT>
-struct ThriftStructNodeBase {
+struct IsThriftCowNode {
   static constexpr bool value = false;
 };
 
 template <typename NodeT>
-static constexpr bool kUseThriftStructNodeBase =
-    ThriftStructNodeBase<NodeT>::value;
+static constexpr bool kIsThriftCowNode = IsThriftCowNode<NodeT>::value;
 
 #define USE_THRIFT_COW(THRIFT, NODE)    \
   class NODE;                           \
   template <>                           \
-  struct ThriftStructNodeBase<NODE> {   \
+  struct IsThriftCowNode<NODE> {        \
     static constexpr bool value = true; \
   };                                    \
   ADD_THRIFT_RESOLVER_MAPPING(THRIFT, NODE);
@@ -334,7 +333,7 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
 
   template <
       typename T = NodeT,
-      std::enable_if_t<!kUseThriftStructNodeBase<T>, bool> = true>
+      std::enable_if_t<!kIsThriftCowNode<T>, bool> = true>
   static std::shared_ptr<NodeMap> fromThrift(
       const typename ThriftyTraitsT::NodeContainer& map) {
     auto mapObj = std::make_shared<NodeMap>();
@@ -348,7 +347,7 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
 
   template <
       typename T = NodeT,
-      std::enable_if_t<kUseThriftStructNodeBase<T>, bool> = true>
+      std::enable_if_t<kIsThriftCowNode<T>, bool> = true>
   static std::shared_ptr<NodeMap> fromThrift(
       const typename ThriftyTraitsT::NodeContainer& map) {
     auto mapObj = std::make_shared<NodeMap>();
@@ -421,7 +420,7 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
       if (ThriftyUtils::nodeNeedsMigration(item)) {
         auto key = ThriftyTraitsT::template getKeyFromLegacyNode<KeyType>(
             item, ThriftyTraitsT::getThriftKeyName());
-        if constexpr (!kUseThriftStructNodeBase<typename TraitsT::Node>) {
+        if constexpr (!kIsThriftCowNode<typename TraitsT::Node>) {
           newItems[key] = TraitsT::Node::Fields::migrateToThrifty(item);
         } else {
           newItems[key] = TraitsT::Node::LegacyFields::migrateToThrifty(item);
@@ -447,7 +446,7 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
 
     for (auto key : keys) {
       auto& item = dyn[key];
-      if constexpr (!kUseThriftStructNodeBase<typename TraitsT::Node>) {
+      if constexpr (!kIsThriftCowNode<typename TraitsT::Node>) {
         TraitsT::Node::Fields::migrateFromThrifty(item);
       } else {
         TraitsT::Node::LegacyFields::migrateFromThrifty(item);

@@ -16,7 +16,7 @@ namespace facebook::fboss {
 
 class NdpEntry;
 template <>
-struct ThriftStructNodeBase<NdpEntry> {
+struct IsThriftCowNode<NdpEntry> {
   static constexpr bool value = true;
 };
 
