@@ -108,6 +108,7 @@ add_library(core
   fboss/agent/ArpHandler.cpp
   fboss/agent/DHCPv4Handler.cpp
   fboss/agent/DHCPv6Handler.cpp
+  fboss/agent/DsfSubscriber.cpp
   fboss/agent/FibHelpers.cpp
   fboss/agent/FsdbSyncer.cpp
   fboss/agent/HwSwitch.cpp
