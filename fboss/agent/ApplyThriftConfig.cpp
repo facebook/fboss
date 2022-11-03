@@ -806,7 +806,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       // your own ASIC type. The current approach may not work with hybrid ASIC
       // clusters (unless we can get the same reserved encap index block).
       neighbor.encapIndex() = *asic->getReservedEncapIndexRange().minimum();
-      neighbor.isLocal() = false;
+      neighbor.isLocal() = isLocal(node);
       if (network.first.isV6()) {
         ndpTable.insert({*neighbor.ipaddress(), neighbor});
       } else {
@@ -823,7 +823,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       return;
     }
     if (isLocal(node)) {
-      // TODO - create neighbors for local loopback IPs
+      processLoopbacks(node);
       return;
     }
     auto recyclePortId = getRecyclePortId(node);
@@ -870,7 +870,9 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       intfs->removeNode(InterfaceID(recyclePortId));
       new_->resetRemoteIntfs(intfs);
     } else {
-      // TODO - remove local recycle port neighbor
+      // Local DSF node removal should be accompanied by
+      // recycle port and intf removal in config. That will
+      // cleanup any neighbor entries on intf removarl
     }
   };
 
