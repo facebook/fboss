@@ -339,7 +339,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makePTPUDPTxPacket(
     PTPMessageType ptpPktType) {
   int payloadSize = PTPHeader::getPayloadSize(ptpPktType);
   auto txPacket = hw->allocatePacket(
-      EthHdr::SIZE + ipHdr.size() + udpHdr.size() + payloadSize);
+      ethHdr.size() + ipHdr.size() + udpHdr.size() + payloadSize);
 
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   // Write EthHdr
@@ -511,7 +511,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     const TCPHeader& tcpHdr,
     const std::vector<uint8_t>& payload) {
   auto txPacket = hw->allocatePacket(
-      EthHdr::SIZE + ipHdr.size() + tcpHdr.size() + payload.size());
+      ethHdr.size() + ipHdr.size() + tcpHdr.size() + payload.size());
 
   folly::io::RWPrivateCursor rwCursor(txPacket->buf());
   // Write EthHdr

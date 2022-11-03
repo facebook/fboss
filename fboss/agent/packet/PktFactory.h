@@ -221,7 +221,7 @@ class EthFrame {
     } else if (mplsPayLoad_) {
       len += mplsPayLoad_->length();
     }
-    len += EthHdr::SIZE;
+    len += hdr_.size();
     return len;
   }
   // construct TxPacket by encapsulating payload
