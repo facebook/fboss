@@ -282,8 +282,7 @@ int BcmTrunk::rtag7() {
 void BcmTrunk::suppressTrunkInternalFlood(
     const std::shared_ptr<AggregatePort>& aggPort) {
   auto trafficToBlock = BCM_PORT_FLOOD_BLOCK_BCAST |
-      BCM_PORT_FLOOD_BLOCK_UNKNOWN_UCAST | BCM_PORT_FLOOD_BLOCK_UNKNOWN_MCAST |
-      BCM_PORT_FLOOD_BLOCK_ALL;
+      BCM_PORT_FLOOD_BLOCK_UNKNOWN_UCAST | BCM_PORT_FLOOD_BLOCK_UNKNOWN_MCAST;
 
   for (auto ingressSubport : aggPort->sortedSubports()) {
     auto ingressPortID =

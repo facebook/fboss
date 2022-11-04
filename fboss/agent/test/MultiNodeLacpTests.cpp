@@ -491,7 +491,7 @@ TEST_F(MultiNodeRoutingLoop, LoopTraffic) {
   };
   auto verify = [=]() {
     std::this_thread::sleep_for(3s);
-    assertNoInDiscards(1000);
+    assertNoInDiscards(0);
   };
   verifyAcrossWarmBoots(setup, verify, setup, verify);
 }
