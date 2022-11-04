@@ -9,3 +9,4 @@
    sai_replayer
    tunnel_intfs
    watermark_stats
+   acls
