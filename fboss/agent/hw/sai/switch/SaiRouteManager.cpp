@@ -24,6 +24,11 @@
 
 #include <optional>
 
+DEFINE_bool(
+    disable_valid_route_check,
+    false,
+    "Disable valid route check when creating or changing routes in SAI switches");
+
 namespace facebook::fboss {
 
 sai_object_id_t SaiRouteHandle::nextHopAdapterKey() const {
@@ -128,7 +133,8 @@ bool SaiRouteManager::validRoute(const std::shared_ptr<Route<AddrT>>& swRoute) {
   // N.B., for now, this code looks a bit silly (could just do direct return)
   // but we use this style to suggest the possibility of future extension
   // with other conditions for invalid routes.
-  if (swRoute->isConnected() && swRoute->isHostRoute()) {
+  if (!FLAGS_disable_valid_route_check && swRoute->isConnected() &&
+      swRoute->isHostRoute()) {
     return false;
   }
   return true;

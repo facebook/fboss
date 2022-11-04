@@ -23,6 +23,8 @@
 #include <memory>
 #include <mutex>
 
+DECLARE_bool(disable_valid_route_check);
+
 namespace facebook::fboss {
 
 class SaiManagerTable;
