@@ -19,6 +19,7 @@
 #include "fboss/agent/hw/test/HwTestTrunkUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/packet/DHCPv6Packet.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
@@ -43,6 +44,12 @@ const auto kIPv6LinkLocalUcastAddress = folly::IPAddressV6("fe80::2");
 constexpr uint8_t kNetworkControlDscp = 48;
 
 const auto kMcastMacAddress = folly::MacAddress("01:05:0E:01:02:03");
+
+const auto kDhcpV6AllRoutersIp = folly::IPAddressV6("ff02::1:2");
+const auto kDhcpV6McastMacAddress = folly::MacAddress("33:33:00:01:00:02");
+const auto kDhcpV6ServerGlobalUnicastAddress =
+    folly::IPAddressV6("2401:db00:eef0:a67::1");
+const auto kRandomPort = 54131;
 
 static time_t getCurrentTime() {
   return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -219,6 +226,41 @@ class HwCoppTest : public HwLinkStateDependentTest {
                 intfMac, // my mac
                 neighborIp, // sender ip
                 folly::IPAddressV6("1::1")); // sent to me
+      sendPkt(std::move(txPacket), outOfPort);
+    }
+  }
+
+  void
+  sendDHCPv6Pkts(int numPktsToSend, DHCPv6Type type, int ttl, bool outOfPort) {
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
+
+    for (int i = 0; i < numPktsToSend; i++) {
+      auto txPacket = (type == DHCPv6Type::DHCPv6_SOLICIT)
+          ? utility::makeUDPTxPacket(
+                getHwSwitch(),
+                vlanId,
+                neighborMac, // SrcMAC: Client's MAC address
+                kDhcpV6McastMacAddress, // DstMac: 33:33:00:01:00:02
+                kIPv6LinkLocalUcastAddress, // SrcIP: Client's Link Local addr
+                kDhcpV6AllRoutersIp, // DstIP: ff02::1:2
+                DHCPv6Packet::DHCP6_CLIENT_UDPPORT, // SrcPort: 546
+                DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT, // DstPort: 547
+                0 /* dscp */,
+                ttl)
+          : utility::makeUDPTxPacket( // DHCPv6Type::DHCPv6_ADVERTISE
+                getHwSwitch(),
+                vlanId,
+                neighborMac, // srcMac: Server's MAC
+                intfMac, // dstMac: Switch/our MAC
+                kDhcpV6ServerGlobalUnicastAddress, // srcIp: Server's global
+                                                   // unicast address
+                folly::IPAddressV6("1::"), // dstIp: Switch/our IP
+                kRandomPort, // SrcPort:DHCPv6 server's random port
+                DHCPv6Packet::DHCP6_SERVERAGENT_UDPPORT, // DstPort: 547
+                0 /* dscp */,
+                ttl); // sent to me
       sendPkt(std::move(txPacket), outOfPort);
     }
   }
