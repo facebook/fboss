@@ -511,6 +511,11 @@ class BcmSdkInterface {
       uint32 options,
       uint64* value) = 0;
 
+  virtual int bcm_udf_hash_config_add(
+      int unit,
+      uint32 options,
+      bcm_udf_hash_config_t* config) = 0;
+
   virtual int bcm_cosq_bst_stat_sync(int unit, bcm_bst_stat_id_t bid) = 0;
   virtual int bcm_stat_custom_add(
       int unit,

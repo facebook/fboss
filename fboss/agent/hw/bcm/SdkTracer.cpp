@@ -312,6 +312,11 @@ int __real_bcm_cosq_bst_stat_extended_get(
     uint32 options,
     uint64* value);
 
+int __real_bcm_udf_hash_config_add(
+    int unit,
+    uint32 options,
+    bcm_udf_hash_config_t* config);
+
 int __real_bcm_l3_egress_ecmp_get(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
@@ -919,6 +924,11 @@ int __real_bcm_cosq_bst_stat_extended_get(
     bcm_bst_stat_id_t bid,
     uint32 options,
     uint64* value);
+
+int __real_bcm_udf_hash_config_add(
+    int unit,
+    uint32 options,
+    bcm_udf_hash_config_t* config);
 
 int __real_bcm_l3_route_get(int unit, bcm_l3_route_t* info);
 
@@ -2065,6 +2075,13 @@ int __wrap_bcm_cosq_bst_stat_extended_get(
     uint64* value) {
   CALL_WRAPPERS_RV(
       bcm_cosq_bst_stat_extended_get(unit, id, bid, options, value));
+}
+
+int __wrap_bcm_udf_hash_config_add(
+    int unit,
+    uint32 options,
+    bcm_udf_hash_config_t* config) {
+  CALL_WRAPPERS_RV(bcm_udf_hash_config_add(unit, options, config));
 }
 
 int __wrap_bcm_stat_custom_add(

@@ -1925,6 +1925,36 @@ int BcmCinter::bcm_port_loopback_set(int unit, bcm_port_t port, uint32 value) {
   return 0;
 }
 
+vector<string> BcmCinter::cintForBcmUdfHashConfig(
+    const bcm_udf_hash_config_t& config) {
+  vector<string> cintLines = {
+      "bcm_udf_hash_config_t_init(&config)",
+      to<string>("config.flags=", config.flags),
+      to<string>("config.udf_id=", config.udf_id),
+      to<string>("config.mask_length=", config.mask_length),
+  };
+  for (int i = 0; i < config.mask_length; i++) {
+    cintLines.push_back(
+        to<string>("config.hash_mask", "[", i, "]=", config.hash_mask[i]));
+  }
+  return cintLines;
+}
+
+int BcmCinter::bcm_udf_hash_config_add(
+    int unit,
+    uint32 options,
+    bcm_udf_hash_config_t* config) {
+  auto cint = cintForBcmUdfHashConfig(*config);
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_udf_hash_config_add(", makeParamStr(unit, options, "&config"), ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
 int BcmCinter::bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) {
   writeCintLines(wrapFunc(to<string>(
       "bcm_port_autoneg_set(", makeParamStr(unit, port, autoneg), ")")));

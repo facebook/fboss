@@ -159,6 +159,10 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       uint32 param0,
       uint32 param1) override;
   int bcm_port_loopback_set(int unit, bcm_port_t port, uint32 value) override;
+  int bcm_udf_hash_config_add(
+      int unit,
+      uint32 options,
+      bcm_udf_hash_config_t* config) override;
   int bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) override;
   int bcm_port_phy_modify(
       int unit,
@@ -1917,6 +1921,9 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
 
   std::vector<std::string> cintForMirrorDestination(
       const bcm_mirror_destination_t* mirror_dest);
+
+  std::vector<std::string> cintForBcmUdfHashConfig(
+      const bcm_udf_hash_config_t& config);
 
   std::vector<std::string> cintForTrunkInfo(const bcm_trunk_info_t& t_data);
 

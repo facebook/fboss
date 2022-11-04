@@ -320,6 +320,11 @@ class BcmInterface {
       uint32 options,
       uint64* value) = 0;
 
+  virtual int bcm_udf_hash_config_add(
+      int unit,
+      uint32 options,
+      bcm_udf_hash_config_t* config) = 0;
+
   virtual int bcm_stat_clear(int unit, bcm_port_t port) = 0;
 
   virtual int bcm_l3_route_max_ecmp_set(int unit, int max) = 0;
