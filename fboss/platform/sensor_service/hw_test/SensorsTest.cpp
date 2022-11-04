@@ -10,42 +10,25 @@
 
 #include "fboss/platform/sensor_service/hw_test/SensorsTest.h"
 
-#include <thrift/lib/cpp2/async/RocketClientChannel.h>
-#include "thrift/lib/cpp2/server/ThriftServer.h"
+#include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
-#ifndef IS_OSS
-#include "common/services/cpp/ServiceFrameworkLight.h"
-#endif
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/sensor_service/Flags.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
-#include "fboss/platform/sensor_service/SetupThrift.h"
+
+using namespace apache::thrift;
 
 namespace facebook::fboss::platform::sensor_service {
 
 SensorsTest::~SensorsTest() {}
 
 void SensorsTest::SetUp() {
-  auto sensorService = std::make_shared<SensorServiceImpl>();
-  auto [thriftServer_, thriftHandler_] =
-      helpers::setupThrift<SensorServiceThriftHandler>(sensorService, 5970);
-#ifndef IS_OSS
-  service_ =
-      std::make_unique<services::ServiceFrameworkLight>("Sensor service test");
-  runServer(
-      *service_, thriftServer_, thriftHandler_.get(), false /*loop forever*/);
-#endif
+  thriftHandler_ = std::make_shared<SensorServiceThriftHandler>(
+      std::make_shared<SensorServiceImpl>(""));
 }
-void SensorsTest::TearDown() {
-#ifndef IS_OSS
-  service_->stop();
-  service_->waitForStop();
-  service_.reset();
-#endif
-  thriftServer_.reset();
-  thriftHandler_.reset();
-}
+
+void SensorsTest::TearDown() {}
 
 SensorReadResponse SensorsTest::getSensors(
     const std::vector<std::string>& sensors) {
@@ -93,14 +76,14 @@ TEST_F(SensorsTest, getSensorsByFruTypes) {
 }
 
 TEST_F(SensorsTest, testThrift) {
-  folly::SocketAddress addr("::1", FLAGS_thrift_port);
-  auto socket = folly::AsyncSocket::newSocket(
-      folly::EventBaseManager::get()->getEventBase(), addr, 5000);
-  auto channel =
-      apache::thrift::RocketClientChannel::newChannel(std::move(socket));
-  auto client = SensorServiceThriftAsyncClient(std::move(channel));
+  auto server = std::make_unique<ScopedServerInterfaceThread>(
+      thriftHandler_, folly::SocketAddress("::1", FLAGS_thrift_port));
+  auto resolverEvb = std::make_unique<folly::EventBase>();
+  auto clientPtr =
+      server->newClient<apache::thrift::Client<SensorServiceThrift>>(
+          resolverEvb.get());
   SensorReadResponse response;
-  client.sync_getSensorValuesByNames(response, {"PCH_TEMP"});
+  clientPtr->sync_getSensorValuesByNames(response, {"PCH_TEMP"});
   EXPECT_EQ(response.sensorData()->size(), 1);
 }
 } // namespace facebook::fboss::platform::sensor_service
