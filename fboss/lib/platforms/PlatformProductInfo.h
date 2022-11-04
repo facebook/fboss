@@ -40,7 +40,6 @@ class PlatformProductInfo {
   void setFBSerial();
   void initFromFbWhoAmI();
   void initMode();
-  std::optional<PlatformMode> getDevPlatformMode();
   void parse(std::string data);
 
   ProductInfo productInfo_;

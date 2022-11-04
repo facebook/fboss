@@ -9,11 +9,15 @@
  */
 
 #include "fboss/agent/platforms/common/fuji/FujiPlatformMapping.h"
+#include "fboss/agent/platforms/common/fuji/Fuji16QPimPlatformMapping.h"
 
 namespace facebook {
 namespace fboss {
 FujiPlatformMapping::FujiPlatformMapping() {
-  // NO-OP for OSS
+  auto fuji16Q = std::make_unique<Fuji16QPimPlatformMapping>();
+  for (uint8_t pimID = 2; pimID < 10; pimID++) {
+    this->merge(fuji16Q->getPimPlatformMapping(pimID));
+  }
 }
 } // namespace fboss
 } // namespace facebook

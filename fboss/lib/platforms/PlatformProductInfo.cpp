@@ -86,8 +86,8 @@ std::string PlatformProductInfo::getProductName() {
 void PlatformProductInfo::initMode() {
   if (FLAGS_mode.empty()) {
     auto modelName = getProductName();
-    if (auto platformMode = getDevPlatformMode()) {
-      mode_ = *platformMode;
+    if (modelName.find("MINIPACK2") == 0) {
+      mode_ = PlatformMode::FUJI;
     } else if (
         modelName.find("Wedge100") == 0 || modelName.find("WEDGE100") == 0) {
       // Wedge100 comes from fruid.json, WEDGE100 comes from fbwhoami
