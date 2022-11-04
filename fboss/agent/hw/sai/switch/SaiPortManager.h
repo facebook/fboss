@@ -209,6 +209,7 @@ class SaiPortManager {
   void loadPortQueuesForChangedPort(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  cfg::PortType getPortType(PortID portId) const;
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
@@ -285,7 +286,6 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   void removePfc(const std::shared_ptr<Port>& swPort);
-  cfg::PortType getPortType(PortID portId) const;
   void setPortType(PortID portId, cfg::PortType portType);
   void programPfcBuffers(const std::shared_ptr<Port>& swPort);
   void removePfcBuffers(const std::shared_ptr<Port>& swPort);

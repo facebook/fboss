@@ -1029,9 +1029,13 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfo() {
 
 std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
   std::map<PortID, phy::PhyInfo> returnPhyParams;
+  auto& portManager = managerTable_->portManager();
 
   for (const auto& portIdAndHandle : managerTable_->portManager()) {
     PortID swPort = portIdAndHandle.first;
+    if (portManager.getPortType(swPort) == cfg::PortType::RECYCLE_PORT) {
+      continue;
+    }
 
     auto portHandle = portIdAndHandle.second.get();
     if (portHandle == nullptr) {
@@ -1040,7 +1044,7 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
       continue;
     }
 
-    auto fb303PortStat = managerTable_->portManager().getLastPortStat(swPort);
+    auto fb303PortStat = portManager.getLastPortStat(swPort);
     if (fb303PortStat == nullptr) {
       XLOG(DBG3) << "fb303PortStat not found for port "
                  << static_cast<int>(swPort);
@@ -1061,8 +1065,8 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     phyChip.type() = chipType;
     bool isXphy = *phyChip.type() == phy::DataPlanePhyChipType::XPHY;
     phyParams.phyChip() = phyChip;
-    phyParams.linkState() = managerTable_->portManager().isUp(swPort);
-    phyParams.speed() = managerTable_->portManager().getSpeed(swPort);
+    phyParams.linkState() = portManager.isUp(swPort);
+    phyParams.speed() = portManager.getSpeed(swPort);
     phyParams.line()->side() = phy::Side::LINE;
 
     if (isXphy) {
@@ -1071,7 +1075,7 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     }
 
     phyParams.line()->interfaceType() = getInterfaceType(swPort, chipType);
-    phyParams.line()->medium() = managerTable_->portManager().getMedium(swPort);
+    phyParams.line()->medium() = portManager.getMedium(swPort);
     // Update PMD Info
     phy::PmdInfo lastLinePmdInfo = *lastPhyInfo.line()->pmd();
     updatePmdInfo(*phyParams.line(), portHandle->port, lastLinePmdInfo);
