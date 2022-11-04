@@ -19,15 +19,8 @@ namespace apache::thrift {
 class ThriftServer;
 }
 
-DECLARE_int32(thrift_port);
-
 namespace facebook::fboss::platform::sensor_service {
 class SensorServiceThriftHandler;
-
-std::pair<
-    std::shared_ptr<apache::thrift::ThriftServer>,
-    std::shared_ptr<SensorServiceThriftHandler>>
-setupThrift();
 
 void runServer(
     facebook::services::ServiceFrameworkLight& service,

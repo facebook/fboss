@@ -8,6 +8,7 @@
 #include "common/services/cpp/ServiceFrameworkLight.h"
 #endif
 #include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/sensor_service/Flags.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 #include "fboss/platform/sensor_service/SensorStatsPub.h"
 #include "fboss/platform/sensor_service/SetupThrift.h"
@@ -17,16 +18,6 @@ using namespace facebook::services;
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::sensor_service;
 
-DEFINE_uint32(
-    sensor_fetch_interval,
-    5,
-    "The interval between each sensor data fetch");
-
-DEFINE_int32(
-    stats_publish_interval,
-    60,
-    "Interval (in seconds) for publishing stats");
-
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
 int main(int argc, char** argv) {
@@ -34,18 +25,20 @@ int main(int argc, char** argv) {
 
   helpers::fbInit(argc, argv);
 
-  // Setup thrift handler and server
-  auto [server, handler] = setupThrift();
+  auto serviceImpl = std::make_shared<SensorServiceImpl>(FLAGS_config_path);
+
+  // Fetch sensor data once to warmup
+  serviceImpl->fetchSensorData();
+
+  auto [server, handler] = helpers::setupThrift<SensorServiceThriftHandler>(
+      serviceImpl, FLAGS_thrift_port);
 
   folly::FunctionScheduler scheduler;
 
-  // To fetch sensor data at define cadence
-  auto sensorService = handler->getServiceImpl();
-
-  SensorStatsPub publisher(handler->getServiceImpl());
+  SensorStatsPub publisher(serviceImpl.get());
 
   scheduler.addFunction(
-      [sensorService]() { sensorService->fetchSensorData(); },
+      [serviceImpl]() { serviceImpl->fetchSensorData(); },
       std::chrono::seconds(FLAGS_sensor_fetch_interval),
       "fetchSensorData");
 

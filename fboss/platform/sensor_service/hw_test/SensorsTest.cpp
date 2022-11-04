@@ -16,6 +16,8 @@
 #ifndef IS_OSS
 #include "common/services/cpp/ServiceFrameworkLight.h"
 #endif
+#include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/sensor_service/Flags.h"
 #include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 #include "fboss/platform/sensor_service/SetupThrift.h"
@@ -25,7 +27,9 @@ namespace facebook::fboss::platform::sensor_service {
 SensorsTest::~SensorsTest() {}
 
 void SensorsTest::SetUp() {
-  std::tie(thriftServer_, thriftHandler_) = setupThrift();
+  auto sensorService = std::make_shared<SensorServiceImpl>();
+  auto [thriftServer_, thriftHandler_] =
+      helpers::setupThrift<SensorServiceThriftHandler>(sensorService, 5970);
 #ifndef IS_OSS
   service_ =
       std::make_unique<services::ServiceFrameworkLight>("Sensor service test");
@@ -89,7 +93,7 @@ TEST_F(SensorsTest, getSensorsByFruTypes) {
 }
 
 TEST_F(SensorsTest, testThrift) {
-  folly::SocketAddress addr("::1", 5970);
+  folly::SocketAddress addr("::1", FLAGS_thrift_port);
   auto socket = folly::AsyncSocket::newSocket(
       folly::EventBaseManager::get()->getEventBase(), addr, 5000);
   auto channel =
