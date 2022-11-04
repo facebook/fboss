@@ -10,6 +10,7 @@
 #pragma once
 
 #include <fboss/agent/Constants.h>
+#include <memory>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase-defs.h"
@@ -53,6 +54,25 @@ NeighborResponseEntryFields<IPADDR>::fromFollyDynamicLegacy(
   return NeighborResponseEntryFields<IPADDR>(
       folly::MacAddress(entry[kMac].stringPiece()),
       InterfaceID(entry[kNeighborResponseIntf].asInt()));
+}
+
+template <typename IPADDR, typename SUBCLASS>
+folly::dynamic NeighborResponseEntry<IPADDR, SUBCLASS>::toFollyDynamicLegacy()
+    const {
+  using Fields = NeighborResponseEntryFields<IPADDR>;
+  Fields fields = Fields::fromThrift(this->toThrift());
+  return fields.toFollyDynamic();
+}
+
+template <typename IPADDR, typename SUBCLASS>
+std::shared_ptr<SUBCLASS>
+NeighborResponseEntry<IPADDR, SUBCLASS>::fromFollyDynamicLegacy(
+    const folly::dynamic& dyn) {
+  using Fields = NeighborResponseEntryFields<IPADDR>;
+  Fields fields = Fields::fromFollyDynamic(dyn);
+  auto entry = std::make_shared<SUBCLASS>();
+  entry->fromThrift(fields.toThrift());
+  return entry;
 }
 
 } // namespace facebook::fboss

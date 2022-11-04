@@ -14,6 +14,8 @@
 
 namespace facebook::fboss {
 
+USE_THRIFT_COW(NdpResponseEntry)
+
 class NdpResponseEntry
     : public NeighborResponseEntry<folly::IPAddressV6, NdpResponseEntry> {
  public:

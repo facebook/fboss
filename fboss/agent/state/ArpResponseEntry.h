@@ -14,6 +14,8 @@
 
 namespace facebook::fboss {
 
+USE_THRIFT_COW(ArpResponseEntry)
+
 class ArpResponseEntry
     : public NeighborResponseEntry<folly::IPAddressV4, ArpResponseEntry> {
  public:

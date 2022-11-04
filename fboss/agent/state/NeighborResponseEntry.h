@@ -10,6 +10,7 @@
 #pragma once
 
 #include <folly/MacAddress.h>
+#include <memory>
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
@@ -55,46 +56,66 @@ struct NeighborResponseEntryFields : public ThriftyFields<
 };
 
 template <typename IPADDR, typename SUBCLASS>
-class NeighborResponseEntry : public ThriftyBaseT<
-                                  state::NeighborResponseEntryFields,
-                                  SUBCLASS,
-                                  NeighborResponseEntryFields<IPADDR>> {
+class NeighborResponseEntry
+    : public ThriftStructNode<SUBCLASS, state::NeighborResponseEntryFields> {
  public:
   using AddressType = IPADDR;
 
+  NeighborResponseEntry(
+      AddressType ipAddress,
+      folly::MacAddress mac,
+      InterfaceID interfaceID) {
+    setIP(ipAddress);
+    setMac(mac);
+    setInterfaceID(interfaceID);
+  }
+
   AddressType getID() const {
-    return this->getFields()->ipAddress;
+    return AddressType(
+        this->template get<switch_state_tags::ipAddress>()->cref());
   }
 
   AddressType getIP() const {
-    return this->getFields()->ipAddress;
+    return getID();
   }
 
   void setIP(AddressType ip) {
-    this->writableFields()->ipAddress = ip;
+    this->template set<switch_state_tags::ipAddress>(ip.str());
   }
 
   folly::MacAddress getMac() const {
-    return this->getFields()->mac;
+    return folly::MacAddress(
+        this->template get<switch_state_tags::mac>()->cref());
   }
 
   void setMac(folly::MacAddress mac) {
-    this->writableFields()->mac = mac;
+    this->template set<switch_state_tags::mac>(mac.toString());
   }
 
   InterfaceID getInterfaceID() const {
-    return this->getFields()->interfaceID;
+    return InterfaceID(
+        this->template get<switch_state_tags::interfaceId>()->cref());
   }
 
   void setInterfaceID(InterfaceID interface) {
-    this->writableFields()->interfaceID = interface;
+    this->template set<switch_state_tags::interfaceId>(interface);
+  }
+
+  folly::dynamic toFollyDynamic() const override {
+    return toFollyDynamicLegacy();
+  }
+
+  folly::dynamic toFollyDynamicLegacy() const;
+
+  static std::shared_ptr<SUBCLASS> fromFollyDynamicLegacy(
+      const folly::dynamic& dyn);
+
+  static std::shared_ptr<SUBCLASS> fromFollyDynamic(const folly::dynamic& dyn) {
+    return fromFollyDynamicLegacy(dyn);
   }
 
  private:
-  using Parent = ThriftyBaseT<
-      state::NeighborResponseEntryFields,
-      SUBCLASS,
-      NeighborResponseEntryFields<IPADDR>>;
+  using Parent = ThriftStructNode<SUBCLASS, state::NeighborResponseEntryFields>;
   using Parent::Parent;
   friend class CloneAllocator;
 };
