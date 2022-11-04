@@ -1740,6 +1740,9 @@ phy::InterfaceType SaiPortManager::getInterfaceType(PortID portID) const {
 }
 
 TransmitterTechnology SaiPortManager::getMedium(PortID portID) const {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::MEDIA_TYPE)) {
+    return TransmitterTechnology::UNKNOWN;
+  }
   auto handle = getPortHandle(portID);
   auto saiPortId = handle->port->adapterKey();
   if (platform_->getAsic()->getAsicType() ==
