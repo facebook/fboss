@@ -1022,7 +1022,7 @@ const std::vector<sai_stat_id_t>& SaiPortManager::fecStatIds(
       getPortType(portId) == cfg::PortType::INTERFACE_PORT && // CS00012267634
       utility::isReedSolomonFec(getFECMode(portId))) {
 #if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_ODP) || \
-    defined(SAI_VERSION_8_0_EA_DNX_ODP) || defined(TAJO_SDK_VERSION_1_42_4)
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(TAJO_SDK_VERSION_1_42_4)
     ids.push_back(SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES);
     ids.push_back(SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES);
 #endif
