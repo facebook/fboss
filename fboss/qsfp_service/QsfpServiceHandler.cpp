@@ -266,20 +266,20 @@ void QsfpServiceHandler::getSaiPortInfo(
   out = manager_->getSaiPortInfo(*portName);
 }
 
-void QsfpServiceHandler::setSaiPortLoopbackState(
+void QsfpServiceHandler::setPortLoopbackState(
     std::unique_ptr<std::string> portName,
     phy::PortComponent component,
     bool setLoopback) {
   auto log = LOG_THRIFT_CALL(INFO);
-  manager_->setSaiPortLoopbackState(*portName, component, setLoopback);
+  manager_->setPortLoopbackState(*portName, component, setLoopback);
 }
 
-void QsfpServiceHandler::setSaiPortAdminState(
+void QsfpServiceHandler::setPortAdminState(
     std::unique_ptr<std::string> portName,
     phy::PortComponent component,
     bool setAdminUp) {
   auto log = LOG_THRIFT_CALL(INFO);
-  manager_->setSaiPortAdminState(*portName, component, setAdminUp);
+  manager_->setPortAdminState(*portName, component, setAdminUp);
 }
 
 void QsfpServiceHandler::saiPhyRegisterAccess(

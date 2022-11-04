@@ -159,13 +159,13 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     1: fboss.FbossBaseError error,
   );
 
-  void setSaiPortLoopbackState(
+  void setPortLoopbackState(
     1: string portName,
     2: phy.PortComponent component,
     3: bool setLoopback = false,
   ) throws (1: fboss.FbossBaseError error);
 
-  void setSaiPortAdminState(
+  void setPortAdminState(
     1: string portName,
     2: phy.PortComponent component,
     3: bool setAdminUp = true,

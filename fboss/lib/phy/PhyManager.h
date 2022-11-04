@@ -219,6 +219,16 @@ class PhyManager {
 
   const std::string& getPortName(PortID portID) const;
 
+  virtual void setPortLoopbackState(
+      PortID /* swPort */,
+      phy::PortComponent /* component */,
+      bool /* setLoopback */) {}
+
+  virtual void setPortAdminState(
+      PortID /* swPort */,
+      phy::PortComponent /* component */,
+      bool /* setAdminUp */) {}
+
  protected:
   struct PortCacheInfo {
     // PhyManager is in the middle of changing its apis to accept PortID instead

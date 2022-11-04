@@ -1767,4 +1767,50 @@ void TransceiverManager::getPauseRemediationUntil(
   }
 }
 
+void TransceiverManager::setPortLoopbackState(
+    std::string portName,
+    phy::PortComponent component,
+    bool setLoopback) {
+  auto swPort = getPortIDByPortName(portName);
+  if (!swPort.has_value()) {
+    throw FbossError(
+        folly::sformat("setPortLoopbackState: Invalid port {}", portName));
+  }
+  if (component != phy::PortComponent::GB_SYSTEM &&
+      component != phy::PortComponent::GB_LINE) {
+    XLOG(INFO)
+        << " TransceiverManager::setPortLoopbackState - component not supported "
+        << static_cast<int>(component);
+    return;
+  }
+
+  XLOG(INFO) << " TransceiverManager::setPortLoopbackState Port "
+             << static_cast<int>(swPort.value());
+  getPhyManager()->setPortLoopbackState(
+      PortID(swPort.value()), component, setLoopback);
+}
+
+void TransceiverManager::setPortAdminState(
+    std::string portName,
+    phy::PortComponent component,
+    bool setAdminUp) {
+  auto swPort = getPortIDByPortName(portName);
+  if (!swPort.has_value()) {
+    throw FbossError(
+        folly::sformat("setPortAdminState: Invalid port {}", portName));
+  }
+  if (component != phy::PortComponent::GB_SYSTEM &&
+      component != phy::PortComponent::GB_LINE) {
+    XLOG(INFO)
+        << " TransceiverManager::setPortAdminState - component not supported "
+        << static_cast<int>(component);
+    return;
+  }
+
+  XLOG(INFO) << " TransceiverManager::setPortAdminState Port "
+             << static_cast<int>(swPort.value());
+  getPhyManager()->setPortAdminState(
+      PortID(swPort.value()), component, setAdminUp);
+}
+
 } // namespace facebook::fboss

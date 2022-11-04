@@ -84,7 +84,7 @@ void setPhyLoopback(QsfpServiceAsyncClient* qsfpHandler, bool setLoopback) {
       ? phy::PortComponent::GB_LINE
       : phy::PortComponent::GB_SYSTEM;
 
-  qsfpHandler->sync_setSaiPortLoopbackState(FLAGS_port, component, setLoopback);
+  qsfpHandler->sync_setPortLoopbackState(FLAGS_port, component, setLoopback);
   printf(
       "Port Loopback %s got %s\n",
       FLAGS_port.c_str(),
@@ -105,7 +105,7 @@ void setPhyAdminState(QsfpServiceAsyncClient* qsfpHandler, bool adminUp) {
       ? phy::PortComponent::GB_LINE
       : phy::PortComponent::GB_SYSTEM;
 
-  qsfpHandler->sync_setSaiPortAdminState(FLAGS_port, component, adminUp);
+  qsfpHandler->sync_setPortAdminState(FLAGS_port, component, adminUp);
   printf(
       "Port %s Admin state set to %s\n",
       FLAGS_port.c_str(),

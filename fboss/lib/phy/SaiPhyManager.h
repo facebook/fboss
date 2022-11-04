@@ -92,16 +92,6 @@ class SaiPhyManager : public PhyManager {
   void updateAllXphyPortsStats() override;
   std::string getSaiPortInfo(PortID swPort);
 
-  void setSaiPortLoopbackState(
-      PortID swPort,
-      phy::PortComponent component,
-      bool setLoopback);
-
-  void setSaiPortAdminState(
-      PortID swPort,
-      phy::PortComponent component,
-      bool setAdminUp);
-
   bool getSdkState(const std::string& fileName) override;
 
   bool setupMacsecState(
@@ -119,6 +109,20 @@ class SaiPhyManager : public PhyManager {
   std::vector<phy::PrbsLaneStats> getPortPrbsStats(
       PortID portID,
       phy::Side side) override;
+
+  void setPortLoopbackState(
+      PortID swPort,
+      phy::PortComponent component,
+      bool setLoopback) override {
+    setSaiPortLoopbackState(swPort, component, setLoopback);
+  }
+
+  void setPortAdminState(
+      PortID swPort,
+      phy::PortComponent component,
+      bool setAdminUp) override {
+    setSaiPortAdminState(swPort, component, setAdminUp);
+  }
 
  protected:
   void addSaiPlatform(
@@ -193,6 +197,16 @@ class SaiPhyManager : public PhyManager {
       const phy::PhyPortConfig& /* portCfg */) {
     return true;
   }
+
+  void setSaiPortLoopbackState(
+      PortID swPort,
+      phy::PortComponent component,
+      bool setLoopback);
+
+  void setSaiPortAdminState(
+      PortID swPort,
+      phy::PortComponent component,
+      bool setAdminUp);
 
   // Due to SaiPhyManager usually has more than one phy, and each phy has its
   // own SaiHwPlatform, which needs a local mac address. As local mac address

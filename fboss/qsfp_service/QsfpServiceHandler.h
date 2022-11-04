@@ -188,12 +188,12 @@ class QsfpServiceHandler
   void getSaiPortInfo(std::string& out, std::unique_ptr<std::string> portName)
       override;
 
-  void setSaiPortLoopbackState(
+  void setPortLoopbackState(
       std::unique_ptr<std::string> portName,
       phy::PortComponent component,
       bool setLoopback) override;
 
-  void setSaiPortAdminState(
+  void setPortAdminState(
       std::unique_ptr<std::string> portName,
       phy::PortComponent component,
       bool setAdminUp) override;

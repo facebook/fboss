@@ -203,15 +203,15 @@ class TransceiverManager {
     return "";
   }
 
-  virtual void setSaiPortLoopbackState(
+  void setPortLoopbackState(
       std::string /* portName */,
       phy::PortComponent /* component */,
-      bool /* setLoopback */) {}
+      bool /* setLoopback */);
 
-  virtual void setSaiPortAdminState(
+  void setPortAdminState(
       std::string /* portName */,
       phy::PortComponent /* component */,
-      bool /* setAdminUp */) {}
+      bool /* setAdminUp */);
 
   virtual std::string saiPhyRegisterAccess(
       std::string /* portName */,
