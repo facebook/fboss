@@ -1492,4 +1492,30 @@ TYPED_TEST(HwCoppTest, DhcpPacketToMidPriQ) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(HwCoppTest, DHCPv6SolicitToMidPriQ) {
+  auto setup = [=]() { this->setup(); };
+  auto verify = [=]() {
+    XLOG(DBG2) << "verifying DHCPv6 solicitation with TTL 1";
+    this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
+        utility::kCoppMidPriQueueId, DHCPv6Type::DHCPv6_SOLICIT);
+    XLOG(DBG2) << "verifying DHCPv6 solicitation with TTL 128";
+    this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
+        utility::kCoppMidPriQueueId, DHCPv6Type::DHCPv6_SOLICIT, 128);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(HwCoppTest, DHCPv6AdvertiseToMidPriQ) {
+  auto setup = [=]() { this->setup(); };
+  auto verify = [=]() {
+    XLOG(DBG2) << "verifying DHCPv6 Advertise with TTL 1";
+    this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
+        utility::kCoppMidPriQueueId, DHCPv6Type::DHCPv6_ADVERTISE);
+    XLOG(DBG2) << "verifying DHCPv6 Advertise with TTL 128";
+    this->sendPktAndVerifyDHCPv6PacketsCpuQueue(
+        utility::kCoppMidPriQueueId, DHCPv6Type::DHCPv6_ADVERTISE, 128);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
