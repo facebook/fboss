@@ -13,6 +13,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <folly/logging/xlog.h>
@@ -99,6 +100,9 @@ void SaiSystemPortManager::changeSystemPort(
 void SaiSystemPortManager::loadQueues(
     SaiSystemPortHandle& sysPortHandle,
     int64_t numVoqs) const {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::VOQ)) {
+    return;
+  }
   std::vector<sai_object_id_t> queueList;
   queueList.resize(numVoqs);
   SaiSystemPortTraits::Attributes::QosVoqList queueListAttribute{queueList};

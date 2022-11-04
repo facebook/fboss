@@ -825,7 +825,9 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       return;
     }
     if (isLocal(node)) {
-      processLoopbacks(node);
+      if (asic->isSupported(HwAsic::Feature::RECYCLE_PORTS)) {
+        processLoopbacks(node);
+      }
       return;
     }
     auto recyclePortId = getRecyclePortId(node);
