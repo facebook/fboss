@@ -359,7 +359,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   if (swType == cfg::SwitchType::VOQ || swType == cfg::SwitchType::FABRIC) {
     switchType = swType == cfg::SwitchType::VOQ ? SAI_SWITCH_TYPE_VOQ
                                                 : SAI_SWITCH_TYPE_FABRIC;
-    switchId = swId.value_or(0);
+    switchId = swId;
     if (swType == cfg::SwitchType::VOQ) {
       // TODO - compute this information from config. Note that
       // the this computation assumes symmetric deployment,
