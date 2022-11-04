@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/bcm/BcmTableStats.h"
 
 #include "fboss/agent/hw/bcm/BcmAPI.h"
+#include "fboss/agent/hw/bcm/BcmExactMatchUtils.h"
 #include "fboss/agent/hw/bcm/BcmHost.h"
 #include "fboss/agent/hw/bcm/BcmMirrorTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
@@ -27,6 +28,8 @@ extern "C" {
 }
 
 namespace facebook::fboss {
+
+using namespace facebook::fboss::utility;
 
 namespace {
 constexpr auto kPerIpv6Mask65_127SlotUsage = 2;
@@ -254,6 +257,38 @@ bool BcmHwTableStatManager::refreshFPStats(HwResourceStats* stats) const {
   return true;
 }
 
+bool BcmHwTableStatManager::refreshEMStats(HwResourceStats* stats) const {
+  auto grpId = hw_->getTeFlowTable()->getTeFlowGroupId();
+  if (!grpId) {
+    stats->em_entries_used() = 0;
+    stats->em_entries_max() = 0;
+    stats->em_entries_free() = 0;
+    stats->em_counters_used() = 0;
+    stats->em_counters_free() = 0;
+    stats->em_counters_max() = 0;
+    return true;
+  }
+  bcm_field_group_status_t emStatus;
+  auto ret = bcm_field_group_status_get(
+      hw_->getUnit(), getEMGroupID(grpId), &emStatus);
+  if (ret) {
+    XLOG(ERR) << "Unable to get EM stats, these will be stale";
+    return false;
+  }
+  // Entries
+  stats->em_entries_used() = emStatus.entry_count;
+  stats->em_entries_max() = emStatus.entries_total;
+  stats->em_entries_free() = emStatus.entries_free;
+  // Counters
+  stats->em_counters_used() = emStatus.counter_count;
+  stats->em_counters_free() = emStatus.counters_free;
+  // compute max via used + free rather than using counters total
+  // The latter is higher than what is available to this group
+  stats->em_counters_max() =
+      *stats->em_counters_used() + *stats->em_counters_free();
+  return true;
+}
+
 void BcmHwTableStatManager::updateBcmStateChangeStats(
     const StateDelta& delta,
     HwResourceStats* stats) const {
@@ -330,7 +365,9 @@ void BcmHwTableStatManager::refresh(
   auto hwStatus = refreshHwStatusStats(stats);
   auto lpmStatus = refreshLPMStats(stats);
   auto fpStatus = refreshFPStats(stats);
-  stats->hw_table_stats_stale() = !(hwStatus && lpmStatus && fpStatus);
+  auto emStatus = refreshEMStats(stats);
+  stats->hw_table_stats_stale() =
+      !(hwStatus && lpmStatus && fpStatus && emStatus);
   if (!isAlpmEnabled_) {
     *stats->hw_table_stats_stale() |= !(refreshLPMOnlyStats(stats));
   } else {

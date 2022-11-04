@@ -32,6 +32,8 @@ class BcmHwTableStatManager {
   bool refreshFPStats(HwResourceStats* stats) const;
   // Free route counts in ALPM mode
   bool refreshAlpmFreeRouteCounts(HwResourceStats* stats) const;
+  // Stats pertaining to EM
+  bool refreshEMStats(HwResourceStats* stats) const;
   void updateBcmStateChangeStats(
       const StateDelta& delta,
       HwResourceStats* stats) const;

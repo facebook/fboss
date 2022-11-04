@@ -64,6 +64,12 @@ constexpr folly::StringPiece kMirrorsFree{"mirrors_free"};
 constexpr folly::StringPiece kMirrorsSpan{"mirrors_span"};
 constexpr folly::StringPiece kMirrorsErspan{"mirrors_erspan"};
 constexpr folly::StringPiece kMirrorsSflow{"mirrors_sflow"};
+constexpr folly::StringPiece kEmEntriesMax{"em_entries_max"};
+constexpr folly::StringPiece kEmEntriesUsed{"em_entries_used"};
+constexpr folly::StringPiece kEmEntriesFree{"em_entries_free"};
+constexpr folly::StringPiece kEmCountersMax{"em_counters_max"};
+constexpr folly::StringPiece kEmCountersUsed{"em_counters_used"};
+constexpr folly::StringPiece kEmCountersFree{"em_counters_free"};
 
 class HwResourceStatsPublisher {
  public:

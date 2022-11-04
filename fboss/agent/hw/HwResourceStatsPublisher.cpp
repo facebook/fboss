@@ -75,6 +75,13 @@ void HwResourceStatsPublisher::publish(const HwResourceStats& stats) const {
   publish(kMirrorsSpan, *stats.mirrors_span());
   publish(kMirrorsErspan, *stats.mirrors_erspan());
   publish(kMirrorsSflow, *stats.mirrors_sflow());
+  // EM
+  publish(kEmEntriesMax, *stats.em_entries_max());
+  publish(kEmEntriesUsed, *stats.em_entries_used());
+  publish(kEmEntriesFree, *stats.em_entries_free());
+  publish(kEmCountersMax, *stats.em_counters_max());
+  publish(kEmCountersUsed, *stats.em_counters_used());
+  publish(kEmCountersFree, *stats.em_counters_free());
 }
 
 } // namespace facebook::fboss

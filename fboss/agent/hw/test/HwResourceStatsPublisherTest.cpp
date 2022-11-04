@@ -20,7 +20,7 @@ using namespace facebook::fboss;
 using namespace facebook::fb303;
 
 namespace {
-constexpr std::array<folly::StringPiece, 38> kAllStatKeys = {
+constexpr std::array<folly::StringPiece, 44> kAllStatKeys = {
     kL3HostMax,
     kL3HostUsed,
     kL3HostFree,
@@ -58,7 +58,13 @@ constexpr std::array<folly::StringPiece, 38> kAllStatKeys = {
     kMirrorsFree,
     kMirrorsSpan,
     kMirrorsErspan,
-    kMirrorsSflow};
+    kMirrorsSflow,
+    kEmEntriesMax,
+    kEmEntriesUsed,
+    kEmEntriesFree,
+    kEmCountersMax,
+    kEmCountersUsed,
+    kEmCountersFree};
 }
 
 void checkMissing(const std::set<folly::StringPiece>& present) {
@@ -257,4 +263,28 @@ TEST(HwResourceStatsPublisher, LpmSlotStats) {
   EXPECT_EQ(fbData->getCounter(kLpmTableUsed), 1);
   EXPECT_EQ(fbData->getCounter(kLpmTableFree), 9);
   checkMissing({kLpmTableMax, kLpmTableUsed, kLpmTableFree});
+}
+
+TEST(HwResourceStatsPublisher, EmStats) {
+  HwResourceStats stats;
+  stats.em_entries_max() = 10;
+  stats.em_entries_used() = 1;
+  stats.em_entries_free() = 9;
+  HwResourceStatsPublisher().publish(stats);
+  EXPECT_EQ(fbData->getCounter(kEmEntriesMax), 10);
+  EXPECT_EQ(fbData->getCounter(kEmEntriesUsed), 1);
+  EXPECT_EQ(fbData->getCounter(kEmEntriesFree), 9);
+  checkMissing({kEmEntriesMax, kEmEntriesUsed, kEmEntriesFree});
+}
+
+TEST(HwResourceStatsPublisher, EmCounterStats) {
+  HwResourceStats stats;
+  stats.em_counters_max() = 10;
+  stats.em_counters_used() = 1;
+  stats.em_counters_free() = 9;
+  HwResourceStatsPublisher().publish(stats);
+  EXPECT_EQ(fbData->getCounter(kEmCountersMax), 10);
+  EXPECT_EQ(fbData->getCounter(kEmCountersUsed), 1);
+  EXPECT_EQ(fbData->getCounter(kEmCountersFree), 9);
+  checkMissing({kEmCountersMax, kEmCountersUsed, kEmCountersFree});
 }

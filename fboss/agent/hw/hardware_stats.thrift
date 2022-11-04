@@ -171,6 +171,14 @@ struct HwResourceStats {
   43: i32 mirrors_span = STAT_UNINITIALIZED;
   44: i32 mirrors_erspan = STAT_UNINITIALIZED;
   45: i32 mirrors_sflow = STAT_UNINITIALIZED;
+
+  // EM
+  46: i32 em_entries_used = STAT_UNINITIALIZED;
+  47: i32 em_entries_free = STAT_UNINITIALIZED;
+  48: i32 em_entries_max = STAT_UNINITIALIZED;
+  49: i32 em_counters_used = STAT_UNINITIALIZED;
+  50: i32 em_counters_free = STAT_UNINITIALIZED;
+  51: i32 em_counters_max = STAT_UNINITIALIZED;
 }
 
 struct HwAsicErrors {
