@@ -163,6 +163,8 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int unit,
       uint32 options,
       bcm_udf_hash_config_t* config) override;
+  int bcm_udf_hash_config_delete(int unit, bcm_udf_hash_config_t* config)
+      override;
   int bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) override;
   int bcm_port_phy_modify(
       int unit,

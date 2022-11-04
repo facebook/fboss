@@ -1955,6 +1955,20 @@ int BcmCinter::bcm_udf_hash_config_add(
   return 0;
 }
 
+int BcmCinter::bcm_udf_hash_config_delete(
+    int unit,
+    bcm_udf_hash_config_t* config) {
+  auto cint = cintForBcmUdfHashConfig(*config);
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_udf_hash_config_delete(", makeParamStr(unit, "&config"), ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
 int BcmCinter::bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) {
   writeCintLines(wrapFunc(to<string>(
       "bcm_port_autoneg_set(", makeParamStr(unit, port, autoneg), ")")));
