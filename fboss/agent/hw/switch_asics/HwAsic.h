@@ -127,6 +127,8 @@ class HwAsic {
     SAI_RX_REASON_COUNTER,
     SAI_MPLS_INSEGMENT,
     RESERVED_ENCAP_INDEX_RANGE,
+    VOQ,
+    RECYCLE_PORTS,
   };
 
   enum class AsicType ASIC_TYPE_LIST;

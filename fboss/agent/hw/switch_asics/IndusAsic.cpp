@@ -63,6 +63,8 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_TRAINING:
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
+    case HwAsic::Feature::VOQ:
+    case HwAsic::Feature::RECYCLE_PORTS:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

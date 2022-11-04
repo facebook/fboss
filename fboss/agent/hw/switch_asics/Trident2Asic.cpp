@@ -106,6 +106,8 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
+    case HwAsic::Feature::VOQ:
+    case HwAsic::Feature::RECYCLE_PORTS:
       return false;
   }
   return false;
