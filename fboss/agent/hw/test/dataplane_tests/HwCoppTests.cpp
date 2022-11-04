@@ -454,6 +454,26 @@ class HwCoppTest : public HwLinkStateDependentTest {
     EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
   }
 
+  void sendPktAndVerifyDHCPv6PacketsCpuQueue(
+      int queueId,
+      DHCPv6Type dhcpType,
+      const int ttl = 1,
+      bool outOfPort = true,
+      const int numPktsToSend = 1,
+      const int expectedPktDelta = 1) {
+    auto beforeOutPkts = getQueueOutPacketsWithRetry(
+        queueId, 0 /* retryTimes */, 0 /* expectedNumPkts */);
+    sendDHCPv6Pkts(numPktsToSend, dhcpType, ttl, outOfPort);
+    auto afterOutPkts = getQueueOutPacketsWithRetry(
+        queueId, kGetQueueOutPktsRetryTimes, beforeOutPkts + expectedPktDelta);
+    auto msgType =
+        dhcpType == DHCPv6Type::DHCPv6_SOLICIT ? "SOLICIT" : "ADVERTISEMENT";
+    XLOG(DBG0) << "DHCPv6 " << msgType << " packet"
+               << ". Queue=" << queueId << ", before pkts:" << beforeOutPkts
+               << ", after pkts:" << afterOutPkts;
+    EXPECT_EQ(expectedPktDelta, afterOutPkts - beforeOutPkts);
+  }
+
   folly::IPAddress getInSubnetNonSwitchIP() const {
     auto configIntf = initialConfig().interfaces()[0];
     auto ipAddress = configIntf.ipAddresses()[0];
