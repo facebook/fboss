@@ -259,11 +259,11 @@ bool QsfpServiceHandler::getSdkState(std::unique_ptr<std::string> fileName) {
   return manager_->getSdkState(*fileName);
 }
 
-void QsfpServiceHandler::getSaiPortInfo(
+void QsfpServiceHandler::getPortInfo(
     std::string& out,
     std::unique_ptr<std::string> portName) {
   auto log = LOG_THRIFT_CALL(INFO);
-  out = manager_->getSaiPortInfo(*portName);
+  out = manager_->getPortInfo(*portName);
 }
 
 void QsfpServiceHandler::setPortLoopbackState(

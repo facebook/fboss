@@ -185,7 +185,7 @@ class QsfpServiceHandler
 
   bool getSdkState(std::unique_ptr<std::string> fileName) override;
 
-  void getSaiPortInfo(std::string& out, std::unique_ptr<std::string> portName)
+  void getPortInfo(std::string& out, std::unique_ptr<std::string> portName)
       override;
 
   void setPortLoopbackState(

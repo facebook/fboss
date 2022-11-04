@@ -199,9 +199,7 @@ class TransceiverManager {
 
   virtual bool getSdkState(std::string filename) const = 0;
 
-  virtual std::string getSaiPortInfo(std::string portName) {
-    return "";
-  }
+  std::string getPortInfo(std::string portName);
 
   void setPortLoopbackState(
       std::string /* portName */,
@@ -289,6 +287,10 @@ class TransceiverManager {
   void setDiagsCapability(TransceiverID id);
 
   void resetProgrammedIphyPortToPortInfo(TransceiverID id);
+
+  std::map<uint32_t, phy::PhyIDInfo> getAllPortPhyInfo();
+
+  phy::PhyInfo getPhyInfo(const std::string& portName);
   // ========== Public functions fo TransceiverStateMachine ==========
 
   // A struct to keep track of the software port profile and status

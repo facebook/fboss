@@ -217,6 +217,10 @@ class PhyManager {
     return phy::PhyInfo{};
   }
 
+  virtual std::string getPortInfoStr(PortID /* swPort */) {
+    return "getPortInfoStr Not implemented on this platform";
+  }
+
   const std::string& getPortName(PortID portID) const;
 
   virtual void setPortLoopbackState(

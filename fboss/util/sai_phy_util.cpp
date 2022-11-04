@@ -65,7 +65,7 @@ void printPhyPortInfo(QsfpServiceAsyncClient* qsfpHandler) {
     return;
   }
   std::string output;
-  qsfpHandler->sync_getSaiPortInfo(output, FLAGS_port);
+  qsfpHandler->sync_getPortInfo(output, FLAGS_port);
 
   printf("%s\n", output.c_str());
 }

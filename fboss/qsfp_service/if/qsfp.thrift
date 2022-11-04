@@ -155,9 +155,7 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
 
   bool getSdkState(1: string fileName) throws (1: fboss.FbossBaseError error);
 
-  string getSaiPortInfo(1: string portName) throws (
-    1: fboss.FbossBaseError error,
-  );
+  string getPortInfo(1: string portName) throws (1: fboss.FbossBaseError error);
 
   void setPortLoopbackState(
     1: string portName,

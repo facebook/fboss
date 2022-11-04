@@ -90,7 +90,6 @@ class SaiPhyManager : public PhyManager {
   PortOperState macsecGetPhyLinkInfo(PortID swPort);
   phy::PhyInfo getPhyInfo(PortID swPort) override;
   void updateAllXphyPortsStats() override;
-  std::string getSaiPortInfo(PortID swPort);
 
   bool getSdkState(const std::string& fileName) override;
 
@@ -122,6 +121,10 @@ class SaiPhyManager : public PhyManager {
       phy::PortComponent component,
       bool setAdminUp) override {
     setSaiPortAdminState(swPort, component, setAdminUp);
+  }
+
+  std::string getPortInfoStr(PortID swPort) override {
+    return getSaiPortInfo(swPort);
   }
 
  protected:
@@ -207,6 +210,8 @@ class SaiPhyManager : public PhyManager {
       PortID swPort,
       phy::PortComponent component,
       bool setAdminUp);
+
+  std::string getSaiPortInfo(PortID swPort);
 
   // Due to SaiPhyManager usually has more than one phy, and each phy has its
   // own SaiHwPlatform, which needs a local mac address. As local mac address

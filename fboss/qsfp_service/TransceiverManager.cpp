@@ -1813,4 +1813,50 @@ void TransceiverManager::setPortAdminState(
       PortID(swPort.value()), component, setAdminUp);
 }
 
+/*
+ * getAllPortPhyInfo
+ *
+ * Get the map of software port id to PortPhyInfo in the system. This function
+ * mainly for debugging
+ */
+std::map<uint32_t, phy::PhyIDInfo> TransceiverManager::getAllPortPhyInfo() {
+  std::map<uint32_t, phy::PhyIDInfo> resultMap;
+
+  auto allPlatformPortsIt = platformMapping_->getPlatformPorts();
+  for (auto platformPortIt : allPlatformPortsIt) {
+    auto portId = platformPortIt.first;
+    GlobalXphyID xphyId;
+    try {
+      xphyId = phyManager_->getGlobalXphyIDbyPortID(PortID(portId));
+    } catch (FbossError& ex) {
+      continue;
+    }
+    phy::PhyIDInfo phyIdInfo = phyManager_->getPhyIDInfo(xphyId);
+    resultMap[portId] = phyIdInfo;
+  }
+
+  return resultMap;
+}
+
+/*
+ * getPhyInfo
+ *
+ * Returns the phy line params for a port
+ */
+phy::PhyInfo TransceiverManager::getPhyInfo(const std::string& portName) {
+  auto swPort = getPortIDByPortName(portName);
+  if (!swPort.has_value()) {
+    throw FbossError(folly::sformat("getPhyInfo: Invalid port {}", portName));
+  }
+  return getPhyManager()->getPhyInfo(PortID(swPort.value()));
+}
+
+std::string TransceiverManager::getPortInfo(std::string portName) {
+  auto swPort = getPortIDByPortName(portName);
+  if (!swPort.has_value()) {
+    throw FbossError(folly::sformat("getPortInfo: Invalid port {}", portName));
+  }
+  return getPhyManager()->getPortInfoStr(PortID(swPort.value()));
+}
+
 } // namespace facebook::fboss
