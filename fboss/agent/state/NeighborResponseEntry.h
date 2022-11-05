@@ -70,13 +70,14 @@ class NeighborResponseEntry
     setInterfaceID(interfaceID);
   }
 
-  AddressType getID() const {
-    return AddressType(
-        this->template get<switch_state_tags::ipAddress>()->cref());
+  std::string getID() const {
+    auto ip = getIP();
+    return ip.str();
   }
 
   AddressType getIP() const {
-    return getID();
+    return AddressType(
+        this->template get<switch_state_tags::ipAddress>()->cref());
   }
 
   void setIP(AddressType ip) {

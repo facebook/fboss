@@ -16,7 +16,6 @@ namespace facebook::fboss {
 
 using NdpResponseTableTraits =
     NeighborResponseTableTraits<folly::IPAddressV6, NdpResponseEntry>;
-FBOSS_INSTANTIATE_NODE_MAP(NdpResponseTable, NdpResponseTableTraits);
 template class NeighborResponseTable<
     folly::IPAddressV6,
     NdpResponseEntry,

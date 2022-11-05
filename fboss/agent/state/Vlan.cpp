@@ -138,10 +138,8 @@ VlanFields VlanFields::fromThrift(const state::VlanFields& vlanTh) {
 
   vlan.arpTable->fromThrift(vlanTh.get_arpTable());
   vlan.ndpTable->fromThrift(vlanTh.get_ndpTable());
-  vlan.arpResponseTable =
-      ArpResponseTable::fromThrift(vlanTh.get_arpResponseTable());
-  vlan.ndpResponseTable =
-      NdpResponseTable::fromThrift(vlanTh.get_ndpResponseTable());
+  vlan.arpResponseTable->fromThrift(vlanTh.get_arpResponseTable());
+  vlan.ndpResponseTable->fromThrift(vlanTh.get_ndpResponseTable());
   vlan.macTable = MacTable::fromThrift(vlanTh.get_macTable());
 
   return vlan;

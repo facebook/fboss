@@ -103,7 +103,7 @@ TEST(Vlan, applyConfig) {
   EXPECT_EQ(VlanID(1234), vlanV1->getID());
   EXPECT_EQ(kVlan1234, vlanV1->getName());
   EXPECT_EQ(expectedPorts, vlanV1->getPorts());
-  EXPECT_EQ(0, vlanV1->getArpResponseTable()->getTable().size());
+  EXPECT_EQ(0, vlanV1->getArpResponseTable()->size());
   EXPECT_EQ(InterfaceID(1), vlanV1->getInterfaceID());
 
   auto map4 = vlanV1->getDhcpV4RelayOverrides();
@@ -141,21 +141,21 @@ TEST(Vlan, applyConfig) {
   auto arpRespTable = vlanV2->getArpResponseTable();
   EXPECT_EQ(arpRespTable->size(), 1);
   validateRespEntry(
-      arpRespTable->getNodeIf(IPAddressV4("10.1.1.1")),
+      arpRespTable->getEntry(IPAddressV4("10.1.1.1")),
       MockPlatform::getMockLocalMac(),
       InterfaceID(1));
   // Check the NdpResponseTable
   auto ndpRespTable = vlanV2->getNdpResponseTable();
   EXPECT_EQ(ndpRespTable->size(), 2);
   validateRespEntry(
-      ndpRespTable->getNodeIf(IPAddressV6("2a03:2880:10:1f07:face:b00c:0:0")),
+      ndpRespTable->getEntry(IPAddressV6("2a03:2880:10:1f07:face:b00c:0:0")),
       MockPlatform::getMockLocalMac(),
       InterfaceID(1));
 
   // The link-local IPv6 address should also have been automatically added
   // to the NDP response table.
   validateRespEntry(
-      ndpRespTable->getNodeIf(MockPlatform::getMockLinkLocalIp6()),
+      ndpRespTable->getEntry(MockPlatform::getMockLinkLocalIp6()),
       MockPlatform::getMockLocalMac(),
       InterfaceID(1));
 
@@ -185,11 +185,11 @@ TEST(Vlan, applyConfig) {
   arpRespTable = vlanV3->getArpResponseTable();
   EXPECT_EQ(arpRespTable->size(), 2);
   validateRespEntry(
-      arpRespTable->getNodeIf(IPAddressV4("10.1.10.1")),
+      arpRespTable->getEntry(IPAddressV4("10.1.10.1")),
       intf2Mac,
       InterfaceID(2));
   validateRespEntry(
-      arpRespTable->getNodeIf(IPAddressV4("192.168.0.1")),
+      arpRespTable->getEntry(IPAddressV4("192.168.0.1")),
       intf2Mac,
       InterfaceID(2));
 
@@ -198,7 +198,7 @@ TEST(Vlan, applyConfig) {
   ndpRespTable = vlanV3->getNdpResponseTable();
   EXPECT_EQ(ndpRespTable->size(), 1);
   validateRespEntry(
-      ndpRespTable->getNodeIf(IPAddressV6("fe80::1:02ff:feab:cd78")),
+      ndpRespTable->getEntry(IPAddressV6("fe80::1:02ff:feab:cd78")),
       intf2Mac,
       InterfaceID(2));
 
@@ -228,11 +228,11 @@ TEST(Vlan, applyConfig) {
 
   EXPECT_EQ(vlan99->getArpResponseTable()->size(), 2);
   validateRespEntry(
-      vlan99->getArpResponseTable()->getNodeIf(IPAddressV4("1.2.3.4")),
+      vlan99->getArpResponseTable()->getEntry(IPAddressV4("1.2.3.4")),
       MockPlatform::getMockLocalMac(),
       InterfaceID(3));
   validateRespEntry(
-      vlan99->getArpResponseTable()->getNodeIf(IPAddressV4("10.0.0.1")),
+      vlan99->getArpResponseTable()->getEntry(IPAddressV4("10.0.0.1")),
       MockPlatform::getMockLocalMac(),
       InterfaceID(3));
 

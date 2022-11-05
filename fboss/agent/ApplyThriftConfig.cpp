@@ -2780,13 +2780,13 @@ bool ThriftConfigApplier::updateNeighborResponseTables(
   if (it != vlanInterfaces_.end()) {
     for (const auto& [ip, addrInfo] : it->second.addresses) {
       if (ip.isV4()) {
-        auto origNode = origArp->getNodeIf(ip.asV4());
+        auto origNode = origArp->getEntry(ip.asV4());
         auto newNode =
             updateNeighborResponseEntry(origNode, ip.asV4(), addrInfo);
         arpChanged |= updateMap(&arpTable, origNode, newNode);
 
       } else {
-        auto origNode = origNdp->getNodeIf(ip.asV6());
+        auto origNode = origNdp->getEntry(ip.asV6());
         auto newNode =
             updateNeighborResponseEntry(origNode, ip.asV6(), addrInfo);
         ndpChanged |= updateMap(&ndpTable, origNode, newNode);
