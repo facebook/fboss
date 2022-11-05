@@ -167,6 +167,12 @@ inline int64_t getCumulativeValue(
 #define EXPECT_EVENTUALLY_LT(expr1, expr2) \
   _EXPECT_EVENTUALLY(expr1 < expr2, EXPECT_LT(expr1, expr2))
 
+#ifndef IS_OSS
+// Folly::folly_exception_tracer* is not available in OSS.
+// Skip its compilation in OSS for now.
+// TODO: Need to check this with folly team and fix this
+// properly so that exception_tracer can be made available
+// in OSS also.
 template <typename Fn>
 void runWithExceptionTrace(Fn fn) {
   try {
@@ -180,5 +186,6 @@ void runWithExceptionTrace(Fn fn) {
     throw;
   }
 }
+#endif
 
 } // namespace facebook::fboss
