@@ -83,7 +83,8 @@ void AgentTest::resolveNeighbor(
     auto nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
         vlanId, &outputState);
     if (nbrTable->getEntryIf(ip)) {
-      nbrTable->updateEntry(ip, mac, port, vlan->getInterfaceID());
+      nbrTable->updateEntry(
+          ip, mac, port, vlan->getInterfaceID(), NeighborState::REACHABLE);
     } else {
       nbrTable->addEntry(ip, mac, port, vlan->getInterfaceID());
     }

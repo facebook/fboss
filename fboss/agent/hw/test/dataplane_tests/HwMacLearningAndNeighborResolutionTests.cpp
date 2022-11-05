@@ -232,12 +232,22 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
                              ->modify(kVlanID, &state);
     if (neighborTable->getEntryIf(addr)) {
       neighborTable->updateEntry(
-          addr, kNeighborMac, port, kIntfID, lookupClass);
+          addr,
+          kNeighborMac,
+          port,
+          kIntfID,
+          NeighborState::REACHABLE,
+          lookupClass);
     } else {
       neighborTable->addEntry(addr, kNeighborMac, port, kIntfID);
       // Update entry to add classid if any
       neighborTable->updateEntry(
-          addr, kNeighborMac, port, kIntfID, lookupClass);
+          addr,
+          kNeighborMac,
+          port,
+          kIntfID,
+          NeighborState::REACHABLE,
+          lookupClass);
     }
     applyNewState(state);
   }

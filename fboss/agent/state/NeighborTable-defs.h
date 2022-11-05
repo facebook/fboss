@@ -89,6 +89,7 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     folly::MacAddress mac,
     PortDescriptor port,
     InterfaceID intfID,
+    NeighborState state,
     std::optional<cfg::AclLookupClass> classID,
     std::optional<int64_t> encapIndex,
     bool isLocal) {
@@ -97,7 +98,7 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
   entry->setMAC(mac);
   entry->setPort(port);
   entry->setIntfID(intfID);
-  entry->setState(NeighborState::REACHABLE);
+  entry->setState(state);
   entry->setClassID(classID);
   entry->setEncapIndex(encapIndex);
   entry->setIsLocal(isLocal);
@@ -115,7 +116,12 @@ template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
     const NeighborEntryFields<AddressType>& fields) {
   updateEntry(
-      fields.ip, fields.mac, fields.port, fields.interfaceID, fields.classID);
+      fields.ip,
+      fields.mac,
+      fields.port,
+      fields.interfaceID,
+      fields.state,
+      fields.classID);
 }
 
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>

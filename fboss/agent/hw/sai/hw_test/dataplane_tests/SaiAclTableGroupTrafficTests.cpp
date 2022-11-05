@@ -168,6 +168,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
             neighborMac,
             PortDescriptor(masterLogicalPortIds()[0]),
             kIntfID,
+            NeighborState::REACHABLE,
             classID);
 
       } else {
@@ -175,7 +176,8 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
             ip,
             neighborMac,
             PortDescriptor(masterLogicalPortIds()[0]),
-            kIntfID);
+            kIntfID,
+            NeighborState::REACHABLE);
       }
     }
 

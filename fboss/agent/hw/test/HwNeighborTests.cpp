@@ -128,7 +128,12 @@ class HwNeighborTest : public HwLinkStateDependentTest {
 
     auto lookupClassValue = lookupClass ? lookupClass.value() : kLookupClass;
     neighborTable->updateEntry(
-        ip, kNeighborMac, portDescriptor(), kIntfID, lookupClassValue);
+        ip,
+        kNeighborMac,
+        portDescriptor(),
+        kIntfID,
+        NeighborState::REACHABLE,
+        lookupClassValue);
     return outState;
   }
 

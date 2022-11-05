@@ -155,7 +155,11 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveVlanRifNextHop(
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   if (nbrTable->getEntryIf(nhop.ip)) {
     nbrTable->updateEntry(
-        nhopIp, nhop.mac, nhop.portDesc, vlan->getInterfaceID());
+        nhopIp,
+        nhop.mac,
+        nhop.portDesc,
+        vlan->getInterfaceID(),
+        NeighborState::REACHABLE);
   } else {
     nbrTable->addEntry(nhopIp, nhop.mac, nhop.portDesc, vlan->getInterfaceID());
   }

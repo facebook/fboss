@@ -116,6 +116,7 @@ class NeighborTable
       folly::MacAddress mac,
       PortDescriptor port,
       InterfaceID intfID,
+      NeighborState state,
       std::optional<cfg::AclLookupClass> classID = std::nullopt,
       std::optional<int64_t> encapIndex = std::nullopt,
       bool isLocal = true);

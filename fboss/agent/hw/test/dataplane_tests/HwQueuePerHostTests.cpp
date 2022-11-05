@@ -142,6 +142,7 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
             neighborMac,
             PortDescriptor(masterLogicalPortIds()[0]),
             kIntfID,
+            NeighborState::REACHABLE,
             classID);
 
       } else {
@@ -149,7 +150,8 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
             ip,
             neighborMac,
             PortDescriptor(masterLogicalPortIds()[0]),
-            kIntfID);
+            kIntfID,
+            NeighborState::REACHABLE);
       }
     }
 

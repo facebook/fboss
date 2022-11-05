@@ -1199,6 +1199,7 @@ class LookupClassUpdaterWarmbootTest : public LookupClassUpdaterTest<AddrT> {
         this->kMacAddress(),
         PortDescriptor(this->kPortID()),
         InterfaceID(1),
+        NeighborState::REACHABLE,
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 
     this->handle_ = createTestHandle(newState);

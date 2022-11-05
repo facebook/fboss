@@ -348,7 +348,8 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
   auto arpTable21 =
       state3->getVlans()->getVlan(host2vlan)->getArpTable()->modify(
           host2vlan, &state3);
-  arpTable21->updateEntry(host2ip, host2mac, host2port, host2interface);
+  arpTable21->updateEntry(
+      host2ip, host2mac, host2port, host2interface, NeighborState::REACHABLE);
 
   auto host3mac = MacAddress("fa:ce:b0:0c:22:03");
   auto host3port = PortDescriptor(PortID(4));
@@ -357,7 +358,8 @@ TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
   auto ndpTable22 =
       state3->getVlans()->getVlan(host3vlan)->getNdpTable()->modify(
           host3vlan, &state3);
-  ndpTable22->updateEntry(host3ip, host3mac, host3port, host3interface);
+  ndpTable22->updateEntry(
+      host3ip, host3mac, host3port, host3interface, NeighborState::REACHABLE);
 
   state3->publish();
 
