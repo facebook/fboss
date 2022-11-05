@@ -38,6 +38,13 @@ struct SaiPortTraits {
         EnumType,
         SAI_PORT_ATTR_HW_LANE_LIST,
         std::vector<uint32_t>>;
+#if defined(SAI_VERSION_8_2_0_0_ODP)
+    struct AttributeSerdesLaneList {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SerdesLaneList =
+        SaiExtensionAttribute<std::vector<uint32_t>, AttributeSerdesLaneList>;
+#endif
     using Speed = SaiAttribute<EnumType, SAI_PORT_ATTR_SPEED, sai_uint32_t>;
     using Type = SaiAttribute<EnumType, SAI_PORT_ATTR_TYPE, sai_int32_t>;
     using QosNumberOfQueues = SaiAttribute<
@@ -397,6 +404,9 @@ SAI_ATTRIBUTE_NAME(Port, RxLockStatus)
 SAI_ATTRIBUTE_NAME(Port, InterFrameGap)
 #endif
 SAI_ATTRIBUTE_NAME(Port, LinkTrainingEnable)
+#if defined(SAI_VERSION_8_2_0_0_ODP)
+SAI_ATTRIBUTE_NAME(Port, SerdesLaneList)
+#endif
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

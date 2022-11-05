@@ -93,7 +93,7 @@ if (SAI_TAJO_IMPL)
   message(STATUS "Found SAI_INCLUDE_DIR: ${SAI_INCLUDE_DIR}")
 elseif (SAI_BRCM_IMPL)
   list(APPEND SAI_API_SRC
-    fboss/agent/hw/sai/api/oss/PortApi.cpp
+    fboss/agent/hw/sai/api/bcm/PortApi.cpp
     fboss/agent/hw/sai/api/bcm/TamApi.cpp
     fboss/agent/hw/sai/api/bcm/SwitchApi.cpp
   )
