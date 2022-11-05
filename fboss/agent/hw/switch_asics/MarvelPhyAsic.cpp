@@ -11,6 +11,7 @@ bool MarvelPhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::PORT_INTERFACE_TYPE:
+    case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
       return true;
     default:
       return false;

@@ -129,6 +129,7 @@ class HwAsic {
     RESERVED_ENCAP_INDEX_RANGE,
     VOQ,
     RECYCLE_PORTS,
+    XPHY_PORT_STATE_TOGGLE,
   };
 
   enum class AsicType ASIC_TYPE_LIST;

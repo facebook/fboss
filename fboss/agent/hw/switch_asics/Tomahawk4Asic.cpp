@@ -129,6 +129,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::VOQ:
     case HwAsic::Feature::RECYCLE_PORTS:
+    case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
       return false;
   }
   return false;
