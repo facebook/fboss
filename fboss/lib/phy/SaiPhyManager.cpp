@@ -358,76 +358,84 @@ void SaiPhyManager::programOnePort(
     PortID portId,
     cfg::PortProfileID portProfileId,
     std::optional<TransceiverInfo> transceiverInfo) {
-  const auto& wLockedCache = getWLockedCache(portId);
+  bool isChanged{false};
+  {
+    const auto& wLockedCache = getWLockedCache(portId);
 
-  // Get phy platform
-  auto globalPhyID = getGlobalXphyIDbyPortIDLocked(wLockedCache);
-  auto saiPlatform = getSaiPlatform(globalPhyID);
-  auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
-  const auto& desiredPhyPortConfig =
-      getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo);
+    // Get phy platform
+    auto globalPhyID = getGlobalXphyIDbyPortIDLocked(wLockedCache);
+    auto saiPlatform = getSaiPlatform(globalPhyID);
+    auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+    const auto& desiredPhyPortConfig =
+        getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo);
 
-  // Is port create allowed
-  if (!isPortCreateAllowed(globalPhyID, desiredPhyPortConfig)) {
-    XLOG(INFO) << "PHY Port create not allowed for port " << portId;
-    return;
-  }
-
-  // Before actually calling sai sdk to program the port again, we should
-  // check whether the port has been programmed in HW with the same config.
-  if (!(wLockedCache->systemLanes.empty() || wLockedCache->lineLanes.empty())) {
-    const auto& actualPhyPortConfig =
-        getHwPhyPortConfigLocked(wLockedCache, portId);
-    if (actualPhyPortConfig == desiredPhyPortConfig) {
-      XLOG(DBG2) << "External phy config match. Skip reprogramming for port:"
-                 << portId << " with profile:"
-                 << apache::thrift::util::enumNameSafe(portProfileId);
+    // Is port create allowed
+    if (!isPortCreateAllowed(globalPhyID, desiredPhyPortConfig)) {
+      XLOG(INFO) << "PHY Port create not allowed for port " << portId;
       return;
-    } else {
-      XLOG(DBG2) << "External phy config mismatch. Port:" << portId
-                 << " with profile:"
-                 << apache::thrift::util::enumNameSafe(portProfileId)
-                 << " current config:" << actualPhyPortConfig.toDynamic()
-                 << ", desired config:" << desiredPhyPortConfig.toDynamic();
+    }
+
+    // Before actually calling sai sdk to program the port again, we should
+    // check whether the port has been programmed in HW with the same config.
+    if (!(wLockedCache->systemLanes.empty() ||
+          wLockedCache->lineLanes.empty())) {
+      const auto& actualPhyPortConfig =
+          getHwPhyPortConfigLocked(wLockedCache, portId);
+      if (actualPhyPortConfig == desiredPhyPortConfig) {
+        XLOG(DBG2) << "External phy config match. Skip reprogramming for port:"
+                   << portId << " with profile:"
+                   << apache::thrift::util::enumNameSafe(portProfileId);
+        return;
+      } else {
+        XLOG(DBG2) << "External phy config mismatch. Port:" << portId
+                   << " with profile:"
+                   << apache::thrift::util::enumNameSafe(portProfileId)
+                   << " current config:" << actualPhyPortConfig.toDynamic()
+                   << ", desired config:" << desiredPhyPortConfig.toDynamic();
+      }
+    }
+
+    auto updateFn =
+        [this, &saiPlatform, portId, portProfileId, desiredPhyPortConfig](
+            std::shared_ptr<SwitchState> in) {
+          return portUpdateHelper(
+              in,
+              portId,
+              saiPlatform,
+              [portProfileId, desiredPhyPortConfig](auto& port) {
+                port->setSpeed(desiredPhyPortConfig.profile.speed);
+                port->setProfileId(portProfileId);
+                port->setAdminState(cfg::PortState::ENABLED);
+                // Prepare the side profileConfig and pinConfigs for both system
+                // and line sides by using desiredPhyPortConfig
+                port->setProfileConfig(desiredPhyPortConfig.profile.system);
+                port->resetPinConfigs(
+                    desiredPhyPortConfig.config.system.getPinConfigs());
+                port->setLineProfileConfig(desiredPhyPortConfig.profile.line);
+                port->resetLinePinConfigs(
+                    desiredPhyPortConfig.config.line.getPinConfigs());
+              });
+        };
+    getPlatformInfo(globalPhyID)
+        ->applyUpdate(
+            folly::sformat("Port {} program", static_cast<int>(portId)),
+            updateFn);
+
+    // Once the port is programmed successfully, update the portToCacheInfo_
+    isChanged = setPortToPortCacheInfoLocked(
+        wLockedCache, portId, portProfileId, desiredPhyPortConfig);
+    // Only reset phy port stats when there're changes on the xphy ports
+    if (isChanged &&
+        (getExternalPhyLocked(wLockedCache)
+             ->isSupported(phy::ExternalPhy::Feature::PORT_STATS) ||
+         (getExternalPhyLocked(wLockedCache)
+              ->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)))) {
+      setPortToExternalPhyPortStats(portId, createExternalPhyPortStats(portId));
     }
   }
-
-  auto updateFn =
-      [this, &saiPlatform, portId, portProfileId, desiredPhyPortConfig](
-          std::shared_ptr<SwitchState> in) {
-        return portUpdateHelper(
-            in,
-            portId,
-            saiPlatform,
-            [portProfileId, desiredPhyPortConfig](auto& port) {
-              port->setSpeed(desiredPhyPortConfig.profile.speed);
-              port->setProfileId(portProfileId);
-              port->setAdminState(cfg::PortState::ENABLED);
-              // Prepare the side profileConfig and pinConfigs for both system
-              // and line sides by using desiredPhyPortConfig
-              port->setProfileConfig(desiredPhyPortConfig.profile.system);
-              port->resetPinConfigs(
-                  desiredPhyPortConfig.config.system.getPinConfigs());
-              port->setLineProfileConfig(desiredPhyPortConfig.profile.line);
-              port->resetLinePinConfigs(
-                  desiredPhyPortConfig.config.line.getPinConfigs());
-            });
-      };
-  getPlatformInfo(globalPhyID)
-      ->applyUpdate(
-          folly::sformat("Port {} program", static_cast<int>(portId)),
-          updateFn);
-
-  // Once the port is programmed successfully, update the portToCacheInfo_
-  bool isChanged = setPortToPortCacheInfoLocked(
-      wLockedCache, portId, portProfileId, desiredPhyPortConfig);
-  // Only reset phy port stats when there're changes on the xphy ports
-  if (isChanged &&
-      (getExternalPhyLocked(wLockedCache)
-           ->isSupported(phy::ExternalPhy::Feature::PORT_STATS) ||
-       (getExternalPhyLocked(wLockedCache)
-            ->isSupported(phy::ExternalPhy::Feature::PRBS_STATS)))) {
-    setPortToExternalPhyPortStats(portId, createExternalPhyPortStats(portId));
+  if (isChanged) {
+    // If needed, tune the XPHY-NPU link after XPHY port create
+    xphyPortStateToggle(portId, phy::Side::SYSTEM);
   }
 }
 
@@ -1025,7 +1033,7 @@ std::vector<phy::PrbsLaneStats> SaiPhyManager::getPortPrbsStats(
  * XPHY host Tx to let the NPU IPHY Rx lock to the correct signal
  */
 void SaiPhyManager::xphyPortStateToggle(PortID swPort, phy::Side side) {
-  XLOG(INFO) << "SaiPhyManager::tuneXphyPortHostSide";
+  XLOG(INFO) << "SaiPhyManager::xphyPortStateToggle";
   auto globalPhyID = getGlobalXphyIDbyPortID(swPort);
   auto saiPlatform = getSaiPlatform(globalPhyID);
   if (!saiPlatform->getAsic()->isSupported(
