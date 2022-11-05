@@ -785,7 +785,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 1,
           "attachedCoreId": 8,
-          "attachedCorePortIndex": 8
+          "attachedCorePortIndex": 12
         },
         "supportedProfiles": {
           "25": {
@@ -1229,7 +1229,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 1,
           "attachedCoreId": 11,
-          "attachedCorePortIndex": 16
+          "attachedCorePortIndex": 20
         },
         "supportedProfiles": {
           "25": {
@@ -1895,7 +1895,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 5,
-          "attachedCorePortIndex": 16
+          "attachedCorePortIndex": 20
         },
         "supportedProfiles": {
           "23": {
@@ -2117,7 +2117,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 5,
-          "attachedCorePortIndex": 0
+          "attachedCorePortIndex": 4
         },
         "supportedProfiles": {
           "23": {
@@ -2339,7 +2339,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 16
+          "attachedCorePortIndex": 20
         },
         "supportedProfiles": {
           "23": {
@@ -2561,7 +2561,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 0,
-          "attachedCorePortIndex": 8
+          "attachedCorePortIndex": 12
         },
         "supportedProfiles": {
           "23": {
@@ -3005,7 +3005,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 2,
-          "attachedCorePortIndex": 16
+          "attachedCorePortIndex": 20
         },
         "supportedProfiles": {
           "23": {
@@ -3227,7 +3227,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           ],
           "portType": 0,
           "attachedCoreId": 1,
-          "attachedCorePortIndex": 16
+          "attachedCorePortIndex": 20
         },
         "supportedProfiles": {
           "23": {
