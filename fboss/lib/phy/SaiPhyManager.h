@@ -127,6 +127,8 @@ class SaiPhyManager : public PhyManager {
     return getSaiPortInfo(swPort);
   }
 
+  void xphyPortStateToggle(PortID swPort, phy::Side side);
+
  protected:
   void addSaiPlatform(
       GlobalXphyID xphyID,

@@ -1016,4 +1016,53 @@ std::vector<phy::PrbsLaneStats> SaiPhyManager::getPortPrbsStats(
   return lanePrbs;
 }
 
+/*
+ * xphyPortStateToggle
+ *
+ * This function toggles the XPHY given side port. This is helpful to make the
+ * NPU Rx to tune with XPHY host side Tx. The NPU IPHY port gets programmed
+ * first so after the XPHY port gets created then we need to turn off and on the
+ * XPHY host Tx to let the NPU IPHY Rx lock to the correct signal
+ */
+void SaiPhyManager::xphyPortStateToggle(PortID swPort, phy::Side side) {
+  XLOG(INFO) << "SaiPhyManager::tuneXphyPortHostSide";
+  auto globalPhyID = getGlobalXphyIDbyPortID(swPort);
+  auto saiPlatform = getSaiPlatform(globalPhyID);
+  if (!saiPlatform->getAsic()->isSupported(
+          HwAsic::Feature::XPHY_PORT_STATE_TOGGLE)) {
+    XLOG(ERR) << "xphyPortStateToggle: Feature not supported";
+    return;
+  }
+
+  auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
+  auto switchId = saiSwitch->getSwitchId();
+
+  // Get port handle and then get port adapter key (SAI object id)
+  auto portHandle =
+      saiSwitch->managerTable()->portManager().getPortHandle(swPort);
+
+  if (portHandle == nullptr) {
+    XLOG(INFO) << "Port Handle is null";
+    return;
+  }
+
+  auto portAdapterKey = (side == phy::Side::SYSTEM)
+      ? portHandle->sysPort->adapterKey()
+      : portHandle->port->adapterKey();
+
+  // Flap XPHY side port to let the peer (NPU IPHY Rx or other end) lock to
+  // the correct signal again
+  SaiApiTable::getInstance()->portApi().setAttribute(
+      portAdapterKey, SaiPortTraits::Attributes::AdminState{false});
+  /* sleep override */
+  usleep(100000);
+  SaiApiTable::getInstance()->portApi().setAttribute(
+      portAdapterKey, SaiPortTraits::Attributes::AdminState{true});
+  /* sleep override */
+  usleep(100000);
+  XLOG(INFO) << "Sai port " << swPort
+             << (side == phy::Side::SYSTEM ? " Host" : " Line")
+             << " Xphy port toggle done";
+}
+
 } // namespace facebook::fboss
