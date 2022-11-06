@@ -163,15 +163,6 @@ struct ExtractUnionFields {
   using apply = UnionMemberTraits<T>;
 };
 
-template <typename Node, typename MemberName>
-struct TypeClassForT {
-  using type = typename ThriftStructFields<Node>::template MemberFor<
-      MemberName>::type_class;
-};
-
-template <typename Node, typename MemberName>
-using TypeClassFor = typename TypeClassForT<Node, MemberName>::type;
-
 #if __cplusplus <= 202001L
 template <typename T>
 using TypeIdentity = std::enable_if<true, T>;

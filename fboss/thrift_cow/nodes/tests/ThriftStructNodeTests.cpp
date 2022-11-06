@@ -36,38 +36,6 @@ cfg::L4PortRange buildPortRange(int min, int max) {
   return portRange;
 }
 
-template <typename ThriftT>
-struct MemberForTestHelper {
-  template <typename Name>
-  using MemberFor =
-      typename ThriftStructFields<ThriftT>::template MemberFor<Name>;
-
-  template <typename Member>
-  void operator()(fatal::tag<Member>) {
-    using Name = typename Member::name;
-    using MemberFor = MemberFor<Name>;
-    // confirm reflected struct member from MemberFor is same as one seen in
-    // thrift's reflect_struct API
-    static_assert(std::is_same_v<MemberFor, Member>, "Something gone wrong");
-  }
-};
-
-template <typename ThriftT>
-struct TypeClassForTestHelper {
-  template <typename Name>
-  using TypeClass = TypeClassFor<ThriftT, Name>;
-
-  template <typename Member>
-  void operator()(fatal::tag<Member>) {
-    using Name = typename Member::name;
-    using TypeClass = TypeClass<Name>;
-    // confirm reflected struct member from MemberFor is same as one seen in
-    // thrift's reflect_struct API
-    static_assert(
-        std::is_same_v<TypeClass, typename Member::type_class>,
-        "Something gone wrong");
-  }
-};
 } // namespace
 
 TEST(ThriftStructNodeTests, ThriftStructFieldsSimple) {
@@ -223,8 +191,8 @@ TEST(ThriftStructNodeTests, ThriftStructNodeSetChild) {
   ASSERT_EQ(node.get<k::inlineStruct>()->toThrift(), *data.inlineStruct());
 
   cfg::L4PortRange portRange2;
-  portRange.min() = 1000;
-  portRange.max() = 9999;
+  portRange2.min() = 1000;
+  portRange2.max() = 9999;
 
   // test we can set full struct children
   node.template set<k::inlineStruct>(portRange2);
@@ -485,14 +453,4 @@ TEST(ThriftStructNodeTests, UnsignedInteger) {
   using UnderlyingType = folly::remove_cvref_t<
       decltype(*fields.get<k::unsigned_int64>())>::ThriftType;
   static_assert(std::is_same_v<UnderlyingType, uint64_t>);
-}
-
-TEST(ThriftStructNodeTests, MemberFor) {
-  using Members = apache::thrift::reflect_struct<TestStruct>::members;
-  fatal::foreach<Members>(MemberForTestHelper<TestStruct>());
-}
-
-TEST(ThriftStructNodeTests, TypeClassFor) {
-  using Members = apache::thrift::reflect_struct<TestStruct>::members;
-  fatal::foreach<Members>(TypeClassForTestHelper<TestStruct>());
 }
