@@ -135,7 +135,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         ndp.encapIndex() = *encapIndex;
       }
       ndp.isLocal() = encapIndex == std::nullopt;
-      ndpTable.insert({*ndp.ipaddress(), ndp});
+      ndpTable.insert({neighborIp.str(), ndp});
     } else {
       ndpTable.erase(neighborIp.str());
     }
