@@ -42,13 +42,33 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   auto isInterfaceNode = [](const std::shared_ptr<DsfNode>& node) {
     return node->getType() == cfg::DsfNodeType::INTERFACE_NODE;
   };
+  auto getLoopbackIp = [](const std::shared_ptr<DsfNode>& node) {
+    auto network = folly::IPAddress::createNetwork(
+        (*node->getLoopbackIps()->cbegin())->toThrift());
+    return network.first.str();
+  };
   auto addDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
     // No need to setup subscriptions to (local) yourself
     // Only IN nodes have control plane, so ignore non IN DSF nodes
     if (isLocal(node) || !isInterfaceNode(node)) {
       return;
     }
-    XLOG(DBG2) << " Setting up DSF subscriptions to : " << node->getName();
+    auto nodeName = node->getName();
+    XLOG(DBG2) << " Setting up DSF subscriptions to : " << nodeName;
+    fsdbPubSubMgr_->addStatePathSubscription(
+        getSystemPortsPath(),
+        [](auto /*oldState*/, auto /*newState*/) {},
+        [nodeName](auto /*operStateUnit*/) {
+          XLOG(DBG2) << " Got system ports update from: " << nodeName;
+        },
+        getLoopbackIp(node));
+    fsdbPubSubMgr_->addStatePathSubscription(
+        getInterfacesPath(),
+        [](auto /*oldState*/, auto /*newState*/) {},
+        [nodeName](auto /*operStateUnit*/) {
+          XLOG(DBG2) << " Got interfaces update from: " << nodeName;
+        },
+        getLoopbackIp(node));
   };
   auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
     // No need to setup subscriptions to (local) yourself
@@ -57,6 +77,10 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       return;
     }
     XLOG(DBG2) << " Removing DSF subscriptions to : " << node->getName();
+    fsdbPubSubMgr_->removeStatePathSubscription(
+        getSystemPortsPath(), getLoopbackIp(node));
+    fsdbPubSubMgr_->removeStatePathSubscription(
+        getInterfacesPath(), getLoopbackIp(node));
   };
   DeltaFunctions::forEachChanged(
       stateDelta.getDsfNodesDelta(),
