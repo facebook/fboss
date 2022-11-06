@@ -329,6 +329,18 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   auto platformPort = platform_->getPort(portID);
   auto speed = swPort->getSpeed();
   auto hwLaneList = platformPort->getHwPortLanes(speed);
+  if (!hwLaneListIsPmdLaneList_) {
+    // On Tomahawk4, HwLaneList means physical port list instead of pmd lane
+    // list for now. One physical port maps to two pmd lanes. So, do the
+    // conversion here PMD lanes ==> physical ports [1,2,3,4] ==> [1,2]
+    // [5,6,7,8] ==> [3,4]
+    // ......
+    std::vector<uint32_t> pportList;
+    for (int i = 0; i < hwLaneList.size() / 2; i++) {
+      pportList.push_back(hwLaneList[i * 2 + 1] / 2);
+    }
+    hwLaneList = pportList;
+  }
   auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
   auto internalLoopbackMode =
       utility::getSaiPortInternalLoopbackMode(swPort->getLoopbackMode());
@@ -555,12 +567,18 @@ void SaiPortManager::programSerdes(
       ++numExpectedRxLanes;
     }
   }
+  auto numPmdLanes = portKey.value().size();
+  if (!hwLaneListIsPmdLaneList_) {
+    // On Tomahawk4, HwLaneList means physical port list instead of pmd lane
+    // list for now. One physical port maps to two pmd lanes.
+    numPmdLanes *= 2;
+  }
   if (numExpectedTxLanes) {
-    CHECK_EQ(numExpectedTxLanes, portKey.value().size())
+    CHECK_EQ(numExpectedTxLanes, numPmdLanes)
         << "some lanes are missing for tx-settings";
   }
   if (numExpectedRxLanes) {
-    CHECK_EQ(numExpectedRxLanes, portKey.value().size())
+    CHECK_EQ(numExpectedRxLanes, numPmdLanes)
         << "some lanes are missing for rx-settings";
   }
 

@@ -130,6 +130,7 @@ class HwAsic {
     VOQ,
     RECYCLE_PORTS,
     XPHY_PORT_STATE_TOGGLE,
+    SAI_PORT_GET_PMD_LANES,
   };
 
   enum class AsicType ASIC_TYPE_LIST;

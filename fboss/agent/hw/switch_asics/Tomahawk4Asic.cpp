@@ -88,6 +88,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_MPLS_QOS:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::MACSEC:
+    case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
       return true;
     // features only supported by B0 version, or any physical device
     // where used chip is always B0.

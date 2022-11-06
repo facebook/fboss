@@ -314,6 +314,7 @@ class SaiPortManager {
   std::optional<SaiPortTraits::Attributes::PtpMode> getPtpMode() const;
   std::unordered_map<PortID, cfg::PortType> port2PortType_;
   std::unordered_map<PortID, std::vector<sai_stat_id_t>> port2SupportedStats_;
+  bool hwLaneListIsPmdLaneList_;
 };
 
 } // namespace facebook::fboss

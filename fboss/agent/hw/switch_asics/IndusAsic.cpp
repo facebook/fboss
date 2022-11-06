@@ -114,6 +114,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_ECN_WRED: // CS00012266807, CS00012266838
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE: // CS00012266425
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
+    case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
       return false;
   }
   return false;

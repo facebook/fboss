@@ -116,6 +116,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::VOQ:
     case HwAsic::Feature::RECYCLE_PORTS:
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
+    case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
       return false;
   }
   return false;

@@ -276,7 +276,23 @@ SaiPortManager::SaiPortManager(
       platform_(platform),
       removePortsAtExit_(platform_->getAsic()->isSupported(
           HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT)),
-      concurrentIndices_(concurrentIndices) {}
+      concurrentIndices_(concurrentIndices),
+      hwLaneListIsPmdLaneList_(true) {
+#if defined(SAI_VERSION_8_2_0_0_ODP)
+  auto& portStore = saiStore_->get<SaiPortTraits>();
+  auto saiPort = portStore.objects().begin()->second.lock();
+  auto portSaiId = saiPort->adapterKey();
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_PORT_GET_PMD_LANES)) {
+    auto pmdLanes = SaiApiTable::getInstance()->portApi().getAttribute(
+        portSaiId, SaiPortTraits::Attributes::SerdesLaneList{});
+    auto hwLanes = saiPort->adapterHostKey().value();
+    hwLaneListIsPmdLaneList_ = (pmdLanes.size() == hwLanes.size());
+    XLOG(DBG2) << "HwLaneList means pmd lane list or not: "
+               << hwLaneListIsPmdLaneList_;
+  }
+#endif
+}
 
 SaiPortHandle::~SaiPortHandle() {
   if (ingressSamplePacket) {
@@ -889,7 +905,17 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
     PortSaiId portSaiId,
     cfg::SwitchType switchType) const {
   auto speed = static_cast<cfg::PortSpeed>(GET_ATTR(Port, Speed, attributes));
+#if defined(SAI_VERSION_8_2_0_0_ODP)
+  std::vector<uint32_t> lanes;
+  if (hwLaneListIsPmdLaneList_) {
+    lanes = GET_ATTR(Port, HwLaneList, attributes);
+  } else {
+    lanes = SaiApiTable::getInstance()->portApi().getAttribute(
+        portSaiId, SaiPortTraits::Attributes::SerdesLaneList{});
+  }
+#else
   auto lanes = GET_ATTR(Port, HwLaneList, attributes);
+#endif
   SaiPortTraits::Attributes::Type portType = SAI_PORT_TYPE_LOGICAL;
   if (switchType == cfg::SwitchType::FABRIC ||
       switchType == cfg::SwitchType::VOQ) {
@@ -1755,8 +1781,19 @@ TransmitterTechnology SaiPortManager::getMedium(PortID portID) const {
 }
 
 uint8_t SaiPortManager::getNumPmdLanes(PortSaiId saiPortId) const {
+#if defined(SAI_VERSION_8_2_0_0_ODP)
+  std::vector<uint32_t> lanes;
+  if (hwLaneListIsPmdLaneList_) {
+    lanes = SaiApiTable::getInstance()->portApi().getAttribute(
+        saiPortId, SaiPortTraits::Attributes::HwLaneList{});
+  } else {
+    lanes = SaiApiTable::getInstance()->portApi().getAttribute(
+        saiPortId, SaiPortTraits::Attributes::SerdesLaneList{});
+  }
+#else
   auto lanes = SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId, SaiPortTraits::Attributes::HwLaneList{});
+#endif
   return lanes.size();
 }
 
