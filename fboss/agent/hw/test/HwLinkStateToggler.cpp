@@ -61,8 +61,12 @@ void HwLinkStateToggler::portStateChangeImpl(
     newPort->setLoopbackMode(desiredLoopbackMode);
     hwEnsemble_->applyNewState(newState);
     invokeLinkScanIfNeeded(port, up);
+    XLOG(DBG2) << " Wait for port " << (up ? "up" : "down")
+               << " event on : " << port;
     std::unique_lock<std::mutex> lock{linkEventMutex_};
     linkEventCV_.wait(lock, [this] { return desiredPortEventOccurred_; });
+    XLOG(DBG2) << " Got port " << (up ? "up" : "down")
+               << " event on : " << port;
 
     /* toggle the oper state */
     newState = newState->clone();
