@@ -10,15 +10,15 @@
 
 #include "fboss/agent/platforms/common/sandia/SandiaPlatformMapping.h"
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/platforms/common/sandia/Sandia8DDPimPlatformMapping.h"
+#include "fboss/agent/platforms/common/sandia/Sandia16QPimPlatformMapping.h"
 
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
 SandiaPlatformMapping::SandiaPlatformMapping() {
-  auto sandia8DD = std::make_unique<Sandia8DDPimPlatformMapping>();
+  auto sandia16Q = std::make_unique<Sandia16QPimPlatformMapping>();
   for (uint8_t pimID = 2; pimID < 10; pimID++) {
-    this->merge(sandia8DD->getPimPlatformMapping(pimID));
+    this->merge(sandia16Q->getPimPlatformMapping(pimID));
   }
 }
 } // namespace facebook::fboss
