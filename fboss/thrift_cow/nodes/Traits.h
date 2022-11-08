@@ -130,10 +130,10 @@ struct ConvertToImmutableNodeTraits {
   using isChild = std::false_type;
 };
 
-template <typename Member>
+template <typename Derived, typename Member>
 struct StructMemberTraits {
   using member = Member;
-  using traits = StructMemberTraits<Member>;
+  using traits = StructMemberTraits<Derived, Member>;
   using name = typename Member::name;
   using ttype = typename Member::type;
   using tc = typename Member::type_class;
@@ -142,9 +142,10 @@ struct StructMemberTraits {
   using isChild = typename ConvertToNodeTraits<tc, ttype>::isChild;
 };
 
+template <typename Derived>
 struct ExtractStructFields {
   template <typename T>
-  using apply = StructMemberTraits<T>;
+  using apply = StructMemberTraits<Derived, T>;
 };
 
 template <typename Member>
