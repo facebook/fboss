@@ -170,6 +170,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_udf_alloc_hints_t* hints,
       bcm_udf_t* udf_info,
       bcm_udf_id_t* udf_id) override;
+  int bcm_udf_destroy(int unit, bcm_udf_id_t udf_id) override;
   int bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) override;
   int bcm_port_phy_modify(
       int unit,

@@ -526,6 +526,8 @@ class BcmSdkInterface {
       bcm_udf_t* udf_info,
       bcm_udf_id_t* udf_id) = 0;
 
+  virtual int bcm_udf_destroy(int unit, bcm_udf_id_t udf_id) = 0;
+
   virtual int bcm_cosq_bst_stat_sync(int unit, bcm_bst_stat_id_t bid) = 0;
   virtual int bcm_stat_custom_add(
       int unit,

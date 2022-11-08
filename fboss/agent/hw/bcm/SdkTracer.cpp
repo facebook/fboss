@@ -325,6 +325,8 @@ int __real_bcm_udf_create(
     bcm_udf_t* udf_info,
     bcm_udf_id_t* udf_id);
 
+int __real_bcm_udf_destroy(int unit, bcm_udf_id_t udf_id);
+
 int __real_bcm_l3_egress_ecmp_get(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
@@ -945,6 +947,8 @@ int __real_bcm_udf_create(
     bcm_udf_alloc_hints_t* hints,
     bcm_udf_t* udf_info,
     bcm_udf_id_t* udf_id);
+
+int __real_bcm_udf_destroy(int unit, bcm_udf_id_t udf_id);
 
 int __real_bcm_l3_route_get(int unit, bcm_l3_route_t* info);
 
@@ -2110,6 +2114,10 @@ int __wrap_bcm_udf_create(
     bcm_udf_t* udf_info,
     bcm_udf_id_t* udf_id) {
   CALL_WRAPPERS_RV(bcm_udf_create(unit, hints, udf_info, udf_id));
+}
+
+int __wrap_bcm_udf_destroy(int unit, bcm_udf_id_t udf_id) {
+  CALL_WRAPPERS_RV(bcm_udf_destroy(unit, udf_id));
 }
 
 int __wrap_bcm_stat_custom_add(
