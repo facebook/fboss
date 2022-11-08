@@ -442,6 +442,16 @@ void BcmHostTable::warmBootHostEntriesSynced() {
                 "up for all up ports";
   bcm_port_t idx;
   BCM_PBMP_ITER(pcfg.port, idx) {
+    // For GrandTeton (Mp2), all PIMs are not installed
+    // hence some ports dont exist in cfg, even though they
+    // exist in the asic (and are down)
+    // In either case, intent of this loop is to check
+    // if existing links transitions up/down after warmboot
+    // and doesn't apply to these set of ports, hence skip
+    if (!hw_->portExists(PortID(idx))) {
+      continue;
+    }
+
     // Some ports might have come up or gone down during
     // the time controller was down. So call linkUp/DownHwLocked
     // for these. We could track this better by just calling

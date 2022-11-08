@@ -317,6 +317,13 @@ class HwSwitch {
    */
   virtual bool isPortUp(PortID port) const = 0;
 
+  /*
+   * currently used only for BCM
+   */
+  virtual bool portExists(PortID /*port*/) const {
+    return true;
+  }
+
   virtual phy::FecMode getPortFECMode(PortID /* unused */) const {
     return phy::FecMode::NONE;
   }

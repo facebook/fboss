@@ -361,6 +361,7 @@ class BcmSwitch : public BcmSwitchIf {
   }
 
   bool isPortUp(PortID port) const override;
+  bool portExists(PortID port) const override;
 
   bcm_if_t getDropEgressId() const override;
   bcm_if_t getToCPUEgressId() const override;

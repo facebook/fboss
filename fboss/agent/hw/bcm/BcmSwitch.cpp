@@ -3272,6 +3272,10 @@ std::string BcmSwitch::gatherSdkState() const {
   return logBuffer.getBuffer()->moveToFbString().toStdString();
 }
 
+bool BcmSwitch::portExists(PortID port) const {
+  return getPortTable()->portExists(port);
+}
+
 /*
  * BroadView is currently only supported in certain BCM SDK version. We will
  * remove this (and move to Bcm) once all 6.3.x BCM SDK is removed.
