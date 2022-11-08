@@ -131,6 +131,7 @@ class HwAsic {
     RECYCLE_PORTS,
     XPHY_PORT_STATE_TOGGLE,
     SAI_PORT_GET_PMD_LANES,
+    FABRIC_TX_QUEUES,
   };
 
   enum class AsicType ASIC_TYPE_LIST;

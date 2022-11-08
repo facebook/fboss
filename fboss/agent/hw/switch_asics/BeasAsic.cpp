@@ -11,6 +11,7 @@ bool BeasAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::LINK_TRAINING:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
+    case HwAsic::Feature::FABRIC_TX_QUEUES:
       return true;
     default:
       return false;

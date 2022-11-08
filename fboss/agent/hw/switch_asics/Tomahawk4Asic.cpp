@@ -131,6 +131,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VOQ:
     case HwAsic::Feature::RECYCLE_PORTS:
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
+    case HwAsic::Feature::FABRIC_TX_QUEUES:
       return false;
   }
   return false;

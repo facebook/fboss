@@ -110,6 +110,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RECYCLE_PORTS:
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
     case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
+    case HwAsic::Feature::FABRIC_TX_QUEUES:
       return false;
   }
   return false;
