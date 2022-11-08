@@ -84,4 +84,5 @@ target_link_libraries(qsfp_bsp_core
   Folly::folly
   kamet_bsp
   makalu_bsp
+  device_mdio
 )
