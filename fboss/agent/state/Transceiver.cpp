@@ -104,7 +104,9 @@ TransceiverSpecFields TransceiverSpecFields::fromFollyDynamicLegacy(
   return tcvr;
 }
 
-TransceiverSpec::TransceiverSpec(TransceiverID id) : ThriftyBaseT(id) {}
+TransceiverSpec::TransceiverSpec(TransceiverID id) {
+  set<switch_state_tags::id>(id);
+}
 
 std::shared_ptr<TransceiverSpec> TransceiverSpec::createPresentTransceiver(
     const TransceiverInfo& tcvrInfo) {
@@ -131,12 +133,6 @@ std::shared_ptr<TransceiverSpec> TransceiverSpec::createPresentTransceiver(
   return newTransceiver;
 }
 
-bool TransceiverSpec::operator==(const TransceiverSpec& tcvr) const {
-  return getID() == tcvr.getID() && getCableLength() == tcvr.getCableLength() &&
-      getMediaInterface() == tcvr.getMediaInterface() &&
-      getManagementInterface() == tcvr.getManagementInterface();
-}
-
 cfg::PlatformPortConfigOverrideFactor
 TransceiverSpec::toPlatformPortConfigOverrideFactor() const {
   cfg::PlatformPortConfigOverrideFactor factor;
@@ -152,8 +148,5 @@ TransceiverSpec::toPlatformPortConfigOverrideFactor() const {
   return factor;
 }
 
-template class ThriftyBaseT<
-    state::TransceiverSpecFields,
-    TransceiverSpec,
-    TransceiverSpecFields>;
+template class ThriftStructNode<TransceiverSpec, state::TransceiverSpecFields>;
 } // namespace facebook::fboss
