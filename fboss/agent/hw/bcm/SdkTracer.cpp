@@ -327,6 +327,12 @@ int __real_bcm_udf_create(
 
 int __real_bcm_udf_destroy(int unit, bcm_udf_id_t udf_id);
 
+int __real_bcm_udf_pkt_format_create(
+    int unit,
+    bcm_udf_pkt_format_options_t options,
+    bcm_udf_pkt_format_info_t* pkt_format,
+    bcm_udf_pkt_format_id_t* pkt_format_id);
+
 int __real_bcm_l3_egress_ecmp_get(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
@@ -949,6 +955,12 @@ int __real_bcm_udf_create(
     bcm_udf_id_t* udf_id);
 
 int __real_bcm_udf_destroy(int unit, bcm_udf_id_t udf_id);
+
+int __real_bcm_udf_pkt_format_create(
+    int unit,
+    bcm_udf_pkt_format_options_t options,
+    bcm_udf_pkt_format_info_t* pkt_format,
+    bcm_udf_pkt_format_id_t* pkt_format_id);
 
 int __real_bcm_l3_route_get(int unit, bcm_l3_route_t* info);
 
@@ -2118,6 +2130,15 @@ int __wrap_bcm_udf_create(
 
 int __wrap_bcm_udf_destroy(int unit, bcm_udf_id_t udf_id) {
   CALL_WRAPPERS_RV(bcm_udf_destroy(unit, udf_id));
+}
+
+int __wrap_bcm_udf_pkt_format_create(
+    int unit,
+    bcm_udf_pkt_format_options_t options,
+    bcm_udf_pkt_format_info_t* pkt_format,
+    bcm_udf_pkt_format_id_t* pkt_format_id) {
+  CALL_WRAPPERS_RV(
+      bcm_udf_pkt_format_create(unit, options, pkt_format, pkt_format_id));
 }
 
 int __wrap_bcm_stat_custom_add(
