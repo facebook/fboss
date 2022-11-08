@@ -343,6 +343,10 @@ class BcmInterface {
       bcm_udf_pkt_format_info_t* pkt_format,
       bcm_udf_pkt_format_id_t* pkt_format_id) = 0;
 
+  virtual int bcm_udf_pkt_format_destroy(
+      int unit,
+      bcm_udf_pkt_format_id_t pkt_format_id) = 0;
+
   virtual int bcm_stat_clear(int unit, bcm_port_t port) = 0;
 
   virtual int bcm_l3_route_max_ecmp_set(int unit, int max) = 0;
