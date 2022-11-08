@@ -351,6 +351,10 @@ void SaiPortManager::releasePorts() {
 }
 
 void SaiPortManager::loadPortQueues(const Port& swPort) {
+  if (swPort.getPortType() == cfg::PortType::FABRIC_PORT &&
+      !platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_TX_QUEUES)) {
+    return;
+  }
   SaiPortHandle* portHandle = getPortHandle(swPort.getID());
   CHECK(portHandle) << " Port handle must be created before loading queues";
   const auto& saiPort = portHandle->port;
@@ -733,6 +737,10 @@ void SaiPortManager::changeQueue(
     const std::shared_ptr<Port>& swPort,
     const QueueConfig& oldQueueConfig,
     const QueueConfig& newQueueConfig) {
+  if (swPort->getPortType() == cfg::PortType::FABRIC_PORT &&
+      !platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_TX_QUEUES)) {
+    return;
+  }
   auto swId = swPort->getID();
   SaiPortHandle* portHandle = getPortHandle(swId);
   if (!portHandle) {
