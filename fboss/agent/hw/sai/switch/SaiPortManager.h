@@ -133,7 +133,7 @@ class SaiPortManager {
       const SaiQueueConfig& saiQueueConfig);
   std::map<PortID, HwPortStats> getPortStats() const;
   void changeQueue(
-      PortID swId,
+      const std::shared_ptr<Port>& swPort,
       const QueueConfig& oldQueueConfig,
       const QueueConfig& newQueueConfig);
 

@@ -730,9 +730,10 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
 }
 
 void SaiPortManager::changeQueue(
-    PortID swId,
+    const std::shared_ptr<Port>& swPort,
     const QueueConfig& oldQueueConfig,
     const QueueConfig& newQueueConfig) {
+  auto swId = swPort->getID();
   SaiPortHandle* portHandle = getPortHandle(swId);
   if (!portHandle) {
     throw FbossError("Attempted to change non-existent port ");
