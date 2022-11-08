@@ -207,7 +207,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
   if (auto defaultQosPolicy = state.defaultDataPlaneQosPolicy()) {
     fields.defaultDataPlaneQosPolicy = QosPolicy::fromThrift(*defaultQosPolicy);
   }
-  fields.transceivers = TransceiverMap::fromThrift(*state.transceiverMap());
+  fields.transceivers->fromThrift(*state.transceiverMap());
   fields.ipTunnels = IpTunnelMap::fromThrift(*state.ipTunnelMap());
   fields.sFlowCollectors->fromThrift(*state.sflowCollectorMap());
   fields.teFlowTable = TeFlowTable::fromThrift(*state.teFlowTable());

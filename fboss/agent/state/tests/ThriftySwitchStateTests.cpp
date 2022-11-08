@@ -135,8 +135,6 @@ TEST(ThriftySwitchState, TransceiverMap) {
   transceiverMap->addTransceiver(transceiver1);
   transceiverMap->addTransceiver(transceiver2);
 
-  validateThriftyMigration(*transceiverMap);
-
   auto state = SwitchState();
   state.resetTransceivers(transceiverMap);
   verifySwitchStateSerialization(state);

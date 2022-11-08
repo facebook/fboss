@@ -19,26 +19,39 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-using TransceiverMapTraits = NodeMapTraits<TransceiverID, TransceiverSpec>;
+using TransceiverMapLegacyTraits =
+    NodeMapTraits<TransceiverID, TransceiverSpec>;
+
+using TransceiverMapTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::integral,
+    apache::thrift::type_class::structure>;
+using TransceiverMapThriftType =
+    std::map<int16_t, state::TransceiverSpecFields>;
+
+class TransceiverMap;
+using TransceiverMapTraits = ThriftMapNodeTraits<
+    TransceiverMap,
+    TransceiverMapTypeClass,
+    TransceiverMapThriftType,
+    TransceiverSpec>;
 
 /*
  * A container for all the present Transceivers
  */
 class TransceiverMap
-    : public ThriftyNodeMapT<
-          TransceiverMap,
-          TransceiverMapTraits,
-          ThriftyNodeMapTraits<int16_t, state::TransceiverSpecFields>> {
+    : public ThriftMapNode<TransceiverMap, TransceiverMapTraits> {
  public:
+  using Base = ThriftMapNode<TransceiverMap, TransceiverMapTraits>;
+  using LegacyTraits = TransceiverMapLegacyTraits;
   TransceiverMap();
-  ~TransceiverMap() override;
+  virtual ~TransceiverMap() override;
 
-  const std::shared_ptr<TransceiverSpec>& getTransceiver(
+  const std::shared_ptr<TransceiverSpec> getTransceiver(
       TransceiverID id) const {
-    return getNode(id);
+    return getNode(static_cast<int16_t>(id));
   }
   std::shared_ptr<TransceiverSpec> getTransceiverIf(TransceiverID id) const {
-    return getNodeIf(id);
+    return getNodeIf(static_cast<int16_t>(id));
   }
 
   void addTransceiver(const std::shared_ptr<TransceiverSpec>& tcvr);
@@ -49,7 +62,7 @@ class TransceiverMap
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyNodeMapT::ThriftyNodeMapT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 } // namespace facebook::fboss

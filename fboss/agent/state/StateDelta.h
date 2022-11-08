@@ -87,7 +87,7 @@ class StateDelta {
 
   thrift_cow::ThriftMapDelta<MirrorMap> getMirrorsDelta() const;
 
-  NodeMapDelta<TransceiverMap> getTransceiversDelta() const;
+  thrift_cow::ThriftMapDelta<TransceiverMap> getTransceiversDelta() const;
   ForwardingInformationBaseMapDelta getFibsDelta() const;
   NodeMapDelta<LabelForwardingInformationBase>
   getLabelForwardingInformationBaseDelta() const;

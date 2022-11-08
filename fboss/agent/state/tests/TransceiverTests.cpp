@@ -101,6 +101,4 @@ TEST(TransceiverMap, addTransceiver) {
   EXPECT_TRUE(transceiver1->isPublished());
   EXPECT_TRUE(transceiver2->isPublished());
   EXPECT_TRUE(transceiver10->isPublished());
-
-  validateThriftyMigration(*transceiverMap);
 }

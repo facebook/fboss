@@ -138,8 +138,9 @@ thrift_cow::ThriftMapDelta<MirrorMap> StateDelta::getMirrorsDelta() const {
       old_->getMirrors().get(), new_->getMirrors().get());
 }
 
-NodeMapDelta<TransceiverMap> StateDelta::getTransceiversDelta() const {
-  return NodeMapDelta<TransceiverMap>(
+thrift_cow::ThriftMapDelta<TransceiverMap> StateDelta::getTransceiversDelta()
+    const {
+  return thrift_cow::ThriftMapDelta<TransceiverMap>(
       old_->getTransceivers().get(), new_->getTransceivers().get());
 }
 
@@ -228,7 +229,7 @@ template class NodeMapDelta<AggregatePortMap>;
 template class thrift_cow::ThriftMapDelta<SflowCollectorMap>;
 template class thrift_cow::ThriftMapDelta<LoadBalancerMap>;
 template class thrift_cow::ThriftMapDelta<MirrorMap>;
-template class NodeMapDelta<TransceiverMap>;
+template class thrift_cow::ThriftMapDelta<TransceiverMap>;
 template class NodeMapDelta<
     ForwardingInformationBaseMap,
     ForwardingInformationBaseContainerDelta>;

@@ -46,6 +46,6 @@ TransceiverMap* TransceiverMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(TransceiverMap, TransceiverMapTraits);
+template class ThriftMapNode<TransceiverMap, TransceiverMapTraits>;
 
 } // namespace facebook::fboss
