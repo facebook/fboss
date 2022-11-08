@@ -1,6 +1,8 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/lib/bsp/BspPimContainer.h"
+#include "fboss/agent/FbossError.h"
+#include "fboss/lib/bsp/BspPhyContainer.h"
 #include "fboss/lib/bsp/BspTransceiverContainer.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 
@@ -14,11 +16,46 @@ BspPimContainer::BspPimContainer(BspPimMapping& bspPimMapping)
         tcvrMapping.first,
         std::make_unique<BspTransceiverContainer>(tcvrMapping.second));
   }
+  // Create PhyIO controllers
+  for (auto controller : *bspPimMapping.phyIOControllers()) {
+    phyIOControllers_[controller.first] =
+        std::make_unique<BspPhyIO>(*bspPimMapping.pimID(), controller.second);
+  }
+  // Create PHY containers, 1 per PHY in a PIM
+  for (auto phyMapping : *bspPimMapping.phyMapping()) {
+    CHECK(
+        phyIOControllers_.find(*phyMapping.second.phyIOControllerId()) !=
+        phyIOControllers_.end());
+    phyContainers_.emplace(
+        phyMapping.first,
+        std::make_unique<BspPhyContainer>(
+            *bspPimMapping.pimID(),
+            phyMapping.second,
+            phyIOControllers_[*phyMapping.second.phyIOControllerId()].get()));
+  }
 }
 
 const BspTransceiverContainer* BspPimContainer::getTransceiverContainer(
     int tcvrID) const {
   return tcvrContainers_.at(tcvrID).get();
+}
+
+const BspPhyContainer* BspPimContainer::getPhyContainerFromPhyID(
+    int phyID) const {
+  return phyContainers_.at(phyID).get();
+}
+
+const BspPhyContainer* BspPimContainer::getPhyContainerFromMdioID(
+    int mdioControllerID) const {
+  for (auto phy : *bspPimMapping_.phyMapping()) {
+    if (mdioControllerID == *phy.second.phyIOControllerId()) {
+      return phyContainers_.at(phy.first).get();
+    }
+  }
+  throw FbossError(fmt::format(
+      "Couldn't find phy container for mdioID {:d}, PimID {:d}",
+      mdioControllerID,
+      *bspPimMapping_.pimID()));
 }
 
 void BspPimContainer::initAllTransceivers() const {
