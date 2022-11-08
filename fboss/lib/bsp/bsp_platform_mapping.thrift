@@ -9,19 +9,21 @@ struct BspPimMapping {
   1: i32 pimID;
   2: map<i32, BspTransceiverMapping> tcvrMapping;
   3: map<i32, BspPhyMapping> phyMapping;
+  // Map of controller ID to controller info
+  4: map<i32, BspPhyIOControllerInfo> phyIOControllers;
 // TODO: Add LEDs mapping
 }
 
 struct BspPhyMapping {
-  1: i32 xphyId;
-  2: BspPhyIOControllerInfo io;
+  1: i32 phyId; // unique ID across the system
+  2: i32 phyIOControllerId;
+  3: i32 phyAddr; // 5 bit phy address
 }
 
 struct BspPhyIOControllerInfo {
-  1: string controllerId;
-  2: i32 phyAddr;
-  3: PhyIOType type;
-  4: string devicePath;
+  1: i32 controllerId; // unique ID for controllers on a PIM
+  2: PhyIOType type;
+  3: string devicePath; // file path for io access
 }
 
 enum PhyIOType {
