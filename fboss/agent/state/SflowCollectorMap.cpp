@@ -14,6 +14,6 @@
 
 namespace facebook::fboss {
 
-FBOSS_INSTANTIATE_NODE_MAP(SflowCollectorMap, SflowCollectorMapTraits);
+template class ThriftMapNode<SflowCollectorMap, SflowCollectorMapTraits>;
 
 } // namespace facebook::fboss

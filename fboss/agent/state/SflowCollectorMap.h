@@ -18,8 +18,6 @@
 
 namespace facebook::fboss {
 
-using SflowCollectorMapTraits = NodeMapTraits<std::string, SflowCollector>;
-
 struct SflowCollectorMapThriftTraits
     : public ThriftyNodeMapTraits<std::string, state::SflowCollectorFields> {
   static const KeyType parseKey(const folly::dynamic& key) {
@@ -40,20 +38,31 @@ struct SflowCollectorMapThriftTraits
   }
 };
 
+using SflowCollectorMapTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::string,
+    apache::thrift::type_class::structure>;
+using SflowCollectorMapThriftType =
+    std::map<std::string, state::SflowCollectorFields>;
+
+class SflowCollectorMap;
+using SflowCollectorMapTraits = ThriftMapNodeTraits<
+    SflowCollectorMap,
+    SflowCollectorMapTypeClass,
+    SflowCollectorMapThriftType,
+    SflowCollector>;
 /*
  * A container for the set of collectors.
  */
-class SflowCollectorMap : public ThriftyNodeMapT<
-                              SflowCollectorMap,
-                              SflowCollectorMapTraits,
-                              SflowCollectorMapThriftTraits> {
+class SflowCollectorMap
+    : public ThriftMapNode<SflowCollectorMap, SflowCollectorMapTraits> {
  public:
+  using Base = ThriftMapNode<SflowCollectorMap, SflowCollectorMapTraits>;
   SflowCollectorMap() = default;
   ~SflowCollectorMap() override = default;
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyNodeMapT::ThriftyNodeMapT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 
