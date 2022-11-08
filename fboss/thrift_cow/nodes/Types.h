@@ -17,7 +17,7 @@ struct NodeType {};
 
 struct FieldsType {};
 
-template <typename TType>
+template <typename TType, typename Derived>
 struct ThriftStructFields;
 
 template <typename TType, typename>

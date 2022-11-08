@@ -133,9 +133,9 @@ struct ChildInvoke {
 
 } // namespace struct_helpers
 
-template <typename TType>
+template <typename TType, typename Derived = ThriftStructResolver<TType>>
 struct ThriftStructFields {
-  using Self = ThriftStructFields<TType>;
+  using Self = ThriftStructFields<TType, Derived>;
   using Info = apache::thrift::reflect_struct<TType>;
   using CowType = FieldsType;
   using ThriftType = TType;
@@ -370,12 +370,14 @@ struct ThriftStructFields {
 
 template <typename TType, typename Resolver = ThriftStructResolver<TType>>
 class ThriftStructNode
-    : public NodeBaseT<typename Resolver::type, ThriftStructFields<TType>> {
+    : public NodeBaseT<
+          typename Resolver::type,
+          ThriftStructFields<TType, typename Resolver::type>> {
  public:
   using Self = ThriftStructNode<TType, Resolver>;
-  using Fields = ThriftStructFields<TType>;
-  using ThriftType = typename Fields::ThriftType;
   using Derived = typename Resolver::type;
+  using Fields = ThriftStructFields<TType, Derived>;
+  using ThriftType = typename Fields::ThriftType;
   using BaseT = NodeBaseT<Derived, Fields>;
   using CowType = NodeType;
   using TC = typename Fields::TC;
