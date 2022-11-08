@@ -2910,7 +2910,8 @@ shared_ptr<SflowCollectorMap> ThriftConfigApplier::updateSflowCollectors() {
 
 shared_ptr<SflowCollector> ThriftConfigApplier::createSflowCollector(
     const cfg::SflowCollector* config) {
-  return make_shared<SflowCollector>(*config->ip(), *config->port());
+  return make_shared<SflowCollector>(
+      *config->ip(), static_cast<uint16_t>(*config->port()));
 }
 
 shared_ptr<SflowCollector> ThriftConfigApplier::updateSflowCollector(

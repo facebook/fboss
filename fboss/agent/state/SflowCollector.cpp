@@ -65,11 +65,14 @@ SflowCollectorFields SflowCollectorFields::fromFollyDynamicLegacy(
   return SflowCollectorFields(ip, port);
 }
 
-SflowCollector::SflowCollector(const std::string& ip, const uint16_t port)
-    : ThriftyBaseT(ip, port) {}
+SflowCollector::SflowCollector(std::string ip, uint16_t port) {
+  folly::SocketAddress socketAddr(ip, port);
+  ref<switch_state_tags::id>() = folly::to<std::string>(
+      socketAddr.getFullyQualified(), ':', socketAddr.getPort());
+  ref<switch_state_tags::address>()->ref<switch_state_tags::host>() =
+      socketAddr.getFullyQualified();
+  ref<switch_state_tags::address>()->ref<switch_state_tags::port>() = port;
+}
 
-template class ThriftyBaseT<
-    state::SflowCollectorFields,
-    SflowCollector,
-    SflowCollectorFields>;
+template class ThriftStructNode<SflowCollector, state::SflowCollectorFields>;
 } // namespace facebook::fboss

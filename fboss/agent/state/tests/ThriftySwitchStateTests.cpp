@@ -174,8 +174,10 @@ TEST(ThriftySwitchState, QosPolicyMap) {
 }
 
 TEST(ThriftySwitchState, SflowCollectorMap) {
-  auto sflowCollector1 = std::make_shared<SflowCollector>("1.2.3.4", 8080);
-  auto sflowCollector2 = std::make_shared<SflowCollector>("2::3", 9090);
+  auto sflowCollector1 = std::make_shared<SflowCollector>(
+      std::string("1.2.3.4"), static_cast<uint16_t>(8080));
+  auto sflowCollector2 = std::make_shared<SflowCollector>(
+      std::string("2::3"), static_cast<uint16_t>(9090));
 
   auto map = std::make_shared<SflowCollectorMap>();
   map->addNode(sflowCollector1);

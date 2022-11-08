@@ -19,7 +19,8 @@
 using namespace facebook::fboss;
 
 TEST(SflowCollector, SerializeSflowCollector) {
-  auto sflowCollector = std::make_unique<SflowCollector>("1.2.3.4", 8080);
+  auto sflowCollector = std::make_unique<SflowCollector>(
+      std::string("1.2.3.4"), static_cast<uint16_t>(8080));
   auto serialized = sflowCollector->toFollyDynamic();
   auto sflowCollectorBack = SflowCollector::fromFollyDynamic(serialized);
 
@@ -29,8 +30,10 @@ TEST(SflowCollector, SerializeSflowCollector) {
 }
 
 TEST(SflowCollectorMap, SerializeSflowCollectorMap) {
-  auto sflowCollector1 = std::make_shared<SflowCollector>("1.2.3.4", 8080);
-  auto sflowCollector2 = std::make_shared<SflowCollector>("2::3", 9090);
+  auto sflowCollector1 = std::make_shared<SflowCollector>(
+      std::string("1.2.3.4"), static_cast<uint16_t>(8080));
+  auto sflowCollector2 = std::make_shared<SflowCollector>(
+      std::string("2::3"), static_cast<uint16_t>(9090));
   SflowCollectorMap sflowCollectorMap;
   sflowCollectorMap.addNode(sflowCollector1);
   sflowCollectorMap.addNode(sflowCollector2);
@@ -45,7 +48,6 @@ TEST(SflowCollectorMap, SerializeSflowCollectorMap) {
 
   auto serialized = sflowCollectorMap.toFollyDynamic();
   auto sflowCollectorMapBack = SflowCollectorMap::fromFollyDynamic(serialized);
-  EXPECT_TRUE(sflowCollectorMap == *sflowCollectorMapBack);
-
-  validateThriftyMigration(sflowCollectorMap);
+  EXPECT_TRUE(
+      sflowCollectorMap.toThrift() == sflowCollectorMapBack->toThrift());
 }

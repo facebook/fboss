@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -53,33 +54,58 @@ struct SflowCollectorFields
   }
 };
 
+USE_THRIFT_COW(SflowCollector)
+
 /*
  * SflowCollector stores the IP and port of a UDP-based collector of sFlow
  * samples.
  */
-class SflowCollector : public ThriftyBaseT<
-                           state::SflowCollectorFields,
-                           SflowCollector,
-                           SflowCollectorFields> {
+class SflowCollector
+    : public ThriftStructNode<SflowCollector, state::SflowCollectorFields> {
  public:
-  SflowCollector(const std::string& ip, const uint16_t port);
+  using Base = ThriftStructNode<SflowCollector, state::SflowCollectorFields>;
+  using LegacyFields = SflowCollectorFields;
+  SflowCollector(std::string ip, uint16_t port);
 
   const std::string& getID() const {
-    return *getFields()->data().id();
+    return cref<switch_state_tags::id>()->cref();
   }
 
   const folly::SocketAddress getAddress() const {
-    return folly::SocketAddress(
-        *getFields()->data().address()->host(),
-        *getFields()->data().address()->port());
+    const auto& host =
+        cref<switch_state_tags::address>()->cref<switch_state_tags::host>();
+    const auto& port =
+        cref<switch_state_tags::address>()->cref<switch_state_tags::port>();
+    return folly::SocketAddress(host->cref(), port->cref());
+  }
+
+  static std::shared_ptr<SflowCollector> fromFollyDynamic(
+      const folly::dynamic& dyn) {
+    auto fields = LegacyFields::fromFollyDynamic(dyn);
+    auto obj = fields.toThrift();
+    return std::make_shared<SflowCollector>(std::move(obj));
+  }
+
+  static std::shared_ptr<SflowCollector> fromFollyDynamicLegacy(
+      const folly::dynamic& dyn) {
+    auto fields = LegacyFields::fromFollyDynamicLegacy(dyn);
+    auto obj = fields.toThrift();
+    return std::make_shared<SflowCollector>(std::move(obj));
+  }
+
+  folly::dynamic toFollyDynamic() const override {
+    auto fields = LegacyFields::fromThrift(this->toThrift());
+    return fields.toFollyDynamic();
+  }
+
+  folly::dynamic toFollyDynamicLegacy() const {
+    auto fields = LegacyFields::fromThrift(this->toThrift());
+    return fields.toFollyDynamicLegacy();
   }
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyBaseT<
-      state::SflowCollectorFields,
-      SflowCollector,
-      SflowCollectorFields>::ThriftyBaseT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 
