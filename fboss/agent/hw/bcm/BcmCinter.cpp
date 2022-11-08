@@ -234,6 +234,7 @@ vector<string> BcmCinter::cintForFpGroupConfig(
       to<string>("group_config.flags=", group_config->flags),
       to<string>("group_config.priority=", group_config->priority),
       to<string>("group_config.group=", group_config->group),
+      to<string>("group_config.hintid=", group_config->hintid),
       to<string>("group_config.mode=", group_config->mode)};
   auto cintForFn = cintForQset(group_config->qset);
   cintLines.insert(
