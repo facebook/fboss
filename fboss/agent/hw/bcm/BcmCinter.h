@@ -165,6 +165,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       bcm_udf_hash_config_t* config) override;
   int bcm_udf_hash_config_delete(int unit, bcm_udf_hash_config_t* config)
       override;
+  int bcm_udf_create(
+      int unit,
+      bcm_udf_alloc_hints_t* hints,
+      bcm_udf_t* udf_info,
+      bcm_udf_id_t* udf_id) override;
   int bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) override;
   int bcm_port_phy_modify(
       int unit,
@@ -1926,6 +1931,11 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
 
   std::vector<std::string> cintForBcmUdfHashConfig(
       const bcm_udf_hash_config_t& config);
+
+  std::vector<std::string> cintForBcmUdfAllocHints(
+      const bcm_udf_alloc_hints_t& hints);
+
+  std::vector<std::string> cintForBcmUdfInfo(const bcm_udf_t& udf_info);
 
   std::vector<std::string> cintForTrunkInfo(const bcm_trunk_info_t& t_data);
 

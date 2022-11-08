@@ -1969,6 +1969,66 @@ int BcmCinter::bcm_udf_hash_config_delete(
   return 0;
 }
 
+vector<string> BcmCinter::cintForBcmUdfAllocHints(
+    const bcm_udf_alloc_hints_t& hints) {
+  vector<string> cintLines = {
+      "bcm_udf_alloc_hints_init(&hints)",
+      to<string>("hints.flags=", hints.flags),
+      to<string>("hints.shared_udf=", hints.shared_udf),
+  };
+  auto cintQset = cintForQset(hints.qset);
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(cintQset.begin()),
+      make_move_iterator(cintQset.end()));
+  return cintLines;
+}
+
+vector<string> BcmCinter::cintForBcmUdfInfo(const bcm_udf_t& udf_info) {
+  string pbmp;
+  vector<string> pbmpCint;
+  tie(pbmp, pbmpCint) = cintForPortBitmap(udf_info.ports);
+  vector<string> cintLines = {
+      "bcm_udf_t_init(&udf_info)",
+      to<string>("udf_info.flags=", udf_info.flags),
+      to<string>("udf_info.layer=", udf_info.layer),
+      to<string>("udf_info.start=", udf_info.start),
+      to<string>("udf_info.width=", udf_info.width),
+      to<string>("udf_info.ports=", pbmp),
+  };
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(pbmpCint.begin()),
+      make_move_iterator(pbmpCint.end()));
+
+  return cintLines;
+}
+
+int BcmCinter::bcm_udf_create(
+    int unit,
+    bcm_udf_alloc_hints_t* hints,
+    bcm_udf_t* udf_info,
+    bcm_udf_id_t* udf_id) {
+  auto cintHints = cintForBcmUdfAllocHints(*hints);
+
+  auto cintInfo = cintForBcmUdfInfo(*udf_info);
+
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_udf_create(",
+      makeParamStr(unit, "&hints", "&udf_info", *udf_id),
+      ")"));
+  cintHints.insert(
+      cintHints.end(),
+      make_move_iterator(cintInfo.begin()),
+      make_move_iterator(cintInfo.end()));
+  cintHints.insert(
+      cintHints.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cintHints));
+  return 0;
+}
+
 int BcmCinter::bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) {
   writeCintLines(wrapFunc(to<string>(
       "bcm_port_autoneg_set(", makeParamStr(unit, port, autoneg), ")")));
