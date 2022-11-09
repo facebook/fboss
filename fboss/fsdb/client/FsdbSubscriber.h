@@ -20,6 +20,7 @@ class FsdbSubscriber : public FsdbStreamClient {
 
  public:
   using FsdbSubUnitUpdateCb = std::function<void(SubUnit&&)>;
+  using SubUnitT = SubUnit;
   FsdbSubscriber(
       const std::string& clientId,
       const Paths& subscribePaths,

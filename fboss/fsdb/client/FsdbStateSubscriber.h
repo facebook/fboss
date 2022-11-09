@@ -8,6 +8,7 @@
 namespace facebook::fboss::fsdb {
 class FsdbStateSubscriber : public FsdbSubscriber<OperState, std::string> {
   using BaseT = FsdbSubscriber<OperState, std::string>;
+  using SubUnitT = typename BaseT::SubUnitT;
 
  public:
   using FsdbOperStateUpdateCb = typename BaseT::FsdbSubUnitUpdateCb;

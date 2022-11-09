@@ -25,7 +25,7 @@ std::string FsdbSubscriber<SubUnit, PathElement>::pathStr(
 
 template class FsdbSubscriber<OperDelta, std::string>;
 template class FsdbSubscriber<OperState, std::string>;
-template class FsdbSubscriber<TaggedOperDelta, ExtendedOperPath>;
-template class FsdbSubscriber<TaggedOperState, ExtendedOperPath>;
+template class FsdbSubscriber<OperSubPathUnit, ExtendedOperPath>;
+template class FsdbSubscriber<OperSubDeltaUnit, ExtendedOperPath>;
 
 } // namespace facebook::fboss::fsdb

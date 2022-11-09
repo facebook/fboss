@@ -8,6 +8,7 @@
 namespace facebook::fboss::fsdb {
 class FsdbDeltaSubscriber : public FsdbSubscriber<OperDelta, std::string> {
   using BaseT = FsdbSubscriber<OperDelta, std::string>;
+  using SubUnitT = typename BaseT::SubUnitT;
 
  public:
   using FsdbOperDeltaUpdateCb = typename BaseT::FsdbSubUnitUpdateCb;
