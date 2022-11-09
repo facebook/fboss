@@ -8,6 +8,8 @@
 
 namespace facebook::fboss {
 class SwSwitch;
+class InterfaceMap;
+class SystemPortMap;
 namespace fsdb {
 class FsdbPubSubManager;
 }
@@ -21,6 +23,10 @@ class DsfSubscriber : public StateObserver {
   void stop();
 
  private:
+  void scheduleUpdate(
+      const std::shared_ptr<SystemPortMap>& newSysPorts,
+      const std::shared_ptr<InterfaceMap>& newRifs,
+      SwitchID nodeSwitchId);
   // Paths
   static std::vector<std::string> getSystemPortsPath();
   static std::vector<std::string> getInterfacesPath();

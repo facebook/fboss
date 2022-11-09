@@ -6,10 +6,17 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
+#include "fboss/thrift_cow/nodes/Serializer.h"
 
 #include <memory>
 
 namespace facebook::fboss {
+
+using ThriftMapTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::integral,
+    apache::thrift::type_class::structure>;
+using SysPortMapThriftType = std::map<int64_t, state::SystemPortFields>;
+using InterfaceMapThriftType = std::map<int32_t, state::InterfaceFields>;
 
 DsfSubscriber::DsfSubscriber(SwSwitch* sw) : sw_(sw) {
   sw_->registerStateObserver(this, "DSFSubscriber");
@@ -17,6 +24,18 @@ DsfSubscriber::DsfSubscriber(SwSwitch* sw) : sw_(sw) {
 
 DsfSubscriber::~DsfSubscriber() {
   stop();
+}
+
+void DsfSubscriber::scheduleUpdate(
+    const std::shared_ptr<SystemPortMap>& newSysPorts,
+    const std::shared_ptr<InterfaceMap>& newRifs,
+    SwitchID nodeSwitchId) {
+  XLOG(INFO) << " For , switchId: " << static_cast<int64_t>(nodeSwitchId)
+             << " got,"
+             << " updated sys ports: "
+             << (newSysPorts ? newSysPorts->size() : 0)
+             << " updated rifs: " << (newRifs ? newRifs->size() : 0);
+  // TODO actually schedule updates
 }
 
 void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
@@ -54,12 +73,44 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       return;
     }
     auto nodeName = node->getName();
+    auto nodeSwitchId = node->getSwitchId();
     XLOG(DBG2) << " Setting up DSF subscriptions to : " << nodeName;
     fsdbPubSubMgr_->addStatePathSubscription(
         {getSystemPortsPath(), getInterfacesPath()},
-        [](auto /*oldState*/, auto /*newState*/) {},
-        [nodeName](auto /*operStateUnit*/) {
-          XLOG(DBG2) << " Got system ports or intfs update from: " << nodeName;
+        [nodeName](auto /*oldState*/, auto newState) {
+          XLOG(DBG2) << (newState == fsdb::FsdbStreamClient::State::CONNECTED
+                             ? "Connected to:"
+                             : "Disconnected from: ")
+                     << nodeName;
+        },
+        [this, nodeName, nodeSwitchId](fsdb::OperSubPathUnit&& operStateUnit) {
+          std::shared_ptr<SystemPortMap> newSysPorts;
+          std::shared_ptr<InterfaceMap> newRifs;
+          for (const auto& change : *operStateUnit.changes()) {
+            if (change.path()->path() == getSystemPortsPath()) {
+              std::map<int64_t, SystemPortFields> fieldsMap;
+              XLOG(DBG2) << " Got sys port update from : " << nodeName;
+              newSysPorts = std::make_shared<SystemPortMap>();
+              newSysPorts->fromThrift(
+                  thrift_cow::
+                      deserialize<ThriftMapTypeClass, SysPortMapThriftType>(
+                          fsdb::OperProtocol::BINARY,
+                          *change.state()->contents()));
+            } else if (change.path()->path() == getInterfacesPath()) {
+              XLOG(DBG2) << " Got rif update from : " << nodeName;
+              newRifs = std::make_shared<InterfaceMap>();
+              newRifs->fromThrift(
+                  thrift_cow::
+                      deserialize<ThriftMapTypeClass, InterfaceMapThriftType>(
+                          fsdb::OperProtocol::BINARY,
+                          *change.state()->contents()));
+            } else {
+              XLOG(WARN) << " Got unexpected state update for : "
+                         << folly::join("/", *change.path()->path())
+                         << " from node: " << nodeName;
+            }
+          }
+          scheduleUpdate(newSysPorts, newRifs, nodeSwitchId);
         },
         getLoopbackIp(node));
   };
