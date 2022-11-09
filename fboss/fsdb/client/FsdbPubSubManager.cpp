@@ -9,6 +9,7 @@
 #include "fboss/fsdb/client/FsdbStatePublisher.h"
 
 namespace {
+using namespace facebook::fboss::fsdb;
 auto constexpr kDelta = "delta";
 auto constexpr kState = "state";
 auto constexpr kStats = "stats";
@@ -31,6 +32,35 @@ std::string toSubscriptionStr(
       (subscribeStats ? kStats : kState),
       ":/",
       folly::join('/', path.begin(), path.end()));
+}
+
+std::string toSubscriptionStr(
+    const std::string& fsdbHost,
+    const std::vector<ExtendedOperPath>& paths,
+    bool isDelta,
+    bool subscribeStats) {
+  return folly::to<std::string>(
+      fsdbHost,
+      ":/",
+      (isDelta ? kDelta : kPath),
+      ":/",
+      (subscribeStats ? kStats : kState),
+      ":/",
+      extendedPathStr(paths));
+}
+std::vector<ExtendedOperPath> toExtendedOperPath(
+    const std::vector<std::vector<std::string>>& paths) {
+  std::vector<ExtendedOperPath> extPaths;
+  for (const auto& path : paths) {
+    ExtendedOperPath extPath;
+    for (const auto& pathElm : path) {
+      OperPathElem operPathElm;
+      operPathElm.raw_ref() = pathElm;
+      extPath.path()->push_back(std::move(operPathElm));
+    }
+    extPaths.push_back(std::move(extPath));
+  }
+  return extPaths;
 }
 } // namespace
 namespace facebook::fboss::fsdb {
@@ -228,6 +258,21 @@ void FsdbPubSubManager::addStateDeltaSubscription(
       fsdbPort);
 }
 
+void FsdbPubSubManager::addStateDeltaSubscription(
+    const std::vector<std::vector<std::string>>& subscribePaths,
+    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
+    FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
+    const std::string& fsdbHost,
+    int32_t fsdbPort) {
+  addSubscriptionImpl<FsdbExtDeltaSubscriber>(
+      toExtendedOperPath(subscribePaths),
+      stateChangeCb,
+      operDeltaCb,
+      false /*subscribeStat*/,
+      fsdbHost,
+      fsdbPort);
+}
+
 void FsdbPubSubManager::addStatePathSubscription(
     const std::vector<std::string>& subscribePath,
     FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
@@ -243,6 +288,20 @@ void FsdbPubSubManager::addStatePathSubscription(
       fsdbPort);
 }
 
+void FsdbPubSubManager::addStatePathSubscription(
+    const std::vector<std::vector<std::string>>& subscribePaths,
+    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
+    FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
+    const std::string& fsdbHost,
+    int32_t fsdbPort) {
+  addSubscriptionImpl<FsdbExtStateSubscriber>(
+      toExtendedOperPath(subscribePaths),
+      stateChangeCb,
+      operStateCb,
+      false /*subscribeStat*/,
+      fsdbHost,
+      fsdbPort);
+}
 void FsdbPubSubManager::addStatDeltaSubscription(
     const std::vector<std::string>& subscribePath,
     FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
@@ -273,15 +332,17 @@ void FsdbPubSubManager::addStatPathSubscription(
       fsdbPort);
 }
 
-template <typename SubscriberT>
+template <typename SubscriberT, typename PathElement>
 void FsdbPubSubManager::addSubscriptionImpl(
-    const std::vector<std::string>& subscribePath,
+    const std::vector<PathElement>& subscribePath,
     FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
     typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
     bool subscribeStats,
     const std::string& fsdbHost,
     int32_t fsdbPort) {
-  auto isDelta = std::is_same_v<SubscriberT, FsdbDeltaSubscriber>;
+  auto isDelta = std::disjunction_v<
+      std::is_same<SubscriberT, FsdbDeltaSubscriber>,
+      std::is_same<SubscriberT, FsdbExtDeltaSubscriber>>;
   auto subsStr =
       toSubscriptionStr(fsdbHost, subscribePath, isDelta, subscribeStats);
   path2Subscriber_.withWLock([&](auto& path2Subscriber) {
@@ -315,4 +376,5 @@ void FsdbPubSubManager::removeSubscriptionImpl(
     XLOG(DBG2) << "Erased subscription for : " << subsStr;
   }
 }
+
 } // namespace facebook::fboss::fsdb

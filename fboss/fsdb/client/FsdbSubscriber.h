@@ -12,6 +12,9 @@
 #include <functional>
 
 namespace facebook::fboss::fsdb {
+
+std::string extendedPathStr(const std::vector<ExtendedOperPath>& path);
+
 template <typename SubUnit, typename PathElement>
 class FsdbSubscriber : public FsdbStreamClient {
   using Paths = std::vector<PathElement>;

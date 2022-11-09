@@ -64,10 +64,24 @@ class FsdbPubSubManager {
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       const std::string& fsdbHost = "::1",
       int32_t fsdbPort = FLAGS_fsdbPort);
+  /* multi path subscription */
+  void addStateDeltaSubscription(
+      const std::vector<std::vector<std::string>>& subscribePaths,
+      FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
+      FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
+      const std::string& fsdbHost = "::1",
+      int32_t fsdbPort = FLAGS_fsdbPort);
   void addStatePathSubscription(
       const std::vector<std::string>& subscribePath,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       FsdbStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
+      const std::string& fsdbHost = "::1",
+      int32_t fsdbPort = FLAGS_fsdbPort);
+  /* multi path subscription */
+  void addStatePathSubscription(
+      const std::vector<std::vector<std::string>>& subscribePaths,
+      FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
+      FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
       const std::string& fsdbHost = "::1",
       int32_t fsdbPort = FLAGS_fsdbPort);
   void addStatDeltaSubscription(
@@ -133,9 +147,9 @@ class FsdbPubSubManager {
       const std::string& fsdbHost,
       bool isDelta,
       bool subscribeStats);
-  template <typename SubscriberT>
+  template <typename SubscriberT, typename PathElement>
   void addSubscriptionImpl(
-      const std::vector<std::string>& subscribePath,
+      const std::vector<PathElement>& subscribePath,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
       bool subscribeStats,
@@ -165,6 +179,7 @@ class FsdbPubSubManager {
   // Stat Publishers
   std::unique_ptr<FsdbDeltaPublisher> statDeltaPublisher_;
   std::unique_ptr<FsdbStatePublisher> statPathPublisher_;
+  // Subscribers
   folly::Synchronized<
       std::unordered_map<std::string, std::unique_ptr<FsdbStreamClient>>>
       path2Subscriber_;

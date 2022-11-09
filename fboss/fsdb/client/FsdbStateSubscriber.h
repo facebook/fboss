@@ -27,6 +27,6 @@ class FsdbStateSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
 #endif
 };
 using FsdbStateSubscriber = FsdbStateSubscriberImpl<OperState, std::string>;
-using FsdbStateExtSubscriber =
+using FsdbExtStateSubscriber =
     FsdbStateSubscriberImpl<OperSubPathUnit, ExtendedOperPath>;
 } // namespace facebook::fboss::fsdb

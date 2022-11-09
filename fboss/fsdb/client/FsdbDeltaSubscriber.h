@@ -29,6 +29,6 @@ class FsdbDeltaSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
 };
 
 using FsdbDeltaSubscriber = FsdbDeltaSubscriberImpl<OperDelta, std::string>;
-using FsdbDeltaExtSubscriber =
+using FsdbExtDeltaSubscriber =
     FsdbDeltaSubscriberImpl<OperSubDeltaUnit, ExtendedOperPath>;
 } // namespace facebook::fboss::fsdb
