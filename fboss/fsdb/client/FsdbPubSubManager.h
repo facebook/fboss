@@ -27,21 +27,24 @@ class FsdbPubSubManager {
       folly::EventBase* statePublisherEvb = nullptr);
   ~FsdbPubSubManager();
 
+  using Path = std::vector<std::string>;
+  using MultiPath = std::vector<Path>;
+
   /* Publisher create APIs */
   void createStateDeltaPublisher(
-      const std::vector<std::string>& publishPath,
+      const Path& publishPath,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
       int32_t fsdbPort = FLAGS_fsdbPort);
   void createStatePathPublisher(
-      const std::vector<std::string>& publishPath,
+      const Path& publishPath,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
       int32_t fsdbPort = FLAGS_fsdbPort);
   void createStatDeltaPublisher(
-      const std::vector<std::string>& publishPath,
+      const Path& publishPath,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
       int32_t fsdbPort = FLAGS_fsdbPort);
   void createStatPathPublisher(
-      const std::vector<std::string>& publishPath,
+      const Path& publishPath,
       FsdbStreamClient::FsdbStreamStateChangeCb publisherStateChangeCb,
       int32_t fsdbPort = FLAGS_fsdbPort);
 
@@ -59,14 +62,14 @@ class FsdbPubSubManager {
 
   /* Subscriber add APIs */
   void addStateDeltaSubscription(
-      const std::vector<std::string>& subscribePath,
+      const Path& subscribePath,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       const std::string& fsdbHost = "::1",
       int32_t fsdbPort = FLAGS_fsdbPort);
   /* multi path subscription */
   void addStateDeltaSubscription(
-      const std::vector<std::vector<std::string>>& subscribePaths,
+      const MultiPath& subscribePaths,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       const std::string& fsdbHost = "::1",
@@ -79,19 +82,19 @@ class FsdbPubSubManager {
       int32_t fsdbPort = FLAGS_fsdbPort);
   /* multi path subscription */
   void addStatePathSubscription(
-      const std::vector<std::vector<std::string>>& subscribePaths,
+      const std::vector<Path>& subscribePaths,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
       const std::string& fsdbHost = "::1",
       int32_t fsdbPort = FLAGS_fsdbPort);
   void addStatDeltaSubscription(
-      const std::vector<std::string>& subscribePath,
+      const Path& subscribePath,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       const std::string& fsdbHost = "::1",
       int32_t fsdbPort = FLAGS_fsdbPort);
   void addStatPathSubscription(
-      const std::vector<std::string>& subscribePath,
+      const Path& subscribePath,
       FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
       FsdbStateSubscriber::FsdbOperStateUpdateCb operDeltaCb,
       const std::string& fsdbHost = "::1",
@@ -99,17 +102,31 @@ class FsdbPubSubManager {
 
   /* Subscriber remove APIs */
   void removeStateDeltaSubscription(
-      const std::vector<std::string>& subscribePath,
+      const Path& subscribePath,
       const std::string& fsdbHost = "::1");
   void removeStatePathSubscription(
-      const std::vector<std::string>& subscribePath,
+      const Path& subscribePath,
       const std::string& fsdbHost = "::1");
   void removeStatDeltaSubscription(
-      const std::vector<std::string>& subscribePath,
+      const Path& subscribePath,
       const std::string& fsdbHost = "::1");
   void removeStatPathSubscription(
-      const std::vector<std::string>& subscribePath,
+      const Path& subscribePath,
       const std::string& fsdbHost = "::1");
+  /* Multipath subscription remove apis*/
+  void removeStateDeltaSubscription(
+      const MultiPath& subscribePath,
+      const std::string& fsdbHost = "::1");
+  void removeStatePathSubscription(
+      const MultiPath& subscribePath,
+      const std::string& fsdbHost = "::1");
+  void removeStatDeltaSubscription(
+      const MultiPath& subscribePath,
+      const std::string& fsdbHost = "::1");
+  void removeStatPathSubscription(
+      const MultiPath& subscribePath,
+      const std::string& fsdbHost = "::1");
+
   size_t numSubscriptions() const {
     return path2Subscriber_.rlock()->size();
   }

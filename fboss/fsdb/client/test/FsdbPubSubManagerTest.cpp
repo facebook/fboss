@@ -115,14 +115,14 @@ TEST_F(PubSubManagerTest, addRemoveSubscriptions) {
   // Dup stat delta subscription should throw
   EXPECT_THROW(addStatDeltaSubscription({"foo"}), std::runtime_error);
   EXPECT_EQ(pubSubManager_.numSubscriptions(), 3);
-  pubSubManager_.removeStateDeltaSubscription({});
+  pubSubManager_.removeStateDeltaSubscription(std::vector<std::string>{});
   EXPECT_EQ(pubSubManager_.numSubscriptions(), 2);
   addStateDeltaSubscription({});
   // Same subscripton path, different host
   addStateDeltaSubscription({"foo"}, "::2");
   EXPECT_EQ(pubSubManager_.numSubscriptions(), 4);
   // remove non existent state subscription. No effect
-  pubSubManager_.removeStatePathSubscription({});
+  pubSubManager_.removeStatePathSubscription(std::vector<std::string>{});
   EXPECT_EQ(pubSubManager_.numSubscriptions(), 4);
 
   // Add state, stat subscription for same path, host as delta
