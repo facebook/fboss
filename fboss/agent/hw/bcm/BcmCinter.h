@@ -195,6 +195,10 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int* /*actual*/) override {
     return 0;
   }
+  int bcm_udf_hash_config_get(int /*unit*/, bcm_udf_hash_config_t* /*config*/)
+      override {
+    return 0;
+  }
   int bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) override;
   int bcm_port_phy_modify(
       int unit,
