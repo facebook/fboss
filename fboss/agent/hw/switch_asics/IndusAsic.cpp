@@ -162,7 +162,7 @@ cfg::Range64 IndusAsic::getReservedEncapIndexRange() const {
   // Reserved range worked out with vendor. These ids
   // are reserved in SAI-SDK implementation for use
   // by NOS
-  return makeRange(0x100001, 0x100010);
+  return makeRange(0x200000, 0x300000);
 }
 
 HwAsic::RecyclePortInfo IndusAsic::getRecyclePortInfo() const {
