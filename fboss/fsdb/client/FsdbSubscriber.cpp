@@ -4,6 +4,30 @@
 
 namespace facebook::fboss::fsdb {
 
+std::string extendedPathStr(const std::vector<ExtendedOperPath>& extPaths) {
+  std::vector<std::string> pathStrs;
+  for (const auto& extPath : extPaths) {
+    std::vector<std::string> pathElms;
+    for (const auto& pathElm : *extPath.path()) {
+      switch (pathElm.getType()) {
+        case OperPathElem::Type::raw:
+          pathElms.push_back(pathElm.raw_ref().value());
+          break;
+        case OperPathElem::Type::regex:
+          pathElms.push_back(pathElm.regex_ref().value());
+          break;
+        case OperPathElem::Type::any:
+          pathElms.push_back("*");
+          break;
+        case OperPathElem::Type::__EMPTY__:
+          throw std::runtime_error("Illformed extended path");
+          break;
+      }
+    }
+    pathStrs.push_back(folly::join("/", pathElms));
+  }
+  return folly::join("_", pathStrs);
+}
 template <typename SubUnit, typename PathElement>
 std::string FsdbSubscriber<SubUnit, PathElement>::typeStr() const {
   return std::disjunction_v<
@@ -18,8 +42,7 @@ std::string FsdbSubscriber<SubUnit, PathElement>::pathStr(
   if constexpr (std::is_same_v<PathElement, std::string>) {
     return folly::join('_', path);
   } else {
-    // TODO
-    return "";
+    return extendedPathStr(path);
   }
 }
 
