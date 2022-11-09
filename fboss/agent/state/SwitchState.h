@@ -439,6 +439,10 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->remoteInterfaces;
   }
   /*
+   * Get system ports for a given switch id
+   */
+  std::shared_ptr<SystemPortMap> getSystemPorts(SwitchID switchId) const;
+  /*
    * The following functions modify the static state.
    * The should only be called on newly created SwitchState objects that are
    * only visible to a single thread, before they are published as the current
@@ -496,6 +500,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   }
 
  private:
+  bool isLocalSwitchId(SwitchID switchId) const;
   // Inherit the constructor required for clone()
   using NodeBaseT::NodeBaseT;
   friend class CloneAllocator;

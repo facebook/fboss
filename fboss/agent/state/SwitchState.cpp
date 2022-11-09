@@ -680,6 +680,24 @@ std::shared_ptr<SwitchState> SwitchState::modifyTransceivers(
   }
 }
 
+bool SwitchState::isLocalSwitchId(SwitchID switchId) const {
+  auto mySwitchId = getSwitchSettings()->getSwitchId();
+  return mySwitchId && SwitchID(*mySwitchId) == switchId;
+}
+
+std::shared_ptr<SystemPortMap> SwitchState::getSystemPorts(
+    SwitchID switchId) const {
+  auto sysPorts =
+      isLocalSwitchId(switchId) ? getSystemPorts() : getRemoteSystemPorts();
+  auto toRet = std::make_shared<SystemPortMap>();
+  for (const auto& sysPort : *sysPorts) {
+    if (sysPort->getSwitchId() == switchId) {
+      toRet->addSystemPort(sysPort);
+    }
+  }
+  return toRet;
+}
+
 template class NodeBaseT<SwitchState, SwitchStateFields>;
 
 } // namespace facebook::fboss
