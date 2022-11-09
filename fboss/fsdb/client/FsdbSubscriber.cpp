@@ -4,17 +4,28 @@
 
 namespace facebook::fboss::fsdb {
 
-template <typename SubUnit>
-OperSubRequest FsdbSubscriber<SubUnit>::createRequest() const {
-  OperPath operPath;
-  operPath.raw() = subscribePath_;
-  OperSubRequest request;
-  request.path() = operPath;
-  request.subscriberId() = clientId();
-  return request;
+template <typename SubUnit, typename PathElement>
+std::string FsdbSubscriber<SubUnit, PathElement>::typeStr() const {
+  return std::disjunction_v<
+             std::is_same<SubUnit, OperDelta>,
+             std::is_same<SubUnit, TaggedOperDelta>>
+      ? "Delta"
+      : "Path";
+}
+template <typename SubUnit, typename PathElement>
+std::string FsdbSubscriber<SubUnit, PathElement>::pathStr(
+    const Paths& path) const {
+  if constexpr (std::is_same_v<PathElement, std::string>) {
+    return folly::join('_', path);
+  } else {
+    // TODO
+    return "";
+  }
 }
 
-template class FsdbSubscriber<OperDelta>;
-template class FsdbSubscriber<OperState>;
+template class FsdbSubscriber<OperDelta, std::string>;
+template class FsdbSubscriber<OperState, std::string>;
+template class FsdbSubscriber<TaggedOperDelta, ExtendedOperPath>;
+template class FsdbSubscriber<TaggedOperState, ExtendedOperPath>;
 
 } // namespace facebook::fboss::fsdb

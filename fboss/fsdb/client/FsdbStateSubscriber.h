@@ -6,8 +6,8 @@
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 namespace facebook::fboss::fsdb {
-class FsdbStateSubscriber : public FsdbSubscriber<OperState> {
-  using BaseT = FsdbSubscriber<OperState>;
+class FsdbStateSubscriber : public FsdbSubscriber<OperState, std::string> {
+  using BaseT = FsdbSubscriber<OperState, std::string>;
 
  public:
   using FsdbOperStateUpdateCb = typename BaseT::FsdbSubUnitUpdateCb;

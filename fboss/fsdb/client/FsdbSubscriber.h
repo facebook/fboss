@@ -12,17 +12,17 @@
 #include <functional>
 
 namespace facebook::fboss::fsdb {
-template <typename SubUnit>
+template <typename SubUnit, typename PathElement>
 class FsdbSubscriber : public FsdbStreamClient {
-  std::string typeStr() {
-    return std::is_same_v<SubUnit, OperDelta> ? "Delta" : "Path";
-  }
+  using Paths = std::vector<PathElement>;
+  std::string typeStr() const;
+  std::string pathStr(const Paths& path) const;
 
  public:
   using FsdbSubUnitUpdateCb = std::function<void(SubUnit&&)>;
   FsdbSubscriber(
       const std::string& clientId,
-      const std::vector<std::string>& subscribePath,
+      const Paths& subscribePaths,
       folly::EventBase* streamEvb,
       folly::EventBase* connRetryEvb,
       FsdbSubUnitUpdateCb operSubUnitUpdate,
@@ -37,10 +37,10 @@ class FsdbSubscriber : public FsdbStreamClient {
                 "fsdb{}{}Subscriber_{}",
                 typeStr(),
                 (subscribeStats ? "Stat" : "State"),
-                folly::join('_', subscribePath)),
+                pathStr(subscribePaths)),
             stateChangeCb),
         operSubUnitUpdate_(operSubUnitUpdate),
-        subscribePath_(subscribePath),
+        subscribePaths_(subscribePaths),
         subscribeStats_(subscribeStats) {}
 
   bool subscribeStats() const {
@@ -48,11 +48,25 @@ class FsdbSubscriber : public FsdbStreamClient {
   }
 
  protected:
-  OperSubRequest createRequest() const;
+  auto createRequest() const {
+    if constexpr (std::is_same_v<PathElement, std::string>) {
+      OperPath operPath;
+      operPath.raw() = subscribePaths_;
+      OperSubRequest request;
+      request.path() = operPath;
+      request.subscriberId() = clientId();
+      return request;
+    } else {
+      OperSubRequestExtended request;
+      request.paths() = subscribePaths_;
+      request.subscriberId() = clientId();
+      return request;
+    }
+  }
   FsdbSubUnitUpdateCb operSubUnitUpdate_;
 
  private:
-  const std::vector<std::string> subscribePath_;
+  const Paths subscribePaths_;
   const bool subscribeStats_;
 };
 } // namespace facebook::fboss::fsdb
