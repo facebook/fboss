@@ -365,8 +365,33 @@ void FsdbPubSubManager::addSubscriptionImpl(
   });
 }
 
-void FsdbPubSubManager::removeSubscriptionImpl(
+void FsdbPubSubManager::removeStateDeltaSubscription(
     const std::vector<std::string>& subscribePath,
+    const std::string& fsdbHost) {
+  removeSubscriptionImpl(
+      subscribePath, fsdbHost, true /*delta*/, false /*subscribeStats*/);
+}
+void FsdbPubSubManager::removeStatePathSubscription(
+    const std::vector<std::string>& subscribePath,
+    const std::string& fsdbHost) {
+  removeSubscriptionImpl(
+      subscribePath, fsdbHost, false /*delta*/, false /*subscribeStats*/);
+}
+void FsdbPubSubManager::removeStatDeltaSubscription(
+    const std::vector<std::string>& subscribePath,
+    const std::string& fsdbHost) {
+  removeSubscriptionImpl(
+      subscribePath, fsdbHost, true /*delta*/, true /*subscribeStats*/);
+}
+void FsdbPubSubManager::removeStatPathSubscription(
+    const std::vector<std::string>& subscribePath,
+    const std::string& fsdbHost) {
+  removeSubscriptionImpl(
+      subscribePath, fsdbHost, false /*delta*/, true /*subscribeStats*/);
+}
+template <typename PathElement>
+void FsdbPubSubManager::removeSubscriptionImpl(
+    const std::vector<PathElement>& subscribePath,
     const std::string& fsdbHost,
     bool isDelta,
     bool subscribeStats) {

@@ -100,28 +100,16 @@ class FsdbPubSubManager {
   /* Subscriber remove APIs */
   void removeStateDeltaSubscription(
       const std::vector<std::string>& subscribePath,
-      const std::string& fsdbHost = "::1") {
-    removeSubscriptionImpl(
-        subscribePath, fsdbHost, true /*delta*/, false /*subscribeStats*/);
-  }
+      const std::string& fsdbHost = "::1");
   void removeStatePathSubscription(
       const std::vector<std::string>& subscribePath,
-      const std::string& fsdbHost = "::1") {
-    removeSubscriptionImpl(
-        subscribePath, fsdbHost, false /*delta*/, false /*subscribeStats*/);
-  }
+      const std::string& fsdbHost = "::1");
   void removeStatDeltaSubscription(
       const std::vector<std::string>& subscribePath,
-      const std::string& fsdbHost = "::1") {
-    removeSubscriptionImpl(
-        subscribePath, fsdbHost, true /*delta*/, true /*subscribeStats*/);
-  }
+      const std::string& fsdbHost = "::1");
   void removeStatPathSubscription(
       const std::vector<std::string>& subscribePath,
-      const std::string& fsdbHost = "::1") {
-    removeSubscriptionImpl(
-        subscribePath, fsdbHost, false /*delta*/, true /*subscribeStats*/);
-  }
+      const std::string& fsdbHost = "::1");
   size_t numSubscriptions() const {
     return path2Subscriber_.rlock()->size();
   }
@@ -142,8 +130,9 @@ class FsdbPubSubManager {
       std::unique_ptr<FsdbStreamClient> publisher);
 
   // Subscriber helpers
+  template <typename PathElement>
   void removeSubscriptionImpl(
-      const std::vector<std::string>& subscribePath,
+      const std::vector<PathElement>& subscribePath,
       const std::string& fsdbHost,
       bool isDelta,
       bool subscribeStats);
