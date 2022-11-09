@@ -40,7 +40,6 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::L2_LEARNING:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::TRAFFIC_HASHING:
-    case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::CPU_PORT:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
@@ -68,6 +67,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_TX_QUEUES:
       return true;
 
+    case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::QCM:
