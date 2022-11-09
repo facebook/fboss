@@ -74,12 +74,16 @@ class FsdbStreamClient {
   using DeltaPubStreamT = PubStreamT<OperDelta>;
   using StateSubStreamT = SubStreamT<OperState>;
   using DeltaSubStreamT = SubStreamT<OperDelta>;
+  using StateExtSubStreamT = SubStreamT<TaggedOperState>;
+  using DeltaExtSubStreamT = SubStreamT<TaggedOperDelta>;
 
   using StreamT = std::variant<
       StatePubStreamT,
       DeltaPubStreamT,
       StateSubStreamT,
-      DeltaSubStreamT>;
+      DeltaSubStreamT,
+      StateExtSubStreamT,
+      DeltaExtSubStreamT>;
 #endif
 
  private:
