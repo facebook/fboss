@@ -81,6 +81,18 @@ struct ThriftStructNodeMulti : public ThriftStructNode<TestStruct, Resolver> {
 
 struct StructA;
 struct StructB;
+struct ThriftMapNodeA;
+struct ThriftMapNodeB;
+
+template <>
+struct ResolveMemberType<StructA, k::mapA> : std::true_type {
+  using type = ThriftMapNodeA;
+};
+
+template <>
+struct ResolveMemberType<StructA, k::mapB> : std::true_type {
+  using type = ThriftMapNodeB;
+};
 
 struct StructA : public ThriftStructNodeMulti<StructA, TypeIdentity<StructA>> {
   using Base = ThriftStructNodeMulti<StructA, TypeIdentity<StructA>>;
@@ -225,5 +237,43 @@ TEST(ThriftMapNodeResolverTests, MultipleResolversSameStruct) {
   facebook::fboss::DeltaFunctions::forEachAdded(delta, addedFn);
   facebook::fboss::DeltaFunctions::forEachRemoved(delta, removedFun);
   facebook::fboss::DeltaFunctions::forEachChanged(delta, changedFun);
+}
+
+TEST(ThriftMapNodeResolverTests, MultipleResolversInSameStruct) {
+  TestStruct dataThrift{};
+  dataThrift.mapA()->emplace("A0", TestStruct{});
+  dataThrift.mapA()->emplace("A1", TestStruct{});
+
+  dataThrift.mapB()->emplace("B0", TestStruct{});
+  dataThrift.mapB()->emplace("B1", TestStruct{});
+
+  ThriftStructNode<TestStruct> data0{dataThrift};
+  auto mapA0 = data0.get<k::mapA>();
+  auto mapB0 = data0.get<k::mapB>();
+  static_assert(
+      !std::is_same_v<
+          std::decay_t<decltype(mapA0)::element_type>,
+          ThriftMapNodeA>,
+      "Unexpected");
+  static_assert(
+      !std::is_same_v<
+          std::decay_t<decltype(mapB0)::element_type>,
+          ThriftMapNodeB>,
+      "Unexpected");
+
+  StructA data1{dataThrift};
+  auto mapA1 = data1.get<k::mapA>();
+  auto mapB1 = data1.get<k::mapB>();
+
+  static_assert(
+      std::is_same_v<
+          std::decay_t<decltype(mapA1)::element_type>,
+          ThriftMapNodeA>,
+      "Unexpected");
+  static_assert(
+      std::is_same_v<
+          std::decay_t<decltype(mapB1)::element_type>,
+          ThriftMapNodeB>,
+      "Unexpected");
 }
 } // namespace facebook::fboss::thrift_cow

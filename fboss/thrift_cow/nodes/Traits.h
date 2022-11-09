@@ -12,6 +12,7 @@
 
 #include <fboss/thrift_cow/nodes/Types.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
+#include <type_traits>
 
 namespace facebook::fboss::thrift_cow {
 
@@ -130,6 +131,9 @@ struct ConvertToImmutableNodeTraits {
   using isChild = std::false_type;
 };
 
+template <typename Derived, typename Name>
+struct ResolveMemberType : std::false_type {};
+
 template <typename Derived, typename Member>
 struct StructMemberTraits {
   using member = Member;
@@ -138,7 +142,12 @@ struct StructMemberTraits {
   using ttype = typename Member::type;
   using tc = typename Member::type_class;
   // need to resolve here
-  using type = typename ConvertToNodeTraits<tc, ttype>::type;
+  using default_type = typename ConvertToNodeTraits<tc, ttype>::type;
+  // if the member type is overriden, use the overriden type.
+  using type = std::conditional_t<
+      ResolveMemberType<Derived, name>::value,
+      std::shared_ptr<typename ResolveMemberType<Derived, name>::type>,
+      default_type>;
   using isChild = typename ConvertToNodeTraits<tc, ttype>::isChild;
 };
 
