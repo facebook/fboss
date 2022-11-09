@@ -2121,6 +2121,17 @@ int BcmCinter::bcm_udf_pkt_format_add(
   return 0;
 }
 
+int BcmCinter::bcm_udf_pkt_format_delete(
+    int unit,
+    bcm_udf_id_t udf_id,
+    bcm_udf_pkt_format_id_t pkt_format_id) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_udf_pkt_format_delete(",
+      makeParamStr(unit, udf_id, pkt_format_id),
+      ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) {
   writeCintLines(wrapFunc(to<string>(
       "bcm_port_autoneg_set(", makeParamStr(unit, port, autoneg), ")")));

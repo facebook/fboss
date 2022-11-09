@@ -543,6 +543,11 @@ class BcmSdkInterface {
       bcm_udf_id_t udf_id,
       bcm_udf_pkt_format_id_t pkt_format_id) = 0;
 
+  virtual int bcm_udf_pkt_format_delete(
+      int unit,
+      bcm_udf_id_t udf_id,
+      bcm_udf_pkt_format_id_t pkt_format_id) = 0;
+
   virtual int bcm_cosq_bst_stat_sync(int unit, bcm_bst_stat_id_t bid) = 0;
   virtual int bcm_stat_custom_add(
       int unit,
