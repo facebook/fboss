@@ -18,9 +18,10 @@ using namespace facebook::fboss;
 
 std::shared_ptr<SystemPort> makeSysPort(
     const std::optional<std::string>& qosPolicy,
-    int64_t sysPortId = 1) {
+    int64_t sysPortId = 1,
+    int64_t switchId = 1) {
   auto sysPort = std::make_shared<SystemPort>(SystemPortID(sysPortId));
-  sysPort->setSwitchId(SwitchID(1));
+  sysPort->setSwitchId(SwitchID(switchId));
   sysPort->setPortName("sysPort1");
   sysPort->setCoreIndex(42);
   sysPort->setCorePortIndex(24);
@@ -145,4 +146,33 @@ TEST(SystemPort, sysPortApplyConfigSwitchIdChange) {
   for (auto& sysPort : *stateV2->getSystemPorts()) {
     EXPECT_EQ(sysPort->getSwitchId(), SwitchID(2));
   }
+}
+
+TEST(SystemPort, GetLocalSwitchPortsBySwitchId) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigA(cfg::SwitchType::VOQ);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto mySwitchId = stateV1->getSwitchSettings()->getSwitchId();
+  CHECK(mySwitchId) << "Switch ID must be set for VOQ switch";
+  auto mySysPorts = stateV1->getSystemPorts(SwitchID(*mySwitchId));
+  EXPECT_EQ(mySysPorts->size(), stateV1->getSystemPorts()->size());
+  // No remote sys ports
+  EXPECT_EQ(stateV1->getSystemPorts(SwitchID(*mySwitchId + 1))->size(), 0);
+}
+
+TEST(SystemPort, GetRemoteSwitchPortsBySwitchId) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigA(cfg::SwitchType::VOQ);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  int64_t remoteSwitchId = 100;
+  auto sysPort1 = makeSysPort("olympic", 1, remoteSwitchId);
+  auto sysPort2 = makeSysPort("olympic", 2, remoteSwitchId);
+  auto stateV2 = stateV1->clone();
+  auto remoteSysPorts = stateV2->getRemoteSystemPorts()->modify(&stateV2);
+  remoteSysPorts->addSystemPort(sysPort1);
+  remoteSysPorts->addSystemPort(sysPort2);
+  EXPECT_EQ(stateV2->getSystemPorts(SwitchID(remoteSwitchId))->size(), 2);
 }
