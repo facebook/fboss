@@ -46,7 +46,7 @@ std::string toSubscriptionStr(
       ":/",
       (subscribeStats ? kStats : kState),
       ":/",
-      extendedPathStr(paths));
+      extendedPathsStr(paths));
 }
 std::vector<ExtendedOperPath> toExtendedOperPath(
     const std::vector<std::vector<std::string>>& paths) {

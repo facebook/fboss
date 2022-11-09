@@ -4,7 +4,7 @@
 
 namespace facebook::fboss::fsdb {
 
-std::string extendedPathStr(const std::vector<ExtendedOperPath>& extPaths) {
+std::string extendedPathsStr(const std::vector<ExtendedOperPath>& extPaths) {
   std::vector<std::string> pathStrs;
   for (const auto& extPath : extPaths) {
     std::vector<std::string> pathElms;
@@ -37,12 +37,12 @@ std::string FsdbSubscriber<SubUnit, PathElement>::typeStr() const {
       : "Path";
 }
 template <typename SubUnit, typename PathElement>
-std::string FsdbSubscriber<SubUnit, PathElement>::pathStr(
+std::string FsdbSubscriber<SubUnit, PathElement>::pathsStr(
     const Paths& path) const {
   if constexpr (std::is_same_v<PathElement, std::string>) {
     return folly::join('_', path);
   } else {
-    return extendedPathStr(path);
+    return extendedPathsStr(path);
   }
 }
 

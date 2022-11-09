@@ -13,13 +13,13 @@
 
 namespace facebook::fboss::fsdb {
 
-std::string extendedPathStr(const std::vector<ExtendedOperPath>& path);
+std::string extendedPathsStr(const std::vector<ExtendedOperPath>& path);
 
 template <typename SubUnit, typename PathElement>
 class FsdbSubscriber : public FsdbStreamClient {
   using Paths = std::vector<PathElement>;
   std::string typeStr() const;
-  std::string pathStr(const Paths& path) const;
+  std::string pathsStr(const Paths& path) const;
 
  public:
   using FsdbSubUnitUpdateCb = std::function<void(SubUnit&&)>;
@@ -41,7 +41,7 @@ class FsdbSubscriber : public FsdbStreamClient {
                 "fsdb{}{}Subscriber_{}",
                 typeStr(),
                 (subscribeStats ? "Stat" : "State"),
-                pathStr(subscribePaths)),
+                pathsStr(subscribePaths)),
             stateChangeCb),
         operSubUnitUpdate_(operSubUnitUpdate),
         subscribePaths_(subscribePaths),
