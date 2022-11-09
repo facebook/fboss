@@ -6,21 +6,27 @@
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 namespace facebook::fboss::fsdb {
-class FsdbStateSubscriber : public FsdbSubscriber<OperState, std::string> {
-  using BaseT = FsdbSubscriber<OperState, std::string>;
+template <typename SubUnit, typename PathElement>
+class FsdbStateSubscriberImpl : public FsdbSubscriber<SubUnit, PathElement> {
+  using BaseT = FsdbSubscriber<SubUnit, PathElement>;
   using SubUnitT = typename BaseT::SubUnitT;
 
  public:
   using FsdbOperStateUpdateCb = typename BaseT::FsdbSubUnitUpdateCb;
   using BaseT::BaseT;
-  ~FsdbStateSubscriber() override {
-    cancel();
+  ~FsdbStateSubscriberImpl() override {
+    this->cancel();
   }
 
  private:
 #if FOLLY_HAS_COROUTINES && !defined(IS_OSS)
+  using StreamT = typename BaseT::StreamT;
+  using SubStreamT = typename BaseT::template SubStreamT<SubUnit>;
   folly::coro::Task<StreamT> setupStream() override;
   folly::coro::Task<void> serveStream(StreamT&& stream) override;
 #endif
 };
+using FsdbStateSubscriber = FsdbStateSubscriberImpl<OperState, std::string>;
+using FsdbStateExtSubscriber =
+    FsdbStateSubscriberImpl<OperSubPathUnit, ExtendedOperPath>;
 } // namespace facebook::fboss::fsdb
