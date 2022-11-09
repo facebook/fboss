@@ -56,17 +56,10 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     auto nodeName = node->getName();
     XLOG(DBG2) << " Setting up DSF subscriptions to : " << nodeName;
     fsdbPubSubMgr_->addStatePathSubscription(
-        getSystemPortsPath(),
+        {getSystemPortsPath(), getInterfacesPath()},
         [](auto /*oldState*/, auto /*newState*/) {},
         [nodeName](auto /*operStateUnit*/) {
-          XLOG(DBG2) << " Got system ports update from: " << nodeName;
-        },
-        getLoopbackIp(node));
-    fsdbPubSubMgr_->addStatePathSubscription(
-        getInterfacesPath(),
-        [](auto /*oldState*/, auto /*newState*/) {},
-        [nodeName](auto /*operStateUnit*/) {
-          XLOG(DBG2) << " Got interfaces update from: " << nodeName;
+          XLOG(DBG2) << " Got system ports or intfs update from: " << nodeName;
         },
         getLoopbackIp(node));
   };
@@ -78,9 +71,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     }
     XLOG(DBG2) << " Removing DSF subscriptions to : " << node->getName();
     fsdbPubSubMgr_->removeStatePathSubscription(
-        getSystemPortsPath(), getLoopbackIp(node));
-    fsdbPubSubMgr_->removeStatePathSubscription(
-        getInterfacesPath(), getLoopbackIp(node));
+        {getSystemPortsPath(), getInterfacesPath()}, getLoopbackIp(node));
   };
   DeltaFunctions::forEachChanged(
       stateDelta.getDsfNodesDelta(),
