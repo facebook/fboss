@@ -572,7 +572,7 @@ TEST(InterfaceMap, applyConfig) {
   EXPECT_EQ(1337, intfsV4->getInterface(InterfaceID(3))->getMtu());
 }
 
-TEST(Interface, GetLocalInterfacesBySwitchId) {
+TEST(Interface, getLocalInterfacesBySwitchId) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
   auto config = testConfigA(cfg::SwitchType::VOQ);
@@ -584,4 +584,36 @@ TEST(Interface, GetLocalInterfacesBySwitchId) {
   EXPECT_EQ(myRif->size(), stateV1->getInterfaces()->size());
   // No remote sys ports
   EXPECT_EQ(stateV1->getInterfaces(SwitchID(*mySwitchId + 1))->size(), 0);
+}
+
+TEST(Interface, getRemoteInterfacesBySwitchId) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigA(cfg::SwitchType::VOQ);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto mySwitchId = stateV1->getSwitchSettings()->getSwitchId();
+  CHECK(mySwitchId) << "Switch ID must be set for VOQ switch";
+  auto myRif = stateV1->getInterfaces(SwitchID(*mySwitchId));
+  EXPECT_EQ(myRif->size(), stateV1->getInterfaces()->size());
+  int64_t remoteSwitchId = 100;
+  auto sysPort1 = makeSysPort("olympic", 1001, remoteSwitchId);
+  auto stateV2 = stateV1->clone();
+  auto remoteSysPorts = stateV2->getRemoteSystemPorts()->modify(&stateV2);
+  remoteSysPorts->addSystemPort(sysPort1);
+  auto remoteInterfaces = stateV2->getRemoteInterfaces()->modify(&stateV2);
+  auto rif = std::make_shared<Interface>(
+      InterfaceID(1001),
+      RouterID(0),
+      std::nullopt,
+      "1001",
+      folly::MacAddress{},
+      9000,
+      false,
+      false,
+      cfg::InterfaceType::SYSTEM_PORT);
+
+  remoteInterfaces->addInterface(rif);
+
+  EXPECT_EQ(stateV2->getInterfaces(SwitchID(remoteSwitchId))->size(), 1);
 }
