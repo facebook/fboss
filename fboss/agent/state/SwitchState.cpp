@@ -697,6 +697,23 @@ std::shared_ptr<SystemPortMap> SwitchState::getSystemPorts(
   }
   return toRet;
 }
+std::shared_ptr<InterfaceMap> SwitchState::getInterfaces(
+    SwitchID switchId) const {
+  if (isLocalSwitchId(switchId)) {
+    return getInterfaces();
+  }
+  auto toRet = std::make_shared<InterfaceMap>();
+  // For non local switch ids get rifs corresponding to
+  // sysports on the passed in switch id
+  auto sysPorts = getSystemPorts(switchId);
+  for (const auto& interface : *getRemoteInterfaces()) {
+    SystemPortID sysPortId(static_cast<int>(interface->getID()));
+    if (sysPorts->getNodeIf(sysPortId)) {
+      toRet->addInterface(interface);
+    }
+  }
+  return toRet;
+}
 
 template class NodeBaseT<SwitchState, SwitchStateFields>;
 

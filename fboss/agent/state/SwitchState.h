@@ -443,6 +443,10 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
    */
   std::shared_ptr<SystemPortMap> getSystemPorts(SwitchID switchId) const;
   /*
+   * Get interfaces for a given switch id
+   */
+  std::shared_ptr<InterfaceMap> getInterfaces(SwitchID switchId) const;
+  /*
    * The following functions modify the static state.
    * The should only be called on newly created SwitchState objects that are
    * only visible to a single thread, before they are published as the current
