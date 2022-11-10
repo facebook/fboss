@@ -1163,6 +1163,21 @@ enum InterfaceType {
   VLAN = 1,
   SYSTEM_PORT = 2,
 }
+
+enum AsicType {
+  ASIC_TYPE_FAKE = 1,
+  ASIC_TYPE_MOCK = 2,
+  ASIC_TYPE_TRIDENT2 = 3,
+  ASIC_TYPE_TOMAHAWK = 4,
+  ASIC_TYPE_TOMAHAWK3 = 5,
+  ASIC_TYPE_TOMAHAWK4 = 6,
+  ASIC_TYPE_ELBERT_8DD = 7,
+  ASIC_TYPE_EBRO = 8,
+  ASIC_TYPE_GARONNE = 9,
+  ASIC_TYPE_SANDIA_PHY = 10,
+  ASIC_TYPE_INDUS = 11,
+  ASIC_TYPE_BEAS = 12,
+};
 /**
  * The configuration for an interface
  */
