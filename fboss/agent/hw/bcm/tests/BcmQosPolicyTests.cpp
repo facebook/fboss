@@ -65,7 +65,7 @@ void checkSwHwQosMapsMatch(
   ASSERT_EQ(swStateSize, bcmQosPolicyTable->getNumQosPolicies());
   ASSERT_EQ(swStateSize, getNumHwIngressL3QosMaps(hw));
 
-  for (const auto& qosPolicy : *qosPolicyTable) {
+  for (const auto& [name, qosPolicy] : std::as_const(*qosPolicyTable)) {
     auto bcmQosPolicy = bcmQosPolicyTable->getQosPolicyIf(qosPolicy->getName());
     ASSERT_NE(nullptr, bcmQosPolicy);
     ASSERT_TRUE(bcmQosPolicy->policyMatches(qosPolicy));

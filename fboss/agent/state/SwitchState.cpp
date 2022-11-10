@@ -203,7 +203,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.fibs = ForwardingInformationBaseMap::fromThrift(*state.fibs());
   fields.labelFib =
       LabelForwardingInformationBase::fromThrift(*state.labelFib());
-  fields.qosPolicies = QosPolicyMap::fromThrift(*state.qosPolicyMap());
+  fields.qosPolicies->fromThrift(*state.qosPolicyMap());
   if (auto defaultQosPolicy = state.defaultDataPlaneQosPolicy()) {
     fields.defaultDataPlaneQosPolicy =
         std::make_shared<QosPolicy>(*defaultQosPolicy);

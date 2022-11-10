@@ -281,7 +281,6 @@ TEST(QosPolicy, SerializePolicies) {
   auto state = publishAndApplyConfig(stateV0, &config, platform.get());
 
   auto qosPolicies = state->getQosPolicies();
-  validateThriftyMigration(*qosPolicies);
   auto serialized = qosPolicies->toFollyDynamic();
   auto qosPoliciesBack = QosPolicyMap::fromFollyDynamic(serialized);
 
@@ -289,8 +288,6 @@ TEST(QosPolicy, SerializePolicies) {
   for (const auto& name : {"qosPolicy_1", "qosPolicy_2"}) {
     auto q1 = qosPolicies->getQosPolicyIf(name);
     auto q2 = qosPoliciesBack->getQosPolicyIf(name);
-    validateThriftyMigration(*q1);
-    validateThriftyMigration(*q2);
     EXPECT_NE(nullptr, q1);
     EXPECT_NE(nullptr, q2);
     EXPECT_TRUE(*q1 == *q2);
@@ -344,7 +341,6 @@ TEST(QosPolicy, SerializePoliciesWithMap) {
   auto state = publishAndApplyConfig(stateV0, &config, platform.get());
 
   auto qosPolicies = state->getQosPolicies();
-  validateThriftyMigration(*qosPolicies);
   auto serialized = qosPolicies->toFollyDynamic();
   auto qosPoliciesBack = QosPolicyMap::fromFollyDynamic(serialized);
 
@@ -352,8 +348,6 @@ TEST(QosPolicy, SerializePoliciesWithMap) {
   for (const auto& name : {"qosPolicy_1", "qosPolicy_2"}) {
     auto q1 = qosPolicies->getQosPolicyIf(name);
     auto q2 = qosPoliciesBack->getQosPolicyIf(name);
-    validateThriftyMigration(*q1);
-    validateThriftyMigration(*q2);
     EXPECT_NE(nullptr, q1);
     EXPECT_NE(nullptr, q2);
     EXPECT_TRUE(*q1 == *q2);

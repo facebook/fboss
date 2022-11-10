@@ -224,7 +224,7 @@ template class NodeMapDelta<PortMap>;
 template class NodeMapDelta<AclMap>;
 template class NodeMapDelta<AclTableGroupMap>;
 template class NodeMapDelta<AclTableMap>;
-template class NodeMapDelta<QosPolicyMap>;
+template class thrift_cow::ThriftMapDelta<QosPolicyMap>;
 template class NodeMapDelta<AggregatePortMap>;
 template class thrift_cow::ThriftMapDelta<SflowCollectorMap>;
 template class thrift_cow::ThriftMapDelta<LoadBalancerMap>;
