@@ -165,6 +165,14 @@ struct ThriftListFields {
     return storage_.end();
   }
 
+  const_iterator begin() const {
+    return storage_.cbegin();
+  }
+
+  const_iterator end() const {
+    return storage_.cend();
+  }
+
   const_iterator cbegin() const {
     return storage_.cbegin();
   }
@@ -284,6 +292,14 @@ class ThriftListNode : public NodeBaseT<
     return this->writableFields()->end();
   }
 
+  typename Fields::const_iterator begin() const {
+    return this->getFields()->cbegin();
+  }
+
+  typename Fields::const_iterator end() const {
+    return this->getFields()->cend();
+  }
+
   typename Fields::const_iterator cbegin() const {
     return this->getFields()->cbegin();
   }
@@ -329,6 +345,10 @@ class ThriftListNode : public NodeBaseT<
         emplace_back();
       }
     }
+  }
+
+  bool empty() const {
+    return cbegin() == cend();
   }
 
   static void modify(std::shared_ptr<Self>* node, const std::string& token) {

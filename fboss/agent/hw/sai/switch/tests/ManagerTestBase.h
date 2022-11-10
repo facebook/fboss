@@ -238,7 +238,7 @@ class ManagerTestBase : public ::testing::Test {
       uint64_t maxPps = 60000);
 
   std::shared_ptr<QosPolicy> makeQosPolicy(
-      std::string name,
+      const std::string& name,
       const TestQosPolicy& qosPolicy);
 
   std::shared_ptr<FakeSai> fs;

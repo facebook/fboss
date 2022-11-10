@@ -40,7 +40,8 @@ void checkQosPolicyQosRules(
     const cfg::QosPolicy& cfgQosPolicy,
     std::shared_ptr<QosPolicy> swQosPolicy) {
   ASSERT_EQ(swQosPolicy->getName(), *cfgQosPolicy.name());
-  auto swStateFromTcToDscp = swQosPolicy->getDscpMap().from();
+  auto& swStateFromTcToDscp =
+      swQosPolicy->getDscpMap()->cref<switch_state_tags::from>();
   DscpMap cfgDscpMap;
   for (const auto& rule : *cfgQosPolicy.rules()) {
     for (auto dscp : *rule.dscp()) {
@@ -48,7 +49,7 @@ void checkQosPolicyQosRules(
           static_cast<TrafficClass>(*rule.queueId()), static_cast<DSCP>(dscp));
     }
   }
-  ASSERT_EQ(swStateFromTcToDscp, cfgDscpMap.from());
+  ASSERT_EQ(swStateFromTcToDscp->toThrift(), cfgDscpMap.from());
 }
 
 void validateTrafficClass(
@@ -60,8 +61,8 @@ void validateTrafficClass(
   for (const auto& entry : *qosMap.trafficClassToQueueId()) {
     cfgQueueMapEntries.emplace(entry.first, entry.second);
   }
-  for (const auto& entry : swQosPolicy->getTrafficClassToQueueId()) {
-    swStateQueueMapEntries.emplace(entry.first, entry.second);
+  for (auto entry : std::as_const(*swQosPolicy->getTrafficClassToQueueId())) {
+    swStateQueueMapEntries.emplace(entry.first, entry.second->cref());
   }
   EXPECT_EQ(cfgQueueMapEntries, swStateQueueMapEntries);
 }
@@ -79,8 +80,8 @@ void validatePfcPriToQueue(
     }
   }
   if (auto pfcPriorityToQueueId = swQosPolicy->getPfcPriorityToQueueId()) {
-    for (const auto& entry : *pfcPriorityToQueueId) {
-      swStatePfcPriority2Queue.emplace(entry.first, entry.second);
+    for (auto entry : std::as_const(*pfcPriorityToQueueId)) {
+      swStatePfcPriority2Queue.emplace(entry.first, entry.second->cref());
     }
   }
   EXPECT_EQ(cfgStatePfcPriority2Queue, swStatePfcPriority2Queue);
@@ -94,14 +95,14 @@ void validateTrafficClassToPgId(
   std::set<std::pair<uint16_t, uint16_t>> swStateTc2PgId;
 
   if (qosMap.trafficClassToPgId()) {
-    for (const auto& entry : *qosMap.trafficClassToPgId()) {
+    for (auto entry : *qosMap.trafficClassToPgId()) {
       cfgStateTc2PgId.emplace(entry.first, entry.second);
     }
   }
 
   if (auto trafficClassToPgId = swQosPolicy->getTrafficClassToPgId()) {
-    for (const auto& entry : *trafficClassToPgId) {
-      swStateTc2PgId.emplace(entry.first, entry.second);
+    for (auto entry : std::as_const(*trafficClassToPgId)) {
+      swStateTc2PgId.emplace(entry.first, entry.second->cref());
     }
   }
   EXPECT_EQ(cfgStateTc2PgId, swStateTc2PgId);
@@ -121,8 +122,8 @@ void validatePfcPriToPgId(
   }
 
   if (auto pfcPriorityToPgId = swQosPolicy->getPfcPriorityToPgId()) {
-    for (const auto& entry : *pfcPriorityToPgId) {
-      swStatePfcPri2PgId.emplace(entry.first, entry.second);
+    for (auto entry : std::as_const(*pfcPriorityToPgId)) {
+      swStatePfcPri2PgId.emplace(entry.first, entry.second->cref());
     }
   }
   EXPECT_EQ(swStatePfcPri2PgId, cfgStatePfcPri2PgId);
@@ -137,8 +138,12 @@ void checkQosPolicy(
   }
   // use either rules or qosMap
   const auto& qosMap = cfgQosPolicy.qosMap().value_or({});
-  ASSERT_EQ(swQosPolicy->getDscpMap(), DscpMap(*qosMap.dscpMaps()));
-  ASSERT_EQ(swQosPolicy->getExpMap(), ExpMap(*qosMap.expMaps()));
+  ASSERT_EQ(
+      swQosPolicy->getDscpMap()->toThrift(),
+      DscpMap(*qosMap.dscpMaps()).toThrift());
+  ASSERT_EQ(
+      swQosPolicy->getExpMap()->toThrift(),
+      ExpMap(*qosMap.expMaps()).toThrift());
 
   validateTrafficClass(cfgQosPolicy, swQosPolicy);
   validatePfcPriToQueue(cfgQosPolicy, swQosPolicy);

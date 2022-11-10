@@ -138,79 +138,107 @@ struct QosPolicyFields
   }
 };
 
-class QosPolicy
-    : public ThriftyBaseT<state::QosPolicyFields, QosPolicy, QosPolicyFields> {
+USE_THRIFT_COW(QosPolicy)
+
+class QosPolicy : public ThriftStructNode<QosPolicy, state::QosPolicyFields> {
  public:
+  using Base = ThriftStructNode<QosPolicy, state::QosPolicyFields>;
+  using LegacyFields = QosPolicyFields;
   QosPolicy(
       const std::string& name,
       DscpMap dscpMap,
       ExpMap expMap = ExpMap(std::vector<cfg::ExpQosMap>{}),
-      std::map<int16_t, int16_t> trafficClassToQueueId = {})
-      : ThriftyBaseT(name, dscpMap, expMap, trafficClassToQueueId) {}
+      std::map<int16_t, int16_t> trafficClassToQueueId = {}) {
+    set<switch_state_tags::name>(name);
+    setDscpMap(std::move(dscpMap));
+    setExpMap(std::move(expMap));
+    setTrafficClassToQueueIdMap(std::move(trafficClassToQueueId));
+  }
 
   const std::string& getName() const {
-    return *getFields()->data().name();
+    return getID();
   }
 
   const std::string& getID() const {
-    return getName();
+    return cref<switch_state_tags::name>()->cref();
   }
 
-  const DscpMap getDscpMap() const {
-    return DscpMap(*getFields()->data().dscpMap());
+  const auto& getDscpMap() const {
+    return cref<switch_state_tags::dscpMap>();
   }
 
   void setDscpMap(DscpMap dscpMap) {
-    writableFields()->writableData().dscpMap() = dscpMap.data();
+    set<switch_state_tags::dscpMap>(dscpMap.data());
   }
 
-  const ExpMap getExpMap() const {
-    return ExpMap(*getFields()->data().expMap());
+  const auto& getExpMap() const {
+    return cref<switch_state_tags::expMap>();
   }
 
-  const std::map<int16_t, int16_t> getTrafficClassToQueueId() const {
-    return *getFields()->data().trafficClassToQueueId();
+  const auto& getTrafficClassToQueueId() const {
+    return cref<switch_state_tags::trafficClassToQueueId>();
   }
 
-  std::optional<std::map<int16_t, int16_t>> getPfcPriorityToQueueId() {
-    return getFields()->data().pfcPriorityToQueueId().to_optional();
+  const auto& getPfcPriorityToQueueId() const {
+    return cref<switch_state_tags::pfcPriorityToQueueId>();
   }
 
-  std::optional<std::map<int16_t, int16_t>> getTrafficClassToPgId() {
-    return getFields()->data().trafficClassToPgId().to_optional();
+  const auto& getTrafficClassToPgId() {
+    return cref<switch_state_tags::trafficClassToPgId>();
   }
 
-  std::optional<std::map<int16_t, int16_t>> getPfcPriorityToPgId() {
-    return getFields()->data().pfcPriorityToPgId().to_optional();
+  const auto& getPfcPriorityToPgId() {
+    return cref<switch_state_tags::pfcPriorityToPgId>();
   }
 
   void setExpMap(ExpMap expMap) {
-    writableFields()->writableData().expMap() = expMap.data();
+    set<switch_state_tags::expMap>(expMap.data());
   }
 
   void setTrafficClassToQueueIdMap(const std::map<int16_t, int16_t>& tc2Q) {
-    writableFields()->writableData().trafficClassToQueueId() = tc2Q;
+    set<switch_state_tags::trafficClassToQueueId>(tc2Q);
   }
 
   void setPfcPriorityToQueueIdMap(
       const std::map<int16_t, int16_t>& pfcPri2QueueId) {
-    writableFields()->writableData().pfcPriorityToQueueId() = pfcPri2QueueId;
+    set<switch_state_tags::pfcPriorityToQueueId>(pfcPri2QueueId);
   }
 
   void setTrafficClassToPgIdMap(
       const std::map<int16_t, int16_t>& trafficClass2PgId) {
-    writableFields()->writableData().trafficClassToPgId() = trafficClass2PgId;
+    set<switch_state_tags::trafficClassToPgId>(trafficClass2PgId);
   }
 
   void setPfcPriorityToPgIdMap(
       const std::map<int16_t, int16_t>& pfcPriority2PgId) {
-    writableFields()->writableData().pfcPriorityToPgId() = pfcPriority2PgId;
+    set<switch_state_tags::pfcPriorityToPgId>(pfcPriority2PgId);
+  }
+
+  static std::shared_ptr<QosPolicy> fromFollyDynamic(
+      const folly::dynamic& dyn) {
+    auto fields = QosPolicyFields::fromFollyDynamic(dyn);
+    return std::make_shared<QosPolicy>(fields.toThrift());
+  }
+
+  static std::shared_ptr<QosPolicy> fromFollyDynamicLegacy(
+      const folly::dynamic& dyn) {
+    auto fields = QosPolicyFields::fromFollyDynamicLegacy(dyn);
+    return std::make_shared<QosPolicy>(fields.toThrift());
+  }
+
+  folly::dynamic toFollyDynamic() const override {
+    auto fields = QosPolicyFields::fromThrift(toThrift());
+    return fields.toFollyDynamic();
+  }
+
+  folly::dynamic toFollyDynamicLegacy() const {
+    auto fields = QosPolicyFields::fromThrift(toThrift());
+    return fields.toFollyDynamicLegacy();
   }
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyBaseT<state::QosPolicyFields, QosPolicy, QosPolicyFields>::
-      ThriftyBaseT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 

@@ -3532,8 +3532,8 @@ bool BcmSwitch::isValidPortQosPolicyUpdate(
   }
   auto qosPolicy = newState->getQosPolicy(portQosPolicyName.value());
   // qos policy for port must not have exp, since this is not supported
-  return qosPolicy->getExpMap().to().empty() &&
-      qosPolicy->getExpMap().from().empty();
+  return qosPolicy->getExpMap()->cref<switch_state_tags::to>()->empty() &&
+      qosPolicy->getExpMap()->cref<switch_state_tags::from>()->empty();
 }
 
 std::string BcmSwitch::listObjects(

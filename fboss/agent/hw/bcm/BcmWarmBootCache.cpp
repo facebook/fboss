@@ -1420,18 +1420,27 @@ BcmWarmBootCache::QosMapId2QosMapItr BcmWarmBootCache::findQosMap(
   std::set<std::pair<uint16_t, uint8_t>> mapEntries;
   switch (type) {
     case BcmQosMap::Type::MPLS_INGRESS:
-      for (const auto& entry : qosPolicy->getExpMap().from()) {
-        mapEntries.emplace(*entry.trafficClass(), *entry.attr());
+      for (const auto& entry : std::as_const(
+               *(qosPolicy->getExpMap()->cref<switch_state_tags::from>()))) {
+        auto tc = entry->get<switch_state_tags::trafficClass>()->toThrift();
+        auto attr = entry->get<switch_state_tags::attr>()->toThrift();
+        mapEntries.emplace(tc, attr);
       }
       break;
     case BcmQosMap::Type::MPLS_EGRESS:
-      for (const auto& entry : qosPolicy->getExpMap().to()) {
-        mapEntries.emplace(*entry.trafficClass(), *entry.attr());
+      for (const auto& entry : std::as_const(
+               *(qosPolicy->getExpMap()->cref<switch_state_tags::to>()))) {
+        auto tc = entry->get<switch_state_tags::trafficClass>()->toThrift();
+        auto attr = entry->get<switch_state_tags::attr>()->toThrift();
+        mapEntries.emplace(tc, attr);
       }
       break;
     case BcmQosMap::Type::IP_INGRESS:
-      for (const auto& entry : qosPolicy->getDscpMap().from()) {
-        mapEntries.emplace(*entry.trafficClass(), *entry.attr());
+      for (const auto& entry : std::as_const(
+               *(qosPolicy->getDscpMap()->cref<switch_state_tags::from>()))) {
+        auto tc = entry->get<switch_state_tags::trafficClass>()->toThrift();
+        auto attr = entry->get<switch_state_tags::attr>()->toThrift();
+        mapEntries.emplace(tc, attr);
       }
       break;
     case BcmQosMap::Type::IP_EGRESS:

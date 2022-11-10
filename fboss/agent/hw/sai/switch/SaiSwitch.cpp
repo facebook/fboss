@@ -1979,8 +1979,8 @@ bool SaiSwitch::isValidStateUpdateLocked(
   auto isValid = true;
   if (globalQosDelta.getNew()) {
     auto& newPolicy = globalQosDelta.getNew();
-    if (newPolicy->getDscpMap().empty() ||
-        newPolicy->getTrafficClassToQueueId().empty()) {
+    if (newPolicy->getDscpMap()->get<switch_state_tags::from>()->size() == 0 ||
+        newPolicy->getTrafficClassToQueueId()->size() == 0) {
       XLOG(ERR)
           << " Both DSCP to TC and TC to Queue maps must be provided in valid qos policies";
       return false;

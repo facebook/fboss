@@ -205,7 +205,8 @@ SwitchStateFields SwitchStateFields::fromThrift(
       LabelForwardingInformationBase::fromThrift(*state.labelFib());
   fields.qosPolicies = QosPolicyMap::fromThrift(*state.qosPolicyMap());
   if (auto defaultQosPolicy = state.defaultDataPlaneQosPolicy()) {
-    fields.defaultDataPlaneQosPolicy = QosPolicy::fromThrift(*defaultQosPolicy);
+    fields.defaultDataPlaneQosPolicy =
+        std::make_shared<QosPolicy>(*defaultQosPolicy);
   }
   fields.transceivers->fromThrift(*state.transceiverMap());
   fields.ipTunnels = IpTunnelMap::fromThrift(*state.ipTunnelMap());

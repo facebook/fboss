@@ -2104,7 +2104,8 @@ ThriftConfigApplier::updateDataplaneDefaultQosPolicy() {
   for (auto& qosPolicy : qosPolicies) {
     if (defaultDataPlaneQosPolicyName == *qosPolicy.name()) {
       newQosPolicy = createQosPolicy(qosPolicy);
-      if (newQosPolicy->getExpMap().empty()) {
+      if (newQosPolicy->getExpMap()->get<switch_state_tags::from>()->empty() &&
+          newQosPolicy->getExpMap()->get<switch_state_tags::to>()->empty()) {
         // if exp map is not provided, set some default mapping
         // TODO(pshaikh): remove this once default config for switches will
         // always have EXP maps

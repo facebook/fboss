@@ -83,9 +83,10 @@ void BcmQosPolicy::updateIngressDscpQosMap(
     programIngressDscpQosMap(newQosPolicy);
     return;
   }
-  const auto& oldRules = oldQosPolicy->getDscpMap().from();
-  const auto& newRules = newQosPolicy->getDscpMap().from();
-
+  auto oldRules =
+      oldQosPolicy->getDscpMap()->cref<switch_state_tags::from>()->toThrift();
+  auto newRules =
+      newQosPolicy->getDscpMap()->cref<switch_state_tags::from>()->toThrift();
   std::vector<state::TrafficClassToQosAttributeEntry> toBeRemoved;
   std::set_difference(
       oldRules.begin(),
@@ -337,8 +338,10 @@ void BcmQosPolicy::updateIngressExpQosMap(
     programIngressExpQosMap(newQosPolicy);
     return;
   }
-  const auto& oldRules = oldQosPolicy->getExpMap().from();
-  const auto& newRules = newQosPolicy->getExpMap().from();
+  auto oldRules =
+      oldQosPolicy->getExpMap()->cref<switch_state_tags::from>()->toThrift();
+  auto newRules =
+      newQosPolicy->getExpMap()->cref<switch_state_tags::from>()->toThrift();
 
   std::vector<state::TrafficClassToQosAttributeEntry> toBeRemoved;
   std::set_difference(
@@ -375,8 +378,11 @@ void BcmQosPolicy::updateEgressExpQosMap(
     programEgressExpQosMap(newQosPolicy);
     return;
   }
-  const auto& oldRules = oldQosPolicy->getExpMap().to();
-  const auto& newRules = newQosPolicy->getExpMap().to();
+
+  auto oldRules =
+      oldQosPolicy->getExpMap()->cref<switch_state_tags::to>()->toThrift();
+  auto newRules =
+      newQosPolicy->getExpMap()->cref<switch_state_tags::to>()->toThrift();
 
   std::vector<state::TrafficClassToQosAttributeEntry> toBeRemoved;
   std::set_difference(
@@ -407,14 +413,16 @@ void BcmQosPolicy::updateEgressExpQosMap(
 
 bool BcmQosPolicy::policyMatches(
     const std::shared_ptr<QosPolicy>& qosPolicy) const {
-  if (ingressDscpQosMap_->size() != qosPolicy->getDscpMap().from().size()) {
+  if (ingressDscpQosMap_->size() !=
+      qosPolicy->getDscpMap()->cref<switch_state_tags::from>()->size()) {
     return false;
   }
-  for (const auto& rule : qosPolicy->getDscpMap().from()) {
+  auto& from = qosPolicy->getDscpMap()->cref<switch_state_tags::from>();
+  for (const auto& rule : std::as_const(*from)) {
+    auto tc = rule->cref<switch_state_tags::trafficClass>()->toThrift();
+    auto dscp = rule->cref<switch_state_tags::attr>()->toThrift();
     if (!ingressDscpQosMap_->ruleExists(
-            BcmPortQueueManager::CosQToBcmInternalPriority(
-                *rule.trafficClass()),
-            *rule.attr())) {
+            BcmPortQueueManager::CosQToBcmInternalPriority(tc), dscp)) {
       return false;
     }
   }
@@ -423,7 +431,7 @@ bool BcmQosPolicy::policyMatches(
 
 void BcmQosPolicy::programIngressDscpQosMap(
     const std::shared_ptr<QosPolicy>& qosPolicy) {
-  if (qosPolicy->getDscpMap().from().empty()) {
+  if (qosPolicy->getDscpMap()->cref<switch_state_tags::from>()->empty()) {
     return;
   }
   auto warmBootCache = hw_->getWarmBootCache();
@@ -439,17 +447,19 @@ void BcmQosPolicy::programIngressDscpQosMap(
 
   ingressDscpQosMap_ =
       std::make_unique<BcmQosMap>(hw_, BcmQosMap::Type::IP_INGRESS);
-  for (const auto& dscpToTrafficClass : qosPolicy->getDscpMap().from()) {
+  auto& from = qosPolicy->getDscpMap()->cref<switch_state_tags::from>();
+  for (const auto& rule : std::as_const(*from)) {
+    auto tc = rule->cref<switch_state_tags::trafficClass>()->toThrift();
+    auto dscp = rule->cref<switch_state_tags::attr>()->toThrift();
+
     ingressDscpQosMap_->addRule(
-        BcmPortQueueManager::CosQToBcmInternalPriority(
-            *dscpToTrafficClass.trafficClass()),
-        *dscpToTrafficClass.attr());
+        BcmPortQueueManager::CosQToBcmInternalPriority(tc), dscp);
   }
 }
 
 void BcmQosPolicy::programIngressExpQosMap(
     const std::shared_ptr<QosPolicy>& qosPolicy) {
-  if (qosPolicy->getExpMap().from().empty()) {
+  if (qosPolicy->getExpMap()->cref<switch_state_tags::from>()->empty()) {
     return;
   }
   auto warmBootCache = hw_->getWarmBootCache();
@@ -464,17 +474,18 @@ void BcmQosPolicy::programIngressExpQosMap(
   }
   ingressExpQosMap_ =
       std::make_unique<BcmQosMap>(hw_, BcmQosMap::Type::MPLS_INGRESS);
-  for (const auto& expToTrafficClass : qosPolicy->getExpMap().from()) {
+  auto& from = qosPolicy->getExpMap()->cref<switch_state_tags::from>();
+  for (const auto& rule : std::as_const(*from)) {
+    auto tc = rule->cref<switch_state_tags::trafficClass>()->toThrift();
+    auto exp = rule->cref<switch_state_tags::attr>()->toThrift();
     ingressExpQosMap_->addRule(
-        BcmPortQueueManager::CosQToBcmInternalPriority(
-            *expToTrafficClass.trafficClass()),
-        *expToTrafficClass.attr());
+        BcmPortQueueManager::CosQToBcmInternalPriority(tc), exp);
   }
 }
 
 void BcmQosPolicy::programEgressExpQosMap(
     const std::shared_ptr<QosPolicy>& qosPolicy) {
-  if (qosPolicy->getExpMap().to().empty()) {
+  if (qosPolicy->getExpMap()->cref<switch_state_tags::to>()->empty()) {
     return;
   }
   auto warmBootCache = hw_->getWarmBootCache();
@@ -489,11 +500,13 @@ void BcmQosPolicy::programEgressExpQosMap(
   }
   egressExpQosMap_ =
       std::make_unique<BcmQosMap>(hw_, BcmQosMap::Type::MPLS_EGRESS);
-  for (const auto& trafficClassToExp : qosPolicy->getExpMap().to()) {
+  auto& to = qosPolicy->getExpMap()->cref<switch_state_tags::to>();
+  for (const auto& rule : std::as_const(*to)) {
+    auto tc = rule->cref<switch_state_tags::trafficClass>()->toThrift();
+    auto exp = rule->cref<switch_state_tags::attr>()->toThrift();
+
     egressExpQosMap_->addRule(
-        BcmPortQueueManager::CosQToBcmInternalPriority(
-            *trafficClassToExp.trafficClass()),
-        *trafficClassToExp.attr());
+        BcmPortQueueManager::CosQToBcmInternalPriority(tc), exp);
   }
 }
 
@@ -578,12 +591,12 @@ void BcmQosPolicy::programPfcPriorityToPgMap(
   std::vector<int> pfcPriorityToPg = getDefaultPfcPriorityToPg();
   if (auto pfcPriorityToPgMap = qosPolicy->getPfcPriorityToPgId()) {
     // override with what user configures
-    for (const auto& entry : *pfcPriorityToPgMap) {
-      CHECK_GT(pfcPriorityToPg.size(), static_cast<int>(entry.first))
+    for (const auto& [prio, pg] : std::as_const(*pfcPriorityToPgMap)) {
+      CHECK_GT(pfcPriorityToPg.size(), static_cast<int>(prio))
           << " Policy: " << qosPolicy->getName()
           << " has pfcPriorityToPgMap size " << pfcPriorityToPg.size()
-          << " which is smaller than pfc priority " << entry.first;
-      pfcPriorityToPg[entry.first] = entry.second;
+          << " which is smaller than pfc priority " << prio;
+      pfcPriorityToPg[prio] = pg->toThrift();
     }
   }
   programPfcPriorityToPgIfNeeded(pfcPriorityToPg);
@@ -619,12 +632,12 @@ void BcmQosPolicy::programTrafficClassToPgMap(
   std::vector<int> trafficClassToPg = getDefaultTrafficClassToPg();
   if (auto trafficClassToPgMap = qosPolicy->getTrafficClassToPgId()) {
     // override with what user configures
-    for (const auto& entry : *trafficClassToPgMap) {
-      CHECK_GT(trafficClassToPg.size(), static_cast<int>(entry.first))
+    for (const auto& [tc, pg] : std::as_const(*trafficClassToPgMap)) {
+      CHECK_GT(trafficClassToPg.size(), static_cast<int>(tc))
           << " Policy: " << qosPolicy->getName()
           << " has trafficClassToPgMap size " << trafficClassToPg.size()
-          << " which is smaller than traffic class " << entry.first;
-      trafficClassToPg[entry.first] = entry.second;
+          << " which is smaller than traffic class " << tc;
+      trafficClassToPg[tc] = pg->toThrift();
     }
   }
   programTrafficClassToPgIfNeeded(trafficClassToPg);
@@ -637,12 +650,12 @@ void BcmQosPolicy::programPfcPriorityToQueueMap(
           qosPolicy->getPfcPriorityToQueueId()) {
     pfcPriorityToQueue.assign(
         cfg::switch_config_constants::PFC_PRIORITY_VALUE_MAX() + 1, 0);
-    for (const auto& entry : *pfcPriorityToQueueMap) {
-      CHECK_GT(pfcPriorityToQueue.size(), static_cast<int>(entry.first))
+    for (const auto& [prio, queue] : std::as_const(*pfcPriorityToQueueMap)) {
+      CHECK_GT(pfcPriorityToQueue.size(), static_cast<int>(prio))
           << " Policy: " << qosPolicy->getName()
           << " has pfcPriorityToQueueMap size " << pfcPriorityToQueue.size()
-          << " which is smaller than pfc priority value " << entry.first;
-      pfcPriorityToQueue[entry.first] = entry.second;
+          << " which is smaller than pfc priority value " << prio;
+      pfcPriorityToQueue[prio] = queue->toThrift();
     }
   }
   programPfcPriorityToQueueIfNeeded(pfcPriorityToQueue);

@@ -531,7 +531,7 @@ QueueConfig ManagerTestBase::makeQueueConfig(
 }
 
 std::shared_ptr<QosPolicy> ManagerTestBase::makeQosPolicy(
-    std::string name,
+    const std::string& name,
     const TestQosPolicy& qosPolicy) {
   DscpMap dscpMap;
   ExpMap expMap;

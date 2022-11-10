@@ -28,14 +28,15 @@ SaiQosMapManager::SaiQosMapManager(
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 std::shared_ptr<SaiQosMap> SaiQosMapManager::setDscpToTcQosMap(
-    const DscpMap& newDscpMap) {
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  const auto& newDscpMap = qosPolicy->getDscpMap();
   std::vector<sai_qos_map_t> mapToValueList;
-  const auto& entries = newDscpMap.from();
-  mapToValueList.reserve(entries.size());
-  for (const auto& entry : entries) {
+  const auto& entries = newDscpMap->get<switch_state_tags::from>();
+  mapToValueList.reserve(entries->size());
+  for (const auto& entry : std::as_const(*entries)) {
     sai_qos_map_t mapping{};
-    mapping.key.dscp = *entry.attr();
-    mapping.value.tc = *entry.trafficClass();
+    mapping.key.dscp = entry->cref<switch_state_tags::attr>()->cref();
+    mapping.value.tc = entry->cref<switch_state_tags::trafficClass>()->cref();
     mapToValueList.push_back(mapping);
   }
   // set the dscp -> tc mapping in SAI
@@ -49,17 +50,18 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setDscpToTcQosMap(
 }
 
 std::shared_ptr<SaiQosMap> SaiQosMapManager::setExpToTcQosMap(
-    const ExpMap& newExpMap) {
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
   if (!managerTable_->switchManager().isMplsQoSMapSupported()) {
     return nullptr;
   }
   std::vector<sai_qos_map_t> mapToValueList;
-  const auto& entries = newExpMap.from();
-  mapToValueList.reserve(entries.size());
-  for (const auto& entry : entries) {
+  const auto& newExpMap = qosPolicy->getExpMap();
+  const auto& entries = newExpMap->cref<switch_state_tags::from>();
+  mapToValueList.reserve(entries->size());
+  for (const auto& entry : std::as_const(*entries)) {
     sai_qos_map_t mapping{};
-    mapping.key.mpls_exp = *entry.attr();
-    mapping.value.tc = *entry.trafficClass();
+    mapping.key.mpls_exp = entry->cref<switch_state_tags::attr>()->cref();
+    mapping.value.tc = entry->cref<switch_state_tags::trafficClass>()->cref();
     mapToValueList.push_back(mapping);
   }
   // set the exp -> tc mapping in SAI
@@ -74,18 +76,19 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setExpToTcQosMap(
 }
 
 std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToExpQosMap(
-    const ExpMap& newExpMap) {
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
   if (!managerTable_->switchManager().isMplsQoSMapSupported()) {
     return nullptr;
   }
   std::vector<sai_qos_map_t> mapToValueList;
-  const auto& entries = newExpMap.to();
-  mapToValueList.reserve(entries.size());
-  for (const auto& entry : entries) {
+  const auto& newExpMap = qosPolicy->getExpMap();
+  const auto& entries = newExpMap->cref<switch_state_tags::to>();
+  mapToValueList.reserve(entries->size());
+  for (const auto& entry : std::as_const(*entries)) {
     sai_qos_map_t mapping{};
-    mapping.key.tc = *entry.trafficClass();
+    mapping.key.tc = entry->cref<switch_state_tags::trafficClass>()->cref();
     mapping.key.color = SAI_PACKET_COLOR_GREEN;
-    mapping.value.mpls_exp = *entry.attr();
+    mapping.value.mpls_exp = entry->cref<switch_state_tags::attr>()->cref();
     mapToValueList.push_back(mapping);
   }
   // set the tc -> exp mapping in SAI
@@ -100,11 +103,12 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToExpQosMap(
 }
 
 std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToQueueQosMap(
-    const std::map<int16_t, int16_t>& newTcToQueueIdMap) {
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  const auto& newTcToQueueIdMap = qosPolicy->getTrafficClassToQueueId();
   std::vector<sai_qos_map_t> mapToValueList;
-  mapToValueList.reserve(newTcToQueueIdMap.size());
-  for (const auto& tc2q : newTcToQueueIdMap) {
-    auto [tc, q] = tc2q;
+  mapToValueList.reserve(newTcToQueueIdMap->size());
+  for (const auto& [tc, queue] : std::as_const(*newTcToQueueIdMap)) {
+    const auto& q = queue->ref();
     sai_qos_map_t mapping{};
     mapping.key.tc = tc;
     mapping.value.queue_index = q;
@@ -121,14 +125,14 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToQueueQosMap(
 }
 
 std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToPgQosMap(
-    const std::map<int16_t, int16_t>& newTcToPgMap) {
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  const auto& newTcToPgMap = qosPolicy->getTrafficClassToPgId();
   std::vector<sai_qos_map_t> mapToValueList;
-  mapToValueList.reserve(newTcToPgMap.size());
-  for (const auto& tc2pg : newTcToPgMap) {
-    auto [tc, pg] = tc2pg;
+  mapToValueList.reserve(newTcToPgMap->size());
+  for (const auto& [tc, pg] : std::as_const(*newTcToPgMap)) {
     sai_qos_map_t mapping{};
     mapping.key.tc = tc;
-    mapping.value.pg = pg;
+    mapping.value.pg = pg->cref();
     mapToValueList.push_back(mapping);
   }
   // set the tc->pg mapping in SAI
@@ -143,14 +147,15 @@ std::shared_ptr<SaiQosMap> SaiQosMapManager::setTcToPgQosMap(
 }
 
 std::shared_ptr<SaiQosMap> SaiQosMapManager::setPfcPriorityToQueueQosMap(
-    const std::map<int16_t, int16_t>& newPfcPriorityToQueueMap) {
+    const std::shared_ptr<QosPolicy>& qosPolicy) {
+  const auto& newPfcPriorityToQueueMap = qosPolicy->getPfcPriorityToQueueId();
   std::vector<sai_qos_map_t> mapToValueList;
-  mapToValueList.reserve(newPfcPriorityToQueueMap.size());
-  for (const auto& pfcPriority2queue : newPfcPriorityToQueueMap) {
-    auto [pfcPriority, queue] = pfcPriority2queue;
+  mapToValueList.reserve(newPfcPriorityToQueueMap->size());
+  for (const auto& [pfcPriority, queue] :
+       std::as_const(*newPfcPriorityToQueueMap)) {
     sai_qos_map_t mapping{};
     mapping.key.prio = pfcPriority;
-    mapping.value.queue_index = queue;
+    mapping.value.queue_index = queue->cref();
     mapToValueList.push_back(mapping);
   }
   // set the pfcPriority->queue mapping in SAI
@@ -168,19 +173,17 @@ void SaiQosMapManager::setQosMaps(
     const std::shared_ptr<QosPolicy>& newQosPolicy) {
   XLOG(DBG2) << "Setting global QoS map: " << newQosPolicy->getName();
   handle_ = std::make_unique<SaiQosMapHandle>();
-  handle_->dscpToTcMap = setDscpToTcQosMap(newQosPolicy->getDscpMap());
-  handle_->tcToQueueMap =
-      setTcToQueueQosMap(newQosPolicy->getTrafficClassToQueueId());
-  handle_->expToTcMap = setExpToTcQosMap(newQosPolicy->getExpMap());
-  handle_->tcToExpMap = setTcToExpQosMap(newQosPolicy->getExpMap());
+  handle_->dscpToTcMap = setDscpToTcQosMap(newQosPolicy);
+  handle_->tcToQueueMap = setTcToQueueQosMap(newQosPolicy);
+  handle_->expToTcMap = setExpToTcQosMap(newQosPolicy);
+  handle_->tcToExpMap = setTcToExpQosMap(newQosPolicy);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
     if (newQosPolicy->getTrafficClassToPgId()) {
-      handle_->tcToPgMap =
-          setTcToPgQosMap(*newQosPolicy->getTrafficClassToPgId());
+      handle_->tcToPgMap = setTcToPgQosMap(newQosPolicy);
     }
     if (newQosPolicy->getPfcPriorityToQueueId()) {
       handle_->pfcPriorityToQueueMap =
-          setPfcPriorityToQueueQosMap(*newQosPolicy->getPfcPriorityToQueueId());
+          setPfcPriorityToQueueQosMap(newQosPolicy);
     }
   }
 }
