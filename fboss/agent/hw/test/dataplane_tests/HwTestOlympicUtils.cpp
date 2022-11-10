@@ -223,7 +223,7 @@ void addQueueWredDropConfig(
     queue0.scalingFactor() = cfg::MMUScalingFactor::ONE;
   }
   queue0.aqms() = {};
-  queue0.aqms()->push_back(kGetWredConfig(0, maxThresh, 0));
+  queue0.aqms()->push_back(kGetWredConfig(1, maxThresh, 0));
   portQueues.push_back(queue0);
 
   cfg::PortQueue queue2;
@@ -236,7 +236,7 @@ void addQueueWredDropConfig(
     queue2.scalingFactor() = cfg::MMUScalingFactor::ONE;
   }
   queue2.aqms() = {};
-  queue2.aqms()->push_back(kGetWredConfig(0, maxThresh, 5));
+  queue2.aqms()->push_back(kGetWredConfig(1, maxThresh, 5));
   portQueues.push_back(queue2);
 
   config->portQueueConfigs()["queue_config"] = portQueues;
