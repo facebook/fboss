@@ -1534,6 +1534,7 @@ struct DsfNode {
   4: list<string> loopbackIps;
   5: Range64 systemPortRange;
   6: string nodeMac = "02:00:00:00:0F:0B";
+  7: AsicType asicType;
 }
 /**
  * The configuration for a switch.

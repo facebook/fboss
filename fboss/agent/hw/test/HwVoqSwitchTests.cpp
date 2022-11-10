@@ -448,7 +448,7 @@ TEST_F(HwVoqSwitchTest, multipleDsfNodes) {
     auto cfg = initialConfig();
     SwitchID otherSwitchId{4};
     cfg.dsfNodes()->insert(
-        {otherSwitchId, utility::dsfNodeConfig(otherSwitchId)});
+        {otherSwitchId, utility::dsfNodeConfig(*getPlatform()->getAsic())});
     applyNewConfig(cfg);
   };
   verifyAcrossWarmBoots(setup, [] {});

@@ -85,17 +85,18 @@ std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap() {
   return portProfileIDMap;
 }
 
-cfg::DsfNode dsfNodeConfig(SwitchID switchId) {
+cfg::DsfNode dsfNodeConfig(const HwAsic& asic) {
   constexpr auto kSysPortBlockSize = 130;
   cfg::DsfNode dsfNode;
-  dsfNode.switchId() = switchId;
-  dsfNode.name() =
-      folly::sformat("hwTestSwitch{}", static_cast<int64_t>(switchId));
+  dsfNode.switchId() = *asic.getSwitchId();
+  dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
   dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-  dsfNode.systemPortRange()->minimum() = 100 + switchId * kSysPortBlockSize;
+  dsfNode.systemPortRange()->minimum() =
+      100 + *dsfNode.switchId() * kSysPortBlockSize;
   dsfNode.systemPortRange()->maximum() =
       *dsfNode.systemPortRange()->minimum() + kSysPortBlockSize;
-  dsfNode.loopbackIps() = getLoopbackIps(switchId);
+  dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
+  dsfNode.asicType() = asic.getAsicType();
   return dsfNode;
 }
 
@@ -241,8 +242,7 @@ cfg::SwitchConfig genPortVlanCfg(
   config.switchSettings()->switchType() = asic->getSwitchType();
   if (asic->getSwitchId()) {
     config.switchSettings()->switchId() = *asic->getSwitchId();
-    config.dsfNodes()->insert(
-        {*asic->getSwitchId(), dsfNodeConfig(SwitchID(*asic->getSwitchId()))});
+    config.dsfNodes()->insert({*asic->getSwitchId(), dsfNodeConfig(*asic)});
   }
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
   // of using PlatformMapping.
