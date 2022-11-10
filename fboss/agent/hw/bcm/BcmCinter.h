@@ -199,6 +199,12 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       override {
     return 0;
   }
+  int bcm_udf_pkt_format_info_get(
+      int /*unit*/,
+      bcm_udf_pkt_format_id_t /*pkt_format_id*/,
+      bcm_udf_pkt_format_info_t* /*pkt_format*/) override {
+    return 0;
+  }
   int bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) override;
   int bcm_port_phy_modify(
       int unit,
