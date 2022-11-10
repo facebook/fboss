@@ -93,6 +93,11 @@ cfg::DsfNode makeDsfNodeCfg(
 cfg::SwitchConfig updateSwitchID(
     const cfg::SwitchConfig& origCfg,
     int64_t newSwitchId);
+
+std::shared_ptr<SystemPort> makeSysPort(
+    const std::optional<std::string>& qosPolicy,
+    int64_t sysPortId = 1,
+    int64_t switchId = 1);
 /*
  * Get the MockHwSwitch from a SwSwitch.
  */

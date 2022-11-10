@@ -225,6 +225,21 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
 
 namespace facebook::fboss {
 
+std::shared_ptr<SystemPort> makeSysPort(
+    const std::optional<std::string>& qosPolicy,
+    int64_t sysPortId,
+    int64_t switchId) {
+  auto sysPort = std::make_shared<SystemPort>(SystemPortID(sysPortId));
+  sysPort->setSwitchId(SwitchID(switchId));
+  sysPort->setPortName("sysPort1");
+  sysPort->setCoreIndex(42);
+  sysPort->setCorePortIndex(24);
+  sysPort->setSpeedMbps(10000);
+  sysPort->setNumVoqs(8);
+  sysPort->setEnabled(true);
+  sysPort->setQosPolicy(qosPolicy);
+  return sysPort;
+}
 cfg::SwitchConfig updateSwitchID(
     const cfg::SwitchConfig& origCfg,
     int64_t newSwitchId) {
