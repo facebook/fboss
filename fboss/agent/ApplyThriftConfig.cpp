@@ -785,9 +785,9 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
   auto processLoopbacks = [&](const std::shared_ptr<DsfNode>& node) {
     auto recyclePortId = getRecyclePortId(node);
     InterfaceID intfID(recyclePortId);
-    auto intf = isLocal(node)
-        ? new_->getInterfaces()->getInterface(intfID)
-        : new_->getRemoteInterfaces()->getInterface(intfID);
+    auto intfs = isLocal(node) ? new_->getInterfaces()->modify(&new_)
+                               : new_->getRemoteInterfaces()->modify(&new_);
+    auto intf = intfs->getInterface(intfID)->clone();
     InterfaceFields::Addresses addresses;
     auto arpTable = intf->getArpTable();
     auto ndpTable = intf->getNdpTable();
@@ -818,6 +818,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       intf->setArpTable(std::move(arpTable));
       intf->setNdpTable(std::move(ndpTable));
     }
+    intfs->updateNode(intf);
   };
   auto addDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
     if (!isInterfaceNode(node)) {
