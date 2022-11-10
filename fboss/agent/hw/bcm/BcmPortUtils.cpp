@@ -324,9 +324,9 @@ int getAdjustedPfcDeadlockDetectionTimerValue(int deadlockDetectionTimeMsec) {
 }
 
 int getAdjustedPfcDeadlockRecoveryTimerValue(
-    HwAsic::AsicType type,
+    cfg::AsicType type,
     int timerMsec) {
-  if (type == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+  if (type == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
     // should be in multiples of 100ms, min 100ms, max 1500ms
     int adjustedDeadlockRecoveryTimer{0};
     if (timerMsec / 100 == 0) {
@@ -342,24 +342,24 @@ int getAdjustedPfcDeadlockRecoveryTimerValue(
   return timerMsec;
 }
 
-int getDefaultPfcDeadlockDetectionTimer(HwAsic::AsicType type) {
-  if (type == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+int getDefaultPfcDeadlockDetectionTimer(cfg::AsicType type) {
+  if (type == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
     return kDefaultTh4PfcDeadlockDetectionTimer;
-  } else if (type == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+  } else if (type == cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
     return kDefaultTh3PfcDeadlockDetectionTimer;
-  } else if (type == HwAsic::AsicType::ASIC_TYPE_FAKE) {
+  } else if (type == cfg::AsicType::ASIC_TYPE_FAKE) {
     return 0;
   }
   throw FbossError(
       "Platform type ", type, " does not support pfc watchdog detection");
 }
 
-int getDefaultPfcDeadlockRecoveryTimer(HwAsic::AsicType type) {
-  if (type == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+int getDefaultPfcDeadlockRecoveryTimer(cfg::AsicType type) {
+  if (type == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
     return kDefaultTh4PfcDeadlockRecoveryTimer;
-  } else if (type == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+  } else if (type == cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
     return kDefaultTh3PfcDeadlockRecoveryTimer;
-  } else if (type == HwAsic::AsicType::ASIC_TYPE_FAKE) {
+  } else if (type == cfg::AsicType::ASIC_TYPE_FAKE) {
     return 0;
   }
   throw FbossError(

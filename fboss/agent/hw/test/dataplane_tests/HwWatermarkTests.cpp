@@ -109,7 +109,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
 
   uint64_t getMinDeviceWatermarkValue() {
     uint64_t minDeviceWatermarkBytes{0};
-    if (getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_EBRO) {
+    if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
       /*
        * Ebro will always have some internal buffer utilization even
        * when there is no traffic in the ASIC. The recommendation is

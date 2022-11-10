@@ -76,23 +76,23 @@ SaiVirtualRouterManager::createMplsRouterInterface(VirtualRouterSaiId vrId) {
   auto asicType = platform_->getAsic()->getAsicType();
 
   switch (asicType) {
-    case HwAsic::AsicType::ASIC_TYPE_EBRO:
-    case HwAsic::AsicType::ASIC_TYPE_GARONNE:
-    case HwAsic::AsicType::ASIC_TYPE_FAKE:
-    case HwAsic::AsicType::ASIC_TYPE_MOCK:
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_GARONNE:
+    case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_MOCK:
       return saiStore_->get<SaiMplsRouterInterfaceTraits>().setObject(
           SaiMplsRouterInterfaceTraits::AdapterHostKey{vrId},
           SaiMplsRouterInterfaceTraits::CreateAttributes{
               vrId, SAI_ROUTER_INTERFACE_TYPE_MPLS_ROUTER});
 
-    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
-    case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
-    case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
-    case HwAsic::AsicType::ASIC_TYPE_INDUS:
-    case HwAsic::AsicType::ASIC_TYPE_BEAS:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case cfg::AsicType::ASIC_TYPE_INDUS:
+    case cfg::AsicType::ASIC_TYPE_BEAS:
       // TODO(pshaikh): mpls support required
       break;
   }

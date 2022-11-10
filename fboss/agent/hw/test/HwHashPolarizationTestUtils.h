@@ -9,7 +9,7 @@
 namespace facebook::fboss {
 std::vector<std::string> toStringVec(const std::vector<std::string_view>& in);
 std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
-    HwAsic::AsicType asic,
+    cfg::AsicType asic,
     bool isSai);
 
 std::vector<std::string>& getFullHashedPacketsForTrident2();

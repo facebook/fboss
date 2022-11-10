@@ -202,8 +202,7 @@ std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> defaultCpuAcls(
 #else
       // TODO: Due to an sdk bug (CS00012171265), cannot use queue 0 (low pri)
       // in TH4 until 6.5.22. Remove this hack once we fully upgrade to 6.5.22
-      auto queue =
-          hwAsic->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4
+      auto queue = hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4
           ? utility::kCoppMidPriQueueId
           : utility::kCoppLowPriQueueId;
 #endif

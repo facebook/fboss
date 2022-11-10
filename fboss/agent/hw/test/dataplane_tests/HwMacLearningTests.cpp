@@ -733,7 +733,7 @@ TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
   auto setup = [this]() { bringDownPort(masterLogicalPortIds()[1]); };
   auto verify = [this]() {
     bool isTH3 = getPlatform()->getAsic()->getAsicType() ==
-        HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3;
+        cfg::AsicType::ASIC_TYPE_TOMAHAWK3;
     // Disable aging, so entry stays in L2 table when we verify.
     utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
     enum class MacOp { ASSOCIATE, DISSOASSOCIATE, DELETE };
@@ -873,7 +873,7 @@ class HwMacLearningMacMoveTest : public HwMacLearningTest {
       // When MAC Moves from port1 to port2, we get DELETE on port1 and ADD on
       // port2
       if (getPlatform()->getAsic()->getAsicType() ==
-          HwAsic::AsicType::ASIC_TYPE_EBRO) {
+          cfg::AsicType::ASIC_TYPE_EBRO) {
         // TODO: Remove this once EbroAsic properly generates a
         // MAC move event.
         verifyL2TableCallback(
@@ -945,10 +945,10 @@ class HwMacLearningBatchEntriesTest : public HwMacLearningTest {
     // the cache because cache is full. TH3 cache size is 16 so we use 16 as
     // trunk size to maximize the speed. NOTE: There's an on-going investigation
     // why TH3 needs significant longer sleep time than TH4. (T83358080)
-    static const std::unordered_map<HwAsic::AsicType, std::pair<int, int>>
+    static const std::unordered_map<cfg::AsicType, std::pair<int, int>>
         kAsicToMacChunkSizeAndSleepUsecs = {
-            {HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, {16, 500000}},
-            {HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4, {32, 10000}},
+            {cfg::AsicType::ASIC_TYPE_TOMAHAWK3, {16, 500000}},
+            {cfg::AsicType::ASIC_TYPE_TOMAHAWK4, {32, 10000}},
         };
     if (auto p =
             kAsicToMacChunkSizeAndSleepUsecs.find(getAsic()->getAsicType());

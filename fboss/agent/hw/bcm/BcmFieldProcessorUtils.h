@@ -346,12 +346,12 @@ bool isBcmPortQualFieldStateSame(
       verifyMask);
 }
 
-bcm_field_qset_t getAclQset(HwAsic::AsicType asicType);
+bcm_field_qset_t getAclQset(cfg::AsicType asicType);
 /*
  * Besides the expected configure qset we want to program to the hardware,
  * some platforms will add extra qualifiers in the qset by the SDK.
  */
-bool needsExtraFPQsetQualifiers(HwAsic::AsicType asicType);
+bool needsExtraFPQsetQualifiers(cfg::AsicType asicType);
 
 bcm_field_qset_t getGroupQset(int unit, bcm_field_group_t groupId);
 

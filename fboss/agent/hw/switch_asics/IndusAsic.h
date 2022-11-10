@@ -11,8 +11,8 @@ class IndusAsic : public BroadcomAsic {
   IndusAsic(cfg::SwitchType type, std::optional<int64_t> id)
       : BroadcomAsic(type, id, {cfg::SwitchType::VOQ}) {}
   bool isSupported(Feature) const override;
-  AsicType getAsicType() const override {
-    return AsicType::ASIC_TYPE_INDUS;
+  cfg::AsicType getAsicType() const override {
+    return cfg::AsicType::ASIC_TYPE_INDUS;
   }
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
     return phy::DataPlanePhyChipType::IPHY;

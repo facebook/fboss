@@ -1130,7 +1130,7 @@ void SaiSwitch::updatePmdInfo(
     phy::EyeInfo oneLaneEyeInfo;
     int width{0}, height{0};
     if (getPlatform()->getAsic()->getAsicType() ==
-        HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
+        cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
       width = eyeStatus[i].right - eyeStatus[i].left;
       height = eyeStatus[i].up - eyeStatus[i].down;
     } else {
@@ -1432,7 +1432,7 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
        * Enable AFE adaptive mode (S249471) on TAJO platforms when a port
        * flaps
        */
-      if (asicType_ == HwAsic::AsicType::ASIC_TYPE_EBRO) {
+      if (asicType_ == cfg::AsicType::ASIC_TYPE_EBRO) {
         managerTable_->portManager().enableAfeAdaptiveMode(swPortId);
       }
     }
@@ -1491,7 +1491,7 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   // TODO(joseph5wu) We need to design how to restore xphy ports for the state
   // Temporarily skip resetPorts for ASIC_TYPE_ELBERT_8DD
   if (platform_->getAsic()->getAsicType() !=
-      HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
+      cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
     // reconstruct ports
     state->resetPorts(
         managerTable_->portManager().reconstructPortsFromStore(switchType_));
@@ -1757,7 +1757,7 @@ void SaiSwitch::packetRxCallback(
    * and send it to sw switch for processing.
    */
   bool allowMissingSrcPort = hostifTrapSaiIdOpt.has_value() &&
-      platform_->getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_EBRO &&
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO &&
       isMissingSrcPortAllowed(hostifTrapSaiIdOpt.value());
 
   if (!portSaiIdOpt && !allowMissingSrcPort) {

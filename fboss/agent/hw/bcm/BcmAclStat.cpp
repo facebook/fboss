@@ -146,7 +146,7 @@ bool BcmAclStat::isStateSame(
    * for equality.
    */
   if (hw->getPlatform()->getAsic()->getAsicType() ==
-      HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+      cfg::AsicType::ASIC_TYPE_TRIDENT2) {
     return std::includes(
         counterTypes.begin(),
         counterTypes.end(),

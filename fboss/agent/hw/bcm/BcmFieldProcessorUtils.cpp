@@ -317,7 +317,7 @@ void createFPGroup(
   XLOG(DBG1) << " Created FP group: " << gid;
 }
 
-bcm_field_qset_t getAclQset(HwAsic::AsicType asicType) {
+bcm_field_qset_t getAclQset(cfg::AsicType asicType) {
   bcm_field_qset_t qset;
   BCM_FIELD_QSET_INIT(qset);
   BCM_FIELD_QSET_ADD(qset, bcmFieldQualifySrcIp6);
@@ -341,7 +341,7 @@ bcm_field_qset_t getAclQset(HwAsic::AsicType asicType) {
    * solution. However, the solution is not applicable for Trident2 as Trident2
    * does not support queues. Thus, skip configuring this qualifier for Trident2
    */
-  if (asicType != HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+  if (asicType != cfg::AsicType::ASIC_TYPE_TRIDENT2) {
     BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyDstClassL2);
     /* Used for counting mpls lookup miss currently. Not used on trident2 */
     BCM_FIELD_QSET_ADD(qset, bcmFieldQualifyPacketRes);
@@ -393,23 +393,23 @@ int fpGroupNumAclEntries(int unit, bcm_field_group_t gid) {
   return size;
 }
 
-bool needsExtraFPQsetQualifiers(HwAsic::AsicType asicType) {
+bool needsExtraFPQsetQualifiers(cfg::AsicType asicType) {
   // Currently we know any asic is before TH4 will add extra qualifiers
   switch (asicType) {
-    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
-    case HwAsic::AsicType::ASIC_TYPE_FAKE:
-    case HwAsic::AsicType::ASIC_TYPE_MOCK:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_MOCK:
       return true;
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       return false;
-    case HwAsic::AsicType::ASIC_TYPE_EBRO:
-    case HwAsic::AsicType::ASIC_TYPE_GARONNE:
-    case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
-    case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
-    case HwAsic::AsicType::ASIC_TYPE_INDUS:
-    case HwAsic::AsicType::ASIC_TYPE_BEAS:
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_GARONNE:
+    case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case cfg::AsicType::ASIC_TYPE_INDUS:
+    case cfg::AsicType::ASIC_TYPE_BEAS:
       throw FbossError("Unsupported ASIC type");
   }
   return true;

@@ -62,7 +62,7 @@ void BcmStation::program(MacAddress mac, int intfId) {
   auto vlanStationItr = warmBootCache->findVlanStation(VlanID(intfId));
   auto id = hw_->getPlatform()->getAsic()->getStationID(intfId);
   auto asic = hw_->getPlatform()->getAsic()->getAsicType();
-  if (asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+  if (asic == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
     int maxId;
     rc = bcm_l2_station_size_get(hw_->getUnit(), &maxId);
     bcmCheckError(rc, "failed to get l2 station table size");

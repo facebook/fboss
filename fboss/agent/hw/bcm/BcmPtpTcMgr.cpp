@@ -25,13 +25,13 @@ extern "C" {
 namespace facebook::fboss {
 
 // static
-int BcmPtpTcMgr::getTsBitModeArg(HwAsic::AsicType asicType) {
+int BcmPtpTcMgr::getTsBitModeArg(cfg::AsicType asicType) {
   // TODO(rajukumarfb5368): integrate with HwAsic::isSupported() or a variant
   switch (asicType) {
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
       return bcmTimesyncTimestampingMode32bit;
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       return bcmTimesyncTimestampingMode48bit;
     default:
       throw FbossError(

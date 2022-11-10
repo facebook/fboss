@@ -37,7 +37,7 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     udpPorts_ = tcpPorts_;
 
     if (getPlatform()->getAsic()->getAsicType() ==
-        HwAsic::AsicType::ASIC_TYPE_EBRO) {
+        cfg::AsicType::ASIC_TYPE_EBRO) {
       tcpPortsForSai_[0] = 10002;
       tcpPortsForSai_[1] = 10004;
       tcpPortsForSai_[2] = 10000;

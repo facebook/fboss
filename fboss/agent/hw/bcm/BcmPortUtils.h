@@ -57,12 +57,10 @@ int getBcmPfcDeadlockDetectionTimerGranularity(int timerMsec);
 
 int getAdjustedPfcDeadlockDetectionTimerValue(int timerMsec);
 
-int getAdjustedPfcDeadlockRecoveryTimerValue(
-    HwAsic::AsicType type,
-    int timerMsec);
+int getAdjustedPfcDeadlockRecoveryTimerValue(cfg::AsicType type, int timerMsec);
 
-int getDefaultPfcDeadlockDetectionTimer(HwAsic::AsicType type);
+int getDefaultPfcDeadlockDetectionTimer(cfg::AsicType type);
 
-int getDefaultPfcDeadlockRecoveryTimer(HwAsic::AsicType type);
+int getDefaultPfcDeadlockRecoveryTimer(cfg::AsicType type);
 
 } // namespace facebook::fboss::utility

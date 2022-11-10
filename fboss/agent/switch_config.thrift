@@ -1177,7 +1177,7 @@ enum AsicType {
   ASIC_TYPE_SANDIA_PHY = 10,
   ASIC_TYPE_INDUS = 11,
   ASIC_TYPE_BEAS = 12,
-};
+}
 /**
  * The configuration for an interface
  */

@@ -11,7 +11,7 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
   std::string out;
   auto asic = ensemble->getPlatform()->getAsic()->getAsicType();
   ensemble->runDiagCommand("\n", out);
-  if (asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+  if (asic == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
     ensemble->runDiagCommand("ser inject pt=L2_ENTRY_SINGLEm\n", out);
     ensemble->runDiagCommand("ser LOG\n", out);
   } else {

@@ -23,7 +23,7 @@ class BcmPtpTcMgr {
   static bool isPtpTcEnabled(const BcmSwitchIf* hw);
 
  private:
-  static int getTsBitModeArg(HwAsic::AsicType asicType);
+  static int getTsBitModeArg(cfg::AsicType asicType);
 
   void enablePortTimesyncConfig(
       bcm_port_timesync_config_t* port_timesync_config);

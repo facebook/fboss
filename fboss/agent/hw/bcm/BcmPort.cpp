@@ -1887,8 +1887,8 @@ uint32_t BcmPort::getCL91FECStatus() const {
 
 bool BcmPort::isCL91FECApplicable() const {
   auto asic = hw_->getPlatform()->getAsic()->getAsicType();
-  return asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK ||
-      asic == HwAsic::AsicType::ASIC_TYPE_FAKE;
+  return asic == cfg::AsicType::ASIC_TYPE_TOMAHAWK ||
+      asic == cfg::AsicType::ASIC_TYPE_FAKE;
 }
 
 bool BcmPort::setFEC(const std::shared_ptr<Port>& swPort) {
@@ -2255,8 +2255,8 @@ bool BcmPort::getFdrEnabled() const {
 void BcmPort::initCustomStats() const {
   int rv = 0;
   auto asicType = hw_->getPlatform()->getAsic()->getAsicType();
-  if (asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3 ||
-      asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+  if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
+      asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
     rv = bcm_stat_custom_add(
         0, port_, snmpBcmCustomReceive3, bcmDbgCntRxL3DstDiscardDrop);
   } else {

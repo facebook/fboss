@@ -191,7 +191,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 
   if (platform_->getAsic()->isSupported(HwAsic::Feature::PORT_INTERFACE_TYPE) &&
       platform_->getAsic()->getAsicType() ==
-          HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY) {
+          cfg::AsicType::ASIC_TYPE_SANDIA_PHY) {
     if (!swPort->getProfileConfig().medium() ||
         !swPort->getLineProfileConfig()->medium()) {
       throw FbossError(

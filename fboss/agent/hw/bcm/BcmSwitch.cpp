@@ -855,7 +855,7 @@ HwInitResult BcmSwitch::initImpl(
   }
 
   if (getPlatform()->getAsic()->getAsicType() ==
-      HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+      cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
     rv = bcm_l3_enable_set(unit_, 1);
     bcmCheckError(rv, "failed to enable l3");
   }
@@ -954,7 +954,7 @@ HwInitResult BcmSwitch::initImpl(
     // Done with warm boot, clear warm boot cache
     warmBootCache_->clear();
     if (getPlatform()->getAsic()->getAsicType() ==
-        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+        cfg::AsicType::ASIC_TYPE_TRIDENT2) {
       for (auto ip : {folly::IPAddress("0.0.0.0"), folly::IPAddress("::")}) {
         bcm_l3_route_t rt;
         bcm_l3_route_t_init(&rt);
@@ -3458,23 +3458,23 @@ void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
 void BcmSwitch::disableHotSwap() const {
   if (getPlatform()->isDisableHotSwapSupported()) {
     switch (getPlatform()->getAsic()->getAsicType()) {
-      case HwAsic::AsicType::ASIC_TYPE_FAKE:
-      case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
-      case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
+      case cfg::AsicType::ASIC_TYPE_FAKE:
+      case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
         // For TD2 and TH, we patch the SDK to disable hot swap,
         break;
-      case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
-      case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4: {
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK4: {
         auto rv = bcm_switch_control_set(unit_, bcmSwitchPcieHotSwapDisable, 1);
         bcmCheckError(rv, "Failed to disable hotswap");
       } break;
-      case HwAsic::AsicType::ASIC_TYPE_EBRO:
-      case HwAsic::AsicType::ASIC_TYPE_GARONNE:
-      case HwAsic::AsicType::ASIC_TYPE_MOCK:
-      case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
-      case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
-      case HwAsic::AsicType::ASIC_TYPE_INDUS:
-      case HwAsic::AsicType::ASIC_TYPE_BEAS:
+      case cfg::AsicType::ASIC_TYPE_EBRO:
+      case cfg::AsicType::ASIC_TYPE_GARONNE:
+      case cfg::AsicType::ASIC_TYPE_MOCK:
+      case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+      case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+      case cfg::AsicType::ASIC_TYPE_INDUS:
+      case cfg::AsicType::ASIC_TYPE_BEAS:
         CHECK(0) << " Invalid ASIC type";
     }
   }

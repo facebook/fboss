@@ -11,8 +11,8 @@ class BeasAsic : public BroadcomAsic {
   BeasAsic(cfg::SwitchType type, std::optional<int64_t> id)
       : BroadcomAsic(type, id, {cfg::SwitchType::FABRIC}) {}
   bool isSupported(Feature feature) const override;
-  AsicType getAsicType() const override {
-    return AsicType::ASIC_TYPE_BEAS;
+  cfg::AsicType getAsicType() const override {
+    return cfg::AsicType::ASIC_TYPE_BEAS;
   }
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
     return phy::DataPlanePhyChipType::IPHY;

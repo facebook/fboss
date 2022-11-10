@@ -186,7 +186,7 @@ std::unique_ptr<HwSwitchEnsembleRouteUpdateWrapper> HwTest::getRouteUpdater() {
       getHwSwitchEnsemble()->getRouteUpdater());
 }
 
-std::vector<HwAsic::AsicType> HwTest::getOtherAsicTypes() const {
+std::vector<cfg::AsicType> HwTest::getOtherAsicTypes() const {
   auto asicList = HwAsic::getAllHwAsicList();
   auto myAsic = hwSwitchEnsemble_->getPlatform()->getAsic()->getAsicType();
 

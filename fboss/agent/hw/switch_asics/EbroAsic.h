@@ -21,8 +21,8 @@ class EbroAsic : public TajoAsic {
         ? isSupportedNonFabric(feature)
         : isSupportedFabric(feature);
   }
-  AsicType getAsicType() const override {
-    return AsicType::ASIC_TYPE_EBRO;
+  cfg::AsicType getAsicType() const override {
+    return cfg::AsicType::ASIC_TYPE_EBRO;
   }
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
     return phy::DataPlanePhyChipType::IPHY;

@@ -190,7 +190,7 @@ TEST_F(BcmInterfaceTest, InterfaceApplyConfig) {
     // FakeAsic not supported (not all APIs are defined in FakeSDK) T92705046
     bool verifyIngress = getHwSwitch()->getPlatform()->getAsic()->isSupported(
                              HwAsic::Feature::INGRESS_L3_INTERFACE) &&
-        getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_FAKE;
+        getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_FAKE;
     checkSwHwIntfMatch(getUnit(), getProgrammedState(), verifyIngress);
     if (getHwSwitch()->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::HOSTTABLE)) {
@@ -225,7 +225,7 @@ TEST_F(BcmInterfaceTest, fromJumboToNonJumboInterface) {
     // FakeAsic not supported (not all APIs are defined in FakeSDK) T92705046
     bool verifyIngress = getHwSwitch()->getPlatform()->getAsic()->isSupported(
                              HwAsic::Feature::INGRESS_L3_INTERFACE) &&
-        getAsic()->getAsicType() != HwAsic::AsicType::ASIC_TYPE_FAKE;
+        getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_FAKE;
     checkSwHwIntfMatch(getUnit(), getProgrammedState(), verifyIngress);
   };
   verifyAcrossWarmBoots(setup, verify);

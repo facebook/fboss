@@ -119,19 +119,19 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
   auto asicType =
       ensemble->getHwSwitch()->getPlatform()->getAsic()->getAsicType();
 
-  if (asicType == HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+  if (asicType == cfg::AsicType::ASIC_TYPE_TRIDENT2) {
     return utility::RSWRouteScaleGenerator(ensemble->getProgrammedState())
         .getThriftRoutes();
   } else if (
-      asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3 ||
-      asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4 ||
-      asicType == HwAsic::AsicType::ASIC_TYPE_EBRO ||
-      asicType == HwAsic::AsicType::ASIC_TYPE_GARONNE ||
-      asicType == HwAsic::AsicType::ASIC_TYPE_INDUS ||
-      asicType == HwAsic::AsicType::ASIC_TYPE_BEAS) {
+      asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
+      asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK4 ||
+      asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
+      asicType == cfg::AsicType::ASIC_TYPE_GARONNE ||
+      asicType == cfg::AsicType::ASIC_TYPE_INDUS ||
+      asicType == cfg::AsicType::ASIC_TYPE_BEAS) {
     return utility::HgridUuRouteScaleGenerator(ensemble->getProgrammedState())
         .getThriftRoutes();
-  } else if (asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK) {
+  } else if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK) {
     return utility::FSWRouteScaleGenerator(ensemble->getProgrammedState())
         .getThriftRoutes();
   } else {

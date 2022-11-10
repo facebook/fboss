@@ -11,8 +11,8 @@ class Trident2Asic : public BroadcomXgsAsic {
  public:
   using BroadcomXgsAsic::BroadcomXgsAsic;
   bool isSupported(Feature) const override;
-  AsicType getAsicType() const override {
-    return AsicType::ASIC_TYPE_TRIDENT2;
+  cfg::AsicType getAsicType() const override {
+    return cfg::AsicType::ASIC_TYPE_TRIDENT2;
   }
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
     return phy::DataPlanePhyChipType::IPHY;

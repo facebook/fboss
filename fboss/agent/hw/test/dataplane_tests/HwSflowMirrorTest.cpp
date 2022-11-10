@@ -49,7 +49,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
      * for now on Tajo to enable sflow with mirroring.
      */
     return getPlatform()->getAsic()->getAsicType() ==
-            HwAsic::AsicType::ASIC_TYPE_EBRO
+            cfg::AsicType::ASIC_TYPE_EBRO
         ? std::vector<PortID>(portIds.begin(), portIds.begin() + 16)
         : portIds;
   }
@@ -76,7 +76,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
      * dest_port_encoding : 3, reserved : 23
      */
     if (getPlatform()->getAsic()->getAsicType() ==
-        HwAsic::AsicType::ASIC_TYPE_EBRO) {
+        cfg::AsicType::ASIC_TYPE_EBRO) {
       auto systemPortId = sflowPayload[0] << 8 | sflowPayload[1];
       return static_cast<PortID>(
           systemPortId - getPlatform()->getAsic()->getSystemPortIDOffset());
@@ -325,7 +325,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacket) {
     EXPECT_EQ(getSflowPacketSrcPort(payload), getPortsForSampling()[1]);
 
     if (getPlatform()->getAsic()->getAsicType() !=
-        HwAsic::AsicType::ASIC_TYPE_EBRO) {
+        cfg::AsicType::ASIC_TYPE_EBRO) {
       // Call parseSflowShim here. And verify
       // 1. Src port is correct
       // 2. Parser correctly identified whether the pkt is from TH3 or TH4.
@@ -439,7 +439,7 @@ TEST_F(HwSflowMirrorTest, VerifySampledPacketCountWithLargePackets) {
   size_t percentErrorThreshold = kDefaultPercentErrorThreshold;
   // raise percent error threshold for Ebro to reduce test flakiness
   if (getPlatform()->getAsic()->getAsicType() ==
-      HwAsic::AsicType::ASIC_TYPE_EBRO) {
+      cfg::AsicType::ASIC_TYPE_EBRO) {
     percentErrorThreshold += 2;
   }
   runSampleRateTest(8192, percentErrorThreshold);

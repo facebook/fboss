@@ -38,8 +38,8 @@ class FakeAsic : public HwAsic {
         return true;
     }
   }
-  AsicType getAsicType() const override {
-    return AsicType::ASIC_TYPE_FAKE;
+  cfg::AsicType getAsicType() const override {
+    return cfg::AsicType::ASIC_TYPE_FAKE;
   }
   std::string getVendor() const override {
     return "fake";

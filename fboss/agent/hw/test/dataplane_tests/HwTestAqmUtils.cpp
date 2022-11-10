@@ -19,7 +19,7 @@ int getRoundedBufferThreshold(
     int expectedThreshold,
     bool roundUp) {
   int threshold{};
-  if (HwAsic::AsicType::ASIC_TYPE_EBRO ==
+  if (cfg::AsicType::ASIC_TYPE_EBRO ==
       hwSwitch->getPlatform()->getAsic()->getAsicType()) {
     /*
      * Ebro splits queue buffers into 16 blocks, watermarks and

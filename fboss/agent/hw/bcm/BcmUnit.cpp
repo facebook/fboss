@@ -328,7 +328,7 @@ void BcmUnit::attach(bool warmBoot) {
   auto asic = platform_->getAsic();
 
   if (asic->isSupported(HwAsic::Feature::PKTIO)) {
-    if (asic->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3) {
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
       usePKTIO_ = FLAGS_use_pktio;
     } else {
       usePKTIO_ = true;

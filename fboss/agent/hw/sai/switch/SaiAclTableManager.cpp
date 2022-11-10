@@ -310,7 +310,7 @@ std::pair<sai_uint32_t, sai_uint32_t>
 SaiAclTableManager::cfgLookupClassToSaiFdbMetaDataAndMask(
     cfg::AclLookupClass lookupClass) const {
   if (platform_->getAsic()->getAsicType() ==
-      HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+      cfg::AsicType::ASIC_TYPE_TRIDENT2) {
     /*
      * lookupClassL2 is not configured on Trident2 or else the ASIC runs out
      * of resources. lookupClassL2 is needed for MH-NIC queue-per-host
@@ -1172,8 +1172,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
    */
   bool isTajo = platform_->getAsic()->getAsicVendor() ==
       HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
-  bool isTrident2 = platform_->getAsic()->getAsicType() ==
-      HwAsic::AsicType::ASIC_TYPE_TRIDENT2;
+  bool isTrident2 =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TRIDENT2;
   std::set<cfg::AclTableQualifier> tajoQualifiers = {
       cfg::AclTableQualifier::SRC_IPV6,
       cfg::AclTableQualifier::DST_IPV6,

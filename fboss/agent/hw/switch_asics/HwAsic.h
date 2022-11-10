@@ -5,21 +5,6 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 namespace facebook::fboss {
-#define ASIC_TYPE_LIST      \
-  {                         \
-      ASIC_TYPE_FAKE,       \
-      ASIC_TYPE_MOCK,       \
-      ASIC_TYPE_TRIDENT2,   \
-      ASIC_TYPE_TOMAHAWK,   \
-      ASIC_TYPE_TOMAHAWK3,  \
-      ASIC_TYPE_TOMAHAWK4,  \
-      ASIC_TYPE_ELBERT_8DD, \
-      ASIC_TYPE_EBRO,       \
-      ASIC_TYPE_GARONNE,    \
-      ASIC_TYPE_SANDIA_PHY, \
-      ASIC_TYPE_INDUS,      \
-      ASIC_TYPE_BEAS,       \
-  };
 
 class HwAsic {
  public:
@@ -134,8 +119,6 @@ class HwAsic {
     FABRIC_TX_QUEUES,
   };
 
-  enum class AsicType ASIC_TYPE_LIST;
-
   enum class AsicMode {
     ASIC_MODE_SIM,
     ASIC_MODE_HW,
@@ -151,7 +134,7 @@ class HwAsic {
   };
   virtual ~HwAsic() {}
   virtual bool isSupported(Feature) const = 0;
-  virtual AsicType getAsicType() const = 0;
+  virtual cfg::AsicType getAsicType() const = 0;
   std::string getAsicTypeStr() const;
   virtual AsicVendor getAsicVendor() const = 0;
   virtual AsicMode getAsicMode() const {
@@ -238,7 +221,7 @@ class HwAsic {
 
   virtual std::optional<uint32_t> getPortSerdesPreemphasis() const = 0;
 
-  static std::vector<AsicType> getAllHwAsicList();
+  static std::vector<cfg::AsicType> getAllHwAsicList();
 
   virtual uint32_t getMaxVariableWidthEcmpSize() const = 0;
 

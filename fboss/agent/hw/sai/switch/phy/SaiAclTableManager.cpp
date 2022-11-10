@@ -26,14 +26,14 @@ SaiAclTableManager::SaiAclTableManager(
       platform_(platform),
       aclEntryMinimumPriority_(
           (platform->getAsic()->getAsicType() ==
-           HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY)
+           cfg::AsicType::ASIC_TYPE_SANDIA_PHY)
               ? 0
               : SaiApiTable::getInstance()->switchApi().getAttribute(
                     managerTable_->switchManager().getSwitchSaiId(),
                     SaiSwitchTraits::Attributes::AclEntryMinimumPriority())),
       aclEntryMaximumPriority_(
           (platform->getAsic()->getAsicType() ==
-           HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY)
+           cfg::AsicType::ASIC_TYPE_SANDIA_PHY)
               ? 0
               : SaiApiTable::getInstance()->switchApi().getAttribute(
                     managerTable_->switchManager().getSwitchSaiId(),

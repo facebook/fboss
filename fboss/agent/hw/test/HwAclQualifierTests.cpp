@@ -122,7 +122,7 @@ class HwAclQualifierTest : public HwTest {
      * implement queues on trident2.
      */
     if (getPlatform()->getAsic()->getAsicType() !=
-        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+        cfg::AsicType::ASIC_TYPE_TRIDENT2) {
       configureQualifier(
           acl->lookupClassL2(),
           true,
@@ -172,7 +172,7 @@ class HwAclQualifierTest : public HwTest {
     switch (lookupClassType) {
       case LookupClassType::LOOKUPCLASS_L2:
         if (getPlatform()->getAsic()->getAsicType() !=
-            HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+            cfg::AsicType::ASIC_TYPE_TRIDENT2) {
           configureQualifier(
               acl->lookupClassL2(),
               true,
@@ -371,7 +371,7 @@ TEST_F(HwAclQualifierTest, AclVlanIDQualifier) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
     if (getPlatform()->getAsic()->getAsicType() ==
-        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+        cfg::AsicType::ASIC_TYPE_TRIDENT2) {
       return;
     }
     auto* acl = utility::addAcl(&newCfg, "acl0", cfg::AclActionType::DENY);
@@ -382,7 +382,7 @@ TEST_F(HwAclQualifierTest, AclVlanIDQualifier) {
 
   auto verify = [=]() {
     if (getPlatform()->getAsic()->getAsicType() ==
-        HwAsic::AsicType::ASIC_TYPE_TRIDENT2) {
+        cfg::AsicType::ASIC_TYPE_TRIDENT2) {
       return;
     }
     EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);

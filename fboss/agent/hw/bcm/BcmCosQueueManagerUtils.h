@@ -26,7 +26,7 @@ enum class BcmChip {
 
 bcm_cosq_stat_t getBcmCosqStatType(
     BcmCosQueueStatType type,
-    HwAsic::AsicType asic);
+    cfg::AsicType asic);
 
 const PortQueue& getDefaultPortQueueSettings(
     BcmChip chip,

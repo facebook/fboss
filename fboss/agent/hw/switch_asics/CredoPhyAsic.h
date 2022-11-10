@@ -11,8 +11,8 @@ class CredoPhyAsic : public HwAsic {
   CredoPhyAsic(cfg::SwitchType type, std::optional<int64_t> id)
       : HwAsic(type, id, {cfg::SwitchType::PHY}) {}
   bool isSupported(Feature feature) const override;
-  AsicType getAsicType() const override {
-    return AsicType::ASIC_TYPE_ELBERT_8DD;
+  cfg::AsicType getAsicType() const override {
+    return cfg::AsicType::ASIC_TYPE_ELBERT_8DD;
   }
   std::string getVendor() const override {
     return "credo";

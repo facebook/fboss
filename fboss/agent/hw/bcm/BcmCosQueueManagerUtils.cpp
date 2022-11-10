@@ -104,7 +104,7 @@ const auto kDefaultTH4PortQueueAqm = makeDefauleAqmMap(kDefaultTH4AqmThreshold);
 namespace facebook::fboss::utility {
 bcm_cosq_stat_t getBcmCosqStatType(
     BcmCosQueueStatType type,
-    HwAsic::AsicType asic) {
+    cfg::AsicType asic) {
   static std::map<BcmCosQueueStatType, bcm_cosq_stat_t> cosqStats{};
   if (cosqStats.size() == 0) {
     std::map<BcmCosQueueStatType, bcm_cosq_stat_t> bcmCosqStats = {
@@ -123,11 +123,11 @@ bcm_cosq_stat_t getBcmCosqStatType(
         {BcmCosQueueStatType::OBM_HIGH_WATERMARK, bcmCosqStatOBMHighWatermark},
     };
 
-    if (asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3 ||
-        asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+    if (asic == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
+        asic == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
       bcmCosqStats[BcmCosQueueStatType::WRED_DROPPED_PACKETS] =
           bcmCosqStatTotalDiscardDroppedPackets;
-    } else if (asic == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK) {
+    } else if (asic == cfg::AsicType::ASIC_TYPE_TOMAHAWK) {
       bcmCosqStats[BcmCosQueueStatType::WRED_DROPPED_PACKETS] =
           bcmCosqStatDiscardUCDroppedPackets;
     }

@@ -448,9 +448,9 @@ TYPED_TEST(HwRouteTest, StaticIp2MplsRoutes) {
 
 TYPED_TEST(HwRouteTest, VerifyRouting) {
   if (this->getPlatform()->getAsic()->getAsicType() ==
-          HwAsic::AsicType::ASIC_TYPE_FAKE ||
+          cfg::AsicType::ASIC_TYPE_FAKE ||
       this->getPlatform()->getAsic()->getAsicType() ==
-          HwAsic::AsicType::ASIC_TYPE_MOCK) {
+          cfg::AsicType::ASIC_TYPE_MOCK) {
     GTEST_SKIP();
     return;
   }

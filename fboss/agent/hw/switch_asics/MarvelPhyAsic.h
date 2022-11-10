@@ -11,8 +11,8 @@ class MarvelPhyAsic : public HwAsic {
   MarvelPhyAsic(cfg::SwitchType type, std::optional<int64_t> id)
       : HwAsic(type, id, {cfg::SwitchType::PHY}) {}
   bool isSupported(Feature feature) const override;
-  AsicType getAsicType() const override {
-    return AsicType::ASIC_TYPE_SANDIA_PHY;
+  cfg::AsicType getAsicType() const override {
+    return cfg::AsicType::ASIC_TYPE_SANDIA_PHY;
   }
   std::string getVendor() const override {
     return "marvell";

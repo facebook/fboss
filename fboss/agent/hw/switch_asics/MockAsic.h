@@ -30,8 +30,8 @@ class MockAsic : public HwAsic {
         return true;
     }
   }
-  AsicType getAsicType() const override {
-    return AsicType::ASIC_TYPE_MOCK;
+  cfg::AsicType getAsicType() const override {
+    return cfg::AsicType::ASIC_TYPE_MOCK;
   }
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
     return phy::DataPlanePhyChipType::IPHY;

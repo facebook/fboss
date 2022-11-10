@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/FbossError.h"
 
 DEFINE_int32(acl_gid, -1, "Content aware processor group ID for ACLs");
@@ -17,10 +18,6 @@ namespace {
 constexpr auto kDefaultACLGroupID = 128;
 constexpr auto kDefaultTeFlowGroupID = 1;
 constexpr auto kDefaultDropEgressID = 100000;
-enum IntAsicType ASIC_TYPE_LIST;
-std::vector<IntAsicType> getAsicTypeIntList() {
-  return ASIC_TYPE_LIST;
-}
 } // namespace
 
 namespace facebook::fboss {
@@ -69,10 +66,9 @@ int HwAsic::getDefaultDropEgressID() const {
   return kDefaultDropEgressID;
 }
 
-std::vector<HwAsic::AsicType> HwAsic::getAllHwAsicList() {
-  std::vector<HwAsic::AsicType> result{};
-  for (int asic : getAsicTypeIntList()) {
-    HwAsic::AsicType asicType = static_cast<HwAsic::AsicType>(asic);
+std::vector<cfg::AsicType> HwAsic::getAllHwAsicList() {
+  std::vector<cfg::AsicType> result;
+  for (auto asicType : apache::thrift::TEnumTraits<cfg::AsicType>::values) {
     result.push_back(asicType);
   }
   return result;
@@ -94,32 +90,6 @@ cfg::Range64 HwAsic::makeRange(int64_t min, int64_t max) {
   return kRange;
 }
 std::string HwAsic::getAsicTypeStr() const {
-  switch (getAsicType()) {
-    case AsicType::ASIC_TYPE_FAKE:
-      return "Fake";
-    case AsicType::ASIC_TYPE_MOCK:
-      return "Mock";
-    case AsicType::ASIC_TYPE_TRIDENT2:
-      return "TD2";
-    case AsicType::ASIC_TYPE_TOMAHAWK:
-      return "TH";
-    case AsicType::ASIC_TYPE_TOMAHAWK3:
-      return "TH3";
-    case AsicType::ASIC_TYPE_TOMAHAWK4:
-      return "TH4";
-    case AsicType::ASIC_TYPE_ELBERT_8DD:
-      return "Elbert_8DD";
-    case AsicType::ASIC_TYPE_EBRO:
-      return "Ebro";
-    case AsicType::ASIC_TYPE_GARONNE:
-      return "Garonne";
-    case AsicType::ASIC_TYPE_SANDIA_PHY:
-      return "Sandia_phy";
-    case AsicType::ASIC_TYPE_INDUS:
-      return "Indus";
-    case AsicType::ASIC_TYPE_BEAS:
-      return "Beas";
-  }
-  throw FbossError("Unhandled ASIC type: ", getAsicType());
+  return apache::thrift::util::enumNameSafe(getAsicType());
 }
 } // namespace facebook::fboss

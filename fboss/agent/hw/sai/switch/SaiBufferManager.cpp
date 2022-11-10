@@ -45,24 +45,24 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
       switchId, SaiSwitchTraits::Attributes::EgressPoolAvaialableSize{});
   auto maxEgressPoolSize = SaiBufferManager::getMaxEgressPoolBytes(platform);
   switch (asic->getAsicType()) {
-    case HwAsic::AsicType::ASIC_TYPE_EBRO:
-    case HwAsic::AsicType::ASIC_TYPE_GARONNE:
-    case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
-    case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
-    case HwAsic::AsicType::ASIC_TYPE_INDUS:
-    case HwAsic::AsicType::ASIC_TYPE_BEAS:
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_GARONNE:
+    case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case cfg::AsicType::ASIC_TYPE_INDUS:
+    case cfg::AsicType::ASIC_TYPE_BEAS:
       XLOG(FATAL) << " Not supported";
       break;
-    case HwAsic::AsicType::ASIC_TYPE_FAKE:
-    case HwAsic::AsicType::ASIC_TYPE_MOCK:
+    case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_MOCK:
       break;
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
       // Available buffer is per XPE
       CHECK_EQ(maxEgressPoolSize, availableBuffer * 4);
       break;
-    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       CHECK_EQ(maxEgressPoolSize, availableBuffer);
       break;
   }
@@ -78,40 +78,40 @@ SaiBufferManager::SaiBufferManager(
 uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
   auto asic = platform->getAsic();
   switch (asic->getAsicType()) {
-    case HwAsic::AsicType::ASIC_TYPE_FAKE:
-    case HwAsic::AsicType::ASIC_TYPE_MOCK:
-    case HwAsic::AsicType::ASIC_TYPE_EBRO:
-    case HwAsic::AsicType::ASIC_TYPE_GARONNE:
+    case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_MOCK:
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_GARONNE:
       return asic->getMMUSizeBytes();
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK: {
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK: {
       auto constexpr kNumXpes = 4;
       auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
       auto perXpeCells = saiBcmPlatform->numCellsAvailable();
       return perXpeCells * kNumXpes *
           static_cast<const TomahawkAsic*>(asic)->getMMUCellSize();
     }
-    case HwAsic::AsicType::ASIC_TYPE_TRIDENT2: {
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2: {
       auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
       auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
       return kCellsAvailable *
           static_cast<const Trident2Asic*>(asic)->getMMUCellSize();
     }
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3: {
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3: {
       auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
       auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
       return kCellsAvailable *
           static_cast<const Tomahawk3Asic*>(asic)->getMMUCellSize();
     }
-    case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4: {
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4: {
       auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
       auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
       return kCellsAvailable *
           static_cast<const Tomahawk4Asic*>(asic)->getMMUCellSize();
     }
-    case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
-    case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
-    case HwAsic::AsicType::ASIC_TYPE_INDUS:
-    case HwAsic::AsicType::ASIC_TYPE_BEAS:
+    case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case cfg::AsicType::ASIC_TYPE_INDUS:
+    case cfg::AsicType::ASIC_TYPE_BEAS:
       throw FbossError(
           "Not supported to get max egress pool for ASIC: ",
           asic->getAsicType());

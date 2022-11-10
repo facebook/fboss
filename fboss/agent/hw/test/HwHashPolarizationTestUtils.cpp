@@ -30,46 +30,46 @@ std::vector<std::string> toStringVec(const std::vector<std::string_view>& in) {
 }
 
 std::unique_ptr<std::vector<utility::EthFrame>> getFullHashedPackets(
-    HwAsic::AsicType asic,
+    cfg::AsicType asic,
     bool isSai) {
   if (isSai) {
     switch (asic) {
-      case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
+      case cfg::AsicType::ASIC_TYPE_TRIDENT2:
         return getEthFrames(getFullHashedPacketsForTrident2Sai());
-      case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
         return getEthFrames(getFullHashedPacketsForTomahawkSai());
 
-      case HwAsic::AsicType::ASIC_TYPE_FAKE:
-      case HwAsic::AsicType::ASIC_TYPE_MOCK:
-      case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
-      case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
-      case HwAsic::AsicType::ASIC_TYPE_EBRO:
-      case HwAsic::AsicType::ASIC_TYPE_GARONNE:
-      case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
-      case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
-      case HwAsic::AsicType::ASIC_TYPE_INDUS:
-      case HwAsic::AsicType::ASIC_TYPE_BEAS:
+      case cfg::AsicType::ASIC_TYPE_FAKE:
+      case cfg::AsicType::ASIC_TYPE_MOCK:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+      case cfg::AsicType::ASIC_TYPE_EBRO:
+      case cfg::AsicType::ASIC_TYPE_GARONNE:
+      case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+      case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+      case cfg::AsicType::ASIC_TYPE_INDUS:
+      case cfg::AsicType::ASIC_TYPE_BEAS:
         return nullptr;
     }
   } else {
     switch (asic) {
-      case HwAsic::AsicType::ASIC_TYPE_TRIDENT2:
+      case cfg::AsicType::ASIC_TYPE_TRIDENT2:
         return getEthFrames(getFullHashedPacketsForTrident2());
-      case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
         return getEthFrames(getFullHashedPacketsForTomahawk());
-      case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
         return getEthFrames(getFullHashedPacketsForTomahawk3());
-      case HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
         return getEthFrames(getFullHashedPacketsForTomahawk4());
 
-      case HwAsic::AsicType::ASIC_TYPE_FAKE:
-      case HwAsic::AsicType::ASIC_TYPE_MOCK:
-      case HwAsic::AsicType::ASIC_TYPE_EBRO:
-      case HwAsic::AsicType::ASIC_TYPE_GARONNE:
-      case HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD:
-      case HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY:
-      case HwAsic::AsicType::ASIC_TYPE_INDUS:
-      case HwAsic::AsicType::ASIC_TYPE_BEAS:
+      case cfg::AsicType::ASIC_TYPE_FAKE:
+      case cfg::AsicType::ASIC_TYPE_MOCK:
+      case cfg::AsicType::ASIC_TYPE_EBRO:
+      case cfg::AsicType::ASIC_TYPE_GARONNE:
+      case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+      case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+      case cfg::AsicType::ASIC_TYPE_INDUS:
+      case cfg::AsicType::ASIC_TYPE_BEAS:
         return nullptr;
     }
   }

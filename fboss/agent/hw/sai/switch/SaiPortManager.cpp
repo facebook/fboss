@@ -1781,7 +1781,7 @@ TransmitterTechnology SaiPortManager::getMedium(PortID portID) const {
   auto handle = getPortHandle(portID);
   auto saiPortId = handle->port->adapterKey();
   if (platform_->getAsic()->getAsicType() ==
-      HwAsic::AsicType::ASIC_TYPE_SANDIA_PHY) {
+      cfg::AsicType::ASIC_TYPE_SANDIA_PHY) {
     return TransmitterTechnology::OPTICAL;
   }
   auto saiMediaType = SaiApiTable::getInstance()->portApi().getAttribute(

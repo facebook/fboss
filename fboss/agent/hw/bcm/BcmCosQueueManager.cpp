@@ -92,8 +92,8 @@ int cosqGportTraverseCallback(
                         ->getPlatform()
                         ->getAsic()
                         ->getAsicType();
-    if ((asicType == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK ||
-         asicType == HwAsic::AsicType::ASIC_TYPE_FAKE) &&
+    if ((asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK ||
+         asicType == cfg::AsicType::ASIC_TYPE_FAKE) &&
         !BCM_COSQ_QUEUE_VALID(unit, cosQ)) {
       // skip this queue
     } else {

@@ -13,8 +13,8 @@ class Tomahawk4Asic : public BroadcomXgsAsic {
  public:
   using BroadcomXgsAsic::BroadcomXgsAsic;
   bool isSupported(Feature) const override;
-  AsicType getAsicType() const override {
-    return AsicType::ASIC_TYPE_TOMAHAWK4;
+  cfg::AsicType getAsicType() const override {
+    return cfg::AsicType::ASIC_TYPE_TOMAHAWK4;
   }
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
     return phy::DataPlanePhyChipType::IPHY;

@@ -156,7 +156,7 @@ class HwTest : public ::testing::Test,
     ecmp.programRoutes(getRouteUpdater(), width);
   }
 
-  std::vector<HwAsic::AsicType> getOtherAsicTypes() const;
+  std::vector<cfg::AsicType> getOtherAsicTypes() const;
 
  private:
   virtual std::optional<TransceiverInfo> overrideTransceiverInfo() const {

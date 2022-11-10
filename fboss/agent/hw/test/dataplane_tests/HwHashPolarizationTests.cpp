@@ -227,7 +227,7 @@ TEST_F(HwHashPolarizationTests, fullXfullHashWithDifferentSeeds) {
   runTest(firstHashes, secondHashes, false /*expect polarization*/);
 }
 
-template <HwAsic::AsicType kAsic, bool kSai>
+template <cfg::AsicType kAsic, bool kSai>
 struct HwHashPolarizationTestForAsic : public HwHashPolarizationTests {
   bool isAsic() {
     return getHwSwitchEnsemble()->getPlatform()->getAsic()->getAsicType() ==
@@ -237,7 +237,7 @@ struct HwHashPolarizationTestForAsic : public HwHashPolarizationTests {
     // run test only if underlying ASIC and SAI mode matches
     return isAsic() && getHwSwitchEnsemble()->isSai() == kSai;
   }
-  void runTest(HwAsic::AsicType type, bool sai) {
+  void runTest(cfg::AsicType type, bool sai) {
     if (!shouldRunTest()) {
       GTEST_SKIP();
       return;
@@ -260,231 +260,226 @@ struct HwHashPolarizationTestForAsic : public HwHashPolarizationTests {
   }
 };
 
-struct HwHashPolarizationTestForTD2 : HwHashPolarizationTestForAsic<
-                                          HwAsic::AsicType::ASIC_TYPE_TRIDENT2,
-                                          false> {};
+struct HwHashPolarizationTestForTD2
+    : HwHashPolarizationTestForAsic<cfg::AsicType::ASIC_TYPE_TRIDENT2, false> {
+};
 
 TEST_F(HwHashPolarizationTestForTD2, With_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, false);
 }
 
 TEST_F(HwHashPolarizationTestForTD2, With_SAI_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, true);
 }
 
 TEST_F(HwHashPolarizationTestForTD2, With_SAI_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, true);
 }
 
 TEST_F(HwHashPolarizationTestForTD2, With_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, false);
 }
 
 TEST_F(HwHashPolarizationTestForTD2, With_TH3) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK3, false);
 }
 
 TEST_F(HwHashPolarizationTestForTD2, With_TH4) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK4, false);
 }
 
 struct HwHashPolarizationTestForSAITD2
-    : HwHashPolarizationTestForAsic<
-          HwAsic::AsicType::ASIC_TYPE_TRIDENT2,
-          true> {};
+    : HwHashPolarizationTestForAsic<cfg::AsicType::ASIC_TYPE_TRIDENT2, true> {};
 
 TEST_F(HwHashPolarizationTestForSAITD2, With_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, false);
 }
 
 TEST_F(HwHashPolarizationTestForSAITD2, With_SAI_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, true);
 }
 
 TEST_F(HwHashPolarizationTestForSAITD2, With_SAI_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, true);
 }
 
 TEST_F(HwHashPolarizationTestForSAITD2, With_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, false);
 }
 
 TEST_F(HwHashPolarizationTestForSAITD2, With_TH3) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK3, false);
 }
 
 TEST_F(HwHashPolarizationTestForSAITD2, With_TH4) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK4, false);
 }
 
-struct HwHashPolarizationTestForTH : HwHashPolarizationTestForAsic<
-                                         HwAsic::AsicType::ASIC_TYPE_TOMAHAWK,
-                                         false> {};
+struct HwHashPolarizationTestForTH
+    : HwHashPolarizationTestForAsic<cfg::AsicType::ASIC_TYPE_TOMAHAWK, false> {
+};
 
 TEST_F(HwHashPolarizationTestForTH, With_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, false);
 }
 
 TEST_F(HwHashPolarizationTestForTH, With_SAI_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, true);
 }
 
 TEST_F(HwHashPolarizationTestForTH, With_SAI_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, true);
 }
 
 TEST_F(HwHashPolarizationTestForTH, With_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, false);
 }
 
 TEST_F(HwHashPolarizationTestForTH, With_TH3) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK3, false);
 }
 
 TEST_F(HwHashPolarizationTestForTH, With_TH4) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK4, false);
 }
 
 struct HwHashPolarizationTestForSAITH
-    : HwHashPolarizationTestForAsic<
-          HwAsic::AsicType::ASIC_TYPE_TOMAHAWK,
-          true> {};
+    : HwHashPolarizationTestForAsic<cfg::AsicType::ASIC_TYPE_TOMAHAWK, true> {};
 
 TEST_F(HwHashPolarizationTestForSAITH, With_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, false);
 }
 
 TEST_F(HwHashPolarizationTestForSAITH, With_SAI_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, true);
 }
 
 TEST_F(HwHashPolarizationTestForSAITH, With_SAI_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, true);
 }
 
 TEST_F(HwHashPolarizationTestForSAITH, With_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, false);
 }
 
 TEST_F(HwHashPolarizationTestForSAITH, With_TH3) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK3, false);
 }
 
 TEST_F(HwHashPolarizationTestForSAITH, With_TH4) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK3, false);
 }
 
-struct HwHashPolarizationTestForTH3 : HwHashPolarizationTestForAsic<
-                                          HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3,
-                                          false> {};
+struct HwHashPolarizationTestForTH3
+    : HwHashPolarizationTestForAsic<cfg::AsicType::ASIC_TYPE_TOMAHAWK3, false> {
+};
 
 TEST_F(HwHashPolarizationTestForTH3, With_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, false);
 }
 
 TEST_F(HwHashPolarizationTestForTH3, With_SAI_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, true);
 }
 
 TEST_F(HwHashPolarizationTestForTH3, With_SAI_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, true);
 }
 
 TEST_F(HwHashPolarizationTestForTH3, With_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, false);
 }
 
 TEST_F(HwHashPolarizationTestForTH3, With_TH3) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK3, false);
 }
 
 TEST_F(HwHashPolarizationTestForTH3, With_TH4) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK4, false);
 }
 
 struct HwHashPolarizationTestForSAITH3
-    : HwHashPolarizationTestForAsic<
-          HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3,
-          true> {};
+    : HwHashPolarizationTestForAsic<cfg::AsicType::ASIC_TYPE_TOMAHAWK3, true> {
+};
 
 TEST_F(HwHashPolarizationTestForSAITH3, With_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, false);
 }
 
 TEST_F(HwHashPolarizationTestForSAITH3, With_SAI_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, true);
 }
 
 TEST_F(HwHashPolarizationTestForSAITH3, With_SAI_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, true);
 }
 
 TEST_F(HwHashPolarizationTestForSAITH3, With_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, false);
 }
 
 TEST_F(HwHashPolarizationTestForSAITH3, With_TH3) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK3, false);
 }
 
 TEST_F(HwHashPolarizationTestForSAITH3, With_TH4) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK4, false);
 }
 
-struct HwHashPolarizationTestForTH4 : HwHashPolarizationTestForAsic<
-                                          HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4,
-                                          false> {};
+struct HwHashPolarizationTestForTH4
+    : HwHashPolarizationTestForAsic<cfg::AsicType::ASIC_TYPE_TOMAHAWK4, false> {
+};
 
 TEST_F(HwHashPolarizationTestForTH4, With_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, false);
 }
 
 TEST_F(HwHashPolarizationTestForTH4, With_SAI_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, true);
 }
 
 TEST_F(HwHashPolarizationTestForTH4, With_SAI_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, true);
 }
 
 TEST_F(HwHashPolarizationTestForTH4, With_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, false);
 }
 
 TEST_F(HwHashPolarizationTestForTH4, With_TH3) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK3, false);
 }
 
 TEST_F(HwHashPolarizationTestForTH4, With_TH4) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK4, false);
 }
 
-struct HwHashPolarizationTestSAITH4 : HwHashPolarizationTestForAsic<
-                                          HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4,
-                                          true> {};
+struct HwHashPolarizationTestSAITH4
+    : HwHashPolarizationTestForAsic<cfg::AsicType::ASIC_TYPE_TOMAHAWK4, true> {
+};
 
 TEST_F(HwHashPolarizationTestSAITH4, With_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, false);
 }
 
 TEST_F(HwHashPolarizationTestSAITH4, With_SAI_TH) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK, true);
 }
 
 TEST_F(HwHashPolarizationTestSAITH4, With_SAI_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, true);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, true);
 }
 
 TEST_F(HwHashPolarizationTestSAITH4, With_TD2) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TRIDENT2, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TRIDENT2, false);
 }
 
 TEST_F(HwHashPolarizationTestSAITH4, With_TH3) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK3, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK3, false);
 }
 
 TEST_F(HwHashPolarizationTestSAITH4, With_TH4) {
-  runTest(HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4, false);
+  runTest(cfg::AsicType::ASIC_TYPE_TOMAHAWK4, false);
 }
 
 template <int kNumAggregatePorts, int kAggregatePortWidth>

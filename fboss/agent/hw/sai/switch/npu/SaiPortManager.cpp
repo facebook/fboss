@@ -49,8 +49,7 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
       };
       return counterIds;
     }
-    if (platform_->getAsic()->getAsicType() ==
-        HwAsic::AsicType::ASIC_TYPE_INDUS) {
+    if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_INDUS) {
       /*
        * TODO(skhare) INDUS ASIC supports only a small set of stats today.
        * Remove this check once INDUS ASIC supports querying all (most) of the
@@ -603,8 +602,7 @@ void SaiPortManager::programSerdes(
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
 
-  if (platform_->getAsic()->getAsicType() ==
-      HwAsic::AsicType::ASIC_TYPE_GARONNE) {
+  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_GARONNE) {
     /*
      * SI settings are not programmed to the hardware when the port is
      * created with admin UP. We need to explicitly toggle the admin
@@ -827,8 +825,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
      * --------------------------------------------------------------------
      */
     if (platform_->getHwSwitch()->getBootType() == BootType::WARM_BOOT &&
-        platform_->getAsic()->getAsicType() ==
-            HwAsic::AsicType::ASIC_TYPE_EBRO &&
+        platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO &&
         serdes) {
       auto rxDspModeFromStore = std::get<std::optional<std::decay_t<decltype(
           SaiPortSerdesTraits::Attributes::RxDspMode{})>>>(

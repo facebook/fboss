@@ -235,10 +235,10 @@ void SaiPlatform::initPorts() {
     } else if (platformMode == PlatformMode::FUJI) {
       saiPort = std::make_unique<SaiBcmFujiPlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::ELBERT) {
-      if (getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_ELBERT_8DD) {
+      if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
         saiPort = std::make_unique<SaiElbert8DDPhyPlatformPort>(portId, this);
       } else if (
-          getAsic()->getAsicType() == HwAsic::AsicType::ASIC_TYPE_TOMAHAWK4) {
+          getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
         saiPort = std::make_unique<SaiBcmElbertPlatformPort>(portId, this);
       }
     } else if (platformMode == PlatformMode::LASSEN) {
