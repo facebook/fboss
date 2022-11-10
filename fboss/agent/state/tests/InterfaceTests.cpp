@@ -571,3 +571,17 @@ TEST(InterfaceMap, applyConfig) {
   EXPECT_EQ(4, intfsV4->getGeneration());
   EXPECT_EQ(1337, intfsV4->getInterface(InterfaceID(3))->getMtu());
 }
+
+TEST(Interface, GetLocalInterfacesBySwitchId) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigA(cfg::SwitchType::VOQ);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto mySwitchId = stateV1->getSwitchSettings()->getSwitchId();
+  CHECK(mySwitchId) << "Switch ID must be set for VOQ switch";
+  auto myRif = stateV1->getInterfaces(SwitchID(*mySwitchId));
+  EXPECT_EQ(myRif->size(), stateV1->getInterfaces()->size());
+  // No remote sys ports
+  EXPECT_EQ(stateV1->getInterfaces(SwitchID(*mySwitchId + 1))->size(), 0);
+}
