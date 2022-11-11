@@ -10,6 +10,18 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/switch_asics/BeasAsic.h"
+#include "fboss/agent/hw/switch_asics/CredoPhyAsic.h"
+#include "fboss/agent/hw/switch_asics/EbroAsic.h"
+#include "fboss/agent/hw/switch_asics/FakeAsic.h"
+#include "fboss/agent/hw/switch_asics/GaronneAsic.h"
+#include "fboss/agent/hw/switch_asics/IndusAsic.h"
+#include "fboss/agent/hw/switch_asics/MarvelPhyAsic.h"
+#include "fboss/agent/hw/switch_asics/MockAsic.h"
+#include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
+#include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
+#include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
+#include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 
 DEFINE_int32(acl_gid, -1, "Content aware processor group ID for ACLs");
 DEFINE_int32(teFlow_gid, -1, "Exact Match group ID for TeFlows");
@@ -44,6 +56,38 @@ int HwAsic::getDefaultACLGroupID() const {
   }
 }
 
+std::unique_ptr<HwAsic> HwAsic::makeAsic(
+    cfg::AsicType asicType,
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
+  switch (asicType) {
+    case cfg::AsicType::ASIC_TYPE_FAKE:
+      return std::make_unique<FakeAsic>(switchType, switchId);
+    case cfg::AsicType::ASIC_TYPE_MOCK:
+      return std::make_unique<MockAsic>(switchType, switchId);
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+      return std::make_unique<Trident2Asic>(switchType, switchId);
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+      return std::make_unique<TomahawkAsic>(switchType, switchId);
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+      return std::make_unique<Tomahawk3Asic>(switchType, switchId);
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+      return std::make_unique<Tomahawk4Asic>(switchType, switchId);
+    case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+      return std::make_unique<CredoPhyAsic>(switchType, switchId);
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+      return std::make_unique<EbroAsic>(switchType, switchId);
+    case cfg::AsicType::ASIC_TYPE_GARONNE:
+      return std::make_unique<GaronneAsic>(switchType, switchId);
+    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+      return std::make_unique<MarvelPhyAsic>(switchType, switchId);
+    case cfg::AsicType::ASIC_TYPE_INDUS:
+      return std::make_unique<IndusAsic>(switchType, switchId);
+    case cfg::AsicType::ASIC_TYPE_BEAS:
+      return std::make_unique<BeasAsic>(switchType, switchId);
+  };
+  throw FbossError("Unexcepted asic type: ", asicType);
+}
 /*
  * Default Content Aware Processor group ID for TeFlows
  */

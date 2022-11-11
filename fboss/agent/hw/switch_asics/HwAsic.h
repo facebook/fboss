@@ -133,6 +133,10 @@ class HwAsic {
     ASIC_VENDOR_FAKE,
   };
   virtual ~HwAsic() {}
+  static std::unique_ptr<HwAsic> makeAsic(
+      cfg::AsicType asicType,
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchID);
   virtual bool isSupported(Feature) const = 0;
   virtual cfg::AsicType getAsicType() const = 0;
   std::string getAsicTypeStr() const;
