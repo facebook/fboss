@@ -251,6 +251,31 @@ TEST_F(HwAclStatTest, AclStatDelete) {
   verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
+TEST_F(HwAclStatTest, AclStatCreatePostWarmBoot) {
+  auto setup = [=]() {
+    auto newCfg = initialConfig();
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {};
+
+  auto setupPostWB = [&]() {
+    auto newCfg = initialConfig();
+    addDscpAcl(&newCfg, "acl0");
+    utility::addAclStat(&newCfg, "acl0", "stat0");
+    applyNewConfig(newCfg);
+  };
+
+  auto verifyPostWB = [=]() {
+    utility::checkAclEntryAndStatCount(
+        getHwSwitch(), /*ACLs*/ 1, /*stats*/ 1, /*counters*/ 1);
+    utility::checkAclStat(
+        getHwSwitch(), getProgrammedState(), {"acl0"}, "stat0");
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+}
+
 TEST_F(HwAclStatTest, AclStatDeleteShared) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
