@@ -304,11 +304,11 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->arpTimeout;
   }
 
-  std::shared_ptr<AclMap> getAclsForTable(
+  std::shared_ptr<const AclMap> getAclsForTable(
       cfg::AclStage aclStage,
       const std::string& tableName) const;
 
-  std::shared_ptr<AclTableMap> getAclTablesForStage(
+  std::shared_ptr<const AclTableMap> getAclTablesForStage(
       cfg::AclStage aclStage) const;
 
   const std::shared_ptr<SflowCollectorMap>& getSflowCollectors() const {

@@ -114,7 +114,7 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
     return *getFields()->data().id();
   }
 
-  std::shared_ptr<AclMap> getAclMap() const {
+  std::shared_ptr<const AclMap> getAclMap() const {
     return getFields()->aclMap_;
   }
 

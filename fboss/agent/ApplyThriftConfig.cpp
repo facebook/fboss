@@ -2359,7 +2359,7 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
     newTable->setAclMap(newTableEntries);
   } else if (origTable) {
     // entries are unchanged from original table
-    newTable->setAclMap(origTable->getAclMap());
+    newTable->setAclMap(origTable->getAclMap()->clone());
   } else {
     // original table does not exist, and new table is empty
     newTable->setAclMap(std::make_shared<AclMap>());

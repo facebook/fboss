@@ -117,7 +117,7 @@ class AclTableGroup : public NodeBaseT<AclTableGroup, AclTableGroupFields> {
     writableFields()->writableData().name() = name;
   }
 
-  std::shared_ptr<AclTableMap> getAclTableMap() const {
+  std::shared_ptr<const AclTableMap> getAclTableMap() const {
     return getFields()->aclTableMap_;
   }
 

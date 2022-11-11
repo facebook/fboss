@@ -619,7 +619,7 @@ void SwitchState::resetDsfNodes(std::shared_ptr<DsfNodeMap> dsfNodes) {
   writableFields()->dsfNodes.swap(dsfNodes);
 }
 
-std::shared_ptr<AclTableMap> SwitchState::getAclTablesForStage(
+std::shared_ptr<const AclTableMap> SwitchState::getAclTablesForStage(
     cfg::AclStage aclStage) const {
   if (getAclTableGroups() &&
       getAclTableGroups()->getAclTableGroupIf(aclStage) &&
@@ -630,7 +630,7 @@ std::shared_ptr<AclTableMap> SwitchState::getAclTablesForStage(
   return nullptr;
 }
 
-std::shared_ptr<AclMap> SwitchState::getAclsForTable(
+std::shared_ptr<const AclMap> SwitchState::getAclsForTable(
     cfg::AclStage aclStage,
     const std::string& tableName) const {
   auto aclTableMap = getAclTablesForStage(aclStage);

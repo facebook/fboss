@@ -119,7 +119,7 @@ class PrioAclMap : public NodeMapT<PrioAclMap, PrioAclMapTraits> {
   PrioAclMap() {}
   ~PrioAclMap() override {}
 
-  void addAcls(const std::shared_ptr<AclMap>& acls) {
+  void addAcls(const std::shared_ptr<const AclMap>& acls) {
     for (const auto& aclEntry : *acls) {
       addNode(aclEntry);
     }
