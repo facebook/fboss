@@ -233,7 +233,8 @@ BcmTeFlowEntry::~BcmTeFlowEntry() {
 }
 
 TeFlow BcmTeFlowEntry::getID() const {
-  return teFlow_->getID();
+  // THRIFT_COPY
+  return teFlow_->getFlow()->toThrift();
 }
 
 bool BcmTeFlowEntry::isStateSame(

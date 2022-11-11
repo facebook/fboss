@@ -483,7 +483,9 @@ void SwSwitch::updateStats() {
 std::map<std::string, HwTeFlowStats> SwSwitch::getTeFlowStats() {
   std::map<std::string, HwTeFlowStats> teFlowStats;
   auto statMap = facebook::fb303::fbData->getStatMap();
-  for (const auto& flowEntry : *getState()->getTeFlowTable()) {
+  for (const auto& [flowStr, flowEntry] :
+       std::as_const(*getState()->getTeFlowTable())) {
+    std::ignore = flowStr;
     if (const auto& counter = flowEntry->getCounterID()) {
       auto statName = folly::to<std::string>(counter->toThrift(), ".bytes");
       // returns default stat if statName does not exists

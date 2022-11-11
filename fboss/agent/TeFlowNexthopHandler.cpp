@@ -60,7 +60,7 @@ std::shared_ptr<TeFlowTable> TeFlowNexthopHandler::updateTeFlowEntries(
     std::shared_ptr<SwitchState>& newState) {
   bool changed = false;
   auto teFlowTable = newState->getTeFlowTable();
-  for (auto originalEntry : *teFlowTable) {
+  for (const auto& [flowStr, originalEntry] : std::as_const(*teFlowTable)) {
     if (updateTeFlowEntry(originalEntry, newState)) {
       changed = true;
     }

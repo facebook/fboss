@@ -63,13 +63,13 @@ TeFlowTable* TeFlowTable::removeTeFlowEntry(
     std::shared_ptr<SwitchState>* state,
     const TeFlow& flowId) {
   auto* writableTable = modify(state);
+  auto id = getTeFlowStr(flowId);
   auto oldFlowEntry = writableTable->getTeFlowIf(flowId);
   if (!oldFlowEntry) {
-    XLOG(ERR) << "Request to delete a non existing flow entry :"
-              << getTeFlowStr(flowId);
+    XLOG(ERR) << "Request to delete a non existing flow entry :" << id;
     return writableTable;
   }
-  writableTable->removeNodeIf(flowId);
+  writableTable->removeNodeIf(id);
   XLOG(DBG3) << "Deleting TeFlow " << oldFlowEntry->str();
   return writableTable;
 }
@@ -140,6 +140,6 @@ std::string getTeFlowStr(const TeFlow& flow) {
   return flowStr;
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(TeFlowTable, TeFlowTableTraits);
+template class ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits>;
 
 } // namespace facebook::fboss

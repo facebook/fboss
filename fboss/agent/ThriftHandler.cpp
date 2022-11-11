@@ -2576,8 +2576,8 @@ void ThriftHandler::getTeFlowTableDetails(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   auto teFlowTable = sw_->getState()->getTeFlowTable();
-  for (const auto& entry : *teFlowTable) {
-    flowTable.emplace_back(entry->toDetails());
+  for (const auto& [flowStr, flowEntry] : std::as_const(*teFlowTable)) {
+    flowTable.emplace_back(flowEntry->toDetails());
   }
 }
 } // namespace facebook::fboss

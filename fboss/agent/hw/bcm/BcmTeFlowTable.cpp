@@ -115,14 +115,14 @@ void BcmTeFlowTable::releaseTeFlows() {
 void BcmTeFlowTable::processAddedTeFlow(
     const int groupId,
     const std::shared_ptr<TeFlowEntry>& teFlow) {
-  if (teFlowEntryMap_.find(teFlow->getID()) != teFlowEntryMap_.end()) {
+  auto id = teFlow->getFlow()->toThrift();
+  if (teFlowEntryMap_.find(id) != teFlowEntryMap_.end()) {
     throw FbossError("TeFlow=", teFlow->str(), " already exists");
   }
 
   std::unique_ptr<BcmTeFlowEntry> bcmTeFlow =
       std::make_unique<BcmTeFlowEntry>(hw_, groupId, teFlow);
-  const auto& entry =
-      teFlowEntryMap_.emplace(teFlow->getID(), std::move(bcmTeFlow));
+  const auto& entry = teFlowEntryMap_.emplace(id, std::move(bcmTeFlow));
   if (!entry.second) {
     throw FbossError("Failed to add an existing TeFlow entry");
   }
@@ -130,7 +130,8 @@ void BcmTeFlowTable::processAddedTeFlow(
 
 void BcmTeFlowTable::processRemovedTeFlow(
     const std::shared_ptr<TeFlowEntry>& teFlow) {
-  auto iter = teFlowEntryMap_.find(teFlow->getID());
+  auto id = teFlow->getFlow()->toThrift();
+  auto iter = teFlowEntryMap_.find(id);
   if (iter == teFlowEntryMap_.end()) {
     XLOG(DBG3) << "Failed to erase an non-existing TeFlow=", teFlow->str();
     return;
@@ -140,7 +141,8 @@ void BcmTeFlowTable::processRemovedTeFlow(
 
 BcmTeFlowEntry* FOLLY_NULLABLE
 BcmTeFlowTable::getTeFlowIf(const std::shared_ptr<TeFlowEntry>& teFlow) const {
-  auto iter = teFlowEntryMap_.find(teFlow->getID());
+  auto id = teFlow->getFlow()->toThrift();
+  auto iter = teFlowEntryMap_.find(id);
   if (iter == teFlowEntryMap_.end()) {
     return nullptr;
   }

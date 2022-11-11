@@ -40,9 +40,8 @@ class TeFlowEntry
   explicit TeFlowEntry(TeFlow flowId) {
     set<switch_state_tags::flow>(flowId);
   }
-  TeFlow getID() const {
-    return get<switch_state_tags::flow>()->toThrift();
-  }
+  std::string getID() const;
+
   const auto& getFlow() const {
     return cref<switch_state_tags::flow>();
   }

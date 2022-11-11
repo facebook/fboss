@@ -94,7 +94,7 @@ class StateDelta {
   DeltaValue<SwitchSettings> getSwitchSettingsDelta() const;
   NodeMapDelta<SystemPortMap> getSystemPortsDelta() const;
   NodeMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
-  NodeMapDelta<TeFlowTable> getTeFlowEntriesDelta() const;
+  thrift_cow::ThriftMapDelta<TeFlowTable> getTeFlowEntriesDelta() const;
   // Remote object deltas
   NodeMapDelta<SystemPortMap> getRemoteSystemPortsDelta() const;
   InterfaceMapDelta getRemoteIntfsDelta() const;

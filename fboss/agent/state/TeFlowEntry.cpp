@@ -25,6 +25,10 @@ TeFlowEntry* TeFlowEntry::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+std::string TeFlowEntry::getID() const {
+  return getTeFlowStr(getFlow()->toThrift());
+}
+
 std::string TeFlowEntry::str() const {
   std::string flowString{};
   auto flow = getFlow()->toThrift();
@@ -57,7 +61,7 @@ std::string TeFlowEntry::str() const {
 
 TeFlowDetails TeFlowEntry::toDetails() const {
   TeFlowDetails details{};
-  details.flow() = getID();
+  details.flow() = getFlow()->toThrift();
   details.enabled() = getEnabled();
   details.nexthops() = getNextHops()->toThrift();
   details.resolvedNexthops() = getResolvedNextHops()->toThrift();
