@@ -177,10 +177,13 @@ void HwProdInvariantHelper::verifySafeDiagCmds() {
 
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
       diagCmds = validated_shell_commands_constants::TD2_TESTED_CMDS();
+      break;
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
       diagCmds = validated_shell_commands_constants::TH_TESTED_CMDS();
+      break;
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
       diagCmds = validated_shell_commands_constants::TH3_TESTED_CMDS();
+      break;
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       diagCmds = validated_shell_commands_constants::TH4_TESTED_CMDS();
       break;
