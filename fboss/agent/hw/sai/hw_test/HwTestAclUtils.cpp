@@ -18,6 +18,7 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include <gtest/gtest.h>
+#include <optional>
 
 DECLARE_bool(enable_acl_table_group);
 
@@ -563,9 +564,38 @@ void checkAclStat(
 }
 
 void checkAclStatDeleted(
-    const HwSwitch* /*hwSwitch*/,
-    const std::string& /*statName*/) {
-  throw FbossError("Not implemented");
+    const HwSwitch* hwSwitch,
+    const std::string& statName) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  const auto& aclTableManager = static_cast<const SaiSwitch*>(hwSwitch)
+                                    ->managerTable()
+                                    ->aclTableManager();
+  auto aclTableHandle =
+      aclTableManager.getAclTableHandle(getActualAclTableName(std::nullopt));
+  ASSERT_NE(nullptr, aclTableHandle);
+  auto aclTableId = aclTableHandle->aclTable->adapterKey();
+
+  auto aclTableEntryListGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::EntryList());
+  for (const auto& aclEntryId : aclTableEntryListGot) {
+    auto aclCounterIdGot =
+        SaiApiTable::getInstance()
+            ->aclApi()
+            .getAttribute(
+                AclEntrySaiId(aclEntryId),
+                SaiAclEntryTraits::Attributes::ActionCounter())
+            .getData();
+    // Counter name must match what was previously configured
+    auto aclCounterNameGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+        AclCounterSaiId(aclCounterIdGot),
+        SaiAclCounterTraits::Attributes::Label());
+    std::string aclCounterNameGotStr(aclCounterNameGot.data());
+    EXPECT_NE(statName, aclCounterNameGotStr);
+  }
+#else
+  // On earlier SAI versions, we cannot test since there is no ACL counter
+  // label
+#endif
 }
 
 void checkAclStatSize(
