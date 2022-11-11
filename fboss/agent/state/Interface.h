@@ -267,6 +267,9 @@ class Interface : public NodeBaseT<Interface, InterfaceFields> {
   bool operator==(const Interface& other) const {
     return *getFields() == *other.getFields();
   }
+  bool operator!=(const Interface& other) const {
+    return !(*this == other);
+  }
   static std::shared_ptr<Interface> fromFollyDynamic(
       const folly::dynamic& json) {
     return std::make_shared<Interface>(InterfaceFields::fromFollyDynamic(json));

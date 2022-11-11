@@ -75,6 +75,32 @@ void DsfSubscriber::scheduleUpdate(
                 changed = true;
               });
         }
+        if (newRifs) {
+          auto origRifs = out->getInterfaces(nodeSwitchId);
+          NodeMapDelta<InterfaceMap> delta(origRifs.get(), newRifs.get());
+          auto remoteRifs = out->getRemoteInterfaces()->modify(&out);
+          DeltaFunctions::forEachChanged(
+              delta,
+              [&](const std::shared_ptr<Interface>& oldNode,
+                  const std::shared_ptr<Interface>& newNode) {
+                if (*oldNode != *newNode) {
+                  // Compare contents as we reconstructed
+                  // interface map from deserialized FSDB
+                  // subscriptions. So can't just rely on
+                  // pointer comparison here.
+                  remoteRifs->updateNode(newNode);
+                  changed = true;
+                }
+              },
+              [&](const std::shared_ptr<Interface>& newNode) {
+                remoteRifs->addNode(newNode);
+                changed = true;
+              },
+              [&](const std::shared_ptr<Interface>& rmNode) {
+                remoteRifs->removeNode(rmNode);
+                changed = true;
+              });
+        }
         if (changed) {
           return out;
         }
