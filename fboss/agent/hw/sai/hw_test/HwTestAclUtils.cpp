@@ -418,6 +418,7 @@ void checkAclEntryAndStatCount(
     int aclStatCount,
     int counterCount,
     const std::optional<std::string>& aclTableName) {
+  std::set<unsigned long> aclCounterIds;
   const auto& aclTableManager = static_cast<const SaiSwitch*>(hwSwitch)
                                     ->managerTable()
                                     ->aclTableManager();
@@ -441,25 +442,28 @@ void checkAclEntryAndStatCount(
                 SaiAclEntryTraits::Attributes::ActionCounter())
             .getData();
 
-    if (aclCounterIdGot != SAI_NULL_OBJECT_ID) {
-      aclStatCountGot++;
+    if ((aclCounterIdGot == SAI_NULL_OBJECT_ID) ||
+        (aclCounterIds.find(aclCounterIdGot) != aclCounterIds.end())) {
+      continue;
+    }
 
-      auto enablePacketCount =
-          SaiApiTable::getInstance()->aclApi().getAttribute(
-              AclCounterSaiId(aclCounterIdGot),
-              SaiAclCounterTraits::Attributes::EnablePacketCount());
+    aclStatCountGot++;
+    aclCounterIds.insert(aclCounterIdGot);
 
-      if (enablePacketCount) {
-        counterCountGot++;
-      }
+    auto enablePacketCount = SaiApiTable::getInstance()->aclApi().getAttribute(
+        AclCounterSaiId(aclCounterIdGot),
+        SaiAclCounterTraits::Attributes::EnablePacketCount());
 
-      auto enableByteCount = SaiApiTable::getInstance()->aclApi().getAttribute(
-          AclCounterSaiId(aclCounterIdGot),
-          SaiAclCounterTraits::Attributes::EnableByteCount());
+    if (enablePacketCount) {
+      counterCountGot++;
+    }
 
-      if (enableByteCount) {
-        counterCountGot++;
-      }
+    auto enableByteCount = SaiApiTable::getInstance()->aclApi().getAttribute(
+        AclCounterSaiId(aclCounterIdGot),
+        SaiAclCounterTraits::Attributes::EnableByteCount());
+
+    if (enableByteCount) {
+      counterCountGot++;
     }
   }
 
