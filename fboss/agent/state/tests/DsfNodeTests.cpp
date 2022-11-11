@@ -132,3 +132,18 @@ TEST(DsfNode, dsfNodeApplyConfig) {
       stateV4->getRemoteInterfaces()->size(),
       stateV3->getRemoteInterfaces()->size() - 1);
 }
+
+TEST(DsfNode, dsfNodeUpdateLocalDsfNodeConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigA(cfg::SwitchType::VOQ);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  EXPECT_EQ(stateV1->getDsfNodes()->size(), 1);
+  EXPECT_GT(config.dsfNodes()[1].loopbackIps()->size(), 0);
+  config.dsfNodes()[1].loopbackIps()->clear();
+  EXPECT_EQ(config.dsfNodes()[1].loopbackIps()->size(), 0);
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+  EXPECT_EQ(stateV1->getDsfNodes()->size(), 1);
+}
