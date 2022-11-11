@@ -26,6 +26,7 @@ class DsfSubscriber : public StateObserver {
   void scheduleUpdate(
       const std::shared_ptr<SystemPortMap>& newSysPorts,
       const std::shared_ptr<InterfaceMap>& newRifs,
+      const std::string& nodeName,
       SwitchID nodeSwitchId);
   // Paths
   static std::vector<std::string> getSystemPortsPath();

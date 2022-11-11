@@ -29,13 +29,57 @@ DsfSubscriber::~DsfSubscriber() {
 void DsfSubscriber::scheduleUpdate(
     const std::shared_ptr<SystemPortMap>& newSysPorts,
     const std::shared_ptr<InterfaceMap>& newRifs,
+    const std::string& nodeName,
     SwitchID nodeSwitchId) {
   XLOG(INFO) << " For , switchId: " << static_cast<int64_t>(nodeSwitchId)
              << " got,"
              << " updated sys ports: "
              << (newSysPorts ? newSysPorts->size() : 0)
              << " updated rifs: " << (newRifs ? newRifs->size() : 0);
-  // TODO actually schedule updates
+  sw_->updateState(
+      folly::sformat("Update state for node: {}", nodeName),
+      [&](const std::shared_ptr<SwitchState>& in) {
+        if (nodeSwitchId == SwitchID(*in->getSwitchSettings()->getSwitchId())) {
+          throw FbossError(
+              " Got updates for my switch ID, from: ",
+              nodeName,
+              " id: ",
+              nodeSwitchId);
+        }
+        bool changed{false};
+        auto out = in->clone();
+        if (newSysPorts) {
+          auto origSysPorts = out->getSystemPorts(nodeSwitchId);
+          NodeMapDelta<SystemPortMap> delta(
+              origSysPorts.get(), newSysPorts.get());
+          auto remoteSysPorts = out->getRemoteSystemPorts()->modify(&out);
+          DeltaFunctions::forEachChanged(
+              delta,
+              [&](const std::shared_ptr<SystemPort>& oldNode,
+                  const std::shared_ptr<SystemPort>& newNode) {
+                if (*oldNode != *newNode) {
+                  // Compare contents as we reconstructed
+                  // sys port map from deserialized FSDB
+                  // subscriptions. So can't just rely on
+                  // pointer comparison here.
+                  remoteSysPorts->updateNode(newNode);
+                  changed = true;
+                }
+              },
+              [&](const std::shared_ptr<SystemPort>& newNode) {
+                remoteSysPorts->addNode(newNode);
+                changed = true;
+              },
+              [&](const std::shared_ptr<SystemPort>& rmNode) {
+                remoteSysPorts->removeNode(rmNode);
+                changed = true;
+              });
+        }
+        if (changed) {
+          return out;
+        }
+        return std::shared_ptr<SwitchState>{};
+      });
 }
 
 void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
@@ -90,8 +134,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
             if (change.path()->path() == getSystemPortsPath()) {
               std::map<int64_t, SystemPortFields> fieldsMap;
               XLOG(DBG2) << " Got sys port update from : " << nodeName;
-              newSysPorts = std::make_shared<SystemPortMap>();
-              newSysPorts->fromThrift(
+              newSysPorts = SystemPortMap::fromThrift(
                   thrift_cow::
                       deserialize<ThriftMapTypeClass, SysPortMapThriftType>(
                           fsdb::OperProtocol::BINARY,
@@ -105,12 +148,14 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
                           fsdb::OperProtocol::BINARY,
                           *change.state()->contents()));
             } else {
-              XLOG(WARN) << " Got unexpected state update for : "
-                         << folly::join("/", *change.path()->path())
-                         << " from node: " << nodeName;
+              throw FbossError(
+                  " Got unexpected state update for : ",
+                  folly::join("/", *change.path()->path()),
+                  " from node: ",
+                  nodeName);
             }
           }
-          scheduleUpdate(newSysPorts, newRifs, nodeSwitchId);
+          scheduleUpdate(newSysPorts, newRifs, nodeName, nodeSwitchId);
         },
         getLoopbackIp(node));
   };
