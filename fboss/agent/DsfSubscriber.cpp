@@ -141,8 +141,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
                           *change.state()->contents()));
             } else if (change.path()->path() == getInterfacesPath()) {
               XLOG(DBG2) << " Got rif update from : " << nodeName;
-              newRifs = std::make_shared<InterfaceMap>();
-              newRifs->fromThrift(
+              newRifs = InterfaceMap::fromThrift(
                   thrift_cow::
                       deserialize<ThriftMapTypeClass, InterfaceMapThriftType>(
                           fsdb::OperProtocol::BINARY,
