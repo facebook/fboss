@@ -19,7 +19,6 @@ class HwFabricSwitchTest : public HwLinkStateDependentTest {
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
     ASSERT_EQ(getHwSwitch()->getSwitchType(), cfg::SwitchType::FABRIC);
-    ASSERT_TRUE(getHwSwitch()->getSwitchId().has_value());
   }
 };
 
