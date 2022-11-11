@@ -12,7 +12,13 @@ namespace facebook::fboss {
 
 class FakeAsic : public HwAsic {
  public:
-  using HwAsic::HwAsic;
+  FakeAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
+      : HwAsic(
+            switchType,
+            switchId,
+            {cfg::SwitchType::NPU,
+             cfg::SwitchType::VOQ,
+             cfg::SwitchType::FABRIC}) {}
   bool isSupported(Feature feature) const override {
     switch (feature) {
       case Feature::HSDK:
