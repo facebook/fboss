@@ -2576,15 +2576,7 @@ void ThriftHandler::getTeFlowTableDetails(
   ensureConfigured(__func__);
   auto teFlowTable = sw_->getState()->getTeFlowTable();
   for (const auto& entry : *teFlowTable) {
-    TeFlowDetails flowDetails;
-    flowDetails.flow() = entry->getFlow();
-    flowDetails.enabled() = entry->getEnabled();
-    flowDetails.nexthops() = entry->getNextHops();
-    flowDetails.resolvedNexthops() = entry->getResolvedNextHops();
-    flowDetails.counterID() = entry->getCounterID().has_value()
-        ? entry->getCounterID().value()
-        : "null";
-    flowTable.emplace_back(flowDetails);
+    flowTable.emplace_back(entry->toDetails());
   }
 }
 } // namespace facebook::fboss

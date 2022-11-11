@@ -28,6 +28,8 @@ namespace facebook::fboss {
 
 using switch_state_tags = state::switch_state_tags::strings;
 using switch_config_tags = cfg::switch_config_tags::strings;
+using ctrl_if_tags = ctrl_tags::strings;
+using common_if_tags = common_tags::strings;
 
 template <typename NodeT>
 struct IsThriftCowNode {

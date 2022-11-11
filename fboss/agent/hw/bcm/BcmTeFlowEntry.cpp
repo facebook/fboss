@@ -34,7 +34,8 @@ void BcmTeFlowEntry::setRedirectNexthop(
     const BcmSwitch* hw,
     std::shared_ptr<BcmMultiPathNextHop>& redirectNexthop,
     const std::shared_ptr<TeFlowEntry>& teFlow) {
-  auto nhts = teFlow->getResolvedNextHops();
+  // THRIFT_COPY: investigate if this can be done withought thrift copy
+  auto nhts = teFlow->getResolvedNextHops()->toThrift();
   RouteNextHopSet nexthops = util::toRouteNextHopSet(nhts, true);
   if (nexthops.size() > 0) {
     redirectNexthop =
@@ -58,17 +59,17 @@ bcm_if_t BcmTeFlowEntry::getEgressId(
 
 void BcmTeFlowEntry::createTeFlowQualifiers() {
   int rv;
-  if (teFlow_->getFlow().srcPort().has_value()) {
-    auto srcPort = teFlow_->getFlow().srcPort().value();
+  const auto& flow = teFlow_->getFlow();
+  if (const auto& srcPort = flow->cref<ctrl_if_tags::srcPort>()) {
     rv = bcm_field_qualify_SrcPort(
-        hw_->getUnit(), handle_, 0, 0xff, srcPort, 0xff);
+        hw_->getUnit(), handle_, 0, 0xff, srcPort->toThrift(), 0xff);
     bcmCheckError(rv, "failed to qualify src port");
   }
 
-  if (teFlow_->getFlow().dstPrefix().has_value()) {
+  if (const auto& dstPrefix = flow->cref<ctrl_if_tags::dstPrefix>()) {
     bcm_ip6_t addr;
     bcm_ip6_t mask{};
-    auto prefix = teFlow_->getFlow().dstPrefix().value();
+    auto prefix = dstPrefix->toThrift();
     folly::IPAddress ipaddr = toIPAddress(*prefix.ip());
     // Bcm SDK API for EM takes only full mask.Hence pfxLen is 128.
     uint8_t pfxLen = 128;
@@ -84,7 +85,7 @@ void BcmTeFlowEntry::createTeFlowQualifiers() {
 
 void BcmTeFlowEntry::createTeFlowStat() {
   auto teFlowTable = hw_->writableTeFlowTable();
-  auto counterName = teFlow_->getCounterID().value();
+  auto counterName = teFlow_->getCounterID()->toThrift();
   const auto warmBootCache = hw_->getWarmBootCache();
   auto warmBootItr = warmBootCache->findTeFlowStat(handle_);
   if (warmBootItr != warmBootCache->TeFlowEntry2TeFlowStat_end()) {
@@ -103,7 +104,7 @@ void BcmTeFlowEntry::createTeFlowStat() {
 
 void BcmTeFlowEntry::deleteTeFlowStat() {
   if (teFlow_->getCounterID().has_value() && teFlow_->getEnabled()) {
-    auto counterName = teFlow_->getCounterID().value();
+    auto counterName = teFlow_->getCounterID()->toThrift();
     auto teFlowTable = hw_->writableTeFlowTable();
     auto teFlowStat = teFlowTable->getTeFlowStat(counterName);
     teFlowStat->detach(handle_);
@@ -143,7 +144,7 @@ void BcmTeFlowEntry::createTeFlowEntry() {
   // actions.
   if (enabled) {
     createTeFlowActions();
-    if (teFlow_->getCounterID().has_value()) {
+    if (teFlow_->getCounterID()) {
       createTeFlowStat();
     }
   }
@@ -161,7 +162,7 @@ void BcmTeFlowEntry::updateTeFlowEntry(
   if (!teFlow_->getEnabled() && newTeFlow->getEnabled()) {
     teFlow_ = newTeFlow;
     createTeFlowActions();
-    if (teFlow_->getCounterID().has_value()) {
+    if (teFlow_->getCounterID()) {
       createTeFlowStat();
     }
     installTeFlowEntry();
@@ -198,13 +199,14 @@ BcmTeFlowEntry::BcmTeFlowEntry(
     int gid,
     const std::shared_ptr<TeFlowEntry>& teFlow)
     : hw_(hw), gid_(gid), teFlow_(teFlow) {
-  if (teFlow_->getFlow().srcPort().has_value() &&
-      teFlow_->getFlow().dstPrefix().has_value()) {
-    const auto srcPort = teFlow_->getFlow().srcPort().value();
-    const auto prefix = teFlow_->getFlow().dstPrefix().value();
+  const auto& flow = teFlow_->getFlow();
+  const auto& srcPort = flow->cref<ctrl_if_tags::srcPort>();
+  const auto& dstPrefix = flow->cref<ctrl_if_tags::dstPrefix>();
+  if (srcPort && dstPrefix) {
+    const auto prefix = dstPrefix->toThrift();
     const auto destIp = toIPAddress(*prefix.ip());
     const auto warmBootCache = hw_->getWarmBootCache();
-    auto warmbootItr = warmBootCache->findTeFlow(srcPort, destIp);
+    auto warmbootItr = warmBootCache->findTeFlow(srcPort->toThrift(), destIp);
     if (warmbootItr != warmBootCache->teFlow2BcmTeFlowEntryHandle_end()) {
       handle_ = warmbootItr->second;
       setRedirectNexthop(hw_, redirectNexthop_, teFlow_);
@@ -245,23 +247,25 @@ bool BcmTeFlowEntry::isStateSame(
 
   XLOG(DBG3) << "Verify the state of Teflow entry: " << teFlowMsg;
   // check src port
-  if (teFlow->getFlow().srcPort().has_value()) {
-    auto srcPort = teFlow->getFlow().srcPort().value();
+  const auto& flow = teFlow->getFlow();
+  const auto& srcPort = flow->get<ctrl_if_tags::srcPort>();
+  if (srcPort) {
     isSame &= isBcmPortQualFieldStateSame(
         hw->getUnit(),
         handle,
         teFlowMsg,
         "SrcPort",
         bcm_field_qualify_SrcPort_get,
-        srcPort,
+        srcPort->toThrift(),
         false);
   }
 
   // check dst Ip
-  if (teFlow->getFlow().dstPrefix().has_value()) {
+  const auto& dstPrefix = flow->get<ctrl_if_tags::dstPrefix>();
+  if (dstPrefix) {
     bcm_ip6_t addr;
     bcm_ip6_t mask{};
-    auto prefix = teFlow->getFlow().dstPrefix().value();
+    auto prefix = dstPrefix->toThrift();
     folly::IPAddress ipaddr = toIPAddress(*prefix.ip());
     if (!ipaddr.isV6()) {
       throw FbossError("only ipv6 addresses are supported for teflow");
@@ -306,9 +310,9 @@ bool BcmTeFlowEntry::isStateSame(
   // check flow stat
   auto teFlowStatHandle = BcmTeFlowStat::getAclStatHandleFromAttachedAcl(
       hw, getEMGroupID(gid), handle);
-  if (teFlowStatHandle && teFlow->getCounterID().has_value()) {
+  if (teFlowStatHandle && teFlow->getCounterID()) {
     cfg::TrafficCounter counter;
-    counter.name() = teFlow->getCounterID().value();
+    counter.name() = teFlow->getCounterID()->toThrift();
     counter.types() = {cfg::CounterType::BYTES};
     isSame &=
         ((BcmTeFlowStat::isStateSame(hw, (*teFlowStatHandle).first, counter))

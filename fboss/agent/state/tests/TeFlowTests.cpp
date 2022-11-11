@@ -110,12 +110,15 @@ class TeFlowTest : public ::testing::Test {
     EXPECT_NE(entry, nullptr);
     EXPECT_TRUE(entry->getEnabled());
     EXPECT_EQ(*entry->getCounterID(), counterID);
-    EXPECT_EQ(entry->getNextHops().size(), 1);
+    EXPECT_EQ(entry->getNextHops()->size(), 1);
     auto expectedNhop = toBinaryAddress(IPAddress(nhop));
     expectedNhop.ifName() = ifname;
-    EXPECT_EQ(entry->getNextHops()[0].address(), expectedNhop);
-    EXPECT_EQ(entry->getResolvedNextHops().size(), 1);
-    EXPECT_EQ(entry->getResolvedNextHops()[0].address(), expectedNhop);
+    EXPECT_EQ(
+        entry->getNextHops()->cref(0)->toThrift().address(), expectedNhop);
+    EXPECT_EQ(entry->getResolvedNextHops()->size(), 1);
+    EXPECT_EQ(
+        entry->getResolvedNextHops()->cref(0)->toThrift().address(),
+        expectedNhop);
   }
 
   void updateState(folly::StringPiece name, StateUpdateFn func) {
@@ -196,7 +199,7 @@ TEST_F(TeFlowTest, NextHopResolution) {
   waitForStateUpdates(sw_);
   tableEntry = sw_->getState()->getTeFlowTable()->getTeFlowIf(flowId);
   EXPECT_EQ(tableEntry->getEnabled(), false);
-  EXPECT_EQ(tableEntry->getResolvedNextHops().size(), 0);
+  EXPECT_EQ(tableEntry->getResolvedNextHops()->size(), 0);
 
   // add back the neighbor entry
   sw_->getNeighborUpdater()->receivedNdpMine(

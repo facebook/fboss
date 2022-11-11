@@ -26,29 +26,45 @@ TeFlowEntry* TeFlowEntry::modify(std::shared_ptr<SwitchState>* state) {
 }
 
 std::string TeFlowEntry::str() const {
-  std::string flowString;
-  if (!getFlow().dstPrefix().has_value() || !getFlow().srcPort().has_value()) {
+  std::string flowString{};
+  auto flow = getFlow()->toThrift();
+  if (!flow.dstPrefix().has_value() || !flow.srcPort().has_value()) {
     return "invalid";
   }
-  auto prefix = getFlow().dstPrefix().value();
+  auto prefix = flow.dstPrefix().value();
   folly::IPAddress ipaddr = network::toIPAddress(*prefix.ip());
   flowString.append(fmt::format(
       "dstPrefix:{}/{},srcPort:{}",
       ipaddr.str(),
       *prefix.prefixLength(),
-      *getFlow().srcPort()));
-  flowString.append(fmt::format(
-      ",counterID:{}", getCounterID().has_value() ? *getCounterID() : "null"));
+      *flow.srcPort()));
+  auto counter = getCounterID();
+  flowString.append(
+      fmt::format(",counterID:{}", counter ? counter->toThrift() : "null"));
   flowString.append(fmt::format(",Nexthop:"));
-  for (const auto& nhop : util::toRouteNextHopSet(getNextHops())) {
+  const auto& nhops = getNextHops();
+  for (const auto& nhop : util::toRouteNextHopSet(nhops->toThrift())) {
     flowString.append(fmt::format("{},", nhop.str()));
   }
   flowString.append(fmt::format("ResolvedNexthop:"));
-  for (const auto& nhop : util::toRouteNextHopSet(getResolvedNextHops())) {
+  const auto& resolvedNhops = getResolvedNextHops();
+  for (const auto& nhop : util::toRouteNextHopSet(resolvedNhops->toThrift())) {
     flowString.append(fmt::format("{},", nhop.str()));
   }
   flowString.append(fmt::format("Enabled:{}", getEnabled()));
   return flowString;
 }
 
+TeFlowDetails TeFlowEntry::toDetails() const {
+  TeFlowDetails details{};
+  details.flow() = getID();
+  details.enabled() = getEnabled();
+  details.nexthops() = getNextHops()->toThrift();
+  details.resolvedNexthops() = getResolvedNextHops()->toThrift();
+  details.counterID() = "null";
+  if (const auto& counter = getCounterID()) {
+    details.counterID() = counter->toThrift();
+  }
+  return details;
+}
 } // namespace facebook::fboss
