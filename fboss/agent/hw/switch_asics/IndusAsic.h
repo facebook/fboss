@@ -91,6 +91,9 @@ class IndusAsic : public BroadcomAsic {
   }
   cfg::Range64 getReservedEncapIndexRange() const override;
   HwAsic::RecyclePortInfo getRecyclePortInfo() const override;
+  uint32_t getNumMemoryBuffers() const override {
+    return 1;
+  }
 };
 
 } // namespace facebook::fboss

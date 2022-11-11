@@ -165,6 +165,9 @@ class MockAsic : public HwAsic {
         .speedMbps = 10000 // 10G
     };
   }
+  uint32_t getNumMemoryBuffers() const override {
+    return 0;
+  }
 };
 
 } // namespace facebook::fboss

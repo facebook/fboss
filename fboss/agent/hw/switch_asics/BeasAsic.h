@@ -53,5 +53,6 @@ class BeasAsic : public BroadcomAsic {
   int getBufferDynThreshFromScalingFactor(
       cfg::MMUScalingFactor scalingFactor) const override;
   uint32_t getStaticQueueLimitBytes() const override;
+  uint32_t getNumMemoryBuffers() const override;
 };
 } // namespace facebook::fboss

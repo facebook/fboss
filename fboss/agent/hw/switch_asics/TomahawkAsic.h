@@ -70,6 +70,9 @@ class TomahawkAsic : public BroadcomXgsAsic {
   uint32_t getStaticQueueLimitBytes() const override {
     return getMMUSizeBytes();
   }
+  uint32_t getNumMemoryBuffers() const override {
+    return 4;
+  }
 };
 
 } // namespace facebook::fboss

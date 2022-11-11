@@ -75,6 +75,9 @@ class Trident2Asic : public BroadcomXgsAsic {
   uint32_t getStaticQueueLimitBytes() const override {
     return getMMUSizeBytes();
   }
+  uint32_t getNumMemoryBuffers() const override {
+    return 1;
+  }
 };
 
 } // namespace facebook::fboss

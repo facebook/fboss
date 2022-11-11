@@ -101,4 +101,7 @@ int BeasAsic::getBufferDynThreshFromScalingFactor(
 uint32_t BeasAsic::getStaticQueueLimitBytes() const {
   throw FbossError("Beas doesn't support MMU feature");
 }
+uint32_t BeasAsic::getNumMemoryBuffers() const {
+  throw FbossError("Beas doesn't support MMU feature");
+}
 }; // namespace facebook::fboss

@@ -97,6 +97,9 @@ class GaronneAsic : public TajoAsic {
   uint32_t getStaticQueueLimitBytes() const override {
     return 21000 * getPacketBufferUnitSize();
   }
+  uint32_t getNumMemoryBuffers() const override {
+    return 1;
+  }
 };
 
 } // namespace facebook::fboss

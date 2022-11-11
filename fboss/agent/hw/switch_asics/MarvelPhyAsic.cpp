@@ -88,4 +88,7 @@ int MarvelPhyAsic::getBufferDynThreshFromScalingFactor(
 uint32_t MarvelPhyAsic::getStaticQueueLimitBytes() const {
   throw FbossError("MarvelPhyAsic doesn't support MMU feature");
 }
+uint32_t MarvelPhyAsic::getNumMemoryBuffers() const {
+  throw FbossError("MarvelPhyAsic doesn't support MMU feature");
+}
 }; // namespace facebook::fboss

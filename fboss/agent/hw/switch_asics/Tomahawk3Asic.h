@@ -68,6 +68,9 @@ class Tomahawk3Asic : public BroadcomXgsAsic {
     // Per ITM buffers limits the queue size
     return getMMUSizeBytes() / 2;
   }
+  uint32_t getNumMemoryBuffers() const override {
+    return 2;
+  }
 };
 
 } // namespace facebook::fboss

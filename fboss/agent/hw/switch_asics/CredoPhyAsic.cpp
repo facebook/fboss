@@ -87,4 +87,7 @@ int CredoPhyAsic::getBufferDynThreshFromScalingFactor(
 uint32_t CredoPhyAsic::getStaticQueueLimitBytes() const {
   throw FbossError("CredoPhyAsic doesn't support MMU feature");
 }
+uint32_t CredoPhyAsic::getNumMemoryBuffers() const {
+  throw FbossError("CredoPhyAsic doesn't support MMU feature");
+}
 }; // namespace facebook::fboss

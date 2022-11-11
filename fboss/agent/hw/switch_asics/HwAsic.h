@@ -236,6 +236,8 @@ class HwAsic {
 
   virtual cfg::Range64 getReservedEncapIndexRange() const;
 
+  virtual uint32_t getNumMemoryBuffers() const = 0;
+
   cfg::SwitchType getSwitchType() const {
     return switchType_;
   }

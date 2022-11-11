@@ -95,6 +95,9 @@ class EbroAsic : public TajoAsic {
   uint32_t getStaticQueueLimitBytes() const override {
     return 16000 * getPacketBufferUnitSize();
   }
+  uint32_t getNumMemoryBuffers() const override {
+    return 1;
+  }
 
  private:
   bool isSupportedFabric(Feature feature) const;
