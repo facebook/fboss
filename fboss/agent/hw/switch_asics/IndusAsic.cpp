@@ -50,9 +50,6 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::PORT_TX_DISABLE:
     case HwAsic::Feature::SAI_LAG_HASH:
-    case HwAsic::Feature::PMD_RX_LOCK_STATUS:
-    case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
-    case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::ROUTE_PROGRAMMING:
@@ -68,6 +65,9 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
       return true;
 
+    case HwAsic::Feature::SAI_FEC_COUNTERS:
+    case HwAsic::Feature::PMD_RX_LOCK_STATUS:
+    case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::QOS_MAP_GLOBAL:

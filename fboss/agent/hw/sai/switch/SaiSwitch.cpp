@@ -1204,8 +1204,7 @@ void SaiSwitch::updatePcsInfo(
     const HwPortFb303Stats* fb303PortStat,
     cfg::PortSpeed speed) {
   auto fecMode = getPortFECMode(swPort);
-  if (fecMode == phy::FecMode::CL91 || fecMode == phy::FecMode::RS528 ||
-      fecMode == phy::FecMode::RS544 || fecMode == phy::FecMode::RS544_2N) {
+  if (utility::isReedSolomonFec(fecMode)) {
     phy::PcsInfo pcsInfo;
     phy::RsFecInfo rsFec;
     rsFec.correctedCodewords() =
