@@ -1,6 +1,8 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/switch_asics/EbroAsic.h"
+#include "fboss/agent/hw/switch_asics/IndusAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTest.h"
@@ -446,9 +448,22 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
 TEST_F(HwVoqSwitchTest, multipleDsfNodes) {
   auto setup = [this]() {
     auto cfg = initialConfig();
-    SwitchID otherSwitchId{4};
-    cfg.dsfNodes()->insert(
-        {otherSwitchId, utility::dsfNodeConfig(*getPlatform()->getAsic())});
+    int64_t otherSwitchId{4};
+    auto cloneAsic = [&]() -> std::shared_ptr<HwAsic> {
+      auto myAsic = getPlatform()->getAsic();
+      switch (myAsic->getAsicType()) {
+        case cfg::AsicType::ASIC_TYPE_INDUS:
+          return std::make_shared<IndusAsic>(
+              myAsic->getSwitchType(), otherSwitchId);
+        case cfg::AsicType::ASIC_TYPE_EBRO:
+          return std::make_shared<EbroAsic>(
+              myAsic->getSwitchType(), otherSwitchId);
+        default:
+          throw FbossError("Unexpected asic type: ", myAsic->getAsicTypeStr());
+      }
+    };
+    auto otherAsic = cloneAsic();
+    cfg.dsfNodes()->insert({otherSwitchId, utility::dsfNodeConfig(*otherAsic)});
     applyNewConfig(cfg);
   };
   verifyAcrossWarmBoots(setup, [] {});
