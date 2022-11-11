@@ -58,7 +58,7 @@ MultiPimPlatformPimContainer::PimType MinipackSystemContainer::getPimType(
       return MultiPimPlatformPimContainer::PimType::MINIPACK_16O;
     default:
       throw FbossError(
-          "Unrecoginized pim type with register value:",
+          "Unrecognized pim type with register value:",
           curPimTypeReg,
           " for pim:",
           pim);
