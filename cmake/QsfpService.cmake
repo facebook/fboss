@@ -88,4 +88,5 @@ target_link_libraries(qsfp_bsp_core
   makalu_bsp
   device_mdio
   fpga_device
+  phy_management_base
 )

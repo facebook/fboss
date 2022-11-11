@@ -7,6 +7,7 @@
 #include "fboss/lib/bsp/BspPlatformMapping.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 #include "fboss/lib/fpga/FpgaDevice.h"
+#include "fboss/lib/phy/PhyManager.h"
 
 namespace facebook {
 namespace fboss {
@@ -56,10 +57,52 @@ class BspSystemContainer {
       const TransceiverAccessParameter& param,
       const uint8_t* buf) const;
 
+  virtual bool isPimPresent(int /* pimID */) const {
+    // Platforms that need this, should implement this function.
+    CHECK(false);
+    return false;
+  }
+
+  virtual uint32_t getPimOffset(int /* pim */) const {
+    // Platforms that need this, should implement this function.
+    CHECK(false);
+    return 0;
+  }
+
+  virtual uint8_t getPimStartNum() const {
+    // Platforms that need this, should implement this function.
+    CHECK(false);
+    return 0;
+  }
+
+  virtual void initHW(bool forceReset = false) {}
+
+  virtual MultiPimPlatformPimContainer::PimType getPimType(int pim) {
+    // Platforms with PIMs should implement this function.
+    CHECK(false);
+    return MultiPimPlatformPimContainer::PimType();
+  }
+
+  void setPhyManager(PhyManager* phyMgr) {
+    phyMgr_ = phyMgr;
+  }
+
+  phy::ExternalPhy* getExternalPhyObj(phy::PhyIDInfo info) {
+    if (phyMgr_->getNumOfSlot() <= 0) {
+      // If number of slot is not set that means the SandiaPhyManager is not
+      // initialized so return NULL from here
+      return nullptr;
+    }
+    return phyMgr_->getExternalPhy(phyMgr_->getGlobalXphyID(info));
+  }
+
+  virtual ~BspSystemContainer() {}
+
  private:
   std::unordered_map<int, std::unique_ptr<BspPimContainer>> pimContainers_;
   std::unique_ptr<FpgaDevice> fpgaDevice_;
   BspPlatformMapping* bspMapping_;
+  PhyManager* phyMgr_;
 };
 
 } // namespace fboss

@@ -4,6 +4,7 @@
 #include "fboss/lib/bsp/BspPimContainer.h"
 #include "fboss/lib/bsp/BspPlatformMapping.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
+#include "fboss/lib/fpga/FpgaDevice.h"
 
 namespace facebook {
 namespace fboss {
