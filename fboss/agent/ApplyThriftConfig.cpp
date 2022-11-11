@@ -791,9 +791,8 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     InterfaceFields::Addresses addresses;
     auto arpTable = intf->getArpTable();
     auto ndpTable = intf->getNdpTable();
-    for (auto& loopbackSubnet : *node->getLoopbackIps()) {
-      auto network =
-          folly::IPAddress::createNetwork(loopbackSubnet->toThrift());
+    auto encapIdx = *asic->getReservedEncapIndexRange().minimum();
+    for (const auto& network : node->getLoopbackIpsSorted()) {
       addresses.insert(network);
       state::NeighborEntryFields neighbor;
       neighbor.ipaddress() = network.first.str();
@@ -805,7 +804,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       // TODO: Get encap index based on DSF Node asic type, not
       // your own ASIC type. The current approach may not work with hybrid ASIC
       // clusters (unless we can get the same reserved encap index block).
-      neighbor.encapIndex() = *asic->getReservedEncapIndexRange().minimum();
+      neighbor.encapIndex() = encapIdx++;
       neighbor.isLocal() = isLocal(node);
       if (network.first.isV6()) {
         ndpTable.insert({*neighbor.ipaddress(), neighbor});
