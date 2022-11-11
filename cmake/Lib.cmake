@@ -123,3 +123,33 @@ add_library(thread_heartbeat
 target_link_libraries(thread_heartbeat
   Folly::folly
 )
+
+add_library(pci_device
+  fboss/lib/PciDevice.cpp
+  fboss/lib/PciSystem.cpp
+)
+
+target_link_libraries(pci_device
+  Folly::folly
+)
+
+add_library(physical_memory
+  fboss/lib/PhysicalMemory.cpp
+)
+
+target_link_libraries(physical_memory
+  Folly::folly
+)
+
+add_library(fpga_device
+  fboss/lib/fpga/FpgaDevice.cpp
+  fboss/lib/fpga/HwMemoryRegion.h
+  fboss/lib/fpga/HwMemoryRegister.h
+)
+
+target_link_libraries(fpga_device
+  pci_device
+  physical_memory
+  fboss_types
+  Folly::folly
+)

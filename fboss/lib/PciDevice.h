@@ -11,8 +11,9 @@
 
 #include <cstdint>
 #include <memory>
-
+#ifndef IS_OSS
 struct pci_device;
+#endif
 
 namespace facebook::fboss {
 class PciSystem;
@@ -55,7 +56,10 @@ class PciDevice {
    * Check if the PCI device was opened correctly
    */
   bool isGood() {
+#ifndef IS_OSS
     return (pciDevice_ != nullptr);
+#endif
+    return false;
   }
 
   void setConfigControl();
@@ -63,7 +67,9 @@ class PciDevice {
  private:
   uint32_t vendorId_;
   uint32_t deviceId_;
+#ifndef IS_OSS
   pci_device* pciDevice_{nullptr};
+#endif
   std::shared_ptr<PciSystem> pciSystem_{nullptr};
 };
 
