@@ -107,7 +107,7 @@ void IPv6Handler::stateUpdated(const StateDelta& delta) {
 }
 
 bool IPv6Handler::raEnabled(const Interface* intf) const {
-  return *intf->getNdpConfig().routerAdvertisementSeconds() > 0;
+  return intf->routerAdvertisementSeconds() > 0;
 }
 
 void IPv6Handler::intfAdded(const SwitchState* state, const Interface* intf) {
@@ -876,14 +876,15 @@ void IPv6Handler::floodNeighborAdvertisements() {
                  << intf->getName();
       continue;
     }
-    for (const auto& addrEntry : intf->getAddresses()) {
-      if (!addrEntry.first.isV6()) {
+    for (auto iter : std::as_const(*intf->getAddresses())) {
+      auto addrEntry = folly::IPAddress(iter.first);
+      if (!addrEntry.isV6()) {
         continue;
       }
       sendNeighborAdvertisement(
           intf->getVlanID(),
           intf->getMac(),
-          addrEntry.first.asV6(),
+          addrEntry.asV6(),
           MacAddress::BROADCAST,
           IPAddressV6());
     }

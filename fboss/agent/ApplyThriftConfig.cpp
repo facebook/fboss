@@ -789,10 +789,13 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
                                : new_->getRemoteInterfaces()->modify(&new_);
     auto intf = intfs->getInterface(intfID)->clone();
     InterfaceFields::Addresses addresses;
-    auto arpTable = intf->getArpTable();
-    auto ndpTable = intf->getNdpTable();
+    // THRIFT_COPY: evaluate if getting entire thrift table is needed.
+    auto arpTable = intf->getArpTable()->toThrift();
+    auto ndpTable = intf->getNdpTable()->toThrift();
     auto encapIdx = *asic->getReservedEncapIndexRange().minimum();
-    for (const auto& network : node->getLoopbackIpsSorted()) {
+    for (auto& loopbackSubnet : *node->getLoopbackIps()) {
+      auto network =
+          folly::IPAddress::createNetwork(loopbackSubnet->toThrift());
       addresses.insert(network);
       state::NeighborEntryFields neighbor;
       neighbor.ipaddress() = network.first.str();
@@ -849,8 +852,8 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     auto intf = std::make_shared<Interface>(
         InterfaceID(recyclePortId),
         RouterID(0),
-        std::nullopt,
-        sysPort->getPortName(),
+        std::optional<VlanID>(std::nullopt),
+        folly::StringPiece(sysPort->getPortName()),
         node->getMac(),
         9000,
         true,
@@ -975,7 +978,9 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
         intf->getVlanID());
   }
 
-  for (const auto& ipMask : intf->getAddresses()) {
+  for (auto iter : std::as_const(*intf->getAddresses())) {
+    auto ipMask =
+        std::make_pair(folly::IPAddress(iter.first), iter.second->cref());
     IntefaceIpInfo info(ipMask.second, intf->getMac(), intf->getID());
     auto ret = entry.addresses.emplace(ipMask.first, info);
     if (ret.second) {
@@ -2852,8 +2857,8 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
   auto intf = make_shared<Interface>(
       InterfaceID(*config->intfID()),
       RouterID(*config->routerID()),
-      VlanID(*config->vlanID()),
-      name,
+      std::optional<VlanID>(*config->vlanID()),
+      folly::StringPiece(name),
       mac,
       mtu,
       *config->isVirtual(),
@@ -2944,8 +2949,9 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
       (!orig->getVlanIDIf().has_value() ||
        orig->getVlanIDIf().value() == VlanID(*config->vlanID())) &&
       orig->getName() == name && orig->getMac() == mac &&
-      orig->getAddresses() == addrs && orig->getNdpConfig() == ndp &&
-      orig->getMtu() == mtu && orig->isVirtual() == *config->isVirtual() &&
+      orig->getAddressesCopy() == addrs &&
+      orig->getNdpConfig()->toThrift() == ndp && orig->getMtu() == mtu &&
+      orig->isVirtual() == *config->isVirtual() &&
       orig->isStateSyncDisabled() == *config->isStateSyncDisabled() &&
       orig->getType() == *config->type()) {
     // No change
@@ -2954,6 +2960,7 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
 
   auto newIntf = orig->clone();
   newIntf->setRouterID(RouterID(*config->routerID()));
+  newIntf->setType(*config->type());
   if (newIntf->getType() == cfg::InterfaceType::VLAN) {
     newIntf->setVlanID(VlanID(*config->vlanID()));
   }
@@ -2964,7 +2971,6 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   newIntf->setMtu(mtu);
   newIntf->setIsVirtual(*config->isVirtual());
   newIntf->setIsStateSyncDisabled(*config->isStateSyncDisabled());
-  newIntf->setType(*config->type());
   return newIntf;
 }
 

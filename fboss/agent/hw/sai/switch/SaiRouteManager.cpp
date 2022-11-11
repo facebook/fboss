@@ -87,9 +87,11 @@ std::vector<std::shared_ptr<SaiRoute>> SaiRouteManager::makeInterfaceToMeRoutes(
   SwitchSaiId switchId = managerTable_->switchManager().getSwitchSaiId();
   PortSaiId cpuPortId = managerTable_->switchManager().getCpuPort();
 
-  toMeRoutes.reserve(swInterface->getAddresses().size());
+  toMeRoutes.reserve(swInterface->getAddresses()->size());
   // Compute per-address information
-  for (const auto& address : swInterface->getAddresses()) {
+  for (auto iter : std::as_const(*swInterface->getAddresses())) {
+    folly::CIDRNetwork address(
+        folly::IPAddress(iter.first), iter.second->cref());
     // empty next hop group -- this route will not manage the
     // lifetime of a next hop group
     std::shared_ptr<SaiNextHopGroupHandle> nextHopGroup;
@@ -187,10 +189,10 @@ void SaiRouteManager::addOrUpdateRoute(
           routerInterfaceHandle->adapterKey()};
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       attributes = SaiRouteTraits::CreateAttributes{
-          packetAction, std::move(routerInterfaceId), metadata, std::nullopt};
+          packetAction, routerInterfaceId, metadata, std::nullopt};
 #else
       attributes = SaiRouteTraits::CreateAttributes{
-          packetAction, std::move(routerInterfaceId), metadata};
+          packetAction, routerInterfaceId, metadata};
 #endif
 
       XLOG(DBG3) << "Connected route: " << newRoute->str()
@@ -209,10 +211,10 @@ void SaiRouteManager::addOrUpdateRoute(
           nextHopGroupHandle->nextHopGroup->adapterKey()};
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       attributes = SaiRouteTraits::CreateAttributes{
-          packetAction, std::move(nextHopGroupId), metadata, counterID};
+          packetAction, nextHopGroupId, metadata, counterID};
 #else
       attributes = SaiRouteTraits::CreateAttributes{
-          packetAction, std::move(nextHopGroupId), metadata};
+          packetAction, nextHopGroupId, metadata};
 #endif
       nextHopHandle = nextHopGroupHandle;
 
@@ -261,10 +263,10 @@ void SaiRouteManager::addOrUpdateRoute(
     PortSaiId cpuPortId = managerTable_->switchManager().getCpuPort();
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     attributes = SaiRouteTraits::CreateAttributes{
-        packetAction, std::move(cpuPortId), metadata, std::nullopt};
+        packetAction, cpuPortId, metadata, std::nullopt};
 #else
-    attributes = SaiRouteTraits::CreateAttributes{
-        packetAction, std::move(cpuPortId), metadata};
+    attributes =
+        SaiRouteTraits::CreateAttributes{packetAction, cpuPortId, metadata};
 #endif
 
     XLOG(DBG3) << "Route action TO CPU: " << newRoute->str()

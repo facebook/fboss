@@ -56,8 +56,8 @@ unique_ptr<SwSwitch> setupSwitch() {
     auto intf1 = make_shared<Interface>(
         InterfaceID(1),
         RouterID(0),
-        VlanID(1),
-        "interface1",
+        std::optional<VlanID>(1),
+        folly::StringPiece("interface1"),
         MacAddress("02:00:01:00:00:01"),
         9000,
         false, /* is virtual */

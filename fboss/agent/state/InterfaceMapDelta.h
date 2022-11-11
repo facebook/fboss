@@ -29,23 +29,22 @@ class InterfaceDelta : public DeltaValue<Interface> {
   using NeighborEntriesDelta = MapDelta<state::NeighborEntries>;
   using DeltaValue<Interface>::DeltaValue;
 
-  NeighborEntriesDelta getArpEntriesDelta() const {
-    return NeighborEntriesDelta(
-        getArpEntries(getOld()), getArpEntries(getNew()));
+ private:
+  auto* getArpEntries(const std::shared_ptr<Interface>& intf) const {
+    return intf ? intf->getArpTable().get() : nullptr;
   }
-  NeighborEntriesDelta getNdpEntriesDelta() const {
-    return NeighborEntriesDelta(
-        getNdpEntries(getOld()), getNdpEntries(getNew()));
+  auto* getNdpEntries(const std::shared_ptr<Interface>& intf) const {
+    return intf ? intf->getNdpTable().get() : nullptr;
   }
 
- private:
-  const state::NeighborEntries* getArpEntries(
-      const std::shared_ptr<Interface>& intf) const {
-    return intf ? &intf->getArpTable() : nullptr;
+ public:
+  auto getArpEntriesDelta() const {
+    return thrift_cow::ThriftMapDelta(
+        getArpEntries(getOld()), getArpEntries(getNew()));
   }
-  const state::NeighborEntries* getNdpEntries(
-      const std::shared_ptr<Interface>& intf) const {
-    return intf ? &intf->getNdpTable() : nullptr;
+  auto getNdpEntriesDelta() const {
+    return thrift_cow::ThriftMapDelta(
+        getNdpEntries(getOld()), getNdpEntries(getNew()));
   }
 };
 

@@ -250,11 +250,11 @@ TEST_F(BcmHostTest, CreateV4AndV6L3Host) {
     const auto& swIntf =
         getProgrammedState()->getInterfaces()->getInterface(intfID);
     int expectedHostNum{0};
-    for (const auto& ipAddressPair : swIntf->getAddresses()) {
-      if (!ipAddressPair.first.isLinkLocal()) {
+    for (auto iter : std::as_const(*swIntf->getAddresses())) {
+      auto addr = folly::IPAddress(iter.first);
+      if (!addr.isLinkLocal()) {
         expectedHostNum++;
-        checkBcmHostMatchInHw(
-            getExistingBcmHost(swIntf->getID(), ipAddressPair.first), true);
+        checkBcmHostMatchInHw(getExistingBcmHost(swIntf->getID(), addr), true);
       }
     }
     checkSwHwBcmHostNum(expectedHostNum);

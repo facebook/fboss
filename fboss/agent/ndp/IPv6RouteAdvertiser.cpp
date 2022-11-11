@@ -49,18 +49,19 @@ using Prefix = std::pair<IPAddressV6, uint8_t>;
 std::set<Prefix> getPrefixesToAdvertise(
     const facebook::fboss::Interface* intf) {
   std::set<Prefix> prefixes;
-  for (const auto& addr : intf->getAddresses()) {
-    if (!addr.first.isV6()) {
+  for (auto iter : std::as_const(*intf->getAddresses())) {
+    auto addr = folly::IPAddress(iter.first);
+    if (!addr.isV6()) {
       continue;
     }
-    uint8_t mask = addr.second;
+    uint8_t mask = iter.second->cref();
     // For IPs that are configured with a 128-bit mask, don't bother including
     // them in the advertisement, since no-one else besides us can belong to
     // this subnet.
     if (mask == 128) {
       continue;
     }
-    prefixes.emplace(addr.first.asV6().mask(mask), mask);
+    prefixes.emplace(addr.asV6().mask(mask), mask);
   }
   return prefixes;
 }
@@ -110,7 +111,9 @@ IPv6RAImpl::IPv6RAImpl(
     const Interface* intf)
     : AsyncTimeout(sw->getBackgroundEvb()), sw_(sw), intfID_(intf->getID()) {
   std::chrono::seconds raInterval(
-      *intf->getNdpConfig().routerAdvertisementSeconds());
+      intf->getNdpConfig()
+          ->get<switch_config_tags::routerAdvertisementSeconds>()
+          ->cref());
   interval_ = raInterval;
   initPacket(intf);
 }
@@ -202,26 +205,31 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
     folly::io::RWPrivateCursor* cursor,
     folly::MacAddress dstMac,
     const folly::IPAddressV6& dstIP) {
-  const auto* ndpConfig = &intf->getNdpConfig();
+  const auto ndpConfig = intf->getNdpConfig();
 
   // Settings
-  uint8_t hopLimit = *ndpConfig->curHopLimit();
+  uint8_t hopLimit = ndpConfig->get<switch_config_tags::curHopLimit>()->cref();
   // Set managed and other bits in router advertisements.
   // These bits control whether address and other information
   // (e.g. where to grab the image) is available via DHCP.
   uint8_t flags = 0;
-  if (*ndpConfig->routerAdvertisementManagedBit()) {
+  if (ndpConfig->get<switch_config_tags::routerAdvertisementManagedBit>()
+          ->cref()) {
     flags |= ND_RA_FLAG_MANAGED;
   }
-  if (*ndpConfig->routerAdvertisementOtherBit()) {
+  if (ndpConfig->get<switch_config_tags::routerAdvertisementOtherBit>()
+          ->cref()) {
     flags |= ND_RA_FLAG_OTHER;
   }
-  std::chrono::seconds lifetime(*ndpConfig->routerLifetime());
+  std::chrono::seconds lifetime(
+      ndpConfig->get<switch_config_tags::routerLifetime>()->cref());
   std::chrono::seconds reachableTimer(0);
   std::chrono::seconds retransTimer(0);
-  uint32_t prefixValidLifetime = *ndpConfig->prefixValidLifetimeSeconds();
+  uint32_t prefixValidLifetime =
+      ndpConfig->get<switch_config_tags::prefixValidLifetimeSeconds>()->cref();
   uint32_t prefixPreferredLifetime =
-      *ndpConfig->prefixPreferredLifetimeSeconds();
+      ndpConfig->get<switch_config_tags::prefixPreferredLifetimeSeconds>()
+          ->cref();
   uint32_t mtu = intf->getMtu();
   auto prefixes = getPrefixesToAdvertise(intf);
 
@@ -259,8 +267,9 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
 
   auto bodyLength = getAdvertisementPacketBodySize(prefixes.size());
 
-  IPAddressV6 srcIP = ndpConfig->routerAddress()
-      ? folly::IPAddressV6(*ndpConfig->routerAddress())
+  auto routerAddress = ndpConfig->get<switch_config_tags::routerAddress>();
+  IPAddressV6 srcIP = routerAddress
+      ? folly::IPAddressV6(routerAddress->cref())
       : folly::IPAddressV6(IPAddressV6::LINK_LOCAL, intf->getMac());
   IPv6Hdr ipv6(srcIP, dstIP);
   ipv6.trafficClass = kGetNetworkControlTrafficClass();

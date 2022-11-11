@@ -234,9 +234,10 @@ void DHCPv4Handler::processRequest(
   if (switchIp.isZero()) {
     auto vlanInterface =
         state->getInterfaces()->getInterfaceInVlanIf(pkt->getSrcVlan());
-    for (const auto& address : vlanInterface->getAddresses()) {
-      if (address.first.isV4()) {
-        switchIp = address.first.asV4();
+    for (auto iter : std::as_const(*vlanInterface->getAddresses())) {
+      auto address = folly::IPAddress(iter.first);
+      if (address.isV4()) {
+        switchIp = address.asV4();
         break;
       }
     }

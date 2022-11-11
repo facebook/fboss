@@ -435,9 +435,9 @@ TEST_F(RouterInterfaceManagerTest, addRouterInterfaceSubnets) {
       swInterface->getID(), static_cast<VlanSaiId>(intf0.id), intf0.routerMac);
   auto oldToMeRoutes = getSubnetKeys(swInterface->getID());
   auto newInterface = swInterface->clone();
-  auto addresses = newInterface->getAddresses();
+  auto addresses = newInterface->getAddressesCopy();
   addresses.emplace(folly::IPAddress{"100.100.100.1"}, 24);
-  EXPECT_EQ(swInterface->getAddresses().size() + 1, addresses.size());
+  EXPECT_EQ(swInterface->getAddresses()->size() + 1, addresses.size());
   rifMap = state->getInterfaces()->modify(&state);
   rifMap->updateNode(newInterface);
   applyNewState(state);
@@ -460,9 +460,9 @@ TEST_F(RouterInterfaceManagerTest, addPortRouterInterfaceSubnets) {
         swInterface->getID(), sysPort1, swInterface->getMac());
     auto oldToMeRoutes = getSubnetKeys(swInterface->getID());
     auto newInterface = swInterface->clone();
-    auto addresses = newInterface->getAddresses();
+    auto addresses = newInterface->getAddressesCopy();
     addresses.emplace(folly::IPAddress{"100.100.100.1"}, 24);
-    EXPECT_EQ(swInterface->getAddresses().size() + 1, addresses.size());
+    EXPECT_EQ(swInterface->getAddresses()->size() + 1, addresses.size());
     rifMap = isRemote ? state->getRemoteInterfaces()->modify(&state)
                       : state->getInterfaces()->modify(&state);
     rifMap->updateNode(newInterface);

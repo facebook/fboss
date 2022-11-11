@@ -255,9 +255,9 @@ class BcmRouteTest : public BcmTest {
 
     ipv4Routes = ipv6Routes = 0;
     for (auto interface : *getProgrammedState()->getInterfaces()) {
-      for (auto address : interface->getAddresses()) {
-        auto mask = address.second;
-        auto ipAddress = address.first;
+      for (auto iter : std::as_const(*interface->getAddresses())) {
+        auto mask = iter.second;
+        auto ipAddress = folly::IPAddress(iter.first);
 
         if (ipAddress.isV4() && mask != 32) {
           ipv4Routes++;
@@ -614,11 +614,12 @@ TEST_F(BcmRouteHostReferenceTest, AddNoRoutesAndCheckDefaultHostReference) {
 
     /* entries are created for non-local IP addresses of interface */
     for (auto interface : *getProgrammedState()->getInterfaces()) {
-      for (auto address : interface->getAddresses()) {
-        if (address.first.isV6() && address.first.isLinkLocal()) {
+      for (auto iter : std::as_const(*interface->getAddresses())) {
+        auto address = folly::IPAddress(iter.first);
+        if (address.isV6() && address.isLinkLocal()) {
           continue;
         }
-        interfaceIps.push_back(address.first);
+        interfaceIps.push_back(address);
         interfaceIds.push_back(interface->getID());
       }
     }

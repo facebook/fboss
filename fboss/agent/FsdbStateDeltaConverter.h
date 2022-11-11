@@ -54,11 +54,12 @@ class FsdbStateDeltaConverter {
       const MapDeltaT& nodeMapDelta,
       const Path& basePath) const;
 
-  template <typename Path, typename MapDelta>
+  template <typename Path, typename MapDelta, typename GetKey>
   void processThriftMapNodeDelta(
       std::vector<fsdb::OperDeltaUnit>& operDeltas,
       const MapDelta& nodeMapDelta,
-      const Path& basePath) const;
+      const Path& basePath,
+      const GetKey& getKey) const;
 
   template <typename Path, typename Node, typename Key>
   void processNodeDelta(

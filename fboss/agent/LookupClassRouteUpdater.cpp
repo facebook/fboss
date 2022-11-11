@@ -190,7 +190,9 @@ void LookupClassRouteUpdater::updateSubnetsCache(
     auto interface =
         newState->getInterfaces()->getInterfaceIf(vlan->getInterfaceID());
     if (interface) {
-      for (auto address : interface->getAddresses()) {
+      for (auto iter : std::as_const(*interface->getAddresses())) {
+        auto address =
+            std::make_pair(folly::IPAddress(iter.first), iter.second->cref());
         subnetCacheUpdated = subnetsCache.insert(address).second;
       }
     }
@@ -249,7 +251,9 @@ void LookupClassRouteUpdater::processPortRemovedForVlan(
   }
 
   auto& subnetsCache = vlan2SubnetsCache_[vlanID];
-  for (auto address : interface->getAddresses()) {
+  for (auto iter : std::as_const(*interface->getAddresses())) {
+    std::pair<folly::IPAddress, uint8_t> address(
+        folly::IPAddress(iter.first), iter.second->ref());
     removeNextHopsForSubnet(stateDelta, address, vlan);
     subnetsCache.erase(address);
   }
@@ -358,7 +362,9 @@ void LookupClassRouteUpdater::processInterfaceAdded(
       continue;
     }
 
-    for (const auto& address : addedInterface->getAddresses()) {
+    for (auto iter : std::as_const(*addedInterface->getAddresses())) {
+      std::pair<folly::IPAddress, uint8_t> address(
+          folly::IPAddress(iter.first), iter.second->ref());
       if (blockedNeighborIP.inSubnet(address.first, address.second)) {
         auto& subnetsCache = vlan2SubnetsCache_[vlanID];
         subnetsCache.insert(address);
@@ -397,7 +403,9 @@ void LookupClassRouteUpdater::processInterfaceAdded(
       }
     }
 
-    for (const auto& address : addedInterface->getAddresses()) {
+    for (auto iter : std::as_const(*addedInterface->getAddresses())) {
+      std::pair<folly::IPAddress, uint8_t> address(
+          folly::IPAddress(iter.first), iter.second->ref());
       for (auto& neighborIP : neighborIPAddr) {
         if (neighborIP.inSubnet(address.first, address.second)) {
           auto& subnetsCache = vlan2SubnetsCache_[vlanID];
@@ -1141,7 +1149,9 @@ LookupClassRouteUpdater::getInterfaceSubnetForIPIf(
   auto interface =
       switchState->getInterfaces()->getInterfaceIf(vlan->getInterfaceID());
   if (interface) {
-    for (const auto& address : interface->getAddresses()) {
+    for (auto iter : std::as_const(*interface->getAddresses())) {
+      std::pair<folly::IPAddress, uint8_t> address(
+          folly::IPAddress(iter.first), iter.second->ref());
       if (ipAddress.inSubnet(address.first, address.second)) {
         return std::make_pair(address.first, address.second);
       }
@@ -1207,8 +1217,10 @@ bool LookupClassRouteUpdater::isSubnetCachedByLookupClasses(
   }
 
   if (searchInterfaceAddresses) {
-    for (const auto& address : interface->getAddresses()) {
-      if (folly::CIDRNetwork(address) == addressToSearch) {
+    for (auto iter : std::as_const(*interface->getAddresses())) {
+      if (folly::CIDRNetwork(
+              folly::IPAddress(iter.first), iter.second->cref()) ==
+          addressToSearch) {
         return true;
       }
     }

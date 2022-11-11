@@ -51,7 +51,7 @@ flat_map<InterfaceID, folly::CIDRNetwork> computeInterface2Subnet(
     bool v6) {
   boost::container::flat_map<InterfaceID, folly::CIDRNetwork> intf2Network;
   for (const auto& intf : *inputState->getInterfaces().get()) {
-    for (const auto& cidrStr : intf->getAddresses()) {
+    for (const auto& cidrStr : intf->getAddressesCopy()) {
       auto subnet = folly::IPAddress::createNetwork(cidrStr.first.str());
       if (!v6 && subnet.first.isV4()) {
         intf2Network[intf->getID()] = subnet;
@@ -174,7 +174,7 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolvePortRifNextHop(
     const std::shared_ptr<Interface>& intf,
     bool useLinkLocal) const {
   auto outputState{inputState->clone()};
-  auto nbrTable = intf->getNeighborEntryTable<AddrT>();
+  auto nbrTable = intf->getNeighborEntryTable<AddrT>()->toThrift();
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   state::NeighborEntryFields nbr;
   nbr.mac() = nhop.mac.toString();
@@ -214,7 +214,7 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolvePortRifNextHop(
     const std::shared_ptr<Interface>& intf,
     bool useLinkLocal) const {
   auto outputState{inputState->clone()};
-  auto nbrTable = intf->getNeighborEntryTable<AddrT>();
+  auto nbrTable = intf->getNeighborEntryTable<AddrT>()->toThrift();
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   nbrTable.erase(nhopIp.str());
   auto interfaceMap = outputState->getInterfaces()->modify(&outputState);

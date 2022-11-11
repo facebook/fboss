@@ -724,4 +724,11 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
     return json;
   }
 };
+
+#define RESOLVE_STRUCT_MEMBER(NODE, MEMBER_NAME, MEMBER_TYPE)                \
+  template <>                                                                \
+  struct thrift_cow::ResolveMemberType<NODE, MEMBER_NAME> : std::true_type { \
+    using type = MEMBER_TYPE;                                                \
+  };
+
 } // namespace facebook::fboss

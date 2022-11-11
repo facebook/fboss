@@ -285,9 +285,11 @@ shared_ptr<SwitchState> removeVlanIPv4Address(
   for (const auto& intf : *newState->getInterfaces()) {
     if (intf->getVlanID() == vlanID) {
       Interface::Addresses newAddresses;
-      for (const auto& address : intf->getAddresses()) {
-        if (address.first.isV6()) {
-          newAddresses.emplace(address);
+      for (auto iter : std::as_const(*intf->getAddresses())) {
+        auto address = folly::IPAddress(iter.first);
+        auto mask = iter.second->cref();
+        if (address.isV6()) {
+          newAddresses.emplace(address, mask);
         }
       }
       intf->setAddresses(newAddresses);
@@ -436,8 +438,8 @@ shared_ptr<SwitchState> testStateA() {
   auto intf1 = make_shared<Interface>(
       InterfaceID(1),
       RouterID(0),
-      VlanID(1),
-      "fboss1",
+      std::optional<VlanID>(1),
+      folly::StringPiece("fboss1"),
       MacAddress("00:02:00:00:00:01"),
       9000,
       false, /* is virtual */
@@ -458,8 +460,8 @@ shared_ptr<SwitchState> testStateA() {
   auto intf55 = make_shared<Interface>(
       InterfaceID(55),
       RouterID(0),
-      VlanID(55),
-      "fboss55",
+      std::optional<VlanID>(55),
+      folly::StringPiece("fboss55"),
       MacAddress("00:02:00:00:00:55"),
       9000,
       false, /* is virtual */
@@ -517,8 +519,8 @@ shared_ptr<SwitchState> testStateB() {
   auto intf1 = make_shared<Interface>(
       InterfaceID(1),
       RouterID(0),
-      VlanID(1),
-      "fboss1",
+      std::optional<VlanID>(1),
+      folly::StringPiece("fboss1"),
       MacAddress("00:02:00:00:00:01"),
       9000,
       false, /* is virtual */

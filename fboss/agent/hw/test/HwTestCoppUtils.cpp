@@ -430,8 +430,9 @@ void verifyCoppInvariantHelper(
     PortID srcPort) {
   auto vlanId = utility::firstVlanID(swState);
   auto intf = swState->getInterfaces()->getInterfaceInVlan(vlanId);
-  for (auto& destIp : intf->getAddresses()) {
-    if (destIp.first.isLinkLocal()) {
+  for (auto iter : std::as_const(*intf->getAddresses())) {
+    auto destIp = folly::IPAddress(iter.first);
+    if (destIp.isLinkLocal()) {
       // three elements in the address vector: ipv4, ipv6 and a link local one
       // if the address qualifies as link local, it will loop back to the queue
       // again, adding an extra packet to the queue and failing the verification
@@ -441,15 +442,16 @@ void verifyCoppInvariantHelper(
     sendAndVerifyPkts(
         hwSwitch,
         swState,
-        destIp.first,
+        destIp,
         utility::kBgpPort,
         utility::getCoppHighPriQueueId(hwAsic),
         srcPort);
   }
+  auto addrs = intf->getAddressesCopy();
   sendAndVerifyPkts(
       hwSwitch,
       swState,
-      intf->getAddresses().begin()->first,
+      addrs.begin()->first,
       utility::kNonSpecialPort2,
       utility::kCoppMidPriQueueId,
       srcPort);

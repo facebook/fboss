@@ -788,8 +788,9 @@ static void populateInterfaceDetail(
   *interfaceDetail.mtu() = intf->getMtu();
   *interfaceDetail.mac() = intf->getMac().toString();
   interfaceDetail.address()->clear();
-  interfaceDetail.address()->reserve(intf->getAddresses().size());
-  for (const auto& addrAndMask : intf->getAddresses()) {
+  auto addrs = intf->getAddressesCopy();
+  interfaceDetail.address()->reserve(addrs.size());
+  for (const auto& addrAndMask : addrs) {
     IpPrefix temp;
     *temp.ip() = toBinaryAddress(addrAndMask.first);
     *temp.prefixLength() = addrAndMask.second;
@@ -1942,7 +1943,7 @@ void ThriftHandler::getVlanAddresses(
   auto interfaces = sw_->getState()->getInterfaces();
   for (auto intf : *interfaces) {
     if (intf->getVlanID() == vlan->getID()) {
-      for (const auto& addrAndMask : intf->getAddresses()) {
+      for (auto addrAndMask : intf->getAddressesCopy()) {
         addrs.push_back(converter(addrAndMask.first));
       }
     }

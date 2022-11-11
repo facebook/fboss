@@ -657,7 +657,7 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
   IntfToAddrsMap newIntfToInfo;
   auto intfMap = state->getInterfaces();
   for (const auto& intf : intfMap->getAllNodes()) {
-    const auto& addrs = intf.second->getAddresses();
+    auto addrs = intf.second->getAddressesCopy();
 
     // Ideally all interfaces should be present in intfStatusMap as either
     // interface will be virtual or will have atleast one port. Keeping default

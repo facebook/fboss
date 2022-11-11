@@ -99,8 +99,8 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     auto newRemoteInterface = std::make_shared<Interface>(
         intfId,
         RouterID(0),
-        std::nullopt,
-        "RemoteIntf",
+        std::optional<VlanID>(std::nullopt),
+        folly::StringPiece("RemoteIntf"),
         folly::MacAddress("c6:ca:2b:2a:b1:b6"),
         9000,
         false,
@@ -137,11 +137,11 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         ndp.encapIndex() = *encapIndex;
       }
       ndp.isLocal() = encapIndex == std::nullopt;
-      ndpTable.insert({neighborIp.str(), ndp});
+      ndpTable->emplace(neighborIp.str(), std::move(ndp));
     } else {
-      ndpTable.erase(neighborIp.str());
+      ndpTable->remove(neighborIp.str());
     }
-    interface->setNdpTable(ndpTable);
+    interface->setNdpTable(ndpTable->toThrift());
     interfaceMap->updateNode(interface);
     applyNewState(outState);
   }

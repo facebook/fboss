@@ -512,6 +512,15 @@ void validateNodeSerialization(const Node& node) {
   EXPECT_EQ(node, *nodeBack);
 }
 
+template <typename Node>
+void validateThriftStructNodeSerialization(const Node& node) {
+  auto nodeBack = Node::fromFollyDynamic(node.toFollyDynamic());
+  EXPECT_EQ(node, *nodeBack);
+  nodeBack = std::make_shared<Node>();
+  nodeBack->fromThrift(node.toThrift());
+  EXPECT_EQ(node, *nodeBack);
+}
+
 template <typename NodeMap>
 bool isSameNodeMap(const NodeMap& lhs, const NodeMap& rhs) {
   if (lhs.size() != rhs.size()) {

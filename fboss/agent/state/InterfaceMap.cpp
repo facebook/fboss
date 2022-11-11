@@ -35,7 +35,7 @@ std::shared_ptr<InterfaceMap> InterfaceMap::fromThrift(
     std::map<int, state::InterfaceFields> const& thriftMap) {
   auto interfaceMap = std::make_shared<InterfaceMap>();
   for (const auto& [key, value] : thriftMap) {
-    interfaceMap->addNode(Interface::fromThrift(value));
+    interfaceMap->addNode(std::make_shared<Interface>(value));
   }
   return interfaceMap;
 }

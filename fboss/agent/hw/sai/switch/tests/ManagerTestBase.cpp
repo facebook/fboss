@@ -316,8 +316,8 @@ std::shared_ptr<Interface> ManagerTestBase::makeInterface(
   interface = std::make_shared<Interface>(
       getIntfID(testInterface, type),
       RouterID(0),
-      vlan,
-      folly::sformat("intf{}", testInterface.id),
+      std::optional<VlanID>(vlan),
+      folly::StringPiece(folly::sformat("intf{}", testInterface.id)),
       testInterface.routerMac,
       1500, // mtu
       false, // isVirtual
@@ -352,8 +352,9 @@ std::shared_ptr<Interface> ManagerTestBase::makeInterface(
   auto interface = std::make_shared<Interface>(
       InterfaceID(sysPort.getID()),
       RouterID(0),
-      std::nullopt,
-      folly::sformat("intf{}", static_cast<int>(sysPort.getID())),
+      std::optional<VlanID>(std::nullopt),
+      folly::StringPiece(
+          folly::sformat("intf{}", static_cast<int>(sysPort.getID()))),
       folly::MacAddress{folly::sformat(
           "42:42:42:42:42:{}", static_cast<int>(sysPort.getID()))},
       1500, // mtu

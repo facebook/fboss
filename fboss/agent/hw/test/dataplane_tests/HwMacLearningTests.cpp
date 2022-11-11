@@ -585,11 +585,12 @@ class HwMacLearningAndMyStationInteractionTest : public HwMacLearningTest {
                             ->first;
           auto intf =
               getProgrammedState()->getInterfaces()->getInterfaceInVlan(vlanID);
-          for (const auto& addrEntry : intf->getAddresses()) {
-            if (!addrEntry.first.isV4()) {
+          for (auto iter : std::as_const(*intf->getAddresses())) {
+            auto addrEntry = folly::IPAddress(iter.first);
+            if (!addrEntry.isV4()) {
               continue;
             }
-            auto v4Addr = addrEntry.first.asV4();
+            auto v4Addr = addrEntry.asV4();
             l2LearningObserver_.reset();
             auto arpPacket = utility::makeARPTxPacket(
                 getHwSwitch(),

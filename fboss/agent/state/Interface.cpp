@@ -91,7 +91,7 @@ folly::dynamic InterfaceFields::toFollyDynamic() const {
 
 std::optional<folly::CIDRNetwork> Interface::getAddressToReach(
     const folly::IPAddress& dest) const {
-  auto getAddressToReach = [this, &dest](const auto& addresses) {
+  auto getAddressToReachFn = [this, &dest](auto addresses) {
     std::optional<folly::CIDRNetwork> reachableBy;
     for (const auto& [ipStr, mask] : addresses) {
       auto cidr = folly::CIDRNetwork(ipStr, mask);
@@ -143,8 +143,8 @@ std::optional<folly::CIDRNetwork> Interface::getAddressToReach(
    *  we are reverting to old behavior so as to not
    *  couple our release with their rollout.
    */
-  if (!getNdpConfig().routerAddress()) {
-    return getAddressToReach(getAddresses());
+  if (!routerAddress()) {
+    return getAddressToReachFn(getAddressesCopy());
   } else {
     /*
      * If RA router address is configured, use MAC derived LL if it can
@@ -163,7 +163,7 @@ std::optional<folly::CIDRNetwork> Interface::getAddressToReach(
     }
     // No longer need special case behavior since with routerAddress configured
     // we would have unified v4 and v6 GW addresses
-    return getAddressToReach(*getFields()->data().addresses());
+    return getAddressToReachFn(getAddressesCopy());
   }
   return std::nullopt;
 }
@@ -186,6 +186,6 @@ bool Interface::isIpAttached(
   return intf->canReachAddress(ip);
 }
 
-template class NodeBaseT<Interface, InterfaceFields>;
+template class ThriftStructNode<Interface, state::InterfaceFields>;
 
 } // namespace facebook::fboss

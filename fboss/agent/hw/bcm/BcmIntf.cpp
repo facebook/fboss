@@ -255,9 +255,10 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
     }
   }
   std::unordered_set<std::shared_ptr<BcmHostIf>> hosts;
-  for (const auto& addr : intf->getAddresses()) {
+  for (auto iter : std::as_const(*intf->getAddresses())) {
+    auto addr = folly::IPAddress(iter.first);
     std::shared_ptr<BcmHostIf> host;
-    BcmHostKey key = BcmHostKey(vrf, addr.first, intf->getID());
+    BcmHostKey key = BcmHostKey(vrf, addr, intf->getID());
     if (hw_->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::HOSTTABLE)) {
       host = hw_->writableHostTable()->refOrEmplaceHost(key);
@@ -267,7 +268,7 @@ void BcmIntf::program(const shared_ptr<Interface>& intf) {
     CHECK(host);
     if (!host->isProgrammed()) {
       // new host has been created
-      if (addr.first.isV4()) {
+      if (addr.isV4()) {
         host->setLookupClassId(BcmAclEntry::kLocalIp4DstClassL3Id);
       } else {
         host->setLookupClassId(BcmAclEntry::kLocalIp6DstClassL3Id);

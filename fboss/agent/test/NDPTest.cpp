@@ -696,7 +696,7 @@ void NdpTest::validateRouterAdv(std::optional<std::string> configuredRouterIp) {
           MacAddress("02:05:73:f9:46:fc"),
           IPAddressV6("2401:db00:2110:1234::1:0"),
           VlanID(5),
-          intfConfig->getNdpConfig(),
+          intfConfig->getNdpConfig()->toThrift(),
           9000,
           expectedPrefixes),
       PortID(1),
@@ -742,7 +742,7 @@ void NdpTest::validateRouterAdv(std::optional<std::string> configuredRouterIp) {
           MacAddress("02:ab:73:f9:46:fc"),
           IPAddressV6("2401:db00:2110:1234::1:0"),
           VlanID(5),
-          intfConfig->getNdpConfig(),
+          intfConfig->getNdpConfig()->toThrift(),
           9000,
           expectedPrefixes),
       PortID(1),
@@ -796,7 +796,7 @@ void NdpTest::validateRouterAdv(std::optional<std::string> configuredRouterIp) {
           MacAddress("33:33:00:00:00:01"),
           IPAddressV6("ff02::1"),
           VlanID(5),
-          intfConfig->getNdpConfig(),
+          intfConfig->getNdpConfig()->toThrift(),
           9000,
           expectedPrefixes));
   std::promise<bool> done;

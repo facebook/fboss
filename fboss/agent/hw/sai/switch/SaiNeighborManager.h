@@ -179,12 +179,6 @@ class SaiNeighborManager {
   template <typename NeighborEntryT>
   void removeNeighbor(const std::shared_ptr<NeighborEntryT>& swEntry);
 
-  void changeNeighborEntry(
-      const state::NeighborEntryFields* oldSwEntry,
-      const state::NeighborEntryFields* newSwEntry);
-  void addNeighborEntry(const state::NeighborEntryFields* swEntry);
-
-  void removeNeighborEntry(const state::NeighborEntryFields* swEntry);
   SaiNeighborHandle* getNeighborHandle(
       const SaiNeighborTraits::NeighborEntry& entry);
   const SaiNeighborHandle* getNeighborHandle(
