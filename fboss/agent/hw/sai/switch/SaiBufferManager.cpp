@@ -130,7 +130,8 @@ void SaiBufferManager::setupEgressBufferPool() {
   SaiBufferPoolTraits::CreateAttributes c {
     SAI_BUFFER_POOL_TYPE_EGRESS, getMaxEgressPoolBytes(platform_),
         SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC
-#if defined(TAJO_SDK)
+#if defined(TAJO_SDK) || defined(SAI_VERSION_8_2_0_0_ODP) || \
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP)
         ,
         0 /* XoffSize for Egress Pool */
 #endif
@@ -146,12 +147,18 @@ void SaiBufferManager::setupIngressBufferPool(const PortPgConfig& portPgCfg) {
   ingressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   auto& store = saiStore_->get<SaiBufferPoolTraits>();
   auto bufferPoolCfg = portPgCfg.getBufferPoolConfig().value();
+  // Pool size is the sum of (shared + headroom) * number of memory buffers
+  auto poolSize =
+      (bufferPoolCfg->getSharedBytes() + bufferPoolCfg->getHeadroomBytes()) *
+      platform_->getAsic()->getNumMemoryBuffers();
   SaiBufferPoolTraits::CreateAttributes c {
-    SAI_BUFFER_POOL_TYPE_INGRESS, bufferPoolCfg->getSharedBytes(),
+    SAI_BUFFER_POOL_TYPE_INGRESS, poolSize,
         SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC
-#if defined(TAJO_SDK)
+#if defined(TAJO_SDK) || defined(SAI_VERSION_8_2_0_0_ODP) || \
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP)
         ,
-        bufferPoolCfg->getHeadroomBytes()
+        bufferPoolCfg->getHeadroomBytes() *
+        platform_->getAsic()->getNumMemoryBuffers()
 #endif
   };
   ingressBufferPoolHandle_->bufferPool =
@@ -216,9 +223,6 @@ SaiBufferManager::ingressProfileCreateAttrs(const PortPgConfig& config) const {
   SaiBufferProfileTraits::Attributes::XoffTh xoffTh{0};
   if (config.getHeadroomLimitBytes()) {
     xoffTh = config.getHeadroomLimitBytes().value();
-    // Reserved = headroom + min
-    reservedBytes =
-        config.getHeadroomLimitBytes().value() + config.getMinLimitBytes();
   }
   SaiBufferProfileTraits::Attributes::XonTh xonTh{0}; // Not configured!
   SaiBufferProfileTraits::Attributes::XonOffsetTh xonOffsetTh{0};

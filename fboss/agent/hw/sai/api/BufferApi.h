@@ -41,7 +41,8 @@ struct SaiBufferPoolTraits {
         EnumType,
         SAI_BUFFER_POOL_ATTR_THRESHOLD_MODE,
         sai_int32_t>;
-#if defined(TAJO_SDK)
+#if defined(TAJO_SDK) || defined(SAI_VERSION_8_2_0_0_ODP) || \
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP)
     using XoffSize =
         SaiAttribute<EnumType, SAI_BUFFER_POOL_ATTR_XOFF_SIZE, sai_uint64_t>;
 #endif
@@ -52,7 +53,8 @@ struct SaiBufferPoolTraits {
       Attributes::Type,
       Attributes::Size,
       Attributes::ThresholdMode
-#if defined(TAJO_SDK)
+#if defined(TAJO_SDK) || defined(SAI_VERSION_8_2_0_0_ODP) || \
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP)
       ,
       Attributes::XoffSize
 #endif
@@ -67,7 +69,8 @@ struct SaiBufferPoolTraits {
 SAI_ATTRIBUTE_NAME(BufferPool, Type);
 SAI_ATTRIBUTE_NAME(BufferPool, Size);
 SAI_ATTRIBUTE_NAME(BufferPool, ThresholdMode);
-#if defined(TAJO_SDK)
+#if defined(TAJO_SDK) || defined(SAI_VERSION_8_2_0_0_ODP) || \
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP)
 SAI_ATTRIBUTE_NAME(BufferPool, XoffSize);
 #endif
 
