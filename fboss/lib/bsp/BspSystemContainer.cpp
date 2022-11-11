@@ -8,8 +8,17 @@
 namespace facebook {
 namespace fboss {
 
+BspSystemContainer::BspSystemContainer(std::unique_ptr<FpgaDevice> fpgaDevice)
+    : fpgaDevice_(std::move(fpgaDevice)) {
+  fpgaDevice_->mmap();
+}
+
 BspSystemContainer::BspSystemContainer(BspPlatformMapping* bspMapping)
     : bspMapping_(bspMapping) {
+  initializePimContainers();
+}
+
+void BspSystemContainer::initializePimContainers() {
   for (auto pimMapping : bspMapping_->getPimMappings()) {
     pimContainers_.emplace(
         pimMapping.first, std::make_unique<BspPimContainer>(pimMapping.second));
