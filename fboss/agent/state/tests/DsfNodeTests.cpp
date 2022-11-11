@@ -147,3 +147,17 @@ TEST(DsfNode, dsfNodeUpdateLocalDsfNodeConfig) {
   ASSERT_NE(nullptr, stateV2);
   EXPECT_EQ(stateV1->getDsfNodes()->size(), 1);
 }
+
+TEST(DSFNode, loopackIpsSorted) {
+  auto dsfNode = makeDsfNode();
+  std::vector<std::string> loopbacks{"100.1.1.0/24", "201::1/64", "300::4/64"};
+  dsfNode->setLoopbackIps(loopbacks);
+  std::set<folly::CIDRNetwork> loopbacksSorted;
+  std::for_each(
+      loopbacks.begin(),
+      loopbacks.end(),
+      [&loopbacksSorted](const auto& loopback) {
+        loopbacksSorted.insert(folly::IPAddress::createNetwork(loopback));
+      });
+  EXPECT_EQ(loopbacksSorted, dsfNode->getLoopbackIpsSorted());
+}

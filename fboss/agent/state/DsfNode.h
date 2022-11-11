@@ -34,6 +34,7 @@ class DsfNode : public ThriftStructNode<DsfNode, cfg::DsfNode> {
   auto getLoopbackIps() const {
     return get<switch_config_tags::loopbackIps>();
   }
+  std::set<folly::CIDRNetwork> getLoopbackIpsSorted() const;
   void setLoopbackIps(const std::vector<std::string>& loopbackIps);
   cfg::Range64 getSystemPortRange() const;
   folly::MacAddress getMac() const;

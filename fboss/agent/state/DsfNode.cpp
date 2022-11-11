@@ -51,5 +51,15 @@ std::shared_ptr<DsfNode> DsfNode::fromFollyDynamic(
   return node;
 }
 
+std::set<folly::CIDRNetwork> DsfNode::getLoopbackIpsSorted() const {
+  std::set<folly::CIDRNetwork> subnets;
+  const auto& loopbackIps = *getLoopbackIps();
+  for (auto loopbackSubnet : loopbackIps) {
+    subnets.emplace(
+        folly::IPAddress::createNetwork(loopbackSubnet->toThrift()));
+  }
+  return subnets;
+}
+
 template class ThriftStructNode<DsfNode, cfg::DsfNode>;
 } // namespace facebook::fboss
