@@ -59,6 +59,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FABRIC_PORT_MTU:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
     case HwAsic::Feature::FABRIC_PORTS:
+    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
       return true;
     // VOQ vs NPU mode dependent features
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
@@ -112,7 +113,6 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::LINK_TRAINING:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
-    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::VOQ:
     case HwAsic::Feature::RECYCLE_PORTS:
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
@@ -172,5 +172,11 @@ std::set<cfg::StreamType> EbroAsic::getQueueStreamTypes(
   throw FbossError(
       "Ebro ASIC does not support:",
       apache::thrift::util::enumNameSafe(portType));
+}
+cfg::Range64 EbroAsic::getReservedEncapIndexRange() const {
+  // Reserved range worked out with vendor. These ids
+  // are reserved in SAI-SDK implementation for use
+  // by NOS
+  return makeRange(100, 4096);
 }
 } // namespace facebook::fboss

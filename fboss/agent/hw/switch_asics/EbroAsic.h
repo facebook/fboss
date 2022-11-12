@@ -98,6 +98,7 @@ class EbroAsic : public TajoAsic {
   uint32_t getNumMemoryBuffers() const override {
     return 1;
   }
+  cfg::Range64 getReservedEncapIndexRange() const override;
 
  private:
   bool isSupportedFabric(Feature feature) const;
