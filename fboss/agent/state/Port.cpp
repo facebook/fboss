@@ -26,6 +26,18 @@ using std::string;
 
 namespace facebook::fboss {
 
+state::RxSak PortFields::rxSakToThrift(
+    const PortFields::MKASakKey& sakKey,
+    const mka::MKASak& sak) const {
+  state::MKASakKey sakKeyThrift;
+  *sakKeyThrift.sci() = sakKey.sci;
+  *sakKeyThrift.associationNum() = sakKey.associationNum;
+  state::RxSak rxSakThrift;
+  *rxSakThrift.sakKey() = sakKeyThrift;
+  *rxSakThrift.sak() = sak;
+  return rxSakThrift;
+}
+
 state::VlanInfo PortFields::VlanInfo::toThrift() const {
   state::VlanInfo vlanThrift;
   *vlanThrift.tagged() = tagged;
@@ -251,6 +263,33 @@ state::PortFields PortFields::toThrift() const {
 
   *port.portType() = portType;
 
+  if (iPhyLinkFaultStatus) {
+    port.iPhyLinkFaultStatus() = *iPhyLinkFaultStatus;
+  }
+
+  *port.asicPrbs() = asicPrbs;
+  *port.gbSystemPrbs() = gbSystemPrbs;
+  *port.gbLinePrbs() = gbLinePrbs;
+
+  if (pfcPriorities) {
+    std::vector<int16_t> tmpPriorities;
+    for (const auto& priority : *pfcPriorities) {
+      tmpPriorities.push_back(priority);
+    }
+    port.pfcPriorities() = tmpPriorities;
+  }
+
+  *port.expectedLLDPValues() = expectedLLDPValues;
+
+  for (const auto& [mkaSakKey, mkaSak] : rxSecureAssociationKeys) {
+    port.rxSecureAssociationKeys()->push_back(rxSakToThrift(mkaSakKey, mkaSak));
+  }
+
+  if (txSecureAssociationKey) {
+    port.txSecureAssociationKey() = *txSecureAssociationKey;
+  }
+  *port.macsecDesired() = macsecDesired;
+  *port.dropUnencrypted() = dropUnencrypted;
   return port;
 }
 

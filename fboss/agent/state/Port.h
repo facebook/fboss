@@ -82,6 +82,9 @@ struct PortFields : public ThriftyFields<PortFields, state::PortFields> {
   };
   using RxSaks = std::map<MKASakKey, mka::MKASak>;
 
+  state::RxSak rxSakToThrift(const MKASakKey& sakKey, const mka::MKASak& sak)
+      const;
+
   const PortID id{0};
   std::string name;
   std::string description;
