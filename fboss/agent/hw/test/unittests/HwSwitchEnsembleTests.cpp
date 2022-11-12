@@ -28,7 +28,7 @@ class TestHwSwitchEnsemble : HwSwitchEnsemble {
   bool isRouteScaleEnabled() const override {
     return true;
   }
-  uint64_t getSwitchId() const override {
+  uint64_t getSdkSwitchId() const override {
     return 0;
   }
   bool isSai() const override {

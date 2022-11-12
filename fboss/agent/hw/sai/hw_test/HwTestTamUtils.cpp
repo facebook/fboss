@@ -37,7 +37,7 @@ void triggerParityError(HwSwitchEnsemble* ensemble) {
   SaiSwitchEnsemble* saiEnsemble = static_cast<SaiSwitchEnsemble*>(ensemble);
   if (SaiSwitchTraits::Attributes::HwEccErrorInitiate::AttributeId()()) {
     SaiSwitchTraits::Attributes::HwEccErrorInitiate initiateError{1};
-    auto switchId = static_cast<SwitchSaiId>(saiEnsemble->getSwitchId());
+    auto switchId = static_cast<SwitchSaiId>(saiEnsemble->getSdkSwitchId());
     SaiApiTable::getInstance()->switchApi().setAttribute(
         switchId, initiateError);
   }

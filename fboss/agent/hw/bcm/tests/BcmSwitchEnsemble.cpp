@@ -177,7 +177,7 @@ void BcmSwitchEnsemble::dumpHwCounters() const {
 std::map<PortID, HwPortStats> BcmSwitchEnsemble::getLatestPortStats(
     const std::vector<PortID>& ports) {
   // sync the stats
-  auto rv = bcm_stat_sync(getSwitchId());
+  auto rv = bcm_stat_sync(getSdkSwitchId());
   bcmCheckError(rv, "Unable to sync stats ");
   return HwSwitchEnsemble::getLatestPortStats(ports);
 }
@@ -205,7 +205,7 @@ std::unique_ptr<HwLinkStateToggler> BcmSwitchEnsemble::createLinkToggler(
   return std::make_unique<BcmLinkStateToggler>(this, desiredLoopbackMode);
 }
 
-uint64_t BcmSwitchEnsemble::getSwitchId() const {
+uint64_t BcmSwitchEnsemble::getSdkSwitchId() const {
   return getHwSwitch()->getUnit();
 }
 

@@ -117,7 +117,7 @@ SaiSwitchEnsemble::getLatestAggregatePortStats(
   return stats;
 }
 
-uint64_t SaiSwitchEnsemble::getSwitchId() const {
+uint64_t SaiSwitchEnsemble::getSdkSwitchId() const {
   return getHwSwitch()->getSaiSwitchId();
 }
 
