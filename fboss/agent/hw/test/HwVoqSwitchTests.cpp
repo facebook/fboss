@@ -271,15 +271,14 @@ TEST_F(HwVoqSwitchTest, init) {
 }
 
 TEST_F(HwVoqSwitchTest, remoteSystemPort) {
-  auto setup = [this]() {
-    addRemoteSysPort(SystemPortID(401));
-  };
+  auto setup = [this]() { addRemoteSysPort(SystemPortID(401)); };
   verifyAcrossWarmBoots(setup, [] {});
 }
 
 TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
   auto setup = [this]() {
-    const PortDescriptor kPort(masterLogicalPortIds()[0]);
+    const PortDescriptor kPort(
+        masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]);
     // Add neighbor
     addRemoveNeighbor(kPort, true);
     // Remove neighbor
