@@ -114,7 +114,9 @@ class BaseEcmpSetupHelper {
   std::shared_ptr<SwitchState> resolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
       const boost::container::flat_set<PortDescriptor>& portDescs,
-      bool useLinkLocal = false) const;
+      bool useLinkLocal = false,
+      std::optional<int64_t> encapIdx = std::nullopt) const;
+
   std::shared_ptr<SwitchState> unresolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
       const boost::container::flat_set<PortDescriptor>& portDescs,
@@ -123,7 +125,8 @@ class BaseEcmpSetupHelper {
   std::shared_ptr<SwitchState> resolveNextHop(
       const std::shared_ptr<SwitchState>& inputState,
       const NextHopT& nhop,
-      bool useLinkLocal = false) const;
+      bool useLinkLocal = false,
+      std::optional<int64_t> encapIdx = std::nullopt) const;
 
   std::shared_ptr<SwitchState> unresolveNextHop(
       const std::shared_ptr<SwitchState>& inputState,
@@ -143,7 +146,8 @@ class BaseEcmpSetupHelper {
       const std::shared_ptr<SwitchState>& inputState,
       const boost::container::flat_set<PortDescriptor>& portDescs,
       bool resolve,
-      bool useLinkLocal) const;
+      bool useLinkLocal,
+      std::optional<int64_t> encapIdx) const;
 
   std::shared_ptr<SwitchState> resolveVlanRifNextHop(
       const std::shared_ptr<SwitchState>& inputState,
@@ -160,7 +164,8 @@ class BaseEcmpSetupHelper {
       const std::shared_ptr<SwitchState>& inputState,
       const NextHopT& nhop,
       const std::shared_ptr<Interface>& intf,
-      bool useLinkLocal) const;
+      bool useLinkLocal,
+      std::optional<int64_t> encapIdx) const;
 
   std::shared_ptr<SwitchState> unresolvePortRifNextHop(
       const std::shared_ptr<SwitchState>& inputState,
@@ -333,7 +338,8 @@ class EcmpSetupAnyNPorts {
   std::shared_ptr<SwitchState> resolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
       size_t numNextHops,
-      bool useLinkLocal = false) const;
+      bool useLinkLocal = false,
+      std::optional<int64_t> encapIdx = std::nullopt) const;
   std::shared_ptr<SwitchState> unresolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
       size_t numNextHops,
@@ -349,7 +355,8 @@ class EcmpSetupAnyNPorts {
   std::shared_ptr<SwitchState> resolveNextHops(
       const std::shared_ptr<SwitchState>& inputState,
       const boost::container::flat_set<PortDescriptor>& portDescs,
-      bool useLinkLocal = false) const;
+      bool useLinkLocal = false,
+      std::optional<int64_t> encapIdx = std::nullopt) const;
 
   // targeted unresolve
   std::shared_ptr<SwitchState> unresolveNextHops(

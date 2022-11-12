@@ -111,8 +111,10 @@ std::shared_ptr<SwitchState>
 BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
     const boost::container::flat_set<PortDescriptor>& portDescs,
-    bool useLinkLocal) const {
-  return resolveNextHopsImpl(inputState, portDescs, true, useLinkLocal);
+    bool useLinkLocal,
+    std::optional<int64_t> encapIdx) const {
+  return resolveNextHopsImpl(
+      inputState, portDescs, true, useLinkLocal, encapIdx);
 }
 
 template <typename AddrT, typename NextHopT>
@@ -121,7 +123,8 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
     const boost::container::flat_set<PortDescriptor>& portDescs,
     bool useLinkLocal) const {
-  return resolveNextHopsImpl(inputState, portDescs, false, useLinkLocal);
+  return resolveNextHopsImpl(
+      inputState, portDescs, false, useLinkLocal, std::nullopt);
 }
 
 template <typename AddrT, typename NextHopT>
@@ -130,12 +133,14 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHopsImpl(
     const std::shared_ptr<SwitchState>& inputState,
     const boost::container::flat_set<PortDescriptor>& portDescs,
     bool resolve,
-    bool useLinkLocal) const {
+    bool useLinkLocal,
+    std::optional<int64_t> encapIdx) const {
   auto outputState{inputState};
   for (auto nhop : nhops_) {
     if (portDescs.find(nhop.portDesc) != portDescs.end()) {
-      outputState = resolve ? resolveNextHop(outputState, nhop, useLinkLocal)
-                            : unresolveNextHop(outputState, nhop, useLinkLocal);
+      outputState = resolve
+          ? resolveNextHop(outputState, nhop, useLinkLocal, encapIdx)
+          : unresolveNextHop(outputState, nhop, useLinkLocal);
     }
   }
   return outputState;
@@ -172,7 +177,8 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolvePortRifNextHop(
     const std::shared_ptr<SwitchState>& inputState,
     const NextHopT& nhop,
     const std::shared_ptr<Interface>& intf,
-    bool useLinkLocal) const {
+    bool useLinkLocal,
+    std::optional<int64_t> encapIdx) const {
   auto outputState{inputState->clone()};
   auto nbrTable = intf->getNeighborEntryTable<AddrT>()->toThrift();
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
@@ -182,6 +188,9 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolvePortRifNextHop(
   nbr.ipaddress() = nhopIp.str();
   nbr.portId() = nhop.portDesc.toThrift();
   nbr.state() = state::NeighborState::Reachable;
+  if (encapIdx) {
+    nbr.encapIndex() = *encapIdx;
+  }
   nbrTable.insert({*nbr.ipaddress(), nbr});
   auto interfaceMap = outputState->getInterfaces()->modify(&outputState);
   auto interface = interfaceMap->getInterface(intf->getID())->clone();
@@ -229,14 +238,18 @@ std::shared_ptr<SwitchState>
 BaseEcmpSetupHelper<AddrT, NextHopT>::resolveNextHop(
     const std::shared_ptr<SwitchState>& inputState,
     const NextHopT& nhop,
-    bool useLinkLocal) const {
+    bool useLinkLocal,
+    std::optional<int64_t> encapIdx) const {
   auto intfID = portDesc2Interface_.find(nhop.portDesc)->second;
   auto intf = inputState->getInterfaces()->getInterface(intfID);
   switch (intf->getType()) {
     case cfg::InterfaceType::VLAN:
+      CHECK(!encapIdx.has_value())
+          << " Encap index not supported for VLAN rifs";
       return resolveVlanRifNextHop(inputState, nhop, intf, useLinkLocal);
     case cfg::InterfaceType::SYSTEM_PORT:
-      return resolvePortRifNextHop(inputState, nhop, intf, useLinkLocal);
+      return resolvePortRifNextHop(
+          inputState, nhop, intf, useLinkLocal, encapIdx);
   }
   CHECK(false) << " Unhandled interface type: ";
   return nullptr;
@@ -563,18 +576,20 @@ template <typename IPAddrT>
 std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::resolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
     size_t numNextHops,
-    bool useLinkLocal) const {
+    bool useLinkLocal,
+    std::optional<int64_t> encapIdx) const {
   return ecmpSetupTargetedPorts_.resolveNextHops(
-      inputState, getPortDescs(numNextHops), useLinkLocal);
+      inputState, getPortDescs(numNextHops), useLinkLocal, encapIdx);
 }
 
 template <typename IPAddrT>
 std::shared_ptr<SwitchState> EcmpSetupAnyNPorts<IPAddrT>::resolveNextHops(
     const std::shared_ptr<SwitchState>& inputState,
     const flat_set<PortDescriptor>& portDescs,
-    bool useLinkLocal) const {
+    bool useLinkLocal,
+    std::optional<int64_t> encapIdx) const {
   return ecmpSetupTargetedPorts_.resolveNextHops(
-      inputState, portDescs, useLinkLocal);
+      inputState, portDescs, useLinkLocal, encapIdx);
 }
 
 template <typename IPAddrT>
