@@ -252,11 +252,11 @@ void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
       // Now call HwSwitch to create the switch object in hardware
       auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
       saiSwitch->init(credoF104, true /* failHwCallsOnWarmboot */);
-      credoF104->setSwitchId(saiSwitch->getSwitchId());
+      credoF104->setSwitchId(saiSwitch->getSaiSwitchId());
       credoF104->dump();
       XLOG(DBG2)
           << "Finished initializing phy of global phyId:" << phy.first
-          << ", switchId:" << saiSwitch->getSwitchId() << " took "
+          << ", switchId:" << saiSwitch->getSaiSwitchId() << " took "
           << duration_cast<milliseconds>(steady_clock::now() - begin).count()
           << "ms";
     }

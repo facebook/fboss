@@ -35,7 +35,7 @@ std::multiset<uint64_t> getEcmpMembersInHw(
     throw FbossError("No virtual router with for rid: ", rid);
   }
   SaiRouteTraits::RouteEntry r(
-      saiSwitch->getSwitchId(),
+      saiSwitch->getSaiSwitchId(),
       virtualRouterHandle->virtualRouter->adapterKey(),
       prefix);
   const auto& routeHandle =

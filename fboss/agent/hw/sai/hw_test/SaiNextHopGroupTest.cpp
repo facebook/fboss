@@ -48,7 +48,7 @@ class SaiNextHopGroupTest : public SaiLinkStateDependentTests {
         managerTable->virtualRouterManager().getVirtualRouterHandle(
             RouterID(0));
     return SaiRouteTraits::RouteEntry{
-        getSaiSwitch()->getSwitchId(),
+        getSaiSwitch()->getSaiSwitchId(),
         vrHandle->virtualRouter->adapterKey(),
         folly::CIDRNetwork("::", 0)};
   }

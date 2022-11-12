@@ -133,7 +133,7 @@ void SaiPhyManager::updateAllXphyPortsStats() {
               } catch (const std::exception& e) {
                 XLOG(INFO) << "Stats collection failed on : "
                            << "switch: "
-                           << platformInfo->getHwSwitch()->getSwitchId()
+                           << platformInfo->getHwSwitch()->getSaiSwitchId()
                            << " xphy: " << xphy << " error: " << e.what();
               }
             }
@@ -494,7 +494,7 @@ std::string SaiPhyManager::getSaiPortInfo(PortID swPort) {
   auto saiPlatform = getSaiPlatform(globalPhyID);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
 
-  auto switchId = saiSwitch->getSwitchId();
+  auto switchId = saiSwitch->getSaiSwitchId();
 
   // Get port handle and then get port attributes
   auto portHandle =
@@ -575,7 +575,7 @@ void SaiPhyManager::setSaiPortLoopbackState(
   auto saiPlatform = getSaiPlatform(globalPhyID);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
 
-  auto switchId = saiSwitch->getSwitchId();
+  auto switchId = saiSwitch->getSaiSwitchId();
 
   // Get port handle and then get port attributes
   auto portHandle =
@@ -614,7 +614,7 @@ void SaiPhyManager::setSaiPortAdminState(
   auto saiPlatform = getSaiPlatform(globalPhyID);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
 
-  auto switchId = saiSwitch->getSwitchId();
+  auto switchId = saiSwitch->getSaiSwitchId();
 
   // Get port handle and then get port attributes
   auto portHandle =
@@ -873,7 +873,7 @@ std::string SaiPhyManager::listHwObjects(
 
       resultStr += folly::to<std::string>("Xphy Id: ", xphyID, "\n");
       resultStr += folly::to<std::string>(
-          "Sai Switch Id: ", saiSwitch->getSwitchId(), "\n");
+          "Sai Switch Id: ", saiSwitch->getSaiSwitchId(), "\n");
       resultStr += saiSwitch->listObjects(hwObjects, cached);
     }
   }
@@ -1043,7 +1043,7 @@ void SaiPhyManager::xphyPortStateToggle(PortID swPort, phy::Side side) {
   }
 
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
-  auto switchId = saiSwitch->getSwitchId();
+  auto switchId = saiSwitch->getSaiSwitchId();
 
   // Get port handle and then get port adapter key (SAI object id)
   auto portHandle =

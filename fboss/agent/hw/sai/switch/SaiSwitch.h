@@ -166,7 +166,7 @@ class SaiSwitch : public HwSwitch {
       uint32_t attr_count,
       const sai_attribute_t* attr_list);
 
-  SwitchSaiId getSwitchId() const {
+  SwitchSaiId getSaiSwitchId() const {
     return switchId_;
   }
   SaiPlatform* getPlatform() const override {

@@ -41,7 +41,7 @@ SaiRouteTraits::RouteEntry getSaiRouteAdapterKey(
   }
 
   return SaiRouteTraits::RouteEntry(
-      saiSwitch->getSwitchId(),
+      saiSwitch->getSaiSwitchId(),
       virtualRouterHandle->virtualRouter->adapterKey(),
       prefix);
 }

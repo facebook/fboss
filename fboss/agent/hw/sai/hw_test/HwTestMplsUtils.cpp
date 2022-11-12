@@ -89,7 +89,7 @@ sai_object_id_t getNextHopId(
     throw FbossError("No virtual router with id 0");
   }
   auto routeEntry = SaiRouteTraits::RouteEntry(
-      saiSwitch->getSwitchId(),
+      saiSwitch->getSaiSwitchId(),
       virtualRouterHandle->virtualRouter->adapterKey(),
       follyPrefix);
   return SaiApiTable::getInstance()->routeApi().getAttribute(

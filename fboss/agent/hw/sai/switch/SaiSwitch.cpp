@@ -1058,7 +1058,7 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
 
     phy::PhyInfo phyParams;
     phyParams.name() = fb303PortStat->portName();
-    phyParams.switchID() = getSwitchId();
+    phyParams.switchID() = getSaiSwitchId();
     // Global phy parameters
     phy::DataPlanePhyChip phyChip;
     auto chipType = getPlatform()->getAsic()->getDataPlanePhyChipType();
@@ -2562,7 +2562,7 @@ std::string SaiSwitch::listObjectsLocked(
   const SaiStore* store = saiStore_.get();
   SaiStore directToHwStore;
   if (!cached) {
-    directToHwStore.setSwitchId(getSwitchId());
+    directToHwStore.setSwitchId(getSaiSwitchId());
     auto json = toFollyDynamicLocked(lock);
     std::unique_ptr<folly::dynamic> adapterKeysJson;
     std::unique_ptr<folly::dynamic> adapterKeys2AdapterHostKeysJson;

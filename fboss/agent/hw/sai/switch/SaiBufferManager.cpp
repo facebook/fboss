@@ -39,7 +39,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
   if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
     return;
   }
-  const auto switchId = saiSwitch->getSwitchId();
+  const auto switchId = saiSwitch->getSaiSwitchId();
   auto& switchApi = SaiApiTable::getInstance()->switchApi();
   auto availableBuffer = switchApi.getAttribute(
       switchId, SaiSwitchTraits::Attributes::EgressPoolAvaialableSize{});

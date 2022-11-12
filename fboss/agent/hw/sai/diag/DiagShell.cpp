@@ -153,7 +153,7 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformMode::DARWIN:
     case PlatformMode::MAKALU:
     case PlatformMode::KAMET:
-      return std::make_unique<SaiRepl>(hw_->getSwitchId());
+      return std::make_unique<SaiRepl>(hw_->getSaiSwitchId());
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
     case PlatformMode::WEDGE400C_VOQ:

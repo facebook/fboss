@@ -30,6 +30,6 @@ TEST_F(SwitchManagerTest, serDeser) {
     switchKeys.push_back(fromFollyDynamic<SaiSwitchTraits>(obj));
   }
   EXPECT_EQ(
-      std::vector<SaiSwitchTraits::AdapterKey>{saiSwitch->getSwitchId()},
+      std::vector<SaiSwitchTraits::AdapterKey>{saiSwitch->getSaiSwitchId()},
       switchKeys);
 }

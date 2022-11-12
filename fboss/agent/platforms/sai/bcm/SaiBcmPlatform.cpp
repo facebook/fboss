@@ -13,7 +13,7 @@ void SaiBcmPlatform::initWedgeLED(int led, folly::ByteRange code) {
     return;
   }
   SaiSwitch* saiSwitch = static_cast<SaiSwitch*>(SaiPlatform::getHwSwitch());
-  auto switchID = saiSwitch->getSwitchId();
+  auto switchID = saiSwitch->getSaiSwitchId();
 
   // disable LED processor
   std::array<sai_uint32_t, 2> disable{};
