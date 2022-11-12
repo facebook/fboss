@@ -13,6 +13,7 @@ include "fboss/agent/if/common.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "common/network/if/Address.thrift"
 include "fboss/agent/if/ctrl.thrift"
+include "fboss/mka_service/if/mka_structs.thrift"
 
 struct VlanInfo {
   1: bool tagged;
@@ -62,6 +63,16 @@ struct PortQueueFields {
   16: optional list<i16> pfcPriorities;
 }
 
+struct MKASakKey {
+  1: mka_structs.MKASci sci;
+  2: i32 associationNum;
+}
+
+struct RxSak {
+  1: MKASakKey sakKey;
+  2: mka_structs.MKASak sak;
+}
+
 // Port configuration and oper state fields
 // TODO: separate config and operational state
 struct PortFields {
@@ -98,6 +109,16 @@ struct PortFields {
   28: optional phy.ProfileSideConfig lineProfileConfig;
   29: optional list<phy.PinConfig> linePinConfigs;
   30: switch_config.PortType portType = switch_config.PortType.INTERFACE_PORT;
+  31: optional phy.LinkFaultStatus iPhyLinkFaultStatus;
+  32: phy.PortPrbsState asicPrbs;
+  33: phy.PortPrbsState gbSystemPrbs;
+  34: phy.PortPrbsState gbLinePrbs;
+  35: optional list<i16> pfcPriorities;
+  36: map<switch_config.LLDPTag, string> expectedLLDPValues;
+  37: list<RxSak> rxSecureAssociationKeys;
+  38: optional mka_structs.MKASak txSecureAssociationKey;
+  39: bool macsecDesired = false;
+  40: bool dropUnencrypted = false;
 }
 
 struct SystemPortFields {
