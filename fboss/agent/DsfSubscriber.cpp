@@ -33,9 +33,9 @@ void DsfSubscriber::scheduleUpdate(
     SwitchID nodeSwitchId) {
   XLOG(INFO) << " For , switchId: " << static_cast<int64_t>(nodeSwitchId)
              << " got,"
-             << " updated sys ports: "
+             << " updated # of sys ports: "
              << (newSysPorts ? newSysPorts->size() : 0)
-             << " updated rifs: " << (newRifs ? newRifs->size() : 0);
+             << " updated # of rifs: " << (newRifs ? newRifs->size() : 0);
   sw_->updateState(
       folly::sformat("Update state for node: {}", nodeName),
       [&](const std::shared_ptr<SwitchState>& in) {
@@ -48,58 +48,40 @@ void DsfSubscriber::scheduleUpdate(
         }
         bool changed{false};
         auto out = in->clone();
+        auto processDelta = [&](auto& delta, auto& mapToUpdate) {
+          DeltaFunctions::forEachChanged(
+              delta,
+              [&](const auto& oldNode, const auto& newNode) {
+                if (*oldNode != *newNode) {
+                  // Compare contents as we reconstructed
+                  // map from deserialized FSDB
+                  // subscriptions. So can't just rely on
+                  // pointer comparison here.
+                  mapToUpdate->updateNode(newNode);
+                  changed = true;
+                }
+              },
+              [&](const auto& newNode) {
+                mapToUpdate->addNode(newNode);
+                changed = true;
+              },
+              [&](const auto& rmNode) {
+                mapToUpdate->removeNode(rmNode);
+                changed = true;
+              });
+        };
         if (newSysPorts) {
           auto origSysPorts = out->getSystemPorts(nodeSwitchId);
           NodeMapDelta<SystemPortMap> delta(
               origSysPorts.get(), newSysPorts.get());
           auto remoteSysPorts = out->getRemoteSystemPorts()->modify(&out);
-          DeltaFunctions::forEachChanged(
-              delta,
-              [&](const std::shared_ptr<SystemPort>& oldNode,
-                  const std::shared_ptr<SystemPort>& newNode) {
-                if (*oldNode != *newNode) {
-                  // Compare contents as we reconstructed
-                  // sys port map from deserialized FSDB
-                  // subscriptions. So can't just rely on
-                  // pointer comparison here.
-                  remoteSysPorts->updateNode(newNode);
-                  changed = true;
-                }
-              },
-              [&](const std::shared_ptr<SystemPort>& newNode) {
-                remoteSysPorts->addNode(newNode);
-                changed = true;
-              },
-              [&](const std::shared_ptr<SystemPort>& rmNode) {
-                remoteSysPorts->removeNode(rmNode);
-                changed = true;
-              });
+          processDelta(delta, remoteSysPorts);
         }
         if (newRifs) {
           auto origRifs = out->getInterfaces(nodeSwitchId);
           NodeMapDelta<InterfaceMap> delta(origRifs.get(), newRifs.get());
           auto remoteRifs = out->getRemoteInterfaces()->modify(&out);
-          DeltaFunctions::forEachChanged(
-              delta,
-              [&](const std::shared_ptr<Interface>& oldNode,
-                  const std::shared_ptr<Interface>& newNode) {
-                if (*oldNode != *newNode) {
-                  // Compare contents as we reconstructed
-                  // interface map from deserialized FSDB
-                  // subscriptions. So can't just rely on
-                  // pointer comparison here.
-                  remoteRifs->updateNode(newNode);
-                  changed = true;
-                }
-              },
-              [&](const std::shared_ptr<Interface>& newNode) {
-                remoteRifs->addNode(newNode);
-                changed = true;
-              },
-              [&](const std::shared_ptr<Interface>& rmNode) {
-                remoteRifs->removeNode(rmNode);
-                changed = true;
-              });
+          processDelta(delta, remoteRifs);
         }
         if (changed) {
           return out;
