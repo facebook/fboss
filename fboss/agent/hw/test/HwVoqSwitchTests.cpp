@@ -112,17 +112,14 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     EXPECT_EQ(
         getProgrammedState()->getRemoteInterfaces()->size(), numPrevIntfs + 1);
   }
-  void addRemoveNeighbor(
+  void addRemoveRemoteNeighbor(
       const folly::IPAddressV6& neighborIp,
       InterfaceID intfID,
       PortDescriptor port,
       bool add,
       std::optional<int64_t> encapIndex = std::nullopt) {
     auto outState = getProgrammedState();
-    auto isRemote = encapIndex != std::nullopt;
-    auto interfaceMap = isRemote
-        ? outState->getRemoteInterfaces()->modify(&outState)
-        : outState->getInterfaces()->modify(&outState);
+    auto interfaceMap = outState->getRemoteInterfaces()->modify(&outState);
     auto interface = interfaceMap->getInterface(intfID)->clone();
     auto ndpTable = interfaceMap->getInterface(intfID)->getNdpTable();
     if (add) {
@@ -327,9 +324,10 @@ TEST_F(HwVoqSwitchTest, addRemoveRemoteNeighbor) {
     uint64_t dummyEncapIndex = 401;
     PortDescriptor kPort(kRemoteSysPortId);
     // Add neighbor
-    addRemoveNeighbor(kNeighborIp, kIntfId, kPort, true, dummyEncapIndex);
+    addRemoveRemoteNeighbor(kNeighborIp, kIntfId, kPort, true, dummyEncapIndex);
     // Remove neighbor
-    addRemoveNeighbor(kNeighborIp, kIntfId, kPort, false, dummyEncapIndex);
+    addRemoveRemoteNeighbor(
+        kNeighborIp, kIntfId, kPort, false, dummyEncapIndex);
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
