@@ -38,6 +38,13 @@ state::RxSak PortFields::rxSakToThrift(
   return rxSakThrift;
 }
 
+std::pair<PortFields::MKASakKey, mka::MKASak> PortFields::rxSakFromThrift(
+    state::RxSak rxSak) {
+  PortFields::MKASakKey sakKey{
+      *rxSak.sakKey()->sci(), *rxSak.sakKey()->associationNum()};
+  return std::make_pair(sakKey, *rxSak.sak());
+}
+
 state::VlanInfo PortFields::VlanInfo::toThrift() const {
   state::VlanInfo vlanThrift;
   *vlanThrift.tagged() = tagged;
@@ -172,6 +179,33 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
 
   port.portType = *portThrift.portType();
 
+  if (auto iPhyLinkFaultStatus = portThrift.iPhyLinkFaultStatus()) {
+    port.iPhyLinkFaultStatus = *iPhyLinkFaultStatus;
+  }
+
+  port.asicPrbs = *portThrift.asicPrbs();
+  port.gbSystemPrbs = *portThrift.gbSystemPrbs();
+  port.gbLinePrbs = *portThrift.gbLinePrbs();
+
+  if (auto pfcPriorities = portThrift.pfcPriorities()) {
+    std::vector<PfcPriority> tmpPriorities;
+    for (const auto& priority : *pfcPriorities) {
+      tmpPriorities.push_back(static_cast<PfcPriority>(priority));
+    }
+    port.pfcPriorities = tmpPriorities;
+  }
+
+  port.expectedLLDPValues = *portThrift.expectedLLDPValues();
+
+  for (const auto& rxSak : *portThrift.rxSecureAssociationKeys()) {
+    port.rxSecureAssociationKeys.emplace(rxSakFromThrift(rxSak));
+  }
+
+  if (auto txSecureAssociationKey = portThrift.txSecureAssociationKey()) {
+    port.txSecureAssociationKey = *txSecureAssociationKey;
+  }
+  port.macsecDesired = *portThrift.macsecDesired();
+  port.dropUnencrypted = *portThrift.dropUnencrypted();
   return port;
 }
 

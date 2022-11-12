@@ -84,6 +84,7 @@ struct PortFields : public ThriftyFields<PortFields, state::PortFields> {
 
   state::RxSak rxSakToThrift(const MKASakKey& sakKey, const mka::MKASak& sak)
       const;
+  static std::pair<MKASakKey, mka::MKASak> rxSakFromThrift(state::RxSak rxSak);
 
   const PortID id{0};
   std::string name;
