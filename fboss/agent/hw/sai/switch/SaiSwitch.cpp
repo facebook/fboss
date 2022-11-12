@@ -1382,7 +1382,7 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
     }
 
     XLOGF(
-        INFO,
+        DBG2,
         "Link state changed {} ({}): {}",
         swPortId,
         PortSaiId{operStatus[i].port_id},
