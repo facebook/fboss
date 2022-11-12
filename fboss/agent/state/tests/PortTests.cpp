@@ -1303,3 +1303,65 @@ TEST(Port, portFabricTypeApplyConfig) {
   }
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV3, &config, platform.get()));
 }
+
+TEST(Port, portSerilization) {
+  auto port = std::make_shared<Port>(PortID(42), "test_port");
+  EXPECT_EQ(port->getName(), "test_port");
+  EXPECT_EQ(port->getID(), PortID(42));
+
+  // IphyLinkStatus
+  EXPECT_EQ(port->getIPhyLinkFaultStatus(), std::nullopt);
+  phy::LinkFaultStatus linkFaultStatus;
+  linkFaultStatus.localFault() = true;
+  port->setIPhyLinkFaultStatus(linkFaultStatus);
+  EXPECT_TRUE(port->getIPhyLinkFaultStatus().has_value());
+  EXPECT_EQ(port->getIPhyLinkFaultStatus().value(), linkFaultStatus);
+
+  // AsicPrbs, GbSystemPrbs & GbLinePrbs
+  phy::PortPrbsState prbsState;
+  EXPECT_EQ(port->getAsicPrbs(), prbsState);
+  EXPECT_EQ(port->getGbSystemPrbs(), prbsState);
+  EXPECT_EQ(port->getGbLinePrbs(), prbsState);
+  prbsState.polynominal() = 42;
+  port->setAsicPrbs(prbsState);
+  port->setGbSystemPrbs(prbsState);
+  port->setGbLinePrbs(prbsState);
+  EXPECT_EQ(port->getAsicPrbs(), prbsState);
+  EXPECT_EQ(port->getGbSystemPrbs(), prbsState);
+  EXPECT_EQ(port->getGbLinePrbs(), prbsState);
+
+  // Pfc Priorities
+  EXPECT_EQ(port->getPfcPriorities(), std::nullopt);
+  std::optional<std::vector<PfcPriority>> pfcPriorities;
+  pfcPriorities.emplace({PfcPriority(42)});
+  port->setPfcPriorities(pfcPriorities);
+  EXPECT_TRUE(port->getPfcPriorities().has_value());
+  EXPECT_EQ(port->getPfcPriorities().value().size(), 1);
+
+  // expected LLDP values
+  EXPECT_TRUE(port->getLLDPValidations().empty());
+  PortFields::LLDPValidations lldpMap{{cfg::LLDPTag::TTL, "ttlTag"}};
+  port->setExpectedLLDPValues(lldpMap);
+  EXPECT_EQ(port->getLLDPValidations().size(), 1);
+
+  // RxSaks
+  EXPECT_TRUE(port->getRxSaks().empty());
+  PortFields::RxSaks rxSaks{
+      {PortFields::MKASakKey{mka::MKASci{}, 42}, mka::MKASak{}}};
+  port->setRxSaks(rxSaks);
+  EXPECT_EQ(port->getRxSaks().size(), 1);
+
+  // txSecureAssociationKey
+  EXPECT_EQ(port->getTxSak(), std::nullopt);
+  port->setTxSak(mka::MKASak{});
+  EXPECT_TRUE(port->getTxSak().has_value());
+
+  EXPECT_FALSE(port->getMacsecDesired());
+  EXPECT_FALSE(port->getDropUnencrypted());
+  port->setMacsecDesired(true);
+  port->setDropUnencrypted(true);
+  EXPECT_TRUE(port->getMacsecDesired());
+  EXPECT_TRUE(port->getDropUnencrypted());
+
+  EXPECT_EQ(*port, *Port::fromThrift(port->toThrift()));
+}
