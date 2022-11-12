@@ -140,9 +140,11 @@ void modifyCfgForEMTests(std::string& yamlCfg) {
   if (glPos != std::string::npos) {
     if (emPos == std::string::npos) {
       yamlCfg.replace(
-          glPos, globalSt.length(), "global:\n      fpem_mem_entries: 65536\n");
+          glPos,
+          globalSt.length(),
+          "global:\n      fpem_mem_entries: 131072\n");
     } else {
-      re2::RE2::Replace(&yamlCfg, emPattern, "fpem_mem_entries: 65536\n");
+      re2::RE2::Replace(&yamlCfg, emPattern, "fpem_mem_entries: 131072\n");
     }
   }
 }
