@@ -286,7 +286,7 @@ void getPortInfoHelper(
       pq.dscps() = dscps;
     } else if (qosPolicy) {
       std::vector<signed char> dscps;
-      auto& tcToDscp = qosPolicy->getDscpMap()->ref<switch_state_tags::from>();
+      auto& tcToDscp = qosPolicy->getDscpMap()->cref<switch_state_tags::from>();
       auto& tcToQueueId = qosPolicy->getTrafficClassToQueueId();
       for (const auto& entry : std::as_const(*tcToDscp)) {
         auto& tc = entry->get<switch_state_tags::trafficClass>()->cref();
