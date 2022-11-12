@@ -272,11 +272,6 @@ TEST_F(HwVoqSwitchTest, init) {
 
 TEST_F(HwVoqSwitchTest, remoteSystemPort) {
   auto setup = [this]() {
-    auto config = utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
-    applyNewConfig(config);
     addRemoteSysPort(SystemPortID(401));
   };
   verifyAcrossWarmBoots(setup, [] {});
@@ -284,11 +279,6 @@ TEST_F(HwVoqSwitchTest, remoteSystemPort) {
 
 TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
   auto setup = [this]() {
-    auto config = utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
-    applyNewConfig(config);
     const PortDescriptor kPort(masterLogicalPortIds()[0]);
     // Add neighbor
     addRemoveNeighbor(kPort, true);
@@ -300,11 +290,6 @@ TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
 
 TEST_F(HwVoqSwitchTest, remoteRouterInterface) {
   auto setup = [this]() {
-    auto config = utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
-    applyNewConfig(config);
     auto constexpr remotePortId = 401;
     addRemoteSysPort(SystemPortID(remotePortId));
     addRemoteInterface(
@@ -324,11 +309,6 @@ TEST_F(HwVoqSwitchTest, remoteRouterInterface) {
 
 TEST_F(HwVoqSwitchTest, addRemoveRemoteNeighbor) {
   auto setup = [this]() {
-    auto config = utility::onePortPerInterfaceConfig(
-        getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode());
-    applyNewConfig(config);
     auto constexpr remotePortId = 401;
     const SystemPortID kRemoteSysPortId(remotePortId);
     addRemoteSysPort(kRemoteSysPortId);
