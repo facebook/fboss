@@ -64,7 +64,10 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     folly::MacAddress mac,
     PortDescriptor port,
     InterfaceID intfID,
-    NeighborState state) {
+    NeighborState state,
+    std::optional<cfg::AclLookupClass> classID,
+    std::optional<int64_t> encapIndex,
+    bool isLocal) {
   CHECK(!this->isPublished());
   state::NeighborEntryFields thrift{};
   thrift.ipaddress() = ip.str();
@@ -72,6 +75,13 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
   thrift.portId() = port.toThrift();
   thrift.interfaceId() = intfID;
   thrift.state() = static_cast<state::NeighborState>(state);
+  if (classID) {
+    thrift.classID() = *classID;
+  }
+  if (encapIndex) {
+    thrift.encapIndex() = *encapIndex;
+  }
+  thrift.isLocal() = isLocal;
   auto entry = std::make_shared<Entry>(std::move(thrift));
   this->addNode(entry);
 }
@@ -80,7 +90,14 @@ template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     const NeighborEntryFields<AddressType>& fields) {
   addEntry(
-      fields.ip, fields.mac, fields.port, fields.interfaceID, fields.state);
+      fields.ip,
+      fields.mac,
+      fields.port,
+      fields.interfaceID,
+      fields.state,
+      fields.classID,
+      fields.encapIndex,
+      fields.isLocal);
 }
 
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>

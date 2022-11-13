@@ -109,7 +109,10 @@ class NeighborTable
       folly::MacAddress mac,
       PortDescriptor port,
       InterfaceID intfID,
-      NeighborState state = NeighborState::REACHABLE);
+      NeighborState state = NeighborState::REACHABLE,
+      std::optional<cfg::AclLookupClass> classID = std::nullopt,
+      std::optional<int64_t> encapIndex = std::nullopt,
+      bool isLocal = true);
   void addEntry(const NeighborEntryFields<AddressType>& fields);
   void updateEntry(
       AddressType ip,
