@@ -133,7 +133,7 @@ void ManagerTestBase::setupSaiPlatform() {
         macTable->addEntry(std::make_shared<MacEntry>(
             remoteHost.mac,
             portDesc,
-            std::nullopt,
+            std::optional<cfg::AclLookupClass>(std::nullopt),
             MacEntryType::STATIC_ENTRY));
       }
     }

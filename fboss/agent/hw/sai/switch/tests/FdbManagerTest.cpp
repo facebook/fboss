@@ -82,7 +82,9 @@ class FdbManagerTest : public ManagerTestBase {
       metadata = static_cast<cfg::AclLookupClass>(classId.value());
     }
     return std::make_shared<MacEntry>(
-        mac, PortDescriptor(PortID(intf0.remoteHosts[0].id)), metadata);
+        mac,
+        PortDescriptor(PortID(intf0.remoteHosts[0].id)),
+        std::optional<cfg::AclLookupClass>(metadata));
   }
   void updateOraAddMacEntry(
       folly::MacAddress mac,

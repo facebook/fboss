@@ -151,7 +151,10 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntry(
         mac, port, existingMacEntry->getClassID(), MacEntryType::STATIC_ENTRY);
   } else {
     auto newEntry = std::make_shared<MacEntry>(
-        mac, port, std::nullopt, MacEntryType::STATIC_ENTRY);
+        mac,
+        port,
+        std::optional<cfg::AclLookupClass>(std::nullopt),
+        MacEntryType::STATIC_ENTRY);
     macTable->addEntry(newEntry);
   }
 
@@ -214,7 +217,10 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntryIfNbrExists(
       auto newState = state->clone();
       macTable = macTable->modify(&vlan, &newState);
       auto newEntry = std::make_shared<MacEntry>(
-          mac, port, std::nullopt, MacEntryType::STATIC_ENTRY);
+          mac,
+          port,
+          std::optional<cfg::AclLookupClass>(std::nullopt),
+          MacEntryType::STATIC_ENTRY);
       macTable->addEntry(newEntry);
       return newState;
     }

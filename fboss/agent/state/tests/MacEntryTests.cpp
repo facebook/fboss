@@ -22,14 +22,15 @@ TEST(MacEntryTest, toFromFollyDynamic) {
   MacEntry entryDynamic(
       kTestMac,
       PortDescriptor(PortID(1)),
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+      std::optional<cfg::AclLookupClass>(
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0));
   EXPECT_EQ(
       *MacEntry::fromFollyDynamic(entryDynamic.toFollyDynamic()), entryDynamic);
-  validateThriftyMigration(entryDynamic);
   MacEntry entryStatic(
       kTestMac,
       PortDescriptor(PortID(1)),
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      std::optional<cfg::AclLookupClass>(
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
       MacEntryType::STATIC_ENTRY);
   EXPECT_EQ(
       *MacEntry::fromFollyDynamic(entryStatic.toFollyDynamic()), entryStatic);
@@ -40,15 +41,15 @@ TEST(MacEntryTest, Compare) {
   MacEntry entryDynamic(
       kTestMac,
       PortDescriptor(PortID(1)),
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
-  validateThriftyMigration(entryDynamic);
+      std::optional<cfg::AclLookupClass>(
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0));
 
   MacEntry entryStatic(
       kTestMac,
       PortDescriptor(PortID(1)),
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+      std::optional<cfg::AclLookupClass>(
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
       MacEntryType::STATIC_ENTRY);
-  validateThriftyMigration(entryStatic);
   EXPECT_NE(entryStatic, entryDynamic);
 }
 
@@ -61,13 +62,15 @@ TEST(MacEntryTest, fromJSONWithType) {
             "portType": 0
       }
   })";
-  auto entry = MacEntry::fromJson(jsonStrMissingEntryType);
+
+  auto fields = MacEntryFields::fromJson(jsonStrMissingEntryType);
+  auto entry = std::make_shared<MacEntry>();
+  entry->fromThrift(fields.toThrift());
   EXPECT_EQ(
       *entry,
       MacEntry(
           kTestMac,
           PortDescriptor(PortID(1)),
-          std::nullopt,
+          std::optional<cfg::AclLookupClass>(std::nullopt),
           MacEntryType::DYNAMIC_ENTRY));
-  validateThriftyMigration(*entry);
 }

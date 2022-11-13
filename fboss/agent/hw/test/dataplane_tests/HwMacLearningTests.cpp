@@ -502,7 +502,10 @@ class HwMacLearningStaticEntriesTest : public HwMacLearningTest {
       macTable->updateEntry(kSourceMac(), physPortDescr(), std::nullopt, type);
     } else {
       auto macEntry = std::make_shared<MacEntry>(
-          kSourceMac(), physPortDescr(), std::nullopt, type);
+          kSourceMac(),
+          physPortDescr(),
+          std::optional<cfg::AclLookupClass>(std::nullopt),
+          type);
       macTable->addEntry(macEntry);
     }
     applyNewState(newState);

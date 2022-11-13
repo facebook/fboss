@@ -97,7 +97,7 @@ TEST(ThriftySwitchState, VlanMap) {
   auto macEntry = std::make_shared<MacEntry>(
       MacAddress("02:00:00:00:00:08"),
       PortDescriptor(PortID(4)),
-      cfg::AclLookupClass::CLASS_DROP);
+      std::optional<cfg::AclLookupClass>(cfg::AclLookupClass::CLASS_DROP));
   macTable->addEntry(macEntry);
 
   vlan2->setDhcpV6Relay(IPAddressV6("2401:db00:21:70cb:face:0:96:0"));

@@ -89,6 +89,6 @@ std::string MacEntry::str() const {
   return os.str();
 }
 
-template class NodeBaseT<MacEntry, MacEntryFields>;
+template class ThriftStructNode<MacEntry, state::MacEntryFields>;
 
 } // namespace facebook::fboss
