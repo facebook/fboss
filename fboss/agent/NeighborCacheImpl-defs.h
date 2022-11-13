@@ -216,7 +216,9 @@ void NeighborCacheImpl<NTable>::updateEntryClassID(
                 node->getPort(),
                 node->getIntfID(),
                 node->getState(),
-                classID);
+                classID,
+                node->getEncapIndex(),
+                node->getIsLocal());
             table = table->modify(&vlan, &newState);
             table->updateEntry(fields);
           }
