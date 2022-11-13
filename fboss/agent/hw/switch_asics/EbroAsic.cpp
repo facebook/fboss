@@ -59,11 +59,12 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FABRIC_PORT_MTU:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
     case HwAsic::Feature::FABRIC_PORTS:
-    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
       return true;
     // VOQ vs NPU mode dependent features
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
       return getSwitchType() == cfg::SwitchType::NPU;
+    case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
+      return getSwitchType() == cfg::SwitchType::VOQ;
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:
     case HwAsic::Feature::QCM:
@@ -174,9 +175,12 @@ std::set<cfg::StreamType> EbroAsic::getQueueStreamTypes(
       apache::thrift::util::enumNameSafe(portType));
 }
 cfg::Range64 EbroAsic::getReservedEncapIndexRange() const {
-  // Reserved range worked out with vendor. These ids
-  // are reserved in SAI-SDK implementation for use
-  // by NOS
-  return makeRange(100, 4096);
+  if (getSwitchType() == cfg::SwitchType::VOQ) {
+    // Reserved range worked out with vendor. These ids
+    // are reserved in SAI-SDK implementation for use
+    // by NOS
+    return makeRange(100, 4096);
+  }
+  return HwAsic::getReservedEncapIndexRange();
 }
 } // namespace facebook::fboss
