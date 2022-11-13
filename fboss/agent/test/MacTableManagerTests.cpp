@@ -69,7 +69,7 @@ class MacTableManagerTest : public ::testing::Test {
     verifyStateUpdate([=]() {
       auto vlan = sw_->getState()->getVlans()->getVlan(kVlan());
       auto* macTable = vlan->getMacTable().get();
-      auto node = macTable->getNodeIf(kMacAddress());
+      auto node = macTable->getMacIf(kMacAddress());
 
       EXPECT_NE(nullptr, node);
       EXPECT_EQ(kMacAddress(), node->getMac());
@@ -81,7 +81,7 @@ class MacTableManagerTest : public ::testing::Test {
     verifyStateUpdate([=]() {
       auto vlan = sw_->getState()->getVlans()->getVlan(kVlan());
       auto* macTable = vlan->getMacTable().get();
-      auto node = macTable->getNodeIf(kMacAddress());
+      auto node = macTable->getMacIf(kMacAddress());
 
       EXPECT_EQ(nullptr, node);
     });

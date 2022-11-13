@@ -34,5 +34,7 @@ TEST(MacTableTest, thriftyConversion) {
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
       MacEntryType::STATIC_ENTRY));
 
-  validateThriftyMigration(table);
+  auto tableSptr = std::make_shared<MacTable>();
+  tableSptr->fromThrift(table.toThrift());
+  EXPECT_EQ(tableSptr->toThrift(), table.toThrift());
 }

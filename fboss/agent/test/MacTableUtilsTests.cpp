@@ -105,7 +105,7 @@ class MacTableUtilsTest : public ::testing::Test {
 
     auto vlan = newState->getVlans()->getVlanIf(kVlan()).get();
     auto* macTable = vlan->getMacTable().get();
-    auto node = macTable->getNodeIf(kL2Entry().getMac());
+    auto node = macTable->getMacIf(kL2Entry().getMac());
 
     if (l2EntryUpdateType == L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD) {
       EXPECT_NE(nullptr, node);
@@ -120,7 +120,7 @@ class MacTableUtilsTest : public ::testing::Test {
       const std::shared_ptr<SwitchState>& state) {
     auto vlan = state->getVlans()->getVlanIf(kVlan()).get();
     auto* macTable = vlan->getMacTable().get();
-    return macTable->getNodeIf(kMacAddress());
+    return macTable->getMacIf(kMacAddress());
   }
 };
 

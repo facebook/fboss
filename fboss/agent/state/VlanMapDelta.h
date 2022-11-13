@@ -25,9 +25,9 @@ namespace facebook::fboss {
  */
 class VlanDelta : public DeltaValue<Vlan> {
  public:
-  typedef thrift_cow::ThriftMapDelta<ArpTable> ArpTableDelta;
-  typedef thrift_cow::ThriftMapDelta<NdpTable> NdpTableDelta;
-  typedef NodeMapDelta<MacTable> MacTableDelta;
+  using ArpTableDelta = thrift_cow::ThriftMapDelta<ArpTable>;
+  using NdpTableDelta = thrift_cow::ThriftMapDelta<NdpTable>;
+  using MacTableDelta = thrift_cow::ThriftMapDelta<MacTable>;
 
   using DeltaValue<Vlan>::DeltaValue;
 

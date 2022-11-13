@@ -371,7 +371,7 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     auto state = getProgrammedState();
     auto vlan = state->getVlans()->getVlanIf(vlanID);
     auto* macTable = vlan->getMacTable().get();
-    return (shouldExist == (macTable->getNodeIf(mac) != nullptr));
+    return (shouldExist == (macTable->getMacIf(mac) != nullptr));
   }
   bool isInL2Table(
       const PortDescriptor& portDescr,
@@ -498,7 +498,7 @@ class HwMacLearningStaticEntriesTest : public HwMacLearningTest {
     auto vlan = newState->getVlans()->getVlanIf(kVlanID()).get();
     auto macTable = vlan->getMacTable().get();
     macTable = macTable->modify(&vlan, &newState);
-    if (macTable->getNodeIf(kSourceMac())) {
+    if (macTable->getMacIf(kSourceMac())) {
       macTable->updateEntry(kSourceMac(), physPortDescr(), std::nullopt, type);
     } else {
       auto macEntry = std::make_shared<MacEntry>(
@@ -779,7 +779,7 @@ TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
                                 ->getVlans()
                                 ->getVlanIf(kVlanID())
                                 ->getMacTable();
-            auto macEntry = macTable->getNodeIf(kSourceMac());
+            auto macEntry = macTable->getMacIf(kSourceMac());
             EXPECT_EQ(macEntry->getClassID(), lookupClass);
           };
       // Wait for arbitrarily large (100) extra updates or 5 seconds

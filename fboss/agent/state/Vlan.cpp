@@ -140,7 +140,7 @@ VlanFields VlanFields::fromThrift(const state::VlanFields& vlanTh) {
   vlan.ndpTable->fromThrift(vlanTh.get_ndpTable());
   vlan.arpResponseTable->fromThrift(vlanTh.get_arpResponseTable());
   vlan.ndpResponseTable->fromThrift(vlanTh.get_ndpResponseTable());
-  vlan.macTable = MacTable::fromThrift(vlanTh.get_macTable());
+  vlan.macTable->fromThrift(vlanTh.get_macTable());
 
   return vlan;
 }
@@ -226,8 +226,8 @@ folly::dynamic VlanFields::migrateToThrifty(const folly::dynamic& dyn) {
       ArpResponseTable::migrateToThrifty(newDyn[kArpResponseTable]);
   newDyn[kNdpResponseTable] =
       NdpResponseTable::migrateToThrifty(newDyn[kNdpResponseTable]);
-  newDyn[kMacTable] = MacTable::migrateToThrifty(newDyn[kMacTable]);
-
+  newDyn[kMacTable] =
+      MacTable::LegacyBaseT::migrateToThrifty(newDyn[kMacTable]);
   return newDyn;
 }
 void VlanFields::migrateFromThrifty(folly::dynamic& dyn) {
@@ -242,7 +242,7 @@ void VlanFields::migrateFromThrifty(folly::dynamic& dyn) {
   NdpTable::LegacyBaseT::migrateFromThrifty(dyn[kNdpTable]);
   ArpResponseTable::migrateFromThrifty(dyn[kArpResponseTable]);
   NdpResponseTable::migrateFromThrifty(dyn[kNdpResponseTable]);
-  MacTable::migrateFromThrifty(dyn[kMacTable]);
+  MacTable::LegacyBaseT::migrateFromThrifty(dyn[kMacTable]);
 }
 
 bool VlanFields::operator==(const VlanFields& o) const {

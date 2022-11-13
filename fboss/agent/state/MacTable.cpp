@@ -48,12 +48,11 @@ void MacTable::updateEntry(
     std::optional<cfg::AclLookupClass> classID,
     std::optional<MacEntryType> type) {
   CHECK(!this->isPublished());
-  auto& nodes = this->writableNodes();
-  auto it = nodes.find(mac);
-  if (it == nodes.end()) {
+  auto entry = getMacIf(mac);
+  if (!entry) {
     throw FbossError("Mac entry for ", mac.toString(), " does not exist");
   }
-  auto entry = it->second->clone();
+  entry = entry->clone();
 
   entry->setMac(mac);
   entry->setPort(portDescr);
@@ -61,9 +60,8 @@ void MacTable::updateEntry(
   if (type) {
     entry->setType(type.value());
   }
-  it->second = entry;
+  updateNode(entry);
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(MacTable, MacTableTraits);
-
+template class ThriftMapNode<MacTable, MacTableTraits>;
 } // namespace facebook::fboss

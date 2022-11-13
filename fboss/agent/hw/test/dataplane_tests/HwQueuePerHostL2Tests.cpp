@@ -192,7 +192,7 @@ class HwQueuePerHostL2Test : public HwLinkStateDependentTest {
     auto vlan = newState->getVlans()->getVlanIf(kVlanID()).get();
     auto macTable = vlan->getMacTable().get();
     macTable = macTable->modify(&vlan, &newState);
-    if (macTable->getNodeIf(macAddr)) {
+    if (macTable->getMacIf(macAddr)) {
       macTable->updateEntry(macAddr, portDescr, classID, type);
     } else {
       auto macEntry =

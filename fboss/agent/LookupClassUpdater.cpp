@@ -360,11 +360,7 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
     for (auto iter : std::as_const(
              *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan))) {
       EntryType entry = nullptr;
-      if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
-        entry = iter;
-      } else {
-        entry = iter.second;
-      }
+      entry = iter.second;
       /*
        * At this point in time, queue-per-host fix is needed (and thus
        * supported) for physical link only.
@@ -406,11 +402,7 @@ void LookupClassUpdater::repopulateClassIdsForResolvedNeighbors(
     for (auto iter : std::as_const(
              *VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan))) {
       EntryType entry = nullptr;
-      if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
-        entry = iter;
-      } else {
-        entry = iter.second;
-      }
+      entry = iter.second;
       /*
        * At this point in time, queue-per-host fix is needed (and thus
        * supported) for physical link only.
@@ -436,11 +428,7 @@ void LookupClassUpdater::validateRemovedPortEntries(
   for (auto iter :
        std::as_const(*VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan))) {
     EntryType entry = nullptr;
-    if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
-      entry = iter;
-    } else {
-      entry = iter.second;
-    }
+    entry = iter.second;
     if (entry->getPort().isPhysicalPort()) {
       CHECK(entry->getPort().phyPortID() != portID);
     }
@@ -650,11 +638,7 @@ void LookupClassUpdater::updateStateObserverLocalCacheHelper(
   for (auto iter : std::as_const(
            *(VlanTableDeltaCallbackGenerator::getTable<AddrT>(vlan)))) {
     EntryType entry = nullptr;
-    if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
-      entry = iter;
-    } else {
-      entry = iter.second;
-    }
+    entry = iter.second;
     if (entry->getPort().isPhysicalPort() &&
         entry->getPort().phyPortID() == port->getID() &&
         entry->getClassID().has_value()) {
@@ -711,7 +695,7 @@ void LookupClassUpdater::processBlockNeighborUpdatesHelper(
 
   std::shared_ptr<MacEntry> macEntry = nullptr;
   if (neighborEntry->isReachable()) {
-    macEntry = vlan->getMacTable()->getNodeIf(neighborEntry->getMac());
+    macEntry = vlan->getMacTable()->getMacIf(neighborEntry->getMac());
     if (macEntry) {
       removeClassIDForPortAndMac(switchState, vlan->getID(), macEntry);
     }
@@ -896,7 +880,7 @@ void LookupClassUpdater::processMacAddrsToBlockUpdates(
       continue;
     }
 
-    auto macEntry = vlan->getMacTable()->getNodeIf(macAddress);
+    auto macEntry = vlan->getMacTable()->getMacIf(macAddress);
     if (!macEntry) {
       XLOG(DBG2) << "No mac entry found for in mac table for vlanID " << vlanID
                  << " macAddress " << macAddress.toString()

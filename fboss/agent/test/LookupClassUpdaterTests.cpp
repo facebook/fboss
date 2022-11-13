@@ -234,7 +234,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
 
   auto getMacEntry(folly::MacAddress mac) const {
     auto vlan = sw_->getState()->getVlans()->getVlanIf(this->kVlan());
-    return vlan->getMacTable()->getNodeIf(mac);
+    return vlan->getMacTable()->getMacIf(mac);
   }
 
   void verifyMacClassIDHelper(
@@ -486,7 +486,7 @@ TYPED_TEST(LookupClassUpdaterTest, MacMove) {
 
         auto vlan = state->getVlans()->getVlanIf(this->kVlan()).get();
         auto* macTable = vlan->getMacTable().get();
-        auto node = macTable->getNodeIf(this->kMacAddress());
+        auto node = macTable->getMacIf(this->kMacAddress());
 
         EXPECT_NE(node, nullptr);
 
@@ -509,7 +509,7 @@ TYPED_TEST(LookupClassUpdaterTest, MacMove) {
 
   auto vlan = state->getVlans()->getVlanIf(this->kVlan());
   auto* macTable = vlan->getMacTable().get();
-  auto node = macTable->getNodeIf(this->kMacAddress());
+  auto node = macTable->getMacIf(this->kMacAddress());
 
   EXPECT_NE(node, nullptr);
   EXPECT_EQ(node->getPort(), PortDescriptor(this->kPortID2()));

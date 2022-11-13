@@ -136,7 +136,7 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
     auto vlan = newState->getVlans()->getVlanIf(kVlanID).get();
     auto macTable = vlan->getMacTable().get();
     macTable = macTable->modify(&vlan, &newState);
-    auto macEntry = macTable->getNode(kNeighborMac);
+    auto macEntry = macTable->getNode(kNeighborMac.toString());
     macTable->updateEntry(
         kNeighborMac, macEntry->getPort(), lookupClass, macEntry->getType());
     applyNewState(newState);

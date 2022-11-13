@@ -23,7 +23,7 @@
 
 namespace facebook::fboss {
 
-using MacTableTraits = NodeMapTraits<folly::MacAddress, MacEntry>;
+using MacTableTraitsLegacy = NodeMapTraits<folly::MacAddress, MacEntry>;
 
 struct MacTableThriftTraits
     : public ThriftyNodeMapTraits<std::string, state::MacEntryFields> {
@@ -41,14 +41,28 @@ struct MacTableThriftTraits
   }
 };
 
-class MacTable
-    : public ThriftyNodeMapT<MacTable, MacTableTraits, MacTableThriftTraits> {
+using MacTableTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::string,
+    apache::thrift::type_class::structure>;
+using MacTableThriftType = std::map<std::string, state::MacEntryFields>;
+
+class MacTable;
+using MacTableTraits = ThriftMapNodeTraits<
+    MacTable,
+    MacTableTypeClass,
+    MacTableThriftType,
+    MacEntry>;
+
+class MacTable : public ThriftMapNode<MacTable, MacTableTraits> {
  public:
+  using Base = ThriftMapNode<MacTable, MacTableTraits>;
+  using LegacyBaseT =
+      ThriftyNodeMapT<MacTable, MacTableTraitsLegacy, MacTableThriftTraits>;
   MacTable();
   ~MacTable() override;
 
   std::shared_ptr<MacEntry> getMacIf(const folly::MacAddress& mac) const {
-    return getNodeIf(mac);
+    return getNodeIf(mac.toString());
   }
 
   MacTable* modify(Vlan** vlan, std::shared_ptr<SwitchState>* state);
@@ -61,7 +75,7 @@ class MacTable
 
   void removeEntry(const folly::MacAddress& mac) {
     CHECK(!isPublished());
-    removeNode(mac);
+    removeNode(mac.toString());
   }
 
   void updateEntry(
@@ -72,10 +86,10 @@ class MacTable
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyNodeMapT::ThriftyNodeMapT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 
-using MacTableDelta = NodeMapDelta<MacTable>;
+using MacTableDelta = thrift_cow::ThriftMapDelta<MacTable>;
 
 } // namespace facebook::fboss

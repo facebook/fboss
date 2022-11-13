@@ -450,7 +450,7 @@ class WaitForMacEntryAddedOrDeleted : public WaitForSwitchState {
               const auto& newVlan =
                   delta.getVlansDelta().getNew()->getNodeIf(vlan);
 
-              auto newEntry = newVlan->getMacTable()->getNodeIf(mac);
+              auto newEntry = newVlan->getMacTable()->getMacIf(mac);
               if (added) {
                 return (newEntry != nullptr);
               }

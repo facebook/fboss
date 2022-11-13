@@ -131,8 +131,8 @@ class MacEntry : public ThriftStructNode<MacEntry, state::MacEntryFields> {
     }
   }
 
-  folly::MacAddress getID() const {
-    return getMac();
+  std::string getID() const {
+    return getMac().toString();
   }
 
   void setPortDescriptor(PortDescriptor portDescr) {

@@ -123,7 +123,7 @@ LookupClassRouteUpdater::getClassIDForLinkLocal(
     }
   }
   if (mac) {
-    auto macEntry = vlan->getMacTable()->getNodeIf(*mac);
+    auto macEntry = vlan->getMacTable()->getMacIf(*mac);
     return macEntry ? macEntry->getClassID() : std::nullopt;
   }
   return std::nullopt;
@@ -711,12 +711,8 @@ void LookupClassRouteUpdater::processNeighborUpdates(
 
       for (auto iter : std::as_const(
                *VlanTableDeltaCallbackGenerator::getTable<AddrT>(oldVlan))) {
-        if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
-          processNeighborRemoved(stateDelta, oldVlan->getID(), iter);
-        } else {
-          auto entry = iter.second;
-          processNeighborRemoved(stateDelta, oldVlan->getID(), entry);
-        }
+        auto entry = iter.second;
+        processNeighborRemoved(stateDelta, oldVlan->getID(), entry);
       }
       continue;
     }
