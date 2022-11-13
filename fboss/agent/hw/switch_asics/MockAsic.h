@@ -162,7 +162,7 @@ class MockAsic : public HwAsic {
     return 0;
   }
   cfg::Range64 getReservedEncapIndexRange() const override {
-    return makeRange(1001, 1010);
+    return makeRange(1000, 2000);
   }
   HwAsic::RecyclePortInfo getRecyclePortInfo() const override {
     return {
