@@ -65,7 +65,8 @@ void utilCreateDir(folly::StringPiece path) {
 
 IPAddressV4 getAnyIntfIP(const std::shared_ptr<SwitchState>& state) {
   IPAddressV4 intfIp;
-  for (const auto& intf : *state->getInterfaces()) {
+  for (auto intfIter : std::as_const(*state->getInterfaces())) {
+    const auto& intf = intfIter.second;
     for (auto iter : std::as_const(*intf->getAddresses())) {
       auto address = folly::IPAddress(iter.first);
       if (address.isV4()) {
@@ -78,7 +79,8 @@ IPAddressV4 getAnyIntfIP(const std::shared_ptr<SwitchState>& state) {
 
 IPAddressV6 getAnyIntfIPv6(const std::shared_ptr<SwitchState>& state) {
   IPAddressV6 intfIp;
-  for (const auto& intf : *state->getInterfaces()) {
+  for (auto intfIter : std::as_const(*state->getInterfaces())) {
+    const auto& intf = intfIter.second;
     for (auto iter : std::as_const(*intf->getAddresses())) {
       auto address = folly::IPAddress(iter.first);
       if (address.isV6()) {

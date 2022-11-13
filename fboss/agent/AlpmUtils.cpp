@@ -94,7 +94,10 @@ std::shared_ptr<SwitchState> getMinAlpmRouteState(
   }
 
   auto newIntfMap = noRoutesState->getInterfaces()->clone();
-  for (auto& interface : *newIntfMap) {
+  for (const auto& [intfID, interface] :
+       std::as_const(*noRoutesState->getInterfaces())) {
+    std::ignore = intfID;
+    CHECK(interface->isPublished());
     auto newIntf = interface->clone();
     newIntf->setAddresses(Interface::Addresses{});
     newIntfMap->updateNode(newIntf);

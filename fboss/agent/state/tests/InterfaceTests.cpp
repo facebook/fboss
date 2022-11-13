@@ -28,6 +28,15 @@ using std::make_shared;
 using std::shared_ptr;
 using ::testing::Return;
 
+namespace {
+void validateSerialization(const InterfaceMap& node) {
+  auto nodeBack = InterfaceMap::fromFollyDynamic(node.toFollyDynamic());
+  EXPECT_EQ(node.toThrift(), nodeBack->toThrift());
+  nodeBack->fromThrift(node.toThrift());
+  EXPECT_EQ(node.toThrift(), nodeBack->toThrift());
+}
+} // namespace
+
 class InterfaceTest : public ::testing::Test {
  private:
   cfg::SwitchConfig genConfigWithLLs(
@@ -474,8 +483,9 @@ void checkChangedIntfs(
   EXPECT_EQ(changedIDs, foundChanged);
   EXPECT_EQ(addedIDs, foundAdded);
   EXPECT_EQ(removedIDs, foundRemoved);
-  validateNodeMapSerialization(*oldIntfs);
-  validateNodeMapSerialization(*newIntfs);
+
+  validateSerialization(*oldIntfs);
+  validateSerialization(*newIntfs);
 }
 
 TEST(InterfaceMap, applyConfig) {

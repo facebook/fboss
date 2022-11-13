@@ -130,7 +130,8 @@ void checkSwHwIntfMatch(
     int unit,
     std::shared_ptr<SwitchState> state,
     bool verifyIngress) {
-  for (const auto& swIntf : *state->getInterfaces()) {
+  for (auto iter : std::as_const(*state->getInterfaces())) {
+    const auto& swIntf = iter.second;
     bcm_l3_info_t l3HwStatus;
     auto rv = bcm_l3_info(unit, &l3HwStatus);
     bcmCheckError(rv, "failed get L3 hw info");

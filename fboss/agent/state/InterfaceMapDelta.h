@@ -48,6 +48,13 @@ class InterfaceDelta : public DeltaValue<Interface> {
   }
 };
 
-typedef NodeMapDelta<InterfaceMap, InterfaceDelta> InterfaceMapDelta;
+template <typename IGNORED>
+struct InterfaceMapDeltaTraits {
+  using mapped_type = typename InterfaceMap::mapped_type;
+  using ExtractorT = thrift_cow::ThriftMapNodeExtractor<InterfaceMap>;
+  using DeltaValueT = InterfaceDelta;
+};
+
+using InterfaceMapDelta = MapDelta<InterfaceMap, InterfaceMapDeltaTraits>;
 
 } // namespace facebook::fboss

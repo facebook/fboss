@@ -56,7 +56,8 @@ TEST(Port, checkPortLoopbackMode) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
 
-  for (const auto& intf : *stateV1->getInterfaces()) {
+  for (auto iter : std::as_const(*stateV1->getInterfaces())) {
+    auto intf = iter.second;
     EXPECT_FALSE(isAnyInterfacePortInLoopbackMode(stateV1, intf));
   }
 
@@ -67,8 +68,8 @@ TEST(Port, checkPortLoopbackMode) {
   }
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
 
-  for (const auto& intf : *stateV2->getInterfaces()) {
-    EXPECT_TRUE(isAnyInterfacePortInLoopbackMode(stateV2, intf));
+  for (auto iter : std::as_const(*stateV2->getInterfaces())) {
+    EXPECT_TRUE(isAnyInterfacePortInLoopbackMode(stateV2, iter.second));
   }
 }
 

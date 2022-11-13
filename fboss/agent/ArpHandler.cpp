@@ -212,7 +212,8 @@ static void sendArp(
 }
 
 void ArpHandler::floodGratuituousArp() {
-  for (const auto& intf : *sw_->getState()->getInterfaces()) {
+  for (auto iter : std::as_const(*sw_->getState()->getInterfaces())) {
+    const auto& intf = iter.second;
     // mostly for agent tests where we dont want to flood arp
     // causing loop, when ports are in loopback
     if (isAnyInterfacePortInLoopbackMode(sw_->getState(), intf)) {

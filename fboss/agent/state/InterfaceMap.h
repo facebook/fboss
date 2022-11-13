@@ -13,35 +13,43 @@
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
+
 namespace facebook::fboss {
 
 class Interface;
 class SwitchState;
-typedef NodeMapTraits<InterfaceID, Interface> InterfaceMapTraits;
 
+using InterfaceMapTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::integral,
+    apache::thrift::type_class::structure>;
+using InterfaceMapThriftType = std::map<int32_t, state::InterfaceFields>;
+
+class InterfaceMap;
+using InterfaceMapTraits = ThriftMapNodeTraits<
+    InterfaceMap,
+    InterfaceMapTypeClass,
+    InterfaceMapThriftType,
+    Interface>;
 /*
  * A container for the set of INTERFACEs.
  */
-class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
-  using ThriftType = std::map<int32_t, state::InterfaceFields>;
+class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
+  using ThriftType = InterfaceMapThriftType;
+  using Base = ThriftMapNode<InterfaceMap, InterfaceMapTraits>;
 
  public:
   InterfaceMap();
   ~InterfaceMap() override;
-
-  std::map<int, state::InterfaceFields> toThrift() const;
-
-  static std::shared_ptr<InterfaceMap> fromThrift(
-      std::map<int, state::InterfaceFields> const& thriftMap);
 
   /*
    * Get the specified Interface.
    *
    * Throws an FbossError if the INTERFACE does not exist.
    */
-  const std::shared_ptr<Interface>& getInterface(InterfaceID id) const {
-    return getNode(id);
+  const std::shared_ptr<Interface> getInterface(InterfaceID id) const {
+    return getNode(static_cast<int32_t>(id));
   }
 
   /*
@@ -50,7 +58,7 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
    * Returns null if the interface does not exist.
    */
   std::shared_ptr<Interface> getInterfaceIf(InterfaceID id) const {
-    return getNodeIf(id);
+    return getNodeIf(static_cast<int32_t>(id));
   }
   /*
    *  Get interface which has the given IPAddress. If multiple
@@ -66,7 +74,7 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
    * Same as get interface by IP above, but throws a execption
    * instead of returning null
    */
-  const std::shared_ptr<Interface>& getInterface(
+  const std::shared_ptr<Interface> getInterface(
       RouterID router,
       const folly::IPAddress& ip) const;
 
@@ -117,7 +125,7 @@ class InterfaceMap : public NodeMapT<InterfaceMap, InterfaceMapTraits> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeMapT::NodeMapT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 

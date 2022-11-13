@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/state/SwitchState.h"
 #include <memory>
+#include <tuple>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/state/AclEntry.h"
@@ -216,7 +217,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
   if (auto aclTableGroupMap = state.aclTableGroupMap()) {
     fields.aclTableGroups = AclTableGroupMap::fromThrift(*aclTableGroupMap);
   }
-  fields.interfaces = InterfaceMap::fromThrift(*state.interfaceMap());
+  fields.interfaces->fromThrift(*state.interfaceMap());
   if (auto qcmConfig = state.qcmCfg()) {
     fields.qcmCfg = std::make_shared<QcmCfg>();
     fields.qcmCfg->fromThrift(*qcmConfig);
@@ -227,8 +228,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
 
   fields.remoteSystemPorts =
       SystemPortMap::fromThrift(*state.remoteSystemPortMap());
-  fields.remoteInterfaces =
-      InterfaceMap::fromThrift(*state.remoteInterfaceMap());
+  fields.remoteInterfaces->fromThrift(*state.remoteInterfaceMap());
   return fields;
 }
 
@@ -707,8 +707,9 @@ std::shared_ptr<InterfaceMap> SwitchState::getInterfaces(
   // For non local switch ids get rifs corresponding to
   // sysports on the passed in switch id
   auto sysPorts = getSystemPorts(switchId);
-  for (const auto& interface : *getRemoteInterfaces()) {
-    SystemPortID sysPortId(static_cast<int>(interface->getID()));
+  for (const auto& [interfaceID, interface] :
+       std::as_const(*getRemoteInterfaces())) {
+    SystemPortID sysPortId(interfaceID);
     if (sysPorts->getNodeIf(sysPortId)) {
       toRet->addInterface(interface);
     }

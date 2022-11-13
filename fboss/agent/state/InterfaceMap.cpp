@@ -23,40 +23,25 @@ InterfaceMap::InterfaceMap() {}
 
 InterfaceMap::~InterfaceMap() {}
 
-std::map<int, state::InterfaceFields> InterfaceMap::toThrift() const {
-  std::map<int, state::InterfaceFields> thriftMap;
-  for (const auto& [key, value] : this->getAllNodes()) {
-    thriftMap[key] = value->toThrift();
-  }
-  return thriftMap;
-}
-
-std::shared_ptr<InterfaceMap> InterfaceMap::fromThrift(
-    std::map<int, state::InterfaceFields> const& thriftMap) {
-  auto interfaceMap = std::make_shared<InterfaceMap>();
-  for (const auto& [key, value] : thriftMap) {
-    interfaceMap->addNode(std::make_shared<Interface>(value));
-  }
-  return interfaceMap;
-}
-
 std::shared_ptr<Interface> InterfaceMap::getInterfaceIf(
     RouterID router,
     const IPAddress& ip) const {
   for (auto itr = begin(); itr != end(); ++itr) {
-    if ((*itr)->getRouterID() == router && (*itr)->hasAddress(ip)) {
-      return *itr;
+    auto intf = itr->second;
+    if (intf->getRouterID() == router && intf->hasAddress(ip)) {
+      return intf;
     }
   }
   return nullptr;
 }
 
-const std::shared_ptr<Interface>& InterfaceMap::getInterface(
+const std::shared_ptr<Interface> InterfaceMap::getInterface(
     RouterID router,
     const IPAddress& ip) const {
   for (auto itr = begin(); itr != end(); ++itr) {
-    if ((*itr)->getRouterID() == router && (*itr)->hasAddress(ip)) {
-      return *itr;
+    auto intf = itr->second;
+    if (intf->getRouterID() == router && intf->hasAddress(ip)) {
+      return intf;
     }
   }
   throw FbossError("No interface with ip : ", ip);
@@ -65,8 +50,9 @@ const std::shared_ptr<Interface>& InterfaceMap::getInterface(
 std::shared_ptr<Interface> InterfaceMap::getInterfaceInVlanIf(
     VlanID vlan) const {
   for (auto itr = begin(); itr != end(); ++itr) {
-    if ((*itr)->getVlanID() == vlan) {
-      return *itr;
+    auto intf = itr->second;
+    if (intf->getVlanID() == vlan) {
+      return intf;
     }
   }
   return nullptr;
@@ -84,7 +70,8 @@ const std::shared_ptr<Interface> InterfaceMap::getInterfaceInVlan(
 const std::shared_ptr<Interface> InterfaceMap::getIntfToReach(
     RouterID router,
     const folly::IPAddress& dest) const {
-  for (const auto& intf : *this) {
+  for (auto itr : std::as_const(*this)) {
+    const auto& intf = itr.second;
     if (intf->getRouterID() == router && intf->canReachAddress(dest)) {
       return intf;
     }
@@ -116,7 +103,8 @@ InterfaceMap* InterfaceMap::modify(std::shared_ptr<SwitchState>* state) {
 
 folly::dynamic InterfaceMap::toFollyDynamic() const {
   folly::dynamic intfs = folly::dynamic::array;
-  for (const auto& intf : *this) {
+  for (auto iter : std::as_const(*this)) {
+    const auto& intf = iter.second;
     intfs.push_back(intf->toFollyDynamic());
   }
   return intfs;
@@ -131,6 +119,6 @@ std::shared_ptr<InterfaceMap> InterfaceMap::fromFollyDynamic(
   return intfMap;
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(InterfaceMap, InterfaceMapTraits);
+template class ThriftMapNode<InterfaceMap, InterfaceMapTraits>;
 
 } // namespace facebook::fboss

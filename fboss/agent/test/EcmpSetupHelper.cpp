@@ -50,7 +50,8 @@ flat_map<InterfaceID, folly::CIDRNetwork> computeInterface2Subnet(
     const std::shared_ptr<SwitchState>& inputState,
     bool v6) {
   boost::container::flat_map<InterfaceID, folly::CIDRNetwork> intf2Network;
-  for (const auto& intf : *inputState->getInterfaces().get()) {
+  for (auto iter : std::as_const(*inputState->getInterfaces())) {
+    const auto& intf = iter.second;
     for (const auto& cidrStr : intf->getAddressesCopy()) {
       auto subnet = folly::IPAddress::createNetwork(cidrStr.first.str());
       if (!v6 && subnet.first.isV4()) {

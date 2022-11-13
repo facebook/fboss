@@ -803,7 +803,8 @@ void ThriftHandler::getAllInterfaces(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   const auto interfaceMap = sw_->getState()->getInterfaces();
-  for (const auto& intf : *interfaceMap) {
+  for (auto iter : std::as_const(*interfaceMap)) {
+    const auto& intf = iter.second;
     auto& interfaceDetail = interfaces[intf->getID()];
     populateInterfaceDetail(interfaceDetail, intf);
   }
@@ -813,7 +814,8 @@ void ThriftHandler::getInterfaceList(std::vector<std::string>& interfaceList) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   const auto interfaceMap = sw_->getState()->getInterfaces();
-  for (const auto& intf : *interfaceMap) {
+  for (auto iter : std::as_const(*interfaceMap)) {
+    auto intf = iter.second;
     interfaceList.push_back(intf->getName());
   }
 }
@@ -1941,7 +1943,8 @@ void ThriftHandler::getVlanAddresses(
   CHECK(vlan);
   // Explicitly take ownership of interface map
   auto interfaces = sw_->getState()->getInterfaces();
-  for (auto intf : *interfaces) {
+  for (auto iter : std::as_const(*interfaces)) {
+    auto intf = iter.second;
     if (intf->getVlanID() == vlan->getID()) {
       for (auto addrAndMask : intf->getAddressesCopy()) {
         addrs.push_back(converter(addrAndMask.first));

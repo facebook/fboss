@@ -603,10 +603,10 @@ boost::container::flat_map<InterfaceID, bool> TunManager::getInterfaceStatus(
   boost::container::flat_map<InterfaceID, bool> statusMap;
 
   // Declare all virtual or state_sync disabled interfaces as up
-  for (const auto& intfIDToObj : state->getInterfaces()->getAllNodes()) {
-    if (intfIDToObj.second->isVirtual() ||
-        intfIDToObj.second->isStateSyncDisabled()) {
-      statusMap.emplace(intfIDToObj.first, true);
+  for (auto iter : std::as_const(*state->getInterfaces())) {
+    const auto& intf = iter.second;
+    if (intf->isVirtual() || intf->isStateSyncDisabled()) {
+      statusMap.emplace(intf->getID(), true);
     }
   }
 
@@ -656,16 +656,17 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
   // prepare new addresses
   IntfToAddrsMap newIntfToInfo;
   auto intfMap = state->getInterfaces();
-  for (const auto& intf : intfMap->getAllNodes()) {
-    auto addrs = intf.second->getAddressesCopy();
+  for (auto iter : std::as_const(*intfMap)) {
+    const auto& intf = iter.second;
+    auto addrs = intf->getAddressesCopy();
 
     // Ideally all interfaces should be present in intfStatusMap as either
     // interface will be virtual or will have atleast one port. Keeping default
     // status of interface to be DOWN incase if interface is not virtual and is
     // not assocaited with any physical port
-    const auto status = folly::get_default(intfStatusMap, intf.first, false);
+    const auto status = folly::get_default(intfStatusMap, intf->getID(), false);
 
-    newIntfToInfo[intf.first] = {status, addrs};
+    newIntfToInfo[intf->getID()] = {status, addrs};
   }
 
   // Hold mutex while changing interfaces

@@ -79,7 +79,7 @@ void DsfSubscriber::scheduleUpdate(
         }
         if (newRifs) {
           auto origRifs = out->getInterfaces(nodeSwitchId);
-          NodeMapDelta<InterfaceMap> delta(origRifs.get(), newRifs.get());
+          InterfaceMapDelta delta(origRifs.get(), newRifs.get());
           auto remoteRifs = out->getRemoteInterfaces()->modify(&out);
           processDelta(delta, remoteRifs);
         }
@@ -149,7 +149,8 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
                           *change.state()->contents()));
             } else if (change.path()->path() == getInterfacesPath()) {
               XLOG(DBG2) << " Got rif update from : " << nodeName;
-              newRifs = InterfaceMap::fromThrift(
+              newRifs = std::make_shared<InterfaceMap>();
+              newRifs->fromThrift(
                   thrift_cow::
                       deserialize<ThriftMapTypeClass, InterfaceMapThriftType>(
                           fsdb::OperProtocol::BINARY,
