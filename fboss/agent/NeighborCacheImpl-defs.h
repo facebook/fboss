@@ -16,8 +16,10 @@
 #include <folly/logging/xlog.h>
 #include <list>
 #include "fboss/agent/ArpHandler.h"
+#include "fboss/agent/EncapIndexAllocator.h"
 #include "fboss/agent/IPv6Handler.h"
 #include "fboss/agent/NeighborCacheImpl.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/NeighborEntry.h"
@@ -66,7 +68,8 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
 
   auto fields = entry->getFields();
   auto vlanID = vlanID_;
-  auto updateFn = [fields, vlanID](const std::shared_ptr<SwitchState>& state)
+  auto updateFn =
+      [this, fields, vlanID](const std::shared_ptr<SwitchState>& state) mutable
       -> std::shared_ptr<SwitchState> {
     if (!ncachehelpers::checkVlanAndIntf<NTable>(state, fields, vlanID)) {
       // Either the vlan or intf is no longer valid.
@@ -77,6 +80,11 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
     std::shared_ptr<SwitchState> newState{state};
     auto* table = vlan->template getNeighborTable<NTable>().get();
     auto node = table->getNodeIf(fields.ip.str());
+    auto asic = sw_->getPlatform()->getAsic();
+    if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+      fields.encapIndex =
+          EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
+    }
 
     if (!node) {
       table = table->modify(&vlan, &newState);
