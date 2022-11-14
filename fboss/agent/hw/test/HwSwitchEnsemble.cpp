@@ -158,9 +158,40 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
     return programmedState_;
   }
 
+  StateDelta delta(programmedState_, newState);
+  if (getAsic()->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+    auto changeNeighbor = [&newState](auto oldNbr, auto newNbr) {};
+    auto addNeighbor = [&newState](auto newNbr) {};
+    for (const auto& vlanDelta : delta.getVlansDelta()) {
+      DeltaFunctions::forEachChanged(
+          vlanDelta.getArpDelta(),
+          [&](auto oldNbr, auto newNbr) { changeNeighbor(oldNbr, newNbr); },
+          [&](auto newNbr) { addNeighbor(newNbr); },
+          [&](auto /*rmNbr*/) {});
+
+      DeltaFunctions::forEachChanged(
+          vlanDelta.getNdpDelta(),
+          [&](auto oldNbr, auto newNbr) { changeNeighbor(oldNbr, newNbr); },
+          [&](auto newNbr) { addNeighbor(newNbr); },
+          [&](auto /*rmNbr*/) {});
+    }
+    for (const auto& intfDelta : delta.getIntfsDelta()) {
+      DeltaFunctions::forEachChanged(
+          intfDelta.getArpEntriesDelta(),
+          [&](auto oldNbr, auto newNbr) { changeNeighbor(oldNbr, newNbr); },
+          [&](auto newNbr) { addNeighbor(newNbr); },
+          [&](auto /*rmNbr*/) {});
+
+      DeltaFunctions::forEachChanged(
+          intfDelta.getNdpEntriesDelta(),
+          [&](auto oldNbr, auto newNbr) { changeNeighbor(oldNbr, newNbr); },
+          [&](auto newNbr) { addNeighbor(newNbr); },
+          [&](auto /*rmNbr*/) {});
+    }
+  }
+
   newState->publish();
   auto appliedState = newState;
-  StateDelta delta(programmedState_, newState);
   {
     std::lock_guard<std::mutex> lk(updateStateMutex_);
     programmedState_ = transaction
