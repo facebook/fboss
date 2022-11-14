@@ -3,6 +3,7 @@
 #pragma once
 #include <folly/logging/xlog.h>
 #include <memory>
+#include "fboss/lib/bsp/BspLedContainer.h"
 #include "fboss/lib/bsp/BspPhyContainer.h"
 #include "fboss/lib/bsp/BspPlatformMapping.h"
 #include "fboss/lib/bsp/BspTransceiverContainer.h"
@@ -18,6 +19,7 @@ class BspPimContainer : public MultiPimPlatformPimContainer {
   const BspTransceiverContainer* getTransceiverContainer(int tcvrID) const;
   const BspPhyContainer* getPhyContainerFromPhyID(int phyID) const;
   const BspPhyContainer* getPhyContainerFromMdioID(int mdioControllerID) const;
+  const BspLedContainer* getLedContainer(int tcvrID) const;
 
   bool isTcvrPresent(int tcvrID) const;
   void initAllTransceivers() const;
@@ -43,6 +45,8 @@ class BspPimContainer : public MultiPimPlatformPimContainer {
   std::unordered_map<int, std::unique_ptr<BspPhyContainer>> phyContainers_;
   // map of io controller id to BspPhyIO
   std::unordered_map<int, std::unique_ptr<BspPhyIO>> phyIOControllers_;
+  // tcvrId to LED mapping
+  std::unordered_map<int, std::unique_ptr<BspLedContainer>> ledContainers_;
   BspPimMapping bspPimMapping_;
 };
 

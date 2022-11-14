@@ -94,5 +94,11 @@ const I2cControllerStats BspSystemContainer::getI2cControllerStats(
   return getPimContainerFromTcvrID(tcvrID)->getI2cControllerStats(tcvrID);
 }
 
+const LedIO* BspSystemContainer::getLedController(int tcvrID) const {
+  return getPimContainerFromTcvrID(tcvrID)
+      ->getLedContainer(tcvrID)
+      ->getLedController();
+}
+
 } // namespace fboss
 } // namespace facebook

@@ -2,6 +2,7 @@
 
 #include "fboss/lib/bsp/BspPimContainer.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/lib/bsp/BspLedContainer.h"
 #include "fboss/lib/bsp/BspPhyContainer.h"
 #include "fboss/lib/bsp/BspTransceiverContainer.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
@@ -33,6 +34,10 @@ BspPimContainer::BspPimContainer(BspPimMapping& bspPimMapping)
             phyMapping.second,
             phyIOControllers_[*phyMapping.second.phyIOControllerId()].get()));
   }
+  for (auto ledMapping : *bspPimMapping.ledMapping()) {
+    ledContainers_.emplace(
+        ledMapping.first, std::make_unique<BspLedContainer>(ledMapping.second));
+  }
 }
 
 const BspTransceiverContainer* BspPimContainer::getTransceiverContainer(
@@ -56,6 +61,10 @@ const BspPhyContainer* BspPimContainer::getPhyContainerFromMdioID(
       "Couldn't find phy container for mdioID {:d}, PimID {:d}",
       mdioControllerID,
       *bspPimMapping_.pimID()));
+}
+
+const BspLedContainer* BspPimContainer::getLedContainer(int tcvrID) const {
+  return ledContainers_.at(tcvrID).get();
 }
 
 void BspPimContainer::initAllTransceivers() const {

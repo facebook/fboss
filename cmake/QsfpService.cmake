@@ -76,6 +76,7 @@ add_library(qsfp_bsp_core
   fboss/lib/bsp/BspTransceiverApi.cpp
   fboss/lib/bsp/BspTransceiverContainer.cpp
   fboss/lib/bsp/BspTransceiverIO.cpp
+  fboss/lib/bsp/BspLedContainer.cpp
 )
 
 target_link_libraries(qsfp_bsp_core

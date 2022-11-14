@@ -3,6 +3,7 @@
 #pragma once
 #include <folly/logging/xlog.h>
 #include <unordered_map>
+#include "fboss/lib/bsp/BspLedContainer.h"
 #include "fboss/lib/bsp/BspPimContainer.h"
 #include "fboss/lib/bsp/BspPlatformMapping.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
@@ -38,6 +39,7 @@ class BspSystemContainer {
 
   const BspPimContainer* getPimContainerFromPimID(int pimID) const;
   const BspPimContainer* getPimContainerFromTcvrID(int tcvrID) const;
+  const LedIO* getLedController(int tcvrID) const;
   int getNumTransceivers() const;
   int getPimIDFromTcvrID(int tcvrID) const;
   int getNumPims() const;
