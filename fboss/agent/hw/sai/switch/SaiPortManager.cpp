@@ -1232,7 +1232,10 @@ void SaiPortManager::setQosMapsOnAllPorts(
     std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps) {
   folly::F14FastSet<PortID> allPorts;
   for (const auto& portIdAndHandle : handles_) {
-    allPorts.insert(portIdAndHandle.first);
+    // For all non fabric ports
+    if (getPortType(portIdAndHandle.first) != cfg::PortType::FABRIC_PORT) {
+      allPorts.insert(portIdAndHandle.first);
+    }
   }
   setQosMaps(qosMaps, allPorts);
 }
