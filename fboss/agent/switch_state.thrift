@@ -225,7 +225,7 @@ struct MacEntryFields {
   1: string mac;
   2: switch_config.PortDescriptor portId;
   3: optional switch_config.AclLookupClass classID;
-  4: MacEntryType type;
+  4: MacEntryType type = MacEntryType.DYNAMIC_ENTRY;
 }
 
 struct NeighborResponseEntryFields {
@@ -235,11 +235,11 @@ struct NeighborResponseEntryFields {
 }
 
 struct VlanFields {
-  1: i16 vlanId;
+  1: i16 vlanId = 0;
   2: string vlanName;
-  3: i32 intfID;
-  4: string dhcpV4Relay;
-  5: string dhcpV6Relay;
+  3: i32 intfID = 0;
+  4: string dhcpV4Relay = "0.0.0.0";
+  5: string dhcpV6Relay = "::";
   6: map<string, string> dhcpRelayOverridesV4;
   7: map<string, string> dhcpRelayOverridesV6;
   8: map<i16, bool> ports;

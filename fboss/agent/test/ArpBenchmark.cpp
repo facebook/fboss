@@ -47,7 +47,7 @@ unique_ptr<SwSwitch> setupSwitch() {
     auto state = oldState->clone();
 
     // Add VLAN 1, and ports 1-9 which belong to it.
-    auto vlan1 = make_shared<Vlan>(VlanID(1), "Vlan1");
+    auto vlan1 = make_shared<Vlan>(VlanID(1), std::string("Vlan1"));
     state->addVlan(vlan1);
     for (int idx = 1; idx < 10; ++idx) {
       vlan1->addPort(PortID(idx), false);

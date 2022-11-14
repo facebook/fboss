@@ -73,7 +73,7 @@ boost::container::flat_set<PortDescriptor> getPortsWithExclusiveVlanMembership(
   for (auto vlan : *state->getVlans()) {
     auto memberPorts = vlan->getPorts();
     if (memberPorts.size() == 1) {
-      ports.insert(PortDescriptor{memberPorts.begin()->first});
+      ports.insert(PortDescriptor{PortID(memberPorts.begin()->first)});
     }
   }
   return ports;

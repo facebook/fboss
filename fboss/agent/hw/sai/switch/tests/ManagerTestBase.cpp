@@ -254,10 +254,10 @@ std::shared_ptr<Vlan> ManagerTestBase::makeVlan(
     const TestInterface& testInterface) const {
   std::string name = folly::sformat("vlan{}", testInterface.id);
   auto swVlan = std::make_shared<Vlan>(VlanID(testInterface.id), name);
-  VlanFields::MemberPorts mps;
+  Vlan::MemberPorts mps;
   for (const auto& remoteHost : testInterface.remoteHosts) {
     PortID portId(remoteHost.port.id);
-    VlanFields::PortInfo portInfo(false);
+    bool portInfo(false);
     mps.insert(std::make_pair(portId, portInfo));
   }
   swVlan->setPorts(mps);

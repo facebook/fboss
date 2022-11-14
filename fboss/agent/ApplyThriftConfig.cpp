@@ -935,8 +935,8 @@ void ThriftConfigApplier::processVlanPorts() {
       throw FbossError(
           "duplicate VlanPort for port ", portID, ", vlan ", vlanID);
     }
-    auto ret2 = vlanPorts_[vlanID].insert(
-        std::make_pair(portID, Vlan::PortInfo(*vp.emitTags())));
+    auto ret2 =
+        vlanPorts_[vlanID].insert(std::make_pair(portID, *vp.emitTags()));
     if (!ret2.second) {
       // This should never fail if the first insert succeeded above.
       throw FbossError(

@@ -108,18 +108,39 @@ struct VlanFields : public ThriftyFields<VlanFields, state::VlanFields> {
   std::shared_ptr<MacTable> macTable;
 };
 
-class Vlan : public ThriftyBaseT<state::VlanFields, Vlan, VlanFields> {
+class Vlan;
+USE_THRIFT_COW(Vlan);
+RESOLVE_STRUCT_MEMBER(Vlan, switch_state_tags::arpTable, ArpTable)
+RESOLVE_STRUCT_MEMBER(Vlan, switch_state_tags::ndpTable, NdpTable)
+RESOLVE_STRUCT_MEMBER(
+    Vlan,
+    switch_state_tags::arpResponseTable,
+    ArpResponseTable)
+RESOLVE_STRUCT_MEMBER(
+    Vlan,
+    switch_state_tags::ndpResponseTable,
+    NdpResponseTable)
+RESOLVE_STRUCT_MEMBER(Vlan, switch_state_tags::macTable, MacTable)
+
+class Vlan : public ThriftStructNode<Vlan, state::VlanFields> {
  public:
+  using Base = ThriftStructNode<Vlan, state::VlanFields>;
   typedef VlanFields::PortInfo PortInfo;
-  typedef VlanFields::MemberPorts MemberPorts;
+  using MemberPorts = std::map<int16_t, bool>;
+  using LegacyFields = VlanFields;
 
   Vlan(VlanID id, std::string name);
   Vlan(const cfg::Vlan* config, MemberPorts ports);
 
   static std::shared_ptr<Vlan> fromFollyDynamicLegacy(
       const folly::dynamic& json) {
-    const auto& fields = VlanFields::fromFollyDynamicLegacy(json);
-    return std::make_shared<Vlan>(fields);
+    const auto fields = VlanFields::fromFollyDynamicLegacy(json);
+    return std::make_shared<Vlan>(fields.toThrift());
+  }
+
+  static std::shared_ptr<Vlan> fromFollyDynamic(const folly::dynamic& json) {
+    const auto fields = VlanFields::fromFollyDynamic(json);
+    return std::make_shared<Vlan>(fields.toThrift());
   }
 
   static std::shared_ptr<Vlan> fromJson(const folly::fbstring& jsonStr) {
@@ -127,34 +148,42 @@ class Vlan : public ThriftyBaseT<state::VlanFields, Vlan, VlanFields> {
   }
 
   folly::dynamic toFollyDynamicLegacy() const {
-    return getFields()->toFollyDynamicLegacy();
+    auto fields = VlanFields::fromThrift(toThrift());
+    return fields.toFollyDynamicLegacy();
+  }
+
+  folly::dynamic toFollyDynamic() const override {
+    auto fields = VlanFields::fromThrift(toThrift());
+    return fields.toFollyDynamic();
   }
 
   VlanID getID() const {
-    return getFields()->id;
+    return static_cast<VlanID>(get<switch_state_tags::vlanId>()->cref());
   }
 
-  const std::string& getName() const {
-    return getFields()->name;
+  std::string getName() const {
+    return get<switch_state_tags::vlanName>()->cref();
   }
 
   InterfaceID getInterfaceID() const {
-    return getFields()->intfID;
+    return static_cast<InterfaceID>(get<switch_state_tags::intfID>()->cref());
   }
 
   void setInterfaceID(InterfaceID intfID) {
-    writableFields()->intfID = intfID;
+    set<switch_state_tags::intfID>(intfID);
   }
 
   void setName(std::string name) {
-    writableFields()->name = name;
+    set<switch_state_tags::vlanName>(name);
   }
 
-  const MemberPorts& getPorts() const {
-    return getFields()->ports;
+  // THRIFT_COPY: evaluate if this function can be changed..
+  MemberPorts getPorts() const {
+    return get<switch_state_tags::ports>()->toThrift();
   }
+  // THRIFT_COPY: evaluate if this function can be changed..
   void setPorts(MemberPorts ports) {
-    writableFields()->ports.swap(ports);
+    set<switch_state_tags::ports>(std::move(ports));
   }
 
   Vlan* modify(std::shared_ptr<SwitchState>* state);
@@ -165,69 +194,93 @@ class Vlan : public ThriftyBaseT<state::VlanFields, Vlan, VlanFields> {
   const std::shared_ptr<NTable> getNeighborTable() const;
 
   const std::shared_ptr<ArpTable> getArpTable() const {
-    return getFields()->arpTable;
+    return get<switch_state_tags::arpTable>();
   }
   void setArpTable(std::shared_ptr<ArpTable> table) {
-    return writableFields()->arpTable.swap(table);
+    ref<switch_state_tags::arpTable>() = std::move(table);
   }
   void setNeighborTable(std::shared_ptr<ArpTable> table) {
-    return writableFields()->arpTable.swap(table);
+    ref<switch_state_tags::arpTable>() = std::move(table);
   }
 
   const std::shared_ptr<ArpResponseTable> getArpResponseTable() const {
-    return getFields()->arpResponseTable;
+    return get<switch_state_tags::arpResponseTable>();
   }
   void setArpResponseTable(std::shared_ptr<ArpResponseTable> table) {
-    writableFields()->arpResponseTable.swap(table);
+    ref<switch_state_tags::arpResponseTable>() = std::move(table);
   }
 
   const std::shared_ptr<NdpTable> getNdpTable() const {
-    return getFields()->ndpTable;
+    return get<switch_state_tags::ndpTable>();
   }
   void setNdpTable(std::shared_ptr<NdpTable> table) {
-    return writableFields()->ndpTable.swap(table);
+    ref<switch_state_tags::ndpTable>() = std::move(table);
   }
   void setNeighborTable(std::shared_ptr<NdpTable> table) {
-    return writableFields()->ndpTable.swap(table);
+    ref<switch_state_tags::ndpTable>() = std::move(table);
   }
 
   const std::shared_ptr<NdpResponseTable> getNdpResponseTable() const {
-    return getFields()->ndpResponseTable;
+    return get<switch_state_tags::ndpResponseTable>();
   }
   void setNdpResponseTable(std::shared_ptr<NdpResponseTable> table) {
-    writableFields()->ndpResponseTable.swap(table);
+    ref<switch_state_tags::ndpResponseTable>() = std::move(table);
   }
 
   // dhcp relay
 
   folly::IPAddressV4 getDhcpV4Relay() const {
-    return getFields()->dhcpV4Relay;
+    return folly::IPAddressV4(get<switch_state_tags::dhcpV4Relay>()->cref());
   }
   void setDhcpV4Relay(folly::IPAddressV4 v4Relay) {
-    writableFields()->dhcpV4Relay = v4Relay;
+    set<switch_state_tags::dhcpV4Relay>(v4Relay.str());
   }
 
   folly::IPAddressV6 getDhcpV6Relay() const {
-    return getFields()->dhcpV6Relay;
+    return folly::IPAddressV6(get<switch_state_tags::dhcpV6Relay>()->cref());
   }
   void setDhcpV6Relay(folly::IPAddressV6 v6Relay) {
-    writableFields()->dhcpV6Relay = v6Relay;
+    set<switch_state_tags::dhcpV6Relay>(v6Relay.str());
   }
 
   // dhcp overrides
-
+  // THRIFT_COPY: evaluate if this function can be changed..
   DhcpV4OverrideMap getDhcpV4RelayOverrides() const {
-    return getFields()->dhcpRelayOverridesV4;
+    DhcpV4OverrideMap overrideMap{};
+    for (auto iter :
+         std::as_const(*get<switch_state_tags::dhcpRelayOverridesV4>())) {
+      overrideMap.emplace(
+          folly::MacAddress(iter.first),
+          folly::IPAddressV4(iter.second->cref()));
+    }
+    return overrideMap;
   }
+  // THRIFT_COPY: evaluate if this function can be changed..
   void setDhcpV4RelayOverrides(DhcpV4OverrideMap map) {
-    writableFields()->dhcpRelayOverridesV4 = map;
+    std::map<std::string, std::string> overrideMap{};
+    for (auto iter : map) {
+      overrideMap.emplace(iter.first.toString(), iter.second.str());
+    }
+    set<switch_state_tags::dhcpRelayOverridesV4>(std::move(overrideMap));
   }
-
+  // THRIFT_COPY: evaluate if this function can be changed..
   DhcpV6OverrideMap getDhcpV6RelayOverrides() const {
-    return getFields()->dhcpRelayOverridesV6;
+    DhcpV6OverrideMap overrideMap{};
+    for (auto iter :
+         std::as_const(*get<switch_state_tags::dhcpRelayOverridesV6>())) {
+      overrideMap.emplace(
+          folly::MacAddress(iter.first),
+          folly::IPAddressV6(iter.second->cref()));
+    }
+    return overrideMap;
   }
+  // THRIFT_COPY: evaluate if this function can be changed..
   void setDhcpV6RelayOverrides(DhcpV6OverrideMap map) {
-    writableFields()->dhcpRelayOverridesV6 = map;
+    std::map<std::string, std::string> overrideMap{};
+    for (auto iter : map) {
+      overrideMap.emplace(iter.first.toString(), iter.second.str());
+    }
+    set<switch_state_tags::dhcpRelayOverridesV6>(std::move(overrideMap));
   }
 
   /*
@@ -251,16 +304,16 @@ class Vlan : public ThriftyBaseT<state::VlanFields, Vlan, VlanFields> {
   }
 
   const std::shared_ptr<MacTable> getMacTable() const {
-    return getFields()->macTable;
+    return get<switch_state_tags::macTable>();
   }
 
   void setMacTable(std::shared_ptr<MacTable> macTable) {
-    writableFields()->macTable.swap(macTable);
+    ref<switch_state_tags::macTable>() = std::move(macTable);
   }
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyBaseT::ThriftyBaseT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 

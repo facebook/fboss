@@ -103,7 +103,7 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
         make_shared<Port>(PortID(1), "port1"),
         make_shared<Port>(PortID(2), "port2")};
     // On cold boot all ports are in Vlan 1
-    auto vlan = make_shared<Vlan>(VlanID(1), "InitVlan");
+    auto vlan = make_shared<Vlan>(VlanID(1), std::string("InitVlan"));
     Vlan::MemberPorts memberPorts;
     for (const auto& port : ports) {
       coldBootState->addPort(port);

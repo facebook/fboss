@@ -308,7 +308,8 @@ bool isAnyInterfacePortInLoopbackMode(
     // want to flood grat arp when we are in loopback resulting in these pkts
     // getting looped back forever
     for (const auto& memberPort : vlan->getPorts()) {
-      auto* port = swState->getPorts()->getPortIf(memberPort.first).get();
+      auto* port =
+          swState->getPorts()->getPortIf(PortID(memberPort.first)).get();
       if (port) {
         if (port->getLoopbackMode() != cfg::PortLoopbackMode::NONE) {
           XLOG(DBG2) << "Port: " << port->getName()

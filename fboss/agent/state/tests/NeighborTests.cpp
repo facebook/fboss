@@ -115,7 +115,7 @@ TEST(NeighborResponseTableTest, modify) {
        mac2 = MacAddress("01:01:01:01:01:02");
 
   auto state = std::make_shared<SwitchState>();
-  auto vlan = std::make_shared<Vlan>(VlanID(2001), "vlan1");
+  auto vlan = std::make_shared<Vlan>(VlanID(2001), std::string("vlan1"));
   auto arpResponseTable = std::make_shared<ArpResponseTable>();
   arpResponseTable->setEntry(ip1, mac1, InterfaceID(0));
   vlan->setArpResponseTable(arpResponseTable);

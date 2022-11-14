@@ -653,7 +653,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   bootState->resetControlPlane(cpu);
 
   // On cold boot all ports are in Vlan 1
-  auto vlan = make_shared<Vlan>(VlanID(1), "InitVlan");
+  auto vlan = make_shared<Vlan>(VlanID(1), std::string("InitVlan"));
   Vlan::MemberPorts memberPorts;
   for (const auto& kv : *portTable_) {
     PortID portID = kv.first;
@@ -1960,9 +1960,9 @@ void BcmSwitch::processChangedVlan(
         (newIter != newPorts.end() && newIter->first < oldIter->first)) {
       // This port was added
       ++numAdded;
-      bcm_port_t bcmPort = portTable_->getBcmPortId(newIter->first);
+      bcm_port_t bcmPort = portTable_->getBcmPortId(PortID(newIter->first));
       BCM_PBMP_PORT_ADD(addedPorts, bcmPort);
-      if (!newIter->second.tagged) {
+      if (!newIter->second) {
         BCM_PBMP_PORT_ADD(addedUntaggedPorts, bcmPort);
       }
       ++newIter;
@@ -1971,7 +1971,7 @@ void BcmSwitch::processChangedVlan(
         (oldIter != oldPorts.end() && oldIter->first < newIter->first)) {
       // This port was removed
       ++numRemoved;
-      bcm_port_t bcmPort = portTable_->getBcmPortId(oldIter->first);
+      bcm_port_t bcmPort = portTable_->getBcmPortId(PortID(oldIter->first));
       BCM_PBMP_PORT_ADD(removedPorts, bcmPort);
       ++oldIter;
     } else {
@@ -2003,9 +2003,9 @@ void BcmSwitch::processAddedVlan(const shared_ptr<Vlan>& vlan) {
   BCM_PBMP_CLEAR(ubmp);
 
   for (const auto& entry : vlan->getPorts()) {
-    bcm_port_t bcmPort = portTable_->getBcmPortId(entry.first);
+    bcm_port_t bcmPort = portTable_->getBcmPortId(PortID(entry.first));
     BCM_PBMP_PORT_ADD(pbmp, bcmPort);
-    if (!entry.second.tagged) {
+    if (!entry.second) {
       BCM_PBMP_PORT_ADD(ubmp, bcmPort);
     }
   }

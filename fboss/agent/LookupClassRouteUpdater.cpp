@@ -52,7 +52,8 @@ bool LookupClassRouteUpdater::vlanHasOtherPortsWithClassIDs(
     const std::shared_ptr<SwitchState>& switchState,
     const std::shared_ptr<Vlan>& vlan,
     const std::shared_ptr<Port>& removedPort) {
-  for (auto& [portID, portInfo] : vlan->getPorts()) {
+  for (auto& [id, portInfo] : vlan->getPorts()) {
+    auto portID = PortID(id);
     std::ignore = portInfo;
     auto port = switchState->getPorts()->getPortIf(portID);
 
@@ -343,7 +344,8 @@ void LookupClassRouteUpdater::processInterfaceAdded(
     return;
   }
 
-  for (auto& [portID, portInfo] : vlan->getPorts()) {
+  for (auto& [id, portInfo] : vlan->getPorts()) {
+    PortID portID(id);
     std::ignore = portInfo;
     auto port = switchState->getPorts()->getPortIf(portID);
     // routes are re-added once outside the for loop
@@ -437,7 +439,8 @@ void LookupClassRouteUpdater::processInterfaceRemoved(
     return;
   }
 
-  for (auto& [portID, portInfo] : vlan->getPorts()) {
+  for (auto& [id, portInfo] : vlan->getPorts()) {
+    PortID portID(id);
     std::ignore = portInfo;
     auto port = switchState->getPorts()->getPortIf(portID);
     /*

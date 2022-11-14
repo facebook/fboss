@@ -63,9 +63,9 @@ VlanSaiId SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
   handles_.emplace(swVlanId, std::move(vlanHandle));
 
   // Create VLAN members
-  for (const auto& memberPort : swVlan->getPorts()) {
-    PortID swPortId = memberPort.first;
-    createVlanMember(swVlanId, SaiPortDescriptor(swPortId));
+  for (auto [swPortId, emitTags] : swVlan->getPorts()) {
+    std::ignore = emitTags;
+    createVlanMember(swVlanId, SaiPortDescriptor(PortID(swPortId)));
   }
   return saiVlan->adapterKey();
 }
@@ -127,13 +127,13 @@ void SaiVlanManager::changeVlan(
     throw FbossError(
         "attempted to change a vlan which does not exist: ", swVlanId);
   }
-  const VlanFields::MemberPorts& oldPorts = swVlanOld->getPorts();
-  auto compareIds = [](const std::pair<PortID, VlanFields::PortInfo>& p1,
-                       const std::pair<PortID, VlanFields::PortInfo>& p2) {
+  auto oldPorts = swVlanOld->getPorts();
+  auto compareIds = [](const std::pair<int16_t, bool>& p1,
+                       const std::pair<int16_t, bool>& p2) {
     return p1.first < p2.first;
   };
-  const VlanFields::MemberPorts& newPorts = swVlanNew->getPorts();
-  VlanFields::MemberPorts removed;
+  auto newPorts = swVlanNew->getPorts();
+  Vlan::MemberPorts removed;
   std::set_difference(
       oldPorts.begin(),
       oldPorts.end(),
@@ -142,9 +142,9 @@ void SaiVlanManager::changeVlan(
       std::inserter(removed, removed.begin()),
       compareIds);
   for (const auto& swPortId : removed) {
-    handle->vlanMembers.erase(SaiPortDescriptor(swPortId.first));
+    handle->vlanMembers.erase(SaiPortDescriptor(PortID(swPortId.first)));
     SaiPortHandle* portHandle =
-        managerTable_->portManager().getPortHandle(swPortId.first);
+        managerTable_->portManager().getPortHandle(PortID(swPortId.first));
     if (!portHandle) {
       throw FbossError(
           "Failed to remove vlan member: "
@@ -152,7 +152,7 @@ void SaiVlanManager::changeVlan(
           swPortId.first);
     }
   }
-  VlanFields::MemberPorts added;
+  Vlan::MemberPorts added;
   std::set_difference(
       newPorts.begin(),
       newPorts.end(),
@@ -161,7 +161,7 @@ void SaiVlanManager::changeVlan(
       std::inserter(added, added.begin()),
       compareIds);
   for (const auto& swPortId : added) {
-    createVlanMember(swVlanId, SaiPortDescriptor(swPortId.first));
+    createVlanMember(swVlanId, SaiPortDescriptor(PortID(swPortId.first)));
   }
 }
 

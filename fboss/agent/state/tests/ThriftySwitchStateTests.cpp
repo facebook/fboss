@@ -57,8 +57,8 @@ TEST(ThriftySwitchState, PortMap) {
 }
 
 TEST(ThriftySwitchState, VlanMap) {
-  auto vlan1 = std::make_shared<Vlan>(VlanID(1), "vlan1");
-  auto vlan2 = std::make_shared<Vlan>(VlanID(2), "vlan2");
+  auto vlan1 = std::make_shared<Vlan>(VlanID(1), std::string("vlan1"));
+  auto vlan2 = std::make_shared<Vlan>(VlanID(2), std::string("vlan2"));
 
   vlan1->setDhcpV4Relay(IPAddressV4("1.2.3.4"));
   vlan1->setDhcpV4RelayOverrides(

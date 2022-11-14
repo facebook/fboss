@@ -89,8 +89,8 @@ TEST(Vlan, applyConfig) {
   config.vlanPorts()[1].emitTags() = true;
 
   Vlan::MemberPorts expectedPorts;
-  expectedPorts.insert(make_pair(PortID(1), Vlan::PortInfo(false)));
-  expectedPorts.insert(make_pair(PortID(2), Vlan::PortInfo(true)));
+  expectedPorts.insert(std::make_pair(1, false));
+  expectedPorts.insert(std::make_pair(2, true));
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   auto vlanV1 = stateV1->getVlans()->getVlan(VlanID(1234));
@@ -360,10 +360,10 @@ TEST(VlanMap, applyConfig) {
   EXPECT_EQ(kVlan1234, vlan1234v0->getName());
   EXPECT_EQ(0, vlan1234v0->getGeneration());
   Vlan::MemberPorts ports1234v0;
-  ports1234v0.insert(make_pair(PortID(1), Vlan::PortInfo(false)));
-  ports1234v0.insert(make_pair(PortID(2), Vlan::PortInfo(false)));
-  ports1234v0.insert(make_pair(PortID(3), Vlan::PortInfo(false)));
-  ports1234v0.insert(make_pair(PortID(4), Vlan::PortInfo(false)));
+  ports1234v0.insert(make_pair(1, false));
+  ports1234v0.insert(make_pair(2, false));
+  ports1234v0.insert(make_pair(3, false));
+  ports1234v0.insert(make_pair(4, false));
   EXPECT_EQ(ports1234v0, vlan1234v0->getPorts());
 
   // Check the new settings for VLAN 99
@@ -377,9 +377,9 @@ TEST(VlanMap, applyConfig) {
   EXPECT_EQ(kVlan99, vlan99v0->getName());
   EXPECT_EQ(0, vlan99v0->getGeneration());
   Vlan::MemberPorts ports99v1;
-  ports99v1.insert(make_pair(PortID(9), Vlan::PortInfo(false)));
-  ports99v1.insert(make_pair(PortID(19), Vlan::PortInfo(false)));
-  ports99v1.insert(make_pair(PortID(29), Vlan::PortInfo(false)));
+  ports99v1.insert(make_pair(9, false));
+  ports99v1.insert(make_pair(19, false));
+  ports99v1.insert(make_pair(29, false));
   EXPECT_EQ(ports99v1, vlan99v0->getPorts());
 
   // getVlan() should throw on a non-existent VLAN
@@ -406,9 +406,9 @@ TEST(VlanMap, applyConfig) {
   EXPECT_NE(vlan1234v0, vlan1234v1);
   EXPECT_EQ(1, vlan1234v1->getGeneration());
   Vlan::MemberPorts ports1234v1;
-  ports1234v1.insert(make_pair(PortID(2), Vlan::PortInfo(false)));
-  ports1234v1.insert(make_pair(PortID(3), Vlan::PortInfo(false)));
-  ports1234v1.insert(make_pair(PortID(4), Vlan::PortInfo(false)));
+  ports1234v1.insert(make_pair(2, false));
+  ports1234v1.insert(make_pair(3, false));
+  ports1234v1.insert(make_pair(4, false));
   EXPECT_EQ(ports1234v1, vlan1234v1->getPorts());
 
   // VLAN 99 should not have changed

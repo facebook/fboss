@@ -276,20 +276,24 @@ bool VlanFields::operator==(const VlanFields& o) const {
              *o.macTable);
 }
 
-Vlan::Vlan(VlanID id, string name) : ThriftyBaseT(id, std::move(name)) {}
+Vlan::Vlan(VlanID id, string name) {
+  set<switch_state_tags::vlanId>(id);
+  setName(name);
+}
 
-Vlan::Vlan(const cfg::Vlan* config, MemberPorts ports)
-    : ThriftyBaseT(
-          VlanID(*config->id()),
-          *config->name(),
-          (config->intfID() ? InterfaceID(*config->intfID()) : InterfaceID(0)),
-          (config->dhcpRelayAddressV4()
-               ? IPAddressV4(*config->dhcpRelayAddressV4())
-               : IPAddressV4()),
-          (config->dhcpRelayAddressV6()
-               ? IPAddressV6(*config->dhcpRelayAddressV6())
-               : IPAddressV6()),
-          std::move(ports)) {
+Vlan::Vlan(const cfg::Vlan* config, MemberPorts ports) {
+  set<switch_state_tags::vlanId>(*config->id());
+  setName(*config->name());
+  if (auto intfId = config->intfID()) {
+    setInterfaceID(InterfaceID(*intfId));
+  }
+  if (auto dhcpRelayAddressV4 = config->dhcpRelayAddressV4()) {
+    setDhcpV4Relay(folly::IPAddressV4(*dhcpRelayAddressV4));
+  }
+  if (auto dhcpRelayAddressV6 = config->dhcpRelayAddressV6()) {
+    setDhcpV6Relay(folly::IPAddressV6(*dhcpRelayAddressV6));
+  }
+  setPorts(std::move(ports));
   DhcpV4OverrideMap map4;
   for (const auto& o : config->dhcpRelayOverridesV4().value_or({})) {
     map4[MacAddress(o.first)] = folly::IPAddressV4(o.second);
@@ -317,9 +321,9 @@ Vlan* Vlan::modify(std::shared_ptr<SwitchState>* state) {
 }
 
 void Vlan::addPort(PortID id, bool tagged) {
-  writableFields()->ports.insert(make_pair(id, PortInfo(tagged)));
+  ref<switch_state_tags::ports>()->emplace(id, tagged);
 }
 
-template class NodeBaseT<Vlan, VlanFields>;
+template class ThriftStructNode<Vlan, state::VlanFields>;
 
 } // namespace facebook::fboss
