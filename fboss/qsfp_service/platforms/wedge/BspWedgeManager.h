@@ -1,5 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#pragma once
+
 #include <boost/container/flat_map.hpp>
 #include "fboss/lib/bsp/BspSystemContainer.h"
 #include "fboss/lib/bsp/BspTransceiverApi.h"
