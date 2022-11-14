@@ -121,7 +121,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     auto outState = getProgrammedState();
     auto interfaceMap = outState->getRemoteInterfaces()->modify(&outState);
     auto interface = interfaceMap->getInterface(intfID)->clone();
-    auto ndpTable = interfaceMap->getInterface(intfID)->getNdpTable();
+    auto ndpTable = interfaceMap->getInterface(intfID)->getNdpTable()->clone();
     if (add) {
       const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
       state::NeighborEntryFields ndp;
