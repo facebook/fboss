@@ -442,8 +442,15 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  led_mapping_cpp2
+  fboss/lib/led/led_mapping.thrift
+)
+
+add_fbthrift_cpp_library(
   bsp_platform_mapping_cpp2
   fboss/lib/bsp/bsp_platform_mapping.thrift
+  DEPENDS
+    led_mapping_cpp2
 )
 
 add_fbthrift_cpp_library(

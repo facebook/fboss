@@ -1,6 +1,8 @@
 namespace cpp2 facebook.fboss
 namespace py neteng.fboss.bsp_platform_mapping
 
+include 'fboss/lib/led/led_mapping.thrift'
+
 struct BspPlatformMappingThrift {
   1: map<i32, BspPimMapping> pimMapping;
 }
@@ -11,7 +13,7 @@ struct BspPimMapping {
   3: map<i32, BspPhyMapping> phyMapping;
   // Map of controller ID to controller info
   4: map<i32, BspPhyIOControllerInfo> phyIOControllers;
-// TODO: Add LEDs mapping
+  5: map<i32, led_mapping.LedMapping> ledMapping;
 }
 
 struct BspPhyMapping {
