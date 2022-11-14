@@ -229,28 +229,32 @@ void SaiPortManager::changePortImpl(
     return;
   }
 
-  SaiPortTraits::AdapterHostKey portKey{
-      GET_ATTR(Port, HwLaneList, newAttributes)};
-  auto& portStore = saiStore_->get<SaiPortTraits>();
-  auto saiPort = portStore.setObject(portKey, newAttributes, newPort->getID());
-  programSerdes(saiPort, newPort, existingPort);
-  // if vlan changed update it, this is important for rx processing
-  if (newPort->getIngressVlan() != oldPort->getIngressVlan()) {
-    concurrentIndices_->vlanIds.insert_or_assign(
-        PortDescriptorSaiId(saiPort->adapterKey()), newPort->getIngressVlan());
-    XLOG(DBG2) << "changed vlan on port " << newPort->getID()
-               << ": old vlan: " << oldPort->getIngressVlan()
-               << ", new vlan: " << newPort->getIngressVlan();
-  }
-  if (newPort->getProfileID() != oldPort->getProfileID()) {
-    auto platformPort = platform_->getPort(newPort->getID());
-    platformPort->setCurrentProfile(newPort->getProfileID());
-  }
+  if (newPort->getPortType() != cfg::PortType::FABRIC_PORT) {
+    SaiPortTraits::AdapterHostKey portKey{
+        GET_ATTR(Port, HwLaneList, newAttributes)};
+    auto& portStore = saiStore_->get<SaiPortTraits>();
+    auto saiPort =
+        portStore.setObject(portKey, newAttributes, newPort->getID());
+    programSerdes(saiPort, newPort, existingPort);
+    // if vlan changed update it, this is important for rx processing
+    if (newPort->getIngressVlan() != oldPort->getIngressVlan()) {
+      concurrentIndices_->vlanIds.insert_or_assign(
+          PortDescriptorSaiId(saiPort->adapterKey()),
+          newPort->getIngressVlan());
+      XLOG(DBG2) << "changed vlan on port " << newPort->getID()
+                 << ": old vlan: " << oldPort->getIngressVlan()
+                 << ", new vlan: " << newPort->getIngressVlan();
+    }
+    if (newPort->getProfileID() != oldPort->getProfileID()) {
+      auto platformPort = platform_->getPort(newPort->getID());
+      platformPort->setCurrentProfile(newPort->getProfileID());
+    }
 
-  changeSamplePacket(oldPort, newPort);
-  changeMirror(oldPort, newPort);
-  changePfc(oldPort, newPort);
-  programPfcBuffers(newPort);
+    changeSamplePacket(oldPort, newPort);
+    changeMirror(oldPort, newPort);
+    changePfc(oldPort, newPort);
+    programPfcBuffers(newPort);
+  }
 
   if (newPort->isEnabled()) {
     if (!oldPort->isEnabled()) {
