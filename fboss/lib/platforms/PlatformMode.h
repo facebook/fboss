@@ -9,8 +9,11 @@
  */
 #pragma once
 
+#include <gflags/gflags.h>
 #include <stdexcept>
 #include <string>
+
+DECLARE_bool(use_bsp_helpers);
 
 namespace facebook::fboss {
 
