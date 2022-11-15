@@ -181,6 +181,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
 
     auto setup = [this, kPort, ecmpHelper]() {
+      addDscpAclWithCounter();
       addRemoveNeighbor(kPort, true /* add neighbor*/);
     };
 
@@ -198,7 +199,8 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
           kSrcIp,
           kNeighborIp,
           8000, // l4 src port
-          8001); // l4 dst port
+          8001, // l4 dst port
+          0x24 << 2); // dscp
       size_t txPacketSize = txPacket->buf()->length();
 
       XLOG(DBG3) << "\n"
@@ -221,8 +223,17 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
                 .at(kDefaultQueue));
       };
 
+      auto getAclPackets = [this]() {
+        return utility::getAclInOutPackets(
+            getHwSwitch(),
+            getProgrammedState(),
+            kDscpAclName(),
+            kDscpAclCounterName());
+      };
+
       auto [beforeOutPkts, beforeOutBytes] = getPortOutPktsBytes();
       auto [beforeQueueOutPkts, beforeQueueOutBytes] = getQueueOutPktsBytes();
+      auto beforeAclPkts = getAclPackets();
 
       if (isFrontPanel) {
         const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
@@ -234,16 +245,19 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
 
       auto [afterOutPkts, afterOutBytes] = getPortOutPktsBytes();
       auto [afterQueueOutPkts, afterQueueOutBytes] = getQueueOutPktsBytes();
+      auto afterAclPkts = getAclPackets();
 
       XLOG(DBG2) << "Stats:: beforeOutPkts: " << beforeOutPkts
                  << " beforeOutBytes: " << beforeOutBytes
                  << " beforeQueueOutPkts: " << beforeQueueOutPkts
                  << " beforeQueueOutBytes: " << beforeQueueOutBytes
+                 << " beforeAclPkts: " << beforeAclPkts
                  << " txPacketSize: " << txPacketSize
                  << " afterOutPkts: " << afterOutPkts
                  << " afterOutBytes: " << afterOutBytes
                  << " afterQueueOutPkts: " << afterQueueOutPkts
-                 << " afterQueueOutBytes: " << afterQueueOutBytes;
+                 << " afterQueueOutBytes: " << afterQueueOutBytes
+                 << " afterAclPkts: " << afterAclPkts;
 
       EXPECT_EQ(afterOutPkts - 1, beforeOutPkts);
       // CS00012267635: debug why we get 4 extra bytes
@@ -251,6 +265,8 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
       EXPECT_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
       // CS00012267635: debug why queue counter is 310, when txPacketSize is 322
       EXPECT_GE(afterQueueOutBytes, beforeQueueOutBytes);
+      // CS00012270648: debug why pipeline bypass (sendPacketCpu) fails
+      EXPECT_EQ(afterAclPkts - 1, beforeAclPkts);
     };
 
     verifyAcrossWarmBoots(setup, verify);
