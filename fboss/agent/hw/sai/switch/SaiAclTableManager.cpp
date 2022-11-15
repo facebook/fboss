@@ -1167,67 +1167,73 @@ void SaiAclTableManager::updateStats() {
 std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
     const {
   /*
-   * Tajo does not support following qualifier or enabling those
-   * overflows max key width. Thus, disable those on Tajo for now.
+   * Not all the qualifiers are supported by every ASIC.
+   * Moreover, different ASICs have different max key widths.
+   * Thus, enabling all the supported qualifiers in the same ACL Table could
+   * overflow the max key width.
+   *
+   * Thus, only enable a susbet of supported qualifiers based on the ASIC
+   * capability.
    */
   bool isTajo = platform_->getAsic()->getAsicVendor() ==
       HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
   bool isTrident2 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TRIDENT2;
-  std::set<cfg::AclTableQualifier> tajoQualifiers = {
-      cfg::AclTableQualifier::SRC_IPV6,
-      cfg::AclTableQualifier::DST_IPV6,
-      cfg::AclTableQualifier::SRC_IPV4,
-      cfg::AclTableQualifier::DST_IPV4,
-      cfg::AclTableQualifier::IP_PROTOCOL,
-      cfg::AclTableQualifier::DSCP,
-      cfg::AclTableQualifier::IP_TYPE,
-      cfg::AclTableQualifier::TTL,
-      cfg::AclTableQualifier::LOOKUP_CLASS_L2,
-      cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
-      cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
 
   if (isTajo) {
+    std::set<cfg::AclTableQualifier> tajoQualifiers = {
+        cfg::AclTableQualifier::SRC_IPV6,
+        cfg::AclTableQualifier::DST_IPV6,
+        cfg::AclTableQualifier::SRC_IPV4,
+        cfg::AclTableQualifier::DST_IPV4,
+        cfg::AclTableQualifier::IP_PROTOCOL,
+        cfg::AclTableQualifier::DSCP,
+        cfg::AclTableQualifier::IP_TYPE,
+        cfg::AclTableQualifier::TTL,
+        cfg::AclTableQualifier::LOOKUP_CLASS_L2,
+        cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
+        cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
+
     return tajoQualifiers;
+  } else {
+    std::set<cfg::AclTableQualifier> bcmQualifiers = {
+        cfg::AclTableQualifier::SRC_IPV6,
+        cfg::AclTableQualifier::DST_IPV6,
+        cfg::AclTableQualifier::SRC_IPV4,
+        cfg::AclTableQualifier::DST_IPV4,
+        cfg::AclTableQualifier::L4_SRC_PORT,
+        cfg::AclTableQualifier::L4_DST_PORT,
+        cfg::AclTableQualifier::IP_PROTOCOL,
+        cfg::AclTableQualifier::TCP_FLAGS,
+        cfg::AclTableQualifier::SRC_PORT,
+        cfg::AclTableQualifier::OUT_PORT,
+        cfg::AclTableQualifier::IP_FRAG,
+        cfg::AclTableQualifier::ICMPV4_TYPE,
+        cfg::AclTableQualifier::ICMPV4_CODE,
+        cfg::AclTableQualifier::ICMPV6_TYPE,
+        cfg::AclTableQualifier::ICMPV6_CODE,
+        cfg::AclTableQualifier::DSCP,
+        cfg::AclTableQualifier::DST_MAC,
+        cfg::AclTableQualifier::IP_TYPE,
+        cfg::AclTableQualifier::TTL,
+        cfg::AclTableQualifier::LOOKUP_CLASS_L2,
+        cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
+        cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
+
+    /*
+     * FdbDstUserMetaData is required only for MH-NIC queue-per-host solution.
+     * However, the solution is not applicable for Trident2 as FBOSS does not
+     * implement queues on Trident2.
+     * Furthermore, Trident2 supports fewer ACL qualifiers than other
+     * hardwares. Thus, avoid programming unncessary qualifiers (or else we
+     * run out resources).
+     */
+    if (isTrident2) {
+      bcmQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_L2);
+    }
+
+    return bcmQualifiers;
   }
-
-  std::set<cfg::AclTableQualifier> bcmQualifiers = {
-      cfg::AclTableQualifier::SRC_IPV6,
-      cfg::AclTableQualifier::DST_IPV6,
-      cfg::AclTableQualifier::SRC_IPV4,
-      cfg::AclTableQualifier::DST_IPV4,
-      cfg::AclTableQualifier::L4_SRC_PORT,
-      cfg::AclTableQualifier::L4_DST_PORT,
-      cfg::AclTableQualifier::IP_PROTOCOL,
-      cfg::AclTableQualifier::TCP_FLAGS,
-      cfg::AclTableQualifier::SRC_PORT,
-      cfg::AclTableQualifier::OUT_PORT,
-      cfg::AclTableQualifier::IP_FRAG,
-      cfg::AclTableQualifier::ICMPV4_TYPE,
-      cfg::AclTableQualifier::ICMPV4_CODE,
-      cfg::AclTableQualifier::ICMPV6_TYPE,
-      cfg::AclTableQualifier::ICMPV6_CODE,
-      cfg::AclTableQualifier::DSCP,
-      cfg::AclTableQualifier::DST_MAC,
-      cfg::AclTableQualifier::IP_TYPE,
-      cfg::AclTableQualifier::TTL,
-      cfg::AclTableQualifier::LOOKUP_CLASS_L2,
-      cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
-      cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
-
-  /*
-   * FdbDstUserMetaData is required only for MH-NIC queue-per-host solution.
-   * However, the solution is not applicable for Trident2 as FBOSS does not
-   * implement queues on Trident2.
-   * Furthermore, Trident2 supports fewer ACL qualifiers than other
-   * hardwares. Thus, avoid programming unncessary qualifiers (or else we
-   * run out resources).
-   */
-  if (isTrident2) {
-    bcmQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_L2);
-  }
-
-  return bcmQualifiers;
 }
 
 void SaiAclTableManager::addDefaultAclTable() {
