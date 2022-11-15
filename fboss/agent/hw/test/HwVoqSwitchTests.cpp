@@ -79,6 +79,19 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
   }
 
  protected:
+  std::string kDscpAclName() const {
+    return "dscp_acl";
+  }
+  std::string kDscpAclCounterName() const {
+    return "dscp_acl_counter";
+  }
+  void addDscpAclWithCounter() {
+    auto newCfg = initialConfig();
+    auto* acl = utility::addAcl(&newCfg, kDscpAclName());
+    acl->dscp() = 0x24;
+    utility::addAclStat(&newCfg, kDscpAclName(), kDscpAclCounterName());
+    applyNewConfig(newCfg);
+  }
   void addRemoteSysPort(SystemPortID portId) {
     auto newState = getProgrammedState()->clone();
     auto localPort = *newState->getSystemPorts()->begin();
