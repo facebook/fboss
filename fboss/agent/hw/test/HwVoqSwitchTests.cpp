@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/IndusAsic.h"
@@ -37,6 +38,12 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     return cfg;
   }
   void SetUp() override {
+    // EBRO asic requires cpu originated packet to match the
+    // Switch MAC used during switch create. Unless we override
+    // this flag, switch mac will get derived from eth0 mac while
+    // intf MAC, will come from kLocalCpuMac. Unify these
+    // TODO: Unify these for all HW tests
+    FLAGS_mac = utility::kLocalCpuMac().toString();
     HwLinkStateDependentTest::SetUp();
     ASSERT_EQ(getHwSwitch()->getSwitchType(), cfg::SwitchType::VOQ);
     ASSERT_TRUE(getHwSwitch()->getSwitchId().has_value());

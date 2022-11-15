@@ -28,6 +28,7 @@
 
 #include <chrono>
 
+DECLARE_string(mac);
 namespace folly {
 struct dynamic;
 }
