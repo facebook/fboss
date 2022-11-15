@@ -265,6 +265,7 @@ class ServiceConfig {
   int getPwmUpperThreshold() const;
   int getPwmLowerThreshold() const;
   float getPwmTransitionValue() const;
+  int parseConfigString(std::string contents);
   opticThresholdTable* FOLLY_NULLABLE getConfigOpticTable(
       std::string name,
       fan_config_structs::OpticTableType dataType);
@@ -306,6 +307,7 @@ class ServiceConfig {
   //
   // Methods
   //
+  std::string getConfigContents();
   fan_config_structs::AccessMethod parseAccessMethod(folly::dynamic value);
   std::vector<std::pair<float, float>> parseTable(folly::dynamic value);
   std::vector<int> parseInstance(folly::dynamic value);

@@ -25,8 +25,10 @@ ServiceConfig::ServiceConfig() {
   watchdogEnable_ = false;
 }
 
-int ServiceConfig::parse() {
-  // Read the raw text from the file
+// This is one of the helper function for parse() method.
+// Platform type is detected here, and config string will
+// be acquired here.
+std::string ServiceConfig::getConfigContents() {
   std::string contents;
   fboss::PlatformMode platformMode;
   XLOG(INFO) << "Detecting the platform type. FRUID File path : "
@@ -50,9 +52,13 @@ int ServiceConfig::parse() {
       throw FbossError(
           "Platform not supported yet : ", productInfo.getProductName());
   }
+  XLOG(INFO) << "Finished getting platform config string";
+  return contents;
+}
 
-  XLOG(INFO) << "The configuration fetched. Parsing...";
-
+// This is another helper function for the main parse() method.
+// Config in string form is parsed here.
+int ServiceConfig::parseConfigString(std::string contents) {
   // Parse the string contents into json
   jsonConfig_ = folly::parseJson(contents);
 
@@ -117,6 +123,16 @@ int ServiceConfig::parse() {
     }
   }
   return 0;
+}
+
+// This is the main entry to get the config for this platform,
+// and parse this config.
+int ServiceConfig::parse() {
+  // Read the raw text from the file
+  XLOG(INFO) << "Getting configration string...";
+  std::string contents = getConfigContents();
+  XLOG(INFO) << "The configuration fetched. Parsing...";
+  return parseConfigString(contents);
 }
 
 void ServiceConfig::parseBspType(std::string bspString) {
