@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTest.h"
+#include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
@@ -475,4 +476,23 @@ TEST_F(HwVoqSwitchTest, multipleDsfNodes) {
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
+
+TEST_F(HwVoqSwitchTest, AclQualifiers) {
+  auto setup = [=]() {
+    auto newCfg = initialConfig();
+    auto* acl = utility::addAcl(&newCfg, "acl1", cfg::AclActionType::DENY);
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    acl->srcPort() = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch()));
+    EXPECT_EQ(utility::getAclTableNumAclEntries(getHwSwitch()), 1);
+    utility::checkSwHwAclMatch(getHwSwitch(), getProgrammedState(), "acl1");
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
