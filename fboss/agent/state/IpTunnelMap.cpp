@@ -24,6 +24,5 @@ void IpTunnelMap::removeTunnel(std::string id) {
   removeNodeIf(id);
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(IpTunnelMap, IpTunnelMapTraits);
-
+template class ThriftMapNode<IpTunnelMap, IpTunnelMapTraits>;
 } // namespace facebook::fboss

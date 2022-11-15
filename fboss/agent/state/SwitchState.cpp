@@ -210,7 +210,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
         std::make_shared<QosPolicy>(*defaultQosPolicy);
   }
   fields.transceivers->fromThrift(*state.transceiverMap());
-  fields.ipTunnels = IpTunnelMap::fromThrift(*state.ipTunnelMap());
+  fields.ipTunnels->fromThrift(*state.ipTunnelMap());
   fields.sFlowCollectors->fromThrift(*state.sflowCollectorMap());
   fields.teFlowTable->fromThrift(*state.teFlowTable());
   fields.aggPorts = AggregatePortMap::fromThrift(*state.aggregatePortMap());

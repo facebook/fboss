@@ -177,8 +177,8 @@ NodeMapDelta<SystemPortMap> StateDelta::getRemoteSystemPortsDelta() const {
       old_->getRemoteSystemPorts().get(), new_->getRemoteSystemPorts().get());
 }
 
-NodeMapDelta<IpTunnelMap> StateDelta::getIpTunnelsDelta() const {
-  return NodeMapDelta<IpTunnelMap>(
+thrift_cow::ThriftMapDelta<IpTunnelMap> StateDelta::getIpTunnelsDelta() const {
+  return thrift_cow::ThriftMapDelta<IpTunnelMap>(
       old_->getTunnels().get(), new_->getTunnels().get());
 }
 
@@ -238,7 +238,7 @@ template class NodeMapDelta<ForwardingInformationBaseV4>;
 template class NodeMapDelta<ForwardingInformationBaseV6>;
 template class NodeMapDelta<LabelForwardingInformationBase>;
 template class NodeMapDelta<SystemPortMap>;
-template class NodeMapDelta<IpTunnelMap>;
+template class thrift_cow::ThriftMapDelta<IpTunnelMap>;
 template class thrift_cow::ThriftMapDelta<TeFlowTable>;
 
 } // namespace facebook::fboss
