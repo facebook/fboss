@@ -167,13 +167,15 @@ DeltaValue<QosPolicy> StateDelta::getDefaultDataPlaneQosPolicyDelta() const {
       new_->getDefaultDataPlaneQosPolicy());
 }
 
-NodeMapDelta<SystemPortMap> StateDelta::getSystemPortsDelta() const {
-  return NodeMapDelta<SystemPortMap>(
+thrift_cow::ThriftMapDelta<SystemPortMap> StateDelta::getSystemPortsDelta()
+    const {
+  return thrift_cow::ThriftMapDelta<SystemPortMap>(
       old_->getSystemPorts().get(), new_->getSystemPorts().get());
 }
 
-NodeMapDelta<SystemPortMap> StateDelta::getRemoteSystemPortsDelta() const {
-  return NodeMapDelta<SystemPortMap>(
+thrift_cow::ThriftMapDelta<SystemPortMap>
+StateDelta::getRemoteSystemPortsDelta() const {
+  return thrift_cow::ThriftMapDelta<SystemPortMap>(
       old_->getRemoteSystemPorts().get(), new_->getRemoteSystemPorts().get());
 }
 
@@ -237,7 +239,7 @@ template class NodeMapDelta<
 template class NodeMapDelta<ForwardingInformationBaseV4>;
 template class NodeMapDelta<ForwardingInformationBaseV6>;
 template class NodeMapDelta<LabelForwardingInformationBase>;
-template class NodeMapDelta<SystemPortMap>;
+template class thrift_cow::ThriftMapDelta<SystemPortMap>;
 template class thrift_cow::ThriftMapDelta<IpTunnelMap>;
 template class thrift_cow::ThriftMapDelta<TeFlowTable>;
 

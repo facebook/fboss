@@ -51,6 +51,5 @@ SystemPortMap* SystemPortMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(SystemPortMap, SystemPortMapTraits);
-
+template class ThriftMapNode<SystemPortMap, SystemPortMapTraits>;
 } // namespace facebook::fboss

@@ -94,7 +94,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
   }
   void addRemoteSysPort(SystemPortID portId) {
     auto newState = getProgrammedState()->clone();
-    auto localPort = *newState->getSystemPorts()->begin();
+    auto localPort = newState->getSystemPorts()->cbegin()->second;
     auto remoteSystemPorts =
         newState->getRemoteSystemPorts()->modify(&newState);
     auto numPrevPorts = remoteSystemPorts->size();

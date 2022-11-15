@@ -17,4 +17,6 @@ SystemPortFields SystemPortFields::fromThrift(
   return sysPort;
 }
 
+template class ThriftStructNode<SystemPort, state::SystemPortFields>;
+
 } // namespace facebook::fboss

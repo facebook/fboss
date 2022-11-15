@@ -42,68 +42,101 @@ struct SystemPortFields
       const state::SystemPortFields& systemPortThrift);
 };
 
-class SystemPort : public ThriftyBaseT<
-                       state::SystemPortFields,
-                       SystemPort,
-                       SystemPortFields> {
+USE_THRIFT_COW(SystemPort);
+
+class SystemPort
+    : public ThriftStructNode<SystemPort, state::SystemPortFields> {
  public:
+  using Base = ThriftStructNode<SystemPort, state::SystemPortFields>;
+  using LegacyFields = SystemPortFields;
+  explicit SystemPort(SystemPortID id) {
+    set<switch_state_tags::portId>(static_cast<int64_t>(id));
+  }
   SystemPortID getID() const {
-    return SystemPortID(*getFields()->data().portId());
+    return static_cast<SystemPortID>(
+        cref<switch_state_tags::portId>()->toThrift());
   }
   SwitchID getSwitchId() const {
-    return SwitchID(*getFields()->data().switchId());
+    return static_cast<SwitchID>(
+        cref<switch_state_tags::switchId>()->toThrift());
   }
   void setSwitchId(SwitchID swId) {
-    writableFields()->writableData().switchId() = swId;
+    set<switch_state_tags::switchId>(static_cast<int64_t>(swId));
   }
   std::string getPortName() const {
-    return *getFields()->data().portName();
+    return get<switch_state_tags::portName>()->toThrift();
   }
   void setPortName(const std::string& portName) {
-    writableFields()->writableData().portName() = portName;
+    set<switch_state_tags::portName>(portName);
   }
   int64_t getCoreIndex() const {
-    return *getFields()->data().coreIndex();
+    return cref<switch_state_tags::coreIndex>()->toThrift();
   }
   void setCoreIndex(int64_t coreIndex) {
-    writableFields()->writableData().coreIndex() = coreIndex;
+    set<switch_state_tags::coreIndex>(coreIndex);
   }
 
   int64_t getCorePortIndex() const {
-    return *getFields()->data().corePortIndex();
+    return cref<switch_state_tags::corePortIndex>()->toThrift();
   }
   void setCorePortIndex(int64_t corePortIndex) {
-    writableFields()->writableData().corePortIndex() = corePortIndex;
+    set<switch_state_tags::corePortIndex>(corePortIndex);
   }
   int64_t getSpeedMbps() const {
-    return *getFields()->data().speedMbps();
+    return cref<switch_state_tags::speedMbps>()->toThrift();
   }
   void setSpeedMbps(int64_t speedMbps) {
-    writableFields()->writableData().speedMbps() = speedMbps;
+    set<switch_state_tags::speedMbps>(speedMbps);
   }
   int64_t getNumVoqs() const {
-    return *getFields()->data().numVoqs();
+    return cref<switch_state_tags::numVoqs>()->toThrift();
   }
   void setNumVoqs(int64_t numVoqs) {
-    writableFields()->writableData().numVoqs() = numVoqs;
+    set<switch_state_tags::numVoqs>(numVoqs);
   }
   bool getEnabled() const {
-    return *getFields()->data().enabled();
+    return cref<switch_state_tags::enabled>()->toThrift();
   }
   void setEnabled(bool enabled) {
-    writableFields()->writableData().enabled() = enabled;
+    set<switch_state_tags::enabled>(enabled);
   }
   std::optional<std::string> getQosPolicy() const {
-    return getFields()->data().qosPolicy().to_optional();
+    if (const auto& policy = cref<switch_state_tags::qosPolicy>()) {
+      return policy->toThrift();
+    }
+    return std::nullopt;
   }
   void setQosPolicy(const std::optional<std::string>& qosPolicy) {
-    writableFields()->writableData().qosPolicy().from_optional(qosPolicy);
+    if (qosPolicy) {
+      set<switch_state_tags::qosPolicy>(qosPolicy.value());
+    } else {
+      ref<switch_state_tags::qosPolicy>().reset();
+    }
+  }
+
+  folly::dynamic toFollyDynamic() const override {
+    auto fields = SystemPortFields::fromThrift(toThrift());
+    return fields.toFollyDynamic();
+  }
+
+  folly::dynamic toFollyDynamicLegacy() const {
+    return toFollyDynamic();
+  }
+
+  static std::shared_ptr<SystemPort> fromFollyDynamic(
+      const folly::dynamic& dyn) {
+    auto fields = SystemPortFields::fromFollyDynamic(dyn);
+    return std::make_shared<SystemPort>(fields.toThrift());
+  }
+
+  static std::shared_ptr<SystemPort> fromFollyDynamicLegacy(
+      const folly::dynamic& dyn) {
+    return fromFollyDynamic(dyn);
   }
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyBaseT<state::SystemPortFields, SystemPort, SystemPortFields>::
-      ThriftyBaseT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 } // namespace facebook::fboss

@@ -72,7 +72,7 @@ void DsfSubscriber::scheduleUpdate(
         };
         if (newSysPorts) {
           auto origSysPorts = out->getSystemPorts(nodeSwitchId);
-          NodeMapDelta<SystemPortMap> delta(
+          thrift_cow::ThriftMapDelta<SystemPortMap> delta(
               origSysPorts.get(), newSysPorts.get());
           auto remoteSysPorts = out->getRemoteSystemPorts()->modify(&out);
           processDelta(delta, remoteSysPorts);
@@ -142,7 +142,8 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
             if (change.path()->path() == getSystemPortsPath()) {
               std::map<int64_t, SystemPortFields> fieldsMap;
               XLOG(DBG2) << " Got sys port update from : " << nodeName;
-              newSysPorts = SystemPortMap::fromThrift(
+              newSysPorts = std::make_shared<SystemPortMap>();
+              newSysPorts->fromThrift(
                   thrift_cow::
                       deserialize<ThriftMapTypeClass, SysPortMapThriftType>(
                           fsdb::OperProtocol::BINARY,

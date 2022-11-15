@@ -200,7 +200,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
   if (auto pfcWatchdogRecoveryAction = state.pfcWatchdogRecoveryAction()) {
     fields.pfcWatchdogRecoveryAction = *pfcWatchdogRecoveryAction;
   }
-  fields.systemPorts = SystemPortMap::fromThrift(*state.systemPortMap());
+  fields.systemPorts->fromThrift(*state.systemPortMap());
   fields.fibs = ForwardingInformationBaseMap::fromThrift(*state.fibs());
   fields.labelFib =
       LabelForwardingInformationBase::fromThrift(*state.labelFib());
@@ -226,8 +226,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.switchSettings = SwitchSettings::fromThrift(*state.switchSettings());
   fields.dsfNodes->fromThrift(*state.dsfNodes());
 
-  fields.remoteSystemPorts =
-      SystemPortMap::fromThrift(*state.remoteSystemPortMap());
+  fields.remoteSystemPorts->fromThrift(*state.remoteSystemPortMap());
   fields.remoteInterfaces->fromThrift(*state.remoteInterfaceMap());
   return fields;
 }
@@ -691,7 +690,8 @@ std::shared_ptr<SystemPortMap> SwitchState::getSystemPorts(
   auto sysPorts =
       isLocalSwitchId(switchId) ? getSystemPorts() : getRemoteSystemPorts();
   auto toRet = std::make_shared<SystemPortMap>();
-  for (const auto& sysPort : *sysPorts) {
+  for (const auto& idAndSysPort : std::as_const(*sysPorts)) {
+    const auto& sysPort = idAndSysPort.second;
     if (sysPort->getSwitchId() == switchId) {
       toRet->addSystemPort(sysPort);
     }

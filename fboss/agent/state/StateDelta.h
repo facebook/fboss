@@ -92,11 +92,11 @@ class StateDelta {
   NodeMapDelta<LabelForwardingInformationBase>
   getLabelForwardingInformationBaseDelta() const;
   DeltaValue<SwitchSettings> getSwitchSettingsDelta() const;
-  NodeMapDelta<SystemPortMap> getSystemPortsDelta() const;
+  thrift_cow::ThriftMapDelta<SystemPortMap> getSystemPortsDelta() const;
   thrift_cow::ThriftMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
   thrift_cow::ThriftMapDelta<TeFlowTable> getTeFlowEntriesDelta() const;
   // Remote object deltas
-  NodeMapDelta<SystemPortMap> getRemoteSystemPortsDelta() const;
+  thrift_cow::ThriftMapDelta<SystemPortMap> getRemoteSystemPortsDelta() const;
   InterfaceMapDelta getRemoteIntfsDelta() const;
   thrift_cow::ThriftMapDelta<DsfNodeMap> getDsfNodesDelta() const;
 

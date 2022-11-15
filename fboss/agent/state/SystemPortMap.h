@@ -19,21 +19,30 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-using SystemPortMapTraits = NodeMapTraits<SystemPortID, SystemPort>;
+using SystemPortMapLegacyTraits = NodeMapTraits<SystemPortID, SystemPort>;
+
+using SystemPortMapTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::integral,
+    apache::thrift::type_class::structure>;
+using SystemPortMapThriftType = std::map<int64_t, state::SystemPortFields>;
+
+class SystemPortMap;
+using SystemPortMapTraits = ThriftMapNodeTraits<
+    SystemPortMap,
+    SystemPortMapTypeClass,
+    SystemPortMapThriftType,
+    SystemPort>;
 
 /*
  * A container for all the present SystemPorts
  */
-class SystemPortMap
-    : public ThriftyNodeMapT<
-          SystemPortMap,
-          SystemPortMapTraits,
-          ThriftyNodeMapTraits<int64_t, state::SystemPortFields>> {
+class SystemPortMap : public ThriftMapNode<SystemPortMap, SystemPortMapTraits> {
  public:
+  using Base = ThriftMapNode<SystemPortMap, SystemPortMapTraits>;
   SystemPortMap();
   ~SystemPortMap() override;
 
-  const std::shared_ptr<SystemPort>& getSystemPort(SystemPortID id) const {
+  const std::shared_ptr<SystemPort> getSystemPort(SystemPortID id) const {
     return getNode(id);
   }
   std::shared_ptr<SystemPort> getSystemPortIf(SystemPortID id) const {
@@ -47,7 +56,7 @@ class SystemPortMap
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyNodeMapT::ThriftyNodeMapT;
+  using Base::Base;
   friend class CloneAllocator;
   bool isRemote_;
 };

@@ -127,7 +127,8 @@ TEST(SystemPort, sysPortApplyConfigSwitchIdChange) {
   EXPECT_EQ(
       stateV2->getSystemPorts()->size(), stateV1->getSystemPorts()->size());
 
-  for (auto& sysPort : *stateV2->getSystemPorts()) {
+  for (const auto& idAndSysPort : std::as_const(*stateV2->getSystemPorts())) {
+    const auto& sysPort = idAndSysPort.second;
     EXPECT_EQ(sysPort->getSwitchId(), SwitchID(2));
   }
 }
