@@ -28,7 +28,6 @@
 #include "fboss/agent/capture/PktCapture.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
-#include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
@@ -574,21 +573,7 @@ class RouteUpdateStats {
   std::chrono::time_point<std::chrono::steady_clock> start_;
 };
 
-ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {
-  if (sw) {
-    sw->registerNeighborListener([=](const std::vector<std::string>& added,
-                                     const std::vector<std::string>& deleted) {
-      for (auto& listener : listeners_.accessAllThreads()) {
-        XLOG(DBG2) << "Sending notification to bgpD";
-        auto listenerPtr = &listener;
-        listener.eventBase->runInEventBaseThread([=] {
-          XLOG(DBG2) << "firing off notification";
-          invokeNeighborListeners(listenerPtr, added, deleted);
-        });
-      }
-    });
-  }
-}
+ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {}
 
 fb_status ThriftHandler::getStatus() {
   if (sw_->isExiting()) {
@@ -1677,45 +1662,9 @@ void ThriftHandler::getLldpNeighbors(vector<LinkNeighborThrift>& results) {
   }
 }
 
-void ThriftHandler::invokeNeighborListeners(
-    ThreadLocalListener* listener,
-    std::vector<std::string> added,
-    std::vector<std::string> removed) {
-  // Collect the iterators to avoid erasing and potentially reordering
-  // the iterators in the list.
-  for (const auto& ctx : brokenClients_) {
-    listener->clients.erase(ctx);
-  }
-  brokenClients_.clear();
-  for (auto& client : listener->clients) {
-    auto clientDone = [&](ClientReceiveState&& state) {
-      try {
-        NeighborListenerClientAsyncClient::recv_neighborsChanged(state);
-      } catch (const std::exception& ex) {
-        XLOG(ERR) << "Exception in neighbor listener: " << ex.what();
-        brokenClients_.push_back(client.first);
-      }
-    };
-    client.second->neighborsChanged(clientDone, added, removed);
-  }
-}
-
 void ThriftHandler::async_eb_registerForNeighborChanged(
     ThriftCallback<void> cb) {
-  auto ctx = cb->getRequestContext()->getConnectionContext();
-  auto client = ctx->getDuplexClient<NeighborListenerClientAsyncClient>();
-  auto info = listeners_.get();
-  CHECK(cb->getEventBase()->isInEventBaseThread());
-  if (!info) {
-    info = new ThreadLocalListener(cb->getEventBase());
-    listeners_.reset(info);
-  }
-  DCHECK_EQ(info->eventBase, cb->getEventBase());
-  if (!info->eventBase) {
-    info->eventBase = cb->getEventBase();
-  }
-  info->clients.emplace(ctx, client);
-  cb->done();
+  throw FbossError("ThriftDuplex Neighbor Listener is no longer supported");
 }
 
 void ThriftHandler::startPktCapture(unique_ptr<CaptureInfo> info) {
@@ -1970,16 +1919,6 @@ void ThriftHandler::ensureConfigured(StringPiece function) const {
   throw FbossError(
       "switch is still initializing or is exiting and is not "
       "fully configured yet");
-}
-
-// If this is a premature client disconnect from a duplex connection, we need to
-// clean up state.  Failure to do so may allow the server's duplex clients to
-// use the destroyed context => segfaults.
-void ThriftHandler::connectionDestroyed(TConnectionContext* ctx) {
-  // Port status notifications
-  if (listeners_) {
-    listeners_->clients.erase(ctx);
-  }
 }
 
 int32_t ThriftHandler::getIdleTimeout() {
