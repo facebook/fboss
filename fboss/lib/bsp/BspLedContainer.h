@@ -14,7 +14,7 @@ namespace fboss {
 class BspLedContainer {
  public:
   explicit BspLedContainer(LedMapping& ledMapping);
-  const LedIO* getLedController() const {
+  LedIO* getLedController() const {
     return ledIO_.get();
   }
 

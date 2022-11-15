@@ -94,10 +94,18 @@ const I2cControllerStats BspSystemContainer::getI2cControllerStats(
   return getPimContainerFromTcvrID(tcvrID)->getI2cControllerStats(tcvrID);
 }
 
-const LedIO* BspSystemContainer::getLedController(int tcvrID) const {
+LedIO* BspSystemContainer::getLedController(int tcvrID) const {
   return getPimContainerFromTcvrID(tcvrID)
       ->getLedContainer(tcvrID)
       ->getLedController();
+}
+
+BspDeviceMdioController* BspSystemContainer::getMdioController(
+    int pimID,
+    int controllerID) const {
+  return getPimContainerFromPimID(pimID)
+      ->getPhyContainerFromMdioID(controllerID)
+      ->getMdioController();
 }
 
 } // namespace fboss
