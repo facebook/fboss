@@ -63,6 +63,8 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
     if (platform()->getHwSwitch()->getBootType() != BootType::WARM_BOOT) {
       XLOG(DBG2) << "cold boot setup()";
       setup();
+    } else {
+      XLOG(DBG2) << "cold boot setup(): skip on warmboot";
     }
 
     if (runVerification()) {

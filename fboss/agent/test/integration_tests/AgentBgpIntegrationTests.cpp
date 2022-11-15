@@ -75,7 +75,12 @@ class BgpIntegrationTest : public AgentIntegrationTest {
     WITH_RETRIES_N(
         {
           std::vector<TBgpSession> sessions;
-          client->sync_getBgpSessions(sessions);
+          try {
+            client->sync_getBgpSessions(sessions);
+          } catch (const std::exception& e) {
+            XLOG(DBG4) << "checkBgpState: (transient) exception: " << e.what();
+            continue;
+          }
           EXPECT_EQ(sessions.size(), kNumBgpSessions);
           for (const auto& session : sessions) {
             if (sessionsToCheck.count(session.my_addr().value())) {
