@@ -18,8 +18,6 @@ namespace facebook::fboss {
 
 TEST_F(HwTest, CheckPimPresent) {
   auto phyManager = getHwQsfpEnsemble()->getPhyManager();
-  EXPECT_EQ(
-      phyManager->getNumOfSlot(),
-      phyManager->getSystemContainer()->getNumPims());
+  EXPECT_EQ(phyManager->getNumOfSlot(), phyManager->getNumOfSlot());
 }
 } // namespace facebook::fboss

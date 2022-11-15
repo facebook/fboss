@@ -771,8 +771,7 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
   std::chrono::steady_clock::time_point begin =
       std::chrono::steady_clock::now();
   for (int pimIndex = 0; pimIndex < phyManager_->getNumOfSlot(); ++pimIndex) {
-    auto pimID =
-        PimID(pimIndex + phyManager_->getSystemContainer()->getPimStartNum());
+    auto pimID = PimID(pimIndex + phyManager_->getPimStartNum());
     if (!phyManager_->shouldInitializePimXphy(pimID)) {
       XLOG(WARN) << "Skip intializing pim xphy for pim="
                  << static_cast<int>(pimID);

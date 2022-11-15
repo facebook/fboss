@@ -62,6 +62,8 @@ class PhyManager {
     return numOfSlot_;
   }
 
+  virtual int getPimStartNum() = 0;
+
   /*
    * This function returns the ExternalPhy object for the giving global xphy id
    */
