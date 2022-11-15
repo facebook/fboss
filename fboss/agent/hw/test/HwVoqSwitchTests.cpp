@@ -511,4 +511,21 @@ TEST_F(HwVoqSwitchTest, AclQualifiers) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwVoqSwitchTest, AclCounter) {
+  auto setup = [=]() { addDscpAclWithCounter(); };
+
+  auto verify = [=]() {
+    // Needs CS00012270647 (support SAI_ACL_COUNTER_ATTR_LABEL) to PASS
+    utility::checkAclEntryAndStatCount(
+        getHwSwitch(), /*ACLs*/ 1, /*stats*/ 1, /*counters*/ 1);
+    utility::checkAclStat(
+        getHwSwitch(),
+        getProgrammedState(),
+        {kDscpAclName()},
+        kDscpAclCounterName());
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
