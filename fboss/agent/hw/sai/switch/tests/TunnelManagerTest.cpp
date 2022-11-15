@@ -14,7 +14,7 @@
 using namespace facebook::fboss;
 
 std::shared_ptr<IpTunnel> makeTunnel(
-    std::string tunnelId = "tunnel0",
+    const std::string& tunnelId = "tunnel0",
     uint32_t intfID = 0,
     cfg::IpTunnelMode mode = cfg::IpTunnelMode::PIPE) {
   auto tunnel = std::make_shared<IpTunnel>(tunnelId);

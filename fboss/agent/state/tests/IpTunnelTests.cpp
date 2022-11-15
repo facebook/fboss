@@ -7,7 +7,7 @@
 
 using namespace facebook::fboss;
 
-std::shared_ptr<IpTunnel> makeTunnel(std::string tunnelId = "tunnel0") {
+std::shared_ptr<IpTunnel> makeTunnel(const std::string& tunnelId = "tunnel0") {
   auto tunnel = std::make_shared<IpTunnel>(tunnelId);
   tunnel->setType(cfg::TunnelType::IP_IN_IP);
   tunnel->setUnderlayIntfId(InterfaceID(42));
