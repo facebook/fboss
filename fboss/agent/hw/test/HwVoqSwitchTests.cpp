@@ -483,6 +483,7 @@ TEST_F(HwVoqSwitchTest, AclQualifiers) {
     auto* acl = utility::addAcl(&newCfg, "acl1", cfg::AclActionType::DENY);
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
     acl->srcPort() = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
+    acl->dscp() = 0x24;
     applyNewConfig(newCfg);
   };
 
