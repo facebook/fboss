@@ -781,8 +781,17 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
   auto isInterfaceNode = [](const std::shared_ptr<DsfNode>& node) {
     return node->getType() == cfg::DsfNodeType::INTERFACE_NODE;
   };
-  auto asic = platform_->getAsic();
-  auto processLoopbacks = [&](const std::shared_ptr<DsfNode>& node) {
+  auto getDsfNodeAsic =
+      [&isInterfaceNode](const std::shared_ptr<DsfNode>& node) {
+        CHECK(isInterfaceNode(node))
+            << " Only expect to be called for Interface nodes";
+        return HwAsic::makeAsic(
+            node->getAsicType(),
+            cfg::SwitchType::VOQ,
+            static_cast<int64_t>(node->getSwitchId()));
+      };
+  auto processLoopbacks = [&](const std::shared_ptr<DsfNode>& node,
+                              const HwAsic* dsfNodeAsic) {
     auto recyclePortId = getRecyclePortId(node);
     InterfaceID intfID(recyclePortId);
     auto intfs = isLocal(node) ? new_->getInterfaces()->modify(&new_)
@@ -792,10 +801,11 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     // THRIFT_COPY: evaluate if getting entire thrift table is needed.
     auto arpTable = intf->getArpTable()->toThrift();
     auto ndpTable = intf->getNdpTable()->toThrift();
-    auto encapIdx = *asic->getReservedEncapIndexRange().minimum();
-    for (auto& loopbackSubnet : *node->getLoopbackIps()) {
-      auto network =
-          folly::IPAddress::createNetwork(loopbackSubnet->toThrift());
+    std::optional<int64_t> encapIdx;
+    if (dsfNodeAsic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+      encapIdx = *dsfNodeAsic->getReservedEncapIndexRange().minimum();
+    }
+    for (const auto& network : node->getLoopbackIpsSorted()) {
       addresses.insert(network);
       state::NeighborEntryFields neighbor;
       neighbor.ipaddress() = network.first.str();
@@ -804,10 +814,10 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       neighbor.portId()->portId() = recyclePortId;
       neighbor.interfaceId() = recyclePortId;
       neighbor.state() = state::NeighborState::Reachable;
-      // TODO: Get encap index based on DSF Node asic type, not
-      // your own ASIC type. The current approach may not work with hybrid ASIC
-      // clusters (unless we can get the same reserved encap index block).
-      neighbor.encapIndex() = encapIdx++;
+      if (encapIdx) {
+        neighbor.encapIndex() = *encapIdx;
+        *encapIdx = *encapIdx + 1;
+      }
       neighbor.isLocal() = isLocal(node);
       if (network.first.isV6()) {
         ndpTable.insert({*neighbor.ipaddress(), neighbor});
@@ -816,7 +826,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       }
     }
     intf->setAddresses(std::move(addresses));
-    if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+    if (dsfNodeAsic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
       intf->setArpTable(std::move(arpTable));
       intf->setNdpTable(std::move(ndpTable));
     }
@@ -827,20 +837,21 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       // Only create recycle ports for INs
       return;
     }
+    auto dsfNodeAsic = getDsfNodeAsic(node);
+    if (!dsfNodeAsic->isSupported(HwAsic::Feature::RECYCLE_PORTS)) {
+      return;
+    }
     if (isLocal(node)) {
-      if (asic->isSupported(HwAsic::Feature::RECYCLE_PORTS)) {
-        processLoopbacks(node);
-      }
+      processLoopbacks(node, dsfNodeAsic.get());
+      // For local asic recycle port and sys port information will come
+      // via local config. So only process need to process loopback IPs here.
       return;
     }
     auto recyclePortId = getRecyclePortId(node);
     auto sysPort = std::make_shared<SystemPort>(SystemPortID(recyclePortId));
     sysPort->setSwitchId(node->getSwitchId());
     sysPort->setPortName(folly::sformat("{}:rcy1", node->getName()));
-    // TODO - Get core id, core port id based on remote ASIC type
-    // not local ASIC type. This will matter in case of non
-    // homogeneous DSF clusters
-    const auto& recyclePortInfo = asic->getRecyclePortInfo();
+    const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo();
     sysPort->setCoreIndex(recyclePortInfo.coreId);
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
     sysPort->setSpeedMbps(recyclePortInfo.speedMbps); // 10G
@@ -862,7 +873,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     auto intfs = new_->getRemoteInterfaces()->clone();
     intfs->addNode(intf);
     new_->resetRemoteIntfs(intfs);
-    processLoopbacks(node);
+    processLoopbacks(node, dsfNodeAsic.get());
   };
   auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
     if (!isInterfaceNode(node)) {
@@ -871,10 +882,10 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     if (!isLocal(node)) {
       auto recyclePortId = getRecyclePortId(node);
       auto sysPorts = new_->getRemoteSystemPorts()->clone();
-      sysPorts->removeNode(SystemPortID(recyclePortId));
+      sysPorts->removeNodeIf(SystemPortID(recyclePortId));
       new_->resetRemoteSystemPorts(sysPorts);
       auto intfs = new_->getRemoteInterfaces()->clone();
-      intfs->removeNode(InterfaceID(recyclePortId));
+      intfs->removeNodeIf(InterfaceID(recyclePortId));
       new_->resetRemoteIntfs(intfs);
     } else {
       // Local DSF node removal should be accompanied by

@@ -260,6 +260,7 @@ cfg::DsfNode makeDsfNodeCfg(int64_t switchId, cfg::DsfNodeType type) {
   dsfNodeCfg.systemPortRange()->minimum() = switchId * kBlockSize;
   dsfNodeCfg.systemPortRange()->maximum() = switchId * kBlockSize + kBlockSize;
   dsfNodeCfg.loopbackIps() = getLoopbackIps(switchId);
+  dsfNodeCfg.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
   return dsfNodeCfg;
 }
 

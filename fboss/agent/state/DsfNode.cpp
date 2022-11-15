@@ -32,6 +32,10 @@ cfg::DsfNodeType DsfNode::getType() const {
   return get<switch_config_tags::type>()->cref();
 }
 
+cfg::AsicType DsfNode::getAsicType() const {
+  return get<switch_config_tags::asicType>()->cref();
+}
+
 void DsfNode::setLoopbackIps(const std::vector<std::string>& loopbackIps) {
   set<switch_config_tags::loopbackIps>(loopbackIps);
 }
