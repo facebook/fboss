@@ -1179,6 +1179,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
       HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
   bool isTrident2 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TRIDENT2;
+  bool isIndus =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_INDUS;
 
   if (isTajo) {
     std::set<cfg::AclTableQualifier> tajoQualifiers = {
@@ -1195,6 +1197,17 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
 
     return tajoQualifiers;
+  } else if (isIndus) {
+    // TODO(skhare)
+    // Extend this list once the SAI implementation supports more qualifiers
+    std::set<cfg::AclTableQualifier> indusQualifiers = {
+        cfg::AclTableQualifier::SRC_IPV6,
+        cfg::AclTableQualifier::DST_IPV6,
+        cfg::AclTableQualifier::SRC_PORT,
+        cfg::AclTableQualifier::DSCP,
+    };
+
+    return indusQualifiers;
   } else {
     std::set<cfg::AclTableQualifier> bcmQualifiers = {
         cfg::AclTableQualifier::SRC_IPV6,
