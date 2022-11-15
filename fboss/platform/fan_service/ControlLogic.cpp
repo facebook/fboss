@@ -9,7 +9,7 @@
 #include "common/time/Time.h"
 
 namespace {
-auto constexpr kFanWriteSuccessPrefix = "fan_write";
+auto constexpr kFanWriteFailure = "fan_write.{}.{}.failure";
 }
 
 namespace facebook::fboss::platform {
@@ -570,9 +570,8 @@ void ControlLogic::programFan(Zone* zone, float pwmSoFar) {
             "Unsupported PWM access type for : ", fan->fanName);
     }
     fb303::fbData->setCounter(
-        fmt::format(
-            "{}_{}_{}", kFanWriteSuccessPrefix, zone->zoneName, fan->fanName),
-        writeSuccess);
+        fmt::format(kFanWriteFailure, zone->zoneName, fan->fanName),
+        !writeSuccess);
     fan->fanStatus.currentPwm = pwmToProgram;
   }
 }
