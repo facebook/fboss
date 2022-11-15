@@ -1302,6 +1302,7 @@ struct Fields {
   2: set<IPv6Field> ipv6Fields;
   3: set<TransportField> transportFields;
   4: set<MPLSField> mplsFields;
+  5: list<string> udfGroups = [];
 }
 
 enum HashingAlgorithm {
