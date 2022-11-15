@@ -2,4 +2,4 @@
 
 #include "fboss/lib/platforms/PlatformMode.h"
 
-DEFINE_bool(use_bsp_helpers, false, "Use BSP helpers for platform access");
+DEFINE_bool(use_bsp_helpers, true, "Use BSP helpers for platform access");
