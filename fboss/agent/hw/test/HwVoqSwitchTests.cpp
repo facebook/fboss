@@ -482,6 +482,8 @@ TEST_F(HwVoqSwitchTest, AclQualifiers) {
     auto newCfg = initialConfig();
     auto* acl = utility::addAcl(&newCfg, "acl1", cfg::AclActionType::DENY);
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    acl->srcIp() = "::ffff:c0a8:1"; // fails: CS00012270649
+    acl->dstIp() = "2401:db00:3020:70e2:face:0:63:0/64"; // fails: CS00012270650
     acl->srcPort() = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
     acl->dscp() = 0x24;
     applyNewConfig(newCfg);
