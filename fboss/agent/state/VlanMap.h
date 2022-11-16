@@ -19,12 +19,11 @@ namespace facebook::fboss {
 
 class SwitchState;
 class Vlan;
-typedef NodeMapTraits<
+using VlanMapLegacyTraits = NodeMapTraits<
     VlanID,
     Vlan,
     NodeMapNoExtraFields,
-    std::map<VlanID, std::shared_ptr<Vlan>>>
-    VlanMapTraits;
+    std::map<VlanID, std::shared_ptr<Vlan>>>;
 
 struct VlanMapThriftTraits
     : public ThriftyNodeMapTraits<int16_t, state::VlanFields> {
@@ -34,12 +33,21 @@ struct VlanMapThriftTraits
   }
 };
 
+using VlanMapTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::integral,
+    apache::thrift::type_class::structure>;
+using VlanMapThriftType = std::map<int16_t, state::VlanFields>;
+
+class VlanMap;
+using VlanMapTraits =
+    ThriftMapNodeTraits<VlanMap, VlanMapTypeClass, VlanMapThriftType, Vlan>;
+
 /*
  * A container for the set of VLANs.
  */
-class VlanMap
-    : public ThriftyNodeMapT<VlanMap, VlanMapTraits, VlanMapThriftTraits> {
+class VlanMap : public ThriftMapNode<VlanMap, VlanMapTraits> {
  public:
+  using Base = ThriftMapNode<VlanMap, VlanMapTraits>;
   VlanMap();
   ~VlanMap() override;
 
@@ -51,7 +59,7 @@ class VlanMap
    * Throws an FbossError if the VLAN does not exist.
    */
   const std::shared_ptr<Vlan>& getVlan(VlanID id) const {
-    return getNode(id);
+    return getNode(static_cast<int16_t>(id));
   }
 
   /*
@@ -95,9 +103,11 @@ class VlanMap
 
   void updateVlan(const std::shared_ptr<Vlan>& vlan);
 
+  VlanID getFirstVlanID() const;
+
  private:
   // Inherit the constructors required for clone()
-  using ThriftyNodeMapT::ThriftyNodeMapT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 

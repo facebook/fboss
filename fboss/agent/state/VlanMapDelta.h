@@ -17,6 +17,15 @@
 
 namespace facebook::fboss {
 
+class VlanDelta;
+namespace thrift_cow {
+template <>
+struct ThriftMapNodeDeltaTraits<VlanMap> {
+  using mapped_type = typename VlanMap::mapped_type;
+  using ExtractorT = ThriftMapNodeExtractor<VlanMap>;
+  using DeltaValueT = VlanDelta;
+};
+} // namespace thrift_cow
 /*
  * VlanMapDelta is a small wrapper on top of NodeMapDelta<VlanMap>.
  *
@@ -51,7 +60,7 @@ class VlanDelta : public DeltaValue<Vlan> {
   }
 };
 
-typedef NodeMapDelta<VlanMap, VlanDelta> VlanMapDelta;
+using VlanMapDelta = thrift_cow::ThriftMapDelta<VlanMap>;
 
 template <>
 inline thrift_cow::ThriftMapDelta<ArpTable> VlanDelta::getNeighborDelta()

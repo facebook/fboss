@@ -91,7 +91,7 @@ VlanID firstVlanID(const cfg::SwitchConfig& cfg) {
 }
 
 VlanID firstVlanID(const std::shared_ptr<SwitchState>& state) {
-  return (*state->getVlans()->begin())->getID();
+  return (*state->getVlans()->cbegin()).second->getID();
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(

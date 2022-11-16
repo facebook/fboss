@@ -19,6 +19,7 @@
 #include "fboss/agent/state/NodeMap-defs.h"
 
 #include <boost/container/flat_map.hpp>
+#include <cstdio>
 
 using std::shared_ptr;
 using std::string;
@@ -43,7 +44,8 @@ VlanMap* VlanMap::modify(std::shared_ptr<SwitchState>* state) {
 }
 
 const shared_ptr<Vlan>& VlanMap::getVlanSlow(const string& name) const {
-  for (const auto& vlan : *this) {
+  for (auto& iter : std::as_const(*this)) {
+    const auto& vlan = iter.second;
     if (vlan->getName() == name) {
       return vlan;
     }
@@ -52,7 +54,8 @@ const shared_ptr<Vlan>& VlanMap::getVlanSlow(const string& name) const {
 }
 
 shared_ptr<Vlan> VlanMap::getVlanSlowIf(const string& name) const {
-  for (const auto& vlan : *this) {
+  for (auto iter : std::as_const(*this)) {
+    const auto& vlan = iter.second;
     if (vlan->getName() == name) {
       return vlan;
     }
@@ -68,6 +71,10 @@ void VlanMap::updateVlan(const std::shared_ptr<Vlan>& vlan) {
   updateNode(vlan);
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(VlanMap, VlanMapTraits);
+VlanID VlanMap::getFirstVlanID() const {
+  return cbegin()->second->getID();
+}
+
+template class ThriftMapNode<VlanMap, VlanMapTraits>;
 
 } // namespace facebook::fboss

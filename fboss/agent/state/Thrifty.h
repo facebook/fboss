@@ -677,12 +677,12 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
     return node;
   }
 
-  std::shared_ptr<Node> getNode(KeyType key) const {
-    auto node = getNodeIf(key);
-    if (!node) {
+  const std::shared_ptr<Node>& getNode(KeyType key) const {
+    auto iter = this->find(key);
+    if (iter == this->end()) {
       throw FbossError("node ", key, " does not exist");
     }
-    return node;
+    return iter->second;
   }
 
   std::shared_ptr<Node> getNodeIf(KeyType key) const {

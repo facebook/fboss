@@ -91,7 +91,7 @@ class MacLearningTest : public LinkTest {
         true,
         sw()->getHw(),
         sw()->getPlatform()->getLocalMac(),
-        (*sw()->getState()->getVlans()->begin())->getID(),
+        sw()->getState()->getVlans()->getFirstVlanID(),
         txPort,
         255,
         srcMac);

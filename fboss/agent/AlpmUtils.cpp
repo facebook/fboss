@@ -86,9 +86,8 @@ std::shared_ptr<SwitchState> getMinAlpmRouteState(
   // addresses.
   auto noRoutesState{oldState->clone()};
 
-  auto vlans = noRoutesState->getVlans()->modify(&noRoutesState);
-  for (auto& vlan : *vlans) {
-    vlan->modify(&noRoutesState);
+  for (const auto& idAndVlan : std::as_const(*noRoutesState->getVlans())) {
+    auto vlan = idAndVlan.second->modify(&noRoutesState);
     vlan->setArpTable(std::make_shared<ArpTable>());
     vlan->setNdpTable(std::make_shared<NdpTable>());
   }

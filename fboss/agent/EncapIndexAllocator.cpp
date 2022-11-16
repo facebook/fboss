@@ -29,11 +29,11 @@ int64_t EncapIndexAllocator::getNextAvailableEncapIdx(
     }
   };
   std::for_each(
-      state->getVlans()->begin(),
-      state->getVlans()->end(),
-      [&](const auto& vlan) {
-        extractIndices(vlan->getArpTable());
-        extractIndices(vlan->getNdpTable());
+      state->getVlans()->cbegin(),
+      state->getVlans()->cend(),
+      [&](const auto& idAndVlan) {
+        extractIndices(idAndVlan.second->getArpTable());
+        extractIndices(idAndVlan.second->getNdpTable());
       });
   std::for_each(
       state->getInterfaces()->cbegin(),

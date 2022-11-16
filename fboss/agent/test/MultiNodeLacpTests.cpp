@@ -267,7 +267,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
     disableTTLDecrementsForRoute<folly::IPAddressV4>({folly::IPAddressV4(), 0});
     if (isDUT()) {
       auto state = sw()->getState();
-      auto vlan = (*state->getVlans()->begin())->getID();
+      auto vlan = state->getVlans()->cbegin()->second->getID();
       auto srcMac = state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
       auto destMac =
           getNeighborEntry(
@@ -276,13 +276,7 @@ class MultiNodeLacpTest : public MultiNodeTest {
               .first;
       for (const auto& sendV6 : {true, false}) {
         utility::pumpTraffic(
-            sendV6,
-            sw()->getHw(),
-            destMac,
-            (*sw()->getState()->getVlans()->begin())->getID(),
-            std::nullopt,
-            255,
-            srcMac);
+            sendV6, sw()->getHw(), destMac, vlan, std::nullopt, 255, srcMac);
       }
     }
   }
@@ -455,7 +449,7 @@ class MultiNodeRoutingLoop : public MultiNodeLacpTest {
     XLOG(INFO) << "creating data plane flood";
     disableTTLDecrementsForRoute<folly::IPAddressV6>(prefix_);
     auto state = sw()->getState();
-    auto vlan = (*state->getVlans()->begin())->getID();
+    auto vlan = state->getVlans()->cbegin()->second->getID();
     auto srcMac = state->getInterfaces()->getInterfaceInVlan(vlan)->getMac();
     auto destMac =
         getNeighborEntry(

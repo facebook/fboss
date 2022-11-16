@@ -201,7 +201,7 @@ class HwMacLearningAndNeighborResolutionTest : public HwLinkStateDependentTest {
         std::move(txPacket), phyPort));
   }
   void verifySentPacket(const folly::IPAddress& dstIp) {
-    auto firstVlan = *(getProgrammedState()->getVlans()->begin());
+    auto firstVlan = getProgrammedState()->getVlans()->cbegin()->second;
     auto intfMac =
         utility::getInterfaceMac(getProgrammedState(), firstVlan->getID());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);

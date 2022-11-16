@@ -171,7 +171,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
     const state::SwitchState& state) {
   auto fields = SwitchStateFields();
   fields.ports = PortMap::fromThrift(state.get_portMap());
-  fields.vlans = VlanMap::fromThrift(state.get_vlanMap());
+  fields.vlans->fromThrift(state.get_vlanMap());
   fields.acls = AclMap::fromThrift(state.get_aclMap());
   if (!state.get_bufferPoolCfgMap().empty()) {
     fields.bufferPoolCfgs = std::make_shared<BufferPoolCfgMap>();
