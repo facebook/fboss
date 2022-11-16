@@ -325,25 +325,6 @@ TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
   verifyAcrossWarmBoots(setup, [] {});
 }
 
-TEST_F(HwVoqSwitchTest, addRemoveLocalNeighborWithEncapIndex) {
-  auto setup = [this]() {
-    auto asic = getPlatform()->getAsic();
-    // Only supported on platforms with reserved encap idx
-    // range support
-    EXPECT_TRUE(asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
-    const PortDescriptor kPort(
-        masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]);
-    auto kEncapIdxOffset = 1000;
-    auto encapIndex =
-        *asic->getReservedEncapIndexRange().minimum() + kEncapIdxOffset;
-    // Add neighbor
-    addRemoveNeighbor(kPort, true, encapIndex);
-    // Remove neighbor
-    addRemoveNeighbor(kPort, false);
-  };
-  verifyAcrossWarmBoots(setup, [] {});
-}
-
 TEST_F(HwVoqSwitchTest, remoteRouterInterface) {
   auto setup = [this]() {
     auto constexpr remotePortId = 401;
