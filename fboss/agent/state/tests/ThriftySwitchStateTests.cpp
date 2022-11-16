@@ -30,11 +30,7 @@ namespace {
 
 void verifySwitchStateSerialization(const SwitchState& state) {
   auto stateBack = SwitchState::fromThrift(state.toThrift());
-  EXPECT_EQ(state.toThrift(), stateBack->toThrift());
-  stateBack = SwitchState::fromFollyDynamic(state.toFollyDynamic());
-  EXPECT_EQ(state.toThrift(), stateBack->toThrift());
-  // verify dynamic is still json serializable
-  EXPECT_NO_THROW(folly::toJson(state.toFollyDynamic()));
+  EXPECT_EQ(state, *stateBack);
 }
 } // namespace
 

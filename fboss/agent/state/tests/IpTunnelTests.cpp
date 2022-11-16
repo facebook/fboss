@@ -38,8 +38,8 @@ TEST(Tunnel, SerDeserSwitchState) {
   state->addTunnel(tunnel0);
   state->addTunnel(tunnel1);
 
-  auto serialized = state->toFollyDynamic();
-  auto stateBack = SwitchState::fromFollyDynamic(serialized);
+  auto serialized = state->toThrift();
+  auto stateBack = SwitchState::fromThrift(serialized);
 
   for (auto tunnelID : {"tunnel0", "tunnel1"}) {
     EXPECT_TRUE(

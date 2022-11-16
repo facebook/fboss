@@ -48,8 +48,8 @@ TEST(TransceiverSpec, SerializeSwitchState) {
   state->addTransceiver(tcvr1);
   state->addTransceiver(tcvr2);
 
-  auto serialized = state->toFollyDynamic();
-  auto stateBack = SwitchState::fromFollyDynamic(serialized);
+  auto serialized = state->toThrift();
+  auto stateBack = SwitchState::fromThrift(serialized);
 
   // Check all transceivers should be there
   for (auto tcvrID : {TransceiverID(1), TransceiverID(2)}) {

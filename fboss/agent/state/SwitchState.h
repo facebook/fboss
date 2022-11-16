@@ -93,10 +93,6 @@ struct SwitchStateFields
   bool operator==(const SwitchStateFields& other) const;
 
   /*
-   * Serialize to folly::dynamic
-   */
-  folly::dynamic toFollyDynamic() const;
-  /*
    * Reconstruct object from folly::dynamic
    */
   static SwitchStateFields fromFollyDynamic(const folly::dynamic& json);

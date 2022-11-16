@@ -144,8 +144,8 @@ TEST_F(TeFlowTest, serDeserSwitchState) {
   auto flowEntry2 = makeFlow("101::");
   flowTable->addTeFlowEntry(&state, flowEntry2);
   EXPECT_EQ(state->getTeFlowTable()->size(), 2);
-  auto serialized = state->toFollyDynamic();
-  auto stateBack = SwitchState::fromFollyDynamic(serialized);
+  auto serialized = state->toThrift();
+  auto stateBack = SwitchState::fromThrift(serialized);
   EXPECT_EQ(state->toThrift(), stateBack->toThrift());
 }
 

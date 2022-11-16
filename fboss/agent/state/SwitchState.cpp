@@ -251,46 +251,6 @@ bool SwitchStateFields::operator==(const SwitchStateFields& other) const {
           *other.dsfNodes);
 }
 
-folly::dynamic SwitchStateFields::toFollyDynamic() const {
-  folly::dynamic switchState = folly::dynamic::object;
-  switchState[kInterfaces] = interfaces->toFollyDynamic();
-  switchState[kPorts] = ports->toFollyDynamic();
-  switchState[kVlans] = vlans->toFollyDynamic();
-  switchState[kAcls] = acls->toFollyDynamic();
-  switchState[kSflowCollectors] = sFlowCollectors->toFollyDynamic();
-  switchState[kDefaultVlan] = static_cast<uint32_t>(defaultVlan);
-  switchState[kControlPlane] = controlPlane->toFollyDynamic();
-  switchState[kLoadBalancers] = loadBalancers->toFollyDynamic();
-  switchState[kMirrors] = mirrors->toFollyDynamic();
-  switchState[kAggregatePorts] = aggPorts->toFollyDynamic();
-  switchState[kLabelForwardingInformationBase] = labelFib->toFollyDynamic();
-  switchState[kSwitchSettings] = switchSettings->toFollyDynamic();
-  switchState[kTunnels] = ipTunnels->toFollyDynamic();
-  switchState[kTeFlows] = teFlowTable->toFollyDynamic();
-  if (qcmCfg) {
-    switchState[kQcmCfg] = qcmCfg->toFollyDynamic();
-  }
-  if (bufferPoolCfgs) {
-    switchState[kBufferPoolCfgs] = bufferPoolCfgs->toFollyDynamic();
-  }
-  if (defaultDataPlaneQosPolicy) {
-    switchState[kDefaultDataplaneQosPolicy] =
-        defaultDataPlaneQosPolicy->toFollyDynamic();
-  }
-  switchState[kQosPolicies] = qosPolicies->toFollyDynamic();
-  switchState[kFibs] = fibs->toFollyDynamicLegacy();
-  switchState[kTransceivers] = transceivers->toFollyDynamic();
-  if (aclTableGroups) {
-    switchState[kAclTableGroups] = aclTableGroups->toFollyDynamic();
-  }
-  switchState[kSystemPorts] = systemPorts->toFollyDynamic();
-  switchState[kDsfNodes] = dsfNodes->toFollyDynamic();
-  // Remote objects
-  switchState[kRemoteSystemPorts] = remoteSystemPorts->toFollyDynamic();
-  switchState[kRemoteInterfaces] = remoteInterfaces->toFollyDynamic();
-  return switchState;
-}
-
 SwitchStateFields SwitchStateFields::fromFollyDynamic(
     const folly::dynamic& swJson) {
   SwitchStateFields switchState;

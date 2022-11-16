@@ -2168,19 +2168,13 @@ TEST_F(RouteTest, serializeRouteTable) {
       RouteNextHopEntry(nhop2, DISTANCE));
   u2.program();
 
-  // to folly dynamic
-  folly::dynamic obj = this->sw_->getState()->toFollyDynamic();
-  // to string
-  folly::json::serialization_opts serOpts;
-  serOpts.allow_non_string_keys = true;
-  std::string json = folly::json::serialize(obj, serOpts);
-  // back to folly dynamic
-  folly::dynamic obj2 = folly::parseJson(json, serOpts);
+  // to thrift
+  auto obj = this->sw_->getState()->toThrift();
   // back to Route object
-  auto deserState = SwitchState::fromFollyDynamic(obj2);
+  auto deserState = SwitchState::fromThrift(obj);
   // In new rib  only FIB is part of the switch state
-  auto dyn0 = this->sw_->getState()->getFibs()->toFollyDynamic();
-  auto dyn1 = deserState->getFibs()->toFollyDynamic();
+  auto dyn0 = this->sw_->getState()->getFibs()->toThrift();
+  auto dyn1 = deserState->getFibs()->toThrift();
   EXPECT_EQ(dyn0, dyn1);
 }
 

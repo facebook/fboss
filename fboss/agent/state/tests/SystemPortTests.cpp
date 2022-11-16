@@ -40,8 +40,8 @@ TEST(SystemPort, SerDeserSwitchState) {
   state->addSystemPort(sysPort1);
   state->addSystemPort(sysPort2);
 
-  auto serialized = state->toFollyDynamic();
-  auto stateBack = SwitchState::fromFollyDynamic(serialized);
+  auto serialized = state->toThrift();
+  auto stateBack = SwitchState::fromThrift(serialized);
 
   // Check all systemPorts should be there
   for (auto sysPortID : {SystemPortID(1), SystemPortID(2)}) {

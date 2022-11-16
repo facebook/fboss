@@ -546,7 +546,7 @@ TEST_F(MirrorTest, MirrorMirrorEgressPort) {
   publishWithFbossError();
 }
 
-TEST_F(MirrorTest, ToAndFromDynamic) {
+TEST_F(MirrorTest, ToAndFromThrift) {
   config_.mirrors()->push_back(
       utility::getSPANMirror("span", MirrorTest::egressPort));
 
@@ -579,8 +579,7 @@ TEST_F(MirrorTest, ToAndFromDynamic) {
       folly::MacAddress("1:1:1:1:1:1"),
       folly::MacAddress("2:2:2:2:2:2")));
   auto withTunnelType = state_->getMirrors()->getMirrorIf("with_tunnel_type");
-  auto reconstructedState =
-      SwitchState::fromFollyDynamic(state_->toFollyDynamic());
+  auto reconstructedState = SwitchState::fromThrift(state_->toThrift());
   EXPECT_EQ(
       *(reconstructedState->getMirrors()->getMirrorIf("span")),
       *(state_->getMirrors()->getMirrorIf("span")));

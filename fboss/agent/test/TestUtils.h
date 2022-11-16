@@ -506,9 +506,7 @@ void validateThriftyMigration(const ThriftyNode& node) {
 
 template <typename Node>
 void validateNodeSerialization(const Node& node) {
-  auto nodeBack = Node::fromFollyDynamic(node.toFollyDynamic());
-  EXPECT_EQ(node, *nodeBack);
-  nodeBack = Node::fromThrift(node.toThrift());
+  auto nodeBack = Node::fromThrift(node.toThrift());
   EXPECT_EQ(node, *nodeBack);
 }
 
@@ -537,9 +535,7 @@ bool isSameNodeMap(const NodeMap& lhs, const NodeMap& rhs) {
 
 template <typename NodeMap>
 void validateNodeMapSerialization(const NodeMap& nodeMap) {
-  auto nodeMapBack = NodeMap::fromFollyDynamic(nodeMap.toFollyDynamic());
-  EXPECT_TRUE(isSameNodeMap(nodeMap, *nodeMapBack));
-  nodeMapBack = NodeMap::fromThrift(nodeMap.toThrift());
+  auto nodeMapBack = NodeMap::fromThrift(nodeMap.toThrift());
   EXPECT_TRUE(isSameNodeMap(nodeMap, *nodeMapBack));
 }
 } // namespace facebook::fboss

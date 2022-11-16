@@ -42,8 +42,8 @@ TEST(DsfNode, SerDeserSwitchState) {
   dsfNodeMap->addDsfNode(dsfNode2);
   state->resetDsfNodes(dsfNodeMap);
 
-  auto serialized = state->toFollyDynamic();
-  auto stateBack = SwitchState::fromFollyDynamic(serialized);
+  auto serialized = state->toThrift();
+  auto stateBack = SwitchState::fromThrift(serialized);
 
   // Check all dsfNodes should be there
   for (auto switchID : {SwitchID(1), SwitchID(2)}) {
@@ -131,33 +131,4 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   EXPECT_EQ(
       stateV4->getRemoteInterfaces()->size(),
       stateV3->getRemoteInterfaces()->size() - 1);
-}
-
-TEST(DsfNode, dsfNodeUpdateLocalDsfNodeConfig) {
-  auto platform = createMockPlatform();
-  auto stateV0 = std::make_shared<SwitchState>();
-  auto config = testConfigA(cfg::SwitchType::VOQ);
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  ASSERT_NE(nullptr, stateV1);
-  EXPECT_EQ(stateV1->getDsfNodes()->size(), 1);
-  EXPECT_GT(config.dsfNodes()[1].loopbackIps()->size(), 0);
-  config.dsfNodes()[1].loopbackIps()->clear();
-  EXPECT_EQ(config.dsfNodes()[1].loopbackIps()->size(), 0);
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
-  ASSERT_NE(nullptr, stateV2);
-  EXPECT_EQ(stateV1->getDsfNodes()->size(), 1);
-}
-
-TEST(DSFNode, loopackIpsSorted) {
-  auto dsfNode = makeDsfNode();
-  std::vector<std::string> loopbacks{"100.1.1.0/24", "201::1/64", "300::4/64"};
-  dsfNode->setLoopbackIps(loopbacks);
-  std::set<folly::CIDRNetwork> loopbacksSorted;
-  std::for_each(
-      loopbacks.begin(),
-      loopbacks.end(),
-      [&loopbacksSorted](const auto& loopback) {
-        loopbacksSorted.insert(folly::IPAddress::createNetwork(loopback));
-      });
-  EXPECT_EQ(loopbacksSorted, dsfNode->getLoopbackIpsSorted());
 }
