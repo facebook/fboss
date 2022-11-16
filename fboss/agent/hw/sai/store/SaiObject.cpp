@@ -145,6 +145,73 @@ SaiObject<SaiLagTraits>::follyDynamicToAdapterHostKey(folly::dynamic json) {
   return key;
 }
 
+#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_DNX_ODP)
+
+// Store Wred adapter keys into hw switch state starting 8.2
+template <typename attrT>
+void addOptionalAttrToArray(
+    folly::dynamic& array,
+    const SaiWredTraits::AdapterHostKey& adapterHostKey) {
+  if (auto optionalAttr = std::get<std::optional<attrT>>(adapterHostKey)) {
+    array.push_back(optionalAttr.value().value());
+  } else {
+    array.push_back("None");
+  }
+}
+
+template <>
+folly::dynamic SaiObject<SaiWredTraits>::adapterHostKeyToFollyDynamic() {
+  folly::dynamic array = folly::dynamic::array;
+  array.push_back(
+      std::get<SaiWredTraits::Attributes::GreenEnable>(adapterHostKey_)
+          .value());
+  addOptionalAttrToArray<SaiWredTraits::Attributes::GreenMinThreshold>(
+      array, adapterHostKey_);
+  addOptionalAttrToArray<SaiWredTraits::Attributes::GreenMaxThreshold>(
+      array, adapterHostKey_);
+  addOptionalAttrToArray<SaiWredTraits::Attributes::GreenDropProbability>(
+      array, adapterHostKey_);
+  array.push_back(
+      std::get<SaiWredTraits::Attributes::EcnMarkMode>(adapterHostKey_)
+          .value());
+  addOptionalAttrToArray<SaiWredTraits::Attributes::EcnGreenMinThreshold>(
+      array, adapterHostKey_);
+  addOptionalAttrToArray<SaiWredTraits::Attributes::EcnGreenMaxThreshold>(
+      array, adapterHostKey_);
+  return array;
+}
+
+template <typename attrT>
+void pupulateOptionalAttrtToKey(
+    folly::dynamic& array,
+    SaiWredTraits::AdapterHostKey& adapterHostKey,
+    int index) {
+  if (!array[index].isString()) {
+    std::get<std::optional<attrT>>(adapterHostKey) = array[index].asInt();
+  }
+}
+
+template <>
+typename SaiWredTraits::AdapterHostKey
+SaiObject<SaiWredTraits>::follyDynamicToAdapterHostKey(folly::dynamic json) {
+  SaiWredTraits::AdapterHostKey key;
+  std::get<SaiWredTraits::Attributes::GreenEnable>(key) = json[0].asBool();
+  pupulateOptionalAttrtToKey<SaiWredTraits::Attributes::GreenMinThreshold>(
+      json, key, 1);
+  pupulateOptionalAttrtToKey<SaiWredTraits::Attributes::GreenMaxThreshold>(
+      json, key, 2);
+  pupulateOptionalAttrtToKey<SaiWredTraits::Attributes::GreenDropProbability>(
+      json, key, 3);
+  std::get<SaiWredTraits::Attributes::EcnMarkMode>(key) = json[4].asInt();
+  pupulateOptionalAttrtToKey<SaiWredTraits::Attributes::EcnGreenMinThreshold>(
+      json, key, 5);
+  pupulateOptionalAttrtToKey<SaiWredTraits::Attributes::EcnGreenMaxThreshold>(
+      json, key, 6);
+  return key;
+}
+
+#endif
+
 template <>
 folly::dynamic SaiObject<SaiAclTableTraits>::adapterHostKeyToFollyDynamic() {
   return adapterHostKey_;

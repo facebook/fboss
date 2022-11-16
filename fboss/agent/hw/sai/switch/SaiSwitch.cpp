@@ -246,6 +246,10 @@ HwInitResult SaiSwitch::initImpl(
     stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
     managerTable_->fdbManager().removeUnclaimedDynanicEntries();
     managerTable_->hashManager().removeUnclaimedDefaultHash();
+#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_DNX_ODP)
+    // TODO(zecheng): Remove after devices warmbooted to 8.2.
+    managerTable_->wredManager().removeUnclaimedWredProfile();
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
     // Sai spec 1.10.2 introduces the new attribute of Label for Acl counter.
     // Therefore, counters created before sai spec 1.10.2 will be treated as

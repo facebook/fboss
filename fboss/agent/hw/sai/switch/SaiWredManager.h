@@ -34,6 +34,8 @@ class SaiWredManager {
 
   std::shared_ptr<SaiWred> getOrCreateProfile(const PortQueue& queue);
 
+  void removeUnclaimedWredProfile();
+
  private:
   SaiWredTraits::CreateAttributes profileCreateAttrs(
       const PortQueue& queue) const;

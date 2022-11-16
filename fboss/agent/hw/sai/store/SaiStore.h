@@ -46,6 +46,14 @@ struct AdapterHostKeyWarmbootRecoverable<SaiNextHopGroupTraits>
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiAclTableTraits> : std::false_type {
 };
+
+#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_DNX_ODP)
+
+template <>
+struct AdapterHostKeyWarmbootRecoverable<SaiWredTraits> : std::false_type {};
+
+#endif
+
 /*
  * SaiObjectStore is the critical component of SaiStore,
  * it provides the needed operations on a single type of SaiObject
@@ -426,6 +434,13 @@ class SaiObjectStore {
           // state.
           return ObjectType(key);
         }
+#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_DNX_ODP)
+        if constexpr (std::is_same_v<ObjectTraits, SaiWredTraits>) {
+          // Allow warm boot from version which doesn't save ahk
+          // TODO(zecheng): Remove after device warmbooted to 8.2
+          return ObjectType(key);
+        }
+#endif
         throw FbossError(
             "attempting to load an object whose adapter host key is not found.");
       }

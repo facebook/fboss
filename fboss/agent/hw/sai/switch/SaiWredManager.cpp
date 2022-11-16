@@ -48,8 +48,10 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
       std::get<std::optional<Attributes::EcnGreenMinThreshold>>(attrs);
   auto& ecnGreenMax =
       std::get<std::optional<Attributes::EcnGreenMaxThreshold>>(attrs);
+#if !defined(SAI_VERSION_8_2_0_0_ODP) && !defined(SAI_VERSION_8_2_0_0_DNX_ODP)
   std::tie(greenMin, greenMax, greenDropProbability, ecnGreenMin, ecnGreenMax) =
       std::make_tuple(0, 0, kDefaultDropProbability, 0, 0);
+#endif
   for (const auto& [type, aqm] : queue.getAqms()) {
     auto thresholds = (*aqm.detection()).get_linear();
     auto [minLen, maxLen] = std::make_pair(
@@ -70,6 +72,14 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
     }
   }
   return attrs;
+}
+
+void SaiWredManager::removeUnclaimedWredProfile() {
+  saiStore_->get<SaiWredTraits>().removeUnclaimedWarmbootHandlesIf(
+      [](const auto& wred) {
+        wred->release();
+        return true;
+      });
 }
 
 } // namespace facebook::fboss
