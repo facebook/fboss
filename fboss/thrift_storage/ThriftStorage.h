@@ -130,6 +130,12 @@ class ThriftStorage : public Storage<Root, ThriftStorage<Root>> {
     throw std::logic_error("Not implemented");
   }
 
+  std::optional<StorageError> patch_impl(
+      const fsdb::TaggedOperState& /*delta*/) {
+    // TODO
+    throw std::logic_error("Not implemented");
+  }
+
   template <typename T>
   std::optional<StorageError>
   add_impl(PathIter begin, PathIter end, T&& value) {

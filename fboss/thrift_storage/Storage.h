@@ -121,6 +121,10 @@ class Storage {
     return static_cast<Derived*>(this)->patch_impl(delta);
   }
 
+  std::optional<StorageError> patch(const fsdb::TaggedOperState& state) {
+    return static_cast<Derived*>(this)->patch_impl(state);
+  }
+
   template <
       typename Path,
       typename =

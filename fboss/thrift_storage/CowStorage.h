@@ -221,6 +221,19 @@ class CowStorage : public Storage<Root, CowStorage<Root>> {
     return result;
   }
 
+  std::optional<StorageError> patch_impl(
+      const fsdb::TaggedOperState& taggedState) {
+    std::optional<StorageError> result;
+    auto rawPath = *taggedState.path()->path();
+    OperState newState;
+    newState.protocol() = *taggedState.state()->protocol();
+    newState.contents() = *taggedState.state()->contents();
+
+    result = this->set_encoded_impl(
+        rawPath.begin(), rawPath.end(), std::move(newState));
+    return result;
+  }
+
   template <typename T>
   std::optional<StorageError>
   add_impl(PathIter begin, PathIter end, T&& value) {
