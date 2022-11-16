@@ -140,6 +140,8 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
           "Client ID representing fsdb publishers/subscribers IDs e.g.\n"
           "'agent'\n");
     }
+  } else {
+    subCmd->require_subcommand();
   }
   return subCmd;
 }
