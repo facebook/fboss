@@ -35,10 +35,6 @@ DEFINE_bool(
     true,
     "Whether to dump thrift state during warmboot exit");
 DEFINE_bool(
-    read_thrift_state,
-    true,
-    "Whether to read thrift state during warmboot init");
-DEFINE_bool(
     check_thrift_state,
     false,
     "Whether to check switch state recovered from thrift binary is the same as folly.");
@@ -164,8 +160,7 @@ HwSwitchWarmBootHelper::getWarmBootState() const {
       "Unable to read switch state from : ",
       warmBootFollySwitchStateFile());
   state::WarmbootState thriftState;
-  if (FLAGS_read_thrift_state &&
-      isValidThriftStateFile(
+  if (isValidThriftStateFile(
           warmBootFollySwitchStateFile(), warmBootThriftSwitchStateFile()) &&
       readThriftStateFromFile(warmBootThriftSwitchStateFile(), thriftState)) {
     return std::make_tuple(folly::parseJson(warmBootJson), thriftState);
