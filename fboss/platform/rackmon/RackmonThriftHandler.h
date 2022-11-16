@@ -36,6 +36,7 @@ class ThriftHandler : virtual public RackmonCtrlSvIf {
       const rackmon::ModbusDeviceValueData& source);
   ModbusRegisterValue transformRegisterValue(
       const rackmon::RegisterValue& value);
+  RackmonStatusCode exceptionToStatusCode(std::exception& baseException);
 
  public:
   ThriftHandler();

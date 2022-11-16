@@ -112,6 +112,55 @@ RackmonMonitorData ThriftHandler::transformModbusDeviceValueData(
   return data;
 }
 
+RackmonStatusCode ThriftHandler::exceptionToStatusCode(
+    std::exception& baseException) {
+  if (rackmon::TimeoutException * ex;
+      (ex = dynamic_cast<rackmon::TimeoutException*>(&baseException)) !=
+      nullptr) {
+    return RackmonStatusCode::ERR_TIMEOUT;
+  } else if (rackmon::CRCError * ex; (ex = dynamic_cast<rackmon::CRCError*>(
+                                          &baseException)) != nullptr) {
+    return RackmonStatusCode::ERR_BAD_CRC;
+  } else if (rackmon::ModbusError * ex;
+             (ex = dynamic_cast<rackmon::ModbusError*>(&baseException)) !=
+             nullptr) {
+    switch (ex->errorCode) {
+      case rackmon::ModbusErrorCode::ILLEGAL_FUNCTION:
+        return RackmonStatusCode::ERR_ILLEGAL_FUNCTION;
+      case rackmon::ModbusErrorCode::ILLEGAL_DATA_ADDRESS:
+        return RackmonStatusCode::ERR_ILLEGAL_DATA_ADDRESS;
+      case rackmon::ModbusErrorCode::ILLEGAL_DATA_VALUE:
+        return RackmonStatusCode::ERR_ILLEGAL_DATA_VALUE;
+      case rackmon::ModbusErrorCode::SLAVE_DEVICE_FAILURE:
+        return RackmonStatusCode::ERR_SLAVE_DEVICE_FAILURE;
+      case rackmon::ModbusErrorCode::ACKNOWLEDGE:
+        return RackmonStatusCode::ERR_ACKNOWLEDGE;
+      case rackmon::ModbusErrorCode::SLAVE_DEVICE_BUSY:
+        return RackmonStatusCode::ERR_SLAVE_DEVICE_BUSY;
+      case rackmon::ModbusErrorCode::NEGATIVE_ACKNOWLEDGE:
+        return RackmonStatusCode::ERR_NEGATIVE_ACKNOWLEDGE;
+      case rackmon::ModbusErrorCode::MEMORY_PARITY_ERROR:
+        return RackmonStatusCode::ERR_MEMORY_PARITY_ERROR;
+      default:
+        return RackmonStatusCode::ERR_UNDEFINED_MODBUS_ERROR;
+    }
+  } else if (std::underflow_error * ex;
+             (ex = dynamic_cast<std::underflow_error*>(&baseException)) !=
+             nullptr) {
+    return RackmonStatusCode::ERR_UNDERFLOW;
+  } else if (std::overflow_error * ex; (ex = dynamic_cast<std::overflow_error*>(
+                                            &baseException)) != nullptr) {
+    return RackmonStatusCode::ERR_OVERFLOW;
+  } else if (std::logic_error * ex; (ex = dynamic_cast<std::logic_error*>(
+                                         &baseException)) != nullptr) {
+    return RackmonStatusCode::ERR_INVALID_ARGS;
+  } else if (std::out_of_range * ex; (ex = dynamic_cast<std::out_of_range*>(
+                                          &baseException)) != nullptr) {
+    return RackmonStatusCode::ERR_INVALID_ARGS;
+  }
+  return RackmonStatusCode::ERR_IO_FAILURE;
+}
+
 ThriftHandler::ThriftHandler() {
   rackmond_.loadInterface(nlohmann::json::parse(getInterfaceConfig()));
   const std::vector<std::string> regMaps = getRegisterMapConfig();
@@ -208,17 +257,8 @@ void ThriftHandler::readHoldingRegisters(
     response.status() = RackmonStatusCode::SUCCESS;
     response.regValues()->resize(regs.size());
     std::copy(regs.begin(), regs.end(), response.regValues()->begin());
-  } catch (rackmon::TimeoutException& ex) {
-    response.status() = RackmonStatusCode::ERR_TIMEOUT;
-  } catch (rackmon::CRCError& ex) {
-    response.status() = RackmonStatusCode::ERR_BAD_CRC;
-  } catch (rackmon::BadResponseError& ex) {
-    response.status() = RackmonStatusCode::ERR_IO_FAILURE;
-  } catch (std::out_of_range& ex) {
-    // Unknown device or not in active status.
-    response.status() = RackmonStatusCode::ERR_INVALID_ARGS;
   } catch (std::exception& ex) {
-    response.status() = RackmonStatusCode::ERR_IO_FAILURE;
+    response.status() = exceptionToStatusCode(ex);
   }
 }
 
@@ -236,17 +276,8 @@ RackmonStatusCode ThriftHandler::writeSingleRegister(
       rackmond_.writeSingleRegister(devAddr, regAddr, regValue);
     }
     return RackmonStatusCode::SUCCESS;
-  } catch (rackmon::TimeoutException& ex) {
-    return RackmonStatusCode::ERR_TIMEOUT;
-  } catch (rackmon::CRCError& ex) {
-    return RackmonStatusCode::ERR_BAD_CRC;
-  } catch (rackmon::BadResponseError& ex) {
-    return RackmonStatusCode::ERR_IO_FAILURE;
-  } catch (std::out_of_range& ex) {
-    // Unknown device or not in active status.
-    return RackmonStatusCode::ERR_INVALID_ARGS;
   } catch (std::exception& ex) {
-    return RackmonStatusCode::ERR_IO_FAILURE;
+    return exceptionToStatusCode(ex);
   }
 }
 
@@ -271,17 +302,8 @@ RackmonStatusCode ThriftHandler::presetMultipleRegisters(
       rackmond_.writeMultipleRegisters(devAddr, regAddr, regValues);
     }
     return RackmonStatusCode::SUCCESS;
-  } catch (rackmon::TimeoutException& ex) {
-    return RackmonStatusCode::ERR_TIMEOUT;
-  } catch (rackmon::CRCError& ex) {
-    return RackmonStatusCode::ERR_BAD_CRC;
-  } catch (rackmon::BadResponseError& ex) {
-    return RackmonStatusCode::ERR_IO_FAILURE;
-  } catch (std::out_of_range& ex) {
-    // Unknown device or not in active status.
-    return RackmonStatusCode::ERR_INVALID_ARGS;
   } catch (std::exception& ex) {
-    return RackmonStatusCode::ERR_IO_FAILURE;
+    return exceptionToStatusCode(ex);
   }
 }
 
@@ -320,17 +342,8 @@ void ThriftHandler::readFileRecord(
     for (const auto& rec : records) {
       response.data()->emplace_back(transformFileRecord(rec));
     }
-  } catch (rackmon::TimeoutException& ex) {
-    response.status() = RackmonStatusCode::ERR_TIMEOUT;
-  } catch (rackmon::CRCError& ex) {
-    response.status() = RackmonStatusCode::ERR_BAD_CRC;
-  } catch (rackmon::BadResponseError& ex) {
-    response.status() = RackmonStatusCode::ERR_IO_FAILURE;
-  } catch (std::out_of_range& ex) {
-    // Unknown device or not in active status.
-    response.status() = RackmonStatusCode::ERR_INVALID_ARGS;
   } catch (std::exception& ex) {
-    response.status() = RackmonStatusCode::ERR_IO_FAILURE;
+    response.status() = exceptionToStatusCode(ex);
   }
 }
 
@@ -348,7 +361,7 @@ RackmonStatusCode ThriftHandler::controlRackmond(
         return RackmonStatusCode::ERR_INVALID_ARGS;
     }
   } catch (std::exception& ex) {
-    return RackmonStatusCode::ERR_IO_FAILURE;
+    return exceptionToStatusCode(ex);
   }
   return RackmonStatusCode::SUCCESS;
 }
