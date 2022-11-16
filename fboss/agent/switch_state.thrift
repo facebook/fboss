@@ -258,6 +258,7 @@ struct LoadBalancerFields {
   5: set<switch_config.IPv6Field> v6Fields;
   6: set<switch_config.TransportField> transportFields;
   7: set<switch_config.MPLSField> mplsFields;
+  8: list<string> udfGroups = [];
 }
 
 struct MirrorTunnel {
