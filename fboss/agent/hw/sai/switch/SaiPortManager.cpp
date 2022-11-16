@@ -1047,22 +1047,15 @@ SaiQueueHandle* SaiPortManager::getQueueHandle(
   return getQueueHandleImpl(swId, saiQueueConfig);
 }
 
-const std::vector<sai_stat_id_t>& SaiPortManager::fecStatIds(
-    PortID portId) const {
-  static std::vector<sai_stat_id_t> ids;
-  if (ids.size()) {
-    return ids;
-  }
+bool SaiPortManager::fecStatsSupported(PortID portId) const {
   if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_FEC_COUNTERS) &&
-      getPortType(portId) == cfg::PortType::INTERFACE_PORT && // CS00012267634
       utility::isReedSolomonFec(getFECMode(portId))) {
 #if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_ODP) || \
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(TAJO_SDK_VERSION_1_42_4)
-    ids.push_back(SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES);
-    ids.push_back(SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES);
+    return true;
 #endif
   }
-  return ids;
+  return false;
 }
 
 void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
@@ -1096,9 +1089,11 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
 
   curPortStats.timestamp_() = now.count();
   handle->port->updateStats(supportedStats(portId), SAI_STATS_MODE_READ);
-  auto fecCounters = fecStatIds(portId);
-  if (!fecCounters.empty()) {
-    handle->port->updateStats(fecCounters, SAI_STATS_MODE_READ_AND_CLEAR);
+  if (fecStatsSupported(portId)) {
+    handle->port->updateStats(
+        {SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES,
+         SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES},
+        SAI_STATS_MODE_READ_AND_CLEAR);
   }
   const auto& counters = handle->port->getStats();
   fillHwPortStats(counters, managerTable_->debugCounterManager(), curPortStats);

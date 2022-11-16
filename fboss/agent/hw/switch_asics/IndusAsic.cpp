@@ -64,9 +64,9 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_TX_QUEUES:
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::ACL_TABLE_GROUP:
+    case HwAsic::Feature::SAI_FEC_COUNTERS:
       return true;
 
-    case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
