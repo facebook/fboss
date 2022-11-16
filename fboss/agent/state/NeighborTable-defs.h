@@ -138,7 +138,9 @@ void NeighborTable<IPADDR, ENTRY, SUBCLASS>::updateEntry(
       fields.port,
       fields.interfaceID,
       fields.state,
-      fields.classID);
+      fields.classID,
+      fields.encapIndex,
+      fields.isLocal);
 }
 
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
