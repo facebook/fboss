@@ -426,7 +426,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_SCHEDULER, "scheduler_api->"},
       {SAI_OBJECT_TYPE_SCHEDULER_GROUP, "scheduler_group_api->"},
       {SAI_OBJECT_TYPE_SWITCH, "switch_api->"},
-      {SAI_OBJECT_TYPE_SYSTEM_PORT, "switch_api->"},
+      {SAI_OBJECT_TYPE_SYSTEM_PORT, "system_port_api->"},
       {SAI_OBJECT_TYPE_TAM_REPORT, "tam_api->"},
       {SAI_OBJECT_TYPE_TAM_EVENT_ACTION, "tam_api->"},
       {SAI_OBJECT_TYPE_TAM_EVENT, "tam_api->"},
