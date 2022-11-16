@@ -387,12 +387,12 @@ void SwSwitch::setFibSyncTimeForClient(ClientID clientId) {
 std::tuple<folly::dynamic, state::WarmbootState> SwSwitch::gracefulExitState()
     const {
   folly::dynamic follySwitchState = folly::dynamic::object;
-  follySwitchState[kSwSwitch] = getAppliedState()->toFollyDynamic();
   if (rib_) {
     // For RIB we employ a optmization to serialize only unresolved routes
     // and recover others from FIB
     follySwitchState[kRib] = rib_->unresolvedRoutesFollyDynamic();
   }
+  // Only dump swSwitchState in thrift
   state::WarmbootState thriftSwitchState;
   *thriftSwitchState.swSwitchState() = getAppliedState()->toThrift();
   return std::make_tuple(follySwitchState, thriftSwitchState);
@@ -525,10 +525,13 @@ bool SwSwitch::getAndClearNeighborHit(RouterID vrf, folly::IPAddress ip) {
 
 void SwSwitch::exitFatal() const noexcept {
   folly::dynamic switchState = folly::dynamic::object;
-  switchState[kSwSwitch] = getAppliedState()->toFollyDynamic();
   switchState[kHwSwitch] = hw_->toFollyDynamic();
-  if (!dumpStateToFile(platform_->getCrashSwitchStateFile(), switchState)) {
-    XLOG(ERR) << "Unable to write switch state JSON to file";
+  state::WarmbootState thriftSwitchState;
+  *thriftSwitchState.swSwitchState() = getAppliedState()->toThrift();
+  if (!dumpStateToFile(platform_->getCrashSwitchStateFile(), switchState) ||
+      !dumpThriftStateToFile(
+          platform_->getCrashThriftSwitchStateFile(), thriftSwitchState)) {
+    XLOG(ERR) << "Unable to write switch state JSON or Thrift to file";
   }
 }
 

@@ -421,13 +421,13 @@ HwSwitchEnsemble::gracefulExitState() const {
   folly::dynamic follySwitchState = folly::dynamic::object;
   // For RIB we employ a optmization to serialize only unresolved routes
   // and recover others from FIB
-  follySwitchState[kSwSwitch] = getProgrammedState()->toFollyDynamic();
   if (routingInformationBase_) {
     // For RIB we employ a optmization to serialize only unresolved routes
     // and recover others from FIB
     follySwitchState[kRib] =
         routingInformationBase_->unresolvedRoutesFollyDynamic();
   }
+  // Only dump swSwitchState in thrift
   state::WarmbootState thriftSwitchState;
   *thriftSwitchState.swSwitchState() = getProgrammedState()->toThrift();
   return std::make_tuple(follySwitchState, thriftSwitchState);

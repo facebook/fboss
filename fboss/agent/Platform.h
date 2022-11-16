@@ -240,6 +240,10 @@ class Platform {
    */
   std::string getCrashSwitchStateFile() const;
   /*
+   * Get filename for where we dump thrift switch state on crash
+   */
+  std::string getCrashThriftSwitchStateFile() const;
+  /*
    * For a specific logical port, return the transceiver and channel
    * it represents if available
    */

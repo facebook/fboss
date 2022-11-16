@@ -24,6 +24,11 @@ DEFINE_string(
     "File for dumping SwitchState state on crash");
 
 DEFINE_string(
+    crash_thrift_switch_state_file,
+    "crash_thrift_switch_state",
+    "File for dumping SwitchState thrift on crash");
+
+DEFINE_string(
     crash_hw_state_file,
     "crash_hw_state",
     "File for dumping HW state on crash");
@@ -74,6 +79,10 @@ std::string Platform::getCrashHwStateFile() const {
 
 std::string Platform::getCrashSwitchStateFile() const {
   return getCrashInfoDir() + "/" + FLAGS_crash_switch_state_file;
+}
+
+std::string Platform::getCrashThriftSwitchStateFile() const {
+  return getCrashInfoDir() + "/" + FLAGS_crash_thrift_switch_state_file;
 }
 
 const AgentConfig* Platform::config() {
