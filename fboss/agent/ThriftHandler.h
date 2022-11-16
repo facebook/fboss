@@ -18,6 +18,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
@@ -277,6 +278,16 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::map<std::string, std::int64_t>& routeCounters) override;
 
   void getTeFlowTableDetails(std::vector<TeFlowDetails>& flowTable) override;
+  /*
+   * Event handler for when a connection is destroyed.  When there is an ongoing
+   * duplex connection, there may be other threads that depend on the connection
+   * state.
+   *
+   * @param[in]   ctx   A pointer to the connection context that is being
+   *                    destroyed.
+   */
+  void connectionDestroyed(
+      apache::thrift::server::TConnectionContext* ctx) override;
 
   /*
    * Thrift handler for keepalive messages.  It's a no-op, but prevents the
@@ -408,6 +419,20 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   }
 
  private:
+  struct ThreadLocalListener {
+    EventBase* eventBase;
+    std::unordered_map<
+        const apache::thrift::server::TConnectionContext*,
+        std::shared_ptr<NeighborListenerClientAsyncClient>>
+        clients;
+
+    explicit ThreadLocalListener(EventBase* eb) : eventBase(eb){};
+  };
+  folly::ThreadLocalPtr<ThreadLocalListener, int> listeners_;
+  void invokeNeighborListeners(
+      ThreadLocalListener* info,
+      std::vector<std::string> added,
+      std::vector<std::string> deleted);
   void updateUnicastRoutesImpl(
       int32_t vrf,
       int16_t client,
@@ -442,6 +467,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   SwSwitch* sw_;
 
   int thriftIdleTimeout_;
+  std::vector<const TConnectionContext*> brokenClients_;
 
   apache::thrift::SSLPolicy sslPolicy_;
 
