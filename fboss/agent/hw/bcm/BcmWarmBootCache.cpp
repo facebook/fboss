@@ -447,20 +447,6 @@ void BcmWarmBootCache::populateFromWarmBootState(
   if (thriftState) {
     dumpedSwSwitchState_ =
         SwitchState::uniquePtrFromThrift(*thriftState->swSwitchState());
-    if (FLAGS_check_thrift_state) {
-      // Folly state produced by current image (including changes in switch
-      // state fields)
-      auto updatedDyn = SwitchState::fromFollyDynamic(warmBootState[kSwSwitch])
-                            ->toFollyDynamic();
-      if (updatedDyn != dumpedSwSwitchState_->toFollyDynamic()) {
-        folly::writeFile(
-            folly::toPrettyJson(dumpedSwSwitchState_->toFollyDynamic()),
-            "/tmp/thriftState_dbg.json");
-        folly::writeFile(
-            folly::toPrettyJson(updatedDyn), "/tmp/follyState_dbg.json");
-        CHECK_EQ(dumpedSwSwitchState_->toFollyDynamic(), updatedDyn);
-      }
-    }
   } else {
     dumpedSwSwitchState_ =
         SwitchState::uniquePtrFromFollyDynamic(warmBootState[kSwSwitch]);

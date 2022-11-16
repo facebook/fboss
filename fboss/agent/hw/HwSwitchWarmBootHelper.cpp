@@ -34,10 +34,6 @@ DEFINE_bool(
     dump_thrift_state,
     true,
     "Whether to dump thrift state during warmboot exit");
-DEFINE_bool(
-    check_thrift_state,
-    false,
-    "Whether to check switch state recovered from thrift binary is the same as folly.");
 
 namespace {
 constexpr auto wbFlagPrefix = "can_warm_boot_";

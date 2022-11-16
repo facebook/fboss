@@ -13,8 +13,6 @@
 #include <string>
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 
-DECLARE_bool(check_thrift_state);
-
 namespace facebook::fboss {
 
 /*
