@@ -14,6 +14,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/EncapIndexAllocator.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
@@ -151,6 +152,158 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewConfig(
       applyThriftConfig(originalState, &config, getPlatform()));
 }
 
+std::shared_ptr<SwitchState> HwSwitchEnsemble::updateEncapIndices(
+    const std::shared_ptr<SwitchState>& in) const {
+  // For wedge_agent we assign Encap indices on VOQ swtiches at
+  // SwSwitch layer and later assert for their presence before
+  // programming in HW.
+  // For HW tests, since there is no SwSwitch layer we need to
+  // explicitly assign and remove encap indices from neighbor entries
+  // This function's charter is
+  // - Assign encap index to reachable nbr entries (if one is not already
+  //  assigned)
+  // - Clear encap index from unreachable/pending entries
+  auto newState = in->clone();
+  StateDelta delta(programmedState_, in);
+  if (getAsic()->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+    auto handleNewNbr = [this, &newState](auto newNbr) {
+      if (!newNbr->isPending() && !newNbr->getEncapIndex()) {
+        auto nbr = newNbr->clone();
+        nbr->setEncapIndex(EncapIndexAllocator::getNextAvailableEncapIdx(
+            newState, *getAsic()));
+        return nbr;
+      }
+      if (newNbr->isPending() && newNbr->getEncapIndex()) {
+        auto nbr = newNbr->clone();
+        nbr->setEncapIndex(std::nullopt);
+        return nbr;
+      }
+      return std::shared_ptr<std::remove_reference_t<decltype(*newNbr)>>();
+    };
+    for (const auto& vlanDelta : delta.getVlansDelta()) {
+      auto updateVlan = [&](auto newNbr, auto& nbrTable, VlanID vlanId) {
+        auto vlanNew =
+            newState->getVlans()->getVlanIf(vlanId)->modify(&newState);
+        auto updatedNbr = handleNewNbr(newNbr);
+        if (updatedNbr) {
+          auto updatedNbrTable = nbrTable->clone();
+          if (!nbrTable->getEntry(newNbr->getIP())) {
+            updatedNbrTable->addEntry(
+                updatedNbr->getIP(),
+                updatedNbr->getMac(),
+                updatedNbr->getPort(),
+                updatedNbr->getIntfID(),
+                updatedNbr->getState(),
+                updatedNbr->getClassID(),
+                updatedNbr->getEncapIndex(),
+                updatedNbr->getIsLocal());
+          } else {
+            updatedNbrTable->updateEntry(
+                updatedNbr->getIP(),
+                updatedNbr->getMac(),
+                updatedNbr->getPort(),
+                updatedNbr->getIntfID(),
+                updatedNbr->getState(),
+                updatedNbr->getClassID(),
+                updatedNbr->getEncapIndex(),
+                updatedNbr->getIsLocal());
+          }
+          vlanNew->setNeighborTable(updatedNbrTable);
+        }
+      };
+
+      DeltaFunctions::forEachChanged(
+          vlanDelta.getArpDelta(),
+          [&](auto /*oldNbr*/, auto newNbr) {
+            updateVlan(
+                newNbr,
+                vlanDelta.getNew()->getArpTable(),
+                vlanDelta.getNew()->getID());
+          },
+          [&](auto newNbr) {
+            updateVlan(
+                newNbr,
+                vlanDelta.getNew()->getArpTable(),
+                vlanDelta.getNew()->getID());
+          },
+          [&](auto /*rmNbr*/) {});
+
+      DeltaFunctions::forEachChanged(
+          vlanDelta.getNdpDelta(),
+          [&](auto /*oldNbr*/, auto newNbr) {
+            updateVlan(
+                newNbr,
+                vlanDelta.getNew()->getNdpTable(),
+                vlanDelta.getNew()->getID());
+          },
+          [&](auto newNbr) {
+            updateVlan(
+                newNbr,
+                vlanDelta.getNew()->getNdpTable(),
+                vlanDelta.getNew()->getID());
+          },
+          [&](auto /*rmNbr*/) {});
+    }
+    for (const auto& intfDelta : delta.getIntfsDelta()) {
+      auto updateIntf =
+          [&](auto newNbr, const auto& nbrTable, InterfaceID intfId) {
+            auto intfMap = newState->getInterfaces()->modify(&newState);
+            auto intfNew = intfMap->getInterface(intfId)->clone();
+            auto updatedNbr = handleNewNbr(newNbr);
+            if (updatedNbr) {
+              auto updatedNbrTable = nbrTable->toThrift();
+              if (!nbrTable->getEntry(newNbr->getIP())) {
+                updatedNbrTable.insert(
+                    {newNbr->getIP().str(), updatedNbr->toThrift()});
+              } else {
+                updatedNbrTable.erase(newNbr->getIP().str());
+                updatedNbrTable.insert(
+                    {newNbr->getIP().str(), updatedNbr->toThrift()});
+              }
+              if (newNbr->getIP().version() == 6) {
+                intfNew->setNdpTable(updatedNbrTable);
+              } else {
+                intfNew->setArpTable(updatedNbrTable);
+              }
+              intfMap->updateNode(intfNew);
+            }
+          };
+      DeltaFunctions::forEachChanged(
+          intfDelta.getArpEntriesDelta(),
+          [&](auto /*oldNbr*/, auto newNbr) {
+            updateIntf(
+                newNbr,
+                intfDelta.getNew()->getArpTable(),
+                intfDelta.getNew()->getID());
+          },
+          [&](auto newNbr) {
+            updateIntf(
+                newNbr,
+                intfDelta.getNew()->getArpTable(),
+                intfDelta.getNew()->getID());
+          },
+          [&](auto /*rmNbr*/) {});
+
+      DeltaFunctions::forEachChanged(
+          intfDelta.getNdpEntriesDelta(),
+          [&](auto /*oldNbr*/, auto newNbr) {
+            updateIntf(
+                newNbr,
+                intfDelta.getNew()->getNdpTable(),
+                intfDelta.getNew()->getID());
+          },
+          [&](auto newNbr) {
+            updateIntf(
+                newNbr,
+                intfDelta.getNew()->getNdpTable(),
+                intfDelta.getNew()->getID());
+          },
+          [&](auto /*rmNbr*/) {});
+    }
+  }
+  return newState;
+}
+
 std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
     const std::shared_ptr<SwitchState>& newState,
     bool transaction) {
@@ -158,40 +311,11 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
     return programmedState_;
   }
 
-  StateDelta delta(programmedState_, newState);
-  if (getAsic()->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
-    auto changeNeighbor = [&newState](auto oldNbr, auto newNbr) {};
-    auto addNeighbor = [&newState](auto newNbr) {};
-    for (const auto& vlanDelta : delta.getVlansDelta()) {
-      DeltaFunctions::forEachChanged(
-          vlanDelta.getArpDelta(),
-          [&](auto oldNbr, auto newNbr) { changeNeighbor(oldNbr, newNbr); },
-          [&](auto newNbr) { addNeighbor(newNbr); },
-          [&](auto /*rmNbr*/) {});
-
-      DeltaFunctions::forEachChanged(
-          vlanDelta.getNdpDelta(),
-          [&](auto oldNbr, auto newNbr) { changeNeighbor(oldNbr, newNbr); },
-          [&](auto newNbr) { addNeighbor(newNbr); },
-          [&](auto /*rmNbr*/) {});
-    }
-    for (const auto& intfDelta : delta.getIntfsDelta()) {
-      DeltaFunctions::forEachChanged(
-          intfDelta.getArpEntriesDelta(),
-          [&](auto oldNbr, auto newNbr) { changeNeighbor(oldNbr, newNbr); },
-          [&](auto newNbr) { addNeighbor(newNbr); },
-          [&](auto /*rmNbr*/) {});
-
-      DeltaFunctions::forEachChanged(
-          intfDelta.getNdpEntriesDelta(),
-          [&](auto oldNbr, auto newNbr) { changeNeighbor(oldNbr, newNbr); },
-          [&](auto newNbr) { addNeighbor(newNbr); },
-          [&](auto /*rmNbr*/) {});
-    }
-  }
-
   newState->publish();
-  auto appliedState = newState;
+  auto toApply = updateEncapIndices(newState);
+  toApply->publish();
+  StateDelta delta(programmedState_, toApply);
+  auto appliedState = toApply;
   {
     std::lock_guard<std::mutex> lk(updateStateMutex_);
     programmedState_ = transaction
@@ -204,8 +328,8 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
   }
   StaticL2ForNeighborHwSwitchUpdater updater(this);
   updater.stateUpdated(StateDelta(delta.oldState(), appliedState));
-  if (newState != appliedState) {
-    throw FbossHwUpdateError(newState, appliedState);
+  if (toApply != appliedState) {
+    throw FbossHwUpdateError(toApply, appliedState);
   }
   return appliedState;
 }

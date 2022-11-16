@@ -239,6 +239,8 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   }
 
  private:
+  std::shared_ptr<SwitchState> updateEncapIndices(
+      const std::shared_ptr<SwitchState>& in) const;
   // To update programmed state after rollback
   friend class SaiRollbackTest;
   std::shared_ptr<SwitchState> applyNewStateImpl(
