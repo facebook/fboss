@@ -128,7 +128,9 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::CLOUDRIPPER;
     } else if (modelName.find("Lassen") == 0 || modelName.find("LASSEN") == 0) {
       mode_ = PlatformMode::LASSEN;
-    } else if (modelName.find("Sandia") == 0 || modelName.find("SANDIA") == 0) {
+    } else if (
+        modelName.find("Sandia") == 0 || modelName.find("SANDIA") == 0 ||
+        modelName.find("8508-F-SYS-HV") == 0) {
       mode_ = PlatformMode::SANDIA;
     } else if (modelName.find("Makalu") == 0) {
       mode_ = PlatformMode::MAKALU;
