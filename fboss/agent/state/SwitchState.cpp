@@ -235,20 +235,18 @@ bool SwitchStateFields::operator==(const SwitchStateFields& other) const {
   // TODO: add rest of fields as we convert them to thrifty
   bool bufferPoolCfgsSame = true;
   if (bufferPoolCfgs && other.bufferPoolCfgs) {
-    bufferPoolCfgsSame = (*bufferPoolCfgs == *other.bufferPoolCfgs);
+    // THRIFT_COPY
+    bufferPoolCfgsSame =
+        (bufferPoolCfgs->toThrift() == other.bufferPoolCfgs->toThrift());
   } else if (bufferPoolCfgs || other.bufferPoolCfgs) {
     bufferPoolCfgsSame = false;
   }
-  return bufferPoolCfgsSame &&
-      std::tie(
-          *ports, *vlans, *acls, *systemPorts, *remoteSystemPorts, *dsfNodes) ==
-      std::tie(
-          *other.ports,
-          *other.vlans,
-          *other.acls,
-          *other.systemPorts,
-          *other.remoteSystemPorts,
-          *other.dsfNodes);
+  // THRIFT_COPY
+  return bufferPoolCfgsSame && other.vlans->toThrift() == vlans->toThrift() &&
+      systemPorts->toThrift() == other.systemPorts->toThrift() &&
+      remoteSystemPorts->toThrift() == other.remoteSystemPorts->toThrift() &&
+      dsfNodes->toThrift() == other.dsfNodes->toThrift() &&
+      std::tie(*ports, *acls) == std::tie(*other.ports, *other.acls);
 }
 
 SwitchStateFields SwitchStateFields::fromFollyDynamic(
