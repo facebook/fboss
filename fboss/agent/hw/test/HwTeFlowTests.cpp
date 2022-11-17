@@ -323,4 +323,26 @@ TEST_F(HwTeFlowTest, validateExactMatchTableConfigs) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwTeFlowTest, validateHwProtection) {
+  if (this->skipTest()) {
+    return;
+  }
+  setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
+
+  this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
+  this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
+
+  // Overflow Hw table. This should not raise exception.
+  auto flowEntries = makeFlowEntries(
+      "100", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], 32500);
+
+  EXPECT_NO_THROW(addFlowEntries(getHwSwitchEnsemble(), flowEntries));
+
+  EXPECT_TRUE(utility::getNumTeFlowEntries(getHwSwitch()) > 0);
+  // Some entries will be missing due to overflow
+  if (getPlatform()->getAsic()->getAsicType() !=
+      cfg::AsicType::ASIC_TYPE_FAKE) {
+    EXPECT_NE(utility::getNumTeFlowEntries(getHwSwitch()), 32500);
+  }
+}
 } // namespace facebook::fboss

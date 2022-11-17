@@ -89,8 +89,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   explicit HwSwitchEnsemble(const Features& featuresDesired);
   ~HwSwitchEnsemble() override;
   std::shared_ptr<SwitchState> applyNewState(
-      std::shared_ptr<SwitchState> newState) {
-    return applyNewStateImpl(newState, false);
+      std::shared_ptr<SwitchState> newState,
+      bool rollbackOnHwOverflow = false) {
+    return applyNewStateImpl(newState, false, rollbackOnHwOverflow);
   }
   std::shared_ptr<SwitchState> applyNewStateTransaction(
       std::shared_ptr<SwitchState> newState) {
@@ -245,7 +246,8 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   friend class SaiRollbackTest;
   std::shared_ptr<SwitchState> applyNewStateImpl(
       const std::shared_ptr<SwitchState>& newState,
-      bool transaction);
+      bool transaction,
+      bool disableAppliedStateVerification = false);
   virtual std::unique_ptr<std::thread> setupThrift() = 0;
 
   void addOrUpdateCounter(const PortID& port, const bool deadlock);

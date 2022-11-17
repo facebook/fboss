@@ -246,7 +246,8 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::updateEncapIndices(
 
 std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
     const std::shared_ptr<SwitchState>& newState,
-    bool transaction) {
+    bool transaction,
+    bool disableAppliedStateVerification) {
   if (!newState) {
     return programmedState_;
   }
@@ -268,7 +269,7 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
   }
   StaticL2ForNeighborHwSwitchUpdater updater(this);
   updater.stateUpdated(StateDelta(delta.oldState(), appliedState));
-  if (toApply != appliedState) {
+  if (!disableAppliedStateVerification && toApply != appliedState) {
     throw FbossHwUpdateError(toApply, appliedState);
   }
   return appliedState;

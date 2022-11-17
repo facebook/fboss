@@ -64,13 +64,47 @@ std::shared_ptr<TeFlowEntry> makeFlowEntry(
   return flowEntry;
 }
 
+std::vector<std::shared_ptr<TeFlowEntry>> makeFlowEntries(
+    std::string dstIpStart,
+    std::string nhopAdd,
+    std::string ifName,
+    uint16_t srcPort,
+    uint32_t numEntries) {
+  std::vector<std::shared_ptr<TeFlowEntry>> flowEntries;
+  int count{0};
+  int i{0};
+  int j{0};
+  while (++count <= numEntries) {
+    std::string prefix = fmt::format("{}:{}:{}::", dstIpStart, i, j);
+    std::string counter = fmt::format("counter{}", count);
+    flowEntries.emplace_back(
+        makeFlowEntry(prefix, nhopAdd, ifName, srcPort, counter));
+    if (j++ > 255) {
+      i++;
+      j = 0;
+    }
+  }
+  return flowEntries;
+}
+
 void addFlowEntry(
     HwSwitchEnsemble* hwEnsemble,
     std::shared_ptr<TeFlowEntry>& flowEntry) {
   auto state = hwEnsemble->getProgrammedState()->clone();
   auto teFlows = state->getTeFlowTable()->modify(&state);
   teFlows->addNode(flowEntry);
-  hwEnsemble->applyNewState(state);
+  hwEnsemble->applyNewState(state, true);
+}
+
+void addFlowEntries(
+    HwSwitchEnsemble* hwEnsemble,
+    std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries) {
+  auto state = hwEnsemble->getProgrammedState()->clone();
+  auto teFlows = state->getTeFlowTable()->modify(&state);
+  for (auto& flowEntry : flowEntries) {
+    teFlows->addNode(flowEntry);
+  }
+  hwEnsemble->applyNewState(state, true);
 }
 
 void deleteFlowEntry(
@@ -78,6 +112,18 @@ void deleteFlowEntry(
     std::shared_ptr<TeFlowEntry>& flowEntry) {
   auto teFlows = hwEnsemble->getProgrammedState()->getTeFlowTable()->clone();
   teFlows->removeNode(flowEntry);
+  auto newState = hwEnsemble->getProgrammedState()->clone();
+  newState->resetTeFlowTable(teFlows);
+  hwEnsemble->applyNewState(newState);
+}
+
+void deleteFlowEntries(
+    HwSwitchEnsemble* hwEnsemble,
+    std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries) {
+  auto teFlows = hwEnsemble->getProgrammedState()->getTeFlowTable()->clone();
+  for (auto& flowEntry : flowEntries) {
+    teFlows->removeNode(flowEntry);
+  }
   auto newState = hwEnsemble->getProgrammedState()->clone();
   newState->resetTeFlowTable(teFlows);
   hwEnsemble->applyNewState(newState);

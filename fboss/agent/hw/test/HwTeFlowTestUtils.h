@@ -34,9 +34,17 @@ void addFlowEntry(
     HwSwitchEnsemble* hwEnsemble,
     std::shared_ptr<TeFlowEntry>& flowEntry);
 
+void addFlowEntries(
+    HwSwitchEnsemble* hwEnsemble,
+    std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries);
+
 void deleteFlowEntry(
     HwSwitchEnsemble* hwEnsemble,
     std::shared_ptr<TeFlowEntry>& flowEntry);
+
+void deleteFlowEntries(
+    HwSwitchEnsemble* hwEnsemble,
+    std::vector<std::shared_ptr<TeFlowEntry>>& flowEntry);
 
 void modifyFlowEntry(
     HwSwitchEnsemble* hwEnsemble,
@@ -50,6 +58,13 @@ void modifyFlowEntry(
     HwSwitchEnsemble* hwEnsemble,
     std::shared_ptr<TeFlowEntry>& newFlowEntry,
     bool enable);
+
+std::vector<std::shared_ptr<TeFlowEntry>> makeFlowEntries(
+    std::string dstIp,
+    std::string nhopAdd,
+    std::string ifName,
+    uint16_t srcPort,
+    uint32_t numEntries);
 
 uint64_t getTeFlowOutBytes(const HwSwitch* hw, std::string statName);
 
