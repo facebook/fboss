@@ -37,7 +37,8 @@ class BcmRtag7Test : public BcmTest {
         kV4Fields_,
         kV6FieldsNoFlowLabel_,
         kTransportFields_,
-        std::move(noMplsFields));
+        std::move(noMplsFields),
+        kNoUdfGroupIds_);
   }
 
   std::shared_ptr<SwitchState> setupHalfTrunkHash() {
@@ -48,12 +49,18 @@ class BcmRtag7Test : public BcmTest {
         kV4Fields_,
         kV6FieldsNoFlowLabel_,
         std::move(noTransportFields),
-        std::move(noMplsFields));
+        std::move(noMplsFields),
+        kNoUdfGroupIds_);
   }
 
   std::shared_ptr<SwitchState> setupHashWithAllFields(LoadBalancerID id) {
     return setupHash(
-        id, kV4Fields_, kV6Fields_, kTransportFields_, kMplsFields_);
+        id,
+        kV4Fields_,
+        kV6Fields_,
+        kTransportFields_,
+        kMplsFields_,
+        kNoUdfGroupIds_);
   }
 
   std::shared_ptr<SwitchState> setupHash(
@@ -61,9 +68,10 @@ class BcmRtag7Test : public BcmTest {
       const LoadBalancer::IPv4Fields& v4Fields,
       const LoadBalancer::IPv6Fields& v6Fields,
       const LoadBalancer::TransportFields& transportFields,
-      const LoadBalancer::MPLSFields& mplsFields) {
-    auto loadBalancer =
-        makeLoadBalancer(id, v4Fields, v6Fields, transportFields, mplsFields);
+      const LoadBalancer::MPLSFields& mplsFields,
+      const LoadBalancer::UdfGroupIds& udfGroupIds) {
+    auto loadBalancer = makeLoadBalancer(
+        id, v4Fields, v6Fields, transportFields, mplsFields, udfGroupIds);
 
     auto loadBalancers = getProgrammedState()->getLoadBalancers()->clone();
     if (!loadBalancers->getNodeIf(id)) {
@@ -82,7 +90,8 @@ class BcmRtag7Test : public BcmTest {
       const LoadBalancer::IPv4Fields& v4Fields,
       const LoadBalancer::IPv6Fields& v6Fields,
       const LoadBalancer::TransportFields& transportFields,
-      const LoadBalancer::MPLSFields& mplsFields) {
+      const LoadBalancer::MPLSFields& mplsFields,
+      const LoadBalancer::UdfGroupIds& udfGroupIds) {
     return std::make_unique<LoadBalancer>(
         id,
         cfg::HashingAlgorithm::CRC16_CCITT,
@@ -90,7 +99,8 @@ class BcmRtag7Test : public BcmTest {
         v4Fields,
         v6Fields,
         transportFields,
-        mplsFields);
+        mplsFields,
+        udfGroupIds);
   }
 
   uint32_t getDefaultHashSubFieldSelectorsForL3MPLSForward() {
@@ -133,6 +143,7 @@ class BcmRtag7Test : public BcmTest {
       LoadBalancer::MPLSField::SECOND_LABEL,
       LoadBalancer::MPLSField::THIRD_LABEL};
 
+  const LoadBalancer::UdfGroupIds kNoUdfGroupIds_{};
   static constexpr auto kEcmpSeed = 0x7E57EDA;
   static constexpr auto kTrunkSeed = 0x7E57EDB;
 };

@@ -37,7 +37,8 @@ class LoadBalancerConfigParser {
       LoadBalancer::IPv4Fields,
       LoadBalancer::IPv6Fields,
       LoadBalancer::TransportFields,
-      LoadBalancer::MPLSFields>
+      LoadBalancer::MPLSFields,
+      LoadBalancer::UdfGroupIds>
   parseFields(const cfg::LoadBalancer& cfg) const;
 
   const Platform* platform_;

@@ -97,8 +97,10 @@ void checkLoadBalancer(
     const LoadBalancer::IPv4Fields& expectedV4Fields,
     const LoadBalancer::IPv6Fields& expectedV6Fields,
     const LoadBalancer::TransportFields& expectedTransportFields,
-    const LoadBalancer::MPLSFields& expectedMPLSFieldsRange) {
+    const LoadBalancer::MPLSFields& expectedMPLSFieldsRange,
+    const std::vector<std::string>& expectedUdfGroupIds) {
   ASSERT_NE(nullptr, loadBalancer);
+
   LoadBalancer expectedLoadBalancer(
       expectedID,
       expectedAlgorithm,
@@ -106,7 +108,8 @@ void checkLoadBalancer(
       expectedV4Fields,
       expectedV6Fields,
       expectedTransportFields,
-      expectedMPLSFieldsRange);
+      expectedMPLSFieldsRange,
+      expectedUdfGroupIds);
   EXPECT_EQ(*loadBalancer, expectedLoadBalancer);
 }
 
@@ -144,6 +147,8 @@ TEST(LoadBalancer, defaultConfiguration) {
       LoadBalancer::MPLSField::SECOND_LABEL,
       LoadBalancer::MPLSField::THIRD_LABEL};
 
+  LoadBalancer::UdfGroupIds udfGroupIds{};
+
   auto platform = createMockPlatform();
   auto initialState = std::make_shared<SwitchState>();
 
@@ -165,7 +170,8 @@ TEST(LoadBalancer, defaultConfiguration) {
       v4SrcAndDst,
       v6SrcAndDst,
       transportSrcAndDst,
-      mplsFields);
+      mplsFields,
+      udfGroupIds);
 
   auto lagLoadBalancer = finalState->getLoadBalancers()->getLoadBalancerIf(
       LoadBalancerID::AGGREGATE_PORT);
@@ -178,7 +184,8 @@ TEST(LoadBalancer, defaultConfiguration) {
       v4SrcAndDst,
       v6SrcAndDst,
       LoadBalancer::TransportFields(),
-      mplsFields);
+      mplsFields,
+      udfGroupIds);
 }
 
 TEST(LoadBalancer, deserializationInverseOfSerlization) {
@@ -196,6 +203,8 @@ TEST(LoadBalancer, deserializationInverseOfSerlization) {
       LoadBalancer::MPLSField::SECOND_LABEL,
       LoadBalancer::MPLSField::THIRD_LABEL};
 
+  LoadBalancer::UdfGroupIds udfGroupIds{};
+
   LoadBalancer loadBalancer(
       origLoadBalancerID,
       origHash,
@@ -203,7 +212,8 @@ TEST(LoadBalancer, deserializationInverseOfSerlization) {
       origV4Src,
       origV6Dst,
       origTransportSrcAndDst,
-      mplsFields);
+      mplsFields,
+      udfGroupIds);
 
   auto serializedLoadBalancer = loadBalancer.toFollyDynamic();
   auto deserializedLoadBalancerPtr =
@@ -217,7 +227,8 @@ TEST(LoadBalancer, deserializationInverseOfSerlization) {
       origV4Src,
       origV6Dst,
       origTransportSrcAndDst,
-      mplsFields);
+      mplsFields,
+      udfGroupIds);
 }
 
 TEST(LoadBalancer, Thrifty) {
@@ -234,6 +245,7 @@ TEST(LoadBalancer, Thrifty) {
       LoadBalancer::MPLSField::TOP_LABEL,
       LoadBalancer::MPLSField::SECOND_LABEL,
       LoadBalancer::MPLSField::THIRD_LABEL};
+  LoadBalancer::UdfGroupIds udfGroupIds{};
 
   LoadBalancer loadBalancer(
       origLoadBalancerID,
@@ -242,7 +254,8 @@ TEST(LoadBalancer, Thrifty) {
       origV4Src,
       origV6Dst,
       origTransportSrcAndDst,
-      mplsFields);
+      mplsFields,
+      udfGroupIds);
 
   auto newLoadBalancer = LoadBalancer::fromThrift(loadBalancer.toThrift());
   EXPECT_EQ(loadBalancer, *newLoadBalancer);
@@ -315,6 +328,8 @@ TEST(LoadBalancerMap, idempotence) {
       LoadBalancer::MPLSField::TOP_LABEL,
       LoadBalancer::MPLSField::SECOND_LABEL,
       LoadBalancer::MPLSField::THIRD_LABEL};
+
+  LoadBalancer::UdfGroupIds udfGroupIds{};
 
   auto platform = createMockPlatform();
   auto baseState = std::make_shared<SwitchState>();
@@ -449,6 +464,7 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
       startLoadBalancers->getLoadBalancerIf(LoadBalancerID::AGGREGATE_PORT),
       endLoadBalancers->getLoadBalancerIf(LoadBalancerID::AGGREGATE_PORT));
 
+  LoadBalancer::UdfGroupIds udfGroupIds{};
   checkLoadBalancer(
       endLoadBalancers->getLoadBalancerIf(LoadBalancerID::ECMP),
       startEcmpLoadBalancer->getID(),
@@ -462,7 +478,8 @@ TEST(LoadBalancerMap, updateLoadBalancer) {
       LoadBalancer::MPLSFields{
           LoadBalancer::MPLSField::TOP_LABEL,
           LoadBalancer::MPLSField::SECOND_LABEL,
-          LoadBalancer::MPLSField::THIRD_LABEL});
+          LoadBalancer::MPLSField::THIRD_LABEL},
+      udfGroupIds);
 }
 
 TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
@@ -495,6 +512,7 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
       LoadBalancer::MPLSField::TOP_LABEL,
       LoadBalancer::MPLSField::SECOND_LABEL,
       LoadBalancer::MPLSField::THIRD_LABEL};
+  LoadBalancer::UdfGroupIds udfGroupIds{};
 
   LoadBalancerMap loadBalancerMap;
   loadBalancerMap.addLoadBalancer(std::make_shared<LoadBalancer>(
@@ -504,7 +522,8 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
       aggPortOrigV4Src,
       aggPortOrigV6Dst,
       aggPortOrigTransportSrcAndDst,
-      aggMplsFields));
+      aggMplsFields,
+      udfGroupIds));
   loadBalancerMap.addLoadBalancer(std::make_shared<LoadBalancer>(
       ecmpOrigLoadBalancerID,
       ecmpOrigHash,
@@ -512,7 +531,8 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
       ecmpOrigV4Dst,
       ecmpOrigV6Src,
       ecmpOrigTransportSrcAndDst,
-      ecmpMplsFields));
+      ecmpMplsFields,
+      udfGroupIds));
 
   auto serializedLoadBalancerMap = loadBalancerMap.toFollyDynamic();
   auto deserializedLoadBalancerMapPtr =
@@ -527,7 +547,8 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
       aggPortOrigV4Src,
       aggPortOrigV6Dst,
       aggPortOrigTransportSrcAndDst,
-      aggMplsFields);
+      aggMplsFields,
+      udfGroupIds);
   checkLoadBalancer(
       deserializedLoadBalancerMapPtr->getLoadBalancerIf(LoadBalancerID::ECMP),
       ecmpOrigLoadBalancerID,
@@ -536,5 +557,6 @@ TEST(LoadBalancerMap, deserializationInverseOfSerlization) {
       ecmpOrigV4Dst,
       ecmpOrigV6Src,
       ecmpOrigTransportSrcAndDst,
-      ecmpMplsFields);
+      ecmpMplsFields,
+      udfGroupIds);
 }

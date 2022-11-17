@@ -27,6 +27,7 @@ static constexpr folly::StringPiece kIPv4Fields{"v4Fields"};
 static constexpr folly::StringPiece kIPv6Fields{"v6Fields"};
 static constexpr folly::StringPiece kTransportFields{"transportFields"};
 static constexpr folly::StringPiece kMPLSFields{"mplsFields"};
+static constexpr folly::StringPiece kUdfGroupIds{"udfGroupIds"};
 }; // namespace
 
 namespace facebook::fboss {
@@ -38,14 +39,16 @@ LoadBalancerFields::LoadBalancerFields(
     LoadBalancerFields::IPv4Fields v4Fields,
     LoadBalancerFields::IPv6Fields v6Fields,
     LoadBalancerFields::TransportFields transportFields,
-    LoadBalancerFields::MPLSFields mplsFields)
+    LoadBalancerFields::MPLSFields mplsFields,
+    LoadBalancerFields::UdfGroupIds udfGroupIds)
     : id_(id),
       algorithm_(algorithm),
       seed_(seed),
       v4Fields_(v4Fields),
       v6Fields_(v6Fields),
       transportFields_(transportFields),
-      mplsFields_(mplsFields) {}
+      mplsFields_(mplsFields),
+      udfGroupIds_(udfGroupIds) {}
 
 LoadBalancer::LoadBalancer(
     LoadBalancerID id,
@@ -54,7 +57,8 @@ LoadBalancer::LoadBalancer(
     LoadBalancer::IPv4Fields v4Fields,
     LoadBalancer::IPv6Fields v6Fields,
     LoadBalancer::TransportFields transportFields,
-    LoadBalancer::MPLSFields mplsFields)
+    LoadBalancer::MPLSFields mplsFields,
+    LoadBalancerFields::UdfGroupIds udfGroupIds)
     : ThriftStructNode<LoadBalancer, state::LoadBalancerFields>() {
   set<switch_state_tags::id>(id);
   set<switch_state_tags::algorithm>(algorithm);
@@ -70,6 +74,9 @@ LoadBalancer::LoadBalancer(
   }
   for (auto field : mplsFields) {
     get<switch_state_tags::mplsFields>()->emplace(field);
+  }
+  for (auto udfGroupId : udfGroupIds) {
+    get<switch_state_tags::udfGroups>()->emplace_back(udfGroupId);
   }
 }
 
