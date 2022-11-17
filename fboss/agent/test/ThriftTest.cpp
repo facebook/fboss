@@ -2158,3 +2158,49 @@ TEST_F(ThriftTeFlowTest, getTeFlowDetails) {
         tableEntry->getResolvedNextHops()->toThrift());
   }
 }
+
+TEST_F(ThriftTeFlowTest, teFlowUpdateHwProtection) {
+  ThriftHandler handler(sw_);
+  auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
+  auto flowEntry = makeFlow("100::1");
+  teFlowEntries->emplace_back(flowEntry);
+  // Fail HW update by returning current state
+  EXPECT_HW_CALL(sw_, stateChanged(_)).WillOnce(Return(sw_->getState()));
+
+  EXPECT_THROW(
+      {
+        try {
+          handler.addTeFlows(std::move(teFlowEntries));
+
+        } catch (const FbossTeUpdateError& flowError) {
+          EXPECT_EQ(flowError.failedAddUpdateFlows()->size(), 1);
+          EXPECT_EQ(
+              flowError.failedAddUpdateFlows()[0], makeFlow("100::1").flow());
+          throw;
+        }
+      },
+      FbossTeUpdateError);
+}
+
+TEST_F(ThriftTeFlowTest, teFlowSyncUpdateHwProtection) {
+  ThriftHandler handler(sw_);
+  auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
+  auto flowEntry = makeFlow("100::1");
+  teFlowEntries->emplace_back(flowEntry);
+  // Fail HW update by returning current state
+  EXPECT_HW_CALL(sw_, stateChanged(_)).WillOnce(Return(sw_->getState()));
+
+  EXPECT_THROW(
+      {
+        try {
+          handler.syncTeFlows(std::move(teFlowEntries));
+
+        } catch (const FbossTeUpdateError& flowError) {
+          EXPECT_EQ(flowError.failedAddUpdateFlows()->size(), 1);
+          EXPECT_EQ(
+              flowError.failedAddUpdateFlows()[0], makeFlow("100::1").flow());
+          throw;
+        }
+      },
+      FbossTeUpdateError);
+}
