@@ -47,14 +47,9 @@ gencpp() {
   } > "$outf"
 }
 
-FBCODE_DIR=""
 INSTALL_DIR=""
 for i in "$@"; do
   case $1 in
-    --fbcode_dir=*)
-      FBCODE_DIR="${i#*=}"
-      shift # past argument=value
-      ;;
     --install_dir=*)
       INSTALL_DIR="${i#*=}"
       shift # past argumen=value
@@ -66,15 +61,16 @@ for i in "$@"; do
   esac
 done
 
+SRC_DIR=$(dirname "${BASH_SOURCE[0]}")
 CONFIG_DIR="./configs"
 if [ -d $CONFIG_DIR ]; then
-  echo "CONFIG: $CONFIG_DIR"
-elif [ -n "$FBCODE_DIR" ]; then
-  CONFIG_DIR="$FBCODE_DIR/fboss/platform/rackmon/configs"
-  echo "CONFIG: $CONFIG_DIR"
-elif [ -n "$BUCK_PROJECT_ROOT" ]; then
-  CONFIG_DIR="$BUCK_PROJECT_ROOT/fboss/platform/rackmon/configs"
-  echo "CONFIG: $CONFIG_DIR"
+  echo "CONFIG_DIR=$CONFIG_DIR"
+elif [ -d "${SRC_DIR}/configs" ]; then
+  CONFIG_DIR="${SRC_DIR}/configs"
+  echo "CONFIG_DIR=$CONFIG_DIR"
+else
+  echo "ERROR: $0 needs to be executed in project root containing configs"
+  exit 1
 fi
 OUTPUT_DIR="."
 if [ -n "$INSTALL_DIR" ]; then
