@@ -81,6 +81,22 @@ SaiTunnelManager::SaiTunnelManager(
 
 SaiTunnelManager::~SaiTunnelManager() {}
 
+std::shared_ptr<SaiP2MPTunnelTerm> SaiTunnelManager::addP2MPTunnelTerm(
+    const std::shared_ptr<IpTunnel>& swTunnel,
+    TunnelSaiId tunnelSaiId) {
+  auto& tunnelTermStore = saiStore_->get<SaiP2MPTunnelTermTraits>();
+  SaiVirtualRouterHandle* virtualRouterHandle =
+      managerTable_->virtualRouterManager().getVirtualRouterHandle(RouterID(0));
+  SaiP2MPTunnelTermTraits::CreateAttributes k2{
+      getSaiTunnelTermType(swTunnel->getTunnelTermType()),
+      virtualRouterHandle->virtualRouter->adapterKey(),
+      swTunnel->getSrcIP(), // Term Dest Ip
+      getSaiTunnelType(swTunnel->getType()), // Tunnel Type
+      tunnelSaiId};
+
+  return tunnelTermStore.setObject(k2, k2);
+}
+
 TunnelSaiId SaiTunnelManager::addTunnel(
     const std::shared_ptr<IpTunnel>& swTunnel) {
   auto existTunnel = getTunnelHandle(swTunnel->getID());
@@ -117,26 +133,11 @@ TunnelSaiId SaiTunnelManager::addTunnel(
       getSaiDecapEcnMode(swTunnel->getEcnMode())};
 
   std::shared_ptr<SaiTunnel> tunnelObj = tunnelStore.setObject(k1, k1);
-
-  auto& tunnelTermStore = saiStore_->get<SaiP2MPTunnelTermTraits>();
-  SaiVirtualRouterHandle* virtualRouterHandle =
-      managerTable_->virtualRouterManager().getVirtualRouterHandle(RouterID(0));
-  VirtualRouterSaiId saiVirtualRouterId{
-      virtualRouterHandle->virtualRouter->adapterKey()};
   if (swTunnel->getTunnelTermType() == cfg::TunnelTerminationType::P2MP) {
-    SaiP2MPTunnelTermTraits::CreateAttributes k2{
-        getSaiTunnelTermType(swTunnel->getTunnelTermType()),
-        saiVirtualRouterId,
-        swTunnel->getSrcIP(), // Term Dest Ip
-        getSaiTunnelType(swTunnel->getType()), // Tunnel Type
-        // SAI id of the tunnel, not the IpTunnel id in state
-        tunnelObj->adapterKey()};
-
-    std::shared_ptr<SaiP2MPTunnelTerm> tunnelTermObj =
-        tunnelTermStore.setObject(k2, k2);
     auto tunnelHandle = std::make_unique<SaiTunnelHandle>();
     tunnelHandle->tunnel = tunnelObj;
-    tunnelHandle->tunnelTerm = tunnelTermObj;
+    tunnelHandle->tunnelTerm =
+        addP2MPTunnelTerm(swTunnel, tunnelObj->adapterKey());
     handles_[swTunnel->getID()] = std::move(tunnelHandle);
   } else {
     throw FbossError("Tunnel Term types other than P2MP are not supported yet");

@@ -70,6 +70,9 @@ class SaiTunnelManager {
 
  private:
   SaiTunnelHandle* getTunnelHandleImpl(std::string swId) const;
+  std::shared_ptr<SaiP2MPTunnelTerm> addP2MPTunnelTerm(
+      const std::shared_ptr<IpTunnel>& swTunnel,
+      TunnelSaiId tunnelSaiId);
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   Handles handles_;
