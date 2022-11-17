@@ -105,6 +105,48 @@ struct SaiTunnelTermTraits<SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP> {
   using AdapterHostKey = CreateAttributes;
 };
 
+template <>
+struct SaiTunnelTermTraits<SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2P> {
+  using EnumType = sai_tunnel_term_table_entry_attr_t;
+  struct Attributes {
+    using Type = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_TYPE,
+        sai_int32_t>;
+    using VrId = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_VR_ID,
+        SaiObjectIdT>;
+    using DstIp = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_DST_IP,
+        folly::IPAddress>;
+    using DstIpMask = void;
+    using SrcIp = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_SRC_IP,
+        folly::IPAddress>;
+    using SrcIpMask = void;
+    using TunnelType = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_TUNNEL_TYPE,
+        sai_int32_t>;
+    using ActionTunnelId = SaiAttribute<
+        EnumType,
+        SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_ACTION_TUNNEL_ID,
+        SaiObjectIdT>;
+  };
+  using AdapterKey = TunnelTermSaiId;
+  using CreateAttributes = std::tuple<
+      Attributes::Type,
+      Attributes::VrId,
+      Attributes::DstIp,
+      Attributes::SrcIp,
+      Attributes::TunnelType,
+      Attributes::ActionTunnelId>;
+  using AdapterHostKey = CreateAttributes;
+};
+
 } // namespace detail
 
 template <sai_tunnel_term_table_entry_type_t type>
@@ -125,12 +167,19 @@ struct SaiTunnelTermTraitsT {
 
 using SaiP2MPTunnelTermTraits =
     SaiTunnelTermTraitsT<SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP>;
+using SaiP2PTunnelTermTraits =
+    SaiTunnelTermTraitsT<SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2P>;
 
 template <>
 struct SaiObjectHasConditionalAttributes<SaiP2MPTunnelTermTraits>
     : public std::true_type {};
 
-using SaiTunnelTermTraits = ConditionObjectTraits<SaiP2MPTunnelTermTraits>;
+template <>
+struct SaiObjectHasConditionalAttributes<SaiP2PTunnelTermTraits>
+    : public std::true_type {};
+
+using SaiTunnelTermTraits =
+    ConditionObjectTraits<SaiP2MPTunnelTermTraits, SaiP2PTunnelTermTraits>;
 using SaiTunnelTermAdapterHostKey =
     typename SaiTunnelTermTraits::AdapterHostKey;
 using SaiTunnelTermAdaptertKey =
