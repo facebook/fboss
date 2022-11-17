@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/EncapIndexAllocator.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
@@ -52,7 +53,7 @@ class NeighborManagerTest : public ManagerTestBase {
       cfg::InterfaceType expectedRifType = cfg::InterfaceType::VLAN,
       sai_uint32_t expectedMetadata = 0,
       sai_uint32_t expectedEncapIndex = 0,
-      bool expectedIsLocal = true) {
+      bool expectedIsLocal = true) const {
     auto saiEntry =
         saiManagerTable->neighborManager().saiEntryFromSwEntry(neighborEntry);
     auto gotMac = saiApiTable->neighborApi().getAttribute(
@@ -85,7 +86,7 @@ class NeighborManagerTest : public ManagerTestBase {
   }
 
   template <typename NeighborEntryT>
-  void checkMissing(const NeighborEntryT& neighborEntry) {
+  void checkMissing(const NeighborEntryT& neighborEntry) const {
     auto saiEntry =
         saiManagerTable->neighborManager().saiEntryFromSwEntry(neighborEntry);
     auto saiNeighborHandle =
@@ -94,12 +95,27 @@ class NeighborManagerTest : public ManagerTestBase {
   }
 
   template <typename NeighborEntryT>
-  void checkUnresolved(const NeighborEntryT& neighborEntry) {
+  void checkUnresolved(const NeighborEntryT& neighborEntry) const {
     auto saiEntry =
         saiManagerTable->neighborManager().saiEntryFromSwEntry(neighborEntry);
     auto saiNeighborHandle =
         saiManagerTable->neighborManager().getNeighborHandle(saiEntry);
     EXPECT_TRUE(saiNeighborHandle);
+  }
+
+  std::pair<std::shared_ptr<ArpEntry>, int64_t> resolvePortRifArp(
+      std::optional<sai_uint32_t> metadata = std::nullopt) {
+    auto encapIndex = EncapIndexAllocator::getNextAvailableEncapIdx(
+        programmedState, *saiPlatform->getAsic());
+    auto arpEntry = resolveArp(
+        intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT, metadata, encapIndex);
+    checkEntry(
+        arpEntry,
+        h0.mac,
+        cfg::InterfaceType::SYSTEM_PORT,
+        metadata.value_or(0),
+        encapIndex);
+    return {arpEntry, encapIndex};
   }
 
   TestInterface intf0;
@@ -117,8 +133,7 @@ TEST_F(NeighborManagerTest, addResolvedNeighbor) {
 }
 
 TEST_F(NeighborManagerTest, addResolvedPortRifNeighbor) {
-  auto arpEntry = resolveArp(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
-  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT);
+  resolvePortRifArp();
 }
 
 TEST_F(NeighborManagerTest, addResolvedPortRifNeighborRemote) {
@@ -139,20 +154,13 @@ TEST_F(NeighborManagerTest, addResolvedNeighborWithMetadata) {
 }
 
 TEST_F(NeighborManagerTest, addResolvedPortRifNeighborWithMetadata) {
-  auto arpEntry = resolveArp(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT, 42);
-  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT, 42);
+  resolvePortRifArp(42);
 }
 
 TEST_F(NeighborManagerTest, addResolvedNeighborWithEncapIndex) {
   EXPECT_THROW(
       resolveArp(intf0.id, h0, cfg::InterfaceType::VLAN, std::nullopt, 42),
       FbossError);
-}
-
-TEST_F(NeighborManagerTest, addResolvedPortRifNeighborWithEncapIndex) {
-  auto arpEntry = resolveArp(
-      intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT, std::nullopt, 42);
-  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT, 0, 42);
 }
 
 TEST_F(NeighborManagerTest, addResolvedNeighborWithEncapIndexRemote) {
@@ -176,8 +184,7 @@ TEST_F(NeighborManagerTest, removeResolvedNeighbor) {
 }
 
 TEST_F(NeighborManagerTest, removeResolvedPortRifNeighbor) {
-  auto arpEntry = resolveArp(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
-  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT);
+  auto arpEntry = resolvePortRifArp(42).first;
   saiManagerTable->neighborManager().removeNeighbor(arpEntry);
   checkMissing(arpEntry);
 }
@@ -191,20 +198,21 @@ TEST_F(NeighborManagerTest, changeResolvedNeighbor) {
 }
 
 TEST_F(NeighborManagerTest, changeResolvedPortRifNeighbor) {
-  auto arpEntry = resolveArp(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
-  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT);
+  auto [arpEntry, encapIndex] = resolvePortRifArp(42);
   auto arpEntryNew = makeArpEntry(
       intf0.id,
       testInterfaces[1].remoteHosts[0],
       std::nullopt,
-      std::nullopt,
+      encapIndex,
       true,
       cfg::InterfaceType::SYSTEM_PORT);
   saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew);
   checkEntry(
       arpEntryNew,
       testInterfaces[1].remoteHosts[0].mac,
-      cfg::InterfaceType ::SYSTEM_PORT);
+      cfg::InterfaceType ::SYSTEM_PORT,
+      0,
+      encapIndex);
 }
 
 TEST_F(NeighborManagerTest, changeResolvedNeighborAddMetadata) {
@@ -221,13 +229,12 @@ TEST_F(NeighborManagerTest, changeResolvedNeighborAddMetadata) {
 }
 
 TEST_F(NeighborManagerTest, changeResolvedPortRifNeighborAddMetadata) {
-  auto arpEntry = resolveArp(intf0.id, h0);
-  checkEntry(arpEntry, h0.mac);
+  auto [arpEntry, encapIndex] = resolvePortRifArp(42);
   auto arpEntryNew = makeArpEntry(
       intf0.id,
       testInterfaces[1].remoteHosts[0],
       42,
-      std::nullopt,
+      encapIndex,
       true,
       cfg::InterfaceType::SYSTEM_PORT);
   saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew);
@@ -235,7 +242,8 @@ TEST_F(NeighborManagerTest, changeResolvedPortRifNeighborAddMetadata) {
       arpEntryNew,
       testInterfaces[1].remoteHosts[0].mac,
       cfg::InterfaceType::SYSTEM_PORT,
-      42);
+      42,
+      encapIndex);
 }
 
 TEST_F(NeighborManagerTest, changeResolvedNeighborAddEncapIndex) {
@@ -248,20 +256,6 @@ TEST_F(NeighborManagerTest, changeResolvedNeighborAddEncapIndex) {
       FbossError);
 }
 
-TEST_F(NeighborManagerTest, changeResolvedPortRifNeighborAddEncapIndex) {
-  auto arpEntry = resolveArp(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
-  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT);
-  auto arpEntryNew = makeArpEntry(
-      intf0.id,
-      testInterfaces[1].remoteHosts[0],
-      std::nullopt,
-      42,
-      true,
-      cfg::InterfaceType::SYSTEM_PORT);
-  saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew);
-  checkEntry(arpEntryNew, h0.mac, cfg::InterfaceType::SYSTEM_PORT, 0, 42);
-}
-
 TEST_F(NeighborManagerTest, changeResolvedNeighborAddEncapIndexRemote) {
   auto arpEntry = resolveArp(intf0.id, h0);
   checkEntry(arpEntry, h0.mac);
@@ -270,21 +264,6 @@ TEST_F(NeighborManagerTest, changeResolvedNeighborAddEncapIndexRemote) {
   EXPECT_THROW(
       saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew),
       FbossError);
-}
-
-TEST_F(NeighborManagerTest, changeResolvedPortRifNeighborAddEncapIndexRemote) {
-  auto arpEntry = resolveArp(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
-  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT);
-  auto arpEntryNew = makeArpEntry(
-      intf0.id,
-      testInterfaces[1].remoteHosts[0],
-      std::nullopt,
-      42,
-      false,
-      cfg::InterfaceType::SYSTEM_PORT);
-  saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew);
-  checkEntry(
-      arpEntryNew, h0.mac, cfg::InterfaceType::SYSTEM_PORT, 0, 42, false);
 }
 
 TEST_F(NeighborManagerTest, changeResolvedNeighborNoFieldChange) {
@@ -296,17 +275,17 @@ TEST_F(NeighborManagerTest, changeResolvedNeighborNoFieldChange) {
 }
 
 TEST_F(NeighborManagerTest, changeResolvedPortRifNeighborNoFieldChange) {
-  auto arpEntry = resolveArp(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
-  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT);
+  auto [arpEntry, encapIndex] = resolvePortRifArp();
   auto arpEntryNew = makeArpEntry(
       intf0.id,
       h0,
       std::nullopt,
-      std::nullopt,
+      encapIndex,
       true,
       cfg::InterfaceType::SYSTEM_PORT);
   saiManagerTable->neighborManager().changeNeighbor(arpEntry, arpEntryNew);
-  checkEntry(arpEntryNew, h0.mac, cfg::InterfaceType::SYSTEM_PORT);
+  checkEntry(
+      arpEntryNew, h0.mac, cfg::InterfaceType::SYSTEM_PORT, 0, encapIndex);
 }
 
 TEST_F(NeighborManagerTest, addUnresolvedNeighbor) {
@@ -359,8 +338,11 @@ TEST_F(NeighborManagerTest, resolvePortRifNeighbor) {
       makePendingArpEntry(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
   EXPECT_TRUE(pendingEntry->isPending());
   saiManagerTable->neighborManager().addNeighbor(pendingEntry);
-  auto arpEntry = resolveArp(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
-  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT);
+  auto encapIndex = EncapIndexAllocator::getNextAvailableEncapIdx(
+      programmedState, *saiPlatform->getAsic());
+  auto arpEntry = resolveArp(
+      intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT, std::nullopt, encapIndex);
+  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT, 0, encapIndex);
 }
 
 TEST_F(NeighborManagerTest, unresolveNeighbor) {
@@ -373,8 +355,7 @@ TEST_F(NeighborManagerTest, unresolveNeighbor) {
 }
 
 TEST_F(NeighborManagerTest, unresolvePortRifNeighbor) {
-  auto arpEntry = resolveArp(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
-  checkEntry(arpEntry, h0.mac, cfg::InterfaceType::SYSTEM_PORT);
+  auto [arpEntry, encapIndex] = resolvePortRifArp();
   auto pendingEntry =
       makePendingArpEntry(intf0.id, h0, cfg::InterfaceType::SYSTEM_PORT);
   EXPECT_TRUE(pendingEntry->isPending());
@@ -425,14 +406,7 @@ TEST_F(NeighborManagerTest, addDuplicateResolvedNeighbor) {
 }
 
 TEST_F(NeighborManagerTest, addDuplicateResolvedPortRifNeighbor) {
-  auto arpEntry = makeArpEntry(
-      intf0.id,
-      h0,
-      std::nullopt,
-      std::nullopt,
-      true,
-      cfg::InterfaceType::SYSTEM_PORT);
-  saiManagerTable->neighborManager().addNeighbor(arpEntry);
+  auto arpEntry = resolvePortRifArp().first;
   EXPECT_THROW(
       saiManagerTable->neighborManager().addNeighbor(arpEntry->clone()),
       FbossError);
