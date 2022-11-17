@@ -1,11 +1,14 @@
 // Copyright 2014-present Facebook. All Rights Reserved.
 
-#include <fboss/lib/CommonFileUtils.h>
-#include <fboss/platform/data_corral_service/darwin/DarwinChassisManager.h>
-#include <fboss/platform/data_corral_service/darwin/DarwinFruModule.h>
-#include <fboss/platform/data_corral_service/darwin/DarwinPlatformConfig.h>
+#include "fboss/platform/data_corral_service/darwin/DarwinChassisManager.h"
+
+#include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
+
+#include "fboss/lib/CommonFileUtils.h"
+#include "fboss/platform/data_corral_service/darwin/DarwinFruModule.h"
+#include "fboss/platform/data_corral_service/darwin/DarwinPlatformConfig.h"
 
 namespace {
 // modules in darwin system
@@ -22,6 +25,8 @@ const std::string kRackmonLed = "RackmonLed";
 // colors available in leds
 const std::string kLedGreen = "Green";
 const std::string kLedRed = "Red";
+
+const std::string kSetColorFailure = "set.color.failure";
 } // namespace
 
 namespace facebook::fboss::platform::data_corral_service {
@@ -38,6 +43,7 @@ void DarwinChassisLed::setColor(DarwinLedColor color) {
   if (color_ != color) {
     if (!facebook::fboss::writeSysfs(paths_[color], "1")) {
       XLOG(ERR) << "failed to set color " << color << " for led " << name_;
+      fb303::fbData->setCounter(kSetColorFailure, 1);
       return;
     }
     for (auto const& colorPath : paths_) {
@@ -45,6 +51,7 @@ void DarwinChassisLed::setColor(DarwinLedColor color) {
         if (!facebook::fboss::writeSysfs(colorPath.second, "0")) {
           XLOG(ERR) << "failed to unset color " << color << " for led "
                     << name_;
+          fb303::fbData->setCounter(kSetColorFailure, 1);
           return;
         }
       }
@@ -53,6 +60,7 @@ void DarwinChassisLed::setColor(DarwinLedColor color) {
                << " to color " << color;
     color_ = color;
   }
+  fb303::fbData->setCounter(kSetColorFailure, 0);
 }
 
 DarwinLedColor DarwinChassisLed::getColor() {
@@ -138,6 +146,11 @@ void DarwinChassisManager::programChassis() {
   if (sysLedColor == DarwinLedColor::GREEN) {
     XLOG(DBG4) << "All fru modules are present";
   }
+  fb303::fbData->setCounter(fmt::format("{}.color", kSystemLed), sysLedColor);
+  fb303::fbData->setCounter(fmt::format("{}.color", kFanLed), fanLedColor);
+  fb303::fbData->setCounter(fmt::format("{}.color", kPemLed), pemLedColor);
+  fb303::fbData->setCounter(
+      fmt::format("{}.color", kRackmonLed), rackmonLedColor);
   sysLed_->setColor(sysLedColor);
   fanLed_->setColor(fanLedColor);
   pemLed_->setColor(pemLedColor);
