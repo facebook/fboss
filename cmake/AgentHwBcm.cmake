@@ -114,9 +114,8 @@ target_link_libraries(bcm
   counter_utils
   Folly::folly
   ${OPENNSA}
-  ${YAML-CPP}
-  ${YAML}
   phy_utils
+  bcm_yaml_config
 )
 
 set_target_properties(bcm PROPERTIES COMPILE_FLAGS
@@ -130,7 +129,6 @@ include_directories(
 
 add_library(config
   fboss/agent/hw/bcm/BcmConfig.cpp
-  fboss/agent/hw/bcm/BcmYamlConfig.cpp
 )
 
 target_link_libraries(config

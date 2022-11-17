@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include "fboss/agent/hw/bcm/BcmYamlConfig.h"
 #include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/platforms/common/utils/BcmYamlConfig.h"
 
 #include <map>
 #include <memory>

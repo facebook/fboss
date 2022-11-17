@@ -619,7 +619,6 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/bcm/BcmBstStatsMgr.cpp
       fboss/agent/hw/bcm/BcmFacebookAPI.cpp
       fboss/agent/hw/bcm/BcmConfig.cpp
-      fboss/agent/hw/bcm/BcmYamlConfig.cpp
       fboss/agent/hw/bcm/BcmControlPlane.cpp
       fboss/agent/hw/bcm/BcmControlPlaneQueueManager.cpp
       fboss/agent/hw/bcm/BcmCosQueueManager.cpp
@@ -974,6 +973,7 @@ if (NOT SAI_ONLY)
       qsfp_cpp2
       qsfp_service_client
       wedge_led_utils
+      bcm_yaml_config
       bidirectional_packet_stream
       snapshot_manager
       fsdb_stream_client

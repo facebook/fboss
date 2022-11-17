@@ -1,6 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include "fboss/agent/hw/bcm/BcmYamlConfig.h"
+#include "fboss/agent/platforms/common/utils/BcmYamlConfig.h"
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -122,20 +122,8 @@ void BcmYamlConfig::modifyCoreMaps(
   }
 }
 
-BcmMmuState BcmYamlConfig::getMmuState() const {
-  auto mode =
-      getConfigValue<std::string>(thresholdNode_, kHSDKThresholsModeKey);
-  if (mode) {
-    XLOG(DBG2) << "MMU state is " << *mode;
-    if (*mode == "LOSSY") {
-      return BcmMmuState::MMU_LOSSY;
-    } else if (*mode == "LOSSLESS") {
-      return BcmMmuState::MMU_LOSSLESS;
-    } else if (*mode == "LOSSY_AND_LOSSLESS") {
-      return BcmMmuState::MMU_LOSSY_AND_LOSSLESS;
-    }
-  }
-  return BcmMmuState::UNKNOWN;
+std::optional<std::string> BcmYamlConfig::getMmuState() const {
+  return getConfigValue<std::string>(thresholdNode_, kHSDKThresholsModeKey);
 }
 
 bool BcmYamlConfig::is128ByteIpv6Enabled() const {

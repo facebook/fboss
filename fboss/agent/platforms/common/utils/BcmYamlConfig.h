@@ -10,7 +10,6 @@
 #include <yaml-cpp/yaml.h>
 #include <string>
 #include <vector>
-#include "fboss/agent/hw/bcm/types.h"
 
 namespace facebook::fboss {
 
@@ -26,7 +25,7 @@ class BcmYamlConfig {
 
   std::string getConfig();
 
-  BcmMmuState getMmuState() const;
+  std::optional<std::string> getMmuState() const;
   bool is128ByteIpv6Enabled() const;
   bool isAlpmEnabled() const;
   bool isPriorityKeyUsedInRxCosqMapping() const;
