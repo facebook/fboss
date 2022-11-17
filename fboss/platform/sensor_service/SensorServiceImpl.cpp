@@ -178,16 +178,11 @@ void SensorServiceImpl::fetchSensorData() {
   if (sensorSource_ == SensorSource::LMSENSOR) {
     int retVal = 0;
     std::string ret = execCommandUnchecked(kLmsensorCommand, retVal);
-
     if (retVal != 0) {
       throw std::runtime_error("Run " + kLmsensorCommand + " failed!");
     }
-
     parseSensorJsonData(ret);
-
   } else if (sensorSource_ == SensorSource::SYSFS) {
-    // ToDo
-    // Get sensor value via read from path (key of sensorTable_)
     getSensorDataFromPath();
   } else if (sensorSource_ == SensorSource::MOCK) {
     std::string sensorDataJson;
@@ -201,32 +196,36 @@ void SensorServiceImpl::fetchSensorData() {
     }
   } else {
     throw std::runtime_error(
-        "Unknow Sensor Source selected : " +
+        "Unknown Sensor Source selected : " +
         folly::to<std::string>(static_cast<int>(sensorSource_)));
   }
 }
 
 void SensorServiceImpl::getSensorDataFromPath() {
-  auto dataTable = liveDataTable_.wlock();
-
-  auto now = helpers::nowInSecs();
-  for (const auto& [name, livedata] : *dataTable) {
-    std::string sensorInput;
-
-    if (folly::readFile(livedata.path.c_str(), sensorInput)) {
-      (*dataTable)[name].value = folly::to<float>(sensorInput);
-      (*dataTable)[name].timeStamp = now;
-      if (livedata.compute != "") {
-        (*dataTable)[name].value =
-            computeExpression(livedata.compute, (*dataTable)[name].value);
+  liveDataTable_.withWLock([&](auto& liveDataTable) {
+    auto now = helpers::nowInSecs();
+    for (auto& [sensorName, sensorLiveData] : liveDataTable) {
+      std::string sensorValue;
+      if (folly::readFile(sensorLiveData.path.c_str(), sensorValue)) {
+        sensorLiveData.value = folly::to<float>(sensorValue);
+        sensorLiveData.timeStamp = now;
+        if (sensorLiveData.compute != "") {
+          sensorLiveData.value =
+              computeExpression(sensorLiveData.compute, sensorLiveData.value);
+        }
+        XLOG(INFO) << fmt::format(
+            "{} ({}) : {}",
+            sensorName,
+            sensorLiveData.path,
+            sensorLiveData.value);
+      } else {
+        XLOG(INFO) << fmt::format(
+            "Could not read data for {} from {}",
+            sensorName,
+            sensorLiveData.path);
       }
-      XLOG(INFO) << name << "(" << livedata.path << ")"
-                 << " : " << (*dataTable)[name].value;
-    } else {
-      XLOG(INFO) << "Can not read data for " << name << " from "
-                 << livedata.path;
     }
-  }
+  });
 }
 
 void SensorServiceImpl::parseSensorJsonData(const std::string& strJson) {
