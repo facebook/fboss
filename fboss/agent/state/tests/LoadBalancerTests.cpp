@@ -63,6 +63,25 @@ cfg::Fields fullFlow() {
   return fields;
 }
 
+cfg::Fields fullFlowWithUDF() {
+  cfg::Fields fields = fullFlow();
+
+  LoadBalancer::UdfGroupIds udfGroupIds{"test"};
+  fields.udfGroups() = udfGroupIds;
+
+  return fields;
+}
+
+cfg::LoadBalancer fullECMPHashWithUDF() {
+  cfg::LoadBalancer ecmpDefault;
+
+  ecmpDefault.id() = cfg::LoadBalancerID::ECMP;
+  ecmpDefault.fieldSelection() = fullFlowWithUDF();
+  ecmpDefault.algorithm() = cfg::HashingAlgorithm::CRC16_CCITT;
+
+  return ecmpDefault;
+}
+
 cfg::LoadBalancer defaultEcmpHash() {
   cfg::LoadBalancer ecmpDefault;
 
@@ -184,6 +203,51 @@ TEST(LoadBalancer, defaultConfiguration) {
       v4SrcAndDst,
       v6SrcAndDst,
       LoadBalancer::TransportFields(),
+      mplsFields,
+      udfGroupIds);
+}
+
+TEST(LoadBalancer, udfGroupIdsConfiguration) {
+  LoadBalancer::IPv4Fields v4SrcAndDst(
+      {LoadBalancer::IPv4Field::SOURCE_ADDRESS,
+       LoadBalancer::IPv4Field::DESTINATION_ADDRESS});
+
+  LoadBalancer::IPv6Fields v6SrcAndDst(
+      {LoadBalancer::IPv6Field::SOURCE_ADDRESS,
+       LoadBalancer::IPv6Field::DESTINATION_ADDRESS});
+
+  LoadBalancer::TransportFields transportSrcAndDst(
+      {LoadBalancer::TransportField::SOURCE_PORT,
+       LoadBalancer::TransportField::DESTINATION_PORT});
+
+  LoadBalancer::MPLSFields mplsFields{
+      LoadBalancer::MPLSField::TOP_LABEL,
+      LoadBalancer::MPLSField::SECOND_LABEL,
+      LoadBalancer::MPLSField::THIRD_LABEL};
+
+  LoadBalancer::UdfGroupIds udfGroupIds{"test"};
+
+  auto platform = createMockPlatform();
+  auto initialState = std::make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  *config.loadBalancers() = {fullECMPHashWithUDF()};
+
+  auto finalState =
+      publishAndApplyConfig(initialState, &config, platform.get());
+  ASSERT_NE(nullptr, finalState);
+
+  auto ecmpLoadBalancer =
+      finalState->getLoadBalancers()->getLoadBalancerIf(LoadBalancerID::ECMP);
+  ASSERT_NE(nullptr, ecmpLoadBalancer);
+  checkLoadBalancer(
+      ecmpLoadBalancer,
+      LoadBalancerID::ECMP,
+      cfg::HashingAlgorithm::CRC16_CCITT,
+      generateDefaultEcmpSeed(platform.get()),
+      v4SrcAndDst,
+      v6SrcAndDst,
+      transportSrcAndDst,
       mplsFields,
       udfGroupIds);
 }
