@@ -4,7 +4,6 @@ namespace py neteng.fboss.platform.sensor_service
 namespace py3 neteng.fboss.platform.sensor_service
 namespace py.asyncio neteng.fboss.platform.asyncio.sensor_service
 
-include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/fboss.thrift"
 
 // All timestamps are Epoch time in second
@@ -14,7 +13,7 @@ struct SensorData {
   3: i64 timeStamp;
 }
 
-// ToDo: Add more FRU types
+// TODO: Add more FRU types
 enum FruType {
   ALL = 0,
   SMB = 1,
