@@ -252,6 +252,11 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
       const std::shared_ptr<Route<AddressT>>& oldRoute,
       std::shared_ptr<SwitchState>* appliedState);
 
+  static void revertNewTeFlowEntry(
+      const std::shared_ptr<TeFlowEntry>& newFlowEntry,
+      const std::shared_ptr<TeFlowEntry>& oldFlowEntry,
+      std::shared_ptr<SwitchState>* appliedState);
+
   bool operator==(const SwitchState& other) const {
     return *getFields() == *other.getFields();
   }

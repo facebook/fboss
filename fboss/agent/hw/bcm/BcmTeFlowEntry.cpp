@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/bcm/BcmTeFlowEntry.h"
+#include <exception>
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmExactMatchUtils.h"
 #include "fboss/agent/hw/bcm/BcmFieldProcessorUtils.h"
@@ -133,22 +134,45 @@ void BcmTeFlowEntry::installTeFlowEntry() {
 }
 
 void BcmTeFlowEntry::createTeFlowEntry() {
+  bool statAllocated{false};
   /* EM Entry Configuration and Creation */
   auto rv =
       bcm_field_entry_create(hw_->getUnit(), getEMGroupID(gid_), &handle_);
+  // FIXME - SDK give resource error instead of table full
+  // Remove this logic after CS00012269235 & CS00012268802 are fixed
+  if (rv == BCM_E_RESOURCE) {
+    throw BcmError(
+        BCM_E_FULL,
+        "Failed to created field entry. Exact Match entries exhausted");
+  }
   bcmCheckError(rv, "failed to create field entry");
 
   createTeFlowQualifiers();
   int enabled = teFlow_->getEnabled() ? 1 : 0;
   // enable/disable per entry is not supported in EM. Hence we are relying on
   // actions.
-  if (enabled) {
-    createTeFlowActions();
-    if (teFlow_->getCounterID()) {
-      createTeFlowStat();
+  try {
+    if (enabled) {
+      createTeFlowActions();
+      if (teFlow_->getCounterID().has_value()) {
+        createTeFlowStat();
+        statAllocated = true;
+      }
     }
+    installTeFlowEntry();
+  } catch (const facebook::fboss::BcmError& error) {
+    if (statAllocated) {
+      deleteTeFlowStat();
+    }
+    rv = bcm_field_entry_destroy(hw_->getUnit(), handle_);
+    bcmLogFatal(rv, hw_, "failed to destroy TeFlow entry");
+    // FIXME - SDK give resource error instead of table full
+    // Remove this logic after CS00012269235 & CS00012268802 are fixed
+    if (error.getBcmError() == BCM_E_RESOURCE) {
+      throw BcmError(BCM_E_FULL, "Exact Match entries exhausted");
+    }
+    throw;
   }
-  installTeFlowEntry();
 }
 
 void BcmTeFlowEntry::updateTeFlowEntry(

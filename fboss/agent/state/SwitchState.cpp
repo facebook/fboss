@@ -675,6 +675,19 @@ std::shared_ptr<InterfaceMap> SwitchState::getInterfaces(
   return toRet;
 }
 
+void SwitchState::revertNewTeFlowEntry(
+    const std::shared_ptr<TeFlowEntry>& newTeFlowEntry,
+    const std::shared_ptr<TeFlowEntry>& oldTeFlowEntry,
+    std::shared_ptr<SwitchState>* appliedState) {
+  auto clonedTeFlowTable =
+      (*appliedState)->getTeFlowTable()->modify(appliedState);
+  if (oldTeFlowEntry) {
+    clonedTeFlowTable->updateNode(oldTeFlowEntry);
+  } else {
+    clonedTeFlowTable->removeNode(newTeFlowEntry);
+  }
+}
+
 template class NodeBaseT<SwitchState, SwitchStateFields>;
 
 } // namespace facebook::fboss

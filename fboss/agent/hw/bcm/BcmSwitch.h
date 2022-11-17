@@ -729,7 +729,9 @@ class BcmSwitch : public BcmSwitchIf {
   void processRemovedAcl(const std::shared_ptr<AclEntry>& acl);
   bool hasValidAclMatcher(const std::shared_ptr<AclEntry>& acl) const;
 
-  void processTeFlowChanges(const StateDelta& delta);
+  void processTeFlowChanges(
+      const StateDelta& delta,
+      std::shared_ptr<SwitchState>* appliedState);
   void processChangedTeFlow(
       const std::shared_ptr<TeFlowEntry>& oldTeFlow,
       const std::shared_ptr<TeFlowEntry>& newTeFlow);

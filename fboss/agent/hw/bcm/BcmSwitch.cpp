@@ -1269,7 +1269,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   processAclChanges(delta);
 
   // Any TeFlow changes
-  processTeFlowChanges(delta);
+  processTeFlowChanges(delta, &appliedState);
 
   // Any changes to the set of sFlow collectors
   processSflowCollectorChanges(delta);
@@ -2108,13 +2108,43 @@ void BcmSwitch::processAclChanges(const StateDelta& delta) {
       this);
 }
 
-void BcmSwitch::processTeFlowChanges(const StateDelta& delta) {
+void BcmSwitch::processTeFlowChanges(
+    const StateDelta& delta,
+    std::shared_ptr<SwitchState>* appliedState) {
+  std::vector<TeFlow> discardedFlows;
   forEachChanged(
       delta.getTeFlowEntriesDelta(),
-      &BcmSwitch::processChangedTeFlow,
-      &BcmSwitch::processAddedTeFlow,
-      &BcmSwitch::processRemovedTeFlow,
-      this);
+      [&](const shared_ptr<TeFlowEntry>& oldTeFlowEntry,
+          const shared_ptr<TeFlowEntry>& newTeFlowEntry) {
+        try {
+          processChangedTeFlow(oldTeFlowEntry, newTeFlowEntry);
+        } catch (const BcmError& e) {
+          rethrowIfHwNotFull(e);
+          discardedFlows.emplace_back(oldTeFlowEntry->getFlow()->toThrift());
+        }
+      },
+      [&](const shared_ptr<TeFlowEntry>& addedTeFlowEntry) {
+        try {
+          processAddedTeFlow(addedTeFlowEntry);
+        } catch (const BcmError& e) {
+          rethrowIfHwNotFull(e);
+          discardedFlows.emplace_back(addedTeFlowEntry->getFlow()->toThrift());
+        }
+      },
+      [&](const shared_ptr<TeFlowEntry>& deletedTeFlowEntry) {
+        processRemovedTeFlow(deletedTeFlowEntry);
+      });
+  if (!discardedFlows.empty()) {
+    SwitchState::modify(appliedState);
+    XLOG(DBG2) << "Discarded Teflows size : " << discardedFlows.size();
+    auto newFlowTable = delta.newState()->getTeFlowTable();
+    auto oldFlowTable = delta.oldState()->getTeFlowTable();
+    for (const auto& flow : discardedFlows) {
+      auto oldEntry = oldFlowTable->getTeFlowIf(flow);
+      auto newEntry = newFlowTable->getTeFlowIf(flow);
+      SwitchState::revertNewTeFlowEntry(newEntry, oldEntry, appliedState);
+    }
+  }
 }
 
 void BcmSwitch::processAggregatePortChanges(const StateDelta& delta) {
