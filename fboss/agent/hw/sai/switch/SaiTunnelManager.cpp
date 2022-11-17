@@ -97,6 +97,23 @@ std::shared_ptr<SaiP2MPTunnelTerm> SaiTunnelManager::addP2MPTunnelTerm(
   return tunnelTermStore.setObject(k2, k2);
 }
 
+std::shared_ptr<SaiP2PTunnelTerm> SaiTunnelManager::addP2PTunnelTerm(
+    const std::shared_ptr<IpTunnel>& swTunnel,
+    TunnelSaiId tunnelSaiId) {
+  auto& tunnelTermStore = saiStore_->get<SaiP2PTunnelTermTraits>();
+  SaiVirtualRouterHandle* virtualRouterHandle =
+      managerTable_->virtualRouterManager().getVirtualRouterHandle(RouterID(0));
+  SaiP2PTunnelTermTraits::CreateAttributes k2{
+      getSaiTunnelTermType(swTunnel->getTunnelTermType()),
+      virtualRouterHandle->virtualRouter->adapterKey(),
+      swTunnel->getSrcIP(), // Term Dest Ip
+      swTunnel->getDstIP(), // Term Src Ip
+      getSaiTunnelType(swTunnel->getType()), // Tunnel Type
+      tunnelSaiId};
+
+  return tunnelTermStore.setObject(k2, k2);
+}
+
 TunnelSaiId SaiTunnelManager::addTunnel(
     const std::shared_ptr<IpTunnel>& swTunnel) {
   auto existTunnel = getTunnelHandle(swTunnel->getID());
@@ -133,11 +150,15 @@ TunnelSaiId SaiTunnelManager::addTunnel(
       getSaiDecapEcnMode(swTunnel->getEcnMode())};
 
   std::shared_ptr<SaiTunnel> tunnelObj = tunnelStore.setObject(k1, k1);
+  auto tunnelHandle = std::make_unique<SaiTunnelHandle>();
+  tunnelHandle->tunnel = tunnelObj;
   if (swTunnel->getTunnelTermType() == cfg::TunnelTerminationType::P2MP) {
-    auto tunnelHandle = std::make_unique<SaiTunnelHandle>();
-    tunnelHandle->tunnel = tunnelObj;
     tunnelHandle->tunnelTerm =
         addP2MPTunnelTerm(swTunnel, tunnelObj->adapterKey());
+    handles_[swTunnel->getID()] = std::move(tunnelHandle);
+  } else if (swTunnel->getTunnelTermType() == cfg::TunnelTerminationType::P2P) {
+    tunnelHandle->tunnelTerm =
+        addP2PTunnelTerm(swTunnel, tunnelObj->adapterKey());
     handles_[swTunnel->getID()] = std::move(tunnelHandle);
   } else {
     throw FbossError("Tunnel Term types other than P2MP are not supported yet");
