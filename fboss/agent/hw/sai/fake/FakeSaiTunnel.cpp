@@ -194,7 +194,9 @@ sai_status_t create_tunnel_term_table_entry_fn(
   sai_tunnel_term_table_entry_type_t type;
   sai_object_id_t vrId;
   sai_ip_address_t dstIp;
-  sai_ip_address_t srcIp;
+  std::optional<sai_ip_address_t> dstIpMask;
+  std::optional<sai_ip_address_t> srcIp;
+  std::optional<sai_ip_address_t> srcIpMask;
   sai_tunnel_type_t tunnelType;
   sai_object_id_t tunnelId;
   for (int i = 0; i < attr_count; i++) {
@@ -210,11 +212,14 @@ sai_status_t create_tunnel_term_table_entry_fn(
         dstIp = attr_list[i].value.ipaddr;
         break;
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_DST_IP_MASK:
-        return SAI_STATUS_ATTR_NOT_IMPLEMENTED_0;
+        dstIpMask = attr_list[i].value.ipaddr;
+        break;
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_SRC_IP:
         srcIp = attr_list[i].value.ipaddr;
         break;
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_SRC_IP_MASK:
+        srcIpMask = attr_list[i].value.ipaddr;
+        break;
         return SAI_STATUS_ATTR_NOT_IMPLEMENTED_0;
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_TUNNEL_TYPE:
         tunnelType = static_cast<sai_tunnel_type_t>(attr_list[i].value.s32);
@@ -227,8 +232,8 @@ sai_status_t create_tunnel_term_table_entry_fn(
     }
   }
   if (type == SAI_TUNNEL_TERM_TABLE_ENTRY_TYPE_P2MP) {
-    *tunnel_term_table_entry_id =
-        fs->tunnelTermManager.create(type, vrId, dstIp, tunnelType, tunnelId);
+    *tunnel_term_table_entry_id = fs->tunnelTermManager.create(
+        type, vrId, dstIp, tunnelType, tunnelId, srcIp, dstIpMask, srcIpMask);
     return SAI_STATUS_SUCCESS;
   } else {
     return SAI_STATUS_ATTR_NOT_SUPPORTED_0;
@@ -265,7 +270,7 @@ sai_status_t get_tunnel_term_table_entry_attribute_fn(
             : toSaiIpAddress(folly::IPAddress("255.255.255.255"));
         break;
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_SRC_IP:
-        attr[i].value.ipaddr = term.srcIp;
+        attr[i].value.ipaddr = term.srcIp.value();
         break;
       case SAI_TUNNEL_TERM_TABLE_ENTRY_ATTR_SRC_IP_MASK:
         attr[i].value.ipaddr = term.srcIpMask.has_value()
