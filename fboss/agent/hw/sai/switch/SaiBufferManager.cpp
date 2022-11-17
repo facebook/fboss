@@ -127,15 +127,10 @@ void SaiBufferManager::setupEgressBufferPool() {
   assertMaxBufferPoolSize(platform_);
   egressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   auto& store = saiStore_->get<SaiBufferPoolTraits>();
-  SaiBufferPoolTraits::CreateAttributes c {
-    SAI_BUFFER_POOL_TYPE_EGRESS, getMaxEgressPoolBytes(platform_),
-        SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC
-#if defined(TAJO_SDK) || defined(SAI_VERSION_8_2_0_0_ODP) || \
-    defined(SAI_VERSION_8_2_0_0_DNX_ODP)
-        ,
-        0 /* XoffSize for Egress Pool */
-#endif
-  };
+  SaiBufferPoolTraits::CreateAttributes c{
+      SAI_BUFFER_POOL_TYPE_EGRESS,
+      getMaxEgressPoolBytes(platform_),
+      SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC};
   egressBufferPoolHandle_->bufferPool =
       store.setObject(SAI_BUFFER_POOL_TYPE_EGRESS, c);
 }
@@ -147,22 +142,28 @@ void SaiBufferManager::setupIngressBufferPool(const PortPgConfig& portPgCfg) {
   ingressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   auto& store = saiStore_->get<SaiBufferPoolTraits>();
   auto bufferPoolCfg = portPgCfg.getBufferPoolConfig().value();
+
   // Pool size is the sum of (shared + headroom) * number of memory buffers
   auto poolSize =
       (bufferPoolCfg->getSharedBytes() + bufferPoolCfg->getHeadroomBytes()) *
       platform_->getAsic()->getNumMemoryBuffers();
-  SaiBufferPoolTraits::CreateAttributes c {
-    SAI_BUFFER_POOL_TYPE_INGRESS, poolSize,
-        SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC
-#if defined(TAJO_SDK) || defined(SAI_VERSION_8_2_0_0_ODP) || \
-    defined(SAI_VERSION_8_2_0_0_DNX_ODP)
-        ,
-        bufferPoolCfg->getHeadroomBytes() *
-        platform_->getAsic()->getNumMemoryBuffers()
-#endif
-  };
+  SaiBufferPoolTraits::CreateAttributes c{
+      SAI_BUFFER_POOL_TYPE_INGRESS,
+      poolSize,
+      SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC};
   ingressBufferPoolHandle_->bufferPool =
       store.setObject(SAI_BUFFER_POOL_TYPE_INGRESS, c);
+#if defined(TAJO_SDK) || defined(SAI_VERSION_8_2_0_0_ODP) || \
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP)
+  // XoffSize configuration is needed only when PFC is supported
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    SaiBufferPoolTraits::Attributes::XoffSize xoffSize =
+        bufferPoolCfg->getHeadroomBytes() *
+        platform_->getAsic()->getNumMemoryBuffers();
+    SaiApiTable::getInstance()->bufferApi().setAttribute(
+        ingressBufferPoolHandle_->bufferPool->adapterKey(), xoffSize);
+  }
+#endif
 }
 
 void SaiBufferManager::updateStats() {
