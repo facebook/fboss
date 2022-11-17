@@ -525,6 +525,31 @@ void translateToFibError(const FbossHwUpdateError& updError) {
       });
   throw fibError;
 }
+
+void translateToTeUpdateError(const FbossHwUpdateError& updError) {
+  FbossTeUpdateError teError;
+  StateDelta delta(updError.appliedState, updError.desiredState);
+
+  facebook::fboss::DeltaFunctions::forEachChanged(
+      delta.getTeFlowEntriesDelta(),
+      [&](const shared_ptr<TeFlowEntry>& removedTeFlowEntry,
+          const shared_ptr<TeFlowEntry>& addedTeFlowEntry) {
+        if (*removedTeFlowEntry != *addedTeFlowEntry) {
+          teError.failedAddUpdateFlows_ref()->push_back(
+              addedTeFlowEntry->getFlow()->toThrift());
+        }
+      },
+      [&](const shared_ptr<TeFlowEntry>& addedTeFlowEntry) {
+        teError.failedAddUpdateFlows_ref()->push_back(
+            addedTeFlowEntry->getFlow()->toThrift());
+      },
+      [&](const shared_ptr<TeFlowEntry>& deletedTeFlowEntry) {
+        teError.failedDeleteFlows_ref()->push_back(
+            deletedTeFlowEntry->getFlow()->toThrift());
+      });
+  throw teError;
+}
+
 cfg::PortLoopbackMode toLoopbackMode(PortLoopbackMode mode) {
   switch (mode) {
     case PortLoopbackMode::NONE:
@@ -2511,10 +2536,9 @@ void ThriftHandler::addTeFlows(
     return newState;
   };
   try {
-    sw_->updateStateBlocking("addTEFlowEntries", updateFn);
+    sw_->updateStateWithHwFailureProtection("addTEFlowEntries", updateFn);
   } catch (const FbossHwUpdateError& ex) {
-    // TODO translate the error.
-    throw FbossTeUpdateError();
+    translateToTeUpdateError(ex);
   }
   XLOG(DBG2) << "addTeFlows Added : " << numFlows;
 }
@@ -2564,11 +2588,9 @@ void ThriftHandler::syncTeFlows(
     return newState;
   };
   try {
-    // TODO - switch to protected update
-    sw_->updateStateBlocking("syncTeFlows", updateFn);
+    sw_->updateStateWithHwFailureProtection("syncTeFlows", updateFn);
   } catch (const FbossHwUpdateError& ex) {
-    // TODO translate the error.
-    throw FbossTeUpdateError();
+    translateToTeUpdateError(ex);
   }
   XLOG(DBG2) << "syncTeFlows newFlowCount :" << numFlows
              << " oldFlowCount :" << oldNumFlows;
