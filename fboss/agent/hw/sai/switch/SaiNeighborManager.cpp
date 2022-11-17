@@ -18,6 +18,8 @@
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/NdpEntry.h"
@@ -124,6 +126,11 @@ void SaiNeighborManager::addNeighbor(
       managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
           swEntry->getIntfID());
 
+  if (saiRouterIntf->type() == cfg::InterfaceType::SYSTEM_PORT &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+    CHECK(encapIndex) << " Encap index must be set for neighbors";
+  }
   auto neighbor = std::make_unique<SaiNeighborEntry>(
       this,
       std::make_tuple(saiPortDesc, saiRouterIntf->adapterKey()),
