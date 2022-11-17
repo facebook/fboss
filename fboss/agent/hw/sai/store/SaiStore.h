@@ -615,6 +615,7 @@ class SaiStore {
       SaiObjectStore<SaiTamTraits>,
       SaiObjectStore<SaiTunnelTraits>,
       SaiObjectStore<SaiP2MPTunnelTermTraits>,
+      SaiObjectStore<SaiP2PTunnelTermTraits>,
       SaiObjectStore<SaiLagTraits>,
       SaiObjectStore<SaiLagMemberTraits>,
       SaiObjectStore<SaiMacsecTraits>,

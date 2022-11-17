@@ -23,10 +23,26 @@ class SaiStore;
 
 using SaiTunnel = SaiObject<SaiTunnelTraits>;
 using SaiP2MPTunnelTerm = SaiObject<SaiP2MPTunnelTermTraits>;
+using SaiP2PTunnelTerm = SaiObject<SaiP2PTunnelTermTraits>;
 
 struct SaiTunnelHandle {
   std::shared_ptr<SaiTunnel> tunnel;
-  std::shared_ptr<SaiP2MPTunnelTerm> tunnelTerm;
+  using SaiTunnelTerm = std::variant<
+      std::shared_ptr<SaiP2MPTunnelTerm>,
+      std::shared_ptr<SaiP2PTunnelTerm>>;
+  SaiTunnelTerm tunnelTerm;
+  TunnelTermSaiId adapterKey() {
+    return std::visit(
+        [](auto& handle) { return handle->adapterKey(); }, tunnelTerm);
+  }
+  std::shared_ptr<SaiP2MPTunnelTerm> getP2MPTunnelTermHandle() const {
+    auto* tunnelTermHandle =
+        std::get_if<std::shared_ptr<SaiP2MPTunnelTerm>>(&tunnelTerm);
+    if (!tunnelTermHandle) {
+      return nullptr;
+    }
+    return *tunnelTermHandle;
+  }
 };
 
 class SaiTunnelManager {

@@ -150,9 +150,6 @@ void SaiTunnelManager::removeTunnel(const std::shared_ptr<IpTunnel>& swTunnel) {
   if (itr == handles_.end()) {
     throw FbossError("Failed to remove non-existent tunnel: ", swId);
   }
-  auto handle = itr->second.get();
-  handle->tunnelTerm->release();
-  handle->tunnel->release();
   handles_.erase(itr);
 }
 
