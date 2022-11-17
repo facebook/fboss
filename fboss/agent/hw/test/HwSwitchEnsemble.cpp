@@ -180,77 +180,17 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::updateEncapIndices(
       }
       return std::shared_ptr<std::remove_reference_t<decltype(*newNbr)>>();
     };
-    for (const auto& vlanDelta : delta.getVlansDelta()) {
-      auto updateVlan = [&](auto newNbr, auto& nbrTable, VlanID vlanId) {
-        auto vlanNew =
-            newState->getVlans()->getVlanIf(vlanId)->modify(&newState);
-        auto updatedNbr = handleNewNbr(newNbr);
-        if (updatedNbr) {
-          auto updatedNbrTable = nbrTable->clone();
-          if (!nbrTable->getEntry(newNbr->getIP())) {
-            updatedNbrTable->addEntry(
-                updatedNbr->getIP(),
-                updatedNbr->getMac(),
-                updatedNbr->getPort(),
-                updatedNbr->getIntfID(),
-                updatedNbr->getState(),
-                updatedNbr->getClassID(),
-                updatedNbr->getEncapIndex(),
-                updatedNbr->getIsLocal());
-          } else {
-            updatedNbrTable->updateEntry(
-                updatedNbr->getIP(),
-                updatedNbr->getMac(),
-                updatedNbr->getPort(),
-                updatedNbr->getIntfID(),
-                updatedNbr->getState(),
-                updatedNbr->getClassID(),
-                updatedNbr->getEncapIndex(),
-                updatedNbr->getIsLocal());
-          }
-          vlanNew->setNeighborTable(updatedNbrTable);
-        }
-      };
-
-      DeltaFunctions::forEachChanged(
-          vlanDelta.getArpDelta(),
-          [&](auto /*oldNbr*/, auto newNbr) {
-            updateVlan(
-                newNbr,
-                vlanDelta.getNew()->getArpTable(),
-                vlanDelta.getNew()->getID());
-          },
-          [&](auto newNbr) {
-            updateVlan(
-                newNbr,
-                vlanDelta.getNew()->getArpTable(),
-                vlanDelta.getNew()->getID());
-          },
-          [&](auto /*rmNbr*/) {});
-
-      DeltaFunctions::forEachChanged(
-          vlanDelta.getNdpDelta(),
-          [&](auto /*oldNbr*/, auto newNbr) {
-            updateVlan(
-                newNbr,
-                vlanDelta.getNew()->getNdpTable(),
-                vlanDelta.getNew()->getID());
-          },
-          [&](auto newNbr) {
-            updateVlan(
-                newNbr,
-                vlanDelta.getNew()->getNdpTable(),
-                vlanDelta.getNew()->getID());
-          },
-          [&](auto /*rmNbr*/) {});
-    }
     for (const auto& intfDelta : delta.getIntfsDelta()) {
       auto updateIntf =
           [&](auto newNbr, const auto& nbrTable, InterfaceID intfId) {
             auto intfMap = newState->getInterfaces()->modify(&newState);
-            auto intfNew = intfMap->getInterface(intfId)->clone();
+            auto intf = intfMap->getInterface(intfId);
+            if (intf->getType() != cfg::InterfaceType::SYSTEM_PORT) {
+              return;
+            }
             auto updatedNbr = handleNewNbr(newNbr);
             if (updatedNbr) {
+              auto intfNew = intf->clone();
               auto updatedNbrTable = nbrTable->toThrift();
               if (!nbrTable->getEntry(newNbr->getIP())) {
                 updatedNbrTable.insert(
