@@ -131,7 +131,7 @@ TEST(Acl, applyConfig) {
   auto stateV3 = publishAndApplyConfig(stateV2, &configV1, platform.get());
   EXPECT_NE(nullptr, stateV3);
   auto acls = stateV3->getAcls();
-  validateThriftyMigration(*stateV3->getAcls());
+  validateNodeMapSerialization(*stateV3->getAcls());
   auto aclV3 = stateV3->getAcl("acl3");
   ASSERT_NE(nullptr, aclV3);
   EXPECT_NE(aclV0, aclV3);
@@ -345,7 +345,7 @@ TEST(Acl, aclModifyPublished) {
   auto state = make_shared<SwitchState>();
   state->publish();
   auto aclMap = state->getAcls();
-  validateThriftyMigration(*aclMap);
+  validateNodeMapSerialization(*aclMap);
   EXPECT_NE(aclMap.get(), aclMap->modify(&state));
 }
 
@@ -415,7 +415,7 @@ TEST(Acl, AclGeneration) {
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(stateV1, nullptr);
   auto acls = stateV1->getAcls();
-  validateThriftyMigration(*acls);
+  validateNodeMapSerialization(*acls);
   EXPECT_NE(acls, nullptr);
   EXPECT_NE(acls->getEntryIf("acl1"), nullptr);
   EXPECT_NE(acls->getEntryIf("acl2"), nullptr);
@@ -453,7 +453,7 @@ TEST(Acl, SerializeAclEntry) {
 
   auto serialized = entry->toFollyDynamic();
   auto entryBack = AclEntry::fromFollyDynamic(serialized);
-  validateThriftyMigration(*entry);
+  validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getAclAction());
@@ -468,7 +468,7 @@ TEST(Acl, SerializeAclEntry) {
   entry->setAclAction(action);
   serialized = entry->toFollyDynamic();
   entryBack = AclEntry::fromFollyDynamic(serialized);
-  validateThriftyMigration(*entry);
+  validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getAclAction());
@@ -534,7 +534,7 @@ TEST(Acl, SerializeRedirectToNextHop) {
     auto serialized = entry.toFollyDynamic();
     auto entryBack = AclEntry::fromFollyDynamic(serialized);
     EXPECT_TRUE(entry == *entryBack);
-    validateThriftyMigration(entry);
+    validateNodeSerialization(entry);
     auto aclAction = entryBack->getAclAction().value();
     auto newRedirectToNextHop = aclAction.getRedirectToNextHop().value();
     int i = 0;
@@ -591,7 +591,7 @@ TEST(Acl, SerializePacketCounter) {
 
   auto serialized = entry->toFollyDynamic();
   auto entryBack = AclEntry::fromFollyDynamic(serialized);
-  validateThriftyMigration(*entry);
+  validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getAclAction());
@@ -612,7 +612,7 @@ TEST(Acl, SerializePacketCounter) {
 
   serialized = entry->toFollyDynamic();
   entryBack = AclEntry::fromFollyDynamic(serialized);
-  validateThriftyMigration(*entry);
+  validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getAclAction());
@@ -627,7 +627,7 @@ TEST(Acl, SerializePacketCounter) {
 
   serialized = entry->toFollyDynamic();
   entryBack = AclEntry::fromFollyDynamic(serialized);
-  validateThriftyMigration(*entry);
+  validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
   aclAction = entryBack->getAclAction().value();
@@ -684,7 +684,7 @@ TEST(Acl, TtlSerialization) {
 
   auto serialized = entry->toFollyDynamic();
   auto entryBack = AclEntry::fromFollyDynamic(serialized);
-  validateThriftyMigration(*entry);
+  validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getTtl());
@@ -713,7 +713,7 @@ TEST(Acl, PacketLookupResultSerialization) {
 
   auto serialized = entry->toFollyDynamic();
   auto entryBack = AclEntry::fromFollyDynamic(serialized);
-  validateThriftyMigration(*entry);
+  validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getPacketLookupResult());
@@ -733,7 +733,7 @@ TEST(Acl, VlanIDSerialization) {
 
   auto serialized = entry->toFollyDynamic();
   auto entryBack = AclEntry::fromFollyDynamic(serialized);
-  validateThriftyMigration(*entry);
+  validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getVlanID());
@@ -822,7 +822,7 @@ TEST(Acl, LookupClassSerialization) {
 
   auto serialized = entryL2->toFollyDynamic();
   auto entryBackL2 = AclEntry::fromFollyDynamic(serialized);
-  validateThriftyMigration(*entryL2);
+  validateNodeSerialization(*entryL2);
 
   EXPECT_TRUE(*entryL2 == *entryBackL2);
   EXPECT_TRUE(entryBackL2->getLookupClassL2());
@@ -836,7 +836,7 @@ TEST(Acl, LookupClassSerialization) {
 
   serialized = entryNeighbor->toFollyDynamic();
   auto entryBackNeighbor = AclEntry::fromFollyDynamic(serialized);
-  validateThriftyMigration(*entryNeighbor);
+  validateNodeSerialization(*entryNeighbor);
 
   EXPECT_TRUE(*entryNeighbor == *entryBackNeighbor);
   EXPECT_TRUE(entryBackNeighbor->getLookupClassNeighbor());
@@ -851,7 +851,7 @@ TEST(Acl, LookupClassSerialization) {
 
   serialized = entryRoute->toFollyDynamic();
   auto entryBackRoute = AclEntry::fromFollyDynamic(serialized);
-  validateThriftyMigration(*entryRoute);
+  validateNodeSerialization(*entryRoute);
 
   EXPECT_TRUE(*entryRoute == *entryBackRoute);
   EXPECT_TRUE(entryBackRoute->getLookupClassRoute());
@@ -919,7 +919,7 @@ TEST(Acl, GetRequiredAclTableQualifiers) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  validateThriftyMigration(*stateV1->getAcls());
+  validateNodeMapSerialization(*stateV1->getAcls());
   auto q0 =
       stateV1->getAcls()->getEntry("acl0")->getRequiredAclTableQualifiers();
   auto q1 =

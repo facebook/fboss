@@ -179,7 +179,7 @@ TEST(Route, RouteNextHopsMultiThrift) {
           DISTANCE,
           std::nullopt,
           cfg::AclLookupClass::DST_CLASS_L3_DPR));
-  validateThriftyMigration<RouteNextHopsMulti, true>(nhm1);
+  validateNodeSerialization<RouteNextHopsMulti, true>(nhm1);
 }
 
 // Test priority ranking of nexthop lists within a RouteNextHopsMulti.
@@ -233,7 +233,7 @@ TEST(Route, serializeRoute) {
   auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
   Route<IPAddressV4> rt(makePrefixV4("1.2.3.4/32"));
   rt.update(clientId, RouteNextHopEntry(nxtHops, DISTANCE));
-  validateThriftyMigration(rt);
+  validateNodeSerialization(rt);
 
   // to folly dynamic
   folly::dynamic obj = rt.toFollyDynamic();
@@ -246,7 +246,7 @@ TEST(Route, serializeRoute) {
   // back to Route object
   auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
   ASSERT_TRUE(rt2->has(clientId, RouteNextHopEntry(nxtHops, DISTANCE)));
-  validateThriftyMigration(*rt2);
+  validateNodeSerialization(*rt2);
 }
 
 TEST(Route, serializeMplsRoute) {
@@ -256,7 +256,7 @@ TEST(Route, serializeMplsRoute) {
       LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP));
   Route<LabelID> rt(LabelID(100));
   rt.update(clientId, RouteNextHopEntry(nxtHops, DISTANCE));
-  validateThriftyMigration(rt);
+  validateNodeSerialization(rt);
 
   // to folly dynamic
   folly::dynamic obj = rt.toFollyDynamic();
@@ -270,7 +270,7 @@ TEST(Route, serializeMplsRoute) {
   auto rt2 = Route<LabelID>::fromFollyDynamic(obj2);
   ASSERT_TRUE(rt2->has(clientId, RouteNextHopEntry(nxtHops, DISTANCE)));
   EXPECT_EQ(int32_t(rt2->getID().label()), 100);
-  validateThriftyMigration(*rt2);
+  validateNodeSerialization(*rt2);
 }
 
 // Serialization/deseralization of Routes with counterID
@@ -283,7 +283,7 @@ TEST(Route, serializeRouteCounterID) {
       clientId,
       RouteNextHopEntry(nxtHops, DISTANCE, counterID));
   rt.setResolved(RouteNextHopEntry(nxtHops, DISTANCE, counterID));
-  validateThriftyMigration(rt);
+  validateNodeSerialization(rt);
 
   // to folly dynamic
   folly::dynamic obj = rt.toFollyDynamic();
@@ -297,7 +297,7 @@ TEST(Route, serializeRouteCounterID) {
   auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
   EXPECT_EQ(*(rt2->getEntryForClient(clientId)->counterID()), counterID);
   EXPECT_EQ(rt2->getForwardInfo().getCounterID(), counterID);
-  validateThriftyMigration(*rt2);
+  validateNodeSerialization(*rt2);
 }
 
 // Serialization/deseralization of Routes with counterID
@@ -311,7 +311,7 @@ TEST(Route, serializeRouteClassID) {
       clientId,
       RouteNextHopEntry(nxtHops, DISTANCE, std::nullopt, classID));
   rt.setResolved(RouteNextHopEntry(nxtHops, DISTANCE, std::nullopt, classID));
-  validateThriftyMigration(rt);
+  validateNodeSerialization(rt);
 
   // to folly dynamic
   folly::dynamic obj = rt.toFollyDynamic();
@@ -325,7 +325,7 @@ TEST(Route, serializeRouteClassID) {
   auto rt2 = Route<IPAddressV4>::fromFollyDynamic(obj2);
   EXPECT_EQ(*(rt2->getEntryForClient(clientId)->classID()), classID);
   EXPECT_EQ(rt2->getForwardInfo().getClassID(), classID);
-  validateThriftyMigration(*rt2);
+  validateNodeSerialization(*rt2);
 }
 
 // Test utility functions for converting RouteNextHopSet to thrift and back
@@ -461,9 +461,9 @@ TEST(RoutePrefix, Thrift) {
   RouteV4::Prefix prefix10{IPAddressV4("10.10.10.10"), 32};
   RouteV6::Prefix prefix20{IPAddressV6("1::10"), 64};
   RouteV6::Prefix prefix30{IPAddressV6("2001::1"), 128};
-  validateThriftyMigration<RouteV4::Prefix, true>(prefix10);
-  validateThriftyMigration<RouteV6::Prefix, true>(prefix20);
-  validateThriftyMigration<RouteV6::Prefix, true>(prefix30);
+  validateNodeSerialization<RouteV4::Prefix, true>(prefix10);
+  validateNodeSerialization<RouteV6::Prefix, true>(prefix20);
+  validateNodeSerialization<RouteV6::Prefix, true>(prefix30);
 }
 
 TEST(RouteNextHopEntry, toUnicastRouteDrop) {

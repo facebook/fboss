@@ -43,7 +43,7 @@ TEST(ArpEntry, serialize) {
       std::optional<cfg::AclLookupClass>(std::nullopt),
       std::optional<int64_t>(42),
       false);
-  validateThriftyMigration(*entry);
+  validateNodeSerialization(*entry);
   serializeTest(*entry);
 }
 
@@ -57,7 +57,7 @@ TEST(NdpEntry, serialize) {
       std::optional<cfg::AclLookupClass>(std::nullopt),
       std::optional<int64_t>(42),
       false);
-  validateThriftyMigration(*entry);
+  validateNodeSerialization(*entry);
   serializeTest(*entry);
 }
 

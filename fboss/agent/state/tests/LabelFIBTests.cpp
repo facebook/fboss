@@ -134,9 +134,9 @@ TEST(LabelFIBTests, toAndFromFollyDynamic) {
   EXPECT_TRUE(
       ribEntry2->isSame(generated->getLabelForwardingEntry(5002).get()));
 
-  validateThriftyMigration(*ribEntry1);
-  validateThriftyMigration(*ribEntry2);
-  validateThriftyMigration(*lFib);
+  validateNodeSerialization(*ribEntry1);
+  validateNodeSerialization(*ribEntry2);
+  validateNodeMapSerialization(*lFib);
 }
 
 TEST(LabelFIBTests, forEachAdded) {
@@ -469,5 +469,5 @@ TEST(LabelFIBTests, oneLabelManyClients) {
 
 TEST(LabelFIBTests, LabelThrifty) {
   Label label(0xacacacac);
-  validateThriftyMigration<Label, true>(label);
+  validateNodeSerialization<Label, true>(label);
 }

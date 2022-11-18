@@ -45,7 +45,7 @@ TEST(ThriftySwitchState, PortMap) {
   auto portMap = std::make_shared<PortMap>();
   portMap->addPort(port1);
   portMap->addPort(port2);
-  validateThriftyMigration(*portMap);
+  validateNodeMapSerialization(*portMap);
 
   auto state = SwitchState();
   state.resetPorts(portMap);

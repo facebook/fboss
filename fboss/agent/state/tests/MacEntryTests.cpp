@@ -34,7 +34,7 @@ TEST(MacEntryTest, toFromFollyDynamic) {
       MacEntryType::STATIC_ENTRY);
   EXPECT_EQ(
       *MacEntry::fromFollyDynamic(entryStatic.toFollyDynamic()), entryStatic);
-  validateThriftyMigration(entryStatic);
+  validateNodeSerialization(entryStatic);
 }
 
 TEST(MacEntryTest, Compare) {

@@ -1044,7 +1044,7 @@ TEST(PortMap, registerPorts) {
   EXPECT_TRUE(port4->isPublished());
   EXPECT_TRUE(port10->isPublished());
 
-  validateThriftyMigration(*ports);
+  validateNodeMapSerialization(*ports);
 }
 
 /*
@@ -1099,7 +1099,7 @@ TEST(PortMap, applyConfig) {
   }
   portsV0->publish();
 
-  validateThriftyMigration(*portsV0);
+  validateNodeMapSerialization(*portsV0);
 
   EXPECT_EQ(0, portsV0->getGeneration());
   auto port1 = portsV0->getPort(PortID(1));
@@ -1151,7 +1151,7 @@ TEST(PortMap, applyConfig) {
   EXPECT_TRUE(newPort2->isPublished());
   EXPECT_TRUE(port1->isPublished());
 
-  validateThriftyMigration(*portsV1);
+  validateNodeMapSerialization(*portsV1);
 
   // Applying the same config again should do nothing.
   EXPECT_EQ(nullptr, publishAndApplyConfig(stateV1, &config, platform.get()));
@@ -1213,7 +1213,7 @@ TEST(PortMap, applyConfig) {
   EXPECT_EQ(
       cfg::PortState::ENABLED, portsV3->getPort(PortID(4))->getAdminState());
   checkChangedPorts(portsV2, portsV3, {3});
-  validateThriftyMigration(*portsV3);
+  validateNodeMapSerialization(*portsV3);
 }
 
 TEST(PortMap, iterateOrder) {
@@ -1253,7 +1253,7 @@ TEST(PortMap, iterateOrder) {
   ++it;
   EXPECT_EQ(ports->end(), it);
 
-  validateThriftyMigration(*ports);
+  validateNodeMapSerialization(*ports);
 }
 
 TEST(Port, portFabricType) {

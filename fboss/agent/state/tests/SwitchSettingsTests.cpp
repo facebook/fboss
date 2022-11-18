@@ -275,7 +275,7 @@ TEST(SwitchSettingsTest, ThrifyMigration) {
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  validateThriftyMigration(*stateV1->getSwitchSettings());
+  validateNodeSerialization(*stateV1->getSwitchSettings());
 }
 
 TEST(SwitchSettingsTest, applyVoqSwitch) {

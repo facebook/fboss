@@ -26,7 +26,7 @@ TEST(SflowCollector, SerializeSflowCollector) {
 
   EXPECT_TRUE(*sflowCollector == *sflowCollectorBack);
 
-  validateThriftyMigration(*sflowCollector);
+  validateNodeSerialization(*sflowCollector);
 }
 
 TEST(SflowCollectorMap, SerializeSflowCollectorMap) {

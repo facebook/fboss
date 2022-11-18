@@ -28,7 +28,7 @@ TEST(TransceiverSpec, SerializeTransceiver) {
   auto tcvrBack = TransceiverSpec::fromFollyDynamic(serialized);
 
   EXPECT_TRUE(*tcvr == *tcvrBack);
-  validateThriftyMigration(*tcvr);
+  validateNodeSerialization(*tcvr);
 }
 
 TEST(TransceiverSpec, SerializeSwitchState) {
@@ -58,8 +58,8 @@ TEST(TransceiverSpec, SerializeSwitchState) {
         *stateBack->getTransceivers()->getTransceiver(tcvrID));
   }
 
-  validateThriftyMigration(*tcvr1);
-  validateThriftyMigration(*tcvr2);
+  validateNodeSerialization(*tcvr1);
+  validateNodeSerialization(*tcvr2);
 }
 
 TEST(TransceiverMap, addTransceiver) {

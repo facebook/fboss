@@ -407,10 +407,10 @@ TEST(RouteNextHopEntry, Thrift) {
       "counter0",
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 
-  validateThriftyMigration<RouteNextHopEntry, true>(drop0);
-  validateThriftyMigration<RouteNextHopEntry, true>(drop1);
-  validateThriftyMigration<RouteNextHopEntry, true>(drop2);
-  validateThriftyMigration<RouteNextHopEntry, true>(cpu0);
-  validateThriftyMigration<RouteNextHopEntry, true>(nhops0);
-  validateThriftyMigration<RouteNextHopEntry, true>(nhops1);
+  validateNodeSerialization<RouteNextHopEntry, true>(drop0);
+  validateNodeSerialization<RouteNextHopEntry, true>(drop1);
+  validateNodeSerialization<RouteNextHopEntry, true>(drop2);
+  validateNodeSerialization<RouteNextHopEntry, true>(cpu0);
+  validateNodeSerialization<RouteNextHopEntry, true>(nhops0);
+  validateNodeSerialization<RouteNextHopEntry, true>(nhops1);
 }

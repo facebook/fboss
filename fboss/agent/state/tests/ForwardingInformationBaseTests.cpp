@@ -105,7 +105,7 @@ TEST(ForwardingInformationBaseV4, IPv4DefaultPrefixComparesSmallest) {
     return LoopAction::BREAK;
   });
 
-  validateThriftyMigration(*newFib);
+  validateNodeSerialization(*newFib);
   EXPECT_EQ(
       firstRouteObserved->prefix().network(), folly::IPAddressV4("0.0.0.0"));
   EXPECT_EQ(firstRouteObserved->prefix().mask(), 0);
@@ -115,7 +115,7 @@ TEST(ForwardingInformationBaseV6, IPv6DefaultPrefixComparesSmallest) {
   ForwardingInformationBaseV6 oldFib;
   auto newFib = getFibV6();
 
-  validateThriftyMigration(*newFib);
+  validateNodeSerialization(*newFib);
 
   NodeMapDelta<ForwardingInformationBaseV6> delta(&oldFib, newFib.get());
   std::shared_ptr<RouteV6> firstRouteObserved;
@@ -135,12 +135,12 @@ TEST(ForwardingInformationBaseContainer, Thrifty) {
   ForwardingInformationBaseContainer container(RouterID(0));
   container.setFib(fibV4);
   container.setFib(fibV6);
-  validateThriftyMigration(container);
+  validateNodeSerialization(container);
 
   std::shared_ptr<ForwardingInformationBaseMap> fibs =
       std::make_shared<ForwardingInformationBaseMap>();
   fibs->addNode(container.clone());
-  validateThriftyMigration(*fibs);
+  validateNodeSerialization(*fibs);
 }
 
 } // namespace facebook::fboss

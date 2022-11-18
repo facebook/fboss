@@ -473,41 +473,23 @@ void preparedMockPortConfig(
     std::optional<std::string> name = std::nullopt,
     cfg::PortState state = cfg::PortState::ENABLED);
 
-template <typename ThriftyNode, bool areFields = false>
-void validateThriftyMigration(const ThriftyNode& node) {
-  folly::dynamic dyn = node.toFollyDynamic();
-  EXPECT_NO_THROW(folly::toJson(dyn));
-  auto newNode = ThriftyNode::fromFollyDynamic(dyn);
-
-  dyn = node.toFollyDynamicLegacy();
-  EXPECT_NO_THROW(folly::toJson(dyn));
-  auto legacyNode = ThriftyNode::fromFollyDynamicLegacy(dyn);
-
-  dyn = node.toFollyDynamicLegacy();
-  EXPECT_NO_THROW(folly::toJson(dyn));
-  auto forwardMigrationNode = ThriftyNode::fromFollyDynamic(dyn);
-
-  dyn = node.toFollyDynamic();
-  EXPECT_NO_THROW(folly::toJson(dyn));
-  auto backwardMigrationNode = ThriftyNode::fromFollyDynamicLegacy(dyn);
-
-  if constexpr (!areFields) {
-    EXPECT_EQ(node, *newNode);
-    EXPECT_EQ(*newNode, *legacyNode);
-    EXPECT_EQ(*legacyNode, *forwardMigrationNode);
-    EXPECT_EQ(*forwardMigrationNode, *backwardMigrationNode);
-  } else {
-    EXPECT_EQ(node, newNode);
-    EXPECT_EQ(newNode, legacyNode);
-    EXPECT_EQ(legacyNode, forwardMigrationNode);
-    EXPECT_EQ(forwardMigrationNode, backwardMigrationNode);
-  }
-}
-
-template <typename Node>
+template <typename Node, bool areFields = false>
 void validateNodeSerialization(const Node& node) {
-  auto nodeBack = Node::fromThrift(node.toThrift());
-  EXPECT_EQ(node, *nodeBack);
+  if constexpr (!areFields) {
+    if constexpr (!kIsThriftCowNode<Node>) {
+      // Thrifty Nodes
+      auto nodeBack = Node::fromThrift(node.toThrift());
+      EXPECT_EQ(node, *nodeBack);
+    } else {
+      // Thrift-cow Nodes
+      auto nodeBack = std::make_shared<Node>();
+      nodeBack->fromThrift(node.toThrift());
+      EXPECT_EQ(node, *nodeBack);
+    }
+  } else {
+    auto nodeBack = Node::fromThrift(node.toThrift());
+    EXPECT_EQ(node, nodeBack);
+  }
 }
 
 template <typename Node>
