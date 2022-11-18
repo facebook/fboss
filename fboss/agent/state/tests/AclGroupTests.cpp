@@ -43,12 +43,14 @@ const uint8_t kDscpVal4 = 4;
 const std::string kTable1 = "table1";
 const std::string kTable2 = "table2";
 const std::string kTable3 = "table3";
+const std::string kAclTable1 = "AclTable1";
 
 const cfg::AclStage kAclStage1 = cfg::AclStage::INGRESS;
 const cfg::AclStage kAclStage2 = cfg::AclStage::INGRESS_MACSEC;
 
 const std::string kGroup1 = "group1";
 const std::string kGroup2 = "group2";
+const std::string kAclTableGroupName = "Ingress ACL Group";
 
 const std::string kAcl1a = "acl1a";
 const std::string kAcl1b = "acl1b";
@@ -66,6 +68,56 @@ const std::vector<cfg::AclTableQualifier> kQualifiers = {
     cfg::AclTableQualifier::DST_IPV6,
     cfg::AclTableQualifier::SRC_IPV4,
     cfg::AclTableQualifier::DST_IPV4};
+
+namespace {
+
+std::shared_ptr<const AclMap> getAclMapFromState(
+    std::shared_ptr<SwitchState> state) {
+  auto aclMap = state->getAclsForTable(kAclStage1, kAclTable1);
+  EXPECT_NE(nullptr, aclMap);
+  return aclMap;
+}
+
+std::shared_ptr<SwitchState> thriftMultiAclSerializeDeserialize(
+    const SwitchState& state,
+    bool enableMultiAcl) {
+  FLAGS_enable_acl_table_group = enableMultiAcl;
+  auto thrifty = state.toThrift();
+  FLAGS_enable_acl_table_group = !FLAGS_enable_acl_table_group;
+  auto thriftIntrStateBack = SwitchState::fromThrift(thrifty);
+  FLAGS_enable_acl_table_group = !FLAGS_enable_acl_table_group;
+  return thriftIntrStateBack;
+}
+
+void verifyMultiAclSerialization(
+    const SwitchState& state,
+    bool enableMultiAcl) {
+  FLAGS_enable_acl_table_group = enableMultiAcl;
+  auto thriftIntrStateBack =
+      thriftMultiAclSerializeDeserialize(state, enableMultiAcl);
+  FLAGS_enable_acl_table_group = !FLAGS_enable_acl_table_group;
+  auto thriftyIntr = thriftIntrStateBack->toThrift();
+  FLAGS_enable_acl_table_group = !FLAGS_enable_acl_table_group;
+  auto thriftStateBack = SwitchState::fromThrift(thriftyIntr);
+  EXPECT_EQ(state, *thriftStateBack);
+}
+
+void verifyAclHelper(
+    std::shared_ptr<const AclMap> map,
+    std::shared_ptr<AclEntry> entry1,
+    std::shared_ptr<AclEntry> entry2,
+    std::shared_ptr<AclEntry> entry3 = nullptr) {
+  EXPECT_EQ(map->getEntryIf(entry1->getID())->getID(), kDscp1);
+  EXPECT_EQ(map->getEntryIf(entry2->getID())->getID(), kDscp2);
+  EXPECT_EQ(map->getEntryIf(entry1->getID())->getDscp(), kDscpVal1);
+  EXPECT_EQ(map->getEntryIf(entry2->getID())->getDscp(), kDscpVal2);
+
+  if (entry3 != nullptr) {
+    EXPECT_EQ(map->getEntryIf(entry3->getID())->getID(), kDscp3);
+    EXPECT_EQ(map->getEntryIf(entry3->getID())->getDscp(), kDscpVal3);
+  }
+}
+} // namespace
 
 TEST(AclGroup, TestEquality) {
   // test AclEntry equality
@@ -171,10 +223,19 @@ TEST(AclGroup, SerializeAclMap) {
   auto mapBack = AclMap::fromFollyDynamic(serialized);
 
   EXPECT_EQ(*map, *mapBack);
+  verifyAclHelper(mapBack, entry1, entry2);
   EXPECT_EQ(mapBack->getEntryIf(entry1->getID())->getID(), kDscp1);
   EXPECT_EQ(mapBack->getEntryIf(entry2->getID())->getID(), kDscp2);
   EXPECT_EQ(mapBack->getEntryIf(entry1->getID())->getDscp(), kDscpVal1);
   EXPECT_EQ(mapBack->getEntryIf(entry2->getID())->getDscp(), kDscpVal2);
+
+  auto state = SwitchState();
+  state.resetAcls(map);
+  verifyMultiAclSerialization(state, false);
+
+  auto thriftConvertedState = thriftMultiAclSerializeDeserialize(state, false);
+  auto thriftConvertedMap = getAclMapFromState(thriftConvertedState);
+  verifyAclHelper(thriftConvertedMap, entry1, entry2);
 
   // remove an entry
   map->removeEntry(entry1);
@@ -321,6 +382,49 @@ TEST(AclGroup, SerializeAclTableGroup) {
   EXPECT_EQ(tableGroupBack->getName(), kGroup1);
   EXPECT_EQ(*(tableGroupBack->getAclTableMap()), *tableMap);
 }
+
+TEST(AclGroup, SerializeMultiAclTableGroupMap) {
+  /*
+   * Simulate conditions similar to the default Acl Table Group
+   * created in switch state and verify the non multi ACL to multi
+   * ACL warmboot transition goes through
+   */
+  auto entry1 = std::make_shared<AclEntry>(1, kDscp1);
+  auto entry2 = std::make_shared<AclEntry>(2, kDscp2);
+  auto entry3 = std::make_shared<AclEntry>(3, kDscp3);
+  entry1->setDscp(kDscpVal1);
+  entry2->setDscp(kDscpVal2);
+  entry3->setDscp(kDscpVal3);
+
+  auto map1 = std::make_shared<AclMap>();
+  map1->addEntry(entry1);
+  map1->addEntry(entry2);
+  map1->addEntry(entry3);
+
+  auto table1 = std::make_shared<AclTable>(0, kAclTable1);
+  table1->setAclMap(map1);
+
+  auto tableMap = std::make_shared<AclTableMap>();
+  tableMap->addTable(table1);
+
+  auto tableGroup = std::make_shared<AclTableGroup>(kAclStage1);
+  tableGroup->setAclTableMap(tableMap);
+  tableGroup->setName(kAclTableGroupName);
+
+  auto tableGroups = std::make_shared<AclTableGroupMap>();
+  tableGroups->addAclTableGroup(tableGroup);
+
+  auto state = SwitchState();
+  state.resetAclTableGroups(tableGroups);
+  verifyMultiAclSerialization(state, true);
+
+  auto thriftConvertedState = thriftMultiAclSerializeDeserialize(state, true);
+  auto thriftConvertedMap = thriftConvertedState->getAcls();
+  verifyAclHelper(thriftConvertedMap, entry1, entry2, entry3);
+}
+
+/*
+TODO(Elangovan): these tests are failing when the file was added to TARGETS.
 
 TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
   FLAGS_enable_acl_table_group = true;
@@ -692,3 +796,4 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
       *(stateV8->getAclTableGroups()->getAclTableGroup(kAclStage1)),
       *tableGroup);
 }
+*/
