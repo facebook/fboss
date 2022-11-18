@@ -44,6 +44,10 @@ struct AclTableFields
 
   folly::dynamic toFollyDynamic() const;
   static AclTableFields fromFollyDynamic(const folly::dynamic& json);
+  static AclTableFields createDefaultAclTableFields(const folly::dynamic& json);
+  static AclTableFields createDefaultAclTableFieldsFromThrift(
+      std::map<std::string, state::AclEntryFields> const& thriftMap);
+
   state::AclTableFields toThrift() const override {
     return data();
   }
@@ -73,6 +77,33 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
       const folly::dynamic& json) {
     const auto& fields = AclTableFields::fromFollyDynamic(json);
     return std::make_shared<AclTable>(fields);
+  }
+
+  static std::shared_ptr<AclTable> createDefaultAclTable(
+      const folly::dynamic& json) {
+    const auto& fields = AclTableFields::createDefaultAclTableFields(json);
+    return std::make_shared<AclTable>(fields);
+  }
+
+  static std::shared_ptr<AclTable> createDefaultAclTableFromThrift(
+      std::map<std::string, state::AclEntryFields> const& thriftMap) {
+    const auto& fields =
+        AclTableFields::createDefaultAclTableFieldsFromThrift(thriftMap);
+    return std::make_shared<AclTable>(fields);
+  }
+
+  static const folly::dynamic& getAclTableName(
+      const folly::dynamic& aclTableJson) {
+    return AclMap::getAclMapName(aclTableJson[kEntries]);
+  }
+
+  static std::shared_ptr<AclMap> getDefaultAclTable(
+      state::AclTableFields const& aclTableFields) {
+    if (auto aclMap = aclTableFields.aclMap()) {
+      return (AclMap::fromThrift(*aclMap));
+    } else {
+      return nullptr;
+    }
   }
 
   static std::shared_ptr<AclTable> fromJson(const folly::fbstring& jsonStr) {

@@ -23,6 +23,10 @@ constexpr auto kName = "name";
 constexpr auto kAclMap = "aclMap";
 constexpr auto kActionTypes = "actionTypes";
 constexpr auto kQualifiers = "qualifiers";
+constexpr auto kAcls = "acls";
+// Same Priority and name as the default table created */
+constexpr auto kAclTablePriority = 0;
+constexpr auto kAclTable1 = "AclTable1";
 } // namespace
 
 namespace facebook::fboss {
@@ -70,6 +74,29 @@ AclTableFields AclTableFields::fromFollyDynamic(
       aclTable.writableData().qualifiers()->push_back(qualifier);
     }
   }
+
+  return aclTable;
+}
+
+/* Create Default ACL table similar to the one created in Sai code today.
+ * Leave the ACL Table and qualifiers empty to be populated during Delta
+ * processing */
+AclTableFields AclTableFields::createDefaultAclTableFields(
+    const folly::dynamic& swJson) {
+  std::shared_ptr<AclMap> aclMap;
+
+  aclMap = AclMap::fromFollyDynamic(swJson);
+  AclTableFields aclTable(kAclTablePriority, kAclTable1, aclMap);
+
+  return aclTable;
+}
+
+AclTableFields AclTableFields::createDefaultAclTableFieldsFromThrift(
+    std::map<std::string, state::AclEntryFields> const& thriftMap) {
+  std::shared_ptr<AclMap> aclMap;
+
+  aclMap = AclMap::fromThrift(thriftMap);
+  AclTableFields aclTable(kAclTablePriority, kAclTable1, aclMap);
 
   return aclTable;
 }
