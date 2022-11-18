@@ -14,6 +14,10 @@
 
 #include "fboss/agent/state/SwitchState.h"
 
+namespace {
+constexpr auto kAclTable1 = "AclTable1";
+}
+
 namespace facebook::fboss {
 
 AclTableMap::AclTableMap() {}
@@ -37,6 +41,29 @@ std::shared_ptr<AclTableMap> AclTableMap::fromThrift(
   return aclTableMap;
 }
 
+std::shared_ptr<AclTableMap> AclTableMap::createDefaultAclTableMap(
+    const folly::dynamic& swJson) {
+  auto aclTableMap = std::make_shared<AclTableMap>();
+  aclTableMap->addNode(AclTable::createDefaultAclTable(swJson));
+  return aclTableMap;
+}
+
+std::shared_ptr<AclTableMap> AclTableMap::createDefaultAclTableMapFromThrift(
+    std::map<std::string, state::AclEntryFields> const& thriftMap) {
+  auto aclTableMap = std::make_shared<AclTableMap>();
+  aclTableMap->addNode(AclTable::createDefaultAclTableFromThrift(thriftMap));
+  return aclTableMap;
+}
+
+std::shared_ptr<AclMap> AclTableMap::getDefaultAclTableMap(
+    std::map<std::string, state::AclTableFields> const& thriftMap) {
+  if (thriftMap.find(kAclTable1) != thriftMap.end()) {
+    auto aclTable = thriftMap.at(kAclTable1);
+    return AclTable::getDefaultAclTable(aclTable);
+  } else {
+    return nullptr;
+  }
+}
 FBOSS_INSTANTIATE_NODE_MAP(AclTableMap, AclTableMapTraits);
 
 } // namespace facebook::fboss
