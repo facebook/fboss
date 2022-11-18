@@ -338,6 +338,38 @@ target_link_libraries(bcm_rib_sync_fib_speed
   Folly::follybenchmark
 )
 
+add_executable(bcm_teflow_scale_add /dev/null)
+
+target_link_libraries(bcm_teflow_scale_add
+  -Wl,--whole-archive
+  bcm
+  config
+  bcm_switch_ensemble
+  config_factory
+  hw_teflow_scale_add
+  -Wl,--no-whole-archive
+  hw_benchmark_main
+  Folly::folly
+  ${OPENNSA}
+  Folly::follybenchmark
+)
+
+add_executable(bcm_teflow_scale_del /dev/null)
+
+target_link_libraries(bcm_teflow_scale_del
+  -Wl,--whole-archive
+  bcm
+  config
+  bcm_switch_ensemble
+  config_factory
+  hw_teflow_scale_del
+  -Wl,--no-whole-archive
+  hw_benchmark_main
+  Folly::folly
+  ${OPENNSA}
+  Folly::follybenchmark
+)
+
 if (BENCHMARK_INSTALL)
   install(TARGETS bcm_ecmp_shrink_speed)
   install(TARGETS bcm_ecmp_shrink_with_competing_route_updates_speed)
@@ -360,4 +392,6 @@ if (BENCHMARK_INSTALL)
   install(TARGETS bcm_init_and_exit_100Gx100G)
   install(TARGETS bcm_rib_resolution_speed)
   install(TARGETS bcm_rib_sync_fib_speed)
+  install(TARGETS bcm_teflow_scale_add)
+  install(TARGETS bcm_teflow_scale_del)
 endif()

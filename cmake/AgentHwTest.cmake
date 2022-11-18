@@ -72,6 +72,18 @@ target_link_libraries(hw_copp_utils
   ${LIBGMOCK_LIBRARIES}
 )
 
+add_library(hw_teflow_utils
+  fboss/agent/hw/test/HwTeFlowTestUtils.cpp
+)
+
+target_link_libraries(hw_teflow_utils
+  config_factory
+  hw_switch_ensemble
+  state
+  Folly::folly
+  switch_config_cpp2
+)
+
 add_library(hw_olympic_qos_utils
   fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.cpp
 )

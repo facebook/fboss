@@ -44,7 +44,7 @@ void deleteFlowEntry(
 
 void deleteFlowEntries(
     HwSwitchEnsemble* hwEnsemble,
-    std::vector<std::shared_ptr<TeFlowEntry>>& flowEntry);
+    std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries);
 
 void modifyFlowEntry(
     HwSwitchEnsemble* hwEnsemble,
