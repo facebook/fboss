@@ -12,7 +12,6 @@ add_library(sensor_service_lib
   fboss/platform/sensor_service/DarwinSensorConfig.cpp
   fboss/platform/sensor_service/SensorServiceThriftHandler.cpp
   fboss/platform/sensor_service/oss/FsdbSyncer.cpp
-  fboss/platform/sensor_service/oss/SetupThrift.cpp
   fboss/platform/sensor_service/oss/SensorStatsPub.cpp
 )
 
