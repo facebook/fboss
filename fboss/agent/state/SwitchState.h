@@ -44,6 +44,8 @@
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/types.h"
 
+DECLARE_bool(enable_acl_table_group);
+
 namespace facebook::fboss {
 
 class ControlPlane;
@@ -487,6 +489,8 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetTunnels(std::shared_ptr<IpTunnelMap> tunnels);
   void resetTeFlowTable(std::shared_ptr<TeFlowTable> teFlowTable);
   void resetDsfNodes(std::shared_ptr<DsfNodeMap> dsfNodes);
+  std::shared_ptr<AclTableGroupMap>& getAclTablesForStage(
+      const folly::dynamic& swJson);
 
   void resetRemoteSystemPorts(std::shared_ptr<SystemPortMap> systemPorts);
   void resetRemoteIntfs(std::shared_ptr<InterfaceMap> intfs);
