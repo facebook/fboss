@@ -52,9 +52,35 @@ SaiAclTableManager::SaiAclTableManager(
 
 std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
     const std::shared_ptr<AclTable>& addedAclTable) {
-  if (FLAGS_enable_acl_table_group) {
-    return cfgActionTypeListToSaiActionTypeList(
-        addedAclTable->getActionTypes());
+  /*
+   * The current wedge agent code does the following.
+   * 1. The sai code creates a default ACL table group and ACL table using
+   * default qualifier and actiontype list to accommodate warmboot transition
+   * from non multi acls to multi acls.
+   * 2. The software switch state populates only the ACL entries and does not
+   * populate the fields for ACL table group and ACL tables.
+   * 3. As a consequence, the warmboot state does not contain the fields for ACL
+   * table qualifiers and action type list.
+   *
+   * The following steps are done for when enable_acl_table_group flag is set.
+   * 1. The Agent code populates default ACL table group and ACL table rather
+   * than directly populating the ACLs.
+   * 2. However, when the ACL table is being populated, software switch state
+   * code is not aware of what action types and qualifiers are supported by the
+   * current hardware.
+   * 3. So ACL table is created with empty qualifier and action type list.
+   * 4. When delta processing is hit for the ACL table, the newly added tables
+   * will have empty lists for both qualifiers and actiontype list.
+   * 5. To handle that case, we have a special check here where if the multi acl
+   * flag is enabled and the qualifiers and actiontype list is empty, instead of
+   * creating the new table with empty qualifiers and actiontypes, we populate
+   * the default set of values so the ACLs can be created without issues.
+   */
+
+  auto aclActionTypes = addedAclTable->getActionTypes();
+
+  if (FLAGS_enable_acl_table_group && aclActionTypes.size() != 0) {
+    return cfgActionTypeListToSaiActionTypeList(aclActionTypes);
   } else {
     bool isTajo = platform_->getAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
@@ -77,9 +103,14 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
 
 std::set<cfg::AclTableQualifier> SaiAclTableManager::getQualifierSet(
     const std::shared_ptr<AclTable>& addedAclTable) {
-  if (FLAGS_enable_acl_table_group) {
+  auto aclQualifiers = addedAclTable->getQualifiers();
+  /*
+   * Please refer to the detailed comment under getActionTypeList() to
+   * understand why we have the size check
+   */
+  if (FLAGS_enable_acl_table_group && aclQualifiers.size() != 0) {
     std::set<cfg::AclTableQualifier> qualifiers;
-    for (const auto& qualifier : addedAclTable->getQualifiers()) {
+    for (const auto& qualifier : aclQualifiers) {
       qualifiers.insert(qualifier);
     }
 
