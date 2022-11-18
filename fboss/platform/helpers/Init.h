@@ -1,5 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 //
+#include "thrift/lib/cpp2/async/AsyncProcessor.h"
 #include "thrift/lib/cpp2/server/ThriftServer.h"
 
 namespace facebook::services {
@@ -30,4 +31,11 @@ setupThrift(std::shared_ptr<Service> service, int thriftPort) {
   return setupThrift(std::make_shared<SvcThriftHandler>(service), thriftPort);
 }
 void addCommonModules(facebook::services::ServiceFrameworkLight& service);
+
+void runThriftService(
+    std::shared_ptr<apache::thrift::ThriftServer> server,
+    std::shared_ptr<apache::thrift::ServerInterface> handler,
+    const std::string& serviceName,
+    uint32_t port);
+
 } // namespace facebook::fboss::platform::helpers

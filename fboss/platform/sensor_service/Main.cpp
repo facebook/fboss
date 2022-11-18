@@ -4,14 +4,10 @@
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/logging/Init.h>
 
-#ifndef IS_OSS
-#include "common/services/cpp/ServiceFrameworkLight.h"
-#endif
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/sensor_service/Flags.h"
 #include "fboss/platform/sensor_service/SensorServiceThriftHandler.h"
 #include "fboss/platform/sensor_service/SensorStatsPub.h"
-#include "fboss/platform/sensor_service/SetupThrift.h"
 
 using namespace facebook;
 using namespace facebook::services;
@@ -30,9 +26,6 @@ int main(int argc, char** argv) {
   // Fetch sensor data once to warmup
   serviceImpl->fetchSensorData();
 
-  auto [server, handler] = helpers::setupThrift<SensorServiceThriftHandler>(
-      serviceImpl, FLAGS_thrift_port);
-
   folly::FunctionScheduler scheduler;
 
   SensorStatsPub publisher(serviceImpl.get());
@@ -49,11 +42,12 @@ int main(int argc, char** argv) {
 
   scheduler.start();
 
-#ifndef IS_OSS
-  facebook::services::ServiceFrameworkLight service("Sensor Service");
-  // Finally, run the Thrift server
-  runServer(service, server, handler.get(), FLAGS_thrift_port);
-#endif
+  auto server = std::make_shared<apache::thrift::ThriftServer>();
+  auto handler = std::make_shared<SensorServiceThriftHandler>(serviceImpl);
+  server->setPort(FLAGS_thrift_port);
+  server->setInterface(handler);
+  helpers::runThriftService(
+      server, handler, "SensorService", FLAGS_thrift_port);
 
   return 0;
 }
