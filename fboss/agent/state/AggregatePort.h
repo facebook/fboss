@@ -301,7 +301,7 @@ class AggregatePort
 
   AggregatePort::Forwarding getForwardingState(PortID port) {
     const auto& portToFwdState = cref<switch_state_tags::portToFwdState>();
-    auto it = portToFwdState->find(port);
+    auto it = std::as_const(*portToFwdState).find(port);
     if (it == portToFwdState->cend()) {
       throw FbossError("No forwarding state found for port ", port);
     }
@@ -323,8 +323,8 @@ class AggregatePort
   AggregatePort::PartnerState getPartnerState(PortID port) const {
     const auto& portToPartnerState =
         cref<switch_state_tags::portToPartnerState>();
-    auto it = portToPartnerState->find(port);
-    if (it == portToPartnerState->end()) {
+    auto it = std::as_const(*portToPartnerState).find(port);
+    if (it == portToPartnerState->cend()) {
       throw FbossError("No partner state found for port ", port);
     }
 
