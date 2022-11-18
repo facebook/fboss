@@ -103,15 +103,21 @@ struct ControlPlaneFields
   }
 };
 
+USE_THRIFT_COW(ControlPlane);
+
 /*
  * ControlPlane stores state about path settings of traffic to userver CPU
  * on the switch.
  */
-class ControlPlane : public ThriftyBaseT<
-                         state::ControlPlaneFields,
-                         ControlPlane,
-                         ControlPlaneFields> {
+class ControlPlane
+    : public ThriftStructNode<ControlPlane, state::ControlPlaneFields> {
  public:
+  using BaseT = ThriftStructNode<ControlPlane, state::ControlPlaneFields>;
+  using PortQueues =
+      BaseT::Fields::NamedMemberTypes::type_of<switch_state_tags::queues>;
+  using PacketRxReasonToQueue = BaseT::Fields::NamedMemberTypes::type_of<
+      switch_state_tags::rxReasonToQueue>;
+
   using RxReasonToQueue = ControlPlaneFields::RxReasonToQueue;
 
   ControlPlane() {}
@@ -119,40 +125,61 @@ class ControlPlane : public ThriftyBaseT<
   static std::shared_ptr<ControlPlane> fromFollyDynamicLegacy(
       const folly::dynamic& json) {
     const auto& fields = ControlPlaneFields::fromFollyDynamicLegacy(json);
-    return std::make_shared<ControlPlane>(fields);
+    return std::make_shared<ControlPlane>(fields.toThrift());
+  }
+
+  static std::shared_ptr<ControlPlane> fromFollyDynamic(
+      const folly::dynamic& json) {
+    const auto& fields = ControlPlaneFields::fromFollyDynamic(json);
+    return std::make_shared<ControlPlane>(fields.toThrift());
   }
 
   folly::dynamic toFollyDynamicLegacy() const {
-    return getFields()->toFollyDynamicLegacy();
+    auto fields = ControlPlaneFields::fromThrift(toThrift());
+    return fields.toFollyDynamicLegacy();
   }
 
-  QueueConfig getQueues() const {
-    return getFields()->queues();
+  folly::dynamic toFollyDynamic() const override {
+    auto fields = ControlPlaneFields::fromThrift(toThrift());
+    return fields.toFollyDynamic();
+  }
+
+  const auto& getQueues() const {
+    return cref<switch_state_tags::queues>();
   }
   void resetQueues(QueueConfig& queues) {
-    writableFields()->setQueues(queues);
+    std::vector<state::PortQueueFields> queuesThrift{};
+    for (auto queue : queues) {
+      queuesThrift.push_back(queue->toThrift());
+    }
+    set<switch_state_tags::queues>(std::move(queuesThrift));
   }
 
-  RxReasonToQueue getRxReasonToQueue() const {
-    return getFields()->rxReasonToQueue();
+  const auto& getRxReasonToQueue() const {
+    return cref<switch_state_tags::rxReasonToQueue>();
   }
   void resetRxReasonToQueue(RxReasonToQueue& rxReasonToQueue) {
-    writableFields()->setRxReasonToQueue(rxReasonToQueue);
+    set<switch_state_tags::rxReasonToQueue>(std::move(rxReasonToQueue));
   }
 
-  std::optional<std::string> getQosPolicy() const {
-    return getFields()->qosPolicy();
+  const auto& getQosPolicy() const {
+    return cref<switch_state_tags::defaultQosPolicy>();
   }
   void resetQosPolicy(std::optional<std::string>& qosPolicy) {
-    writableFields()->setQosPolicy(qosPolicy);
+    if (qosPolicy) {
+      set<switch_state_tags::defaultQosPolicy>(*qosPolicy);
+    } else {
+      ref<switch_state_tags::defaultQosPolicy>().reset();
+    }
+  }
+
+  // THRIFT_COPY
+  const QueueConfig& getQueuesConfig() const {
+    const auto& queues = getQueues();
+    return queues->impl();
   }
 
   ControlPlane* modify(std::shared_ptr<SwitchState>* state);
-
-  bool operator==(const ControlPlane& controlPlane) const;
-  bool operator!=(const ControlPlane& controlPlane) {
-    return !(*this == controlPlane);
-  }
 
   static cfg::PacketRxReasonToQueue makeRxReasonToQueueEntry(
       cfg::PacketRxReason reason,
@@ -160,7 +187,7 @@ class ControlPlane : public ThriftyBaseT<
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyBaseT::ThriftyBaseT;
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 

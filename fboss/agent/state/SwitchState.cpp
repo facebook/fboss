@@ -178,7 +178,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
     fields.bufferPoolCfgs->fromThrift(*state.bufferPoolCfgMap());
   }
   fields.mirrors = MirrorMap::fromThrift(state.get_mirrorMap());
-  fields.controlPlane = ControlPlane::fromThrift(*state.controlPlane());
+  fields.controlPlane->fromThrift(*state.controlPlane());
   fields.defaultVlan = *state.defaultVlan();
   fields.arpTimeout =
       std::chrono::seconds(static_cast<uint64_t>(*state.arpTimeout()));

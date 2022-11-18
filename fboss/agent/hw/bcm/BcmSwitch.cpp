@@ -2807,12 +2807,12 @@ void BcmSwitch::processRemovedLoadBalancer(
 bool BcmSwitch::isControlPlaneQueueNameChanged(
     const shared_ptr<ControlPlane>& oldCPU,
     const shared_ptr<ControlPlane>& newCPU) {
-  if ((oldCPU->getQueues().size() != newCPU->getQueues().size())) {
+  if ((oldCPU->getQueues()->size() != newCPU->getQueues()->size())) {
     return true;
   }
 
-  for (const auto& newQueue : newCPU->getQueues()) {
-    auto oldQueue = oldCPU->getQueues().at(newQueue->getID());
+  for (const auto& newQueue : std::as_const(*newCPU->getQueues())) {
+    const auto& oldQueue = oldCPU->getQueues()->cref(newQueue->getID());
     if (newQueue->getName() != oldQueue->getName()) {
       return true;
     }
@@ -2823,13 +2823,13 @@ bool BcmSwitch::isControlPlaneQueueNameChanged(
 void BcmSwitch::processChangedControlPlaneQueues(
     const shared_ptr<ControlPlane>& oldCPU,
     const shared_ptr<ControlPlane>& newCPU) {
-  XLOG_IF(DBG1, oldCPU->getQueues().size() != newCPU->getQueues().size())
-      << "Old cpu queue size:" << oldCPU->getQueues().size()
-      << ", but new cpu queue size:" << newCPU->getQueues().size();
+  XLOG_IF(DBG1, oldCPU->getQueues()->size() != newCPU->getQueues()->size())
+      << "Old cpu queue size:" << oldCPU->getQueues()->size()
+      << ", but new cpu queue size:" << newCPU->getQueues()->size();
   // first make sure queue settings changes applied
-  for (const auto& newQueue : newCPU->getQueues()) {
-    if (oldCPU->getQueues().size() > newQueue->getID() &&
-        *(oldCPU->getQueues().at(newQueue->getID())) == *newQueue) {
+  for (const auto& newQueue : std::as_const(*newCPU->getQueues())) {
+    if (oldCPU->getQueues()->size() > newQueue->getID() &&
+        *(oldCPU->getQueues()->cref(newQueue->getID())) == *newQueue) {
       continue;
     }
     XLOG(DBG1) << "New cos queue settings on cpu queue "
@@ -2838,7 +2838,8 @@ void BcmSwitch::processChangedControlPlaneQueues(
   }
 
   if (isControlPlaneQueueNameChanged(oldCPU, newCPU)) {
-    controlPlane_->getQueueManager()->setupQueueCounters(newCPU->getQueues());
+    controlPlane_->getQueueManager()->setupQueueCounters(
+        newCPU->getQueues()->impl());
   }
 }
 
@@ -2848,14 +2849,18 @@ void BcmSwitch::processChangedRxReasonToQueueEntries(
   const auto& oldReasonToQueue = oldCPU->getRxReasonToQueue();
   const auto& newReasonToQueue = newCPU->getRxReasonToQueue();
   for (int index = 0;
-       index < std::max(newReasonToQueue.size(), oldReasonToQueue.size());
+       index < std::max(newReasonToQueue->size(), oldReasonToQueue->size());
        ++index) {
-    if (index >= oldReasonToQueue.size()) { // added
-      controlPlane_->setReasonToQueueEntry(index, newReasonToQueue[index]);
-    } else if (index >= newReasonToQueue.size()) { // deleted
+    if (index >= oldReasonToQueue->size()) { // added
+      controlPlane_->setReasonToQueueEntry(
+          index, newReasonToQueue->cref(index)->toThrift());
+    } else if (index >= newReasonToQueue->size()) { // deleted
       controlPlane_->deleteReasonToQueueEntry(index);
-    } else if (oldReasonToQueue[index] != newReasonToQueue[index]) { // changed
-      controlPlane_->setReasonToQueueEntry(index, newReasonToQueue[index]);
+    } else if (
+        oldReasonToQueue->cref(index)->toThrift() !=
+        newReasonToQueue->cref(index)->toThrift()) { // changed
+      controlPlane_->setReasonToQueueEntry(
+          index, newReasonToQueue->cref(index)->toThrift());
     }
   }
 }
@@ -3478,7 +3483,11 @@ void BcmSwitch::processControlPlaneChanges(const StateDelta& delta) {
 
   processChangedControlPlaneQueues(oldCPU, newCPU);
   if (oldCPU->getQosPolicy() != newCPU->getQosPolicy()) {
-    controlPlane_->setupIngressQosPolicy(newCPU->getQosPolicy());
+    if (const auto& policy = newCPU->getQosPolicy()) {
+      controlPlane_->setupIngressQosPolicy(policy->cref());
+    } else {
+      controlPlane_->setupIngressQosPolicy(std::nullopt);
+    }
   }
   processChangedRxReasonToQueueEntries(oldCPU, newCPU);
 

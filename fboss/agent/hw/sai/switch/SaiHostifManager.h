@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/api/HostifApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
@@ -106,8 +107,8 @@ class SaiHostifManager {
   void loadCpuPort();
   void loadCpuPortQueues();
   void changeCpuQueue(
-      const QueueConfig& oldQueueConfig,
-      const QueueConfig& newQueueConfig);
+      const ControlPlane::PortQueues& oldQueueConfig,
+      const ControlPlane::PortQueues& newQueueConfig);
   SaiQueueHandle* getQueueHandleImpl(
       const SaiQueueConfig& saiQueueConfig) const;
   SaiHostifTrapHandle* getHostifTrapHandleImpl(

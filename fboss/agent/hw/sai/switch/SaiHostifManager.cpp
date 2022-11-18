@@ -276,75 +276,91 @@ void SaiHostifManager::processQosDelta(
 
 void SaiHostifManager::processRxReasonToQueueDelta(
     const DeltaValue<ControlPlane>& controlPlaneDelta) {
-  auto oldRxReasonToQueue = controlPlaneDelta.getOld()->getRxReasonToQueue();
-  auto newRxReasonToQueue = controlPlaneDelta.getNew()->getRxReasonToQueue();
+  const auto& oldRxReasonToQueue =
+      controlPlaneDelta.getOld()->getRxReasonToQueue();
+  const auto& newRxReasonToQueue =
+      controlPlaneDelta.getNew()->getRxReasonToQueue();
   /*
    * RxReasonToQueue is an ordered list and the enum values dicatates the
    * priority of the traps. Lower the enum value, lower the priority.
    */
-  for (auto index = 0; index < newRxReasonToQueue.size(); index++) {
-    auto& newRxReasonEntry = newRxReasonToQueue[index];
+  for (auto index = 0; index < newRxReasonToQueue->size(); index++) {
+    const auto& newRxReasonEntry = newRxReasonToQueue->cref(index);
     // We'll need to skip for unmatched reason because
     // (1) we're not programming hostif trap for that, and
     // (2) If newly added rx reason entries are above the unmatched reason,
     // we'll try to call changeHostifTrap() for the unmatched reason.
     // TODO(zecheng): Fix the below logic of comparing index (instead we should
     // compare priority)
-    if (newRxReasonEntry.rxReason() == cfg::PacketRxReason::UNMATCHED) {
+    if (newRxReasonEntry->cref<switch_config_tags::rxReason>()->toThrift() ==
+        cfg::PacketRxReason::UNMATCHED) {
       // what is the trap for unmatched?
       XLOG(WARN) << "ignoring UNMATCHED packet rx reason";
       continue;
     }
-    auto oldRxReasonEntry = std::find_if(
-        oldRxReasonToQueue.begin(),
-        oldRxReasonToQueue.end(),
+    auto oldRxReasonEntryIter = std::find_if(
+        oldRxReasonToQueue->cbegin(),
+        oldRxReasonToQueue->cend(),
         [newRxReasonEntry](const auto& rxReasonEntry) {
-          return rxReasonEntry.rxReason() == newRxReasonEntry.rxReason();
+          return rxReasonEntry->template cref<switch_config_tags::rxReason>()
+                     ->cref() ==
+              newRxReasonEntry->template cref<switch_config_tags::rxReason>()
+                  ->cref();
         });
     /*
      * Lower index must have higher priority.
      */
-    auto priority = newRxReasonToQueue.size() - index;
+    auto priority = newRxReasonToQueue->size() - index;
     CHECK_GT(priority, 0);
-    if (oldRxReasonEntry != oldRxReasonToQueue.end()) {
+    if (oldRxReasonEntryIter != oldRxReasonToQueue->cend()) {
       /*
        * If old reason exists and does not match the index, priority of the trap
        * group needs to be updated.
        */
       auto oldIndex =
-          std::distance(oldRxReasonToQueue.begin(), oldRxReasonEntry);
+          std::distance(oldRxReasonToQueue->cbegin(), oldRxReasonEntryIter);
+      const auto& oldRxReasonEntry = *oldRxReasonEntryIter;
       if (oldIndex != index ||
-          oldRxReasonEntry->queueId() != newRxReasonEntry.queueId()) {
+          oldRxReasonEntry->cref<switch_config_tags::queueId>()->cref() !=
+              newRxReasonEntry->cref<switch_config_tags::queueId>()->cref()) {
         changeHostifTrap(
-            *newRxReasonEntry.rxReason(),
-            *newRxReasonEntry.queueId(),
+            newRxReasonEntry->cref<switch_config_tags::rxReason>()->cref(),
+            newRxReasonEntry->cref<switch_config_tags::queueId>()->cref(),
             priority);
       }
     } else {
       addHostifTrap(
-          *newRxReasonEntry.rxReason(), *newRxReasonEntry.queueId(), priority);
+          newRxReasonEntry->cref<switch_config_tags::rxReason>()->cref(),
+          newRxReasonEntry->cref<switch_config_tags::queueId>()->cref(),
+          priority);
     }
   }
 
-  for (auto index = 0; index < oldRxReasonToQueue.size(); index++) {
-    auto& oldRxReasonEntry = oldRxReasonToQueue[index];
+  for (auto index = 0; index < oldRxReasonToQueue->size(); index++) {
+    const auto& oldRxReasonEntry = oldRxReasonToQueue->cref(index);
     auto newRxReasonEntry = std::find_if(
-        newRxReasonToQueue.begin(),
-        newRxReasonToQueue.end(),
+        newRxReasonToQueue->cbegin(),
+        newRxReasonToQueue->cend(),
         [&](const auto& rxReasonEntry) {
-          return rxReasonEntry.rxReason() == oldRxReasonEntry.rxReason();
+          return rxReasonEntry->template cref<switch_config_tags::rxReason>()
+                     ->cref() ==
+              oldRxReasonEntry->template cref<switch_config_tags::rxReason>()
+                  ->cref();
         });
-    if (newRxReasonEntry == newRxReasonToQueue.end()) {
-      removeHostifTrap(*oldRxReasonEntry.rxReason());
+    if (newRxReasonEntry == newRxReasonToQueue->cend()) {
+      removeHostifTrap(
+          oldRxReasonEntry->cref<switch_config_tags::rxReason>()->cref());
     }
   }
 }
 
 void SaiHostifManager::processQueueDelta(
     const DeltaValue<ControlPlane>& controlPlaneDelta) {
-  auto oldQueueConfig = controlPlaneDelta.getOld()->getQueues();
-  auto newQueueConfig = controlPlaneDelta.getNew()->getQueues();
-  changeCpuQueue(oldQueueConfig, newQueueConfig);
+  const auto& oldQueues =
+      controlPlaneDelta.getOld()->cref<switch_state_tags::queues>();
+  const auto& newQueues =
+      controlPlaneDelta.getNew()->cref<switch_state_tags::queues>();
+  changeCpuQueue(oldQueues, newQueues);
 }
 
 void SaiHostifManager::processHostifDelta(
@@ -379,13 +395,13 @@ SaiQueueHandle* SaiHostifManager::getQueueHandle(
 }
 
 void SaiHostifManager::changeCpuQueue(
-    const QueueConfig& oldQueueConfig,
-    const QueueConfig& newQueueConfig) {
+    const ControlPlane::PortQueues& oldQueueConfig,
+    const ControlPlane::PortQueues& newQueueConfig) {
   cpuPortHandle_->configuredQueues.clear();
 
   const auto asic = platform_->getAsic();
   auto maxCpuQueues = getMaxCpuQueues();
-  for (auto newPortQueue : newQueueConfig) {
+  for (const auto& newPortQueue : std::as_const(*newQueueConfig)) {
     // Queue create or update
     if (newPortQueue->getID() > maxCpuQueues) {
       throw FbossError(
@@ -397,32 +413,33 @@ void SaiHostifManager::changeCpuQueue(
     SaiQueueConfig saiQueueConfig =
         std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
     auto queueHandle = getQueueHandle(saiQueueConfig);
-    newPortQueue->setReservedBytes(
+    auto portQueue = newPortQueue->clone();
+    portQueue->setReservedBytes(
         newPortQueue->getReservedBytes()
             ? *newPortQueue->getReservedBytes()
             : asic->getDefaultReservedBytes(
                   newPortQueue->getStreamType(), true /*cpu port*/));
-    newPortQueue->setScalingFactor(
+    portQueue->setScalingFactor(
         newPortQueue->getScalingFactor()
             ? *newPortQueue->getScalingFactor()
             : asic->getDefaultScalingFactor(
                   newPortQueue->getStreamType(), true /*cpu port*/));
-    managerTable_->queueManager().changeQueue(queueHandle, *newPortQueue);
+    managerTable_->queueManager().changeQueue(queueHandle, *portQueue);
     if (newPortQueue->getName().has_value()) {
       auto queueName = *newPortQueue->getName();
       cpuStats_.queueChanged(newPortQueue->getID(), queueName);
       cpuPortHandle_->configuredQueues.push_back(queueHandle);
     }
   }
-  for (auto oldPortQueue : oldQueueConfig) {
+  for (const auto& oldPortQueue : std::as_const(*oldQueueConfig)) {
     auto portQueueIter = std::find_if(
-        newQueueConfig.begin(),
-        newQueueConfig.end(),
+        newQueueConfig->cbegin(),
+        newQueueConfig->cend(),
         [&](const std::shared_ptr<PortQueue> portQueue) {
           return portQueue->getID() == oldPortQueue->getID();
         });
     // Queue Remove
-    if (portQueueIter == newQueueConfig.end()) {
+    if (portQueueIter == newQueueConfig->cend()) {
       SaiQueueConfig saiQueueConfig =
           std::make_pair(oldPortQueue->getID(), oldPortQueue->getStreamType());
       cpuPortHandle_->queues.erase(saiQueueConfig);

@@ -130,26 +130,6 @@ cfg::PacketRxReasonToQueue ControlPlane::makeRxReasonToQueueEntry(
   return reasonToQueue;
 }
 
-bool ControlPlane::operator==(const ControlPlane& controlPlane) const {
-  // TODO(joseph5wu) Will add QueueConfig struct in the future diff.
-  auto compareQueues = [&](const QueueConfig& queues1,
-                           const QueueConfig& queues2) -> bool {
-    if (queues1.size() != queues2.size()) {
-      return false;
-    }
-    for (int i = 0; i < queues1.size(); i++) {
-      if (*(queues1.at(i)) != *(queues2.at(i))) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  return compareQueues(getFields()->queues(), controlPlane.getQueues()) &&
-      getFields()->rxReasonToQueue() == controlPlane.getRxReasonToQueue() &&
-      getFields()->qosPolicy() == controlPlane.getQosPolicy();
-}
-
 state::ControlPlaneFields ControlPlaneFields::toThrift() const {
   return data();
 }
@@ -200,9 +180,6 @@ void ControlPlaneFields::migrateFromThrifty(folly::dynamic& dyn) {
   dyn[kRxReasonToQueue] = rxReasonToQueueLegacy;
 }
 
-template class ThriftyBaseT<
-    state::ControlPlaneFields,
-    ControlPlane,
-    ControlPlaneFields>;
+template class ThriftStructNode<ControlPlane, state::ControlPlaneFields>;
 
 } // namespace facebook::fboss

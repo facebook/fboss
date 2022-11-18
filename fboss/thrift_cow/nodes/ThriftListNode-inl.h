@@ -194,6 +194,10 @@ struct ThriftListFields {
     }
   }
 
+  const StorageType& impl() const {
+    return storage_;
+  }
+
  private:
   template <typename... Args>
   value_type childFactory(Args&&... args) {
@@ -380,6 +384,10 @@ class ThriftListNode : public NodeBaseT<
       const {
     return PathVisitor<TypeClass>::visit(
         *this, begin, end, PathVisitMode::LEAF, std::forward<Func>(f));
+  }
+
+  const auto& impl() const {
+    return this->getFields()->impl();
   }
 
  private:

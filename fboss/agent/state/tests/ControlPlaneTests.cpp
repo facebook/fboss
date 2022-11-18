@@ -218,9 +218,9 @@ TEST(ControlPlane, applyDefaultConfig) {
 
   auto newQueues = stateV1->getControlPlane()->getQueues();
   // it should always generate all queues
-  EXPECT_EQ(newQueues.size(), kNumCPUQueues);
+  EXPECT_EQ(newQueues->size(), kNumCPUQueues);
   auto cpu4QueuesMap = getCPUQueuesMap();
-  for (const auto& queue : newQueues) {
+  for (const auto& queue : std::as_const(*newQueues)) {
     if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
       // if it's not one of those 4 queues, it should have default value
       auto unconfiguredQueue = std::make_shared<PortQueue>(queue->getID());
@@ -272,11 +272,11 @@ TEST(ControlPlane, resetLowPrioQueue) {
 
   auto newQueues = stateV2->getControlPlane()->getQueues();
   // it should always generate all queues
-  EXPECT_EQ(newQueues.size(), kNumCPUQueues);
+  EXPECT_EQ(newQueues->size(), kNumCPUQueues);
   auto cpu4QueuesMap = getCPUQueuesMap();
   // low-prio has been removed
   cpu4QueuesMap.erase(cpu4QueuesMap.find(0));
-  for (const auto& queue : newQueues) {
+  for (const auto& queue : std::as_const(*newQueues)) {
     if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
       // if it's not one of those 4 queues, it should have default value
       // also since low-prio has been removed, it should be checked in here.
@@ -316,12 +316,12 @@ TEST(ControlPlane, changeLowPrioQueue) {
 
   auto newQueues = stateV2->getControlPlane()->getQueues();
   // it should always generate all queues
-  EXPECT_EQ(newQueues.size(), kNumCPUQueues);
+  EXPECT_EQ(newQueues->size(), kNumCPUQueues);
   auto cpu4QueuesMap = getCPUQueuesMap();
   // low-prio has been changed(pps from 100->1000)
   cpu4QueuesMap.find(0)->second->setPortQueueRate(getPortQueueRatePps(0, 1000));
 
-  for (const auto& queue : newQueues) {
+  for (const auto& queue : std::as_const(*newQueues)) {
     if (cpu4QueuesMap.find(queue->getID()) == cpu4QueuesMap.end()) {
       // if it's not one of those 4 queues, it should have default value
       auto unconfiguredQueue = std::make_shared<PortQueue>(queue->getID());
@@ -357,9 +357,11 @@ TEST(ControlPlane, testRxReasonToQueueBackwardsCompat) {
   EXPECT_NE(stateV1, nullptr);
   validateNodeSerialization(*stateV1->getControlPlane());
 
-  const auto reasonToQueue1 = stateV1->getControlPlane()->getRxReasonToQueue();
-  EXPECT_EQ(reasonToQueue1.size(), 1);
-  const auto entry1 = reasonToQueue1.at(0);
-  EXPECT_EQ(*entry1.rxReason(), cfg::PacketRxReason::ARP);
-  EXPECT_EQ(*entry1.queueId(), 9);
+  const auto& reasonToQueue1 = stateV1->getControlPlane()->getRxReasonToQueue();
+  EXPECT_EQ(reasonToQueue1->size(), 1);
+  const auto& entry1 = reasonToQueue1->ref(0);
+  EXPECT_EQ(
+      entry1->cref<switch_config_tags::rxReason>()->toThrift(),
+      cfg::PacketRxReason::ARP);
+  EXPECT_EQ(entry1->cref<switch_config_tags::queueId>()->toThrift(), 9);
 }

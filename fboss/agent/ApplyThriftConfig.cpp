@@ -3241,7 +3241,8 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
       for (auto rxEntry : *rxReasonToQueue) {
         newRxReasonToQueue.push_back(rxEntry);
       }
-      if (newRxReasonToQueue != origCPU->getRxReasonToQueue()) {
+      // THRIFT_COPY
+      if (newRxReasonToQueue != origCPU->getRxReasonToQueue()->toThrift()) {
         rxReasonToQueueUnchanged = false;
       }
     } else if (
@@ -3253,7 +3254,8 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
         newRxReasonToQueue.push_back(ControlPlane::makeRxReasonToQueueEntry(
             rxEntry.first, rxEntry.second));
       }
-      if (newRxReasonToQueue != origCPU->getRxReasonToQueue()) {
+      // THRIFT_COPY
+      if (newRxReasonToQueue != origCPU->getRxReasonToQueue()->toThrift()) {
         rxReasonToQueueUnchanged = false;
       }
     }
@@ -3295,17 +3297,17 @@ shared_ptr<ControlPlane> ThriftConfigApplier::updateControlPlane() {
   for (auto streamType :
        platform_->getAsic()->getQueueStreamTypes(cfg::PortType::CPU_PORT)) {
     auto tmpPortQueues = updatePortQueues(
-        origCPU->getQueues(),
+        origCPU->getQueuesConfig(),
         *cfg_->cpuQueues(),
-        origCPU->getQueues().size(),
+        origCPU->getQueues()->size(),
         streamType,
         qosMap);
     newQueues.insert(
         newQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
   }
-  bool queuesUnchanged = newQueues.size() == origCPU->getQueues().size();
+  bool queuesUnchanged = newQueues.size() == origCPU->getQueues()->size();
   for (int i = 0; i < newQueues.size() && queuesUnchanged; i++) {
-    if (*(newQueues.at(i)) != *(origCPU->getQueues().at(i))) {
+    if (*(newQueues.at(i)) != *(origCPU->getQueues()->at(i))) {
       queuesUnchanged = false;
       break;
     }

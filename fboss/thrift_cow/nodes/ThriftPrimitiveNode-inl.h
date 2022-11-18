@@ -225,7 +225,12 @@ template <typename TC, typename TType, bool Immutable>
 bool operator==(
     const std::optional<ThriftPrimitiveNode<TC, TType, Immutable>>& nodeA,
     const std::optional<ThriftPrimitiveNode<TC, TType, Immutable>>& nodeB) {
-  return *nodeA == *nodeB;
+  if (nodeA.has_value() && nodeB.has_value()) {
+    return *nodeA == *nodeB;
+  } else if (nodeA.has_value() || nodeB.has_value()) {
+    return false;
+  }
+  return true;
 }
 
 template <typename PrimitiveNode>
@@ -253,7 +258,7 @@ template <typename TC, typename TType, bool Immutable>
 bool operator!=(
     const std::optional<ThriftPrimitiveNode<TC, TType, Immutable>>& nodeA,
     const std::optional<ThriftPrimitiveNode<TC, TType, Immutable>>& nodeB) {
-  return *nodeA != *nodeB;
+  return !(nodeA == nodeB);
 }
 
 template <typename TC, typename TType, bool Immutable>

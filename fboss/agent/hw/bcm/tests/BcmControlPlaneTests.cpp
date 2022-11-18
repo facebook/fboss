@@ -100,7 +100,7 @@ class BcmControlPlaneTest : public BcmCosQueueManagerTest {
   }
 
   QueueConfig getSwQueues() override {
-    return getProgrammedState()->getControlPlane()->getQueues();
+    return getProgrammedState()->getControlPlane()->getQueues()->impl();
   }
 };
 
@@ -297,10 +297,13 @@ TEST_F(BcmControlPlaneTest, VerifyReasonToQueueMapping) {
 
   auto verify = [&]() {
     checkConfSwHwMatch();
+    // THRIFT_COPY
     const auto hwReasonToQueue =
         getHwSwitch()->getControlPlane()->getRxReasonToQueue();
-    const auto swReasonToQueue =
-        getProgrammedState()->getControlPlane()->getRxReasonToQueue();
+    const auto swReasonToQueue = getProgrammedState()
+                                     ->getControlPlane()
+                                     ->getRxReasonToQueue()
+                                     ->toThrift();
     EXPECT_EQ(hwReasonToQueue, cfgReasonToQueue);
     EXPECT_EQ(swReasonToQueue, cfgReasonToQueue);
   };
