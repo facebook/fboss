@@ -87,34 +87,35 @@ struct PortQueueFields
   std::optional<std::set<PfcPriority>> pfcPriorities;
 };
 
+USE_THRIFT_COW(PortQueue)
 /*
  * PortQueue defines the behaviour of the per port queues
  */
-class PortQueue
-    : public ThriftyBaseT<state::PortQueueFields, PortQueue, PortQueueFields> {
+class PortQueue : public ThriftStructNode<PortQueue, state::PortQueueFields> {
  public:
+  using Base = ThriftStructNode<PortQueue, state::PortQueueFields>;
   using AQMMap = PortQueueFields::AQMMap;
+  using AqmsType = typename Base::Fields::TypeFor<switch_state_tags::aqms>;
+  using PortQueueRateType =
+      typename Base::Fields::TypeFor<switch_state_tags::portQueueRate>;
 
   explicit PortQueue(uint8_t id) {
-    writableFields()->id = id;
-  }
-
-  bool operator!=(const PortQueue& queue) const {
-    return !(*this == queue);
+    set<switch_state_tags::id>(id);
   }
 
   std::string toString() const;
 
   uint8_t getID() const {
-    return getFields()->id;
+    return cref<switch_state_tags::id>()->cref();
   }
 
   void setScheduling(cfg::QueueScheduling scheduling) {
-    writableFields()->scheduling = scheduling;
+    set<switch_state_tags::scheduling>(
+        apache::thrift::util::enumName(scheduling));
     switch (scheduling) {
       case cfg::QueueScheduling::STRICT_PRIORITY:
       case cfg::QueueScheduling::INTERNAL:
-        writableFields()->weight = 0;
+        set<switch_state_tags::weight>(0);
         break;
       case cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN:
       case cfg::QueueScheduling::DEFICIT_ROUND_ROBIN:
@@ -123,111 +124,222 @@ class PortQueue
   }
 
   cfg::QueueScheduling getScheduling() const {
-    return getFields()->scheduling;
+    const auto& name = cref<switch_state_tags::scheduling>()->cref();
+    return apache::thrift::util::enumValueOrThrow<cfg::QueueScheduling>(name);
   }
 
   void setStreamType(cfg::StreamType type) {
-    writableFields()->streamType = type;
+    set<switch_state_tags::streamType>(apache::thrift::util::enumName(type));
   }
 
   cfg::StreamType getStreamType() const {
-    return getFields()->streamType;
+    const auto& name = cref<switch_state_tags::streamType>()->cref();
+    return apache::thrift::util::enumValueOrThrow<cfg::StreamType>(name);
   }
 
   int getWeight() const {
-    return getFields()->weight;
+    return cref<switch_state_tags::weight>()->cref();
   }
 
   void setWeight(int weight) {
-    if (getFields()->scheduling != cfg::QueueScheduling::STRICT_PRIORITY) {
-      writableFields()->weight = weight;
+    if (getScheduling() != cfg::QueueScheduling::STRICT_PRIORITY) {
+      set<switch_state_tags::weight>(weight);
     }
   }
 
   std::optional<int> getReservedBytes() const {
-    return getFields()->reservedBytes;
+    if (const auto& reserved = cref<switch_state_tags::reserved>()) {
+      return std::optional<int>(reserved->cref());
+    }
+    return std::nullopt;
   }
 
   void setReservedBytes(int reservedBytes) {
-    writableFields()->reservedBytes = reservedBytes;
+    set<switch_state_tags::reserved>(reservedBytes);
   }
 
   std::optional<cfg::MMUScalingFactor> getScalingFactor() const {
-    return getFields()->scalingFactor;
+    if (const auto& scalingFactor = cref<switch_state_tags::scalingFactor>()) {
+      return apache::thrift::util::enumValueOrThrow<cfg::MMUScalingFactor>(
+          scalingFactor->cref());
+    }
+    return std::nullopt;
   }
 
   void setScalingFactor(cfg::MMUScalingFactor scalingFactor) {
-    writableFields()->scalingFactor = scalingFactor;
+    set<switch_state_tags::scalingFactor>(
+        apache::thrift::util::enumName(scalingFactor));
   }
 
-  const AQMMap& getAqms() const {
-    return getFields()->aqms;
+  const auto& getAqms() const {
+    return cref<switch_state_tags::aqms>();
   }
 
   void resetAqms(std::vector<cfg::ActiveQueueManagement> aqms) {
-    writableFields()->aqms.clear();
-    for (auto& aqm : aqms) {
-      writableFields()->aqms.emplace(*aqm.behavior(), aqm);
+    if (!aqms.empty()) {
+      set<switch_state_tags::aqms>(std::move(aqms));
+    } else {
+      ref<switch_state_tags::aqms>().reset();
     }
   }
 
   std::optional<std::string> getName() const {
-    return getFields()->name;
+    if (const auto& name = cref<switch_state_tags::name>()) {
+      return name->cref();
+    }
+    return std::nullopt;
   }
   void setName(const std::string& name) {
-    writableFields()->name = name;
+    set<switch_state_tags::name>(name);
   }
   std::optional<int> getSharedBytes() const {
-    return getFields()->sharedBytes;
+    if (const auto& sharedBytes = cref<switch_state_tags::sharedBytes>()) {
+      return sharedBytes->cref();
+    }
+    return std::nullopt;
   }
   void setSharedBytes(int sharedBytes) {
-    writableFields()->sharedBytes = sharedBytes;
+    set<switch_state_tags::sharedBytes>(sharedBytes);
   }
 
-  std::optional<cfg::PortQueueRate> getPortQueueRate() const {
-    return getFields()->portQueueRate;
+  const auto& getPortQueueRate() const {
+    return cref<switch_state_tags::portQueueRate>();
   }
 
   void setPortQueueRate(cfg::PortQueueRate portQueueRate) {
-    writableFields()->portQueueRate = portQueueRate;
+    set<switch_state_tags::portQueueRate>(std::move(portQueueRate));
   }
 
   std::optional<int> getBandwidthBurstMinKbits() const {
-    return getFields()->bandwidthBurstMinKbits;
+    if (const auto& bandwidthBurstMinKbits =
+            cref<switch_state_tags::bandwidthBurstMinKbits>()) {
+      return bandwidthBurstMinKbits->cref();
+    }
+    return std::nullopt;
   }
 
   void setBandwidthBurstMinKbits(int bandwidthBurstMinKbits) {
-    writableFields()->bandwidthBurstMinKbits = bandwidthBurstMinKbits;
+    set<switch_state_tags::bandwidthBurstMinKbits>(bandwidthBurstMinKbits);
   }
 
   std::optional<int> getBandwidthBurstMaxKbits() const {
-    return getFields()->bandwidthBurstMaxKbits;
+    if (const auto& bandwidthBurstMaxKbits =
+            cref<switch_state_tags::bandwidthBurstMaxKbits>()) {
+      return bandwidthBurstMaxKbits->cref();
+    }
+    return std::nullopt;
   }
 
   void setBandwidthBurstMaxKbits(int bandwidthBurstMaxKbits) {
-    writableFields()->bandwidthBurstMaxKbits = bandwidthBurstMaxKbits;
+    set<switch_state_tags::bandwidthBurstMinKbits>(bandwidthBurstMaxKbits);
   }
 
   std::optional<TrafficClass> getTrafficClass() const {
-    return getFields()->trafficClass;
+    if (const auto& trafficClass = cref<switch_state_tags::trafficClass>()) {
+      return static_cast<TrafficClass>(trafficClass->cref());
+    }
+    return std::nullopt;
   }
 
   void setTrafficClasses(TrafficClass trafficClass) {
-    writableFields()->trafficClass = trafficClass;
+    set<switch_state_tags::trafficClass>(trafficClass);
   }
 
+  // THRIFT_COPY: change from list to set in thrift file and use thrift set node
+  // directly
   std::optional<std::set<PfcPriority>> getPfcPrioritySet() const {
-    return getFields()->pfcPriorities;
+    if (const auto& pfcPriorities = cref<switch_state_tags::pfcPriorities>()) {
+      std::set<PfcPriority> returnValue{};
+      for (const auto& pfcPriority : std::as_const(*pfcPriorities)) {
+        returnValue.insert(static_cast<PfcPriority>(pfcPriority->cref()));
+      }
+      return returnValue;
+    }
+    return std::nullopt;
   }
 
   void setPfcPrioritySet(std::set<PfcPriority> pfcPrioritySet) {
-    writableFields()->pfcPriorities = pfcPrioritySet;
+    if (!pfcPrioritySet.empty()) {
+      std::vector<int16_t> vec{
+          std::begin(pfcPrioritySet), std::end(pfcPrioritySet)};
+      set<switch_state_tags::pfcPriorities>(vec);
+    } else {
+      ref<switch_state_tags::pfcPriorities>().reset();
+    }
   }
+
+  static std::shared_ptr<PortQueue> fromFollyDynamic(
+      const folly::dynamic& dyn) {
+    auto fields = PortQueueFields::fromFollyDynamic(dyn);
+    return std::make_shared<PortQueue>(fields.toThrift());
+  }
+
+  static std::shared_ptr<PortQueue> fromFollyDynamicLegacy(
+      const folly::dynamic& dyn) {
+    return fromFollyDynamic(dyn);
+  }
+
+  folly::dynamic toFollyDynamic() const override {
+    auto fields = PortQueueFields::fromThrift(toThrift());
+    return fields.toFollyDynamic();
+  }
+
+  folly::dynamic toFollyDynamicLegacy() const {
+    return toFollyDynamic();
+  }
+
+  bool isAqmsSame(const PortQueue* other) const {
+    if (!other) {
+      return false;
+    }
+    const auto& thisAqms = getAqms();
+    const auto& thatAqms = other->getAqms();
+    if (thisAqms == nullptr && thatAqms == nullptr) {
+      return true;
+    } else if (thisAqms == nullptr) {
+      return false;
+    } else if (thatAqms == nullptr) {
+      return false;
+    }
+    auto compare = [](const facebook::fboss::cfg::ActiveQueueManagement& lhs,
+                      const facebook::fboss::cfg::ActiveQueueManagement& rhs) {
+      return (*lhs.behavior() < *rhs.behavior()) &&
+          (*lhs.detection() < *rhs.detection());
+    };
+    // THRIFT_COPY
+    auto thisAqmsThrift = thisAqms->toThrift();
+    std::sort(thisAqmsThrift.begin(), thisAqmsThrift.end(), compare);
+    auto thatAqmsThrift = thatAqms->toThrift();
+    std::sort(thatAqmsThrift.begin(), thatAqmsThrift.end(), compare);
+    return std::equal(
+        thisAqmsThrift.begin(),
+        thisAqmsThrift.end(),
+        thatAqmsThrift.begin(),
+        thatAqmsThrift.end());
+  }
+
+  bool isPortQueueRateSame(const PortQueue* other) const {
+    if (!other) {
+      return false;
+    }
+    const auto thisRate = get<switch_state_tags::portQueueRate>();
+    const auto thatRate = other->get<switch_state_tags::portQueueRate>();
+    if (thisRate == nullptr && thatRate == nullptr) {
+      return true;
+    } else if (thisRate == nullptr) {
+      return false;
+    } else if (thatRate == nullptr) {
+      return false;
+    }
+    return thisRate->toThrift() == thatRate->toThrift();
+  }
+
+  std::optional<cfg::QueueCongestionDetection> findDetectionInAqms(
+      cfg::QueueCongestionBehavior behavior) const;
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyBaseT<state::PortQueueFields, PortQueue, PortQueueFields>::
-      ThriftyBaseT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 

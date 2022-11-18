@@ -279,9 +279,10 @@ TEST(PortQueue, aqmState) {
       platform->getAsic()->getDefaultNumPortQueues(
           cfg::StreamType::UNICAST, false),
       queues1.size());
-  PortQueue::AQMMap aqms{
-      {cfg::QueueCongestionBehavior::EARLY_DROP, getEarlyDropAqmConfig()}};
-  EXPECT_EQ(queues1.at(0)->getAqms(), aqms);
+  std::vector<cfg::ActiveQueueManagement> aqms{};
+  aqms.resize(1);
+  aqms[0] = getEarlyDropAqmConfig();
+  EXPECT_EQ(queues1.at(0)->getAqms()->toThrift(), aqms);
 }
 
 TEST(PortQueue, aqmBadState) {
@@ -348,7 +349,7 @@ TEST(PortQueue, resetPartOfConfigs) {
     auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
     EXPECT_NE(nullptr, stateV1);
     auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
-    EXPECT_EQ(2, queues1.at(0)->getAqms().size());
+    EXPECT_EQ(2, queues1.at(0)->getAqms()->size());
 
     // reset aqm
     config.portQueueConfigs()["queue_config"][0].aqms().reset();
@@ -356,7 +357,7 @@ TEST(PortQueue, resetPartOfConfigs) {
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_TRUE(stateV2 != nullptr);
     auto queues2 = stateV2->getPort(PortID(1))->getPortQueues();
-    EXPECT_TRUE(queues2.at(0)->getAqms().empty());
+    EXPECT_TRUE(!queues2.at(0)->getAqms() || queues2.at(0)->getAqms()->empty());
   }
 }
 

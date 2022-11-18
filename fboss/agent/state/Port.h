@@ -287,12 +287,18 @@ class Port : public ThriftyBaseT<state::PortFields, Port, PortFields> {
 
   bool hasValidPortQueues() const {
     constexpr auto kDefaultProbability = 100;
-    for (auto& portQueue : getFields()->queues) {
-      for (auto& entry : portQueue->getAqms()) {
-        if (entry.second.behavior() ==
-                facebook::fboss::cfg::QueueCongestionBehavior::ECN &&
-            entry.second.detection()->linear_ref()->probability() !=
-                kDefaultProbability) {
+    for (const auto& portQueue : getFields()->queues) {
+      const auto& aqms = portQueue->get<switch_state_tags::aqms>();
+      if (!aqms) {
+        continue;
+      }
+      for (const auto& entry : std::as_const(*aqms)) {
+        // THRIFT_COPY
+        auto behavior = entry->cref<switch_config_tags::behavior>()->toThrift();
+        auto detection =
+            entry->cref<switch_config_tags::detection>()->toThrift();
+        if (behavior == facebook::fboss::cfg::QueueCongestionBehavior::ECN &&
+            detection.linear_ref()->probability() != kDefaultProbability) {
           return false;
         }
       }

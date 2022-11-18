@@ -262,9 +262,14 @@ void BcmPortQueueManager::getAqms(
         " flags ",
         discard.flags);
 
-    auto aqmOpt = utility::bcmAqmToCfgAqm(discard, defaultAqms[behavior]);
-    if (aqmOpt.has_value()) {
-      aqms.push_back(aqmOpt.value());
+    for (const auto& defaultAqm : std::as_const(*defaultAqms)) {
+      if (defaultAqm->get<switch_config_tags::behavior>() == behavior) {
+        // THRIFT_COPY
+        auto aqmOpt = utility::bcmAqmToCfgAqm(discard, defaultAqm->toThrift());
+        if (aqmOpt.has_value()) {
+          aqms.push_back(aqmOpt.value());
+        }
+      }
     }
   }
   queue->resetAqms(aqms);
@@ -327,8 +332,8 @@ void BcmPortQueueManager::programAqm(
     bcm_cos_queue_t cosQ,
     cfg::QueueCongestionBehavior behavior,
     std::optional<cfg::QueueCongestionDetection> detection) {
-  auto defaultAqms =
-      getDefaultQueueSettings(cfg::StreamType::UNICAST).getAqms();
+  const auto& defaultQueue = getDefaultQueueSettings(cfg::StreamType::UNICAST);
+  auto& defaultAqms = defaultQueue.getAqms();
   // NOTE: The following logic only works on Tomahawk (Wedge100).
   //       Trident2 (Wedge40) does not have a drop profile for
   //       ECT_MARKED packets, so enabling ECN on that chip
@@ -336,8 +341,21 @@ void BcmPortQueueManager::programAqm(
   //       the TCP profile to have the MARK_CONGESTION flag. Some
   //       additional tuning may be required to properly setup
   //       the "no early drops; yes ecn" case.
+
+  CHECK(defaultAqms);
+  std::optional<cfg::ActiveQueueManagement> defaultAqmThrift{};
+  for (const auto& defaultAqm : std::as_const(*defaultAqms)) {
+    // find in list of active queue management configurations, the configuration
+    // for this behavior
+    if (defaultAqm->get<switch_config_tags::behavior>() == behavior) {
+      // THRIFT_COPY
+      defaultAqmThrift = defaultAqm->toThrift();
+      break;
+    }
+  }
+  CHECK(defaultAqmThrift.has_value());
   bcm_cosq_gport_discard_t discard =
-      utility::cfgAqmToBcmAqm(behavior, detection, defaultAqms[behavior]);
+      utility::cfgAqmToBcmAqm(behavior, detection, (*defaultAqmThrift));
 
   auto rv = bcm_cosq_gport_discard_set(hw_->getUnit(), gport, cosQ, &discard);
   bcmCheckError(rv, "Unable to configure aqm for ", portName_, "; cosQ ", cosQ);
@@ -378,12 +396,12 @@ void BcmPortQueueManager::programAqms(
     return;
   }
 
-  const auto& aqmMap = queue.getAqms();
   // if the current aqm hasn't changed, no need to re-program
   PortQueue queueInHw(static_cast<uint8_t>(cosQ));
   queueInHw.setStreamType(queue.getStreamType());
   getAqms(gport, cosQ, &queueInHw);
-  if (aqmMap == queueInHw.getAqms()) {
+  // THRIFT_COPY
+  if (queue.isAqmsSame(&queueInHw)) {
     XLOG(DBG2) << "Desired AQMs are the same as current, no need to re-program";
     return;
   }
@@ -403,12 +421,13 @@ void BcmPortQueueManager::programAqms(
   std::array<bool, 2> filters = {true, false};
   for (bool isReset : filters) {
     for (auto behavior : kSupportedAQMBehaviors) {
-      auto enabledCurveItr = aqmMap.find(behavior);
-      bool isEnabled = (enabledCurveItr != aqmMap.end());
+      auto detection = queue.findDetectionInAqms(behavior);
+      bool isEnabled = detection.has_value();
       if (isReset && !isEnabled) {
         programAqm(gport, cosQ, behavior, std::nullopt);
       } else if (!isReset && isEnabled) {
-        programAqm(gport, cosQ, behavior, *enabledCurveItr->second.detection());
+        CHECK(detection.has_value());
+        programAqm(gport, cosQ, behavior, detection);
       }
     }
   }

@@ -44,8 +44,8 @@ void BcmCosQueueManagerTest::checkDefaultCosqMatch(
   if (queue->getName().has_value()) {
     defQueue->setName(queue->getName().value());
   }
-  if (queue->getPortQueueRate().has_value()) {
-    defQueue->setPortQueueRate(queue->getPortQueueRate().value());
+  if (const auto& portQueueRate = queue->getPortQueueRate()) {
+    defQueue->setPortQueueRate(portQueueRate->toThrift());
   }
   if (*queue != *defQueue) {
     XLOG(ERR) << "actual queue=" << queue->toString()
@@ -91,8 +91,8 @@ void BcmCosQueueManagerTest::checkConfSwHwMatch() {
     EXPECT_TRUE(swQueue->getReservedBytes() == hwQueue->getReservedBytes());
     EXPECT_TRUE(swQueue->getScalingFactor() == hwQueue->getScalingFactor());
     EXPECT_TRUE(swQueue->getScheduling() == hwQueue->getScheduling());
-    EXPECT_TRUE(swQueue->getAqms() == hwQueue->getAqms());
-    EXPECT_TRUE(swQueue->getPortQueueRate() == hwQueue->getPortQueueRate());
+    EXPECT_TRUE(swQueue->isAqmsSame(hwQueue.get()));
+    EXPECT_TRUE(swQueue->isPortQueueRateSame(hwQueue.get()));
   }
 }
 

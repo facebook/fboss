@@ -213,54 +213,66 @@ void getPortInfoHelper(
           apache::thrift::TEnumTraits<cfg::MMUScalingFactor>::findName(
               queue->getScalingFactor().value());
     }
-    if (!queue->getAqms().empty()) {
-      std::vector<ActiveQueueManagement> aqms;
-      for (const auto& aqm : queue->getAqms()) {
-        ActiveQueueManagement aqmThrift;
-        switch (aqm.second.detection()->getType()) {
+    if (const auto& aqms = queue->getAqms()) {
+      std::vector<ActiveQueueManagement> aqmsThrift;
+      for (const auto& aqm : std::as_const(*aqms)) {
+        ActiveQueueManagement aqmThrift{};
+        switch (aqm->cref<switch_config_tags::detection>()->type()) {
           case facebook::fboss::cfg::QueueCongestionDetection::Type::linear:
             aqmThrift.detection()->linear() = LinearQueueCongestionDetection();
             *aqmThrift.detection()->linear()->minimumLength() =
-                *aqm.second.detection()->get_linear().minimumLength();
+                aqm->cref<switch_config_tags::detection>()
+                    ->cref<switch_config_tags::linear>()
+                    ->cref<switch_config_tags::minimumLength>()
+                    ->toThrift();
             *aqmThrift.detection()->linear()->maximumLength() =
-                *aqm.second.detection()->get_linear().maximumLength();
+                aqm->cref<switch_config_tags::detection>()
+                    ->cref<switch_config_tags::linear>()
+                    ->cref<switch_config_tags::maximumLength>()
+                    ->toThrift();
             aqmThrift.detection()->linear()->probability() =
-                *aqm.second.detection()->get_linear().probability();
+                aqm->cref<switch_config_tags::detection>()
+                    ->cref<switch_config_tags::linear>()
+                    ->cref<switch_config_tags::probability>()
+                    ->toThrift();
             break;
           case facebook::fboss::cfg::QueueCongestionDetection::Type::__EMPTY__:
             XLOG(WARNING) << "Invalid queue congestion detection config";
             break;
         }
-        *aqmThrift.behavior() = QueueCongestionBehavior(aqm.first);
-        aqms.push_back(aqmThrift);
+        *aqmThrift.behavior() = QueueCongestionBehavior(
+            aqm->cref<switch_config_tags::behavior>()->cref());
+        aqmsThrift.push_back(aqmThrift);
       }
       pq.aqms() = {};
-      pq.aqms()->swap(aqms);
+      pq.aqms()->swap(aqmsThrift);
     }
     if (queue->getName()) {
       *pq.name() = queue->getName().value();
     }
 
-    if (queue->getPortQueueRate().has_value()) {
-      if (queue->getPortQueueRate().value().getType() ==
-          cfg::PortQueueRate::Type::pktsPerSec) {
+    if (const auto& portQueueRate = queue->getPortQueueRate()) {
+      if (portQueueRate->type() == cfg::PortQueueRate::Type::pktsPerSec) {
         Range range;
-        range.minimum() =
-            *queue->getPortQueueRate().value().get_pktsPerSec().minimum();
-        range.maximum() =
-            *queue->getPortQueueRate().value().get_pktsPerSec().maximum();
+        range.minimum() = portQueueRate->cref<switch_config_tags::pktsPerSec>()
+                              ->cref<switch_config_tags::minimum>()
+                              ->cref();
+        range.maximum() = portQueueRate->cref<switch_config_tags::pktsPerSec>()
+                              ->cref<switch_config_tags::maximum>()
+                              ->cref();
         PortQueueRate portQueueRate;
         portQueueRate.pktsPerSec_ref() = range;
 
         pq.portQueueRate() = portQueueRate;
       } else if (
-          queue->getPortQueueRate().value().getType() ==
-          cfg::PortQueueRate::Type::kbitsPerSec) {
+          portQueueRate->type() == cfg::PortQueueRate::Type::kbitsPerSec) {
         Range range;
-        range.minimum() =
-            *queue->getPortQueueRate().value().get_kbitsPerSec().minimum();
-        range.maximum() =
-            *queue->getPortQueueRate().value().get_kbitsPerSec().maximum();
+        range.minimum() = portQueueRate->cref<switch_config_tags::kbitsPerSec>()
+                              ->cref<switch_config_tags::minimum>()
+                              ->cref();
+        range.maximum() = portQueueRate->cref<switch_config_tags::kbitsPerSec>()
+                              ->cref<switch_config_tags::maximum>()
+                              ->cref();
         PortQueueRate portQueueRate;
         portQueueRate.kbitsPerSec_ref() = range;
 

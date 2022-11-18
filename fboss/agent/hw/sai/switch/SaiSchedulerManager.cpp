@@ -31,27 +31,44 @@ SaiSchedulerTraits::CreateAttributes makeSchedulerAttributes(
   }
   uint64_t minBwRate = 0, maxBwRate = 0;
   int32_t meterType = SAI_METER_TYPE_BYTES;
-  if (portQueue.getPortQueueRate().has_value()) {
-    auto portQueueRate = portQueue.getPortQueueRate().value();
-    switch (portQueueRate.getType()) {
-      case PortQueueRate::Type::pktsPerSec:
+  if (const auto& portQueueRate = portQueue.getPortQueueRate()) {
+    switch (portQueueRate->type()) {
+      case PortQueueRate::Type::pktsPerSec: {
         meterType = SAI_METER_TYPE_PACKETS;
-        minBwRate = *portQueueRate.get_pktsPerSec().minimum();
-        maxBwRate = *portQueueRate.get_pktsPerSec().maximum();
-        break;
-      case PortQueueRate::Type::kbitsPerSec:
+        uint64_t minimum = static_cast<uint64_t>(
+            portQueueRate
+                ->cref<facebook::fboss::switch_config_tags::pktsPerSec>()
+                ->cref<facebook::fboss::switch_config_tags::minimum>()
+                ->cref());
+        uint64_t maximum = static_cast<uint64_t>(
+            portQueueRate
+                ->cref<facebook::fboss::switch_config_tags::pktsPerSec>()
+                ->cref<facebook::fboss::switch_config_tags::maximum>()
+                ->cref());
+        minBwRate = minimum;
+        maxBwRate = maximum;
+      } break;
+
+      case PortQueueRate::Type::kbitsPerSec: {
         /*
          * config sets the rate in kbps (kilo bits per second) whereas SAI
          * expects it in bytes per second.
          */
         meterType = SAI_METER_TYPE_BYTES;
-        minBwRate =
-            static_cast<uint64_t>(*portQueueRate.get_kbitsPerSec().minimum()) *
-            1000 / 8;
-        maxBwRate =
-            static_cast<uint64_t>(*portQueueRate.get_kbitsPerSec().maximum()) *
-            1000 / 8;
-        break;
+        uint64_t minimum = static_cast<uint64_t>(
+            portQueueRate
+                ->cref<facebook::fboss::switch_config_tags::kbitsPerSec>()
+                ->cref<facebook::fboss::switch_config_tags::minimum>()
+                ->cref());
+        uint64_t maximum = static_cast<uint64_t>(
+            portQueueRate
+                ->cref<facebook::fboss::switch_config_tags::kbitsPerSec>()
+                ->cref<facebook::fboss::switch_config_tags::maximum>()
+                ->cref());
+        minBwRate = (minimum * 1000) / 8;
+        maxBwRate = (maximum * 1000) / 8;
+      } break;
+
       default:
         break;
     }

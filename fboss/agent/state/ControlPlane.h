@@ -53,7 +53,7 @@ struct ControlPlaneFields
   QueueConfig queues() const {
     QueueConfig queues;
     for (auto queue : *data().queues()) {
-      queues.push_back(PortQueue::fromThrift(queue));
+      queues.push_back(std::make_shared<PortQueue>(queue));
     }
     return queues;
   }

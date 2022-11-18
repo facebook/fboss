@@ -141,177 +141,201 @@ const PortQueue& getTD2DefaultUCPortQueueSettings() {
   // Since the default queue is constant, we can use static to cache this
   // object here.
   static Trident2Asic asic{cfg::SwitchType::NPU, std::nullopt};
-  static const PortQueue kPortQueue{PortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::UNICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::UNICAST, false /*is front panel port*/),
-      bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
-      std::nullopt,
-      kDefaultTD2PortQueueSharedBytes,
-      kPortQueueNoAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
+  static const PortQueue kPortQueue{
+      PortQueueFields(
+          kDefaultPortQueueId,
+          kDefaultPortQueueScheduling,
+          cfg::StreamType::UNICAST,
+          kDefaultPortQueueWeight,
+          asic.getDefaultReservedBytes(
+              cfg::StreamType::UNICAST, false /*is front panel port*/),
+          bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
+          std::nullopt,
+          kDefaultTD2PortQueueSharedBytes,
+          kPortQueueNoAqm,
+          getPortQueueRatePps(
+              kDefaultPortQueuePacketsPerSecMin,
+              kDefaultPortQueuePacketsPerSecMax),
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt)
+          .toThrift()};
   return kPortQueue;
 }
 
 const PortQueue& getTHDefaultUCPortQueueSettings() {
   static TomahawkAsic asic{cfg::SwitchType::NPU, std::nullopt};
-  static const PortQueue kPortQueue{PortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::UNICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::UNICAST, false /*is front panel port*/),
-      bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
-      std::nullopt,
-      kDefaultTHPortQueueSharedBytes,
-      kDefaultTHPortQueueAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
+  static const PortQueue kPortQueue{
+      PortQueueFields(
+          kDefaultPortQueueId,
+          kDefaultPortQueueScheduling,
+          cfg::StreamType::UNICAST,
+          kDefaultPortQueueWeight,
+          asic.getDefaultReservedBytes(
+              cfg::StreamType::UNICAST, false /*is front panel port*/),
+          bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
+          std::nullopt,
+          kDefaultTHPortQueueSharedBytes,
+          kDefaultTHPortQueueAqm,
+          getPortQueueRatePps(
+              kDefaultPortQueuePacketsPerSecMin,
+              kDefaultPortQueuePacketsPerSecMax),
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt)
+          .toThrift()};
   return kPortQueue;
 }
 
 const PortQueue& getTH3DefaultUCPortQueueSettings() {
   static Tomahawk3Asic asic{cfg::SwitchType::NPU, std::nullopt};
-  static const PortQueue kPortQueue{PortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::UNICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::UNICAST, false /*is front panel port*/),
-      bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
-      std::nullopt,
-      kDefaultTH3PortQueueSharedBytes,
-      kDefaultTH3PortQueueAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
+  static const PortQueue kPortQueue{
+      PortQueueFields(
+          kDefaultPortQueueId,
+          kDefaultPortQueueScheduling,
+          cfg::StreamType::UNICAST,
+          kDefaultPortQueueWeight,
+          asic.getDefaultReservedBytes(
+              cfg::StreamType::UNICAST, false /*is front panel port*/),
+          bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
+          std::nullopt,
+          kDefaultTH3PortQueueSharedBytes,
+          kDefaultTH3PortQueueAqm,
+          getPortQueueRatePps(
+              kDefaultPortQueuePacketsPerSecMin,
+              kDefaultPortQueuePacketsPerSecMax),
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt)
+          .toThrift()};
   return kPortQueue;
 }
 
 const PortQueue& getTH4DefaultUCPortQueueSettings() {
   static Tomahawk4Asic asic{cfg::SwitchType::NPU, std::nullopt};
-  static const PortQueue kPortQueue{PortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::UNICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::UNICAST, false /*is front panel port*/),
-      bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
-      std::nullopt,
-      kDefaultTH4PortQueueSharedBytes,
-      kDefaultTH4PortQueueAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
+  static const PortQueue kPortQueue{
+      PortQueueFields(
+          kDefaultPortQueueId,
+          kDefaultPortQueueScheduling,
+          cfg::StreamType::UNICAST,
+          kDefaultPortQueueWeight,
+          asic.getDefaultReservedBytes(
+              cfg::StreamType::UNICAST, false /*is front panel port*/),
+          bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
+          std::nullopt,
+          kDefaultTH4PortQueueSharedBytes,
+          kDefaultTH4PortQueueAqm,
+          getPortQueueRatePps(
+              kDefaultPortQueuePacketsPerSecMin,
+              kDefaultPortQueuePacketsPerSecMax),
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt)
+          .toThrift()};
   return kPortQueue;
 }
 
 const PortQueue& getTD2DefaultMCPortQueueSettings() {
   static Trident2Asic asic{cfg::SwitchType::NPU, std::nullopt};
-  static const PortQueue kPortQueue{PortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::MULTICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, false /*is front panel port*/),
-      bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
-      std::nullopt,
-      kDefaultTD2PortQueueSharedBytes,
-      kPortQueueNoAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
+  static const PortQueue kPortQueue{
+      PortQueueFields(
+          kDefaultPortQueueId,
+          kDefaultPortQueueScheduling,
+          cfg::StreamType::MULTICAST,
+          kDefaultPortQueueWeight,
+          asic.getDefaultReservedBytes(
+              cfg::StreamType::MULTICAST, false /*is front panel port*/),
+          bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
+          std::nullopt,
+          kDefaultTD2PortQueueSharedBytes,
+          kPortQueueNoAqm,
+          getPortQueueRatePps(
+              kDefaultPortQueuePacketsPerSecMin,
+              kDefaultPortQueuePacketsPerSecMax),
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt)
+          .toThrift()};
   return kPortQueue;
 }
 
 const PortQueue& getTHDefaultMCPortQueueSettings() {
   static TomahawkAsic asic{cfg::SwitchType::NPU, std::nullopt};
-  static const PortQueue kPortQueue{PortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::MULTICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, false /*is front panel port*/),
-      bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
-      std::nullopt,
-      kDefaultTHPortQueueSharedBytes,
-      kPortQueueNoAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
+  static const PortQueue kPortQueue{
+      PortQueueFields(
+          kDefaultPortQueueId,
+          kDefaultPortQueueScheduling,
+          cfg::StreamType::MULTICAST,
+          kDefaultPortQueueWeight,
+          asic.getDefaultReservedBytes(
+              cfg::StreamType::MULTICAST, false /*is front panel port*/),
+          bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
+          std::nullopt,
+          kDefaultTHPortQueueSharedBytes,
+          kPortQueueNoAqm,
+          getPortQueueRatePps(
+              kDefaultPortQueuePacketsPerSecMin,
+              kDefaultPortQueuePacketsPerSecMax),
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt)
+          .toThrift()};
   return kPortQueue;
 }
 
 const PortQueue& getTH3DefaultMCPortQueueSettings() {
   static Tomahawk3Asic asic{cfg::SwitchType::NPU, std::nullopt};
-  static const PortQueue kPortQueue{PortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::MULTICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, false /*is front panel port*/),
-      bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
-      std::nullopt,
-      kDefaultTH3PortQueueSharedBytes,
-      kPortQueueNoAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
+  static const PortQueue kPortQueue{
+      PortQueueFields(
+          kDefaultPortQueueId,
+          kDefaultPortQueueScheduling,
+          cfg::StreamType::MULTICAST,
+          kDefaultPortQueueWeight,
+          asic.getDefaultReservedBytes(
+              cfg::StreamType::MULTICAST, false /*is front panel port*/),
+          bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
+          std::nullopt,
+          kDefaultTH3PortQueueSharedBytes,
+          kPortQueueNoAqm,
+          getPortQueueRatePps(
+              kDefaultPortQueuePacketsPerSecMin,
+              kDefaultPortQueuePacketsPerSecMax),
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt)
+          .toThrift()};
   return kPortQueue;
 }
 
 const PortQueue& getTH4DefaultMCPortQueueSettings() {
   static Tomahawk4Asic asic{cfg::SwitchType::NPU, std::nullopt};
-  static const PortQueue kPortQueue{PortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::MULTICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, false /*is front panel port*/),
-      bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
-      std::nullopt,
-      kDefaultTH4PortQueueSharedBytes,
-      kPortQueueNoAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
+  static const PortQueue kPortQueue{
+      PortQueueFields(
+          kDefaultPortQueueId,
+          kDefaultPortQueueScheduling,
+          cfg::StreamType::MULTICAST,
+          kDefaultPortQueueWeight,
+          asic.getDefaultReservedBytes(
+              cfg::StreamType::MULTICAST, false /*is front panel port*/),
+          bcmAlphaToCfgAlpha(kDefaultPortQueueAlpha),
+          std::nullopt,
+          kDefaultTH4PortQueueSharedBytes,
+          kPortQueueNoAqm,
+          getPortQueueRatePps(
+              kDefaultPortQueuePacketsPerSecMin,
+              kDefaultPortQueuePacketsPerSecMax),
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt)
+          .toThrift()};
   return kPortQueue;
 }
 
@@ -352,89 +376,101 @@ const PortQueue& getDefaultPortQueueSettings(
 
 const PortQueue& getTD2DefaultMCCPUQueueSettings() {
   static Trident2Asic asic{cfg::SwitchType::NPU, std::nullopt};
-  static const PortQueue kPortQueue{PortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::MULTICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, true /*cpu port*/),
-      std::nullopt,
-      std::nullopt,
-      kDefaultTD2PortQueueSharedBytes,
-      kPortQueueNoAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
+  static const PortQueue kPortQueue{
+      PortQueueFields(
+          kDefaultPortQueueId,
+          kDefaultPortQueueScheduling,
+          cfg::StreamType::MULTICAST,
+          kDefaultPortQueueWeight,
+          asic.getDefaultReservedBytes(
+              cfg::StreamType::MULTICAST, true /*cpu port*/),
+          std::nullopt,
+          std::nullopt,
+          kDefaultTD2PortQueueSharedBytes,
+          kPortQueueNoAqm,
+          getPortQueueRatePps(
+              kDefaultPortQueuePacketsPerSecMin,
+              kDefaultPortQueuePacketsPerSecMax),
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt)
+          .toThrift()};
   return kPortQueue;
 }
 
 const PortQueue& getTHDefaultMCCPUQueueSettings() {
   static TomahawkAsic asic{cfg::SwitchType::NPU, std::nullopt};
-  static const PortQueue kPortQueue{PortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::MULTICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, true /*cpu port*/),
-      std::nullopt,
-      std::nullopt,
-      kDefaultTHPortQueueSharedBytes,
-      kPortQueueNoAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
+  static const PortQueue kPortQueue{
+      PortQueueFields(
+          kDefaultPortQueueId,
+          kDefaultPortQueueScheduling,
+          cfg::StreamType::MULTICAST,
+          kDefaultPortQueueWeight,
+          asic.getDefaultReservedBytes(
+              cfg::StreamType::MULTICAST, true /*cpu port*/),
+          std::nullopt,
+          std::nullopt,
+          kDefaultTHPortQueueSharedBytes,
+          kPortQueueNoAqm,
+          getPortQueueRatePps(
+              kDefaultPortQueuePacketsPerSecMin,
+              kDefaultPortQueuePacketsPerSecMax),
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt)
+          .toThrift()};
   return kPortQueue;
 }
 
 const PortQueue& getTH3DefaultMCCPUQueueSettings() {
   static Tomahawk3Asic asic{cfg::SwitchType::NPU, std::nullopt};
-  static const PortQueue kPortQueue{PortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::MULTICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, true /*cpu port*/),
-      std::nullopt,
-      std::nullopt,
-      kDefaultTH3PortQueueSharedBytes,
-      kPortQueueNoAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
+  static const PortQueue kPortQueue{
+      PortQueueFields(
+          kDefaultPortQueueId,
+          kDefaultPortQueueScheduling,
+          cfg::StreamType::MULTICAST,
+          kDefaultPortQueueWeight,
+          asic.getDefaultReservedBytes(
+              cfg::StreamType::MULTICAST, true /*cpu port*/),
+          std::nullopt,
+          std::nullopt,
+          kDefaultTH3PortQueueSharedBytes,
+          kPortQueueNoAqm,
+          getPortQueueRatePps(
+              kDefaultPortQueuePacketsPerSecMin,
+              kDefaultPortQueuePacketsPerSecMax),
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt)
+          .toThrift()};
   return kPortQueue;
 }
 
 const PortQueue& getTH4DefaultMCCPUQueueSettings() {
   static Tomahawk4Asic asic{cfg::SwitchType::NPU, std::nullopt};
-  static const PortQueue kPortQueue{PortQueueFields(
-      kDefaultPortQueueId,
-      kDefaultPortQueueScheduling,
-      cfg::StreamType::MULTICAST,
-      kDefaultPortQueueWeight,
-      asic.getDefaultReservedBytes(
-          cfg::StreamType::MULTICAST, true /*cpu port*/),
-      std::nullopt,
-      std::nullopt,
-      kDefaultTH4PortQueueSharedBytes,
-      kPortQueueNoAqm,
-      getPortQueueRatePps(
-          kDefaultPortQueuePacketsPerSecMin, kDefaultPortQueuePacketsPerSecMax),
-      std::nullopt,
-      std::nullopt,
-      std::nullopt,
-      std::nullopt)};
+  static const PortQueue kPortQueue{
+      PortQueueFields(
+          kDefaultPortQueueId,
+          kDefaultPortQueueScheduling,
+          cfg::StreamType::MULTICAST,
+          kDefaultPortQueueWeight,
+          asic.getDefaultReservedBytes(
+              cfg::StreamType::MULTICAST, true /*cpu port*/),
+          std::nullopt,
+          std::nullopt,
+          kDefaultTH4PortQueueSharedBytes,
+          kPortQueueNoAqm,
+          getPortQueueRatePps(
+              kDefaultPortQueuePacketsPerSecMin,
+              kDefaultPortQueuePacketsPerSecMax),
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt)
+          .toThrift()};
   return kPortQueue;
 }
 

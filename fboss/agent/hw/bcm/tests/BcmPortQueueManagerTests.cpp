@@ -269,10 +269,10 @@ TEST_F(BcmPortQueueManagerTest, ChangeQueue0Settings) {
     EXPECT_EQ(
         newQueue0->getReservedBytes().value(),
         10 * getPlatform()->getMMUCellBytes());
-    PortQueue::AQMMap aqms{
-        {cfg::QueueCongestionBehavior::EARLY_DROP,
-         getEarlyDropAqmConfig(mmuCellBytes())}};
-    EXPECT_EQ(newQueue0->getAqms(), aqms);
+    auto aqms = newQueue0->getAqms()->toThrift();
+    std::vector<cfg::ActiveQueueManagement> expectedAqms{};
+    expectedAqms.push_back(getEarlyDropAqmConfig(mmuCellBytes()));
+    EXPECT_EQ(aqms, expectedAqms);
 
     // other queues shouldn't be affected
     for (int i = 1; i < swQueuesAfter.size(); i++) {

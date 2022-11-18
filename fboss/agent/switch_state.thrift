@@ -38,15 +38,15 @@ struct PortPgFields {
 
 // Port queueing configuration
 struct PortQueueFields {
-  1: i16 id;
-  2: i32 weight;
+  1: i16 id = 0;
+  2: i32 weight = 1;
   3: optional i32 reserved;
   // TODO: replace with switch_config.MMUScalingFactor?
   4: optional string scalingFactor;
   // TODO: replace with switch_config.QueueScheduling?
-  5: string scheduling;
+  5: string scheduling = "WEIGHTED_ROUND_ROBIN";
   // TODO: replace with switch_config.StreamType?
-  6: string streamType;
+  6: string streamType = "UNICAST";
   7: optional list<switch_config.ActiveQueueManagement> aqms;
   8: optional string name;
   /*

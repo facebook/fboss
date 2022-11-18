@@ -130,8 +130,7 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   port.sFlowEgressRate = *portThrift.sFlowEgressRate();
 
   for (const auto& queue : *portThrift.queues()) {
-    port.queues.push_back(
-        std::make_shared<PortQueue>(PortQueueFields::fromThrift(queue)));
+    port.queues.push_back(std::make_shared<PortQueue>(queue));
   }
 
   if (auto pgConfigs = portThrift.pgConfigs()) {

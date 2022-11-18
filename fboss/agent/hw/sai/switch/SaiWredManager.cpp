@@ -21,7 +21,7 @@ constexpr auto kDefaultDropProbability = 100;
 
 std::shared_ptr<SaiWred> SaiWredManager::getOrCreateProfile(
     const PortQueue& queue) {
-  if (!queue.getAqms().size()) {
+  if (!queue.getAqms() || queue.getAqms()->empty()) {
     return nullptr;
   }
   auto attributes = profileCreateAttrs(queue);
@@ -52,12 +52,15 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
   std::tie(greenMin, greenMax, greenDropProbability, ecnGreenMin, ecnGreenMax) =
       std::make_tuple(0, 0, kDefaultDropProbability, 0, 0);
 #endif
-  for (const auto& [type, aqm] : queue.getAqms()) {
-    auto thresholds = (*aqm.detection()).get_linear();
+  for (const auto& aqm : std::as_const(*queue.getAqms())) {
+    // THRIFT_COPY
+    auto thresholds = aqm->cref<switch_config_tags::detection>()
+                          ->cref<switch_config_tags::linear>()
+                          ->toThrift();
     auto [minLen, maxLen] = std::make_pair(
         *thresholds.minimumLength(), *thresholds.maximumLength());
     auto probability = *thresholds.probability();
-    switch (type) {
+    switch (aqm->cref<switch_config_tags::behavior>()->cref()) {
       case cfg::QueueCongestionBehavior::EARLY_DROP:
         std::get<Attributes::GreenEnable>(attrs) = true;
         greenMin = minLen;

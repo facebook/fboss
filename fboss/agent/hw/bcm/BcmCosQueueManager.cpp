@@ -583,19 +583,17 @@ void BcmCosQueueManager::getBandwidth(
   const auto& defaultQueueSettings =
       getDefaultQueueSettings(queue->getStreamType());
 
+  const auto& portQueueRate = defaultQueueSettings.getPortQueueRate();
   // Check if default setting is pps and matches what is configued in
   // hardware
   if (flags == BCM_COSQ_BW_PACKET_MODE &&
-      defaultQueueSettings.getPortQueueRate().value().getType() ==
-          cfg::PortQueueRate::Type::pktsPerSec &&
-      *defaultQueueSettings.getPortQueueRate()
-              .value()
-              .get_pktsPerSec()
-              .minimum() == ppsMin &&
-      *defaultQueueSettings.getPortQueueRate()
-              .value()
-              .get_pktsPerSec()
-              .maximum() == ppsMax) {
+      portQueueRate->type() == cfg::PortQueueRate::Type::pktsPerSec &&
+      (portQueueRate->cref<switch_config_tags::pktsPerSec>()
+           ->cref<switch_config_tags::minimum>()
+           ->toThrift() == ppsMin) &&
+      (portQueueRate->cref<switch_config_tags::pktsPerSec>()
+           ->cref<switch_config_tags::maximum>()
+           ->toThrift() == ppsMax)) {
     XLOG(DBG1) << "Configured pps equals default ppsMin: " << ppsMin
                << " and default ppsMax: " << ppsMax;
     return;
@@ -603,32 +601,29 @@ void BcmCosQueueManager::getBandwidth(
 
   // Check if default setting is kbps and matches what is configued in hardware
   if (flags != BCM_COSQ_BW_PACKET_MODE &&
-      defaultQueueSettings.getPortQueueRate().value().getType() ==
-          cfg::PortQueueRate::Type::kbitsPerSec &&
-      *defaultQueueSettings.getPortQueueRate()
-              .value()
-              .get_kbitsPerSec()
-              .minimum() == ppsMin &&
-      *defaultQueueSettings.getPortQueueRate()
-              .value()
-              .get_kbitsPerSec()
-              .maximum() == ppsMax) {
+      portQueueRate->type() == cfg::PortQueueRate::Type::kbitsPerSec &&
+      (portQueueRate->cref<switch_config_tags::kbitsPerSec>()
+           ->cref<switch_config_tags::minimum>()
+           ->toThrift() == ppsMin) &&
+      (portQueueRate->cref<switch_config_tags::kbitsPerSec>()
+           ->cref<switch_config_tags::maximum>()
+           ->toThrift() == ppsMax)) {
     XLOG(DBG1) << "Configured kbps equals default ppsMin: " << ppsMin
                << " and default ppsMax: " << ppsMax;
     return;
   }
 
-  cfg::PortQueueRate portQueueRate;
+  cfg::PortQueueRate cfgPortQueueRate;
 
   cfg::Range range;
   *range.minimum() = ppsMin;
   *range.maximum() = ppsMax;
 
   flags != BCM_COSQ_BW_PACKET_MODE
-      ? portQueueRate.kbitsPerSec_ref().emplace(range)
-      : portQueueRate.pktsPerSec_ref().emplace(range);
+      ? cfgPortQueueRate.kbitsPerSec_ref().emplace(range)
+      : cfgPortQueueRate.pktsPerSec_ref().emplace(range);
 
-  queue->setPortQueueRate(portQueueRate);
+  queue->setPortQueueRate(cfgPortQueueRate);
 }
 
 void BcmCosQueueManager::programBandwidth(
@@ -639,10 +634,11 @@ void BcmCosQueueManager::programBandwidth(
 
   const auto& defaultQueueSettings =
       getDefaultQueueSettings(queue.getStreamType());
-  auto portQueueRate = defaultQueueSettings.getPortQueueRate().value();
+  // THRIFT_COPY
+  auto portQueueRate = defaultQueueSettings.getPortQueueRate()->toThrift();
 
   if (queue.getPortQueueRate()) {
-    portQueueRate = queue.getPortQueueRate().value();
+    portQueueRate = queue.getPortQueueRate()->toThrift();
   }
 
   if (portQueueRate.getType() == cfg::PortQueueRate::Type::pktsPerSec) {
