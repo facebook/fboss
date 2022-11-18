@@ -10,12 +10,14 @@
 #include "fboss/agent/state/PortQueue.h"
 #include <folly/Conv.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <algorithm>
 #include <sstream>
 #include "fboss/agent/state/NodeBase-defs.h"
 
 using apache::thrift::TEnumTraits;
 
 namespace {
+
 template <typename Param>
 bool isPortQueueOptionalAttributeSame(
     const std::optional<Param>& swValue,
@@ -30,30 +32,34 @@ bool isPortQueueOptionalAttributeSame(
   return false;
 }
 
+bool isEqual(
+    std::vector<facebook::fboss::cfg::ActiveQueueManagement>&& lhs,
+    std::vector<facebook::fboss::cfg::ActiveQueueManagement>&& rhs) {
+  auto compare = [](const auto& left, const auto& right) {
+    return std::tie(*left.behavior(), *left.detection()) <
+        std::tie(*right.behavior(), *right.detection());
+  };
+
+  std::sort(std::begin(lhs), std::end(lhs), compare);
+  std::sort(std::begin(rhs), std::end(rhs), compare);
+
+  return std::equal(
+      std::begin(lhs), std::end(lhs), std::begin(rhs), std::end(rhs));
+}
+
 bool comparePortQueueAQMs(
     const facebook::fboss::PortQueue::AqmsType& stateAqms,
-    const std::vector<facebook::fboss::cfg::ActiveQueueManagement>& aqms) {
+    std::vector<facebook::fboss::cfg::ActiveQueueManagement>&& aqms) {
   if (!stateAqms) {
     return aqms.empty();
   }
   if (aqms.empty()) {
     return !stateAqms || stateAqms->empty();
   }
-  auto compare = [](const facebook::fboss::cfg::ActiveQueueManagement& lhs,
-                    const facebook::fboss::cfg::ActiveQueueManagement& rhs) {
-    return (*lhs.behavior() < *rhs.behavior()) &&
-        (*lhs.detection() < *rhs.detection());
-  };
+
   // THRIFT_COPY: maintain set instead of list in both state and config thrift
   auto stateAqmsThrift = stateAqms->toThrift();
-  std::sort(stateAqmsThrift.begin(), stateAqmsThrift.end(), compare);
-  auto sortedAqms = aqms;
-  std::sort(sortedAqms.begin(), sortedAqms.end(), compare);
-  return std::equal(
-      stateAqmsThrift.begin(),
-      stateAqmsThrift.end(),
-      sortedAqms.begin(),
-      sortedAqms.end());
+  return isEqual(stateAqms->toThrift(), std::move(aqms));
 }
 
 bool comparePortQueueRate(
@@ -368,6 +374,23 @@ std::optional<cfg::QueueCongestionDetection> PortQueue::findDetectionInAqms(
     }
   }
   return std::nullopt;
+}
+
+bool PortQueue::isAqmsSame(const PortQueue* other) const {
+  if (!other) {
+    return false;
+  }
+  const auto& thisAqms = getAqms();
+  const auto& thatAqms = other->getAqms();
+  if (thisAqms == nullptr && thatAqms == nullptr) {
+    return true;
+  } else if (thisAqms == nullptr) {
+    return false;
+  } else if (thatAqms == nullptr) {
+    return false;
+  }
+  // THRIFT_COPY
+  return isEqual(thisAqms->toThrift(), thatAqms->toThrift());
 }
 
 template class ThriftStructNode<PortQueue, state::PortQueueFields>;

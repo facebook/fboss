@@ -288,35 +288,7 @@ class PortQueue : public ThriftStructNode<PortQueue, state::PortQueueFields> {
     return toFollyDynamic();
   }
 
-  bool isAqmsSame(const PortQueue* other) const {
-    if (!other) {
-      return false;
-    }
-    const auto& thisAqms = getAqms();
-    const auto& thatAqms = other->getAqms();
-    if (thisAqms == nullptr && thatAqms == nullptr) {
-      return true;
-    } else if (thisAqms == nullptr) {
-      return false;
-    } else if (thatAqms == nullptr) {
-      return false;
-    }
-    auto compare = [](const facebook::fboss::cfg::ActiveQueueManagement& lhs,
-                      const facebook::fboss::cfg::ActiveQueueManagement& rhs) {
-      return (*lhs.behavior() < *rhs.behavior()) &&
-          (*lhs.detection() < *rhs.detection());
-    };
-    // THRIFT_COPY
-    auto thisAqmsThrift = thisAqms->toThrift();
-    std::sort(thisAqmsThrift.begin(), thisAqmsThrift.end(), compare);
-    auto thatAqmsThrift = thatAqms->toThrift();
-    std::sort(thatAqmsThrift.begin(), thatAqmsThrift.end(), compare);
-    return std::equal(
-        thisAqmsThrift.begin(),
-        thisAqmsThrift.end(),
-        thatAqmsThrift.begin(),
-        thatAqmsThrift.end());
-  }
+  bool isAqmsSame(const PortQueue* other) const;
 
   bool isPortQueueRateSame(const PortQueue* other) const {
     if (!other) {
