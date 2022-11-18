@@ -393,6 +393,6 @@ bool PortQueue::isAqmsSame(const PortQueue* other) const {
   return isEqual(thisAqms->toThrift(), thatAqms->toThrift());
 }
 
-template class ThriftStructNode<PortQueue, state::PortQueueFields>;
+template class thrift_cow::ThriftStructNode<state::PortQueueFields>;
 
 } // namespace facebook::fboss

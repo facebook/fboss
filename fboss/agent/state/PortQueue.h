@@ -88,12 +88,21 @@ struct PortQueueFields
 };
 
 USE_THRIFT_COW(PortQueue)
+
+// TODO: add resolver for thrift list and a mechanism for thrift struct node to
+// pick that resolver for member list.
+
+template <>
+struct thrift_cow::ThriftStructResolver<state::PortQueueFields> {
+  using type = PortQueue;
+};
+
 /*
  * PortQueue defines the behaviour of the per port queues
  */
-class PortQueue : public ThriftStructNode<PortQueue, state::PortQueueFields> {
+class PortQueue : public thrift_cow::ThriftStructNode<state::PortQueueFields> {
  public:
-  using Base = ThriftStructNode<PortQueue, state::PortQueueFields>;
+  using Base = thrift_cow::ThriftStructNode<state::PortQueueFields>;
   using AQMMap = PortQueueFields::AQMMap;
   using AqmsType = typename Base::Fields::TypeFor<switch_state_tags::aqms>;
   using PortQueueRateType =
