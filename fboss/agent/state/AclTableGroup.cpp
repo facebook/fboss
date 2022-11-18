@@ -12,6 +12,7 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclTable.h"
+#include "fboss/agent/state/AclTableMap.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/StateUtils.h"
 
@@ -21,7 +22,7 @@ using folly::IPAddress;
 namespace {
 constexpr auto kAclStage = "aclStage";
 constexpr auto kName = "name";
-constexpr auto kAclTableMap = "aclTableMap";
+constexpr auto kAclTableGroupName = "Ingress ACL Group";
 } // namespace
 
 namespace facebook::fboss {
@@ -47,6 +48,25 @@ AclTableGroupFields AclTableGroupFields::fromFollyDynamic(
       cfg::AclStage(aclTableGroupJson[kAclStage].asInt()),
       aclTableGroupJson[kName].asString(),
       aclTableMap);
+
+  return aclTableGroup;
+}
+
+AclTableGroupFields AclTableGroupFields::createDefaultAclTableGroupFields(
+    const folly::dynamic& swJson) {
+  auto aclTableMap = AclTableMap::createDefaultAclTableMap(swJson);
+  AclTableGroupFields aclTableGroup(
+      cfg::AclStage::INGRESS, kAclTableGroupName, aclTableMap);
+
+  return aclTableGroup;
+}
+
+AclTableGroupFields
+AclTableGroupFields::createDefaultAclTableGroupFieldsFromThrift(
+    std::map<std::string, state::AclEntryFields> const& thriftMap) {
+  auto aclTableMap = AclTableMap::createDefaultAclTableMapFromThrift(thriftMap);
+  AclTableGroupFields aclTableGroup(
+      cfg::AclStage::INGRESS, kAclTableGroupName, aclTableMap);
 
   return aclTableGroup;
 }

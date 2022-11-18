@@ -43,7 +43,10 @@ struct AclTableGroupFields
 
   folly::dynamic toFollyDynamic() const;
   static AclTableGroupFields fromFollyDynamic(const folly::dynamic& json);
-
+  static AclTableGroupFields createDefaultAclTableGroupFields(
+      const folly::dynamic& swJson);
+  static AclTableGroupFields createDefaultAclTableGroupFieldsFromThrift(
+      std::map<std::string, state::AclEntryFields> const& thriftMap);
   state::AclTableGroupFields toThrift() const override {
     return data();
   }
@@ -72,6 +75,35 @@ class AclTableGroup : public NodeBaseT<AclTableGroup, AclTableGroupFields> {
       const folly::dynamic& json) {
     const auto& fields = AclTableGroupFields::fromFollyDynamic(json);
     return std::make_shared<AclTableGroup>(fields);
+  }
+
+  static std::shared_ptr<AclTableGroup> createDefaultAclTableGroup(
+      const folly::dynamic& json) {
+    const auto& fields =
+        AclTableGroupFields::createDefaultAclTableGroupFields(json);
+    return std::make_shared<AclTableGroup>(fields);
+  }
+
+  static std::shared_ptr<AclTableGroup> createDefaultAclTableGroupFromThrift(
+      std::map<std::string, state::AclEntryFields> const& thriftMap) {
+    const auto& fields =
+        AclTableGroupFields::createDefaultAclTableGroupFieldsFromThrift(
+            thriftMap);
+    return std::make_shared<AclTableGroup>(fields);
+  }
+
+  static const folly::dynamic& getAclTableGroupName(
+      const folly::dynamic& aclTableGroupJson) {
+    return AclTableMap::getAclTableMapName(aclTableGroupJson[kEntries]);
+  }
+
+  static std::shared_ptr<AclMap> getDefaultAclTableGroup(
+      state::AclTableGroupFields const& aclTableGroupFields) {
+    if (auto aclTableMap = aclTableGroupFields.aclTableMap()) {
+      return AclTableMap::getDefaultAclTableMap(*aclTableMap);
+    } else {
+      return nullptr;
+    }
   }
 
   static std::shared_ptr<AclTableGroup> fromJson(
