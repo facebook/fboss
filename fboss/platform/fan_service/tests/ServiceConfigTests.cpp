@@ -28,8 +28,34 @@ class ServiceConfigTest : public ::testing::Test {
     rc = myConfig.parseConfigString(mokujinConfig);
     return rc;
   }
+
+  int parseInvalidJson() {
+    int rc = 0;
+    ServiceConfig myConfig;
+    // Malformed JSON with missing bracket at the end.
+    // The parsing should fail.
+    std::string badFormatConfig = "{ \"bsp\" : \"darwin\" ";
+    rc = myConfig.parseConfigString(badFormatConfig);
+    return rc;
+  }
+  int parseInvalidConfig() {
+    int rc = 0;
+    ServiceConfig myConfig;
+    // Valid JSON, but the key is invalid. The parsing should fail.
+    std::string badKeyConfig = "{ \"bad_key\" : true }";
+    rc = myConfig.parseConfigString(badKeyConfig);
+    return rc;
+  }
 };
 
 TEST_F(ServiceConfigTest, parseMokujin) {
   EXPECT_EQ(parseMokujin(), 0);
+}
+
+TEST_F(ServiceConfigTest, parseBadJson) {
+  EXPECT_THROW(parseInvalidJson(), folly::json::parse_error);
+}
+
+TEST_F(ServiceConfigTest, parseInvalidKey) {
+  EXPECT_THROW(parseInvalidConfig(), facebook::fboss::FbossError);
 }
