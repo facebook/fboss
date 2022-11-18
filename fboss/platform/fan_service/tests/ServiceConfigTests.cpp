@@ -29,6 +29,14 @@ class ServiceConfigTest : public ::testing::Test {
     return rc;
   }
 
+  int parseDarwin() {
+    int rc = 0;
+    ServiceConfig myConfig;
+    std::string darwinConfig = getDarwinFSConfig();
+    rc = myConfig.parseConfigString(darwinConfig);
+    return rc;
+  }
+
   int parseInvalidJson() {
     int rc = 0;
     ServiceConfig myConfig;
@@ -38,6 +46,7 @@ class ServiceConfigTest : public ::testing::Test {
     rc = myConfig.parseConfigString(badFormatConfig);
     return rc;
   }
+
   int parseInvalidConfig() {
     int rc = 0;
     ServiceConfig myConfig;
@@ -50,6 +59,10 @@ class ServiceConfigTest : public ::testing::Test {
 
 TEST_F(ServiceConfigTest, parseMokujin) {
   EXPECT_EQ(parseMokujin(), 0);
+}
+
+TEST_F(ServiceConfigTest, parseDarwin) {
+  EXPECT_EQ(parseDarwin(), 0);
 }
 
 TEST_F(ServiceConfigTest, parseBadJson) {
