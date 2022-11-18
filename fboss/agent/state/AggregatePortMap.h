@@ -12,19 +12,35 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeMap.h"
+#include "fboss/agent/state/Thrifty.h"
 
 namespace facebook::fboss {
 
 class AggregatePort;
 
-using AggregatePortMapTraits = NodeMapTraits<AggregatePortID, AggregatePort>;
+using AggregatePortMapLegacyTraits =
+    NodeMapTraits<AggregatePortID, AggregatePort>;
+
+using AggregatePortMapTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::integral,
+    apache::thrift::type_class::structure>;
+using AggregatePortMapThriftType =
+    std::map<int16_t, state::AggregatePortFields>;
+
+class AggregatePortMap;
+using AggregatePortMapTraits = ThriftMapNodeTraits<
+    AggregatePortMap,
+    AggregatePortMapTypeClass,
+    AggregatePortMapThriftType,
+    AggregatePort>;
 
 /*
  * A container for the set of aggregate ports.
  */
 class AggregatePortMap
-    : public NodeMapT<AggregatePortMap, AggregatePortMapTraits> {
+    : public ThriftMapNode<AggregatePortMap, AggregatePortMapTraits> {
  public:
+  using Base = ThriftMapNode<AggregatePortMap, AggregatePortMapTraits>;
   using ThriftType = std::map<int16_t, state::AggregatePortFields>;
 
   AggregatePortMap();
@@ -40,11 +56,6 @@ class AggregatePortMap
 
   static int16_t getNodeThriftKey(const std::shared_ptr<AggregatePort>& node);
 
-  std::map<int16_t, state::AggregatePortFields> toThrift() const;
-
-  static std::shared_ptr<AggregatePortMap> fromThrift(
-      std::map<int16_t, state::AggregatePortFields> const& aggregatePortMap);
-
   /* This method will iterate over every member port in every aggregate port,
    * so it is a quadratic operation. If it turns out to be a bottleneck, we can
    * maintain an index to speed it up.
@@ -57,7 +68,7 @@ class AggregatePortMap
 
  private:
   // Inherit the constructors required for clone()
-  using NodeMapT::NodeMapT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 

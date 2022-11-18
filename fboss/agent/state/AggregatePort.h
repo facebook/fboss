@@ -172,7 +172,8 @@ struct AggregatePortFields
 /*
  * AggregatePort stores state for an IEEE 802.1AX link bundle.
  */
-class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
+class AggregatePort
+    : public ThriftStructNode<AggregatePort, state::AggregatePortFields> {
  public:
   using Subport = AggregatePortFields::Subport;
   using SubportsDifferenceType = AggregatePortFields::Subports::difference_type;
@@ -185,6 +186,36 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
   using SubportAndForwardingStateValueType =
       AggregatePortFields::SubportToForwardingState::value_type;
   using ThriftType = state::AggregatePortFields;
+  using Base = ThriftStructNode<AggregatePort, state::AggregatePortFields>;
+  using Subports = boost::container::flat_set<Subport>;
+
+  using SubportToForwardingState =
+      boost::container::flat_map<PortID, Forwarding>;
+
+  using SubportToPartnerState =
+      boost::container::flat_map<PortID, ParticipantInfo>;
+
+  AggregatePort(
+      AggregatePortID id,
+      const std::string& name,
+      const std::string& description,
+      uint16_t systemPriority,
+      folly::MacAddress systemID,
+      uint8_t minimumLinkCount,
+      Subports&& ports,
+      AggregatePortFields::Forwarding fwd = Forwarding::DISABLED,
+      ParticipantInfo pState = ParticipantInfo::defaultParticipantInfo());
+
+  AggregatePort(
+      AggregatePortID id,
+      const std::string& name,
+      const std::string& description,
+      uint16_t systemPriority,
+      folly::MacAddress systemID,
+      uint8_t minLinkCount,
+      Subports&& ports,
+      SubportToForwardingState&& portStates,
+      SubportToPartnerState&& portPartnerStates);
 
   template <typename Iterator>
   static std::shared_ptr<AggregatePort> fromSubportRange(
@@ -202,148 +233,152 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
         systemPriority,
         systemID,
         minLinkCount,
-        Subports(subports.begin(), subports.end()));
-  }
-
-  state::AggregatePortFields toThrift() const {
-    return getFields()->toThrift();
-  }
-  static std::shared_ptr<AggregatePort> fromThrift(
-      state::AggregatePortFields const& aggregatePortFields) {
-    return std::make_shared<AggregatePort>(
-        AggregatePortFields(aggregatePortFields));
-  }
-  bool operator==(const AggregatePort& other) const {
-    return *getFields() == *other.getFields();
-  }
-  bool operator!=(const AggregatePort& other) const {
-    return !(*this == other);
+        Subports(subports.begin(), subports.end()),
+        Forwarding::DISABLED,
+        ParticipantInfo::defaultParticipantInfo());
   }
 
   static std::shared_ptr<AggregatePort> fromFollyDynamic(
       const folly::dynamic& json) {
     const auto& fields = AggregatePortFields::fromFollyDynamic(json);
-    return std::make_shared<AggregatePort>(fields);
+    return std::make_shared<AggregatePort>(fields.toThrift());
   }
 
   static std::shared_ptr<AggregatePort> fromJson(
       const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
+    return AggregatePort::fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
   folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamic();
+    const auto& fields = AggregatePortFields::fromThrift(toThrift());
+    return fields.toFollyDynamic();
   }
 
   AggregatePortID getID() const {
-    return AggregatePortID(*getFields()->data().id());
+    return AggregatePortID(cref<switch_state_tags::id>()->cref());
   }
 
   const std::string& getName() const {
-    return *getFields()->data().name();
+    return cref<switch_state_tags::name>()->cref();
   }
 
   void setName(const std::string& name) {
-    writableFields()->writableData().name() = name;
+    set<switch_state_tags::name>(name);
   }
 
   const std::string& getDescription() const {
-    return *getFields()->data().description();
+    return cref<switch_state_tags::description>()->cref();
   }
 
   void setDescription(const std::string& desc) {
-    writableFields()->writableData().description() = desc;
+    set<switch_state_tags::description>(desc);
   }
 
   uint16_t getSystemPriority() const {
-    return *getFields()->data().systemPriority();
+    return cref<switch_state_tags::systemPriority>()->cref();
   }
 
   void setSystemPriority(uint16_t systemPriority) {
-    writableFields()->writableData().systemPriority() = systemPriority;
+    set<switch_state_tags::systemPriority>(systemPriority);
   }
 
   folly::MacAddress getSystemID() const {
-    return folly::MacAddress::fromNBO(*getFields()->data().systemID());
+    return folly::MacAddress::fromNBO(
+        cref<switch_state_tags::systemID>()->cref());
   }
 
   void setSystemID(folly::MacAddress systemID) {
-    writableFields()->writableData().systemID() = systemID.u64NBO();
+    set<switch_state_tags::systemID>(systemID.u64NBO());
   }
 
   uint8_t getMinimumLinkCount() const {
-    return *getFields()->data().minimumLinkCount();
+    return cref<switch_state_tags::minimumLinkCount>()->cref();
   }
 
   void setMinimumLinkCount(uint8_t minLinkCount) {
-    writableFields()->writableData().minimumLinkCount() = minLinkCount;
+    set<switch_state_tags::minimumLinkCount>(minLinkCount);
   }
 
   AggregatePort::Forwarding getForwardingState(PortID port) {
-    auto it = getFields()->data().portToFwdState()->find(port);
-    if (it == getFields()->data().portToFwdState()->end()) {
+    const auto& portToFwdState = cref<switch_state_tags::portToFwdState>();
+    auto it = portToFwdState->find(port);
+    if (it == portToFwdState->cend()) {
       throw FbossError("No forwarding state found for port ", port);
     }
-
-    return it->second ? Forwarding::ENABLED : Forwarding::DISABLED;
+    return (it->second->cref() == true) ? Forwarding::ENABLED
+                                        : Forwarding::DISABLED;
   }
 
   void setForwardingState(PortID port, AggregatePort::Forwarding fwd) {
-    auto it = writableFields()->writableData().portToFwdState()->find(port);
-    if (it == writableFields()->writableData().portToFwdState()->end()) {
+    auto portToFwdState = get<switch_state_tags::portToFwdState>()->clone();
+    auto it = portToFwdState->find(port);
+    if (it == portToFwdState->cend()) {
       throw FbossError("No forwarding state found for port ", port);
     }
-
-    it->second = fwd == Forwarding::ENABLED;
+    it->second->ref() = (fwd == Forwarding::ENABLED);
+    ref<switch_state_tags::portToFwdState>() = portToFwdState;
   }
 
+  // THRIFT_COPY
   AggregatePort::PartnerState getPartnerState(PortID port) const {
-    auto it = *getFields()->data().portToPartnerState()->find(port);
-    if (it == *getFields()->data().portToPartnerState()->end()) {
+    const auto& portToPartnerState =
+        cref<switch_state_tags::portToPartnerState>();
+    auto it = portToPartnerState->find(port);
+    if (it == portToPartnerState->end()) {
       throw FbossError("No partner state found for port ", port);
     }
 
-    return ParticipantInfo::fromThrift(it.second);
+    return AggregatePort::PartnerState::fromThrift(it->second->toThrift());
   }
 
+  // THRIFT_COPY
   void setPartnerState(PortID port, const AggregatePort::PartnerState& state) {
-    auto it = writableFields()->data().portToPartnerState()->find(port);
-    if (it == writableFields()->data().portToPartnerState()->end()) {
+    auto portToPartnerState =
+        get<switch_state_tags::portToPartnerState>()->clone();
+    auto it = portToPartnerState->find(port);
+    if (it == portToPartnerState->end()) {
       throw FbossError("No partner state found for port ", port);
     }
-
-    writableFields()->writableData().portToPartnerState()[port] =
-        state.toThrift();
+    auto partnerState = portToPartnerState->cref(port)->clone();
+    partnerState->fromThrift(state.toThrift());
+    portToPartnerState->ref(port) = partnerState;
+    ref<switch_state_tags::portToPartnerState>() = portToPartnerState;
   }
 
+  // THRIFT_COPY
   std::vector<Subport> sortedSubports() const {
     std::vector<Subport> subports;
-    for (const auto subport : *getFields()->data().ports()) {
-      subports.push_back(Subport::fromThrift(subport));
+    for (const auto& subport :
+         std::as_const(*cref<switch_state_tags::ports>())) {
+      subports.push_back(Subport::fromThrift(subport->toThrift()));
     }
     return subports;
   }
 
+  // THRIFT_COPY
   template <typename ConstIter>
   void setSubports(folly::Range<ConstIter> subports) {
-    writableFields()->writableData().ports()->clear();
     auto subportMap = Subports(subports.begin(), subports.end());
+    std::vector<state::Subport> subportsThrift{};
     for (const auto& subport : subportMap) {
-      writableFields()->writableData().ports()->push_back(subport.toThrift());
+      subportsThrift.push_back(subport.toThrift());
     }
+    set<switch_state_tags::ports>(std::move(subportsThrift));
   }
 
   uint32_t subportsCount() const {
-    return getFields()->data().ports()->size();
+    return cref<switch_state_tags::ports>()->size();
   }
 
   uint32_t forwardingSubportCount() const;
 
   AggregatePortFields::SubportToForwardingState subportAndFwdState() const {
     AggregatePortFields::SubportToForwardingState portToFwdState;
-    for (const auto& [key, val] : *getFields()->data().portToFwdState()) {
+
+    for (const auto& [key, val] :
+         std::as_const(*cref<switch_state_tags::portToFwdState>())) {
       portToFwdState[PortID(key)] =
-          val ? Forwarding::ENABLED : Forwarding::DISABLED;
+          (val->cref() == true) ? Forwarding::ENABLED : Forwarding::DISABLED;
     }
     return portToFwdState;
   }
@@ -360,10 +395,8 @@ class AggregatePort : public NodeBaseT<AggregatePort, AggregatePortFields> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using Base::Base;
   friend class CloneAllocator;
-
-  using Subports = AggregatePortFields::Subports;
 };
 
 } // namespace facebook::fboss

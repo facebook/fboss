@@ -26,29 +26,11 @@ int16_t AggregatePortMap::getNodeThriftKey(
   return node->getID();
 }
 
-std::map<int16_t, state::AggregatePortFields> AggregatePortMap::toThrift()
-    const {
-  std::map<int16_t, state::AggregatePortFields> thriftMap;
-  for (const auto& [key, value] : this->getAllNodes()) {
-    thriftMap[key] = value->toThrift();
-  }
-  return thriftMap;
-}
-
-std::shared_ptr<AggregatePortMap> AggregatePortMap::fromThrift(
-    std::map<int16_t, state::AggregatePortFields> const& aggregatePortMap) {
-  auto aggPortMap = std::make_shared<AggregatePortMap>();
-  for (const auto& [key, value] : aggregatePortMap) {
-    aggPortMap->addNode(AggregatePort::fromThrift(value));
-  }
-  return aggPortMap;
-}
-
 std::shared_ptr<AggregatePort> AggregatePortMap::getAggregatePortIf(
     PortID port) const {
-  for (const auto& aggPort : *this) {
-    if (aggPort->isMemberPort(port)) {
-      return aggPort;
+  for (const auto& idAndAggPort : std::as_const(*this)) {
+    if (idAndAggPort.second->isMemberPort(port)) {
+      return idAndAggPort.second;
     }
   }
 
@@ -74,6 +56,6 @@ AggregatePortMap* AggregatePortMap::modify(
   return ptr;
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(AggregatePortMap, AggregatePortMapTraits);
+template class ThriftMapNode<AggregatePortMap, AggregatePortMapTraits>;
 
 } // namespace facebook::fboss

@@ -80,7 +80,7 @@ class StateDelta {
   NodeMapDelta<AclTableMap> getAclTablesDelta(cfg::AclStage aclStage) const;
   NodeMapDelta<AclTableGroupMap> getAclTableGroupsDelta() const;
   QosPolicyMapDelta getQosPoliciesDelta() const;
-  NodeMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
+  thrift_cow::ThriftMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
   thrift_cow::ThriftMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;
   thrift_cow::ThriftMapDelta<LoadBalancerMap> getLoadBalancersDelta() const;
   DeltaValue<ControlPlane> getControlPlaneDelta() const;

@@ -106,8 +106,9 @@ QosPolicyMapDelta StateDelta::getQosPoliciesDelta() const {
       old_->getQosPolicies().get(), new_->getQosPolicies().get());
 }
 
-NodeMapDelta<AggregatePortMap> StateDelta::getAggregatePortsDelta() const {
-  return NodeMapDelta<AggregatePortMap>(
+thrift_cow::ThriftMapDelta<AggregatePortMap>
+StateDelta::getAggregatePortsDelta() const {
+  return thrift_cow::ThriftMapDelta<AggregatePortMap>(
       old_->getAggregatePorts().get(), new_->getAggregatePorts().get());
 }
 
@@ -228,7 +229,7 @@ template class NodeMapDelta<AclMap>;
 template class NodeMapDelta<AclTableGroupMap>;
 template class NodeMapDelta<AclTableMap>;
 template class thrift_cow::ThriftMapDelta<QosPolicyMap>;
-template class NodeMapDelta<AggregatePortMap>;
+template class thrift_cow::ThriftMapDelta<AggregatePortMap>;
 template class thrift_cow::ThriftMapDelta<SflowCollectorMap>;
 template class thrift_cow::ThriftMapDelta<LoadBalancerMap>;
 template class thrift_cow::ThriftMapDelta<MirrorMap>;

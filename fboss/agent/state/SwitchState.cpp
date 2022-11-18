@@ -213,7 +213,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.ipTunnels->fromThrift(*state.ipTunnelMap());
   fields.sFlowCollectors->fromThrift(*state.sflowCollectorMap());
   fields.teFlowTable->fromThrift(*state.teFlowTable());
-  fields.aggPorts = AggregatePortMap::fromThrift(*state.aggregatePortMap());
+  fields.aggPorts->fromThrift(*state.aggregatePortMap());
   if (auto aclTableGroupMap = state.aclTableGroupMap()) {
     fields.aclTableGroups = AclTableGroupMap::fromThrift(*aclTableGroupMap);
   }

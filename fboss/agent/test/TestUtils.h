@@ -520,4 +520,12 @@ void validateNodeMapSerialization(const NodeMap& nodeMap) {
   auto nodeMapBack = NodeMap::fromThrift(nodeMap.toThrift());
   EXPECT_TRUE(isSameNodeMap(nodeMap, *nodeMapBack));
 }
+
+template <typename NodeMap>
+void validateThriftMapMapSerialization(const NodeMap& nodeMap) {
+  auto nodeMapBack = NodeMap::fromFollyDynamic(nodeMap.toFollyDynamic());
+  EXPECT_TRUE(nodeMap.toThrift() == nodeMapBack->toThrift());
+  nodeMapBack->fromThrift(nodeMap.toThrift());
+  EXPECT_TRUE(nodeMap.toThrift() == nodeMapBack->toThrift());
+}
 } // namespace facebook::fboss

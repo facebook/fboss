@@ -38,9 +38,9 @@ using namespace facebook::fboss;
 std::optional<AggregatePortID> getAggPortID(
     const std::shared_ptr<SwitchState>& inputState,
     const PortID& portId) {
-  for (auto aggPort : *inputState->getAggregatePorts().get()) {
-    if (aggPort->isMemberPort(portId)) {
-      return aggPort->getID();
+  for (auto idAndAggPort : std::as_const(*inputState->getAggregatePorts())) {
+    if (idAndAggPort.second->isMemberPort(portId)) {
+      return idAndAggPort.second->getID();
     }
   }
   return std::nullopt;

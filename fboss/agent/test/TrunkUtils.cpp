@@ -62,8 +62,9 @@ void addAggPort(
 std::shared_ptr<SwitchState> enableTrunkPorts(
     std::shared_ptr<SwitchState> curState) {
   auto newState{curState};
-  for (auto aggPortOld : *newState->getAggregatePorts()) {
-    auto aggPort = aggPortOld->modify(&newState);
+  for (const auto& idAndAggPort :
+       std::as_const(*newState->getAggregatePorts())) {
+    auto aggPort = idAndAggPort.second->modify(&newState);
     for (auto subPort : aggPort->sortedSubports()) {
       aggPort->setForwardingState(
           subPort.portID, AggregatePort::Forwarding::ENABLED);
@@ -76,8 +77,9 @@ std::shared_ptr<SwitchState> setTrunkMinLinkCount(
     std::shared_ptr<SwitchState> curState,
     uint8_t minlinks) {
   auto newState{curState};
-  for (auto aggPortOld : *newState->getAggregatePorts()) {
-    auto aggPort = aggPortOld->modify(&newState);
+  for (const auto& idAndAggPort :
+       std::as_const(*newState->getAggregatePorts())) {
+    auto aggPort = idAndAggPort.second->modify(&newState);
     aggPort->setMinimumLinkCount(minlinks);
   }
   return newState;

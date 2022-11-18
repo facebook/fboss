@@ -930,12 +930,13 @@ void ThriftHandler::getAggregatePortTable(
   // parameter, make sure it's clear() first
   aggregatePortsThrift.clear();
 
-  auto aggregatePortMap = sw_->getState()->getAggregatePorts();
+  const auto& aggregatePortMap = sw_->getState()->getAggregatePorts();
   aggregatePortsThrift.reserve(aggregatePortMap->size());
-  for (const auto& aggregatePort : *aggregatePortMap) {
+  for (const auto& aggregatePortAndID : std::as_const(*aggregatePortMap)) {
     aggregatePortsThrift.emplace_back();
 
-    populateAggregatePortThrift(aggregatePort, aggregatePortsThrift.back());
+    populateAggregatePortThrift(
+        aggregatePortAndID.second, aggregatePortsThrift.back());
   }
 }
 

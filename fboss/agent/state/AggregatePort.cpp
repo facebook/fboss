@@ -226,6 +226,71 @@ AggregatePortFields AggregatePortFields::fromFollyDynamic(
       std::move(portPartnerStates));
 }
 
+AggregatePort::AggregatePort(
+    AggregatePortID id,
+    const std::string& name,
+    const std::string& description,
+    uint16_t systemPriority,
+    folly::MacAddress systemID,
+    uint8_t minimumLinkCount,
+    Subports&& ports,
+    AggregatePortFields::Forwarding fwd,
+    ParticipantInfo pState) {
+  set<switch_state_tags::id>(id);
+  set<switch_state_tags::name>(name);
+  set<switch_state_tags::description>(description);
+  set<switch_state_tags::systemPriority>(systemPriority);
+  set<switch_state_tags::systemID>(systemID.u64NBO());
+  set<switch_state_tags::minimumLinkCount>(minimumLinkCount);
+  std::vector<state::Subport> subPorts;
+  for (const auto& subport : ports) {
+    subPorts.push_back(subport.toThrift());
+  }
+  set<switch_state_tags::ports>(std::move(subPorts));
+  std::map<int32_t, bool> portToFwdState{};
+  for (const auto& subport : ports) {
+    portToFwdState.emplace(subport.portID, fwd == Forwarding::ENABLED);
+  }
+  set<switch_state_tags::portToFwdState>(std::move(portToFwdState));
+  std::map<int32_t, state::ParticipantInfo> portToPartnerState{};
+  for (const auto& subport : ports) {
+    portToPartnerState.emplace(subport.portID, pState.toThrift());
+  }
+  set<switch_state_tags::portToPartnerState>(std::move(portToPartnerState));
+}
+
+AggregatePort::AggregatePort(
+    AggregatePortID id,
+    const std::string& name,
+    const std::string& description,
+    uint16_t systemPriority,
+    folly::MacAddress systemID,
+    uint8_t minLinkCount,
+    Subports&& ports,
+    SubportToForwardingState&& portStates,
+    SubportToPartnerState&& portPartnerStates) {
+  set<switch_state_tags::id>(id);
+  set<switch_state_tags::name>(name);
+  set<switch_state_tags::description>(description);
+  set<switch_state_tags::systemPriority>(systemPriority);
+  set<switch_state_tags::systemID>(systemID.u64NBO());
+  set<switch_state_tags::minimumLinkCount>(minLinkCount);
+  std::vector<state::Subport> subPorts;
+  for (const auto& subport : ports) {
+    subPorts.push_back(subport.toThrift());
+  }
+  std::map<int32_t, bool> portToFwdState{};
+  for (const auto& [port, fwdState] : portStates) {
+    portToFwdState.emplace(port, fwdState == Forwarding::ENABLED);
+  }
+  set<switch_state_tags::portToFwdState>(std::move(portToFwdState));
+  std::map<int32_t, state::ParticipantInfo> portToPartnerState{};
+  for (const auto& [port, partnerState] : portPartnerStates) {
+    portToPartnerState.emplace(port, partnerState.toThrift());
+  }
+  set<switch_state_tags::portToPartnerState>(std::move(portToPartnerState));
+}
+
 uint32_t AggregatePort::forwardingSubportCount() const {
   uint32_t count = 0;
 
@@ -241,8 +306,9 @@ uint32_t AggregatePort::forwardingSubportCount() const {
 }
 
 bool AggregatePort::isMemberPort(PortID port) const {
-  for (const auto& memberPort : *getFields()->data().ports()) {
-    if (PortID(*memberPort.id()) == port) {
+  for (const auto& memberPort :
+       std::as_const(*cref<switch_state_tags::ports>())) {
+    if (PortID(memberPort->cref<switch_state_tags::id>()->cref()) == port) {
       return true;
     }
   }
@@ -306,6 +372,6 @@ bool AggregatePort::isUp() const {
   return forwardingSubportCount() >= getMinimumLinkCount();
 }
 
-template class NodeBaseT<AggregatePort, AggregatePortFields>;
+template class ThriftStructNode<AggregatePort, state::AggregatePortFields>;
 
 } // namespace facebook::fboss

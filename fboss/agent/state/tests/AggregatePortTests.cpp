@@ -103,7 +103,7 @@ void checkAggPort(
     EXPECT_TRUE(
         testing::AssertionFailure() << *expectedSubportsBegin << " expected");
   }
-  validateNodeSerialization(*aggPort);
+  validateThriftStructNodeSerialization(*aggPort);
 }
 
 TEST(AggregatePort, singleTrunkWithOnePhysicalPort) {
@@ -423,8 +423,8 @@ void checkChangedAggPorts(
   EXPECT_EQ(addedIDs, foundAdded);
   EXPECT_EQ(removedIDs, foundRemoved);
 
-  validateNodeMapSerialization(*oldAggPorts);
-  validateNodeMapSerialization(*newAggPorts);
+  validateThriftMapMapSerialization(*oldAggPorts);
+  validateThriftMapMapSerialization(*newAggPorts);
 }
 
 void setAggregatePortMemberIDs(
@@ -524,9 +524,9 @@ TEST(AggregatePort, multiTrunkIdempotence) {
   EXPECT_EQ(nullptr, publishAndApplyConfig(endState, &config, platform.get()));
 
   auto endAggPorts = endState->getAggregatePorts();
-  validateNodeSerialization(
+  validateThriftStructNodeSerialization(
       *endAggPorts->getAggregatePortIf(AggregatePortID(55)));
-  validateNodeSerialization(
+  validateThriftStructNodeSerialization(
       *endAggPorts->getAggregatePortIf(AggregatePortID(155)));
 }
 
@@ -713,11 +713,11 @@ TEST(AggregatePort, multiTrunkRemove) {
       startAggPorts->getAggregatePortIf(AggregatePortID(90)),
       endAggPorts->getAggregatePortIf(AggregatePortID(90)));
 
-  validateNodeMapSerialization(*startAggPorts);
-  validateNodeMapSerialization(*endAggPorts);
-  validateNodeSerialization(
+  validateThriftMapMapSerialization(*startAggPorts);
+  validateThriftMapMapSerialization(*endAggPorts);
+  validateThriftStructNodeSerialization(
       *startAggPorts->getAggregatePortIf(AggregatePortID(40)));
-  validateNodeSerialization(
+  validateThriftStructNodeSerialization(
       *startAggPorts->getAggregatePortIf(AggregatePortID(90)));
 }
 
@@ -761,7 +761,7 @@ TEST(AggregatePort, serializationInverseOfDeserialization) {
       4,
       subportRange);
 
-  validateNodeSerialization(*aggPort);
+  validateThriftStructNodeSerialization(*aggPort);
 
   auto serializedAggPort = aggPort->toFollyDynamic();
   auto deserializedAggPort = AggregatePort::fromFollyDynamic(serializedAggPort);

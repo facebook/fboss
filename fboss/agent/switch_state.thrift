@@ -448,11 +448,11 @@ struct ParticipantInfo {
 }
 
 struct Subport {
-  1: i32 id;
-  2: i32 priority;
-  3: switch_config.LacpPortRate lacpPortRate;
-  4: switch_config.LacpPortActivity lacpPortActivity;
-  5: i32 holdTimerMultiplier;
+  1: i32 id = 0;
+  2: i32 priority = 0;
+  3: switch_config.LacpPortRate lacpPortRate = switch_config.LacpPortRate.SLOW;
+  4: switch_config.LacpPortActivity lacpPortActivity = switch_config.LacpPortActivity.PASSIVE;
+  5: i32 holdTimerMultiplier = switch_config.DEFAULT_LACP_HOLD_TIMER_MULTIPLIER;
 }
 
 struct AggregatePortFields {
