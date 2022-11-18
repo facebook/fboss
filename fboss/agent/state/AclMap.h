@@ -87,6 +87,16 @@ class AclMap
     removeNode(aclEntry);
   }
 
+  static const folly::dynamic& getAclMapName(
+      const folly::dynamic& aclTableJson) {
+    /*
+     * Entries data structure is a vector of maps. For our case, its a vector of
+     * size 1 and the first entry will contain the AclMap with the acl entries
+     * we are interested in. So return the first element
+     */
+    return aclTableJson[0][kAclMap];
+  }
+
  private:
   // Inherit the constructors required for clone()
   using ThriftyNodeMapT::ThriftyNodeMapT;

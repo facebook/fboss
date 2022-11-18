@@ -61,5 +61,6 @@ inline constexpr folly::StringPiece kInExp{"in_exp"};
 inline constexpr folly::StringPiece kOutExp{"out_exp"};
 inline constexpr folly::StringPiece kQosPolicyTable{"qosPolicyTable"};
 inline constexpr folly::StringPiece kSwitchId{"switch_id"};
+inline constexpr folly::StringPiece kAclMap{"aclMap"};
 
 } // namespace facebook::fboss
