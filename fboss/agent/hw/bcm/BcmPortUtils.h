@@ -49,10 +49,6 @@ int getPortItm(utility::BcmChip chip, BcmPort* bcmPort);
 
 bcm_port_loopback_t fbToBcmLoopbackMode(cfg::PortLoopbackMode inMode);
 
-std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>> getCorePinMapping(
-    const PlatformMapping* platformMapping,
-    const std::vector<cfg::Port>& ports);
-
 int getBcmPfcDeadlockDetectionTimerGranularity(int timerMsec);
 
 int getAdjustedPfcDeadlockDetectionTimerValue(int timerMsec);

@@ -10,6 +10,7 @@
 
 #include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/common/utils/BcmYamlConfig.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
 #include <cstdio>
@@ -20,6 +21,14 @@ std::string SaiBcmPlatform::getHwConfig() {
   if (getAsic()->isSupported(HwAsic::Feature::HSDK)) {
     if (auto yamlConfig =
             config()->thrift.platform()->chip()->get_bcm().yamlConfig()) {
+      if (supportsDynamicBcmConfig()) {
+        BcmYamlConfig bcmYamlConfig;
+        bcmYamlConfig.setBaseConfig(*yamlConfig);
+        auto ports = config()->thrift.sw()->get_ports();
+        bcmYamlConfig.modifyCoreMaps(
+            getPlatformMapping()->getCorePinMapping(ports));
+        return bcmYamlConfig.getConfig();
+      }
       return *yamlConfig;
     }
     throw FbossError("Failed to get bcm yaml config from agent config");

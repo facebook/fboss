@@ -31,6 +31,10 @@ class SaiBcmElbertPlatform : public SaiBcmPlatform {
 
   void initLEDs() override {}
 
+  bool supportsDynamicBcmConfig() const override {
+    return true;
+  }
+
  private:
   void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
       override;

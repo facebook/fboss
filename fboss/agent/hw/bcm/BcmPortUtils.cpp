@@ -250,30 +250,6 @@ bcm_port_loopback_t fbToBcmLoopbackMode(cfg::PortLoopbackMode inMode) {
   return BCM_PORT_LOOPBACK_NONE;
 }
 
-std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>> getCorePinMapping(
-    const PlatformMapping* platformMapping,
-    const std::vector<cfg::Port>& ports) {
-  std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>> corePinMapping;
-  const auto& platformPorts = platformMapping->getPlatformPorts();
-  for (auto& port : ports) {
-    auto portID = port.get_logicalID();
-    if (platformPorts.find(portID) == platformPorts.end()) {
-      throw FbossError("Could not find platform port with id ", portID);
-    }
-    auto& platformPortEntry = platformPorts.at(portID);
-    auto profileID = port.get_profileID();
-    if (portID != platformPortEntry.mapping()->get_controllingPort()) {
-      continue;
-    }
-    const auto& chip = platformMapping->getPortIphyChip(PortID(portID));
-    cfg::PlatformPortConfigOverrideFactor factor;
-    factor.chips() = {chip};
-    corePinMapping[chip] = platformMapping->getPortIphyPinConfigs(
-        PlatformPortProfileConfigMatcher(profileID, std::nullopt, factor));
-  }
-  return corePinMapping;
-}
-
 int getBcmPfcDeadlockDetectionTimerGranularity(int deadlockDetectionTimeMsec) {
   /*
    * BCM can configure a value 0-15 with a granularity of 1msec,

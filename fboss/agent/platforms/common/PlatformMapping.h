@@ -142,6 +142,9 @@ class PlatformMapping {
       std::optional<cfg::PlatformPortConfigOverrideFactor>& /* factor */)
       const {}
 
+  std::map<phy::DataPlanePhyChip, std::vector<phy::PinConfig>>
+  getCorePinMapping(const std::vector<cfg::Port>& ports) const;
+
  protected:
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;
   std::vector<cfg::PlatformPortProfileConfigEntry> platformSupportedProfiles_;

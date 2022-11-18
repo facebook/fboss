@@ -84,6 +84,7 @@ target_link_libraries(sai_platform
   wedge400c_ebb_lab_platform_mapping
   qsfp_cache
   wedge_led_utils
+  bcm_yaml_config
   cloud_ripper_platform_mapping
   makalu_platform_mapping
   kamet_platform_mapping
