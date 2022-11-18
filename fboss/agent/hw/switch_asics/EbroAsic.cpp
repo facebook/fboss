@@ -179,7 +179,7 @@ cfg::Range64 EbroAsic::getReservedEncapIndexRange() const {
     // Reserved range worked out with vendor. These ids
     // are reserved in SAI-SDK implementation for use
     // by NOS
-    return makeRange(100, 4096);
+    return makeRange(100, 4093);
   }
   return HwAsic::getReservedEncapIndexRange();
 }
