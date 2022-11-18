@@ -645,8 +645,8 @@ enum QueueScheduling {
 // formula for the probability at queue length m+k is:
 // P(m+k) = k/(M-m) for k between 0 and M-m
 struct LinearQueueCongestionDetection {
-  1: required i32 minimumLength;
-  2: required i32 maximumLength;
+  1: i32 minimumLength;
+  2: i32 maximumLength;
   3: i32 probability = 100;
 }
 
@@ -674,9 +674,9 @@ enum QueueCongestionBehavior {
 // Follows the principles outlined in RFC 7567.
 struct ActiveQueueManagement {
   // How we answer the question "Is the queue congested?"
-  1: required QueueCongestionDetection detection;
+  1: QueueCongestionDetection detection;
   // How we handle packets on queues experiencing congestion
-  2: required QueueCongestionBehavior behavior;
+  2: QueueCongestionBehavior behavior;
 }
 
 struct Range {
@@ -701,14 +701,14 @@ union PortQueueRate {
 // Any queues not described by config will use the system defaults of weighted
 // round robin with a default weight of 1
 struct PortQueue {
-  1: required i16 id;
+  1: i16 id;
   // We only use unicast in Fabric
-  2: required StreamType streamType = StreamType.UNICAST;
+  2: StreamType streamType = StreamType.UNICAST;
   // This value is ignored if STRICT_PRIORITY is chosen
   3: optional i32 weight;
   4: optional i32 reservedBytes;
   5: optional MMUScalingFactor scalingFactor;
-  6: required QueueScheduling scheduling;
+  6: QueueScheduling scheduling;
   7: optional string name;
   // 8: optional i32 length (deprecated)
   /*
@@ -772,8 +772,8 @@ struct TrafficPolicyConfig {
 }
 
 struct PacketRxReasonToQueue {
-  1: required PacketRxReason rxReason;
-  2: required i16 queueId;
+  1: PacketRxReason rxReason;
+  2: i16 queueId;
 }
 
 struct CPUTrafficPolicyConfig {
@@ -1457,8 +1457,8 @@ struct SwitchSettings {
 
 // Global buffer pool shared by {port, pgs}
 struct BufferPoolConfig {
-  1: required i32 sharedBytes;
-  2: required i32 headroomBytes;
+  1: i32 sharedBytes;
+  2: i32 headroomBytes;
 }
 
 // max PG/port supported
@@ -1468,7 +1468,7 @@ const i16 PFC_PRIORITY_VALUE_MAX = 7;
 // Defines PG (priority group) configuration for ports
 // This configuration defines the PG buffer settings for given port(s)
 struct PortPgConfig {
-  1: required i16 id;
+  1: i16 id;
   2: optional string name;
   3: optional MMUScalingFactor scalingFactor;
   // Min buffer available to each PG, port
@@ -1537,6 +1537,80 @@ struct DsfNode {
   6: string nodeMac = "02:00:00:00:0F:0B";
   7: AsicType asicType;
 }
+
+/**
+ * UDF related struct definitions
+ */
+enum UdfBaseHeaderType {
+  UDF_L2_HEADER = 1,
+  UDF_L3_HEADER = 2,
+  UDF_L4_HEADER = 3,
+}
+
+enum UdfMatchL2Type {
+  // match any l2 pkt
+  UDF_L2_PKT_TYPE_ANY = 0,
+  // match eth pkt only
+  UDF_L2_PKT_TYPE_ETH = 1,
+}
+
+enum UdfMatchL3Type {
+  // match any l3 pkt
+  UDF_L3_PKT_TYPE_ANY = 0,
+  // match ipv4 l3 pkt only
+  UDF_L3_PKT_TYPE_IPV4 = 1,
+  // match ipv6 l3 pkt only
+  UDF_L3_PKT_TYPE_IPV6 = 2,
+}
+
+enum UdfMatchL4Type {
+  // match any l4 packet
+  UDF_L4_PKT_TYPE_ANY = 0,
+  // udp
+  UDF_L4_PKT_TYPE_UDP = 1,
+  // tcp
+  UDF_L4_PKT_TYPE_TCP = 2,
+}
+
+/**
+ * Generic objects for UDF are UdfGroup, UdfMatchPacketConfig
+ * For extracting any one field in the packet.
+ * 2 possible scenarios covered:
+ * Case 1. We have 2 different packets and want to extract the same field
+ * e.g. dst_queue_pair from ipv4_roce, dst_queue_pair from ipv6_roce.
+ * UDFGroup1 -> {UdfMatchPacket1, UdfMatchPacket2}
+ * Case 2. We have 1 packet but want to extract 2 different fields in the packet
+ * to be used at the same time. e.g. dst_queue_pair from ipv4_roce
+ * src_queue_pair from ipv4_roce
+ * UDFGroup1 -> {UdfMatchPacket1}
+ * UDFGroup2 -> {UdfMatchPacket1}
+ */
+struct UdfPacketMatcher {
+  1: string name;
+  2: UdfMatchL2Type l2PktType = UDF_L2_PKT_TYPE_ANY;
+  3: UdfMatchL3Type l3pktType = UDF_L3_PKT_TYPE_ANY;
+  4: UdfMatchL4Type l4PktType = UDF_L4_PKT_TYPE_ANY;
+  // l4 dstPort to match on
+  5: optional i16 UdfL4DstPort;
+}
+
+struct UdfGroup {
+  // identifier
+  1: string name;
+  // maps to unique udf cfgs
+  2: UdfBaseHeaderType header;
+  // bytes from the start of header
+  3: i32 startOffsetInBytes;
+  // number of bytes to extract (can use for hashing)
+  4: i32 fieldSizeInBytes;
+  5: list<string> udfPacketMatcherIds;
+}
+
+struct UdfConfig {
+  1: map<string, UdfGroup> udfGroups;
+  2: map<string, UdfPacketMatcher> udfPacketMatcher;
+}
+
 /**
  * The configuration for a switch.
  *
@@ -1661,4 +1735,5 @@ struct SwitchConfig {
   // When part of a DSF cluster, the following info
   // will be populated to reflect global DSF node info
   48: map<i64, DsfNode> dsfNodes;
+  49: optional UdfConfig udfConfig;
 }
