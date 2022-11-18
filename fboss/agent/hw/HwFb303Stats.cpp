@@ -63,6 +63,10 @@ void HwFb303Stats::reinitStat(
 
 void HwFb303Stats::removeStat(const std::string& statName) {
   auto stat = getCounterIf(statName);
+  if (stat == nullptr) {
+    XLOG(ERR) << "Counter with " << statName << " missing";
+    return;
+  }
   utility::deleteCounter(stat->getName());
   counters_.erase(stat->getName());
 }
