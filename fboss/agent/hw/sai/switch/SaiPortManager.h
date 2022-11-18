@@ -296,6 +296,9 @@ class SaiPortManager {
       IngressPriorityGroupSaiId ingressPgSaiId);
   std::vector<IngressPriorityGroupSaiId> getIngressPriorityGroupSaiIds(
       const std::shared_ptr<Port>& swPort);
+  void changePortByRecreate(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
@@ -314,6 +317,7 @@ class SaiPortManager {
   std::optional<SaiPortTraits::Attributes::PtpMode> getPtpMode() const;
   std::unordered_map<PortID, cfg::PortType> port2PortType_;
   std::unordered_map<PortID, std::vector<sai_stat_id_t>> port2SupportedStats_;
+  std::unordered_map<PortID, std::shared_ptr<Port>> pendingNewPorts_;
   bool hwLaneListIsPmdLaneList_;
 };
 

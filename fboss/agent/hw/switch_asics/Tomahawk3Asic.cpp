@@ -111,6 +111,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
     case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
+    case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
       return false;
   }
   return false;

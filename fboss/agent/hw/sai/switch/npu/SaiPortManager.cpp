@@ -224,8 +224,7 @@ void SaiPortManager::changePortImpl(
   if (createOnlyAttributeChanged(oldAttributes, newAttributes)) {
     XLOG(DBG2) << "Create only attribute (e.g. lane, speed etc.) changed for "
                << oldPort->getID();
-    removePort(oldPort);
-    addPort(newPort);
+    changePortByRecreate(oldPort, newPort);
     return;
   }
 

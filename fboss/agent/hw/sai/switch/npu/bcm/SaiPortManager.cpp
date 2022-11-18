@@ -87,4 +87,47 @@ bool SaiPortManager::checkPortSerdesAttributes(
            std::get<std::optional<std::decay_t<decltype(
                SaiPortSerdesTraits::Attributes::IDriver{})>>>(fromStore)));
 }
+
+void SaiPortManager::changePortByRecreate(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  removePort(oldPort);
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PORT_VCO_CHANGE)) {
+    // To change to a different VCO, we need to remove all the ports in the
+    // Port Macro and re-create the removed ports with the new speed.
+    pendingNewPorts_[newPort->getID()] = newPort;
+    bool allPortsInGroupRemoved = true;
+    auto& platformPortEntry =
+        platform_->getPort(oldPort->getID())->getPlatformPortEntry();
+    auto controllingPort =
+        PortID(*platformPortEntry.mapping()->controllingPort());
+    auto ports = platform_->getAllPortsInGroup(controllingPort);
+    XLOG(DBG2) << "Port " << oldPort->getID() << "'s controlling port is "
+               << controllingPort;
+    for (auto portId : ports) {
+      if (handles_.find(portId) != handles_.end()) {
+        XLOG(DBG2) << "Port " << portId
+                   << " in the same group but not removed yet";
+        allPortsInGroupRemoved = false;
+      }
+    }
+    if (allPortsInGroupRemoved) {
+      for (auto portId : ports) {
+        removeRemovedHandleIf(portId);
+      }
+      XLOG(DBG2)
+          << "All old ports in the same group removed, add new ports back";
+      for (auto portId : ports) {
+        if (pendingNewPorts_.find(portId) != pendingNewPorts_.end()) {
+          XLOG(DBG2) << "add new port " << portId;
+          addPort(pendingNewPorts_[portId]);
+          pendingNewPorts_.erase(portId);
+        }
+      }
+    }
+  } else {
+    addPort(newPort);
+  }
+}
+
 } // namespace facebook::fboss

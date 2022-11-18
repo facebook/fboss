@@ -13,4 +13,12 @@ bool SaiPortManager::checkPortSerdesAttributes(
     const SaiPortSerdesTraits::CreateAttributes& fromSwPort) {
   return fromSwPort == fromStore;
 }
+
+void SaiPortManager::changePortByRecreate(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  removePort(oldPort);
+  addPort(newPort);
+}
+
 } // namespace facebook::fboss

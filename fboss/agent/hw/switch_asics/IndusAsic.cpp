@@ -116,6 +116,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_ECN_WRED: // CS00012266807, CS00012266838
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
     case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
+    case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
       return false;
   }
   return false;

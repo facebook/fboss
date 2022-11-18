@@ -38,6 +38,7 @@ class FakeAsic : public HwAsic {
       case Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER: // TODO(pshaikh):
                                                         // support in fake
       case HwAsic::Feature::LINK_TRAINING:
+      case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
         return false;
 
       default:
