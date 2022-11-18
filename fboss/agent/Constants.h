@@ -63,5 +63,6 @@ inline constexpr folly::StringPiece kQosPolicyTable{"qosPolicyTable"};
 inline constexpr folly::StringPiece kSwitchId{"switch_id"};
 inline constexpr folly::StringPiece kAclMap{"aclMap"};
 inline constexpr folly::StringPiece kAclTableMap{"aclTableMap"};
+inline constexpr folly::StringPiece kAclTableGroups{"aclTableGroups"};
 
 } // namespace facebook::fboss

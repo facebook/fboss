@@ -37,6 +37,34 @@ std::shared_ptr<AclTableGroupMap> AclTableGroupMap::fromThrift(
   return aclTableGroupMap;
 }
 
+std::shared_ptr<AclTableGroupMap>
+AclTableGroupMap::createDefaultAclTableGroupMap(const folly::dynamic& swJson) {
+  auto aclTableGroupMap = std::make_shared<AclTableGroupMap>();
+  aclTableGroupMap->addNode(AclTableGroup::createDefaultAclTableGroup(swJson));
+
+  return aclTableGroupMap;
+}
+
+std::shared_ptr<AclTableGroupMap>
+AclTableGroupMap::createDefaultAclTableGroupMapFromThrift(
+    std::map<std::string, state::AclEntryFields> const& thriftMap) {
+  auto aclTableGroupMap = std::make_shared<AclTableGroupMap>();
+  aclTableGroupMap->addNode(
+      AclTableGroup::createDefaultAclTableGroupFromThrift(thriftMap));
+
+  return aclTableGroupMap;
+}
+
+std::shared_ptr<AclMap> AclTableGroupMap::getDefaultAclTableGroupMap(
+    std::map<cfg::AclStage, state::AclTableGroupFields> const& thriftMap) {
+  if (thriftMap.find(cfg::AclStage::INGRESS) != thriftMap.end()) {
+    auto& aclTableGroup = thriftMap.at(cfg::AclStage::INGRESS);
+    return AclTableGroup::getDefaultAclTableGroup(aclTableGroup);
+  } else {
+    return nullptr;
+  }
+}
+
 FBOSS_INSTANTIATE_NODE_MAP(AclTableGroupMap, AclTableGroupMapTraits);
 
 } // namespace facebook::fboss
