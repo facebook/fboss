@@ -129,8 +129,7 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
         getHwSwitchEnsemble()->waitPortStatsCondition(countIncremented));
   }
   MacAddress dstMac() const {
-    auto vlanId = utility::firstVlanID(initialConfig());
-    return utility::getInterfaceMac(getProgrammedState(), vlanId);
+    return utility::getFirstInterfaceMac(getProgrammedState());
   }
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
       uint8_t dscpVal) const {

@@ -468,7 +468,7 @@ TYPED_TEST(HwRouteTest, VerifyRouting) {
   };
   auto verify = [=]() {
     auto vlanId = utility::firstVlanID(this->initialConfig());
-    auto intfMac = utility::getInterfaceMac(this->getProgrammedState(), vlanId);
+    auto intfMac = utility::getFirstInterfaceMac(this->getProgrammedState());
 
     auto v4TxPkt = utility::makeUDPTxPacket(
         this->getHwSwitch(),

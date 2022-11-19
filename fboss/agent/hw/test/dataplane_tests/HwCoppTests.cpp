@@ -502,8 +502,7 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
   }
 
   void setupEcmpDataplaneLoop() {
-    auto vlanId = utility::firstVlanID(initialConfig());
-    auto dstMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto dstMac = utility::getFirstInterfaceMac(initialConfig());
 
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState(), dstMac);
     resolveNeigborAndProgramRoutes(ecmpHelper, 1);
@@ -549,7 +548,7 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
 
   void sendTcpPktsOnPort(
       PortID port,
-      VlanID vlanId,
+      std::optional<VlanID> vlanId,
       int numPktsToSend,
       const folly::IPAddress& dstIpAddress,
       int l4SrcPort,
@@ -557,7 +556,7 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto intfMac = utility::getFirstInterfaceMac(initialConfig());
     utility::sendTcpPkts(
         getHwSwitch(),
         numPktsToSend,
@@ -573,11 +572,11 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
 
   void createLineRateTrafficOnPort(
       PortID port,
-      VlanID vlanId,
+      std::optional<VlanID> vlanId,
       const folly::IPAddress& dstIpAddress) {
     auto minPktsForLineRate =
         getHwSwitchEnsemble()->getMinPktsForLineRate(port);
-    auto dstMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto dstMac = utility::getFirstInterfaceMac(initialConfig());
 
     // Create a loop with specified destination packets.
     // We want to send atleast 2 traffic streams to ensure we dont run
@@ -598,8 +597,9 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
         utility::kNonSpecialPort1 + 1,
         utility::kNonSpecialPort2 + 1,
         dstMac);
+    std::string vlanStr = (vlanId ? folly::to<std::string>(*vlanId) : "None");
     XLOG(DBG0) << "Sent " << minPktsForLineRate << " TCP packets on port "
-               << (int)port << " / VLAN " << (int)vlanId;
+               << (int)port << " / VLAN " << vlanStr;
 
     // Wait for packet loop buildup
     getHwSwitchEnsemble()->waitForLineRateOnPort(port);
@@ -617,7 +617,7 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
    */
   void sendPacketBursts(
       const PortID& port,
-      const VlanID& vlanId,
+      std::optional<VlanID> vlanId,
       const int packetCount,
       const int packetsPerBurst,
       const folly::IPAddress& dstIpAddress,
@@ -675,9 +675,10 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
         hiPriorityCoppQueueDiscardStats = hiPriorityCoppQueueDiscardStats_1;
       }
     }
+    std::string vlanStr = (vlanId ? folly::to<std::string>(*vlanId) : "None");
     XLOG(DBG0) << "Sent " << packetCount << " TCP packets on port " << (int)port
-               << " / VLAN " << (int)vlanId << " in bursts of "
-               << packetsPerBurst << " packets";
+               << " / VLAN " << vlanStr << " in bursts of " << packetsPerBurst
+               << " packets";
   }
 
   /*
@@ -1353,11 +1354,15 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
     // Create dataplane loop with lowerPriority traffic on port0
     createLineRateTrafficOnPort(
         masterLogicalPortIds()[0], baseVlan, ipForLowPriorityQueue);
+    std::optional<VlanID> nextVlan;
+    if (baseVlan) {
+      nextVlan = *baseVlan + 1;
+    }
 
     // Send a fixed number of high priority packets on port1
     sendPacketBursts(
         masterLogicalPortIds()[1],
-        VlanID(baseVlan + 1),
+        nextVlan,
         kHighPriorityPacketCount,
         packetsPerBurst,
         ipForHighPriorityQueue,

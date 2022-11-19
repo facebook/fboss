@@ -54,7 +54,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       int payloadSize,
       std::optional<PortID> port) {
     auto vlanId = utility::firstVlanID(initialConfig());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto intfMac = utility::getFirstInterfaceMac(initialConfig());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     auto kECT1 = 0x01; // ECN capable transport ECT(1)
@@ -188,8 +188,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   }
 
   void _setup(bool disableTtlDecrement = false) {
-    auto vlanId = utility::firstVlanID(initialConfig());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto intfMac = utility::getFirstInterfaceMac(initialConfig());
     auto kEcmpWidthForTest = 1;
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), intfMac};
     resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);

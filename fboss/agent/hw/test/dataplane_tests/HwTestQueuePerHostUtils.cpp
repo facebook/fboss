@@ -291,7 +291,7 @@ void verifyQueuePerHostMapping(
     HwSwitch* hwSwitch,
     std::shared_ptr<SwitchState> swState,
     const std::vector<PortID>& portIds,
-    VlanID vlanId,
+    std::optional<VlanID> vlanId,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddress& srcIp,
@@ -434,7 +434,7 @@ void updateRoutesClassID(
 void verifyQueuePerHostMapping(
     const HwSwitch* hwSwitch,
     HwSwitchEnsemble* ensemble,
-    VlanID vlanId,
+    std::optional<VlanID> vlanId,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddress& srcIp,

@@ -54,7 +54,7 @@ void pumpTraffic(
     bool isV6,
     HwSwitch* hw,
     folly::MacAddress dstMac,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
     int hopLimit = 255,
     std::optional<folly::MacAddress> srcMac = std::nullopt);
@@ -67,7 +67,7 @@ void pumpTraffic(
     uint16_t srcPort,
     uint16_t dstPort,
     uint8_t streams,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
     int hopLimit = 255,
     std::optional<folly::MacAddress> srcMac = std::nullopt,

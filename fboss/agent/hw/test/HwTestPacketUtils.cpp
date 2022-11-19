@@ -86,12 +86,36 @@ folly::MacAddress getInterfaceMac(
   return state->getInterfaces()->getInterface(intf)->getMac();
 }
 
-VlanID firstVlanID(const cfg::SwitchConfig& cfg) {
-  return VlanID(*cfg.vlanPorts()[0].vlanID());
+folly::MacAddress getFirstInterfaceMac(const cfg::SwitchConfig& cfg) {
+  auto intfCfg = cfg.interfaces()[0];
+
+  if (!intfCfg.mac().has_value()) {
+    throw FbossError(
+        "No MAC address set for interface ", InterfaceID(*intfCfg.intfID()));
+  }
+
+  return folly::MacAddress(*intfCfg.mac());
 }
 
-VlanID firstVlanID(const std::shared_ptr<SwitchState>& state) {
-  return (*state->getVlans()->cbegin()).second->getID();
+folly::MacAddress getFirstInterfaceMac(std::shared_ptr<SwitchState> state) {
+  auto intf = std::as_const(*state->getInterfaces()->cbegin()).second;
+  return intf->getMac();
+}
+
+std::optional<VlanID> firstVlanID(const cfg::SwitchConfig& cfg) {
+  std::optional<VlanID> firstVlanId;
+  if (cfg.vlanPorts()->size()) {
+    firstVlanId = VlanID(*cfg.vlanPorts()[0].vlanID());
+  }
+  return firstVlanId;
+}
+
+std::optional<VlanID> firstVlanID(const std::shared_ptr<SwitchState>& state) {
+  std::optional<VlanID> firstVlanId;
+  if (state->getVlans()) {
+    firstVlanId = (*state->getVlans()->cbegin()).second->getID();
+  }
+  return firstVlanId;
 }
 
 std::unique_ptr<facebook::fboss::TxPacket> makeEthTxPacket(
@@ -149,7 +173,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddressV6& srcIp,
@@ -175,7 +199,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddressV4& srcIp,
@@ -204,7 +228,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeIpTxPacket(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddress& srcIp,
@@ -544,7 +568,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddressV6& srcIp,
@@ -574,7 +598,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddressV4& srcIp,
@@ -607,7 +631,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddress& srcIp,
@@ -822,7 +846,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
 void sendTcpPkts(
     facebook::fboss::HwSwitch* hwSwitch,
     int numPktsToSend,
-    VlanID vlanId,
+    std::optional<VlanID> vlanId,
     folly::MacAddress dstMac,
     const folly::IPAddress& dstIpAddress,
     int l4SrcPort,

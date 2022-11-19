@@ -220,8 +220,7 @@ void HwProdInvariantHelper::disableTtl() {
 
 void HwProdInvariantHelper::verifyQueuePerHostMapping(bool dscpMarkingTest) {
   auto vlanId = utility::firstVlanID(getProgrammedState());
-  auto intfMac =
-      utility::getInterfaceMac(ensemble_->getProgrammedState(), vlanId);
+  auto intfMac = utility::getFirstInterfaceMac(ensemble_->getProgrammedState());
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
 
   // if DscpMarkingTest is set, send unmarked packet matching DSCP marking ACL,

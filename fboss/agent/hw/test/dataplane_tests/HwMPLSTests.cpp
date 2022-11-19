@@ -207,7 +207,13 @@ class HwMPLSTest : public HwLinkStateDependentTest {
       PortID from,
       std::optional<DSCP> dscp = std::nullopt) {
     CHECK(ecmpHelper_);
-    auto vlanId = utility::firstVlanID(initialConfig());
+    // TODO: Remove the dependency on VLAN below
+    auto vlan = utility::firstVlanID(initialConfig());
+    if (!vlan) {
+      throw FbossError("VLAN id unavailable for test");
+    }
+    auto vlanId = *vlan;
+
     // construct eth hdr
     const auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
 
@@ -242,7 +248,12 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     const auto srcMac = utility::kLocalCpuMac();
     const auto dstMac = utility::kLocalCpuMac(); /* for l3 switching */
 
-    auto vlanId = utility::firstVlanID(initialConfig()) + 1;
+    // TODO: Remove the dependency on VLAN below
+    auto vlan = utility::firstVlanID(initialConfig());
+    if (!vlan) {
+      throw FbossError("VLAN id unavailable for test");
+    }
+    auto vlanId = *vlan;
 
     uint8_t tc = exp.has_value() ? static_cast<uint8_t>(exp.value()) : 0;
     MPLSHdr::Label mplsLabel{topLabel, tc, true, ttl};

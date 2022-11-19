@@ -153,8 +153,7 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
   }
 
   void resolveMirror() {
-    auto vlanId = utility::firstVlanID(initialConfig());
-    auto mac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto mac = utility::getFirstInterfaceMac(getProgrammedState());
     auto state = getProgrammedState()->clone();
     auto mirrors = state->getMirrors()->clone();
     auto mirror = mirrors->getMirrorIf("mirror")->clone();
@@ -191,10 +190,9 @@ class HwSflowMirrorTest : public HwLinkStateDependentTest {
       nhops.insert(PortDescriptor(ports[i]));
     }
 
-    auto vlanId = utility::firstVlanID(initialConfig());
     utility::EcmpSetupTargetedPorts<folly::IPAddressV6> helper6{
         getProgrammedState(),
-        utility::getInterfaceMac(getProgrammedState(), vlanId)};
+        utility::getFirstInterfaceMac(getProgrammedState())};
     auto state = helper6.resolveNextHops(getProgrammedState(), nhops);
     state = applyNewState(state);
 

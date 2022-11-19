@@ -297,7 +297,7 @@ void addMidPriAclForNw(
 
 std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
     const HwSwitch* hwSwitch,
-    VlanID vlanId,
+    std::optional<VlanID> vlanId,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddress& srcIpAddress,
@@ -407,8 +407,7 @@ void sendAndVerifyPkts(
     PortID srcPort) {
   auto sendPkts = [&] {
     auto vlanId = utility::firstVlanID(swState);
-    auto intf = swState->getInterfaces()->getInterfaceInVlan(vlanId);
-    auto intfMac = intf->getMac();
+    auto intfMac = utility::getFirstInterfaceMac(swState);
     utility::sendTcpPkts(
         hwSwitch,
         1 /*numPktsToSend*/,
@@ -428,8 +427,7 @@ void verifyCoppInvariantHelper(
     const HwAsic* hwAsic,
     std::shared_ptr<SwitchState> swState,
     PortID srcPort) {
-  auto vlanId = utility::firstVlanID(swState);
-  auto intf = swState->getInterfaces()->getInterfaceInVlan(vlanId);
+  auto intf = std::as_const(*swState->getInterfaces()->cbegin()).second;
   for (auto iter : std::as_const(*intf->getAddresses())) {
     auto destIp = folly::IPAddress(iter.first);
     if (destIp.isLinkLocal()) {

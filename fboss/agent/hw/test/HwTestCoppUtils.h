@@ -124,7 +124,7 @@ void setPortQueueSharedBytes(cfg::PortQueue& queue);
 
 std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
     const HwSwitch* hwSwitch,
-    VlanID vlanId,
+    std::optional<VlanID> vlanId,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddress& srcIpAddress,

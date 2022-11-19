@@ -52,8 +52,7 @@ void runRxSlowPathBenchmark() {
   // capture packet exiting port 0 (entering due to loopback)
   auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};
   auto packetCapture = HwTestPacketTrapEntry(hwSwitch, trapDstIp);
-  auto dstMac = utility::getInterfaceMac(
-      ensemble->getProgrammedState(), utility::firstVlanID(config));
+  auto dstMac = utility::getFirstInterfaceMac(ensemble->getProgrammedState());
   auto ecmpHelper =
       utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), dstMac);
   ensemble->applyNewState(

@@ -32,7 +32,12 @@ class PtpTests : public LinkTest {
 
     // note: we are not creating flood here, but want routing
     // of packets so that TTL goes down from 255 -> 0
-    auto vlanId = utility::firstVlanID(sw()->getState());
+    auto vlan = utility::firstVlanID(sw()->getState());
+    // TODO: Remove the dependency on VLAN below
+    if (!vlan) {
+      throw FbossError("VLAN id unavailable for test");
+    }
+    auto vlanId = *vlan;
     const auto dstMac = sw()->getPlatform()->getLocalMac();
     const auto srcMac = folly::MacAddress{"00:00:00:00:01:03"}; // arbit
 

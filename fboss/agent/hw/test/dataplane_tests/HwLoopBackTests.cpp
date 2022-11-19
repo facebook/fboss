@@ -33,13 +33,12 @@ class HwLoopBackTest : public HwLinkStateDependentTest {
   }
 
   folly::MacAddress getIntfMac() const {
-    auto vlanId = utility::firstVlanID(initialConfig());
-    return utility::getInterfaceMac(getProgrammedState(), vlanId);
+    return utility::getFirstInterfaceMac(getProgrammedState());
   }
 
   void sendPkt(bool frontPanel, uint8_t ttl) {
     auto vlanId = utility::firstVlanID(initialConfig());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
         vlanId,

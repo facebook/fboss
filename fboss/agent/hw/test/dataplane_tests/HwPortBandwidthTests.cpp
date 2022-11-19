@@ -68,8 +68,7 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
   }
 
   MacAddress dstMac() const {
-    auto vlanId = utility::firstVlanID(initialConfig());
-    return utility::getInterfaceMac(getProgrammedState(), vlanId);
+    return utility::getFirstInterfaceMac(initialConfig());
   }
 
   void sendUdpPkt(uint8_t dscpVal, int payloadLen) {

@@ -59,7 +59,7 @@ class HwRouteOverDifferentAddressFamilyNhopTest
   }
   std::unique_ptr<TxPacket> makeTxPacket(const folly::IPAddress& dstIp) const {
     auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto srcIp = dstIp.isV6() ? folly::IPAddress("100::1")
                               : folly::IPAddress("100.0.0.1");

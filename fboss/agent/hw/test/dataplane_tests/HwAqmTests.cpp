@@ -214,8 +214,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     }
   }
   folly::MacAddress getIntfMac() const {
-    auto vlanId = utility::firstVlanID(initialConfig());
-    return utility::getInterfaceMac(getProgrammedState(), vlanId);
+    return utility::getFirstInterfaceMac(getProgrammedState());
   }
 
   void queueShaperAndBurstSetup(

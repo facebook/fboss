@@ -58,7 +58,7 @@ void HwSendPacketToQueueTest::checkSendPacket(
     auto beforeOutPkts =
         getLatestPortStats(port).get_queueOutPackets_().at(queueID);
     auto vlanId = utility::firstVlanID(initialConfig());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     // packet format shouldn't be matter in this test
     auto pkt = utility::makeUDPTxPacket(
         getHwSwitch(),
