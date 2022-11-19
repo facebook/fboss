@@ -75,6 +75,11 @@ std::vector<PortID> HwTest::masterLogicalPortIds(
   return hwSwitchEnsemble_->masterLogicalPortIds(filter);
 }
 
+std::vector<PortID> HwTest::masterLogicalInterfacePortIds() const {
+  return hwSwitchEnsemble_->masterLogicalPortIds(
+      {cfg::PortType::INTERFACE_PORT});
+}
+
 std::vector<PortID> HwTest::getAllPortsInGroup(PortID portID) const {
   return hwSwitchEnsemble_->getAllPortsInGroup(portID);
 }
