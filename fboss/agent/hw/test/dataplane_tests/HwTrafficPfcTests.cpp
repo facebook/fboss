@@ -25,12 +25,10 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
   }
 
   cfg::SwitchConfig initialConfig() const override {
-    std::vector<PortID> ports = {
-        masterLogicalPortIds()[0],
-        masterLogicalPortIds()[1],
-    };
     auto cfg = utility::onePortPerInterfaceConfig(
-        getHwSwitch(), std::move(ports), getAsic()->desiredLoopbackMode());
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode());
     return cfg;
   }
   folly::IPAddressV6 kDestIp1() const {
@@ -40,7 +38,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     return folly::IPAddressV6("2620:0:1cfe:face:b00c::5");
   }
   PortDescriptor portDesc1() const {
-    return PortDescriptor(masterLogicalPortIds()[0]);
+    return PortDescriptor(masterLogicalInterfacePortIds()[0]);
   }
   PortDescriptor portDesc2() const {
     return PortDescriptor(masterLogicalPortIds()[1]);
@@ -128,7 +126,10 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
 
   void setupHelper() {
     auto newCfg{initialConfig()};
-    setupPfc(newCfg, {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+    setupPfc(
+        newCfg,
+        {masterLogicalInterfacePortIds()[0],
+         masterLogicalInterfacePortIds()[1]});
 
     std::vector<cfg::PortPgConfig> portPgConfigs;
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
@@ -217,16 +218,22 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     auto setup = [&]() {
       setupConfigAndEcmpTraffic();
       validateInitPfcCounters(
-          {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, pfcPriority);
+          {masterLogicalInterfacePortIds()[0],
+           masterLogicalInterfacePortIds()[1]},
+          pfcPriority);
     };
     auto verify = [&]() {
       // ensure counter is 0 before we start traffic
       pumpTraffic(trafficClass);
       // ensure counter is > 0, after the traffic
       validatePfcCounters(
-          pfcPriority, {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+          pfcPriority,
+          {masterLogicalInterfacePortIds()[0],
+           masterLogicalInterfacePortIds()[1]});
       // stop traffic so that unconfiguration can happen without issues
-      stopTraffic({masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+      stopTraffic(
+          {masterLogicalInterfacePortIds()[0],
+           masterLogicalInterfacePortIds()[1]});
     };
     verifyAcrossWarmBoots(setup, verify);
   }
@@ -237,7 +244,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
         getProgrammedState(), getIntfMac()};
     setupECMPForwarding(
         ecmpHelper6,
-        PortDescriptor(masterLogicalPortIds()[0]),
+        PortDescriptor(masterLogicalInterfacePortIds()[0]),
         {kDestIp1(), 128});
     setupECMPForwarding(
         ecmpHelper6,
@@ -254,8 +261,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     // pri = 7 => dscp 56
     int dscp = priority * 8;
     // Tomahawk4 need 5 packets per flow to trigger PFC
-    int numPacketsPerFlow =
-        getHwSwitchEnsemble()->getMinPktsForLineRate(masterLogicalPortIds()[0]);
+    int numPacketsPerFlow = getHwSwitchEnsemble()->getMinPktsForLineRate(
+        masterLogicalInterfacePortIds()[0]);
     for (int i = 0; i < numPacketsPerFlow; i++) {
       for (const auto& dstIp : {kDestIp1(), kDestIp2()}) {
         auto txPacket = utility::makeUDPTxPacket(
@@ -292,7 +299,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     }
 
     for (const auto& portID :
-         {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}) {
+         {masterLogicalInterfacePortIds()[0],
+          masterLogicalInterfacePortIds()[1]}) {
       auto portCfg = utility::findCfgPort(cfg_, portID);
       if (portCfg->pfc().has_value()) {
         if (enable) {
@@ -393,10 +401,10 @@ TEST_F(HwTrafficPfcTest, PfcWatchdog) {
     setupWatchdog(true /* enable watchdog */);
   };
   auto verify = [&]() {
-    validatePfcWatchdogCountersReset(masterLogicalPortIds()[0]);
+    validatePfcWatchdogCountersReset(masterLogicalInterfacePortIds()[0]);
     pumpTraffic(0 /* traffic class */);
-    validateRxPfcCounterIncrement(masterLogicalPortIds()[0]);
-    validatePfcWatchdogCounters(masterLogicalPortIds()[0]);
+    validateRxPfcCounterIncrement(masterLogicalInterfacePortIds()[0]);
+    validatePfcWatchdogCounters(masterLogicalInterfacePortIds()[0]);
   };
   // warmboot support to be added in next step
   setup();
@@ -414,21 +422,21 @@ TEST_F(HwTrafficPfcTest, PfcWatchdogReset) {
     setupWatchdog(true /* enable watchdog */);
     pumpTraffic(0 /* traffic class */);
     // lets wait for the watchdog counters to be populated
-    validatePfcWatchdogCounters(masterLogicalPortIds()[0]);
+    validatePfcWatchdogCounters(masterLogicalInterfacePortIds()[0]);
     // reset watchdog
     setupWatchdog(false /* disable */);
     // reset the watchdog counters
     getHwSwitchEnsemble()->clearPfcDeadlockRecoveryCounter(
-        masterLogicalPortIds()[0]);
+        masterLogicalInterfacePortIds()[0]);
     getHwSwitchEnsemble()->clearPfcDeadlockDetectionCounter(
-        masterLogicalPortIds()[0]);
+        masterLogicalInterfacePortIds()[0]);
   };
 
   auto verify = [&]() {
     // ensure that RX PFC continues to increment
-    validateRxPfcCounterIncrement(masterLogicalPortIds()[0]);
+    validateRxPfcCounterIncrement(masterLogicalInterfacePortIds()[0]);
     // validate that pfc watchdog counters do not increment anymore
-    validatePfcWatchdogCountersReset(masterLogicalPortIds()[0]);
+    validatePfcWatchdogCountersReset(masterLogicalInterfacePortIds()[0]);
   };
 
   // warmboot support to be added in next step
