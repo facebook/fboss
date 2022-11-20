@@ -41,6 +41,7 @@
 #include "fboss/agent/state/SystemPortMap.h"
 #include "fboss/agent/state/TeFlowTable.h"
 #include "fboss/agent/state/TransceiverMap.h"
+#include "fboss/agent/state/UdfConfig.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/types.h"
 
@@ -127,6 +128,7 @@ struct SwitchStateFields
   // Remote objects
   std::shared_ptr<SystemPortMap> remoteSystemPorts;
   std::shared_ptr<InterfaceMap> remoteInterfaces;
+  std::shared_ptr<UdfConfig> udfConfig;
 
   // Timeout settings
   // TODO(aeckert): Figure out a nicer way to store these config fields
@@ -432,6 +434,10 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     return getFields()->dsfNodes;
   }
 
+  const std::shared_ptr<UdfConfig>& getUdfConfig() const {
+    return getFields()->udfConfig;
+  }
+
   /*
    * Remote objects
    */
@@ -491,6 +497,7 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   void resetDsfNodes(std::shared_ptr<DsfNodeMap> dsfNodes);
   std::shared_ptr<AclTableGroupMap>& getAclTablesForStage(
       const folly::dynamic& swJson);
+  void resetUdfConfig(std::shared_ptr<UdfConfig> udf);
 
   void resetRemoteSystemPorts(std::shared_ptr<SystemPortMap> systemPorts);
   void resetRemoteIntfs(std::shared_ptr<InterfaceMap> intfs);
@@ -504,6 +511,9 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
     }
     if (auto bufferPoolCfg = getBufferPoolCfgs()) {
       bufferPoolCfg->publish();
+    }
+    if (auto udfCfg = getUdfConfig()) {
+      udfCfg->publish();
     }
     BaseT::publish();
   }

@@ -76,6 +76,7 @@ constexpr auto kTeFlows = "teFlows";
 constexpr auto kRemoteSystemPorts = "remoteSystemPorts";
 constexpr auto kRemoteInterfaces = "remoteInterfaces";
 constexpr auto kDsfNodes = "dsfNodes";
+constexpr auto kUdfConfig = "udfConfig";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
@@ -112,7 +113,8 @@ SwitchStateFields::SwitchStateFields()
       teFlowTable(make_shared<TeFlowTable>()),
       dsfNodes(make_shared<DsfNodeMap>()),
       remoteSystemPorts(make_shared<SystemPortMap>()),
-      remoteInterfaces(make_shared<InterfaceMap>()) {}
+      remoteInterfaces(make_shared<InterfaceMap>()),
+      udfConfig(make_shared<UdfConfig>()) {}
 
 state::SwitchState SwitchStateFields::toThrift() const {
   auto state = state::SwitchState();
@@ -171,6 +173,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
   // Remote objects
   state.remoteSystemPortMap() = remoteSystemPorts->toThrift();
   state.remoteInterfaceMap() = remoteInterfaces->toThrift();
+  state.udfConfig() = udfConfig->toThrift();
   return state;
 }
 
@@ -259,6 +262,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
 
   fields.remoteSystemPorts->fromThrift(*state.remoteSystemPortMap());
   fields.remoteInterfaces->fromThrift(*state.remoteInterfaceMap());
+  fields.udfConfig->fromThrift(*state.udfConfig());
   return fields;
 }
 
@@ -277,7 +281,8 @@ bool SwitchStateFields::operator==(const SwitchStateFields& other) const {
       systemPorts->toThrift() == other.systemPorts->toThrift() &&
       remoteSystemPorts->toThrift() == other.remoteSystemPorts->toThrift() &&
       dsfNodes->toThrift() == other.dsfNodes->toThrift() &&
-      std::tie(*ports, *acls) == std::tie(*other.ports, *other.acls);
+      std::tie(*ports, *acls) == std::tie(*other.ports, *other.acls) &&
+      udfConfig->toThrift() == other.udfConfig->toThrift();
 }
 
 SwitchStateFields SwitchStateFields::fromFollyDynamic(
@@ -390,6 +395,9 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
   if (swJson.find(kRemoteInterfaces) != swJson.items().end()) {
     switchState.remoteInterfaces =
         InterfaceMap::fromFollyDynamic(swJson[kRemoteInterfaces]);
+  }
+  if (swJson.find(kUdfConfig) != swJson.items().end()) {
+    switchState.udfConfig = UdfConfig::fromFollyDynamic(swJson[kUdfConfig]);
   }
   // TODO verify that created state here is internally consistent t4155406
   return switchState;
@@ -620,6 +628,10 @@ void SwitchState::resetTeFlowTable(std::shared_ptr<TeFlowTable> flowTable) {
 
 void SwitchState::resetDsfNodes(std::shared_ptr<DsfNodeMap> dsfNodes) {
   writableFields()->dsfNodes.swap(dsfNodes);
+}
+
+void SwitchState::resetUdfConfig(std::shared_ptr<UdfConfig> udfConfig) {
+  writableFields()->udfConfig.swap(udfConfig);
 }
 
 std::shared_ptr<const AclTableMap> SwitchState::getAclTablesForStage(
