@@ -19,7 +19,7 @@ FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 int main(int argc, char** argv) {
   fb303::registerFollyLoggingOptionHandlers();
 
-  helpers::fbInit(argc, argv);
+  helpers::init(argc, argv);
 
   auto serviceImpl = std::make_shared<SensorServiceImpl>(FLAGS_config_path);
 

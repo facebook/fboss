@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 
   fb303::registerFollyLoggingOptionHandlers();
 
-  helpers::fbInit(argc, argv);
+  helpers::init(argc, argv);
 
   // ToDo: Setup thrift handler and server
   auto serverHandlerPair = setupThrift();

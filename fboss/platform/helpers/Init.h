@@ -9,7 +9,7 @@ class ServiceFrameworkLight;
 
 namespace facebook::fboss::platform::helpers {
 
-void fbInit(int argc, char** argv);
+void init(int argc, char** argv);
 
 template <typename SvcThriftHandler>
 std::pair<

@@ -20,8 +20,7 @@ FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 DEFINE_int32(port, 5973, "Port for the thrift service");
 
 int main(int argc, char** argv) {
-  // Init FB and export build values
-  helpers::fbInit(argc, argv);
+  helpers::init(argc, argv);
   fb303::registerFollyLoggingOptionHandlers();
 
   // Setup thrift handler and server
