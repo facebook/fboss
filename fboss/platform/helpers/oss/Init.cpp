@@ -3,8 +3,14 @@
 //
 #include "fboss/platform/helpers/Init.h"
 
+#include <folly/init/Init.h>
+
 namespace facebook::fboss::platform::helpers {
-void fbInit(int /*argc*/, char** /*argv*/) {}
+
+void fbInit(int argc, char** argv) {
+  folly::init(&argc, &argv, true);
+}
+
 void addCommonModules(facebook::services::ServiceFrameworkLight& /*service*/) {}
 
 void runThriftService(
