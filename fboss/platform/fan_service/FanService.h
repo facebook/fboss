@@ -66,15 +66,11 @@ class FanService {
   uint64_t lastSensorFetchTimeSec_;
   // How often we run fan control logic?
   uint64_t controlFrequencySec_;
-  // How often do we fetch sensor data?
-  uint64_t sensorFetchFrequencySec_;
 
   // Methods
   // Control Logic Execution Frequency in seconds
   void setControlFrequency(uint64_t sec);
   unsigned int getControlFrequency() const;
-  // Sensor Fetch Frequency in seconds
-  void setSensorFetchFrequency(uint64_t sec);
   // The factory method to return the proper BSP object,
   // based on the platform type specified in config file
   std::shared_ptr<Bsp> BspFactory();
