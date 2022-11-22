@@ -5,6 +5,7 @@
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
+#include <array>
 #include <cstring>
 #include <iostream>
 #include <unordered_map>
