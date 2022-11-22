@@ -396,6 +396,7 @@ class ThriftConfigApplier {
   std::shared_ptr<IpTunnelMap> updateIpInIpTunnels();
   std::shared_ptr<DsfNodeMap> updateDsfNodes();
   void processUpdatedDsfNodes();
+  std::shared_ptr<UdfConfig> updateUdfConfig(bool* changed);
 
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
@@ -754,6 +755,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
+  {
+    bool udfCfgChanged = false;
+    auto newUdfCfg = updateUdfConfig(&udfCfgChanged);
+    if (udfCfgChanged) {
+      new_->resetUdfConfig(std::move(newUdfCfg));
+      changed = true;
+    }
+  }
   if (!changed) {
     return nullptr;
   }
@@ -902,6 +911,32 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       },
       [&](auto newNode) { addDsfNode(newNode); },
       [&](auto oldNode) { rmDsfNode(oldNode); });
+}
+
+std::shared_ptr<UdfConfig> ThriftConfigApplier::updateUdfConfig(bool* changed) {
+  *changed = false;
+  auto origUdfConfig = orig_->getUdfConfig();
+  auto newUdfConfig = std::make_shared<UdfConfig>();
+
+  if (!cfg_->udfConfig()) {
+    // cfg field is optional whereas state field is not. As a result
+    // check if its populated or not to ascertain if there
+    // are any changes in object
+    if (origUdfConfig->isUdfConfigPopulated()) {
+      *changed = true;
+    }
+    return nullptr;
+  }
+
+  // new cfg exists
+  newUdfConfig->fromThrift(*cfg_->udfConfig());
+  // ThriftStructNode does deep comparison internally
+  if (*origUdfConfig != *newUdfConfig) {
+    *changed = true;
+    return newUdfConfig;
+  }
+
+  return nullptr;
 }
 
 std::shared_ptr<DsfNodeMap> ThriftConfigApplier::updateDsfNodes() {

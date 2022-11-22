@@ -30,6 +30,14 @@ class UdfConfig : public ThriftStructNode<UdfConfig, cfg::UdfConfig> {
     return get<switch_config_tags::udfGroups>();
   }
 
+  bool isUdfConfigPopulated() const {
+    // check if udf state object is populated or not
+    if (getUdfGroupMap() && getUdfGroupMap()->size()) {
+      return true;
+    }
+    return false;
+  }
+
   static std::shared_ptr<UdfConfig> fromFollyDynamic(
       const folly::dynamic& group);
 
