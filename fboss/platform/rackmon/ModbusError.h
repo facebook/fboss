@@ -69,6 +69,7 @@ struct ModbusError : public std::runtime_error {
   uint8_t errorData;
   ModbusErrorCode errorCode;
   explicit ModbusError(uint8_t error);
+  static std::string toString(ModbusErrorCode error);
 };
 
 } // namespace rackmon

@@ -291,6 +291,6 @@ TEST(ModbusErrorTest, StringConversion) {
   ASSERT_EQ(errorMsg(6), "Modbus Error: SLAVE_DEVICE_BUSY(6)");
   ASSERT_EQ(errorMsg(7), "Modbus Error: NEGATIVE_ACKNOWLEDGE(7)");
   ASSERT_EQ(errorMsg(8), "Modbus Error: MEMORY_PARITY_ERROR(8)");
-  ASSERT_EQ(errorMsg(9), "Modbus Error: UNDEFINED_ERROR(9)");
-  ASSERT_EQ(errorMsg(0), "Modbus Error: UNDEFINED_ERROR(0)");
+  ASSERT_EQ(errorMsg(9), "Modbus Error: UNDEFINED_MODBUS_ERROR(9)");
+  ASSERT_EQ(errorMsg(0), "Modbus Error: UNDEFINED_MODBUS_ERROR(0)");
 }

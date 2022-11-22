@@ -239,35 +239,38 @@ static constexpr ModbusErrorCode toModbusErrorCode(uint8_t error) {
   return ModbusErrorCode::UNDEFINED_ERROR;
 }
 
-static constexpr const char* strError(uint8_t rawError) {
-  ModbusErrorCode error = toModbusErrorCode(rawError);
+std::string ModbusError::toString(ModbusErrorCode error) {
   switch (error) {
     case ModbusErrorCode::ILLEGAL_FUNCTION:
-      return "Modbus Error: ILLEGAL_FUNCTION";
+      return "ILLEGAL_FUNCTION";
     case ModbusErrorCode::ILLEGAL_DATA_ADDRESS:
-      return "Modbus Error: ILLEGAL_DATA_ADDRESS";
+      return "ILLEGAL_DATA_ADDRESS";
     case ModbusErrorCode::ILLEGAL_DATA_VALUE:
-      return "Modbus Error: ILLEGAL_DATA_VALUE";
+      return "ILLEGAL_DATA_VALUE";
     case ModbusErrorCode::SLAVE_DEVICE_FAILURE:
-      return "Modbus Error: SLAVE_DEVICE_FAILURE";
+      return "SLAVE_DEVICE_FAILURE";
     case ModbusErrorCode::ACKNOWLEDGE:
-      return "Modbus Error: ACKNOWLEDGE";
+      return "ACKNOWLEDGE";
     case ModbusErrorCode::SLAVE_DEVICE_BUSY:
-      return "Modbus Error: SLAVE_DEVICE_BUSY";
+      return "SLAVE_DEVICE_BUSY";
     case ModbusErrorCode::NEGATIVE_ACKNOWLEDGE:
-      return "Modbus Error: NEGATIVE_ACKNOWLEDGE";
+      return "NEGATIVE_ACKNOWLEDGE";
     case ModbusErrorCode::MEMORY_PARITY_ERROR:
-      return "Modbus Error: MEMORY_PARITY_ERROR";
+      return "MEMORY_PARITY_ERROR";
     default:
       break;
   }
-  return "Modbus Error: UNDEFINED_ERROR";
+  return "UNDEFINED_MODBUS_ERROR";
+}
+
+static std::string strError(uint8_t rawError) {
+  ModbusErrorCode error = toModbusErrorCode(rawError);
+  return "Modbus Error: " + ModbusError::toString(error) + "(" +
+      std::to_string(+rawError) + ")";
 }
 
 ModbusError::ModbusError(uint8_t error)
-    : std::runtime_error(
-          std::string(strError(error)) + "(" + std::to_string(int(error)) +
-          ")"),
+    : std::runtime_error(strError(error)),
       errorData(error),
       errorCode(toModbusErrorCode(error)) {}
 
