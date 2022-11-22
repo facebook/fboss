@@ -240,7 +240,12 @@ void to_json(json& j, const RegisterStoreValue& m) {
 
 void to_json(json& j, const RegisterStore& m) {
   j["begin"] = m.regAddr_;
-  j["readings"] = m.history_;
+  j["readings"] = {};
+  for (const auto& reg : m.history_) {
+    if (reg) {
+      j["readings"].emplace_back(reg);
+    }
+  }
 }
 
 void from_json(const json& j, WriteActionInfo& action) {

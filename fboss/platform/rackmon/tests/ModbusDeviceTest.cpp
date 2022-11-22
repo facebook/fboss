@@ -508,11 +508,9 @@ TEST_F(ModbusDeviceTest, MonitorRawData) {
   EXPECT_EQ(data["ranges"][0]["begin"], 0);
   EXPECT_TRUE(
       data["ranges"][0]["readings"].is_array() &&
-      data["ranges"][0]["readings"].size() == 2);
+      data["ranges"][0]["readings"].size() == 1);
   EXPECT_NEAR(data["ranges"][0]["readings"][0]["time"], std::time(0), 10);
   EXPECT_EQ(data["ranges"][0]["readings"][0]["data"], "61626364");
-  EXPECT_EQ(data["ranges"][0]["readings"][1]["time"], 0);
-  EXPECT_EQ(data["ranges"][0]["readings"][1]["data"], "00000000");
 
   dev.reloadRegisters();
   nlohmann::json data2 = dev.getRawData();
