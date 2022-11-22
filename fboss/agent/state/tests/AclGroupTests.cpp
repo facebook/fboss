@@ -209,6 +209,7 @@ TEST(AclGroup, TestEquality) {
   EXPECT_NE(*tableGroup1, *tableGroup3);
 }
 
+/* TODO (Elangovan) Uncomment once D39976852 is recommitted
 TEST(AclGroup, SerializeAclMap) {
   auto entry1 = std::make_shared<AclEntry>(1, kDscp1);
   auto entry2 = std::make_shared<AclEntry>(2, kDscp2);
@@ -248,7 +249,7 @@ TEST(AclGroup, SerializeAclMap) {
   EXPECT_FALSE(mapBack->getEntryIf(entry1->getID()));
   EXPECT_TRUE(mapBack->getEntryIf(entry2->getID()));
   EXPECT_EQ(mapBack->getEntryIf(entry2->getID())->getDscp(), kDscpVal2);
-}
+} */
 
 TEST(AclGroup, SerializeAclTable) {
   auto entry1 = std::make_shared<AclEntry>(1, kDscp1);
@@ -383,12 +384,13 @@ TEST(AclGroup, SerializeAclTableGroup) {
   EXPECT_EQ(*(tableGroupBack->getAclTableMap()), *tableMap);
 }
 
+/* TODO(Elangovan): Uncomment once D39976852 is committed back
 TEST(AclGroup, SerializeMultiAclTableGroupMap) {
   /*
    * Simulate conditions similar to the default Acl Table Group
    * created in switch state and verify the non multi ACL to multi
    * ACL warmboot transition goes through
-   */
+   *
   auto entry1 = std::make_shared<AclEntry>(1, kDscp1);
   auto entry2 = std::make_shared<AclEntry>(2, kDscp2);
   auto entry3 = std::make_shared<AclEntry>(3, kDscp3);
@@ -421,7 +423,7 @@ TEST(AclGroup, SerializeMultiAclTableGroupMap) {
   auto thriftConvertedState = thriftMultiAclSerializeDeserialize(state, true);
   auto thriftConvertedMap = thriftConvertedState->getAcls();
   verifyAclHelper(thriftConvertedMap, entry1, entry2, entry3);
-}
+}*/
 
 TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
   FLAGS_enable_acl_table_group = true;
