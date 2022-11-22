@@ -1114,43 +1114,16 @@ void ThriftHandler::getCurrentStateJSON(
     std::string& ret,
     std::unique_ptr<std::string> jsonPointerStr) {
   auto log = LOG_THRIFT_CALL(DBG1, *jsonPointerStr);
-  if (!jsonPointerStr) {
-    return;
-  }
-  ensureConfigured(__func__);
-  auto const jsonPtr = folly::json_pointer::try_parse(*jsonPointerStr);
-  if (!jsonPtr) {
-    throw FbossError("Malformed JSON Pointer");
-  }
-  auto swState = sw_->getState()->toFollyDynamic();
-  auto dyn = swState.get_ptr(jsonPtr.value());
-  ret = folly::json::serialize(*dyn, folly::json::serialization_opts{});
+  throw FbossError(
+      "getCurrentStateJSON no longer supported by agent due to thrift migration");
 }
 
 void ThriftHandler::patchCurrentStateJSON(
     std::unique_ptr<std::string> jsonPointerStr,
     std::unique_ptr<std::string> jsonPatchStr) {
   auto log = LOG_THRIFT_CALL(DBG1, *jsonPointerStr, *jsonPatchStr);
-  if (!FLAGS_enable_running_config_mutations) {
-    throw FbossError("Running config mutations are not allowed");
-  }
-  ensureConfigured(__func__);
-  auto const jsonPtr = folly::json_pointer::try_parse(*jsonPointerStr);
-  if (!jsonPtr) {
-    throw FbossError("Malformed JSON Pointer");
-  }
-  // OK to capture by reference because the update call below is blocking
-  auto updateFn = [&](const shared_ptr<SwitchState>& oldState) {
-    auto fullDynamic = oldState->toFollyDynamic();
-    auto* partialDynamic = fullDynamic.get_ptr(jsonPtr.value());
-    if (!partialDynamic) {
-      throw FbossError("JSON Pointer does not address proper object");
-    }
-    // mutates in place, i.e. modifies fullDynamic too
-    partialDynamic->merge_patch(folly::parseJson(*jsonPatchStr));
-    return SwitchState::fromFollyDynamic(fullDynamic);
-  };
-  sw_->updateStateBlocking("JSON patch", std::move(updateFn));
+  throw FbossError(
+      "patchCurrentStateJSON no longer supported by agent due to thrift migration");
 }
 
 void ThriftHandler::getPortStatusImpl(
