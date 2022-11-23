@@ -78,7 +78,7 @@ class BgpIntegrationTest : public AgentIntegrationTest {
           try {
             client->sync_getBgpSessions(sessions);
           } catch (const std::exception& e) {
-            XLOG(DBG4) << "checkBgpState: (transient) exception: " << e.what();
+            XLOG(DBG3) << "checkBgpState: (transient) exception: " << e.what();
             continue;
           }
           EXPECT_EQ(sessions.size(), kNumBgpSessions);
@@ -195,7 +195,7 @@ class BgpIntegrationTest : public AgentIntegrationTest {
       auto tPrefix = makePrefix(entry.first, entry.second);
       TBgpAttributes attributes;
       auto tBgpCommunities = std::vector<TBgpCommunity>();
-      attributes.nexthop() = std::move(nhPrefix);
+      attributes.nexthop() = nhPrefix;
       attributes.communities() = tBgpCommunities;
       attributes.install_to_fib() = true;
       networks[tPrefix] = attributes;

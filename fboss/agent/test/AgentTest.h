@@ -64,7 +64,7 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
       XLOG(DBG2) << "cold boot setup()";
       setup();
     } else {
-      XLOG(DBG2) << "cold boot setup(): skip on warmboot";
+      XLOG(DBG2) << "skip setup() for warmboot";
     }
 
     if (runVerification()) {
