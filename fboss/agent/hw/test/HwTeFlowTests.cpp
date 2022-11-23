@@ -324,7 +324,10 @@ TEST_F(HwTeFlowTest, validateExactMatchTableConfigs) {
 }
 
 TEST_F(HwTeFlowTest, validateHwProtection) {
-  if (this->skipTest()) {
+  // Don't run scale test on fake asic
+  if (this->skipTest() ||
+      getPlatform()->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_FAKE) {
     return;
   }
   setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
@@ -340,9 +343,6 @@ TEST_F(HwTeFlowTest, validateHwProtection) {
 
   EXPECT_TRUE(utility::getNumTeFlowEntries(getHwSwitch()) > 0);
   // Some entries will be missing due to overflow
-  if (getPlatform()->getAsic()->getAsicType() !=
-      cfg::AsicType::ASIC_TYPE_FAKE) {
-    EXPECT_NE(utility::getNumTeFlowEntries(getHwSwitch()), 32500);
-  }
+  EXPECT_NE(utility::getNumTeFlowEntries(getHwSwitch()), 32500);
 }
 } // namespace facebook::fboss

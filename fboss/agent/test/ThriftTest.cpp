@@ -2164,6 +2164,11 @@ TEST_F(ThriftTeFlowTest, teFlowUpdateHwProtection) {
   auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   auto flowEntry = makeFlow("100::1");
   teFlowEntries->emplace_back(flowEntry);
+
+  // wait for any neighbour updates
+  sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(sw_);
+  waitForStateUpdates(sw_);
   // Fail HW update by returning current state
   EXPECT_HW_CALL(sw_, stateChanged(_)).WillOnce(Return(sw_->getState()));
 
