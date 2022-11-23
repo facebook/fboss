@@ -178,8 +178,6 @@ class SaiPortManager {
 
   bool isUp(PortID portID) const;
 
-  bool isUp(PortSaiId saiPortId) const;
-
   void setPtpTcEnable(bool enable);
   bool isPtpTcEnabled() const;
 

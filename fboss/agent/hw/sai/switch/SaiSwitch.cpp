@@ -1117,8 +1117,7 @@ void SaiSwitch::updatePmdInfo(
     phy::PhySideInfo& sideInfo,
     std::shared_ptr<SaiPort> port,
     [[maybe_unused]] phy::PmdInfo& lastPmdInfo) {
-  auto numPmdLanes =
-      managerTable_->portManager().getNumPmdLanes(port->adapterKey());
+  auto numPmdLanes = GET_ATTR(Port, HwLaneList, port->attributes()).size();
   if (!numPmdLanes) {
     return;
   }

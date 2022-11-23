@@ -1498,15 +1498,13 @@ void SaiPortManager::changeBridgePort(
 bool SaiPortManager::isUp(PortID portID) const {
   auto handle = getPortHandle(portID);
   auto saiPortId = handle->port->adapterKey();
-  return isUp(saiPortId);
-}
-
-bool SaiPortManager::isUp(PortSaiId saiPortId) const {
-  auto adminState = SaiApiTable::getInstance()->portApi().getAttribute(
-      saiPortId, SaiPortTraits::Attributes::AdminState{});
+  // Need to get Oper State from SDK since it's not part of the create
+  // attributes. Also in the event of link up/down, SDK would have the
+  // accurate state.
   auto operStatus = SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId, SaiPortTraits::Attributes::OperStatus{});
-  return adminState && (operStatus == SAI_PORT_OPER_STATUS_UP);
+  return GET_OPT_ATTR(Port, AdminState, handle->port->attributes()) &&
+      (operStatus == SAI_PORT_OPER_STATUS_UP);
 }
 
 std::optional<SaiPortTraits::Attributes::PtpMode> SaiPortManager::getPtpMode()
@@ -1769,10 +1767,12 @@ cfg::PortSpeed SaiPortManager::getSpeed(PortID portId) const {
 }
 
 phy::InterfaceType SaiPortManager::getInterfaceType(PortID portID) const {
-  auto handle = getPortHandle(portID);
-  auto saiPortId = handle->port->adapterKey();
-  auto saiInterfaceType = SaiApiTable::getInstance()->portApi().getAttribute(
-      saiPortId, SaiPortTraits::Attributes::InterfaceType{});
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::PORT_INTERFACE_TYPE)) {
+    return phy::InterfaceType::NONE;
+  }
+  auto saiInterfaceType = GET_OPT_ATTR(
+      Port, InterfaceType, getPortHandle(portID)->port->attributes());
   return fromSaiInterfaceType(
       static_cast<sai_port_interface_type_t>(saiInterfaceType));
 }
@@ -1781,14 +1781,12 @@ TransmitterTechnology SaiPortManager::getMedium(PortID portID) const {
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::MEDIA_TYPE)) {
     return TransmitterTechnology::UNKNOWN;
   }
-  auto handle = getPortHandle(portID);
-  auto saiPortId = handle->port->adapterKey();
   if (platform_->getAsic()->getAsicType() ==
       cfg::AsicType::ASIC_TYPE_SANDIA_PHY) {
     return TransmitterTechnology::OPTICAL;
   }
-  auto saiMediaType = SaiApiTable::getInstance()->portApi().getAttribute(
-      saiPortId, SaiPortTraits::Attributes::MediaType{});
+  auto saiMediaType =
+      GET_OPT_ATTR(Port, MediaType, getPortHandle(portID)->port->attributes());
   return fromSaiMediaType(static_cast<sai_port_media_type_t>(saiMediaType));
 }
 

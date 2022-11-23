@@ -477,7 +477,12 @@ void SwSwitch::updateStats() {
     stats()->updateStatsException();
     XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
   }
-  phySnapshotManager_->updatePhyInfos(getHw()->updateAllPhyInfo());
+  try {
+    phySnapshotManager_->updatePhyInfos(getHw()->updateAllPhyInfo());
+  } catch (const std::exception& ex) {
+    stats()->updateStatsException();
+    XLOG(ERR) << "Error running updatePhyInfos: " << folly::exceptionStr(ex);
+  }
 }
 
 std::map<std::string, HwTeFlowStats> SwSwitch::getTeFlowStats() {
