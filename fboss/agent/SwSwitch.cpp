@@ -140,6 +140,11 @@ DEFINE_int32(
     fsdbStatsStreamIntervalSeconds,
     5,
     "Interval at which stats subscriptions are served");
+
+DEFINE_int32(
+    update_phy_info_interval_s,
+    10,
+    "Update phy info interval in seconds");
 namespace {
 
 /**
@@ -477,11 +482,17 @@ void SwSwitch::updateStats() {
     stats()->updateStatsException();
     XLOG(ERR) << "Error running updateStats: " << folly::exceptionStr(ex);
   }
-  try {
-    phySnapshotManager_->updatePhyInfos(getHw()->updateAllPhyInfo());
-  } catch (const std::exception& ex) {
-    stats()->updateStatsException();
-    XLOG(ERR) << "Error running updatePhyInfos: " << folly::exceptionStr(ex);
+  // Determine if collect phy info
+  auto now =
+      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  if (now - phyInfoUpdateTime_ >= FLAGS_update_phy_info_interval_s) {
+    phyInfoUpdateTime_ = now;
+    try {
+      phySnapshotManager_->updatePhyInfos(getHw()->updateAllPhyInfo());
+    } catch (const std::exception& ex) {
+      stats()->updateStatsException();
+      XLOG(ERR) << "Error running updatePhyInfos: " << folly::exceptionStr(ex);
+    }
   }
 }
 
