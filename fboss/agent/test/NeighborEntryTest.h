@@ -56,6 +56,44 @@ struct NeighborEntryTestUtil {
     }
     return DeltaValue<ArpEntry>(oldEntry, newEntry);
   }
+
+  template <typename T = IPTYPE>
+  static DeltaValue<NdpEntry> getNeighborEntryDelta(
+      const StateDelta& delta,
+      typename std::
+          enable_if<std::is_same<T, IPAddressV6>::value, IPAddressV6>::type ip,
+      InterfaceID intf) {
+    shared_ptr<NdpEntry> oldEntry = nullptr;
+    shared_ptr<NdpEntry> newEntry = nullptr;
+    const auto& newInterface = delta.getIntfsDelta().getNew()->getNodeIf(intf);
+    const auto& oldInterface = delta.getIntfsDelta().getOld()->getNodeIf(intf);
+    if (nullptr != newInterface) {
+      newEntry = newInterface->getNdpTable()->getEntryIf(ip);
+    }
+    if (nullptr != oldInterface) {
+      oldEntry = oldInterface->getNdpTable()->getEntryIf(ip);
+    }
+    return DeltaValue<NdpEntry>(oldEntry, newEntry);
+  }
+
+  template <typename T = IPTYPE>
+  static DeltaValue<ArpEntry> getNeighborEntryDelta(
+      const StateDelta& delta,
+      typename std::
+          enable_if<std::is_same<T, IPAddressV4>::value, IPAddressV4>::type ip,
+      InterfaceID intf) {
+    shared_ptr<ArpEntry> oldEntry = nullptr;
+    shared_ptr<ArpEntry> newEntry = nullptr;
+    const auto& newInterface = delta.getIntfsDelta().getNew()->getNodeIf(intf);
+    const auto& oldInterface = delta.getIntfsDelta().getOld()->getNodeIf(intf);
+    if (nullptr != newInterface) {
+      newEntry = newInterface->getArpTable()->getEntryIf(ip);
+    }
+    if (nullptr != oldInterface) {
+      oldEntry = oldInterface->getArpTable()->getEntryIf(ip);
+    }
+    return DeltaValue<ArpEntry>(oldEntry, newEntry);
+  }
 };
 
 template <class IPTYPE>
