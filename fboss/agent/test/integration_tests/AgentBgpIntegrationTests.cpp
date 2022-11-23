@@ -150,7 +150,8 @@ class BgpIntegrationTest : public AgentIntegrationTest {
 
   void restartBgpService() {
     auto prevAliveSince = bgpAliveSince();
-    auto constexpr kBgpServiceKill = "sudo pkill bgpd";
+    auto constexpr kBgpServiceKill =
+        "sudo systemctl restart bgpd_service_for_testing";
     folly::Subprocess(kBgpServiceKill).waitChecked();
     auto aliveSince = bgpAliveSince();
     EXPECT_NE(aliveSince, 0);
