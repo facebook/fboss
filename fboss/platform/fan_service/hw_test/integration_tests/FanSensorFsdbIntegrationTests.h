@@ -33,6 +33,8 @@ class FanSensorFsdbIntegrationTests : public ::testing::Test {
   FanService* getFanService();
   void stopFsdbService() const;
   void startFsdbService() const;
+  void restartFsdbService() const;
+  void restartSensorService() const;
   std::shared_ptr<apache::thrift::ThriftServer> thriftServer_;
   std::shared_ptr<FanServiceHandler> thriftHandler_;
   std::unique_ptr<services::ServiceFrameworkLight> service_;

@@ -20,6 +20,16 @@ const std::vector<std::string> kStartFsdb = {
     "/bin/systemctl",
     "start",
     "fsdb_service_for_testing"};
+
+const std::vector<std::string> kRestartFsdb = {
+    "/bin/systemctl",
+    "restart",
+    "fsdb_service_for_testing"};
+
+const std::vector<std::string> kRestartSensorSvc = {
+    "/bin/systemctl",
+    "restart",
+    "sensor_service_for_testing"};
 } // namespace
 
 namespace facebook::fboss::platform {
@@ -38,6 +48,9 @@ void FanSensorFsdbIntegrationTests::TearDown() {
       /* sleep override */ sleep(1);
     }
   }
+  // Restart Sensor and FSDB to bring it back to healthy state for the next test
+  restartSensorService();
+  restartFsdbService();
   fsTestTearDown(thriftServer_, thriftHandler_.get());
 }
 
@@ -53,6 +66,16 @@ void FanSensorFsdbIntegrationTests::stopFsdbService() const {
 void FanSensorFsdbIntegrationTests::startFsdbService() const {
   XLOG(DBG2) << "Starting FSDB Service";
   folly::Subprocess(kStartFsdb).waitChecked();
+}
+
+void FanSensorFsdbIntegrationTests::restartFsdbService() const {
+  XLOG(DBG2) << "Restarting FSDB Service";
+  folly::Subprocess(kRestartFsdb).waitChecked();
+}
+
+void FanSensorFsdbIntegrationTests::restartSensorService() const {
+  XLOG(DBG2) << "Restarting Sensor Service";
+  folly::Subprocess(kRestartSensorSvc).waitChecked();
 }
 
 TEST_F(FanSensorFsdbIntegrationTests, sensorUpdate) {
