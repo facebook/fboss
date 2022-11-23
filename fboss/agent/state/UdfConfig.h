@@ -13,6 +13,7 @@
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/state/UdfGroupMap.h"
+#include "fboss/agent/state/UdfPacketMatcherMap.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
@@ -20,6 +21,10 @@ namespace facebook::fboss {
 class UdfConfig;
 USE_THRIFT_COW(UdfConfig);
 RESOLVE_STRUCT_MEMBER(UdfConfig, switch_config_tags::udfGroups, UdfGroupMap);
+RESOLVE_STRUCT_MEMBER(
+    UdfConfig,
+    switch_config_tags::udfPacketMatcher,
+    UdfPacketMatcherMap);
 
 class UdfConfig : public ThriftStructNode<UdfConfig, cfg::UdfConfig> {
  public:
@@ -36,6 +41,10 @@ class UdfConfig : public ThriftStructNode<UdfConfig, cfg::UdfConfig> {
       return true;
     }
     return false;
+  }
+
+  std::shared_ptr<UdfPacketMatcherMap> getUdfPacketMatcherMap() const {
+    return get<switch_config_tags::udfPacketMatcher>();
   }
 
   static std::shared_ptr<UdfConfig> fromFollyDynamic(

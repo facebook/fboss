@@ -87,6 +87,8 @@ add_library(state
   fboss/agent/state/UdfConfig.cpp
   fboss/agent/state/UdfGroup.cpp
   fboss/agent/state/UdfGroupMap.cpp
+  fboss/agent/state/UdfPacketMatcher.cpp
+  fboss/agent/state/UdfPacketMatcherMap.cpp
   fboss/agent/state/IpTunnel.cpp
   fboss/agent/state/IpTunnelMap.cpp
   fboss/agent/state/Vlan.cpp

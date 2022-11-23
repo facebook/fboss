@@ -825,6 +825,8 @@ if (NOT SAI_ONLY)
       fboss/agent/state/UdfConfig.cpp
       fboss/agent/state/UdfGroup.cpp
       fboss/agent/state/UdfGroupMap.cpp
+      fboss/agent/state/UdfPacketMatcher.cpp
+      fboss/agent/state/UdfPacketMatcherMap.cpp
       fboss/agent/state/ForwardingInformationBase.cpp
       fboss/agent/state/ForwardingInformationBaseContainer.cpp
       fboss/agent/state/ForwardingInformationBaseDelta.cpp
