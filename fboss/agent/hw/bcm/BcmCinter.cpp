@@ -2132,6 +2132,18 @@ int BcmCinter::bcm_udf_pkt_format_delete(
   return 0;
 }
 
+void BcmCinter::bcm_udf_pkt_format_info_t_init(
+    bcm_udf_pkt_format_info_t* pkt_format) {
+  auto cintPktFormat = cintForBcmUdfPktFormatInfo(*pkt_format);
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_udf_pkt_format_info_t_init(", makeParamStr("&pkt_format"), ")"));
+  cintPktFormat.insert(
+      cintPktFormat.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cintPktFormat));
+}
+
 int BcmCinter::bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) {
   writeCintLines(wrapFunc(to<string>(
       "bcm_port_autoneg_set(", makeParamStr(unit, port, autoneg), ")")));
