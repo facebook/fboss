@@ -349,8 +349,11 @@ void HwPortBandwidthTest::verifyQueueShaper() {
 void HwPortBandwidthTest::verifyPortRateTraffic(cfg::PortSpeed portSpeed) {
   auto setup = [&]() {
     auto newCfg{initialConfig()};
-    utility::updatePortSpeed(
-        *getHwSwitch(), newCfg, masterLogicalPortIds()[0], portSpeed);
+    utility::configurePortGroup(
+        *(getHwSwitchEnsemble()->getHwSwitch()),
+        newCfg,
+        portSpeed,
+        getAllPortsInGroup(masterLogicalPortIds()[0]));
     XLOG(DBG0) << "Port " << masterLogicalPortIds()[0] << " speed set to "
                << static_cast<int>(portSpeed) << " bps";
     applyNewConfig(newCfg);
