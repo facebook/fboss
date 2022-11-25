@@ -223,20 +223,20 @@ TEST_F(LinkTest, iPhyInfoTest) {
       std::chrono::milliseconds(1000) /* msBetweenRetry */);
 
   std::map<PortID, const phy::PhyInfo> phyInfoAfter;
-  // Monitor the link for 30 seconds and collect phy stats
+  // Monitor the link for 35 seconds and collect phy stats
   WITH_RETRIES_N_TIMED(
       {
         phyInfoAfter = sw()->getIPhyInfo(cabledPorts);
         for (const auto& port : cabledPorts) {
           auto phyIt = phyInfoAfter.find(port);
           ASSERT_EVENTUALLY_NE(phyIt, phyInfoAfter.end());
-          EXPECT_EVENTUALLY_GT(
+          EXPECT_EVENTUALLY_GE(
               *(phyInfoAfter[port].timeCollected()) -
                   *(phyInfoBefore[port].timeCollected()),
               20);
         }
       },
-      30 /* retries */,
+      35 /* retries */,
       std::chrono::milliseconds(1000) /* msBetweenRetry */);
 
   // Validate PhyInfo
