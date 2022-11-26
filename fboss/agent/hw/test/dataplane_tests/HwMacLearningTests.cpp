@@ -736,15 +736,13 @@ TEST_F(HwMacSwLearningModeTest, VerifyNbrMacInL2Table) {
 TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
   auto setup = [this]() { bringDownPort(masterLogicalPortIds()[1]); };
   auto verify = [this]() {
-    bool isTH3orTH4 = getPlatform()->getAsic()->getAsicType() ==
-            cfg::AsicType::ASIC_TYPE_TOMAHAWK3 or
-        getPlatform()->getAsic()->getAsicType() ==
-            cfg::AsicType::ASIC_TYPE_TOMAHAWK4;
+    bool isTH3 = getPlatform()->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_TOMAHAWK3;
     // Disable aging, so entry stays in L2 table when we verify.
     utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
     enum class MacOp { ASSOCIATE, DISSOASSOCIATE, DELETE };
     induceMacLearning(physPortDescr());
-    auto doMacOp = [this, isTH3orTH4](MacOp op) {
+    auto doMacOp = [this, isTH3](MacOp op) {
       l2LearningObserver_.reset();
       auto numExpectedUpdates = 0;
       switch (op) {
@@ -752,13 +750,13 @@ TEST_F(HwMacSwLearningModeTest, VerifyCallbacksOnMacEntryChange) {
           XLOG(DBG2) << " Adding classs id to mac";
           associateClassID();
           // TH3 generates a delete and add on class ID update
-          numExpectedUpdates = isTH3orTH4 ? 2 : 0;
+          numExpectedUpdates = isTH3 ? 2 : 0;
           break;
         case MacOp::DISSOASSOCIATE:
           XLOG(DBG2) << " Removing classs id from mac";
           disassociateClassID();
           // TH3 generates a delete and add on class ID update
-          numExpectedUpdates = isTH3orTH4 ? 2 : 0;
+          numExpectedUpdates = isTH3 ? 2 : 0;
           break;
         case MacOp::DELETE:
           XLOG(DBG2) << " Removing mac";
