@@ -87,6 +87,10 @@ class FsdbSyncManager {
     return pubSubMgr_.get();
   }
 
+  const std::shared_ptr<CowState> getState() const {
+    return storage_.getState();
+  }
+
  private:
   void processDelta(
       const std::shared_ptr<CowState>& oldState,
