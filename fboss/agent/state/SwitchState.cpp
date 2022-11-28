@@ -85,6 +85,11 @@ DEFINE_uint32(
     64,
     "Max ecmp width. Also implies ucmp normalization factor");
 
+DEFINE_bool(
+    enable_acl_table_group,
+    false,
+    "Allow multiple acl tables (acl table group)");
+
 namespace facebook::fboss {
 
 SwitchStateFields::SwitchStateFields()
@@ -115,7 +120,9 @@ state::SwitchState SwitchStateFields::toThrift() const {
   auto state = state::SwitchState();
   state.portMap() = ports->toThrift();
   state.vlanMap() = vlans->toThrift();
-  state.aclMap() = acls->toThrift();
+  if (!FLAGS_enable_acl_table_group) {
+    state.aclMap() = acls->toThrift();
+  }
   state.transceiverMap() = transceivers->toThrift();
   state.systemPortMap() = systemPorts->toThrift();
   state.ipTunnelMap() = ipTunnels->toThrift();
@@ -153,7 +160,7 @@ state::SwitchState SwitchStateFields::toThrift() const {
   state.sflowCollectorMap() = sFlowCollectors->toThrift();
   state.teFlowTable() = teFlowTable->toThrift();
   state.aggregatePortMap() = aggPorts->toThrift();
-  if (aclTableGroups) {
+  if (aclTableGroups && FLAGS_enable_acl_table_group) {
     state.aclTableGroupMap() = aclTableGroups->toThrift();
   }
   state.interfaceMap() = interfaces->toThrift();
@@ -173,9 +180,26 @@ state::SwitchState SwitchStateFields::toThrift() const {
 SwitchStateFields SwitchStateFields::fromThrift(
     const state::SwitchState& state) {
   auto fields = SwitchStateFields();
+  auto skipAclTableGroupMapParsing = false;
   fields.ports = PortMap::fromThrift(state.get_portMap());
   fields.vlans->fromThrift(state.get_vlanMap());
-  fields.acls = AclMap::fromThrift(state.get_aclMap());
+  /*
+   * As a part of transitioning to Multi ACL table, we need to pick up the
+   * ACLs from existing SwitchState->ACLs and move them under the default
+   * ACL_table_group->default_ACL_table. And if we need to rollback, we need
+   * to move back the ACLs from default ACL_table_Group->default_ACL_table back
+   * into SwitchState->ACLs. The following code takes care of these transitions
+   */
+  if (!state.get_aclMap().empty()) {
+    if (!FLAGS_enable_acl_table_group) {
+      fields.acls = AclMap::fromThrift(state.get_aclMap());
+    } else {
+      fields.aclTableGroups =
+          AclTableGroupMap::createDefaultAclTableGroupMapFromThrift(
+              state.get_aclMap());
+    }
+    skipAclTableGroupMapParsing = true;
+  }
   if (!state.get_bufferPoolCfgMap().empty()) {
     fields.bufferPoolCfgs = std::make_shared<BufferPoolCfgMap>();
     fields.bufferPoolCfgs->fromThrift(*state.bufferPoolCfgMap());
@@ -218,7 +242,14 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.teFlowTable->fromThrift(*state.teFlowTable());
   fields.aggPorts->fromThrift(*state.aggregatePortMap());
   if (auto aclTableGroupMap = state.aclTableGroupMap()) {
-    fields.aclTableGroups = AclTableGroupMap::fromThrift(*aclTableGroupMap);
+    if (!skipAclTableGroupMapParsing && !aclTableGroupMap.value().empty()) {
+      if (FLAGS_enable_acl_table_group) {
+        fields.aclTableGroups = AclTableGroupMap::fromThrift(*aclTableGroupMap);
+      } else {
+        fields.acls =
+            AclTableGroupMap::getDefaultAclTableGroupMap(*aclTableGroupMap);
+      }
+    }
   }
   fields.interfaces->fromThrift(*state.interfaceMap());
   if (auto qcmConfig = state.qcmCfg()) {
@@ -257,10 +288,19 @@ bool SwitchStateFields::operator==(const SwitchStateFields& other) const {
 SwitchStateFields SwitchStateFields::fromFollyDynamic(
     const folly::dynamic& swJson) {
   SwitchStateFields switchState;
+  auto skipAclTableGroupParsing = false;
   switchState.interfaces = InterfaceMap::fromFollyDynamic(swJson[kInterfaces]);
   switchState.ports = PortMap::fromFollyDynamic(swJson[kPorts]);
   switchState.vlans = VlanMap::fromFollyDynamic(swJson[kVlans]);
-  switchState.acls = AclMap::fromFollyDynamic(swJson[kAcls]);
+  if (swJson.find(kAcls) != swJson.items().end()) {
+    if (!FLAGS_enable_acl_table_group) {
+      switchState.acls = AclMap::fromFollyDynamic(swJson[kAcls]);
+    } else {
+      switchState.aclTableGroups =
+          AclTableGroupMap::createDefaultAclTableGroupMap(swJson[kAcls]);
+    }
+    skipAclTableGroupParsing = true;
+  }
   if (swJson.count(kSflowCollectors) > 0) {
     switchState.sFlowCollectors =
         SflowCollectorMap::fromFollyDynamic(swJson[kSflowCollectors]);
@@ -324,9 +364,15 @@ SwitchStateFields SwitchStateFields::fromFollyDynamic(
     switchState.transceivers = TransceiverMap::fromFollyDynamic(values->second);
   }
 
-  if (swJson.find(kAclTableGroups) != swJson.items().end()) {
-    switchState.aclTableGroups =
-        AclTableGroupMap::fromFollyDynamic(swJson[kAclTableGroups]);
+  if (swJson.find(kAclTableGroups) != swJson.items().end() &&
+      !skipAclTableGroupParsing) {
+    if (FLAGS_enable_acl_table_group) {
+      switchState.aclTableGroups =
+          AclTableGroupMap::fromFollyDynamic(swJson[kAclTableGroups]);
+    } else {
+      switchState.acls = AclMap::fromFollyDynamic(
+          AclTableGroupMap::getAclTableGroupMapName(swJson));
+    }
   }
   if (const auto& values = swJson.find(kSystemPorts);
       values != swJson.items().end()) {
