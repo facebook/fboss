@@ -30,6 +30,26 @@ const std::vector<std::string> kRestartSensorSvc = {
     "/bin/systemctl",
     "restart",
     "sensor_service_for_testing"};
+
+void stopFsdbService() {
+  XLOG(DBG2) << "Stopping FSDB Service";
+  folly::Subprocess(kStopFsdb).waitChecked();
+}
+
+void startFsdbService() {
+  XLOG(DBG2) << "Starting FSDB Service";
+  folly::Subprocess(kStartFsdb).waitChecked();
+}
+
+void restartFsdbService() {
+  XLOG(DBG2) << "Restarting FSDB Service";
+  folly::Subprocess(kRestartFsdb).waitChecked();
+}
+
+void restartSensorService() {
+  XLOG(DBG2) << "Restarting Sensor Service";
+  folly::Subprocess(kRestartSensorSvc).waitChecked();
+}
 } // namespace
 
 namespace facebook::fboss::platform {
@@ -56,26 +76,6 @@ void FanSensorFsdbIntegrationTests::TearDown() {
 
 FanService* FanSensorFsdbIntegrationTests::getFanService() {
   return thriftHandler_->getFanService();
-}
-
-void FanSensorFsdbIntegrationTests::stopFsdbService() const {
-  XLOG(DBG2) << "Stopping FSDB Service";
-  folly::Subprocess(kStopFsdb).waitChecked();
-}
-
-void FanSensorFsdbIntegrationTests::startFsdbService() const {
-  XLOG(DBG2) << "Starting FSDB Service";
-  folly::Subprocess(kStartFsdb).waitChecked();
-}
-
-void FanSensorFsdbIntegrationTests::restartFsdbService() const {
-  XLOG(DBG2) << "Restarting FSDB Service";
-  folly::Subprocess(kRestartFsdb).waitChecked();
-}
-
-void FanSensorFsdbIntegrationTests::restartSensorService() const {
-  XLOG(DBG2) << "Restarting Sensor Service";
-  folly::Subprocess(kRestartSensorSvc).waitChecked();
 }
 
 TEST_F(FanSensorFsdbIntegrationTests, sensorUpdate) {
