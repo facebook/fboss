@@ -102,6 +102,7 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
     if (auto aclMap = aclTableFields.aclMap()) {
       return (AclMap::fromThrift(*aclMap));
     } else {
+      XLOG(ERR) << "AclTable missing from warmboot state file";
       return nullptr;
     }
   }

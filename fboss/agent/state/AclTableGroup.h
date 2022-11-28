@@ -102,6 +102,7 @@ class AclTableGroup : public NodeBaseT<AclTableGroup, AclTableGroupFields> {
     if (auto aclTableMap = aclTableGroupFields.aclTableMap()) {
       return AclTableMap::getDefaultAclTableMap(*aclTableMap);
     } else {
+      XLOG(ERR) << "AclTableGroup missing from warmboot state file";
       return nullptr;
     }
   }

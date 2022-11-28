@@ -61,6 +61,7 @@ std::shared_ptr<AclMap> AclTableGroupMap::getDefaultAclTableGroupMap(
     auto& aclTableGroup = thriftMap.at(cfg::AclStage::INGRESS);
     return AclTableGroup::getDefaultAclTableGroup(aclTableGroup);
   } else {
+    XLOG(ERR) << "AclTableGroupMap missing from warmboot state file";
     return nullptr;
   }
 }

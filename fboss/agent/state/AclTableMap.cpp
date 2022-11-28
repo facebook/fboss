@@ -61,6 +61,7 @@ std::shared_ptr<AclMap> AclTableMap::getDefaultAclTableMap(
     auto aclTable = thriftMap.at(kAclTable1);
     return AclTable::getDefaultAclTable(aclTable);
   } else {
+    XLOG(ERR) << "AclTableMap missing from warmboot state file";
     return nullptr;
   }
 }
