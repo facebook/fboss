@@ -20,11 +20,11 @@ std::string mockSensorConfig(const std::string& tmpPath) {
   folly::writeFile(dummyData, (*mock_fru_1_sensor_2.path()).c_str());
   folly::writeFile(dummyData, (*mock_fru_2_sensor_1.path()).c_str());
 
-  ThresholdMap thMap;
-  thMap[ThresholdType::LOWER_CRIT] = 105;
-  mock_fru_1_sensor_1.thresholdMap_ref() = thMap;
-  mock_fru_1_sensor_2.thresholdMap_ref() = thMap;
-  mock_fru_2_sensor_1.thresholdMap_ref() = thMap;
+  Thresholds thresholds{};
+  thresholds.lowerCriticalVal_ref() = 105;
+  mock_fru_1_sensor_1.thresholds_ref() = thresholds;
+  mock_fru_1_sensor_2.thresholds_ref() = thresholds;
+  mock_fru_2_sensor_1.thresholds_ref() = thresholds;
 
   mock_fru_1_sensor_1.type_ref() = SensorType::TEMPERTURE;
   mock_fru_1_sensor_2.type_ref() = SensorType::FAN;

@@ -12,24 +12,24 @@ std::string getMockConfig() {
     "SCM" : {
       "CPU_PHYS_ID_0" : {
         "path" : "coretemp-isa-0000:Package id 0",
-        "thresholdMap" : {
-          "5" : 105
+        "thresholds" : {
+          "lowerCriticalVal" : 105
         },
         "compute" : "@*1",
         "type"  : 1
       },
       "CPU_CORE0_TEMP" : {
         "path" : "coretemp-isa-0000:Core 0",
-        "thresholdMap" : {
-           "5" : 105
+        "thresholds" : {
+           "lowerCriticalVal" : 105
         },
         "compute" : "@*1",
         "type" : 3
       },
       "CPU_CORE1_TEMP" : {
         "path" : "coretemp-isa-0000:Core 0",
-        "thresholdMap" : {
-           "5" : 105
+        "thresholds" : {
+           "lowerCriticalVal" : 105
         },
         "compute" : "@*1",
         "type" : 3
@@ -39,9 +39,9 @@ std::string getMockConfig() {
     "FAN1" : {
       "FAN1_RPM" : {
         "path" : "tehama_cpld-i2c-17-60:fan1",
-        "thresholdMap" : {
-          "5" : 25500,
-          "6" : 2600
+        "thresholds" : {
+          "upperCriticalVal" : 25500,
+          "lowerCriticalVal" : 2600
         },
         "compute" : "@*1",
         "type" : 4
@@ -50,9 +50,9 @@ std::string getMockConfig() {
     "FAN2" : {
       "FAN2_RPM" : {
         "path" : "tehama_cpld-i2c-17-60:fan2",
-        "thresholdMap" : {
-          "5" : 25500,
-          "6" : 2600
+        "thresholds" : {
+          "upperCriticalVal" : 25500,
+          "lowerCriticalVal" : 2600
         },
         "compute" : "@*1",
         "type" : 4
@@ -61,9 +61,9 @@ std::string getMockConfig() {
     "FAN3" : {
       "FAN3_RPM" : {
         "path" : "tehama_cpld-i2c-17-60:fan3",
-        "thresholdMap" : {
-          "5" : 25500,
-          "6" : 2600
+        "thresholds" : {
+          "upperCriticalVal" : 25500,
+          "lowerCriticalVal" : 2600
         },
         "compute" : "@*1",
         "type" : 4
@@ -72,9 +72,9 @@ std::string getMockConfig() {
     "FAN4" : {
       "FAN4_RPM" : {
         "path" : "tehama_cpld-i2c-17-60:fan4",
-        "thresholdMap" : {
-          "5" : 25500,
-          "6" : 2600
+        "thresholds" : {
+          "upperCriticalVal" : 25500,
+          "lowerCriticalVal" : 2600
         },
         "compute" : "@*1",
         "type" : 4
@@ -83,9 +83,9 @@ std::string getMockConfig() {
     "FAN5" : {
       "FAN5_RPM" : {
         "path" : "tehama_cpld-i2c-17-60:fan5",
-        "thresholdMap" : {
-          "5" : 25500,
-          "6" : 2600
+        "thresholds" : {
+          "upperCriticalVal" : 25500,
+          "lowerCriticalVal" : 2600
         },
         "compute" : "@*1",
         "type" : 4

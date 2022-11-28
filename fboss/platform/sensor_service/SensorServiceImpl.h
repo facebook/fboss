@@ -38,7 +38,7 @@ struct SensorLiveData {
   float value;
   int64_t timeStamp;
   std::string compute;
-  ThresholdMap thresholds;
+  Thresholds thresholds;
 };
 
 class SensorServiceImpl {

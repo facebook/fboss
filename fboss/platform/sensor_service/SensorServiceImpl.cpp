@@ -87,7 +87,7 @@ void SensorServiceImpl::init() {
         if (sensorIter.second.compute().has_value()) {
           table[sensorIter.first].compute = *sensorIter.second.compute();
         }
-        table[sensorIter.first].thresholds = *sensorIter.second.thresholdMap();
+        table[sensorIter.first].thresholds = *sensorIter.second.thresholds();
 
         XLOG(INFO) << sensorIter.first
                    << "; path = " << table[sensorIter.first].path
