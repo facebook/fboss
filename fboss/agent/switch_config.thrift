@@ -1734,6 +1734,6 @@ struct SwitchConfig {
   47: optional list<IpInIpTunnel> ipInIpTunnels;
   // When part of a DSF cluster, the following info
   // will be populated to reflect global DSF node info
-  48: map<i64, DsfNode> dsfNodes;
+  48: map<i64, DsfNode> dsfNodes = {};
   49: optional UdfConfig udfConfig;
 }
