@@ -146,7 +146,7 @@ class LoadBalancer
   IPv6FieldsRange getIPv6Fields() const;
   TransportFieldsRange getTransportFields() const;
   MPLSFieldsRange getMPLSFields() const;
-  std::vector<std::string> getUdfGroupIds() const;
+  UdfGroupIds getUdfGroupIds() const;
 
   static std::shared_ptr<LoadBalancer> fromFollyDynamicLegacy(
       const folly::dynamic& json);

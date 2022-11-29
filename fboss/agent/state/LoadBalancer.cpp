@@ -113,6 +113,10 @@ LoadBalancer::TransportFieldsRange LoadBalancer::getTransportFields() const {
   return LoadBalancer::TransportFieldsRange{};
 }
 
+LoadBalancer::UdfGroupIds LoadBalancer::getUdfGroupIds() const {
+  return get<switch_state_tags::udfGroups>()->toThrift();
+}
+
 LoadBalancer::MPLSFieldsRange LoadBalancer::getMPLSFields() const {
   if (auto fields = get<switch_state_tags::mplsFields>()) {
     return folly::range(fields->cbegin(), fields->cend());

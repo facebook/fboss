@@ -236,11 +236,15 @@ class BcmRtag7Module {
   void enableRtag7(LoadBalancerID);
   void programIPv4FieldSelection(
       LoadBalancer::IPv4FieldsRange v4FieldsRange,
-      LoadBalancer::TransportFieldsRange transportFieldsRange);
+      LoadBalancer::TransportFieldsRange transportFieldsRange,
+      const LoadBalancer::UdfGroupIds& udfGroupIds);
   void programIPv6FieldSelection(
       LoadBalancer::IPv6FieldsRange v6FieldsRange,
-      LoadBalancer::TransportFieldsRange transportFieldsRange);
+      LoadBalancer::TransportFieldsRange transportFieldsRange,
+      const LoadBalancer::UdfGroupIds& udfGroupIds);
   void programFieldControl();
+  void programUdfSelection(const LoadBalancer::UdfGroupIds& udfGroupIds);
+  int computeUdf(const LoadBalancer::UdfGroupIds& udfGroupIds) const;
 
   int computeIPv4Subfields(LoadBalancer::IPv4FieldsRange v4FieldsRange) const;
   int computeIPv6Subfields(LoadBalancer::IPv6FieldsRange v6FieldsRange) const;

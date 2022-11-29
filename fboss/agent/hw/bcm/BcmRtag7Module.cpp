@@ -204,18 +204,25 @@ void BcmRtag7Module::programFlowBasedHashTable() {
 
 void BcmRtag7Module::programFieldSelection(const LoadBalancer& loadBalancer) {
   programIPv4FieldSelection(
-      loadBalancer.getIPv4Fields(), loadBalancer.getTransportFields());
+      loadBalancer.getIPv4Fields(),
+      loadBalancer.getTransportFields(),
+      loadBalancer.getUdfGroupIds());
   programIPv6FieldSelection(
-      loadBalancer.getIPv6Fields(), loadBalancer.getTransportFields());
+      loadBalancer.getIPv6Fields(),
+      loadBalancer.getTransportFields(),
+      loadBalancer.getUdfGroupIds());
   programTerminatedMPLSFieldSelection(loadBalancer);
   programNonTerminatedMPLSFieldSelection(loadBalancer);
+  programUdfSelection(loadBalancer.getUdfGroupIds());
 }
 
 void BcmRtag7Module::programIPv4FieldSelection(
     LoadBalancer::IPv4FieldsRange v4FieldsRange,
-    LoadBalancer::TransportFieldsRange transportFieldsRange) {
+    LoadBalancer::TransportFieldsRange transportFieldsRange,
+    const LoadBalancer::UdfGroupIds& udfGroupIds) {
   int arg = computeIPv4Subfields(v4FieldsRange);
   arg |= computeTransportSubfields(transportFieldsRange);
+  arg |= computeUdf(udfGroupIds);
 
   // TODO(samank): why do we set BCM_HASH_FIELD_{SRC,DST}L4 here...
   int rv = setUnitControl(moduleControl_.ipv4NonTcpUdpFieldSelection, arg);
@@ -231,9 +238,29 @@ void BcmRtag7Module::programIPv4FieldSelection(
   bcmCheckError(rv, "failed to config field selection");
 }
 
+void BcmRtag7Module::programUdfSelection(
+    const LoadBalancer::UdfGroupIds& udfGroupIds) {
+  int enableUdfHash = 0;
+  if (udfGroupIds.size()) {
+    switch (moduleControl_.module) {
+      case 'A':
+        enableUdfHash = BCM_HASH_FIELD0_ENABLE_UDFHASH;
+        break;
+      case 'B':
+        enableUdfHash = BCM_HASH_FIELD1_ENABLE_UDFHASH;
+        break;
+      default:
+        folly::assume_unreachable();
+    }
+  }
+  int rv = setUnitControl(bcmSwitchUdfHashEnable, enableUdfHash);
+  bcmCheckError(rv, "failed to enable Udf hash");
+}
+
 void BcmRtag7Module::programIPv6FieldSelection(
     LoadBalancer::IPv6FieldsRange v6FieldsRange,
-    LoadBalancer::TransportFieldsRange transportFieldsRange) {
+    LoadBalancer::TransportFieldsRange transportFieldsRange,
+    const LoadBalancer::UdfGroupIds& udfGroupIds) {
   auto it = std::find(
       v6FieldsRange.begin(),
       v6FieldsRange.end(),
@@ -244,6 +271,7 @@ void BcmRtag7Module::programIPv6FieldSelection(
 
   int arg = computeIPv6Subfields(v6FieldsRange);
   arg |= computeTransportSubfields(transportFieldsRange);
+  arg |= computeUdf(udfGroupIds);
 
   // TODO(samank): why do we set BCM_HASH_FIELD_{SRC,DST}L4 here...
   int rv = setUnitControl(moduleControl_.ipv6NonTcpUdpFieldSelection, arg);
@@ -326,17 +354,28 @@ void BcmRtag7Module::program(
       oldLoadBalancer->getMPLSFields().end(),
       newLoadBalancer->getMPLSFields().begin(),
       newLoadBalancer->getMPLSFields().end());
+  bool sameUdf = std::equal(
+      oldLoadBalancer->getUdfGroupIds().begin(),
+      oldLoadBalancer->getUdfGroupIds().end(),
+      newLoadBalancer->getUdfGroupIds().begin(),
+      newLoadBalancer->getUdfGroupIds().end());
 
-  if (!sameIPv4Fields || !sameTransportFields) {
+  if (!sameIPv4Fields || !sameTransportFields || !sameUdf) {
     programIPv4FieldSelection(
         newLoadBalancer->getIPv4Fields(),
-        newLoadBalancer->getTransportFields());
+        newLoadBalancer->getTransportFields(),
+        newLoadBalancer->getUdfGroupIds());
   }
 
-  if (!sameIPv6Fields || !sameTransportFields) {
+  if (!sameIPv6Fields || !sameTransportFields || !sameUdf) {
     programIPv6FieldSelection(
         newLoadBalancer->getIPv6Fields(),
-        newLoadBalancer->getTransportFields());
+        newLoadBalancer->getTransportFields(),
+        newLoadBalancer->getUdfGroupIds());
+  }
+
+  if (!sameUdf) {
+    programUdfSelection(newLoadBalancer->getUdfGroupIds());
   }
 
   if (!sameMPLSFields || !sameIPv4Fields || !sameIPv6Fields) {
@@ -413,6 +452,17 @@ int BcmRtag7Module::computeTransportSubfields(
   }
 
   return subfields;
+}
+
+int BcmRtag7Module::computeUdf(
+    const LoadBalancer::UdfGroupIds& udfGroupIds) const {
+  int subFields = 0;
+  if (udfGroupIds.size()) {
+    // udf is configured, since UDF uses bin 2, 3 in the hash
+    // they map to srcPort, srcMode fields
+    subFields = BCM_HASH_FIELD_SRCMOD | BCM_HASH_FIELD_SRCPORT;
+  }
+  return subFields;
 }
 
 void BcmRtag7Module::programFieldControl() {
