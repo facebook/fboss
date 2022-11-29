@@ -366,6 +366,8 @@ void __real_bcm_udf_pkt_format_info_t_init(
 
 void __real_bcm_udf_alloc_hints_t_init(bcm_udf_alloc_hints_t* udf_hints);
 
+void __real_bcm_udf_t_init(bcm_udf_t* udf_info);
+
 int __real_bcm_l3_egress_ecmp_get(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
@@ -1027,6 +1029,8 @@ void __real_bcm_udf_pkt_format_info_t_init(
     bcm_udf_pkt_format_info_t* pkt_format);
 
 void __real_bcm_udf_alloc_hints_t_init(bcm_udf_alloc_hints_t* udf_hints);
+
+void __real_bcm_udf_t_init(bcm_udf_t* udf_info);
 
 int __real_bcm_l3_route_get(int unit, bcm_l3_route_t* info);
 
@@ -2256,6 +2260,10 @@ void __wrap_bcm_udf_pkt_format_info_t_init(
 
 void __wrap_bcm_udf_alloc_hints_t_init(bcm_udf_alloc_hints_t* udf_hints) {
   CALL_WRAPPERS_NO_RV(bcm_udf_alloc_hints_t_init(udf_hints));
+}
+
+void __wrap_bcm_udf_t_init(bcm_udf_t* udf_info) {
+  CALL_WRAPPERS_NO_RV(bcm_udf_t_init(udf_info));
 }
 
 int __wrap_bcm_stat_custom_add(

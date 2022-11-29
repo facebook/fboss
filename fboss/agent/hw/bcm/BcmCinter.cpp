@@ -2155,6 +2155,17 @@ void BcmCinter::bcm_udf_alloc_hints_t_init(bcm_udf_alloc_hints_t* udf_hints) {
   writeCintLines(std::move(cintHints));
 }
 
+void BcmCinter::bcm_udf_t_init(bcm_udf_t* udf_info) {
+  auto cintInfo = cintForBcmUdfInfo(*udf_info);
+  auto cintForFn =
+      wrapFunc(to<string>("bcm_udf_t_init(", makeParamStr("&udf_info"), ")"));
+  cintInfo.insert(
+      cintInfo.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cintInfo));
+}
+
 int BcmCinter::bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) {
   writeCintLines(wrapFunc(to<string>(
       "bcm_port_autoneg_set(", makeParamStr(unit, port, autoneg), ")")));
