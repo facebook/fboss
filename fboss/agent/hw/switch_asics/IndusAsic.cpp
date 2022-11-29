@@ -65,6 +65,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
+    case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
       return true;
 
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:

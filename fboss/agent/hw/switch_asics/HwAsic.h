@@ -118,6 +118,7 @@ class HwAsic {
     SAI_PORT_GET_PMD_LANES,
     FABRIC_TX_QUEUES,
     SAI_PORT_VCO_CHANGE,
+    SAI_TTL0_PACKET_FORWARD_ENABLE,
   };
 
   enum class AsicMode {

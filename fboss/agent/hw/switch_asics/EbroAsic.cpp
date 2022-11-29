@@ -120,6 +120,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
+    case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
       return false;
   }
   return false;
