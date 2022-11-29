@@ -90,7 +90,9 @@ void LookupClassUpdater::removeClassIDForPortAndMac(
       return MacTableUtils::removeClassIDForEntry(state, vlan, removedEntry);
     };
 
-    sw_->updateState("remove classID: ", std::move(removeMacClassIDFn));
+    sw_->updateState(
+        "remove classID: " + removedEntry->str(),
+        std::move(removeMacClassIDFn));
   } else {
     auto updater = sw_->getNeighborUpdater();
     updater->updateEntryClassID(vlan, removedEntry->getIP());
@@ -212,7 +214,10 @@ void LookupClassUpdater::updateNeighborClassID(
         };
 
     sw_->updateState(
-        folly::to<std::string>("configure lookup classID: ", classID),
+        folly::to<std::string>(
+            "configure lookup classID: ",
+            classID,
+            " for entry " + newEntry->str()),
         std::move(updateMacClassIDFn));
   } else {
     auto updater = sw_->getNeighborUpdater();
@@ -222,7 +227,8 @@ void LookupClassUpdater::updateNeighborClassID(
 
 template <typename NeighborEntryT>
 bool LookupClassUpdater::shouldProcessNeighborEntry(
-    const std::shared_ptr<NeighborEntryT>& entry) const {
+    const std::shared_ptr<NeighborEntryT>& entry,
+    bool added) const {
   /*
    * At this point in time, queue-per-host fix is needed (and thus
    * supported) for physical link only.
@@ -231,8 +237,8 @@ bool LookupClassUpdater::shouldProcessNeighborEntry(
     return false;
   }
   /*
-   * If newEntry already has classID populated, don't process.
-   * This can happen in two cases:
+   * If newEntry already has classID populated
+   * This can happen in three cases, only process third case:
    *  o Warmboot: prior to warmboot, neighbor entries may have a classID
    *    associated with them. updateStateObserverLocalCache() consumes this
    *    info to populate its local cache, so do nothing here.
@@ -242,8 +248,16 @@ bool LookupClassUpdater::shouldProcessNeighborEntry(
    *    receive a stateDelta that contains classID assigned to new neighbor
    *    entry. Since this will be side-effect of state update that
    *    LookupClassUpdater triggered, there is nothing to do here.
+   *  o Racing scenarios: might happen when neighbor entry flaps.
+   *    LookupClassUpdater assigns class id to mac entry and trigger mac
+   *    entry state updateOrAdd(). However, this mac entry might be removed
+   *    shortly by StaticL2ForNeighborUpdate. As a result, another new mac
+   *    entry with class id is created when processing mac entry updateOrAdd().
+   *    We still need to process this new mac entry to keep track of refCnt,
+   *    although this entry woud be removed later.
    */
-  if (entry->getClassID().has_value()) {
+  if (entry->getClassID().has_value() &&
+      (!inited_ /* case 1 */ || !added /*case 2*/)) {
     return false;
   }
 
@@ -260,7 +274,7 @@ void LookupClassUpdater::processAdded(
     VlanID vlan,
     const std::shared_ptr<AddedNeighborEntryT>& addedEntry) {
   CHECK(addedEntry);
-  if (!shouldProcessNeighborEntry(addedEntry)) {
+  if (!shouldProcessNeighborEntry(addedEntry, true)) {
     return;
   }
   CHECK(addedEntry->getPort().isPhysicalPort());
@@ -300,7 +314,7 @@ void LookupClassUpdater::processChanged(
     const std::shared_ptr<ChangedNeighborEntryT>& newEntry) {
   CHECK(oldEntry);
   CHECK(newEntry);
-  if (!(shouldProcessNeighborEntry(newEntry) &&
+  if (!(shouldProcessNeighborEntry(newEntry, false) &&
         oldEntry->getPort().isPhysicalPort())) {
     // TODO - ideally we shouldn't care about whether
     // the old port was a non physical port (LAG) or not
@@ -376,7 +390,8 @@ void LookupClassUpdater::clearClassIdsForResolvedNeighbors(
                     state, vlanID, entry);
               };
 
-          sw_->updateState("remove classID: ", std::move(removeMacClassIDFn));
+          sw_->updateState(
+              "remove classID: " + entry->str(), std::move(removeMacClassIDFn));
         } else {
           auto updater = sw_->getNeighborUpdater();
           updater->updateEntryClassID(vlanID, entry.get()->getIP());
@@ -905,13 +920,13 @@ void LookupClassUpdater::processMacAddrsToBlockUpdates(
 void LookupClassUpdater::stateUpdated(const StateDelta& stateDelta) {
   if (!inited_) {
     updateStateObserverLocalCache(stateDelta.newState());
-    inited_ = true;
   }
 
   VlanTableDeltaCallbackGenerator::genCallbacks(stateDelta, *this);
   processPortUpdates(stateDelta);
   processBlockNeighborUpdates(stateDelta);
   processMacAddrsToBlockUpdates(stateDelta);
+  inited_ = true;
 }
 
 } // namespace facebook::fboss

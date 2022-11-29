@@ -36,7 +36,9 @@ void StaticL2ForNeighborSwSwitchUpdater::ensureMacEntry(
         return newState != state ? newState : nullptr;
       };
 
-  sw_->updateState("updateOrAdd static MAC: ", std::move(staticMacEntryFn));
+  sw_->updateState(
+      "updateOrAdd static MAC: " + neighbor->str(),
+      std::move(staticMacEntryFn));
 }
 
 void StaticL2ForNeighborSwSwitchUpdater::ensureMacEntryForNeighbor(
@@ -76,7 +78,9 @@ void StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
     return macPruned ? newState : nullptr;
   };
 
-  sw_->updateState("Prune MAC if unreferenced: ", std::move(removeMacEntryFn));
+  sw_->updateState(
+      "Prune MAC if unreferenced: " + removedEntry->str(),
+      std::move(removeMacEntryFn));
 }
 
 void StaticL2ForNeighborSwSwitchUpdater::pruneMacEntryForNeighbor(
@@ -98,6 +102,7 @@ void StaticL2ForNeighborSwSwitchUpdater::ensureMacEntryIfNeighborExists(
   auto ensureMac = [mac, vlan](const std::shared_ptr<SwitchState>& state) {
     return MacTableUtils::updateOrAddStaticEntryIfNbrExists(state, vlan, mac);
   };
-  sw_->updateState("ensure static MAC for nbr", std::move(ensureMac));
+  sw_->updateState(
+      "ensure static MAC for nbr: " + macEntry->str(), std::move(ensureMac));
 }
 } // namespace facebook::fboss

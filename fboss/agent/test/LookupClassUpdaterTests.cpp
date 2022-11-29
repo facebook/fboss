@@ -123,7 +123,10 @@ class LookupClassUpdaterTest : public ::testing::Test {
     return sw_;
   }
 
-  void resolveNeighbor(IPAddress ipAddress, MacAddress macAddress) {
+  void resolveNeighbor(
+      IPAddress ipAddress,
+      MacAddress macAddress,
+      bool wait = true) {
     /*
      * Cause a neighbor entry to resolve by receiving appropriate ARP/NDP, and
      * assert if valid CLASSID is associated with the newly resolved neighbor.
@@ -144,12 +147,13 @@ class LookupClassUpdaterTest : public ::testing::Test {
           ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
           0);
     }
-
-    sw_->getNeighborUpdater()->waitForPendingUpdates();
-    waitForBackgroundThread(sw_);
-    waitForStateUpdates(sw_);
-    sw_->getNeighborUpdater()->waitForPendingUpdates();
-    waitForStateUpdates(sw_);
+    if (wait) {
+      sw_->getNeighborUpdater()->waitForPendingUpdates();
+      waitForBackgroundThread(sw_);
+      waitForStateUpdates(sw_);
+      sw_->getNeighborUpdater()->waitForPendingUpdates();
+      waitForStateUpdates(sw_);
+    }
   }
 
   void unresolveNeighbor(IPAddress ipAddress) {
@@ -212,6 +216,21 @@ class LookupClassUpdaterTest : public ::testing::Test {
 
     this->sw_->l2LearningUpdateReceived(
         l2Entry, L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
+
+    this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForBackgroundThread(this->sw_);
+    waitForStateUpdates(this->sw_);
+  }
+
+  void unresolveMac(MacAddress macAddress) {
+    auto l2Entry = L2Entry(
+        macAddress,
+        this->kVlan(),
+        PortDescriptor(this->kPortID()),
+        L2Entry::L2EntryType::L2_ENTRY_TYPE_VALIDATED);
+
+    this->sw_->l2LearningUpdateReceived(
+        l2Entry, L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_DELETE);
 
     this->sw_->getNeighborUpdater()->waitForPendingUpdates();
     waitForBackgroundThread(this->sw_);
@@ -661,6 +680,53 @@ TYPED_TEST(
   this->resolve(this->getIpAddress(), this->kMacAddress());
   this->resolveLinkLocals(this->kMacAddress());
 
+  verifyClassIDs();
+}
+
+TYPED_TEST(
+    LookupClassUpdaterNeighborTest,
+    NeighborEntryFlapWithBusyUpdateThread) {
+  auto verifyClassIDs = [this]() {
+    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+      this->verifyClassIDHelper(
+          this->getIpAddress(),
+          this->kMacAddress(),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+    });
+  };
+
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  verifyClassIDs();
+
+  // first unresolve neighbor entry by moving it to pending state
+  this->sw_->getNeighborUpdater()->portDown(PortDescriptor(this->kPortID()));
+  this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(this->sw_);
+  waitForStateUpdates(this->sw_);
+
+  // emulating neighbor entry flap by resolve followed up by quick unresolve
+  this->resolveNeighbor(this->getIpAddress(), this->kMacAddress(), false);
+
+  // unresolve neighbor entry by moving it to pending state
+  this->sw_->getNeighborUpdater()->portDown(PortDescriptor(this->kPortID()));
+
+  // in the meanwhile,emulate busy state update thread by keep doing state
+  // snapshot
+  for (int i = 0; i < 1000; i++) {
+    std::shared_ptr<SwitchState> snapshot{nullptr};
+    auto snapshotUpdate = [&snapshot](const std::shared_ptr<SwitchState>& state)
+        -> std::shared_ptr<SwitchState> {
+      snapshot = state;
+      return nullptr;
+    };
+    this->sw_->updateStateNoCoalescing("snapshot update", snapshotUpdate);
+    usleep(100);
+  }
+
+  this->unresolveMac(this->kMacAddress());
+
+  this->resolve(this->getIpAddress(), this->kMacAddress());
   verifyClassIDs();
 }
 
