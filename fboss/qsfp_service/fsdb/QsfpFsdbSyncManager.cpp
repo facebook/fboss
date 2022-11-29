@@ -11,6 +11,7 @@
 #include "fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.h"
 
 #include "fboss/fsdb/common/Flags.h"
+#include "fboss/lib/phy/gen-cpp2/phy_fatal_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_state_fatal_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_stats_fatal_types.h"
 
@@ -94,6 +95,84 @@ void QsfpFsdbSyncManager::updateTcvrStats(std::map<int, TcvrStats>&& stats) {
         stats);
     return out;
   });
+}
+
+void QsfpFsdbSyncManager::updatePhyState(
+    std::string&& portName,
+    std::optional<phy::PhyState>&& newState) {
+  if (!FLAGS_publish_state_to_fsdb) {
+    return;
+  }
+
+  stateSyncer_->updateState([this,
+                             portName = std::move(portName),
+                             newState = std::move(newState)](const auto& in) {
+    auto out = in->clone();
+    out->template modify<state::qsfp_state_tags::strings::state>();
+    auto& state = out->template ref<state::qsfp_state_tags::strings::state>();
+    state->template modify<state::qsfp_state_tags::strings::phyStates>();
+    auto& phyStates =
+        state->template ref<state::qsfp_state_tags::strings::phyStates>();
+
+    if (newState.has_value()) {
+      phyStates->modify(portName);
+      phyStates->ref(portName)->fromThrift(newState.value());
+    } else {
+      phyStates->remove(portName);
+      if (phyStates->size() == 0) {
+        // Special case. If size is 0, we won't have any more stats update per
+        // port. But we still need to publish the empty stats.
+        pendingPhyStats_.clear();
+        updatePhyStats(std::move(pendingPhyStats_));
+      }
+    }
+
+    return out;
+  });
+}
+
+void QsfpFsdbSyncManager::updatePhyStats(PhyStatsMap&& stats) {
+  if (!FLAGS_publish_stats_to_fsdb) {
+    return;
+  }
+
+  statsSyncer_->updateState([stats = std::move(stats)](const auto& in) {
+    auto out = in->clone();
+    out->template modify<stats::qsfp_stats_tags::strings::phyStats>();
+    out->template ref<stats::qsfp_stats_tags::strings::phyStats>()->fromThrift(
+        stats);
+    return out;
+  });
+}
+
+void QsfpFsdbSyncManager::updatePhyStat(
+    std::string&& portName,
+    phy::PhyStats&& stat) {
+  pendingPhyStats_[portName] = stat;
+
+  // If we have stats for all ports with state, publish all accumulated stats.
+  const auto& qsfpData = stateSyncer_->getState();
+  const auto& state =
+      qsfpData->template cref<state::qsfp_state_tags::strings::state>();
+  const auto& phyStates =
+      state->template cref<state::qsfp_state_tags::strings::phyStates>();
+
+  // No need to check keys if we have less keys. More keys is fine. Maybe some
+  // port got deleted.
+  if (pendingPhyStats_.size() < phyStates->size()) {
+    return;
+  }
+
+  // Make sure we have stats for every port with a state
+  for (const auto& portState : std::as_const(*phyStates)) {
+    if (!pendingPhyStats_.count(portState.first)) {
+      return;
+    }
+  }
+
+  // We have stats for all ports. Publish pending stats. The move should wipe
+  // out our stats and we're ready to start over.
+  updatePhyStats(std::move(pendingPhyStats_));
 }
 
 } // namespace fboss
