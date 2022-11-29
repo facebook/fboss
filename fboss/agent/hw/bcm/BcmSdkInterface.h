@@ -567,6 +567,8 @@ class BcmSdkInterface {
   virtual void bcm_udf_pkt_format_info_t_init(
       bcm_udf_pkt_format_info_t* pkt_format) = 0;
 
+  virtual void bcm_udf_alloc_hints_t_init(bcm_udf_alloc_hints_t* udf_hints) = 0;
+
   virtual int bcm_cosq_bst_stat_sync(int unit, bcm_bst_stat_id_t bid) = 0;
   virtual int bcm_stat_custom_add(
       int unit,
