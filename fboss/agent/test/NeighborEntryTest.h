@@ -96,6 +96,14 @@ struct NeighborEntryTestUtil {
   }
 };
 
+template <typename DeltaVal>
+bool oldHasEncapIndx(const DeltaVal& delta) {
+  return delta.getOld() && delta.getOld()->getEncapIndex().has_value();
+}
+template <typename DeltaVal>
+bool newHasEncapIndx(const DeltaVal& delta) {
+  return delta.getNew() && delta.getNew()->getEncapIndex().has_value();
+}
 template <class IPTYPE>
 class WaitForNeighborEntryExpiration : public WaitForSwitchState {
   template <typename NeighborEntryDelta>
@@ -141,11 +149,17 @@ class WaitForNeighborEntryCreation : public WaitForSwitchState {
   template <typename NeighborEntryDelta>
   bool checkNeighborEntries(
       const NeighborEntryDelta& neighborEntryDelta,
-      bool pending) const {
+      bool pending,
+      bool checkEncapIndex = true) const {
     const auto& oldEntry = neighborEntryDelta.getOld();
     const auto& newEntry = neighborEntryDelta.getNew();
-    return (oldEntry == nullptr) && (newEntry != nullptr) &&
-        newEntry->isPending() == pending;
+    if (!newEntry) {
+      return false;
+    }
+    if (checkEncapIndex && (!pending && !newHasEncapIndx(neighborEntryDelta))) {
+      return false;
+    }
+    return (oldEntry == nullptr) && newEntry->isPending() == pending;
   }
 
  public:
@@ -184,9 +198,15 @@ template <class IPTYPE>
 class WaitForNeighborEntryPending : public WaitForSwitchState {
   template <typename NeighborEntryDelta>
   bool checkNeighborEntries(
-      const NeighborEntryDelta& neighborEntryDelta) const {
+      const NeighborEntryDelta& neighborEntryDelta,
+      bool checkEncapIndex = true) const {
     const auto& oldEntry = neighborEntryDelta.getOld();
     const auto& newEntry = neighborEntryDelta.getNew();
+    if (checkEncapIndex &&
+        (!oldHasEncapIndx(neighborEntryDelta) ||
+         newHasEncapIndx(neighborEntryDelta))) {
+      return false;
+    }
     return (oldEntry != nullptr) && (newEntry != nullptr) &&
         (!oldEntry->isPending()) && (newEntry->isPending());
   }
@@ -222,11 +242,18 @@ template <class IPTYPE>
 class WaitForNeighborEntryReachable : public WaitForSwitchState {
   template <typename NeighborEntryDelta>
   bool checkNeighborEntries(
-      const NeighborEntryDelta& neighborEntryDelta) const {
+      const NeighborEntryDelta& neighborEntryDelta,
+      bool checkEncapIndex = true) const {
     const auto& oldEntry = neighborEntryDelta.getOld();
     const auto& newEntry = neighborEntryDelta.getNew();
     if (!newEntry || newEntry->isPending()) {
       // New entry must be reachable
+      return false;
+    }
+    if (checkEncapIndex && !newHasEncapIndx(neighborEntryDelta)) {
+      return false;
+    }
+    if (checkEncapIndex && oldHasEncapIndx(neighborEntryDelta)) {
       return false;
     }
     // If there was a old entry it must be pending
