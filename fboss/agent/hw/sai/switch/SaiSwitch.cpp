@@ -1117,7 +1117,16 @@ void SaiSwitch::updatePmdInfo(
     phy::PhySideInfo& sideInfo,
     std::shared_ptr<SaiPort> port,
     [[maybe_unused]] phy::PmdInfo& lastPmdInfo) {
-  auto numPmdLanes = GET_ATTR(Port, HwLaneList, port->attributes()).size();
+  uint32_t numPmdLanes;
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_PORT_GET_PMD_LANES)) {
+    // HwLaneList might mean physical port list instead of pmd lane list on TH4
+    // So, use getNumPmdLanes() to get the number of pmd lanes
+    numPmdLanes =
+        managerTable_->portManager().getNumPmdLanes(port->adapterKey());
+  } else {
+    numPmdLanes = GET_ATTR(Port, HwLaneList, port->attributes()).size();
+  }
   if (!numPmdLanes) {
     return;
   }
