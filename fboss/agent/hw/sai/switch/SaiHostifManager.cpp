@@ -90,6 +90,14 @@ SaiHostifManager::packetReasonToHostifTrap(
     case cfg::PacketRxReason::MPLS_TTL_1:
       return std::make_pair(
           SAI_HOSTIF_TRAP_TYPE_MPLS_TTL_ERROR, SAI_PACKET_ACTION_TRAP);
+    case cfg::PacketRxReason::TTL_0:
+      if (platform->getAsic()->isSupported(
+              HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
+        return std::make_pair(
+            SAI_HOSTIF_TRAP_TYPE_TTL_ERROR, SAI_PACKET_ACTION_FORWARD);
+      }
+      // Trap is unsupported otherwise
+      break;
     case cfg::PacketRxReason::DHCPV6:
       return std::make_pair(
           SAI_HOSTIF_TRAP_TYPE_DHCPV6, SAI_PACKET_ACTION_TRAP);
@@ -104,42 +112,6 @@ SaiHostifManager::packetReasonToHostifTrap(
       break;
   }
   throw FbossError("invalid packet reason: ", reason);
-}
-
-cfg::PacketRxReason SaiHostifManager::hostifTrapToPacketReason(
-    sai_hostif_trap_type_t trapType) {
-  switch (trapType) {
-    case SAI_HOSTIF_TRAP_TYPE_ARP_REQUEST:
-      return cfg::PacketRxReason::ARP;
-    case SAI_HOSTIF_TRAP_TYPE_ARP_RESPONSE:
-      return cfg::PacketRxReason::ARP_RESPONSE;
-    case SAI_HOSTIF_TRAP_TYPE_IPV6_NEIGHBOR_DISCOVERY:
-      return cfg::PacketRxReason::NDP;
-    case SAI_HOSTIF_TRAP_TYPE_IP2ME:
-      return cfg::PacketRxReason::CPU_IS_NHOP;
-    case SAI_HOSTIF_TRAP_TYPE_DHCP:
-      return cfg::PacketRxReason::DHCP;
-    case SAI_HOSTIF_TRAP_TYPE_LLDP:
-      return cfg::PacketRxReason::LLDP;
-    case SAI_HOSTIF_TRAP_TYPE_BGP:
-      return cfg::PacketRxReason::BGP;
-    case SAI_HOSTIF_TRAP_TYPE_BGPV6:
-      return cfg::PacketRxReason::BGPV6;
-    case SAI_HOSTIF_TRAP_TYPE_LACP:
-      return cfg::PacketRxReason::LACP;
-    case SAI_HOSTIF_TRAP_TYPE_L3_MTU_ERROR:
-      return cfg::PacketRxReason::L3_MTU_ERROR;
-    case SAI_HOSTIF_TRAP_TYPE_TTL_ERROR:
-      return cfg::PacketRxReason::TTL_1;
-    case SAI_HOSTIF_TRAP_TYPE_MPLS_TTL_ERROR:
-      return cfg::PacketRxReason::MPLS_TTL_1;
-    case SAI_HOSTIF_TRAP_TYPE_DHCPV6:
-      return cfg::PacketRxReason::DHCPV6;
-    case SAI_HOSTIF_TRAP_TYPE_SAMPLEPACKET:
-      return cfg::PacketRxReason::SAMPLEPACKET;
-    default:
-      throw FbossError("invalid trap type: ", trapType);
-  }
 }
 
 SaiHostifTrapTraits::CreateAttributes

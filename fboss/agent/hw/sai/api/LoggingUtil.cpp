@@ -365,6 +365,8 @@ folly::StringPiece packetRxReasonToString(cfg::PacketRxReason rxReason) {
       return "ttl-error";
     case cfg::PacketRxReason::MPLS_TTL_1:
       return "mpls-ttl-error";
+    case cfg::PacketRxReason::TTL_0:
+      return "ttl0-error";
     case cfg::PacketRxReason::DHCPV6:
       return "dhcpv6";
     case cfg::PacketRxReason::SAMPLEPACKET:

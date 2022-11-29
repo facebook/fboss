@@ -804,6 +804,7 @@ enum PacketRxReason {
   MPLS_UNKNOWN_LABEL = 16, // SAI only for MPLS packet with unprogrammed label
   DHCPV6 = 17, // DHCPv6
   SAMPLEPACKET = 18, // Sample Packet
+  TTL_0 = 19, // Packets with TTL as 0
 }
 
 enum PortLoopbackMode {

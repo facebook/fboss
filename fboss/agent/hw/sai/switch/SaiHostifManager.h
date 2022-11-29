@@ -71,8 +71,6 @@ class SaiHostifManager {
   packetReasonToHostifTrap(
       cfg::PacketRxReason reason,
       const SaiPlatform* platform);
-  static cfg::PacketRxReason hostifTrapToPacketReason(
-      sai_hostif_trap_type_t trapType);
   static SaiHostifTrapTraits::CreateAttributes makeHostifTrapAttributes(
       cfg::PacketRxReason trapId,
       HostifTrapGroupSaiId trapGroupId,
