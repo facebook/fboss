@@ -98,6 +98,14 @@ struct NeighborEntryTestUtil {
 
 template <class IPTYPE>
 class WaitForNeighborEntryExpiration : public WaitForSwitchState {
+  template <typename NeighborEntryDelta>
+  bool checkNeighborEntries(
+      const NeighborEntryDelta& neighborEntryDelta) const {
+    const auto& oldEntry = neighborEntryDelta.getOld();
+    const auto& newEntry = neighborEntryDelta.getNew();
+    return (oldEntry != nullptr) && (newEntry == nullptr);
+  }
+
  public:
   WaitForNeighborEntryExpiration(
       SwSwitch* sw,
@@ -105,13 +113,24 @@ class WaitForNeighborEntryExpiration : public WaitForSwitchState {
       VlanID vlan = VlanID(1))
       : WaitForSwitchState(
             sw,
-            [ipAddress, vlan](const StateDelta& delta) {
+            [ipAddress, vlan, this](const StateDelta& delta) {
               const auto& neighborEntryDelta =
                   NeighborEntryTestUtil<IPTYPE>::getNeighborEntryDelta(
                       delta, ipAddress, vlan);
-              const auto& oldEntry = neighborEntryDelta.getOld();
-              const auto& newEntry = neighborEntryDelta.getNew();
-              return (oldEntry != nullptr) && (newEntry == nullptr);
+              return this->checkNeighborEntries(neighborEntryDelta);
+            },
+            "WaitForNeighborEntryExpiration@" + ipAddress.str()) {}
+  WaitForNeighborEntryExpiration(
+      SwSwitch* sw,
+      IPTYPE ipAddress,
+      InterfaceID intf)
+      : WaitForSwitchState(
+            sw,
+            [ipAddress, intf, this](const StateDelta& delta) {
+              const auto& neighborEntryDelta =
+                  NeighborEntryTestUtil<IPTYPE>::getNeighborEntryDelta(
+                      delta, ipAddress, intf);
+              return this->checkNeighborEntries(neighborEntryDelta);
             },
             "WaitForNeighborEntryExpiration@" + ipAddress.str()) {}
   ~WaitForNeighborEntryExpiration() {}
@@ -119,6 +138,16 @@ class WaitForNeighborEntryExpiration : public WaitForSwitchState {
 
 template <class IPTYPE>
 class WaitForNeighborEntryCreation : public WaitForSwitchState {
+  template <typename NeighborEntryDelta>
+  bool checkNeighborEntries(
+      const NeighborEntryDelta& neighborEntryDelta,
+      bool pending) const {
+    const auto& oldEntry = neighborEntryDelta.getOld();
+    const auto& newEntry = neighborEntryDelta.getNew();
+    return (oldEntry == nullptr) && (newEntry != nullptr) &&
+        newEntry->isPending() == pending;
+  }
+
  public:
   WaitForNeighborEntryCreation(
       SwSwitch* sw,
@@ -127,14 +156,25 @@ class WaitForNeighborEntryCreation : public WaitForSwitchState {
       bool pending = true)
       : WaitForSwitchState(
             sw,
-            [ipAddress, vlan, pending](const StateDelta& delta) {
+            [ipAddress, vlan, pending, this](const StateDelta& delta) {
               const auto& neighborEntryDelta =
                   NeighborEntryTestUtil<IPTYPE>::getNeighborEntryDelta(
                       delta, ipAddress, vlan);
-              const auto& oldEntry = neighborEntryDelta.getOld();
-              const auto& newEntry = neighborEntryDelta.getNew();
-              return (oldEntry == nullptr) && (newEntry != nullptr) &&
-                  newEntry->isPending() == pending;
+              return this->checkNeighborEntries(neighborEntryDelta, pending);
+            },
+            "WaitForNeighborEntryCreation@" + ipAddress.str()) {}
+  WaitForNeighborEntryCreation(
+      SwSwitch* sw,
+      IPTYPE ipAddress,
+      InterfaceID intf,
+      bool pending = true)
+      : WaitForSwitchState(
+            sw,
+            [ipAddress, intf, pending, this](const StateDelta& delta) {
+              const auto& neighborEntryDelta =
+                  NeighborEntryTestUtil<IPTYPE>::getNeighborEntryDelta(
+                      delta, ipAddress, intf);
+              return this->checkNeighborEntries(neighborEntryDelta, pending);
             },
             "WaitForNeighborEntryCreation@" + ipAddress.str()) {}
   ~WaitForNeighborEntryCreation() {}
@@ -142,6 +182,15 @@ class WaitForNeighborEntryCreation : public WaitForSwitchState {
 
 template <class IPTYPE>
 class WaitForNeighborEntryPending : public WaitForSwitchState {
+  template <typename NeighborEntryDelta>
+  bool checkNeighborEntries(
+      const NeighborEntryDelta& neighborEntryDelta) const {
+    const auto& oldEntry = neighborEntryDelta.getOld();
+    const auto& newEntry = neighborEntryDelta.getNew();
+    return (oldEntry != nullptr) && (newEntry != nullptr) &&
+        (!oldEntry->isPending()) && (newEntry->isPending());
+  }
+
  public:
   WaitForNeighborEntryPending(
       SwSwitch* sw,
@@ -149,14 +198,21 @@ class WaitForNeighborEntryPending : public WaitForSwitchState {
       VlanID vlan = VlanID(1))
       : WaitForSwitchState(
             sw,
-            [ipAddress, vlan](const StateDelta& delta) {
+            [ipAddress, vlan, this](const StateDelta& delta) {
               const auto& neighborEntryDelta =
                   NeighborEntryTestUtil<IPTYPE>::getNeighborEntryDelta(
                       delta, ipAddress, vlan);
-              const auto& oldEntry = neighborEntryDelta.getOld();
-              const auto& newEntry = neighborEntryDelta.getNew();
-              return (oldEntry != nullptr) && (newEntry != nullptr) &&
-                  (!oldEntry->isPending()) && (newEntry->isPending());
+              return this->checkNeighborEntries(neighborEntryDelta);
+            },
+            "WaitForNeighborEntryPending@" + ipAddress.str()) {}
+  WaitForNeighborEntryPending(SwSwitch* sw, IPTYPE ipAddress, InterfaceID intf)
+      : WaitForSwitchState(
+            sw,
+            [ipAddress, intf, this](const StateDelta& delta) {
+              const auto& neighborEntryDelta =
+                  NeighborEntryTestUtil<IPTYPE>::getNeighborEntryDelta(
+                      delta, ipAddress, intf);
+              return this->checkNeighborEntries(neighborEntryDelta);
             },
             "WaitForNeighborEntryPending@" + ipAddress.str()) {}
   ~WaitForNeighborEntryPending() {}
@@ -164,6 +220,19 @@ class WaitForNeighborEntryPending : public WaitForSwitchState {
 
 template <class IPTYPE>
 class WaitForNeighborEntryReachable : public WaitForSwitchState {
+  template <typename NeighborEntryDelta>
+  bool checkNeighborEntries(
+      const NeighborEntryDelta& neighborEntryDelta) const {
+    const auto& oldEntry = neighborEntryDelta.getOld();
+    const auto& newEntry = neighborEntryDelta.getNew();
+    if (!newEntry || newEntry->isPending()) {
+      // New entry must be reachable
+      return false;
+    }
+    // If there was a old entry it must be pending
+    return oldEntry ? oldEntry->isPending() : true;
+  }
+
  public:
   WaitForNeighborEntryReachable(
       SwSwitch* sw,
@@ -171,18 +240,26 @@ class WaitForNeighborEntryReachable : public WaitForSwitchState {
       VlanID vlan = VlanID(1))
       : WaitForSwitchState(
             sw,
-            [ipAddress, vlan](const StateDelta& delta) {
+            [ipAddress, vlan, this](const StateDelta& delta) {
               const auto& neighborEntryDelta =
                   NeighborEntryTestUtil<IPTYPE>::getNeighborEntryDelta(
                       delta, ipAddress, vlan);
-              const auto& oldEntry = neighborEntryDelta.getOld();
-              const auto& newEntry = neighborEntryDelta.getNew();
-              if (!newEntry || newEntry->isPending()) {
-                // New entry must be reachable
-                return false;
-              }
-              // If there was a old entry it must be pending
-              return oldEntry ? oldEntry->isPending() : true;
+
+              return this->checkNeighborEntries(neighborEntryDelta);
+            },
+            "WaitForNeighborEntryReachable@" + ipAddress.str()) {}
+  WaitForNeighborEntryReachable(
+      SwSwitch* sw,
+      IPTYPE ipAddress,
+      InterfaceID intf)
+      : WaitForSwitchState(
+            sw,
+            [ipAddress, intf, this](const StateDelta& delta) {
+              const auto& neighborEntryDelta =
+                  NeighborEntryTestUtil<IPTYPE>::getNeighborEntryDelta(
+                      delta, ipAddress, intf);
+
+              return this->checkNeighborEntries(neighborEntryDelta);
             },
             "WaitForNeighborEntryReachable@" + ipAddress.str()) {}
   ~WaitForNeighborEntryReachable() {}
