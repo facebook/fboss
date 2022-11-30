@@ -56,7 +56,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
   void disableTTLDecrements(const ECMP_HELPER& ecmpHelper) {
     for (const auto& nextHop :
          {ecmpHelper.nhop(portDesc1()), ecmpHelper.nhop(portDesc2())}) {
-      utility::disableTTLDecrements(
+      utility::ttlDecrementHandlingForLoopbackTraffic(
           getHwSwitch(), ecmpHelper.getRouterId(), nextHop);
     }
   }

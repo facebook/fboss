@@ -67,5 +67,21 @@ void disableTTLDecrements(
     throw FbossError("Disable decrement not supported");
   }
 }
+
+void enableTtlZeroPacketForwarding(HwSwitch* hw);
+
+template <typename EcmpNhopT>
+void ttlDecrementHandlingForLoopbackTraffic(
+    HwSwitch* hw,
+    RouterID routerId,
+    const EcmpNhopT& nhop) {
+  auto asic = hw->getPlatform()->getAsic();
+  if (asic->isSupported(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
+    enableTtlZeroPacketForwarding(hw);
+  } else {
+    disableTTLDecrements(hw, routerId, nhop);
+  }
+}
+
 } // namespace utility
 } // namespace facebook::fboss

@@ -45,4 +45,8 @@ void disableTTLDecrements(
 void disableTTLDecrements(HwSwitch* /*hw*/, const PortDescriptor& /*port*/) {
   throw FbossError("Port disable decrement not supported on BRCM ASICs");
 }
+
+void enableTtlZeroPacketForwarding(HwSwitch* /*hw*/) {
+  throw FbossError("TTL0 packet forwarding not supported!");
+}
 } // namespace facebook::fboss::utility
