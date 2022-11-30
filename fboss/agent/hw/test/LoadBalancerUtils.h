@@ -33,6 +33,7 @@ namespace facebook::fboss::utility {
 
 cfg::LoadBalancer getEcmpHalfHashConfig(const Platform* platform);
 cfg::LoadBalancer getEcmpFullHashConfig(const Platform* platform);
+cfg::LoadBalancer getEcmpFullUdfHashConfig(const Platform* platform);
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig(
     const Platform* platform);
 std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig(
@@ -58,6 +59,15 @@ void pumpTraffic(
     std::optional<PortID> frontPanelPortToLoopTraffic = std::nullopt,
     int hopLimit = 255,
     std::optional<folly::MacAddress> srcMac = std::nullopt);
+
+void pumpRoCETraffic(
+    bool isV6,
+    HwSwitch* hw,
+    folly::MacAddress dstMac,
+    std::optional<VlanID> vlan,
+    std::optional<PortID> frontPanelPortToLoopTraffic,
+    int hopLimit = 255,
+    std::optional<folly::MacAddress> srcMacAddr = std::nullopt);
 
 void pumpTraffic(
     HwSwitch* hw,
@@ -137,5 +147,7 @@ bool pumpTrafficAndVerifyLoadBalanced(
     std::function<void()> clearPortStats,
     std::function<bool()> isLoadBalanced,
     int retries = 3);
+
+cfg::UdfConfig addUdfConfig();
 
 } // namespace facebook::fboss::utility

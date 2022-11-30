@@ -90,6 +90,17 @@ class HwIpEcmpDataPlaneTestUtil
 };
 
 template <typename AddrT>
+class HwIpRoCEEcmpDataPlaneTestUtil : public HwIpEcmpDataPlaneTestUtil<AddrT> {
+ public:
+  using BaseT = HwIpEcmpDataPlaneTestUtil<AddrT>;
+
+  HwIpRoCEEcmpDataPlaneTestUtil(HwSwitchEnsemble* ensemble, RouterID vrf);
+
+  /* pump IP traffic */
+  void pumpTrafficThroughPort(std::optional<PortID> port) override;
+};
+
+template <typename AddrT>
 class HwMplsEcmpDataPlaneTestUtil
     : public HwEcmpDataPlaneTestUtil<MplsEcmpSetupAnyNPorts<AddrT>> {
  public:
@@ -118,5 +129,9 @@ using HwMplsV4EcmpDataPlaneTestUtil =
     HwMplsEcmpDataPlaneTestUtil<folly::IPAddressV4>;
 using HwMplsV6EcmpDataPlaneTestUtil =
     HwMplsEcmpDataPlaneTestUtil<folly::IPAddressV6>;
+using HwIpV6RoCEEcmpDataPlaneTestUtil =
+    HwIpRoCEEcmpDataPlaneTestUtil<folly::IPAddressV6>;
+using HwIpV4RoCEEcmpDataPlaneTestUtil =
+    HwIpRoCEEcmpDataPlaneTestUtil<folly::IPAddressV4>;
 
 } // namespace facebook::fboss::utility
