@@ -447,6 +447,17 @@ class ThriftStructNode
     return this->getFields()->template cref<Name>();
   }
 
+  // prefer wrapped_ref/wrapped_cref for safe access
+  template <typename Name>
+  auto wrapped_ref() {
+    return detail::ref(this->writableFields()->template ref<Name>());
+  }
+
+  template <typename Name>
+  auto wrapped_cref() const {
+    return detail::cref(this->getFields()->template cref<Name>());
+  }
+
   template <typename Name, typename... Args>
   auto& constructMember(Args&&... args) {
     return this->writableFields()->template constructMember<Name>(

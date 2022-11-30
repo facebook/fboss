@@ -10,7 +10,64 @@
 
 #pragma once
 
+#include <functional>
+#include <memory>
+#include <optional>
+
 namespace facebook::fboss::thrift_cow {
+
+namespace detail {
+
+template <typename Type>
+struct ReferenceWrapper : std::reference_wrapper<Type> {
+  using Base = std::reference_wrapper<Type>;
+  using Base::Base;
+
+  template <
+      typename T = Type,
+      std::enable_if_t<!std::is_const_v<T>, bool> = true>
+  auto& operator*() {
+    return *(this->get());
+  }
+
+  template <
+      typename T = Type,
+      std::enable_if_t<std::is_const_v<T>, bool> = true>
+  const auto& operator*() const {
+    return std::as_const(*(this->get()));
+  }
+
+  template <
+      typename T = Type,
+      std::enable_if_t<!std::is_const_v<T>, bool> = true>
+  auto* operator->() {
+    return std::addressof(**this);
+  }
+
+  template <
+      typename T = Type,
+      std::enable_if_t<std::is_const_v<T>, bool> = true>
+  const auto* operator->() const {
+    return std::addressof(**this);
+  }
+
+  template <
+      typename T = Type,
+      std::enable_if_t<!std::is_const_v<T>, bool> = true>
+  void reset() {
+    this->get().reset();
+  }
+
+  explicit operator bool() const {
+    return bool(this->get());
+  }
+
+  auto& unwrap() const {
+    return this->get();
+  }
+};
+
+} // namespace detail
 
 // used to denote node vs field types
 struct NodeType {};

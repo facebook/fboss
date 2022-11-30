@@ -180,4 +180,17 @@ using TypeIdentity = std::enable_if<true, T>;
 template <typename T>
 using TypeIdentity = std::type_identity<T>;
 #endif
+
+namespace detail {
+template <typename Type>
+detail::ReferenceWrapper<Type> ref(Type& obj) {
+  return ReferenceWrapper<Type>(obj);
+}
+
+template <typename Type>
+ReferenceWrapper<const Type> cref(const Type& obj) {
+  return detail::ReferenceWrapper<const Type>(obj);
+}
+} // namespace detail
+
 } // namespace facebook::fboss::thrift_cow

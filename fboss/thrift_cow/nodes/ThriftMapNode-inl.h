@@ -335,6 +335,15 @@ class ThriftMapNode
     return this->getFields()->cref(key);
   }
 
+  // prefer wrapped_ref/wrapped_cref for safe access
+  auto wrapped_ref(key_type key) {
+    return detail::ref(this->writableFields()->ref(key));
+  }
+
+  auto wrapped_cref(key_type key) const {
+    return detail::cref(this->getFields()->cref(key));
+  }
+
   std::pair<typename Fields::iterator, bool> insert(
       key_type key,
       value_type&& val) {

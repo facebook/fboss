@@ -536,3 +536,41 @@ TEST(ThriftListNodeTests, ThriftListNodeStructsRemove) {
   // verify incompatible key string also fails
   ASSERT_FALSE(node->remove("incompatible"));
 }
+
+TEST(ThriftListNodeTests, ThriftListConstness) {
+  ThriftStructNode<TestStruct> node;
+  node.ref<k::listOfPrimitives>()->fromThrift({});
+  node.publish();
+  const auto& list = node.cref<k::listOfPrimitives>();
+  auto fn = [list]() {
+    for (const auto& item : *list) {
+      // Check failed: !isPublished() from begin
+    }
+  };
+  ASSERT_DEATH(fn(), "");
+}
+
+TEST(ThriftListNodeTests, Cref) {
+  ThriftStructNode<TestStruct> node;
+  node.ref<k::listOfPrimitives>()->fromThrift({});
+  node.publish();
+  auto constWrappedRef = node.wrapped_cref<k::listOfPrimitives>();
+  ASSERT_TRUE(
+      std::is_const_v<std::remove_reference_t<decltype(*constWrappedRef)>>);
+  // ASSERT_NO_DEATH
+  for (auto& item : *constWrappedRef) {
+  }
+
+  ThriftStructNode<TestStruct> anotherNode;
+  auto wrappedRef = anotherNode.wrapped_ref<k::listOfPrimitives>();
+  anotherNode.publish();
+  auto gn = [&wrappedRef]() { wrappedRef->writableFields(); };
+  ASSERT_DEATH(gn(), "");
+
+  auto fn = [&node]() {
+    for (auto& item : *(node.wrapped_ref<k::listOfPrimitives>())) {
+      // Check failed: !isPublished() from begin
+    }
+  };
+  ASSERT_DEATH(fn(), "");
+}

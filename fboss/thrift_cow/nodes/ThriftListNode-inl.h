@@ -274,6 +274,15 @@ class ThriftListNode : public NodeBaseT<
     return this->getFields()->cref(index);
   }
 
+  // prefer wrapped_ref/wrapped_cref for safe access
+  auto wrapped_ref(std::size_t index) {
+    return detail::ref(this->writableFields()->ref(index));
+  }
+
+  auto wrapped_cref(std::size_t index) const {
+    return detail::cref(this->getFields()->cref(index));
+  }
+
   template <typename... Args>
   typename Fields::iterator emplace(
       typename Fields::const_iterator pos,

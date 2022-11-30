@@ -465,6 +465,17 @@ class ThriftUnionNode
     return this->getFields()->template cref<Name>();
   }
 
+  // prefer wrapped_ref/wrapped_cref for safe access
+  template <typename Name>
+  auto wrapped_ref() {
+    return detail::ref(this->writableFields()->template ref<Name>());
+  }
+
+  template <typename Name>
+  auto wrapped_cref() const {
+    return detail::cref(this->getFields()->template cref<Name>());
+  }
+
   template <typename Name>
   bool remove() {
     // TODO: what to do when removing a member that isn't set? Should

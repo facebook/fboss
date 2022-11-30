@@ -454,3 +454,37 @@ TEST(ThriftStructNodeTests, UnsignedInteger) {
       decltype(*fields.get<k::unsigned_int64>())>::ThriftType;
   static_assert(std::is_same_v<UnderlyingType, uint64_t>);
 }
+
+TEST(ThriftStructNodeTests, ReferenceWrapper) {
+  auto portRange = buildPortRange(100, 999);
+
+  TestUnion unionData;
+  unionData.inlineString_ref() = "UnionData";
+
+  TestStruct data;
+  data.inlineBool() = true;
+  data.inlineInt() = 123;
+  data.inlineString() = "HelloThere";
+  data.inlineStruct() = std::move(portRange);
+  data.inlineVariant() = std::move(unionData);
+
+  auto node = std::make_shared<ThriftStructNode<TestStruct>>(data);
+
+  using NodeType = decltype(node);
+  auto ref = detail::ReferenceWrapper<NodeType>(node);
+
+  ref->set<k::inlineInt>(124);
+  (*ref).set<k::inlineBool>(false);
+
+  EXPECT_EQ(node->get<k::inlineInt>(), 124);
+  EXPECT_EQ(node->get<k::inlineBool>(), false);
+
+  auto& node0 = *ref;
+
+  EXPECT_EQ(&node0, node.get());
+
+  ref.reset();
+  EXPECT_EQ(node, nullptr);
+
+  EXPECT_FALSE(ref);
+}
