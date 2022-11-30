@@ -123,39 +123,57 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     }
   }
 
-  void setupHelper() {
-    auto newCfg{initialConfig()};
-    setupPfc(
-        newCfg,
-        {masterLogicalInterfacePortIds()[0],
-         masterLogicalInterfacePortIds()[1]});
+  void setupBufferPoolConfig(
+      std::map<std::string, cfg::BufferPoolConfig>& bufferPoolCfgMap,
+      int globalSharedBytes,
+      int globalHeadroomBytes) {
+    cfg::BufferPoolConfig poolConfig;
+    // provide small shared buffer size
+    // idea is to hit the limit and trigger XOFF (PFC)
+    poolConfig.sharedBytes() = globalSharedBytes;
+    poolConfig.headroomBytes() = globalHeadroomBytes;
+    bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
+  }
 
+  void setupPortPgConfig(
+      std::map<std::string, std::vector<cfg::PortPgConfig>>& portPgConfigMap,
+      int pgLimit,
+      int pgHeadroom) {
     std::vector<cfg::PortPgConfig> portPgConfigs;
-    std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-
     // create 2 pgs
     for (auto pgId = 0; pgId < 2; ++pgId) {
       cfg::PortPgConfig pgConfig;
       pgConfig.id() = pgId;
       pgConfig.bufferPoolName() = "bufferNew";
       // provide atleast 1 cell worth of minLimit
-      pgConfig.minLimitBytes() = 2200;
+      pgConfig.minLimitBytes() = pgLimit;
       // set large enough headroom to avoid drop
-      pgConfig.headroomLimitBytes() = 293624;
+      pgConfig.headroomLimitBytes() = pgHeadroom;
       portPgConfigs.emplace_back(pgConfig);
     }
 
     portPgConfigMap["foo"] = portPgConfigs;
+  }
+
+  void setupBuffers(
+      int globalSharedBytes = 20000,
+      int globalHeadroomBytes = 4771136,
+      int pgLimit = 2200,
+      int pgHeadroom = 293624) {
+    auto newCfg{initialConfig()};
+    setupPfc(
+        newCfg,
+        {masterLogicalInterfacePortIds()[0],
+         masterLogicalInterfacePortIds()[1]});
+
+    std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
+    setupPortPgConfig(portPgConfigMap, pgLimit, pgHeadroom);
     newCfg.portPgConfigs() = portPgConfigMap;
 
     // create buffer pool
     std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
-    cfg::BufferPoolConfig poolConfig;
-    // provide small shared buffer size
-    // idea is to hit the limit and trigger XOFF (PFC)
-    poolConfig.sharedBytes() = 20000;
-    poolConfig.headroomBytes() = 4771136;
-    bufferPoolCfgMap.insert(std::make_pair("bufferNew", poolConfig));
+    setupBufferPoolConfig(
+        bufferPoolCfgMap, globalSharedBytes, globalHeadroomBytes);
     newCfg.bufferPoolConfigs() = bufferPoolCfgMap;
     cfg_ = newCfg;
     applyNewConfig(newCfg);
@@ -179,6 +197,11 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     int txPfcCtr = 0, rxPfcCtr = 0;
     // no need to retry if looking for baseline counter
     for (const auto& portId : portIds) {
+      auto portStats = getHwSwitchEnsemble()->getLatestPortStats(portId);
+      auto ingressDropRaw = *portStats.inDiscardsRaw_();
+      XLOG(DBG0) << " validateInitPfcCounters: Port: " << portId
+                 << " IngressDropRaw: " << ingressDropRaw;
+      EXPECT_TRUE(ingressDropRaw == 0);
       std::tie(txPfcCtr, rxPfcCtr) = getTxRxPfcCounters(portId, pfcPriority);
       EXPECT_TRUE((txPfcCtr == 0) && (rxPfcCtr == 0));
     }
@@ -212,8 +235,18 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     }
   }
 
+  void validateIngressDropCounters(const std::vector<PortID>& portIds) {
+    for (const auto& portId : portIds) {
+      auto portStats = getHwSwitchEnsemble()->getLatestPortStats(portId);
+      auto ingressDropRaw = *portStats.inDiscardsRaw_();
+      XLOG(DBG0) << " validateIngressDropCounters: Port: " << portId
+                 << " IngressDropRaw: " << ingressDropRaw;
+      EXPECT_GT(ingressDropRaw, 0);
+    }
+  }
+
  protected:
-  void runTest(const int trafficClass, const int pfcPriority) {
+  void runTestWithDefaultPfcCfg(const int trafficClass, const int pfcPriority) {
     auto setup = [&]() {
       setupConfigAndEcmpTraffic();
       validateInitPfcCounters(
@@ -237,8 +270,61 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void setupConfigAndEcmpTraffic() {
-    setupHelper();
+  void runTestWithGlobalHeadRoomCfgToZero(
+      const int trafficClass,
+      const int pfcPriority) {
+    auto setup = [&]() {
+      setupBuffers(
+          20000, /* globalSharedBytes */
+          0, /* globalHeadroom */
+          2200, /* pgLimit */
+          293624 /* pgHeadroom */);
+      setupEcmpTraffic();
+      validateInitPfcCounters(
+          {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, pfcPriority);
+    };
+    auto verify = [&]() {
+      // ensure counter is 0 before we start traffic
+      pumpTraffic(trafficClass);
+      // ensure counter is > 0, after the traffic
+      validatePfcCounters(
+          pfcPriority, {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+      // stop traffic so that unconfiguration can happen without issues
+      stopTraffic({masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+      validateIngressDropCounters(
+          {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void runTestWithPgHeadRoomCfgToZero(
+      const int trafficClass,
+      const int pfcPriority) {
+    auto setup = [&]() {
+      setupBuffers(
+          20000, /* globalSharedBytes */
+          4771136, /* globalHeadroom */
+          2200, /* pgLimit */
+          0 /* pgHeadroom */);
+      setupEcmpTraffic();
+      validateInitPfcCounters(
+          {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, pfcPriority);
+    };
+    auto verify = [&]() {
+      // ensure counter is 0 before we start traffic
+      pumpTraffic(trafficClass);
+      // ensure counter is > 0, after the traffic
+      validatePfcCounters(
+          pfcPriority, {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+      // stop traffic so that unconfiguration can happen without issues
+      stopTraffic({masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+      validateIngressDropCounters(
+          {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+
+  void setupEcmpTraffic() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper6{
         getProgrammedState(), getIntfMac()};
     setupECMPForwarding(
@@ -250,6 +336,11 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
         PortDescriptor(masterLogicalPortIds()[1]),
         {kDestIp2(), 128});
     disableTTLDecrements(ecmpHelper6);
+  }
+
+  void setupConfigAndEcmpTraffic() {
+    setupBuffers();
+    setupEcmpTraffic();
   }
 
  public:
@@ -365,7 +456,19 @@ TEST_F(HwTrafficPfcTest, verifyPfcDefault) {
   // default to map dscp to priority = 0
   const int trafficClass = 0;
   const int pfcPriority = 0;
-  runTest(trafficClass, pfcPriority);
+  runTestWithDefaultPfcCfg(trafficClass, pfcPriority);
+}
+
+TEST_F(HwTrafficPfcTest, verifyPfcWithGlobalHeadRoomToZero) {
+  const int trafficClass = 0;
+  const int pfcPriority = 0;
+  runTestWithGlobalHeadRoomCfgToZero(trafficClass, pfcPriority);
+}
+
+TEST_F(HwTrafficPfcTest, verifyPfcWithPGHeadRoomToZero) {
+  const int trafficClass = 0;
+  const int pfcPriority = 0;
+  runTestWithPgHeadRoomCfgToZero(trafficClass, pfcPriority);
 }
 
 // intent of this test is to send traffic so that it maps to
@@ -376,7 +479,7 @@ TEST_F(HwTrafficPfcTest, verifyPfcWithMapChanges_0) {
   const int trafficClass = 0;
   const int pfcPriority = 1;
   tc2PgOverride.insert(std::make_pair(0, 1));
-  runTest(trafficClass, pfcPriority);
+  runTestWithDefaultPfcCfg(trafficClass, pfcPriority);
 }
 
 // intent of this test is to send traffic so that it maps to
@@ -387,7 +490,7 @@ TEST_F(HwTrafficPfcTest, verifyPfcWithMapChanges_1) {
   const int trafficClass = 7;
   const int pfcPriority = 0;
   tc2PgOverride.insert(std::make_pair(7, 0));
-  runTest(trafficClass, pfcPriority);
+  runTestWithDefaultPfcCfg(trafficClass, pfcPriority);
 }
 
 // intent of this test is to setup watchdog for the PFC
