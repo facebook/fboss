@@ -29,6 +29,13 @@ BcmUdfGroup::BcmUdfGroup(
 
 BcmUdfGroup::~BcmUdfGroup() {
   XLOG(DBG2) << "Destroying BcmUdfGroup";
+
+  // Detach the udfPacketMatchedIds associated with the UdfGroup
+  for (auto packetMatcherId : udfPacketMatcherIds_) {
+    udfPacketMatcherDelete(packetMatcherId.first, packetMatcherId.second);
+  }
+
+  // Delete the udfGroup
   udfDelete(udfId_);
 }
 
@@ -63,6 +70,49 @@ int BcmUdfGroup::udfDelete(bcm_udf_id_t udfId) {
     return rv;
   }
 
+  return rv;
+}
+
+int BcmUdfGroup::udfPacketMatcherAdd(
+    bcm_udf_pkt_format_id_t packetMatcherId,
+    const std::string& udfPacketMatcherName) {
+  int rv = 0;
+  /*Attach both UDF id  to packet matcher id */
+  rv = bcm_udf_pkt_format_add(hw_->getUnit(), udfId_, packetMatcherId);
+  if (BCM_FAILURE(rv)) {
+    printf(
+        "bcm_udf_pkt_format_add() failed to attach  for udf %s udfId %d to pkt_format %s pkt_format_id %d\n",
+        udfGroupName_.c_str(),
+        udfId_,
+        udfPacketMatcherName.c_str(),
+        packetMatcherId);
+    return rv;
+  }
+
+  udfPacketMatcherIds_.insert({packetMatcherId, udfPacketMatcherName});
+  return rv;
+}
+
+int BcmUdfGroup::udfPacketMatcherDelete(
+    bcm_udf_pkt_format_id_t packetMatcherId,
+    const std::string& udfPacketMatcherName) {
+  int rv = 0;
+  /* AAttach both UDF id  to packet matcher id */
+  rv = bcm_udf_pkt_format_delete(hw_->getUnit(), udfId_, packetMatcherId);
+  if (BCM_FAILURE(rv)) {
+    printf(
+        "bcm_udf_pkt_format_delete() failed to detach for udf %s udfId %d to pkt_format %s pkt_format_id %d\n",
+        udfGroupName_.c_str(),
+        udfId_,
+        udfPacketMatcherName.c_str(),
+        packetMatcherId);
+    return rv;
+  }
+
+  auto itr = udfPacketMatcherIds_.find(packetMatcherId);
+  if (itr != udfPacketMatcherIds_.end()) {
+    udfPacketMatcherIds_.erase(itr);
+  }
   return rv;
 }
 

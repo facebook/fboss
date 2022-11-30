@@ -35,18 +35,25 @@ class BcmUdfGroup {
     return udfId_;
   }
 
+  std::map<bcm_udf_pkt_format_id_t, std::string> getUdfPacketMatcherIds() {
+    return udfPacketMatcherIds_;
+  }
+
+  int udfPacketMatcherAdd(
+      bcm_udf_pkt_format_id_t packetMatcherId,
+      const std::string& udfPacketMatcherName);
+  int udfPacketMatcherDelete(
+      bcm_udf_pkt_format_id_t packetMatcherId,
+      const std::string& udfPacketMatcherName);
+
  private:
   int udfCreate(bcm_udf_t* udfInfo);
   int udfDelete(bcm_udf_id_t udfId);
 
-  int udfPktFormatAdd(bcm_udf_id_t udfId, bcm_udf_pkt_format_id_t pktFormatId);
-  int udfPktFormatDelete(
-      bcm_udf_id_t udfId,
-      bcm_udf_pkt_format_id_t pktFormatId);
-
   BcmSwitch* hw_;
   bcm_udf_id_t udfId_ = 0;
   std::string udfGroupName_;
+  std::map<bcm_udf_pkt_format_id_t, std::string> udfPacketMatcherIds_;
 };
 
 } // namespace facebook::fboss
