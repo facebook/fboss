@@ -19,6 +19,11 @@
 
 using namespace facebook::fboss;
 
+namespace {
+// udf is applied on srcmod/srcport fields
+constexpr int kUdfHashFields = BCM_HASH_FIELD_SRCMOD | BCM_HASH_FIELD_SRCPORT;
+} // unnamed namespace
+
 namespace facebook::fboss {
 
 class BcmRtag7Test : public BcmTest {
@@ -61,6 +66,17 @@ class BcmRtag7Test : public BcmTest {
         kTransportFields_,
         kMplsFields_,
         kNoUdfGroupIds_);
+  }
+
+  std::shared_ptr<SwitchState> setupFullEcmpUdfHash() {
+    auto noMplsFields = LoadBalancer::MPLSFields{};
+    return setupHash(
+        LoadBalancerID::ECMP,
+        kV4Fields_,
+        kV6FieldsNoFlowLabel_,
+        kTransportFields_,
+        std::move(noMplsFields),
+        kUdfGroupIds_);
   }
 
   std::shared_ptr<SwitchState> setupHash(
@@ -144,8 +160,74 @@ class BcmRtag7Test : public BcmTest {
       LoadBalancer::MPLSField::THIRD_LABEL};
 
   const LoadBalancer::UdfGroupIds kNoUdfGroupIds_{};
+  const LoadBalancer::UdfGroupIds kUdfGroupIds_{"udf_group_1"};
   static constexpr auto kEcmpSeed = 0x7E57EDA;
   static constexpr auto kTrunkSeed = 0x7E57EDB;
+};
+
+TEST_F(BcmRtag7Test, programUdfLoadBalancerMap) {
+  auto setupUdfLoadBalancers = [=]() { applyNewState(setupFullEcmpUdfHash()); };
+  auto verifyUdfLoadBalancers = [=]() {
+    const int v4HalfHash = BCM_HASH_FIELD_IP4SRC_LO | BCM_HASH_FIELD_IP4SRC_HI |
+        BCM_HASH_FIELD_IP4DST_LO | BCM_HASH_FIELD_IP4DST_HI;
+    const int v4FullHash =
+        v4HalfHash | BCM_HASH_FIELD_SRCL4 | BCM_HASH_FIELD_DSTL4;
+    const int udfV4FullHash = v4FullHash | kUdfHashFields;
+
+    const int v6HalfHash = BCM_HASH_FIELD_IP6SRC_LO | BCM_HASH_FIELD_IP6SRC_HI |
+        BCM_HASH_FIELD_IP6DST_LO | BCM_HASH_FIELD_IP6DST_HI;
+    const int v6FullHash =
+        v6HalfHash | BCM_HASH_FIELD_SRCL4 | BCM_HASH_FIELD_DSTL4;
+    const int udfV6FullHash = v6FullHash | kUdfHashFields;
+
+    utility::assertSwitchControl(
+        bcmSwitchHashIP4TcpUdpPortsEqualField0, udfV4FullHash);
+    utility::assertSwitchControl(bcmSwitchHashIP6Field0, udfV6FullHash);
+    utility::assertSwitchControl(bcmSwitchHashIP4TcpUdpField0, udfV4FullHash);
+    utility::assertSwitchControl(bcmSwitchHashIP6TcpUdpField0, udfV6FullHash);
+    utility::assertSwitchControl(
+        bcmSwitchHashIP4TcpUdpPortsEqualField0, udfV4FullHash);
+    utility::assertSwitchControl(
+        bcmSwitchHashIP6TcpUdpPortsEqualField0, udfV6FullHash);
+    // ensure udf hash is enabled
+    utility::assertSwitchControl(
+        bcmSwitchUdfHashEnable, BCM_HASH_FIELD0_ENABLE_UDFHASH);
+  };
+
+  verifyAcrossWarmBoots(setupUdfLoadBalancers, verifyUdfLoadBalancers);
+};
+
+TEST_F(BcmRtag7Test, unprogramUdfLoadBalancerMap) {
+  auto setupUndoUdfLoadBalancers = [=]() {
+    applyNewState(setupFullEcmpUdfHash());
+    // undo udf hashing
+    applyNewState(setupFullEcmpHash());
+  };
+  auto verifyUndoUdfLoadBalancers = [=]() {
+    const int v4HalfHash = BCM_HASH_FIELD_IP4SRC_LO | BCM_HASH_FIELD_IP4SRC_HI |
+        BCM_HASH_FIELD_IP4DST_LO | BCM_HASH_FIELD_IP4DST_HI;
+    const int v4FullHash =
+        v4HalfHash | BCM_HASH_FIELD_SRCL4 | BCM_HASH_FIELD_DSTL4;
+
+    const int v6HalfHash = BCM_HASH_FIELD_IP6SRC_LO | BCM_HASH_FIELD_IP6SRC_HI |
+        BCM_HASH_FIELD_IP6DST_LO | BCM_HASH_FIELD_IP6DST_HI;
+    const int v6FullHash =
+        v6HalfHash | BCM_HASH_FIELD_SRCL4 | BCM_HASH_FIELD_DSTL4;
+
+    utility::assertSwitchControl(
+        bcmSwitchHashIP4TcpUdpPortsEqualField0, v4FullHash);
+    utility::assertSwitchControl(bcmSwitchHashIP6Field0, v6FullHash);
+    utility::assertSwitchControl(bcmSwitchHashIP4TcpUdpField0, v4FullHash);
+    utility::assertSwitchControl(bcmSwitchHashIP6TcpUdpField0, v6FullHash);
+    utility::assertSwitchControl(
+        bcmSwitchHashIP4TcpUdpPortsEqualField0, v4FullHash);
+    utility::assertSwitchControl(
+        bcmSwitchHashIP6TcpUdpPortsEqualField0, v6FullHash);
+    // ensure udf hash is disabled
+    utility::assertSwitchControl(bcmSwitchUdfHashEnable, 0);
+  };
+
+  verifyAcrossWarmBoots(setupUndoUdfLoadBalancers, verifyUndoUdfLoadBalancers);
 };
 
 TEST_F(BcmRtag7Test, programLoadBalancerMap) {
