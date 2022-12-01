@@ -1,0 +1,76 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+#include "fboss/agent/hw/bcm/BcmUdfManager.h"
+#include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
+
+namespace facebook::fboss {
+// createUdfPacketMatcher
+void BcmUdfManager::createUdfPacketMatcher(
+    const std::string& udfPacketMatcherName,
+    const std::shared_ptr<UdfPacketMatcher>& udfPacketMatcher) {
+  auto bcmUdfPacketMatcher =
+      make_shared<BcmUdfPacketMatcher>(hw_, udfPacketMatcher);
+  udfPacketMatcherMap_.insert({udfPacketMatcherName, bcmUdfPacketMatcher});
+}
+
+// createUdfPacketMatchers adds BcmUdfPacketMatcher to udfPacketMatcherMap_
+void BcmUdfManager::createUdfPacketMatchers(
+    const std::shared_ptr<UdfPacketMatcherMap>& udfPacketMatcherMap) {
+  for (auto udfPacketMatcherElem : *udfPacketMatcherMap) {
+    createUdfPacketMatcher(
+        udfPacketMatcherElem.first, udfPacketMatcherElem.second);
+  }
+}
+
+// Attach UdfPacketMatcher to UdfGroup
+void BcmUdfManager::attachUdfPacketMatcher(
+    std::shared_ptr<BcmUdfGroup>& bcmUdfGroup,
+    const std::string& udfPacketMatcherName) {
+  auto udfPacketMatcher = udfPacketMatcherMap_.find(udfPacketMatcherName);
+  if (udfPacketMatcher != udfPacketMatcherMap_.end()) {
+    auto packetMatcherId = udfPacketMatcher->second->getUdfPacketMatcherId();
+    bcmUdfGroup->udfPacketMatcherAdd(packetMatcherId, udfPacketMatcherName);
+  } else {
+    throw FbossError(
+        "udfPacketMatcher=",
+        udfPacketMatcherName,
+        " not found in udfPacketMatcherMap");
+  }
+}
+
+// createUdfGroup
+void BcmUdfManager::createUdfGroup(
+    const std::string& udfGroupName,
+    const std::shared_ptr<UdfGroup>& udfGroup) {
+  auto bcmUdfGroup = make_shared<BcmUdfGroup>(hw_, udfGroup);
+  for (auto udfPacketMatcherName : udfGroup->getUdfPacketMatcherIds()) {
+    attachUdfPacketMatcher(bcmUdfGroup, udfPacketMatcherName);
+    XLOG(DBG2) << "udfGroup=" << udfGroupName
+               << "attached to udfPacketMatcher=" << udfPacketMatcherName;
+  }
+  udfGroupsMap_.insert({udfGroupName, bcmUdfGroup});
+}
+
+// createUdfGroups associates BcmUdfPacketMatchers to BcmUdfGroup and adds
+// BcmUdfGroup to UdfGroupMap
+void BcmUdfManager::createUdfGroups(
+    const std::shared_ptr<UdfGroupMap>& udfGroupMap) {
+  for (auto udfGroupElem : *udfGroupMap) {
+    createUdfGroup(udfGroupElem.first, udfGroupElem.second);
+  }
+}
+
+BcmUdfManager::~BcmUdfManager() {
+  XLOG(DBG2) << "Destroying BcmUdfGroup";
+}
+
+} // namespace facebook::fboss
