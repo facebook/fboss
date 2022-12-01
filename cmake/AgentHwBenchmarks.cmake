@@ -184,6 +184,17 @@ target_link_libraries(hw_teflow_scale_del
   Folly::folly
 )
 
+add_library(hw_teflow_stats_collection_speed
+  fboss/agent/hw/benchmarks/HwTeFlowStatsCollectionBenchmark.cpp
+)
+
+target_link_libraries(hw_teflow_stats_collection_speed
+  config_factory
+  hw_teflow_utils
+  hw_benchmark_main
+  Folly::folly
+)
+
 add_library(hw_ecmp_shrink_speed
   fboss/agent/hw/benchmarks/HwEcmpShrinkSpeedBenchmark.cpp
 )
