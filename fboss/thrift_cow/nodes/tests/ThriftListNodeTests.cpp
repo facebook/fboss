@@ -554,7 +554,7 @@ TEST(ThriftListNodeTests, Cref) {
   ThriftStructNode<TestStruct> node;
   node.ref<k::listOfPrimitives>()->fromThrift({});
   node.publish();
-  auto constWrappedRef = node.wrapped_cref<k::listOfPrimitives>();
+  auto constWrappedRef = node.safe_cref<k::listOfPrimitives>();
   ASSERT_TRUE(
       std::is_const_v<std::remove_reference_t<decltype(*constWrappedRef)>>);
   // ASSERT_NO_DEATH
@@ -562,13 +562,13 @@ TEST(ThriftListNodeTests, Cref) {
   }
 
   ThriftStructNode<TestStruct> anotherNode;
-  auto wrappedRef = anotherNode.wrapped_ref<k::listOfPrimitives>();
+  auto wrappedRef = anotherNode.safe_ref<k::listOfPrimitives>();
   anotherNode.publish();
   auto gn = [&wrappedRef]() { wrappedRef->writableFields(); };
   ASSERT_DEATH(gn(), "");
 
   auto fn = [&node]() {
-    for (auto& item : *(node.wrapped_ref<k::listOfPrimitives>())) {
+    for (auto& item : *(node.safe_ref<k::listOfPrimitives>())) {
       // Check failed: !isPublished() from begin
     }
   };

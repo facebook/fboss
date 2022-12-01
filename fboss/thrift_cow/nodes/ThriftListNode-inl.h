@@ -274,12 +274,12 @@ class ThriftListNode : public NodeBaseT<
     return this->getFields()->cref(index);
   }
 
-  // prefer wrapped_ref/wrapped_cref for safe access
-  auto wrapped_ref(std::size_t index) {
+  // prefer safe_ref/safe_cref for safe access
+  auto safe_ref(std::size_t index) {
     return detail::ref(this->writableFields()->ref(index));
   }
 
-  auto wrapped_cref(std::size_t index) const {
+  auto safe_cref(std::size_t index) const {
     return detail::cref(this->getFields()->cref(index));
   }
 

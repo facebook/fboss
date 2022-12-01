@@ -335,12 +335,12 @@ class ThriftMapNode
     return this->getFields()->cref(key);
   }
 
-  // prefer wrapped_ref/wrapped_cref for safe access
-  auto wrapped_ref(key_type key) {
+  // prefer safe_ref/safe_cref for safe access
+  auto safe_ref(key_type key) {
     return detail::ref(this->writableFields()->ref(key));
   }
 
-  auto wrapped_cref(key_type key) const {
+  auto safe_cref(key_type key) const {
     return detail::cref(this->getFields()->cref(key));
   }
 

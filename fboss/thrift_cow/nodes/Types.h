@@ -18,6 +18,24 @@ namespace facebook::fboss::thrift_cow {
 
 namespace detail {
 
+// thrift cow objects are represented either as shared_ptr or optional. when
+// const reference to these objects, these are represented as when const
+// reference to these objects are returned, they're returned as const
+// std::shared_ptr<T>& or const std::optional<T>& . when these references are
+// dereferenced (or accessed), the inner type loses constness. this leads to
+// crash as non-const methods are invoked on const(or published)  objects.
+//
+// to avoid this unacceptable behavior, a caller must be aware of always to
+// invoke const methods even on children(or nested) objects especially if an
+// object is published.
+//
+// providing this safe reference access wrapper, so called won't have to worry
+// on constness of inner type.
+//
+// if a const shared_ptr<T>& or const std::optional<T>& is dereferenced either
+// with * operator or -> operator, inner type is returned with constness of
+// reference. this ensures method with an appropriate constness is invoked on
+// thrift cow object.
 template <typename Type>
 struct ReferenceWrapper : std::reference_wrapper<Type> {
   using Base = std::reference_wrapper<Type>;

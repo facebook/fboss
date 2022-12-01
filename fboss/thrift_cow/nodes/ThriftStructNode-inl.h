@@ -447,14 +447,14 @@ class ThriftStructNode
     return this->getFields()->template cref<Name>();
   }
 
-  // prefer wrapped_ref/wrapped_cref for safe access
+  // prefer safe_ref/safe_cref for safe access
   template <typename Name>
-  auto wrapped_ref() {
+  auto safe_ref() {
     return detail::ref(this->writableFields()->template ref<Name>());
   }
 
   template <typename Name>
-  auto wrapped_cref() const {
+  auto safe_cref() const {
     return detail::cref(this->getFields()->template cref<Name>());
   }
 
