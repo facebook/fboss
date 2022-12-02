@@ -132,19 +132,34 @@ void modifyCfgForQcmTests(facebook::fboss::BcmConfig::ConfigMap& cfg) {
 void modifyCfgForEMTests(std::string& yamlCfg) {
   std::string globalSt("global:\n");
   std::string emSt("fpem_mem_entries:");
+  std::string emWidthSt("fpem_mem_entries_width:");
   std::size_t glPos = yamlCfg.find(globalSt);
   std::size_t emPos = yamlCfg.find(emSt);
+  std::size_t emWidthPos = yamlCfg.find(emWidthSt);
   static const re2::RE2 emPattern(
       "(fpem_mem_entries: )(0x[0-9a-fA-F]+|[0-9]+)(\n)");
-
+  static const re2::RE2 emWidthPattern(
+      "(fpem_mem_entries_width: )(0x[0-9a-fA-F]+|[0-9]+)(\n)");
   if (glPos != std::string::npos) {
-    if (emPos == std::string::npos) {
+    if (emPos == std::string::npos && emWidthPos == std::string::npos) {
       yamlCfg.replace(
           glPos,
           globalSt.length(),
-          "global:\n      fpem_mem_entries: 131072\n");
+          "global:\n      fpem_mem_entries_width: 1\n      fpem_mem_entries: 65536\n");
+    } else if (emPos != std::string::npos && emWidthPos == std::string::npos) {
+      yamlCfg.replace(
+          glPos,
+          globalSt.length(),
+          "global:\n      fpem_mem_entries_width: 1\n");
+      re2::RE2::Replace(&yamlCfg, emPattern, "fpem_mem_entries: 65536\n");
     } else {
-      re2::RE2::Replace(&yamlCfg, emPattern, "fpem_mem_entries: 131072\n");
+      if (emPos != std::string::npos) {
+        re2::RE2::Replace(&yamlCfg, emPattern, "fpem_mem_entries: 65536\n");
+      }
+      if (emWidthPos != std::string::npos) {
+        re2::RE2::Replace(
+            &yamlCfg, emWidthPattern, "fpem_mem_entries_width: 1\n");
+      }
     }
   }
 }
