@@ -367,7 +367,7 @@ const std::string parseTimeToTimeStamp(const long& timeToParse);
 
 const std::string getPrettyElapsedTime(const int64_t& start_time);
 const std::string getDurationStr(folly::stop_watch<>& watch);
-const std::string formatBandwidth(const unsigned long& bandwidth);
+const std::string formatBandwidth(const float bandwidthBytesPerSecond);
 std::vector<int32_t> getPortIDList(
     const std::vector<std::string>& ifList,
     std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries);

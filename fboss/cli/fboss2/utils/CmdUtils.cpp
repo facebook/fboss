@@ -137,21 +137,23 @@ const std::string getDurationStr(folly::stop_watch<>& watch) {
 
 // Converts a readable representation of a link-bandwidth value
 //
-// bw_bytes_ps: must be positive number in bytes per second
-const std::string formatBandwidth(const unsigned long& bw_bytes_ps) {
-  if (!bw_bytes_ps) {
+// bandwidthBytesPerSecond: must be positive number in bytes per second
+const std::string formatBandwidth(const float bandwidthBytesPerSecond) {
+  if (bandwidthBytesPerSecond < 1.0f) {
     return "Not set";
   }
   const std::string suffixes[] = {"", "K", "M"};
   // Represent the bandwidth in bits per second
-  auto bw_bits_ps = bw_bytes_ps * 8;
+  // Use long and floor to ensure that we have integer to start with
+  long bandwidthBitsPerSecond = floor(bandwidthBytesPerSecond) * 8;
   for (const auto& suffix : suffixes) {
-    if (bw_bits_ps < 1000) {
-      return folly::to<std::string>(ceil(bw_bits_ps)) + suffix + "bps";
+    if (bandwidthBitsPerSecond < 1000) {
+      return folly::to<std::string>(bandwidthBitsPerSecond) + suffix + "bps";
     }
-    bw_bits_ps /= 1000;
+    // we don't round up
+    bandwidthBitsPerSecond /= 1000;
   }
-  return folly::to<std::string>(ceil(bw_bits_ps)) + "Gbps";
+  return folly::to<std::string>(bandwidthBitsPerSecond) + "Gbps";
 }
 
 /* Takes a list of "friendly" interface names and returns a list of portID
