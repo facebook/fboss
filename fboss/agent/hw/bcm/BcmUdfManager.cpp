@@ -69,6 +69,74 @@ void BcmUdfManager::createUdfGroups(
   }
 }
 
+// deleteUdfPacketMatcher
+void BcmUdfManager::deleteUdfPacketMatcher(
+    const std::string& udfPacketMatcherName) {
+  auto bcmUdfPacketMatcher = udfPacketMatcherMap_.find(udfPacketMatcherName);
+  if (bcmUdfPacketMatcher != udfPacketMatcherMap_.end()) {
+    bcmUdfPacketMatcher->second.reset();
+
+  } else {
+    throw FbossError(
+        "bcmUdfPacketMatcher=",
+        udfPacketMatcherName,
+        " not found in udfPacketMatcherMap_");
+  }
+  udfPacketMatcherMap_.erase(udfPacketMatcherName);
+}
+
+// deleteUdfPacketMatchers removes BcmUdfPacketMatcher from udfPacketMatcherMap_
+void BcmUdfManager::deleteUdfPacketMatchers(
+    const std::shared_ptr<UdfPacketMatcherMap>& udfPacketMatcherMap) {
+  for (auto udfPacketMatcherElem : *udfPacketMatcherMap) {
+    deleteUdfPacketMatcher(udfPacketMatcherElem.first);
+  }
+}
+
+// Detach UdfPacketMatcher to UdfGroup
+void BcmUdfManager::detachUdfPacketMatcher(
+    std::shared_ptr<BcmUdfGroup>& bcmUdfGroup,
+    const std::string& udfPacketMatcherName) {
+  auto udfPacketMatcher = udfPacketMatcherMap_.find(udfPacketMatcherName);
+  if (udfPacketMatcher != udfPacketMatcherMap_.end()) {
+    auto packetMatcherId = udfPacketMatcher->second->getUdfPacketMatcherId();
+    bcmUdfGroup->udfPacketMatcherDelete(packetMatcherId, udfPacketMatcherName);
+  } else {
+    throw FbossError(
+        "udfPacketMatcher=",
+        udfPacketMatcherName,
+        " not found in udfPacketMatcherMap");
+  }
+}
+
+// deleteUdfGroup
+void BcmUdfManager::deleteUdfGroup(
+    const std::string& udfGroupName,
+    const std::shared_ptr<UdfGroup>& udfGroup) {
+  auto bcmUdfGroup = udfGroupsMap_.find(udfGroupName);
+  if (bcmUdfGroup != udfGroupsMap_.end()) {
+    for (auto udfPacketMatcherName : udfGroup->getUdfPacketMatcherIds()) {
+      detachUdfPacketMatcher(bcmUdfGroup->second, udfPacketMatcherName);
+      XLOG(DBG2) << "udfGroup=" << udfGroupName
+                 << "detached from udfPacketMatcher=" << udfPacketMatcherName;
+    }
+  } else {
+    throw FbossError(
+        "bcmUdfGroup=", udfGroupName, " not found in udfGroupsMap_");
+  }
+
+  bcmUdfGroup->second.reset();
+  udfGroupsMap_.erase(udfGroupName);
+}
+
+// deleteUdfGroups detaches BcmUdfPacketMatchers from BcmUdfGroup and deletes
+// BcmUdfGroup from UdfGroupMap
+void BcmUdfManager::deleteUdfGroups(
+    const std::shared_ptr<UdfGroupMap>& udfGroupMap) {
+  for (auto udfGroupElem : *udfGroupMap) {
+    deleteUdfGroup(udfGroupElem.first, udfGroupElem.second);
+  }
+}
 BcmUdfManager::~BcmUdfManager() {
   XLOG(DBG2) << "Destroying BcmUdfGroup";
 }
