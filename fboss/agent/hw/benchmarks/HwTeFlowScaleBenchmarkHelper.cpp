@@ -34,6 +34,8 @@ void teFlowAddDelEntriesBenchmarkHelper(bool measureAdd) {
   static std::string ifName("fboss2000");
   static int prefixLength(61);
   uint32_t numEntries = FLAGS_teflow_scale_entries;
+  // @lint-ignore CLANGTIDY
+  FLAGS_enable_exact_match = true;
   folly::BenchmarkSuspender suspender;
   auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto hwSwitch = ensemble->getHwSwitch();
