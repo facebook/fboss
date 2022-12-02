@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 #include "fboss/agent/hw/test/HwTeFlowTestUtils.h"
+#include "fboss/agent/hw/test/HwTestTeFlowUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
@@ -60,6 +61,7 @@ void teFlowAddDelEntriesBenchmarkHelper(bool measureAdd) {
     suspender.rehire();
   } else {
     utility::addFlowEntries(ensemble.get(), flowEntries);
+    CHECK_EQ(utility::getNumTeFlowEntries(hwSwitch), numEntries);
     suspender.dismiss();
     utility::deleteFlowEntries(ensemble.get(), flowEntries);
     suspender.rehire();

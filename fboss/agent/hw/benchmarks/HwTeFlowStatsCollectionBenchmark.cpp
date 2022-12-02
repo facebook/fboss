@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 #include "fboss/agent/hw/test/HwTeFlowTestUtils.h"
+#include "fboss/agent/hw/test/HwTestTeFlowUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
@@ -56,6 +57,7 @@ BENCHMARK(HwTeFlowStatsCollection) {
   auto flowEntries = utility::makeFlowEntries(
       "100", nextHopAddr, ifName, ports[0], numEntries);
   utility::addFlowEntries(ensemble.get(), flowEntries);
+  CHECK_EQ(utility::getNumTeFlowEntries(hwSwitch), numEntries);
   // Measure stats collection time for 9K entries
   SwitchStats dummy;
   suspender.dismiss();

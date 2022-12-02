@@ -185,6 +185,14 @@ target_link_libraries(bcm_copp_utils
   traffic_policy_utils
 )
 
+add_library(bcm_teflow_utils
+	fboss/agent/hw/bcm/tests/HwTestTeFlowUtils.cpp
+)
+
+target_link_libraries(bcm_teflow_utils
+  bcm
+)
+
 add_library(bcm_packet_trap_helper
   fboss/agent/hw/bcm/tests/HwTestPacketTrapEntry.cpp
 )

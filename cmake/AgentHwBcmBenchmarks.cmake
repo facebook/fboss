@@ -347,6 +347,7 @@ target_link_libraries(bcm_teflow_scale_add
   bcm_switch_ensemble
   config_factory
   hw_teflow_scale_add
+  bcm_teflow_utils
   -Wl,--no-whole-archive
   hw_benchmark_main
   Folly::folly
@@ -363,6 +364,7 @@ target_link_libraries(bcm_teflow_scale_del
   bcm_switch_ensemble
   config_factory
   hw_teflow_scale_del
+  bcm_teflow_utils
   -Wl,--no-whole-archive
   hw_benchmark_main
   Folly::folly
@@ -379,6 +381,7 @@ target_link_libraries(bcm_teflow_stats_collection_speed
   bcm_switch_ensemble
   config_factory
   hw_teflow_stats_collection_speed
+  bcm_teflow_utils
   -Wl,--no-whole-archive
   hw_benchmark_main
   Folly::folly
