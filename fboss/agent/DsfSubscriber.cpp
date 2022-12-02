@@ -115,7 +115,9 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   };
   auto getLoopbackIp = [](const std::shared_ptr<DsfNode>& node) {
     auto network = folly::IPAddress::createNetwork(
-        (*node->getLoopbackIps()->cbegin())->toThrift());
+        (*node->getLoopbackIps()->cbegin())->toThrift(),
+        -1 /*default CIDR*/,
+        false /*apply mask*/);
     return network.first.str();
   };
   auto addDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
