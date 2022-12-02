@@ -21,48 +21,60 @@ static BspPlatformMappingThrift buildMakaluPlatformMapping() {
     BspPresencePinInfo presenceInfo;
     std::string resetPath = "";
     std::string presencePath = "";
+    int accessMask = 0;
     if (tcvr <= 8) {
       presencePath = "/sys/bus/i2c/devices/1-0031/cpld_qsfpdd_intr_present_0";
       resetPath = "/sys/bus/i2c/devices/1-0031/cpld_qsfpdd_reset_0";
+      accessMask = 1 << ((tcvr - 1) % 8);
     } else if (tcvr <= 16) {
       presencePath = "/sys/bus/i2c/devices/1-0031/cpld_qsfpdd_intr_present_1";
       resetPath = "/sys/bus/i2c/devices/1-0031/cpld_qsfpdd_reset_1";
+      accessMask = 1 << ((tcvr - 1) % 8);
     } else if (tcvr <= 18) {
       presencePath = "/sys/bus/i2c/devices/1-0031/cpld_qsfpdd_intr_present_2";
       resetPath = "/sys/bus/i2c/devices/1-0031/cpld_qsfpdd_reset_2";
+      accessMask = 1 << ((tcvr - 1) % 8);
     } else if (tcvr <= 26) {
       presencePath = "/sys/bus/i2c/devices/1-0032/cpld_qsfpdd_intr_present_0";
       resetPath = "/sys/bus/i2c/devices/1-0032/cpld_qsfpdd_reset_0";
+      accessMask = 1 << ((tcvr - 19) % 8);
     } else if (tcvr <= 34) {
       presencePath = "/sys/bus/i2c/devices/1-0032/cpld_qsfpdd_intr_present_1";
       resetPath = "/sys/bus/i2c/devices/1-0032/cpld_qsfpdd_reset_1";
+      accessMask = 1 << ((tcvr - 19) % 8);
     } else if (tcvr <= 36) {
       presencePath = "/sys/bus/i2c/devices/1-0032/cpld_qsfpdd_intr_present_2";
       resetPath = "/sys/bus/i2c/devices/1-0032/cpld_qsfpdd_reset_2";
+      accessMask = 1 << ((tcvr - 19) % 8);
     } else if (tcvr <= 44) {
       presencePath = "/sys/bus/i2c/devices/30-0033/cpld_qsfpdd_intr_present_0";
       resetPath = "/sys/bus/i2c/devices/30-0033/cpld_qsfpdd_reset_0";
+      accessMask = 1 << ((tcvr - 37) % 8);
     } else if (tcvr <= 52) {
       presencePath = "/sys/bus/i2c/devices/30-0033/cpld_qsfpdd_intr_present_1";
       resetPath = "/sys/bus/i2c/devices/30-0033/cpld_qsfpdd_reset_1";
+      accessMask = 1 << ((tcvr - 37) % 8);
     } else if (tcvr <= 56) {
       presencePath = "/sys/bus/i2c/devices/30-0033/cpld_qsfpdd_intr_present_2";
       resetPath = "/sys/bus/i2c/devices/30-0033/cpld_qsfpdd_reset_2";
+      accessMask = 1 << ((tcvr - 37) % 8);
     } else if (tcvr <= 64) {
       presencePath = "/sys/bus/i2c/devices/30-0034/cpld_qsfpdd_intr_present_0";
       resetPath = "/sys/bus/i2c/devices/30-0034/cpld_qsfpdd_reset_0";
+      accessMask = 1 << ((tcvr - 57) % 8);
     } else if (tcvr <= 72) {
       presencePath = "/sys/bus/i2c/devices/30-0034/cpld_qsfpdd_intr_present_1";
       resetPath = "/sys/bus/i2c/devices/30-0034/cpld_qsfpdd_reset_1";
+      accessMask = 1 << ((tcvr - 57) % 8);
     } else {
       presencePath = "/sys/bus/i2c/devices/30-0034/cpld_qsfpdd_intr_present_2";
       resetPath = "/sys/bus/i2c/devices/30-0034/cpld_qsfpdd_reset_2";
+      accessMask = 1 << ((tcvr - 57) % 8);
     }
-    int tcvrIDForMask = tcvr >= 37 ? (tcvr - 37) : tcvr;
     resetInfo.sysfsPath() = resetPath;
     presenceInfo.sysfsPath() = presencePath;
-    resetInfo.mask() = 1 << (tcvrIDForMask % 8);
-    presenceInfo.mask() = 1 << (tcvrIDForMask % 8);
+    resetInfo.mask() = accessMask;
+    presenceInfo.mask() = accessMask;
     BspTransceiverAccessControllerInfo accessControl;
     accessControl.controllerId() = fmt::format("accessController-{}", tcvr);
     accessControl.type() = ResetAndPresenceAccessType::CPLD;
