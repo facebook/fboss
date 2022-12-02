@@ -1749,11 +1749,6 @@ std::vector<sai_port_err_status_t> SaiPortManager::getPortErrStatus(
 
 phy::FecMode SaiPortManager::getFECMode(PortID portId) const {
   auto handle = getPortHandle(portId);
-  if (getPortType(portId) == cfg::PortType::FABRIC_PORT) {
-    // Hardcode RS545 until the vendor supports reading FEC mode on fabric ports
-    // CS00012267634
-    return phy::FecMode::RS545;
-  }
   auto saiFecMode = GET_OPT_ATTR(Port, FecMode, handle->port->attributes());
   auto profileID = platform_->getPort(portId)->getCurrentProfile();
   return utility::getFecModeFromSaiFecMode(
