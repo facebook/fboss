@@ -74,7 +74,8 @@ class HwRouteTest : public HwLinkStateDependentTest {
       static const std::vector<RoutePrefix<AddrT>> routePrefixes = {
           RoutePrefix<folly::IPAddressV4>{folly::IPAddressV4{"10.10.1.0"}, 24},
           RoutePrefix<folly::IPAddressV4>{folly::IPAddressV4{"10.20.1.0"}, 24},
-          RoutePrefix<folly::IPAddressV4>{folly::IPAddressV4{"10.30.1.0"}, 24}};
+          RoutePrefix<folly::IPAddressV4>{folly::IPAddressV4{"10.30.1.0"}, 24},
+          RoutePrefix<folly::IPAddressV4>{folly::IPAddressV4{"10.40.1.1"}, 32}};
 
       return routePrefixes;
     } else {
@@ -84,7 +85,9 @@ class HwRouteTest : public HwLinkStateDependentTest {
           RoutePrefix<folly::IPAddressV6>{
               folly::IPAddressV6{"2803:6080:d038:3064::"}, 64},
           RoutePrefix<folly::IPAddressV6>{
-              folly::IPAddressV6{"2803:6080:d038:3065::"}, 64}};
+              folly::IPAddressV6{"2803:6080:d038:3065::"}, 64},
+          RoutePrefix<folly::IPAddressV6>{
+              folly::IPAddressV6{"2803:6080:d038:3065::1"}, 128}};
 
       return routePrefixes;
     }
@@ -117,6 +120,10 @@ class HwRouteTest : public HwLinkStateDependentTest {
 
   RoutePrefix<AddrT> kGetRoutePrefix2() const {
     return kGetRoutePrefixes()[2];
+  }
+
+  RoutePrefix<AddrT> kGetRoutePrefix3() const {
+    return kGetRoutePrefixes()[3];
   }
 
   std::shared_ptr<SwitchState> addRoutes(
@@ -513,4 +520,52 @@ TYPED_TEST(HwRouteTest, VerifyRouting) {
 
   this->verifyAcrossWarmBoots(setup, verify);
 }
+
+TYPED_TEST(HwRouteTest, verifyHostRouteChange) {
+  // Don't run this test on fake asic
+  if (this->getPlatform()->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_FAKE ||
+      this->getPlatform()->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_MOCK) {
+    GTEST_SKIP();
+    return;
+  }
+
+  using AddrT = typename TestFixture::Type;
+  auto ports = this->portDescs();
+
+  auto setup = [=]() {
+    this->applyNewConfig(this->initialConfig());
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        this->getProgrammedState(), this->kRouterID());
+    this->applyNewState(ecmpHelper.resolveNextHops(
+        this->getProgrammedState(), {ports[0], ports[1]}));
+    ecmpHelper.programRoutes(
+        this->getRouteUpdater(), {ports[1]}, {this->kGetRoutePrefix3()});
+    ecmpHelper.programRoutes(
+        this->getRouteUpdater(),
+        {ports[0], ports[1]},
+        {this->kGetRoutePrefix3()});
+  };
+
+  auto verify = [=]() {
+    auto routePrefix = this->kGetRoutePrefix3();
+    auto cidr = folly::CIDRNetwork(routePrefix.network(), routePrefix.mask());
+    utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
+        this->getProgrammedState(), this->kRouterID());
+    EXPECT_TRUE(utility::isHwRouteToNextHop(
+        this->getHwSwitch(),
+        this->kRouterID(),
+        cidr,
+        ecmpHelper.nhop(ports[0]).ip));
+    EXPECT_TRUE(utility::isHwRouteToNextHop(
+        this->getHwSwitch(),
+        this->kRouterID(),
+        cidr,
+        ecmpHelper.nhop(ports[1]).ip));
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
