@@ -141,4 +141,24 @@ BcmUdfManager::~BcmUdfManager() {
   XLOG(DBG2) << "Destroying BcmUdfGroup";
 }
 
+// Walk through udfPktMatcherMap and create them using BcmUdfPktMatcher
+// Walk through UdfGroupMap and create using BcmUdfGroup and associates
+// BcmUdfPacketMatchers to BcmUdfGroup
+void BcmUdfManager::addUdfConfig(
+    const std::shared_ptr<UdfPacketMatcherMap>& udfPacketMatcherMap,
+    const std::shared_ptr<UdfGroupMap>& udfGroupMap) {
+  createUdfPacketMatchers(udfPacketMatcherMap);
+  createUdfGroups(udfGroupMap);
+}
+
+// Walk through UdfGroupMap and delete BcmUdfGroups after detaching
+// BcmUdfPacketMatchers from each BcmUdfGroup
+// Walk through udfPktMatcherMap and delete BcmUdfPktMatcher
+void BcmUdfManager::deleteUdfConfig(
+    const std::shared_ptr<UdfPacketMatcherMap>& udfPacketMatcherMap,
+    const std::shared_ptr<UdfGroupMap>& udfGroupMap) {
+  deleteUdfGroups(udfGroupMap);
+  deleteUdfPacketMatchers(udfPacketMatcherMap);
+}
+
 } // namespace facebook::fboss
