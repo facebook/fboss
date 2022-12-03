@@ -59,8 +59,8 @@ std::set<folly::CIDRNetwork> DsfNode::getLoopbackIpsSorted() const {
   std::set<folly::CIDRNetwork> subnets;
   const auto& loopbackIps = *getLoopbackIps();
   for (auto loopbackSubnet : loopbackIps) {
-    subnets.emplace(
-        folly::IPAddress::createNetwork(loopbackSubnet->toThrift()));
+    subnets.emplace(folly::IPAddress::createNetwork(
+        loopbackSubnet->toThrift(), -1, false /*don't apply mask*/));
   }
   return subnets;
 }

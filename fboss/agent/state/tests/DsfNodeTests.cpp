@@ -157,7 +157,8 @@ TEST(DSFNode, loopackIpsSorted) {
       loopbacks.begin(),
       loopbacks.end(),
       [&loopbacksSorted](const auto& loopback) {
-        loopbacksSorted.insert(folly::IPAddress::createNetwork(loopback));
+        loopbacksSorted.insert(
+            folly::IPAddress::createNetwork(loopback, -1, false));
       });
   EXPECT_EQ(loopbacksSorted, dsfNode->getLoopbackIpsSorted());
 }
