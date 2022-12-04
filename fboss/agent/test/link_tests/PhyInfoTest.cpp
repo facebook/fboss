@@ -251,6 +251,8 @@ TEST_F(LinkTest, iPhyInfoTest) {
 TEST_F(LinkTest, xPhyInfoTest) {
   auto cabledPorts = getCabledPorts();
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
+  auto now = std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now().time_since_epoch());
 
   // Give Xphy ports some time to come up
   // sleep override
@@ -267,6 +269,8 @@ TEST_F(LinkTest, xPhyInfoTest) {
           // ASSERT_EVENTUALLY will retry the whole block if failed
           ASSERT_EVENTUALLY_TRUE(phyInfo.has_value())
               << getPortName(port) << " has no xphy info.";
+          ASSERT_EVENTUALLY_TRUE(*phyInfo->timeCollected() > now.count())
+              << getPortName(port) << " didn't update phyInfo";
           phyInfoBefore.emplace(port, *phyInfo);
         }
       },
