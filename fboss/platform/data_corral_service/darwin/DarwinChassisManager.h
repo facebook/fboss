@@ -40,7 +40,6 @@ class DarwinChassisManager : public ChassisManager {
   std::unique_ptr<DarwinChassisLed> sysLed_;
   std::unique_ptr<DarwinChassisLed> fanLed_;
   std::unique_ptr<DarwinChassisLed> pemLed_;
-  std::unique_ptr<DarwinChassisLed> rackmonLed_;
 };
 
 } // namespace facebook::fboss::platform::data_corral_service

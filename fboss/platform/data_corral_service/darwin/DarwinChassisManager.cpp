@@ -14,13 +14,11 @@ namespace {
 // modules in darwin system
 const std::string kDarwinFan = "DarwinFanModule";
 const std::string kDarwinPem = "DarwinPemModule";
-const std::string kDarwinRackmon = "DarwinRackmonModule";
 
 // leds in darwin chasssis
 const std::string kSystemLed = "SystemLed";
 const std::string kFanLed = "FanLed";
 const std::string kPemLed = "PemLed";
-const std::string kRackmonLed = "RackmonLed";
 
 // colors available in leds
 const std::string kLedGreen = "Green";
@@ -94,7 +92,6 @@ void DarwinChassisManager::initModules() {
   sysLed_ = std::make_unique<DarwinChassisLed>(kSystemLed);
   fanLed_ = std::make_unique<DarwinChassisLed>(kFanLed);
   pemLed_ = std::make_unique<DarwinChassisLed>(kPemLed);
-  rackmonLed_ = std::make_unique<DarwinChassisLed>(kRackmonLed);
   for (auto attr : *platformConfig.chassisAttributes()) {
     if (*attr.name() == kSystemLed + kLedRed) {
       sysLed_->setColorPath(DarwinLedColor::RED, *attr.path());
@@ -108,10 +105,6 @@ void DarwinChassisManager::initModules() {
       pemLed_->setColorPath(DarwinLedColor::RED, *attr.path());
     } else if (*attr.name() == kPemLed + kLedGreen) {
       pemLed_->setColorPath(DarwinLedColor::GREEN, *attr.path());
-    } else if (*attr.name() == kRackmonLed + kLedRed) {
-      rackmonLed_->setColorPath(DarwinLedColor::RED, *attr.path());
-    } else if (*attr.name() == kRackmonLed + kLedGreen) {
-      rackmonLed_->setColorPath(DarwinLedColor::GREEN, *attr.path());
     }
   }
 }
@@ -120,7 +113,7 @@ void DarwinChassisManager::programChassis() {
   DarwinLedColor sysLedColor = DarwinLedColor::GREEN;
   DarwinLedColor fanLedColor = DarwinLedColor::GREEN;
   DarwinLedColor pemLedColor = DarwinLedColor::GREEN;
-  DarwinLedColor rackmonLedColor = DarwinLedColor::GREEN;
+
   for (auto& fru : fruModules_) {
     if (!fru.second->isPresent()) {
       XLOG(DBG2) << "Fru module " << fru.first << " is absent";
@@ -134,12 +127,6 @@ void DarwinChassisManager::programChassis() {
               fru.first.c_str(), kDarwinPem.c_str(), kDarwinPem.length()) ==
           0) {
         pemLedColor = DarwinLedColor::RED;
-      } else if (
-          std::strncmp(
-              fru.first.c_str(),
-              kDarwinRackmon.c_str(),
-              kDarwinRackmon.length()) == 0) {
-        rackmonLedColor = DarwinLedColor::RED;
       }
     }
   }
@@ -149,12 +136,9 @@ void DarwinChassisManager::programChassis() {
   fb303::fbData->setCounter(fmt::format("{}.color", kSystemLed), sysLedColor);
   fb303::fbData->setCounter(fmt::format("{}.color", kFanLed), fanLedColor);
   fb303::fbData->setCounter(fmt::format("{}.color", kPemLed), pemLedColor);
-  fb303::fbData->setCounter(
-      fmt::format("{}.color", kRackmonLed), rackmonLedColor);
   sysLed_->setColor(sysLedColor);
   fanLed_->setColor(fanLedColor);
   pemLed_->setColor(pemLedColor);
-  rackmonLed_->setColor(rackmonLedColor);
 }
 
 } // namespace facebook::fboss::platform::data_corral_service
