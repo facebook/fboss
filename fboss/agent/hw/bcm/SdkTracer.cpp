@@ -370,6 +370,8 @@ void __real_bcm_udf_t_init(bcm_udf_t* udf_info);
 
 void __real_bcm_udf_hash_config_t_init(bcm_udf_hash_config_t* config);
 
+int __real_bcm_udf_init(int unit);
+
 int __real_bcm_l3_egress_ecmp_get(
     int unit,
     bcm_l3_egress_ecmp_t* ecmp,
@@ -1035,6 +1037,8 @@ void __real_bcm_udf_alloc_hints_t_init(bcm_udf_alloc_hints_t* udf_hints);
 void __real_bcm_udf_hash_config_t_init(bcm_udf_hash_config_t* config);
 
 void __real_bcm_udf_t_init(bcm_udf_t* udf_info);
+
+int __real_bcm_udf_init(int unit);
 
 int __real_bcm_l3_route_get(int unit, bcm_l3_route_t* info);
 
@@ -2268,6 +2272,10 @@ void __wrap_bcm_udf_alloc_hints_t_init(bcm_udf_alloc_hints_t* udf_hints) {
 
 void __wrap_bcm_udf_t_init(bcm_udf_t* udf_info) {
   CALL_WRAPPERS_NO_RV(bcm_udf_t_init(udf_info));
+}
+
+int __wrap_bcm_udf_init(int unit) {
+  CALL_WRAPPERS_RV(bcm_udf_init(unit));
 }
 
 void __wrap_bcm_udf_hash_config_t_init(bcm_udf_hash_config_t* config) {

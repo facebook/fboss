@@ -2183,6 +2183,12 @@ int BcmCinter::bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) {
   return 0;
 }
 
+int BcmCinter::bcm_udf_init(int unit) {
+  writeCintLines(
+      wrapFunc(to<string>("bcm_udf_init(", makeParamStr(unit), ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_port_phy_modify(
     int unit,
     bcm_port_t port,
