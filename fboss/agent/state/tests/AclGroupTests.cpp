@@ -329,7 +329,7 @@ TEST(AclGroup, SerializeAclTableMap) {
   entry4->setDscp(kDscpVal4);
   auto map3 = std::make_shared<AclMap>();
   map3->addEntry(entry4);
-  auto table3 = std::make_shared<AclTable>(3, "table3");
+  auto table3 = std::make_shared<AclTable>(3, kTable3);
   table3->setAclMap(map3);
   tableMap->addTable(table3);
 

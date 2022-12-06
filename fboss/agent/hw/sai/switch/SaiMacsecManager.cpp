@@ -1028,8 +1028,11 @@ void SaiMacsecManager::setupAclTable(
   std::string aclName = getAclName(linePort, direction);
   auto aclTable = managerTable_->aclTableManager().getAclTableHandle(aclName);
   if (!aclTable) {
-    auto table = std::make_shared<AclTable>(
-        0, aclName); // TODO(saranicholas): set appropriate table priority
+    state::AclTableFields aclTableFields{};
+    aclTableFields.id() = aclName;
+    // TODO(saranicholas): set appropriate table priority
+    aclTableFields.priority() = 0;
+    auto table = std::make_shared<AclTable>(std::move(aclTableFields));
     auto aclTableId = managerTable_->aclTableManager().addAclTable(
         table,
         direction == SAI_MACSEC_DIRECTION_INGRESS
@@ -1262,7 +1265,10 @@ void SaiMacsecManager::removeAclTable(
 
   if (aclTable) {
     // Finally delete the ACL table
-    auto table = std::make_shared<AclTable>(0, aclTableName);
+    state::AclTableFields aclTableFields{};
+    aclTableFields.priority() = 0;
+    aclTableFields.id() = aclTableName;
+    auto table = std::make_shared<AclTable>(std::move(aclTableFields));
     managerTable_->aclTableManager().removeAclTable(
         table,
         direction == SAI_MACSEC_DIRECTION_INGRESS

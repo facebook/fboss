@@ -651,7 +651,7 @@ std::shared_ptr<const AclMap> SwitchState::getAclsForTable(
   auto aclTableMap = getAclTablesForStage(aclStage);
 
   if (aclTableMap && aclTableMap->getTableIf(tableName)) {
-    return aclTableMap->getTable(tableName)->getAclMap();
+    return aclTableMap->getTable(tableName)->getAclMap().unwrap();
   }
 
   return nullptr;

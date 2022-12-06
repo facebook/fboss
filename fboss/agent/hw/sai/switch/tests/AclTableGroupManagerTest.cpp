@@ -18,7 +18,7 @@
 using namespace facebook::fboss;
 
 namespace {
-constexpr auto kAclTable2 = "AclTable2";
+const std::string kAclTable2 = "AclTable2";
 }
 
 class AclTableGroupManagerTest : public ManagerTestBase {

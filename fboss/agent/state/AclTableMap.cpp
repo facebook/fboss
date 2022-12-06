@@ -36,7 +36,9 @@ std::shared_ptr<AclTableMap> AclTableMap::fromThrift(
     std::map<std::string, state::AclTableFields> const& thriftMap) {
   auto aclTableMap = std::make_shared<AclTableMap>();
   for (const auto& [key, value] : thriftMap) {
-    aclTableMap->addNode(AclTable::fromThrift(value));
+    auto node = std::make_shared<AclTable>();
+    node->fromThrift(value);
+    aclTableMap->addNode(std::move(node));
   }
   return aclTableMap;
 }

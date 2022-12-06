@@ -98,9 +98,11 @@ AclTableFields AclTableFields::createDefaultAclTableFieldsFromThrift(
   return aclTable;
 }
 
-AclTable::AclTable(int priority, const std::string& name)
-    : NodeBaseT(priority, name) {}
+AclTable::AclTable(int priority, const std::string& name) {
+  set<switch_state_tags::priority>(priority);
+  set<switch_state_tags::id>(name);
+}
 
-template class NodeBaseT<AclTable, AclTableFields>;
+template class ThriftStructNode<AclTable, state::AclTableFields>;
 
 } // namespace facebook::fboss

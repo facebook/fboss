@@ -2401,7 +2401,10 @@ std::shared_ptr<AclTable> ThriftConfigApplier::updateAclTable(
     }
   }
 
-  auto newTable = std::make_shared<AclTable>(newTablePriority, tableName);
+  state::AclTableFields aclTableFields{};
+  aclTableFields.id() = tableName;
+  aclTableFields.priority() = newTablePriority;
+  auto newTable = std::make_shared<AclTable>(std::move(aclTableFields));
   if (newTableEntries) {
     // Entries changed from original table or original table does not exist
     newTable->setAclMap(newTableEntries);

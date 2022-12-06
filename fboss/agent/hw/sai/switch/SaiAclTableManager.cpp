@@ -1257,9 +1257,11 @@ void SaiAclTableManager::addDefaultAclTable() {
   if (handles_.find(kAclTable1) != handles_.end()) {
     throw FbossError("default acl table already exists.");
   }
-  auto table1 = std::make_shared<AclTable>(
-      0,
-      kAclTable1); // TODO(saranicholas): set appropriate table priority
+  // TODO(saranicholas): set appropriate table priority
+  state::AclTableFields aclTableFields{};
+  aclTableFields.priority() = 0;
+  aclTableFields.id() = kAclTable1;
+  auto table1 = std::make_shared<AclTable>(std::move(aclTableFields));
   addAclTable(table1, cfg::AclStage::INGRESS);
 }
 

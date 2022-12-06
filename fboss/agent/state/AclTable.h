@@ -66,30 +66,34 @@ struct AclTableFields
   std::shared_ptr<AclMap> aclMap_;
 };
 
+USE_THRIFT_COW(AclTable);
+RESOLVE_STRUCT_MEMBER(AclTable, switch_state_tags::aclMap, AclMap)
+
 /*
  * AclTable stores state about a table of access control entries on the switch,
  * where the table contains a list of ACLs, a table name, and a priority number.
  */
-class AclTable : public NodeBaseT<AclTable, AclTableFields> {
+class AclTable : public ThriftStructNode<AclTable, state::AclTableFields> {
  public:
+  using Base = ThriftStructNode<AclTable, state::AclTableFields>;
   explicit AclTable(int priority, const std::string& name);
   static std::shared_ptr<AclTable> fromFollyDynamic(
       const folly::dynamic& json) {
-    const auto& fields = AclTableFields::fromFollyDynamic(json);
-    return std::make_shared<AclTable>(fields);
+    auto fields = AclTableFields::fromFollyDynamic(json);
+    return std::make_shared<AclTable>(fields.toThrift());
   }
 
   static std::shared_ptr<AclTable> createDefaultAclTable(
       const folly::dynamic& json) {
-    const auto& fields = AclTableFields::createDefaultAclTableFields(json);
-    return std::make_shared<AclTable>(fields);
+    auto fields = AclTableFields::createDefaultAclTableFields(json);
+    return std::make_shared<AclTable>(fields.toThrift());
   }
 
   static std::shared_ptr<AclTable> createDefaultAclTableFromThrift(
       std::map<std::string, state::AclEntryFields> const& thriftMap) {
-    const auto& fields =
+    auto fields =
         AclTableFields::createDefaultAclTableFieldsFromThrift(thriftMap);
-    return std::make_shared<AclTable>(fields);
+    return std::make_shared<AclTable>(fields.toThrift());
   }
 
   static const folly::dynamic& getAclTableName(
@@ -108,68 +112,51 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
   }
 
   folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamic();
-  }
-
-  state::AclTableFields toThrift() const {
-    return getFields()->toThrift();
-  }
-  static std::shared_ptr<AclTable> fromThrift(
-      state::AclTableFields const& aclTableFields) {
-    auto aclTable = std::make_shared<AclTable>(AclTableFields(aclTableFields));
-    if (auto aclMap = aclTableFields.aclMap()) {
-      aclTable->writableFields()->aclMap_ = std::make_shared<AclMap>(*aclMap);
-    }
-    return aclTable;
-  }
-  bool operator==(const AclTable& other) const {
-    return *getFields() == *other.getFields();
-  }
-
-  bool operator!=(const AclTable& aclTable) const {
-    return !(*this == aclTable);
+    auto fields = AclTableFields::fromThrift(toThrift());
+    return fields.toFollyDynamic();
   }
 
   int getPriority() const {
-    return *getFields()->data().priority();
+    return cref<switch_state_tags::priority>()->cref();
   }
 
   void setPriority(const int priority) {
-    writableFields()->writableData().priority() = priority;
+    set<switch_state_tags::priority>(priority);
   }
 
   const std::string& getID() const {
-    return *getFields()->data().id();
+    return cref<switch_state_tags::id>()->cref();
   }
 
-  std::shared_ptr<const AclMap> getAclMap() const {
-    return getFields()->aclMap_;
+  auto getAclMap() const {
+    return safe_cref<switch_state_tags::aclMap>();
   }
 
   void setAclMap(std::shared_ptr<AclMap> aclMap) {
-    writableFields()->aclMap_ = aclMap;
-    writableFields()->writableData().aclMap() = aclMap->toThrift();
+    ref<switch_state_tags::aclMap>() = aclMap;
   }
 
+  // THRIFT_COPY
   std::vector<cfg::AclTableActionType> getActionTypes() const {
-    return *getFields()->data().actionTypes();
+    return cref<switch_state_tags::actionTypes>()->toThrift();
   }
 
   void setActionTypes(const std::vector<cfg::AclTableActionType>& actionTypes) {
-    writableFields()->writableData().actionTypes() = actionTypes;
+    set<switch_state_tags::actionTypes>(actionTypes);
   }
 
+  // THRIFT_COPY
   std::vector<cfg::AclTableQualifier> getQualifiers() const {
-    return *getFields()->data().qualifiers();
+    return cref<switch_state_tags::qualifiers>()->toThrift();
   }
 
   void setQualifiers(const std::vector<cfg::AclTableQualifier>& qualifiers) {
-    writableFields()->writableData().qualifiers() = qualifiers;
+    set<switch_state_tags::qualifiers>(qualifiers);
   }
 
  private:
   // Inherit the constructors required for clone()
-  using NodeBaseT::NodeBaseT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 
