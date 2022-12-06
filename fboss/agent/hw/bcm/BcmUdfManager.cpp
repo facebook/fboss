@@ -15,20 +15,11 @@
 namespace facebook::fboss {
 // createUdfPacketMatcher
 void BcmUdfManager::createUdfPacketMatcher(
-    const std::string& udfPacketMatcherName,
     const std::shared_ptr<UdfPacketMatcher>& udfPacketMatcher) {
   auto bcmUdfPacketMatcher =
       make_shared<BcmUdfPacketMatcher>(hw_, udfPacketMatcher);
-  udfPacketMatcherMap_.insert({udfPacketMatcherName, bcmUdfPacketMatcher});
-}
-
-// createUdfPacketMatchers adds BcmUdfPacketMatcher to udfPacketMatcherMap_
-void BcmUdfManager::createUdfPacketMatchers(
-    const std::shared_ptr<UdfPacketMatcherMap>& udfPacketMatcherMap) {
-  for (auto udfPacketMatcherElem : *udfPacketMatcherMap) {
-    createUdfPacketMatcher(
-        udfPacketMatcherElem.first, udfPacketMatcherElem.second);
-  }
+  udfPacketMatcherMap_.insert(
+      {udfPacketMatcher->getName(), bcmUdfPacketMatcher});
 }
 
 // Attach UdfPacketMatcher to UdfGroup
@@ -48,25 +39,14 @@ void BcmUdfManager::attachUdfPacketMatcher(
 }
 
 // createUdfGroup
-void BcmUdfManager::createUdfGroup(
-    const std::string& udfGroupName,
-    const std::shared_ptr<UdfGroup>& udfGroup) {
+void BcmUdfManager::createUdfGroup(const std::shared_ptr<UdfGroup>& udfGroup) {
   auto bcmUdfGroup = make_shared<BcmUdfGroup>(hw_, udfGroup);
   for (auto udfPacketMatcherName : udfGroup->getUdfPacketMatcherIds()) {
     attachUdfPacketMatcher(bcmUdfGroup, udfPacketMatcherName);
-    XLOG(DBG2) << "udfGroup=" << udfGroupName
+    XLOG(DBG2) << "udfGroup=" << udfGroup->getName()
                << "attached to udfPacketMatcher=" << udfPacketMatcherName;
   }
-  udfGroupsMap_.insert({udfGroupName, bcmUdfGroup});
-}
-
-// createUdfGroups associates BcmUdfPacketMatchers to BcmUdfGroup and adds
-// BcmUdfGroup to UdfGroupMap
-void BcmUdfManager::createUdfGroups(
-    const std::shared_ptr<UdfGroupMap>& udfGroupMap) {
-  for (auto udfGroupElem : *udfGroupMap) {
-    createUdfGroup(udfGroupElem.first, udfGroupElem.second);
-  }
+  udfGroupsMap_.insert({udfGroup->getName(), bcmUdfGroup});
 }
 
 // deleteUdfPacketMatcher
@@ -83,14 +63,6 @@ void BcmUdfManager::deleteUdfPacketMatcher(
         " not found in udfPacketMatcherMap_");
   }
   udfPacketMatcherMap_.erase(udfPacketMatcherName);
-}
-
-// deleteUdfPacketMatchers removes BcmUdfPacketMatcher from udfPacketMatcherMap_
-void BcmUdfManager::deleteUdfPacketMatchers(
-    const std::shared_ptr<UdfPacketMatcherMap>& udfPacketMatcherMap) {
-  for (auto udfPacketMatcherElem : *udfPacketMatcherMap) {
-    deleteUdfPacketMatcher(udfPacketMatcherElem.first);
-  }
 }
 
 // Detach UdfPacketMatcher to UdfGroup
@@ -129,36 +101,7 @@ void BcmUdfManager::deleteUdfGroup(
   udfGroupsMap_.erase(udfGroupName);
 }
 
-// deleteUdfGroups detaches BcmUdfPacketMatchers from BcmUdfGroup and deletes
-// BcmUdfGroup from UdfGroupMap
-void BcmUdfManager::deleteUdfGroups(
-    const std::shared_ptr<UdfGroupMap>& udfGroupMap) {
-  for (auto udfGroupElem : *udfGroupMap) {
-    deleteUdfGroup(udfGroupElem.first, udfGroupElem.second);
-  }
-}
 BcmUdfManager::~BcmUdfManager() {
   XLOG(DBG2) << "Destroying BcmUdfGroup";
 }
-
-// Walk through udfPktMatcherMap and create them using BcmUdfPktMatcher
-// Walk through UdfGroupMap and create using BcmUdfGroup and associates
-// BcmUdfPacketMatchers to BcmUdfGroup
-void BcmUdfManager::addUdfConfig(
-    const std::shared_ptr<UdfPacketMatcherMap>& udfPacketMatcherMap,
-    const std::shared_ptr<UdfGroupMap>& udfGroupMap) {
-  createUdfPacketMatchers(udfPacketMatcherMap);
-  createUdfGroups(udfGroupMap);
-}
-
-// Walk through UdfGroupMap and delete BcmUdfGroups after detaching
-// BcmUdfPacketMatchers from each BcmUdfGroup
-// Walk through udfPktMatcherMap and delete BcmUdfPktMatcher
-void BcmUdfManager::deleteUdfConfig(
-    const std::shared_ptr<UdfPacketMatcherMap>& udfPacketMatcherMap,
-    const std::shared_ptr<UdfGroupMap>& udfGroupMap) {
-  deleteUdfGroups(udfGroupMap);
-  deleteUdfPacketMatchers(udfPacketMatcherMap);
-}
-
 } // namespace facebook::fboss

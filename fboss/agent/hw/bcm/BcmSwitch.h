@@ -102,6 +102,9 @@ class BcmPtpTcMgr;
 class BcmEgressQueueFlexCounterManager;
 class TeFlowEntry;
 class UnsupportedFeatureManager;
+class BcmUdfManager;
+class UdfPacketMatcher;
+class UdfGroup;
 
 /*
  * Virtual interface to BcmSwitch, primarily for mocking/testing
@@ -531,6 +534,10 @@ class BcmSwitch : public BcmSwitchIf {
     return ptpTcMgr_.get();
   }
 
+  BcmUdfManager* getUdfMgr() const {
+    return udfManager_.get();
+  }
+
   BcmEgressQueueFlexCounterManager* getBcmEgressQueueFlexCounterManager()
       const {
     return queueFlexCounterMgr_.get();
@@ -754,6 +761,12 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<LoadBalancer>& loadBalancer);
   void processRemovedLoadBalancer(
       const std::shared_ptr<LoadBalancer>& loadBalancer);
+
+  void processUdfAdd(const StateDelta& delta);
+  void processUdfRemove(const StateDelta& delta);
+  void processAddedUdfPacketMatcher(
+      const std::shared_ptr<UdfPacketMatcher>& udfPacketMatcher);
+  void processAddedUdfGroup(const std::shared_ptr<UdfGroup>& udfGroup);
 
   std::shared_ptr<SwitchState> stateChangedImpl(const StateDelta& delta);
 
@@ -1065,6 +1078,7 @@ class BcmSwitch : public BcmSwitchIf {
 
   std::unique_ptr<UnsupportedFeatureManager> sysPortMgr_;
   std::unique_ptr<UnsupportedFeatureManager> remoteRifMgr_;
+  std::unique_ptr<BcmUdfManager> udfManager_;
   /*
    * Lock to synchronize access to all BCM* data structures
    */

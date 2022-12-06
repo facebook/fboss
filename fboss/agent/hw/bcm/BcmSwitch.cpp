@@ -81,6 +81,7 @@
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
+#include "fboss/agent/hw/bcm/BcmUdfManager.h"
 #include "fboss/agent/hw/bcm/BcmUnit.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
@@ -102,6 +103,8 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
+#include "fboss/agent/state/UdfGroup.h"
+#include "fboss/agent/state/UdfPacketMatcher.h"
 
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/Port.h"
@@ -372,7 +375,8 @@ BcmSwitch::BcmSwitch(BcmPlatform* platform, uint32_t featuresDesired)
       qcmManager_(new BcmQcmManager(this)),
       ptpTcMgr_(new BcmPtpTcMgr(this)),
       sysPortMgr_(new UnsupportedFeatureManager("system ports")),
-      remoteRifMgr_(new UnsupportedFeatureManager("remote RIF")) {}
+      remoteRifMgr_(new UnsupportedFeatureManager("remote RIF")),
+      udfManager_(new BcmUdfManager(this)) {}
 
 BcmSwitch::~BcmSwitch() {
   XLOG(DBG2) << "Destroying BcmSwitch";
@@ -431,6 +435,7 @@ void BcmSwitch::resetTables() {
   qcmManager_.reset();
   ptpTcMgr_.reset();
   queueFlexCounterMgr_.reset();
+  udfManager_.reset();
   // Reset warmboot cache last in case Bcm object destructors
   // access it during object deletion.
   warmBootCache_.reset();
@@ -1194,7 +1199,12 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
 
   processMacTableChanges(delta);
 
+  processUdfAdd(delta);
+
   processLoadBalancerChanges(delta);
+
+  // remove any udf after we are done processing load balancer
+  // processUdfRemove(delta);
 
   // remove all routes to be deleted
   processRemovedRoutes(delta);
@@ -2781,6 +2791,27 @@ void BcmSwitch::processLoadBalancerChanges(const StateDelta& delta) {
       &BcmSwitch::processAddedLoadBalancer,
       &BcmSwitch::processRemovedLoadBalancer,
       this);
+}
+
+void BcmSwitch::processUdfAdd(const StateDelta& delta) {
+  forEachAdded(
+      delta.getUdfPacketMatcherDelta(),
+      &BcmSwitch::processAddedUdfPacketMatcher,
+      this);
+
+  forEachAdded(
+      delta.getUdfGroupDelta(), &BcmSwitch::processAddedUdfGroup, this);
+}
+
+void BcmSwitch::processAddedUdfPacketMatcher(
+    const shared_ptr<UdfPacketMatcher>& udfPacketMatcher) {
+  XLOG(DBG2) << "Adding udf packet matcher: " << udfPacketMatcher->getID();
+  udfManager_->createUdfPacketMatcher(udfPacketMatcher);
+}
+
+void BcmSwitch::processAddedUdfGroup(const shared_ptr<UdfGroup>& udfGroup) {
+  XLOG(DBG2) << "Adding udf packet matcher: " << udfGroup->getID();
+  udfManager_->createUdfGroup(udfGroup);
 }
 
 void BcmSwitch::processChangedLoadBalancer(
