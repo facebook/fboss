@@ -904,7 +904,7 @@ void ThriftHandler::getAclTable(std::vector<AclEntryThrift>& aclTable) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
   aclTable.reserve(sw_->getState()->getAcls()->numEntries());
-  for (const auto& iter : *(sw_->getState()->getAcls())) {
+  for (const auto& iter : std::as_const(*(sw_->getState()->getAcls()))) {
     const auto& aclEntry = iter.second;
     aclTable.push_back(populateAclEntryThrift(*aclEntry));
   }
