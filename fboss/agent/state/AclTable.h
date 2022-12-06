@@ -107,10 +107,6 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
     }
   }
 
-  static std::shared_ptr<AclTable> fromJson(const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
   folly::dynamic toFollyDynamic() const override {
     return getFields()->toFollyDynamic();
   }
