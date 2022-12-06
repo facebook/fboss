@@ -32,6 +32,8 @@
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/QosPolicyMap.h"
+#include "fboss/agent/state/UdfGroupMap.h"
+#include "fboss/agent/state/UdfPacketMatcherMap.h"
 
 #include "fboss/agent/state/SflowCollectorMap.h"
 #include "fboss/agent/state/SwitchSettings.h"
@@ -84,6 +86,9 @@ class StateDelta {
   thrift_cow::ThriftMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;
   thrift_cow::ThriftMapDelta<LoadBalancerMap> getLoadBalancersDelta() const;
   DeltaValue<ControlPlane> getControlPlaneDelta() const;
+  thrift_cow::ThriftMapDelta<UdfPacketMatcherMap> getUdfPacketMatcherDelta()
+      const;
+  thrift_cow::ThriftMapDelta<UdfGroupMap> getUdfGroupDelta() const;
 
   thrift_cow::ThriftMapDelta<MirrorMap> getMirrorsDelta() const;
 

@@ -124,6 +124,19 @@ thrift_cow::ThriftMapDelta<LoadBalancerMap> StateDelta::getLoadBalancersDelta()
       old_->getLoadBalancers().get(), new_->getLoadBalancers().get());
 }
 
+thrift_cow::ThriftMapDelta<UdfGroupMap> StateDelta::getUdfGroupDelta() const {
+  return thrift_cow::ThriftMapDelta<UdfGroupMap>(
+      old_->getUdfConfig()->getUdfGroupMap().get(),
+      new_->getUdfConfig()->getUdfGroupMap().get());
+}
+
+thrift_cow::ThriftMapDelta<UdfPacketMatcherMap>
+StateDelta::getUdfPacketMatcherDelta() const {
+  return thrift_cow::ThriftMapDelta<UdfPacketMatcherMap>(
+      old_->getUdfConfig()->getUdfPacketMatcherMap().get(),
+      new_->getUdfConfig()->getUdfPacketMatcherMap().get());
+}
+
 thrift_cow::ThriftMapDelta<DsfNodeMap> StateDelta::getDsfNodesDelta() const {
   return thrift_cow::ThriftMapDelta<DsfNodeMap>(
       old_->getDsfNodes().get(), new_->getDsfNodes().get());
