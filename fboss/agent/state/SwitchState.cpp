@@ -192,7 +192,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
    */
   if (!state.get_aclMap().empty()) {
     if (!FLAGS_enable_acl_table_group) {
-      fields.acls = AclMap::fromThrift(state.get_aclMap());
+      fields.acls = std::make_shared<AclMap>(state.get_aclMap());
     } else {
       fields.aclTableGroups =
           AclTableGroupMap::createDefaultAclTableGroupMapFromThrift(

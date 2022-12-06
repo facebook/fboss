@@ -18,7 +18,7 @@
 
 namespace facebook::fboss {
 
-using AclMapTraits = NodeMapTraits<std::string, AclEntry>;
+using AclMapLegacyTraits = NodeMapTraits<std::string, AclEntry>;
 
 struct AclMapThriftTraits
     : public ThriftyNodeMapTraits<std::string, state::AclEntryFields> {
@@ -32,12 +32,22 @@ struct AclMapThriftTraits
   }
 };
 
+using AclMapTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::string,
+    apache::thrift::type_class::structure>;
+using AclMapThriftType = std::map<std::string, state::AclEntryFields>;
+
+class AclMap;
+using AclMapTraits =
+    ThriftMapNodeTraits<AclMap, AclMapTypeClass, AclMapThriftType, AclEntry>;
+
 /*
  * A container for the set of entries.
  */
-class AclMap
-    : public ThriftyNodeMapT<AclMap, AclMapTraits, AclMapThriftTraits> {
+class AclMap : public ThriftMapNode<AclMap, AclMapTraits> {
  public:
+  using Base = ThriftMapNode<AclMap, AclMapTraits>;
+
   AclMap();
   ~AclMap() override;
 
@@ -45,7 +55,8 @@ class AclMap
     if (numEntries() != aclMap.numEntries()) {
       return false;
     }
-    for (auto const& entry : *this) {
+    for (auto const& iter : *this) {
+      const auto& entry = iter.second;
       if (!aclMap.getEntryIf(entry->getID()) ||
           *(aclMap.getEntry(entry->getID())) != *entry) {
         return false;
@@ -99,7 +110,7 @@ class AclMap
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyNodeMapT::ThriftyNodeMapT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 
@@ -130,8 +141,8 @@ class PrioAclMap : public NodeMapT<PrioAclMap, PrioAclMapTraits> {
   ~PrioAclMap() override {}
 
   void addAcls(const std::shared_ptr<const AclMap>& acls) {
-    for (const auto& aclEntry : *acls) {
-      addNode(aclEntry);
+    for (const auto& iter : *acls) {
+      addNode(iter.second);
     }
   }
 

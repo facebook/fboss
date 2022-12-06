@@ -225,7 +225,7 @@ std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
 // Explicit instantiations of NodeMapDelta that are used by StateDelta.
 template class thrift_cow::ThriftMapDelta<InterfaceMap>;
 template class NodeMapDelta<PortMap>;
-template class NodeMapDelta<AclMap>;
+template class thrift_cow::ThriftMapDelta<AclMap>;
 template class NodeMapDelta<AclTableGroupMap>;
 template class NodeMapDelta<AclTableMap>;
 template class thrift_cow::ThriftMapDelta<QosPolicyMap>;

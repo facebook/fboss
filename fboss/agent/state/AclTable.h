@@ -55,7 +55,7 @@ struct AclTableFields
       state::AclTableFields const& aclTableFields) {
     AclTableFields fields = AclTableFields(aclTableFields);
     if (auto aclMap = aclTableFields.aclMap()) {
-      fields.aclMap_ = AclMap::fromThrift(*aclMap);
+      fields.aclMap_ = std::make_shared<AclMap>(*aclMap);
     }
     return fields;
   }
@@ -100,7 +100,7 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
   static std::shared_ptr<AclMap> getDefaultAclTable(
       state::AclTableFields const& aclTableFields) {
     if (auto aclMap = aclTableFields.aclMap()) {
-      return (AclMap::fromThrift(*aclMap));
+      return std::make_shared<AclMap>(*aclMap);
     } else {
       XLOG(ERR) << "AclTable missing from warmboot state file";
       return nullptr;
@@ -122,7 +122,7 @@ class AclTable : public NodeBaseT<AclTable, AclTableFields> {
       state::AclTableFields const& aclTableFields) {
     auto aclTable = std::make_shared<AclTable>(AclTableFields(aclTableFields));
     if (auto aclMap = aclTableFields.aclMap()) {
-      aclTable->writableFields()->aclMap_ = AclMap::fromThrift(*aclMap);
+      aclTable->writableFields()->aclMap_ = std::make_shared<AclMap>(*aclMap);
     }
     return aclTable;
   }

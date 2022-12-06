@@ -42,7 +42,7 @@ std::set<cfg::AclTableQualifier> PrioAclMap::requiredQualifiers() const {
   return qualifiers;
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(AclMap, AclMapTraits);
+template class ThriftMapNode<AclMap, AclMapTraits>;
 FBOSS_INSTANTIATE_NODE_MAP(PrioAclMap, PrioAclMapTraits);
 
 template class NodeMapDelta<

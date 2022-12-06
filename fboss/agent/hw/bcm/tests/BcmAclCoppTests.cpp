@@ -35,7 +35,8 @@ void checkCoppAclMatch(
       unit, hw->getPlatform()->getAsic()->getDefaultACLGroupID());
   ASSERT_EQ(swAcls->size(), coppAclsCount);
   // check all coop acls are sync between h/w and s/w
-  for (auto& swAcl : *swAcls) {
+  for (auto& iter : std::as_const(*swAcls)) {
+    const auto& swAcl = iter.second;
     auto hwAcl = hw->getAclTable()->getAclIf(swAcl->getPriority());
     ASSERT_NE(nullptr, hwAcl);
     ASSERT_TRUE(BcmAclEntry::isStateSame(

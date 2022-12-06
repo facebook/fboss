@@ -93,11 +93,8 @@ AclTableFields AclTableFields::createDefaultAclTableFields(
 
 AclTableFields AclTableFields::createDefaultAclTableFieldsFromThrift(
     std::map<std::string, state::AclEntryFields> const& thriftMap) {
-  std::shared_ptr<AclMap> aclMap;
-
-  aclMap = AclMap::fromThrift(thriftMap);
+  std::shared_ptr<AclMap> aclMap = std::make_shared<AclMap>(thriftMap);
   AclTableFields aclTable(kAclTablePriority, kAclTable1, aclMap);
-
   return aclTable;
 }
 

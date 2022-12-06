@@ -98,8 +98,8 @@ std::shared_ptr<AclMap> AclNexthopHandler::updateAcls(
     std::shared_ptr<SwitchState>& newState) {
   bool changed = false;
   auto origAcls = newState->getAcls();
-  for (auto origAclEntry : *origAcls) {
-    if (updateAcl(origAclEntry, newState)) {
+  for (const auto& iter : std::as_const(*origAcls)) {
+    if (updateAcl(iter.second, newState)) {
       changed = true;
     }
   }
