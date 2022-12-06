@@ -445,12 +445,14 @@ struct PhyState {
   6: optional PhySideState system;
   7: PhySideState line;
   8: optional i32 switchID;
+  9: i32 timeCollected;
 }
 
 struct PhyStats {
   1: optional PhySideStats system;
   2: PhySideStats line;
   3: optional i64 linkFlapCount;
+  10: i32 timeCollected;
 }
 
 union LinkSnapshot {
