@@ -59,7 +59,9 @@ class CmdShowInterfacePhy
     Table table;
     table.setHeader({"Interface", ifName});
     table.addRow({"PhyChipType", phyType});
-    if (auto linkState = phyInfo.linkState()) {
+    auto linkState = phyInfo.state().has_value() ? phyInfo.state()->linkState()
+                                                 : phyInfo.linkState();
+    if (linkState.has_value()) {
       if (*linkState) {
         table.addRow(
             {"Link State", Table::StyledCell("UP", Table::Style::GOOD)});
@@ -68,19 +70,37 @@ class CmdShowInterfacePhy
             {"Link State", Table::StyledCell("DOWN", Table::Style::ERROR)});
       }
     }
-    if (auto linkFlapCount = phyInfo.linkFlapCount()) {
+    auto linkFlapCount = phyInfo.stats().has_value()
+        ? phyInfo.stats()->linkFlapCount()
+        : phyInfo.linkFlapCount();
+    if (linkFlapCount.has_value()) {
       table.addRow({"Link Flap Count", std::to_string(*linkFlapCount)});
     }
-    table.addRow(
-        {"Speed", apache::thrift::util::enumNameSafe(*phyInfo.speed())});
+    auto speed = phyInfo.state().has_value() ? phyInfo.state()->speed()
+                                             : phyInfo.speed();
+    table.addRow({"Speed", apache::thrift::util::enumNameSafe(*speed)});
+    auto timeCollected = phyInfo.state().has_value()
+        ? phyInfo.state()->timeCollected()
+        : phyInfo.timeCollected();
     table.addRow(
         {phyType + " Data Collected",
-         utils::getPrettyElapsedTime(*phyInfo.timeCollected()) + " ago"});
+         utils::getPrettyElapsedTime(*timeCollected) + " ago"});
     out << table;
-    if (auto systemSide = phyInfo.system()) {
-      printSideInfo(out, *systemSide, prefix + "System ");
+    if (auto state = phyInfo.state()) {
+      // Assume stats exist when state does
+      auto& stat = phyInfo.stats().ensure();
+      if (auto systemState = state->system()) {
+        printSideStateAndStat(
+            out, *systemState, stat.system().ensure(), prefix + "System ");
+      }
+      printSideStateAndStat(
+          out, *state->line(), *stat.line(), prefix + "Line ");
+    } else {
+      if (auto systemSide = phyInfo.system()) {
+        printSideInfo(out, *systemSide, prefix + "System ");
+      }
+      printSideInfo(out, *phyInfo.line(), prefix + "Line ");
     }
-    printSideInfo(out, *phyInfo.line(), prefix + "Line ");
   }
 
   void printSideInfo(
@@ -179,6 +199,120 @@ class CmdShowInterfacePhy
         pmdTable.addRow(
             {"",
              std::to_string(*lane.lane()),
+             makeColorCellForLiveFlag(sigDetLive),
+             sigDetChanged,
+             makeColorCellForLiveFlag(cdrLockLive),
+             cdrLockChanged,
+             folly::join(",", eyeHeights),
+             folly::join(",", eyeWidths),
+             rxPPM});
+      }
+      out << pmdTable;
+    }
+  }
+
+  void printSideStateAndStat(
+      std::ostream& out,
+      phy::PhySideState& sideState,
+      phy::PhySideStats& sideStats,
+      const std::string& prefix) {
+    if (auto rs = sideState.rs()) {
+      Table rsTable;
+      rsTable.setHeader({prefix + "Reconciliation Sublayer", ""});
+      rsTable.addRow(
+          {prefix + "Local Fault Live",
+           std::to_string(*(*rs).faultStatus()->localFault())});
+      rsTable.addRow(
+          {prefix + "Remote Fault Live",
+           std::to_string(*(*rs).faultStatus()->remoteFault())});
+      out << rsTable;
+    }
+    if (sideState.pcs().has_value() || sideStats.pcs().has_value()) {
+      Table pcsTable;
+      Table rsFecTable;
+      bool hasPcsData{false}, hasRsFecData{false};
+      if (sideState.pcs().has_value()) {
+        if (auto pcsRxStatusLive = sideState.pcs()->pcsRxStatusLive()) {
+          pcsTable.addRow(
+              {prefix + "PCS RX Link Status Live",
+               makeColorCellForLiveFlag(std::to_string(*pcsRxStatusLive))});
+          hasPcsData = true;
+        }
+      }
+      if (sideStats.pcs().has_value()) {
+        if (auto rsFec = sideStats.pcs()->rsFec()) {
+          rsFecTable.setHeader({prefix + "RS FEC", ""});
+          rsFecTable.addRow(
+              {prefix + "Corrected codewords",
+               std::to_string(*(rsFec->correctedCodewords()))});
+          rsFecTable.addRow(
+              {prefix + "Uncorrected codewords",
+               std::to_string(*(rsFec->uncorrectedCodewords()))});
+          std::ostringstream outStringStream;
+          outStringStream << *rsFec->preFECBer();
+          rsFecTable.addRow({prefix + "Pre-FEC BER", outStringStream.str()});
+          hasRsFecData = true;
+        }
+        if (hasPcsData) {
+          pcsTable.setHeader({prefix + "PCS", ""});
+          out << pcsTable;
+        }
+        if (hasRsFecData) {
+          out << rsFecTable;
+        }
+      }
+    }
+
+    if (!sideState.pmd()->lanes()->empty()) {
+      Table pmdTable;
+      pmdTable.setHeader(
+          {prefix + "PMD",
+           "Lane",
+           "RX Signal Detect Live",
+           "RX Signal Detect Changed",
+           "RX CDR Lock Live",
+           "RX CDR Lock Changed",
+           "Eye Heights",
+           "Eye Widths",
+           "Rx PPM"});
+      for (const auto& laneInfo : *sideState.pmd()->lanes()) {
+        auto laneState = laneInfo.second;
+        auto laneStat = (sideStats.pmd()->lanes()[laneInfo.first]);
+        std::string sigDetLive = "N/A";
+        std::string cdrLockLive = "N/A";
+        std::string sigDetChanged = "N/A";
+        std::string cdrLockChanged = "N/A";
+        std::string rxPPM = "N/A";
+        std::vector<float> eyeHeights = {};
+        std::vector<float> eyeWidths = {};
+        if (auto rxSigDetLive = laneState.signalDetectLive()) {
+          sigDetLive = std::to_string(*rxSigDetLive);
+        }
+        if (auto rxSigDetChanged = laneStat.signalDetectChangedCount()) {
+          sigDetChanged = std::to_string(*rxSigDetChanged);
+        }
+        if (auto rxCdrLockLive = laneState.cdrLockLive()) {
+          cdrLockLive = std::to_string(*rxCdrLockLive);
+        }
+        if (auto rxCdrLockChanged = laneStat.cdrLockChangedCount()) {
+          cdrLockChanged = std::to_string(*rxCdrLockChanged);
+        }
+        if (auto rxFreqPPM = laneState.rxFrequencyPPM()) {
+          rxPPM = std::to_string(*rxFreqPPM);
+        }
+        if (auto eyes = laneStat.eyes()) {
+          for (const auto& eye : *eyes) {
+            if (auto eyeW = eye.width()) {
+              eyeWidths.push_back(*eyeW);
+            }
+            if (auto eyeH = eye.height()) {
+              eyeHeights.push_back(*eyeH);
+            }
+          }
+        }
+        pmdTable.addRow(
+            {"",
+             std::to_string(*laneState.lane()),
              makeColorCellForLiveFlag(sigDetLive),
              sigDetChanged,
              makeColorCellForLiveFlag(cdrLockLive),
