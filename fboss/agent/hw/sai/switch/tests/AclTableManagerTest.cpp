@@ -104,7 +104,8 @@ TEST_F(AclTableManagerTest, addAclEntry) {
                         .getAclTableHandle(kAclTable1)
                         ->aclTable->adapterKey();
 
-  auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
+  auto aclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
   aclEntry->setDscp(kDscp());
   aclEntry->setActionType(kActionType());
 
@@ -126,7 +127,8 @@ TEST_F(AclTableManagerTest, addAclEntryWithCounter) {
   MatchAction action = MatchAction();
   action.setTrafficCounter(counter);
 
-  auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
+  auto aclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
   aclEntry->setDscp(kDscp());
   aclEntry->setAclAction(action);
 
@@ -154,7 +156,8 @@ TEST_F(AclTableManagerTest, addTwoAclEntry) {
                         .getAclTableHandle(kAclTable1)
                         ->aclTable->adapterKey();
 
-  auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
+  auto aclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
   aclEntry->setDscp(kDscp());
   aclEntry->setActionType(kActionType());
 
@@ -165,7 +168,8 @@ TEST_F(AclTableManagerTest, addTwoAclEntry) {
       aclEntryId, SaiAclEntryTraits::Attributes::TableId());
   EXPECT_EQ(tableIdGot, aclTableId);
 
-  auto aclEntry2 = std::make_shared<AclEntry>(kPriority2(), "AclEntry2");
+  auto aclEntry2 =
+      std::make_shared<AclEntry>(kPriority2(), std::string("AclEntry2"));
   aclEntry2->setDscp(kDscp2());
   aclEntry2->setActionType(kActionType());
 
@@ -178,13 +182,15 @@ TEST_F(AclTableManagerTest, addTwoAclEntry) {
 }
 
 TEST_F(AclTableManagerTest, addDupAclEntry) {
-  auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
+  auto aclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
   aclEntry->setDscp(kDscp());
   aclEntry->setActionType(kActionType());
 
   saiManagerTable->aclTableManager().addAclEntry(aclEntry, kAclTable1);
 
-  auto dupAclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
+  auto dupAclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
   dupAclEntry->setDscp(kDscp());
   dupAclEntry->setActionType(cfg::AclActionType::DENY);
 
@@ -194,7 +200,8 @@ TEST_F(AclTableManagerTest, addDupAclEntry) {
 }
 
 TEST_F(AclTableManagerTest, getAclEntry) {
-  auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
+  auto aclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
   aclEntry->setDscp(kDscp());
   aclEntry->setActionType(kActionType());
 
@@ -232,7 +239,8 @@ TEST_F(AclTableManagerTest, aclMirroring) {
       std::make_optional<PortID>(PortID(1)),
       std::optional<folly::IPAddress>());
   saiManagerTable->mirrorManager().addMirror(mirror);
-  auto aclEntry = std::make_shared<AclEntry>(kPriority(), "AclEntry1");
+  auto aclEntry =
+      std::make_shared<AclEntry>(kPriority(), std::string("AclEntry1"));
   aclEntry->setDscp(kDscp());
   aclEntry->setActionType(kActionType());
   MatchAction matchAction = MatchAction();

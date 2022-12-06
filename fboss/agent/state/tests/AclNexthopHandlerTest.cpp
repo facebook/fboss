@@ -233,9 +233,10 @@ class AclNexthopHandlerTest : public ::testing::Test {
       auto state = sw_->getState();
       auto aclEntry = state->getAcls()->getEntry(aclName);
       EXPECT_NE(aclEntry, nullptr);
-      auto action = aclEntry->getAclAction();
+      const auto& action = aclEntry->getAclAction();
+      auto matchAction = MatchAction::fromThrift(action->toThrift());
       auto resolvedNexthopSet =
-          action.value().getRedirectToNextHop().value().second;
+          matchAction.getRedirectToNextHop().value().second;
       XLOG(DBG3) << "expected nexthops: " << expectedNexthops
                  << ", resolved nexthops: " << resolvedNexthopSet;
       // Since the route is deleted, expect no resolved nexthops
@@ -278,8 +279,10 @@ TYPED_TEST(AclNexthopHandlerTest, UnresolvedAclNextHop) {
     auto aclEntry = state->getAcls()->getEntry(kAclName);
     EXPECT_NE(aclEntry, nullptr);
     auto action = aclEntry->getAclAction();
-    auto resolvedNexthopSet =
-        action.value().getRedirectToNextHop().value().second;
+    auto resolvedNexthopSet = util::toRouteNextHopSet(
+        action->template cref<switch_state_tags::redirectToNextHop>()
+            ->template cref<switch_state_tags::resolvedNexthops>()
+            ->toThrift());
     EXPECT_EQ(resolvedNexthopSet.size(), 0);
     EXPECT_EQ(*aclEntry->isEnabled(), false);
   });

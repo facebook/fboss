@@ -28,11 +28,19 @@ void checkSwAclSendToQueue(
     int queueId) {
   auto acl = state->getAcl(aclName);
   ASSERT_TRUE(acl->getAclAction());
-  ASSERT_TRUE(acl->getAclAction().value().getSendToQueue());
+  ASSERT_TRUE(acl->getAclAction()->cref<switch_state_tags::sendToQueue>());
   ASSERT_EQ(
-      acl->getAclAction().value().getSendToQueue().value().second, sendToCPU);
+      acl->getAclAction()
+          ->cref<switch_state_tags::sendToQueue>()
+          ->cref<switch_state_tags::sendToCPU>()
+          ->cref(),
+      sendToCPU);
   ASSERT_EQ(
-      *acl->getAclAction().value().getSendToQueue().value().first.queueId(),
+      acl->getAclAction()
+          ->cref<switch_state_tags::sendToQueue>()
+          ->cref<switch_state_tags::action>()
+          ->cref<switch_config_tags::queueId>()
+          ->cref(),
       queueId);
 }
 void popOneMatchToAction(cfg::SwitchConfig* config) {
@@ -44,9 +52,13 @@ void checkSwActionDscpValue(
     int32_t dscpValue) {
   auto acl = state->getAcl(aclName);
   ASSERT_TRUE(acl->getAclAction());
-  ASSERT_TRUE(acl->getAclAction().value().getSetDscp());
+  ASSERT_TRUE(acl->getAclAction()->cref<switch_state_tags::setDscp>());
   ASSERT_EQ(
-      *acl->getAclAction().value().getSetDscp().value().dscpValue(), dscpValue);
+      acl->getAclAction()
+          ->cref<switch_state_tags::setDscp>()
+          ->cref<switch_config_tags::dscpValue>()
+          ->cref(),
+      dscpValue);
 }
 void addSetDscpAction(
     cfg::SwitchConfig* config,

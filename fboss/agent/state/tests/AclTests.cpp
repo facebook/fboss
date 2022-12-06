@@ -41,7 +41,7 @@ TEST(Acl, applyConfig) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
-  auto aclEntry = make_shared<AclEntry>(0, "acl0");
+  auto aclEntry = make_shared<AclEntry>(0, std::string("acl0"));
   stateV0->addAcl(aclEntry);
   auto aclV0 = stateV0->getAcl("acl0");
   EXPECT_EQ(0, aclV0->getGeneration());
@@ -430,18 +430,18 @@ TEST(Acl, AclGeneration) {
 
   // Ensure that the global actions in global traffic policy has been added to
   // the ACL entries
-  EXPECT_TRUE(acls->getEntryIf("acl5")->getAclAction().has_value());
+  EXPECT_TRUE(acls->getEntryIf("acl5")->getAclAction() != nullptr);
   EXPECT_EQ(
       8,
-      *acls->getEntryIf("acl5")
-           ->getAclAction()
-           ->getSetDscp()
-           .value()
-           .dscpValue());
+      acls->getEntryIf("acl5")
+          ->getAclAction()
+          ->cref<switch_state_tags::setDscp>()
+          ->cref<switch_config_tags::dscpValue>()
+          ->cref());
 }
 
 TEST(Acl, SerializeAclEntry) {
-  auto entry = std::make_unique<AclEntry>(0, "dscp1");
+  auto entry = std::make_unique<AclEntry>(0, std::string("dscp1"));
   entry->setDscp(1);
   entry->setL4SrcPort(179);
   entry->setL4DstPort(179);
@@ -457,11 +457,19 @@ TEST(Acl, SerializeAclEntry) {
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getAclAction());
-  auto aclAction = entryBack->getAclAction().value();
-  EXPECT_TRUE(aclAction.getSendToQueue());
-  EXPECT_EQ(aclAction.getSendToQueue().value().second, false);
-  EXPECT_EQ(*aclAction.getSendToQueue().value().first.queueId(), 3);
-
+  auto aclAction = entryBack->getAclAction();
+  EXPECT_TRUE(aclAction->cref<switch_state_tags::sendToQueue>() != nullptr);
+  EXPECT_EQ(
+      aclAction->cref<switch_state_tags::sendToQueue>()
+          ->cref<switch_state_tags::sendToCPU>()
+          ->cref(),
+      false);
+  EXPECT_EQ(
+      aclAction->cref<switch_state_tags::sendToQueue>()
+          ->cref<switch_state_tags::action>()
+          ->cref<switch_config_tags::queueId>()
+          ->cref(),
+      3);
   // change to sendToCPU = true
   action.setSendToQueue(make_pair(queueAction, true));
   EXPECT_EQ(action.getSendToQueue().value().second, true);
@@ -472,14 +480,23 @@ TEST(Acl, SerializeAclEntry) {
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getAclAction());
-  aclAction = entryBack->getAclAction().value();
-  EXPECT_TRUE(aclAction.getSendToQueue());
-  EXPECT_EQ(aclAction.getSendToQueue().value().second, true);
-  EXPECT_EQ(*aclAction.getSendToQueue().value().first.queueId(), 3);
+  aclAction = entryBack->getAclAction();
+  EXPECT_TRUE(aclAction->cref<switch_state_tags::sendToQueue>() != nullptr);
+  EXPECT_EQ(
+      aclAction->cref<switch_state_tags::sendToQueue>()
+          ->cref<switch_state_tags::sendToCPU>()
+          ->cref(),
+      true);
+  EXPECT_EQ(
+      aclAction->cref<switch_state_tags::sendToQueue>()
+          ->cref<switch_state_tags::action>()
+          ->cref<switch_config_tags::queueId>()
+          ->cref(),
+      3);
 }
 
 TEST(Acl, SerializeRedirectToNextHop) {
-  auto entry = std::make_unique<AclEntry>(0, "stat0");
+  auto entry = std::make_unique<AclEntry>(0, std::string("stat0"));
   MatchAction action = MatchAction();
   auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();
   std::vector<std::string> nexthops = {
@@ -534,17 +551,25 @@ TEST(Acl, SerializeRedirectToNextHop) {
     auto serialized = entry.toFollyDynamic();
     auto entryBack = AclEntry::fromFollyDynamic(serialized);
     EXPECT_TRUE(entry == *entryBack);
-    validateNodeSerialization(entry);
-    auto aclAction = entryBack->getAclAction().value();
-    auto newRedirectToNextHop = aclAction.getRedirectToNextHop().value();
+    validateThriftStructNodeSerialization(entry);
+    const auto& aclAction = entryBack->getAclAction();
+    const auto& newRedirectToNextHop =
+        aclAction->cref<switch_state_tags::redirectToNextHop>();
     int i = 0;
     int outIntfID = 0;
-    for (const auto& nh : *newRedirectToNextHop.first.redirectNextHops()) {
-      EXPECT_EQ(nh.ip_ref(), nexthops[i]);
-      EXPECT_EQ(nh.intfID_ref().value(), ++outIntfID);
+    const auto& redirectAction =
+        newRedirectToNextHop->cref<switch_state_tags::action>();
+    for (const auto& nh : std::as_const(
+             *(redirectAction->cref<switch_config_tags::redirectNextHops>()))) {
+      EXPECT_EQ(nh->cref<switch_config_tags::ip>()->cref(), nexthops[i]);
+      EXPECT_EQ(nh->cref<switch_config_tags::intfID>()->cref(), ++outIntfID);
       ++i;
     }
-    EXPECT_EQ(nhset, newRedirectToNextHop.second);
+
+    auto nhops = util::toRouteNextHopSet(
+        newRedirectToNextHop->cref<switch_state_tags::resolvedNexthops>()
+            ->toThrift());
+    EXPECT_EQ(nhset, nhops);
     EXPECT_EQ(entry.isEnabled(), entryBack->isEnabled());
   };
   verifyEntries(*entry, nexthops, nhset);
@@ -582,7 +607,7 @@ TEST(Acl, SerializeRedirectToNextHop) {
 }
 
 TEST(Acl, SerializePacketCounter) {
-  auto entry = std::make_unique<AclEntry>(0, "stat0");
+  auto entry = std::make_unique<AclEntry>(0, std::string("stat0"));
   MatchAction action = MatchAction();
   auto counter = cfg::TrafficCounter();
   *counter.name() = "stat0.c";
@@ -595,15 +620,29 @@ TEST(Acl, SerializePacketCounter) {
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getAclAction());
-  auto aclAction = entryBack->getAclAction().value();
-  EXPECT_TRUE(aclAction.getTrafficCounter());
-  EXPECT_EQ(*aclAction.getTrafficCounter()->name(), "stat0.c");
-  EXPECT_EQ(aclAction.getTrafficCounter()->types()->size(), 1);
+  const auto& aclAction = entryBack->getAclAction();
+
+  EXPECT_TRUE(aclAction->cref<switch_state_tags::trafficCounter>() != nullptr);
+
   EXPECT_EQ(
-      aclAction.getTrafficCounter()->types()[0], cfg::CounterType::PACKETS);
+      aclAction->cref<switch_state_tags::trafficCounter>()
+          ->cref<switch_config_tags::name>()
+          ->cref(),
+      "stat0.c");
+  EXPECT_EQ(
+      aclAction->cref<switch_state_tags::trafficCounter>()
+          ->cref<switch_config_tags::types>()
+          ->size(),
+      1);
+  EXPECT_EQ(
+      aclAction->cref<switch_state_tags::trafficCounter>()
+          ->cref<switch_config_tags::types>()
+          ->cref(0)
+          ->toThrift(),
+      cfg::CounterType::PACKETS);
 
   // Test SetDscpMatchAction
-  entry = std::make_unique<AclEntry>(0, "DspNew");
+  entry = std::make_unique<AclEntry>(0, std::string("DspNew"));
   action = MatchAction();
   auto setDscpMatchAction = cfg::SetDscpMatchAction();
   *setDscpMatchAction.dscpValue() = 8;
@@ -616,9 +655,13 @@ TEST(Acl, SerializePacketCounter) {
 
   EXPECT_TRUE(*entry == *entryBack);
   EXPECT_TRUE(entryBack->getAclAction());
-  aclAction = entryBack->getAclAction().value();
-  EXPECT_TRUE(aclAction.getSetDscp());
-  EXPECT_EQ(*aclAction.getSetDscp().value().dscpValue(), 8);
+  const auto& aclAction1 = entryBack->getAclAction();
+  EXPECT_TRUE(aclAction1->cref<switch_state_tags::setDscp>() != nullptr);
+  EXPECT_EQ(
+      aclAction1->cref<switch_state_tags::setDscp>()
+          ->cref<switch_config_tags::dscpValue>()
+          ->toThrift(),
+      8);
 
   // Set 2 counter types
   *counter.types() = {cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
@@ -630,9 +673,17 @@ TEST(Acl, SerializePacketCounter) {
   validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
-  aclAction = entryBack->getAclAction().value();
-  EXPECT_EQ(aclAction.getTrafficCounter()->types()->size(), 2);
-  EXPECT_EQ(*aclAction.getTrafficCounter()->types(), *counter.types());
+  const auto& aclAction2 = entryBack->getAclAction();
+  EXPECT_EQ(
+      aclAction2->cref<switch_state_tags::trafficCounter>()
+          ->cref<switch_config_tags::types>()
+          ->size(),
+      2);
+  EXPECT_EQ(
+      aclAction2->cref<switch_state_tags::trafficCounter>()
+          ->cref<switch_config_tags::types>()
+          ->toThrift(),
+      *counter.types());
 }
 
 TEST(Acl, Ttl) {
@@ -674,7 +725,7 @@ TEST(Acl, Ttl) {
 }
 
 TEST(Acl, TtlSerialization) {
-  auto entry = std::make_unique<AclEntry>(0, "stat0");
+  auto entry = std::make_unique<AclEntry>(0, std::string("stat0"));
   entry->setTtl(AclTtl(42, 0xff));
   auto action = MatchAction();
   auto counter = cfg::TrafficCounter();
@@ -702,7 +753,7 @@ TEST(Acl, TtlSerialization) {
 }
 
 TEST(Acl, PacketLookupResultSerialization) {
-  auto entry = std::make_unique<AclEntry>(0, "stat0");
+  auto entry = std::make_unique<AclEntry>(0, std::string("stat0"));
   entry->setPacketLookupResult(
       cfg::PacketLookupResultType::PACKET_LOOKUP_RESULT_MPLS_NO_MATCH);
   auto action = MatchAction();
@@ -723,7 +774,7 @@ TEST(Acl, PacketLookupResultSerialization) {
 }
 
 TEST(Acl, VlanIDSerialization) {
-  auto entry = std::make_unique<AclEntry>(0, "stat0");
+  auto entry = std::make_unique<AclEntry>(0, std::string("stat0"));
   entry->setVlanID(2001);
   auto action = MatchAction();
   auto counter = cfg::TrafficCounter();
@@ -815,7 +866,7 @@ TEST(Acl, LookupClassSerialization) {
   action.setTrafficCounter(counter);
 
   // test for lookupClassL2 serialization/de-serialization
-  auto entryL2 = std::make_unique<AclEntry>(0, "stat1");
+  auto entryL2 = std::make_unique<AclEntry>(0, std::string("stat1"));
   auto lookupClassL2 = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_7;
   entryL2->setLookupClassL2(lookupClassL2);
   entryL2->setAclAction(action);
@@ -829,7 +880,7 @@ TEST(Acl, LookupClassSerialization) {
   EXPECT_EQ(entryBackL2->getLookupClassL2().value(), lookupClassL2);
 
   // test for lookupClassNeighbor serialization/de-serialization
-  auto entryNeighbor = std::make_unique<AclEntry>(0, "stat1");
+  auto entryNeighbor = std::make_unique<AclEntry>(0, std::string("stat1"));
   auto lookupClassNeighbor = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_7;
   entryNeighbor->setLookupClassNeighbor(lookupClassNeighbor);
   entryNeighbor->setAclAction(action);
@@ -844,7 +895,7 @@ TEST(Acl, LookupClassSerialization) {
       entryBackNeighbor->getLookupClassNeighbor().value(), lookupClassNeighbor);
 
   // test for lookupClassRoute serialization/de-serialization
-  auto entryRoute = std::make_unique<AclEntry>(0, "stat1");
+  auto entryRoute = std::make_unique<AclEntry>(0, std::string("stat1"));
   auto lookupClassRoute = cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_7;
   entryRoute->setLookupClassRoute(lookupClassRoute);
   entryRoute->setAclAction(action);

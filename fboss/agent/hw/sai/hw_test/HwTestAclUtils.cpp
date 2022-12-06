@@ -336,8 +336,10 @@ void checkSwHwAclMatch(
 
   auto action = swAcl->getAclAction();
   if (action) {
-    if (action.value().getSendToQueue()) {
-      auto sendToQueue = action.value().getSendToQueue().value();
+    // THRIFT_COPY
+    auto matchAction = MatchAction::fromThrift(action->toThrift());
+    if (matchAction.getSendToQueue()) {
+      auto sendToQueue = matchAction.getSendToQueue().value();
       bool sendToCpu = sendToQueue.second;
       if (!sendToCpu) {
         auto expectedQueueId =
@@ -350,9 +352,9 @@ void checkSwHwAclMatch(
       }
     }
 
-    if (action.value().getSetDscp()) {
+    if (matchAction.getSetDscp()) {
       const int expectedDscpValue =
-          *action.value().getSetDscp().value().dscpValue();
+          *matchAction.getSetDscp().value().dscpValue();
 
       auto aclActionSetDSCPGot =
           SaiApiTable::getInstance()->aclApi().getAttribute(

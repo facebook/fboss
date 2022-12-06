@@ -2528,16 +2528,16 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
             &matchAction,
             enableAcl);
 
-        if (acl->getAclAction().has_value()) {
-          const auto& inMirror = acl->getAclAction().value().getIngressMirror();
-          const auto& egMirror = acl->getAclAction().value().getIngressMirror();
-          if (inMirror.has_value() &&
-              !new_->getMirrors()->getMirrorIf(inMirror.value())) {
-            throw FbossError("Mirror ", inMirror.value(), " is undefined");
+        if (const auto& aclAction = acl->getAclAction()) {
+          const auto& inMirror =
+              aclAction->cref<switch_state_tags::ingressMirror>();
+          const auto& egMirror =
+              aclAction->cref<switch_state_tags::egressMirror>();
+          if (inMirror && !new_->getMirrors()->getMirrorIf(inMirror->cref())) {
+            throw FbossError("Mirror ", inMirror->cref(), " is undefined");
           }
-          if (egMirror.has_value() &&
-              !new_->getMirrors()->getMirrorIf(egMirror.value())) {
-            throw FbossError("Mirror ", egMirror.value(), " is undefined");
+          if (egMirror && !new_->getMirrors()->getMirrorIf(egMirror->cref())) {
+            throw FbossError("Mirror ", egMirror->cref(), " is undefined");
           }
         }
         entries.push_back(std::make_pair(acl->getID(), acl));

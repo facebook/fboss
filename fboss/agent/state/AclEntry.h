@@ -153,211 +153,291 @@ struct AclEntryFields
   std::optional<bool> enabled{std::nullopt};
 };
 
+USE_THRIFT_COW(AclEntry);
+
 /*
  * AclEntry stores state about one of the access control entries on
  * the switch.
  */
-class AclEntry
-    : public ThriftyBaseT<state::AclEntryFields, AclEntry, AclEntryFields> {
+class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
  public:
+  using BaseT = ThriftStructNode<AclEntry, state::AclEntryFields>;
+  using LegacyFields = AclEntryFields;
   explicit AclEntry(int priority, const std::string& name);
+  explicit AclEntry(int priority, std::string&& name);
 
   int getPriority() const {
-    return getFields()->priority;
+    return cref<switch_state_tags::priority>()->cref();
   }
 
   const std::string& getID() const {
-    return getFields()->name;
+    return cref<switch_state_tags::name>()->cref();
   }
 
   std::optional<bool> isEnabled() const {
-    return getFields()->enabled;
+    if (auto enabled = cref<switch_state_tags::enabled>()) {
+      return enabled->cref();
+    }
+    return std::nullopt;
   }
 
   void setEnabled(std::optional<bool> enabled) {
-    writableFields()->enabled = enabled;
+    if (!enabled) {
+      ref<switch_state_tags::enabled>().reset();
+      return;
+    }
+    set<switch_state_tags::enabled>(enabled.value());
   }
 
-  const std::optional<MatchAction> getAclAction() const {
-    return getFields()->aclAction;
+  const auto& getAclAction() const {
+    return cref<switch_state_tags::aclAction>();
   }
 
+  // THRIFT_COPY
   void setAclAction(const MatchAction& action) {
-    writableFields()->aclAction = action;
+    set<switch_state_tags::aclAction>(action.toThrift());
   }
 
-  cfg::AclActionType getActionType() const {
-    return getFields()->actionType;
+  const cfg::AclActionType& getActionType() const {
+    return cref<switch_state_tags::actionType>()->cref();
   }
 
   void setActionType(const cfg::AclActionType& actionType) {
-    writableFields()->actionType = actionType;
+    set<switch_state_tags::actionType>(actionType);
   }
 
   folly::CIDRNetwork getSrcIp() const {
-    return getFields()->srcIp;
+    auto ref = cref<switch_state_tags::srcIp>();
+    if (!ref) {
+      return folly::CIDRNetwork{folly::IPAddress(), 0};
+    }
+    return folly::IPAddress::createNetwork(ref->cref());
   }
 
   void setSrcIp(const folly::CIDRNetwork& ip) {
-    writableFields()->srcIp = ip;
+    set<switch_state_tags::srcIp>(folly::IPAddress::networkToString(ip));
   }
 
   folly::CIDRNetwork getDstIp() const {
-    return getFields()->dstIp;
+    auto ref = cref<switch_state_tags::dstIp>();
+    if (!ref) {
+      return folly::CIDRNetwork{folly::IPAddress(), 0};
+    }
+    return folly::IPAddress::createNetwork(ref->cref());
   }
 
   void setDstIp(const folly::CIDRNetwork& ip) {
-    writableFields()->dstIp = ip;
+    set<switch_state_tags::dstIp>(folly::IPAddress::networkToString(ip));
   }
 
   std::optional<uint8_t> getProto() const {
-    return getFields()->proto;
+    if (auto proto = cref<switch_state_tags::proto>()) {
+      return proto->cref();
+    }
+    return std::nullopt;
   }
 
   void setProto(const uint8_t proto) {
-    writableFields()->proto = proto;
+    set<switch_state_tags::proto>(proto);
   }
 
   std::optional<uint8_t> getTcpFlagsBitMap() const {
-    return getFields()->tcpFlagsBitMap;
+    if (auto tcpFlagsBitMap = cref<switch_state_tags::tcpFlagsBitMap>()) {
+      return tcpFlagsBitMap->cref();
+    }
+    return std::nullopt;
   }
 
   void setTcpFlagsBitMap(const uint8_t flagsBitMap) {
-    writableFields()->tcpFlagsBitMap = flagsBitMap;
+    set<switch_state_tags::tcpFlagsBitMap>(flagsBitMap);
   }
 
   std::optional<uint16_t> getSrcPort() const {
-    return getFields()->srcPort;
+    if (auto srcPort = cref<switch_state_tags::srcPort>()) {
+      return srcPort->cref();
+    }
+    return std::nullopt;
   }
 
   void setSrcPort(const uint16_t port) {
-    writableFields()->srcPort = port;
+    set<switch_state_tags::srcPort>(port);
   }
 
   std::optional<uint16_t> getDstPort() const {
-    return getFields()->dstPort;
+    if (auto dstPort = cref<switch_state_tags::dstPort>()) {
+      return dstPort->cref();
+    }
+    return std::nullopt;
   }
 
   void setDstPort(const uint16_t port) {
-    writableFields()->dstPort = port;
+    set<switch_state_tags::dstPort>(port);
   }
 
   std::optional<cfg::IpFragMatch> getIpFrag() const {
-    return getFields()->ipFrag;
+    if (auto ipFrag = cref<switch_state_tags::ipFrag>()) {
+      return ipFrag->cref();
+    }
+    return std::nullopt;
   }
 
   void setIpFrag(const cfg::IpFragMatch& frag) {
-    writableFields()->ipFrag = frag;
+    set<switch_state_tags::ipFrag>(frag);
   }
 
   std::optional<uint8_t> getIcmpCode() const {
-    return getFields()->icmpCode;
+    if (auto icmpCode = cref<switch_state_tags::icmpCode>()) {
+      return icmpCode->cref();
+    }
+    return std::nullopt;
   }
 
   void setIcmpCode(const uint8_t code) {
-    writableFields()->icmpCode = code;
+    set<switch_state_tags::icmpCode>(code);
   }
 
   std::optional<uint8_t> getIcmpType() const {
-    return getFields()->icmpType;
+    if (auto icmpType = cref<switch_state_tags::icmpType>()) {
+      return icmpType->cref();
+    }
+    return std::nullopt;
   }
 
   void setIcmpType(const uint8_t type) {
-    writableFields()->icmpType = type;
+    set<switch_state_tags::icmpType>(type);
   }
 
   std::optional<uint8_t> getDscp() const {
-    return getFields()->dscp;
+    if (auto dscp = cref<switch_state_tags::dscp>()) {
+      return dscp->cref();
+    }
+    return std::nullopt;
   }
 
   void setDscp(uint8_t dscp) {
-    writableFields()->dscp = dscp;
+    set<switch_state_tags::dscp>(dscp);
   }
 
   std::optional<cfg::IpType> getIpType() const {
-    return getFields()->ipType;
+    if (auto ipType = cref<switch_state_tags::ipType>()) {
+      return ipType->cref();
+    }
+    return std::nullopt;
   }
 
   void setIpType(const cfg::IpType& ipType) {
-    writableFields()->ipType = ipType;
+    set<switch_state_tags::ipType>(ipType);
   }
 
+  // THRIFT_COPY
   std::optional<AclTtl> getTtl() const {
-    return getFields()->ttl;
+    if (auto ttl = cref<switch_state_tags::ttl>()) {
+      return AclTtl::fromThrift(ttl->toThrift());
+    }
+    return std::nullopt;
   }
 
   void setTtl(const AclTtl& ttl) {
-    writableFields()->ttl = ttl;
+    set<switch_state_tags::ttl>(ttl.toThrift());
   }
 
   std::optional<cfg::EtherType> getEtherType() const {
-    return getFields()->etherType;
+    if (auto etherType = cref<switch_state_tags::etherType>()) {
+      return etherType->cref();
+    }
+    return std::nullopt;
   }
 
   void setEtherType(cfg::EtherType etherType) {
-    writableFields()->etherType = etherType;
+    set<switch_state_tags::etherType>(etherType);
   }
 
   std::optional<folly::MacAddress> getDstMac() const {
-    return getFields()->dstMac;
+    if (auto dstMac = cref<switch_state_tags::dstMac>()) {
+      return folly::MacAddress(dstMac->cref());
+    }
+    return std::nullopt;
   }
 
   void setDstMac(const folly::MacAddress& dstMac) {
-    writableFields()->dstMac = dstMac;
+    set<switch_state_tags::dstMac>(dstMac.toString());
   }
 
   std::optional<uint16_t> getL4SrcPort() const {
-    return getFields()->l4SrcPort;
+    if (auto l4SrcPort = cref<switch_state_tags::l4SrcPort>()) {
+      return l4SrcPort->cref();
+    }
+    return std::nullopt;
   }
 
   void setL4SrcPort(const uint16_t port) {
-    writableFields()->l4SrcPort = port;
+    set<switch_state_tags::l4SrcPort>(port);
   }
 
   std::optional<uint16_t> getL4DstPort() const {
-    return getFields()->l4DstPort;
+    if (auto l4DstPort = cref<switch_state_tags::l4DstPort>()) {
+      return l4DstPort->cref();
+    }
+    return std::nullopt;
   }
 
   void setL4DstPort(const uint16_t port) {
-    writableFields()->l4DstPort = port;
+    set<switch_state_tags::l4DstPort>(port);
   }
 
   std::optional<cfg::AclLookupClass> getLookupClassL2() const {
-    return getFields()->lookupClassL2;
+    if (auto lookupClassL2 = cref<switch_state_tags::lookupClassL2>()) {
+      return lookupClassL2->cref();
+    }
+    return std::nullopt;
   }
   void setLookupClassL2(const cfg::AclLookupClass& lookupClassL2) {
-    writableFields()->lookupClassL2 = lookupClassL2;
+    set<switch_state_tags::lookupClassL2>(lookupClassL2);
   }
 
   std::optional<cfg::AclLookupClass> getLookupClassNeighbor() const {
-    return getFields()->lookupClassNeighbor;
+    if (auto lookupClassNeighbor =
+            cref<switch_state_tags::lookupClassNeighbor>()) {
+      return lookupClassNeighbor->cref();
+    }
+    return std::nullopt;
   }
   void setLookupClassNeighbor(const cfg::AclLookupClass& lookupClassNeighbor) {
-    writableFields()->lookupClassNeighbor = lookupClassNeighbor;
+    set<switch_state_tags::lookupClassNeighbor>(lookupClassNeighbor);
   }
 
   std::optional<cfg::AclLookupClass> getLookupClassRoute() const {
-    return getFields()->lookupClassRoute;
+    if (auto lookupClassRoute = cref<switch_state_tags::lookupClassRoute>()) {
+      return lookupClassRoute->cref();
+    }
+    return std::nullopt;
   }
   void setLookupClassRoute(const cfg::AclLookupClass& lookupClassRoute) {
-    writableFields()->lookupClassRoute = lookupClassRoute;
+    set<switch_state_tags::lookupClassRoute>(lookupClassRoute);
   }
 
   std::optional<cfg::PacketLookupResultType> getPacketLookupResult() const {
-    return getFields()->packetLookupResult;
+    if (auto packetLookupResult =
+            cref<switch_state_tags::packetLookupResult>()) {
+      return packetLookupResult->cref();
+    }
+    return std::nullopt;
   }
 
   void setPacketLookupResult(
       const cfg::PacketLookupResultType packetLookupResult) {
-    writableFields()->packetLookupResult = packetLookupResult;
+    set<switch_state_tags::packetLookupResult>(packetLookupResult);
   }
 
   std::optional<uint32_t> getVlanID() const {
-    return getFields()->vlanID;
+    if (auto vlanID = cref<switch_state_tags::vlanID>()) {
+      return vlanID->cref();
+    }
+    return std::nullopt;
   }
 
   void setVlanID(uint32_t vlanID) {
-    writableFields()->vlanID = vlanID;
+    set<switch_state_tags::vlanID>(vlanID);
   }
 
   bool hasMatcher() const {
@@ -374,9 +454,30 @@ class AclEntry
 
   AclEntry* modify(std::shared_ptr<SwitchState>* state);
 
+  folly::dynamic toFollyDynamicLegacy() const {
+    auto fields = AclEntryFields::fromThrift(toThrift());
+    return fields.toFollyDynamicLegacy();
+  }
+
+  static std::shared_ptr<AclEntry> fromFollyDynamicLegacy(
+      const folly::dynamic& dyn) {
+    auto fields = AclEntryFields::fromFollyDynamicLegacy(dyn);
+    return std::make_shared<AclEntry>(fields.toThrift());
+  }
+
+  folly::dynamic toFollyDynamic() const override {
+    auto fields = AclEntryFields::fromThrift(toThrift());
+    return fields.toFollyDynamic();
+  }
+
+  static std::shared_ptr<AclEntry> fromFollyDynamic(const folly::dynamic& dyn) {
+    auto fields = AclEntryFields::fromFollyDynamic(dyn);
+    return std::make_shared<AclEntry>(fields.toThrift());
+  }
+
  private:
   // Inherit the constructors required for clone()
-  using ThriftyBaseT::ThriftyBaseT;
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 

@@ -21,7 +21,9 @@ std::optional<cfg::TrafficCounter> getAclTrafficCounter(
     const std::string& aclName) {
   auto swAcl = state->getAcl(aclName);
   if (swAcl && swAcl->getAclAction()) {
-    return swAcl->getAclAction()->getTrafficCounter();
+    return swAcl->getAclAction()
+        ->cref<switch_state_tags::trafficCounter>()
+        ->toThrift();
   }
   return std::nullopt;
 }

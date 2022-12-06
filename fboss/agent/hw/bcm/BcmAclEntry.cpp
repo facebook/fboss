@@ -38,6 +38,7 @@ using folly::MacAddress;
 namespace {
 
 using facebook::fboss::bcmCheckError;
+using facebook::fboss::switch_state_tags;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 
@@ -102,13 +103,20 @@ facebook::fboss::utility::BcmAclActionParameters getAclActionParameters(
     const facebook::fboss::BcmSwitch* hw,
     const std::shared_ptr<facebook::fboss::AclEntry>& acl) {
   facebook::fboss::utility::BcmAclActionParameters parameters;
-  if (!acl->getAclAction().has_value()) {
+  if (!acl->getAclAction()) {
     return parameters;
   }
-  parameters.mirrors.ingressMirrorHandle =
-      getAclMirrorHandle(hw, acl->getAclAction()->getIngressMirror());
-  parameters.mirrors.egressMirrorHandle =
-      getAclMirrorHandle(hw, acl->getAclAction()->getEgressMirror());
+  auto& inMirror =
+      acl->getAclAction()->cref<switch_state_tags::ingressMirror>();
+  if (inMirror) {
+    parameters.mirrors.ingressMirrorHandle =
+        getAclMirrorHandle(hw, inMirror->cref());
+  }
+  auto& egMirror = acl->getAclAction()->cref<switch_state_tags::egressMirror>();
+  if (egMirror) {
+    parameters.mirrors.egressMirrorHandle =
+        getAclMirrorHandle(hw, egMirror->cref());
+  }
   return parameters;
 }
 } // unnamed namespace
@@ -312,9 +320,11 @@ void BcmAclEntry::createAclActions() {
 
   auto action = acl_->getAclAction();
   if (action) {
-    if (action.value().getSendToQueue()) {
-      auto [queueMatchAction, sendToCPU] =
-          action.value().getSendToQueue().value();
+    if (auto& sendToQueue = action->cref<switch_state_tags::sendToQueue>()) {
+      auto queueMatchAction =
+          sendToQueue->cref<switch_state_tags::action>()->toThrift();
+      auto sendToCPU =
+          sendToQueue->cref<switch_state_tags::sendToCPU>()->cref();
       bcm_field_action_t actionToTake = bcmFieldActionCosQNew;
       auto errorMsg =
           folly::to<std::string>("cos q ", *queueMatchAction.queueId());
@@ -333,19 +343,28 @@ void BcmAclEntry::createAclActions() {
           0);
       bcmCheckError(rv, "failed to add set ", errorMsg, " field action");
     }
-    if (action.value().getSetDscp()) {
-      const int dscpValue = *action.value().getSetDscp().value().dscpValue();
+    if (auto& setDscp = action->cref<switch_state_tags::setDscp>()) {
+      const int dscpValue =
+          setDscp->cref<switch_config_tags::dscpValue>()->cref();
       rv = bcm_field_action_add(
           hw_->getUnit(), handle_, bcmFieldActionDscpNew, dscpValue, 0);
       bcmCheckError(rv, "failed to add set dscp field action");
     }
-    if (action.value().getTrafficCounter()) {
+    if (action->cref<switch_state_tags::trafficCounter>()) {
       createAclStat();
     }
-    applyAclMirrorAction(this, action);
-    if (action.value().getRedirectToNextHop().has_value()) {
+    // THRIFT_COPY
+    std::optional<MatchAction> matchAction =
+        MatchAction::fromThrift(action->toThrift());
+    applyAclMirrorAction(this, matchAction);
+    if (auto& redirectToNextHop =
+            action->cref<switch_state_tags::redirectToNextHop>()) {
+      // THRIFT_COPY
       applyRedirectToNextHopAction(
-          action.value().getRedirectToNextHop().value().second,
+          util::toRouteNextHopSet(
+              redirectToNextHop->cref<switch_state_tags::resolvedNexthops>()
+                  ->toThrift(),
+              true),
           false /* isWarmBoot */);
     }
   }
@@ -373,13 +392,18 @@ void BcmAclEntry::applyRedirectToNextHopAction(
 
 void BcmAclEntry::createAclStat() {
   auto action = acl_->getAclAction();
-  if (!action || !action->getTrafficCounter()) {
+  if (!action || !action->cref<switch_state_tags::trafficCounter>()) {
     return;
   }
   auto aclTable = hw_->writableAclTable();
   const auto warmBootCache = hw_->getWarmBootCache();
-  auto counterName = *action->getTrafficCounter()->name();
-  auto counterTypes = *action->getTrafficCounter()->types();
+  auto counterName = action->cref<switch_state_tags::trafficCounter>()
+                         ->cref<switch_config_tags::name>()
+                         ->cref();
+  // THRIFT_COPY
+  auto counterTypes = action->cref<switch_state_tags::trafficCounter>()
+                          ->cref<switch_config_tags::types>()
+                          ->toThrift();
   auto warmBootItr = warmBootCache->findAclStat(handle_);
   if (warmBootItr != warmBootCache->AclEntry2AclStat_end()) {
     // If we are re-using an existing stat, call programmed() to indicate
@@ -431,10 +455,13 @@ BcmAclEntry::BcmAclEntry(
   if (warmbootItr != warmBootCache->priority2BcmAclEntryHandle_end()) {
     handle_ = warmbootItr->second;
     const auto& action = acl_->getAclAction();
-    if (action.has_value() and
-        action.value().getRedirectToNextHop().has_value()) {
+    if (action and action->cref<switch_state_tags::redirectToNextHop>()) {
       applyRedirectToNextHopAction(
-          action.value().getRedirectToNextHop().value().second,
+          util::toRouteNextHopSet(
+              action->cref<switch_state_tags::redirectToNextHop>()
+                  ->cref<switch_state_tags::resolvedNexthops>()
+                  ->toThrift(),
+              true),
           true /* isWarmBoot */);
     }
     // check whether acl in S/W and H/W in sync
@@ -446,7 +473,12 @@ BcmAclEntry::BcmAclEntry(
      * destination descriptors which are also claimed from warmboot cache.  this
      * is unlike other acl entry actions.
      */
-    applyAclMirrorAction(this, action);
+    // THRIFT_COPY
+    std::optional<MatchAction> matchAction{};
+    if (action) {
+      matchAction = MatchAction::fromThrift(action->toThrift());
+    }
+    applyAclMirrorAction(this, matchAction);
     warmBootCache->programmed(warmbootItr);
   } else {
     createNewAclEntry();
@@ -459,21 +491,23 @@ BcmAclEntry::~BcmAclEntry() {
 
   auto action = acl_->getAclAction();
   // Remove any mirroring action. This must be done before destroying the ACL.
-  if (action && action.value().getEgressMirror()) {
+  if (action && action->cref<switch_state_tags::egressMirror>()) {
     applyMirrorAction(
-        action.value().getEgressMirror().value(),
+        action->cref<switch_state_tags::egressMirror>()->cref(),
         MirrorAction::STOP,
         MirrorDirection::EGRESS);
   }
-  if (action && action.value().getIngressMirror()) {
+  if (action && action->cref<switch_state_tags::ingressMirror>()) {
     applyMirrorAction(
-        action.value().getIngressMirror().value(),
+        action->cref<switch_state_tags::ingressMirror>()->cref(),
         MirrorAction::STOP,
         MirrorDirection::INGRESS);
   }
   // Detach and remove the stat. This must be done before destroying the ACL.
-  if (action && action.value().getTrafficCounter()) {
-    auto counterName = *action->getTrafficCounter()->name();
+  if (action && action->cref<switch_state_tags::trafficCounter>()) {
+    auto counterName = action->cref<switch_state_tags::trafficCounter>()
+                           ->cref<switch_config_tags::name>()
+                           ->cref();
     auto aclStat = aclTable->getAclStat(counterName);
     aclStat->detach(handle_);
     aclTable->derefBcmAclStat(counterName);
@@ -797,8 +831,11 @@ bool BcmAclEntry::isStateSame(
   auto aclStatHandle =
       BcmAclStat::getAclStatHandleFromAttachedAcl(hw, gid, handle);
   if (aclStatHandle && acl->getAclAction() &&
-      acl->getAclAction()->getTrafficCounter()) {
-    auto counter = acl->getAclAction()->getTrafficCounter().value();
+      acl->getAclAction()->cref<switch_state_tags::trafficCounter>()) {
+    // THRIFT_COPY
+    auto counter = acl->getAclAction()
+                       ->cref<switch_state_tags::trafficCounter>()
+                       ->toThrift();
     isSame &=
         ((BcmAclStat::isStateSame(hw, (*aclStatHandle).first, counter)) ? 1
                                                                         : 0);
@@ -810,13 +847,23 @@ bool BcmAclEntry::isStateSame(
 }
 
 std::optional<std::string> BcmAclEntry::getIngressAclMirror() {
-  return acl_->getAclAction() ? acl_->getAclAction()->getIngressMirror()
-                              : std::nullopt;
+  if (acl_->getAclAction() &&
+      acl_->getAclAction()->cref<switch_state_tags::ingressMirror>()) {
+    return acl_->getAclAction()
+        ->cref<switch_state_tags::ingressMirror>()
+        ->cref();
+  }
+  return std::nullopt;
 }
 
 std::optional<std::string> BcmAclEntry::getEgressAclMirror() {
-  return acl_->getAclAction() ? acl_->getAclAction()->getEgressMirror()
-                              : std::nullopt;
+  if (acl_->getAclAction() &&
+      acl_->getAclAction()->cref<switch_state_tags::egressMirror>()) {
+    return acl_->getAclAction()
+        ->cref<switch_state_tags::egressMirror>()
+        ->cref();
+  }
+  return std::nullopt;
 }
 
 const std::string& BcmAclEntry::getID() const {

@@ -804,18 +804,20 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   auto action = addedAclEntry->getAclAction();
   if (action) {
-    if (action.value().getTrafficCounter()) {
+    // THRIFT_COPY
+    auto matchAction = MatchAction::fromThrift(action->toThrift());
+    if (matchAction.getTrafficCounter()) {
       std::tie(saiAclCounter, aclCounterTypeAndName) = addAclCounter(
           aclTableHandle,
-          action.value().getTrafficCounter().value(),
+          matchAction.getTrafficCounter().value(),
           adapterHostKey);
       aclActionCounter = SaiAclEntryTraits::Attributes::ActionCounter{
           AclEntryActionSaiObjectIdT(
               AclCounterSaiId{saiAclCounter->adapterKey()})};
     }
 
-    if (action.value().getSendToQueue()) {
-      auto sendToQueue = action.value().getSendToQueue().value();
+    if (matchAction.getSendToQueue()) {
+      auto sendToQueue = matchAction.getSendToQueue().value();
       bool sendToCpu = sendToQueue.second;
       if (!sendToCpu) {
         auto queueId = static_cast<sai_uint8_t>(*sendToQueue.first.queueId());
@@ -846,8 +848,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
               AclEntryActionU8(queueId)};
         };
 
-        if (action.value().getToCpuAction()) {
-          switch (action.value().getToCpuAction().value()) {
+        if (matchAction.getToCpuAction()) {
+          switch (matchAction.getToCpuAction().value()) {
             case cfg::ToCpuAction::COPY:
               if (!platform_->getAsic()->isSupported(
                       HwAsic::Feature::ACL_COPY_TO_CPU)) {
@@ -864,40 +866,40 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       }
     }
 
-    if (action.value().getIngressMirror().has_value()) {
+    if (matchAction.getIngressMirror().has_value()) {
       std::vector<sai_object_id_t> aclEntryMirrorIngressOidList;
       auto mirrorHandle = managerTable_->mirrorManager().getMirrorHandle(
-          action.value().getIngressMirror().value());
+          matchAction.getIngressMirror().value());
       if (mirrorHandle) {
         aclEntryMirrorIngressOidList.push_back(mirrorHandle->adapterKey());
       }
-      ingressMirror = action.value().getIngressMirror().value();
+      ingressMirror = matchAction.getIngressMirror().value();
       aclActionMirrorIngress =
           SaiAclEntryTraits::Attributes::ActionMirrorIngress{
               AclEntryActionSaiObjectIdList(aclEntryMirrorIngressOidList)};
     }
 
-    if (action.value().getEgressMirror().has_value()) {
+    if (matchAction.getEgressMirror().has_value()) {
       std::vector<sai_object_id_t> aclEntryMirrorEgressOidList;
       auto mirrorHandle = managerTable_->mirrorManager().getMirrorHandle(
-          action.value().getEgressMirror().value());
+          matchAction.getEgressMirror().value());
       if (mirrorHandle) {
         aclEntryMirrorEgressOidList.push_back(mirrorHandle->adapterKey());
       }
-      egressMirror = action.value().getEgressMirror().value();
+      egressMirror = matchAction.getEgressMirror().value();
       aclActionMirrorEgress = SaiAclEntryTraits::Attributes::ActionMirrorEgress{
           AclEntryActionSaiObjectIdList(aclEntryMirrorEgressOidList)};
     }
 
-    if (action.value().getSetDscp()) {
-      const int dscpValue = *action.value().getSetDscp().value().dscpValue();
+    if (matchAction.getSetDscp()) {
+      const int dscpValue = *matchAction.getSetDscp().value().dscpValue();
 
       aclActionSetDSCP = SaiAclEntryTraits::Attributes::ActionSetDSCP{
           AclEntryActionU8(dscpValue)};
     }
 
-    if (action.value().getMacsecFlow()) {
-      auto macsecFlowAction = action.value().getMacsecFlow().value();
+    if (matchAction.getMacsecFlow()) {
+      auto macsecFlowAction = matchAction.getMacsecFlow().value();
       if (*macsecFlowAction.action() ==
           cfg::MacsecFlowPacketAction::MACSEC_FLOW) {
         sai_object_id_t flowId =
@@ -1042,8 +1044,10 @@ void SaiAclTableManager::removeAclEntry(
   aclTableHandle->aclTableMembers.erase(itr);
 
   auto action = removedAclEntry->getAclAction();
-  if (action && action.value().getTrafficCounter()) {
-    removeAclCounter(action.value().getTrafficCounter().value());
+  if (action && action->cref<switch_state_tags::trafficCounter>()) {
+    // THRIFT_COPY
+    removeAclCounter(
+        action->cref<switch_state_tags::trafficCounter>()->toThrift());
   }
   XLOG(DBG2) << "removed acl  entry " << removedAclEntry->getID()
              << " priority " << removedAclEntry->getPriority();

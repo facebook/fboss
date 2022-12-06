@@ -111,8 +111,8 @@ TEST(ThriftySwitchState, VlanMap) {
 }
 
 TEST(ThriftySwitchState, AclMap) {
-  auto acl1 = std::make_shared<AclEntry>(1, "acl1");
-  auto acl2 = std::make_shared<AclEntry>(2, "acl2");
+  auto acl1 = std::make_shared<AclEntry>(1, std::string("acl1"));
+  auto acl2 = std::make_shared<AclEntry>(2, std::string("acl2"));
 
   auto aclMap = std::make_shared<AclMap>();
   aclMap->addEntry(acl1);

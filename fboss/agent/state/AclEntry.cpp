@@ -649,9 +649,16 @@ AclEntry* AclEntry::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
-AclEntry::AclEntry(int priority, const std::string& name)
-    : ThriftyBaseT(priority, name) {}
+AclEntry::AclEntry(int priority, const std::string& name) {
+  set<switch_state_tags::priority>(priority);
+  set<switch_state_tags::name>(name);
+}
 
-template class ThriftyBaseT<state::AclEntryFields, AclEntry, AclEntryFields>;
+AclEntry::AclEntry(int priority, std::string&& name) {
+  set<switch_state_tags::priority>(priority);
+  set<switch_state_tags::name>(std::move(name));
+}
+
+template class ThriftStructNode<AclEntry, state::AclEntryFields>;
 
 } // namespace facebook::fboss

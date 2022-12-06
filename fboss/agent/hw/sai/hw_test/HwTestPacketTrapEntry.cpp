@@ -17,7 +17,7 @@ std::shared_ptr<AclEntry> getTrapAclEntry(
     int priority,
     bool counter = false) {
   std::string aclName = "AclEntry" + folly::to<std::string>(priority);
-  auto aclEntry = std::make_shared<AclEntry>(priority, aclName);
+  auto aclEntry = std::make_shared<AclEntry>(priority, std::string(aclName));
   srcPort ? aclEntry->setSrcPort(port.value())
           : aclEntry->setDstIp(dstPrefix.value());
   aclEntry->setActionType(cfg::AclActionType::PERMIT);
@@ -74,7 +74,7 @@ HwTestPacketTrapEntry::HwTestPacketTrapEntry(
       saiSwitch->managerTable()->aclTableManager().aclEntryCount(kAclTable1);
 
   auto aclEntry = std::make_shared<AclEntry>(
-      priority, "AclEntry" + folly::to<std::string>(priority));
+      priority, std::string("AclEntry" + folly::to<std::string>(priority)));
   aclEntry->setL4DstPort(l4DstPort);
   aclEntry->setActionType(cfg::AclActionType::PERMIT);
   MatchAction matchAction;

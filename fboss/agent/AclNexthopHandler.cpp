@@ -112,11 +112,15 @@ std::shared_ptr<AclMap> AclNexthopHandler::updateAcls(
 AclEntry* FOLLY_NULLABLE AclNexthopHandler::updateAcl(
     const std::shared_ptr<AclEntry>& origAclEntry,
     std::shared_ptr<SwitchState>& newState) {
-  if (origAclEntry->getAclAction().has_value() &&
-      origAclEntry->getAclAction().value().getRedirectToNextHop().has_value()) {
+  const auto& origAclAction = origAclEntry->getAclAction();
+  if (origAclAction &&
+      origAclAction->cref<switch_state_tags::redirectToNextHop>()) {
     auto newAclEntry = origAclEntry->modify(&newState);
     newAclEntry->setEnabled(true);
-    MatchAction action = newAclEntry->getAclAction().value();
+
+    // THRIFT_COPY
+    MatchAction action =
+        MatchAction::fromThrift(newAclEntry->getAclAction()->toThrift());
     resolveActionNexthops(action);
     newAclEntry->setAclAction(action);
     // Disable acl if there are no nexthops available
@@ -125,8 +129,11 @@ AclEntry* FOLLY_NULLABLE AclNexthopHandler::updateAcl(
       XLOG(DBG2) << "Disabling acl as no resolved nexthops are available";
       newAclEntry->setEnabled(false);
     }
-    return ((newAclEntry->getAclAction().value().getRedirectToNextHop() !=
-             origAclEntry->getAclAction().value().getRedirectToNextHop()) ||
+    const auto& newAclAction = newAclEntry->getAclAction();
+    return ((newAclAction->cref<switch_state_tags::redirectToNextHop>()
+                 ->toThrift() !=
+             origAclAction->cref<switch_state_tags::redirectToNextHop>()
+                 ->toThrift()) ||
             (newAclEntry->isEnabled() != origAclEntry->isEnabled()))
         ? newAclEntry
         : nullptr;

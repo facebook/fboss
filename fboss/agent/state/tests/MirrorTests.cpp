@@ -331,13 +331,13 @@ TEST_F(MirrorTest, AclMirror) {
   auto entry = state_->getAcls()->getEntryIf("acl0");
   EXPECT_NE(entry, nullptr);
   auto action = entry->getAclAction();
-  ASSERT_EQ(action.has_value(), true);
-  auto inMirror = action.value().getIngressMirror();
-  EXPECT_EQ(inMirror.has_value(), true);
-  EXPECT_EQ(inMirror.value(), "mirror0");
-  auto egMirror = action.value().getEgressMirror();
-  EXPECT_EQ(egMirror.has_value(), true);
-  EXPECT_EQ(egMirror.value(), "mirror0");
+  ASSERT_EQ(action != nullptr, true);
+  auto inMirror = action->cref<switch_state_tags::ingressMirror>();
+  EXPECT_TRUE(inMirror.has_value());
+  EXPECT_EQ(inMirror->cref(), "mirror0");
+  auto egMirror = action->cref<switch_state_tags::egressMirror>();
+  EXPECT_TRUE(egMirror.has_value());
+  EXPECT_EQ(egMirror->cref(), "mirror0");
 }
 
 TEST_F(MirrorTest, PortMirror) {
@@ -441,13 +441,13 @@ TEST_F(MirrorTest, AddAclAndPortToMirror) {
     auto entry = state_->getAcls()->getEntryIf(acls[i]);
     EXPECT_NE(entry, nullptr);
     auto action = entry->getAclAction();
-    ASSERT_EQ(action.has_value(), true);
-    auto aclInMirror = action.value().getIngressMirror();
-    EXPECT_EQ(aclInMirror.has_value(), true);
-    EXPECT_EQ(aclInMirror.value(), "mirror0");
-    auto aclEgMirror = action.value().getEgressMirror();
-    EXPECT_EQ(aclEgMirror.has_value(), true);
-    EXPECT_EQ(aclEgMirror.value(), "mirror0");
+    ASSERT_EQ(action != nullptr, true);
+    auto aclInMirror = action->cref<switch_state_tags::ingressMirror>();
+    EXPECT_TRUE(aclInMirror.has_value());
+    EXPECT_EQ(aclInMirror->cref(), "mirror0");
+    auto aclEgMirror = action->cref<switch_state_tags::egressMirror>();
+    EXPECT_TRUE(aclEgMirror.has_value());
+    EXPECT_EQ(aclEgMirror->cref(), "mirror0");
 
     auto port = state_->getPorts()->getPortIf(ports[i]);
     EXPECT_NE(port, nullptr);
@@ -495,13 +495,13 @@ TEST_F(MirrorTest, DeleleteAclAndPortToMirror) {
     } else {
       EXPECT_NE(entry, nullptr);
       auto action = entry->getAclAction();
-      ASSERT_EQ(action.has_value(), true);
-      auto aclInMirror = action.value().getIngressMirror();
-      EXPECT_EQ(aclInMirror.has_value(), true);
-      EXPECT_EQ(aclInMirror.value(), "mirror0");
-      auto aclEgMirror = action.value().getEgressMirror();
-      EXPECT_EQ(aclEgMirror.has_value(), true);
-      EXPECT_EQ(aclEgMirror.value(), "mirror0");
+      ASSERT_EQ(action != nullptr, true);
+      auto aclInMirror = action->cref<switch_state_tags::ingressMirror>();
+      EXPECT_TRUE(aclInMirror.has_value());
+      EXPECT_EQ(aclInMirror->cref(), "mirror0");
+      auto aclEgMirror = action->cref<switch_state_tags::egressMirror>();
+      EXPECT_TRUE(aclEgMirror.has_value());
+      EXPECT_EQ(aclEgMirror->cref(), "mirror0");
 
       auto port = state_->getPorts()->getPortIf(ports[i]);
       EXPECT_NE(port, nullptr);

@@ -81,7 +81,9 @@ class BcmAclNexthopTest : public BcmTest {
     auto newState = getProgrammedState()->clone();
     auto origAclEntry = newState->getAcls()->getEntry(name);
     auto newAclEntry = origAclEntry->modify(&newState);
-    MatchAction action = newAclEntry->getAclAction().value();
+    // THRIFT_COPY
+    MatchAction action =
+        MatchAction::fromThrift(newAclEntry->getAclAction()->toThrift());
     const auto& redirect = action.getRedirectToNextHop();
     action.setRedirectToNextHop(
         std::make_pair(redirect.value().first, nexthops));

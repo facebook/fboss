@@ -173,7 +173,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   auto stateV1 = stateV0->clone();
   auto aclMap1 = stateV1->getAcls()->modify(&stateV1);
 
-  auto aclEntry0 = std::make_shared<AclEntry>(0, "acl0");
+  auto aclEntry0 = std::make_shared<AclEntry>(0, std::string("acl0"));
   aclEntry0->setDscp(0x24);
   aclMap1->addNode(aclEntry0);
 
@@ -185,7 +185,7 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
   auto stateV2 = stateV0->clone();
   auto aclMap2 = stateV2->getAcls()->modify(&stateV2);
 
-  auto aclEntry1 = std::make_shared<AclEntry>(0, "acl1");
+  auto aclEntry1 = std::make_shared<AclEntry>(0, std::string("acl1"));
   aclMap2->addNode(aclEntry1);
 
   stateV2->publish();
