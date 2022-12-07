@@ -42,10 +42,20 @@ namespace facebook::fboss {
 // and sw configs from test utility and set config flag to
 // point to the test config
 void MultiNodeTest::setupConfigFlag() {
-  utility::setPortToDefaultProfileIDMap(
-      std::make_shared<PortMap>(), platform());
-  parseTestPorts(FLAGS_multiNodeTestPorts);
+  const auto& baseConfig = platform()->config();
 
+  // Fill in PortMap from baseConfig
+  auto pMap = std::make_shared<PortMap>();
+  const auto& swConfig = *baseConfig->thrift.sw();
+  for (const auto& portCfg : *swConfig.ports()) {
+    auto port = std::make_shared<Port>(
+        PortID(*portCfg.logicalID()), portCfg.name().value_or({}));
+    port->setSpeed(*portCfg.speed());
+    port->setProfileId(*portCfg.profileID());
+    pMap->addPort(port);
+  }
+  utility::setPortToDefaultProfileIDMap(pMap, platform());
+  parseTestPorts(FLAGS_multiNodeTestPorts);
   auto testConfigDir = platform()->getPersistentStateDir() + "/multinode_test/";
   auto newCfgFile = "agent_multinode_test.conf";
 
