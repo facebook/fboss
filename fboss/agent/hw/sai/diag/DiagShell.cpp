@@ -94,11 +94,10 @@ TerminalSession::TerminalSession(
   folly::checkUnixError(
       ret, "Failed to set new terminal settings on PTY slave");
 
-  oldStreams_.reserve(streams.size());
   for (const auto& stream : streams) {
     XLOG(DBG2) << "Redirect stream to PTY slave: " << stream.fd();
     // Save old stream (OWNING File objects!)
-    oldStreams_.emplace_back(stream.dup());
+    fd2oldStreams_.insert({stream.fd(), stream.dup()});
     // Set the pty slave as the stream
     dup2(ptySlave.file, stream);
   }
@@ -106,11 +105,16 @@ TerminalSession::TerminalSession(
 
 TerminalSession::~TerminalSession() noexcept {
   try {
-    for (auto& stream : oldStreams_) {
-      // Don't close the stream when we are done
-      int fd = stream.release();
+    // wait 100ms for additional diag output, so as to avoid
+    // potential offending write() during dup2() that might
+    // cause pty fd got stuck
+    /* sleep override */
+    usleep(100 * 1000);
+    fflush(stdout);
+    for (auto& fd2stream : fd2oldStreams_) {
       // Restore the old streams
-      dup2(stream, folly::File(fd));
+      dup2(fd2stream.second, folly::File(fd2stream.first));
+      XLOG(DBG2) << "Restore stream to standard std fd " << fd2stream.first;
     }
   } catch (const std::system_error& e) {
     XLOG(ERR) << "Failed to reset terminal parameters: " << e.what();
@@ -176,6 +180,8 @@ void DiagShell::initTerminal() {
     repl_ = makeRepl();
     ts_.reset(new detail::TerminalSession(*ptys_, repl_->getStreams()));
     repl_->run();
+  } else if (!ts_) {
+    ts_.reset(new detail::TerminalSession(*ptys_, repl_->getStreams()));
   }
 }
 
@@ -203,6 +209,13 @@ bool DiagShell::tryConnect() {
 
 void DiagShell::disconnect() {
   try {
+    // TODO: look into restore stdin/stdout after session closed for PythonRepl.
+    // Currrently, the following sessions from diag_shell_client on tajo
+    // switches might got stuck if terminal session is reset.
+    if (hw_->getPlatform()->getAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
+      ts_.reset();
+    }
     diagShellLock_.unlock();
   } catch (const std::system_error& ex) {
     XLOG(WARNING) << "Trying to disconnect when it was never connected";

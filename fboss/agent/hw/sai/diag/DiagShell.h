@@ -49,7 +49,7 @@ struct TerminalSession {
   ~TerminalSession() noexcept;
 
   // Track the streams we change for this terminal session
-  std::vector<folly::File> oldStreams_;
+  std::map<int, folly::File> fd2oldStreams_;
 };
 
 // Separate sessions for each connection
