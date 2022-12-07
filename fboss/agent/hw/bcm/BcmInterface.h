@@ -496,6 +496,13 @@ class BcmInterface {
       bcm_stat_val_t type,
       uint64* value) = 0;
 
+  virtual int bcm_stat_sync_multi_get(
+      int unit,
+      bcm_port_t port,
+      int nstat,
+      bcm_stat_val_t* stat_arr,
+      uint64* value_arr) = 0;
+
   virtual int
   bcm_stg_stp_set(int unit, bcm_stg_t stg, bcm_port_t port, int stp_state) = 0;
 

@@ -1133,6 +1133,13 @@ int __real_bcm_stat_get(
     bcm_stat_val_t type,
     uint64* value);
 
+int __real_bcm_stat_sync_multi_get(
+    int unit,
+    bcm_port_t port,
+    int nstat,
+    bcm_stat_val_t* stat_arr,
+    uint64* value_arr);
+
 int __real_bcm_stk_my_modid_get(int unit, int* my_modid);
 
 int __real_bcm_pkt_free(int unit, bcm_pkt_t* pkt);
@@ -3095,6 +3102,15 @@ int __wrap_bcm_stat_get(
     bcm_stat_val_t type,
     uint64* value) {
   CALL_WRAPPERS_RV(bcm_stat_get(unit, port, type, value));
+}
+
+int __wrap_bcm_stat_sync_multi_get(
+    int unit,
+    bcm_port_t port,
+    int nstat,
+    bcm_stat_val_t* types,
+    uint64* values) {
+  CALL_WRAPPERS_RV(bcm_stat_sync_multi_get(unit, port, nstat, types, values));
 }
 
 int __wrap_bcm_linkscan_register(int unit, bcm_linkscan_handler_t f) {

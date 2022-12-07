@@ -1560,6 +1560,14 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       uint64* /*value*/) override {
     return 0;
   }
+  int bcm_stat_sync_multi_get(
+      int /*unit*/,
+      bcm_port_t /*port*/,
+      int /*nstat*/,
+      bcm_stat_val_t* /*stat_arr*/,
+      uint64* /*value_arr*/) override {
+    return 0;
+  }
   int bcm_l3_intf_find(int /*unit*/, bcm_l3_intf_t* /*intf*/) override {
     return 0;
   }
