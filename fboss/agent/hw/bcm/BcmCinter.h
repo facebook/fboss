@@ -212,6 +212,12 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   void bcm_udf_t_init(bcm_udf_t* udf_info) override;
   void bcm_udf_hash_config_t_init(bcm_udf_hash_config_t* config) override;
   int bcm_udf_init(int unit) override;
+  int bcm_udf_get(
+      int /*unit*/,
+      bcm_udf_id_t /*udf_id*/,
+      bcm_udf_t* /*udf_info*/) override {
+    return 0;
+  }
   int bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) override;
   int bcm_port_phy_modify(
       int unit,
