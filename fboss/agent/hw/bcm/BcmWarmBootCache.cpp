@@ -127,6 +127,7 @@ folly::dynamic BcmWarmBootCache::getWarmBootStateFollyDynamic() const {
   bcmWarmBootState[kQosPolicyTable] =
       bcmWarmBootState_->qosTableToFollyDynamic();
   bcmWarmBootState[kTeFlow] = bcmWarmBootState_->teFlowToFollyDynamic();
+  bcmWarmBootState[kUdf] = bcmWarmBootState_->udfToFollyDynamic();
 
   return bcmWarmBootState;
 }

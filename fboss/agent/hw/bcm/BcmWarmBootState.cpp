@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmQosPolicyTable.h"
 #include "fboss/agent/hw/bcm/BcmRoute.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmUdfManager.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
@@ -271,6 +272,30 @@ folly::dynamic BcmWarmBootState::teFlowToFollyDynamic() const {
   teFlowDynamic[kTeFlowFlexCounterId] =
       hw_->getTeFlowTable()->getTeFlowFlexCounterId();
   return teFlowDynamic;
+}
+
+folly::dynamic BcmWarmBootState::udfToFollyDynamic() const {
+  folly::dynamic udfDynamic = folly::dynamic::object;
+
+  const auto& udfGroupMap = hw_->getUdfMgr()->getUdfGroupsMap();
+  folly::dynamic udfGroup = folly::dynamic::object;
+  for (const auto& nameToUdfGroup : udfGroupMap) {
+    const auto& name = nameToUdfGroup.first;
+    const auto udfGroupId = nameToUdfGroup.second->getUdfId();
+    udfGroup[name] = udfGroupId;
+  }
+  udfDynamic[kUdfGroups] = udfGroup;
+
+  const auto& udfPacketMatcherMap = hw_->getUdfMgr()->getUdfPacketMatcherMap();
+  folly::dynamic udfPacketMatcher = folly::dynamic::object;
+  for (const auto& nameToUdfPacketMatcher : udfPacketMatcherMap) {
+    const auto& name = nameToUdfPacketMatcher.first;
+    const auto udfPacketMatcherId =
+        nameToUdfPacketMatcher.second->getUdfPacketMatcherId();
+    udfPacketMatcher[name] = udfPacketMatcherId;
+  }
+  udfDynamic[kUdfPacketMatchers] = udfPacketMatcher;
+  return udfDynamic;
 }
 
 } // namespace facebook::fboss

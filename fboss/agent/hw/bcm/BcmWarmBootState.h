@@ -30,6 +30,8 @@ class BcmWarmBootState {
 
   folly::dynamic teFlowToFollyDynamic() const;
 
+  folly::dynamic udfToFollyDynamic() const;
+
  private:
   template <typename Key, typename Value>
   folly::dynamic toFollyDynamic(

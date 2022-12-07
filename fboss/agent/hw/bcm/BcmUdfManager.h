@@ -44,6 +44,16 @@ class BcmUdfManager {
       const std::shared_ptr<UdfPacketMatcher>& udfPacketMatcher);
   void createUdfGroup(const std::shared_ptr<UdfGroup>& udfGroup);
 
+  const std::map<std::string, std::shared_ptr<BcmUdfGroup>> getUdfGroupsMap()
+      const {
+    return udfGroupsMap_;
+  }
+
+  const std::map<std::string, std::shared_ptr<BcmUdfPacketMatcher>>
+  getUdfPacketMatcherMap() const {
+    return udfPacketMatcherMap_;
+  }
+
  private:
   void attachUdfPacketMatcher(
       std::shared_ptr<BcmUdfGroup>& bcmUdfGroup,

@@ -31,7 +31,7 @@ class BcmUdfGroup {
   BcmUdfGroup(BcmSwitch* hw, const std::shared_ptr<UdfGroup>& udfGroup);
   ~BcmUdfGroup();
 
-  bcm_udf_id_t getUdfId() {
+  bcm_udf_id_t getUdfId() const {
     return udfId_;
   }
 

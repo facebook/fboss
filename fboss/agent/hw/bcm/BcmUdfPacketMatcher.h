@@ -34,7 +34,7 @@ class BcmUdfPacketMatcher {
       const std::shared_ptr<UdfPacketMatcher>& udfPacketMatcher);
   ~BcmUdfPacketMatcher();
 
-  bcm_udf_pkt_format_id_t getUdfPacketMatcherId() {
+  bcm_udf_pkt_format_id_t getUdfPacketMatcherId() const {
     return udfPacketMatcherId_;
   }
 

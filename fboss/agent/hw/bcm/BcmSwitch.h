@@ -159,6 +159,8 @@ class BcmSwitchIf : public HwSwitch {
 
   virtual const BcmTeFlowTable* getTeFlowTable() const = 0;
 
+  virtual const BcmUdfManager* getUdfMgr() const = 0;
+
   virtual const BcmTrunkTable* getTrunkTable() const = 0;
 
   virtual BcmStatUpdater* getStatUpdater() const = 0;
@@ -534,7 +536,7 @@ class BcmSwitch : public BcmSwitchIf {
     return ptpTcMgr_.get();
   }
 
-  BcmUdfManager* getUdfMgr() const {
+  const BcmUdfManager* getUdfMgr() const override {
     return udfManager_.get();
   }
 
