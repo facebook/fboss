@@ -1316,11 +1316,6 @@ void BcmPort::updateStats() {
       kInBroadcastPkts(),
       snmpIfHCInBroadcastPkts,
       &(*curPortStats.inBroadcastPkts_()));
-  updateStat(
-      now,
-      kInDiscardsRaw(),
-      snmpIfInDiscards,
-      &(*curPortStats.inDiscardsRaw_()));
   updateStat(now, kInErrors(), snmpIfInErrors, &(*curPortStats.inErrors_()));
   updateStat(
       now,
@@ -1372,8 +1367,15 @@ void BcmPort::updateStats() {
       &(*curPortStats.inDstNullDiscards_()));
 
   auto settings = getProgrammedSettings();
+  // InDiscards will be read along with PFC if PFC is enabled
   if (settings && settings->getPfc().has_value()) {
     updatePortPfcStats(now, curPortStats, settings->getPfcPriorities());
+  } else {
+    updateStat(
+        now,
+        kInDiscardsRaw(),
+        snmpIfInDiscards,
+        &(*curPortStats.inDiscardsRaw_()));
   }
   updateFecStats(now, curPortStats);
   updateFdrStats(now);
@@ -1581,11 +1583,60 @@ void BcmPort::updatePortPfcStats(
     }
   }
 
-  // Update per port PFC statistics
-  updateStat(
-      now, kInPfc(), snmpBcmRxPFCControlFrame, &(*portStats.inPfcCtrl_()));
-  updateStat(
-      now, kOutPfc(), snmpBcmTxPFCControlFrame, &(*portStats.outPfcCtrl_()));
+  /*
+   * PFC count will be subtracted from the discards to compute the actual
+   * discards Read discards first followed by PFC count. This will ensure that
+   * PFC count >= discards and so discards wont show PFC packets in them
+   * (discards cannot go negative and so it will be 0).
+   */
+  bcm_stat_val_t statTypes[2] = {snmpIfInDiscards, snmpBcmRxPFCControlFrame};
+  /*
+   * Update per port PFC statistics. Use the Multi Get API to retrieve both
+   * PFC count and Discard count. This will ensure that in an environment where
+   * there are high PFC packets, the PFC packets sent in the gap between the
+   * collection of the 2 stats does not show up as discards (T130263331)
+   */
+  updateMultiStat(
+      now,
+      {kInDiscardsRaw(), kInPfc()},
+      statTypes,
+      {&(*portStats.inDiscardsRaw_()), &(*portStats.inPfcCtrl_())},
+      2);
+}
+
+void BcmPort::updateMultiStat(
+    std::chrono::seconds now,
+    std::vector<folly::StringPiece> statKeys,
+    bcm_stat_val_t* types,
+    std::vector<int64_t*> portStatVals,
+    uint8_t statsCount) {
+  uint64_t values[statsCount];
+  auto ret = bcm_stat_sync_multi_get(unit_, port_, statsCount, types, values);
+  if (BCM_FAILURE(ret)) {
+    XLOG(ERR) << "Failed to get multi stats for port " << port_ << " :"
+              << bcm_errmsg(ret);
+    return;
+  }
+  for (int i = 0; i < statsCount; ++i) {
+    auto statKey = statKeys.at(i);
+    auto type = types[i];
+    auto statVal = portStatVals.at(i);
+    auto stat = getPortCounterIf(statKey);
+    auto value = values[i];
+
+    if (stat == nullptr) {
+      for (auto iter = portCounters_.begin(); iter != portCounters_.end();
+           iter++) {
+        XLOG(ERR) << "key: " << iter->first
+                  << " , counter name: " << iter->second.getName();
+      }
+      XLOG(FATAL) << "failed to find port counter for key " << statKey
+                  << " and type " << type << ", existing counters:";
+    }
+
+    stat->updateValue(now, value);
+    *statVal = value;
+  }
 }
 
 void BcmPort::updateStat(

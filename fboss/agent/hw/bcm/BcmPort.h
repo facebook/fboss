@@ -279,6 +279,12 @@ class BcmPort {
       folly::StringPiece statName,
       bcm_stat_val_t type,
       int64_t* portStatVal);
+  void updateMultiStat(
+      std::chrono::seconds now,
+      std::vector<folly::StringPiece> statKeys,
+      bcm_stat_val_t* types,
+      std::vector<int64_t*> portStatVals,
+      uint8_t statsCount);
   void updateFecStats(std::chrono::seconds now, HwPortStats& curPortStats);
   void removePortStat(folly::StringPiece statKey);
   void removePortPfcStatsLocked(
