@@ -209,8 +209,9 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
         const auto operState = portInfo.get_operState();
         const auto expected_peer =
             extractExpectedPort(portInfo.get_description());
-
-        lldpDetails.localPort() = *entry.get_localPortName();
+        if (auto localPortName = entry.get_localPortName()) {
+          lldpDetails.localPort() = *localPortName;
+        }
         lldpDetails.systemName() = entry.get_systemName()
             ? *entry.get_systemName()
             : entry.get_printableChassisId();
@@ -229,7 +230,7 @@ class CmdShowLldp : public CmdHandler<CmdShowLldp, CmdShowLldpTraits> {
         model.lldpEntries()->begin(),
         model.lldpEntries()->end(),
         [](cli::LldpEntry& a, cli::LldpEntry b) {
-          return a.get_localPort() < b.get_localPort();
+          return utils::comparePortName(a.get_localPort(), b.get_localPort());
         });
 
     return model;

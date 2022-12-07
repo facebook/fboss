@@ -425,4 +425,27 @@ auto filterTupleMonostates(Tuple tup) {
       tup, std::make_index_sequence<std::tuple_size_v<UnfilteredTypes>>());
 }
 
+/**
+ * Whether the first port name is smaller than or equal to the second port
+ * name. For example, eth1/5/3 will be parsed to four parts: eth(module name),
+ * 1(module number), 5(port number), 3(subport number). The two number will
+ * first be compared by the alphabetical order of their module names. If the
+ * module namea are the same, then the order will be decied by the numerical
+ * values of their module number, port number, subport number in order.
+ * Therefore, eth420/5/1 comes before fab3/9/1 as the module name of the
+ * former one is alphabetically smaller. However, eth420/5/1 comes after
+ * eth1/5/3 as the module number 420 is larger than 1. Accordingly, eth1/5/3
+ * comes after eth1/5/1 as its subport is larger. With input array
+ * ["eth1/5/1", "eth1/5/2", "eth1/5/3", "fab402/20/1", "eth1/10/1",
+ * "eth1/4/1"], the expected returned order of this comparator will be
+ * ["eth1/4/1", "eth1/5/1", "eth1/5/2", "eth1/5/3",  "eth1/10/1",
+ * "fab402/20/1"].
+ * @param nameA    The first port name
+ * @param nameB    The second port name
+ * @return         true if the first port name is smaller or equal to the
+ * second port name
+ */
+bool comparePortName(
+    const std::basic_string<char>& nameA,
+    const std::basic_string<char>& nameB);
 } // namespace facebook::fboss::utils

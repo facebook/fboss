@@ -241,4 +241,52 @@ std::string getAdminDistanceStr(AdminDistance adminDistance) {
       "Unsupported AdminDistance: " +
       std::to_string(static_cast<int>(adminDistance)));
 }
+
+bool comparePortName(
+    const std::basic_string<char>& nameA,
+    const std::basic_string<char>& nameB) {
+  static const RE2 exp("([a-z][a-z][a-z])(\\d+)/(\\d+)/(\\d)");
+  std::string moduleNameA, moduleNumStrA, portNumStrA, subportNumStrA;
+  std::string moduleNameB, moduleNumStrB, portNumStrB, subportNumStrB;
+  if (!RE2::FullMatch(
+          nameA,
+          exp,
+          &moduleNameA,
+          &moduleNumStrA,
+          &portNumStrA,
+          &subportNumStrA)) {
+    throw std::invalid_argument(folly::to<std::string>(
+        "Invalid port name: ",
+        nameA,
+        "\nPort name must match 'moduleNum/port/subport' pattern"));
+  }
+
+  if (!RE2::FullMatch(
+          nameB,
+          exp,
+          &moduleNameB,
+          &moduleNumStrB,
+          &portNumStrB,
+          &subportNumStrB)) {
+    throw std::invalid_argument(folly::to<std::string>(
+        "Invalid port name: ",
+        nameB,
+        "\nPort name must match 'moduleNum/port/subport' pattern"));
+  }
+
+  int ret;
+  if ((ret = moduleNameA.compare(moduleNameB)) != 0) {
+    return ret < 0;
+  }
+
+  if (moduleNumStrA.compare(moduleNumStrB) != 0) {
+    return stoi(moduleNumStrA) < stoi(moduleNumStrB);
+  }
+
+  if (portNumStrA.compare(portNumStrB) != 0) {
+    return stoi(portNumStrA) < stoi(portNumStrB);
+  }
+
+  return stoi(subportNumStrA) < stoi(subportNumStrB);
+}
 } // namespace facebook::fboss::utils

@@ -12,11 +12,11 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 
-#include <re2/re2.h>
 #include <thrift/lib/cpp/transport/TTransportException.h>
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
@@ -143,74 +143,6 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     return std::to_string(speedMbps / 1000) + "G";
   }
 
-  /**
-   * Whether the first port name is smaller than or equal to the second port
-   * name. For example, eth1/5/3 will be parsed to four parts: eth(module name),
-   * 1(module number), 5(port number), 3(subport number). The two number will
-   * first be compared by the alphabetical order of their module names. If the
-   * module namea are the same, then the order will be decied by the numerical
-   * values of their module number, port number, subport number in order.
-   * Therefore, eth420/5/1 comes before fab3/9/1 as the module name of the
-   * former one is alphabetically smaller. However, eth420/5/1 comes after
-   * eth1/5/3 as the module number 420 is larger than 1. Accordingly, eth1/5/3
-   * comes after eth1/5/1 as its subport is larger. With input array
-   * ["eth1/5/1", "eth1/5/2", "eth1/5/3", "fab402/20/1", "eth1/10/1",
-   * "eth1/4/1"], the expected returned order of this comparator will be
-   * ["eth1/4/1", "eth1/5/1", "eth1/5/2", "eth1/5/3",  "eth1/10/1",
-   * "fab402/20/1"].
-   * @param nameA    The first port name
-   * @param nameB    The second port name
-   * @return         true if the first port name is smaller or equal to the
-   * second port name
-   */
-  bool compareByName(
-      const std::basic_string<char>& nameA,
-      const std::basic_string<char>& nameB) {
-    static const RE2 exp("([a-z][a-z][a-z])(\\d+)/(\\d+)/(\\d)");
-    std::string moduleNameA, moduleNumStrA, portNumStrA, subportNumStrA;
-    std::string moduleNameB, moduleNumStrB, portNumStrB, subportNumStrB;
-    if (!RE2::FullMatch(
-            nameA,
-            exp,
-            &moduleNameA,
-            &moduleNumStrA,
-            &portNumStrA,
-            &subportNumStrA)) {
-      throw std::invalid_argument(folly::to<std::string>(
-          "Invalid port name: ",
-          nameA,
-          "\nPort name must match 'moduleNum/port/subport' pattern"));
-    }
-
-    if (!RE2::FullMatch(
-            nameB,
-            exp,
-            &moduleNameB,
-            &moduleNumStrB,
-            &portNumStrB,
-            &subportNumStrB)) {
-      throw std::invalid_argument(folly::to<std::string>(
-          "Invalid port name: ",
-          nameB,
-          "\nPort name must match 'moduleNum/port/subport' pattern"));
-    }
-
-    int ret;
-    if ((ret = moduleNameA.compare(moduleNameB)) != 0) {
-      return ret < 0;
-    }
-
-    if (moduleNumStrA.compare(moduleNumStrB) != 0) {
-      return stoi(moduleNumStrA) < stoi(moduleNumStrB);
-    }
-
-    if (portNumStrA.compare(portNumStrB) != 0) {
-      return stoi(portNumStrA) < stoi(portNumStrB);
-    }
-
-    return stoi(subportNumStrA) < stoi(subportNumStrB);
-  }
-
   std::string getTransceiverStr(
       std::map<int32_t, facebook::fboss::TransceiverInfo>& transceiverEntries,
       int32_t transceiverId) {
@@ -262,7 +194,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         model.portEntries()->begin(),
         model.portEntries()->end(),
         [&](const cli::PortEntry& a, const cli::PortEntry& b) {
-          return compareByName(a.get_name(), b.get_name());
+          return utils::comparePortName(a.get_name(), b.get_name());
         });
 
     return model;

@@ -40,8 +40,22 @@ std::vector<facebook::fboss::LinkNeighborThrift> createLldpEntries() {
   lldpEntry3.localPortName() = "eth3/1/1";
   lldpEntry3.systemDescription() = "FBOSS";
 
+  fboss::LinkNeighborThrift lldpEntry4;
+  lldpEntry4.localPort() = 114;
+  lldpEntry4.systemName() = "fsw004.p001.f01.atn1";
+  lldpEntry4.printablePortId() = "Ethernet3/2/1";
+  lldpEntry4.localPortName() = "eth3/2/1";
+  lldpEntry4.systemDescription() = "FBOSS";
+
+  fboss::LinkNeighborThrift lldpEntry5;
+  lldpEntry5.localPort() = 118;
+  lldpEntry5.systemName() = "fsw005.p001.f01.atn1";
+  lldpEntry5.printablePortId() = "Ethernet3/2/1";
+  lldpEntry5.localPortName() = "eth3/10/1";
+  lldpEntry5.systemDescription() = "FBOSS";
+
   std::vector<fboss::LinkNeighborThrift> entries{
-      lldpEntry1, lldpEntry2, lldpEntry3};
+      lldpEntry1, lldpEntry2, lldpEntry3, lldpEntry4, lldpEntry5};
   return entries;
 }
 
@@ -61,10 +75,22 @@ std::map<int32_t, facebook::fboss::PortInfoThrift> createPortInfo() {
   entry3.operState() = facebook::fboss::PortOperState::UP;
   entry3.description() = "u-001: fsw003.p001 (F=spine:L=d-051)";
 
+  facebook::fboss::PortInfoThrift entry4;
+  entry4.portId() = 114;
+  entry4.operState() = facebook::fboss::PortOperState::UP;
+  entry4.description() = "u-001: fsw004.p001 (F=spine:L=d-051)";
+
+  facebook::fboss::PortInfoThrift entry5;
+  entry5.portId() = 118;
+  entry5.operState() = facebook::fboss::PortOperState::UP;
+  entry5.description() = "u-001: fsw005.p001 (F=spine:L=d-051)";
+
   std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
   portEntries.insert(std::make_pair(1, entry1));
   portEntries.insert(std::make_pair(2, entry2));
   portEntries.insert(std::make_pair(3, entry3));
+  portEntries.insert(std::make_pair(4, entry4));
+  portEntries.insert(std::make_pair(5, entry5));
 
   return portEntries;
 }
@@ -88,7 +114,7 @@ TEST_F(CmdShowLldpTestFixture, createModel) {
   auto model = cmd.createModel(lldpEntries, portEntries, queriedIfs);
   auto entries = model.get_lldpEntries();
 
-  EXPECT_EQ(entries.size(), 3);
+  EXPECT_EQ(entries.size(), 5);
 
   EXPECT_EQ(entries[0].get_localPort(), "eth1/1/1");
   EXPECT_EQ(entries[0].get_systemName(), "fsw001.p001.f01.atn1");
@@ -116,7 +142,9 @@ TEST_F(CmdShowLldpTestFixture, printOutput) {
       "-------------------------------------------------------------------------------------------------------------------------------\n"
       " eth1/1/1   up      fsw001.p001    fsw001.p001.f01.atn1  Ethernet3/2/1  FBOSS     u-001: fsw001.p001 (F=spine:L=d-051) \n"
       " eth2/1/1   up      fsw002.p001    fsw002.p001.f01.atn1  Ethernet3/2/1  FBOSS     u-001: fsw002.p001 (F=spine:L=d-051) \n"
-      " eth3/1/1   up      fsw003.p001    fsw003.p001.f01.atn1  Ethernet3/2/1  FBOSS     u-001: fsw003.p001 (F=spine:L=d-051) \n\n";
+      " eth3/1/1   up      fsw003.p001    fsw003.p001.f01.atn1  Ethernet3/2/1  FBOSS     u-001: fsw003.p001 (F=spine:L=d-051) \n"
+      " eth3/2/1   up      fsw004.p001    fsw004.p001.f01.atn1  Ethernet3/2/1  FBOSS     u-001: fsw004.p001 (F=spine:L=d-051) \n"
+      " eth3/10/1  up      fsw005.p001    fsw005.p001.f01.atn1  Ethernet3/2/1  FBOSS     u-001: fsw005.p001 (F=spine:L=d-051) \n\n";
   EXPECT_EQ(output, expectOutput);
 }
 
