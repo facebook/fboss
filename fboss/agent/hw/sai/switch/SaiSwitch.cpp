@@ -802,8 +802,9 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
 
         if (delta.getAclTablesDelta(aclStage).getNew()) {
           // Process delta for the entries of each table in the new state
-          for (const auto& table :
-               *delta.getAclTablesDelta(aclStage).getNew()) {
+          for (const auto& iter :
+               std::as_const(*delta.getAclTablesDelta(aclStage).getNew())) {
+            auto table = iter.second;
             auto tableName = table->getID();
             processDelta(
                 delta.getAclsDelta(aclStage, tableName),

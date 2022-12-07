@@ -79,7 +79,8 @@ class StateDelta {
   AclMapDelta getAclsDelta(
       cfg::AclStage aclStage = cfg::AclStage::INGRESS,
       std::optional<std::string> tableName = std::nullopt) const;
-  NodeMapDelta<AclTableMap> getAclTablesDelta(cfg::AclStage aclStage) const;
+  thrift_cow::ThriftMapDelta<AclTableMap> getAclTablesDelta(
+      cfg::AclStage aclStage) const;
   NodeMapDelta<AclTableGroupMap> getAclTableGroupsDelta() const;
   QosPolicyMapDelta getQosPoliciesDelta() const;
   thrift_cow::ThriftMapDelta<AggregatePortMap> getAggregatePortsDelta() const;

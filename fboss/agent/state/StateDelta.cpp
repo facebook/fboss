@@ -89,9 +89,9 @@ AclMapDelta StateDelta::getAclsDelta(
   return AclMapDelta(std::move(oldAcls), std::move(newAcls));
 }
 
-NodeMapDelta<AclTableMap> StateDelta::getAclTablesDelta(
+thrift_cow::ThriftMapDelta<AclTableMap> StateDelta::getAclTablesDelta(
     cfg::AclStage aclStage) const {
-  return NodeMapDelta<AclTableMap>(
+  return thrift_cow::ThriftMapDelta<AclTableMap>(
       old_->getAclTablesForStage(aclStage).get(),
       new_->getAclTablesForStage(aclStage).get());
 }
@@ -240,7 +240,7 @@ template class thrift_cow::ThriftMapDelta<InterfaceMap>;
 template class NodeMapDelta<PortMap>;
 template class thrift_cow::ThriftMapDelta<AclMap>;
 template class NodeMapDelta<AclTableGroupMap>;
-template class NodeMapDelta<AclTableMap>;
+template class thrift_cow::ThriftMapDelta<AclTableMap>;
 template class thrift_cow::ThriftMapDelta<QosPolicyMap>;
 template class thrift_cow::ThriftMapDelta<AggregatePortMap>;
 template class thrift_cow::ThriftMapDelta<SflowCollectorMap>;

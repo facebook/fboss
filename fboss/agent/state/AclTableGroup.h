@@ -54,7 +54,7 @@ struct AclTableGroupFields
       state::AclTableGroupFields const& aclTableGroupFields) {
     auto fields = AclTableGroupFields(aclTableGroupFields);
     if (auto aclTableMap = aclTableGroupFields.aclTableMap()) {
-      fields.aclTableMap_ = AclTableMap::fromThrift(*aclTableMap);
+      fields.aclTableMap_ = std::make_shared<AclTableMap>(*aclTableMap);
     }
     return AclTableGroupFields(aclTableGroupFields);
   }
@@ -125,7 +125,7 @@ class AclTableGroup : public NodeBaseT<AclTableGroup, AclTableGroupFields> {
         AclTableGroupFields(aclTableGroupFields));
     if (auto aclTableMap = aclTableGroupFields.aclTableMap()) {
       aclTableGroup->writableFields()->aclTableMap_ =
-          AclTableMap::fromThrift(*aclTableMap);
+          std::make_shared<AclTableMap>(*aclTableMap);
     }
     return aclTableGroup;
   }

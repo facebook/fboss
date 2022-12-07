@@ -16,19 +16,29 @@
 
 namespace facebook::fboss {
 
-using AclTableMapTraits = NodeMapTraits<std::string, AclTable>;
+using AclTableMapLegacyTraits = NodeMapTraits<std::string, AclTable>;
+
+using AclTableMapTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::string,
+    apache::thrift::type_class::structure>;
+using AclTableMapThriftType = std::map<std::string, state::AclTableFields>;
+
+class AclTableMap;
+using AclTableMapTraits = ThriftMapNodeTraits<
+    AclTableMap,
+    AclTableMapTypeClass,
+    AclTableMapThriftType,
+    AclTable>;
+
 /*
  * A container for the set of tables.
  */
-class AclTableMap : public NodeMapT<AclTableMap, AclTableMapTraits> {
+class AclTableMap : public ThriftMapNode<AclTableMap, AclTableMapTraits> {
  public:
+  using BaseT = ThriftMapNode<AclTableMap, AclTableMapTraits>;
+
   AclTableMap();
   ~AclTableMap() override;
-
-  std::map<std::string, state::AclTableFields> toThrift() const;
-
-  static std::shared_ptr<AclTableMap> fromThrift(
-      std::map<std::string, state::AclTableFields> const& thriftMap);
 
   static std::shared_ptr<AclTableMap> createDefaultAclTableMap(
       const folly::dynamic& swJson);
@@ -57,7 +67,8 @@ class AclTableMap : public NodeMapT<AclTableMap, AclTableMapTraits> {
     if (numTables() != aclTableMap.numTables()) {
       return false;
     }
-    for (auto const& table : *this) {
+    for (auto const& iter : *this) {
+      const auto& table = iter.second;
       if (!aclTableMap.getTableIf(table->getID()) ||
           *(aclTableMap.getTable(table->getID())) != *table) {
         return false;
@@ -102,7 +113,7 @@ class AclTableMap : public NodeMapT<AclTableMap, AclTableMapTraits> {
 
  private:
   // Inherit the constructors required for clone()
-  using NodeMapT::NodeMapT;
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 

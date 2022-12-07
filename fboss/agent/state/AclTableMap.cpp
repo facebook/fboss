@@ -24,25 +24,6 @@ AclTableMap::AclTableMap() {}
 
 AclTableMap::~AclTableMap() {}
 
-std::map<std::string, state::AclTableFields> AclTableMap::toThrift() const {
-  std::map<std::string, state::AclTableFields> thriftMap;
-  for (const auto& [key, value] : this->getAllNodes()) {
-    thriftMap[key] = value->toThrift();
-  }
-  return thriftMap;
-}
-
-std::shared_ptr<AclTableMap> AclTableMap::fromThrift(
-    std::map<std::string, state::AclTableFields> const& thriftMap) {
-  auto aclTableMap = std::make_shared<AclTableMap>();
-  for (const auto& [key, value] : thriftMap) {
-    auto node = std::make_shared<AclTable>();
-    node->fromThrift(value);
-    aclTableMap->addNode(std::move(node));
-  }
-  return aclTableMap;
-}
-
 std::shared_ptr<AclTableMap> AclTableMap::createDefaultAclTableMap(
     const folly::dynamic& swJson) {
   auto aclTableMap = std::make_shared<AclTableMap>();
@@ -67,6 +48,7 @@ std::shared_ptr<AclMap> AclTableMap::getDefaultAclTableMap(
     return nullptr;
   }
 }
-FBOSS_INSTANTIATE_NODE_MAP(AclTableMap, AclTableMapTraits);
+
+template class ThriftMapNode<AclTableMap, AclTableMapTraits>;
 
 } // namespace facebook::fboss
