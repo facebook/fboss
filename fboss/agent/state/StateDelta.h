@@ -81,7 +81,7 @@ class StateDelta {
       std::optional<std::string> tableName = std::nullopt) const;
   thrift_cow::ThriftMapDelta<AclTableMap> getAclTablesDelta(
       cfg::AclStage aclStage) const;
-  NodeMapDelta<AclTableGroupMap> getAclTableGroupsDelta() const;
+  thrift_cow::ThriftMapDelta<AclTableGroupMap> getAclTableGroupsDelta() const;
   QosPolicyMapDelta getQosPoliciesDelta() const;
   thrift_cow::ThriftMapDelta<AggregatePortMap> getAggregatePortsDelta() const;
   thrift_cow::ThriftMapDelta<SflowCollectorMap> getSflowCollectorsDelta() const;

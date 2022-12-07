@@ -16,20 +16,32 @@
 
 namespace facebook::fboss {
 
-using AclTableGroupMapTraits = NodeMapTraits<cfg::AclStage, AclTableGroup>;
+using AclTableGroupMapLegacyTraits =
+    NodeMapTraits<cfg::AclStage, AclTableGroup>;
+
+using AclTableGroupMapTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::enumeration,
+    apache::thrift::type_class::structure>;
+using AclTableGroupMapThriftType =
+    std::map<cfg::AclStage, state::AclTableGroupFields>;
+
+class AclTableGroupMap;
+using AclTableGroupMapTraits = ThriftMapNodeTraits<
+    AclTableGroupMap,
+    AclTableGroupMapTypeClass,
+    AclTableGroupMapThriftType,
+    AclTableGroup>;
+
 /*
  * A container for the set of tables.
  */
 class AclTableGroupMap
-    : public NodeMapT<AclTableGroupMap, AclTableGroupMapTraits> {
+    : public ThriftMapNode<AclTableGroupMap, AclTableGroupMapTraits> {
  public:
+  using BaseT = ThriftMapNode<AclTableGroupMap, AclTableGroupMapTraits>;
+
   AclTableGroupMap();
-  ~AclTableGroupMap() override;
-
-  std::map<cfg::AclStage, state::AclTableGroupFields> toThrift() const;
-
-  static std::shared_ptr<AclTableGroupMap> fromThrift(
-      std::map<cfg::AclStage, state::AclTableGroupFields> const& thriftMap);
+  virtual ~AclTableGroupMap() override;
 
   static std::shared_ptr<AclTableGroupMap> createDefaultAclTableGroupMap(
       const folly::dynamic& swJson);
@@ -74,7 +86,7 @@ class AclTableGroupMap
 
  private:
   // Inherit the constructors required for clone()
-  using NodeMapT::NodeMapT;
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 

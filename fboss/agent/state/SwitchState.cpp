@@ -242,9 +242,10 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.teFlowTable->fromThrift(*state.teFlowTable());
   fields.aggPorts->fromThrift(*state.aggregatePortMap());
   if (auto aclTableGroupMap = state.aclTableGroupMap()) {
-    if (!skipAclTableGroupMapParsing && !aclTableGroupMap.value().empty()) {
+    if (!skipAclTableGroupMapParsing && !aclTableGroupMap->empty()) {
       if (FLAGS_enable_acl_table_group) {
-        fields.aclTableGroups = AclTableGroupMap::fromThrift(*aclTableGroupMap);
+        fields.aclTableGroups =
+            std::make_shared<AclTableGroupMap>(*aclTableGroupMap);
       } else {
         fields.acls =
             AclTableGroupMap::getDefaultAclTableGroupMap(*aclTableGroupMap);
