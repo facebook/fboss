@@ -360,8 +360,8 @@ TEST(AclGroup, SerializeAclTableGroup) {
   table1->setAclMap(map1);
   auto table2 = std::make_shared<AclTable>(2, kTable2);
   table2->setAclMap(map2);
-  validateNodeSerialization(*table1);
-  validateNodeSerialization(*table2);
+  validateThriftStructNodeSerialization(*table1);
+  validateThriftStructNodeSerialization(*table2);
 
   auto tableMap = std::make_shared<AclTableMap>();
   tableMap->addTable(table1);
@@ -371,7 +371,7 @@ TEST(AclGroup, SerializeAclTableGroup) {
   auto tableGroup = std::make_shared<AclTableGroup>(kAclStage1);
   tableGroup->setAclTableMap(tableMap);
   tableGroup->setName(kGroup1);
-  validateNodeSerialization(*tableGroup);
+  validateThriftStructNodeSerialization(*tableGroup);
 
   auto serialized = tableGroup->toFollyDynamic();
   auto tableGroupBack = AclTableGroup::fromFollyDynamic(serialized);
@@ -706,6 +706,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
       *tableGroup1);
 
   auto tableMap3 = tableGroup1->getAclTableMap()->clone();
+  tableMap3->updateNode(tableMap3->getTable(table2->getID())->clone());
   tableMap3->getTable(table2->getID())->setPriority(5);
   tableGroup1->setAclTableMap(tableMap3);
 
@@ -741,9 +742,15 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
    * fail. So do a setAclMap everytime its updated so that the thrift
    * structure is also updated
    */
+  table2 = table2->clone();
   table2->setAclMap(map2Version2);
   auto tableMap4 = tableGroup1->getAclTableMap()->clone();
+  tableGroup1 = tableGroup1->clone();
   tableGroup1->setAclTableMap(tableMap4);
+  auto groups = stateV5->getAclTableGroups()->clone();
+  groups->updateNode(tableGroup1);
+  stateV5 = stateV5->clone();
+  stateV5->resetAclTableGroups(groups);
 
   EXPECT_EQ(
       *(stateV5->getAclTableGroups()->getAclTableGroup(kAclStage1)),
@@ -760,9 +767,15 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
 
   auto map1Version2 = table1->getAclMap()->clone();
   map1Version2->removeEntry(entry1b);
+  table1 = table1->clone();
   table1->setAclMap(map1Version2);
   auto tableMap5 = tableGroup1->getAclTableMap()->clone();
+  tableGroup1 = tableGroup1->clone();
   tableGroup1->setAclTableMap(tableMap5);
+  groups = stateV6->getAclTableGroups()->clone();
+  groups->updateNode(tableGroup1);
+  stateV6 = stateV6->clone();
+  stateV6->resetAclTableGroups(groups);
 
   EXPECT_EQ(
       *(stateV6->getAclTableGroups()->getAclTableGroup(kAclStage1)),
@@ -782,11 +795,18 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
       *tableGroup1);
 
   auto map2Version3 = table2->getAclMap()->clone();
-  map2Version3->getEntryIf(entry2a->getID())->setProto(proto);
+  auto entry2a2 = entry2a->clone();
+  entry2a2->setProto(proto);
+  map2Version3->updateNode(entry2a2);
+  table2 = table2->clone();
   table2->setAclMap(map2Version3);
   auto tableMap6 = tableGroup1->getAclTableMap()->clone();
+  tableGroup1 = tableGroup1->clone();
   tableGroup1->setAclTableMap(tableMap6);
-
+  groups = stateV7->getAclTableGroups()->clone();
+  groups->updateNode(tableGroup1);
+  stateV7 = stateV7->clone();
+  stateV7->resetAclTableGroups(groups);
   EXPECT_EQ(
       *(stateV7->getAclTableGroups()->getAclTableGroup(kAclStage1)),
       *tableGroup1);
@@ -817,9 +837,14 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   map1Version3->addEntry(entry2b);
   table1->setAclMap(map1Version3);
   auto tableMap7 = tableGroup1->getAclTableMap()->clone();
+  tableGroup1 = tableGroup1->clone();
   tableGroup1->setAclTableMap(
       tableMap7); // 2b will be the second entry in table1, so priority
                   // unchanged (originally second entry in table2)
+  groups = stateV8->getAclTableGroups()->clone();
+  groups->updateNode(tableGroup1);
+  stateV8 = stateV8->clone();
+  stateV8->resetAclTableGroups(groups);
 
   EXPECT_EQ(
       *(stateV8->getAclTableGroups()->getAclTableGroup(kAclStage1)),

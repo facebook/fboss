@@ -71,8 +71,9 @@ AclTableGroupFields::createDefaultAclTableGroupFieldsFromThrift(
   return aclTableGroup;
 }
 
-AclTableGroup::AclTableGroup(cfg::AclStage stage) : NodeBaseT(stage) {}
+AclTableGroup::AclTableGroup(cfg::AclStage stage) {
+  set<switch_state_tags::stage>(stage);
+}
 
-template class NodeBaseT<AclTableGroup, AclTableGroupFields>;
-
+template class ThriftStructNode<AclTableGroup, state::AclTableGroupFields>;
 } // namespace facebook::fboss

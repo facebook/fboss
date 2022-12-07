@@ -31,8 +31,10 @@ std::map<cfg::AclStage, state::AclTableGroupFields> AclTableGroupMap::toThrift()
 std::shared_ptr<AclTableGroupMap> AclTableGroupMap::fromThrift(
     std::map<cfg::AclStage, state::AclTableGroupFields> const& thriftMap) {
   auto aclTableGroupMap = std::make_shared<AclTableGroupMap>();
-  for (const auto& [key, value] : thriftMap) {
-    aclTableGroupMap->addNode(AclTableGroup::fromThrift(value));
+  for (auto [key, value] : thriftMap) {
+    auto group = std::make_shared<AclTableGroup>(key);
+    group->fromThrift(std::move(value));
+    aclTableGroupMap->addNode(group);
   }
   return aclTableGroupMap;
 }
