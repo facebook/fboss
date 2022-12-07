@@ -163,24 +163,32 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
     }
   }
 
-  cfg.vlans()->resize(2);
-  cfg.vlans()[0].id() = 1;
-  cfg.vlans()[0].name() = "Vlan1";
-  cfg.vlans()[0].intfID() = 1;
-  cfg.vlans()[1].id() = 55;
-  cfg.vlans()[1].name() = "Vlan55";
-  cfg.vlans()[1].intfID() = 55;
+  if (switchType == cfg::SwitchType::NPU) {
+    cfg.vlans()->resize(2);
+    cfg.vlans()[0].id() = 1;
+    cfg.vlans()[0].name() = "Vlan1";
+    cfg.vlans()[0].intfID() = 1;
+    cfg.vlans()[1].id() = 55;
+    cfg.vlans()[1].name() = "Vlan55";
+    cfg.vlans()[1].intfID() = 55;
 
-  cfg.vlanPorts()->resize(20);
-  for (int p = 0; p < kPortCount; ++p) {
-    cfg.vlanPorts()[p].logicalPort() = p + kInterfacePortIdBegin;
-    cfg.vlanPorts()[p].vlanID() = p < 10 + kInterfacePortIdBegin ? 1 : 55;
+    cfg.vlanPorts()->resize(20);
+    for (int p = 0; p < kPortCount; ++p) {
+      cfg.vlanPorts()[p].logicalPort() = p + kInterfacePortIdBegin;
+      cfg.vlanPorts()[p].vlanID() = p < 10 + kInterfacePortIdBegin ? 1 : 55;
+    }
+  } else {
+    cfg.vlans()->resize(1);
+    cfg.vlans()[0].id() = 0;
+    cfg.vlans()[0].name() = "Vlan0";
   }
 
   cfg.interfaces()->resize(2);
   cfg.interfaces()[0].intfID() = 1;
   cfg.interfaces()[0].routerID() = 0;
-  cfg.interfaces()[0].vlanID() = 1;
+  if (switchType == cfg::SwitchType::NPU) {
+    cfg.interfaces()[0].vlanID() = 1;
+  }
   cfg.interfaces()[0].name() = "fboss1";
   cfg.interfaces()[0].mac() = "00:02:00:00:00:01";
   cfg.interfaces()[0].mtu() = 9000;
@@ -192,7 +200,9 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
 
   cfg.interfaces()[1].intfID() = 55;
   cfg.interfaces()[1].routerID() = 0;
-  cfg.interfaces()[1].vlanID() = 55;
+  if (switchType == cfg::SwitchType::NPU) {
+    cfg.interfaces()[1].vlanID() = 55;
+  }
   cfg.interfaces()[1].name() = "fboss55";
   cfg.interfaces()[1].mac() = "00:02:00:00:00:55";
   cfg.interfaces()[1].mtu() = 9000;
