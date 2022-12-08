@@ -36,9 +36,10 @@ BcmUdfGroup::BcmUdfGroup(
 
   matchFieldWidth_ = udfGroup->getFieldSizeInBytes();
   udfInfo.layer = convertBaseHeaderToBcmLayer(udfGroup->getUdfBaseHeader());
-  udfInfo.start = udfGroup->getStartOffsetInBytes();
-  udfInfo.width = matchFieldWidth_;
+  udfInfo.start = udfGroup->getStartOffsetInBytes() * 8; // bits
+  udfInfo.width = matchFieldWidth_ * 8; // bits
   udfCreate(&udfInfo);
+  XLOG(INFO) << "Create udfgroup: " << udfGroupName_;
 }
 
 BcmUdfGroup::~BcmUdfGroup() {

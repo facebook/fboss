@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/bcm/BcmRtag7Module.h"
 
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmUdfManager.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
@@ -202,6 +203,43 @@ void BcmRtag7Module::programFlowBasedHashTable() {
   }
 }
 
+void BcmRtag7Module::programUdfHash(
+    const LoadBalancer::UdfGroupIds& oldUdfGroups,
+    const LoadBalancer::UdfGroupIds& newUdfGroups) {
+  LoadBalancer::UdfGroupIds toBeRemovedUdfGroups;
+  LoadBalancer::UdfGroupIds toBeAddedUdfGroups;
+
+  std::set_difference(
+      oldUdfGroups.begin(),
+      oldUdfGroups.end(),
+      newUdfGroups.begin(),
+      newUdfGroups.end(),
+      std::inserter(toBeRemovedUdfGroups, toBeRemovedUdfGroups.end()));
+
+  for (const auto& toBeRemovedUdfGroup : toBeRemovedUdfGroups) {
+    const int bcmUdfGroupId =
+        hw_->getUdfMgr()->getBcmUdfGroupId(toBeRemovedUdfGroup);
+    const int bcmUdfGroupFieldSize =
+        hw_->getUdfMgr()->getBcmUdfGroupFieldSize(toBeRemovedUdfGroup);
+    deleteUdfHash(toBeRemovedUdfGroup, bcmUdfGroupId, bcmUdfGroupFieldSize);
+  }
+
+  std::set_difference(
+      newUdfGroups.begin(),
+      newUdfGroups.end(),
+      oldUdfGroups.begin(),
+      oldUdfGroups.end(),
+      std::inserter(toBeAddedUdfGroups, toBeAddedUdfGroups.end()));
+
+  for (const auto& toBeAddedUdfGroup : toBeAddedUdfGroups) {
+    const int bcmUdfGroupId =
+        hw_->getUdfMgr()->getBcmUdfGroupId(toBeAddedUdfGroup);
+    const int bcmUdfGroupFieldSize =
+        hw_->getUdfMgr()->getBcmUdfGroupFieldSize(toBeAddedUdfGroup);
+    addUdfHash(toBeAddedUdfGroup, bcmUdfGroupId, bcmUdfGroupFieldSize);
+  }
+}
+
 void BcmRtag7Module::programFieldSelection(const LoadBalancer& loadBalancer) {
   programIPv4FieldSelection(
       loadBalancer.getIPv4Fields(),
@@ -214,6 +252,7 @@ void BcmRtag7Module::programFieldSelection(const LoadBalancer& loadBalancer) {
   programTerminatedMPLSFieldSelection(loadBalancer);
   programNonTerminatedMPLSFieldSelection(loadBalancer);
   programUdfSelection(loadBalancer.getUdfGroupIds());
+  programUdfHash({}, loadBalancer.getUdfGroupIds());
 }
 
 void BcmRtag7Module::programIPv4FieldSelection(
@@ -376,6 +415,8 @@ void BcmRtag7Module::program(
 
   if (!sameUdf) {
     programUdfSelection(newLoadBalancer->getUdfGroupIds());
+    programUdfHash(
+        oldLoadBalancer->getUdfGroupIds(), newLoadBalancer->getUdfGroupIds());
   }
 
   if (!sameMPLSFields || !sameIPv4Fields || !sameIPv6Fields) {

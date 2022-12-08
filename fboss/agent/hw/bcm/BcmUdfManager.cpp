@@ -44,7 +44,7 @@ void BcmUdfManager::createUdfGroup(const std::shared_ptr<UdfGroup>& udfGroup) {
   auto bcmUdfGroup = make_shared<BcmUdfGroup>(hw_, udfGroup);
   for (auto udfPacketMatcherName : udfGroup->getUdfPacketMatcherIds()) {
     attachUdfPacketMatcher(bcmUdfGroup, udfPacketMatcherName);
-    XLOG(DBG2) << "udfGroup=" << udfGroup->getName()
+    XLOG(INFO) << "udfGroup=" << udfGroup->getName()
                << "attached to udfPacketMatcher=" << udfPacketMatcherName;
   }
   udfGroupsMap_.insert({udfGroup->getName(), bcmUdfGroup});

@@ -243,7 +243,6 @@ class BcmRtag7Module {
       LoadBalancer::TransportFieldsRange transportFieldsRange,
       const LoadBalancer::UdfGroupIds& udfGroupIds);
   void programFieldControl();
-
   int computeIPv4Subfields(LoadBalancer::IPv4FieldsRange v4FieldsRange) const;
   int computeIPv6Subfields(LoadBalancer::IPv6FieldsRange v6FieldsRange) const;
   int computeTransportSubfields(
@@ -281,6 +280,9 @@ class BcmRtag7Module {
       const std::string& udfGroupName,
       const int bcmUdfGroupId,
       const int bcmUdfFieldSize);
+  void programUdfHash(
+      const LoadBalancer::UdfGroupIds& oldUdfGroups,
+      const LoadBalancer::UdfGroupIds& newUdfGroups);
 
   ModuleControl moduleControl_;
   OutputSelectionControl outputControl_;

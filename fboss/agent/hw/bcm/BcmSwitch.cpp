@@ -2810,7 +2810,7 @@ void BcmSwitch::processAddedUdfPacketMatcher(
 }
 
 void BcmSwitch::processAddedUdfGroup(const shared_ptr<UdfGroup>& udfGroup) {
-  XLOG(DBG2) << "Adding udf packet matcher: " << udfGroup->getID();
+  XLOG(DBG2) << "Adding udf group: " << udfGroup->getID();
   udfManager_->createUdfGroup(udfGroup);
 }
 
