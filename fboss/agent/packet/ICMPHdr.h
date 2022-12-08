@@ -255,7 +255,7 @@ class ICMPHdr {
       folly::io::RWPrivateCursor* cursor,
       folly::MacAddress dstMac,
       folly::MacAddress srcMac,
-      VlanID vlan,
+      std::optional<VlanID> vlan,
       const IPv6Hdr& ipv6,
       uint32_t payloadLength,
       BodyFn bodyFn) {
@@ -283,7 +283,7 @@ class ICMPHdr {
       folly::io::RWPrivateCursor* cursor,
       folly::MacAddress dstMac,
       folly::MacAddress srcMac,
-      VlanID vlan,
+      std::optional<VlanID> vlan,
       const IPv4Hdr& ipv4,
       uint32_t payloadLength,
       BodyFn bodyFn) {
@@ -315,7 +315,7 @@ class ICMPHdr {
       folly::io::RWPrivateCursor* cursor,
       folly::MacAddress dstMac,
       folly::MacAddress srcMac,
-      VlanID vlan,
+      std::optional<VlanID> vlan,
       const IPv6Hdr& ipv6,
       uint32_t payloadLength);
   // IPv4 header
@@ -323,7 +323,7 @@ class ICMPHdr {
       folly::io::RWPrivateCursor* cursor,
       folly::MacAddress dstMac,
       folly::MacAddress srcMac,
-      VlanID vlan,
+      std::optional<VlanID> vlan,
       const IPv4Hdr& ipv4);
 
  public:
