@@ -10,15 +10,20 @@
 #pragma once
 
 #include "fboss/agent/platforms/sai/SaiBcmPlatformPort.h"
+#include "fboss/lib/fpga/MinipackLed.h"
 
 namespace facebook::fboss {
 
-class SaiBcmFujiPlatformPort : public SaiBcmPlatformPort {
+class SaiBcmFujiPlatformPort : public SaiBcmPlatformPort, MultiPimPlatformPort {
  public:
   explicit SaiBcmFujiPlatformPort(PortID id, SaiPlatform* platform)
-      : SaiBcmPlatformPort(id, platform) {}
+      : SaiBcmPlatformPort(id, platform),
+        MultiPimPlatformPort(id, getPlatformPortEntry()) {}
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;
+
+ private:
+  MinipackLed::Color internalLedState_{MinipackLed::Color::OFF};
 };
 
 } // namespace facebook::fboss

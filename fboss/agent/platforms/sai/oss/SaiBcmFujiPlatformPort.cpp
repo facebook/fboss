@@ -8,16 +8,11 @@
  *
  */
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
-#include "fboss/agent/platforms/common/utils/Wedge400LedUtils.h"
 
 namespace facebook::fboss {
 
-void SaiBcmFujiPlatformPort::linkStatusChanged(bool /*up*/, bool /*adminUp*/) {
-  // TODO(daiweix)
-}
+void SaiBcmFujiPlatformPort::linkStatusChanged(bool /*up*/, bool /*adminUp*/) {}
 
-void SaiBcmFujiPlatformPort::externalState(PortLedExternalState /*lfs*/) {
-  // TODO(daiweix)
-}
+void SaiBcmFujiPlatformPort::externalState(PortLedExternalState /*state*/) {}
 
 } // namespace facebook::fboss

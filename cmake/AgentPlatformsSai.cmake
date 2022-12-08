@@ -18,7 +18,6 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiBcmWedge400PlatformPort.cpp
   fboss/agent/platforms/sai/SaiBcmDarwinPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmFujiPlatform.cpp
-  fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.cpp
   fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.cpp
   fboss/agent/platforms/sai/SaiFakePlatform.cpp
   fboss/agent/platforms/sai/SaiFakePlatformPort.cpp
@@ -40,6 +39,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiBcmGalaxyPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatformPort.cpp
+  fboss/agent/platforms/sai/oss/SaiBcmFujiPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmWedge100PlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmWedge40PlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmWedge400PlatformPort.cpp
