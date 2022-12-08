@@ -87,8 +87,9 @@ void ICMPHdr::serializePktHdr(
   ipv4.write(cursor);
 }
 
-uint32_t ICMPHdr::computeTotalLengthV4(uint32_t payloadLength) {
-  return payloadLength + IPv4Hdr::minSize() + ICMPHdr::SIZE + EthHdr::SIZE;
+uint32_t ICMPHdr::computeTotalLengthV4(uint32_t payloadLength, bool taggedPkt) {
+  return payloadLength + IPv4Hdr::minSize() + ICMPHdr::SIZE +
+      (taggedPkt ? EthHdr::SIZE : EthHdr::UNTAGGED_PKT_SIZE);
 }
 
 void ICMPHdr::serializePktHdr(
@@ -113,8 +114,9 @@ void ICMPHdr::serializePktHdr(
   ipv6.serialize(cursor);
 }
 
-uint32_t ICMPHdr::computeTotalLengthV6(uint32_t payloadLength) {
-  return payloadLength + ICMPHdr::SIZE + IPv6Hdr::SIZE + EthHdr::SIZE;
+uint32_t ICMPHdr::computeTotalLengthV6(uint32_t payloadLength, bool taggedPkt) {
+  return payloadLength + ICMPHdr::SIZE + IPv6Hdr::SIZE +
+      (taggedPkt ? EthHdr::SIZE : EthHdr::UNTAGGED_PKT_SIZE);
 }
 
 } // namespace facebook::fboss
