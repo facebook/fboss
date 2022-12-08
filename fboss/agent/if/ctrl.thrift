@@ -793,6 +793,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   map<i32, InterfaceDetail> getAllInterfaces() throws (
     1: fboss.FbossBaseError error,
   );
+  // DEPRECATED: API will no longer work in agent
   void registerForNeighborChanged() throws (1: fboss.FbossBaseError error) (
     thread = 'eb',
   );

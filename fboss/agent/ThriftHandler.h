@@ -29,6 +29,8 @@
 #include <thrift/lib/cpp2/async/DuplexChannel.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
+DECLARE_bool(disable_duplex);
+
 namespace facebook::fboss {
 
 class AggregatePort;

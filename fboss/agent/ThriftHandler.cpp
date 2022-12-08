@@ -28,7 +28,6 @@
 #include "fboss/agent/capture/PktCapture.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
-#include "fboss/agent/if/gen-cpp2/NeighborListenerClient.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
@@ -99,6 +98,10 @@ using facebook::network::toBinaryAddress;
 using facebook::network::toIPAddress;
 
 using namespace facebook::fboss;
+
+// TODO: can remove this flag and all corresponding code once emulation
+// environment has migrated away from duplex
+DEFINE_bool(disable_duplex, false, "Disable thrift duplex");
 
 DEFINE_bool(
     enable_running_config_mutations,
@@ -612,7 +615,7 @@ class RouteUpdateStats {
 };
 
 ThriftHandler::ThriftHandler(SwSwitch* sw) : FacebookBase2("FBOSS"), sw_(sw) {
-  if (sw) {
+  if (sw && !FLAGS_disable_duplex) {
     sw->registerNeighborListener([=](const std::vector<std::string>& added,
                                      const std::vector<std::string>& deleted) {
       for (auto& listener : listeners_.accessAllThreads()) {
@@ -1693,6 +1696,9 @@ void ThriftHandler::invokeNeighborListeners(
     ThreadLocalListener* listener,
     std::vector<std::string> added,
     std::vector<std::string> removed) {
+  if (FLAGS_disable_duplex) {
+    return;
+  }
   // Collect the iterators to avoid erasing and potentially reordering
   // the iterators in the list.
   for (const auto& ctx : brokenClients_) {
@@ -1714,6 +1720,9 @@ void ThriftHandler::invokeNeighborListeners(
 
 void ThriftHandler::async_eb_registerForNeighborChanged(
     ThriftCallback<void> cb) {
+  if (FLAGS_disable_duplex) {
+    throw FbossError("ThriftDuplex Neighbor Listener is no longer supported");
+  }
   auto ctx = cb->getRequestContext()->getConnectionContext();
   auto client = ctx->getDuplexClient<NeighborListenerClientAsyncClient>();
   auto info = listeners_.get();
@@ -1988,6 +1997,9 @@ void ThriftHandler::ensureConfigured(StringPiece function) const {
 // clean up state.  Failure to do so may allow the server's duplex clients to
 // use the destroyed context => segfaults.
 void ThriftHandler::connectionDestroyed(TConnectionContext* ctx) {
+  if (FLAGS_disable_duplex) {
+    return;
+  }
   // Port status notifications
   if (listeners_) {
     listeners_->clients.erase(ctx);

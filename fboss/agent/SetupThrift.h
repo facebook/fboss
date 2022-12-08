@@ -16,6 +16,7 @@
 #include <gflags/gflags.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
+DECLARE_bool(disable_duplex);
 DECLARE_int32(thrift_idle_timeout);
 DECLARE_int32(thrift_task_expire_timeout);
 
@@ -42,7 +43,7 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
   // set queue timeouts
   server->setQueueTimeout(std::chrono::milliseconds(0));
   server->setSocketQueueTimeout(std::chrono::milliseconds(0));
-  if (isDuplex) {
+  if (isDuplex && !FLAGS_disable_duplex) {
     server->setDuplex(true);
   }
 
