@@ -38,7 +38,8 @@ void DsfSubscriber::scheduleUpdate(
              << " updated # of rifs: " << (newRifs ? newRifs->size() : 0);
   sw_->updateState(
       folly::sformat("Update state for node: {}", nodeName),
-      [&](const std::shared_ptr<SwitchState>& in) {
+      [newSysPorts, newRifs, nodeSwitchId, nodeName](
+          const std::shared_ptr<SwitchState>& in) {
         if (nodeSwitchId == SwitchID(*in->getSwitchSettings()->getSwitchId())) {
           throw FbossError(
               " Got updates for my switch ID, from: ",

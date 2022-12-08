@@ -4,6 +4,7 @@
 
 #include "fboss/agent/StateObserver.h"
 
+#include <gtest/gtest.h>
 #include <memory>
 
 namespace facebook::fboss {
@@ -33,6 +34,7 @@ class DsfSubscriber : public StateObserver {
   static std::vector<std::string> getInterfacesPath();
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
+  FRIEND_TEST(DsfSubscriberTest, scheduleUpdate);
 };
 
 } // namespace facebook::fboss
