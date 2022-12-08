@@ -60,7 +60,7 @@ std::unique_ptr<TxPacket> createICMPv6Pkt(
     SwSwitch* sw,
     folly::MacAddress dstMac,
     folly::MacAddress srcMac,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     const folly::IPAddressV6& dstIP,
     const folly::IPAddressV6& srcIP,
     ICMPv6Type icmp6Type,
@@ -76,7 +76,7 @@ std::unique_ptr<TxPacket> createICMPv6Pkt(
   ICMPHdr icmp6(
       static_cast<uint8_t>(icmp6Type), static_cast<uint8_t>(icmp6Code), 0);
 
-  uint32_t pktLen = icmp6.computeTotalLengthV6(bodyLength);
+  uint32_t pktLen = icmp6.computeTotalLengthV6(bodyLength, vlan.has_value());
   auto pkt = sw->allocatePacket(pktLen);
   RWPrivateCursor cursor(pkt->buf());
   icmp6.serializeFullPacket(
