@@ -2062,21 +2062,28 @@ vector<string> BcmCinter::cintForBcmUdfPktFormatInfo(
     to<string>("pktFormat.class_id=", pktFormat.class_id),
     to<string>("pktFormat.inner_protocol=", pktFormat.inner_protocol),
     to<string>("pktFormat.inner_protocol_mask=", pktFormat.inner_protocol_mask),
-    to<string>("pktFormat.vlan_tag=", pktFormat.l4_dst_port),
-    to<string>("pktFormat.outer_ip=", pktFormat.l4_dst_port_mask),
-    to<string>("pktFormat.inner_ip=", pktFormat.opaque_tag_type),
-    to<string>("pktFormat.tunnel=", pktFormat.opaque_tag_type_mask),
-    to<string>("pktFormat.mpls=", pktFormat.int_pkt),
-    to<string>("pktFormat.fibre_chan_outer=", pktFormat.src_port),
-    to<string>("pktFormat.fibre_chan_inner=", pktFormat.src_port_mask),
-    to<string>("pktFormat.higig=", pktFormat.lb_pkt_type),
-    to<string>("pktFormat.vntag=", pktFormat.first_2bytes_after_mpls_bos),
-    to<string>("pktFormat.etag=", pktFormat.first_2bytes_after_mpls_bos_mask),
-    to<string>("pktFormat.cntag=", pktFormat.outer_ifa),
-    to<string>("pktFormat.icnm=", pktFormat.inner_ifa),
+    to<string>("pktFormat.l4_dst_port=", pktFormat.l4_dst_port),
+    to<string>("pktFormat.l4_dst_port_mask=", pktFormat.l4_dst_port_mask),
+    to<string>("pktFormat.opaque_tag_type=", pktFormat.opaque_tag_type),
+    to<string>(
+        "pktFormat.opaque_tag_type_mask=", pktFormat.opaque_tag_type_mask),
+    to<string>("pktFormat.int_pkt=", pktFormat.int_pkt),
+    to<string>("pktFormat.src_port=", pktFormat.src_port),
+    to<string>("pktFormat.src_port_mask=", pktFormat.src_port_mask),
+    to<string>("pktFormat.lb_pkt_type=", pktFormat.lb_pkt_type),
+    to<string>(
+        "pktFormat.first_2bytes_after_mpls_bos=",
+        pktFormat.first_2bytes_after_mpls_bos),
+    to<string>(
+        "pktFormat.first_2bytes_after_mpls_bos_mask=",
+        pktFormat.first_2bytes_after_mpls_bos_mask),
+    to<string>("pktFormat.outer_ifa=", pktFormat.outer_ifa),
+    to<string>("pktFormat.inner_ifa=", pktFormat.inner_ifa),
 #if (defined(BCM_SDK_VERSION_GTE_6_5_24))
-    to<string>("pktFormat.subport_tag=", pktFormat.ip_gre_first_2bytes),
-    to<string>("pktFormat.class_id=", pktFormat.ip_gre_first_2bytes_mask),
+    to<string>("pktFormat.ip_gre_first_2bytes=", pktFormat.ip_gre_first_2bytes),
+    to<string>(
+        "pktFormat.ip_gre_first_2bytes_mask=",
+        pktFormat.ip_gre_first_2bytes_mask),
 #endif
 
   };
