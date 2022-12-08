@@ -170,15 +170,18 @@ void ArpHandler::handlePacket(
 
 static void sendArp(
     SwSwitch* sw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     ArpOpCode op,
     MacAddress senderMac,
     IPAddressV4 senderIP,
     MacAddress targetMac,
     IPAddressV4 targetIP,
     const std::optional<PortDescriptor>& portDesc = std::nullopt) {
+  auto vlanStr = vlan.has_value()
+      ? folly::to<std::string>(static_cast<int>(vlan.value()))
+      : "None";
   XLOG(DBG4) << "sending ARP " << ((op == ARP_OP_REQUEST) ? "request" : "reply")
-             << " on vlan " << vlan << " to " << targetIP.str() << " ("
+             << " on vlan " << vlanStr << " to " << targetIP.str() << " ("
              << targetMac << "): " << senderIP.str() << " is " << senderMac;
 
   // TODO: We need a more robust mechanism for setting up the ethernet
@@ -231,7 +234,7 @@ void ArpHandler::floodGratuituousArp() {
       // originator's address
       sendArp(
           sw_,
-          intf->getVlanID(),
+          intf->getVlanIDIf(),
           ARP_OP_REQUEST,
           intf->getMac(),
           v4Addr,
@@ -242,7 +245,7 @@ void ArpHandler::floodGratuituousArp() {
 }
 
 void ArpHandler::sendArpReply(
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     PortID port,
     MacAddress senderMac,
     IPAddressV4 senderIP,

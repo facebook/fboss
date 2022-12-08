@@ -78,7 +78,7 @@ class ArpHandler {
   ArpHandler& operator=(ArpHandler const&) = delete;
 
   void sendArpReply(
-      VlanID vlan,
+      std::optional<VlanID> vlan,
       PortID port,
       folly::MacAddress senderMac,
       folly::IPAddressV4 senderIP,
