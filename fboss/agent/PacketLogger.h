@@ -28,7 +28,7 @@ class PacketLoggerBase {
   virtual void log(
       std::string pktType, // ARP, NDP, or LLP
       std::string pktDir, // RX or TX
-      VlanID vlanID,
+      std::optional<VlanID> vlanID,
       std::string srcMac,
       std::string senderIP,
       std::string targetIP) = 0;
@@ -42,7 +42,7 @@ class PacketLogger : public PacketLoggerBase {
   void log(
       std::string pktType,
       std::string pktDir,
-      VlanID vlanID,
+      std::optional<VlanID> vlanID,
       std::string srcMac,
       std::string senderIP,
       std::string targetIP) override;

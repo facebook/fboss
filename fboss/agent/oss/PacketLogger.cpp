@@ -8,7 +8,7 @@ namespace facebook::fboss {
 void PacketLogger::log(
     std::string /*pktType*/,
     std::string /*pktDir*/,
-    VlanID /*vlanID*/,
+    std::optional<VlanID> /*vlanID*/,
     std::string /*srcMac*/,
     std::string /*senderIP*/,
     std::string /*targetIP*/) {
