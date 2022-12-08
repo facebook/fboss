@@ -1649,7 +1649,7 @@ void SwSwitch::sendL3Packet(
   auto state = getState();
 
   // Get VlanID associated with interface
-  VlanID vlanID = getCPUVlan().value();
+  auto vlanID = getCPUVlan();
   if (maybeIfID.has_value()) {
     auto intf = state->getInterfaces()->getInterfaceIf(*maybeIfID);
     if (!intf) {
@@ -1658,8 +1658,8 @@ void SwSwitch::sendL3Packet(
       return;
     }
 
-    // Extract primary Vlan associated with this interface
-    vlanID = intf->getVlanID();
+    // Extract primary Vlan associated with this interface, if any
+    vlanID = intf->getVlanIDIf();
   }
 
   try {
@@ -1711,7 +1711,7 @@ void SwSwitch::sendL3Packet(
       // Resolve neighbor mac address for given destination address. If address
       // doesn't exists in NDP table then request neighbor solicitation for it.
       CHECK(dstAddr.isLinkLocal());
-      auto vlan = state->getVlans()->getVlan(vlanID);
+      auto vlan = state->getVlans()->getVlan(getVlanIDHelper(vlanID));
       if (dstAddr.isV4()) {
         // We do not consult ARP table to forward v4 link local addresses.
         // Reason explained below.
@@ -1748,7 +1748,8 @@ void SwSwitch::sendL3Packet(
       if (dstAddr.isV6()) {
         ipv6_->sendMulticastNeighborSolicitations(PortID(0), dstAddr.asV6());
       } else {
-        ipv4_->resolveMac(state, PortID(0), dstAddr.asV4(), vlanID);
+        // TODO(skhare) Support optional VLAN arg to resolveMac
+        ipv4_->resolveMac(state, PortID(0), dstAddr.asV4(), vlanID.value());
       }
     }
 
