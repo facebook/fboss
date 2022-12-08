@@ -173,7 +173,9 @@ TEST(ICMPv4Packet, serializeFullTaggedPacket) {
   serializedFullIPv4PacketHelper(true /* tagged pkt */);
 }
 
-TEST(ICMPv6Packet, serializeFullPacket) {
+void serializedFullIPv6PacketHelper(bool taggedPkt) {
+  auto vlanID = taggedPkt ? std::make_optional(VlanID(1)) : std::nullopt;
+
   auto ipv6 = makeIPv6Hdr();
   ICMPHdr icmp6(
       static_cast<uint8_t>(ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION),
@@ -188,17 +190,21 @@ TEST(ICMPv6Packet, serializeFullPacket) {
       &cursor,
       MacAddress("33:33:00:00:00:01"),
       MacAddress("33:33:00:00:00:02"),
-      VlanID(1),
+      vlanID,
       ipv6,
       0,
       emptyBody);
+
   // check the serialized data
-  auto pkt = MockRxPacket::fromHex(
+  std::string pktPreVlanHeader(
       // Ethernet Header
       "33 33 00 00 00 01" // Destination MAC Address
       "33 33 00 00 00 02" // Source MAC Address
-      "81 00 00 01" // VLAN: 1
-      "86 dd" // EtherType: IPv4
+  );
+  std::string vlanHeader("81 00 00 01" // VLAN: 1
+  );
+  std::string pktPostVlanHeader(
+      "86 dd" // EtherType: IPv6
       // IPv6 Header
       "6" // VERSION: 6
       "e0" // Traffic Class
@@ -216,6 +222,15 @@ TEST(ICMPv6Packet, serializeFullPacket) {
       "87 00" // ICMP type, code
       "9c c6" // ICMP checksum
   );
+
+  std::string pktHexDump;
+  if (taggedPkt) {
+    pktHexDump = pktPreVlanHeader + vlanHeader + pktPostVlanHeader;
+  } else {
+    pktHexDump = pktPreVlanHeader + pktPostVlanHeader;
+  }
+  auto pkt = MockRxPacket::fromHex(pktHexDump.c_str());
+
   const uint8_t* serializedData = buf.data();
   const uint8_t* expectedData = pkt->buf()->data();
   for (int i = 0; i < totalLength; i++) {
@@ -233,4 +248,8 @@ TEST(ICMPv6Packet, serializeFullPacket) {
   EXPECT_EQ(ethHdr.vlanTags[0].vid(), 1);
   EXPECT_EQ(ipHdr, ipv6);
   EXPECT_EQ(icmpHdr, icmp6);
+}
+
+TEST(ICMPv6Packet, serializeFullTaggedPacket) {
+  serializedFullIPv6PacketHelper(true /* tagged pkt */);
 }
