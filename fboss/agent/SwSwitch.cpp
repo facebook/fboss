@@ -1480,6 +1480,14 @@ void SwSwitch::threadLoop(StringPiece name, EventBase* eventBase) {
   eventBase->loopForever();
 }
 
+uint32_t SwSwitch::getEthernetHeaderSize() const {
+  // VOQ/Fabric switches require that the packets are not VLAN tagged.
+  return (getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ ||
+          getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC)
+      ? EthHdr::UNTAGGED_PKT_SIZE
+      : EthHdr::SIZE;
+}
+
 std::unique_ptr<TxPacket> SwSwitch::allocatePacket(uint32_t size) {
   return hw_->allocatePacket(size);
 }

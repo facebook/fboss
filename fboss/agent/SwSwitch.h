@@ -481,6 +481,8 @@ class SwSwitch : public HwSwitch::Callback {
       L2EntryUpdateType l2EntryUpdateType) override;
   void exitFatal() const noexcept override;
 
+  uint32_t getEthernetHeaderSize() const;
+
   /*
    * Allocate a new TxPacket.
    */
