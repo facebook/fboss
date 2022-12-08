@@ -331,6 +331,8 @@ static CmisFieldMultiplier qsfpMultiplier = {
 };
 
 static SpeedApplicationMapping speedApplicationMapping = {
+    {cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG,
+     {SMFMediaInterfaceCode::FR4_200G}},
     {cfg::PortSpeed::HUNDREDG, {SMFMediaInterfaceCode::CWDM4_100G}},
     {cfg::PortSpeed::TWOHUNDREDG, {SMFMediaInterfaceCode::FR4_200G}},
     {cfg::PortSpeed::FOURHUNDREDG,
@@ -1907,6 +1909,16 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
 
     if (speed != cfg::PortSpeed::DEFAULT) {
       setApplicationCodeLocked(speed);
+    }
+
+    // For 200G-FR4 module operating in 2x50G mode, disable squelch on all lanes
+    // so that each lanes can operate independently
+    if (getModuleMediaInterface() == MediaInterfaceCode::FR4_200G &&
+        speed == cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG) {
+      uint8_t squelchDisableValue = 0xF;
+      writeCmisField(CmisField::TX_SQUELCH_DISABLE, &squelchDisableValue);
+      writeCmisField(CmisField::RX_SQUELCH_DISABLE, &squelchDisableValue);
+      QSFP_LOG(DBG1, this) << "Disabled TX and RX Squelch";
     }
   } else {
     QSFP_LOG(DBG1, this) << "Customization not supported";

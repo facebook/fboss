@@ -873,8 +873,13 @@ void QsfpModule::programTransceiver(
       // We found that some module did not enable Rx output squelch by default,
       // which introduced some difficulty to bring link back up when flapped.
       // Here we ensure that Rx output squelch is always enabled.
-      if (auto hostLaneSettings = settings.hostLaneSettings()) {
-        ensureRxOutputSquelchEnabled(*hostLaneSettings);
+      // Skip doing this for 200G-FR4 modules configured in 2x50G mode. For this
+      // mode, we need all 4 lanes to operate independently
+      if (getModuleMediaInterface() != MediaInterfaceCode::FR4_200G ||
+          speed != cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG) {
+        if (auto hostLaneSettings = settings.hostLaneSettings()) {
+          ensureRxOutputSquelchEnabled(*hostLaneSettings);
+        }
       }
 
       if (needResetDataPath) {
