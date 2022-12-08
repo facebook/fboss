@@ -10,8 +10,46 @@
 #include "fboss/agent/hw/bcm/BcmUdfPacketMatcher.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/packet/IPProto.h"
 
 namespace facebook::fboss {
+
+int BcmUdfPacketMatcher::convertUdfl4TypeToIpProtocol(
+    cfg::UdfMatchL4Type l4Type) {
+  switch (l4Type) {
+    case cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_UDP:
+      return static_cast<int>(IP_PROTO::IP_PROTO_UDP);
+    case cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_TCP:
+      return static_cast<int>(IP_PROTO::IP_PROTO_TCP);
+    default:
+      break;
+  }
+  throw FbossError("Invalid udf l4 pkt type: ", l4Type);
+}
+
+int BcmUdfPacketMatcher::convertUdfL3PktTypeToBcmType(
+    cfg::UdfMatchL3Type l3Type) {
+  switch (l3Type) {
+    case cfg::UdfMatchL3Type::UDF_L3_PKT_TYPE_ANY:
+      return BCM_PKT_FORMAT_IP_ANY;
+    case cfg::UdfMatchL3Type::UDF_L3_PKT_TYPE_IPV4:
+      return BCM_PKT_FORMAT_IP4;
+    case cfg::UdfMatchL3Type::UDF_L3_PKT_TYPE_IPV6:
+      return BCM_PKT_FORMAT_IP6;
+  }
+  throw FbossError("Invalid udf l3 pkt type: ", l3Type);
+}
+
+int BcmUdfPacketMatcher::convertUdfL2PktTypeToBcmType(
+    cfg::UdfMatchL2Type l2Type) {
+  switch (l2Type) {
+    case cfg::UdfMatchL2Type::UDF_L2_PKT_TYPE_ANY:
+      return BCM_PKT_FORMAT_L2_ANY;
+    case cfg::UdfMatchL2Type::UDF_L2_PKT_TYPE_ETH:
+      return BCM_PKT_FORMAT_L2_ETH_II;
+  }
+  throw FbossError("Invalid udf l2 pkt type: ", l2Type);
+}
 
 BcmUdfPacketMatcher::BcmUdfPacketMatcher(
     BcmSwitch* hw,
@@ -22,12 +60,16 @@ BcmUdfPacketMatcher::BcmUdfPacketMatcher(
   pktFormat.l2 = static_cast<uint16>(udfPacketMatcher->getUdfl2PktType());
   pktFormat.vlan_tag = BCM_PKT_FORMAT_VLAN_TAG_ANY;
   pktFormat.ip_protocol =
-      static_cast<uint16>(udfPacketMatcher->getUdfl4PktType());
+      convertUdfl4TypeToIpProtocol(udfPacketMatcher->getUdfl4PktType());
   pktFormat.ip_protocol_mask = 0xff;
-  pktFormat.outer_ip = static_cast<uint16>(udfPacketMatcher->getUdfl3PktType());
+  pktFormat.outer_ip =
+      convertUdfL3PktTypeToBcmType(udfPacketMatcher->getUdfl3PktType());
   pktFormat.inner_ip = BCM_PKT_FORMAT_IP_NONE;
   pktFormat.tunnel = BCM_PKT_FORMAT_TUNNEL_NONE;
-
+  if (auto udfL4DstPort = udfPacketMatcher->getUdfL4DstPort()) {
+    pktFormat.l4_dst_port = *udfL4DstPort;
+    pktFormat.l4_dst_port_mask = 0xffff; // 16 bits
+  }
   udfPktFormatCreate(&pktFormat);
 }
 

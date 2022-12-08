@@ -13,6 +13,19 @@
 
 namespace facebook::fboss {
 
+bcm_udf_layer_t BcmUdfGroup::convertBaseHeaderToBcmLayer(
+    cfg::UdfBaseHeaderType layer) {
+  switch (layer) {
+    case cfg::UdfBaseHeaderType::UDF_L2_HEADER:
+      return bcmUdfLayerL2Header;
+    case cfg::UdfBaseHeaderType::UDF_L3_HEADER:
+      return bcmUdfLayerL3OuterHeader;
+    case cfg::UdfBaseHeaderType::UDF_L4_HEADER:
+      return bcmUdfLayerL4OuterHeader;
+  }
+  throw FbossError("Invalid udf base header: ", layer);
+}
+
 BcmUdfGroup::BcmUdfGroup(
     BcmSwitch* hw,
     const std::shared_ptr<UdfGroup>& udfGroup)
@@ -20,10 +33,11 @@ BcmUdfGroup::BcmUdfGroup(
   udfGroupName_ = udfGroup->getName();
   bcm_udf_t udfInfo;
   bcm_udf_t_init(&udfInfo);
-  udfInfo.layer = static_cast<bcm_udf_layer_t>(udfGroup->getUdfBaseHeader());
-  udfInfo.start = udfGroup->getStartOffsetInBytes();
-  udfInfo.width = udfGroup->getFieldSizeInBytes();
 
+  matchFieldWidth_ = udfGroup->getFieldSizeInBytes();
+  udfInfo.layer = convertBaseHeaderToBcmLayer(udfGroup->getUdfBaseHeader());
+  udfInfo.start = udfGroup->getStartOffsetInBytes();
+  udfInfo.width = matchFieldWidth_;
   udfCreate(&udfInfo);
 }
 
@@ -46,14 +60,8 @@ int BcmUdfGroup::udfCreate(bcm_udf_t* udfInfo) {
   hints.flags = BCM_UDF_CREATE_O_UDFHASH;
 
   rv = bcm_udf_create(hw_->getUnit(), &hints, udfInfo, &udfId_);
-  if (BCM_FAILURE(rv)) {
-    printf(
-        "bcm_udf_create() failed for %s, error_code : %s\n",
-        udfGroupName_.c_str(),
-        bcm_errmsg(rv));
-    return rv;
-  }
-
+  bcmCheckError(
+      rv, "bcm_udf_create failed for udf group ", udfGroupName_.c_str());
   return rv;
 }
 
@@ -61,15 +69,8 @@ int BcmUdfGroup::udfDelete(bcm_udf_id_t udfId) {
   int rv = 0;
   /* Delete udf */
   rv = bcm_udf_destroy(hw_->getUnit(), udfId);
-
-  if (BCM_FAILURE(rv)) {
-    printf(
-        "bcm_udf_destroy() failed for %s, error_code: %s\n",
-        udfGroupName_.c_str(),
-        bcm_errmsg(rv));
-    return rv;
-  }
-
+  bcmLogFatal(
+      rv, hw_, "bcm_udf_destroy failed for udf group ", udfGroupName_.c_str());
   return rv;
 }
 
@@ -79,16 +80,16 @@ int BcmUdfGroup::udfPacketMatcherAdd(
   int rv = 0;
   /*Attach both UDF id  to packet matcher id */
   rv = bcm_udf_pkt_format_add(hw_->getUnit(), udfId_, packetMatcherId);
-  if (BCM_FAILURE(rv)) {
-    printf(
-        "bcm_udf_pkt_format_add() failed to attach  for udf %s udfId %d to pkt_format %s pkt_format_id %d\n",
-        udfGroupName_.c_str(),
-        udfId_,
-        udfPacketMatcherName.c_str(),
-        packetMatcherId);
-    return rv;
-  }
-
+  bcmCheckError(
+      rv,
+      "bcm_udf_pkt_format_add failed for udf group ",
+      udfGroupName_.c_str(),
+      ", udf id ",
+      udfId_,
+      " packet matcher ",
+      udfPacketMatcherName.c_str(),
+      " id ",
+      packetMatcherId);
   udfPacketMatcherIds_.insert({packetMatcherId, udfPacketMatcherName});
   return rv;
 }
@@ -99,16 +100,17 @@ int BcmUdfGroup::udfPacketMatcherDelete(
   int rv = 0;
   /* AAttach both UDF id  to packet matcher id */
   rv = bcm_udf_pkt_format_delete(hw_->getUnit(), udfId_, packetMatcherId);
-  if (BCM_FAILURE(rv)) {
-    printf(
-        "bcm_udf_pkt_format_delete() failed to detach for udf %s udfId %d to pkt_format %s pkt_format_id %d\n",
-        udfGroupName_.c_str(),
-        udfId_,
-        udfPacketMatcherName.c_str(),
-        packetMatcherId);
-    return rv;
-  }
-
+  bcmLogFatal(
+      rv,
+      hw_,
+      "bcm_udf_pkt_format_delete() failed to detach for udf group ",
+      udfGroupName_.c_str(),
+      " udf id ",
+      udfId_,
+      " packet matcher ",
+      udfPacketMatcherName.c_str(),
+      " id ",
+      packetMatcherId);
   auto itr = udfPacketMatcherIds_.find(packetMatcherId);
   if (itr != udfPacketMatcherIds_.end()) {
     udfPacketMatcherIds_.erase(itr);

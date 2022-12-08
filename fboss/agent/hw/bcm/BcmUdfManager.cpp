@@ -11,6 +11,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmUdfGroup.h"
 
 namespace facebook::fboss {
 // createUdfPacketMatcher
@@ -99,6 +100,45 @@ void BcmUdfManager::deleteUdfGroup(
 
   bcmUdfGroup->second.reset();
   udfGroupsMap_.erase(udfGroupName);
+}
+
+void BcmUdfManager::init() {
+  if (udfInitDone_) {
+    // nothing to do
+    return;
+  }
+
+  // this shouldn't be called at warm boot time if UDF was enabled before
+  // We need to set udfInitDone_ = true based on warm boot cache
+  int rv = bcm_udf_init(hw_->getUnit());
+  bcmCheckError(rv, "Failed to initialize UDF");
+
+  udfInitDone_ = true;
+}
+
+void BcmUdfManager::setUdfInitFlag(bool flag) {
+  udfInitDone_ = flag;
+}
+
+int BcmUdfManager::getBcmUdfGroupId(const std::string& udfGroupName) const {
+  auto iter = udfGroupsMap_.find(udfGroupName);
+  if (iter == udfGroupsMap_.end()) {
+    throw FbossError("Unable to find : ", udfGroupName, " in the map.");
+  }
+  XLOG(DBG3) << " For UDF group " << udfGroupName
+             << "  get BCM udf group id: " << iter->second->getUdfId();
+  return iter->second->getUdfId();
+}
+
+int BcmUdfManager::getBcmUdfGroupFieldSize(
+    const std::string& udfGroupName) const {
+  auto iter = udfGroupsMap_.find(udfGroupName);
+  if (iter == udfGroupsMap_.end()) {
+    throw FbossError("Unable to find : ", udfGroupName, " in the map.");
+  }
+  XLOG(DBG3) << " For UDF group " << udfGroupName << "  get match field width: "
+             << iter->second->getUdfMatchFieldWidth();
+  return iter->second->getUdfMatchFieldWidth();
 }
 
 BcmUdfManager::~BcmUdfManager() {

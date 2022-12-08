@@ -15,6 +15,7 @@ extern "C" {
 }
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/types.h"
 #include "fboss/agent/state/UdfPacketMatcher.h"
 
@@ -41,6 +42,10 @@ class BcmUdfPacketMatcher {
  private:
   int udfPktFormatCreate(bcm_udf_pkt_format_info_t* pktFormat);
   int udfPktFormatDelete(bcm_udf_pkt_format_id_t pktMatcherId);
+
+  int convertUdfL2PktTypeToBcmType(cfg::UdfMatchL2Type l2Type);
+  int convertUdfl4TypeToIpProtocol(cfg::UdfMatchL4Type l4Type);
+  int convertUdfL3PktTypeToBcmType(cfg::UdfMatchL3Type l3Type);
 
   BcmSwitch* hw_;
   bcm_udf_pkt_format_id_t udfPacketMatcherId_ = 0;

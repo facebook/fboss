@@ -824,4 +824,42 @@ int BcmRtag7Module::computeL3MPLSHeaderSubfields(
   return fields;
 }
 
+void BcmRtag7Module::addUdfHash(
+    const std::string& udfGroupName,
+    const int bcmUdfGroupId,
+    const int bcmUdfFieldSize) {
+  bcm_udf_hash_config_t config;
+  bcm_udf_hash_config_t_init(&config);
+
+  config.udf_id = bcmUdfGroupId;
+  config.mask_length = bcmUdfFieldSize;
+  for (int i = 0; i < bcmUdfFieldSize; ++i) {
+    config.hash_mask[i] = 0xff;
+  }
+
+  int rv = bcm_udf_hash_config_add(hw_->getUnit(), 0, &config);
+  bcmCheckError(rv, "Failed to enable hash for UDF group ", udfGroupName);
+}
+
+void BcmRtag7Module::deleteUdfHash(
+    const std::string& udfGroupName,
+    const int bcmUdfGroupId,
+    const int bcmUdfFieldSize) {
+  bcm_udf_hash_config_t config;
+  bcm_udf_hash_config_t_init(&config);
+
+  config.udf_id = bcmUdfGroupId;
+  config.mask_length = bcmUdfFieldSize;
+  for (int i = 0; i < bcmUdfFieldSize; ++i) {
+    config.hash_mask[i] = 0xff;
+  }
+
+  int rv = bcm_udf_hash_config_delete(hw_->getUnit(), &config);
+  bcmLogFatal(
+      rv,
+      hw_,
+      "Failed to remove UDF group ",
+      udfGroupName,
+      " from hash config");
+}
 } // namespace facebook::fboss

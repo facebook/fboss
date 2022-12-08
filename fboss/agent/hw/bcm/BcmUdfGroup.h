@@ -15,6 +15,7 @@ extern "C" {
 }
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/bcm/types.h"
 #include "fboss/agent/state/UdfGroup.h"
 
@@ -46,12 +47,18 @@ class BcmUdfGroup {
       bcm_udf_pkt_format_id_t packetMatcherId,
       const std::string& udfPacketMatcherName);
 
+  int getUdfMatchFieldWidth() {
+    return matchFieldWidth_;
+  }
+
  private:
   int udfCreate(bcm_udf_t* udfInfo);
   int udfDelete(bcm_udf_id_t udfId);
+  bcm_udf_layer_t convertBaseHeaderToBcmLayer(cfg::UdfBaseHeaderType layer);
 
   BcmSwitch* hw_;
   bcm_udf_id_t udfId_ = 0;
+  int matchFieldWidth_ = 0;
   std::string udfGroupName_;
   std::map<bcm_udf_pkt_format_id_t, std::string> udfPacketMatcherIds_;
 };

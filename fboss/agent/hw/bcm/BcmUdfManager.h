@@ -43,6 +43,11 @@ class BcmUdfManager {
   void createUdfPacketMatcher(
       const std::shared_ptr<UdfPacketMatcher>& udfPacketMatcher);
   void createUdfGroup(const std::shared_ptr<UdfGroup>& udfGroup);
+  void init();
+  void setUdfInitFlag(bool udfInitFlag);
+
+  int getBcmUdfGroupId(const std::string& udfGroupName) const;
+  int getBcmUdfGroupFieldSize(const std::string& udfGroupName) const;
 
   const std::map<std::string, std::shared_ptr<BcmUdfGroup>> getUdfGroupsMap()
       const {
@@ -70,6 +75,7 @@ class BcmUdfManager {
   std::map<std::string, std::shared_ptr<BcmUdfGroup>> udfGroupsMap_;
   std::map<std::string, std::shared_ptr<BcmUdfPacketMatcher>>
       udfPacketMatcherMap_;
+  bool udfInitDone_{false};
 };
 
 } // namespace facebook::fboss
