@@ -54,7 +54,7 @@ std::unique_ptr<TxPacket> createICMPv4Pkt(
     SwSwitch* sw,
     folly::MacAddress dstMac,
     folly::MacAddress srcMac,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::IPAddressV4& dstIP,
     folly::IPAddressV4& srcIP,
     ICMPv4Type icmpType,
@@ -70,7 +70,7 @@ std::unique_ptr<TxPacket> createICMPv4Pkt(
 
   ICMPHdr icmp4(
       static_cast<uint8_t>(icmpType), static_cast<uint8_t>(icmpCode), 0);
-  uint32_t pktLen = icmp4.computeTotalLengthV4(bodyLength);
+  uint32_t pktLen = icmp4.computeTotalLengthV4(bodyLength, vlan.has_value());
 
   auto pkt = sw->allocatePacket(pktLen);
   RWPrivateCursor cursor(pkt->buf());
