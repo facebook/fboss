@@ -768,6 +768,8 @@ class SwSwitch : public HwSwitch::Callback {
 
   std::map<std::string, HwTeFlowStats> getTeFlowStats();
 
+  VlanID getVlanIDHelper(std::optional<VlanID> vlanID) const;
+
  private:
   void updateStateBlockingImpl(
       folly::StringPiece name,

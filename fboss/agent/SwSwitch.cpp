@@ -2054,4 +2054,21 @@ bool SwSwitch::sendNdpSolicitationHelper(
 
   return sent;
 }
+
+VlanID SwSwitch::getVlanIDHelper(std::optional<VlanID> vlanID) const {
+  // if vlanID does not have value, it must be VOQ or FABRIC switch
+  CHECK(
+      vlanID.has_value() ||
+      getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ ||
+      getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC);
+
+  // TODO(skhare)
+  // VOQ/Fabric switches require that the packets are not tagged with any
+  // VLAN. We are gradually enhancing wedge_agent to handle tagged as well as
+  // untagged packets. During this transition, we will use VlanID 0 to
+  // populate SwitchState/Neighbor cache etc. data structures. Once the
+  // wedge_agent changes are complete, we will no longer need this function.
+  return vlanID.has_value() ? vlanID.value() : VlanID(0);
+}
+
 } // namespace facebook::fboss
