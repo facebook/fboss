@@ -154,6 +154,16 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     set<switch_state_tags::vlanId>(id);
   }
 
+  VlanID getVlanIDHelper() const {
+    // TODO(skhare)
+    // VOQ/Fabric switches require that the packets are not tagged with any
+    // VLAN. We are gradually enhancing wedge_agent to handle tagged as well as
+    // untagged packets. During this transition, we will use VlanID 0 to
+    // populate SwitchState/Neighbor cache etc. data structures. Once the
+    // wedge_agent changes are complete, we will no longer need this function.
+    return getType() == cfg::InterfaceType::VLAN ? getVlanID() : VlanID(0);
+  }
+
   int getMtu() const {
     return get<switch_state_tags::mtu>()->cref();
   }
