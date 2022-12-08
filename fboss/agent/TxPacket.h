@@ -54,6 +54,20 @@ class TxPacket : public Packet {
       folly::MacAddress src,
       uint16_t protocol);
 
+  /**
+   * Write an ethernet header at the specified cursor location.
+   *
+   * This version writes a tagged or untagged header depending on the datatype
+   * of input argument vlanID
+   */
+  template <typename CursorType>
+  static void writeEthHeader(
+      CursorType* cursor,
+      folly::MacAddress dst,
+      folly::MacAddress src,
+      std::optional<VlanID> vlan,
+      uint16_t protocol);
+
  protected:
   TxPacket() {}
 
@@ -86,6 +100,20 @@ void TxPacket::writeEthHeader(
   cursor->push(dst.bytes(), folly::MacAddress::SIZE);
   cursor->push(src.bytes(), folly::MacAddress::SIZE);
   cursor->template writeBE<uint16_t>(protocol);
+}
+
+template <typename CursorType>
+void TxPacket::writeEthHeader(
+    CursorType* cursor,
+    folly::MacAddress dst,
+    folly::MacAddress src,
+    std::optional<VlanID> vlan,
+    uint16_t protocol) {
+  if (vlan.has_value()) {
+    writeEthHeader(cursor, dst, src, vlan.value(), protocol);
+  } else {
+    writeEthHeader(cursor, dst, src, protocol);
+  }
 }
 
 } // namespace facebook::fboss
