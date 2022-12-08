@@ -13,11 +13,7 @@ namespace facebook::fboss {
 
 void SaiBcmElbertPlatformPort::linkStatusChanged(
     bool /*up*/,
-    bool /*adminUp*/) {
-  // TODO(zecheng)
-}
+    bool /*adminUp*/) {}
 
-void SaiBcmElbertPlatformPort::externalState(PortLedExternalState /*lfs*/) {
-  // TODO(zecheng)}
-}
+void SaiBcmElbertPlatformPort::externalState(PortLedExternalState /*state*/) {}
 } // namespace facebook::fboss
