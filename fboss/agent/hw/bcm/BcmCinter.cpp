@@ -1987,9 +1987,13 @@ vector<string> BcmCinter::cintForBcmUdfAllocHints(
 
 vector<string> BcmCinter::cintForBcmUdfInfo(const bcm_udf_t& udf_info) {
   string pbmp;
-  vector<string> pbmpCint;
+  vector<string> pbmpCint, cintLines;
   tie(pbmp, pbmpCint) = cintForPortBitmap(udf_info.ports);
-  vector<string> cintLines = {
+  cintLines.insert(
+      cintLines.end(),
+      make_move_iterator(pbmpCint.begin()),
+      make_move_iterator(pbmpCint.end()));
+  vector<string> udfInfoCintLines = {
       "bcm_udf_t_init(&udf_info)",
       to<string>("udf_info.flags=", udf_info.flags),
       to<string>("udf_info.layer=", udf_info.layer),
@@ -1999,9 +2003,8 @@ vector<string> BcmCinter::cintForBcmUdfInfo(const bcm_udf_t& udf_info) {
   };
   cintLines.insert(
       cintLines.end(),
-      make_move_iterator(pbmpCint.begin()),
-      make_move_iterator(pbmpCint.end()));
-
+      make_move_iterator(udfInfoCintLines.begin()),
+      make_move_iterator(udfInfoCintLines.end()));
   return cintLines;
 }
 
@@ -2016,7 +2019,7 @@ int BcmCinter::bcm_udf_create(
 
   auto cintForFn = wrapFunc(to<string>(
       "bcm_udf_create(",
-      makeParamStr(unit, "&hints", "&udf_info", *udf_id),
+      makeParamStr(unit, "&hints", "&udf_info", "&udf_id"),
       ")"));
   cintHints.insert(
       cintHints.end(),
@@ -2039,7 +2042,7 @@ int BcmCinter::bcm_udf_destroy(int unit, bcm_udf_id_t udf_id) {
 vector<string> BcmCinter::cintForBcmUdfPktFormatInfo(
     const bcm_udf_pkt_format_info_t& pktFormat) {
   vector<string> cintLines = {
-    "bcm_udf_pkt_format_info_init(&pktFormat)",
+    "bcm_udf_pkt_format_info_t_init(&pktFormat)",
     to<string>("pktFormat.prio=", pktFormat.prio),
     to<string>("pktFormat.ethertype=", pktFormat.ethertype),
     to<string>("pktFormat.ethertype_mask=", pktFormat.ethertype_mask),
@@ -2098,7 +2101,7 @@ int BcmCinter::bcm_udf_pkt_format_create(
   auto cintPktFormat = cintForBcmUdfPktFormatInfo(*pkt_format);
 
   auto cintForFn = wrapFunc(to<string>(
-      "bcm_udf_create(",
+      "bcm_udf_pkt_format_create(",
       makeParamStr(unit, options, "&pkt_format", *pkt_format_id),
       ")"));
   cintPktFormat.insert(
@@ -2141,47 +2144,23 @@ int BcmCinter::bcm_udf_pkt_format_delete(
 
 void BcmCinter::bcm_udf_pkt_format_info_t_init(
     bcm_udf_pkt_format_info_t* pkt_format) {
-  auto cintPktFormat = cintForBcmUdfPktFormatInfo(*pkt_format);
-  auto cintForFn = wrapFunc(to<string>(
-      "bcm_udf_pkt_format_info_t_init(", makeParamStr("&pkt_format"), ")"));
-  cintPktFormat.insert(
-      cintPktFormat.end(),
-      make_move_iterator(cintForFn.begin()),
-      make_move_iterator(cintForFn.end()));
-  writeCintLines(std::move(cintPktFormat));
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_udf_pkt_format_info_t_init(", makeParamStr("pkt_format"), ")")));
 }
 
 void BcmCinter::bcm_udf_alloc_hints_t_init(bcm_udf_alloc_hints_t* udf_hints) {
-  auto cintHints = cintForBcmUdfAllocHints(*udf_hints);
-  auto cintForFn = wrapFunc(to<string>(
-      "bcm_udf_alloc_hints_t_init(", makeParamStr("&udf_hints"), ")"));
-  cintHints.insert(
-      cintHints.end(),
-      make_move_iterator(cintForFn.begin()),
-      make_move_iterator(cintForFn.end()));
-  writeCintLines(std::move(cintHints));
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_udf_alloc_hints_t_init(", makeParamStr("udf_hints"), ")")));
 }
 
 void BcmCinter::bcm_udf_t_init(bcm_udf_t* udf_info) {
-  auto cintInfo = cintForBcmUdfInfo(*udf_info);
-  auto cintForFn =
-      wrapFunc(to<string>("bcm_udf_t_init(", makeParamStr("&udf_info"), ")"));
-  cintInfo.insert(
-      cintInfo.end(),
-      make_move_iterator(cintForFn.begin()),
-      make_move_iterator(cintForFn.end()));
-  writeCintLines(std::move(cintInfo));
+  writeCintLines(
+      wrapFunc(to<string>("bcm_udf_t_init(", makeParamStr("udf_info"), ")")));
 }
 
 void BcmCinter::bcm_udf_hash_config_t_init(bcm_udf_hash_config_t* config) {
-  auto cintConfig = cintForBcmUdfHashConfig(*config);
-  auto cintForFn = wrapFunc(
-      to<string>("bcm_udf_hash_config_t_init(", makeParamStr("&config"), ")"));
-  cintConfig.insert(
-      cintConfig.end(),
-      make_move_iterator(cintForFn.begin()),
-      make_move_iterator(cintForFn.end()));
-  writeCintLines(std::move(cintConfig));
+  writeCintLines(wrapFunc(
+      to<string>("bcm_udf_hash_config_t_init(", makeParamStr("config"), ")")));
 }
 
 int BcmCinter::bcm_port_autoneg_set(int unit, bcm_port_t port, int autoneg) {
