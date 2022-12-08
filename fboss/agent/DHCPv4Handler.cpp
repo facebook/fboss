@@ -71,10 +71,14 @@ IPv4Hdr makeIpv4Header(
   return ipHdr;
 }
 
-EthHdr makeEthHdr(MacAddress srcMac, MacAddress dstMac, VlanID vlan) {
+EthHdr
+makeEthHdr(MacAddress srcMac, MacAddress dstMac, std::optional<VlanID> vlan) {
   VlanTags_t vlanTags;
-  vlanTags.push_back(
-      VlanTag(vlan, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+  if (vlan.has_value()) {
+    vlanTags.push_back(VlanTag(
+        vlan.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+  }
+
   return EthHdr(
       dstMac,
       srcMac,
