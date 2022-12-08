@@ -245,9 +245,17 @@ void serializedFullIPv6PacketHelper(bool taggedPkt) {
 
   EXPECT_EQ(ethHdr.srcAddr, MacAddress("33:33:00:00:00:02"));
   EXPECT_EQ(ethHdr.dstAddr, MacAddress("33:33:00:00:00:01"));
-  EXPECT_EQ(ethHdr.vlanTags[0].vid(), 1);
+  if (taggedPkt) {
+    EXPECT_EQ(ethHdr.vlanTags[0].vid(), 1);
+  } else {
+    EXPECT_EQ(ethHdr.vlanTags.size(), 0);
+  }
   EXPECT_EQ(ipHdr, ipv6);
   EXPECT_EQ(icmpHdr, icmp6);
+}
+
+TEST(ICMPv6Packet, serializeFullUntaggedPacket) {
+  serializedFullIPv6PacketHelper(false /* untagged pkt */);
 }
 
 TEST(ICMPv6Packet, serializeFullTaggedPacket) {
