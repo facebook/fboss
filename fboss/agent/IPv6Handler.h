@@ -88,7 +88,7 @@ class IPv6Handler : public StateObserver {
       SwSwitch* sw,
       const folly::IPAddressV6& targetIP,
       const folly::MacAddress& srcMac,
-      const VlanID& vlanID);
+      const std::optional<VlanID>& vlanID);
   static void sendMulticastNeighborSolicitation(
       SwSwitch* sw,
       const folly::IPAddressV6& targetIP,
@@ -182,7 +182,7 @@ class IPv6Handler : public StateObserver {
       const folly::IPAddressV6& srcIP,
       const folly::MacAddress& srcMac,
       const folly::IPAddressV6& neighborIP,
-      const VlanID& vlanID,
+      const std::optional<VlanID>& vlanID,
       const std::optional<PortDescriptor>& portDescriptor =
           std::optional<PortDescriptor>(),
       const NDPOptions& options = NDPOptions());

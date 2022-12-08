@@ -674,7 +674,7 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
     SwSwitch* sw,
     const IPAddressV6& targetIP,
     const MacAddress& srcMac,
-    const VlanID& vlanID) {
+    const std::optional<VlanID>& vlanID) {
   IPAddressV6 solicitedNodeAddr = targetIP.getSolicitedNodeAddress();
   MacAddress dstMac = MacAddress::createMulticast(solicitedNodeAddr);
   // For now, we always use our link local IP as the source.
@@ -683,8 +683,11 @@ void IPv6Handler::sendMulticastNeighborSolicitation(
   NDPOptions ndpOptions;
   ndpOptions.sourceLinkLayerAddress.emplace(srcMac);
 
+  auto vlanIDStr = vlanID.has_value()
+      ? folly::to<std::string>(static_cast<int>(vlanID.value()))
+      : "None";
   XLOG(DBG4) << "sending neighbor solicitation for " << targetIP << " on vlan "
-             << vlanID;
+             << vlanIDStr;
 
   sendNeighborSolicitation(
       sw,
@@ -944,7 +947,7 @@ void IPv6Handler::sendNeighborSolicitation(
     const folly::IPAddressV6& srcIP,
     const folly::MacAddress& srcMac,
     const folly::IPAddressV6& neighborIP,
-    const VlanID& vlanID,
+    const std::optional<VlanID>& vlanID,
     const std::optional<PortDescriptor>& portDescriptor,
     const NDPOptions& ndpOptions) {
   sw->getPacketLogger()->log(
