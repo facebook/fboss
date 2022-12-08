@@ -52,7 +52,7 @@ void sendDHCPv6Packet(
     SwSwitch* sw,
     MacAddress dstMac,
     MacAddress srcMac,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     IPAddressV6 dstIp,
     IPAddressV6 srcIp,
     uint16_t udpDstPort,
@@ -61,8 +61,11 @@ void sendDHCPv6Packet(
     DHCPBodyFn serializeDhcp) {
   // construct EthHdr,
   VlanTags_t vlanTags;
-  vlanTags.push_back(
-      VlanTag(vlan, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+  if (vlan.has_value()) {
+    vlanTags.push_back(VlanTag(
+        vlan.value(), static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN)));
+  }
+
   EthHdr ethHdr(
       dstMac,
       srcMac,
