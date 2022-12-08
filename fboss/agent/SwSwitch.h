@@ -154,9 +154,7 @@ class SwSwitch : public HwSwitch::Callback {
    * For example, Broadcom HW will overwrite this value based on its egress
    * programming.
    */
-  VlanID getCPUVlan() const {
-    return VlanID(4095);
-  }
+  std::optional<VlanID> getCPUVlan() const;
 
   /*
    * Initialize the switch.

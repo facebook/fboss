@@ -1649,7 +1649,7 @@ void SwSwitch::sendL3Packet(
   auto state = getState();
 
   // Get VlanID associated with interface
-  VlanID vlanID = getCPUVlan();
+  VlanID vlanID = getCPUVlan().value();
   if (maybeIfID.has_value()) {
     auto intf = state->getInterfaces()->getInterfaceIf(*maybeIfID);
     if (!intf) {
@@ -2069,6 +2069,13 @@ VlanID SwSwitch::getVlanIDHelper(std::optional<VlanID> vlanID) const {
   // populate SwitchState/Neighbor cache etc. data structures. Once the
   // wedge_agent changes are complete, we will no longer need this function.
   return vlanID.has_value() ? vlanID.value() : VlanID(0);
+}
+
+std::optional<VlanID> SwSwitch::getCPUVlan() const {
+  return getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ ||
+          getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC
+      ? std::nullopt
+      : std::make_optional(VlanID(4095));
 }
 
 } // namespace facebook::fboss
