@@ -94,9 +94,13 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     updateAndCompareTables(sysPorts, rifs);
   }
   auto makeNbrs = []() {
-    state::NeighborEntries ndpTable;
+    state::NeighborEntries ndpTable, arpTable;
     std::map<std::string, int> ip2Rif = {
-        {"fc00::1", kSysPortRangeMin + 1}, {"fc01::1", kSysPortRangeMin + 2}};
+        {"fc00::1", kSysPortRangeMin + 1},
+        {"fc01::1", kSysPortRangeMin + 2},
+        {"10.0.1.1", kSysPortRangeMin + 1},
+        {"10.0.2.1", kSysPortRangeMin + 2},
+    };
     for (const auto& [ip, rif] : ip2Rif) {
       state::NeighborEntryFields nbr;
       nbr.ipaddress() = ip;
@@ -106,16 +110,23 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
       port.portType() = cfg::PortDescriptorType::SystemPort;
       nbr.portId() = port;
       nbr.interfaceId() = rif;
-      ndpTable.insert({ip, nbr});
+      folly::IPAddress ipAddr(ip);
+      if (ipAddr.isV6()) {
+        ndpTable.insert({ip, nbr});
+      } else {
+        arpTable.insert({ip, nbr});
+      }
     }
-    return ndpTable;
+    return std::make_pair(ndpTable, arpTable);
   };
   {
     // add neighbors
     auto sysPorts = makeSysPorts();
     auto rifs = makeRifs(sysPorts.get());
     auto firstRif = kSysPortRangeMin + 1;
-    (*rifs)[firstRif]->setNdpTable(makeNbrs());
+    auto [ndpTable, arpTable] = makeNbrs();
+    (*rifs)[firstRif]->setNdpTable(ndpTable);
+    (*rifs)[firstRif]->setArpTable(arpTable);
     updateAndCompareTables(sysPorts, rifs);
   }
   {
@@ -123,9 +134,11 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     auto sysPorts = makeSysPorts();
     auto rifs = makeRifs(sysPorts.get());
     auto firstRif = kSysPortRangeMin + 1;
-    auto ndpTable = makeNbrs();
+    auto [ndpTable, arpTable] = makeNbrs();
     ndpTable.begin()->second.mac() = "06:05:04:03:02:01";
+    arpTable.begin()->second.mac() = "06:05:04:03:02:01";
     (*rifs)[firstRif]->setNdpTable(ndpTable);
+    (*rifs)[firstRif]->setArpTable(arpTable);
     updateAndCompareTables(sysPorts, rifs);
   }
   {
@@ -133,9 +146,11 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     auto sysPorts = makeSysPorts();
     auto rifs = makeRifs(sysPorts.get());
     auto firstRif = kSysPortRangeMin + 1;
-    auto ndpTable = makeNbrs();
+    auto [ndpTable, arpTable] = makeNbrs();
     ndpTable.erase(ndpTable.begin());
+    arpTable.erase(arpTable.begin());
     (*rifs)[firstRif]->setNdpTable(ndpTable);
+    (*rifs)[firstRif]->setArpTable(arpTable);
     updateAndCompareTables(sysPorts, rifs);
   }
   {
