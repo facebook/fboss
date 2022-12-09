@@ -1073,4 +1073,35 @@ void SaiPhyManager::xphyPortStateToggle(PortID swPort, phy::Side side) {
              << " Xphy port toggle done";
 }
 
+/*
+ * gracefulExit
+ *
+ * This function calls SaiSwitch::gracefulExit() which will set the Sai Graceful
+ * Restart attribute. That function will store the SaiSwitch state in a file and
+ * also let the SAI SDK store its state in a file
+ */
+void SaiPhyManager::gracefulExit() {
+  // Loop through all pim platforms
+  for (auto& pimPlatformItr : saiPlatforms_) {
+    auto& pimPlatform = pimPlatformItr.second;
+
+    // Loop through all xphy in the pim
+    for (auto& platformItr : pimPlatform) {
+      GlobalXphyID xphyID = platformItr.first;
+
+      // Get SaiSwitch and SwitchState using global xphy id
+      auto saiSwitch = getSaiSwitch(xphyID);
+      auto switchState = getPlatformInfo(xphyID)->getState();
+
+      // Get the current SwitchState and ThriftState which will be used to call
+      //  SaiSwitch::gracefulExit function
+      folly::dynamic follySwitchState = folly::dynamic::object;
+      follySwitchState[kSwSwitch] = switchState->toFollyDynamic();
+      state::WarmbootState thriftSwitchState;
+      *thriftSwitchState.swSwitchState() = switchState->toThrift();
+      saiSwitch->gracefulExit(follySwitchState, thriftSwitchState);
+    }
+  }
+}
+
 } // namespace facebook::fboss

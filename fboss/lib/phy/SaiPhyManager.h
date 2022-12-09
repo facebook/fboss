@@ -129,6 +129,8 @@ class SaiPhyManager : public PhyManager {
 
   void xphyPortStateToggle(PortID swPort, phy::Side side);
 
+  void gracefulExit();
+
  protected:
   void addSaiPlatform(
       GlobalXphyID xphyID,
