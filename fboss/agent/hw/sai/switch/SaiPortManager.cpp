@@ -50,27 +50,35 @@ uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
   switch (counterId) {
     case SAI_PORT_STAT_PFC_0_RX_PKTS:
     case SAI_PORT_STAT_PFC_0_TX_PKTS:
+    case SAI_PORT_STAT_PFC_0_ON2OFF_RX_PKTS:
       return 0;
     case SAI_PORT_STAT_PFC_1_RX_PKTS:
     case SAI_PORT_STAT_PFC_1_TX_PKTS:
+    case SAI_PORT_STAT_PFC_1_ON2OFF_RX_PKTS:
       return 1;
     case SAI_PORT_STAT_PFC_2_RX_PKTS:
     case SAI_PORT_STAT_PFC_2_TX_PKTS:
+    case SAI_PORT_STAT_PFC_2_ON2OFF_RX_PKTS:
       return 2;
     case SAI_PORT_STAT_PFC_3_RX_PKTS:
     case SAI_PORT_STAT_PFC_3_TX_PKTS:
+    case SAI_PORT_STAT_PFC_3_ON2OFF_RX_PKTS:
       return 3;
     case SAI_PORT_STAT_PFC_4_RX_PKTS:
     case SAI_PORT_STAT_PFC_4_TX_PKTS:
+    case SAI_PORT_STAT_PFC_4_ON2OFF_RX_PKTS:
       return 4;
     case SAI_PORT_STAT_PFC_5_RX_PKTS:
     case SAI_PORT_STAT_PFC_5_TX_PKTS:
+    case SAI_PORT_STAT_PFC_5_ON2OFF_RX_PKTS:
       return 5;
     case SAI_PORT_STAT_PFC_6_RX_PKTS:
     case SAI_PORT_STAT_PFC_6_TX_PKTS:
+    case SAI_PORT_STAT_PFC_6_ON2OFF_RX_PKTS:
       return 6;
     case SAI_PORT_STAT_PFC_7_RX_PKTS:
     case SAI_PORT_STAT_PFC_7_TX_PKTS:
+    case SAI_PORT_STAT_PFC_7_ON2OFF_RX_PKTS:
       return 7;
     default:
       break;
@@ -172,6 +180,18 @@ void fillHwPortStats(
       case SAI_PORT_STAT_PFC_7_TX_PKTS: {
         auto priority = getPriorityFromPfcPktCounterId(counterId);
         hwPortStats.outPfc_()[priority] = value;
+        break;
+      }
+      case SAI_PORT_STAT_PFC_0_ON2OFF_RX_PKTS:
+      case SAI_PORT_STAT_PFC_1_ON2OFF_RX_PKTS:
+      case SAI_PORT_STAT_PFC_2_ON2OFF_RX_PKTS:
+      case SAI_PORT_STAT_PFC_3_ON2OFF_RX_PKTS:
+      case SAI_PORT_STAT_PFC_4_ON2OFF_RX_PKTS:
+      case SAI_PORT_STAT_PFC_5_ON2OFF_RX_PKTS:
+      case SAI_PORT_STAT_PFC_6_ON2OFF_RX_PKTS:
+      case SAI_PORT_STAT_PFC_7_ON2OFF_RX_PKTS: {
+        auto priority = getPriorityFromPfcPktCounterId(counterId);
+        hwPortStats.inPfcXon_()[priority] = value;
         break;
       }
       default:
