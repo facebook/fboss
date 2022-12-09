@@ -162,11 +162,11 @@ cfg::UdfConfig addUdfConfig(void) {
 
   matchCfg.name() = "l4UdpRoce";
   matchCfg.l4PktType() = cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_UDP;
-  matchCfg.UdfL4DstPort() = 4091;
+  matchCfg.UdfL4DstPort() = 4791;
 
   udfGroupEntry.name() = "dstQueuePair";
   udfGroupEntry.header() = cfg::UdfBaseHeaderType::UDF_L4_HEADER;
-  udfGroupEntry.startOffsetInBytes() = 5;
+  udfGroupEntry.startOffsetInBytes() = 13;
   udfGroupEntry.fieldSizeInBytes() = 3;
   // has to be the same as in matchCfg
   udfGroupEntry.udfPacketMatcherIds() = {"l4UdpRoce"};

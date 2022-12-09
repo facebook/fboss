@@ -929,6 +929,8 @@ HwInitResult BcmSwitch::initImpl(
   setupToCpuEgress();
   portTable_->initPorts(&pcfg, warmBoot);
 
+  // initialize UDF module
+  udfManager_->init();
   bstStatsMgr_->startBufferStatCollection();
 
   // Set the spanning tree state of all ports to forwarding.
