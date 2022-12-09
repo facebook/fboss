@@ -77,16 +77,72 @@ TEST_F(DsfSubscriberTest, scheduleUpdate) {
 }
 
 TEST_F(DsfSubscriberTest, setupNeighbors) {
-  auto compareTables = [this](const auto& sysPorts, const auto& rifs) {
-    EXPECT_EQ(*sysPorts, *sw_->getState()->getRemoteSystemPorts());
-    EXPECT_EQ(*rifs, *sw_->getState()->getRemoteInterfaces());
+  auto updateAndCompareTables = [this](const auto& sysPorts, const auto& rifs) {
+    dsfSubscriber_->scheduleUpdate(
+        sysPorts, rifs, "switch", SwitchID(kRemoteSwitchId));
+    waitForStateUpdates(sw_);
+    EXPECT_EQ(
+        sysPorts->toThrift(),
+        sw_->getState()->getRemoteSystemPorts()->toThrift());
+    EXPECT_EQ(
+        rifs->toThrift(), sw_->getState()->getRemoteInterfaces()->toThrift());
   };
-  // No neighbors
-  auto sysPorts = makeSysPorts();
-  auto rifs = makeRifs(sysPorts.get());
-  dsfSubscriber_->scheduleUpdate(
-      sysPorts, rifs, "switch", SwitchID(kRemoteSwitchId));
-  waitForStateUpdates(sw_);
-  compareTables(sysPorts, rifs);
+  {
+    // No neighbors
+    auto sysPorts = makeSysPorts();
+    auto rifs = makeRifs(sysPorts.get());
+    updateAndCompareTables(sysPorts, rifs);
+  }
+  auto makeNbrs = []() {
+    state::NeighborEntries ndpTable;
+    std::map<std::string, int> ip2Rif = {
+        {"fc00::1", kSysPortRangeMin + 1}, {"fc01::1", kSysPortRangeMin + 2}};
+    for (const auto& [ip, rif] : ip2Rif) {
+      state::NeighborEntryFields nbr;
+      nbr.ipaddress() = ip;
+      nbr.mac() = "01:02:03:04:05:06";
+      cfg::PortDescriptor port;
+      port.portId() = rif;
+      port.portType() = cfg::PortDescriptorType::SystemPort;
+      nbr.portId() = port;
+      nbr.interfaceId() = rif;
+      ndpTable.insert({ip, nbr});
+    }
+    return ndpTable;
+  };
+  {
+    // add neighbors
+    auto sysPorts = makeSysPorts();
+    auto rifs = makeRifs(sysPorts.get());
+    auto firstRif = kSysPortRangeMin + 1;
+    (*rifs)[firstRif]->setNdpTable(makeNbrs());
+    updateAndCompareTables(sysPorts, rifs);
+  }
+  {
+    // update neighbors
+    auto sysPorts = makeSysPorts();
+    auto rifs = makeRifs(sysPorts.get());
+    auto firstRif = kSysPortRangeMin + 1;
+    auto ndpTable = makeNbrs();
+    ndpTable.begin()->second.mac() = "06:05:04:03:02:01";
+    (*rifs)[firstRif]->setNdpTable(ndpTable);
+    updateAndCompareTables(sysPorts, rifs);
+  }
+  {
+    // delete neighbors
+    auto sysPorts = makeSysPorts();
+    auto rifs = makeRifs(sysPorts.get());
+    auto firstRif = kSysPortRangeMin + 1;
+    auto ndpTable = makeNbrs();
+    ndpTable.erase(ndpTable.begin());
+    (*rifs)[firstRif]->setNdpTable(ndpTable);
+    updateAndCompareTables(sysPorts, rifs);
+  }
+  {
+    // clear neighbors
+    auto sysPorts = makeSysPorts();
+    auto rifs = makeRifs(sysPorts.get());
+    updateAndCompareTables(sysPorts, rifs);
+  }
 }
 } // namespace facebook::fboss
