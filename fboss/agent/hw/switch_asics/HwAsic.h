@@ -119,6 +119,7 @@ class HwAsic {
     FABRIC_TX_QUEUES,
     SAI_PORT_VCO_CHANGE,
     SAI_TTL0_PACKET_FORWARD_ENABLE,
+    XPHY_SAI_WARMBOOT,
   };
 
   enum class AsicMode {

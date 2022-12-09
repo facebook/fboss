@@ -13,6 +13,10 @@ bool MarvelPhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_INTERFACE_TYPE:
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
       return true;
+    // TODO(rajank):
+    // Enable PHY Warmboot once tested
+    case HwAsic::Feature::XPHY_SAI_WARMBOOT:
+      return false;
     default:
       return false;
   }

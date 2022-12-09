@@ -122,6 +122,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_TX_QUEUES:
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
+    case HwAsic::Feature::XPHY_SAI_WARMBOOT:
       return false;
   }
   return false;
