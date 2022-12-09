@@ -54,6 +54,8 @@ class DsfSubscriberTest : public ::testing::Test {
     auto config = testConfigA(cfg::SwitchType::VOQ);
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
+    // Create a separate instance of DsfSubscriber (vs
+    // using one from SwSwitch) for ease of testing.
     dsfSubscriber_ = std::make_unique<DsfSubscriber>(sw_);
   }
 
@@ -67,5 +69,7 @@ TEST_F(DsfSubscriberTest, scheduleUpdate) {
   auto sysPorts = makeSysPorts();
   auto rifs = makeRifs(sysPorts.get());
   dsfSubscriber_->scheduleUpdate(sysPorts, rifs, "switch", SwitchID(1000));
+  // Don't wait for state update to mimic async scheduling of
+  // state updates.
 }
 } // namespace facebook::fboss

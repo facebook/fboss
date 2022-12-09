@@ -31,7 +31,7 @@ void DsfSubscriber::scheduleUpdate(
     const std::shared_ptr<InterfaceMap>& newRifs,
     const std::string& nodeName,
     SwitchID nodeSwitchId) {
-  XLOG(INFO) << " For , switchId: " << static_cast<int64_t>(nodeSwitchId)
+  XLOG(DBG2) << " For , switchId: " << static_cast<int64_t>(nodeSwitchId)
              << " got,"
              << " updated # of sys ports: "
              << (newSysPorts ? newSysPorts->size() : 0)
