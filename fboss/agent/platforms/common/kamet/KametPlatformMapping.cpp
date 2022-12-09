@@ -48,6 +48,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -74,6 +86,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -120,6 +144,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -146,6 +182,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC0",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -192,6 +240,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC1",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -218,6 +278,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC1",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -264,6 +336,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC1",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -290,6 +374,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC1",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -336,6 +432,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -362,6 +470,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -408,6 +528,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -434,6 +566,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC2",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -480,6 +624,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC3",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -506,6 +662,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC3",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -552,6 +720,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC3",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -578,6 +758,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC3",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -624,6 +816,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -650,6 +854,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -696,6 +912,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -722,6 +950,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC4",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -768,6 +1008,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC5",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -794,6 +1046,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC5",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -840,6 +1104,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC5",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -866,6 +1142,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC5",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -912,6 +1200,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -938,6 +1238,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -984,6 +1296,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1010,6 +1334,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC6",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -1056,6 +1392,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC7",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1082,6 +1430,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC7",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -1128,6 +1488,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC7",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1154,6 +1526,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC7",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -1200,6 +1584,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1226,6 +1622,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -1272,6 +1680,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1298,6 +1718,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC8",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -1344,6 +1776,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC9",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1370,6 +1814,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC9",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -1416,6 +1872,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC9",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1442,6 +1910,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC9",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -1488,6 +1968,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1514,6 +2006,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -1560,6 +2064,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1586,6 +2102,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC10",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -1632,6 +2160,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC11",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1658,6 +2198,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC11",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -1704,6 +2256,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC11",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1730,6 +2294,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC11",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -1776,6 +2352,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1802,6 +2390,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -1848,6 +2448,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1874,6 +2486,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC12",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -1920,6 +2544,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC13",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1946,6 +2582,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC13",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -1992,6 +2640,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC13",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2018,6 +2678,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC13",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -2064,6 +2736,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2090,6 +2774,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -2136,6 +2832,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2162,6 +2870,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC14",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -2208,6 +2928,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC15",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2234,6 +2966,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC15",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -2280,6 +3024,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC15",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2306,6 +3062,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC15",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -2352,6 +3120,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2378,6 +3158,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -2424,6 +3216,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2450,6 +3254,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC16",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -2496,6 +3312,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC17",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2522,6 +3350,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC17",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -2568,6 +3408,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC17",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2594,6 +3446,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC17",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -2640,6 +3504,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2666,6 +3542,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -2712,6 +3600,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2738,6 +3638,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC18",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -2784,6 +3696,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC19",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2810,6 +3734,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC19",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -2856,6 +3792,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC19",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2882,6 +3830,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC19",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -2928,6 +3888,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2954,6 +3926,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -3000,6 +3984,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3026,6 +4022,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC20",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -3072,6 +4080,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC21",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3098,6 +4118,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC21",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -3144,6 +4176,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC21",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3170,6 +4214,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC21",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -3216,6 +4272,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC22",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3242,6 +4310,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC22",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -3288,6 +4368,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC22",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3314,6 +4406,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC22",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -3360,6 +4464,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC23",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3386,6 +4502,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC23",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -3432,6 +4560,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC23",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3458,6 +4598,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC23",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -3504,6 +4656,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3530,6 +4694,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -3576,6 +4752,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3602,6 +4790,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC24",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -3648,6 +4848,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC25",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3674,6 +4886,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC25",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -3720,6 +4944,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC25",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3746,6 +4982,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC25",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -3792,6 +5040,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC26",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3818,6 +5078,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC26",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -3864,6 +5136,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC26",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3890,6 +5174,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC26",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -3936,6 +5232,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3962,6 +5270,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -4008,6 +5328,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4034,6 +5366,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC27",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -4080,6 +5424,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4106,6 +5462,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -4152,6 +5520,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4178,6 +5558,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC28",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -4224,6 +5616,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC29",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4250,6 +5654,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC29",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -4296,6 +5712,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC29",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4322,6 +5750,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC29",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -4368,6 +5808,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC30",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4394,6 +5846,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC30",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -4440,6 +5904,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC30",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4466,6 +5942,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC30",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -4512,6 +6000,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4538,6 +6038,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -4584,6 +6096,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4610,6 +6134,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC31",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -4656,6 +6192,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC32",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4682,6 +6230,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC32",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -4728,6 +6288,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC32",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4754,6 +6326,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC32",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -4800,6 +6384,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC33",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4826,6 +6422,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC33",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -4872,6 +6480,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC33",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4898,6 +6518,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC33",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -4944,6 +6576,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC34",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4970,6 +6614,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC34",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -5016,6 +6672,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC34",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5042,6 +6710,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC34",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -5088,6 +6768,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC35",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5114,6 +6806,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC35",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -5160,6 +6864,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC35",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5186,6 +6902,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC35",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -5232,6 +6960,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC36",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5258,6 +6998,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC36",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -5304,6 +7056,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC36",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5330,6 +7094,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC36",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -5376,6 +7152,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC37",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5402,6 +7190,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC37",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -5448,6 +7248,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC37",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5474,6 +7286,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC37",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -5520,6 +7344,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC38",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5546,6 +7382,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC38",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -5592,6 +7440,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC38",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5618,6 +7478,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC38",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -5664,6 +7536,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC39",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5690,6 +7574,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC39",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -5736,6 +7632,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC39",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5762,6 +7670,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC39",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -5808,6 +7728,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC40",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5834,6 +7766,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC40",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -5880,6 +7824,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC40",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5906,6 +7862,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC40",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -5952,6 +7920,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC41",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5978,6 +7958,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC41",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -6024,6 +8016,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC41",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6050,6 +8054,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC41",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -6096,6 +8112,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC42",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6122,6 +8150,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC42",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -6168,6 +8208,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC42",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6194,6 +8246,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC42",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -6240,6 +8304,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC43",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6266,6 +8342,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC43",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -6312,6 +8400,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC43",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6338,6 +8438,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC43",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -6384,6 +8496,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC44",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6410,6 +8534,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC44",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -6456,6 +8592,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC44",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6482,6 +8630,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC44",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -6528,6 +8688,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC45",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6554,6 +8726,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC45",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -6600,6 +8784,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC45",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6626,6 +8822,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC45",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -6672,6 +8880,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC46",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6698,6 +8918,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC46",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -6744,6 +8976,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC46",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6770,6 +9014,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC46",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -6816,6 +9072,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC47",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6842,6 +9110,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC47",
+                      "lane": 1
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -6888,6 +9168,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "37": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC47",
+                      "lane": 2
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -6914,6 +9206,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "36": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC47",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "37": {
               "pins": {
                 "iphy": [
                   {
@@ -7611,7 +9915,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
           99
         ],
         "profiles": [
-          36
+          36,
+          37
         ]
       },
       "pins": {
@@ -7646,6 +9951,22 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "modulation": 2,
           "fec": 545,
           "medium": 1,
+          "interfaceMode": 41,
+          "interfaceType": 41
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 37
+      },
+      "profile": {
+        "speed": 53125,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 2,
+          "fec": 545,
+          "medium": 3,
           "interfaceMode": 41,
           "interfaceType": 41
         }
