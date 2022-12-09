@@ -1989,9 +1989,9 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       const bcm_udf_hash_config_t& config);
 
   std::vector<std::string> cintForBcmUdfAllocHints(
-      const bcm_udf_alloc_hints_t& hints);
+      const bcm_udf_alloc_hints_t* hints);
 
-  std::vector<std::string> cintForBcmUdfInfo(const bcm_udf_t& udf_info);
+  std::vector<std::string> cintForBcmUdfInfo(const bcm_udf_t* udf_info);
 
   std::vector<std::string> cintForBcmUdfPktFormatInfo(
       const bcm_udf_pkt_format_info_t& pktFormat);

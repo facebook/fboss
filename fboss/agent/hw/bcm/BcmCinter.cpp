@@ -1971,13 +1971,16 @@ int BcmCinter::bcm_udf_hash_config_delete(
 }
 
 vector<string> BcmCinter::cintForBcmUdfAllocHints(
-    const bcm_udf_alloc_hints_t& hints) {
+    const bcm_udf_alloc_hints_t* hints) {
+  if (hints == nullptr) {
+    return {"bcm_udf_alloc_hints_init(&hints)"};
+  }
   vector<string> cintLines = {
       "bcm_udf_alloc_hints_init(&hints)",
-      to<string>("hints.flags=", hints.flags),
-      to<string>("hints.shared_udf=", hints.shared_udf),
+      to<string>("hints.flags=", hints->flags),
+      to<string>("hints.shared_udf=", hints->shared_udf),
   };
-  auto cintQset = cintForQset(hints.qset);
+  auto cintQset = cintForQset(hints->qset);
   cintLines.insert(
       cintLines.end(),
       make_move_iterator(cintQset.begin()),
@@ -1985,20 +1988,23 @@ vector<string> BcmCinter::cintForBcmUdfAllocHints(
   return cintLines;
 }
 
-vector<string> BcmCinter::cintForBcmUdfInfo(const bcm_udf_t& udf_info) {
+vector<string> BcmCinter::cintForBcmUdfInfo(const bcm_udf_t* udf_info) {
+  if (udf_info == nullptr) {
+    return {"bcm_udf_t_init(&udf_info)"};
+  }
   string pbmp;
   vector<string> pbmpCint, cintLines;
-  tie(pbmp, pbmpCint) = cintForPortBitmap(udf_info.ports);
+  tie(pbmp, pbmpCint) = cintForPortBitmap(udf_info->ports);
   cintLines.insert(
       cintLines.end(),
       make_move_iterator(pbmpCint.begin()),
       make_move_iterator(pbmpCint.end()));
   vector<string> udfInfoCintLines = {
       "bcm_udf_t_init(&udf_info)",
-      to<string>("udf_info.flags=", udf_info.flags),
-      to<string>("udf_info.layer=", udf_info.layer),
-      to<string>("udf_info.start=", udf_info.start),
-      to<string>("udf_info.width=", udf_info.width),
+      to<string>("udf_info.flags=", udf_info->flags),
+      to<string>("udf_info.layer=", udf_info->layer),
+      to<string>("udf_info.start=", udf_info->start),
+      to<string>("udf_info.width=", udf_info->width),
       to<string>("udf_info.ports=", pbmp),
   };
   cintLines.insert(
@@ -2013,9 +2019,9 @@ int BcmCinter::bcm_udf_create(
     bcm_udf_alloc_hints_t* hints,
     bcm_udf_t* udf_info,
     bcm_udf_id_t* udf_id) {
-  auto cintHints = cintForBcmUdfAllocHints(*hints);
+  auto cintHints = cintForBcmUdfAllocHints(hints);
 
-  auto cintInfo = cintForBcmUdfInfo(*udf_info);
+  auto cintInfo = cintForBcmUdfInfo(udf_info);
 
   auto cintForFn = wrapFunc(to<string>(
       "bcm_udf_create(",
