@@ -20,11 +20,13 @@
 using namespace facebook::fboss;
 
 namespace {
+constexpr auto kRemoteSwitchId = 42;
+constexpr auto kSysPortRangeMin = 1000;
 std::shared_ptr<SystemPortMap> makeSysPorts() {
-  constexpr auto switchId = 1000;
   auto sysPorts = std::make_shared<SystemPortMap>();
-  for (auto sysPortId = switchId + 1; sysPortId < switchId + 3; ++sysPortId) {
-    sysPorts->addNode(makeSysPort(std::nullopt, sysPortId));
+  for (auto sysPortId = kSysPortRangeMin + 1; sysPortId < kSysPortRangeMin + 3;
+       ++sysPortId) {
+    sysPorts->addNode(makeSysPort(std::nullopt, sysPortId, kRemoteSwitchId));
   }
   return sysPorts;
 }
@@ -68,8 +70,23 @@ class DsfSubscriberTest : public ::testing::Test {
 TEST_F(DsfSubscriberTest, scheduleUpdate) {
   auto sysPorts = makeSysPorts();
   auto rifs = makeRifs(sysPorts.get());
-  dsfSubscriber_->scheduleUpdate(sysPorts, rifs, "switch", SwitchID(1000));
+  dsfSubscriber_->scheduleUpdate(
+      sysPorts, rifs, "switch", SwitchID(kRemoteSwitchId));
   // Don't wait for state update to mimic async scheduling of
   // state updates.
+}
+
+TEST_F(DsfSubscriberTest, setupNeighbors) {
+  auto compareTables = [this](const auto& sysPorts, const auto& rifs) {
+    EXPECT_EQ(*sysPorts, *sw_->getState()->getRemoteSystemPorts());
+    EXPECT_EQ(*rifs, *sw_->getState()->getRemoteInterfaces());
+  };
+  // No neighbors
+  auto sysPorts = makeSysPorts();
+  auto rifs = makeRifs(sysPorts.get());
+  dsfSubscriber_->scheduleUpdate(
+      sysPorts, rifs, "switch", SwitchID(kRemoteSwitchId));
+  waitForStateUpdates(sw_);
+  compareTables(sysPorts, rifs);
 }
 } // namespace facebook::fboss

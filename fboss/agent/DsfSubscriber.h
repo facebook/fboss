@@ -35,6 +35,7 @@ class DsfSubscriber : public StateObserver {
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   FRIEND_TEST(DsfSubscriberTest, scheduleUpdate);
+  FRIEND_TEST(DsfSubscriberTest, setupNeighbors);
 };
 
 } // namespace facebook::fboss
