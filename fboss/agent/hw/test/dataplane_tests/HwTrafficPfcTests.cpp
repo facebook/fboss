@@ -183,18 +183,20 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
   }
 
-  std::tuple<int, int> getTxRxPfcCounters(
+  std::tuple<int, int, int> getTxRxXonPfcCounters(
       const PortID& portId,
       const int pfcPriority) {
     int txPfcCtr = getLatestPortStats(portId).get_outPfc_().at(pfcPriority);
     int rxPfcCtr = getLatestPortStats(portId).get_inPfc_().at(pfcPriority);
-    return {txPfcCtr, rxPfcCtr};
+    int rxPfcXonCtr =
+        getLatestPortStats(portId).get_inPfcXon_().at(pfcPriority);
+    return {txPfcCtr, rxPfcCtr, rxPfcXonCtr};
   }
 
   void validateInitPfcCounters(
       const std::vector<PortID>& portIds,
       const int pfcPriority) {
-    int txPfcCtr = 0, rxPfcCtr = 0;
+    int txPfcCtr = 0, rxPfcCtr = 0, rxPfcXonCtr = 0;
     // no need to retry if looking for baseline counter
     for (const auto& portId : portIds) {
       auto portStats = getHwSwitchEnsemble()->getLatestPortStats(portId);
@@ -202,27 +204,32 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       XLOG(DBG0) << " validateInitPfcCounters: Port: " << portId
                  << " IngressDropRaw: " << ingressDropRaw;
       EXPECT_TRUE(ingressDropRaw == 0);
-      std::tie(txPfcCtr, rxPfcCtr) = getTxRxPfcCounters(portId, pfcPriority);
-      EXPECT_TRUE((txPfcCtr == 0) && (rxPfcCtr == 0));
+      std::tie(txPfcCtr, rxPfcCtr, rxPfcXonCtr) =
+          getTxRxXonPfcCounters(portId, pfcPriority);
+      EXPECT_TRUE((txPfcCtr == 0) && (rxPfcCtr == 0) && (rxPfcXonCtr == 0));
     }
   }
 
   bool getPfcCountersRetry(const PortID& portId, const int pfcPriority) {
-    int txPfcCtr = 0, rxPfcCtr = 0;
+    int txPfcCtr = 0, rxPfcCtr = 0, rxPfcXonCtr = 0;
     int retries = 5;
+    bool countersIncrementing = false;
     // retry as long as we can OR we get an expected output
     while (retries--) {
       // sleep for a bit before checking counters
       std::this_thread::sleep_for(std::chrono::seconds(1));
-      std::tie(txPfcCtr, rxPfcCtr) = getTxRxPfcCounters(portId, pfcPriority);
-      if (txPfcCtr > 0 && rxPfcCtr > 0) {
+      std::tie(txPfcCtr, rxPfcCtr, rxPfcXonCtr) =
+          getTxRxXonPfcCounters(portId, pfcPriority);
+      if (txPfcCtr > 0 && rxPfcCtr > 0 && rxPfcXonCtr > 0) {
         // there is no undoing this state
+        countersIncrementing = true;
         break;
       }
     };
-    XLOG(DBG0) << " Port: " << portId << " PFC TX/RX PFC " << txPfcCtr << "/"
-               << rxPfcCtr << " , priority: " << pfcPriority;
-    if (txPfcCtr > 0 && rxPfcCtr > 0) {
+    XLOG(DBG0) << " Port: " << portId << " PFC TX/RX PFC/RX_PFC_XON "
+               << txPfcCtr << "/" << rxPfcCtr << "/" << rxPfcXonCtr
+               << ", priority: " << pfcPriority;
+    if (countersIncrementing) {
       return true;
     }
     return false;
@@ -435,11 +442,13 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
   void validateRxPfcCounterIncrement(const PortID& port) {
     int retries = 2;
     int rxPfcCtrOld = 0;
-    std::tie(std::ignore, rxPfcCtrOld) = getTxRxPfcCounters(port, 0);
+    std::tie(std::ignore, rxPfcCtrOld, std::ignore) =
+        getTxRxXonPfcCounters(port, 0);
     while (retries--) {
       int rxPfcCtrNew = 0;
       std::this_thread::sleep_for(std::chrono::seconds(1));
-      std::tie(std::ignore, rxPfcCtrNew) = getTxRxPfcCounters(port, 0);
+      std::tie(std::ignore, rxPfcCtrNew, std::ignore) =
+          getTxRxXonPfcCounters(port, 0);
       if (rxPfcCtrNew > rxPfcCtrOld) {
         return;
       }
