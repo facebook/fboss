@@ -1140,18 +1140,25 @@ std::string BcmPort::statName(
 
 phy::PhyInfo BcmPort::updateIPhyInfo() {
   phy::PhyInfo info;
+  phy::PhyState state;
+  phy::PhyStats stats;
 
   info.name() = getPortName();
+  state.name() = *info.name();
 
   // Global phy parameters
   phy::DataPlanePhyChip phyChip;
   phyChip.type() = phy::DataPlanePhyChipType::IPHY;
   info.phyChip() = phyChip;
+  state.phyChip() = phyChip;
   info.speed() = getSpeed();
+  state.speed() = *info.speed();
   info.linkState() = isUp();
+  state.linkState() = *info.linkState();
 
   // PCS parameters
   phy::PcsInfo pcs;
+  phy::PcsStats pcsStats;
   // FEC parameters
   if (auto portStats = getPortStats()) {
     auto fecMode = getFECMode();
@@ -1189,16 +1196,29 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
           fecMode, /* operational FecMode */
           *info.speed() /* operational Speed */);
       pcs.rsFec() = rsFec;
+      pcsStats.rsFec() = rsFec;
     }
   }
 
   // PMD Parameters
   phy::PmdInfo pmd;
+  phy::PmdState pmdState;
+  phy::PmdStats pmdStats;
   int totalPmdLanes = numLanes_;
   phy::PmdInfo lastPmd = *lastPhyInfo_.line()->pmd();
+  phy::PmdState lastPmdState;
+  if (auto lastState = lastPhyInfo_.state()) {
+    lastPmdState = *lastState->line()->pmd();
+  }
+  phy::PmdStats lastPmdStats;
+  if (auto lastStats = lastPhyInfo_.stats()) {
+    lastPmdStats = *lastStats->line()->pmd();
+  }
   for (int lane = 0; lane < totalPmdLanes; lane++) {
     phy::LaneInfo laneInfo;
+    phy::LaneState laneState;
     laneInfo.lane_ref() = lane;
+    laneState.lane_ref() = lane;
     if (hw_->getPlatform()->getAsic()->isSupported(
             HwAsic::Feature::RX_FREQUENCY_PPM)) {
       uint32_t value;
@@ -1206,8 +1226,10 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
           unit_, port_, BCM_PORT_PHY_CONTROL_RX_PPM, &value);
       bcmCheckError(rv, "failed to get rx frequency ppm");
       laneInfo.rxFrequencyPPM() = value;
+      laneState.rxFrequencyPPM() = value;
     }
     pmd.lanes_ref()[lane] = laneInfo;
+    pmdState.lanes_ref()[lane] = laneState;
   }
 #if defined(BCM_SDK_VERSION_GTE_6_5_24)
   if (hw_->getPlatform()->getAsic()->isSupported(
@@ -1217,12 +1239,19 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
     if (!BCM_FAILURE(rv)) {
       for (int lane = 0; lane < totalPmdLanes; lane++) {
         pmd.lanes_ref()[lane].lane_ref() = lane;
+        pmdState.lanes_ref()[lane].lane_ref() = lane;
+        pmdStats.lanes_ref()[lane].lane_ref() = lane;
         pmd.lanes_ref()[lane].cdrLockLive_ref() =
+            lock_status.rx_lock_bmp & (1 << lane);
+        pmdState.lanes_ref()[lane].cdrLockLive_ref() =
             lock_status.rx_lock_bmp & (1 << lane);
         bool changed = lock_status.rx_lock_change_bmp & (1 << lane);
         pmd.lanes_ref()[lane].cdrLockChanged_ref() = changed;
+        pmdState.lanes_ref()[lane].cdrLockChanged_ref() = changed;
         utility::updateCdrLockChangedCount(
             changed, lane, pmd.lanes_ref()[lane], lastPmd);
+        utility::updateCdrLockChangedCount(
+            changed, lane, pmdStats.lanes_ref()[lane], lastPmdStats);
       }
     } else {
       XLOG(ERR) << "Failed to read rx_lock_status for port " << port_ << " :"
@@ -1238,12 +1267,19 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
     if (!BCM_FAILURE(rv)) {
       for (int lane = 0; lane < totalPmdLanes; lane++) {
         pmd.lanes_ref()[lane].lane_ref() = lane;
+        pmdState.lanes_ref()[lane].lane_ref() = lane;
+        pmdStats.lanes_ref()[lane].lane_ref() = lane;
         pmd.lanes_ref()[lane].signalDetectLive_ref() =
+            sd_status.signal_detect_bmp & (1 << lane);
+        pmdState.lanes_ref()[lane].signalDetectLive_ref() =
             sd_status.signal_detect_bmp & (1 << lane);
         bool changed = sd_status.signal_detect_change_bmp & (1 << lane);
         pmd.lanes_ref()[lane].signalDetectChanged_ref() = changed;
+        pmdState.lanes_ref()[lane].signalDetectChanged_ref() = changed;
         utility::updateSignalDetectChangedCount(
             changed, lane, pmd.lanes_ref()[lane], lastPmd);
+        utility::updateSignalDetectChangedCount(
+            changed, lane, pmdStats.lanes_ref()[lane], lastPmdStats);
       }
     } else {
       XLOG(ERR) << "Failed to read rx_signal_detect_status for port " << port_
@@ -1258,23 +1294,39 @@ phy::PhyInfo BcmPort::updateIPhyInfo() {
   lineSideInfo.pcs() = pcs;
   lineSideInfo.pmd() = pmd;
 
+  phy::PhySideState lineSideState;
+  lineSideState.side() = phy::Side::LINE;
+  lineSideState.pmd() = pmdState;
+
+  phy::PhySideStats lineSideStats;
+  lineSideStats.side() = phy::Side::LINE;
+  lineSideStats.pcs() = pcsStats;
+  lineSideStats.pmd() = pmdStats;
+
   // Local/Remote Fault Status
   auto faultStatusPtr = cachedFaultStatus.wlock();
   if (*faultStatusPtr) {
     phy::RsInfo rsInfo;
     rsInfo.faultStatus() = **faultStatusPtr;
     lineSideInfo.rs() = rsInfo;
+    lineSideState.rs() = rsInfo;
     // Reset the cached status back to nullopt. We want to only update
     // the fault status in PhyInfo when port state update happens
     *faultStatusPtr = std::nullopt;
   }
 
   info.line() = lineSideInfo;
+  state.line() = lineSideState;
+  stats.line() = lineSideStats;
 
   // PhyInfo update timestamp
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   info.timeCollected() = now.count();
+  state.timeCollected() = now.count();
+  stats.timeCollected() = now.count();
 
+  info.state() = state;
+  info.stats() = stats;
   lastPhyInfo_ = info;
   return info;
 }
