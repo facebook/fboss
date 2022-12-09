@@ -18,7 +18,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "0": {
         "mapping": {
           "id": 0,
-          "name": "fab1/1/1",
+          "name": "fab1/12/1",
           "controllingPort": 0,
           "pins": [
             {
@@ -28,7 +28,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/1",
+                  "chip": "fab1/12",
                   "lane": 0
                 }
               }
@@ -54,7 +54,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "1": {
         "mapping": {
           "id": 1,
-          "name": "fab1/1/2",
+          "name": "fab1/12/2",
           "controllingPort": 1,
           "pins": [
             {
@@ -64,7 +64,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/1",
+                  "chip": "fab1/12",
                   "lane": 1
                 }
               }
@@ -90,7 +90,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "2": {
         "mapping": {
           "id": 2,
-          "name": "fab1/1/3",
+          "name": "fab1/12/3",
           "controllingPort": 2,
           "pins": [
             {
@@ -100,7 +100,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/1",
+                  "chip": "fab1/12",
                   "lane": 2
                 }
               }
@@ -126,7 +126,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "3": {
         "mapping": {
           "id": 3,
-          "name": "fab1/1/4",
+          "name": "fab1/12/4",
           "controllingPort": 3,
           "pins": [
             {
@@ -136,7 +136,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/1",
+                  "chip": "fab1/12",
                   "lane": 3
                 }
               }
@@ -162,7 +162,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "4": {
         "mapping": {
           "id": 4,
-          "name": "fab1/2/1",
+          "name": "fab1/11/1",
           "controllingPort": 4,
           "pins": [
             {
@@ -172,7 +172,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/2",
+                  "chip": "fab1/11",
                   "lane": 0
                 }
               }
@@ -198,7 +198,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "5": {
         "mapping": {
           "id": 5,
-          "name": "fab1/2/2",
+          "name": "fab1/11/2",
           "controllingPort": 5,
           "pins": [
             {
@@ -208,7 +208,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/2",
+                  "chip": "fab1/11",
                   "lane": 1
                 }
               }
@@ -234,7 +234,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "6": {
         "mapping": {
           "id": 6,
-          "name": "fab1/2/3",
+          "name": "fab1/11/3",
           "controllingPort": 6,
           "pins": [
             {
@@ -244,7 +244,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/2",
+                  "chip": "fab1/11",
                   "lane": 2
                 }
               }
@@ -270,7 +270,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "7": {
         "mapping": {
           "id": 7,
-          "name": "fab1/2/4",
+          "name": "fab1/11/4",
           "controllingPort": 7,
           "pins": [
             {
@@ -280,7 +280,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/2",
+                  "chip": "fab1/11",
                   "lane": 3
                 }
               }
@@ -306,7 +306,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "8": {
         "mapping": {
           "id": 8,
-          "name": "fab1/3/1",
+          "name": "fab1/9/1",
           "controllingPort": 8,
           "pins": [
             {
@@ -316,7 +316,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/3",
+                  "chip": "fab1/9",
                   "lane": 0
                 }
               }
@@ -342,7 +342,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "9": {
         "mapping": {
           "id": 9,
-          "name": "fab1/3/2",
+          "name": "fab1/9/2",
           "controllingPort": 9,
           "pins": [
             {
@@ -352,7 +352,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/3",
+                  "chip": "fab1/9",
                   "lane": 1
                 }
               }
@@ -378,7 +378,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "10": {
         "mapping": {
           "id": 10,
-          "name": "fab1/3/3",
+          "name": "fab1/9/3",
           "controllingPort": 10,
           "pins": [
             {
@@ -388,7 +388,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/3",
+                  "chip": "fab1/9",
                   "lane": 2
                 }
               }
@@ -414,7 +414,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "11": {
         "mapping": {
           "id": 11,
-          "name": "fab1/3/4",
+          "name": "fab1/9/4",
           "controllingPort": 11,
           "pins": [
             {
@@ -424,7 +424,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/3",
+                  "chip": "fab1/9",
                   "lane": 3
                 }
               }
@@ -450,7 +450,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "12": {
         "mapping": {
           "id": 12,
-          "name": "fab1/4/1",
+          "name": "fab1/10/1",
           "controllingPort": 12,
           "pins": [
             {
@@ -460,7 +460,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/4",
+                  "chip": "fab1/10",
                   "lane": 0
                 }
               }
@@ -486,7 +486,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "13": {
         "mapping": {
           "id": 13,
-          "name": "fab1/4/2",
+          "name": "fab1/10/2",
           "controllingPort": 13,
           "pins": [
             {
@@ -496,7 +496,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/4",
+                  "chip": "fab1/10",
                   "lane": 1
                 }
               }
@@ -522,7 +522,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "14": {
         "mapping": {
           "id": 14,
-          "name": "fab1/4/3",
+          "name": "fab1/10/3",
           "controllingPort": 14,
           "pins": [
             {
@@ -532,7 +532,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/4",
+                  "chip": "fab1/10",
                   "lane": 2
                 }
               }
@@ -558,7 +558,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "15": {
         "mapping": {
           "id": 15,
-          "name": "fab1/4/4",
+          "name": "fab1/10/4",
           "controllingPort": 15,
           "pins": [
             {
@@ -568,7 +568,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/4",
+                  "chip": "fab1/10",
                   "lane": 3
                 }
               }
@@ -594,7 +594,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "16": {
         "mapping": {
           "id": 16,
-          "name": "fab1/5/1",
+          "name": "fab1/7/1",
           "controllingPort": 16,
           "pins": [
             {
@@ -604,7 +604,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/5",
+                  "chip": "fab1/7",
                   "lane": 0
                 }
               }
@@ -630,7 +630,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "17": {
         "mapping": {
           "id": 17,
-          "name": "fab1/5/2",
+          "name": "fab1/7/2",
           "controllingPort": 17,
           "pins": [
             {
@@ -640,7 +640,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/5",
+                  "chip": "fab1/7",
                   "lane": 1
                 }
               }
@@ -666,7 +666,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "18": {
         "mapping": {
           "id": 18,
-          "name": "fab1/5/3",
+          "name": "fab1/7/3",
           "controllingPort": 18,
           "pins": [
             {
@@ -676,7 +676,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/5",
+                  "chip": "fab1/7",
                   "lane": 2
                 }
               }
@@ -702,7 +702,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "19": {
         "mapping": {
           "id": 19,
-          "name": "fab1/5/4",
+          "name": "fab1/7/4",
           "controllingPort": 19,
           "pins": [
             {
@@ -712,7 +712,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/5",
+                  "chip": "fab1/7",
                   "lane": 3
                 }
               }
@@ -738,7 +738,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "20": {
         "mapping": {
           "id": 20,
-          "name": "fab1/6/1",
+          "name": "fab1/8/1",
           "controllingPort": 20,
           "pins": [
             {
@@ -748,7 +748,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/6",
+                  "chip": "fab1/8",
                   "lane": 0
                 }
               }
@@ -774,7 +774,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "21": {
         "mapping": {
           "id": 21,
-          "name": "fab1/6/2",
+          "name": "fab1/8/2",
           "controllingPort": 21,
           "pins": [
             {
@@ -784,7 +784,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/6",
+                  "chip": "fab1/8",
                   "lane": 1
                 }
               }
@@ -810,7 +810,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "22": {
         "mapping": {
           "id": 22,
-          "name": "fab1/6/3",
+          "name": "fab1/8/3",
           "controllingPort": 22,
           "pins": [
             {
@@ -820,7 +820,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/6",
+                  "chip": "fab1/8",
                   "lane": 2
                 }
               }
@@ -846,7 +846,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "23": {
         "mapping": {
           "id": 23,
-          "name": "fab1/6/4",
+          "name": "fab1/8/4",
           "controllingPort": 23,
           "pins": [
             {
@@ -856,7 +856,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/6",
+                  "chip": "fab1/8",
                   "lane": 3
                 }
               }
@@ -882,7 +882,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "24": {
         "mapping": {
           "id": 24,
-          "name": "fab1/7/1",
+          "name": "fab1/6/1",
           "controllingPort": 24,
           "pins": [
             {
@@ -892,7 +892,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/7",
+                  "chip": "fab1/6",
                   "lane": 0
                 }
               }
@@ -918,7 +918,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "25": {
         "mapping": {
           "id": 25,
-          "name": "fab1/7/2",
+          "name": "fab1/6/2",
           "controllingPort": 25,
           "pins": [
             {
@@ -928,7 +928,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/7",
+                  "chip": "fab1/6",
                   "lane": 1
                 }
               }
@@ -954,7 +954,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "26": {
         "mapping": {
           "id": 26,
-          "name": "fab1/7/3",
+          "name": "fab1/6/3",
           "controllingPort": 26,
           "pins": [
             {
@@ -964,7 +964,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/7",
+                  "chip": "fab1/6",
                   "lane": 2
                 }
               }
@@ -990,7 +990,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "27": {
         "mapping": {
           "id": 27,
-          "name": "fab1/7/4",
+          "name": "fab1/6/4",
           "controllingPort": 27,
           "pins": [
             {
@@ -1000,7 +1000,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/7",
+                  "chip": "fab1/6",
                   "lane": 3
                 }
               }
@@ -1026,7 +1026,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "28": {
         "mapping": {
           "id": 28,
-          "name": "fab1/8/1",
+          "name": "fab1/5/1",
           "controllingPort": 28,
           "pins": [
             {
@@ -1036,7 +1036,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/8",
+                  "chip": "fab1/5",
                   "lane": 0
                 }
               }
@@ -1062,7 +1062,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "29": {
         "mapping": {
           "id": 29,
-          "name": "fab1/8/2",
+          "name": "fab1/5/2",
           "controllingPort": 29,
           "pins": [
             {
@@ -1072,7 +1072,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/8",
+                  "chip": "fab1/5",
                   "lane": 1
                 }
               }
@@ -1098,7 +1098,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "30": {
         "mapping": {
           "id": 30,
-          "name": "fab1/8/3",
+          "name": "fab1/5/3",
           "controllingPort": 30,
           "pins": [
             {
@@ -1108,7 +1108,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/8",
+                  "chip": "fab1/5",
                   "lane": 2
                 }
               }
@@ -1134,7 +1134,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "31": {
         "mapping": {
           "id": 31,
-          "name": "fab1/8/4",
+          "name": "fab1/5/4",
           "controllingPort": 31,
           "pins": [
             {
@@ -1144,7 +1144,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/8",
+                  "chip": "fab1/5",
                   "lane": 3
                 }
               }
@@ -1170,7 +1170,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "32": {
         "mapping": {
           "id": 32,
-          "name": "fab1/9/1",
+          "name": "fab1/36/5",
           "controllingPort": 32,
           "pins": [
             {
@@ -1180,8 +1180,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/9",
-                  "lane": 0
+                  "chip": "fab1/36",
+                  "lane": 4
                 }
               }
             }
@@ -1206,7 +1206,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "33": {
         "mapping": {
           "id": 33,
-          "name": "fab1/9/2",
+          "name": "fab1/36/6",
           "controllingPort": 33,
           "pins": [
             {
@@ -1216,8 +1216,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/9",
-                  "lane": 1
+                  "chip": "fab1/36",
+                  "lane": 5
                 }
               }
             }
@@ -1242,7 +1242,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "34": {
         "mapping": {
           "id": 34,
-          "name": "fab1/9/3",
+          "name": "fab1/36/7",
           "controllingPort": 34,
           "pins": [
             {
@@ -1252,8 +1252,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/9",
-                  "lane": 2
+                  "chip": "fab1/36",
+                  "lane": 6
                 }
               }
             }
@@ -1278,7 +1278,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "35": {
         "mapping": {
           "id": 35,
-          "name": "fab1/9/4",
+          "name": "fab1/36/8",
           "controllingPort": 35,
           "pins": [
             {
@@ -1288,8 +1288,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/9",
-                  "lane": 3
+                  "chip": "fab1/36",
+                  "lane": 7
                 }
               }
             }
@@ -1314,7 +1314,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "36": {
         "mapping": {
           "id": 36,
-          "name": "fab1/10/1",
+          "name": "fab1/4/1",
           "controllingPort": 36,
           "pins": [
             {
@@ -1324,7 +1324,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/10",
+                  "chip": "fab1/4",
                   "lane": 0
                 }
               }
@@ -1350,7 +1350,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "37": {
         "mapping": {
           "id": 37,
-          "name": "fab1/10/2",
+          "name": "fab1/4/2",
           "controllingPort": 37,
           "pins": [
             {
@@ -1360,7 +1360,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/10",
+                  "chip": "fab1/4",
                   "lane": 1
                 }
               }
@@ -1386,7 +1386,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "38": {
         "mapping": {
           "id": 38,
-          "name": "fab1/10/3",
+          "name": "fab1/4/3",
           "controllingPort": 38,
           "pins": [
             {
@@ -1396,7 +1396,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/10",
+                  "chip": "fab1/4",
                   "lane": 2
                 }
               }
@@ -1422,7 +1422,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "39": {
         "mapping": {
           "id": 39,
-          "name": "fab1/10/4",
+          "name": "fab1/4/4",
           "controllingPort": 39,
           "pins": [
             {
@@ -1432,7 +1432,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/10",
+                  "chip": "fab1/4",
                   "lane": 3
                 }
               }
@@ -1458,7 +1458,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "40": {
         "mapping": {
           "id": 40,
-          "name": "fab1/11/1",
+          "name": "fab1/35/5",
           "controllingPort": 40,
           "pins": [
             {
@@ -1468,8 +1468,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/11",
-                  "lane": 0
+                  "chip": "fab1/35",
+                  "lane": 4
                 }
               }
             }
@@ -1494,7 +1494,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "41": {
         "mapping": {
           "id": 41,
-          "name": "fab1/11/2",
+          "name": "fab1/35/6",
           "controllingPort": 41,
           "pins": [
             {
@@ -1504,8 +1504,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/11",
-                  "lane": 1
+                  "chip": "fab1/35",
+                  "lane": 5
                 }
               }
             }
@@ -1530,7 +1530,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "42": {
         "mapping": {
           "id": 42,
-          "name": "fab1/11/3",
+          "name": "fab1/35/7",
           "controllingPort": 42,
           "pins": [
             {
@@ -1540,8 +1540,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/11",
-                  "lane": 2
+                  "chip": "fab1/35",
+                  "lane": 6
                 }
               }
             }
@@ -1566,7 +1566,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "43": {
         "mapping": {
           "id": 43,
-          "name": "fab1/11/4",
+          "name": "fab1/35/8",
           "controllingPort": 43,
           "pins": [
             {
@@ -1576,8 +1576,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/11",
-                  "lane": 3
+                  "chip": "fab1/35",
+                  "lane": 7
                 }
               }
             }
@@ -1602,7 +1602,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "44": {
         "mapping": {
           "id": 44,
-          "name": "fab1/12/1",
+          "name": "fab1/34/5",
           "controllingPort": 44,
           "pins": [
             {
@@ -1612,8 +1612,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/12",
-                  "lane": 0
+                  "chip": "fab1/34",
+                  "lane": 4
                 }
               }
             }
@@ -1638,7 +1638,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "45": {
         "mapping": {
           "id": 45,
-          "name": "fab1/12/2",
+          "name": "fab1/34/6",
           "controllingPort": 45,
           "pins": [
             {
@@ -1648,8 +1648,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/12",
-                  "lane": 1
+                  "chip": "fab1/34",
+                  "lane": 5
                 }
               }
             }
@@ -1674,7 +1674,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "46": {
         "mapping": {
           "id": 46,
-          "name": "fab1/12/3",
+          "name": "fab1/34/7",
           "controllingPort": 46,
           "pins": [
             {
@@ -1684,8 +1684,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/12",
-                  "lane": 2
+                  "chip": "fab1/34",
+                  "lane": 6
                 }
               }
             }
@@ -1710,7 +1710,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "47": {
         "mapping": {
           "id": 47,
-          "name": "fab1/12/4",
+          "name": "fab1/34/8",
           "controllingPort": 47,
           "pins": [
             {
@@ -1720,8 +1720,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/12",
-                  "lane": 3
+                  "chip": "fab1/34",
+                  "lane": 7
                 }
               }
             }
@@ -1746,7 +1746,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "48": {
         "mapping": {
           "id": 48,
-          "name": "fab1/13/1",
+          "name": "fab1/25/5",
           "controllingPort": 48,
           "pins": [
             {
@@ -1756,8 +1756,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/13",
-                  "lane": 0
+                  "chip": "fab1/25",
+                  "lane": 4
                 }
               }
             }
@@ -1782,7 +1782,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "49": {
         "mapping": {
           "id": 49,
-          "name": "fab1/13/2",
+          "name": "fab1/25/6",
           "controllingPort": 49,
           "pins": [
             {
@@ -1792,8 +1792,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/13",
-                  "lane": 1
+                  "chip": "fab1/25",
+                  "lane": 5
                 }
               }
             }
@@ -1818,7 +1818,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "50": {
         "mapping": {
           "id": 50,
-          "name": "fab1/13/3",
+          "name": "fab1/25/7",
           "controllingPort": 50,
           "pins": [
             {
@@ -1828,8 +1828,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/13",
-                  "lane": 2
+                  "chip": "fab1/25",
+                  "lane": 6
                 }
               }
             }
@@ -1854,7 +1854,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "51": {
         "mapping": {
           "id": 51,
-          "name": "fab1/13/4",
+          "name": "fab1/25/8",
           "controllingPort": 51,
           "pins": [
             {
@@ -1864,8 +1864,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/13",
-                  "lane": 3
+                  "chip": "fab1/25",
+                  "lane": 7
                 }
               }
             }
@@ -1890,7 +1890,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "52": {
         "mapping": {
           "id": 52,
-          "name": "fab1/14/1",
+          "name": "fab1/26/5",
           "controllingPort": 52,
           "pins": [
             {
@@ -1900,8 +1900,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/14",
-                  "lane": 0
+                  "chip": "fab1/26",
+                  "lane": 4
                 }
               }
             }
@@ -1926,7 +1926,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "53": {
         "mapping": {
           "id": 53,
-          "name": "fab1/14/2",
+          "name": "fab1/26/6",
           "controllingPort": 53,
           "pins": [
             {
@@ -1936,8 +1936,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/14",
-                  "lane": 1
+                  "chip": "fab1/26",
+                  "lane": 5
                 }
               }
             }
@@ -1962,7 +1962,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "54": {
         "mapping": {
           "id": 54,
-          "name": "fab1/14/3",
+          "name": "fab1/26/7",
           "controllingPort": 54,
           "pins": [
             {
@@ -1972,8 +1972,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/14",
-                  "lane": 2
+                  "chip": "fab1/26",
+                  "lane": 6
                 }
               }
             }
@@ -1998,7 +1998,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "55": {
         "mapping": {
           "id": 55,
-          "name": "fab1/14/4",
+          "name": "fab1/26/8",
           "controllingPort": 55,
           "pins": [
             {
@@ -2008,8 +2008,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/14",
-                  "lane": 3
+                  "chip": "fab1/26",
+                  "lane": 7
                 }
               }
             }
@@ -2034,7 +2034,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "56": {
         "mapping": {
           "id": 56,
-          "name": "fab1/15/1",
+          "name": "fab1/28/5",
           "controllingPort": 56,
           "pins": [
             {
@@ -2044,8 +2044,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/15",
-                  "lane": 0
+                  "chip": "fab1/28",
+                  "lane": 4
                 }
               }
             }
@@ -2070,7 +2070,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "57": {
         "mapping": {
           "id": 57,
-          "name": "fab1/15/2",
+          "name": "fab1/28/6",
           "controllingPort": 57,
           "pins": [
             {
@@ -2080,8 +2080,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/15",
-                  "lane": 1
+                  "chip": "fab1/28",
+                  "lane": 5
                 }
               }
             }
@@ -2106,7 +2106,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "58": {
         "mapping": {
           "id": 58,
-          "name": "fab1/15/3",
+          "name": "fab1/28/7",
           "controllingPort": 58,
           "pins": [
             {
@@ -2116,8 +2116,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/15",
-                  "lane": 2
+                  "chip": "fab1/28",
+                  "lane": 6
                 }
               }
             }
@@ -2142,7 +2142,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "59": {
         "mapping": {
           "id": 59,
-          "name": "fab1/15/4",
+          "name": "fab1/28/8",
           "controllingPort": 59,
           "pins": [
             {
@@ -2152,8 +2152,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/15",
-                  "lane": 3
+                  "chip": "fab1/28",
+                  "lane": 7
                 }
               }
             }
@@ -2178,7 +2178,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "60": {
         "mapping": {
           "id": 60,
-          "name": "fab1/16/1",
+          "name": "fab1/27/5",
           "controllingPort": 60,
           "pins": [
             {
@@ -2188,8 +2188,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/16",
-                  "lane": 0
+                  "chip": "fab1/27",
+                  "lane": 4
                 }
               }
             }
@@ -2214,7 +2214,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "61": {
         "mapping": {
           "id": 61,
-          "name": "fab1/16/2",
+          "name": "fab1/27/6",
           "controllingPort": 61,
           "pins": [
             {
@@ -2224,8 +2224,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/16",
-                  "lane": 1
+                  "chip": "fab1/27",
+                  "lane": 5
                 }
               }
             }
@@ -2250,7 +2250,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "62": {
         "mapping": {
           "id": 62,
-          "name": "fab1/16/3",
+          "name": "fab1/27/7",
           "controllingPort": 62,
           "pins": [
             {
@@ -2260,8 +2260,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/16",
-                  "lane": 2
+                  "chip": "fab1/27",
+                  "lane": 6
                 }
               }
             }
@@ -2286,7 +2286,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "63": {
         "mapping": {
           "id": 63,
-          "name": "fab1/16/4",
+          "name": "fab1/27/8",
           "controllingPort": 63,
           "pins": [
             {
@@ -2296,8 +2296,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/16",
-                  "lane": 3
+                  "chip": "fab1/27",
+                  "lane": 7
                 }
               }
             }
@@ -2322,7 +2322,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "64": {
         "mapping": {
           "id": 64,
-          "name": "fab1/17/1",
+          "name": "fab1/30/5",
           "controllingPort": 64,
           "pins": [
             {
@@ -2332,8 +2332,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/17",
-                  "lane": 0
+                  "chip": "fab1/30",
+                  "lane": 4
                 }
               }
             }
@@ -2358,7 +2358,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "65": {
         "mapping": {
           "id": 65,
-          "name": "fab1/17/2",
+          "name": "fab1/30/6",
           "controllingPort": 65,
           "pins": [
             {
@@ -2368,8 +2368,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/17",
-                  "lane": 1
+                  "chip": "fab1/30",
+                  "lane": 5
                 }
               }
             }
@@ -2394,7 +2394,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "66": {
         "mapping": {
           "id": 66,
-          "name": "fab1/17/3",
+          "name": "fab1/30/7",
           "controllingPort": 66,
           "pins": [
             {
@@ -2404,8 +2404,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/17",
-                  "lane": 2
+                  "chip": "fab1/30",
+                  "lane": 6
                 }
               }
             }
@@ -2430,7 +2430,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "67": {
         "mapping": {
           "id": 67,
-          "name": "fab1/17/4",
+          "name": "fab1/30/8",
           "controllingPort": 67,
           "pins": [
             {
@@ -2440,8 +2440,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/17",
-                  "lane": 3
+                  "chip": "fab1/30",
+                  "lane": 7
                 }
               }
             }
@@ -2466,7 +2466,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "68": {
         "mapping": {
           "id": 68,
-          "name": "fab1/18/1",
+          "name": "fab1/29/5",
           "controllingPort": 68,
           "pins": [
             {
@@ -2476,8 +2476,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/18",
-                  "lane": 0
+                  "chip": "fab1/29",
+                  "lane": 4
                 }
               }
             }
@@ -2502,7 +2502,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "69": {
         "mapping": {
           "id": 69,
-          "name": "fab1/18/2",
+          "name": "fab1/29/6",
           "controllingPort": 69,
           "pins": [
             {
@@ -2512,8 +2512,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/18",
-                  "lane": 1
+                  "chip": "fab1/29",
+                  "lane": 5
                 }
               }
             }
@@ -2538,7 +2538,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "70": {
         "mapping": {
           "id": 70,
-          "name": "fab1/18/3",
+          "name": "fab1/29/7",
           "controllingPort": 70,
           "pins": [
             {
@@ -2548,8 +2548,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/18",
-                  "lane": 2
+                  "chip": "fab1/29",
+                  "lane": 6
                 }
               }
             }
@@ -2574,7 +2574,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "71": {
         "mapping": {
           "id": 71,
-          "name": "fab1/18/4",
+          "name": "fab1/29/8",
           "controllingPort": 71,
           "pins": [
             {
@@ -2584,8 +2584,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/18",
-                  "lane": 3
+                  "chip": "fab1/29",
+                  "lane": 7
                 }
               }
             }
@@ -2610,7 +2610,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "72": {
         "mapping": {
           "id": 72,
-          "name": "fab1/19/1",
+          "name": "fab1/1/1",
           "controllingPort": 72,
           "pins": [
             {
@@ -2620,7 +2620,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/19",
+                  "chip": "fab1/1",
                   "lane": 0
                 }
               }
@@ -2646,7 +2646,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "73": {
         "mapping": {
           "id": 73,
-          "name": "fab1/19/2",
+          "name": "fab1/1/2",
           "controllingPort": 73,
           "pins": [
             {
@@ -2656,7 +2656,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/19",
+                  "chip": "fab1/1",
                   "lane": 1
                 }
               }
@@ -2682,7 +2682,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "74": {
         "mapping": {
           "id": 74,
-          "name": "fab1/19/3",
+          "name": "fab1/1/3",
           "controllingPort": 74,
           "pins": [
             {
@@ -2692,7 +2692,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/19",
+                  "chip": "fab1/1",
                   "lane": 2
                 }
               }
@@ -2718,7 +2718,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "75": {
         "mapping": {
           "id": 75,
-          "name": "fab1/19/4",
+          "name": "fab1/1/4",
           "controllingPort": 75,
           "pins": [
             {
@@ -2728,7 +2728,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/19",
+                  "chip": "fab1/1",
                   "lane": 3
                 }
               }
@@ -2754,7 +2754,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "76": {
         "mapping": {
           "id": 76,
-          "name": "fab1/20/1",
+          "name": "fab1/2/1",
           "controllingPort": 76,
           "pins": [
             {
@@ -2764,7 +2764,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/20",
+                  "chip": "fab1/2",
                   "lane": 0
                 }
               }
@@ -2790,7 +2790,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "77": {
         "mapping": {
           "id": 77,
-          "name": "fab1/20/2",
+          "name": "fab1/2/2",
           "controllingPort": 77,
           "pins": [
             {
@@ -2800,7 +2800,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/20",
+                  "chip": "fab1/2",
                   "lane": 1
                 }
               }
@@ -2826,7 +2826,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "78": {
         "mapping": {
           "id": 78,
-          "name": "fab1/20/3",
+          "name": "fab1/2/3",
           "controllingPort": 78,
           "pins": [
             {
@@ -2836,7 +2836,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/20",
+                  "chip": "fab1/2",
                   "lane": 2
                 }
               }
@@ -2862,7 +2862,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "79": {
         "mapping": {
           "id": 79,
-          "name": "fab1/20/4",
+          "name": "fab1/2/4",
           "controllingPort": 79,
           "pins": [
             {
@@ -2872,7 +2872,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/20",
+                  "chip": "fab1/2",
                   "lane": 3
                 }
               }
@@ -2898,7 +2898,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "80": {
         "mapping": {
           "id": 80,
-          "name": "fab1/21/1",
+          "name": "fab1/31/5",
           "controllingPort": 80,
           "pins": [
             {
@@ -2908,8 +2908,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/21",
-                  "lane": 0
+                  "chip": "fab1/31",
+                  "lane": 4
                 }
               }
             }
@@ -2934,7 +2934,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "81": {
         "mapping": {
           "id": 81,
-          "name": "fab1/21/2",
+          "name": "fab1/31/6",
           "controllingPort": 81,
           "pins": [
             {
@@ -2944,8 +2944,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/21",
-                  "lane": 1
+                  "chip": "fab1/31",
+                  "lane": 5
                 }
               }
             }
@@ -2970,7 +2970,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "82": {
         "mapping": {
           "id": 82,
-          "name": "fab1/21/3",
+          "name": "fab1/31/7",
           "controllingPort": 82,
           "pins": [
             {
@@ -2980,8 +2980,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/21",
-                  "lane": 2
+                  "chip": "fab1/31",
+                  "lane": 6
                 }
               }
             }
@@ -3006,7 +3006,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "83": {
         "mapping": {
           "id": 83,
-          "name": "fab1/21/4",
+          "name": "fab1/31/8",
           "controllingPort": 83,
           "pins": [
             {
@@ -3016,8 +3016,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/21",
-                  "lane": 3
+                  "chip": "fab1/31",
+                  "lane": 7
                 }
               }
             }
@@ -3042,7 +3042,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "84": {
         "mapping": {
           "id": 84,
-          "name": "fab1/22/1",
+          "name": "fab1/3/1",
           "controllingPort": 84,
           "pins": [
             {
@@ -3052,7 +3052,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/22",
+                  "chip": "fab1/3",
                   "lane": 0
                 }
               }
@@ -3078,7 +3078,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "85": {
         "mapping": {
           "id": 85,
-          "name": "fab1/22/2",
+          "name": "fab1/3/2",
           "controllingPort": 85,
           "pins": [
             {
@@ -3088,7 +3088,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/22",
+                  "chip": "fab1/3",
                   "lane": 1
                 }
               }
@@ -3114,7 +3114,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "86": {
         "mapping": {
           "id": 86,
-          "name": "fab1/22/3",
+          "name": "fab1/3/3",
           "controllingPort": 86,
           "pins": [
             {
@@ -3124,7 +3124,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/22",
+                  "chip": "fab1/3",
                   "lane": 2
                 }
               }
@@ -3150,7 +3150,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "87": {
         "mapping": {
           "id": 87,
-          "name": "fab1/22/4",
+          "name": "fab1/3/4",
           "controllingPort": 87,
           "pins": [
             {
@@ -3160,7 +3160,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/22",
+                  "chip": "fab1/3",
                   "lane": 3
                 }
               }
@@ -3186,7 +3186,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "88": {
         "mapping": {
           "id": 88,
-          "name": "fab1/23/1",
+          "name": "fab1/32/5",
           "controllingPort": 88,
           "pins": [
             {
@@ -3196,8 +3196,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/23",
-                  "lane": 0
+                  "chip": "fab1/32",
+                  "lane": 4
                 }
               }
             }
@@ -3222,7 +3222,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "89": {
         "mapping": {
           "id": 89,
-          "name": "fab1/23/2",
+          "name": "fab1/32/6",
           "controllingPort": 89,
           "pins": [
             {
@@ -3232,8 +3232,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/23",
-                  "lane": 1
+                  "chip": "fab1/32",
+                  "lane": 5
                 }
               }
             }
@@ -3258,7 +3258,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "90": {
         "mapping": {
           "id": 90,
-          "name": "fab1/23/3",
+          "name": "fab1/32/7",
           "controllingPort": 90,
           "pins": [
             {
@@ -3268,8 +3268,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/23",
-                  "lane": 2
+                  "chip": "fab1/32",
+                  "lane": 6
                 }
               }
             }
@@ -3294,7 +3294,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "91": {
         "mapping": {
           "id": 91,
-          "name": "fab1/23/4",
+          "name": "fab1/32/8",
           "controllingPort": 91,
           "pins": [
             {
@@ -3304,8 +3304,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/23",
-                  "lane": 3
+                  "chip": "fab1/32",
+                  "lane": 7
                 }
               }
             }
@@ -3330,7 +3330,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "92": {
         "mapping": {
           "id": 92,
-          "name": "fab1/24/1",
+          "name": "fab1/33/5",
           "controllingPort": 92,
           "pins": [
             {
@@ -3340,8 +3340,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/24",
-                  "lane": 0
+                  "chip": "fab1/33",
+                  "lane": 4
                 }
               }
             }
@@ -3366,7 +3366,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "93": {
         "mapping": {
           "id": 93,
-          "name": "fab1/24/2",
+          "name": "fab1/33/6",
           "controllingPort": 93,
           "pins": [
             {
@@ -3376,8 +3376,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/24",
-                  "lane": 1
+                  "chip": "fab1/33",
+                  "lane": 5
                 }
               }
             }
@@ -3402,7 +3402,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "94": {
         "mapping": {
           "id": 94,
-          "name": "fab1/24/3",
+          "name": "fab1/33/7",
           "controllingPort": 94,
           "pins": [
             {
@@ -3412,8 +3412,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/24",
-                  "lane": 2
+                  "chip": "fab1/33",
+                  "lane": 6
                 }
               }
             }
@@ -3438,7 +3438,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "95": {
         "mapping": {
           "id": 95,
-          "name": "fab1/24/4",
+          "name": "fab1/33/8",
           "controllingPort": 95,
           "pins": [
             {
@@ -3448,8 +3448,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/24",
-                  "lane": 3
+                  "chip": "fab1/33",
+                  "lane": 7
                 }
               }
             }
@@ -3474,7 +3474,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "96": {
         "mapping": {
           "id": 96,
-          "name": "fab1/25/1",
+          "name": "fab1/48/5",
           "controllingPort": 96,
           "pins": [
             {
@@ -3484,8 +3484,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/25",
-                  "lane": 0
+                  "chip": "fab1/48",
+                  "lane": 4
                 }
               }
             }
@@ -3510,7 +3510,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "97": {
         "mapping": {
           "id": 97,
-          "name": "fab1/25/2",
+          "name": "fab1/48/6",
           "controllingPort": 97,
           "pins": [
             {
@@ -3520,8 +3520,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/25",
-                  "lane": 1
+                  "chip": "fab1/48",
+                  "lane": 5
                 }
               }
             }
@@ -3546,7 +3546,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "98": {
         "mapping": {
           "id": 98,
-          "name": "fab1/25/3",
+          "name": "fab1/48/7",
           "controllingPort": 98,
           "pins": [
             {
@@ -3556,8 +3556,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/25",
-                  "lane": 2
+                  "chip": "fab1/48",
+                  "lane": 6
                 }
               }
             }
@@ -3582,7 +3582,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "99": {
         "mapping": {
           "id": 99,
-          "name": "fab1/25/4",
+          "name": "fab1/48/8",
           "controllingPort": 99,
           "pins": [
             {
@@ -3592,8 +3592,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/25",
-                  "lane": 3
+                  "chip": "fab1/48",
+                  "lane": 7
                 }
               }
             }
@@ -3618,7 +3618,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "100": {
         "mapping": {
           "id": 100,
-          "name": "fab1/26/1",
+          "name": "fab1/47/5",
           "controllingPort": 100,
           "pins": [
             {
@@ -3628,8 +3628,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/26",
-                  "lane": 0
+                  "chip": "fab1/47",
+                  "lane": 4
                 }
               }
             }
@@ -3654,7 +3654,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "101": {
         "mapping": {
           "id": 101,
-          "name": "fab1/26/2",
+          "name": "fab1/47/6",
           "controllingPort": 101,
           "pins": [
             {
@@ -3664,8 +3664,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/26",
-                  "lane": 1
+                  "chip": "fab1/47",
+                  "lane": 5
                 }
               }
             }
@@ -3690,7 +3690,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "102": {
         "mapping": {
           "id": 102,
-          "name": "fab1/26/3",
+          "name": "fab1/47/7",
           "controllingPort": 102,
           "pins": [
             {
@@ -3700,8 +3700,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/26",
-                  "lane": 2
+                  "chip": "fab1/47",
+                  "lane": 6
                 }
               }
             }
@@ -3726,7 +3726,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "103": {
         "mapping": {
           "id": 103,
-          "name": "fab1/26/4",
+          "name": "fab1/47/8",
           "controllingPort": 103,
           "pins": [
             {
@@ -3736,8 +3736,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/26",
-                  "lane": 3
+                  "chip": "fab1/47",
+                  "lane": 7
                 }
               }
             }
@@ -3762,7 +3762,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "104": {
         "mapping": {
           "id": 104,
-          "name": "fab1/27/1",
+          "name": "fab1/45/5",
           "controllingPort": 104,
           "pins": [
             {
@@ -3772,8 +3772,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/27",
-                  "lane": 0
+                  "chip": "fab1/45",
+                  "lane": 4
                 }
               }
             }
@@ -3798,7 +3798,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "105": {
         "mapping": {
           "id": 105,
-          "name": "fab1/27/2",
+          "name": "fab1/45/6",
           "controllingPort": 105,
           "pins": [
             {
@@ -3808,8 +3808,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/27",
-                  "lane": 1
+                  "chip": "fab1/45",
+                  "lane": 5
                 }
               }
             }
@@ -3834,7 +3834,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "106": {
         "mapping": {
           "id": 106,
-          "name": "fab1/27/3",
+          "name": "fab1/45/7",
           "controllingPort": 106,
           "pins": [
             {
@@ -3844,8 +3844,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/27",
-                  "lane": 2
+                  "chip": "fab1/45",
+                  "lane": 6
                 }
               }
             }
@@ -3870,7 +3870,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "107": {
         "mapping": {
           "id": 107,
-          "name": "fab1/27/4",
+          "name": "fab1/45/8",
           "controllingPort": 107,
           "pins": [
             {
@@ -3880,8 +3880,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/27",
-                  "lane": 3
+                  "chip": "fab1/45",
+                  "lane": 7
                 }
               }
             }
@@ -3906,7 +3906,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "108": {
         "mapping": {
           "id": 108,
-          "name": "fab1/28/1",
+          "name": "fab1/46/5",
           "controllingPort": 108,
           "pins": [
             {
@@ -3916,8 +3916,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/28",
-                  "lane": 0
+                  "chip": "fab1/46",
+                  "lane": 4
                 }
               }
             }
@@ -3942,7 +3942,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "109": {
         "mapping": {
           "id": 109,
-          "name": "fab1/28/2",
+          "name": "fab1/46/6",
           "controllingPort": 109,
           "pins": [
             {
@@ -3952,8 +3952,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/28",
-                  "lane": 1
+                  "chip": "fab1/46",
+                  "lane": 5
                 }
               }
             }
@@ -3978,7 +3978,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "110": {
         "mapping": {
           "id": 110,
-          "name": "fab1/28/3",
+          "name": "fab1/46/7",
           "controllingPort": 110,
           "pins": [
             {
@@ -3988,8 +3988,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/28",
-                  "lane": 2
+                  "chip": "fab1/46",
+                  "lane": 6
                 }
               }
             }
@@ -4014,7 +4014,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "111": {
         "mapping": {
           "id": 111,
-          "name": "fab1/28/4",
+          "name": "fab1/46/8",
           "controllingPort": 111,
           "pins": [
             {
@@ -4024,8 +4024,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/28",
-                  "lane": 3
+                  "chip": "fab1/46",
+                  "lane": 7
                 }
               }
             }
@@ -4050,7 +4050,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "112": {
         "mapping": {
           "id": 112,
-          "name": "fab1/29/1",
+          "name": "fab1/43/5",
           "controllingPort": 112,
           "pins": [
             {
@@ -4060,8 +4060,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/29",
-                  "lane": 0
+                  "chip": "fab1/43",
+                  "lane": 4
                 }
               }
             }
@@ -4086,7 +4086,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "113": {
         "mapping": {
           "id": 113,
-          "name": "fab1/29/2",
+          "name": "fab1/43/6",
           "controllingPort": 113,
           "pins": [
             {
@@ -4096,8 +4096,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/29",
-                  "lane": 1
+                  "chip": "fab1/43",
+                  "lane": 5
                 }
               }
             }
@@ -4122,7 +4122,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "114": {
         "mapping": {
           "id": 114,
-          "name": "fab1/29/3",
+          "name": "fab1/43/7",
           "controllingPort": 114,
           "pins": [
             {
@@ -4132,8 +4132,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/29",
-                  "lane": 2
+                  "chip": "fab1/43",
+                  "lane": 6
                 }
               }
             }
@@ -4158,7 +4158,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "115": {
         "mapping": {
           "id": 115,
-          "name": "fab1/29/4",
+          "name": "fab1/43/8",
           "controllingPort": 115,
           "pins": [
             {
@@ -4168,8 +4168,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/29",
-                  "lane": 3
+                  "chip": "fab1/43",
+                  "lane": 7
                 }
               }
             }
@@ -4194,7 +4194,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "116": {
         "mapping": {
           "id": 116,
-          "name": "fab1/30/1",
+          "name": "fab1/44/5",
           "controllingPort": 116,
           "pins": [
             {
@@ -4204,8 +4204,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/30",
-                  "lane": 0
+                  "chip": "fab1/44",
+                  "lane": 4
                 }
               }
             }
@@ -4230,7 +4230,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "117": {
         "mapping": {
           "id": 117,
-          "name": "fab1/30/2",
+          "name": "fab1/44/6",
           "controllingPort": 117,
           "pins": [
             {
@@ -4240,8 +4240,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/30",
-                  "lane": 1
+                  "chip": "fab1/44",
+                  "lane": 5
                 }
               }
             }
@@ -4266,7 +4266,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "118": {
         "mapping": {
           "id": 118,
-          "name": "fab1/30/3",
+          "name": "fab1/44/7",
           "controllingPort": 118,
           "pins": [
             {
@@ -4276,8 +4276,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/30",
-                  "lane": 2
+                  "chip": "fab1/44",
+                  "lane": 6
                 }
               }
             }
@@ -4302,7 +4302,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "119": {
         "mapping": {
           "id": 119,
-          "name": "fab1/30/4",
+          "name": "fab1/44/8",
           "controllingPort": 119,
           "pins": [
             {
@@ -4312,8 +4312,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/30",
-                  "lane": 3
+                  "chip": "fab1/44",
+                  "lane": 7
                 }
               }
             }
@@ -4338,7 +4338,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "120": {
         "mapping": {
           "id": 120,
-          "name": "fab1/31/1",
+          "name": "fab1/23/1",
           "controllingPort": 120,
           "pins": [
             {
@@ -4348,7 +4348,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/31",
+                  "chip": "fab1/23",
                   "lane": 0
                 }
               }
@@ -4374,7 +4374,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "121": {
         "mapping": {
           "id": 121,
-          "name": "fab1/31/2",
+          "name": "fab1/23/2",
           "controllingPort": 121,
           "pins": [
             {
@@ -4384,7 +4384,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/31",
+                  "chip": "fab1/23",
                   "lane": 1
                 }
               }
@@ -4410,7 +4410,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "122": {
         "mapping": {
           "id": 122,
-          "name": "fab1/31/3",
+          "name": "fab1/23/3",
           "controllingPort": 122,
           "pins": [
             {
@@ -4420,7 +4420,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/31",
+                  "chip": "fab1/23",
                   "lane": 2
                 }
               }
@@ -4446,7 +4446,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "123": {
         "mapping": {
           "id": 123,
-          "name": "fab1/31/4",
+          "name": "fab1/23/4",
           "controllingPort": 123,
           "pins": [
             {
@@ -4456,7 +4456,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/31",
+                  "chip": "fab1/23",
                   "lane": 3
                 }
               }
@@ -4482,7 +4482,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "124": {
         "mapping": {
           "id": 124,
-          "name": "fab1/32/1",
+          "name": "fab1/24/1",
           "controllingPort": 124,
           "pins": [
             {
@@ -4492,7 +4492,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/32",
+                  "chip": "fab1/24",
                   "lane": 0
                 }
               }
@@ -4518,7 +4518,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "125": {
         "mapping": {
           "id": 125,
-          "name": "fab1/32/2",
+          "name": "fab1/24/2",
           "controllingPort": 125,
           "pins": [
             {
@@ -4528,7 +4528,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/32",
+                  "chip": "fab1/24",
                   "lane": 1
                 }
               }
@@ -4554,7 +4554,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "126": {
         "mapping": {
           "id": 126,
-          "name": "fab1/32/3",
+          "name": "fab1/24/3",
           "controllingPort": 126,
           "pins": [
             {
@@ -4564,7 +4564,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/32",
+                  "chip": "fab1/24",
                   "lane": 2
                 }
               }
@@ -4590,7 +4590,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "127": {
         "mapping": {
           "id": 127,
-          "name": "fab1/32/4",
+          "name": "fab1/24/4",
           "controllingPort": 127,
           "pins": [
             {
@@ -4600,7 +4600,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/32",
+                  "chip": "fab1/24",
                   "lane": 3
                 }
               }
@@ -4626,7 +4626,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "128": {
         "mapping": {
           "id": 128,
-          "name": "fab1/33/1",
+          "name": "fab1/42/5",
           "controllingPort": 128,
           "pins": [
             {
@@ -4636,8 +4636,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/33",
-                  "lane": 0
+                  "chip": "fab1/42",
+                  "lane": 4
                 }
               }
             }
@@ -4662,7 +4662,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "129": {
         "mapping": {
           "id": 129,
-          "name": "fab1/33/2",
+          "name": "fab1/42/6",
           "controllingPort": 129,
           "pins": [
             {
@@ -4672,8 +4672,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/33",
-                  "lane": 1
+                  "chip": "fab1/42",
+                  "lane": 5
                 }
               }
             }
@@ -4698,7 +4698,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "130": {
         "mapping": {
           "id": 130,
-          "name": "fab1/33/3",
+          "name": "fab1/42/7",
           "controllingPort": 130,
           "pins": [
             {
@@ -4708,8 +4708,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/33",
-                  "lane": 2
+                  "chip": "fab1/42",
+                  "lane": 6
                 }
               }
             }
@@ -4734,7 +4734,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "131": {
         "mapping": {
           "id": 131,
-          "name": "fab1/33/4",
+          "name": "fab1/42/8",
           "controllingPort": 131,
           "pins": [
             {
@@ -4744,8 +4744,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/33",
-                  "lane": 3
+                  "chip": "fab1/42",
+                  "lane": 7
                 }
               }
             }
@@ -4770,7 +4770,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "132": {
         "mapping": {
           "id": 132,
-          "name": "fab1/34/1",
+          "name": "fab1/21/1",
           "controllingPort": 132,
           "pins": [
             {
@@ -4780,7 +4780,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/34",
+                  "chip": "fab1/21",
                   "lane": 0
                 }
               }
@@ -4806,7 +4806,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "133": {
         "mapping": {
           "id": 133,
-          "name": "fab1/34/2",
+          "name": "fab1/21/2",
           "controllingPort": 133,
           "pins": [
             {
@@ -4816,7 +4816,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/34",
+                  "chip": "fab1/21",
                   "lane": 1
                 }
               }
@@ -4842,7 +4842,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "134": {
         "mapping": {
           "id": 134,
-          "name": "fab1/34/3",
+          "name": "fab1/21/3",
           "controllingPort": 134,
           "pins": [
             {
@@ -4852,7 +4852,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/34",
+                  "chip": "fab1/21",
                   "lane": 2
                 }
               }
@@ -4878,7 +4878,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "135": {
         "mapping": {
           "id": 135,
-          "name": "fab1/34/4",
+          "name": "fab1/21/4",
           "controllingPort": 135,
           "pins": [
             {
@@ -4888,7 +4888,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/34",
+                  "chip": "fab1/21",
                   "lane": 3
                 }
               }
@@ -4914,7 +4914,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "136": {
         "mapping": {
           "id": 136,
-          "name": "fab1/35/1",
+          "name": "fab1/41/5",
           "controllingPort": 136,
           "pins": [
             {
@@ -4924,8 +4924,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/35",
-                  "lane": 0
+                  "chip": "fab1/41",
+                  "lane": 4
                 }
               }
             }
@@ -4950,7 +4950,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "137": {
         "mapping": {
           "id": 137,
-          "name": "fab1/35/2",
+          "name": "fab1/41/6",
           "controllingPort": 137,
           "pins": [
             {
@@ -4960,8 +4960,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/35",
-                  "lane": 1
+                  "chip": "fab1/41",
+                  "lane": 5
                 }
               }
             }
@@ -4986,7 +4986,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "138": {
         "mapping": {
           "id": 138,
-          "name": "fab1/35/3",
+          "name": "fab1/41/7",
           "controllingPort": 138,
           "pins": [
             {
@@ -4996,8 +4996,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/35",
-                  "lane": 2
+                  "chip": "fab1/41",
+                  "lane": 6
                 }
               }
             }
@@ -5022,7 +5022,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "139": {
         "mapping": {
           "id": 139,
-          "name": "fab1/35/4",
+          "name": "fab1/41/8",
           "controllingPort": 139,
           "pins": [
             {
@@ -5032,8 +5032,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/35",
-                  "lane": 3
+                  "chip": "fab1/41",
+                  "lane": 7
                 }
               }
             }
@@ -5058,7 +5058,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "140": {
         "mapping": {
           "id": 140,
-          "name": "fab1/36/1",
+          "name": "fab1/40/5",
           "controllingPort": 140,
           "pins": [
             {
@@ -5068,8 +5068,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/36",
-                  "lane": 0
+                  "chip": "fab1/40",
+                  "lane": 4
                 }
               }
             }
@@ -5094,7 +5094,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "141": {
         "mapping": {
           "id": 141,
-          "name": "fab1/36/2",
+          "name": "fab1/40/6",
           "controllingPort": 141,
           "pins": [
             {
@@ -5104,8 +5104,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/36",
-                  "lane": 1
+                  "chip": "fab1/40",
+                  "lane": 5
                 }
               }
             }
@@ -5130,7 +5130,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "142": {
         "mapping": {
           "id": 142,
-          "name": "fab1/36/3",
+          "name": "fab1/40/7",
           "controllingPort": 142,
           "pins": [
             {
@@ -5140,8 +5140,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/36",
-                  "lane": 2
+                  "chip": "fab1/40",
+                  "lane": 6
                 }
               }
             }
@@ -5166,7 +5166,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "143": {
         "mapping": {
           "id": 143,
-          "name": "fab1/36/4",
+          "name": "fab1/40/8",
           "controllingPort": 143,
           "pins": [
             {
@@ -5176,8 +5176,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/36",
-                  "lane": 3
+                  "chip": "fab1/40",
+                  "lane": 7
                 }
               }
             }
@@ -5202,7 +5202,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "144": {
         "mapping": {
           "id": 144,
-          "name": "fab1/37/1",
+          "name": "fab1/14/1",
           "controllingPort": 144,
           "pins": [
             {
@@ -5212,7 +5212,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/37",
+                  "chip": "fab1/14",
                   "lane": 0
                 }
               }
@@ -5238,7 +5238,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "145": {
         "mapping": {
           "id": 145,
-          "name": "fab1/37/2",
+          "name": "fab1/14/2",
           "controllingPort": 145,
           "pins": [
             {
@@ -5248,7 +5248,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/37",
+                  "chip": "fab1/14",
                   "lane": 1
                 }
               }
@@ -5274,7 +5274,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "146": {
         "mapping": {
           "id": 146,
-          "name": "fab1/37/3",
+          "name": "fab1/14/3",
           "controllingPort": 146,
           "pins": [
             {
@@ -5284,7 +5284,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/37",
+                  "chip": "fab1/14",
                   "lane": 2
                 }
               }
@@ -5310,7 +5310,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "147": {
         "mapping": {
           "id": 147,
-          "name": "fab1/37/4",
+          "name": "fab1/14/4",
           "controllingPort": 147,
           "pins": [
             {
@@ -5320,7 +5320,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/37",
+                  "chip": "fab1/14",
                   "lane": 3
                 }
               }
@@ -5346,7 +5346,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "148": {
         "mapping": {
           "id": 148,
-          "name": "fab1/38/1",
+          "name": "fab1/13/1",
           "controllingPort": 148,
           "pins": [
             {
@@ -5356,7 +5356,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/38",
+                  "chip": "fab1/13",
                   "lane": 0
                 }
               }
@@ -5382,7 +5382,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "149": {
         "mapping": {
           "id": 149,
-          "name": "fab1/38/2",
+          "name": "fab1/13/2",
           "controllingPort": 149,
           "pins": [
             {
@@ -5392,7 +5392,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/38",
+                  "chip": "fab1/13",
                   "lane": 1
                 }
               }
@@ -5418,7 +5418,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "150": {
         "mapping": {
           "id": 150,
-          "name": "fab1/38/3",
+          "name": "fab1/13/3",
           "controllingPort": 150,
           "pins": [
             {
@@ -5428,7 +5428,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/38",
+                  "chip": "fab1/13",
                   "lane": 2
                 }
               }
@@ -5454,7 +5454,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "151": {
         "mapping": {
           "id": 151,
-          "name": "fab1/38/4",
+          "name": "fab1/13/4",
           "controllingPort": 151,
           "pins": [
             {
@@ -5464,7 +5464,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/38",
+                  "chip": "fab1/13",
                   "lane": 3
                 }
               }
@@ -5490,7 +5490,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "152": {
         "mapping": {
           "id": 152,
-          "name": "fab1/39/1",
+          "name": "fab1/15/1",
           "controllingPort": 152,
           "pins": [
             {
@@ -5500,7 +5500,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/39",
+                  "chip": "fab1/15",
                   "lane": 0
                 }
               }
@@ -5526,7 +5526,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "153": {
         "mapping": {
           "id": 153,
-          "name": "fab1/39/2",
+          "name": "fab1/15/2",
           "controllingPort": 153,
           "pins": [
             {
@@ -5536,7 +5536,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/39",
+                  "chip": "fab1/15",
                   "lane": 1
                 }
               }
@@ -5562,7 +5562,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "154": {
         "mapping": {
           "id": 154,
-          "name": "fab1/39/3",
+          "name": "fab1/15/3",
           "controllingPort": 154,
           "pins": [
             {
@@ -5572,7 +5572,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/39",
+                  "chip": "fab1/15",
                   "lane": 2
                 }
               }
@@ -5598,7 +5598,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "155": {
         "mapping": {
           "id": 155,
-          "name": "fab1/39/4",
+          "name": "fab1/15/4",
           "controllingPort": 155,
           "pins": [
             {
@@ -5608,7 +5608,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/39",
+                  "chip": "fab1/15",
                   "lane": 3
                 }
               }
@@ -5634,7 +5634,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "156": {
         "mapping": {
           "id": 156,
-          "name": "fab1/40/1",
+          "name": "fab1/16/1",
           "controllingPort": 156,
           "pins": [
             {
@@ -5644,7 +5644,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/40",
+                  "chip": "fab1/16",
                   "lane": 0
                 }
               }
@@ -5670,7 +5670,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "157": {
         "mapping": {
           "id": 157,
-          "name": "fab1/40/2",
+          "name": "fab1/16/2",
           "controllingPort": 157,
           "pins": [
             {
@@ -5680,7 +5680,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/40",
+                  "chip": "fab1/16",
                   "lane": 1
                 }
               }
@@ -5706,7 +5706,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "158": {
         "mapping": {
           "id": 158,
-          "name": "fab1/40/3",
+          "name": "fab1/16/3",
           "controllingPort": 158,
           "pins": [
             {
@@ -5716,7 +5716,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/40",
+                  "chip": "fab1/16",
                   "lane": 2
                 }
               }
@@ -5742,7 +5742,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "159": {
         "mapping": {
           "id": 159,
-          "name": "fab1/40/4",
+          "name": "fab1/16/4",
           "controllingPort": 159,
           "pins": [
             {
@@ -5752,7 +5752,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/40",
+                  "chip": "fab1/16",
                   "lane": 3
                 }
               }
@@ -5778,7 +5778,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "160": {
         "mapping": {
           "id": 160,
-          "name": "fab1/41/1",
+          "name": "fab1/17/1",
           "controllingPort": 160,
           "pins": [
             {
@@ -5788,7 +5788,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/41",
+                  "chip": "fab1/17",
                   "lane": 0
                 }
               }
@@ -5814,7 +5814,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "161": {
         "mapping": {
           "id": 161,
-          "name": "fab1/41/2",
+          "name": "fab1/17/2",
           "controllingPort": 161,
           "pins": [
             {
@@ -5824,7 +5824,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/41",
+                  "chip": "fab1/17",
                   "lane": 1
                 }
               }
@@ -5850,7 +5850,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "162": {
         "mapping": {
           "id": 162,
-          "name": "fab1/41/3",
+          "name": "fab1/17/3",
           "controllingPort": 162,
           "pins": [
             {
@@ -5860,7 +5860,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/41",
+                  "chip": "fab1/17",
                   "lane": 2
                 }
               }
@@ -5886,7 +5886,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "163": {
         "mapping": {
           "id": 163,
-          "name": "fab1/41/4",
+          "name": "fab1/17/4",
           "controllingPort": 163,
           "pins": [
             {
@@ -5896,7 +5896,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/41",
+                  "chip": "fab1/17",
                   "lane": 3
                 }
               }
@@ -5922,7 +5922,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "164": {
         "mapping": {
           "id": 164,
-          "name": "fab1/42/1",
+          "name": "fab1/18/1",
           "controllingPort": 164,
           "pins": [
             {
@@ -5932,7 +5932,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/42",
+                  "chip": "fab1/18",
                   "lane": 0
                 }
               }
@@ -5958,7 +5958,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "165": {
         "mapping": {
           "id": 165,
-          "name": "fab1/42/2",
+          "name": "fab1/18/2",
           "controllingPort": 165,
           "pins": [
             {
@@ -5968,7 +5968,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/42",
+                  "chip": "fab1/18",
                   "lane": 1
                 }
               }
@@ -5994,7 +5994,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "166": {
         "mapping": {
           "id": 166,
-          "name": "fab1/42/3",
+          "name": "fab1/18/3",
           "controllingPort": 166,
           "pins": [
             {
@@ -6004,7 +6004,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/42",
+                  "chip": "fab1/18",
                   "lane": 2
                 }
               }
@@ -6030,7 +6030,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "167": {
         "mapping": {
           "id": 167,
-          "name": "fab1/42/4",
+          "name": "fab1/18/4",
           "controllingPort": 167,
           "pins": [
             {
@@ -6040,7 +6040,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/42",
+                  "chip": "fab1/18",
                   "lane": 3
                 }
               }
@@ -6066,7 +6066,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "168": {
         "mapping": {
           "id": 168,
-          "name": "fab1/43/1",
+          "name": "fab1/20/1",
           "controllingPort": 168,
           "pins": [
             {
@@ -6076,7 +6076,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/43",
+                  "chip": "fab1/20",
                   "lane": 0
                 }
               }
@@ -6102,7 +6102,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "169": {
         "mapping": {
           "id": 169,
-          "name": "fab1/43/2",
+          "name": "fab1/20/2",
           "controllingPort": 169,
           "pins": [
             {
@@ -6112,7 +6112,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/43",
+                  "chip": "fab1/20",
                   "lane": 1
                 }
               }
@@ -6138,7 +6138,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "170": {
         "mapping": {
           "id": 170,
-          "name": "fab1/43/3",
+          "name": "fab1/20/3",
           "controllingPort": 170,
           "pins": [
             {
@@ -6148,7 +6148,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/43",
+                  "chip": "fab1/20",
                   "lane": 2
                 }
               }
@@ -6174,7 +6174,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "171": {
         "mapping": {
           "id": 171,
-          "name": "fab1/43/4",
+          "name": "fab1/20/4",
           "controllingPort": 171,
           "pins": [
             {
@@ -6184,7 +6184,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/43",
+                  "chip": "fab1/20",
                   "lane": 3
                 }
               }
@@ -6210,7 +6210,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "172": {
         "mapping": {
           "id": 172,
-          "name": "fab1/44/1",
+          "name": "fab1/19/1",
           "controllingPort": 172,
           "pins": [
             {
@@ -6220,7 +6220,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/44",
+                  "chip": "fab1/19",
                   "lane": 0
                 }
               }
@@ -6246,7 +6246,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "173": {
         "mapping": {
           "id": 173,
-          "name": "fab1/44/2",
+          "name": "fab1/19/2",
           "controllingPort": 173,
           "pins": [
             {
@@ -6256,7 +6256,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/44",
+                  "chip": "fab1/19",
                   "lane": 1
                 }
               }
@@ -6282,7 +6282,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "174": {
         "mapping": {
           "id": 174,
-          "name": "fab1/44/3",
+          "name": "fab1/19/3",
           "controllingPort": 174,
           "pins": [
             {
@@ -6292,7 +6292,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/44",
+                  "chip": "fab1/19",
                   "lane": 2
                 }
               }
@@ -6318,7 +6318,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "175": {
         "mapping": {
           "id": 175,
-          "name": "fab1/44/4",
+          "name": "fab1/19/4",
           "controllingPort": 175,
           "pins": [
             {
@@ -6328,7 +6328,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/44",
+                  "chip": "fab1/19",
                   "lane": 3
                 }
               }
@@ -6354,7 +6354,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "176": {
         "mapping": {
           "id": 176,
-          "name": "fab1/45/1",
+          "name": "fab1/37/5",
           "controllingPort": 176,
           "pins": [
             {
@@ -6364,8 +6364,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/45",
-                  "lane": 0
+                  "chip": "fab1/37",
+                  "lane": 4
                 }
               }
             }
@@ -6390,7 +6390,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "177": {
         "mapping": {
           "id": 177,
-          "name": "fab1/45/2",
+          "name": "fab1/37/6",
           "controllingPort": 177,
           "pins": [
             {
@@ -6400,8 +6400,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/45",
-                  "lane": 1
+                  "chip": "fab1/37",
+                  "lane": 5
                 }
               }
             }
@@ -6426,7 +6426,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "178": {
         "mapping": {
           "id": 178,
-          "name": "fab1/45/3",
+          "name": "fab1/37/7",
           "controllingPort": 178,
           "pins": [
             {
@@ -6436,8 +6436,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/45",
-                  "lane": 2
+                  "chip": "fab1/37",
+                  "lane": 6
                 }
               }
             }
@@ -6462,7 +6462,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "179": {
         "mapping": {
           "id": 179,
-          "name": "fab1/45/4",
+          "name": "fab1/37/8",
           "controllingPort": 179,
           "pins": [
             {
@@ -6472,8 +6472,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/45",
-                  "lane": 3
+                  "chip": "fab1/37",
+                  "lane": 7
                 }
               }
             }
@@ -6498,7 +6498,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "180": {
         "mapping": {
           "id": 180,
-          "name": "fab1/46/1",
+          "name": "fab1/22/1",
           "controllingPort": 180,
           "pins": [
             {
@@ -6508,7 +6508,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/46",
+                  "chip": "fab1/22",
                   "lane": 0
                 }
               }
@@ -6534,7 +6534,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "181": {
         "mapping": {
           "id": 181,
-          "name": "fab1/46/2",
+          "name": "fab1/22/2",
           "controllingPort": 181,
           "pins": [
             {
@@ -6544,7 +6544,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/46",
+                  "chip": "fab1/22",
                   "lane": 1
                 }
               }
@@ -6570,7 +6570,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "182": {
         "mapping": {
           "id": 182,
-          "name": "fab1/46/3",
+          "name": "fab1/22/3",
           "controllingPort": 182,
           "pins": [
             {
@@ -6580,7 +6580,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/46",
+                  "chip": "fab1/22",
                   "lane": 2
                 }
               }
@@ -6606,7 +6606,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "183": {
         "mapping": {
           "id": 183,
-          "name": "fab1/46/4",
+          "name": "fab1/22/4",
           "controllingPort": 183,
           "pins": [
             {
@@ -6616,7 +6616,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/46",
+                  "chip": "fab1/22",
                   "lane": 3
                 }
               }
@@ -6642,7 +6642,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "184": {
         "mapping": {
           "id": 184,
-          "name": "fab1/47/1",
+          "name": "fab1/38/5",
           "controllingPort": 184,
           "pins": [
             {
@@ -6652,8 +6652,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/47",
-                  "lane": 0
+                  "chip": "fab1/38",
+                  "lane": 4
                 }
               }
             }
@@ -6678,7 +6678,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "185": {
         "mapping": {
           "id": 185,
-          "name": "fab1/47/2",
+          "name": "fab1/38/6",
           "controllingPort": 185,
           "pins": [
             {
@@ -6688,8 +6688,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/47",
-                  "lane": 1
+                  "chip": "fab1/38",
+                  "lane": 5
                 }
               }
             }
@@ -6714,7 +6714,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "186": {
         "mapping": {
           "id": 186,
-          "name": "fab1/47/3",
+          "name": "fab1/38/7",
           "controllingPort": 186,
           "pins": [
             {
@@ -6724,8 +6724,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/47",
-                  "lane": 2
+                  "chip": "fab1/38",
+                  "lane": 6
                 }
               }
             }
@@ -6750,7 +6750,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "187": {
         "mapping": {
           "id": 187,
-          "name": "fab1/47/4",
+          "name": "fab1/38/8",
           "controllingPort": 187,
           "pins": [
             {
@@ -6760,8 +6760,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/47",
-                  "lane": 3
+                  "chip": "fab1/38",
+                  "lane": 7
                 }
               }
             }
@@ -6786,7 +6786,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "188": {
         "mapping": {
           "id": 188,
-          "name": "fab1/48/1",
+          "name": "fab1/39/5",
           "controllingPort": 188,
           "pins": [
             {
@@ -6796,8 +6796,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/48",
-                  "lane": 0
+                  "chip": "fab1/39",
+                  "lane": 4
                 }
               }
             }
@@ -6822,7 +6822,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "189": {
         "mapping": {
           "id": 189,
-          "name": "fab1/48/2",
+          "name": "fab1/39/6",
           "controllingPort": 189,
           "pins": [
             {
@@ -6832,8 +6832,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/48",
-                  "lane": 1
+                  "chip": "fab1/39",
+                  "lane": 5
                 }
               }
             }
@@ -6858,7 +6858,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "190": {
         "mapping": {
           "id": 190,
-          "name": "fab1/48/3",
+          "name": "fab1/39/7",
           "controllingPort": 190,
           "pins": [
             {
@@ -6868,8 +6868,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/48",
-                  "lane": 2
+                  "chip": "fab1/39",
+                  "lane": 6
                 }
               }
             }
@@ -6894,7 +6894,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "191": {
         "mapping": {
           "id": 191,
-          "name": "fab1/48/4",
+          "name": "fab1/39/8",
           "controllingPort": 191,
           "pins": [
             {
@@ -6904,8 +6904,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               },
               "z": {
                 "end": {
-                  "chip": "fab1/48",
-                  "lane": 3
+                  "chip": "fab1/39",
+                  "lane": 7
                 }
               }
             }
@@ -7417,78 +7417,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
     {
       "factor": {
         "ports": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12,
-          13,
-          14,
-          15,
-          16,
-          17,
-          18,
-          19,
-          20,
-          21,
-          22,
-          23,
-          24,
-          25,
-          26,
-          27,
-          28,
-          29,
-          30,
-          31,
-          32,
-          33,
-          34,
-          35,
-          36,
-          37,
-          38,
-          39,
-          40,
-          41,
-          42,
-          43,
-          44,
-          45,
-          46,
-          47,
-          48,
-          49,
-          50,
-          51,
-          52,
-          53,
-          54,
-          55,
-          56,
-          57,
-          58,
-          59,
-          60,
-          61,
-          62,
-          63,
-          64,
-          65,
-          66,
-          67,
-          68,
-          69,
-          70,
-          71,
           72,
           73,
           74,
@@ -7497,78 +7425,54 @@ constexpr auto kJsonPlatformMappingStr = R"(
           77,
           78,
           79,
-          80,
-          81,
-          82,
-          83,
           84,
           85,
           86,
           87,
-          88,
-          89,
-          90,
-          91,
-          92,
-          93,
-          94,
-          95,
-          96,
-          97,
-          98,
-          99,
-          100,
-          101,
-          102,
-          103,
-          104,
-          105,
-          106,
-          107,
-          108,
-          109,
-          110,
-          111,
-          112,
-          113,
-          114,
-          115,
-          116,
-          117,
-          118,
-          119,
-          120,
-          121,
-          122,
-          123,
-          124,
-          125,
-          126,
-          127,
-          128,
-          129,
-          130,
-          131,
-          132,
-          133,
-          134,
-          135,
-          136,
-          137,
-          138,
-          139,
-          140,
-          141,
-          142,
-          143,
-          144,
-          145,
-          146,
-          147,
+          36,
+          37,
+          38,
+          39,
+          28,
+          29,
+          30,
+          31,
+          24,
+          25,
+          26,
+          27,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          4,
+          5,
+          6,
+          7,
+          0,
+          1,
+          2,
+          3,
           148,
           149,
           150,
           151,
+          144,
+          145,
+          146,
+          147,
           152,
           153,
           154,
@@ -7585,22 +7489,82 @@ constexpr auto kJsonPlatformMappingStr = R"(
           165,
           166,
           167,
-          168,
-          169,
-          170,
-          171,
           172,
           173,
           174,
           175,
-          176,
-          177,
-          178,
-          179,
+          168,
+          169,
+          170,
+          171,
+          132,
+          133,
+          134,
+          135,
           180,
           181,
           182,
           183,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          60,
+          61,
+          62,
+          63,
+          56,
+          57,
+          58,
+          59,
+          68,
+          69,
+          70,
+          71,
+          64,
+          65,
+          66,
+          67,
+          80,
+          81,
+          82,
+          83,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          44,
+          45,
+          46,
+          47,
+          40,
+          41,
+          42,
+          43,
+          32,
+          33,
+          34,
+          35,
+          176,
+          177,
+          178,
+          179,
           184,
           185,
           186,
@@ -7608,7 +7572,43 @@ constexpr auto kJsonPlatformMappingStr = R"(
           188,
           189,
           190,
-          191
+          191,
+          140,
+          141,
+          142,
+          143,
+          136,
+          137,
+          138,
+          139,
+          128,
+          129,
+          130,
+          131,
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          100,
+          101,
+          102,
+          103,
+          96,
+          97,
+          98,
+          99
         ],
         "profiles": [
           36
