@@ -77,7 +77,7 @@ class ArpCli(object):
 
     @click.command()
     @click.pass_obj
-    @fboss2_deprecate("show arp", level=DeprecationLevel.REMOVED)
+    @fboss2_deprecate("show arp", level=DeprecationLevel.DELAY)
     def _table(cli_opts):
         """Show the ARP table"""
         arp.ArpTableCmd(cli_opts).run()
@@ -92,7 +92,7 @@ class ArpCli(object):
     )
     @click.argument("ip")
     @click.pass_obj
-    @fboss2_deprecate("clear arp", level=DeprecationLevel.REMOVED)
+    @fboss2_deprecate("clear arp", level=DeprecationLevel.DELAY)
     def _flush(cli_opts, ip, vlan):
         """Flush an ARP entry by [IP] or [subnet] or flush [all]"""
         if ip == "all":
@@ -234,7 +234,7 @@ class NdpCli(object):
 
     @click.command()
     @click.pass_obj
-    @fboss2_deprecate("show ndp", level=DeprecationLevel.REMOVED)
+    @fboss2_deprecate("show ndp", level=DeprecationLevel.DELAY)
     def _table(cli_opts):
         """Show the NDP table"""
         ndp.NdpTableCmd(cli_opts).run()
@@ -249,7 +249,7 @@ class NdpCli(object):
     )
     @click.argument("ip")
     @click.pass_obj
-    @fboss2_deprecate("clear ndp", level=DeprecationLevel.REMOVED)
+    @fboss2_deprecate("clear ndp", level=DeprecationLevel.DELAY)
     def _flush(cli_opts, ip, vlan):
         """Flush an NDP entry by [IP] or [subnet] or flush [all]"""
         if ip == "all":
