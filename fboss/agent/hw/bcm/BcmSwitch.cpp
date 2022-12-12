@@ -1206,7 +1206,7 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   processLoadBalancerChanges(delta);
 
   // remove any udf after we are done processing load balancer
-  // processUdfRemove(delta);
+  processUdfRemove(delta);
 
   // remove all routes to be deleted
   processRemovedRoutes(delta);
@@ -2814,6 +2814,27 @@ void BcmSwitch::processAddedUdfPacketMatcher(
 void BcmSwitch::processAddedUdfGroup(const shared_ptr<UdfGroup>& udfGroup) {
   XLOG(DBG2) << "Adding udf group: " << udfGroup->getID();
   udfManager_->createUdfGroup(udfGroup);
+}
+
+void BcmSwitch::processUdfRemove(const StateDelta& delta) {
+  forEachRemoved(
+      delta.getUdfGroupDelta(), &BcmSwitch::processRemovedUdfGroup, this);
+
+  forEachRemoved(
+      delta.getUdfPacketMatcherDelta(),
+      &BcmSwitch::processRemovedUdfPacketMatcher,
+      this);
+}
+
+void BcmSwitch::processRemovedUdfPacketMatcher(
+    const shared_ptr<UdfPacketMatcher>& udfPacketMatcher) {
+  XLOG(DBG2) << "Removing udf packet matcher: " << udfPacketMatcher->getID();
+  udfManager_->deleteUdfPacketMatcher(udfPacketMatcher->getID());
+}
+
+void BcmSwitch::processRemovedUdfGroup(const shared_ptr<UdfGroup>& udfGroup) {
+  XLOG(DBG2) << "Removing udf group: " << udfGroup->getID();
+  udfManager_->deleteUdfGroup(udfGroup);
 }
 
 void BcmSwitch::processChangedLoadBalancer(

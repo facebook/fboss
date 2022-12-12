@@ -83,9 +83,9 @@ void BcmUdfManager::detachUdfPacketMatcher(
 }
 
 // deleteUdfGroup
-void BcmUdfManager::deleteUdfGroup(
-    const std::string& udfGroupName,
-    const std::shared_ptr<UdfGroup>& udfGroup) {
+void BcmUdfManager::deleteUdfGroup(const std::shared_ptr<UdfGroup>& udfGroup) {
+  auto udfGroupName = udfGroup->getName();
+
   auto bcmUdfGroup = udfGroupsMap_.find(udfGroupName);
   if (bcmUdfGroup != udfGroupsMap_.end()) {
     for (auto udfPacketMatcherName : udfGroup->getUdfPacketMatcherIds()) {
