@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/bcm/BcmUdfGroup.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
 namespace facebook::fboss {
 
@@ -26,6 +27,17 @@ bcm_udf_layer_t BcmUdfGroup::convertBaseHeaderToBcmLayer(
   throw FbossError("Invalid udf base header: ", layer);
 }
 
+bool BcmUdfGroup::isBcmUdfInfoCacheMatchesCfg(
+    const bcm_udf_t* cachedUdfInfo,
+    const bcm_udf_t* udfInfo) {
+  if ((cachedUdfInfo->layer == udfInfo->layer) &&
+      (cachedUdfInfo->start == udfInfo->start) &&
+      (cachedUdfInfo->width == udfInfo->width)) {
+    return true;
+  }
+  return false;
+}
+
 BcmUdfGroup::BcmUdfGroup(
     BcmSwitch* hw,
     const std::shared_ptr<UdfGroup>& udfGroup)
@@ -38,6 +50,21 @@ BcmUdfGroup::BcmUdfGroup(
   udfInfo.layer = convertBaseHeaderToBcmLayer(udfGroup->getUdfBaseHeader());
   udfInfo.start = udfGroup->getStartOffsetInBytes() * 8; // in bits
   udfInfo.width = matchFieldWidth_ * 8; // in bits
+
+  auto warmBootCache = hw_->getWarmBootCache();
+  auto name = udfGroup->getID();
+  auto udfInfoItr = warmBootCache->findUdfGroupInfo(name);
+
+  if (udfInfoItr != warmBootCache->UdfGroupNameToInfoMapEnd()) {
+    auto cachedUdfInfo = udfInfoItr->second.second;
+    if (isBcmUdfInfoCacheMatchesCfg(&cachedUdfInfo, &udfInfo)) {
+      udfId_ = udfInfoItr->second.first;
+      warmBootCache->programmed(udfInfoItr);
+      XLOG(DBG2) << "Wamboot UdfInfo cache matches the cfg for " << name;
+      return;
+    }
+  }
+
   udfCreate(&udfInfo);
   XLOG(INFO) << "Create udfgroup: " << udfGroupName_;
 }

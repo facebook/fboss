@@ -55,6 +55,9 @@ class BcmUdfGroup {
   int udfCreate(bcm_udf_t* udfInfo);
   int udfDelete(bcm_udf_id_t udfId);
   bcm_udf_layer_t convertBaseHeaderToBcmLayer(cfg::UdfBaseHeaderType layer);
+  bool isBcmUdfInfoCacheMatchesCfg(
+      const bcm_udf_t* cachedUdfInfo,
+      const bcm_udf_t* udfInfo);
 
   BcmSwitch* hw_;
   bcm_udf_id_t udfId_ = 0;
