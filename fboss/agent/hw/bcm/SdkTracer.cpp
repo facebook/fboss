@@ -338,6 +338,8 @@ int __real_bcm_udf_pkt_format_add(
     bcm_udf_id_t udf_id,
     bcm_udf_pkt_format_id_t pkt_format_id);
 
+int __real_bcm_port_pause_addr_set(int unit, bcm_port_t port, bcm_mac_t mac);
+
 int __real_bcm_udf_pkt_format_destroy(
     int unit,
     bcm_udf_pkt_format_id_t pkt_format_id);
@@ -974,6 +976,8 @@ int __real_bcm_cosq_bst_stat_get(
     bcm_bst_stat_id_t bid,
     uint32 options,
     uint64* value);
+
+int __real_bcm_port_pause_addr_set(int unit, bcm_port_t port, bcm_mac_t mac);
 
 int __real_bcm_cosq_bst_stat_extended_get(
     int unit,
@@ -2156,6 +2160,10 @@ int __wrap_bcm_switch_object_count_get(
     bcm_switch_object_t object,
     int* entries) {
   CALL_WRAPPERS_RV(bcm_switch_object_count_get(unit, object, entries));
+}
+
+int __wrap_bcm_port_pause_addr_set(int unit, bcm_port_t port, bcm_mac_t mac) {
+  CALL_WRAPPERS_RV(bcm_port_pause_addr_set(unit, port, mac));
 }
 
 #if (BCM_SDK_VERSION >= BCM_VERSION(6, 5, 19))

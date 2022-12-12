@@ -352,6 +352,9 @@ class BcmInterface {
       bcm_udf_id_t udf_id,
       bcm_udf_pkt_format_id_t pkt_format_id) = 0;
 
+  virtual int
+  bcm_port_pause_addr_set(int unit, bcm_port_t port, bcm_mac_t mac) = 0;
+
   virtual int bcm_udf_pkt_format_delete(
       int unit,
       bcm_udf_id_t udf_id,

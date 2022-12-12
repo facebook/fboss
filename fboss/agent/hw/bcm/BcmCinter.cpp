@@ -2126,6 +2126,23 @@ int BcmCinter::bcm_udf_pkt_format_destroy(
   return 0;
 }
 
+int BcmCinter::bcm_port_pause_addr_set(
+    int unit,
+    bcm_port_t port,
+    bcm_mac_t mac) {
+  string cintMac, macVar;
+  tie(cintMac, macVar) = cintForMac(mac);
+  vector<string> cint = {cintMac};
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_port_pause_addr_set(", makeParamStr(unit, port, macVar), ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
 int BcmCinter::bcm_udf_pkt_format_add(
     int unit,
     bcm_udf_id_t udf_id,
