@@ -199,10 +199,14 @@ class BcmWarmBootCache {
 
   using UdfGroupInfoPair = std::pair<bcm_udf_id_t, bcm_udf_t>;
   using UdfGroupNameToInfoMap = std::map<std::string, UdfGroupInfoPair>;
+  using UdfGroupNameToInfoMapItr =
+      typename UdfGroupNameToInfoMap::const_iterator;
   using UdfPktMatcherInfoPair =
       std::pair<bcm_udf_pkt_format_id_t, bcm_udf_pkt_format_info_t>;
   using UdfPktMatcherNameToInfoMap =
       std::map<std::string, UdfPktMatcherInfoPair>;
+  using UdfPktMatcherNameToInfoMapItr =
+      typename UdfPktMatcherNameToInfoMap::const_iterator;
 
   /*
    * Callbacks for traversing entries in BCM h/w tables
@@ -709,6 +713,30 @@ class BcmWarmBootCache {
 
   RouteCounterIDMapItr RouteCounterIDMapEnd() {
     return routeCounterIDs_.end();
+  }
+
+  UdfGroupNameToInfoMapItr findUdfGroupInfo(const std::string& name) const {
+    return udfGroupNameToInfoMap_.find(name);
+  }
+
+  UdfPktMatcherNameToInfoMapItr findUdfPktMatcherInfo(std::string& name) const {
+    return udfPktMatcherNameToInfoMap_.find(name);
+  }
+
+  UdfGroupNameToInfoMapItr UdfGroupNameToInfoMapEnd() {
+    return udfGroupNameToInfoMap_.end();
+  }
+
+  UdfPktMatcherNameToInfoMapItr UdfPktMatcherNameToInfoMapEnd() {
+    return udfPktMatcherNameToInfoMap_.end();
+  }
+
+  void programmed(UdfGroupNameToInfoMapItr itr) {
+    udfGroupNameToInfoMap_.erase(itr);
+  }
+
+  void programmed(UdfPktMatcherNameToInfoMapItr itr) {
+    udfPktMatcherNameToInfoMap_.erase(itr);
   }
 
   void programmed(RouteCounterIDMapItr itr) {

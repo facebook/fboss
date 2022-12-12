@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/bcm/BcmUdfPacketMatcher.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 #include "fboss/agent/packet/IPProto.h"
 
 namespace facebook::fboss {
@@ -51,6 +52,27 @@ int BcmUdfPacketMatcher::convertUdfL2PktTypeToBcmType(
   throw FbossError("Invalid udf l2 pkt type: ", l2Type);
 }
 
+bool BcmUdfPacketMatcher::isBcmPktFormatCacheMatchesCfg(
+    const bcm_udf_pkt_format_info_t* cachedPktFormat,
+    const bcm_udf_pkt_format_info_t* pktFormat) {
+  if ((cachedPktFormat->l2 == pktFormat->l2) &&
+      (cachedPktFormat->vlan_tag == pktFormat->vlan_tag) &&
+      (cachedPktFormat->ip_protocol == pktFormat->ip_protocol) &&
+      (cachedPktFormat->ip_protocol_mask == pktFormat->ip_protocol_mask) &&
+      (cachedPktFormat->outer_ip == pktFormat->outer_ip) &&
+      (cachedPktFormat->inner_ip == pktFormat->inner_ip) &&
+      (cachedPktFormat->tunnel == pktFormat->tunnel)) {
+    if (pktFormat->l4_dst_port && pktFormat->l4_dst_port_mask) {
+      if ((cachedPktFormat->l4_dst_port != pktFormat->l4_dst_port) ||
+          (cachedPktFormat->l4_dst_port_mask != pktFormat->l4_dst_port_mask)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
 BcmUdfPacketMatcher::BcmUdfPacketMatcher(
     BcmSwitch* hw,
     const std::shared_ptr<UdfPacketMatcher>& udfPacketMatcher)
@@ -70,6 +92,22 @@ BcmUdfPacketMatcher::BcmUdfPacketMatcher(
     pktFormat.l4_dst_port = *udfL4DstPort;
     pktFormat.l4_dst_port_mask = 0xffff; // 16 bits
   }
+
+  auto warmBootCache = hw_->getWarmBootCache();
+  auto name = udfPacketMatcher->getID();
+  auto udfPacketMatcherInfoItr = warmBootCache->findUdfPktMatcherInfo(name);
+
+  if (udfPacketMatcherInfoItr !=
+      warmBootCache->UdfPktMatcherNameToInfoMapEnd()) {
+    auto cachedPktFormat = udfPacketMatcherInfoItr->second.second;
+    if (isBcmPktFormatCacheMatchesCfg(&cachedPktFormat, &pktFormat)) {
+      udfPacketMatcherId_ = udfPacketMatcherInfoItr->second.first;
+      warmBootCache->programmed(udfPacketMatcherInfoItr);
+      XLOG(DBG2) << "Wamboot PktFormat cache matches the cfg for " << name;
+      return;
+    }
+  }
+
   udfPktFormatCreate(&pktFormat);
 }
 

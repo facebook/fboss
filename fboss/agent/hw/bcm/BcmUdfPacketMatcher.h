@@ -46,6 +46,9 @@ class BcmUdfPacketMatcher {
   int convertUdfL2PktTypeToBcmType(cfg::UdfMatchL2Type l2Type);
   int convertUdfl4TypeToIpProtocol(cfg::UdfMatchL4Type l4Type);
   int convertUdfL3PktTypeToBcmType(cfg::UdfMatchL3Type l3Type);
+  bool isBcmPktFormatCacheMatchesCfg(
+      const bcm_udf_pkt_format_info_t* cachedPktFormat,
+      const bcm_udf_pkt_format_info_t* pktFormat);
 
   BcmSwitch* hw_;
   bcm_udf_pkt_format_id_t udfPacketMatcherId_ = 0;
