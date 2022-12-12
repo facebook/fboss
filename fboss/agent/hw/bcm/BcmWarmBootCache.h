@@ -196,6 +196,14 @@ class BcmWarmBootCache {
   using TeFlowMapKey = std::pair<bcm_port_t, folly::IPAddress>;
   using TeFlow2BcmTeFlowEntryHandle =
       std::map<TeFlowMapKey, BcmTeFlowEntryHandle>;
+
+  using UdfGroupInfoPair = std::pair<bcm_udf_id_t, bcm_udf_t>;
+  using UdfGroupNameToInfoMap = std::map<std::string, UdfGroupInfoPair>;
+  using UdfPktMatcherInfoPair =
+      std::pair<bcm_udf_pkt_format_id_t, bcm_udf_pkt_format_info_t>;
+  using UdfPktMatcherNameToInfoMap =
+      std::map<std::string, UdfPktMatcherInfoPair>;
+
   /*
    * Callbacks for traversing entries in BCM h/w tables
    */
@@ -754,6 +762,10 @@ class BcmWarmBootCache {
   void populateQosPolicyFromWarmBootState(
       const folly::dynamic& hwWarmBootState);
   void populateTeFlowFromWarmBootState(const folly::dynamic& hwWarmBootState);
+  void populateUdfFromWarmBootState(const folly::dynamic& hwWarmBootState);
+  void populateUdfGroupFromWarmBootState(const folly::dynamic& udfGroup);
+  void populateUdfPacketMatcherFromWarmBootState(
+      const folly::dynamic& udfPacketMatcher);
 
   // No copy or assignment.
   BcmWarmBootCache(const BcmWarmBootCache&) = delete;
@@ -840,6 +852,8 @@ class BcmWarmBootCache {
   std::unique_ptr<BcmWarmBootState> bcmWarmBootState_;
   QosMapKey2QosMapId qosMapKey2QosMapId_;
   QosMapId2QosMap qosMapId2QosMap_;
+  UdfGroupNameToInfoMap udfGroupNameToInfoMap_;
+  UdfPktMatcherNameToInfoMap udfPktMatcherNameToInfoMap_;
 
   cfg::L2LearningMode l2LearningMode_;
   std::optional<bool> ptpTcEnabled_;

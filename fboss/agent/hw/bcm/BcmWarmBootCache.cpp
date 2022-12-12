@@ -44,6 +44,7 @@
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmTrunkTable.h"
 #include "fboss/agent/hw/bcm/BcmTypes.h"
+#include "fboss/agent/hw/bcm/BcmUdfManager.h"
 #include "fboss/agent/hw/bcm/BcmWarmBootHelper.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/ArpTable.h"
@@ -442,6 +443,62 @@ void BcmWarmBootCache::populateTeFlowFromWarmBootState(
   }
 }
 
+void BcmWarmBootCache::populateUdfGroupFromWarmBootState(
+    const folly::dynamic& udfGroup) {
+  for (const auto& name : udfGroup.keys()) {
+    const auto udfGroupId = udfGroup[name].asInt();
+    /* get udf info */
+    bcm_udf_t udfInfo;
+    bcm_udf_t_init(&udfInfo);
+    auto rv = bcm_udf_get(hw_->getUnit(), udfGroupId, &udfInfo);
+    bcmCheckError(rv, "Unable to get udfInfo for udfGroupId: ", udfGroupId);
+    XLOG(DBG2) << "udfGroupId=" << udfGroupId
+               << " udfInfo layer=" << udfInfo.layer
+               << " start=" << udfInfo.start << " width=" << udfInfo.width;
+    UdfGroupInfoPair udfGroupInfoPair = {udfGroupId, udfInfo};
+    udfGroupNameToInfoMap_.insert({name.asString(), udfGroupInfoPair});
+  }
+}
+
+void BcmWarmBootCache::populateUdfPacketMatcherFromWarmBootState(
+    const folly::dynamic& udfPacketMatcher) {
+  for (const auto& name : udfPacketMatcher.keys()) {
+    const auto udfPacketMatcherId = udfPacketMatcher[name].asInt();
+    /* get udf pkt info */
+    bcm_udf_pkt_format_info_t pktFormat;
+    bcm_udf_pkt_format_info_t_init(&pktFormat);
+    auto rv = bcm_udf_pkt_format_info_get(
+        hw_->getUnit(), udfPacketMatcherId, &pktFormat);
+    bcmCheckError(
+        rv,
+        "Unable to get pkt_format for udfPacketMatcherId: ",
+        udfPacketMatcherId);
+    XLOG(DBG2) << "udfPacketMatcherId=" << udfPacketMatcherId
+               << " pkt_format l2=" << pktFormat.l2
+               << " vlan_tag=" << pktFormat.vlan_tag
+               << " ip_protocol=" << pktFormat.ip_protocol
+               << " ip_protocol_mask=" << pktFormat.ip_protocol_mask
+               << " outer_ip=" << pktFormat.outer_ip
+               << " inner_ip=" << pktFormat.inner_ip
+               << " tunnel=" << pktFormat.tunnel;
+    UdfPktMatcherInfoPair udfPacketMatcherInfoPair = {
+        udfPacketMatcherId, pktFormat};
+    udfPktMatcherNameToInfoMap_.insert(
+        {name.asString(), udfPacketMatcherInfoPair});
+  }
+}
+
+void BcmWarmBootCache::populateUdfFromWarmBootState(
+    const folly::dynamic& hwWarmBootState) {
+  if (hwWarmBootState.find(kUdf) != hwWarmBootState.items().end()) {
+    const auto& udfDyanmic = hwWarmBootState[kUdf];
+    const auto& udfGroup = udfDyanmic[kUdfGroups];
+    populateUdfGroupFromWarmBootState(udfGroup);
+    const auto& udfPacketMatcher = udfDyanmic[kUdfPacketMatchers];
+    populateUdfPacketMatcherFromWarmBootState(udfPacketMatcher);
+  }
+}
+
 void BcmWarmBootCache::populateFromWarmBootState(
     const folly::dynamic& warmBootState,
     std::optional<state::WarmbootState> thriftState) {
@@ -488,6 +545,8 @@ void BcmWarmBootCache::populateFromWarmBootState(
   populateQosPolicyFromWarmBootState(hwWarmBootState);
 
   populateTeFlowFromWarmBootState(hwWarmBootState);
+
+  populateUdfFromWarmBootState(hwWarmBootState);
 }
 
 BcmWarmBootCache::EgressId2EgressCitr BcmWarmBootCache::findEgressFromHost(
