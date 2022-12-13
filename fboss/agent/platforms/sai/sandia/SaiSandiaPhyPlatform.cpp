@@ -25,52 +25,49 @@ const std::string& SaiSandiaPhyPlatform::getFirmwareDirectory() {
 namespace {
 // SAI profile values for warm-boot and initial config
 std::unordered_map<std::string, std::string> kSaiProfileValues;
-static auto constexpr kSaiBootType = "SAI_KEY_BOOT_TYPE";
-static auto constexpr kSaiConfigFile = "SAI_KEY_INIT_CONFIG_FILE";
-
-const std::array<std::string, 8> kPhyConfigProfiles = {
-    SaiSandiaPhyPlatform::getFirmwareDirectory() + "dummy.xml",
-    SaiSandiaPhyPlatform::getFirmwareDirectory() + "dummy.xml",
-    SaiSandiaPhyPlatform::getFirmwareDirectory() + "dummy.xml",
-    SaiSandiaPhyPlatform::getFirmwareDirectory() + "dummy.xml",
-    SaiSandiaPhyPlatform::getFirmwareDirectory() + "dummy.xml",
-    SaiSandiaPhyPlatform::getFirmwareDirectory() + "dummy.xml",
-    SaiSandiaPhyPlatform::getFirmwareDirectory() + "dummy.xml",
-    SaiSandiaPhyPlatform::getFirmwareDirectory() + "dummy.xml"};
 
 /*
  * saiProfileGetValue
  *
  * This function returns some key values to the SAI while doing
  * sai_api_initialize.
- * For SAI_KEY_BOOT_TYPE, currently we only return the cold boot type.
- * For SAI_KEY_INIT_CONFIG_FILE, the profile id tells SAI which default
- * configuration to pick up for the Phy.
+ *  SAI_KEY_BOOT_TYPE - Return warm(1) or cold(0) depending on warm-boot helper
+ *    file presence logic
+ *  SAI_KEY_INIT_CONFIG_FILE - Hw config dump file location
+ *  SAI_KEY_WARM_BOOT_READ_FILE - Warm boot state read file (accessed on init)
+ *  SAI_KEY_WARM_BOOT_WRITE_FILE - Warm boot state write file (accessed during
+ *    graceful exit)
  */
-const char* FOLLY_NULLABLE
-saiProfileGetValue(sai_switch_profile_id_t profileId, const char* variable) {
-  if (strcmp(variable, kSaiBootType) == 0) {
-    // TODO(rajank) Support warmboot
-    return "cold";
-  } else if (strcmp(variable, kSaiConfigFile) == 0) {
-    if (profileId >= 0 && profileId <= 7) {
-      return kPhyConfigProfiles[profileId].c_str();
-    }
-  }
-  return nullptr;
+const char* FOLLY_NULLABLE saiProfileGetValue(
+    sai_switch_profile_id_t /* profileId */,
+    const char* variable) {
+  auto saiProfileValItr = kSaiProfileValues.find(variable);
+  return saiProfileValItr != kSaiProfileValues.end()
+      ? saiProfileValItr->second.c_str()
+      : nullptr;
 }
 
 /*
  * saiProfileGetNextValue
  *
- * This function lets SAI pick up next value for a given key. Currently this
- * returns null
+ * This function lets SAI pick up next value for a given key
  */
 int saiProfileGetNextValue(
     sai_switch_profile_id_t /* profile_id */,
-    const char** /* variable */,
-    const char** /* value */) {
-  return -1;
+    const char** variable,
+    const char** value) {
+  static auto saiProfileValItr = kSaiProfileValues.begin();
+  if (!value) {
+    saiProfileValItr = kSaiProfileValues.begin();
+    return 0;
+  }
+  if (saiProfileValItr == kSaiProfileValues.end()) {
+    return -1;
+  }
+  *variable = saiProfileValItr->first.c_str();
+  *value = saiProfileValItr->second.c_str();
+  ++saiProfileValItr;
+  return 0;
 }
 
 sai_service_method_table_t kSaiServiceMethodTable = {
