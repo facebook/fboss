@@ -56,6 +56,15 @@ void BcmUdfManager::deleteUdfPacketMatcher(
     const std::string& udfPacketMatcherName) {
   auto bcmUdfPacketMatcher = udfPacketMatcherMap_.find(udfPacketMatcherName);
   if (bcmUdfPacketMatcher != udfPacketMatcherMap_.end()) {
+    auto warmBootCache = hw_->getWarmBootCache();
+    auto udfPacketMatcherInfoItr =
+        warmBootCache->findUdfPktMatcherInfo(udfPacketMatcherName);
+    if (udfPacketMatcherInfoItr !=
+        warmBootCache->UdfPktMatcherNameToInfoMapEnd()) {
+      warmBootCache->programmed(udfPacketMatcherInfoItr);
+      XLOG(DBG2) << "UdfPacketMatcher: " << udfPacketMatcherName
+                 << " removed from WarmBootCache";
+    }
     bcmUdfPacketMatcher->second.reset();
 
   } else {

@@ -719,7 +719,8 @@ class BcmWarmBootCache {
     return udfGroupNameToInfoMap_.find(name);
   }
 
-  UdfPktMatcherNameToInfoMapItr findUdfPktMatcherInfo(std::string& name) const {
+  UdfPktMatcherNameToInfoMapItr findUdfPktMatcherInfo(
+      const std::string& name) const {
     return udfPktMatcherNameToInfoMap_.find(name);
   }
 
