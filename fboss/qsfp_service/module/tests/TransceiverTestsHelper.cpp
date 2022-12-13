@@ -123,26 +123,15 @@ void TransceiverTestsHelper::verifyLaneSignals(
   verifyMediaLaneSignals(expectedSignals, numMediaLanes);
 }
 
-// TODO(ccpowers): delete tx signals from here once we stop populating them
 void TransceiverTestsHelper::verifyMediaLaneSignals(
     std::map<std::string, std::vector<bool>>& expectedMediaSignals,
     int lanes) {
   EXPECT_EQ(lanes, info_.mediaLaneSignals().value_or({}).size());
   for (auto& signal : info_.mediaLaneSignals().value_or({})) {
-    if (expectedMediaSignals.find("Tx_Los") != expectedMediaSignals.end()) {
-      EXPECT_EQ(
-          expectedMediaSignals["Tx_Los"][*signal.lane()],
-          signal.txLos().value_or({}));
-    }
     if (expectedMediaSignals.find("Rx_Los") != expectedMediaSignals.end()) {
       EXPECT_EQ(
           expectedMediaSignals["Rx_Los"][*signal.lane()],
           signal.rxLos().value_or({}));
-    }
-    if (expectedMediaSignals.find("Tx_Lol") != expectedMediaSignals.end()) {
-      EXPECT_EQ(
-          expectedMediaSignals["Tx_Lol"][*signal.lane()],
-          signal.txLol().value_or({}));
     }
     if (expectedMediaSignals.find("Rx_Lol") != expectedMediaSignals.end()) {
       EXPECT_EQ(
@@ -153,12 +142,6 @@ void TransceiverTestsHelper::verifyMediaLaneSignals(
       EXPECT_EQ(
           expectedMediaSignals["Tx_Fault"][*signal.lane()],
           signal.txFault().value_or({}));
-    }
-    if (expectedMediaSignals.find("Tx_AdaptFault") !=
-        expectedMediaSignals.end()) {
-      EXPECT_EQ(
-          expectedMediaSignals["Tx_AdaptFault"][*signal.lane()],
-          signal.txAdaptEqFault().value_or({}));
     }
   }
 }
