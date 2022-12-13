@@ -201,6 +201,12 @@ class BcmWarmBootCache {
   using UdfGroupNameToInfoMap = std::map<std::string, UdfGroupInfoPair>;
   using UdfGroupNameToInfoMapItr =
       typename UdfGroupNameToInfoMap::const_iterator;
+  using UdfGroupPacketMatcherMap =
+      std::map<std::string, bcm_udf_pkt_format_id_t>;
+  using UdfGroupNameToPacketMatcherMap =
+      std::map<std::string, UdfGroupPacketMatcherMap>;
+  using UdfGroupNameToPacketMatcherMapItr =
+      typename UdfGroupNameToPacketMatcherMap::const_iterator;
   using UdfPktMatcherInfoPair =
       std::pair<bcm_udf_pkt_format_id_t, bcm_udf_pkt_format_info_t>;
   using UdfPktMatcherNameToInfoMap =
@@ -719,6 +725,11 @@ class BcmWarmBootCache {
     return udfGroupNameToInfoMap_.find(name);
   }
 
+  UdfGroupNameToPacketMatcherMapItr findUdfGroupPacketMatcher(
+      const std::string& name) const {
+    return udfGroupNameToPacketMatcherMap_.find(name);
+  }
+
   UdfPktMatcherNameToInfoMapItr findUdfPktMatcherInfo(
       const std::string& name) const {
     return udfPktMatcherNameToInfoMap_.find(name);
@@ -728,12 +739,20 @@ class BcmWarmBootCache {
     return udfGroupNameToInfoMap_.end();
   }
 
+  UdfGroupNameToPacketMatcherMapItr UdfGroupNameToPacketMatcherMapEnd() {
+    return udfGroupNameToPacketMatcherMap_.end();
+  }
+
   UdfPktMatcherNameToInfoMapItr UdfPktMatcherNameToInfoMapEnd() {
     return udfPktMatcherNameToInfoMap_.end();
   }
 
   void programmed(UdfGroupNameToInfoMapItr itr) {
     udfGroupNameToInfoMap_.erase(itr);
+  }
+
+  void programmed(UdfGroupNameToPacketMatcherMapItr itr) {
+    udfGroupNameToPacketMatcherMap_.erase(itr);
   }
 
   void programmed(UdfPktMatcherNameToInfoMapItr itr) {
@@ -882,6 +901,7 @@ class BcmWarmBootCache {
   QosMapKey2QosMapId qosMapKey2QosMapId_;
   QosMapId2QosMap qosMapId2QosMap_;
   UdfGroupNameToInfoMap udfGroupNameToInfoMap_;
+  UdfGroupNameToPacketMatcherMap udfGroupNameToPacketMatcherMap_;
   UdfPktMatcherNameToInfoMap udfPktMatcherNameToInfoMap_;
 
   cfg::L2LearningMode l2LearningMode_;
