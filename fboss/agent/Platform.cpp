@@ -135,6 +135,10 @@ void Platform::init(
     uint32_t hwFeaturesDesired) {
   // take ownership of the config if passed in
   config_ = std::move(config);
+  // Override local mac from config if set
+  if (auto macStr = getPlatformAttribute(cfg::PlatformAttributes::MAC)) {
+    localMac_ = folly::MacAddress(*macStr);
+  }
   const auto switchSettings = *config_->thrift.sw()->switchSettings();
   std::optional<int64_t> switchId;
   if (switchSettings.switchId().has_value()) {
