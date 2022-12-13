@@ -831,6 +831,10 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
         attr->value.booldata = port.linkTrainingEnable;
         break;
+      case SAI_PORT_ATTR_FABRIC_REACHABILITY:
+        attr->value.reachability.switch_id = 0;
+        attr->value.reachability.reachable = false;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
