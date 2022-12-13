@@ -1390,6 +1390,7 @@ void TransceiverManager::setWarmBootState() {
   steady_clock::time_point begin = steady_clock::now();
   if (phyManager_) {
     qsfpServiceState[kPhyStateKey] = phyManager_->getWarmbootState();
+    phyManager_->gracefulExit();
   }
 
   folly::dynamic agentConfigAppliedWbState = folly::dynamic::object;

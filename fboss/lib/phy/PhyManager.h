@@ -235,6 +235,8 @@ class PhyManager {
       phy::PortComponent /* component */,
       bool /* setAdminUp */) {}
 
+  virtual void gracefulExit() {}
+
  protected:
   struct PortCacheInfo {
     // PhyManager is in the middle of changing its apis to accept PortID instead
