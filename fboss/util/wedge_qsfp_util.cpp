@@ -1323,6 +1323,24 @@ void printHostLaneSignals(const std::vector<HostLaneSignals>& signals) {
   printLaneLine("  Host Lane Signals: ", numLanes);
   // Assumption: If a signal is valid for first lane, it is also valid for
   // other lanes.
+  if (signals[0].txLos()) {
+    printf("\n    %-22s", "Tx LOS");
+    for (const auto& signal : signals) {
+      printf(" %-12d", *(signal.txLos()));
+    }
+  }
+  if (signals[0].txLol()) {
+    printf("\n    %-22s", "Tx LOL");
+    for (const auto& signal : signals) {
+      printf(" %-12d", *(signal.txLol()));
+    }
+  }
+  if (signals[0].txAdaptEqFault()) {
+    printf("\n    %-22s", "Tx Adaptive Eq Fault");
+    for (const auto& signal : signals) {
+      printf(" %-12d", *(signal.txAdaptEqFault()));
+    }
+  }
   if (signals[0].dataPathDeInit()) {
     printf("\n    %-22s", "Datapath de-init");
     for (const auto& signal : signals) {
@@ -1341,7 +1359,9 @@ void printHostLaneSignals(const std::vector<HostLaneSignals>& signals) {
   printf("\n");
 }
 
-void printMediaLaneSignals(const std::vector<MediaLaneSignals>& signals) {
+void printMediaLaneSignals(
+    const std::vector<MediaLaneSignals>& signals,
+    bool printTxFlags) {
   unsigned int numLanes = signals.size();
   if (numLanes == 0) {
     return;
@@ -1349,16 +1369,26 @@ void printMediaLaneSignals(const std::vector<MediaLaneSignals>& signals) {
   printLaneLine("  Media Lane Signals: ", numLanes);
   // Assumption: If a signal is valid for first lane, it is also valid for
   // other lanes.
-  if (signals[0].txLos()) {
-    printf("\n    %-22s", "Tx LOS");
-    for (const auto& signal : signals) {
-      printf(" %-12d", *(signal.txLos()));
+  // TODO(ccpowers): Can delete this check once we remove tx flags from
+  // the media signals
+  if (printTxFlags) {
+    if (signals[0].txLos()) {
+      printf("\n    %-22s", "Tx LOS");
+      for (const auto& signal : signals) {
+        printf(" %-12d", *(signal.txLos()));
+      }
     }
-  }
-  if (signals[0].txLol()) {
-    printf("\n    %-22s", "Tx LOL");
-    for (const auto& signal : signals) {
-      printf(" %-12d", *(signal.txLol()));
+    if (signals[0].txLol()) {
+      printf("\n    %-22s", "Tx LOL");
+      for (const auto& signal : signals) {
+        printf(" %-12d", *(signal.txLol()));
+      }
+    }
+    if (signals[0].txAdaptEqFault()) {
+      printf("\n    %-22s", "Tx Adaptive Eq Fault");
+      for (const auto& signal : signals) {
+        printf(" %-12d", *(signal.txAdaptEqFault()));
+      }
     }
   }
   if (signals[0].rxLos()) {
@@ -1377,12 +1407,6 @@ void printMediaLaneSignals(const std::vector<MediaLaneSignals>& signals) {
     printf("\n    %-22s", "Tx Fault");
     for (const auto& signal : signals) {
       printf(" %-12d", *(signal.txFault()));
-    }
-  }
-  if (signals[0].txAdaptEqFault()) {
-    printf("\n    %-22s", "Tx Adaptive Eq Fault");
-    for (const auto& signal : signals) {
-      printf(" %-12d", *(signal.txAdaptEqFault()));
     }
   }
   printf("\n");
@@ -1630,11 +1654,16 @@ void printDomMonitors(const TransceiverInfo& transceiverInfo) {
 
 void printSignalsAndSettings(const TransceiverInfo& transceiverInfo) {
   auto settings = *(transceiverInfo.settings());
+  // TODO(ccpowers): This is to support tx signals in both hostSignals (new)
+  // and mediaSignals(deprecated). Once more of the fleet has the new flags,
+  // we should remove support for the tx flags in mediaLaneSignals
+  auto hasNewTxFlags = false;
   if (auto hostSignals = transceiverInfo.hostLaneSignals()) {
     printHostLaneSignals(*hostSignals);
+    hasNewTxFlags = hostSignals->size() > 0 && hostSignals->begin()->txLos();
   }
   if (auto mediaSignals = transceiverInfo.mediaLaneSignals()) {
-    printMediaLaneSignals(*mediaSignals);
+    printMediaLaneSignals(*mediaSignals, !hasNewTxFlags);
   }
   if (auto hostSettings = settings.hostLaneSettings()) {
     printHostLaneSettings(*hostSettings);
