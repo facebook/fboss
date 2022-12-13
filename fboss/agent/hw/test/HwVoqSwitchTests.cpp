@@ -39,12 +39,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     return cfg;
   }
   void SetUp() override {
-    // EBRO asic requires cpu originated packet to match the
-    // Switch MAC used during switch create. Unless we override
-    // this flag, switch mac will get derived from eth0 mac while
-    // intf MAC, will come from kLocalCpuMac. Unify these
-    // TODO: Unify these for all HW tests
-    FLAGS_mac = utility::kLocalCpuMac().toString();
     HwLinkStateDependentTest::SetUp();
     ASSERT_EQ(getHwSwitch()->getSwitchType(), cfg::SwitchType::VOQ);
     ASSERT_TRUE(getHwSwitch()->getSwitchId().has_value());

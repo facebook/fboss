@@ -137,6 +137,7 @@ void Platform::init(
   config_ = std::move(config);
   // Override local mac from config if set
   if (auto macStr = getPlatformAttribute(cfg::PlatformAttributes::MAC)) {
+    XLOG(DBG2) << " Setting platform mac to: " << macStr.value();
     localMac_ = folly::MacAddress(*macStr);
   }
   const auto switchSettings = *config_->thrift.sw()->switchSettings();
