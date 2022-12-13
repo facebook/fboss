@@ -16,6 +16,7 @@ include "fboss/qsfp_service/if/transceiver.thrift"
 
 enum PlatformAttributes {
   CONNECTION_HANDLE = 1,
+  MAC = 2,
 }
 
 union ChipConfig {
