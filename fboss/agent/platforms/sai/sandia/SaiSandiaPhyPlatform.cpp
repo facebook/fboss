@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/platforms/sai/sandia/SaiSandiaPhyPlatform.h"
+#include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/MarvelPhyAsic.h"
 #include "fboss/agent/platforms/common/MultiPimPlatformMapping.h"
@@ -22,6 +23,8 @@ const std::string& SaiSandiaPhyPlatform::getFirmwareDirectory() {
 }
 
 namespace {
+// SAI profile values for warm-boot and initial config
+std::unordered_map<std::string, std::string> kSaiProfileValues;
 static auto constexpr kSaiBootType = "SAI_KEY_BOOT_TYPE";
 static auto constexpr kSaiConfigFile = "SAI_KEY_INIT_CONFIG_FILE";
 
@@ -202,7 +205,20 @@ void SaiSandiaPhyPlatform::preHwInitialized() {
       getServiceMethodTable(), getSupportedApiList());
 }
 
+void SaiSandiaPhyPlatform::initSandiaSaiProfileValues() {
+  kSaiProfileValues.insert(
+      std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
+  kSaiProfileValues.insert(std::make_pair(
+      SAI_KEY_WARM_BOOT_READ_FILE, getWarmBootHelper()->warmBootDataPath()));
+  kSaiProfileValues.insert(std::make_pair(
+      SAI_KEY_WARM_BOOT_WRITE_FILE, getWarmBootHelper()->warmBootDataPath()));
+  kSaiProfileValues.insert(std::make_pair(
+      SAI_KEY_BOOT_TYPE, getWarmBootHelper()->canWarmBoot() ? "1" : "0"));
+  kSaiProfileValues.insert(std::make_pair(SAI_KEY_BOOT_TYPE, "0"));
+}
+
 void SaiSandiaPhyPlatform::initImpl(uint32_t hwFeaturesDesired) {
+  initSandiaSaiProfileValues();
   saiSwitch_ = std::make_unique<SaiSwitch>(this, hwFeaturesDesired);
 }
 } // namespace facebook::fboss

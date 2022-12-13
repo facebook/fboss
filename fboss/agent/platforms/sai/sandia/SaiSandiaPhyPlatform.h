@@ -74,5 +74,6 @@ class SaiSandiaPhyPlatform : public SaiHwPlatform {
   std::optional<SaiSwitchTraits::CreateAttributes> switchCreateAttrs_;
 
   void initImpl(uint32_t hwFeaturesDesired) override;
+  void initSandiaSaiProfileValues();
 };
 } // namespace facebook::fboss
