@@ -79,11 +79,22 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
   std::string kDscpAclCounterName() const {
     return "dscp_acl_counter";
   }
+  std::vector<cfg::CounterType> kCounterTypes() const {
+    // At times, it is non-trivial for SAI implementations to support enabling
+    // bytes counters only or packet counters only. In such cases, SAI
+    // implementations enable bytes as well as packet counters even if only one
+    // of the two is enabled. FBOSS use case does not require enabling only
+    // one, but always enables both packets and bytes counters. Thus, enable
+    // both in the test.
+    // Reference: CS00012271364
+    return {cfg::CounterType::BYTES, cfg::CounterType::PACKETS};
+  }
   void addDscpAclWithCounter() {
     auto newCfg = initialConfig();
     auto* acl = utility::addAcl(&newCfg, kDscpAclName());
     acl->dscp() = 0x24;
-    utility::addAclStat(&newCfg, kDscpAclName(), kDscpAclCounterName());
+    utility::addAclStat(
+        &newCfg, kDscpAclName(), kDscpAclCounterName(), kCounterTypes());
     applyNewConfig(newCfg);
   }
   void addRemoteSysPort(SystemPortID portId) {
@@ -508,12 +519,13 @@ TEST_F(HwVoqSwitchTest, AclCounter) {
   auto verify = [=]() {
     // Needs CS00012270647 (support SAI_ACL_COUNTER_ATTR_LABEL) to PASS
     utility::checkAclEntryAndStatCount(
-        getHwSwitch(), /*ACLs*/ 1, /*stats*/ 1, /*counters*/ 1);
+        getHwSwitch(), /*ACLs*/ 1, /*stats*/ 1, /*counters*/ 2);
     utility::checkAclStat(
         getHwSwitch(),
         getProgrammedState(),
         {kDscpAclName()},
-        kDscpAclCounterName());
+        kDscpAclCounterName(),
+        kCounterTypes());
   };
 
   verifyAcrossWarmBoots(setup, verify);
