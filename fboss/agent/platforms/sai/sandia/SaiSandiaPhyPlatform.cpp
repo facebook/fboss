@@ -24,7 +24,9 @@ const std::string& SaiSandiaPhyPlatform::getFirmwareDirectory() {
 
 namespace {
 // SAI profile values for warm-boot and initial config
-std::unordered_map<std::string, std::string> kSaiProfileValues;
+// The map key includes profile Id (representing XPHY switch) and the key
+// string
+std::map<std::string, std::string> kSaiProfileValues;
 
 /*
  * saiProfileGetValue
@@ -38,10 +40,11 @@ std::unordered_map<std::string, std::string> kSaiProfileValues;
  *  SAI_KEY_WARM_BOOT_WRITE_FILE - Warm boot state write file (accessed during
  *    graceful exit)
  */
-const char* FOLLY_NULLABLE saiProfileGetValue(
-    sai_switch_profile_id_t /* profileId */,
-    const char* variable) {
-  auto saiProfileValItr = kSaiProfileValues.find(variable);
+const char* FOLLY_NULLABLE
+saiProfileGetValue(sai_switch_profile_id_t profileId, const char* variable) {
+  std::string profileMapKey =
+      folly::sformat("XPHY{:d}_{:s}", profileId, variable);
+  auto saiProfileValItr = kSaiProfileValues.find(profileMapKey);
   return saiProfileValItr != kSaiProfileValues.end()
       ? saiProfileValItr->second.c_str()
       : nullptr;
@@ -203,15 +206,25 @@ void SaiSandiaPhyPlatform::preHwInitialized() {
 }
 
 void SaiSandiaPhyPlatform::initSandiaSaiProfileValues() {
-  kSaiProfileValues.insert(
-      std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
   kSaiProfileValues.insert(std::make_pair(
-      SAI_KEY_WARM_BOOT_READ_FILE, getWarmBootHelper()->warmBootDataPath()));
+      folly::sformat("XPHY{:d}_{:s}", phyId_, SAI_KEY_INIT_CONFIG_FILE),
+      getHwConfigDumpFile()));
   kSaiProfileValues.insert(std::make_pair(
-      SAI_KEY_WARM_BOOT_WRITE_FILE, getWarmBootHelper()->warmBootDataPath()));
+      folly::sformat("XPHY{:d}_{:s}", phyId_, SAI_KEY_WARM_BOOT_READ_FILE),
+      getWarmBootHelper()->warmBootDataPath()));
   kSaiProfileValues.insert(std::make_pair(
-      SAI_KEY_BOOT_TYPE, getWarmBootHelper()->canWarmBoot() ? "1" : "0"));
-  kSaiProfileValues.insert(std::make_pair(SAI_KEY_BOOT_TYPE, "0"));
+      folly::sformat("XPHY{:d}_{:s}", phyId_, SAI_KEY_WARM_BOOT_WRITE_FILE),
+      getWarmBootHelper()->warmBootDataPath()));
+  kSaiProfileValues.insert(std::make_pair(
+      folly::sformat("XPHY{:d}_{:s}", phyId_, SAI_KEY_BOOT_TYPE),
+      getWarmBootHelper()->canWarmBoot() ? "1" : "0"));
+  kSaiProfileValues.insert(std::make_pair(
+      folly::sformat("XPHY{:d}_{:s}", phyId_, SAI_KEY_BOOT_TYPE), "0"));
+
+  for (auto& profile : kSaiProfileValues) {
+    XLOG(DBG3) << "initSandiaSaiProfileValues: " << profile.first << " = "
+               << profile.second;
+  }
 }
 
 void SaiSandiaPhyPlatform::initImpl(uint32_t hwFeaturesDesired) {
