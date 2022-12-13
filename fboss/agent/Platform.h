@@ -86,6 +86,8 @@ class Platform {
   const AgentConfig* config();
   const AgentConfig* reloadConfig();
   void setConfig(std::unique_ptr<AgentConfig> config);
+  std::optional<std::string> getPlatformAttribute(
+      cfg::PlatformAttributes platformAttribute) const;
 
   const std::map<int32_t, cfg::PlatformPortEntry>& getPlatformPorts() const;
 
@@ -321,7 +323,7 @@ class Platform {
 
   const std::unique_ptr<PlatformProductInfo> productInfo_;
   const std::unique_ptr<PlatformMapping> platformMapping_;
-  const folly::MacAddress localMac_;
+  folly::MacAddress localMac_;
 
   // The map of override version of TransceiverInfo.
   // This is to be used only for HwTests under test environment,

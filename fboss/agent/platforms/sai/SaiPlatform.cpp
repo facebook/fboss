@@ -268,21 +268,6 @@ PlatformPort* SaiPlatform::getPlatformPort(PortID port) const {
   return getPort(port);
 }
 
-std::optional<std::string> SaiPlatform::getPlatformAttribute(
-    cfg::PlatformAttributes platformAttribute) {
-  auto& platform = *config()->thrift.platform();
-
-  if (auto platformSettings = platform.platformSettings()) {
-    auto platformIter = platformSettings->find(platformAttribute);
-    if (platformIter == platformSettings->end()) {
-      return std::nullopt;
-    }
-    return platformIter->second;
-  } else {
-    return std::nullopt;
-  }
-}
-
 sai_service_method_table_t* SaiPlatform::getServiceMethodTable() const {
   return &kSaiServiceMethodTable;
 }

@@ -255,4 +255,19 @@ uint32_t Platform::getMMUCellBytes() const {
   throw FbossError("MMU Cell bytes not defined for this platform");
 }
 
+std::optional<std::string> Platform::getPlatformAttribute(
+    cfg::PlatformAttributes platformAttribute) const {
+  const auto& platform = *config_->thrift.platform();
+
+  if (auto platformSettings = platform.platformSettings()) {
+    auto platformIter = platformSettings->find(platformAttribute);
+    if (platformIter == platformSettings->end()) {
+      return std::nullopt;
+    }
+    return platformIter->second;
+  } else {
+    return std::nullopt;
+  }
+}
+
 } // namespace facebook::fboss
