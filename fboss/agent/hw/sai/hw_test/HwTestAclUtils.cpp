@@ -467,6 +467,17 @@ void checkAclEntryAndStatCount(
     if (enableByteCount) {
       counterCountGot++;
     }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+    auto aclCounterNameGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+        AclCounterSaiId(aclCounterIdGot),
+        SaiAclCounterTraits::Attributes::Label());
+    XLOG(DBG2) << "checkAclEntryAndStatCount:: aclCounterNameGot: "
+               << aclCounterNameGot.data();
+#endif
+
+    XLOG(DBG2) << " enablePacketCount: " << enablePacketCount
+               << " enableByteCount: " << enableByteCount;
   }
 
   EXPECT_EQ(aclStatCount, aclStatCountGot);
