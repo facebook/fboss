@@ -1,5 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 #include "fboss/util/CredoMacsecUtil.h"
+#include <folly/FileUtil.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 
 using namespace facebook::fboss;

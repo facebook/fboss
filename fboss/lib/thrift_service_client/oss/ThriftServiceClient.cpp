@@ -12,22 +12,25 @@
 
 namespace facebook::fboss::utils {
 
-std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createWedgeAgentClient(
+std::unique_ptr<apache::thrift::Client<facebook::fboss::FbossCtrl>>
+createWedgeAgentClient(
     std::optional<folly::IPAddress> ip,
     std::optional<int> port,
     folly::EventBase* eb) {
-  return createPlaintextClient<facebook::fboss::FbossCtrlAsyncClient>(
+  return createPlaintextClient<
+      apache::thrift::Client<facebook::fboss::FbossCtrl>>(
       ip ? *ip : folly::IPAddress(FLAGS_wedge_agent_host),
       port ? *port : FLAGS_wedge_agent_port,
       eb);
 }
 
-std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient>
+std::unique_ptr<apache::thrift::Client<facebook::fboss::QsfpService>>
 createQsfpServiceClient(
     std::optional<folly::IPAddress> ip,
     std::optional<int> port,
     folly::EventBase* eb) {
-  return createPlaintextClient<facebook::fboss::QsfpServiceAsyncClient>(
+  return createPlaintextClient<
+      apache::thrift::Client<facebook::fboss::QsfpService>>(
       ip ? *ip : folly::IPAddress(FLAGS_qsfp_service_host),
       port ? *port : FLAGS_qsfp_service_port,
       eb);

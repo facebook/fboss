@@ -27,16 +27,8 @@
 // Coroutine BlockWait headerfile
 #include <folly/experimental/coro/BlockingWait.h>
 
-// Includes for using raw thriftclient
-#include <folly/SocketAddress.h>
-#include <folly/Subprocess.h>
-#include <folly/futures/Future.h>
-#include <folly/io/async/AsyncSSLSocket.h>
 #include <folly/io/async/EventBase.h>
-#include <folly/io/async/SSLContext.h>
 #include <folly/system/Shell.h>
-#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
-#include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/platform/fan_service/HelperFunction.h"
 
 #include "fboss/fsdb/client/FsdbPubSubManager.h"

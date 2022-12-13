@@ -1,10 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/util/test/CredoMacsecUtilTest.h"
+#include <folly/FileUtil.h>
 #include <folly/Singleton.h>
-#include <folly/logging/xlog.h>
-#include <filesystem>
-#include <fstream>
 #include "common/init/Init.h"
 #include "fboss/util/CredoMacsecUtil.h"
 

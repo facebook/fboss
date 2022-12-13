@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
-#include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_clients.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
 
 #include <folly/IPAddress.h>
 #include <folly/io/async/EventBase.h>
@@ -34,12 +34,13 @@ std::unique_ptr<Client> createPlaintextClient(
     const int port,
     folly::EventBase* eb = nullptr);
 
-std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient> createWedgeAgentClient(
+std::unique_ptr<apache::thrift::Client<facebook::fboss::FbossCtrl>>
+createWedgeAgentClient(
     std::optional<folly::IPAddress> ip = std::nullopt,
     std::optional<int> port = std::nullopt,
     folly::EventBase* eb = nullptr);
 
-std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient>
+std::unique_ptr<apache::thrift::Client<facebook::fboss::QsfpService>>
 createQsfpServiceClient(
     std::optional<folly::IPAddress> ip = std::nullopt,
     std::optional<int> port = std::nullopt,

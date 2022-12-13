@@ -2,7 +2,7 @@
 
 #include "fboss/platform/fan_service/hw_test/integration_tests/FanSensorFsdbIntegrationTests.h"
 
-#include <thrift/lib/cpp2/async/RocketClientChannel.h>
+#include <folly/Subprocess.h>
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/platform/fan_service/HelperFunction.h"
 #include "fboss/platform/helpers/Init.h"

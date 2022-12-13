@@ -13,13 +13,11 @@
 #include <memory>
 #include <vector>
 
-#include <folly/SocketAddress.h>
 #include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
-#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
-#include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
 
 namespace facebook {
 namespace fboss {
@@ -36,8 +34,8 @@ class QsfpClient {
   QsfpClient() {}
   ~QsfpClient() {}
 
-  static folly::Future<std::unique_ptr<QsfpServiceAsyncClient>> createClient(
-      folly::EventBase* eb);
+  static folly::Future<std::unique_ptr<apache::thrift::Client<QsfpService>>>
+  createClient(folly::EventBase* eb);
 
   static apache::thrift::RpcOptions getRpcOptions();
 };

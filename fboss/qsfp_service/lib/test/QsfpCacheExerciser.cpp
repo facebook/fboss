@@ -1,7 +1,7 @@
 #include <chrono>
 #include <iostream>
 
-#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_clients.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
@@ -28,12 +28,12 @@ namespace {
 // be really useful
 using namespace apache::thrift;
 
-std::unique_ptr<FbossCtrlAsyncClient> fbossAgentClient() {
+std::unique_ptr<apache::thrift::Client<FbossCtrl>> fbossAgentClient() {
   folly::EventBase* eb = folly::EventBaseManager::get()->getEventBase();
   folly::SocketAddress agent(FLAGS_qsfp_service_host, 5909);
   auto socket = folly::AsyncSocket::newSocket(eb, agent);
   auto chan = HeaderClientChannel::newChannel(std::move(socket));
-  return std::make_unique<FbossCtrlAsyncClient>(std::move(chan));
+  return std::make_unique<apache::thrift::Client<FbossCtrl>>(std::move(chan));
 }
 
 } // namespace

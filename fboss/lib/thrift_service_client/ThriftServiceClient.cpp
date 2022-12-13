@@ -35,13 +35,13 @@ std::unique_ptr<Client> createPlaintextClient(
   return std::make_unique<Client>(std::move(channel));
 }
 
-template std::unique_ptr<facebook::fboss::FbossCtrlAsyncClient>
+template std::unique_ptr<apache::thrift::Client<facebook::fboss::FbossCtrl>>
 createPlaintextClient(
     const folly::IPAddress& ip,
     const int port,
     folly::EventBase* eb);
 
-template std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient>
+template std::unique_ptr<apache::thrift::Client<facebook::fboss::QsfpService>>
 createPlaintextClient(
     const folly::IPAddress& ip,
     const int port,
