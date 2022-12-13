@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmUdfGroup.h"
+#include "fboss/agent/hw/bcm/BcmWarmBootCache.h"
 
 namespace facebook::fboss {
 // createUdfPacketMatcher
@@ -88,6 +89,14 @@ void BcmUdfManager::deleteUdfGroup(const std::shared_ptr<UdfGroup>& udfGroup) {
 
   auto bcmUdfGroup = udfGroupsMap_.find(udfGroupName);
   if (bcmUdfGroup != udfGroupsMap_.end()) {
+    auto warmBootCache = hw_->getWarmBootCache();
+    auto udfInfoItr = warmBootCache->findUdfGroupInfo(udfGroupName);
+    if (udfInfoItr != warmBootCache->UdfGroupNameToInfoMapEnd()) {
+      warmBootCache->programmed(udfInfoItr);
+      XLOG(DBG2) << "UdfGroup: " << udfGroupName
+                 << " removed from warmBootCache ";
+    }
+
     for (auto udfPacketMatcherName : udfGroup->getUdfPacketMatcherIds()) {
       detachUdfPacketMatcher(bcmUdfGroup->second, udfPacketMatcherName);
       XLOG(DBG2) << "udfGroup=" << udfGroupName
