@@ -446,7 +446,7 @@ void BcmWarmBootCache::populateTeFlowFromWarmBootState(
 void BcmWarmBootCache::populateUdfGroupFromWarmBootState(
     const folly::dynamic& udfGroup) {
   for (const auto& name : udfGroup.keys()) {
-    const auto udfGroupId = udfGroup[name][0].asInt();
+    const auto udfGroupId = udfGroup[name][kUdfGroupIds].asInt();
     /* get udf info */
     bcm_udf_t udfInfo;
     bcm_udf_t_init(&udfInfo);
@@ -455,13 +455,16 @@ void BcmWarmBootCache::populateUdfGroupFromWarmBootState(
     XLOG(DBG1) << "udfGroupId=" << udfGroupId
                << " udfInfo layer=" << udfInfo.layer
                << " start=" << udfInfo.start << " width=" << udfInfo.width;
-    for (const auto& id : udfGroup[name][1].keys()) {
-      const auto& packetMatcherId = id.asInt();
-      const auto& packetMatcherName = udfGroup[name][1][id].asString();
+    for (const auto& udfPktMatcherName :
+         udfGroup[name][kUdfGroupPktMatchers].keys()) {
+      const auto& packetMatcherName = udfPktMatcherName.asString();
+      const auto& packetMatcherId =
+          udfGroup[name][kUdfGroupPktMatchers][udfPktMatcherName].asInt();
       UdfGroupPacketMatcherMap udfGroupPacketMatcherMap;
       udfGroupPacketMatcherMap.insert({packetMatcherName, packetMatcherId});
       udfGroupNameToPacketMatcherMap_.insert(
           {name.asString(), udfGroupPacketMatcherMap});
+      XLOG(DBG1) << "Attaching packetMatcher =" << packetMatcherName;
     }
     UdfGroupInfoPair udfGroupInfoPair = {udfGroupId, udfInfo};
     udfGroupNameToInfoMap_.insert({name.asString(), udfGroupInfoPair});

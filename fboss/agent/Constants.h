@@ -66,6 +66,8 @@ inline constexpr folly::StringPiece kAclTableMap{"aclTableMap"};
 inline constexpr folly::StringPiece kAclTableGroups{"aclTableGroups"};
 inline constexpr folly::StringPiece kUdf{"udf"};
 inline constexpr folly::StringPiece kUdfGroups{"udfGroups"};
+inline constexpr folly::StringPiece kUdfGroupIds{"udfGroupIds"};
+inline constexpr folly::StringPiece kUdfGroupPktMatchers{"udfGroupPktMatchers"};
 inline constexpr folly::StringPiece kUdfPacketMatchers{"udfPacketMatchers"};
 
 } // namespace facebook::fboss

@@ -126,7 +126,7 @@ int BcmUdfGroup::udfPacketMatcherDelete(
     bcm_udf_pkt_format_id_t packetMatcherId,
     const std::string& udfPacketMatcherName) {
   int rv = 0;
-  /* AAttach both UDF id  to packet matcher id */
+  /* Detach packet matcher id from Udf Group */
   rv = bcm_udf_pkt_format_delete(hw_->getUnit(), udfId_, packetMatcherId);
   bcmLogFatal(
       rv,

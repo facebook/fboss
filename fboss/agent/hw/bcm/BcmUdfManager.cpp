@@ -76,10 +76,11 @@ void BcmUdfManager::createUdfGroup(const std::shared_ptr<UdfGroup>& udfGroup) {
         bcmUdfGroup->udfPacketMatcherIdsInsert(
             packetMatcher.second, packetMatcher.first);
         XLOG(DBG2)
-            << "Wamboot UdfPacketMatcher cache matches the cfg for UdfGroup"
+            << "Warmboot UdfPacketMatcher cache matches the cfg for UdfGroup"
             << name;
-        return;
       }
+      udfGroupsMap_.insert({udfGroup->getName(), bcmUdfGroup});
+      return;
     }
   }
 

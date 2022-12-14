@@ -288,11 +288,11 @@ folly::dynamic BcmWarmBootState::udfToFollyDynamic() const {
     for (const auto& idToUdfPacketMatcher : udfPacketMatcherMaps) {
       const auto& id = idToUdfPacketMatcher.first;
       const auto& udfPacketMatcherName = idToUdfPacketMatcher.second;
-      udfPacketMatchers[id] = udfPacketMatcherName;
+      udfPacketMatchers[udfPacketMatcherName] = id;
     }
     folly::dynamic udfIdWithPacketMatchers = folly::dynamic::object;
-    udfIdWithPacketMatchers[0] = udfGroupId;
-    udfIdWithPacketMatchers[1] = udfPacketMatchers;
+    udfIdWithPacketMatchers[kUdfGroupIds] = udfGroupId;
+    udfIdWithPacketMatchers[kUdfGroupPktMatchers] = udfPacketMatchers;
     udfGroup[name] = udfIdWithPacketMatchers;
   }
   udfDynamic[kUdfGroups] = udfGroup;
