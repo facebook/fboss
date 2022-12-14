@@ -1079,7 +1079,18 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
 }
 
 std::map<PortID, SwitchID> SaiPortManager::getFabricReachability() const {
-  return {};
+  std::map<PortID, SwitchID> port2AttachedSwitchId;
+  for (const auto& portIdAndHandle : handles_) {
+    if (getPortType(portIdAndHandle.first) != cfg::PortType::FABRIC_PORT) {
+      continue;
+    }
+    auto saiPortId = portIdAndHandle.second->port->adapterKey();
+    auto swId = SaiApiTable::getInstance()->portApi().getAttribute(
+        saiPortId, SaiPortTraits::Attributes::FabricAttachedSwitchId{});
+    port2AttachedSwitchId.insert(
+        {PortID(portIdAndHandle.first), SwitchID(swId)});
+  }
+  return port2AttachedSwitchId;
 }
 
 void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
