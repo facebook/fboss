@@ -90,12 +90,24 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& asic) {
   cfg::DsfNode dsfNode;
   dsfNode.switchId() = *asic.getSwitchId();
   dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
-  dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
-  dsfNode.systemPortRange()->minimum() =
-      100 + *dsfNode.switchId() * kSysPortBlockSize;
-  dsfNode.systemPortRange()->maximum() =
-      *dsfNode.systemPortRange()->minimum() + kSysPortBlockSize;
-  dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
+  switch (asic.getSwitchType()) {
+    case cfg::SwitchType::VOQ:
+      dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
+      break;
+    case cfg::SwitchType::FABRIC:
+      dsfNode.type() = cfg::DsfNodeType::FABRIC_NODE;
+      break;
+    case cfg::SwitchType::NPU:
+    case cfg::SwitchType::PHY:
+      throw FbossError("Unexpected switch type: ", asic.getSwitchType());
+  }
+  if (dsfNode.type() == cfg::DsfNodeType::INTERFACE_NODE) {
+    dsfNode.systemPortRange()->minimum() =
+        100 + *dsfNode.switchId() * kSysPortBlockSize;
+    dsfNode.systemPortRange()->maximum() =
+        *dsfNode.systemPortRange()->minimum() + kSysPortBlockSize;
+    dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
+  }
   dsfNode.asicType() = asic.getAsicType();
   return dsfNode;
 }
