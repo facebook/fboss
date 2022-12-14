@@ -701,6 +701,10 @@ class BcmWarmBootCache {
     return ptpTcEnabled_.has_value() && *ptpTcEnabled_ == enable;
   }
 
+  bool isUdfInitialized() const {
+    return udfEnabled_;
+  }
+
   void ptpTcProgrammed() {
     ptpTcEnabled_ = std::nullopt;
   }
@@ -906,6 +910,7 @@ class BcmWarmBootCache {
 
   cfg::L2LearningMode l2LearningMode_;
   std::optional<bool> ptpTcEnabled_;
+  bool udfEnabled_{false};
 
   RouteCounterIDMap routeCounterIDs_;
   int routeCounterModeId_{-1};

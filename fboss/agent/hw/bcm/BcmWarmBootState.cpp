@@ -296,6 +296,7 @@ folly::dynamic BcmWarmBootState::udfToFollyDynamic() const {
     udfGroup[name] = udfIdWithPacketMatchers;
   }
   udfDynamic[kUdfGroups] = udfGroup;
+  udfDynamic[kUdfInitState] = hw_->getUdfMgr()->getUdfInitFlag();
 
   const auto& udfPacketMatcherMap = hw_->getUdfMgr()->getUdfPacketMatcherMap();
   folly::dynamic udfPacketMatcher = folly::dynamic::object;

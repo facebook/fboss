@@ -879,7 +879,12 @@ void BcmRtag7Module::addUdfHash(
   }
 
   int rv = bcm_udf_hash_config_add(hw_->getUnit(), 0, &config);
-  bcmCheckError(rv, "Failed to enable hash for UDF group ", udfGroupName);
+  bcmCheckError(
+      rv,
+      "Failed to enable hash for UDF group ",
+      udfGroupName,
+      " id: ",
+      config.udf_id);
 }
 
 void BcmRtag7Module::deleteUdfHash(

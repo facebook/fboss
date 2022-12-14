@@ -505,6 +505,7 @@ void BcmWarmBootCache::populateUdfFromWarmBootState(
     populateUdfGroupFromWarmBootState(udfGroup);
     const auto& udfPacketMatcher = udfDyanmic[kUdfPacketMatchers];
     populateUdfPacketMatcherFromWarmBootState(udfPacketMatcher);
+    udfEnabled_ = udfDyanmic[kUdfInitState].asBool();
   }
 }
 

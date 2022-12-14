@@ -162,8 +162,11 @@ void BcmUdfManager::deleteUdfGroup(const std::shared_ptr<UdfGroup>& udfGroup) {
 }
 
 void BcmUdfManager::init() {
-  if (udfInitDone_) {
-    // nothing to do
+  if (udfInitDone_ || hw_->getWarmBootCache()->isUdfInitialized()) {
+    // nothing to do,
+    // we use this flag to create warm boot cache, hence set it right if not
+    // done
+    udfInitDone_ = true;
     return;
   }
 
@@ -173,6 +176,7 @@ void BcmUdfManager::init() {
   bcmCheckError(rv, "Failed to initialize UDF");
 
   udfInitDone_ = true;
+  XLOG(INFO) << "BCM Udf manager initialized";
 }
 
 void BcmUdfManager::setUdfInitFlag(bool flag) {

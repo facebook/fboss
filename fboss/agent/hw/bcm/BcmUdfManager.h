@@ -47,6 +47,9 @@ class BcmUdfManager {
   void deleteUdfGroup(const std::shared_ptr<UdfGroup>& udfGroup);
   void init();
   void setUdfInitFlag(bool udfInitFlag);
+  bool getUdfInitFlag() const {
+    return udfInitDone_;
+  }
 
   int getBcmUdfGroupId(const std::string& udfGroupName) const;
   int getBcmUdfGroupFieldSize(const std::string& udfGroupName) const;
