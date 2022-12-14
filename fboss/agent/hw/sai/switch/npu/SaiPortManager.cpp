@@ -114,6 +114,14 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
       counterIds.emplace_back(managerTable_->debugCounterManager()
                                   .getMPLSLookupFailedCounterStatId());
     }
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+      counterIds.reserve(
+          counterIds.size() + SaiPortTraits::PfcCounterIdsToRead.size());
+      std::copy(
+          SaiPortTraits::PfcCounterIdsToRead.begin(),
+          SaiPortTraits::PfcCounterIdsToRead.end(),
+          std::back_inserter(counterIds));
+    }
     return counterIds;
   };
   port2SupportedStats_.emplace(port, getSupportedStats());
