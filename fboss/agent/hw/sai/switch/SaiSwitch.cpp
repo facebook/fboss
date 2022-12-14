@@ -1275,6 +1275,14 @@ void SaiSwitch::updateRsInfo(
   }
 }
 
+std::map<PortID, SwitchID> SaiSwitch::getFabricReachability() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return getFabricReachabilityLocked();
+}
+std::map<PortID, SwitchID> SaiSwitch::getFabricReachabilityLocked() const {
+  return managerTable_->portManager().getFabricReachability();
+}
+
 void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   fetchL2TableLocked(lock, l2Table);

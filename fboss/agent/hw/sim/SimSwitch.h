@@ -117,8 +117,11 @@ class SimSwitch : public HwSwitch {
     return "";
   }
 
-  virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfo() override {
-    return std::map<PortID, phy::PhyInfo>();
+  std::map<PortID, phy::PhyInfo> updateAllPhyInfo() override {
+    return {};
+  }
+  std::map<PortID, SwitchID> getFabricReachability() const override {
+    return {};
   }
 
   uint32_t generateDeterministicSeed(

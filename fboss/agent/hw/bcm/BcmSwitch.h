@@ -608,6 +608,9 @@ class BcmSwitch : public BcmSwitchIf {
   bool usePKTIO() const;
 
   std::map<PortID, phy::PhyInfo> updateAllPhyInfo() override;
+  std::map<PortID, SwitchID> getFabricReachability() const override {
+    return {};
+  }
 
  private:
   enum Flags : uint32_t {

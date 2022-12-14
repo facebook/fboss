@@ -1078,6 +1078,10 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
   return false;
 }
 
+std::map<PortID, SwitchID> SaiPortManager::getFabricReachability() const {
+  return {};
+}
+
 void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   auto handlesItr = handles_.find(portId);
   if (handlesItr == handles_.end()) {
