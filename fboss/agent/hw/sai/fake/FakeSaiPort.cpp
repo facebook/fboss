@@ -835,6 +835,9 @@ sai_status_t get_port_attribute_fn(
         attr->value.reachability.switch_id = 0;
         attr->value.reachability.reachable = false;
         break;
+      case SAI_PORT_ATTR_FABRIC_ATTACHED_SWITCH_ID:
+        attr->value.u32 = 0;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
