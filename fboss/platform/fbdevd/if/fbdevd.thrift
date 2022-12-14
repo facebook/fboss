@@ -1,10 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 namespace cpp2 facebook.fboss.platform.fbdevd
-namespace go neteng.fboss.platform.fbdevd
-namespace py neteng.fboss.platform.fbdevd
-namespace py3 neteng.fboss.platform.fbdevd
-namespace py.asyncio neteng.fboss.platform.asyncio.fbdevd
 
 include "fboss/platform/fbdevd/if/gpio.thrift"
 include "fboss/platform/fbdevd/if/i2c.thrift"
@@ -33,7 +29,7 @@ struct SysfsFileHandle {
 // such as toggling a GPIO line, reading/writing a sysfs file, etc.
 // Such instructions are widely used in FBOSS environment to configure
 // hardware and/or determine the states of hardware components.
-// Currently, only 2 operations are support in "SimpleIO":
+// Currently, only 2 operations are supported in "SimpleIO":
 //   - SIO_GPIO : setting/getting a GPIO line.
 //   - SIO_SYSFS: reading/writing a string from/to SYSFS file.
 enum SimpleIoDeviceType {
@@ -53,7 +49,7 @@ struct SimpleIoHandle {
   // If "delayMS" is set to a positive value, the corresponding delay (
   // in milliseconds) will be introduced after the SimpleIO. Otherwise,
   // the field is ignored.
-  3: i32 delayMs = 0;
+  3: i32 delayMs;
 }
 
 enum ConditionType {

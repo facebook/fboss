@@ -1,10 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 namespace cpp2 facebook.fboss.platform.fbdevd.i2c
-namespace go neteng.fboss.platform.fbdevd.i2c
-namespace py neteng.fboss.platform.fbdevd.i2c
-namespace py3 neteng.fboss.platform.fbdevd.i2c
-namespace py.asyncio neteng.fboss.platform.asyncio.i2c
 
 // "I2cClient" describes a I2C client (slave) device, such as I2C
 // sensors, EEPROM, I/O Expander, etc.

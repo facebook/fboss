@@ -1,10 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 namespace cpp2 facebook.fboss.platform.fbdevd.gpio
-namespace go neteng.fboss.platform.fbdevd.gpio
-namespace py neteng.fboss.platform.fbdevd.gpio
-namespace py3 neteng.fboss.platform.fbdevd.gpio
-namespace py.asyncio neteng.fboss.platform.asyncio.gpio
 
 enum GpioValue {
   GPIO_LOW = 0,
