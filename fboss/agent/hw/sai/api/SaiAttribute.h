@@ -195,6 +195,7 @@ DEFINE_extract(sai_tlv_list_t, tlvlist);
 DEFINE_extract(sai_segment_list_t, segmentlist);
 DEFINE_extract(sai_ip_address_list_t, ipaddrlist);
 DEFINE_extract(sai_system_port_config_t, sysportconfig);
+DEFINE_extract(sai_fabric_port_reachability_t, reachability);
 
 template <typename SrcT, typename DstT>
 typename std::enable_if<std::is_same<SrcT, DstT>::value>::type _fill(

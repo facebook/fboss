@@ -408,3 +408,11 @@ TEST_F(PortApiTest, setInterfaceType) {
       SAI_PORT_INTERFACE_TYPE_CAUI);
 }
 #endif
+
+TEST_F(PortApiTest, getFabricReachability) {
+  auto id = createPort(100000, {42}, true);
+  auto reachability = portApi->getAttribute(
+      id, SaiPortTraits::Attributes::FabricReachability{});
+  EXPECT_EQ(reachability.switch_id, 0);
+  EXPECT_FALSE(reachability.reachable);
+}

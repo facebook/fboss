@@ -420,4 +420,22 @@ struct formatter<sai_system_port_config_t> {
         sysPortConf.num_voq);
   }
 };
+
+template <>
+struct formatter<sai_fabric_port_reachability_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const sai_fabric_port_reachability_t& reach, FormatContext& ctx) {
+    return format_to(
+        ctx.out(),
+        "(SwitchId: {}, "
+        " Reachable: {})",
+        reach.switch_id,
+        reach.reachable);
+  }
+};
 } // namespace fmt
