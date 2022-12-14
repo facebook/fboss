@@ -103,7 +103,7 @@ BcmUdfPacketMatcher::BcmUdfPacketMatcher(
     if (isBcmPktFormatCacheMatchesCfg(&cachedPktFormat, &pktFormat)) {
       udfPacketMatcherId_ = udfPacketMatcherInfoItr->second.first;
       warmBootCache->programmed(udfPacketMatcherInfoItr);
-      XLOG(DBG2) << "Wamboot PktFormat cache matches the cfg for " << name;
+      XLOG(DBG2) << "Warmboot PktFormat cache matches the cfg for " << name;
       return;
     }
   }

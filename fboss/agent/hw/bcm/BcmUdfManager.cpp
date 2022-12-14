@@ -40,9 +40,49 @@ void BcmUdfManager::attachUdfPacketMatcher(
   }
 }
 
+bool BcmUdfManager::isBcmUdfPacketMatcherCacheMatchesCfg(
+    const PacketMatcherIdMap& cachedPacketMatchers,
+    const PacketMatcherIds& packetMatcherIds) {
+  if (cachedPacketMatchers.size() != packetMatcherIds.size()) {
+    return false;
+  }
+
+  for (auto packetMatcherId : packetMatcherIds) {
+    if (cachedPacketMatchers.find(packetMatcherId) ==
+        cachedPacketMatchers.end()) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 // createUdfGroup
 void BcmUdfManager::createUdfGroup(const std::shared_ptr<UdfGroup>& udfGroup) {
   auto bcmUdfGroup = make_shared<BcmUdfGroup>(hw_, udfGroup);
+
+  auto warmBootCache = hw_->getWarmBootCache();
+  auto name = udfGroup->getID();
+  auto udfPacketMatcherItr = warmBootCache->findUdfGroupPacketMatcher(name);
+
+  auto packetMatcherIds = udfGroup->getUdfPacketMatcherIds();
+  if (udfPacketMatcherItr !=
+      warmBootCache->UdfGroupNameToPacketMatcherMapEnd()) {
+    auto cachedPacketMatchers = udfPacketMatcherItr->second;
+    if (isBcmUdfPacketMatcherCacheMatchesCfg(
+            cachedPacketMatchers, packetMatcherIds)) {
+      warmBootCache->programmed(udfPacketMatcherItr);
+      for (auto packetMatcher : cachedPacketMatchers) {
+        bcmUdfGroup->udfPacketMatcherIdsInsert(
+            packetMatcher.second, packetMatcher.first);
+        XLOG(DBG2)
+            << "Wamboot UdfPacketMatcher cache matches the cfg for UdfGroup"
+            << name;
+        return;
+      }
+    }
+  }
+
   for (auto udfPacketMatcherName : udfGroup->getUdfPacketMatcherIds()) {
     attachUdfPacketMatcher(bcmUdfGroup, udfPacketMatcherName);
     XLOG(INFO) << "udfGroup=" << udfGroup->getName()

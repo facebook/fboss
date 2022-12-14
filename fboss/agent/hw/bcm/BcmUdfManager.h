@@ -61,6 +61,9 @@ class BcmUdfManager {
     return udfPacketMatcherMap_;
   }
 
+  typedef std::map<std::string, bcm_udf_pkt_format_id_t> PacketMatcherIdMap;
+  typedef std::vector<std::string> PacketMatcherIds;
+
  private:
   void attachUdfPacketMatcher(
       std::shared_ptr<BcmUdfGroup>& bcmUdfGroup,
@@ -69,6 +72,10 @@ class BcmUdfManager {
   void detachUdfPacketMatcher(
       std::shared_ptr<BcmUdfGroup>& bcmUdfGroup,
       const std::string& udfPacketMatcherName);
+
+  bool isBcmUdfPacketMatcherCacheMatchesCfg(
+      const PacketMatcherIdMap& cachedPacketMatchers,
+      const PacketMatcherIds& packetMatcherIds);
 
   BcmSwitch* hw_;
   std::map<std::string, std::shared_ptr<BcmUdfGroup>> udfGroupsMap_;

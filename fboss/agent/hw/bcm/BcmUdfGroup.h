@@ -46,6 +46,9 @@ class BcmUdfGroup {
   int udfPacketMatcherDelete(
       bcm_udf_pkt_format_id_t packetMatcherId,
       const std::string& udfPacketMatcherName);
+  void udfPacketMatcherIdsInsert(
+      bcm_udf_pkt_format_id_t packetMatcherId,
+      const std::string& udfPacketMatcherName);
 
   int getUdfMatchFieldWidth() {
     return matchFieldWidth_;

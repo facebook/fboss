@@ -452,7 +452,7 @@ void BcmWarmBootCache::populateUdfGroupFromWarmBootState(
     bcm_udf_t_init(&udfInfo);
     auto rv = bcm_udf_get(hw_->getUnit(), udfGroupId, &udfInfo);
     bcmCheckError(rv, "Unable to get udfInfo for udfGroupId: ", udfGroupId);
-    XLOG(DBG2) << "udfGroupId=" << udfGroupId
+    XLOG(DBG1) << "udfGroupId=" << udfGroupId
                << " udfInfo layer=" << udfInfo.layer
                << " start=" << udfInfo.start << " width=" << udfInfo.width;
     for (const auto& id : udfGroup[name][1].keys()) {
@@ -481,14 +481,12 @@ void BcmWarmBootCache::populateUdfPacketMatcherFromWarmBootState(
         rv,
         "Unable to get pkt_format for udfPacketMatcherId: ",
         udfPacketMatcherId);
-    XLOG(DBG2) << "udfPacketMatcherId=" << udfPacketMatcherId
+    XLOG(DBG1) << "udfPacketMatcherId=" << udfPacketMatcherId
                << " pkt_format l2=" << pktFormat.l2
-               << " vlan_tag=" << pktFormat.vlan_tag
                << " ip_protocol=" << pktFormat.ip_protocol
                << " ip_protocol_mask=" << pktFormat.ip_protocol_mask
                << " outer_ip=" << pktFormat.outer_ip
-               << " inner_ip=" << pktFormat.inner_ip
-               << " tunnel=" << pktFormat.tunnel;
+               << " l4_dst_port=" << pktFormat.l4_dst_port;
     UdfPktMatcherInfoPair udfPacketMatcherInfoPair = {
         udfPacketMatcherId, pktFormat};
     udfPktMatcherNameToInfoMap_.insert(

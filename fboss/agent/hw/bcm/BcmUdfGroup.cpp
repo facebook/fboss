@@ -60,7 +60,7 @@ BcmUdfGroup::BcmUdfGroup(
     if (isBcmUdfInfoCacheMatchesCfg(&cachedUdfInfo, &udfInfo)) {
       udfId_ = udfInfoItr->second.first;
       warmBootCache->programmed(udfInfoItr);
-      XLOG(DBG2) << "Wamboot UdfInfo cache matches the cfg for " << name;
+      XLOG(DBG2) << "Warmboot UdfInfo cache matches the cfg for " << name;
       return;
     }
   }
@@ -144,6 +144,13 @@ int BcmUdfGroup::udfPacketMatcherDelete(
     udfPacketMatcherIds_.erase(itr);
   }
   return rv;
+}
+
+void BcmUdfGroup::udfPacketMatcherIdsInsert(
+    bcm_udf_pkt_format_id_t packetMatcherId,
+    const std::string& udfPacketMatcherName) {
+  udfPacketMatcherIds_.insert({packetMatcherId, udfPacketMatcherName});
+  return;
 }
 
 } // namespace facebook::fboss
