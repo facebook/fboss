@@ -2604,4 +2604,17 @@ void ThriftHandler::getTeFlowTableDetails(
     flowTable.emplace_back(flowEntry->toDetails());
   }
 }
+
+void ThriftHandler::getFabricReachability(
+    std::map<std::string, std::string>& reachability) {
+  auto portId2Switch = sw_->getHw()->getFabricReachability();
+  auto state = sw_->getState();
+  for (auto [portId, swId] : portId2Switch) {
+    auto portName = state->getPorts()->getPort(portId)->getName();
+    auto node = state->getDsfNodes()->getDsfNodeIf(swId);
+    std::string nodeName =
+        node ? node->getName() : folly::to<std::string>(swId);
+    reachability.insert({portName, nodeName});
+  }
+}
 } // namespace facebook::fboss

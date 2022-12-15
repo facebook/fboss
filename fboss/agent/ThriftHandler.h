@@ -280,6 +280,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::map<std::string, std::int64_t>& routeCounters) override;
 
   void getTeFlowTableDetails(std::vector<TeFlowDetails>& flowTable) override;
+  void getFabricReachability(
+      std::map<std::string, std::string>& reachability) override;
   /*
    * Event handler for when a connection is destroyed.  When there is an ongoing
    * duplex connection, there may be other threads that depend on the connection

@@ -1248,6 +1248,9 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   list<TeFlowDetails> getTeFlowTableDetails() throws (
     1: fboss.FbossBaseError error,
   );
+  map<string, string> getFabricReachability() throws (
+    1: fboss.FbossBaseError error,
+  );
 }
 
 service NeighborListenerClient extends fb303.FacebookService {
