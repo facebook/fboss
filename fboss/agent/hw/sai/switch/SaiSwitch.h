@@ -320,6 +320,7 @@ class SaiSwitch : public HwSwitch {
 
   void updatePcsInfo(
       phy::PhySideInfo& sideInfo,
+      phy::PhySideStats& sideStats,
       PortID swPort,
       phy::Side side,
       phy::PhyInfo& lastPhyInfo,

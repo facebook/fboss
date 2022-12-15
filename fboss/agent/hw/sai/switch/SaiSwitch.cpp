@@ -1064,6 +1064,12 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     }
 
     phy::PhyInfo phyParams;
+    phyParams.state() = phy::PhyState();
+    phyParams.stats() = phy::PhyStats();
+    // LINE Side always exists
+    phyParams.state()->line()->side() = phy::Side::LINE;
+    phyParams.stats()->line()->side() = phy::Side::LINE;
+
     phyParams.name() = fb303PortStat->portName();
     phyParams.switchID() = getSaiSwitchId();
     // Global phy parameters
@@ -1079,6 +1085,11 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     if (isXphy) {
       phyParams.system() = phy::PhySideInfo();
       phyParams.system()->side() = phy::Side::SYSTEM;
+
+      phyParams.state()->system() = phy::PhySideState();
+      phyParams.state()->system()->side() = phy::Side::SYSTEM;
+      phyParams.stats()->system() = phy::PhySideStats();
+      phyParams.stats()->system()->side() = phy::Side::SYSTEM;
     }
 
     phyParams.line()->interfaceType() = getInterfaceType(swPort, chipType);
@@ -1098,6 +1109,7 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     // Update PCS Info
     updatePcsInfo(
         *phyParams.line(),
+        *(*phyParams.stats()).line(),
         swPort,
         phy::Side::LINE,
         lastPhyInfo,
@@ -1213,6 +1225,7 @@ void SaiSwitch::updatePmdInfo(
 
 void SaiSwitch::updatePcsInfo(
     phy::PhySideInfo& sideInfo,
+    phy::PhySideStats& sideStats,
     PortID swPort,
     phy::Side side,
     phy::PhyInfo& lastPhyInfo,
@@ -1220,6 +1233,7 @@ void SaiSwitch::updatePcsInfo(
     cfg::PortSpeed speed) {
   auto fecMode = getPortFECMode(swPort);
   if (utility::isReedSolomonFec(fecMode)) {
+    phy::PcsStats pcsStats;
     phy::PcsInfo pcsInfo;
     phy::RsFecInfo rsFec;
     rsFec.correctedCodewords() =
@@ -1251,7 +1265,9 @@ void SaiSwitch::updatePcsInfo(
         fecMode, /* operational FecMode */
         speed /* operational Speed */);
     pcsInfo.rsFec() = rsFec;
+    pcsStats.rsFec() = rsFec;
     sideInfo.pcs() = pcsInfo;
+    sideStats.pcs() = pcsStats;
   }
 }
 
