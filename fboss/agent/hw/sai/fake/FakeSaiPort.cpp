@@ -841,6 +841,9 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_FABRIC_ATTACHED:
         attr->value.booldata = false;
         break;
+      case SAI_PORT_ATTR_FABRIC_ATTACHED_PORT_INDEX:
+        attr->value.u32 = 0;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

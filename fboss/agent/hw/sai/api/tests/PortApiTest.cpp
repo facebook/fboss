@@ -421,3 +421,9 @@ TEST_F(PortApiTest, getFabricAttached) {
   EXPECT_FALSE(
       portApi->getAttribute(id, SaiPortTraits::Attributes::FabricAttached{}));
 }
+
+TEST_F(PortApiTest, getFabricAttachedPortIndex) {
+  auto id = createPort(100000, {42}, true);
+  EXPECT_FALSE(portApi->getAttribute(
+      id, SaiPortTraits::Attributes::FabricAttachedPortIndex{}));
+}

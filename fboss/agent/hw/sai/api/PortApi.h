@@ -275,6 +275,10 @@ struct SaiPortTraits {
         SaiBoolDefaultTrue>;
     using FabricAttached =
         SaiAttribute<EnumType, SAI_PORT_ATTR_FABRIC_ATTACHED, bool>;
+    using FabricAttachedPortIndex = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_FABRIC_ATTACHED_PORT_INDEX,
+        sai_uint32_t>;
     using FabricAttachedSwitchId = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_FABRIC_ATTACHED_SWITCH_ID,
@@ -428,6 +432,7 @@ SAI_ATTRIBUTE_NAME(Port, LinkTrainingEnable)
 SAI_ATTRIBUTE_NAME(Port, SerdesLaneList)
 #endif
 SAI_ATTRIBUTE_NAME(Port, FabricAttached);
+SAI_ATTRIBUTE_NAME(Port, FabricAttachedPortIndex);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchId);
 
 template <>
