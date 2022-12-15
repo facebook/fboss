@@ -315,8 +315,12 @@ class SaiSwitch : public HwSwitch {
 
   void updatePmdInfo(
       phy::PhySideInfo& sideInfo,
+      phy::PhySideState& sideState,
+      phy::PhySideStats& sideStats,
       std::shared_ptr<SaiPort> port,
-      phy::PmdInfo& lastPmdInfo);
+      phy::PmdInfo& lastPmdInfo,
+      phy::PmdState& lastPmdState,
+      phy::PmdStats& lastPmdStats);
 
   void updatePcsInfo(
       phy::PhySideInfo& sideInfo,

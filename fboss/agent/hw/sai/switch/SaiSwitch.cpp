@@ -1104,14 +1104,48 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     phyParams.state()->line()->medium() = *phyParams.line()->medium();
     // Update PMD Info
     phy::PmdInfo lastLinePmdInfo = *lastPhyInfo.line()->pmd();
-    updatePmdInfo(*phyParams.line(), portHandle->port, lastLinePmdInfo);
+    phy::PmdState lastLinePmdState;
+    if (auto lastState = lastPhyInfo.state()) {
+      lastLinePmdState = *lastState->line()->pmd();
+    }
+    phy::PmdStats lastLinePmdStats;
+    if (auto lastStats = lastPhyInfo.stats()) {
+      lastLinePmdStats = *lastStats->line()->pmd();
+    }
+    updatePmdInfo(
+        *phyParams.line(),
+        *phyParams.state()->line(),
+        *phyParams.stats()->line(),
+        portHandle->port,
+        lastLinePmdInfo,
+        lastLinePmdState,
+        lastLinePmdStats);
     if (isXphy) {
       CHECK(phyParams.system().has_value());
+      CHECK(phyParams.state()->system().has_value());
+      CHECK(phyParams.stats()->system().has_value());
       phy::PmdInfo lastSysPmdInfo;
+      phy::PmdState lastSysPmdState;
+      phy::PmdStats lastSysPmdStats;
       if (auto lastSys = lastPhyInfo.system()) {
         lastSysPmdInfo = *lastSys->pmd();
       }
-      updatePmdInfo(*phyParams.system(), portHandle->sysPort, lastSysPmdInfo);
+      if (lastPhyInfo.state().has_value() &&
+          lastPhyInfo.state()->system().has_value()) {
+        lastSysPmdState = *lastPhyInfo.state()->system()->pmd();
+      }
+      if (lastPhyInfo.stats().has_value() &&
+          lastPhyInfo.stats()->system().has_value()) {
+        lastSysPmdStats = *lastPhyInfo.stats()->system()->pmd();
+      }
+      updatePmdInfo(
+          *phyParams.system(),
+          *phyParams.state()->system(),
+          *phyParams.stats()->system(),
+          portHandle->sysPort,
+          lastSysPmdInfo,
+          lastSysPmdState,
+          lastSysPmdStats);
     }
 
     // Update PCS Info
@@ -1141,8 +1175,12 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
 
 void SaiSwitch::updatePmdInfo(
     phy::PhySideInfo& sideInfo,
+    phy::PhySideState& sideState,
+    phy::PhySideStats& sideStats,
     std::shared_ptr<SaiPort> port,
-    [[maybe_unused]] phy::PmdInfo& lastPmdInfo) {
+    [[maybe_unused]] phy::PmdInfo& lastPmdInfo,
+    [[maybe_unused]] phy::PmdState& lastPmdState,
+    [[maybe_unused]] phy::PmdStats& lastPmdStats) {
   uint32_t numPmdLanes;
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_PORT_GET_PMD_LANES)) {
@@ -1158,7 +1196,8 @@ void SaiSwitch::updatePmdInfo(
   }
 
   std::map<int, phy::LaneInfo> laneInfos;
-
+  std::map<int, phy::LaneStats> laneStats;
+  std::map<int, phy::LaneState> laneStates;
   auto eyeStatus =
       managerTable_->portManager().getPortEyeValues(port->adapterKey());
   // Collect eyeInfos for all lanes
@@ -1189,12 +1228,20 @@ void SaiSwitch::updatePmdInfo(
   for (auto eyeInfo : eyeInfos) {
     auto laneId = eyeInfo.first;
     phy::LaneInfo laneInfo;
+    phy::LaneStats laneStat;
     if (laneInfos.find(laneId) != laneInfos.end()) {
       laneInfo = laneInfos[laneId];
+    }
+    if (laneStats.find(laneId) != laneStats.end()) {
+      laneStat = laneStats[laneId];
     }
     laneInfo.lane() = laneId;
     laneInfo.eyes() = eyeInfo.second;
     laneInfos[laneId] = laneInfo;
+
+    laneStat.lane() = laneId;
+    laneStat.eyes() = eyeInfo.second;
+    laneStats[laneId] = laneStat;
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
@@ -1203,14 +1250,30 @@ void SaiSwitch::updatePmdInfo(
   for (auto pmd : pmdSignalDetect) {
     auto laneId = pmd.lane;
     phy::LaneInfo laneInfo;
+    phy::LaneStats laneStat;
+    phy::LaneState laneState;
     if (laneInfos.find(laneId) != laneInfos.end()) {
       laneInfo = laneInfos[laneId];
     }
+    if (laneStats.find(laneId) != laneStats.end()) {
+      laneStat = laneStats[laneId];
+    }
+    if (laneStates.find(laneId) != laneStates.end()) {
+      laneState = laneStates[laneId];
+    }
+    laneState.lane() = laneId;
+    laneStat.lane() = laneId;
     laneInfo.signalDetectLive() = pmd.value.current_status;
     laneInfo.signalDetectChanged() = pmd.value.changed;
+    laneState.signalDetectLive() = pmd.value.current_status;
+    laneState.signalDetectChanged() = pmd.value.changed;
     utility::updateSignalDetectChangedCount(
         pmd.value.changed, laneId, laneInfo, lastPmdInfo);
+    utility::updateSignalDetectChangedCount(
+        pmd.value.changed, laneId, laneStat, lastPmdStats);
     laneInfos[laneId] = laneInfo;
+    laneStats[laneId] = laneStat;
+    laneStates[laneId] = laneState;
   }
 
   auto pmdLockStatus = managerTable_->portManager().getRxLockStatus(
@@ -1218,19 +1281,41 @@ void SaiSwitch::updatePmdInfo(
   for (auto pmd : pmdLockStatus) {
     auto laneId = pmd.lane;
     phy::LaneInfo laneInfo;
+    phy::LaneStats laneStat;
+    phy::LaneState laneState;
     if (laneInfos.find(laneId) != laneInfos.end()) {
       laneInfo = laneInfos[laneId];
     }
+    if (laneStats.find(laneId) != laneStats.end()) {
+      laneStat = laneStats[laneId];
+    }
+    if (laneStates.find(laneId) != laneStates.end()) {
+      laneState = laneStates[laneId];
+    }
+    laneState.lane() = laneId;
+    laneStat.lane() = laneId;
     laneInfo.cdrLockLive() = pmd.value.current_status;
+    laneState.cdrLockLive() = pmd.value.current_status;
     laneInfo.cdrLockChanged() = pmd.value.changed;
+    laneState.cdrLockChanged() = pmd.value.changed;
     utility::updateCdrLockChangedCount(
         pmd.value.changed, laneId, laneInfo, lastPmdInfo);
+    utility::updateCdrLockChangedCount(
+        pmd.value.changed, laneId, laneStat, lastPmdStats);
     laneInfos[laneId] = laneInfo;
+    laneStats[laneId] = laneStat;
+    laneStates[laneId] = laneState;
   }
 #endif
 
   for (auto laneInfo : laneInfos) {
     sideInfo.pmd()->lanes()[laneInfo.first] = laneInfo.second;
+  }
+  for (auto laneStat : laneStats) {
+    sideStats.pmd()->lanes()[laneStat.first] = laneStat.second;
+  }
+  for (auto laneState : laneStates) {
+    sideState.pmd()->lanes()[laneState.first] = laneState.second;
   }
 }
 
