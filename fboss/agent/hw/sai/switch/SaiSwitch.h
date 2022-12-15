@@ -327,7 +327,10 @@ class SaiSwitch : public HwSwitch {
       const HwPortFb303Stats* fb303PortStat,
       cfg::PortSpeed speed);
 
-  void updateRsInfo(phy::PhySideInfo& sideInfo, std::shared_ptr<SaiPort> port);
+  void updateRsInfo(
+      phy::PhySideInfo& sideInfo,
+      phy::PhySideState& sideState,
+      std::shared_ptr<SaiPort> port);
 
   void linkStateChangedCallbackBottomHalf(
       std::vector<sai_port_oper_status_notification_t> data);

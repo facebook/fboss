@@ -1071,15 +1071,20 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     phyParams.stats()->line()->side() = phy::Side::LINE;
 
     phyParams.name() = fb303PortStat->portName();
+    phyParams.state()->name() = *phyParams.name();
     phyParams.switchID() = getSaiSwitchId();
+    phyParams.state()->switchID() = *phyParams.switchID();
     // Global phy parameters
     phy::DataPlanePhyChip phyChip;
     auto chipType = getPlatform()->getAsic()->getDataPlanePhyChipType();
     phyChip.type() = chipType;
     bool isXphy = *phyChip.type() == phy::DataPlanePhyChipType::XPHY;
     phyParams.phyChip() = phyChip;
+    phyParams.state()->phyChip() = *phyParams.phyChip();
     phyParams.linkState() = portManager.isUp(swPort);
+    phyParams.state()->linkState() = *phyParams.linkState();
     phyParams.speed() = portManager.getSpeed(swPort);
+    phyParams.state()->speed() = *phyParams.speed();
     phyParams.line()->side() = phy::Side::LINE;
 
     if (isXphy) {
@@ -1093,7 +1098,10 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     }
 
     phyParams.line()->interfaceType() = getInterfaceType(swPort, chipType);
+    phyParams.state()->line()->interfaceType() =
+        *phyParams.line()->interfaceType();
     phyParams.line()->medium() = portManager.getMedium(swPort);
+    phyParams.state()->line()->medium() = *phyParams.line()->medium();
     // Update PMD Info
     phy::PmdInfo lastLinePmdInfo = *lastPhyInfo.line()->pmd();
     updatePmdInfo(*phyParams.line(), portHandle->port, lastLinePmdInfo);
@@ -1117,11 +1125,14 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
         *phyParams.speed());
 
     // Update Reconciliation Sublayer (RS) Info
-    updateRsInfo(*phyParams.line(), portHandle->port);
+    updateRsInfo(
+        *phyParams.line(), *phyParams.state()->line(), portHandle->port);
 
     // PhyInfo update timestamp
     auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
     phyParams.timeCollected() = now.count();
+    phyParams.state()->timeCollected() = now.count();
+    phyParams.stats()->timeCollected() = now.count();
     returnPhyParams[swPort] = phyParams;
   }
   lastPhyInfos_ = returnPhyParams;
@@ -1273,6 +1284,7 @@ void SaiSwitch::updatePcsInfo(
 
 void SaiSwitch::updateRsInfo(
     phy::PhySideInfo& sideInfo,
+    phy::PhySideState& sideState,
     std::shared_ptr<SaiPort> port) {
   auto errStatus =
       managerTable_->portManager().getPortErrStatus(port->adapterKey());
@@ -1288,6 +1300,7 @@ void SaiSwitch::updateRsInfo(
     phy::RsInfo rsInfo;
     rsInfo.faultStatus() = faultStatus;
     sideInfo.rs() = rsInfo;
+    sideState.rs() = rsInfo;
   }
 }
 
