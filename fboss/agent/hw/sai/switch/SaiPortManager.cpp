@@ -1085,12 +1085,15 @@ std::map<PortID, SwitchID> SaiPortManager::getFabricReachability() const {
       continue;
     }
     auto saiPortId = portIdAndHandle.second->port->adapterKey();
+    if (!SaiApiTable::getInstance()->portApi().getAttribute(
+            saiPortId, SaiPortTraits::Attributes::FabricAttached{})) {
+      // Fabric port not attached, continue
+      continue;
+    }
     auto swId = SaiApiTable::getInstance()->portApi().getAttribute(
         saiPortId, SaiPortTraits::Attributes::FabricAttachedSwitchId{});
-    if (swId != std::numeric_limits<uint32_t>::max()) {
-      port2AttachedSwitchId.insert(
-          {PortID(portIdAndHandle.first), SwitchID(swId)});
-    }
+    port2AttachedSwitchId.insert(
+        {PortID(portIdAndHandle.first), SwitchID(swId)});
   }
   return port2AttachedSwitchId;
 }
