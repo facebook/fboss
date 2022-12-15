@@ -1,0 +1,13 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#pragma once
+
+#include <optional>
+#include <string>
+
+namespace facebook::fboss::platform::config_lib {
+
+std::string getSensorServiceConfig(
+    const std::optional<std::string>& platformName = std::nullopt);
+
+} // namespace facebook::fboss::platform::config_lib
