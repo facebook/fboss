@@ -409,14 +409,6 @@ TEST_F(PortApiTest, setInterfaceType) {
 }
 #endif
 
-TEST_F(PortApiTest, getFabricReachability) {
-  auto id = createPort(100000, {42}, true);
-  auto reachability = portApi->getAttribute(
-      id, SaiPortTraits::Attributes::FabricReachability{});
-  EXPECT_EQ(reachability.switch_id, 0);
-  EXPECT_FALSE(reachability.reachable);
-}
-
 TEST_F(PortApiTest, getFabricAttachedSwitchId) {
   auto id = createPort(100000, {42}, true);
   auto swId = portApi->getAttribute(

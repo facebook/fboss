@@ -273,10 +273,6 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_LINK_TRAINING_ENABLE,
         bool,
         SaiBoolDefaultTrue>;
-    using FabricReachability = SaiAttribute<
-        EnumType,
-        SAI_PORT_ATTR_FABRIC_REACHABILITY,
-        sai_fabric_port_reachability_t>;
     using FabricAttachedSwitchId = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_FABRIC_ATTACHED_SWITCH_ID,
@@ -429,7 +425,6 @@ SAI_ATTRIBUTE_NAME(Port, LinkTrainingEnable)
 #if defined(SAI_VERSION_8_2_0_0_ODP)
 SAI_ATTRIBUTE_NAME(Port, SerdesLaneList)
 #endif
-SAI_ATTRIBUTE_NAME(Port, FabricReachability);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchId);
 
 template <>
