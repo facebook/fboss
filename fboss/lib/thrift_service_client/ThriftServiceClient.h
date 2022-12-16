@@ -32,11 +32,19 @@ auto constexpr kSendTimeout = 5000;
 template <typename ClientT>
 std::unique_ptr<apache::thrift::Client<ClientT>> createPlaintextClient(
     const folly::SocketAddress& dstAddr,
+    const std::optional<folly::SocketAddress>& srcAddr = std::nullopt,
     folly::EventBase* eb = nullptr) {
   folly::EventBase* socketEb =
       eb ? eb : folly::EventBaseManager::get()->getEventBase();
-  auto socket = folly::AsyncSocket::newSocket(socketEb, dstAddr, kConnTimeout);
+
+  auto socket = folly::AsyncSocket::UniquePtr(new folly::AsyncSocket(socketEb));
   socket->setSendTimeout(kSendTimeout);
+  socket->connect(
+      nullptr,
+      dstAddr,
+      kConnTimeout,
+      folly::emptySocketOptionMap,
+      srcAddr ? *srcAddr : folly::AsyncSocketTransport::anyAddress());
   auto channel =
       apache::thrift::HeaderClientChannel::newChannel(std::move(socket));
   channel->setTimeout(kRecvTimeout);
@@ -47,6 +55,7 @@ std::unique_ptr<apache::thrift::Client<ClientT>> createPlaintextClient(
 template <typename ClientT>
 std::unique_ptr<apache::thrift::Client<ClientT>> tryCreateEncryptedClient(
     const folly::SocketAddress& dstAddr,
+    const std::optional<folly::SocketAddress>& srcAddr = std::nullopt,
     folly::EventBase* eb = nullptr);
 
 std::unique_ptr<apache::thrift::Client<facebook::fboss::FbossCtrl>>

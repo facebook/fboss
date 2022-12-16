@@ -25,6 +25,7 @@ createWedgeAgentClient(
       dstAddr ? *dstAddr
               : folly::SocketAddress(
                     FLAGS_wedge_agent_host, FLAGS_wedge_agent_port),
+      std::nullopt /* srcAddr */,
       eb);
 }
 
@@ -36,6 +37,7 @@ createQsfpServiceClient(
       dstAddr ? *dstAddr
               : folly::SocketAddress(
                     FLAGS_qsfp_service_host, FLAGS_qsfp_service_port),
+      std::nullopt /* srcAddr */,
       eb);
 }
 } // namespace facebook::fboss::utils
