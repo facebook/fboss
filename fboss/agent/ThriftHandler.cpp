@@ -2618,6 +2618,7 @@ void ThriftHandler::getFabricReachability(
     FabricEndpoint endpoint;
     endpoint.switchId() = swId;
     endpoint.switchName() = nodeName;
+    endpoint.portId() = *fabricEndpoint.portId();
     reachability.insert({portName, endpoint});
   }
 }

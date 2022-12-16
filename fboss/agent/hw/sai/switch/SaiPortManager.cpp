@@ -1092,8 +1092,11 @@ std::map<PortID, FabricEndpoint> SaiPortManager::getFabricReachability() const {
     }
     auto swId = SaiApiTable::getInstance()->portApi().getAttribute(
         saiPortId, SaiPortTraits::Attributes::FabricAttachedSwitchId{});
+    auto portId = SaiApiTable::getInstance()->portApi().getAttribute(
+        saiPortId, SaiPortTraits::Attributes::FabricAttachedPortIndex{});
     FabricEndpoint endpoint;
     endpoint.switchId() = swId;
+    endpoint.portId() = portId;
     port2FabricEndpoint.insert({PortID(portIdAndHandle.first), endpoint});
   }
   return port2FabricEndpoint;
