@@ -1,0 +1,97 @@
+/*
+ *  Copyright (c) 2004-present, Facebook, Inc.
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree. An additional grant
+ *  of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+#pragma once
+
+#include <re2/re2.h>
+#include <string>
+#include <unordered_set>
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/show/fabric/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include "fboss/cli/fboss2/utils/Table.h"
+#include "folly/container/Access.h"
+
+namespace facebook::fboss {
+
+using utils::Table;
+
+struct CmdShowFabricTraits : public BaseCommandTraits {
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+  using ObjectArgType = std::monostate;
+  using RetType = cli::ShowFabricModel;
+  static constexpr bool ALLOW_FILTERING = true;
+  static constexpr bool ALLOW_AGGREGATION = true;
+};
+
+class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
+ public:
+  using RetType = CmdShowFabricTraits::RetType;
+
+  RetType queryClient(const HostInfo& hostInfo) {
+    std::map<std::string, FabricEndpoint> entries;
+    auto client =
+        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+
+    client->sync_getFabricReachability(entries);
+
+    return createModel(entries);
+  }
+
+  void printOutput(const RetType& model, std::ostream& out = std::cout) {
+    Table table;
+    table.setHeader({
+        "Local Int",
+        "Peer",
+    });
+
+    for (auto const& entry : model.get_fabricEntries()) {
+      table.addRow({
+          *entry.localPort(),
+          removeFbDomains(*entry.remoteSystem()),
+      });
+    }
+
+    out << table << std::endl;
+  }
+
+  const std::string removeFbDomains(const std::string& hostname) {
+    // Simple helper function to remove FQDN
+    std::string host_copy = hostname;
+    const RE2 fb_domains(".facebook.com$|.tfbnw.net$");
+    RE2::Replace(&host_copy, fb_domains, "");
+    return host_copy;
+  }
+
+  RetType createModel(std::map<std::string, FabricEndpoint> fabricEntries) {
+    RetType model;
+
+    for (const auto& entry : fabricEntries) {
+      cli::FabricEntry fabricDetails;
+      fabricDetails.localPort() = entry.first;
+      auto endpoint = entry.second;
+      fabricDetails.remoteSystem() = *endpoint.switchId();
+      model.fabricEntries()->push_back(fabricDetails);
+    }
+
+    std::sort(
+        model.fabricEntries()->begin(),
+        model.fabricEntries()->end(),
+        [](cli::FabricEntry& a, cli::FabricEntry b) {
+          return utils::comparePortName(a.get_localPort(), b.get_localPort());
+        });
+
+    return model;
+  }
+};
+
+} // namespace facebook::fboss

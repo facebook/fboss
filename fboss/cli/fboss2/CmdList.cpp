@@ -29,6 +29,7 @@
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
+#include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h"
@@ -88,6 +89,12 @@ const CommandTree& kCommandTree() {
        "Show ARP information",
        commandHandler<CmdShowArp>,
        getValidFilterHandler<CmdShowArp>},
+
+      {"show",
+       "fabric",
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+       "Show Fabric reachability",
+       commandHandler<CmdShowFabric>},
 
       {"show",
        "lldp",
