@@ -200,7 +200,7 @@ class SaiSwitch : public HwSwitch {
       folly::MacAddress mac) const override;
 
   phy::FecMode getPortFECMode(PortID port) const override;
-  std::map<PortID, SwitchID> getFabricReachability() const override;
+  std::map<PortID, FabricEndpoint> getFabricReachability() const override;
 
  private:
   void gracefulExitImpl(
@@ -267,7 +267,7 @@ class SaiSwitch : public HwSwitch {
       const std::lock_guard<std::mutex>& lock,
       std::vector<L2EntryThrift>* l2Table) const;
 
-  std::map<PortID, SwitchID> getFabricReachabilityLocked() const;
+  std::map<PortID, FabricEndpoint> getFabricReachabilityLocked() const;
 
   void gracefulExitLocked(
       const std::lock_guard<std::mutex>& lock,

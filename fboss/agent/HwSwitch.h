@@ -14,6 +14,7 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/types.h"
@@ -261,7 +262,7 @@ class HwSwitch {
   virtual void fetchL2Table(std::vector<L2EntryThrift>* l2Table) const = 0;
 
   virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfo() = 0;
-  virtual std::map<PortID, SwitchID> getFabricReachability() const = 0;
+  virtual std::map<PortID, FabricEndpoint> getFabricReachability() const = 0;
 
   /*
    * Get latest device watermark bytes

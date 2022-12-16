@@ -608,7 +608,7 @@ class BcmSwitch : public BcmSwitchIf {
   bool usePKTIO() const;
 
   std::map<PortID, phy::PhyInfo> updateAllPhyInfo() override;
-  std::map<PortID, SwitchID> getFabricReachability() const override {
+  std::map<PortID, FabricEndpoint> getFabricReachability() const override {
     return {};
   }
 

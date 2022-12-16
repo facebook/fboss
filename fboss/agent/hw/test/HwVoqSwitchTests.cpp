@@ -535,9 +535,10 @@ TEST_F(HwVoqSwitchTest, checkFabricReacability) {
   auto verify = [this]() {
     auto reachability = getHwSwitch()->getFabricReachability();
     EXPECT_GT(reachability.size(), 0);
-    for (auto [port, swId] : reachability) {
-      XLOG(DBG2) << " On port: " << port << " got switch id: " << swId;
-      EXPECT_EQ(swId, SwitchID(*getHwSwitch()->getSwitchId()));
+    for (auto [port, endpoint] : reachability) {
+      XLOG(DBG2) << " On port: " << port
+                 << " got switch id: " << *endpoint.switchId();
+      EXPECT_EQ(*endpoint.switchId(), *getHwSwitch()->getSwitchId());
     }
   };
 

@@ -1078,8 +1078,8 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
   return false;
 }
 
-std::map<PortID, SwitchID> SaiPortManager::getFabricReachability() const {
-  std::map<PortID, SwitchID> port2AttachedSwitchId;
+std::map<PortID, FabricEndpoint> SaiPortManager::getFabricReachability() const {
+  std::map<PortID, FabricEndpoint> port2FabricEndpoint;
   for (const auto& portIdAndHandle : handles_) {
     if (getPortType(portIdAndHandle.first) != cfg::PortType::FABRIC_PORT) {
       continue;
@@ -1092,10 +1092,11 @@ std::map<PortID, SwitchID> SaiPortManager::getFabricReachability() const {
     }
     auto swId = SaiApiTable::getInstance()->portApi().getAttribute(
         saiPortId, SaiPortTraits::Attributes::FabricAttachedSwitchId{});
-    port2AttachedSwitchId.insert(
-        {PortID(portIdAndHandle.first), SwitchID(swId)});
+    FabricEndpoint endpoint;
+    endpoint.switchId() = swId;
+    port2FabricEndpoint.insert({PortID(portIdAndHandle.first), endpoint});
   }
-  return port2AttachedSwitchId;
+  return port2FabricEndpoint;
 }
 
 void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {

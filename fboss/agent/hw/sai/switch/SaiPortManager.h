@@ -139,7 +139,7 @@ class SaiPortManager {
 
   const HwPortFb303Stats* getLastPortStat(PortID port) const;
 
-  std::map<PortID, SwitchID> getFabricReachability() const;
+  std::map<PortID, FabricEndpoint> getFabricReachability() const;
   const Stats& getLastPortStats() const {
     return portStats_;
   }

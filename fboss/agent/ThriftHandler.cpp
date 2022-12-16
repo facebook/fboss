@@ -2607,17 +2607,17 @@ void ThriftHandler::getTeFlowTableDetails(
 
 void ThriftHandler::getFabricReachability(
     std::map<std::string, FabricEndpoint>& reachability) {
-  auto portId2Switch = sw_->getHw()->getFabricReachability();
+  auto portId2FabricEndpoint = sw_->getHw()->getFabricReachability();
   auto state = sw_->getState();
-  for (auto [portId, swId] : portId2Switch) {
+  for (auto [portId, fabricEndpoint] : portId2FabricEndpoint) {
     auto portName = state->getPorts()->getPort(portId)->getName();
-    auto node = state->getDsfNodes()->getDsfNodeIf(swId);
+    auto swId = *fabricEndpoint.switchId();
+    auto node = state->getDsfNodes()->getDsfNodeIf(SwitchID(swId));
     std::string nodeName =
         node ? node->getName() : folly::to<std::string>(swId);
     FabricEndpoint endpoint;
     endpoint.switchId() = swId;
     endpoint.switchName() = nodeName;
-    endpoint.portId() = portId;
     reachability.insert({portName, endpoint});
   }
 }
