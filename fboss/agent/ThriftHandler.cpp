@@ -2612,6 +2612,9 @@ void ThriftHandler::getFabricReachability(
   for (auto [portId, fabricEndpoint] : portId2FabricEndpoint) {
     auto portName = state->getPorts()->getPort(portId)->getName();
     if (*fabricEndpoint.isAttached()) {
+      if (fabricEndpoint.switchType() == cfg::SwitchType::FABRIC) {
+        fabricEndpoint.switchId() = -1;
+      }
       auto swId = *fabricEndpoint.switchId();
       auto node = state->getDsfNodes()->getDsfNodeIf(SwitchID(swId));
       if (node) {

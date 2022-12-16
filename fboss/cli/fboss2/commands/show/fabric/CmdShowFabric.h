@@ -58,10 +58,13 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
     });
 
     for (auto const& entry : model.get_fabricEntries()) {
+      std::string remoteSwitchId = *entry.remoteSwitchId() == -1
+          ? "--"
+          : folly::to<std::string>(*entry.remoteSwitchId());
       table.addRow({
           *entry.localPort(),
           removeFbDomains(*entry.remoteSwitchName()),
-          folly::to<std::string>(*entry.remoteSwitchId()),
+          remoteSwitchId,
           *entry.remotePortName(),
           folly::to<std::string>(*entry.remotePortId()),
       });

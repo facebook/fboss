@@ -641,6 +641,7 @@ struct FabricEndpoint {
   // other side. All other fields are relevant
   // only when isAttached == true
   5: bool isAttached;
+  6: switch_config.SwitchType switchType;
 }
 
 service FbossCtrl extends phy.FbossCommonPhyCtrl {

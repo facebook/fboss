@@ -1091,10 +1091,23 @@ std::map<PortID, FabricEndpoint> SaiPortManager::getFabricReachability() const {
     if (*endpoint.isAttached()) {
       auto swId = SaiApiTable::getInstance()->portApi().getAttribute(
           saiPortId, SaiPortTraits::Attributes::FabricAttachedSwitchId{});
+      auto swType = SaiApiTable::getInstance()->portApi().getAttribute(
+          saiPortId, SaiPortTraits::Attributes::FabricAttachedSwitchType{});
       auto portId = SaiApiTable::getInstance()->portApi().getAttribute(
           saiPortId, SaiPortTraits::Attributes::FabricAttachedPortIndex{});
       endpoint.switchId() = swId;
       endpoint.portId() = portId;
+      switch (swType) {
+        case SAI_SWITCH_TYPE_VOQ:
+          endpoint.switchType() = cfg::SwitchType::VOQ;
+          break;
+        case SAI_SWITCH_TYPE_FABRIC:
+          endpoint.switchType() = cfg::SwitchType::FABRIC;
+          break;
+        default:
+          XLOG(ERR) << " Unexpected switch type value: " << swType;
+          break;
+      }
     }
     port2FabricEndpoint.insert({PortID(portIdAndHandle.first), endpoint});
   }
