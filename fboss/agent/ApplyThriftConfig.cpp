@@ -774,6 +774,10 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     throw FbossError("Change in DSF node type is not supported");
   }
 
+  if (platform_->getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
+    // DSF node processing only needed on INTERFACE_NODEs
+    return;
+  }
   thrift_cow::ThriftMapDelta delta(
       orig_->getDsfNodes().get(), new_->getDsfNodes().get());
   auto getRecyclePortId = [](const std::shared_ptr<DsfNode>& node) {

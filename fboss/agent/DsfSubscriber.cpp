@@ -104,6 +104,8 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
       XLOG(FATAL)
           << " Transition from VOQ to non-VOQ swtich type is not supported";
     }
+    // No processing needed on non VOQ switches
+    return;
   }
   auto mySwitchId = newSwitchSettings->getSwitchId();
 
