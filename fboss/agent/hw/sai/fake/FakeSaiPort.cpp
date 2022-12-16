@@ -838,6 +838,9 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_FABRIC_ATTACHED_SWITCH_ID:
         attr->value.u32 = 0;
         break;
+      case SAI_PORT_ATTR_FABRIC_ATTACHED_SWITCH_TYPE:
+        attr->value.u32 = SAI_SWITCH_TYPE_VOQ;
+        break;
       case SAI_PORT_ATTR_FABRIC_ATTACHED:
         attr->value.booldata = false;
         break;

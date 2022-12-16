@@ -283,6 +283,10 @@ struct SaiPortTraits {
         EnumType,
         SAI_PORT_ATTR_FABRIC_ATTACHED_SWITCH_ID,
         sai_uint32_t>;
+    using FabricAttachedSwitchType = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_FABRIC_ATTACHED_SWITCH_TYPE,
+        sai_uint32_t>;
   };
   using AdapterKey = PortSaiId;
   using AdapterHostKey = Attributes::HwLaneList;
@@ -434,6 +438,7 @@ SAI_ATTRIBUTE_NAME(Port, SerdesLaneList)
 SAI_ATTRIBUTE_NAME(Port, FabricAttached);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedPortIndex);
 SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchId);
+SAI_ATTRIBUTE_NAME(Port, FabricAttachedSwitchType);
 
 template <>
 struct SaiObjectHasStats<SaiPortTraits> : public std::true_type {};

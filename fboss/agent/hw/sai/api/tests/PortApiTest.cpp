@@ -427,3 +427,10 @@ TEST_F(PortApiTest, getFabricAttachedPortIndex) {
   EXPECT_FALSE(portApi->getAttribute(
       id, SaiPortTraits::Attributes::FabricAttachedPortIndex{}));
 }
+
+TEST_F(PortApiTest, getFabricAttachedSwitchType) {
+  auto id = createPort(100000, {42}, true);
+  auto swType = portApi->getAttribute(
+      id, SaiPortTraits::Attributes::FabricAttachedSwitchType{});
+  EXPECT_EQ(swType, SAI_SWITCH_TYPE_VOQ);
+}
