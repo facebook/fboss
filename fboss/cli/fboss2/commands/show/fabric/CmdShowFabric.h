@@ -85,6 +85,9 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
       cli::FabricEntry fabricDetails;
       fabricDetails.localPort() = entry.first;
       auto endpoint = entry.second;
+      if (!*endpoint.isAttached()) {
+        continue;
+      }
       fabricDetails.remoteSwitchId() = *endpoint.switchId();
       fabricDetails.remotePortId() = *endpoint.portId();
       fabricDetails.remotePortName() =

@@ -2611,15 +2611,14 @@ void ThriftHandler::getFabricReachability(
   auto state = sw_->getState();
   for (auto [portId, fabricEndpoint] : portId2FabricEndpoint) {
     auto portName = state->getPorts()->getPort(portId)->getName();
-    auto swId = *fabricEndpoint.switchId();
-    auto node = state->getDsfNodes()->getDsfNodeIf(SwitchID(swId));
-    std::string nodeName =
-        node ? node->getName() : folly::to<std::string>(swId);
-    FabricEndpoint endpoint;
-    endpoint.switchId() = swId;
-    endpoint.switchName() = nodeName;
-    endpoint.portId() = *fabricEndpoint.portId();
-    reachability.insert({portName, endpoint});
+    if (*fabricEndpoint.isAttached()) {
+      auto swId = *fabricEndpoint.switchId();
+      auto node = state->getDsfNodes()->getDsfNodeIf(SwitchID(swId));
+      std::string nodeName =
+          node ? node->getName() : folly::to<std::string>(swId);
+      fabricEndpoint.switchName() = nodeName;
+    }
+    reachability.insert({portName, fabricEndpoint});
   }
 }
 } // namespace facebook::fboss

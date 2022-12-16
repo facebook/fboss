@@ -637,6 +637,10 @@ struct FabricEndpoint {
   2: optional string switchName;
   3: i32 portId;
   4: optional string portName;
+  // Is the port attached to anything on the
+  // other side. All other fields are relevant
+  // only when isAttached == true
+  5: bool isAttached;
 }
 
 service FbossCtrl extends phy.FbossCommonPhyCtrl {

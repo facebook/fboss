@@ -1085,18 +1085,17 @@ std::map<PortID, FabricEndpoint> SaiPortManager::getFabricReachability() const {
       continue;
     }
     auto saiPortId = portIdAndHandle.second->port->adapterKey();
-    if (!SaiApiTable::getInstance()->portApi().getAttribute(
-            saiPortId, SaiPortTraits::Attributes::FabricAttached{})) {
-      // Fabric port not attached, continue
-      continue;
-    }
-    auto swId = SaiApiTable::getInstance()->portApi().getAttribute(
-        saiPortId, SaiPortTraits::Attributes::FabricAttachedSwitchId{});
-    auto portId = SaiApiTable::getInstance()->portApi().getAttribute(
-        saiPortId, SaiPortTraits::Attributes::FabricAttachedPortIndex{});
     FabricEndpoint endpoint;
-    endpoint.switchId() = swId;
-    endpoint.portId() = portId;
+    endpoint.isAttached() = SaiApiTable::getInstance()->portApi().getAttribute(
+        saiPortId, SaiPortTraits::Attributes::FabricAttached{});
+    if (*endpoint.isAttached()) {
+      auto swId = SaiApiTable::getInstance()->portApi().getAttribute(
+          saiPortId, SaiPortTraits::Attributes::FabricAttachedSwitchId{});
+      auto portId = SaiApiTable::getInstance()->portApi().getAttribute(
+          saiPortId, SaiPortTraits::Attributes::FabricAttachedPortIndex{});
+      endpoint.switchId() = swId;
+      endpoint.portId() = portId;
+    }
     port2FabricEndpoint.insert({PortID(portIdAndHandle.first), endpoint});
   }
   return port2FabricEndpoint;
