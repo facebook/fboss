@@ -50,14 +50,20 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     Table table;
     table.setHeader({
-        "Local Int",
-        "Peer",
+        "Local Port",
+        "Peer switch",
+        "Peer switchId",
+        "Peer Port",
+        "Peer PortId",
     });
 
     for (auto const& entry : model.get_fabricEntries()) {
       table.addRow({
           *entry.localPort(),
-          removeFbDomains(*entry.remoteSystem()),
+          removeFbDomains(*entry.remoteSwitchName()),
+          folly::to<std::string>(*entry.remoteSwitchId()),
+          *entry.remotePortName(),
+          folly::to<std::string>(*entry.remotePortId()),
       });
     }
 
@@ -74,12 +80,17 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
 
   RetType createModel(std::map<std::string, FabricEndpoint> fabricEntries) {
     RetType model;
-
+    const std::string kUnavail;
     for (const auto& entry : fabricEntries) {
       cli::FabricEntry fabricDetails;
       fabricDetails.localPort() = entry.first;
       auto endpoint = entry.second;
-      fabricDetails.remoteSystem() = *endpoint.switchId();
+      fabricDetails.remoteSwitchId() = *endpoint.switchId();
+      fabricDetails.remotePortId() = *endpoint.portId();
+      fabricDetails.remotePortName() =
+          endpoint.portName() ? *endpoint.portName() : kUnavail;
+      fabricDetails.remoteSwitchName() =
+          endpoint.switchName() ? *endpoint.switchName() : kUnavail;
       model.fabricEntries()->push_back(fabricDetails);
     }
 
