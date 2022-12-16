@@ -14,9 +14,9 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <filesystem>
+#include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/helpers/Utils.h"
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
-#include "fboss/platform/sensor_service/GetSensorConfig.h"
 #include "fboss/platform/sensor_service/gen-cpp2/sensor_service_stats_types.h"
 
 DEFINE_int32(
@@ -46,7 +46,7 @@ void SensorServiceImpl::init() {
   std::string sensorConfJson;
   // Check if conf file name is set, if not, set the default name
   if (confFileName_.empty()) {
-    sensorConfJson = getPlatformConfig();
+    sensorConfJson = config_lib::getSensorServiceConfig();
   } else if (!folly::readFile(confFileName_.c_str(), sensorConfJson)) {
     throw std::runtime_error(
         "Can not find sensor config file: " + confFileName_);

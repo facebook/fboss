@@ -18,6 +18,7 @@ add_library(sensor_service_lib
 target_link_libraries(sensor_service_lib
   log_thrift_call
   product_info
+  platform_config_lib
   platform_utils
   sensor_service_cpp2
   sensor_config_cpp2
