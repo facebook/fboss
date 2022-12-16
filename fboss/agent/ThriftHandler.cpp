@@ -2614,9 +2614,13 @@ void ThriftHandler::getFabricReachability(
     if (*fabricEndpoint.isAttached()) {
       auto swId = *fabricEndpoint.switchId();
       auto node = state->getDsfNodes()->getDsfNodeIf(SwitchID(swId));
-      std::string nodeName =
-          node ? node->getName() : folly::to<std::string>(swId);
-      fabricEndpoint.switchName() = nodeName;
+      if (node) {
+        fabricEndpoint.switchName() = node->getName();
+        // Indus ASIC fabric port numbers are offset by 256
+        int remotePortOffset =
+            node->getAsicType() == cfg::AsicType::ASIC_TYPE_INDUS ? 256 : 0;
+        fabricEndpoint.portId() = *fabricEndpoint.portId() + remotePortOffset;
+      }
     }
     reachability.insert({portName, fabricEndpoint});
   }
