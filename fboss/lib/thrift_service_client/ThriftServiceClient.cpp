@@ -19,25 +19,23 @@ namespace facebook::fboss::utils {
 
 std::unique_ptr<apache::thrift::Client<facebook::fboss::FbossCtrl>>
 createWedgeAgentClient(
-    std::optional<folly::IPAddress> ip,
-    std::optional<int> port,
+    const std::optional<folly::SocketAddress>& dstAddr,
     folly::EventBase* eb) {
-  folly::IPAddress serviceIP =
-      ip ? *ip : folly::IPAddress(FLAGS_wedge_agent_host);
-  int servicePort = port ? *port : FLAGS_wedge_agent_port;
   return tryCreateEncryptedClient<facebook::fboss::FbossCtrl>(
-      serviceIP, servicePort, eb);
+      dstAddr ? *dstAddr
+              : folly::SocketAddress(
+                    FLAGS_wedge_agent_host, FLAGS_wedge_agent_port),
+      eb);
 }
 
 std::unique_ptr<apache::thrift::Client<facebook::fboss::QsfpService>>
 createQsfpServiceClient(
-    std::optional<folly::IPAddress> ip,
-    std::optional<int> port,
+    const std::optional<folly::SocketAddress>& dstAddr,
     folly::EventBase* eb) {
-  folly::IPAddress serviceIP =
-      ip ? *ip : folly::IPAddress(FLAGS_qsfp_service_host);
-  int servicePort = port ? *port : FLAGS_qsfp_service_port;
   return tryCreateEncryptedClient<facebook::fboss::QsfpService>(
-      serviceIP, servicePort, eb);
+      dstAddr ? *dstAddr
+              : folly::SocketAddress(
+                    FLAGS_qsfp_service_host, FLAGS_qsfp_service_port),
+      eb);
 }
 } // namespace facebook::fboss::utils

@@ -14,21 +14,18 @@ namespace facebook::fboss::utils {
 
 template <typename ClientT>
 std::unique_ptr<apache::thrift::Client<ClientT>> tryCreateEncryptedClient(
-    const folly::IPAddress& ip,
-    const int port,
+    const folly::SocketAddress& dstAddr,
     folly::EventBase* eb) {
   // default to plaintext in oss
-  return createPlaintextClient<ClientT>(ip, port, eb);
+  return createPlaintextClient<ClientT>(dstAddr, eb);
 }
 
 template std::unique_ptr<apache::thrift::Client<facebook::fboss::FbossCtrl>>
 tryCreateEncryptedClient(
-    const folly::IPAddress& ip,
-    const int port,
+    const folly::SocketAddress& dstAddr,
     folly::EventBase* eb);
 template std::unique_ptr<apache::thrift::Client<facebook::fboss::QsfpService>>
 tryCreateEncryptedClient(
-    const folly::IPAddress& ip,
-    const int port,
+    const folly::SocketAddress& dstAddr,
     folly::EventBase* eb);
 } // namespace facebook::fboss::utils

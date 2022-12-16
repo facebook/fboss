@@ -31,13 +31,11 @@ auto constexpr kSendTimeout = 5000;
 
 template <typename ClientT>
 std::unique_ptr<apache::thrift::Client<ClientT>> createPlaintextClient(
-    const folly::IPAddress& ip,
-    const int port,
+    const folly::SocketAddress& dstAddr,
     folly::EventBase* eb = nullptr) {
   folly::EventBase* socketEb =
       eb ? eb : folly::EventBaseManager::get()->getEventBase();
-  auto addr = folly::SocketAddress(ip, port);
-  auto socket = folly::AsyncSocket::newSocket(socketEb, addr, kConnTimeout);
+  auto socket = folly::AsyncSocket::newSocket(socketEb, dstAddr, kConnTimeout);
   socket->setSendTimeout(kSendTimeout);
   auto channel =
       apache::thrift::HeaderClientChannel::newChannel(std::move(socket));
@@ -48,19 +46,16 @@ std::unique_ptr<apache::thrift::Client<ClientT>> createPlaintextClient(
 // Prefers encrypted client, creates plaintext client if certs are unavailble
 template <typename ClientT>
 std::unique_ptr<apache::thrift::Client<ClientT>> tryCreateEncryptedClient(
-    const folly::IPAddress& ip,
-    const int port,
+    const folly::SocketAddress& dstAddr,
     folly::EventBase* eb = nullptr);
 
 std::unique_ptr<apache::thrift::Client<facebook::fboss::FbossCtrl>>
 createWedgeAgentClient(
-    std::optional<folly::IPAddress> ip = std::nullopt,
-    std::optional<int> port = std::nullopt,
+    const std::optional<folly::SocketAddress>& dstAddr = std::nullopt,
     folly::EventBase* eb = nullptr);
 
 std::unique_ptr<apache::thrift::Client<facebook::fboss::QsfpService>>
 createQsfpServiceClient(
-    std::optional<folly::IPAddress> ip = std::nullopt,
-    std::optional<int> port = std::nullopt,
+    const std::optional<folly::SocketAddress>& dstAddr = std::nullopt,
     folly::EventBase* eb = nullptr);
 } // namespace facebook::fboss::utils
