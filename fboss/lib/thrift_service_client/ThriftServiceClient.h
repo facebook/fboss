@@ -46,7 +46,7 @@ std::unique_ptr<apache::thrift::Client<ClientT>> createPlaintextClient(
       folly::emptySocketOptionMap,
       srcAddr ? *srcAddr : folly::AsyncSocketTransport::anyAddress());
   auto channel =
-      apache::thrift::HeaderClientChannel::newChannel(std::move(socket));
+      apache::thrift::RocketClientChannel::newChannel(std::move(socket));
   channel->setTimeout(kRecvTimeout);
   return std::make_unique<apache::thrift::Client<ClientT>>(std::move(channel));
 }
