@@ -86,7 +86,7 @@ TEST(DsfNode, publish) {
 }
 
 TEST(DsfNode, dsfNodeApplyConfig) {
-  auto platform = createMockPlatform();
+  auto platform = createMockPlatform(cfg::SwitchType::VOQ, 0);
   auto stateV0 = std::make_shared<SwitchState>();
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
@@ -134,7 +134,7 @@ TEST(DsfNode, dsfNodeApplyConfig) {
 }
 
 TEST(DsfNode, dsfNodeUpdateLocalDsfNodeConfig) {
-  auto platform = createMockPlatform();
+  auto platform = createMockPlatform(cfg::SwitchType::VOQ, 0);
   auto stateV0 = std::make_shared<SwitchState>();
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());

@@ -338,9 +338,17 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
   return sw;
 }
 
-unique_ptr<MockPlatform> createMockPlatform() {
+unique_ptr<MockPlatform> createMockPlatform(
+    cfg::SwitchType switchType,
+    std::optional<int64_t> switchId) {
   auto mock = make_unique<testing::NiceMock<MockPlatform>>();
-  mock->init(std::make_unique<AgentConfig>(cfg::AgentConfig{}, ""), 0);
+  cfg::AgentConfig thrift;
+  thrift.sw()->switchSettings()->switchType() = switchType;
+  if (switchId.has_value()) {
+    thrift.sw()->switchSettings()->switchId() = *switchId;
+  }
+  auto agentCfg = std::make_unique<AgentConfig>(thrift, "");
+  mock->init(std::move(agentCfg), 0);
   return std::move(mock);
 }
 

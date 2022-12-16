@@ -76,7 +76,9 @@ std::unique_ptr<HwTestHandle> createTestHandle(
     cfg::SwitchConfig* cfg,
     SwitchFlags flags = SwitchFlags::DEFAULT);
 
-std::unique_ptr<MockPlatform> createMockPlatform();
+std::unique_ptr<MockPlatform> createMockPlatform(
+    cfg::SwitchType switchType = cfg::SwitchType::NPU,
+    std::optional<int64_t> switchId = std::nullopt);
 std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
     std::unique_ptr<MockPlatform> platform,
     const std::shared_ptr<SwitchState>& state,
