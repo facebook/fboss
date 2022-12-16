@@ -14,6 +14,7 @@
 
 #include <folly/IPAddress.h>
 #include <folly/io/async/EventBase.h>
+#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
 #include <memory>
 #include <optional>
 
@@ -28,8 +29,25 @@ auto constexpr kConnTimeout = 1000;
 auto constexpr kRecvTimeout = 45000;
 auto constexpr kSendTimeout = 5000;
 
-template <typename Client>
-std::unique_ptr<Client> createPlaintextClient(
+template <typename ClientT>
+std::unique_ptr<apache::thrift::Client<ClientT>> createPlaintextClient(
+    const folly::IPAddress& ip,
+    const int port,
+    folly::EventBase* eb = nullptr) {
+  folly::EventBase* socketEb =
+      eb ? eb : folly::EventBaseManager::get()->getEventBase();
+  auto addr = folly::SocketAddress(ip, port);
+  auto socket = folly::AsyncSocket::newSocket(socketEb, addr, kConnTimeout);
+  socket->setSendTimeout(kSendTimeout);
+  auto channel =
+      apache::thrift::HeaderClientChannel::newChannel(std::move(socket));
+  channel->setTimeout(kRecvTimeout);
+  return std::make_unique<apache::thrift::Client<ClientT>>(std::move(channel));
+}
+
+// Prefers encrypted client, creates plaintext client if certs are unavailble
+template <typename ClientT>
+std::unique_ptr<apache::thrift::Client<ClientT>> tryCreateEncryptedClient(
     const folly::IPAddress& ip,
     const int port,
     folly::EventBase* eb = nullptr);

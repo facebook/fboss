@@ -12,27 +12,23 @@
 
 namespace facebook::fboss::utils {
 
-std::unique_ptr<apache::thrift::Client<facebook::fboss::FbossCtrl>>
-createWedgeAgentClient(
-    std::optional<folly::IPAddress> ip,
-    std::optional<int> port,
+template <typename ClientT>
+std::unique_ptr<apache::thrift::Client<ClientT>> tryCreateEncryptedClient(
+    const folly::IPAddress& ip,
+    const int port,
     folly::EventBase* eb) {
-  return createPlaintextClient<
-      apache::thrift::Client<facebook::fboss::FbossCtrl>>(
-      ip ? *ip : folly::IPAddress(FLAGS_wedge_agent_host),
-      port ? *port : FLAGS_wedge_agent_port,
-      eb);
+  // default to plaintext in oss
+  return createPlaintextClient<ClientT>(ip, port, eb);
 }
 
-std::unique_ptr<apache::thrift::Client<facebook::fboss::QsfpService>>
-createQsfpServiceClient(
-    std::optional<folly::IPAddress> ip,
-    std::optional<int> port,
-    folly::EventBase* eb) {
-  return createPlaintextClient<
-      apache::thrift::Client<facebook::fboss::QsfpService>>(
-      ip ? *ip : folly::IPAddress(FLAGS_qsfp_service_host),
-      port ? *port : FLAGS_qsfp_service_port,
-      eb);
-}
+template std::unique_ptr<apache::thrift::Client<facebook::fboss::FbossCtrl>>
+tryCreateEncryptedClient(
+    const folly::IPAddress& ip,
+    const int port,
+    folly::EventBase* eb);
+template std::unique_ptr<apache::thrift::Client<facebook::fboss::QsfpService>>
+tryCreateEncryptedClient(
+    const folly::IPAddress& ip,
+    const int port,
+    folly::EventBase* eb);
 } // namespace facebook::fboss::utils
