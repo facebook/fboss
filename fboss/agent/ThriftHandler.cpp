@@ -2606,7 +2606,7 @@ void ThriftHandler::getTeFlowTableDetails(
 }
 
 void ThriftHandler::getFabricReachability(
-    std::map<std::string, std::string>& reachability) {
+    std::map<std::string, FabricEndpoint>& reachability) {
   auto portId2Switch = sw_->getHw()->getFabricReachability();
   auto state = sw_->getState();
   for (auto [portId, swId] : portId2Switch) {
@@ -2614,7 +2614,11 @@ void ThriftHandler::getFabricReachability(
     auto node = state->getDsfNodes()->getDsfNodeIf(swId);
     std::string nodeName =
         node ? node->getName() : folly::to<std::string>(swId);
-    reachability.insert({portName, nodeName});
+    FabricEndpoint endpoint;
+    endpoint.switchId() = swId;
+    endpoint.switchName() = nodeName;
+    endpoint.portId() = portId;
+    reachability.insert({portName, endpoint});
   }
 }
 } // namespace facebook::fboss

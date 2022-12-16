@@ -632,6 +632,13 @@ struct TeFlowDetails {
   6: optional ctrl.TeCounterID counterID;
 }
 
+struct FabricEndpoint {
+  1: i64 switchId;
+  2: optional string switchName;
+  3: i32 portId;
+  4: optional string portName;
+}
+
 service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Retrieve up-to-date counters from the hardware, and publish all
@@ -1248,7 +1255,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   list<TeFlowDetails> getTeFlowTableDetails() throws (
     1: fboss.FbossBaseError error,
   );
-  map<string, string> getFabricReachability() throws (
+  map<string, FabricEndpoint> getFabricReachability() throws (
     1: fboss.FbossBaseError error,
   );
 }
