@@ -32,6 +32,9 @@ class PhySnapshotManager;
 
 class PhyManager {
  public:
+  using PublishPhyCb =
+      std::function<void(std::string&&, std::optional<phy::PhyInfo>&&)>;
+
   explicit PhyManager(const PlatformMapping* platformMapping);
   virtual ~PhyManager();
 
@@ -204,7 +207,7 @@ class PhyManager {
   bool isPrbsStatsCollectionDone(PortID portID) const;
 
   void publishXphyInfoSnapshots(PortID portID) const;
-  void updateXphyInfo(PortID portID, const phy::PhyInfo& phyInfo);
+  void updateXphyInfo(PortID portID, phy::PhyInfo&& phyInfo);
   std::optional<phy::PhyInfo> getXphyInfo(PortID portID) const;
 
   // returns the default TX settings for phy ports on the given phy.
@@ -236,6 +239,10 @@ class PhyManager {
       bool /* setAdminUp */) {}
 
   virtual void gracefulExit() {}
+
+  void setPublishPhyCb(PublishPhyCb publishPhyCb) {
+    publishPhyCb_ = publishPhyCb;
+  }
 
  protected:
   struct PortCacheInfo {
@@ -404,6 +411,8 @@ class PhyManager {
   static constexpr auto kXphySnapshotIntervalSeconds = 60;
   std::unique_ptr<PhySnapshotManager<kXphySnapshotIntervalSeconds>>
       xphySnapshotManager_;
+
+  PublishPhyCb publishPhyCb_;
 };
 
 } // namespace fboss

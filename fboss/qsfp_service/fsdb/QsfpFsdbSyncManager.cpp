@@ -122,8 +122,9 @@ void QsfpFsdbSyncManager::updatePhyState(
       if (phyStates->size() == 0) {
         // Special case. If size is 0, we won't have any more stats update per
         // port. But we still need to publish the empty stats.
-        pendingPhyStats_.clear();
-        updatePhyStats(std::move(pendingPhyStats_));
+        auto pendingPhyStatsWLockedPtr = pendingPhyStats_.wlock();
+        pendingPhyStatsWLockedPtr->clear();
+        updatePhyStats(*pendingPhyStatsWLockedPtr);
       }
     }
 
@@ -131,7 +132,7 @@ void QsfpFsdbSyncManager::updatePhyState(
   });
 }
 
-void QsfpFsdbSyncManager::updatePhyStats(PhyStatsMap&& stats) {
+void QsfpFsdbSyncManager::updatePhyStats(PhyStatsMap& stats) {
   if (!FLAGS_publish_stats_to_fsdb) {
     return;
   }
@@ -148,7 +149,8 @@ void QsfpFsdbSyncManager::updatePhyStats(PhyStatsMap&& stats) {
 void QsfpFsdbSyncManager::updatePhyStat(
     std::string&& portName,
     phy::PhyStats&& stat) {
-  pendingPhyStats_[portName] = stat;
+  auto pendingPhyStatsWLockedPtr = pendingPhyStats_.wlock();
+  pendingPhyStatsWLockedPtr->emplace(portName, stat);
 
   // If we have stats for all ports with state, publish all accumulated stats.
   const auto& qsfpData = stateSyncer_->getState();
@@ -159,20 +161,21 @@ void QsfpFsdbSyncManager::updatePhyStat(
 
   // No need to check keys if we have less keys. More keys is fine. Maybe some
   // port got deleted.
-  if (pendingPhyStats_.size() < phyStates->size()) {
+  if (pendingPhyStatsWLockedPtr->size() < phyStates->size()) {
     return;
   }
 
   // Make sure we have stats for every port with a state
   for (const auto& portState : std::as_const(*phyStates)) {
-    if (!pendingPhyStats_.count(portState.first)) {
+    if (!pendingPhyStatsWLockedPtr->count(portState.first)) {
       return;
     }
   }
 
-  // We have stats for all ports. Publish pending stats. The move should wipe
-  // out our stats and we're ready to start over.
-  updatePhyStats(std::move(pendingPhyStats_));
+  // We have stats for all ports. Publish pending stats.
+  updatePhyStats(*pendingPhyStatsWLockedPtr);
+  // Clear the stats, we are ready to start over
+  pendingPhyStatsWLockedPtr->clear();
 }
 
 } // namespace fboss

@@ -148,6 +148,13 @@ class WedgeManager : public TransceiverManager {
       std::optional<OverrideTcvrToPortAndProfile> overrideTcvrToPortAndProfile =
           std::nullopt) override;
 
+  virtual void publishPhyStateToFsdb(
+      std::string&& portName,
+      std::optional<phy::PhyState>&& newState) const override;
+  virtual void publishPhyStatToFsdb(
+      std::string&& portName,
+      phy::PhyStats&& stat) const override;
+
  protected:
   void initTransceiverMap() override;
 

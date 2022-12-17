@@ -127,8 +127,8 @@ void SaiPhyManager::updateAllXphyPortsStats() {
                 static SwitchStats unused;
                 platformInfo->getHwSwitch()->updateStats(&unused);
                 auto phyInfos = platformInfo->getHwSwitch()->updateAllPhyInfo();
-                for (const auto& info : phyInfos) {
-                  updateXphyInfo(info.first, info.second);
+                for (auto& [portId, phyInfo] : phyInfos) {
+                  updateXphyInfo(portId, std::move(phyInfo));
                 }
               } catch (const std::exception& e) {
                 XLOG(INFO) << "Stats collection failed on : "

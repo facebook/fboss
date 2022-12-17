@@ -281,6 +281,14 @@ bool PhyManager::setPortToPortCacheInfoLocked(
   for (const auto& it : portConfig.config.line.lanes) {
     lockedCache->lineLanes.push_back(it.first);
   }
+
+  if (!lockedCache->speed || lockedCache->systemLanes.empty() ||
+      lockedCache->lineLanes.empty()) {
+    if (publishPhyCb_) {
+      publishPhyCb_(std::string(getPortName(portID)), std::nullopt);
+    }
+  }
+
   // There's lane change
   return true;
 }
@@ -616,8 +624,8 @@ void PhyManager::updatePortStats(
             xphyPortInfo.state()->name() = getPortName(portID);
             xphyPortInfo.state()->speed() = programmedSpeed;
           }
-          updateXphyInfo(portID, xphyPortInfo);
           stats = ExternalPhyPortStats::fromPhyInfo(xphyPortInfo);
+          updateXphyInfo(portID, std::move(xphyPortInfo));
         } else {
           stats = xphy->getPortStats(systemLanes, lineLanes);
         }
@@ -761,8 +769,11 @@ void PhyManager::publishXphyInfoSnapshots(PortID port) const {
   xphySnapshotManager_->publishSnapshots(port);
 }
 
-void PhyManager::updateXphyInfo(PortID port, const phy::PhyInfo& phyInfo) {
-  xphySnapshotManager_->updatePhyInfo(port, phyInfo);
+void PhyManager::updateXphyInfo(PortID portID, phy::PhyInfo&& phyInfo) {
+  xphySnapshotManager_->updatePhyInfo(portID, phyInfo);
+  if (publishPhyCb_) {
+    publishPhyCb_(std::string(getPortName(portID)), std::move(phyInfo));
+  }
 }
 
 std::optional<phy::PhyInfo> PhyManager::getXphyInfo(PortID port) const {
