@@ -202,6 +202,9 @@ class SaiSwitch : public HwSwitch {
   phy::FecMode getPortFECMode(PortID port) const override;
   std::map<PortID, FabricEndpoint> getFabricReachability() const override;
 
+  virtual bool rxSignalDetectSupportedInSdk() const override;
+  virtual bool rxLockStatusSupportedInSdk() const override;
+
  private:
   void gracefulExitImpl(
       folly::dynamic& switchState,

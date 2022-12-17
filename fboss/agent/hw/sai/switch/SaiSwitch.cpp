@@ -1367,6 +1367,20 @@ void SaiSwitch::updatePcsInfo(
   }
 }
 
+bool SaiSwitch::rxSignalDetectSupportedInSdk() const {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+  return true;
+#endif
+  return false;
+}
+
+bool SaiSwitch::rxLockStatusSupportedInSdk() const {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+  return true;
+#endif
+  return false;
+}
+
 void SaiSwitch::updateRsInfo(
     phy::PhySideInfo& sideInfo,
     phy::PhySideState& sideState,

@@ -4,6 +4,7 @@
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/lib/phy/PhyUtils.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 
@@ -53,8 +54,112 @@ class HwPortProfileTest : public HwTest {
     // (TODO): verify lane count (for sai)
   }
 
+  // Verifies that we can read various PHY diagnostics but not the correctness
+  // of these diagnostics
+  void verifyPhyInfo(phy::PhyInfo& phyInfo, PortID portID) {
+    if (getPlatform()->getAsic()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_TRIDENT2 ||
+        getPlatform()->getAsic()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_FAKE ||
+        getPlatform()->getAsic()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_MOCK) {
+      return;
+    }
+    auto port = getProgrammedState()->getPorts()->getPort(portID);
+    auto expectedNumPmdLanes = port->getPinConfigs().size();
+
+    // Start with the expectation that PMD diagnostics are available if
+    // supported by SDK and then exclude certain cases below
+    bool expectPmdSignalDetect = getHwSwitch()->rxSignalDetectSupportedInSdk();
+    bool expectPmdCdrLock = getHwSwitch()->rxLockStatusSupportedInSdk();
+    if (!getHwSwitchEnsemble()->isSai() &&
+        getPlatform()->getAsic()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_TOMAHAWK) {
+      // TH will never support these diagnostics with native SDK
+      expectPmdSignalDetect = false;
+      expectPmdCdrLock = false;
+    }
+
+    auto serializedSnapshot =
+        apache::thrift::SimpleJSONSerializer::serialize<std::string>(phyInfo);
+    XLOG(DBG3) << "Snapshot for port " << portID << " = " << serializedSnapshot;
+
+    // Expect state field to be present
+    ASSERT_TRUE(phyInfo.state().has_value());
+    auto state = phyInfo.state().ensure();
+
+    // Verify PhyState fields
+    EXPECT_EQ(state.phyChip()->type(), phy::DataPlanePhyChipType::IPHY);
+    EXPECT_TRUE(state.linkState().has_value());
+    EXPECT_FALSE(state.system().has_value());
+    EXPECT_TRUE(*state.timeCollected());
+    EXPECT_EQ(state.speed(), port->getSpeed());
+    EXPECT_EQ(state.name(), port->getName());
+
+    auto& lineState = *state.line();
+    EXPECT_EQ(lineState.side(), phy::Side::LINE);
+#if 0
+    // TODO: Fix for BcmPort and then enable this check
+    EXPECT_TRUE(*lineState.medium() != TransmitterTechnology::UNKNOWN);
+#endif
+    auto& pmdState = *lineState.pmd();
+
+    // Verify PmdState fields.
+    if (expectPmdCdrLock || expectPmdSignalDetect) {
+      EXPECT_EQ(pmdState.lanes()->size(), expectedNumPmdLanes);
+    }
+    std::unordered_set<int> laneIds;
+    for (auto lane : *pmdState.lanes()) {
+      auto laneState = lane.second;
+      // Unique lanes
+      EXPECT_TRUE(laneIds.find(*laneState.lane()) == laneIds.end());
+      laneIds.insert(*laneState.lane());
+      if (expectPmdSignalDetect) {
+        EXPECT_TRUE(laneState.signalDetectLive().has_value());
+        EXPECT_TRUE(laneState.signalDetectChanged().has_value());
+      }
+      if (expectPmdCdrLock) {
+        EXPECT_TRUE(laneState.cdrLockLive().has_value());
+        EXPECT_TRUE(laneState.cdrLockChanged().has_value());
+      }
+    }
+
+    // Verify PhyStats
+    ASSERT_TRUE(phyInfo.stats().has_value());
+    auto stats = phyInfo.stats().ensure();
+    auto& lineStats = *stats.line();
+
+    // Verify PmdStats
+    if (expectPmdCdrLock || expectPmdSignalDetect) {
+      EXPECT_EQ(lineStats.pmd()->lanes()->size(), expectedNumPmdLanes);
+    }
+    auto& pmdStats = *lineStats.pmd();
+    laneIds.clear();
+    for (auto lane : *pmdStats.lanes()) {
+      auto laneStats = lane.second;
+      // Unique lanes
+      EXPECT_TRUE(laneIds.find(*laneStats.lane()) == laneIds.end());
+      laneIds.insert(*laneStats.lane());
+      if (expectPmdSignalDetect) {
+        EXPECT_TRUE(laneStats.signalDetectChangedCount().has_value());
+      }
+      if (expectPmdCdrLock) {
+        EXPECT_TRUE(laneStats.cdrLockChangedCount().has_value());
+      }
+    }
+
+    // Verify RsFEC counters if applicable
+    auto isRsFec =
+        utility::isReedSolomonFec(getHwSwitch()->getPortFECMode(portID));
+    if (isRsFec) {
+      ASSERT_TRUE(lineStats.pcs().has_value());
+      ASSERT_TRUE(lineStats.pcs()->rsFec().has_value());
+    }
+  }
+
   void runTest() {
     const auto& availablePorts = findAvailablePorts();
+    std::map<PortID, phy::PhyInfo> allPhyInfo;
     if (availablePorts.size() < 2) {
 // profile is not supported.
 #if defined(GTEST_SKIP)
@@ -71,9 +176,12 @@ class HwPortProfileTest : public HwTest {
       }
       applyNewConfig(config);
     };
-    auto verify = [=]() {
+    auto verify = [this, &availablePorts, &allPhyInfo]() {
+      allPhyInfo = getHwSwitch()->updateAllPhyInfo();
       for (auto portID : {availablePorts[0], availablePorts[1]}) {
         verifyPort(portID);
+        ASSERT_TRUE(allPhyInfo.find(portID) != allPhyInfo.end());
+        verifyPhyInfo(allPhyInfo[portID], portID);
       }
     };
     verifyAcrossWarmBoots(setup, verify);

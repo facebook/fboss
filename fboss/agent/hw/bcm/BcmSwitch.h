@@ -611,6 +611,8 @@ class BcmSwitch : public BcmSwitchIf {
   std::map<PortID, FabricEndpoint> getFabricReachability() const override {
     return {};
   }
+  virtual bool rxSignalDetectSupportedInSdk() const override;
+  virtual bool rxLockStatusSupportedInSdk() const override;
 
  private:
   enum Flags : uint32_t {
