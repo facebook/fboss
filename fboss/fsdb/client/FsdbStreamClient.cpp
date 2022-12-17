@@ -92,8 +92,7 @@ void FsdbStreamClient::setServerToConnect(
 void FsdbStreamClient::timeoutExpired() noexcept {
   auto serverAddress = *serverAddress_.rlock();
   if (getState() == State::DISCONNECTED && serverAddress) {
-    connectToServer(
-        serverAddress->getIPAddress().str(), serverAddress->getPort());
+    connectToServer(*serverAddress);
   }
   timer_->scheduleTimeout(FLAGS_fsdb_reconnect_ms);
 }
@@ -102,12 +101,12 @@ bool FsdbStreamClient::isConnectedToServer() const {
   return (getState() == State::CONNECTED);
 }
 
-void FsdbStreamClient::connectToServer(const std::string& ip, uint16_t port) {
+void FsdbStreamClient::connectToServer(const folly::SocketAddress& dstAddr) {
   CHECK(getState() == State::DISCONNECTED);
 
-  streamEvb_->runImmediatelyOrRunInEventBaseThreadAndWait([this, ip, port]() {
+  streamEvb_->runImmediatelyOrRunInEventBaseThreadAndWait([this, dstAddr]() {
     try {
-      createClient(ip, port);
+      createClient(dstAddr);
       setState(State::CONNECTED);
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Connect to server failed with ex:" << ex.what();

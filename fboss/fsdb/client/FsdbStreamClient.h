@@ -87,9 +87,9 @@ class FsdbStreamClient {
 #endif
 
  private:
-  void createClient(const std::string& ip, uint16_t port);
+  void createClient(const folly::SocketAddress& dstAddr);
   void resetClient();
-  void connectToServer(const std::string& ip, uint16_t port);
+  void connectToServer(const folly::SocketAddress& dstAddr);
   void timeoutExpired() noexcept;
 
 #if FOLLY_HAS_COROUTINES && !defined(IS_OSS)
