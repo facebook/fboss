@@ -29,6 +29,10 @@
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/platforms/common/kamet/KametPlatformMapping.h"
+#include "fboss/agent/platforms/common/makalu/MakaluPlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge400c/Wedge400CFabricPlatformMapping.h"
+#include "fboss/agent/platforms/common/wedge400c/Wedge400CVoqPlatformMapping.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/state/AclMap.h"
@@ -2609,6 +2613,10 @@ void ThriftHandler::getFabricReachability(
     std::map<std::string, FabricEndpoint>& reachability) {
   auto portId2FabricEndpoint = sw_->getHw()->getFabricReachability();
   auto state = sw_->getState();
+  static MakaluPlatformMapping makalu;
+  static KametPlatformMapping kamet;
+  static Wedge400CVoqPlatformMapping w400cVoq;
+  static Wedge400CFabricPlatformMapping w400cFabric;
   for (auto [portId, fabricEndpoint] : portId2FabricEndpoint) {
     auto portName = state->getPorts()->getPort(portId)->getName();
     if (*fabricEndpoint.isAttached()) {
@@ -2617,12 +2625,54 @@ void ThriftHandler::getFabricReachability(
       }
       auto swId = *fabricEndpoint.switchId();
       auto node = state->getDsfNodes()->getDsfNodeIf(SwitchID(swId));
+      // Pull platform mapping of remote end. Used to lookup remote
+      // port id to name.
+      // NOTE: that this assumes a 1:1 mapping b/w {ASIC, switch} type
+      // to platform. This is true in our DSF deployments. However, if
+      // it changes, we will need to embed platform type info in
+      // DSFNode config as well.
+      const PlatformMapping* platformMapping{nullptr};
       if (node) {
         fabricEndpoint.switchName() = node->getName();
         // Indus ASIC fabric port numbers are offset by 256
-        int remotePortOffset =
-            node->getAsicType() == cfg::AsicType::ASIC_TYPE_INDUS ? 256 : 0;
+        int remotePortOffset{0};
+        switch (node->getAsicType()) {
+          case cfg::AsicType::ASIC_TYPE_FAKE:
+          case cfg::AsicType::ASIC_TYPE_MOCK:
+          case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+          case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+          case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+          case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+          case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+          case cfg::AsicType::ASIC_TYPE_GARONNE:
+          case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+            break;
+          case cfg::AsicType::ASIC_TYPE_EBRO:
+            if (fabricEndpoint.switchType() == cfg::SwitchType::VOQ) {
+              platformMapping = &w400cVoq;
+            } else if (fabricEndpoint.switchType() == cfg::SwitchType::FABRIC) {
+              platformMapping = &w400cFabric;
+            } else {
+              XLOG(ERR) << " Unexpected w400C switch type : "
+                        << static_cast<int>(*fabricEndpoint.switchType());
+            }
+            break;
+          case cfg::AsicType::ASIC_TYPE_INDUS:
+            platformMapping = &makalu;
+            remotePortOffset = 256;
+            break;
+          case cfg::AsicType::ASIC_TYPE_BEAS:
+            platformMapping = &kamet;
+            break;
+        }
         fabricEndpoint.portId() = *fabricEndpoint.portId() + remotePortOffset;
+        if (platformMapping) {
+          const auto& platPorts = platformMapping->getPlatformPorts();
+          auto pitr = platPorts.find(*fabricEndpoint.portId());
+          if (pitr != platPorts.end()) {
+            fabricEndpoint.portName() = *pitr->second.mapping()->name();
+          }
+        }
       }
     }
     reachability.insert({portName, fabricEndpoint});

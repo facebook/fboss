@@ -221,6 +221,9 @@ target_link_libraries(handler
   ctrl_cpp2
   log_thrift_call
   Folly::folly
+  wedge400c_platform_mapping
+  kamet_platform_mapping
+  makalu_platform_mapping
 )
 
 target_link_libraries(fboss_types
