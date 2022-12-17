@@ -22,28 +22,6 @@ Minipack16QI2CBus::Minipack16QI2CBus() {
 
 Minipack16QI2CBus::~Minipack16QI2CBus() {}
 
-void Minipack16QI2CBus::ensureOutOfReset(unsigned int module) {
-  auto pim = getPim(module);
-  auto port = getQsfpPimPort(module);
-  systemContainer_->getPimContainer(pim)
-      ->getPimQsfpController()
-      ->ensureQsfpOutOfReset(port);
-}
-
-folly::EventBase* Minipack16QI2CBus::getEventBase(unsigned int module) {
-  auto pim = getPim(module);
-  auto port = getQsfpPimPort(module);
-  return systemContainer_->getPimContainer(pim)
-      ->getI2cController(port)
-      ->getEventBase();
-}
-
-FbFpgaI2cController* Minipack16QI2CBus::getI2cController(
-    uint8_t pim,
-    uint8_t idx) const {
-  return systemContainer_->getPimContainer(pim)->getI2cController(idx);
-}
-
 /* Consolidate the i2c transaction stats from all the pims using their
  * corresponding i2c controller. In case of Minipack16q there are 8 pims
  * and there are four FbFpgaI2cController corresponding to each pim. This

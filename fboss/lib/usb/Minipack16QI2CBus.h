@@ -20,8 +20,6 @@ class Minipack16QI2CBus : public MinipackBaseI2cBus {
   Minipack16QI2CBus();
   ~Minipack16QI2CBus() override;
 
-  void ensureOutOfReset(unsigned int module) override;
-
   /* Consolidate the i2c transaction stats from all the pims using their
    * corresponding i2c controller. In case of Minipack16q there are 8 pims
    * and there are four FbFpgaI2cController corresponding to each pim. This
@@ -30,13 +28,7 @@ class Minipack16QI2CBus : public MinipackBaseI2cBus {
    */
   std::vector<I2cControllerStats> getI2cControllerStats() override;
 
-  folly::EventBase* getEventBase(unsigned int module) override;
-
  private:
-  FbFpgaI2cController* getI2cController(uint8_t pim, uint8_t idx) const;
-
-  static constexpr uint8_t MODULES_PER_PIM = 16;
-
   std::array<std::array<std::unique_ptr<FbFpgaI2cController>, 4>, 8>
       i2cControllers_;
 };

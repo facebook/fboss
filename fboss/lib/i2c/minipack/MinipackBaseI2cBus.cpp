@@ -112,4 +112,26 @@ int MinipackBaseI2cBus::getModule(uint8_t pim, uint8_t port) {
   return 1 + (pim - 1) * portsPerPim_ + port;
 }
 
+void MinipackBaseI2cBus::ensureOutOfReset(unsigned int module) {
+  auto pim = getPim(module);
+  auto port = getQsfpPimPort(module);
+  systemContainer_->getPimContainer(pim)
+      ->getPimQsfpController()
+      ->ensureQsfpOutOfReset(port);
+}
+
+folly::EventBase* MinipackBaseI2cBus::getEventBase(unsigned int module) {
+  auto pim = getPim(module);
+  auto port = getQsfpPimPort(module);
+  return systemContainer_->getPimContainer(pim)
+      ->getI2cController(port)
+      ->getEventBase();
+}
+
+FbFpgaI2cController* MinipackBaseI2cBus::getI2cController(
+    uint8_t pim,
+    uint8_t idx) const {
+  return systemContainer_->getPimContainer(pim)->getI2cController(idx);
+}
+
 } // namespace facebook::fboss

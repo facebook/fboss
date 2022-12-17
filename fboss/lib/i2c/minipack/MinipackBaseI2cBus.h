@@ -33,12 +33,16 @@ class MinipackBaseI2cBus : public TransceiverI2CApi {
   void scanPresence(std::map<int32_t, ModulePresence>& presences) override;
   void verifyBus(bool /* autoReset */) override {}
 
+  void ensureOutOfReset(unsigned int module) override;
+  folly::EventBase* getEventBase(unsigned int module) override;
+
  protected:
   uint32_t portsPerPim_ = 16;
   virtual uint8_t getPim(int module);
   virtual uint8_t getQsfpPimPort(int module);
   virtual int getModule(uint8_t pim, uint8_t port);
   std::shared_ptr<MinipackBaseSystemContainer> systemContainer_;
+  FbFpgaI2cController* getI2cController(uint8_t pim, uint8_t idx) const;
 };
 
 } // namespace facebook::fboss
