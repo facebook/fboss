@@ -5,6 +5,8 @@
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <string>
+#include "FsdbPubSubManager.h"
+#include "FsdbStreamClient.h"
 #include "fboss/fsdb/client/FsdbDeltaPublisher.h"
 #include "fboss/fsdb/client/FsdbStatePublisher.h"
 
@@ -254,8 +256,7 @@ void FsdbPubSubManager::addStateDeltaSubscription(
       stateChangeCb,
       operDeltaCb,
       false /*subscribeStat*/,
-      fsdbHost,
-      fsdbPort);
+      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
 }
 
 void FsdbPubSubManager::addStatePathSubscription(
@@ -269,8 +270,7 @@ void FsdbPubSubManager::addStatePathSubscription(
       stateChangeCb,
       operStateCb,
       false /*subscribeStat*/,
-      fsdbHost,
-      fsdbPort);
+      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
 }
 
 void FsdbPubSubManager::addStatDeltaSubscription(
@@ -284,8 +284,7 @@ void FsdbPubSubManager::addStatDeltaSubscription(
       stateChangeCb,
       operDeltaCb,
       true /*subscribeStat*/,
-      fsdbHost,
-      fsdbPort);
+      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
 }
 
 void FsdbPubSubManager::addStatPathSubscription(
@@ -299,8 +298,7 @@ void FsdbPubSubManager::addStatPathSubscription(
       stateChangeCb,
       operStateCb,
       true /*subscribeStat*/,
-      fsdbHost,
-      fsdbPort);
+      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
 }
 /* multi path subscriptions */
 void FsdbPubSubManager::addStateDeltaSubscription(
@@ -314,8 +312,7 @@ void FsdbPubSubManager::addStateDeltaSubscription(
       stateChangeCb,
       operDeltaCb,
       false /*subscribeStat*/,
-      fsdbHost,
-      fsdbPort);
+      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
 }
 
 void FsdbPubSubManager::addStatePathSubscription(
@@ -329,38 +326,61 @@ void FsdbPubSubManager::addStatePathSubscription(
       stateChangeCb,
       operStateCb,
       false /*subscribeStat*/,
-      fsdbHost,
-      fsdbPort);
+      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
 }
 
 void FsdbPubSubManager::addStatDeltaSubscription(
-    const MultiPath& subscribePath,
+    const MultiPath& subscribePaths,
     FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
     FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
     const std::string& fsdbHost,
     int32_t fsdbPort) {
   addSubscriptionImpl<FsdbExtDeltaSubscriber>(
-      toExtendedOperPath(subscribePath),
+      toExtendedOperPath(subscribePaths),
       stateChangeCb,
       operDeltaCb,
       true /*subscribeStat*/,
-      fsdbHost,
-      fsdbPort);
+      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
 }
 
 void FsdbPubSubManager::addStatPathSubscription(
-    const MultiPath& subscribePath,
+    const MultiPath& subscribePaths,
     FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
     FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
     const std::string& fsdbHost,
     int32_t fsdbPort) {
   addSubscriptionImpl<FsdbExtStateSubscriber>(
-      toExtendedOperPath(subscribePath),
+      toExtendedOperPath(subscribePaths),
       stateChangeCb,
       operStateCb,
       true /*subscribeStat*/,
-      fsdbHost,
-      fsdbPort);
+      FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
+}
+
+void FsdbPubSubManager::addStatePathSubscription(
+    const Path& subscribePath,
+    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
+    FsdbStateSubscriber::FsdbOperStateUpdateCb operStateCb,
+    FsdbStreamClient::ServerOptions&& serverOptions) {
+  addSubscriptionImpl<FsdbStateSubscriber>(
+      subscribePath,
+      stateChangeCb,
+      operStateCb,
+      true /*subscribeStat*/,
+      std::move(serverOptions));
+}
+
+void FsdbPubSubManager::addStatePathSubscription(
+    const MultiPath& subscribePaths,
+    FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
+    FsdbExtStateSubscriber::FsdbOperStateUpdateCb operStateCb,
+    FsdbStreamClient::ServerOptions&& serverOptions) {
+  addSubscriptionImpl<FsdbExtStateSubscriber>(
+      toExtendedOperPath(subscribePaths),
+      stateChangeCb,
+      operStateCb,
+      true /*subscribeStat*/,
+      std::move(serverOptions));
 }
 
 template <typename SubscriberT, typename PathElement>
@@ -369,13 +389,15 @@ void FsdbPubSubManager::addSubscriptionImpl(
     FsdbStreamClient::FsdbStreamStateChangeCb stateChangeCb,
     typename SubscriberT::FsdbSubUnitUpdateCb subUnitAvailableCb,
     bool subscribeStats,
-    const std::string& fsdbHost,
-    int32_t fsdbPort) {
+    FsdbStreamClient::ServerOptions&& serverOptions) {
   auto isDelta = std::disjunction_v<
       std::is_same<SubscriberT, FsdbDeltaSubscriber>,
       std::is_same<SubscriberT, FsdbExtDeltaSubscriber>>;
-  auto subsStr =
-      toSubscriptionStr(fsdbHost, subscribePath, isDelta, subscribeStats);
+  auto subsStr = toSubscriptionStr(
+      serverOptions.dstAddr.getAddressStr(),
+      subscribePath,
+      isDelta,
+      subscribeStats);
   path2Subscriber_.withWLock([&](auto& path2Subscriber) {
     auto [itr, inserted] = path2Subscriber.emplace(std::make_pair(
         subsStr,
@@ -392,8 +414,7 @@ void FsdbPubSubManager::addSubscriptionImpl(
           "Subscription at : " + subsStr + " already exists");
     }
     XLOG(DBG2) << " Added subscription for: " << subsStr;
-    itr->second->setServerOptions(
-        FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
+    itr->second->setServerOptions(std::move(serverOptions));
   });
 }
 
