@@ -464,7 +464,8 @@ void BcmWarmBootCache::populateUdfGroupFromWarmBootState(
       udfGroupPacketMatcherMap.insert({packetMatcherName, packetMatcherId});
       udfGroupNameToPacketMatcherMap_.insert(
           {name.asString(), udfGroupPacketMatcherMap});
-      XLOG(DBG1) << "Attaching packetMatcher =" << packetMatcherName;
+      XLOG(DBG2) << "Populating packetMatcher = " << packetMatcherName
+                 << ", with id = " << packetMatcherId;
     }
     UdfGroupInfoPair udfGroupInfoPair = {udfGroupId, udfInfo};
     udfGroupNameToInfoMap_.insert({name.asString(), udfGroupInfoPair});
@@ -1164,6 +1165,61 @@ void BcmWarmBootCache::removeUnclaimedCosqMappings() {
   index2ReasonToQueue_.clear();
 }
 
+void BcmWarmBootCache::detachUdfPacketMatcher(
+    const std::string& udfGroupName,
+    bcm_udf_id_t udfId) {
+  auto udfGroupPacketMatcherItr = findUdfGroupPacketMatcher(udfGroupName);
+  if (udfGroupPacketMatcherItr != UdfGroupNameToPacketMatcherMapEnd()) {
+    auto packetMatcherMap = udfGroupPacketMatcherItr->second;
+    for (auto udfPktMatcherItr = packetMatcherMap.begin();
+         udfPktMatcherItr != packetMatcherMap.end();
+         udfPktMatcherItr++) {
+      /* Detach packet matcher id from Udf Group */
+      auto packetMatcherName = udfPktMatcherItr->first;
+      auto packetMatcherId = udfPktMatcherItr->second;
+      auto rv =
+          bcm_udf_pkt_format_delete(hw_->getUnit(), udfId, packetMatcherId);
+      bcmCheckError(
+          rv,
+          "Unable to detach packetMatcher: ",
+          packetMatcherName,
+          " packetMatcherId: ",
+          packetMatcherId,
+          " from udfGroup: ",
+          udfGroupName,
+          " udfGroupId: ",
+          udfId);
+      XLOG(DBG2) << "udfGroup=" << udfGroupName << " udfGroupId= " << udfId
+                 << " packetMatcherName=" << packetMatcherName
+                 << " packetMatcherId=" << packetMatcherId;
+    }
+  }
+}
+
+void BcmWarmBootCache::removeUnclaimedUdfGroups() {
+  XLOG(DBG2) << "Unclaimed UdfGroups count=" << udfGroupNameToInfoMap_.size();
+  for (auto udfGroupInfoItr = UdfGroupNameToInfoMapBegin();
+       udfGroupInfoItr != UdfGroupNameToInfoMapEnd();
+       udfGroupInfoItr++) {
+    const auto& udfGroupName = udfGroupInfoItr->first;
+    auto udfGroupId = udfGroupInfoItr->second.first;
+    XLOG(DBG2) << "Deleting unclaimed UdfGroup: " << udfGroupName
+               << " UdfGroupId: " << udfGroupId;
+    detachUdfPacketMatcher(udfGroupName, udfGroupId);
+
+    /* Delete udf */
+    auto rv = bcm_udf_destroy(hw_->getUnit(), udfGroupId);
+    bcmCheckError(
+        rv,
+        "Unable to delete  udfGroup: ",
+        udfGroupName,
+        " UdfGroupId: ",
+        udfGroupId);
+  }
+  udfGroupNameToPacketMatcherMap_.clear();
+  udfGroupNameToInfoMap_.clear();
+}
+
 void BcmWarmBootCache::clear() {
   // Get rid of all unclaimed entries. The order is important here
   // since we want to delete entries only after there are no more
@@ -1221,6 +1277,9 @@ void BcmWarmBootCache::clear() {
 
   // Delete CosQMappings
   removeUnclaimedCosqMappings();
+
+  // Delete UdfGroups
+  removeUnclaimedUdfGroups();
 
   /* remove unclaimed mirrors and mirrored ports/acls, if any */
   checkUnclaimedMirrors();

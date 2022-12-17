@@ -289,6 +289,13 @@ class BcmWarmBootCache {
   void removeUnclaimedCosqMappings();
   void checkUnclaimedQosMaps();
 
+  void removeUnclaimedUdfGroups();
+  void removeUnclaimedUdfPacketMatchers();
+
+  void detachUdfPacketMatcher(
+      const std::string& udfGroupName,
+      bcm_udf_id_t udfId);
+
   void populateSwitchSettings();
 
   void populateRxReasonToQueue();
@@ -737,6 +744,10 @@ class BcmWarmBootCache {
   UdfPktMatcherNameToInfoMapItr findUdfPktMatcherInfo(
       const std::string& name) const {
     return udfPktMatcherNameToInfoMap_.find(name);
+  }
+
+  UdfGroupNameToInfoMapItr UdfGroupNameToInfoMapBegin() {
+    return udfGroupNameToInfoMap_.begin();
   }
 
   UdfGroupNameToInfoMapItr UdfGroupNameToInfoMapEnd() {
