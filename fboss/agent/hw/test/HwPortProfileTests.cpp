@@ -72,10 +72,9 @@ class HwPortProfileTest : public HwTest {
     // supported by SDK and then exclude certain cases below
     bool expectPmdSignalDetect = getHwSwitch()->rxSignalDetectSupportedInSdk();
     bool expectPmdCdrLock = getHwSwitch()->rxLockStatusSupportedInSdk();
-    if (!getHwSwitchEnsemble()->isSai() &&
-        getPlatform()->getAsic()->getAsicType() ==
-            cfg::AsicType::ASIC_TYPE_TOMAHAWK) {
-      // TH will never support these diagnostics with native SDK
+    if (getPlatform()->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_TOMAHAWK) {
+      // TH will never support these diagnostics with native or SAI SDKs
       expectPmdSignalDetect = false;
       expectPmdCdrLock = false;
     }
