@@ -5,10 +5,13 @@
 #include <fb303/ThreadCachedServiceData.h>
 #include <folly/SocketAddress.h>
 #include <folly/experimental/coro/AsyncScope.h>
+#include <folly/io/async/AsyncSocketTransport.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <gtest/gtest_prod.h>
 #include <thrift/lib/cpp2/async/ClientBufferedStream.h>
 #include <thrift/lib/cpp2/async/Sink.h>
+#include <optional>
+#include <string>
 #ifndef IS_OSS
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #endif
@@ -29,6 +32,22 @@ class Client;
 namespace facebook::fboss::fsdb {
 class FsdbService;
 
+struct ServerOptions {
+  ServerOptions(const std::string& dstIp, uint16_t dstPort)
+      : dstAddr(folly::SocketAddress(dstIp, dstPort)) {}
+
+  ServerOptions(
+      const std::string& dstIp,
+      uint16_t dstPort,
+      const std::string& srcIp)
+      : dstAddr(folly::SocketAddress(dstIp, dstPort)),
+        srcAddr(folly::SocketAddress(srcIp, 0)) {}
+
+  folly::SocketAddress dstAddr;
+  std::string fsdbPort;
+  std::optional<folly::SocketAddress> srcAddr;
+};
+
 class FsdbStreamClient {
  public:
   enum class State : uint16_t { DISCONNECTED, CONNECTED, CANCELLED };
@@ -48,6 +67,12 @@ class FsdbStreamClient {
       uint16_t port,
       /* allow reset for use in tests*/
       bool allowReset = false);
+
+  void setServerOptions(
+      ServerOptions&& options,
+      /* allow reset for use in tests*/
+      bool allowReset = false);
+
   void cancel();
 
   bool isConnectedToServer() const;
@@ -87,9 +112,9 @@ class FsdbStreamClient {
 #endif
 
  private:
-  void createClient(const folly::SocketAddress& dstAddr);
+  void createClient(const ServerOptions& options);
   void resetClient();
-  void connectToServer(const folly::SocketAddress& dstAddr);
+  void connectToServer(const ServerOptions& options);
   void timeoutExpired() noexcept;
 
 #if FOLLY_HAS_COROUTINES && !defined(IS_OSS)
@@ -113,7 +138,7 @@ class FsdbStreamClient {
   folly::EventBase* connRetryEvb_;
   folly::Synchronized<State> state_{State::DISCONNECTED};
   std::string counterPrefix_;
-  folly::Synchronized<std::optional<folly::SocketAddress>> serverAddress_;
+  folly::Synchronized<std::optional<ServerOptions>> serverOptions_;
   FsdbStreamStateChangeCb stateChangeCb_;
   std::atomic<bool> serviceLoopRunning_{false};
   std::unique_ptr<folly::AsyncTimeout> timer_;

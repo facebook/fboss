@@ -6,6 +6,6 @@ namespace facebook::fboss::fsdb {
 
 void FsdbStreamClient::resetClient() {}
 
-void FsdbStreamClient::createClient(const folly::SocketAddress& /*dstAddr*/) {}
+void FsdbStreamClient::createClient(const ServerOptions& /* options */) {}
 
 } // namespace facebook::fboss::fsdb
