@@ -1220,6 +1220,28 @@ void BcmWarmBootCache::removeUnclaimedUdfGroups() {
   udfGroupNameToInfoMap_.clear();
 }
 
+void BcmWarmBootCache::removeUnclaimedUdfPacketMatchers() {
+  XLOG(DBG2) << "Unclaimed UdfPacketMatchers count="
+             << udfPktMatcherNameToInfoMap_.size();
+  for (auto udfPktMatcherItr = UdfPktMatcherNameToInfoMapBegin();
+       udfPktMatcherItr != UdfPktMatcherNameToInfoMapEnd();
+       udfPktMatcherItr++) {
+    const auto& udfPktMatcherName = udfPktMatcherItr->first;
+    auto udfPktMatcherId = udfPktMatcherItr->second.first;
+    XLOG(DBG2) << "Deleting unclaimed udfPktMatcher: " << udfPktMatcherName
+               << " udfPktMatcherId:" << udfPktMatcherId;
+    /* Delete the packet format */
+    auto rv = bcm_udf_pkt_format_destroy(hw_->getUnit(), udfPktMatcherId);
+    bcmCheckError(
+        rv,
+        "Unable to delete  udfPktMatcher: ",
+        udfPktMatcherName,
+        " udfPktMatcherId:",
+        udfPktMatcherId);
+  }
+  udfPktMatcherNameToInfoMap_.clear();
+}
+
 void BcmWarmBootCache::clear() {
   // Get rid of all unclaimed entries. The order is important here
   // since we want to delete entries only after there are no more
@@ -1280,6 +1302,9 @@ void BcmWarmBootCache::clear() {
 
   // Delete UdfGroups
   removeUnclaimedUdfGroups();
+
+  // Delete UdfPacketMatchers
+  removeUnclaimedUdfPacketMatchers();
 
   /* remove unclaimed mirrors and mirrored ports/acls, if any */
   checkUnclaimedMirrors();

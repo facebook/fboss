@@ -758,6 +758,10 @@ class BcmWarmBootCache {
     return udfGroupNameToPacketMatcherMap_.end();
   }
 
+  UdfPktMatcherNameToInfoMapItr UdfPktMatcherNameToInfoMapBegin() {
+    return udfPktMatcherNameToInfoMap_.begin();
+  }
+
   UdfPktMatcherNameToInfoMapItr UdfPktMatcherNameToInfoMapEnd() {
     return udfPktMatcherNameToInfoMap_.end();
   }
