@@ -79,13 +79,6 @@ void FsdbStreamClient::setState(State state) {
   stateChangeCb_(oldState, state);
 }
 
-void FsdbStreamClient::setServerToConnect(
-    const std::string& ip,
-    uint16_t port,
-    bool allowReset) {
-  setServerOptions(ServerOptions(ip, port), allowReset);
-}
-
 void FsdbStreamClient::setServerOptions(
     ServerOptions&& options,
     bool allowReset) {

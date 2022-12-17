@@ -102,7 +102,8 @@ class StreamClientTest : public ::testing::Test {
 };
 
 TEST_F(StreamClientTest, connectAndCancel) {
-  streamClient_->setServerToConnect("::1", FLAGS_fsdbPort);
+  streamClient_->setServerOptions(
+      FsdbStreamClient::ServerOptions("::1", FLAGS_fsdbPort));
   auto counterPrefix = streamClient_->getCounterPrefix();
   EXPECT_EQ(counterPrefix, "test_fsdb_client");
   EXPECT_EQ(

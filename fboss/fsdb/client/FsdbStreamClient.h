@@ -32,25 +32,22 @@ class Client;
 namespace facebook::fboss::fsdb {
 class FsdbService;
 
-struct ServerOptions {
-  ServerOptions(const std::string& dstIp, uint16_t dstPort)
-      : dstAddr(folly::SocketAddress(dstIp, dstPort)) {}
-
-  ServerOptions(
-      const std::string& dstIp,
-      uint16_t dstPort,
-      const std::string& srcIp)
-      : dstAddr(folly::SocketAddress(dstIp, dstPort)),
-        srcAddr(folly::SocketAddress(srcIp, 0)) {}
-
-  folly::SocketAddress dstAddr;
-  std::string fsdbPort;
-  std::optional<folly::SocketAddress> srcAddr;
-};
-
 class FsdbStreamClient {
  public:
   enum class State : uint16_t { DISCONNECTED, CONNECTED, CANCELLED };
+
+  struct ServerOptions {
+    ServerOptions(const std::string& dstIp, uint16_t dstPort)
+        : dstAddr(folly::SocketAddress(dstIp, dstPort)) {}
+
+    ServerOptions(const std::string& dstIp, uint16_t dstPort, std::string srcIp)
+        : dstAddr(folly::SocketAddress(dstIp, dstPort)),
+          srcAddr(folly::SocketAddress(srcIp, 0)) {}
+
+    folly::SocketAddress dstAddr;
+    std::string fsdbPort;
+    std::optional<folly::SocketAddress> srcAddr;
+  };
 
   using FsdbStreamStateChangeCb = std::function<void(State, State)>;
   FsdbStreamClient(
@@ -61,12 +58,6 @@ class FsdbStreamClient {
       FsdbStreamStateChangeCb stateChangeCb = [](State /*old*/,
                                                  State /*newState*/) {});
   virtual ~FsdbStreamClient();
-
-  void setServerToConnect(
-      const std::string& ip,
-      uint16_t port,
-      /* allow reset for use in tests*/
-      bool allowReset = false);
 
   void setServerOptions(
       ServerOptions&& options,

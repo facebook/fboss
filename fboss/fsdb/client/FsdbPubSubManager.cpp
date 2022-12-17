@@ -142,7 +142,7 @@ std::unique_ptr<PublisherT> FsdbPubSubManager::createPublisherImpl(
       reconnectEvb_,
       publishStats,
       publisherStateChangeCb);
-  publisher->setServerToConnect("::1", fsdbPort);
+  publisher->setServerOptions(FsdbStreamClient::ServerOptions("::1", fsdbPort));
   return publisher;
 }
 
@@ -392,7 +392,8 @@ void FsdbPubSubManager::addSubscriptionImpl(
           "Subscription at : " + subsStr + " already exists");
     }
     XLOG(DBG2) << " Added subscription for: " << subsStr;
-    itr->second->setServerToConnect(fsdbHost, fsdbPort);
+    itr->second->setServerOptions(
+        FsdbStreamClient::ServerOptions(fsdbHost, fsdbPort));
   });
 }
 
