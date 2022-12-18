@@ -96,10 +96,23 @@ void validatePhyInfo(
   SCOPED_TRACE(
       folly::to<std::string>("current: ", apache::thrift::debugString(curr)));
 
+  ASSERT_TRUE(curr.state().has_value());
+  auto currState = curr.state().value_or({});
+  ASSERT_TRUE(curr.stats().has_value());
+  auto currStats = curr.stats().value_or({});
+  ASSERT_TRUE(prev.state().has_value());
+  auto prevState = prev.state().value_or({});
+  ASSERT_TRUE(prev.stats().has_value());
+  auto prevStats = prev.stats().value_or({});
+
   // Assert that a phy info update happened
   EXPECT_TRUE(*curr.timeCollected() > *prev.timeCollected());
+  EXPECT_TRUE(*currState.timeCollected() > *prevState.timeCollected());
+  EXPECT_TRUE(*currStats.timeCollected() > *prevStats.timeCollected());
   EXPECT_EQ(*curr.phyChip()->type(), chipType);
   EXPECT_EQ(*prev.phyChip()->type(), chipType);
+  EXPECT_EQ(*currState.phyChip()->type(), chipType);
+  EXPECT_EQ(*prevState.phyChip()->type(), chipType);
   if (chipType == phy::DataPlanePhyChipType::IPHY) {
     // both current and previous linkState should be true for iphy
     if (auto linkState = prev.linkState()) {
@@ -107,7 +120,17 @@ void validatePhyInfo(
     } else {
       throw FbossError("linkState of previous iphy info is not set");
     }
+    if (auto linkState = prevState.linkState()) {
+      EXPECT_TRUE(*linkState);
+    } else {
+      throw FbossError("linkState of previous iphy info is not set");
+    }
     if (auto linkState = curr.linkState()) {
+      EXPECT_TRUE(*linkState);
+    } else {
+      throw FbossError("linkState of current iphy info is not set");
+    }
+    if (auto linkState = currState.linkState()) {
       EXPECT_TRUE(*linkState);
     } else {
       throw FbossError("linkState of current iphy info is not set");
@@ -121,6 +144,25 @@ void validatePhyInfo(
       EXPECT_TRUE(curr.line()->pcs()->rsFec());
       auto currRsFecInfo =
           apache::thrift::can_throw(curr.line()->pcs()->rsFec());
+      // Assert that fec uncorrectable error count didn't increase
+      EXPECT_EQ(
+          *prevRsFecInfo->uncorrectedCodewords(),
+          *currRsFecInfo->uncorrectedCodewords());
+
+      // Assert that fec correctable error count is the same or increased
+      EXPECT_LE(
+          *prevRsFecInfo->correctedCodewords(),
+          *currRsFecInfo->correctedCodewords());
+    }
+  }
+
+  if (auto prevPcsStats = prevStats.line()->pcs()) {
+    // If previous has pcs info, current should also have such info
+    EXPECT_TRUE(currStats.line()->pcs());
+    if (auto prevRsFecInfo = prevPcsStats->rsFec()) {
+      EXPECT_TRUE(currStats.line()->pcs()->rsFec());
+      auto currRsFecInfo =
+          apache::thrift::can_throw(currStats.line()->pcs()->rsFec());
       // Assert that fec uncorrectable error count didn't increase
       EXPECT_EQ(
           *prevRsFecInfo->uncorrectedCodewords(),
@@ -163,6 +205,46 @@ void validatePhyInfo(
     }
   };
 
+  auto checkSideState = [](const phy::PhySideState& sideState) {
+    // PMD checks
+    for (const auto& lane : *sideState.pmd()->lanes()) {
+      SCOPED_TRACE(folly::to<std::string>("lane ", lane.first));
+      if (auto cdrLiveStatus = lane.second.cdrLockLive()) {
+        EXPECT_TRUE(*cdrLiveStatus);
+      }
+      // TODO: Also expect > 0 lanes on platforms that support the pmd apis with
+      // sdk >= 6.5.24
+    }
+
+    // Check that interfaceType and medium dont conflict
+    if (sideState.interfaceType().has_value()) {
+      validateInterfaceAndMedium(
+          *sideState.interfaceType(), *sideState.medium());
+    }
+  };
+
+  auto checkSideStats = [](const phy::PhySideStats& sideStats) {
+    // PMD checks
+    for (const auto& lane : *sideStats.pmd()->lanes()) {
+      SCOPED_TRACE(folly::to<std::string>("lane ", lane.first));
+      if (const auto eyesRef = lane.second.eyes()) {
+        for (const auto& eye : *eyesRef) {
+          if (const auto widthRef = eye.width()) {
+            EXPECT_GT(*widthRef, 0);
+          }
+          if (const auto heightRef = eye.height()) {
+            EXPECT_GT(*heightRef, 0);
+          }
+        }
+      }
+      if (auto snrRef = lane.second.snr()) {
+        EXPECT_NE(*snrRef, 0.0);
+      }
+      // TODO: Also expect > 0 lanes on platforms that support the pmd apis with
+      // sdk >= 6.5.24
+    }
+  };
+
   {
     SCOPED_TRACE("line side");
     {
@@ -171,9 +253,23 @@ void validatePhyInfo(
       checkSideInfo(*prev.line());
     }
     {
+      SCOPED_TRACE("previous");
+      EXPECT_EQ(prevState.line()->side(), phy::Side::LINE);
+      EXPECT_EQ(prevStats.line()->side(), phy::Side::LINE);
+      checkSideState(*prevState.line());
+      checkSideStats(*prevStats.line());
+    }
+    {
       SCOPED_TRACE("current");
       EXPECT_EQ(curr.line()->side(), phy::Side::LINE);
       checkSideInfo(*curr.line());
+    }
+    {
+      SCOPED_TRACE("current");
+      EXPECT_EQ(currState.line()->side(), phy::Side::LINE);
+      EXPECT_EQ(currStats.line()->side(), phy::Side::LINE);
+      checkSideState(*currState.line());
+      checkSideStats(*currStats.line());
     }
   }
   if (chipType == phy::DataPlanePhyChipType::XPHY) {
@@ -184,6 +280,20 @@ void validatePhyInfo(
       EXPECT_EQ(prev.system()->side(), phy::Side::SYSTEM);
       EXPECT_EQ(curr.system()->side(), phy::Side::SYSTEM);
       checkSideInfo(*apache::thrift::can_throw(curr.system()));
+    }
+    if (auto sysState = prevState.system()) {
+      checkSideState(*sysState);
+      EXPECT_TRUE(currState.system());
+      EXPECT_EQ(prevState.system()->side(), phy::Side::SYSTEM);
+      EXPECT_EQ(currState.system()->side(), phy::Side::SYSTEM);
+      checkSideState(*apache::thrift::can_throw(currState.system()));
+    }
+    if (auto sysStats = prevStats.system()) {
+      checkSideStats(*sysStats);
+      EXPECT_TRUE(currStats.system());
+      EXPECT_EQ(prevStats.system()->side(), phy::Side::SYSTEM);
+      EXPECT_EQ(currStats.system()->side(), phy::Side::SYSTEM);
+      checkSideStats(*apache::thrift::can_throw(currStats.system()));
     }
     // TODO: Expect system side info always on XPHY when every XPHY supports
     // publishing phy infos
@@ -215,8 +325,13 @@ TEST_F(LinkTest, iPhyInfoTest) {
           auto phyIt = phyInfoBefore.find(port);
           ASSERT_EVENTUALLY_NE(phyIt, phyInfoBefore.end());
           EXPECT_EVENTUALLY_NE(phyIt->second.timeCollected(), 0);
-          EXPECT_EVENTUALLY_NE(phyIt->second.timeCollected(), 0);
           EXPECT_EVENTUALLY_TRUE(phyIt->second.linkState().value_or({}));
+          EXPECT_EVENTUALLY_NE(
+              phyIt->second.state().value_or({}).timeCollected(), 0);
+          EXPECT_EVENTUALLY_NE(
+              phyIt->second.stats().value_or({}).timeCollected(), 0);
+          EXPECT_EVENTUALLY_TRUE(
+              phyIt->second.state().value_or({}).linkState().value_or({}));
         }
       },
       20 /* retries */,
@@ -233,6 +348,14 @@ TEST_F(LinkTest, iPhyInfoTest) {
           EXPECT_EVENTUALLY_GE(
               *(phyInfoAfter[port].timeCollected()) -
                   *(phyInfoBefore[port].timeCollected()),
+              20);
+          EXPECT_EVENTUALLY_GE(
+              *(phyInfoAfter[port].state().value_or({}).timeCollected()) -
+                  *(phyInfoBefore[port].state().value_or({}).timeCollected()),
+              20);
+          EXPECT_EVENTUALLY_GE(
+              *(phyInfoAfter[port].stats().value_or({}).timeCollected()) -
+                  *(phyInfoBefore[port].stats().value_or({}).timeCollected()),
               20);
         }
       },
@@ -271,6 +394,14 @@ TEST_F(LinkTest, xPhyInfoTest) {
               << getPortName(port) << " has no xphy info.";
           ASSERT_EVENTUALLY_TRUE(*phyInfo->timeCollected() > now.count())
               << getPortName(port) << " didn't update phyInfo";
+          ASSERT_EVENTUALLY_TRUE(
+              phyInfo->state().has_value() &&
+              *phyInfo->state()->timeCollected() > now.count())
+              << getPortName(port) << " didn't update phy state";
+          ASSERT_EVENTUALLY_TRUE(
+              phyInfo->stats().has_value() &&
+              *phyInfo->stats()->timeCollected() > now.count())
+              << getPortName(port) << " didn't update phy stats";
           phyInfoBefore.emplace(port, *phyInfo);
         }
       },
@@ -298,6 +429,16 @@ TEST_F(LinkTest, xPhyInfoTest) {
                   phyInfoBefore[port].get_timeCollected(),
               kSecondsBetweenSnapshots)
               << getPortName(port) << " has no updated xphy info.";
+          ASSERT_EVENTUALLY_GE(
+              phyInfo->state().value_or({}).get_timeCollected() -
+                  phyInfoBefore[port].state().value_or({}).get_timeCollected(),
+              kSecondsBetweenSnapshots)
+              << getPortName(port) << " has no updated xphy state.";
+          ASSERT_EVENTUALLY_GE(
+              phyInfo->stats().value_or({}).get_timeCollected() -
+                  phyInfoBefore[port].stats().value_or({}).get_timeCollected(),
+              kSecondsBetweenSnapshots)
+              << getPortName(port) << " has no updated xphy stats.";
           phyInfoAfter.emplace(port, *phyInfo);
         }
       },
