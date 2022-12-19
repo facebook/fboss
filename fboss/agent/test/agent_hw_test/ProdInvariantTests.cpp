@@ -222,9 +222,10 @@ TEST_F(ProdInvariantTest, verifyInvariants) {
   auto setup = [&]() {};
   auto verify = [&]() {
     verifyAcl();
-    verifyCopp();
-    verifyLoadBalancing();
-    verifyDscpToQueueMapping();
+    // TODO: Uncomment once tests are more stable.
+    // verifyCopp();
+    // verifyLoadBalancing();
+    // verifyDscpToQueueMapping();
     verifySafeDiagCommands();
   };
   verifyAcrossWarmBoots(setup, verify);
