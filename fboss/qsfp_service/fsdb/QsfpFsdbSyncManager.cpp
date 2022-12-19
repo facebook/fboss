@@ -149,6 +149,9 @@ void QsfpFsdbSyncManager::updatePhyStats(PhyStatsMap& stats) {
 void QsfpFsdbSyncManager::updatePhyStat(
     std::string&& portName,
     phy::PhyStats&& stat) {
+  if (!FLAGS_publish_stats_to_fsdb) {
+    return;
+  }
   auto pendingPhyStatsWLockedPtr = pendingPhyStats_.wlock();
   pendingPhyStatsWLockedPtr->emplace(portName, stat);
 

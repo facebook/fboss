@@ -887,13 +887,17 @@ bool WedgeManager::getSdkState(std::string filename) const {
 void WedgeManager::publishPhyStateToFsdb(
     std::string&& portName,
     std::optional<phy::PhyState>&& newState) const {
-  fsdbSyncManager_->updatePhyState(std::move(portName), std::move(newState));
+  if (FLAGS_publish_state_to_fsdb) {
+    fsdbSyncManager_->updatePhyState(std::move(portName), std::move(newState));
+  }
 }
 
 void WedgeManager::publishPhyStatToFsdb(
     std::string&& portName,
     phy::PhyStats&& stat) const {
-  fsdbSyncManager_->updatePhyStat(std::move(portName), std::move(stat));
+  if (FLAGS_publish_stats_to_fsdb) {
+    fsdbSyncManager_->updatePhyStat(std::move(portName), std::move(stat));
+  }
 }
 
 } // namespace fboss
