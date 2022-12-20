@@ -2,6 +2,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwFabricUtils.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTest.h"
 
@@ -42,6 +43,11 @@ TEST_F(HwFabricSwitchTest, collectStats) {
     }
   };
   verifyAcrossWarmBoots([] {}, verify);
+}
+
+TEST_F(HwFabricSwitchTest, checkFabricReacability) {
+  verifyAcrossWarmBoots(
+      [] {}, [this]() { checkFabricReachability(getHwSwitch()); });
 }
 
 } // namespace facebook::fboss

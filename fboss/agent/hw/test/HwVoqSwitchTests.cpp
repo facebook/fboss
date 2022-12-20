@@ -5,6 +5,7 @@
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/IndusAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/HwFabricUtils.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
@@ -532,21 +533,8 @@ TEST_F(HwVoqSwitchTest, AclCounter) {
 }
 
 TEST_F(HwVoqSwitchTest, checkFabricReacability) {
-  auto verify = [this]() {
-    auto reachability = getHwSwitch()->getFabricReachability();
-    EXPECT_GT(reachability.size(), 0);
-    for (auto [port, endpoint] : reachability) {
-      if (!*endpoint.isAttached()) {
-        continue;
-      }
-      XLOG(DBG2) << " On port: " << port
-                 << " got switch id: " << *endpoint.switchId();
-      EXPECT_EQ(*endpoint.switchId(), *getHwSwitch()->getSwitchId());
-      EXPECT_EQ(*endpoint.switchType(), getHwSwitch()->getSwitchType());
-    }
-  };
-
-  verifyAcrossWarmBoots([] {}, verify);
+  verifyAcrossWarmBoots(
+      [] {}, [this]() { checkFabricReachability(getHwSwitch()); });
 }
 
 } // namespace facebook::fboss
