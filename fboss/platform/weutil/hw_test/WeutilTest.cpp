@@ -9,6 +9,10 @@
  */
 
 #include "fboss/platform/weutil/hw_test/WeutilTest.h"
+
+#include <gtest/gtest.h>
+
+#include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/weutil/Weutil.h"
 
 namespace facebook::fboss::platform {
@@ -26,3 +30,9 @@ TEST_F(WeutilTest, getWedgeInfo) {
 }
 
 } // namespace facebook::fboss::platform
+
+int main(int argc, char* argv[]) {
+  testing::InitGoogleTest(&argc, argv);
+  facebook::fboss::platform::helpers::init(argc, argv);
+  return RUN_ALL_TESTS();
+}

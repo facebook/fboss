@@ -10,6 +10,8 @@
 
 #include "fboss/platform/fan_service/hw_test/FanServiceTest.h"
 
+#include <gtest/gtest.h>
+
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "fboss/platform/helpers/Init.h"
 #include "thrift/lib/cpp2/server/ThriftServer.h"
@@ -119,3 +121,9 @@ TEST_F(FanServiceTest, sensorDataUpdateTime) {
 }
 
 } // namespace facebook::fboss::platform
+
+int main(int argc, char* argv[]) {
+  testing::InitGoogleTest(&argc, argv);
+  facebook::fboss::platform::helpers::init(argc, argv);
+  return RUN_ALL_TESTS();
+}

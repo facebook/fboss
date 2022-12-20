@@ -14,15 +14,3 @@ target_link_libraries(fan_service_hw_tests
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
-
-add_library(fan_service_hw_test_main
-  fboss/platform/hw_test_utils/Main.cpp
-)
-
-target_link_libraries(fan_service_hw_test_main
-  fan_service_lib
-  fan_service_hw_tests
-  Folly::folly
-  ${GTEST}
-  ${LIBGMOCK_LIBRARIES}
-)

@@ -226,3 +226,9 @@ TEST_F(FanSensorFsdbIntegrationTests, fsdbRestart) {
 }
 
 } // namespace facebook::fboss::platform
+
+int main(int argc, char* argv[]) {
+  testing::InitGoogleTest(&argc, argv);
+  facebook::fboss::platform::helpers::init(argc, argv);
+  return RUN_ALL_TESTS();
+}
