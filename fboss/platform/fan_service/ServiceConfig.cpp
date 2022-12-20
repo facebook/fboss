@@ -1,7 +1,7 @@
 // Copyright 2021- Facebook. All rights reserved.
 #include "ServiceConfig.h"
 #include "fboss/lib/platforms/PlatformMode.h"
-#include "fboss/lib/platforms/PlatformProductInfo.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h" // @manual=//fboss/lib/platforms:product-info
 
 const std::string TABLE_100G = "speed_100";
 const std::string TABLE_200G = "speed_200";
