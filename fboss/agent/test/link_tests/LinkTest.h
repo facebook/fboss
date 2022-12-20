@@ -14,6 +14,9 @@ DECLARE_string(oob_flash_device_name);
 DECLARE_string(openbmc_password);
 DECLARE_bool(enable_lldp);
 DECLARE_bool(tun_intf);
+DECLARE_string(volatile_state_dir);
+DECLARE_bool(setup_for_warmboot);
+DECLARE_string(config);
 
 namespace facebook::fboss {
 

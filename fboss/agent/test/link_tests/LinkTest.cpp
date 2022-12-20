@@ -22,7 +22,6 @@
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 DECLARE_bool(enable_macsec);
-DECLARE_string(config);
 
 namespace {
 const std::vector<std::string> kRestartQsfpService = {
