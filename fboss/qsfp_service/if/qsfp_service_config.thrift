@@ -10,8 +10,6 @@ namespace py.asyncio neteng.fboss.asyncio.qsfp_service_config
 include "fboss/qsfp_service/if/transceiver.thrift"
 
 struct QsfpSdkVersion {
-  // A vendor for the particular version requested
-  1: string vendor;
   // The version associated with the desired Sdk
   2: string version;
 }
