@@ -1,5 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
+#include "fboss/agent/LldpManager.h"
 #include "fboss/agent/Main.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/AgentTest.h"
@@ -108,6 +109,12 @@ class LinkTest : public AgentTest {
   void restartQsfpService() const;
 
   void TearDown() override;
+
+ public:
+  bool checkLldpOnAllCabledPorts() {
+    sw()->getLldpMgr()->sendLldpOnAllPorts();
+    return lldpNeighborsOnAllCabledPorts();
+  }
 
  private:
   void programDefaultRoute(

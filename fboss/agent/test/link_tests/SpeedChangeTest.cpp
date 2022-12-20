@@ -1,16 +1,30 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <gtest/gtest.h>
+#include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/lib/CommonUtils.h"
 
 using namespace ::testing;
 using namespace facebook::fboss;
+
+struct SpeedAndProfile {
+  cfg::PortSpeed speed;
+  cfg::PortProfileID profileID;
+  SpeedAndProfile(cfg::PortSpeed _speed, cfg::PortProfileID _profileID)
+      : speed(_speed), profileID(_profileID) {}
+};
 
 class SpeedChangeTest : public LinkTest {
  public:
   void TearDown() override;
   void setupConfigFlag() override;
+
+ protected:
+  std::optional<SpeedAndProfile> getSecondarySpeedAndProfile(
+      cfg::PortProfileID profileID);
 
  private:
   std::string originalConfigCopy;
@@ -54,4 +68,73 @@ void SpeedChangeTest::TearDown() {
     CHECK(removeFile(originalConfigCopy));
   }
   LinkTest::TearDown();
+}
+
+// Returns a secondary speed if the platform supports it
+std::optional<SpeedAndProfile> SpeedChangeTest::getSecondarySpeedAndProfile(
+    cfg::PortProfileID /* profileID */) {
+  return std::nullopt;
+}
+
+// Configures secondary speeds (downgrade speed) and ensure link sanity
+TEST_F(SpeedChangeTest, secondarySpeed) {
+  auto speedChangeSetup = [this]() {
+    // Create a new config with secondary speed
+    cfg::AgentConfig testConfig = platform()->config()->thrift;
+    auto swConfig = *testConfig.sw();
+    bool speedChanged = false;
+    for (auto& port : *swConfig.ports()) {
+      if (auto speedAndProfile =
+              getSecondarySpeedAndProfile(*port.profileID())) {
+        XLOG(INFO) << folly::sformat(
+            "Changing speed and profile on port {:s} from speed={:s},profile={:s} to speed={:s},profile={:s}",
+            *port.name(),
+            apache::thrift::util::enumName(*port.speed()),
+            apache::thrift::util::enumName(*port.profileID()),
+            apache::thrift::util::enumName(speedAndProfile->speed),
+            apache::thrift::util::enumName(speedAndProfile->profileID));
+        port.speed() = speedAndProfile->speed;
+        port.profileID() = speedAndProfile->profileID;
+        speedChanged = true;
+      }
+    }
+    CHECK(speedChanged);
+    *testConfig.sw() = swConfig;
+
+    // Dump the new config to the config file
+    auto newcfg = AgentConfig(
+        testConfig,
+        apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+            testConfig));
+    newcfg.dumpConfig(FLAGS_config);
+
+    // Apply the new config
+    sw()->applyConfig("set secondary speeds", true);
+
+    EXPECT_NO_THROW(waitForAllCabledPorts(true));
+    createL3DataplaneFlood();
+  };
+  auto speedChangeVerify = [this]() {
+    /*
+     * Verify the following on all cabled ports
+     * 1. Link comes up at secondary speeds
+     * 2. LLDP neighbor is discovered
+     * 3. Assert no in discards
+     */
+    EXPECT_NO_THROW(waitForAllCabledPorts(true));
+    checkWithRetry([this]() { return checkLldpOnAllCabledPorts(); });
+    // Assert no traffic loss and no ecmp shrink. If ports flap
+    // these conditions will not be true
+    assertNoInDiscards();
+    auto ecmpSizeInSw = getVlanOwningCabledPorts().size();
+    EXPECT_EQ(
+        utility::getEcmpSizeInHw(
+            sw()->getHw(),
+            {folly::IPAddress("::"), 0},
+            RouterID(0),
+            ecmpSizeInSw),
+        ecmpSizeInSw);
+  };
+
+  verifyAcrossWarmBoots(speedChangeSetup, speedChangeVerify);
 }
