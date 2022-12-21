@@ -44,7 +44,7 @@ RouteNextHopsMulti RouteNextHopsMulti::fromFollyDynamicLegacy(
         ClientID(pair.first.asInt()),
         RouteNextHopEntry::fromFollyDynamicLegacy(pair.second));
   }
-  return nh;
+  return RouteNextHopsMulti(nh.toThrift());
 }
 
 std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy() const {
@@ -105,23 +105,12 @@ RouteNextHopsMulti::getBestEntry() const {
 }
 
 state::RouteNextHopsMulti RouteNextHopsMulti::toThrift() const {
-  state::RouteNextHopsMulti thriftMulti{};
-  thriftMulti.lowestAdminDistanceClientId() = lowestAdminDistanceClientId();
-  for (auto entry : map()) {
-    thriftMulti.client2NextHopEntry()->emplace(entry.first, entry.second);
-  }
-  return thriftMulti;
+  return data();
 }
 
 RouteNextHopsMulti RouteNextHopsMulti::fromThrift(
     const state::RouteNextHopsMulti& multi) {
-  RouteNextHopsMulti routeNextHopMulti{};
-  routeNextHopMulti.setLowestAdminDistanceClientId(
-      *multi.lowestAdminDistanceClientId());
-  for (auto entry : *multi.client2NextHopEntry()) {
-    routeNextHopMulti.map().emplace(entry.first, entry.second);
-  }
-  return routeNextHopMulti;
+  return RouteNextHopsMulti(multi);
 }
 
 folly::dynamic RouteNextHopsMulti::migrateToThrifty(folly::dynamic const& dyn) {

@@ -57,10 +57,23 @@ class RouteNextHopsMulti
     return *data().client2NextHopEntry();
   }
 
+  RouteNextHopsMulti(const RouteNextHopsMulti&) = delete;
+  RouteNextHopsMulti& operator=(const RouteNextHopsMulti&) = delete;
+  RouteNextHopsMulti(RouteNextHopsMulti&& other) noexcept {
+    writableData() = std::move(other.data_);
+  }
+  RouteNextHopsMulti& operator=(RouteNextHopsMulti&& other) noexcept {
+    data_ = std::move(other.data_);
+    return *this;
+  }
+
  protected:
   ClientID findLowestAdminDistance();
 
  public:
+  using Base = ThriftyFields<RouteNextHopsMulti, state::RouteNextHopsMulti>;
+  using Base::Base;
+
   state::RouteNextHopsMulti toThrift() const override;
   static RouteNextHopsMulti fromThrift(const state::RouteNextHopsMulti& prefix);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);

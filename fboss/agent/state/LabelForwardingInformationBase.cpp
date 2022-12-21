@@ -69,8 +69,8 @@ std::shared_ptr<LabelForwardingEntry>
 LabelForwardingInformationBase::fromFollyDynamicOldFormat(folly::dynamic json) {
   auto topLabel = static_cast<MplsLabel>(json[kIncomingLabel].asInt());
   auto entry = std::make_shared<LabelForwardingEntry>(topLabel);
-  auto labelNextHopsByClient = LabelNextHopsByClient::fromFollyDynamicLegacy(
-      json[kLabelNextHopsByClient]);
+  auto labelNextHopsByClient(LabelNextHopsByClient::fromFollyDynamicLegacy(
+      json[kLabelNextHopsByClient]));
   for (const auto& clientEntry : labelNextHopsByClient) {
     entry->update(
         clientEntry.first, RouteNextHopEntry::fromThrift(clientEntry.second));

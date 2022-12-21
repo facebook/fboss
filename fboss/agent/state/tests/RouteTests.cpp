@@ -114,7 +114,7 @@ TEST(Route, deepCopy) {
   nhm1.update(CLIENT_B, RouteNextHopEntry(newNextHops(3, "2.2.2."), DISTANCE));
 
   // Copy it
-  RouteNextHopsMulti nhm2 = nhm1;
+  RouteNextHopsMulti nhm2(nhm1.toThrift());
 
   // The two should be identical
   EXPECT_TRUE(nhm1 == nhm2);
