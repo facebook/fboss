@@ -43,7 +43,7 @@ class BcmRoute {
       std::optional<cfg::AclLookupClass> classID = std::nullopt);
   ~BcmRoute();
   void program(
-      const RouteNextHopEntry& fwd,
+      RouteNextHopEntry&& fwd,
       std::optional<cfg::AclLookupClass> classID);
 
   bcm_if_t getEgressId() const {

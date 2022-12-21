@@ -126,7 +126,7 @@ void LabelForwardingInformationBase::noRibToRibEntryConvertor(
         clientEntry.first,
         RouteNextHopEntry(nhSet, rNHE.getAdminDistance(), rNHE.getCounterID()));
   }
-  entry->setResolved(fwd);
+  entry->setResolved(std::move(fwd));
 }
 
 LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
@@ -215,7 +215,7 @@ LabelForwardingInformationBase::purgeEntriesForClient(
       } else {
         auto entryThrift = RouteNextHopEntry::fromThrift(
             *(entryToModify->getBestEntry().second));
-        entryToModify->setResolved(entryThrift);
+        entryToModify->setResolved(std::move(entryThrift));
       }
     }
     ++iter;

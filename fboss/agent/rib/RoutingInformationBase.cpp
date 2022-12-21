@@ -62,7 +62,7 @@ class RibIpRouteUpdate {
     } else {
       ++stats.v6RoutesAdded;
     }
-    return {
+    return RibRoute{
         {network, mask},
         RouteNextHopEntry::from(route, distance, counterID, classID)};
   }
@@ -91,7 +91,7 @@ class RibMplsRouteUpdate {
       const AdminDistance distance,
       RoutingInformationBase::UpdateStatistics& stats) {
     ++stats.mplsRoutesAdded;
-    return {
+    return RibRoute{
         LabelID(route.get_topLabel()),
         RouteNextHopEntry::from(route, distance, std::nullopt, std::nullopt)};
   }

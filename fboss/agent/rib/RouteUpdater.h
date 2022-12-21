@@ -56,11 +56,21 @@ class RibRouteUpdater {
   struct RouteEntry {
     folly::CIDRNetwork prefix;
     RouteNextHopEntry nhopEntry;
+    RouteEntry(
+        folly::CIDRNetwork inPrefix,
+        const RouteNextHopEntry& inNhopEntry)
+        : prefix(std::move(inPrefix)), nhopEntry(inNhopEntry.toThrift()) {}
+    RouteEntry(const RouteEntry& other)
+        : prefix(other.prefix), nhopEntry(other.nhopEntry.toThrift()) {}
   };
 
   struct MplsRouteEntry {
     LabelID label;
     RouteNextHopEntry nhopEntry;
+    MplsRouteEntry(LabelID inLabel, const RouteNextHopEntry& inNhopEntry)
+        : label(inLabel), nhopEntry(inNhopEntry.toThrift()) {}
+    MplsRouteEntry(const MplsRouteEntry& other)
+        : label(other.label), nhopEntry(other.nhopEntry.toThrift()) {}
   };
 
   /*
@@ -101,9 +111,11 @@ class RibRouteUpdater {
       const folly::IPAddress& network,
       uint8_t mask,
       ClientID clientID,
-      RouteNextHopEntry entry);
-  void
-  addOrReplaceRoute(LabelID label, ClientID clientID, RouteNextHopEntry entry);
+      const RouteNextHopEntry& entry);
+  void addOrReplaceRoute(
+      LabelID label,
+      ClientID clientID,
+      const RouteNextHopEntry& entry);
   void updateDone();
 
   void
@@ -120,7 +132,7 @@ class RibRouteUpdater {
       const Prefix<AddressT>& prefix,
       NetworkToRouteMap<AddressT>* routes,
       ClientID clientID,
-      RouteNextHopEntry entry);
+      const RouteNextHopEntry& entry);
   template <typename AddressT>
   void delRouteImpl(
       const Prefix<AddressT>& prefix,

@@ -70,11 +70,12 @@ class RouteUpdateWrapper {
       const folly::IPAddress& network,
       uint8_t mask,
       ClientID clientId,
-      RouteNextHopEntry entry);
+      const RouteNextHopEntry& entry);
 
   void addRoute(RouterID id, ClientID clientId, const UnicastRoute& route);
   void addRoute(ClientID clientId, const MplsRoute& route);
-  void addRoute(ClientID clientId, MplsLabel label, RouteNextHopEntry entry);
+  void
+  addRoute(ClientID clientId, MplsLabel label, const RouteNextHopEntry& entry);
   void delRoute(
       RouterID id,
       const folly::IPAddress& network,

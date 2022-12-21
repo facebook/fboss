@@ -59,7 +59,7 @@ std::shared_ptr<SwitchState> setupMinAlpmRouteState(
     RouteNextHopEntry entry(
         RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE);
     route->update(ClientID::STATIC_INTERNAL, entry);
-    route->setResolved(entry);
+    route->setResolved(std::move(entry));
   };
   auto v4Route = std::make_shared<RouteV4>(defaultPrefix4);
   auto v6Route = std::make_shared<RouteV6>(defaultPrefix6);

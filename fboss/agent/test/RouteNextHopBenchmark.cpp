@@ -47,7 +47,7 @@ void RouteNextHopEntryScaleOptimized(
             folly::Random::rand32() % kNumSSWs));
       }
       auto nh = RouteNextHopEntry(nhops, kDefaultAdminDistance);
-      rNhops.emplace_back(nh);
+      rNhops.emplace_back(std::move(nh));
     }
   }
 

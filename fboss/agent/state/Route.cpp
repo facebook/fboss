@@ -107,7 +107,9 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
 }
 
 template <typename AddrT>
-void RouteFields<AddrT>::update(ClientID clientId, RouteNextHopEntry entry) {
+void RouteFields<AddrT>::update(
+    ClientID clientId,
+    const RouteNextHopEntry& entry) {
   this->writableData().fwd() = state::RouteNextHopEntry{};
   RouteNextHopsMulti::update(
       clientId, *(this->writableData().nexthopsmulti()), entry.toThrift());

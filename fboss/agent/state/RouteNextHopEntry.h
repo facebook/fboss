@@ -65,6 +65,14 @@ class RouteNextHopEntry
 
   explicit RouteNextHopEntry(const state::RouteNextHopEntry& entry);
 
+  RouteNextHopEntry() {}
+  RouteNextHopEntry(RouteNextHopEntry&& other) noexcept
+      : RouteNextHopEntry(std::move(other.data_)) {}
+  RouteNextHopEntry& operator=(RouteNextHopEntry&& other) noexcept {
+    data_ = std::move(other.data_);
+    return *this;
+  }
+
   AdminDistance getAdminDistance() const {
     return *data().adminDistance();
   }
@@ -160,6 +168,9 @@ class RouteNextHopEntry
   static void migrateFromThrifty(folly::dynamic& dyn);
 
  private:
+  RouteNextHopEntry(RouteNextHopEntry const&) = delete;
+  RouteNextHopEntry& operator=(RouteNextHopEntry const&) = delete;
+
   static state::RouteNextHopEntry getRouteNextHopEntryThrift(
       Action action,
       AdminDistance distance,

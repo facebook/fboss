@@ -121,7 +121,7 @@ void RibRouteUpdater::addOrReplaceRouteImpl(
     const Prefix<AddressT>& prefix,
     NetworkToRouteMap<AddressT>* routes,
     ClientID clientID,
-    RouteNextHopEntry entry) {
+    const RouteNextHopEntry& entry) {
   auto it = routes->exactMatch(prefix.network(), prefix.mask());
 
   if (it != routes->end()) {
@@ -143,20 +143,20 @@ void RibRouteUpdater::addOrReplaceRoute(
     const folly::IPAddress& network,
     uint8_t mask,
     ClientID clientID,
-    RouteNextHopEntry entry) {
+    const RouteNextHopEntry& entry) {
   if (network.isV4()) {
     RoutePrefixV4 prefix{network.asV4().mask(mask), mask};
-    addOrReplaceRouteImpl(prefix, v4Routes_, clientID, std::move(entry));
+    addOrReplaceRouteImpl(prefix, v4Routes_, clientID, entry);
   } else {
     RoutePrefixV6 prefix{network.asV6().mask(mask), mask};
-    addOrReplaceRouteImpl(prefix, v6Routes_, clientID, std::move(entry));
+    addOrReplaceRouteImpl(prefix, v6Routes_, clientID, entry);
   }
 }
 
 void RibRouteUpdater::addOrReplaceRoute(
     LabelID label,
     ClientID clientID,
-    RouteNextHopEntry entry) {
+    const RouteNextHopEntry& entry) {
   XLOG(DBG3) << "Add mpls route for label " << label << " nh " << entry.str();
   auto iter = mplsRoutes_->find(label);
   if (iter == mplsRoutes_->end()) {

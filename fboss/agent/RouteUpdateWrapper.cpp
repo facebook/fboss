@@ -26,7 +26,7 @@ void RouteUpdateWrapper::addRoute(
     const folly::IPAddress& network,
     uint8_t mask,
     ClientID clientId,
-    RouteNextHopEntry nhop) {
+    const RouteNextHopEntry& nhop) {
   UnicastRoute tempRoute;
   tempRoute.dest()->ip() = network::toBinaryAddress(network);
   tempRoute.dest()->prefixLength() = mask;
@@ -80,7 +80,7 @@ void RouteUpdateWrapper::addRoute(ClientID clientId, const MplsRoute& route) {
 void RouteUpdateWrapper::addRoute(
     ClientID clientId,
     MplsLabel label,
-    RouteNextHopEntry entry) {
+    const RouteNextHopEntry& entry) {
   MplsRoute tempRoute;
   tempRoute.topLabel() = label;
   tempRoute.nextHops() = util::fromRouteNextHopSet(entry.getNextHopSet());

@@ -59,12 +59,15 @@ struct RouteFields
   using ThriftFields = ThriftFieldsT<AddrT>;
 
   explicit RouteFields(const Prefix& prefix);
-  RouteFields(const Prefix& prefix, ClientID clientId, RouteNextHopEntry entry)
+  RouteFields(
+      const Prefix& prefix,
+      ClientID clientId,
+      const RouteNextHopEntry& entry)
       : RouteFields(prefix) {
     if (!entry.isValid(std::is_same_v<LabelID, AddrT>)) {
       throw FbossError("Invalid label forwarding action for IP route");
     }
-    update(clientId, std::move(entry));
+    update(clientId, entry);
   }
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
@@ -214,7 +217,7 @@ struct RouteFields
 
  public:
   std::string strLegacy() const;
-  void update(ClientID clientId, RouteNextHopEntry entry);
+  void update(ClientID clientId, const RouteNextHopEntry& entry);
   void updateClassID(std::optional<cfg::AclLookupClass> c) {
     setClassID(c);
   }
@@ -250,7 +253,7 @@ struct RouteFields
     CHECK(!isProcessing());
     setFlagsProcessing();
   }
-  void setResolved(RouteNextHopEntry f) {
+  void setResolved(const RouteNextHopEntry& f) {
     this->writableData().fwd() = f.toThrift();
     setFlagsResolved();
   }
@@ -306,8 +309,8 @@ class Route : public ThriftyBaseT<
   using Addr = AddrT;
 
   // Constructor for a route
-  Route(const Prefix& prefix, ClientID clientId, RouteNextHopEntry entry)
-      : RouteBase(prefix, clientId, std::move(entry)) {}
+  Route(const Prefix& prefix, ClientID clientId, const RouteNextHopEntry& entry)
+      : RouteBase(prefix, clientId, entry) {}
 
   static std::shared_ptr<Route<AddrT>> fromFollyDynamicLegacy(
       const folly::dynamic& json);
@@ -403,8 +406,8 @@ class Route : public ThriftyBaseT<
   void setConnected() {
     RouteBase::writableFields()->setConnected();
   }
-  void setResolved(RouteNextHopEntry fwd) {
-    RouteBase::writableFields()->setResolved(std::move(fwd));
+  void setResolved(const RouteNextHopEntry& fwd) {
+    RouteBase::writableFields()->setResolved(fwd);
   }
   void setUnresolvable() {
     RouteBase::writableFields()->setUnresolvable();
@@ -413,8 +416,8 @@ class Route : public ThriftyBaseT<
     RouteBase::writableFields()->clearForward();
   }
 
-  void update(ClientID clientId, RouteNextHopEntry entry) {
-    RouteBase::writableFields()->update(clientId, std::move(entry));
+  void update(ClientID clientId, const RouteNextHopEntry& entry) {
+    RouteBase::writableFields()->update(clientId, entry);
   }
 
   void updateClassID(std::optional<cfg::AclLookupClass> classID) {
