@@ -24,7 +24,7 @@ class SpeedChangeTest : public LinkTest {
 
  protected:
   std::optional<SpeedAndProfile> getSecondarySpeedAndProfile(
-      cfg::PortProfileID profileID);
+      cfg::PortProfileID profileID) const;
 
  private:
   std::string originalConfigCopy;
@@ -72,7 +72,12 @@ void SpeedChangeTest::TearDown() {
 
 // Returns a secondary speed if the platform supports it
 std::optional<SpeedAndProfile> SpeedChangeTest::getSecondarySpeedAndProfile(
-    cfg::PortProfileID /* profileID */) {
+    cfg::PortProfileID profileID) const {
+  if (profileID == cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL) {
+    return SpeedAndProfile(
+        cfg::PortSpeed::HUNDREDG,
+        cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_OPTICAL);
+  }
   return std::nullopt;
 }
 
