@@ -616,6 +616,7 @@ struct ThriftMapNodeTraits {
   using TC = TypeClass;
   using Type = MapThrift;
   using KeyType = typename Type::key_type;
+  using KeyCompare = std::less<KeyType>;
   // for structure
   template <typename...>
   struct ValueTraits {

@@ -127,6 +127,7 @@ struct ThriftMapTraitsA {
   using TC = String2StructTypeClass;
   using Type = String2TestStructType;
   using KeyType = typename String2TestStructType::key_type;
+  using KeyCompare = std::less<KeyType>;
   template <typename... T>
   using ConvertToNodeTraits = ConvertToStructATraits<T...>;
 };
@@ -143,6 +144,7 @@ struct ThriftMapTraitsB {
   using TC = String2StructTypeClass;
   using Type = String2TestStructType;
   using KeyType = typename String2TestStructType::key_type;
+  using KeyCompare = std::less<KeyType>;
   template <typename... T>
   using ConvertToNodeTraits = ConvertToStructBTraits<T...>;
 };

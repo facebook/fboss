@@ -55,7 +55,8 @@ struct ThriftMapFields {
       typename Traits::template ConvertToNodeTraits<ValueTypeClass, ValueTType>;
   using key_type = typename TType::key_type;
   using value_type = typename ValueTraits::type;
-  using StorageType = std::map<key_type, value_type>;
+  using StorageType =
+      std::map<key_type, value_type, typename Traits::KeyCompare>;
   using iterator = typename StorageType::iterator;
   using const_iterator = typename StorageType::const_iterator;
 

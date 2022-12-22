@@ -99,6 +99,7 @@ struct ThriftMapTraits {
   using TC = TypeClass;
   using Type = TType;
   using KeyType = typename TType::key_type;
+  using KeyCompare = std::less<KeyType>;
   template <typename... T>
   using ConvertToNodeTraits = ConvertToNodeTraitsT<T...>;
 };
