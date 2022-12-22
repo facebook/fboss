@@ -50,11 +50,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
           }
         }
     },
-    "9": {
+    "2": {
         "mapping": {
-          "id": 9,
+          "id": 2,
           "name": "eth1/1/1",
-          "controllingPort": 9,
+          "controllingPort": 2,
           "pins": [
             {
               "a": {
@@ -100,6 +100,860 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/1",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 2
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC49",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "3": {
+        "mapping": {
+          "id": 3,
+          "name": "eth1/3/1",
+          "controllingPort": 3,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC50",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC50",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC50",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC50",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/3",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 3
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC50",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "4": {
+        "mapping": {
+          "id": 4,
+          "name": "eth1/4/1",
+          "controllingPort": 4,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC51",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/4",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 4
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC51",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "5": {
+        "mapping": {
+          "id": 5,
+          "name": "eth1/5/1",
+          "controllingPort": 5,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC52",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/5",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 5
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC52",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "6": {
+        "mapping": {
+          "id": 6,
+          "name": "eth1/6/1",
+          "controllingPort": 6,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC53",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/6",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 6
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC53",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "7": {
+        "mapping": {
+          "id": 7,
+          "name": "eth1/7/1",
+          "controllingPort": 7,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC54",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/7",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 7
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC54",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "8": {
+        "mapping": {
+          "id": 8,
+          "name": "eth1/8/1",
+          "controllingPort": 8,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC55",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/8",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 8
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC55",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "9": {
+        "mapping": {
+          "id": 9,
+          "name": "eth1/9/1",
+          "controllingPort": 9,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC56",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/9",
                   "lane": 3
                 }
               }
@@ -111,34 +965,29 @@ constexpr auto kJsonPlatformMappingStr = R"(
         },
         "supportedProfiles": {
           "22": {
-              "subsumedPorts": [
-                10,
-                11,
-                12
-              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "BC56",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "BC56",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "BC56",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "BC56",
                       "lane": 3
                     }
                   }
@@ -146,34 +995,883 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "23": {
-              "subsumedPorts": [
-                10,
-                11,
-                12
-              ],
               "pins": {
                 "iphy": [
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "BC56",
                       "lane": 0
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "BC56",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "BC56",
                       "lane": 2
                     }
                   },
                   {
                     "id": {
-                      "chip": "BC49",
+                      "chip": "BC56",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "10": {
+        "mapping": {
+          "id": 10,
+          "name": "eth1/10/1",
+          "controllingPort": 10,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC57",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/10",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 10
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC57",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "11": {
+        "mapping": {
+          "id": 11,
+          "name": "eth1/11/1",
+          "controllingPort": 11,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC58",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/11",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 11
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC58",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "12": {
+        "mapping": {
+          "id": 12,
+          "name": "eth1/12/1",
+          "controllingPort": 12,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC59",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/12",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 12
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC59",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "13": {
+        "mapping": {
+          "id": 13,
+          "name": "eth1/13/1",
+          "controllingPort": 13,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC60",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/13",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 13
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC60",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "14": {
+        "mapping": {
+          "id": 14,
+          "name": "eth1/14/1",
+          "controllingPort": 14,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC61",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/14",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 14
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC61",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "15": {
+        "mapping": {
+          "id": 15,
+          "name": "eth1/15/1",
+          "controllingPort": 15,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/15",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/15",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/15",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC62",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/15",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 15
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC62",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
+    "16": {
+        "mapping": {
+          "id": 16,
+          "name": "eth1/16/1",
+          "controllingPort": 16,
+          "pins": [
+            {
+              "a": {
+                "chip": "BC63",
+                "lane": 0
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 0
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC63",
+                "lane": 1
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 1
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC63",
+                "lane": 2
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 2
+                }
+              }
+            },
+            {
+              "a": {
+                "chip": "BC63",
+                "lane": 3
+              },
+              "z": {
+                "end": {
+                  "chip": "eth1/16",
+                  "lane": 3
+                }
+              }
+            }
+          ],
+          "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 16
+        },
+        "supportedProfiles": {
+          "22": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 3
+                    }
+                  }
+                ]
+              }
+          },
+          "23": {
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC63",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "BC63",
                       "lane": 3
                     }
                   }
@@ -185,1917 +1883,64 @@ constexpr auto kJsonPlatformMappingStr = R"(
     "17": {
         "mapping": {
           "id": 17,
-          "name": "eth1/3/1",
+          "name": "eth1/17/1",
           "controllingPort": 17,
           "pins": [
             {
               "a": {
-                "chip": "BC50",
+                "chip": "BC64",
                 "lane": 0
               },
               "z": {
                 "end": {
-                  "chip": "eth1/3",
+                  "chip": "eth1/17",
                   "lane": 0
                 }
               }
             },
             {
               "a": {
-                "chip": "BC50",
+                "chip": "BC64",
                 "lane": 1
               },
               "z": {
                 "end": {
-                  "chip": "eth1/3",
+                  "chip": "eth1/17",
                   "lane": 1
                 }
               }
             },
             {
               "a": {
-                "chip": "BC50",
+                "chip": "BC64",
                 "lane": 2
               },
               "z": {
                 "end": {
-                  "chip": "eth1/3",
+                  "chip": "eth1/17",
                   "lane": 2
                 }
               }
             },
             {
               "a": {
-                "chip": "BC50",
+                "chip": "BC64",
                 "lane": 3
               },
               "z": {
                 "end": {
-                  "chip": "eth1/3",
+                  "chip": "eth1/17",
                   "lane": 3
                 }
               }
             }
           ],
           "portType": 0,
-          "attachedCoreId": 1,
+          "attachedCoreId": 0,
           "attachedCorePortIndex": 17
         },
         "supportedProfiles": {
           "22": {
-              "subsumedPorts": [
-                18,
-                19,
-                20
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "subsumedPorts": [
-                18,
-                19,
-                20
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC50",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "25": {
-        "mapping": {
-          "id": 25,
-          "name": "eth1/4/1",
-          "controllingPort": 25,
-          "pins": [
-            {
-              "a": {
-                "chip": "BC51",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/4",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC51",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/4",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC51",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/4",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC51",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/4",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 1,
-          "attachedCorePortIndex": 25
-        },
-        "supportedProfiles": {
-          "22": {
-              "subsumedPorts": [
-                26,
-                27,
-                28
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "subsumedPorts": [
-                26,
-                27,
-                28
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC51",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "33": {
-        "mapping": {
-          "id": 33,
-          "name": "eth1/5/1",
-          "controllingPort": 33,
-          "pins": [
-            {
-              "a": {
-                "chip": "BC52",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/5",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC52",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/5",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC52",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/5",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC52",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/5",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 1,
-          "attachedCorePortIndex": 33
-        },
-        "supportedProfiles": {
-          "22": {
-              "subsumedPorts": [
-                34,
-                35,
-                36
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "subsumedPorts": [
-                34,
-                35,
-                36
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC52",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "41": {
-        "mapping": {
-          "id": 41,
-          "name": "eth1/6/1",
-          "controllingPort": 41,
-          "pins": [
-            {
-              "a": {
-                "chip": "BC53",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/6",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC53",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/6",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC53",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/6",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC53",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/6",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 1,
-          "attachedCorePortIndex": 41
-        },
-        "supportedProfiles": {
-          "22": {
-              "subsumedPorts": [
-                42,
-                43,
-                44
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "subsumedPorts": [
-                42,
-                43,
-                44
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC53",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "49": {
-        "mapping": {
-          "id": 49,
-          "name": "eth1/7/1",
-          "controllingPort": 49,
-          "pins": [
-            {
-              "a": {
-                "chip": "BC54",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/7",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC54",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/7",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC54",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/7",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC54",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/7",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 1,
-          "attachedCorePortIndex": 49
-        },
-        "supportedProfiles": {
-          "22": {
-              "subsumedPorts": [
-                50,
-                51,
-                52
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "subsumedPorts": [
-                50,
-                51,
-                52
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC54",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "57": {
-        "mapping": {
-          "id": 57,
-          "name": "eth1/8/1",
-          "controllingPort": 57,
-          "pins": [
-            {
-              "a": {
-                "chip": "BC55",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/8",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC55",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/8",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC55",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/8",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC55",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/8",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 1,
-          "attachedCorePortIndex": 57
-        },
-        "supportedProfiles": {
-          "22": {
-              "subsumedPorts": [
-                58,
-                59,
-                60
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "subsumedPorts": [
-                58,
-                59,
-                60
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC55",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "65": {
-        "mapping": {
-          "id": 65,
-          "name": "eth1/9/1",
-          "controllingPort": 65,
-          "pins": [
-            {
-              "a": {
-                "chip": "BC56",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/9",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC56",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/9",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC56",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/9",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC56",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/9",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 1,
-          "attachedCorePortIndex": 65
-        },
-        "supportedProfiles": {
-          "22": {
-              "subsumedPorts": [
-                66,
-                67,
-                68
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "subsumedPorts": [
-                66,
-                67,
-                68
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC56",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "73": {
-        "mapping": {
-          "id": 73,
-          "name": "eth1/10/1",
-          "controllingPort": 73,
-          "pins": [
-            {
-              "a": {
-                "chip": "BC57",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/10",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC57",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/10",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC57",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/10",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC57",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/10",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 73
-        },
-        "supportedProfiles": {
-          "22": {
-              "subsumedPorts": [
-                74,
-                75,
-                76
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC57",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC57",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC57",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC57",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "subsumedPorts": [
-                74,
-                75,
-                76
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC57",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC57",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC57",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC57",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "81": {
-        "mapping": {
-          "id": 81,
-          "name": "eth1/11/1",
-          "controllingPort": 81,
-          "pins": [
-            {
-              "a": {
-                "chip": "BC58",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/11",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC58",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/11",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC58",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/11",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC58",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/11",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 81
-        },
-        "supportedProfiles": {
-          "22": {
-              "subsumedPorts": [
-                82,
-                83,
-                84
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "subsumedPorts": [
-                82,
-                83,
-                84
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC58",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "89": {
-        "mapping": {
-          "id": 89,
-          "name": "eth1/12/1",
-          "controllingPort": 89,
-          "pins": [
-            {
-              "a": {
-                "chip": "BC59",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/12",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC59",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/12",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC59",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/12",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC59",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/12",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 89
-        },
-        "supportedProfiles": {
-          "22": {
-              "subsumedPorts": [
-                90,
-                91,
-                92
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "subsumedPorts": [
-                90,
-                91,
-                92
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC59",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "97": {
-        "mapping": {
-          "id": 97,
-          "name": "eth1/13/1",
-          "controllingPort": 97,
-          "pins": [
-            {
-              "a": {
-                "chip": "BC60",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/13",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC60",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/13",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC60",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/13",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC60",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/13",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 97
-        },
-        "supportedProfiles": {
-          "22": {
-              "subsumedPorts": [
-                98,
-                99,
-                100
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "subsumedPorts": [
-                98,
-                99,
-                100
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC60",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "105": {
-        "mapping": {
-          "id": 105,
-          "name": "eth1/14/1",
-          "controllingPort": 105,
-          "pins": [
-            {
-              "a": {
-                "chip": "BC61",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/14",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC61",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/14",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC61",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/14",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC61",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/14",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 105
-        },
-        "supportedProfiles": {
-          "22": {
-              "subsumedPorts": [
-                106,
-                107,
-                108
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "subsumedPorts": [
-                106,
-                107,
-                108
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC61",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "113": {
-        "mapping": {
-          "id": 113,
-          "name": "eth1/15/1",
-          "controllingPort": 113,
-          "pins": [
-            {
-              "a": {
-                "chip": "BC62",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/15",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC62",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/15",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC62",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/15",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC62",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/15",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 113
-        },
-        "supportedProfiles": {
-          "22": {
-              "subsumedPorts": [
-                114,
-                115,
-                116
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "subsumedPorts": [
-                114,
-                115,
-                116
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC62",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "121": {
-        "mapping": {
-          "id": 121,
-          "name": "eth1/16/1",
-          "controllingPort": 121,
-          "pins": [
-            {
-              "a": {
-                "chip": "BC63",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/16",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC63",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/16",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC63",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/16",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC63",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/16",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 121
-        },
-        "supportedProfiles": {
-          "22": {
-              "subsumedPorts": [
-                122,
-                123,
-                124
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC63",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC63",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC63",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC63",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "23": {
-              "subsumedPorts": [
-                122,
-                123,
-                124
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "BC63",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC63",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC63",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "BC63",
-                      "lane": 3
-                    }
-                  }
-                ]
-              }
-          }
-        }
-    },
-    "129": {
-        "mapping": {
-          "id": 129,
-          "name": "eth1/17/1",
-          "controllingPort": 129,
-          "pins": [
-            {
-              "a": {
-                "chip": "BC64",
-                "lane": 0
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/17",
-                  "lane": 0
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC64",
-                "lane": 1
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/17",
-                  "lane": 1
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC64",
-                "lane": 2
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/17",
-                  "lane": 2
-                }
-              }
-            },
-            {
-              "a": {
-                "chip": "BC64",
-                "lane": 3
-              },
-              "z": {
-                "end": {
-                  "chip": "eth1/17",
-                  "lane": 3
-                }
-              }
-            }
-          ],
-          "portType": 0,
-          "attachedCoreId": 0,
-          "attachedCorePortIndex": 129
-        },
-        "supportedProfiles": {
-          "22": {
-              "subsumedPorts": [
-                130,
-                131,
-                132
-              ],
               "pins": {
                 "iphy": [
                   {
@@ -2126,11 +1971,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
               }
           },
           "23": {
-              "subsumedPorts": [
-                130,
-                131,
-                132
-              ],
               "pins": {
                 "iphy": [
                   {

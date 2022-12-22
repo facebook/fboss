@@ -86,7 +86,7 @@ std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap() {
 }
 
 cfg::DsfNode dsfNodeConfig(const HwAsic& asic) {
-  constexpr auto kSysPortBlockSize = 130;
+  constexpr auto kSysPortBlockSize = 20;
   cfg::DsfNode dsfNode;
   dsfNode.switchId() = *asic.getSwitchId();
   dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
