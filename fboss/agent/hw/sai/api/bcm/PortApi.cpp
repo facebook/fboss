@@ -19,6 +19,10 @@ std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeSerdesLaneList::operator()() {
   return SAI_PORT_ATTR_SERDES_LANE_LIST;
 }
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeDiagModeEnable::operator()() {
+  return SAI_PORT_ATTR_DIAGNOSTICS_MODE_ENABLE;
+}
 #endif
 
 std::optional<sai_attr_id_t>
