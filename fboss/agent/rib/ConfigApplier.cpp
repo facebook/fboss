@@ -94,7 +94,8 @@ void ConfigApplier::apply() {
     auto address = directlyConnectedRoute.second.second;
     ResolvedNextHop resolvedNextHop(address, interfaceID, UCMP_DEFAULT_WEIGHT);
     RouteNextHopEntry nextHop(
-        resolvedNextHop, AdminDistance::DIRECTLY_CONNECTED);
+        static_cast<NextHop>(resolvedNextHop),
+        AdminDistance::DIRECTLY_CONNECTED);
     interfaceRoutes.push_back({network, nextHop});
   }
   updater.update(

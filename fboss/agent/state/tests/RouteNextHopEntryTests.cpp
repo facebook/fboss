@@ -370,23 +370,24 @@ TEST(RouteNextHopEntry, Thrift) {
   RouteNextHopEntry drop0(
       RouteNextHopEntry::Action::DROP,
       facebook::fboss::AdminDistance::STATIC_ROUTE,
-      "counter_drop",
-      cfg::AclLookupClass::CLASS_DROP);
+      std::optional<RouteCounterID>("counter_drop"),
+      std::optional<cfg::AclLookupClass>(cfg::AclLookupClass::CLASS_DROP));
   RouteNextHopEntry drop1(
       RouteNextHopEntry::Action::DROP,
       facebook::fboss::AdminDistance::STATIC_ROUTE,
-      "counter_drop");
+      std::optional<RouteCounterID>("counter_drop"));
   RouteNextHopEntry drop2(
       RouteNextHopEntry::Action::DROP,
       facebook::fboss::AdminDistance::STATIC_ROUTE,
-      std::nullopt,
-      cfg::AclLookupClass::CLASS_DROP);
+      std::optional<RouteCounterID>(std::nullopt),
+      std::optional<cfg::AclLookupClass>(cfg::AclLookupClass::CLASS_DROP));
 
   RouteNextHopEntry cpu0(
       RouteNextHopEntry::Action::TO_CPU,
       facebook::fboss::AdminDistance::STATIC_ROUTE,
-      "counter_cpu",
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+      std::optional<RouteCounterID>("counter_cpu"),
+      std::optional<cfg::AclLookupClass>(
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0));
 
   RouteNextHopSet nhops;
   std::vector<ResolvedNextHop> nexthopsVector{};
@@ -402,15 +403,16 @@ TEST(RouteNextHopEntry, Thrift) {
   nhops.insert(std::begin(nexthopsVector), std::end(nexthopsVector));
   RouteNextHopEntry nhops0(nhops, kDefaultAdminDistance);
   RouteNextHopEntry nhops1(
-      ResolvedNextHop(nextHopAddr1, InterfaceID(1), 50),
+      static_cast<NextHop>(ResolvedNextHop(nextHopAddr1, InterfaceID(1), 50)),
       kDefaultAdminDistance,
-      "counter0",
-      cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+      std::optional<RouteCounterID>("counter0"),
+      std::optional<cfg::AclLookupClass>(
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0));
 
-  validateNodeSerialization<RouteNextHopEntry, true>(drop0);
-  validateNodeSerialization<RouteNextHopEntry, true>(drop1);
-  validateNodeSerialization<RouteNextHopEntry, true>(drop2);
-  validateNodeSerialization<RouteNextHopEntry, true>(cpu0);
-  validateNodeSerialization<RouteNextHopEntry, true>(nhops0);
-  validateNodeSerialization<RouteNextHopEntry, true>(nhops1);
+  validateThriftStructNodeSerialization<RouteNextHopEntry>(drop0);
+  validateThriftStructNodeSerialization<RouteNextHopEntry>(drop1);
+  validateThriftStructNodeSerialization<RouteNextHopEntry>(drop2);
+  validateThriftStructNodeSerialization<RouteNextHopEntry>(cpu0);
+  validateThriftStructNodeSerialization<RouteNextHopEntry>(nhops0);
+  validateThriftStructNodeSerialization<RouteNextHopEntry>(nhops1);
 }

@@ -24,25 +24,40 @@ DECLARE_bool(optimized_ucmp);
 
 namespace facebook::fboss {
 
+struct LegacyRouteNextHopEntry
+    : ThriftyFields<LegacyRouteNextHopEntry, state::RouteNextHopEntry> {
+  using BaseT =
+      ThriftyFields<LegacyRouteNextHopEntry, state::RouteNextHopEntry>;
+  using BaseT::BaseT;
+  // used only for folly dynamic methods
+  state::RouteNextHopEntry toThrift() const override {
+    return data();
+  }
+
+  static LegacyRouteNextHopEntry fromThrift(
+      const state::RouteNextHopEntry& data) {
+    return LegacyRouteNextHopEntry(data);
+  }
+};
+USE_THRIFT_COW(RouteNextHopEntry);
+
 class RouteNextHopEntry
-    : public ThriftyFields<RouteNextHopEntry, state::RouteNextHopEntry> {
+    : public ThriftStructNode<RouteNextHopEntry, state::RouteNextHopEntry> {
  public:
   using Action = RouteForwardAction;
   using NextHopSet = boost::container::flat_set<NextHop>;
   using AclLookupClass = cfg::AclLookupClass;
+  using BaseT = ThriftStructNode<RouteNextHopEntry, state::RouteNextHopEntry>;
+  using BaseT::BaseT;
 
   RouteNextHopEntry(
       Action action,
       AdminDistance distance,
       std::optional<RouteCounterID> counterID = std::nullopt,
-      std::optional<AclLookupClass> classID = std::nullopt)
-      : RouteNextHopEntry(getRouteNextHopEntryThrift(
-            action,
-            distance,
-            NextHopSet(),
-            counterID,
-            classID)) {
-    CHECK_NE(action, Action::NEXTHOPS);
+      std::optional<AclLookupClass> classID = std::nullopt) {
+    auto data = getRouteNextHopEntryThrift(
+        action, distance, NextHopSet(), counterID, classID);
+    this->fromThrift(std::move(data));
   }
 
   RouteNextHopEntry(
@@ -55,44 +70,40 @@ class RouteNextHopEntry
       NextHop nhop,
       AdminDistance distance,
       std::optional<RouteCounterID> counterID = std::nullopt,
-      std::optional<AclLookupClass> classID = std::nullopt)
-      : RouteNextHopEntry(getRouteNextHopEntryThrift(
-            Action::NEXTHOPS,
-            distance,
-            NextHopSet({nhop}),
-            counterID,
-            classID)) {}
+      std::optional<AclLookupClass> classID = std::nullopt) {
+    auto data = getRouteNextHopEntryThrift(
+        Action::NEXTHOPS, distance, NextHopSet({nhop}), counterID, classID);
+    this->fromThrift(std::move(data));
+  }
 
-  explicit RouteNextHopEntry(const state::RouteNextHopEntry& entry);
-
-  RouteNextHopEntry() {}
-  RouteNextHopEntry(RouteNextHopEntry&& other) noexcept
-      : RouteNextHopEntry(std::move(other.data_)) {}
+  RouteNextHopEntry(RouteNextHopEntry&& other) noexcept {
+    this->fromThrift(other.toThrift());
+  }
   RouteNextHopEntry& operator=(RouteNextHopEntry&& other) noexcept {
-    data_ = std::move(other.data_);
+    this->fromThrift(other.toThrift());
     return *this;
   }
 
   AdminDistance getAdminDistance() const {
-    return *data().adminDistance();
+    return safe_cref<switch_state_tags::adminDistance>()->cref();
   }
 
   Action getAction() const {
-    return *data().action();
+    return safe_cref<switch_state_tags::action>()->cref();
   }
 
   NextHopSet getNextHopSet() const;
 
   const std::optional<RouteCounterID> getCounterID() const {
-    if (auto counter = data().counterID()) {
-      return *counter;
+    if (auto counter = safe_cref<switch_state_tags::counterID>()) {
+      return counter->cref();
     }
     return std::nullopt;
   }
 
   const std::optional<AclLookupClass> getClassID() const {
-    if (auto classID = data().classID()) {
-      return *classID;
+    if (auto classID = safe_cref<switch_state_tags::classID>()) {
+      return classID->cref();
     }
     return std::nullopt;
   }
@@ -115,6 +126,17 @@ class RouteNextHopEntry
   static RouteNextHopEntry fromFollyDynamicLegacy(
       const folly::dynamic& entryJson);
 
+  static std::shared_ptr<RouteNextHopEntry> fromFollyDynamic(
+      const folly::dynamic& entryJson) {
+    auto legacyFields = LegacyRouteNextHopEntry::fromFollyDynamic(entryJson);
+    return std::make_shared<RouteNextHopEntry>(legacyFields.toThrift());
+  }
+
+  folly::dynamic toFollyDynamic() const override {
+    auto legacyFields = LegacyRouteNextHopEntry(toThrift());
+    return legacyFields.toFollyDynamic();
+  }
+
   // Methods to manipulate this object
   bool isDrop() const {
     return getAction() == Action::DROP;
@@ -132,7 +154,7 @@ class RouteNextHopEntry
 
   // Reset the NextHopSet
   void reset() {
-    writableData() = state::RouteNextHopEntry{};
+    this->fromThrift(state::RouteNextHopEntry{});
   }
 
   bool isValid(bool forMplsRoute = false) const;
@@ -162,15 +184,10 @@ class RouteNextHopEntry
       std::vector<uint64_t>& nhWeights,
       uint64_t normalizedPathCount);
 
-  state::RouteNextHopEntry toThrift() const override;
-  static RouteNextHopEntry fromThrift(const state::RouteNextHopEntry& prefix);
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
   static void migrateFromThrifty(folly::dynamic& dyn);
 
  private:
-  RouteNextHopEntry(RouteNextHopEntry const&) = delete;
-  RouteNextHopEntry& operator=(RouteNextHopEntry const&) = delete;
-
   static state::RouteNextHopEntry getRouteNextHopEntryThrift(
       Action action,
       AdminDistance distance,

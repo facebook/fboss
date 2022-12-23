@@ -115,7 +115,7 @@ bool ResolvedNexthopMonitor::skipLabelFibEntry(
     return true;
   }
   auto bestEntry = entry->getBestEntry();
-  auto bestRouteNextHopEntry = RouteNextHopEntry::fromThrift(*bestEntry.second);
+  auto bestRouteNextHopEntry = RouteNextHopEntry(*bestEntry.second);
   for (auto nhop : bestRouteNextHopEntry.getNextHopSet()) {
     if (nhop.labelForwardingAction().has_value() &&
         nhop.labelForwardingAction()->type() ==

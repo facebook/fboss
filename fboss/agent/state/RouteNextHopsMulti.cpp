@@ -30,8 +30,9 @@ folly::dynamic RouteNextHopsMulti::toFollyDynamicLegacy() const {
   folly::dynamic obj = folly::dynamic::object();
   for (auto const& row : map()) {
     int clientid = static_cast<int>(row.first);
-    const auto& entry = RouteNextHopEntry::fromThrift(row.second);
-    obj[folly::to<std::string>(clientid)] = entry.toFollyDynamicLegacy();
+    RouteNextHopEntry nhe{};
+    nhe.fromThrift(row.second);
+    obj[folly::to<std::string>(clientid)] = nhe.toFollyDynamicLegacy();
   }
   return obj;
 }
@@ -64,7 +65,7 @@ std::string RouteNextHopsMulti::strLegacy() const {
   std::string ret = "";
   for (auto const& row : map()) {
     ClientID clientid = row.first;
-    auto entry = RouteNextHopEntry::fromThrift(row.second);
+    RouteNextHopEntry entry(row.second);
     RouteNextHopSet const& nxtHps = entry.getNextHopSet();
 
     ret.append(folly::to<std::string>("(client#", clientid, ": "));

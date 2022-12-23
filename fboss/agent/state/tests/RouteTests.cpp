@@ -166,26 +166,30 @@ TEST(Route, RouteNextHopsMultiThrift) {
       RouteNextHopEntry(
           newNextHops(4, "4.4.1."),
           DISTANCE,
-          RouteCounterID("testcounter0"),
-          cfg::AclLookupClass::DST_CLASS_L3_DPR));
+          std::optional<RouteCounterID>(RouteCounterID("testcounter0")),
+          std::optional<cfg::AclLookupClass>(
+              cfg::AclLookupClass::DST_CLASS_L3_DPR)));
   nhm1.update(
       CLIENT_A,
       RouteNextHopEntry(
-          newNextHops(4, "4.4.2."), DISTANCE, RouteCounterID("testcounter1")));
+          newNextHops(4, "4.4.2."),
+          DISTANCE,
+          std::optional<RouteCounterID>(RouteCounterID("testcounter1"))));
   nhm1.update(
       CLIENT_A,
       RouteNextHopEntry(
           newNextHops(4, "4.4.3."),
           DISTANCE,
-          std::nullopt,
-          cfg::AclLookupClass::DST_CLASS_L3_DPR));
+          std::optional<RouteCounterID>(std::nullopt),
+          std::optional<cfg::AclLookupClass>(
+              cfg::AclLookupClass::DST_CLASS_L3_DPR)));
   validateNodeSerialization<RouteNextHopsMulti, true>(nhm1);
 }
 
 // Test priority ranking of nexthop lists within a RouteNextHopsMulti.
 TEST(Route, listRanking) {
   auto toRouteNextHopEntry = [](const state::RouteNextHopEntry* entry) {
-    return RouteNextHopEntry::fromThrift(*entry);
+    return RouteNextHopEntry(*entry);
   };
   auto list00 = newNextHops(3, "0.0.0.");
   auto list07 = newNextHops(3, "7.7.7.");
@@ -309,8 +313,10 @@ TEST(Route, serializeRouteClassID) {
   Route<IPAddressV4> rt(
       makePrefixV4("1.2.3.4/32"),
       clientId,
-      RouteNextHopEntry(nxtHops, DISTANCE, std::nullopt, classID));
-  rt.setResolved(RouteNextHopEntry(nxtHops, DISTANCE, std::nullopt, classID));
+      RouteNextHopEntry(
+          nxtHops, DISTANCE, std::optional<RouteCounterID>(), classID));
+  rt.setResolved(RouteNextHopEntry(
+      nxtHops, DISTANCE, std::optional<RouteCounterID>(), classID));
   validateNodeSerialization(rt);
 
   // to folly dynamic

@@ -230,12 +230,10 @@ TEST_F(RouteTest, routeApi) {
         RouteNextHopEntry(
             RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
 
-    EXPECT_EQ(
-        nhopEntry,
-        RouteNextHopEntry::fromThrift(*route.getEntryForClient(kClientA)));
+    EXPECT_EQ(nhopEntry, RouteNextHopEntry(*route.getEntryForClient(kClientA)));
     auto [bestClient, bestNhopEntry] = route.getBestEntry();
     EXPECT_EQ(bestClient, kClientA);
-    EXPECT_EQ(RouteNextHopEntry::fromThrift(*bestNhopEntry), nhopEntry);
+    EXPECT_EQ(RouteNextHopEntry(*bestNhopEntry), nhopEntry);
     EXPECT_FALSE(route.hasNoEntry());
     EXPECT_TRUE(route.has(kClientA, nhopEntry));
     EXPECT_FALSE(route.has(kClientB, nhopEntry));
@@ -245,7 +243,7 @@ TEST_F(RouteTest, routeApi) {
     EXPECT_FALSE(route.has(kClientA, nhopEntry2));
     std::tie(bestClient, bestNhopEntry) = route.getBestEntry();
     EXPECT_EQ(bestClient, kClientB);
-    EXPECT_EQ(RouteNextHopEntry::fromThrift(*bestNhopEntry), nhopEntry2);
+    EXPECT_EQ(RouteNextHopEntry(*bestNhopEntry), nhopEntry2);
     // del entry for client, should not be found after
     route.delEntryForClient(kClientA);
     EXPECT_FALSE(route.has(kClientA, nhopEntry));
@@ -1455,8 +1453,8 @@ TEST_F(RouteTest, fwdInfoRanking) {
       16,
       ClientID::INTERFACE_ROUTE,
       RouteNextHopEntry(
-          ResolvedNextHop(
-              IPAddress("1.1.1.1"), InterfaceID(1), UCMP_DEFAULT_WEIGHT),
+          static_cast<NextHop>(ResolvedNextHop(
+              IPAddress("1.1.1.1"), InterfaceID(1), UCMP_DEFAULT_WEIGHT)),
           AdminDistance::DIRECTLY_CONNECTED));
   u1.addRoute(
       kRid0,
@@ -1760,7 +1758,9 @@ TEST_F(RouteTest, withTunnelAndRouteLabels) {
         kBgpNextHopAddrs[i],
         64,
         ClientID::OPENR,
-        RouteNextHopEntry(igpNextHops[i], AdminDistance::DIRECTLY_CONNECTED));
+        RouteNextHopEntry(
+            static_cast<NextHop>(igpNextHops[i]),
+            AdminDistance::DIRECTLY_CONNECTED));
   }
 
   updater.program();
@@ -1841,7 +1841,9 @@ TEST_F(RouteTest, withOnlyTunnelLabels) {
         kBgpNextHopAddrs[i],
         64,
         ClientID::OPENR,
-        RouteNextHopEntry(igpNextHops[i], AdminDistance::DIRECTLY_CONNECTED));
+        RouteNextHopEntry(
+            static_cast<NextHop>(igpNextHops[i]),
+            AdminDistance::DIRECTLY_CONNECTED));
   }
 
   updater.program();
@@ -1918,7 +1920,8 @@ TEST_F(RouteTest, updateTunnelLabels) {
       kBgpNextHopAddrs[0],
       64,
       ClientID::OPENR,
-      RouteNextHopEntry(igpNextHop, AdminDistance::DIRECTLY_CONNECTED));
+      RouteNextHopEntry(
+          static_cast<NextHop>(igpNextHop), AdminDistance::DIRECTLY_CONNECTED));
 
   updater.program();
 
@@ -1939,7 +1942,9 @@ TEST_F(RouteTest, updateTunnelLabels) {
       kBgpNextHopAddrs[0],
       64,
       ClientID::OPENR,
-      RouteNextHopEntry(updatedIgpNextHop, AdminDistance::DIRECTLY_CONNECTED));
+      RouteNextHopEntry(
+          static_cast<NextHop>(updatedIgpNextHop),
+          AdminDistance::DIRECTLY_CONNECTED));
 
   anotherUpdater.program();
 
@@ -2006,7 +2011,8 @@ TEST_F(RouteTest, updateRouteLabels) {
       kBgpNextHopAddrs[0],
       64,
       ClientID::OPENR,
-      RouteNextHopEntry(igpNextHop, AdminDistance::DIRECTLY_CONNECTED));
+      RouteNextHopEntry(
+          static_cast<NextHop>(igpNextHop), AdminDistance::DIRECTLY_CONNECTED));
 
   updater.program();
 
@@ -2029,7 +2035,7 @@ TEST_F(RouteTest, updateRouteLabels) {
       kDestPrefix.network(),
       kDestPrefix.mask(),
       ClientID::BGPD,
-      RouteNextHopEntry(updatedBgpNextHop, DISTANCE));
+      RouteNextHopEntry(static_cast<NextHop>(updatedBgpNextHop), DISTANCE));
 
   anotherUpdater.program();
 
@@ -2044,7 +2050,9 @@ TEST_F(RouteTest, updateRouteLabels) {
 
   EXPECT_EQ(
       route->has(
-          ClientID::BGPD, RouteNextHopEntry(updatedBgpNextHop, EBGP_DISTANCE)),
+          ClientID::BGPD,
+          RouteNextHopEntry(
+              static_cast<NextHop>(updatedBgpNextHop), EBGP_DISTANCE)),
       true);
 
   EXPECT_TRUE(route->isResolved());
@@ -2084,7 +2092,7 @@ TEST_F(RouteTest, withNoLabelForwardingAction) {
     auto nh = facebook::fboss::util::fromThrift(nhThrift);
     EXPECT_EQ(nh.labelForwardingAction().has_value(), false);
   }
-  EXPECT_EQ(RouteNextHopEntry::fromThrift(*entry.second), routeNextHopEntry);
+  EXPECT_EQ(RouteNextHopEntry(*entry.second), routeNextHopEntry);
 }
 
 TEST_F(RouteTest, withInvalidLabelForwardingAction) {
@@ -2493,7 +2501,8 @@ TEST_F(RouteTest, CounterIDTest) {
       IPAddress("10.10.10.10"),
       32,
       kClientA,
-      RouteNextHopEntry(nexthops1, DISTANCE, kCounterID1));
+      RouteNextHopEntry(
+          nexthops1, DISTANCE, std::optional<RouteCounterID>(kCounterID1)));
   u1.program();
 
   auto rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
@@ -2506,7 +2515,8 @@ TEST_F(RouteTest, CounterIDTest) {
       IPAddress("10.10.10.10"),
       32,
       kClientA,
-      RouteNextHopEntry(nexthops1, DISTANCE, kCounterID2));
+      RouteNextHopEntry(
+          nexthops1, DISTANCE, std::optional<RouteCounterID>(kCounterID2)));
   u1.program();
 
   rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
@@ -2519,7 +2529,8 @@ TEST_F(RouteTest, CounterIDTest) {
       IPAddress("10.10.10.10"),
       32,
       kClientA,
-      RouteNextHopEntry(nexthops1, DISTANCE, std::nullopt));
+      RouteNextHopEntry(
+          nexthops1, DISTANCE, std::optional<RouteCounterID>(std::nullopt)));
   u1.program();
 
   rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
@@ -2537,7 +2548,8 @@ TEST_F(RouteTest, DropAndPuntRouteCounterID) {
         IPAddress("10.10.10.10"),
         32,
         kClientA,
-        RouteNextHopEntry(fwdAction, DISTANCE, std::nullopt));
+        RouteNextHopEntry(
+            fwdAction, DISTANCE, std::optional<RouteCounterID>(std::nullopt)));
     u1.program();
 
     auto rt10 = findRoute4(sw_->getState(), kRid0, prefix10);
@@ -2580,7 +2592,8 @@ TEST_F(RouteTest, DropAndPuntRouteCounterID) {
         IPAddress("10.10.10.10"),
         32,
         kClientA,
-        RouteNextHopEntry(fwdAction, DISTANCE, std::nullopt));
+        RouteNextHopEntry(
+            fwdAction, DISTANCE, std::optional<RouteCounterID>(std::nullopt)));
     u1.program();
 
     rt10 = findRoute4(sw_->getState(), kRid0, prefix10);
@@ -2605,7 +2618,11 @@ TEST_F(RouteTest, ClassIDTest) {
       IPAddress("10.10.10.10"),
       32,
       kClientA,
-      RouteNextHopEntry(nexthops1, DISTANCE, std ::nullopt, kClassID1));
+      RouteNextHopEntry(
+          nexthops1,
+          DISTANCE,
+          std::optional<RouteCounterID>(std ::nullopt),
+          std::optional<cfg::AclLookupClass>(kClassID1)));
   u1.program();
 
   auto rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
@@ -2621,7 +2638,11 @@ TEST_F(RouteTest, ClassIDTest) {
       IPAddress("10.10.10.10"),
       32,
       kClientA,
-      RouteNextHopEntry(nexthops1, DISTANCE, std::nullopt, kClassID2));
+      RouteNextHopEntry(
+          nexthops1,
+          DISTANCE,
+          std::optional<RouteCounterID>(std::nullopt),
+          std::optional<cfg::AclLookupClass>(kClassID2)));
   u1.program();
 
   rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
@@ -2637,7 +2658,11 @@ TEST_F(RouteTest, ClassIDTest) {
       IPAddress("10.10.10.10"),
       32,
       kClientA,
-      RouteNextHopEntry(nexthops1, DISTANCE, std::nullopt, std::nullopt));
+      RouteNextHopEntry(
+          nexthops1,
+          DISTANCE,
+          std::optional<RouteCounterID>(std::nullopt),
+          std::optional<cfg::AclLookupClass>(std::nullopt)));
   u1.program();
 
   rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);

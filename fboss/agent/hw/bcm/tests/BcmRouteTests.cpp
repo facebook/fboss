@@ -328,7 +328,8 @@ class BcmRouteHostReferenceTest : public BcmRouteTest {
     return BcmMultiPathNextHopKey(
         kRouter0,
         RouteNextHopEntry(
-            ResolvedNextHop(nexthop, InterfaceID(interface), weight),
+            static_cast<NextHop>(
+                ResolvedNextHop(nexthop, InterfaceID(interface), weight)),
             AdminDistance::MAX_ADMIN_DISTANCE)
             .getNextHopSet());
   }

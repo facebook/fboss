@@ -37,7 +37,7 @@ void RouteNextHopEntryScaleOptimized(
     // limiting for ease of generating nh address
     CHECK(10 + numPaths < 100);
     for (auto routeIndex = 0; routeIndex < numRoutes; ++routeIndex) {
-      RouteNextHopSet nhops;
+      RouteNextHopEntry::NextHopSet nhops;
       for (auto pathIndex = 10; pathIndex < 10 + numPaths; ++pathIndex) {
         std::string nhAddrStr =
             fmt::format("2401:db{}:e112:9103:1028::01", pathIndex);

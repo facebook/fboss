@@ -90,7 +90,8 @@ class HwLabelEdgeRouteTest : public HwLinkStateDependentTest {
         mask,
         client,
         RouteNextHopEntry(
-            UnresolvedNextHop(nexthop, ECMP_WEIGHT, labelAction),
+            static_cast<NextHop>(
+                UnresolvedNextHop(nexthop, ECMP_WEIGHT, labelAction)),
             AdminDistance::MAX_ADMIN_DISTANCE));
     updater.program();
   }

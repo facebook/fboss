@@ -128,7 +128,7 @@ void RibRouteUpdater::addOrReplaceRouteImpl(
     auto route = it->value();
     auto existingRouteForClient = route->getEntryForClient(clientID);
     if (!existingRouteForClient ||
-        !(RouteNextHopEntry::fromThrift(*existingRouteForClient) == entry)) {
+        !(RouteNextHopEntry(*existingRouteForClient) == entry)) {
       route = writableRoute<AddressT>(it);
       route->update(clientID, entry);
     }
@@ -166,7 +166,7 @@ void RibRouteUpdater::addOrReplaceRoute(
     auto& route = iter->second;
     auto existingRouteForClient = route->getEntryForClient(clientID);
     if (!existingRouteForClient ||
-        !(RouteNextHopEntry::fromThrift(*existingRouteForClient) == entry)) {
+        !(RouteNextHopEntry(*existingRouteForClient) == entry)) {
       route = writableRoute<LabelID>(route);
       route->update(clientID, entry);
     }
@@ -567,7 +567,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
 
   auto bestPair = route->getBestEntry();
   const auto clientId = bestPair.first;
-  const auto bestEntryVal = RouteNextHopEntry::fromThrift(*bestPair.second);
+  const auto bestEntryVal = RouteNextHopEntry(*bestPair.second);
   const auto bestEntry = &bestEntryVal;
   const auto action = bestEntry->getAction();
   const auto counterID = bestEntry->getCounterID();
@@ -673,7 +673,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         route->getForwardInfo().getClassID() != classID) {
       updateRoute(
           ritr,
-          RouteNextHopEntry(
+          std::make_optional<RouteNextHopEntry>(
               *fwd, bestEntry->getAdminDistance(), counterID, classID));
     }
   } else if (hasToCpu) {
@@ -682,7 +682,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         route->getForwardInfo().getClassID() != classID) {
       updateRoute(
           ritr,
-          RouteNextHopEntry(
+          std::make_optional<RouteNextHopEntry>(
               RouteForwardAction::TO_CPU,
               AdminDistance::MAX_ADMIN_DISTANCE,
               counterID,
@@ -694,7 +694,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         route->getForwardInfo().getClassID() != classID) {
       updateRoute(
           ritr,
-          RouteNextHopEntry(
+          std::make_optional<RouteNextHopEntry>(
               RouteForwardAction::DROP,
               AdminDistance::MAX_ADMIN_DISTANCE,
               counterID,

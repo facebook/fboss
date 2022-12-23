@@ -72,8 +72,7 @@ LabelForwardingInformationBase::fromFollyDynamicOldFormat(folly::dynamic json) {
   auto labelNextHopsByClient(LabelNextHopsByClient::fromFollyDynamicLegacy(
       json[kLabelNextHopsByClient]));
   for (const auto& clientEntry : labelNextHopsByClient) {
-    entry->update(
-        clientEntry.first, RouteNextHopEntry::fromThrift(clientEntry.second));
+    entry->update(clientEntry.first, RouteNextHopEntry(clientEntry.second));
   }
   entry->setResolved(
       LabelNextHopEntry::fromFollyDynamicLegacy(json[kLabelNextHop]));
@@ -112,7 +111,7 @@ void LabelForwardingInformationBase::noRibToRibEntryConvertor(
       continue;
     }
     RouteNextHopSet nhSet;
-    auto rNHE = RouteNextHopEntry::fromThrift(clientEntry.second);
+    auto rNHE = RouteNextHopEntry(clientEntry.second);
     for (auto& nh : rNHE.getNextHopSet()) {
       const auto& addr = nh.addr();
       if (addr.isV6() && addr.isLinkLocal()) {
@@ -159,7 +158,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
     entryToUpdate->update(
         client, LabelNextHopEntry(std::move(nexthops), distance));
     entryToUpdate->setResolved(
-        RouteNextHopEntry::fromThrift(*entryToUpdate->getBestEntry().second));
+        RouteNextHopEntry(*entryToUpdate->getBestEntry().second));
     XLOG(DBG2) << "updated label:" << label.value() << " nhops: " << nextHopsStr
                << "nhop count:" << nexthopCount
                << " in label forwarding information base for client:"
@@ -191,7 +190,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::unprogramLabel(
     writableLabelFib->removeNode(entry);
   } else {
     auto entryThrift = entryToUpdate->getBestEntry().second;
-    entryToUpdate->setResolved(RouteNextHopEntry::fromThrift(*entryThrift));
+    entryToUpdate->setResolved(RouteNextHopEntry(*entryThrift));
   }
   return writableLabelFib;
 }
@@ -213,8 +212,8 @@ LabelForwardingInformationBase::purgeEntriesForClient(
         iter = writableLabelFib->writableNodes().erase(iter);
         continue;
       } else {
-        auto entryThrift = RouteNextHopEntry::fromThrift(
-            *(entryToModify->getBestEntry().second));
+        auto entryThrift =
+            RouteNextHopEntry(*(entryToModify->getBestEntry().second));
         entryToModify->setResolved(std::move(entryThrift));
       }
     }

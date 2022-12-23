@@ -99,20 +99,13 @@ RouteNextHopEntry::RouteNextHopEntry(
     NextHopSet nhopSet,
     AdminDistance distance,
     std::optional<RouteCounterID> counterID,
-    std::optional<AclLookupClass> classID)
-    : RouteNextHopEntry(getRouteNextHopEntryThrift(
-          Action::NEXTHOPS,
-          distance,
-          nhopSet,
-          counterID,
-          classID)) {
+    std::optional<AclLookupClass> classID) {
   if (nhopSet.size() == 0) {
     throw FbossError("Empty nexthop set is passed to the RouteNextHopEntry");
   }
-}
-
-RouteNextHopEntry::RouteNextHopEntry(const state::RouteNextHopEntry& entry) {
-  writableData() = entry;
+  auto data = getRouteNextHopEntryThrift(
+      Action::NEXTHOPS, distance, nhopSet, counterID, classID);
+  this->fromThrift(std::move(data));
 }
 
 NextHopWeight RouteNextHopEntry::getTotalWeight() const {
@@ -249,12 +242,14 @@ bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
   if (!forMplsRoute) {
     /* for ip2mpls routes, next hop label forwarding action must be push */
     auto nhops = getNextHopSet();
-    for (const auto& nexthop : *data().nexthops()) {
+    for (const auto& nexthop : *safe_cref<switch_state_tags::nexthops>()) {
       if (getAction() != Action::NEXTHOPS) {
         continue;
       }
-      if (nexthop.mplsAction().has_value() &&
-          *(nexthop.mplsAction()->action()) !=
+
+      if (nexthop->safe_cref<common_if_tags::mplsAction>() &&
+          *(nexthop->safe_cref<common_if_tags::mplsAction>()
+                ->safe_cref<mpls_tags::strings::action>()) !=
               LabelForwardingAction::LabelForwardingType::PUSH) {
         return !valid;
       }
@@ -708,15 +703,6 @@ void RouteNextHopEntry::normalizeNextHopWeightsToMaxPaths(
   }
 }
 
-state::RouteNextHopEntry RouteNextHopEntry::toThrift() const {
-  return data();
-}
-
-RouteNextHopEntry RouteNextHopEntry::fromThrift(
-    const state::RouteNextHopEntry& entry) {
-  return RouteNextHopEntry(entry);
-}
-
 folly::dynamic RouteNextHopEntry::migrateToThrifty(folly::dynamic const& dyn) {
   folly::dynamic newDyn = dyn;
   auto action = dyn[kAction].asString();
@@ -783,8 +769,10 @@ state::RouteNextHopEntry RouteNextHopEntry::getRouteNextHopEntryThrift(
   return entry;
 }
 
+// THRIFT_COPY
 RouteNextHopSet RouteNextHopEntry::getNextHopSet() const {
-  return util::toRouteNextHopSet(*data().nexthops(), true);
+  return util::toRouteNextHopSet(
+      safe_cref<switch_state_tags::nexthops>()->toThrift(), true);
 }
 
 } // namespace facebook::fboss

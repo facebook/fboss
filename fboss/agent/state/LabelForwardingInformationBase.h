@@ -83,8 +83,7 @@ class LabelForwardingInformationBase
 
   // Used for resolving route when mpls rib is not enabled
   static void resolve(std::shared_ptr<LabelForwardingEntry> entry) {
-    entry->setResolved(
-        RouteNextHopEntry::fromThrift(*entry->getBestEntry().second));
+    entry->setResolved(RouteNextHopEntry(*entry->getBestEntry().second));
   }
 
   // For backward compatibility with old format
