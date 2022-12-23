@@ -39,15 +39,21 @@ struct LegacyRouteNextHopEntry
     return LegacyRouteNextHopEntry(data);
   }
 };
+
 USE_THRIFT_COW(RouteNextHopEntry);
 
+template <>
+struct thrift_cow::ThriftStructResolver<state::RouteNextHopEntry> {
+  using type = RouteNextHopEntry;
+};
+
 class RouteNextHopEntry
-    : public ThriftStructNode<RouteNextHopEntry, state::RouteNextHopEntry> {
+    : public thrift_cow::ThriftStructNode<state::RouteNextHopEntry> {
  public:
   using Action = RouteForwardAction;
   using NextHopSet = boost::container::flat_set<NextHop>;
   using AclLookupClass = cfg::AclLookupClass;
-  using BaseT = ThriftStructNode<RouteNextHopEntry, state::RouteNextHopEntry>;
+  using BaseT = thrift_cow::ThriftStructNode<state::RouteNextHopEntry>;
   using BaseT::BaseT;
 
   RouteNextHopEntry(
