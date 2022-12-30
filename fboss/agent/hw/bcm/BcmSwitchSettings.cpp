@@ -39,10 +39,8 @@ void BcmSwitchSettings::setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
 }
 
 void BcmSwitchSettings::enableL2LearningHardware() {
-  if ((hw_->getWarmBootCache()->getL2LearningMode() ==
-       cfg::L2LearningMode::HARDWARE) ||
-      (l2LearningMode_.has_value() &&
-       l2LearningMode_.value() == cfg::L2LearningMode::HARDWARE)) {
+  if (l2LearningMode_.has_value() &&
+      l2LearningMode_.value() == cfg::L2LearningMode::HARDWARE) {
     return;
   }
 

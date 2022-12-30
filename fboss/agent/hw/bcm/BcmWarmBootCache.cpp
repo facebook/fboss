@@ -2072,6 +2072,15 @@ void BcmWarmBootCache::populateSwitchSettings() {
   // This is warm boot, so there cannot be any L2 update callback registered.
   // Thus, BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD should be enough to
   // ascertain HARDWARE as L2 learning mode.
+  // NOTE:
+  //   This logic to determine the configured L2 learning mode
+  //   in SDK/ASIC works only for TH as it's the only ASIC that
+  //   uses L2 learn pending bit.
+  //   So, this warmboot cache state shouldn't be used in making the
+  //   decision to whether call the L2 learning mode config API during
+  //   warmboot or not.
+  //   TODO: Check with Broadcom on how to correctly identify the SDK/HW
+  //   config for this that would work for all ASIC platforms.
   if (flags == (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD)) {
     l2LearningMode_ = cfg::L2LearningMode::HARDWARE;
   } else if (flags == (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_PENDING)) {
