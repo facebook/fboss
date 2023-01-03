@@ -21,11 +21,6 @@ class ThriftServer;
 
 DECLARE_int32(thrift_port);
 
-constexpr int kSensorSendTimeoutMs = 5000;
-constexpr int kSensorConnTimeoutMs = 2000;
-constexpr int kQsfpSendTimeoutMs = 5000;
-constexpr int kQsfpConnTimeoutMs = 2000;
-
 namespace facebook::fboss::platform {
 class FanServiceHandler;
 
