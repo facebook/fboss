@@ -857,7 +857,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     auto recyclePortId = getRecyclePortId(node);
     auto sysPort = std::make_shared<SystemPort>(SystemPortID(recyclePortId));
     sysPort->setSwitchId(node->getSwitchId());
-    sysPort->setPortName(folly::sformat("{}:rcy1", node->getName()));
+    sysPort->setPortName(folly::sformat("{}:rcy1/1/1", node->getName()));
     const auto& recyclePortInfo = dsfNodeAsic->getRecyclePortInfo();
     sysPort->setCoreIndex(recyclePortInfo.coreId);
     sysPort->setCorePortIndex(recyclePortInfo.corePortIndex);
@@ -1075,6 +1075,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
   }
   CHECK(switchIdOpt.has_value());
   auto switchId = *switchIdOpt;
+  auto nodeName = *cfg_->dsfNodes()->find(switchId)->second.name();
   std::set<cfg::PortType> kCreateSysPortsFor = {
       cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
   for (const auto& port : *ports) {
@@ -1085,8 +1086,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     auto sysPort = std::make_shared<SystemPort>(
         SystemPortID{*systemPortRange->minimum() + port->getID()});
     sysPort->setSwitchId(SwitchID(switchId));
-    sysPort->setPortName(
-        port->getName() + "_" + folly::to<std::string>(switchId));
+    sysPort->setPortName(folly::sformat("{}:{}", nodeName, port->getName()));
     auto platformPort = platform_->getPlatformPort(port->getID());
     sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
     sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
