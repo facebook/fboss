@@ -8,32 +8,21 @@
  *
  */
 
-#include "fboss/platform/fan_service/hw_test/FanServiceTest.h"
-
 #include <gtest/gtest.h>
 
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
+
+#include "fboss/platform/fan_service/Bsp.h"
+#include "fboss/platform/fan_service/SensorData.h"
+#include "fboss/platform/fan_service/ServiceConfig.h"
 #include "fboss/platform/helpers/Init.h"
-#include "thrift/lib/cpp2/server/ThriftServer.h"
+
+namespace {
+class FanServiceTest : public ::testing::Test {};
+
+} // namespace
 
 namespace facebook::fboss::platform {
-
-FanServiceTest::~FanServiceTest() {}
-
-void FanServiceTest::SetUp() {
-  // Define service and handler for testing.
-  std::tie(thriftServer_, thriftHandler_) = setupThrift();
-  thriftHandler_->getFanService()->kickstart();
-  // Finally, if this is for Meta, start service
-  fsTestSetUp(thriftServer_, thriftHandler_.get());
-}
-void FanServiceTest::TearDown() {
-  fsTestTearDown(thriftServer_, thriftHandler_.get());
-}
-
-FanService* FanServiceTest::getFanService() {
-  return thriftHandler_->getFanService();
-}
 
 /*
  * Group 1. Configuration related tests
