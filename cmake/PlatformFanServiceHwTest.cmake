@@ -5,7 +5,6 @@
 
 add_library(fan_service_hw_tests
   fboss/platform/fan_service/hw_test/FanServiceTest.cpp
-  fboss/platform/fan_service/hw_test/oss/FanServiceTestHelper.cpp
 )
 
 target_link_libraries(fan_service_hw_tests
