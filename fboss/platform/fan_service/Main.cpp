@@ -23,9 +23,6 @@ DEFINE_string(mock_output, "", "Mock Output File");
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
 int main(int argc, char** argv) {
-  // Define the return code
-  int rc = 0;
-
   setVersionInfo();
   // Parse Flags
   gflags::ParseCommandLineFlags(&argc, &argv, true);
@@ -38,8 +35,7 @@ int main(int argc, char** argv) {
     // Run as Mock mode
     facebook::fboss::platform::FanService mockedFanService;
     mockedFanService.kickstart();
-    int rc = mockedFanService.runMock(FLAGS_mock_input, FLAGS_mock_output);
-    exit(rc);
+    return mockedFanService.runMock(FLAGS_mock_input, FLAGS_mock_output);
   }
 
   std::pair<
@@ -64,5 +60,5 @@ int main(int argc, char** argv) {
   // Also, run the Thrift server
   std::string serviceName = "Fan Service";
   startServiceAndRunServer(serviceName, server, handler.get(), true);
-  return rc;
+  return 0;
 }
