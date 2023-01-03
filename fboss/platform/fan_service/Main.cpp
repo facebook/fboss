@@ -4,6 +4,7 @@
 #include <mutex>
 #include <string>
 
+#include <fb303/FollyLoggingHandler.h>
 #include <folly/experimental/FunctionScheduler.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
@@ -12,6 +13,7 @@
 #include "fboss/platform/fan_service/FanService.h"
 #include "fboss/platform/fan_service/FanServiceHandler.h"
 #include "fboss/platform/fan_service/SetupThrift.h"
+#include "fboss/platform/helpers/Init.h"
 
 using namespace facebook;
 using namespace facebook::services;
@@ -27,11 +29,8 @@ DEFINE_string(mock_output, "", "Mock Output File");
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");
 
 int main(int argc, char** argv) {
-  setVersionInfo();
-  // Parse Flags
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
-
-  doFBInit(argc, argv);
+  fb303::registerFollyLoggingOptionHandlers();
+  helpers::init(argc, argv);
 
   // If Mock configuration is enabled, run Fan Service in Mock mode, then quit.
   // No Thrift service will be created at all.

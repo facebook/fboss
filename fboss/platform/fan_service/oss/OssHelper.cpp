@@ -2,15 +2,11 @@
 // This file contains all the function implementation
 // that are OSS specific. The counterpart should be
 // implemented in Meta specific file.
-#include <folly/experimental/FunctionScheduler.h>
+
 #include "fboss/platform/fan_service/HelperFunction.h"
 
 using namespace facebook::fboss;
 using namespace facebook::fboss::platform;
-
-int doFBInit(int argc, char** argv) {
-  return 0;
-}
 
 void getTransceivers(
     std::map<int32_t, TransceiverInfo>& cacheTable,
@@ -34,5 +30,3 @@ bool initQsfpSvc(
     folly::EventBase& evb_) {
   return false;
 }
-
-void setVersionInfo() {}
