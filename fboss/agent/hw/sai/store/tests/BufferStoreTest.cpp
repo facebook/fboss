@@ -29,7 +29,8 @@ class BufferStoreTest : public SaiStoreTest {
     SaiBufferPoolTraits::Attributes::Size size{42};
     SaiBufferPoolTraits::Attributes::ThresholdMode mode{
         SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC};
-    return {type, size, mode};
+    std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
+    return {type, size, mode, xoffSize};
   }
   BufferPoolSaiId createBufferPool() const {
     auto& bufferApi = saiApiTable->bufferApi();

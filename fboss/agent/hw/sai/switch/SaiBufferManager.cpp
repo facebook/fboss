@@ -127,10 +127,12 @@ void SaiBufferManager::setupEgressBufferPool() {
   assertMaxBufferPoolSize(platform_);
   egressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   auto& store = saiStore_->get<SaiBufferPoolTraits>();
+  std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize{};
   SaiBufferPoolTraits::CreateAttributes c{
       SAI_BUFFER_POOL_TYPE_EGRESS,
       getMaxEgressPoolBytes(platform_),
-      SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC};
+      SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC,
+      xoffSize};
   egressBufferPoolHandle_->bufferPool =
       store.setObject(SAI_BUFFER_POOL_TYPE_EGRESS, c);
 }
@@ -147,23 +149,22 @@ void SaiBufferManager::setupIngressBufferPool(const PortPgConfig& portPgCfg) {
   auto poolSize =
       (bufferPoolCfg->getSharedBytes() + bufferPoolCfg->getHeadroomBytes()) *
       platform_->getAsic()->getNumMemoryBuffers();
+  // XoffSize configuration is needed only when PFC is supported
+  std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
+#if defined(TAJO_SDK) || defined(SAI_VERSION_8_2_0_0_ODP) || \
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP)
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+    xoffSize = bufferPoolCfg->getHeadroomBytes() *
+        platform_->getAsic()->getNumMemoryBuffers();
+  }
+#endif
   SaiBufferPoolTraits::CreateAttributes c{
       SAI_BUFFER_POOL_TYPE_INGRESS,
       poolSize,
-      SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC};
+      SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC,
+      xoffSize};
   ingressBufferPoolHandle_->bufferPool =
       store.setObject(SAI_BUFFER_POOL_TYPE_INGRESS, c);
-#if defined(TAJO_SDK) || defined(SAI_VERSION_8_2_0_0_ODP) || \
-    defined(SAI_VERSION_8_2_0_0_DNX_ODP)
-  // XoffSize configuration is needed only when PFC is supported
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
-    SaiBufferPoolTraits::Attributes::XoffSize xoffSize =
-        bufferPoolCfg->getHeadroomBytes() *
-        platform_->getAsic()->getNumMemoryBuffers();
-    SaiApiTable::getInstance()->bufferApi().setAttribute(
-        ingressBufferPoolHandle_->bufferPool->adapterKey(), xoffSize);
-  }
-#endif
 }
 
 void SaiBufferManager::updateStats() {

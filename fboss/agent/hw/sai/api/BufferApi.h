@@ -41,13 +41,19 @@ struct SaiBufferPoolTraits {
         EnumType,
         SAI_BUFFER_POOL_ATTR_THRESHOLD_MODE,
         sai_int32_t>;
-    using XoffSize =
-        SaiAttribute<EnumType, SAI_BUFFER_POOL_ATTR_XOFF_SIZE, sai_uint64_t>;
+    using XoffSize = SaiAttribute<
+        EnumType,
+        SAI_BUFFER_POOL_ATTR_XOFF_SIZE,
+        sai_uint64_t,
+        SaiIntDefault<sai_uint64_t>>;
   };
   using AdapterKey = BufferPoolSaiId;
   using AdapterHostKey = Attributes::Type;
-  using CreateAttributes =
-      std::tuple<Attributes::Type, Attributes::Size, Attributes::ThresholdMode>;
+  using CreateAttributes = std::tuple<
+      Attributes::Type,
+      Attributes::Size,
+      Attributes::ThresholdMode,
+      std::optional<Attributes::XoffSize>>;
 
   static constexpr std::array<sai_stat_id_t, 1> CounterIdsToReadAndClear = {
       SAI_BUFFER_POOL_STAT_WATERMARK_BYTES,
