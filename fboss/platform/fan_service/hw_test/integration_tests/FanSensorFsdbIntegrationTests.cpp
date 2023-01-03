@@ -1,16 +1,19 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/platform/fan_service/hw_test/integration_tests/FanSensorFsdbIntegrationTests.h"
-
 #include <folly/Subprocess.h>
+#include <gtest/gtest.h>
+
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/platform/fan_service/FanService.h"
 #include "fboss/platform/fan_service/HelperFunction.h"
 #include "fboss/platform/helpers/Init.h"
-#include "thrift/lib/cpp2/server/ThriftServer.h"
 
 DEFINE_bool(run_forever, false, "run the test forever");
 
+using namespace facebook::fboss::platform;
+
 namespace {
+
 const std::vector<std::string> kStopFsdb = {
     "/bin/systemctl",
     "stop",
@@ -50,33 +53,37 @@ void restartSensorService() {
   XLOG(DBG2) << "Restarting Sensor Service";
   folly::Subprocess(kRestartSensorSvc).waitChecked();
 }
+
+class FanSensorFsdbIntegrationTests : public ::testing::Test {
+ public:
+  void SetUp() override {
+    fanService_ = std::make_unique<FanService>();
+    fanService_->kickstart();
+  }
+
+  void TearDown() override {
+    if (FLAGS_run_forever) {
+      while (true) {
+        /* sleep override */ sleep(1);
+      }
+    }
+    // Restart Sensor and FSDB to bring it back to healthy state for the next
+    // test
+    restartSensorService();
+    restartFsdbService();
+  }
+
+  FanService* getFanService() {
+    return fanService_.get();
+  }
+
+ private:
+  std::unique_ptr<FanService> fanService_{nullptr};
+};
+
 } // namespace
 
 namespace facebook::fboss::platform {
-
-void FanSensorFsdbIntegrationTests::SetUp() {
-  // Define service and handler for testing.
-  std::tie(thriftServer_, thriftHandler_) = setupThrift();
-  thriftHandler_->getFanService()->kickstart();
-  // Finally, if this is for Meta, start service
-  fsTestSetUp(thriftServer_, thriftHandler_.get());
-}
-
-void FanSensorFsdbIntegrationTests::TearDown() {
-  if (FLAGS_run_forever) {
-    while (true) {
-      /* sleep override */ sleep(1);
-    }
-  }
-  // Restart Sensor and FSDB to bring it back to healthy state for the next test
-  restartSensorService();
-  restartFsdbService();
-  fsTestTearDown(thriftServer_, thriftHandler_.get());
-}
-
-FanService* FanSensorFsdbIntegrationTests::getFanService() {
-  return thriftHandler_->getFanService();
-}
 
 TEST_F(FanSensorFsdbIntegrationTests, sensorUpdate) {
   SensorData prevSensorData;
