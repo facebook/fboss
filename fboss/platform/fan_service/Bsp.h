@@ -35,8 +35,6 @@
 #include "fboss/platform/fan_service/FsdbSensorSubscriber.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 
-int runShellCmd(const std::string& cmd);
-
 namespace facebook::fboss::platform {
 
 class Bsp {
