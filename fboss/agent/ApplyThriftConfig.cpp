@@ -425,23 +425,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   bool changed = false;
 
   {
-    auto newSwitchSettings = updateSwitchSettings();
-    if (newSwitchSettings) {
-      if (newSwitchSettings->getSwitchType() !=
-              orig_->getSwitchSettings()->getSwitchType() ||
-          newSwitchSettings->getSwitchId() !=
-              orig_->getSwitchSettings()->getSwitchId()) {
-        new_->resetSystemPorts(updateSystemPorts(
-            new_->getPorts(),
-            newSwitchSettings->getSwitchId(),
-            newSwitchSettings->getSystemPortRange()));
-      }
-      new_->resetSwitchSettings(std::move(newSwitchSettings));
-      changed = true;
-    }
-  }
-
-  {
     bool qcmChanged = false;
     auto newQcmConfig = updateQcmCfg(&qcmChanged);
     if (qcmChanged) {
@@ -485,6 +468,22 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
+  {
+    auto newSwitchSettings = updateSwitchSettings();
+    if (newSwitchSettings) {
+      if (newSwitchSettings->getSwitchType() !=
+              orig_->getSwitchSettings()->getSwitchType() ||
+          newSwitchSettings->getSwitchId() !=
+              orig_->getSwitchSettings()->getSwitchId()) {
+        new_->resetSystemPorts(updateSystemPorts(
+            new_->getPorts(),
+            newSwitchSettings->getSwitchId(),
+            newSwitchSettings->getSystemPortRange()));
+      }
+      new_->resetSwitchSettings(std::move(newSwitchSettings));
+      changed = true;
+    }
+  }
   {
     auto newAggPorts = updateAggregatePorts();
     if (newAggPorts) {
