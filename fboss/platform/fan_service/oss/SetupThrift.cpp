@@ -4,7 +4,6 @@
 #include <folly/Subprocess.h>
 #include <folly/system/Shell.h>
 #include "fboss/platform/fan_service/Bsp.h"
-#include "fboss/platform/fan_service/Main.h"
 
 namespace facebook::fboss::platform {
 

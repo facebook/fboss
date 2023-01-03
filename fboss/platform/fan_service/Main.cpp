@@ -1,13 +1,17 @@
 // Copyright 2021- Facebook. All rights reserved.
 
-#include "fboss/platform/fan_service/Main.h"
-#include "fboss/platform/fan_service/SetupThrift.h"
+#include <memory>
+#include <mutex>
+#include <string>
 
-//
-// GFLAGS Description : FLAGS_thrift_port
-//                      FLAGS_control_interval
-//                      FLAGS_config_file
-//
+#include <folly/experimental/FunctionScheduler.h>
+#include <folly/logging/Init.h>
+#include <folly/logging/xlog.h>
+#include <gflags/gflags.h>
+
+#include "fboss/platform/fan_service/FanService.h"
+#include "fboss/platform/fan_service/FanServiceHandler.h"
+#include "fboss/platform/fan_service/SetupThrift.h"
 
 using namespace facebook;
 using namespace facebook::services;
