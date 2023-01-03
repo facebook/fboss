@@ -46,6 +46,7 @@ int main(int argc, char** argv) {
   auto handler = std::make_shared<SensorServiceThriftHandler>(serviceImpl);
   server->setPort(FLAGS_thrift_port);
   server->setInterface(handler);
+  server->setAllowPlaintextOnLoopback(true);
   helpers::runThriftService(
       server, handler, "SensorService", FLAGS_thrift_port);
 
