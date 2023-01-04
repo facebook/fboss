@@ -1544,11 +1544,11 @@ void ThriftHandler::getRouteTableByClient(
     UnicastRoute tempRoute;
     tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network());
     tempRoute.dest()->prefixLength() = route->prefix().mask();
-    tempRoute.nextHops() = *(entry->nexthops());
-    if (entry->counterID()) {
-      tempRoute.counterID() = *entry->counterID();
+    tempRoute.nextHops() = util::fromRouteNextHopSet(entry->getNextHopSet());
+    if (entry->getCounterID()) {
+      tempRoute.counterID() = *entry->getCounterID();
     }
-    if (auto classID = entry->classID()) {
+    if (auto classID = entry->getClassID()) {
       tempRoute.classID() = *classID;
     }
     for (const auto& nh : *tempRoute.nextHops()) {
@@ -2320,14 +2320,15 @@ void ThriftHandler::getMplsRouteTableByClient(
   ensureConfigured(__func__);
   auto labelFib = sw_->getState()->getLabelForwardingInformationBase();
   for (const auto& entry : *labelFib) {
-    auto* labelNextHopEntry = entry->getEntryForClient(ClientID(clientId));
+    auto labelNextHopEntry = entry->getEntryForClient(ClientID(clientId));
     if (!labelNextHopEntry) {
       continue;
     }
     MplsRoute mplsRoute;
     mplsRoute.topLabel() = entry->getID().value();
-    mplsRoute.adminDistance() = *(labelNextHopEntry->adminDistance());
-    mplsRoute.nextHops() = *(labelNextHopEntry->nexthops());
+    mplsRoute.adminDistance() = labelNextHopEntry->getAdminDistance();
+    mplsRoute.nextHops() =
+        util::fromRouteNextHopSet(labelNextHopEntry->getNextHopSet());
     mplsRoutes.emplace_back(std::move(mplsRoute));
   }
 }

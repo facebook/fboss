@@ -230,10 +230,10 @@ TEST_F(RouteTest, routeApi) {
         RouteNextHopEntry(
             RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
 
-    EXPECT_EQ(nhopEntry, RouteNextHopEntry(*route.getEntryForClient(kClientA)));
+    EXPECT_EQ(nhopEntry, *route.getEntryForClient(kClientA));
     auto [bestClient, bestNhopEntry] = route.getBestEntry();
     EXPECT_EQ(bestClient, kClientA);
-    EXPECT_EQ(RouteNextHopEntry(*bestNhopEntry), nhopEntry);
+    EXPECT_EQ(*bestNhopEntry, nhopEntry);
     EXPECT_FALSE(route.hasNoEntry());
     EXPECT_TRUE(route.has(kClientA, nhopEntry));
     EXPECT_FALSE(route.has(kClientB, nhopEntry));
@@ -243,7 +243,7 @@ TEST_F(RouteTest, routeApi) {
     EXPECT_FALSE(route.has(kClientA, nhopEntry2));
     std::tie(bestClient, bestNhopEntry) = route.getBestEntry();
     EXPECT_EQ(bestClient, kClientB);
-    EXPECT_EQ(RouteNextHopEntry(*bestNhopEntry), nhopEntry2);
+    EXPECT_EQ(*bestNhopEntry, nhopEntry2);
     // del entry for client, should not be found after
     route.delEntryForClient(kClientA);
     EXPECT_FALSE(route.has(kClientA, nhopEntry));
@@ -256,8 +256,8 @@ TEST_F(RouteTest, routeApi) {
     route.update(kClientA, nhopEntry);
     route.update(kClientB, nhopEntry2);
     EXPECT_EQ(std::nullopt, route.getForwardInfo().getCounterID());
-    EXPECT_TRUE(!route.getEntryForClient(kClientA)->counterID());
-    EXPECT_TRUE(!route.getEntryForClient(kClientB)->counterID());
+    EXPECT_TRUE(!route.getEntryForClient(kClientA)->getCounterID());
+    EXPECT_TRUE(!route.getEntryForClient(kClientB)->getCounterID());
     RouteNextHopEntry nhopEntry3(
         makeNextHops({"1.1.1.1"}), EBGP_DISTANCE, kCounterID1, kClassID1);
     RouteNextHopEntry nhopEntry4(
@@ -266,17 +266,17 @@ TEST_F(RouteTest, routeApi) {
     route.update(kClientB, nhopEntry4);
     route.setResolved(nhopEntry3);
     EXPECT_EQ(kCounterID1, route.getForwardInfo().getCounterID());
-    if (auto counter = route.getEntryForClient(kClientA)->counterID()) {
+    if (auto counter = route.getEntryForClient(kClientA)->getCounterID()) {
       EXPECT_EQ(kCounterID1, *counter);
     }
-    if (auto counter = route.getEntryForClient(kClientB)->counterID()) {
+    if (auto counter = route.getEntryForClient(kClientB)->getCounterID()) {
       EXPECT_EQ(kCounterID2, *counter);
     }
     EXPECT_EQ(kClassID1, route.getForwardInfo().getClassID());
-    if (auto classID = route.getEntryForClient(kClientA)->classID()) {
+    if (auto classID = route.getEntryForClient(kClientA)->getClassID()) {
       EXPECT_EQ(kClassID1, *classID);
     }
-    if (auto classID = route.getEntryForClient(kClientB)->classID()) {
+    if (auto classID = route.getEntryForClient(kClientB)->getClassID()) {
       EXPECT_EQ(kClassID2, *classID);
     }
   };
@@ -1663,8 +1663,7 @@ TEST_F(RouteTest, withLabelForwardingAction) {
 
   EXPECT_EQ(route->has(kClientA, RouteNextHopEntry(nexthops, DISTANCE)), true);
   auto entry = route->getBestEntry();
-  for (const auto& nhThrift : *entry.second->nexthops()) {
-    auto nh = facebook::fboss::util::fromThrift(nhThrift);
+  for (const auto& nh : entry.second->getNextHopSet()) {
     EXPECT_EQ(nh.labelForwardingAction().has_value(), true);
     EXPECT_EQ(
         nh.labelForwardingAction()->type(),
@@ -2088,11 +2087,10 @@ TEST_F(RouteTest, withNoLabelForwardingAction) {
 
   EXPECT_EQ(route->has(kClientA, routeNextHopEntry), true);
   auto entry = route->getBestEntry();
-  for (const auto& nhThrift : *entry.second->nexthops()) {
-    auto nh = facebook::fboss::util::fromThrift(nhThrift);
+  for (const auto& nh : entry.second->getNextHopSet()) {
     EXPECT_EQ(nh.labelForwardingAction().has_value(), false);
   }
-  EXPECT_EQ(RouteNextHopEntry(*entry.second), routeNextHopEntry);
+  EXPECT_EQ(*entry.second, routeNextHopEntry);
 }
 
 TEST_F(RouteTest, withInvalidLabelForwardingAction) {
@@ -2521,7 +2519,7 @@ TEST_F(RouteTest, CounterIDTest) {
 
   rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
   EXPECT_EQ(rt10->getForwardInfo().getCounterID(), kCounterID2);
-  EXPECT_EQ(*(rt10->getEntryForClient(kClientA)->counterID()), kCounterID2);
+  EXPECT_EQ(*(rt10->getEntryForClient(kClientA)->getCounterID()), kCounterID2);
 
   // Modify route to remove counter id
   u1.addRoute(
@@ -2535,7 +2533,7 @@ TEST_F(RouteTest, CounterIDTest) {
 
   rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
   EXPECT_EQ(rt10->getForwardInfo().getCounterID(), std::nullopt);
-  EXPECT_TRUE(!rt10->getEntryForClient(kClientA)->counterID());
+  EXPECT_TRUE(!rt10->getEntryForClient(kClientA)->getCounterID());
 }
 
 TEST_F(RouteTest, DropAndPuntRouteCounterID) {
@@ -2554,7 +2552,7 @@ TEST_F(RouteTest, DropAndPuntRouteCounterID) {
 
     auto rt10 = findRoute4(sw_->getState(), kRid0, prefix10);
     EXPECT_EQ(rt10->getForwardInfo().getCounterID(), std::nullopt);
-    EXPECT_TRUE(!rt10->getEntryForClient(kClientA)->counterID());
+    EXPECT_TRUE(!rt10->getEntryForClient(kClientA)->getCounterID());
 
     // Add counter id
     u1.addRoute(
@@ -2567,8 +2565,8 @@ TEST_F(RouteTest, DropAndPuntRouteCounterID) {
 
     rt10 = findRoute4(sw_->getState(), kRid0, prefix10);
     EXPECT_EQ(rt10->getForwardInfo().getCounterID(), kCounterID1);
-    if (auto counter = rt10->getEntryForClient(kClientA)->counterID()) {
-      EXPECT_EQ(*counter, kCounterID1);
+    if (auto counter = rt10->getEntryForClient(kClientA)->getCounterID()) {
+      EXPECT_EQ(counter, kCounterID1);
     }
 
     // Modify counter id
@@ -2582,7 +2580,7 @@ TEST_F(RouteTest, DropAndPuntRouteCounterID) {
 
     rt10 = findRoute4(sw_->getState(), kRid0, prefix10);
     EXPECT_EQ(rt10->getForwardInfo().getCounterID(), kCounterID2);
-    if (auto counter = rt10->getEntryForClient(kClientA)->counterID()) {
+    if (auto counter = rt10->getEntryForClient(kClientA)->getCounterID()) {
       EXPECT_EQ(*counter, kCounterID2);
     }
 
@@ -2598,7 +2596,7 @@ TEST_F(RouteTest, DropAndPuntRouteCounterID) {
 
     rt10 = findRoute4(sw_->getState(), kRid0, prefix10);
     EXPECT_EQ(rt10->getForwardInfo().getCounterID(), std::nullopt);
-    EXPECT_TRUE(!rt10->getEntryForClient(kClientA)->counterID());
+    EXPECT_TRUE(!rt10->getEntryForClient(kClientA)->getCounterID());
   };
   verifyCounter(RouteForwardAction::DROP);
   verifyCounter(RouteForwardAction::TO_CPU);
@@ -2628,7 +2626,7 @@ TEST_F(RouteTest, ClassIDTest) {
   auto rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
   EXPECT_EQ(rt10->getClassID(), kClassID1);
   EXPECT_EQ(rt10->getForwardInfo().getClassID(), kClassID1);
-  if (auto classID = rt10->getEntryForClient(kClientA)->classID()) {
+  if (auto classID = rt10->getEntryForClient(kClientA)->getClassID()) {
     EXPECT_EQ(*classID, kClassID1);
   }
 
@@ -2648,7 +2646,7 @@ TEST_F(RouteTest, ClassIDTest) {
   rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
   EXPECT_EQ(rt10->getClassID(), kClassID2);
   EXPECT_EQ(rt10->getForwardInfo().getClassID(), kClassID2);
-  if (auto classID = rt10->getEntryForClient(kClientA)->classID()) {
+  if (auto classID = rt10->getEntryForClient(kClientA)->getClassID()) {
     EXPECT_EQ(*classID, kClassID2);
   }
 
@@ -2668,5 +2666,5 @@ TEST_F(RouteTest, ClassIDTest) {
   rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
   EXPECT_EQ(rt10->getClassID(), std::nullopt);
   EXPECT_EQ(rt10->getForwardInfo().getClassID(), std::nullopt);
-  EXPECT_TRUE(!rt10->getEntryForClient(kClientA)->classID());
+  EXPECT_TRUE(!rt10->getEntryForClient(kClientA)->getClassID());
 }

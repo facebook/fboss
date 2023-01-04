@@ -96,7 +96,8 @@ struct RouteFields
   bool hasNoEntry() const {
     return nexthopsmulti().isEmpty();
   }
-  std::pair<ClientID, const state::RouteNextHopEntry*> getBestEntry() const {
+  std::pair<ClientID, std::shared_ptr<const RouteNextHopEntry>> getBestEntry()
+      const {
     return RouteNextHopsMulti::getBestEntry(*(this->data().nexthopsmulti()));
   }
   size_t numClientEntries() const {
@@ -113,8 +114,8 @@ struct RouteFields
     }
   }
   void delEntryForClient(ClientID clientId);
-  const state::RouteNextHopEntry* FOLLY_NULLABLE
-  getEntryForClient(ClientID clientId) const {
+  std::shared_ptr<const RouteNextHopEntry> getEntryForClient(
+      ClientID clientId) const {
     return RouteNextHopsMulti::getEntryForClient(
         clientId, *(this->data().nexthopsmulti()));
   }
@@ -375,11 +376,12 @@ class Route : public ThriftyBaseT<
   RouteNextHopEntry getForwardInfo() const {
     return RouteBase::getFields()->fwd();
   }
-  const state::RouteNextHopEntry* FOLLY_NULLABLE
-  getEntryForClient(ClientID clientId) const {
+  std::shared_ptr<const RouteNextHopEntry> getEntryForClient(
+      ClientID clientId) const {
     return RouteBase::getFields()->getEntryForClient(clientId);
   }
-  std::pair<ClientID, const state::RouteNextHopEntry*> getBestEntry() const {
+  std::pair<ClientID, std::shared_ptr<const RouteNextHopEntry>> getBestEntry()
+      const {
     return RouteBase::getFields()->getBestEntry();
   }
   bool hasNoEntry() const {

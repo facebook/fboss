@@ -120,7 +120,7 @@ bool RouteFields<AddrT>::has(ClientID clientId, const RouteNextHopEntry& entry)
     const {
   auto found = RouteNextHopsMulti::getEntryForClient(
       clientId, *(this->data().nexthopsmulti()));
-  return found and RouteNextHopEntry(*found) == entry;
+  return found and *found == entry;
 }
 
 template <typename AddrT>

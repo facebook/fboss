@@ -89,7 +89,7 @@ void RouteNextHopsMulti::delEntryForClient(ClientID clientId) {
   RouteNextHopsMulti::delEntryForClient(clientId, writableData());
 }
 
-const state::RouteNextHopEntry* RouteNextHopsMulti::getEntryForClient(
+std::shared_ptr<const RouteNextHopEntry> RouteNextHopsMulti::getEntryForClient(
     ClientID clientId) const {
   return RouteNextHopsMulti::getEntryForClient(clientId, data());
 }
@@ -97,10 +97,10 @@ const state::RouteNextHopEntry* RouteNextHopsMulti::getEntryForClient(
 bool RouteNextHopsMulti::isSame(ClientID id, const RouteNextHopEntry& nhe)
     const {
   auto entry = getEntryForClient(id);
-  return entry && (*entry == nhe.toThrift());
+  return entry && (*entry == nhe);
 }
 
-std::pair<ClientID, const state::RouteNextHopEntry*>
+std::pair<ClientID, std::shared_ptr<const RouteNextHopEntry>>
 RouteNextHopsMulti::getBestEntry() const {
   return RouteNextHopsMulti::getBestEntry(data());
 }
@@ -138,21 +138,20 @@ void RouteNextHopsMulti::migrateFromThrifty(folly::dynamic& dyn) {
   dyn.erase("lowestAdminDistanceClientId");
 }
 
-std::pair<ClientID, const state::RouteNextHopEntry*>
+std::pair<ClientID, std::shared_ptr<const RouteNextHopEntry>>
 RouteNextHopsMulti::getBestEntry(
     const state::RouteNextHopsMulti& nexthopsmulti) {
-  auto clientID = *nexthopsmulti.lowestAdminDistanceClientId();
+  ClientID clientID = *nexthopsmulti.lowestAdminDistanceClientId();
   auto entry = RouteNextHopsMulti::getEntryForClient(clientID, nexthopsmulti);
   if (entry) {
-    return std::make_pair(clientID, entry);
+    return std::make_pair(clientID, std::move(entry));
   } else {
     // Throw an exception if the map is empty. Shall not happen
     throw FbossError("Unexpected empty RouteNextHopsMulti");
   }
 }
 
-const state::RouteNextHopEntry* FOLLY_NULLABLE
-RouteNextHopsMulti::getEntryForClient(
+std::shared_ptr<const RouteNextHopEntry> RouteNextHopsMulti::getEntryForClient(
     ClientID clientId,
     const state::RouteNextHopsMulti& nexthopsmulti) {
   const auto& map = *(nexthopsmulti.client2NextHopEntry());
@@ -160,7 +159,7 @@ RouteNextHopsMulti::getEntryForClient(
   if (iter == map.end()) {
     return nullptr;
   }
-  return &iter->second;
+  return std::make_shared<const RouteNextHopEntry>(iter->second);
 }
 
 void RouteNextHopsMulti::update(
@@ -187,7 +186,7 @@ void RouteNextHopsMulti::update(
   if (!entry) {
     nexthopsmulti.lowestAdminDistanceClientId() =
         RouteNextHopsMulti::findLowestAdminDistance(nexthopsmulti);
-  } else if (*(nhe.adminDistance()) < *(entry->adminDistance())) {
+  } else if (*(nhe.adminDistance()) < entry->getAdminDistance()) {
     // Arbritary choice to use the newest one if we have multiple
     // with the same admin distance
     nexthopsmulti.lowestAdminDistanceClientId() = clientId;

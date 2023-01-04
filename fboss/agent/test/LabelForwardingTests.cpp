@@ -67,13 +67,13 @@ TEST_P(LabelForwardingTest, addMplsRoutes) {
     for (const auto& route : routes[i]) {
       const auto& labelFibEntry =
           labelFib->getLabelForwardingEntry(*route.topLabel());
-      const auto* labelFibEntryForClient =
+      auto labelFibEntryForClient =
           labelFibEntry->getEntryForClient(clients[i]);
 
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
           util::toRouteNextHopSet(*route.nextHops()),
-          util::toRouteNextHopSet(*(labelFibEntryForClient->nexthops())));
+          labelFibEntryForClient->getNextHopSet());
     }
   }
 }
@@ -103,13 +103,13 @@ TEST_P(LabelForwardingTest, modifyMplsRoutes) {
       for (const auto& route : routes[i]) {
         const auto& labelFibEntry =
             labelFib->getLabelForwardingEntry(*route.topLabel());
-        const auto* labelFibEntryForClient =
+        const auto labelFibEntryForClient =
             labelFibEntry->getEntryForClient(clients[i]);
 
         EXPECT_NE(nullptr, labelFibEntryForClient);
         EXPECT_EQ(
             util::toRouteNextHopSet(*route.nextHops()),
-            util::toRouteNextHopSet(*(labelFibEntryForClient->nexthops())));
+            labelFibEntryForClient->getNextHopSet());
       }
     }
   };
@@ -232,12 +232,12 @@ TEST_P(LabelForwardingTest, deleteMplsRoutes) {
     for (const auto& route : routesToRetain[i]) {
       const auto& labelFibEntry =
           labelFib->getLabelForwardingEntry(*route.topLabel());
-      const auto* labelFibEntryForClient =
+      const auto labelFibEntryForClient =
           labelFibEntry->getEntryForClient(clients[i]);
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
           util::toRouteNextHopSet(*route.nextHops()),
-          util::toRouteNextHopSet(*labelFibEntryForClient->nexthops()));
+          labelFibEntryForClient->getNextHopSet());
     }
   }
 }
@@ -279,13 +279,13 @@ TEST_P(LabelForwardingTest, syncMplsFib) {
     for (const auto& route : routes[i]) {
       const auto& labelFibEntry =
           labelFib->getLabelForwardingEntry(*route.topLabel());
-      const auto* labelFibEntryForClient =
+      const auto labelFibEntryForClient =
           labelFibEntry->getEntryForClient(clients[i]);
 
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
           util::toRouteNextHopSet(*route.nextHops()),
-          util::toRouteNextHopSet(*(labelFibEntryForClient->nexthops())));
+          labelFibEntryForClient->getNextHopSet());
     }
   }
 
@@ -302,13 +302,13 @@ TEST_P(LabelForwardingTest, syncMplsFib) {
     if (i < 4) {
       const auto& labelFibEntry =
           labelFib->getLabelForwardingEntry(*routes[0][i].topLabel());
-      const auto* labelFibEntryForClient =
+      const auto labelFibEntryForClient =
           labelFibEntry->getEntryForClient(clients[0]);
 
       EXPECT_NE(nullptr, labelFibEntryForClient);
       EXPECT_EQ(
           util::toRouteNextHopSet(*routes[0][i].nextHops()),
-          util::toRouteNextHopSet(*labelFibEntryForClient->nexthops()));
+          labelFibEntryForClient->getNextHopSet());
     } else {
       auto labelFibEntry =
           labelFib->getLabelForwardingEntryIf(*routes[0][i].topLabel());
@@ -407,12 +407,11 @@ TEST_P(LabelForwardingTest, unresolvedNextHops) {
 
   for (auto i = 0; i < 3; i++) {
     const auto& labelFibEntry = labelFib->getLabelForwardingEntry(labels[i]);
-    const auto* labelFibEntryForClient =
+    const auto labelFibEntryForClient =
         labelFibEntry->getEntryForClient(ClientID::OPENR);
 
     EXPECT_NE(nullptr, labelFibEntryForClient);
-    auto clientNexthops =
-        util::toRouteNextHopSet(*labelFibEntryForClient->nexthops());
+    auto clientNexthops = labelFibEntryForClient->getNextHopSet();
     EXPECT_EQ(clientNexthops.size(), 4);
     auto nexthops = labelFibEntry->getForwardInfo().getNextHopSet();
     for (auto nexthop : nexthops) {

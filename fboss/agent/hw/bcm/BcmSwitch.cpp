@@ -3531,13 +3531,12 @@ bool BcmSwitch::isValidLabelForwardingEntry(const Route<LabelID>* entry) const {
   }
 
   for (auto client : AllClientIDs()) {
-    const auto* entryForClient = entry->getEntryForClient(client);
+    const auto entryForClient = entry->getEntryForClient(client);
     if (!entryForClient) {
       continue;
     }
     if (!FLAGS_mpls_rib &&
-        !isValidLabeledNextHopSet(
-            platform_, util::toRouteNextHopSet(*entryForClient->nexthops()))) {
+        !isValidLabeledNextHopSet(platform_, entryForClient->getNextHopSet())) {
       return false;
     }
   }

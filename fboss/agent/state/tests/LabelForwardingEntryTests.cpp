@@ -425,10 +425,9 @@ TEST(LabelForwardingEntryTests, getEntryForClient) {
   }
 
   for (const auto& clientNextHop : clientNextHopsEntry) {
-    auto* nexthopEntry = entry->getEntryForClient(clientNextHop.first);
+    auto nexthopEntry = entry->getEntryForClient(clientNextHop.first);
     EXPECT_EQ(
-        RouteNextHopEntry(*nexthopEntry),
-        clientNextHop.second(AdminDistance::DIRECTLY_CONNECTED));
+        *nexthopEntry, clientNextHop.second(AdminDistance::DIRECTLY_CONNECTED));
   }
 }
 
@@ -458,7 +457,7 @@ TEST(LabelForwardingEntryTests, delEntryForClient) {
   EXPECT_EQ(nullptr, entry->getEntryForClient(ClientID::OPENR));
   EXPECT_EQ(
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED),
-      RouteNextHopEntry(*(entry->getEntryForClient(ClientID::BGPD))));
+      *(entry->getEntryForClient(ClientID::BGPD)));
 }
 
 TEST(LabelForwardingEntryTests, getBestEntry) {

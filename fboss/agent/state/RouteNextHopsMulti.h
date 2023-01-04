@@ -122,17 +122,18 @@ class RouteNextHopsMulti
     this->writableData().lowestAdminDistanceClientId() = id;
   }
 
-  const state::RouteNextHopEntry* FOLLY_NULLABLE
-  getEntryForClient(ClientID clientId) const;
+  std::shared_ptr<const RouteNextHopEntry> getEntryForClient(
+      ClientID clientId) const;
 
-  std::pair<ClientID, const state::RouteNextHopEntry*> getBestEntry() const;
+  std::pair<ClientID, std::shared_ptr<const RouteNextHopEntry>> getBestEntry()
+      const;
 
   bool isSame(ClientID clientId, const RouteNextHopEntry& nhe) const;
 
-  static std::pair<ClientID, const state::RouteNextHopEntry*> getBestEntry(
-      const state::RouteNextHopsMulti& nexthopsmulti);
+  static std::pair<ClientID, std::shared_ptr<const RouteNextHopEntry>>
+  getBestEntry(const state::RouteNextHopsMulti& nexthopsmulti);
 
-  static const state::RouteNextHopEntry* FOLLY_NULLABLE getEntryForClient(
+  static std::shared_ptr<const RouteNextHopEntry> getEntryForClient(
       ClientID clientId,
       const state::RouteNextHopsMulti& nexthopsmulti);
 

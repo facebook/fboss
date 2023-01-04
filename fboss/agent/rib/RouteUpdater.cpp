@@ -127,8 +127,7 @@ void RibRouteUpdater::addOrReplaceRouteImpl(
   if (it != routes->end()) {
     auto route = it->value();
     auto existingRouteForClient = route->getEntryForClient(clientID);
-    if (!existingRouteForClient ||
-        !(RouteNextHopEntry(*existingRouteForClient) == entry)) {
+    if (!existingRouteForClient || !(*existingRouteForClient == entry)) {
       route = writableRoute<AddressT>(it);
       route->update(clientID, entry);
     }
@@ -165,8 +164,7 @@ void RibRouteUpdater::addOrReplaceRoute(
   } else {
     auto& route = iter->second;
     auto existingRouteForClient = route->getEntryForClient(clientID);
-    if (!existingRouteForClient ||
-        !(RouteNextHopEntry(*existingRouteForClient) == entry)) {
+    if (!existingRouteForClient || !(*existingRouteForClient == entry)) {
       route = writableRoute<LabelID>(route);
       route->update(clientID, entry);
     }
@@ -567,7 +565,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
 
   auto bestPair = route->getBestEntry();
   const auto clientId = bestPair.first;
-  const auto bestEntryVal = RouteNextHopEntry(*bestPair.second);
+  const auto& bestEntryVal = *bestPair.second;
   const auto bestEntry = &bestEntryVal;
   const auto action = bestEntry->getAction();
   const auto counterID = bestEntry->getCounterID();

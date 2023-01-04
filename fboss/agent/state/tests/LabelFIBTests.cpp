@@ -22,13 +22,13 @@ void addOrUpdateEntryWithProgramLabel(
     ClientID client,
     LabelForwardingEntry* entry) {
   SwitchState::modify(state);
-  auto routeNextHopEntry = RouteNextHopEntry(*entry->getEntryForClient(client));
+  auto routeNextHopEntry = entry->getEntryForClient(client);
   (*state)->getLabelForwardingInformationBase()->programLabel(
       state,
       entry->getID(),
       client,
-      routeNextHopEntry.getAdminDistance(),
-      routeNextHopEntry.getNextHopSet());
+      routeNextHopEntry->getAdminDistance(),
+      routeNextHopEntry->getNextHopSet());
 }
 
 void removeEntryWithUnprogramLabel(
@@ -253,8 +253,7 @@ TEST(LabelFIBTests, programLabel) {
       5001,
       ClientID::OPENR,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
-  entryToAdd->setResolved(
-      RouteNextHopEntry(*entryToAdd->getBestEntry().second));
+  entryToAdd->setResolved(*entryToAdd->getBestEntry().second);
 
   addOrUpdateEntryWithProgramLabel(&stateA, ClientID::OPENR, entryToAdd.get());
   stateA->publish();
@@ -297,14 +296,12 @@ TEST(LabelFIBTests, unprogramLabel) {
       5001,
       ClientID::OPENR,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
-  entryToAdd5001->setResolved(
-      RouteNextHopEntry(*entryToAdd5001->getBestEntry().second));
+  entryToAdd5001->setResolved(*entryToAdd5001->getBestEntry().second);
   auto entryToAdd5002 = std::make_shared<LabelForwardingEntry>(
       5002,
       ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
-  entryToAdd5002->setResolved(
-      RouteNextHopEntry((*entryToAdd5002->getBestEntry().second)));
+  entryToAdd5002->setResolved((*entryToAdd5002->getBestEntry().second));
 
   addOrUpdateEntryWithProgramLabel(
       &stateA, ClientID::OPENR, entryToAdd5001.get());
@@ -332,20 +329,17 @@ TEST(LabelFIBTests, purgeEntriesForClient) {
       5001,
       ClientID::OPENR,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
-  entryToAdd5001->setResolved(
-      RouteNextHopEntry(*entryToAdd5001->getBestEntry().second));
+  entryToAdd5001->setResolved(*entryToAdd5001->getBestEntry().second);
   auto entryToAdd5002 = std::make_shared<LabelForwardingEntry>(
       5002,
       ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
-  entryToAdd5002->setResolved(
-      RouteNextHopEntry(*entryToAdd5002->getBestEntry().second));
+  entryToAdd5002->setResolved(*entryToAdd5002->getBestEntry().second);
   auto entryToAdd5003 = std::make_shared<LabelForwardingEntry>(
       5003,
       ClientID::BGPD,
       util::getPhpLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
-  entryToAdd5003->setResolved(
-      RouteNextHopEntry(*entryToAdd5003->getBestEntry().second));
+  entryToAdd5003->setResolved(*entryToAdd5003->getBestEntry().second);
 
   addOrUpdateEntryWithProgramLabel(
       &stateA, ClientID::OPENR, entryToAdd5001.get());
@@ -399,16 +393,14 @@ TEST(LabelFIBTests, oneLabelManyClients) {
       5001,
       ClientID::OPENR,
       util::getPushLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
-  entryToAdd5001->setResolved(
-      RouteNextHopEntry(*entryToAdd5001->getBestEntry().second));
+  entryToAdd5001->setResolved(*entryToAdd5001->getBestEntry().second);
   addOrUpdateEntryWithProgramLabel(
       &stateA, ClientID::OPENR, entryToAdd5001.get());
   auto entryToAdd5002Bgp = std::make_shared<LabelForwardingEntry>(
       5002,
       ClientID::BGPD,
       util::getPhpLabelNextHopEntry(AdminDistance::STATIC_ROUTE));
-  entryToAdd5002Bgp->setResolved(
-      RouteNextHopEntry(*entryToAdd5002Bgp->getBestEntry().second));
+  entryToAdd5002Bgp->setResolved(*entryToAdd5002Bgp->getBestEntry().second);
   addOrUpdateEntryWithProgramLabel(
       &stateA, ClientID::BGPD, entryToAdd5002Bgp.get());
   stateA->publish();
@@ -429,8 +421,7 @@ TEST(LabelFIBTests, oneLabelManyClients) {
       5002,
       ClientID::OPENR,
       util::getSwapLabelNextHopEntry(AdminDistance::DIRECTLY_CONNECTED));
-  entryToAdd5002Openr->setResolved(
-      RouteNextHopEntry(*entryToAdd5002Openr->getBestEntry().second));
+  entryToAdd5002Openr->setResolved(*entryToAdd5002Openr->getBestEntry().second);
   SwitchState::modify(&stateA);
   addOrUpdateEntryWithProgramLabel(
       &stateA, ClientID::OPENR, entryToAdd5002Openr.get());

@@ -157,8 +157,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
     auto* entryToUpdate = modifyLabelEntry(state, entry);
     entryToUpdate->update(
         client, LabelNextHopEntry(std::move(nexthops), distance));
-    entryToUpdate->setResolved(
-        RouteNextHopEntry(*entryToUpdate->getBestEntry().second));
+    entryToUpdate->setResolved(*entryToUpdate->getBestEntry().second);
     XLOG(DBG2) << "updated label:" << label.value() << " nhops: " << nextHopsStr
                << "nhop count:" << nexthopCount
                << " in label forwarding information base for client:"
@@ -189,8 +188,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::unprogramLabel(
     XLOG(DBG2) << "Purging empty forwarding entry for label:" << label.value();
     writableLabelFib->removeNode(entry);
   } else {
-    auto entryThrift = entryToUpdate->getBestEntry().second;
-    entryToUpdate->setResolved(RouteNextHopEntry(*entryThrift));
+    entryToUpdate->setResolved(*(entryToUpdate->getBestEntry().second));
   }
   return writableLabelFib;
 }
@@ -212,9 +210,7 @@ LabelForwardingInformationBase::purgeEntriesForClient(
         iter = writableLabelFib->writableNodes().erase(iter);
         continue;
       } else {
-        auto entryThrift =
-            RouteNextHopEntry(*(entryToModify->getBestEntry().second));
-        entryToModify->setResolved(std::move(entryThrift));
+        entryToModify->setResolved(*(entryToModify->getBestEntry().second));
       }
     }
     ++iter;
