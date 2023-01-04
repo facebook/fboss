@@ -48,6 +48,8 @@ class SystemPortMap : public ThriftMapNode<SystemPortMap, SystemPortMapTraits> {
   std::shared_ptr<SystemPort> getSystemPortIf(SystemPortID id) const {
     return getNodeIf(id);
   }
+  std::shared_ptr<SystemPort> getSystemPort(const std::string& name) const;
+  std::shared_ptr<SystemPort> getSystemPortIf(const std::string& name) const;
 
   void addSystemPort(const std::shared_ptr<SystemPort>& systemPort);
   void updateSystemPort(const std::shared_ptr<SystemPort>& systemPort);

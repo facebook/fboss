@@ -19,6 +19,25 @@ SystemPortMap::SystemPortMap() {}
 
 SystemPortMap::~SystemPortMap() {}
 
+std::shared_ptr<SystemPort> SystemPortMap::getSystemPort(
+    const std::string& name) const {
+  auto port = getSystemPortIf(name);
+  if (!port) {
+    throw FbossError("SystemPort with name: ", name, " not found");
+  }
+  return port;
+}
+
+std::shared_ptr<SystemPort> SystemPortMap::getSystemPortIf(
+    const std::string& name) const {
+  for (auto [id, sysPort] : *this) {
+    if (name == sysPort->getPortName()) {
+      return sysPort;
+    }
+  }
+  return nullptr;
+}
+
 void SystemPortMap::addSystemPort(
     const std::shared_ptr<SystemPort>& systemPort) {
   addNode(systemPort);
