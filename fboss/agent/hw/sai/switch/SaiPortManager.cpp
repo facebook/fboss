@@ -1072,8 +1072,8 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
       utility::isReedSolomonFec(getFECMode(portId))) {
 #if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_ODP) || \
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                 \
-    defined(TAJO_SDK_VERSION_1_42_4) ||                                     \
-    defined(SAI_VERSION_9_0_EA_ODP) && defined(SAI_VERSION_9_0_EA_DNX_ODP)
+    defined(TAJO_SDK_VERSION_1_42_4) || defined(SAI_VERSION_9_0_EA_ODP) ||  \
+    defined(SAI_VERSION_9_0_EA_DNX_ODP)
     return true;
 #endif
   }
