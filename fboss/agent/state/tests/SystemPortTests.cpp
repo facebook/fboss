@@ -133,6 +133,23 @@ TEST(SystemPort, sysPortApplyConfigSwitchIdChange) {
   }
 }
 
+TEST(SystemPort, sysPortNameApplyConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigA(cfg::SwitchType::VOQ);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  EXPECT_EQ(stateV1->getSystemPorts()->size(), stateV1->getPorts()->size());
+  auto switchIdOpt = stateV1->getSwitchSettings()->getSwitchId();
+  CHECK(switchIdOpt.has_value());
+  auto switchId = *switchIdOpt;
+  auto nodeName = *config.dsfNodes()->find(switchId)->second.name();
+  for (auto port : *stateV1->getPorts()) {
+    auto sysPortName = folly::sformat("{}:{}", nodeName, port->getName());
+    XLOG(DBG2) << " Looking for sys port : " << sysPortName;
+    EXPECT_NE(nullptr, stateV1->getSystemPorts()->getSystemPortIf(sysPortName));
+  }
+}
 TEST(SystemPort, GetLocalSwitchPortsBySwitchId) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();
