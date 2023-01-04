@@ -8,38 +8,38 @@
   "sw": {
     "version": 0,
     "ports": [
-      
+
     ],
     "vlans": [
-      
+
     ],
     "vlanPorts": [
-      
+
     ],
     "defaultVlan": 0,
     "interfaces": [
-      
+
     ],
     "arpTimeoutSeconds": 60,
     "arpRefreshSeconds": 20,
     "arpAgerInterval": 5,
     "proactiveArp": false,
     "staticRoutesWithNhops": [
-      
+
     ],
     "staticRoutesToNull": [
-      
+
     ],
     "staticRoutesToCPU": [
-      
+
     ],
     "acls": [
-      
+
     ],
     "maxNeighborProbes": 300,
     "staleEntryInterval": 10,
     "aggregatePorts": [
-      
+
     ],
     "clientIdToAdminDistance": {
       "0": 20,
@@ -50,40 +50,40 @@
       "786": 10
     },
     "sFlowCollectors": [
-      
+
     ],
     "cpuQueues": [
-      
+
     ],
     "loadBalancers": [
-      
+
     ],
     "mirrors": [
-      
+
     ],
     "trafficCounters": [
-      
+
     ],
     "qosPolicies": [
-      
+
     ],
     "defaultPortQueues": [
-      
+
     ],
     "staticMplsRoutesWithNhops": [
-      
+
     ],
     "staticMplsRoutesToNull": [
-      
+
     ],
     "staticMplsRoutesToCPU": [
-      
+
     ],
     "staticIp2MplsRoutes": [
-      
+
     ],
     "portQueueConfigs": {
-      
+
     },
     "switchSettings": {
       "l2LearningMode": 0,
@@ -92,13 +92,19 @@
       "l2AgeTimerSeconds": 300,
       "maxRouteCounterIDs": 0,
       "blockNeighbors": [
-        
+
       ],
       "macAddrsToBlock": [
-        
+
       ],
       "switchType": 2,
-      "switchId": 0
+      "switchId": 0,
+      "exactMatchTableConfigs": [
+
+      ]
+    },
+    "dsfNodes": {
+
     }
   },
   "platform": {
@@ -108,6 +114,7 @@
           "BroadSync_enable_clk": "1",
           "appl_enable_intr_init.BCM8885X": "1",
           "appl_enable_sniff_ports.BCM8885X": "0",
+          "appl_param_nof_ports_per_modid": "130",
           "bcm_stat_interval.BCM8885X_ADAPTER": "0",
           "custom_feature_adapter_do_collect_enable.BCM8885X_ADAPTER": "1",
           "custom_feature_kbp_multithread_en.BCM8885X": "0",
@@ -898,6 +905,7 @@
           "lane_to_serdes_map_nif_lane98.1": "rx102:tx96",
           "lane_to_serdes_map_nif_lane99.0": "rx100:tx99",
           "lane_to_serdes_map_nif_lane99.1": "rx100:tx99",
+          "macro_flow_hash_shuffle_random_seed": "34345645",
           "maximal_port_bandwidth.BCM8885X": "600000",
           "mdb_profile.BCM8885X": "Balanced-Exem",
           "mdb_profile_kaps_cfg.BCM8885X": "2",
@@ -2339,12 +2347,14 @@
           "sai_ifp_enable_on_cpu_tx": "0x1",
           "sai_macro_flow_based_hash": "1",
           "sai_mmu_qgroups_default": "1",
+          "sai_nos_reserved_l3_encap_range_begin": "0x200000",
+          "sai_nos_reserved_l3_encap_range_end": "0x300000",
           "sai_optimized_mmu": "0x1",
           "sai_pfc_defaults_disable": "0x1",
           "sai_pkt_rx_cfg_ppc": "16",
           "sai_pkt_rx_custom_cfg": "1",
           "sai_pkt_rx_pkt_size": "16512",
-          "sai_recycle_port_lane_base": "128",
+          "sai_recycle_port_lane_base": "220",
           "sai_uncached_port_stats": "0x1",
           "sai_vfp_smac_drop_filter_disable": "1",
           "sat_enable.BCM8885X": "1",
@@ -2385,28 +2395,26 @@
           "tdma_intr_enable.BCM8885X": "0",
           "tdma_timeout_usec.BCM8885X": "1000000",
           "tm_port_header_type_in_0.BCM8885X": "INJECTED_2",
+          "tm_port_header_type_in_1.BCM8885X": "ETH",
           "tm_port_header_type_in_200.BCM8885X": "INJECTED_2_PP",
           "tm_port_header_type_in_201.BCM8885X": "INJECTED_2_PP",
           "tm_port_header_type_in_202.BCM8885X": "INJECTED_2_PP",
           "tm_port_header_type_in_203.BCM8885X": "INJECTED_2_PP",
           "tm_port_header_type_in_218.BCM8885X": "INJECTED_2",
           "tm_port_header_type_in_219.BCM8885X": "INJECTED_2",
-          "tm_port_header_type_in_221.BCM8885X": "INJECTED_2",
-          "tm_port_header_type_in_222.BCM8885X": "INJECTED_2",
           "tm_port_header_type_in_230.BCM8885X": "INJECTED_2",
           "tm_port_header_type_in_232.BCM8885X": "INJECTED_2",
           "tm_port_header_type_in_233.BCM8885X": "INJECTED_2",
           "tm_port_header_type_in_234.BCM8885X": "RAW",
           "tm_port_header_type_in_240.BCM8885X": "INJECTED_2",
           "tm_port_header_type_out_0.BCM8885X": "CPU",
+          "tm_port_header_type_out_1.BCM8885X": "ETH",
           "tm_port_header_type_out_200.BCM8885X": "ETH",
           "tm_port_header_type_out_201.BCM8885X": "ETH",
           "tm_port_header_type_out_202.BCM8885X": "ETH",
           "tm_port_header_type_out_203.BCM8885X": "ETH",
           "tm_port_header_type_out_218.BCM8885X": "CPU",
           "tm_port_header_type_out_219.BCM8885X": "CPU",
-          "tm_port_header_type_out_221.BCM8885X": "CPU",
-          "tm_port_header_type_out_222.BCM8885X": "CPU",
           "tm_port_header_type_out_232.BCM8885X": "CPU",
           "tm_port_header_type_out_233.BCM8885X": "CPU",
           "tm_port_header_type_out_240.BCM8885X": "ETH",
@@ -2420,18 +2428,22 @@
           "ucode_port_1.BCM88295": "CGE8:core_0.1",
           "ucode_port_1.BCM88803": "CGE8:core_0.1",
           "ucode_port_1.BCM88806": "CGE4:core_0.1",
-          "ucode_port_1.BCM8885X": "CGE20:core_1.1",
-          "ucode_port_105.BCM8885X": "CGE8:core_0.105",
-          "ucode_port_113.BCM8885X": "CGE6:core_0.113",
-          "ucode_port_121.BCM8885X": "CGE4:core_0.121",
-          "ucode_port_129.BCM8885X": "CGE2:core_0.129",
+          "ucode_port_1.BCM8885X": "RCY.21:core_0.1",
+          "ucode_port_10.BCM8885X": "CGE16:core_0.10",
+          "ucode_port_11.BCM8885X": "CGE14:core_0.11",
+          "ucode_port_12.BCM8885X": "CGE12:core_0.12",
           "ucode_port_13.BCM88482": "IGNORE",
+          "ucode_port_13.BCM8885X": "CGE10:core_0.13",
           "ucode_port_14.BCM88482": "IGNORE",
+          "ucode_port_14.BCM8885X": "CGE8:core_0.14",
           "ucode_port_15.BCM88482": "IGNORE",
+          "ucode_port_15.BCM8885X": "CGE6:core_0.15",
           "ucode_port_16.BCM88482": "IGNORE",
+          "ucode_port_16.BCM8885X": "CGE4:core_0.16",
           "ucode_port_17.BCM88280": "CGE6:core_0.17",
           "ucode_port_17.BCM88287": "IGNORE",
-          "ucode_port_17.BCM8885X": "CGE22:core_1.17",
+          "ucode_port_17.BCM8885X": "CGE2:core_0.17",
+          "ucode_port_2.BCM8885X": "CGE20:core_1.2",
           "ucode_port_20.BCM88485": "IGNORE",
           "ucode_port_20.BCM88487": "IGNORE",
           "ucode_port_200.BCM8885X": "CPU.8:core_1.200",
@@ -2444,8 +2456,6 @@
           "ucode_port_203.BCM8885X_ADAPTER": "CPU.32:core_0.203",
           "ucode_port_218.BCM8885X": "SAT:core_0.218",
           "ucode_port_219.BCM8885X": "SAT:core_1.219",
-          "ucode_port_221.BCM8885X": "RCY.21:core_0.221",
-          "ucode_port_222.BCM8885X": "RCY.22:core_1.222",
           "ucode_port_230.BCM8885X": "EVENTOR:core_0.230",
           "ucode_port_232.BCM8885X": "OAMP:core_0.232",
           "ucode_port_232.BCM8885X_ADAPTER": "OAMP.0:core_0.232",
@@ -2453,12 +2463,10 @@
           "ucode_port_233.BCM8885X_ADAPTER": "OAMP.1:core_0.233",
           "ucode_port_234.BCM8885X": "CRPS:core_0.234",
           "ucode_port_240.BCM8885X_A0": "OLP:core_0.240",
-          "ucode_port_25.BCM8885X": "CGE24:core_1.25",
           "ucode_port_254.BCM8885X": "ERP:core_0.255",
           "ucode_port_255.BCM8885X": "ERP:core_1.255",
-          "ucode_port_33.BCM8885X": "CGE26:core_1.33",
-          "ucode_port_41.BCM8885X": "CGE28:core_1.41",
-          "ucode_port_49.BCM8885X": "CGE30:core_1.49",
+          "ucode_port_3.BCM8885X": "CGE22:core_1.3",
+          "ucode_port_4.BCM8885X": "CGE24:core_1.4",
           "ucode_port_5.BCM88280": "ILKN0.0:core_0.5",
           "ucode_port_5.BCM88284": "IGNORE",
           "ucode_port_5.BCM88287": "IGNORE",
@@ -2469,7 +2477,7 @@
           "ucode_port_5.BCM88806": "IGNORE",
           "ucode_port_5.BCM88821": "IGNORE",
           "ucode_port_5.BCM88823": "IGNORE",
-          "ucode_port_57.BCM8885X": "CGE32:core_1.57",
+          "ucode_port_5.BCM8885X": "CGE26:core_1.5",
           "ucode_port_6.BCM88280": "ILKN0.1:core_0.6",
           "ucode_port_6.BCM88284": "IGNORE",
           "ucode_port_6.BCM88287": "IGNORE",
@@ -2479,7 +2487,7 @@
           "ucode_port_6.BCM88804": "IGNORE",
           "ucode_port_6.BCM88806": "IGNORE",
           "ucode_port_6.BCM88823": "IGNORE",
-          "ucode_port_65.BCM8885X": "CGE34:core_1.65",
+          "ucode_port_6.BCM8885X": "CGE28:core_1.6",
           "ucode_port_7.BCM88280": "IGNORE",
           "ucode_port_7.BCM88284": "IGNORE",
           "ucode_port_7.BCM88287": "IGNORE",
@@ -2487,14 +2495,17 @@
           "ucode_port_7.BCM88804": "IGNORE",
           "ucode_port_7.BCM88806": "IGNORE",
           "ucode_port_7.BCM88823": "IGNORE",
-          "ucode_port_73.BCM8885X": "CGE16:core_0.73",
-          "ucode_port_81.BCM8885X": "CGE14:core_0.81",
-          "ucode_port_89.BCM8885X": "CGE12:core_0.89",
-          "ucode_port_97.BCM8885X": "CGE10:core_0.97",
+          "ucode_port_7.BCM8885X": "CGE30:core_1.7",
+          "ucode_port_8.BCM8885X": "CGE32:core_1.8",
+          "ucode_port_9.BCM8885X": "CGE34:core_1.9",
           "warmboot_support.BCM8885X": "on",
           "warmboot_support.BCM8885X_ADAPTER": "on"
         }
       }
+    },
+    "platformSettings": {
+      "1": "68:00",
+      "2": "02:00:00:00:00:01"
     }
   }
 }
