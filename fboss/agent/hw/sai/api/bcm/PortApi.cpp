@@ -14,7 +14,7 @@ extern "C" {
 
 namespace facebook::fboss {
 
-#if defined(SAI_VERSION_8_2_0_0_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeSerdesLaneList::operator()() {
   return SAI_PORT_ATTR_SERDES_LANE_LIST;

@@ -47,7 +47,9 @@ template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiAclTableTraits> : std::false_type {
 };
 
-#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_DNX_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
+    defined(SAI_VERSION_9_0_EA_DNX_ODP)
 
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiWredTraits> : std::false_type {};
@@ -434,7 +436,9 @@ class SaiObjectStore {
           // state.
           return ObjectType(key);
         }
-#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_DNX_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
+    defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
+    defined(SAI_VERSION_9_0_EA_DNX_ODP)
         if constexpr (std::is_same_v<ObjectTraits, SaiWredTraits>) {
           // Allow warm boot from version which doesn't save ahk
           // TODO(zecheng): Remove after device warmbooted to 8.2

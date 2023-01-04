@@ -358,7 +358,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
           getInternalSystemPortConfig()};
     }
   }
-#if defined(SAI_VERSION_8_2_0_0_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
   std::optional<SaiSwitchTraits::Attributes::DllPath> dllPath;
   auto platformMode = getMode();
   if (platformMode == PlatformMode::FUJI ||
@@ -422,7 +422,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         std::nullopt, // Max ECMP member count
         std::nullopt, // ECMP member count
 #endif
-#if defined(SAI_VERSION_8_2_0_0_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
         dllPath,
 #endif
   };
