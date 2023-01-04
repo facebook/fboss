@@ -14,10 +14,8 @@ add_library(fan_service_lib
   fboss/platform/fan_service/MokujinFSConfig.cpp
   fboss/platform/fan_service/SensorData.cpp
   fboss/platform/fan_service/ServiceConfig.cpp
-  fboss/platform/fan_service/SetupThrift.cpp
   fboss/platform/fan_service/oss/FsdbSensorSubscriber.cpp
   fboss/platform/fan_service/oss/OssHelper.cpp
-  fboss/platform/fan_service/oss/SetupThrift.cpp
 )
 
 target_link_libraries(fan_service_lib

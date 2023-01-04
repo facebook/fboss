@@ -12,13 +12,13 @@
 
 #include "fboss/platform/fan_service/FanService.h"
 #include "fboss/platform/fan_service/FanServiceHandler.h"
-#include "fboss/platform/fan_service/SetupThrift.h"
 #include "fboss/platform/helpers/Init.h"
 
 using namespace facebook;
 using namespace facebook::services;
 using namespace facebook::fboss::platform;
 
+DEFINE_int32(thrift_port, 5972, "Port for the thrift service");
 DEFINE_int32(
     control_interval,
     5,
@@ -35,33 +35,28 @@ int main(int argc, char** argv) {
   // If Mock configuration is enabled, run Fan Service in Mock mode, then quit.
   // No Thrift service will be created at all.
   if (FLAGS_mock_input != "") {
-    // Run as Mock mode
     facebook::fboss::platform::FanService mockedFanService;
     mockedFanService.kickstart();
     return mockedFanService.runMock(FLAGS_mock_input, FLAGS_mock_output);
   }
 
-  std::pair<
-      std::shared_ptr<apache::thrift::ThriftServer>,
-      std::shared_ptr<FanServiceHandler>>
-      p = setupThrift();
-  std::shared_ptr<apache::thrift::ThriftServer> server = p.first;
-  std::shared_ptr<FanServiceHandler> handler = p.second;
+  auto serviceImpl = std::make_unique<facebook::fboss::platform::FanService>();
 
-  // Set up scheduler.
+  auto server = std::make_shared<apache::thrift::ThriftServer>();
+  auto handler = std::make_shared<FanServiceHandler>(std::move(serviceImpl));
+  handler->getFanService()->kickstart();
+
   folly::FunctionScheduler scheduler;
-
-  // Add Fan Service control logic to the scheduler.
   scheduler.addFunction(
       [handler]() { handler->getFanService()->controlFan(); },
       std::chrono::seconds(FLAGS_control_interval),
       "FanControl");
-
-  // Finally, start scheduler
   scheduler.start();
 
-  // Also, run the Thrift server
-  std::string serviceName = "Fan Service";
-  startServiceAndRunServer(serviceName, server, handler.get(), true);
+  server->setPort(FLAGS_thrift_port);
+  server->setInterface(handler);
+  server->setAllowPlaintextOnLoopback(true);
+  helpers::runThriftService(server, handler, "FanService", FLAGS_thrift_port);
+
   return 0;
 }
