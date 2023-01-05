@@ -391,6 +391,7 @@ class ThriftConfigApplier {
   std::shared_ptr<IpTunnelMap> updateIpInIpTunnels();
   std::shared_ptr<DsfNodeMap> updateDsfNodes();
   void processUpdatedDsfNodes();
+  void validateUdfConfig(const UdfConfig& newUdfConfig);
   std::shared_ptr<UdfConfig> updateUdfConfig(bool* changed);
 
   std::shared_ptr<SwitchState> orig_;
@@ -911,6 +912,28 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       [&](auto oldNode) { rmDsfNode(oldNode); });
 }
 
+void ThriftConfigApplier::validateUdfConfig(const UdfConfig& newUdfConfig) {
+  auto udfGroupMap = newUdfConfig.getUdfGroupMap();
+  if (udfGroupMap == nullptr) {
+    return;
+  }
+  for (const auto& udfGroupEntry : *udfGroupMap) {
+    const auto& udfGroupName = udfGroupEntry.first;
+    const auto& udfPacketMatchersList =
+        udfGroupEntry.second->getUdfPacketMatcherIds();
+    for (const auto& matcherId : udfPacketMatchersList) {
+      const auto& udfPacketMatchers = newUdfConfig.getUdfPacketMatcherMap();
+      if (udfPacketMatchers->find(matcherId) == udfPacketMatchers->end()) {
+        throw FbossError(
+            "Configuration does not exist for UdfPacketMatcherMap: ",
+            matcherId,
+            " but exists in packetMatcherList for UdfGroup ",
+            udfGroupName);
+      }
+    }
+  }
+}
+
 std::shared_ptr<UdfConfig> ThriftConfigApplier::updateUdfConfig(bool* changed) {
   *changed = false;
   auto origUdfConfig = orig_->getUdfConfig();
@@ -928,6 +951,8 @@ std::shared_ptr<UdfConfig> ThriftConfigApplier::updateUdfConfig(bool* changed) {
 
   // new cfg exists
   newUdfConfig->fromThrift(*cfg_->udfConfig());
+  // validate cfg
+  validateUdfConfig(*newUdfConfig);
   // ThriftStructNode does deep comparison internally
   if (*origUdfConfig != *newUdfConfig) {
     *changed = true;
