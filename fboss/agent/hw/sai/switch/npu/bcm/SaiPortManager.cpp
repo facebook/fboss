@@ -136,8 +136,8 @@ void SaiPortManager::changePortByRecreate(
           pendingNewPorts_.erase(portId);
           // port should already be enabled
           // enable linkscan
-          auto handle = getPortHandle(portId);
 #if defined(SAI_VERSION_8_2_0_0_ODP)
+          auto handle = getPortHandle(portId);
           SaiPortTraits::Attributes::DiagModeEnable diagDisable{false};
           SaiApiTable::getInstance()->portApi().setAttribute(
               handle->port->adapterKey(), diagDisable);
