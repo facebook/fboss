@@ -207,6 +207,11 @@ class BgpIntegrationTest : public AgentIntegrationTest {
   void addBgpUnicastRoutes(std::vector<facebook::fboss::UnicastRoute> toAdd) {
     auto clientParams = servicerouter::ClientParams();
     clientParams.setSingleHost("::1", kBgpThriftPort);
+
+    std::chrono::milliseconds processingTimeout{60000};
+    clientParams.setProcessingTimeoutMs(processingTimeout);
+    clientParams.setOverallTimeoutMs(processingTimeout);
+
     auto client = servicerouter::cpp2::getClientFactory()
                       .getSRClientUnique<apache::thrift::Client<TBgpService>>(
                           "", clientParams);
