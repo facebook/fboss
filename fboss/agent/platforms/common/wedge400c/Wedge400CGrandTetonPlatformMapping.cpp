@@ -8339,6 +8339,22 @@ constexpr auto kJsonPlatformMappingStr = R"(
     },
     {
       "factor": {
+        "profileID": 16
+      },
+      "profile": {
+        "speed": 25000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 528,
+          "medium": 1,
+          "interfaceMode": 10,
+          "interfaceType": 10
+        }
+      }
+    },
+    {
+      "factor": {
         "profileID": 17
       },
       "profile": {
