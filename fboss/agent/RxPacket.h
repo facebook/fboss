@@ -45,6 +45,17 @@ class RxPacket : public Packet {
    * Get the VLAN on which this packet was received.
    */
   VlanID getSrcVlan() const {
+    return srcVlan_.value();
+  }
+  /*
+   * Get the VLAN (if any) on which this packet was received.
+   *
+   * TODO(skhare)
+   * Once all the callsites for getSrcVlan() are converted to handle nullopt
+   * return, remove the old definition of getSrcVlan() and rename this function
+   * to getSrcVlan().
+   */
+  std::optional<VlanID> getSrcVlanIf() const {
     return srcVlan_;
   }
   /**
@@ -98,7 +109,11 @@ class RxPacket : public Packet {
   PortID srcPort_{0};
   bool isFromAggregatePort_{false};
   AggregatePortID srcAggregatePort_{0};
-  VlanID srcVlan_{0};
+  // TODO(skhare)
+  // srcVlan_ was originally not optional, and had default value of 0.
+  // Several callsites rely on this default value being 0.
+  // Once all those callsites are fixed, default to std::nullopt.
+  std::optional<VlanID> srcVlan_{0};
   uint32_t len_{0};
 };
 
