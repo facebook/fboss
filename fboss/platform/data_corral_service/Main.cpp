@@ -2,7 +2,6 @@
 //
 
 #include <fb303/FollyLoggingHandler.h>
-#include <folly/experimental/FunctionScheduler.h>
 #include <folly/logging/Init.h>
 
 #include <folly/logging/xlog.h>
@@ -19,21 +18,13 @@ using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::data_corral_service;
 
 int main(int argc, char** argv) {
-  gflags::SetCommandLineOptionWithMode(
-      "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
-
   fb303::registerFollyLoggingOptionHandlers();
-
   helpers::init(argc, argv);
 
   // ToDo: Setup thrift handler and server
   auto serverHandlerPair = setupThrift();
   __attribute__((unused)) auto server = serverHandlerPair.first;
   __attribute__((unused)) auto handler = serverHandlerPair.second;
-
-  folly::FunctionScheduler scheduler;
-
-  scheduler.start();
 
 #ifndef IS_OSS
   facebook::services::ServiceFrameworkLight service("Data Corral Service");
