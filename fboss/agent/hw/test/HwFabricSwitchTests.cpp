@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwFabricUtils.h"
@@ -38,9 +39,8 @@ TEST_F(HwFabricSwitchTest, init) {
 TEST_F(HwFabricSwitchTest, collectStats) {
   auto verify = [this]() {
     EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
-    for (auto& port : *getProgrammedState()->getPorts()) {
-      getLatestPortStats(port->getID());
-    }
+    SwitchStats dummy;
+    getHwSwitch()->updateStats(&dummy);
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
