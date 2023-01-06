@@ -376,7 +376,8 @@ void TunIntf::handlerReady(uint16_t /*events*/) noexcept {
 
 bool TunIntf::sendPacketToHost(std::unique_ptr<RxPacket> pkt) {
   CHECK(fd_ != -1);
-  const int l2Len = EthHdr::SIZE;
+  const int l2Len = pkt->getSrcVlanIf().has_value() ? EthHdr::SIZE
+                                                    : EthHdr::UNTAGGED_PKT_SIZE;
 
   auto buf = pkt->buf();
   if (buf->length() <= l2Len) {
