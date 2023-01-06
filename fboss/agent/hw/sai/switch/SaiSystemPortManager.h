@@ -63,6 +63,9 @@ class SaiSystemPortManager {
   Handles::const_iterator end() const {
     return handles_.end();
   }
+  void updateStats(SystemPortID /*portId*/, bool /*updateWatermarks*/) {
+    // TODO
+  }
 
  private:
   void loadQueues(SaiSystemPortHandle& sysPortHandle, int64_t numVoqs) const;
