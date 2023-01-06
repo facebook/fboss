@@ -80,8 +80,8 @@ void SaiManagerTable::createSaiTableManagers(
   mirrorManager_ = std::make_unique<SaiMirrorManager>(saiStore, this, platform);
   portManager_ = std::make_unique<SaiPortManager>(
       saiStore, this, platform, concurrentIndices);
-  systemPortManager_ =
-      std::make_unique<SaiSystemPortManager>(saiStore, this, platform);
+  systemPortManager_ = std::make_unique<SaiSystemPortManager>(
+      saiStore, this, platform, concurrentIndices);
   qosMapManager_ = std::make_unique<SaiQosMapManager>(saiStore, this, platform);
   macsecManager_ = std::make_unique<SaiMacsecManager>(saiStore, this);
   virtualRouterManager_ =

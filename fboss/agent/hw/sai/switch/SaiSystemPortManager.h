@@ -25,6 +25,7 @@ namespace facebook::fboss {
 class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
+struct ConcurrentIndices;
 
 using SaiSystemPort = SaiObject<SaiSystemPortTraits>;
 
@@ -41,7 +42,8 @@ class SaiSystemPortManager {
   SaiSystemPortManager(
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
-      SaiPlatform* platform);
+      SaiPlatform* platform,
+      ConcurrentIndices* concurrentIndices);
   SystemPortSaiId addSystemPort(
       const std::shared_ptr<SystemPort>& swSystemPort);
   void removeSystemPort(const std::shared_ptr<SystemPort>& swSystemPort);
@@ -72,6 +74,7 @@ class SaiSystemPortManager {
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   Handles handles_;
+  ConcurrentIndices* concurrentIndices_;
 };
 
 } // namespace facebook::fboss

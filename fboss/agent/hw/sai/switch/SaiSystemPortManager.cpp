@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -34,8 +35,12 @@ bool createOnlyAttributesChanged(
 SaiSystemPortManager::SaiSystemPortManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
-    SaiPlatform* platform)
-    : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
+    SaiPlatform* platform,
+    ConcurrentIndices* concurrentIndices)
+    : saiStore_(saiStore),
+      managerTable_(managerTable),
+      platform_(platform),
+      concurrentIndices_(concurrentIndices) {}
 
 SaiSystemPortTraits::CreateAttributes
 SaiSystemPortManager::attributesFromSwSystemPort(
@@ -77,6 +82,10 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
   handle->systemPort = saiSystemPort;
   loadQueues(*handle, swSystemPort->getNumVoqs());
   handles_.emplace(swSystemPort->getID(), std::move(handle));
+  concurrentIndices_->sysPortIds.insert(
+      {saiSystemPort->adapterKey(), swSystemPort->getID()});
+  concurrentIndices_->sysPortSaiIds.insert(
+      {swSystemPort->getID(), saiSystemPort->adapterKey()});
   return saiSystemPort->adapterKey();
 }
 
@@ -129,8 +138,10 @@ void SaiSystemPortManager::removeSystemPort(
   if (itr == handles_.end()) {
     throw FbossError("Attempted to remove non-existent system port: ", swId);
   }
+  concurrentIndices_->sysPortSaiIds.erase(swId);
+  concurrentIndices_->sysPortIds.erase(itr->second->systemPort->adapterKey());
   handles_.erase(itr);
-  XLOG(DBG2) << "removed system port " << swSystemPort->getID();
+  XLOG(DBG2) << "removed system port: " << swId;
 }
 
 // private const getter for use by const and non-const getters
