@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
@@ -537,4 +538,12 @@ TEST_F(HwVoqSwitchTest, checkFabricReacability) {
       [] {}, [this]() { checkFabricReachability(getHwSwitch()); });
 }
 
+TEST_F(HwVoqSwitchTest, collectStats) {
+  auto verify = [this]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    SwitchStats dummy;
+    getHwSwitch()->updateStats(&dummy);
+  };
+  verifyAcrossWarmBoots([] {}, verify);
+}
 } // namespace facebook::fboss
