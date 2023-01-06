@@ -746,6 +746,14 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newDsfNodes) {
       new_->resetDsfNodes(std::move(newDsfNodes));
       processUpdatedDsfNodes();
+      if (new_->getSwitchSettings()->getSwitchType() == cfg::SwitchType::VOQ) {
+        CHECK(cfg_->switchSettings()->switchId().has_value())
+            << "Switch id must be set for VOQ switch";
+        new_->resetSystemPorts(updateSystemPorts(
+            new_->getPorts(),
+            new_->getSwitchSettings()->getSwitchId(),
+            new_->getSwitchSettings()->getSystemPortRange()));
+      }
       changed = true;
     }
   }
