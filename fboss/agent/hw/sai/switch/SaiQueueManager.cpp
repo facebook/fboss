@@ -62,6 +62,27 @@ void fillHwQueueStats(
     }
   }
 }
+void fillHwQueueStats(
+    uint8_t queueId,
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSysPortStats& hwSysPortStats) {
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
+    switch (counterId) {
+      case SAI_QUEUE_STAT_BYTES:
+        hwSysPortStats.queueOutBytes_()[queueId] = value;
+        break;
+      case SAI_QUEUE_STAT_DROPPED_BYTES:
+        hwSysPortStats.queueOutDiscardBytes_()[queueId] = value;
+        break;
+      case SAI_QUEUE_STAT_WATERMARK_BYTES:
+        hwSysPortStats.queueWatermarkBytes_()[queueId] = value;
+        break;
+      default:
+        throw FbossError("Got unexpected queue counter id: ", counterId);
+    }
+  }
+}
 } // namespace
 
 namespace detail {
@@ -364,6 +385,32 @@ void SaiQueueManager::getStats(
   }
 }
 
+void SaiQueueManager::updateStats(
+    const std::vector<SaiQueueHandle*>& queueHandles,
+    HwSysPortStats& hwSysPortStats,
+    bool updateWatermarks) {
+  static std::vector<sai_stat_id_t> nonWatermarkStatsReadAndClear(
+      SaiQueueTraits::NonWatermarkCounterIdsToReadAndClear.begin(),
+      SaiQueueTraits::NonWatermarkCounterIdsToReadAndClear.end());
+  static std::vector<sai_stat_id_t> watermarkStatsReadAndClear(
+      SaiQueueTraits::WatermarkCounterIdsToReadAndClear.begin(),
+      SaiQueueTraits::WatermarkCounterIdsToReadAndClear.end());
+  for (auto queueHandle : queueHandles) {
+    auto queueType = GET_ATTR(Queue, Type, queueHandle->queue->attributes());
+    queueHandle->queue->updateStats(
+        supportedNonWatermarkCounterIdsRead(queueType), SAI_STATS_MODE_READ);
+    queueHandle->queue->updateStats(
+        nonWatermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
+    if (updateWatermarks) {
+      queueHandle->queue->updateStats(
+          watermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
+    }
+    const auto& counters = queueHandle->queue->getStats();
+    auto queueId = SaiApiTable::getInstance()->queueApi().getAttribute(
+        queueHandle->queue->adapterKey(), SaiQueueTraits::Attributes::Index{});
+    fillHwQueueStats(queueId, counters, hwSysPortStats);
+  }
+}
 QueueConfig SaiQueueManager::getQueueSettings(
     const SaiQueueHandles& queueHandles) const {
   QueueConfig queueConfig;
