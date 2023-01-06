@@ -575,13 +575,19 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
       managerTable_->portManager(),
       lockPolicy,
       &SaiPortManager::loadPortQueuesForAddedPort);
-  processDelta(
-      delta.getVlansDelta(),
-      managerTable_->vlanManager(),
-      lockPolicy,
-      &SaiVlanManager::changeVlan,
-      &SaiVlanManager::addVlan,
-      &SaiVlanManager::removeVlan);
+
+  // VOQ/Fabric switches require that the packets are not tagged with any VLAN.
+  // Thus, no VLAN delta processing is needed for these switches
+  if (!(switchType_ == cfg::SwitchType::FABRIC ||
+        switchType_ == cfg::SwitchType::VOQ)) {
+    processDelta(
+        delta.getVlansDelta(),
+        managerTable_->vlanManager(),
+        lockPolicy,
+        &SaiVlanManager::changeVlan,
+        &SaiVlanManager::addVlan,
+        &SaiVlanManager::removeVlan);
+  }
 
   // LAGs
   processDelta(
