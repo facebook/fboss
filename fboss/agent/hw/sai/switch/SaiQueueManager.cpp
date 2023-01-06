@@ -239,6 +239,23 @@ SaiQueueHandles SaiQueueManager::loadQueues(
 
 const std::vector<sai_stat_id_t>&
 SaiQueueManager::supportedNonWatermarkCounterIdsRead(int queueType) const {
+  if (queueType == SAI_QUEUE_TYPE_MULTICAST_VOQ ||
+      queueType == SAI_QUEUE_TYPE_UNICAST_VOQ) {
+    return voqNonWatermarkCounterIdsRead(queueType);
+  }
+  return egressQueueNonWatermarkCounterIdsRead(queueType);
+}
+
+const std::vector<sai_stat_id_t>&
+SaiQueueManager::voqNonWatermarkCounterIdsRead(int queueType) const {
+  static std::vector<sai_stat_id_t> baseCounterIds(
+      SaiQueueTraits::VoqNonWatermarkCounterIdsToRead.begin(),
+      SaiQueueTraits::VoqNonWatermarkCounterIdsToRead.end());
+  return baseCounterIds;
+}
+
+const std::vector<sai_stat_id_t>&
+SaiQueueManager::egressQueueNonWatermarkCounterIdsRead(int queueType) const {
   static std::vector<sai_stat_id_t> baseCounterIds(
       SaiQueueTraits::NonWatermarkCounterIdsToRead.begin(),
       SaiQueueTraits::NonWatermarkCounterIdsToRead.end());
