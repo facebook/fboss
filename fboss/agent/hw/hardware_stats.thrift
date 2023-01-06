@@ -79,6 +79,12 @@ struct HwPortStats {
   53: i64 inLabelMissDiscards_ = STAT_UNINITIALIZED;
 }
 
+struct HwSysPortStats {
+  1: map<i16, i64> queueOutDiscardBytes_ = {};
+  2: map<i16, i64> queueOutBytes_ = {};
+  3: map<i16, i64> queueWatermarkBytes_ = {};
+}
+
 struct HwTrunkStats {
   1: i64 capacity_ = STAT_UNINITIALIZED;
 
