@@ -50,6 +50,15 @@ struct ConcurrentIndices {
    * Config Hostif trap ID to Rx reason
    */
   folly::ConcurrentHashMap<HostifTrapSaiId, cfg::PacketRxReason> hostifTrapIds;
+
+  /*
+   * sys port sai id to SystemPortId
+   */
+  folly::ConcurrentHashMap<SystemPortSaiId, SystemPortID> sysPortIds;
+  /*
+   * SystemPortID to sai sys port id
+   */
+  folly::ConcurrentHashMap<SystemPortID, SystemPortSaiId> sysPortSaiIds;
 };
 
 } // namespace facebook::fboss
