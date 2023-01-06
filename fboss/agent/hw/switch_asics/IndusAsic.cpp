@@ -66,11 +66,11 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
+    case HwAsic::Feature::PMD_RX_LOCK_STATUS:
+    case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::MEDIA_TYPE:
       return true;
 
-    case HwAsic::Feature::PMD_RX_LOCK_STATUS:
-    case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::QCM:

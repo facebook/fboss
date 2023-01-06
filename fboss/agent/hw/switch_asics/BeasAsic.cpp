@@ -12,6 +12,11 @@ bool BeasAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::LINK_TRAINING:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
+    case HwAsic::Feature::PMD_RX_LOCK_STATUS:
+    case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
+    case HwAsic::Feature::FEC:
+    case HwAsic::Feature::SAI_FEC_COUNTERS:
+    case HwAsic::Feature::FEC_CORRECTED_BITS:
       return true;
     default:
       return false;
