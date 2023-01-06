@@ -12,14 +12,14 @@
 #include <gflags/gflags.h>
 #include <memory>
 
+#include "fboss/platform/data_corral_service/Flags.h"
+
 namespace facebook::services {
 class ServiceFrameworkLight;
 }
 namespace apache::thrift {
 class ThriftServer;
 }
-
-DECLARE_int32(thrift_port);
 
 namespace facebook::fboss::platform::data_corral_service {
 class DataCorralServiceThriftHandler;

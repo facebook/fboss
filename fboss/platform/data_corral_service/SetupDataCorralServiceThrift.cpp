@@ -16,8 +16,6 @@
 #include "fboss/platform/data_corral_service/DataCorralServiceThriftHandler.h"
 #include "fboss/platform/helpers/Init.h"
 
-DEFINE_int32(thrift_port, 5971, "Port for the thrift service");
-
 namespace facebook::fboss::platform::data_corral_service {
 
 std::pair<

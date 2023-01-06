@@ -6,6 +6,7 @@
 add_library(data_corral_service_lib
   fboss/platform/data_corral_service/DataCorralServiceImpl.cpp
   fboss/platform/data_corral_service/DataCorralServiceThriftHandler.cpp
+  fboss/platform/data_corral_service/Flags.cpp
   fboss/platform/data_corral_service/SetupDataCorralServiceThrift.cpp
   fboss/platform/data_corral_service/oss/SetupDataCorralServiceThrift.cpp
   fboss/platform/data_corral_service/ChassisManager.cpp

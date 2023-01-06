@@ -12,11 +12,12 @@
 
 #include <folly/experimental/coro/BlockingWait.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
-#include "thrift/lib/cpp2/server/ThriftServer.h"
+#include <thrift/lib/cpp2/server/ThriftServer.h>
 
 #include "common/services/cpp/ServiceFrameworkLight.h"
 #include "fboss/platform/data_corral_service/DataCorralServiceImpl.h"
 #include "fboss/platform/data_corral_service/DataCorralServiceThriftHandler.h"
+#include "fboss/platform/data_corral_service/Flags.h"
 #include "fboss/platform/data_corral_service/SetupDataCorralServiceThrift.h"
 
 namespace facebook::fboss::platform::data_corral_service {
@@ -55,7 +56,7 @@ TEST_F(DataCorralServiceTest, getUncachedFruid) {
 }
 
 TEST_F(DataCorralServiceTest, testThrift) {
-  folly::SocketAddress addr("::1", 5971);
+  folly::SocketAddress addr("::1", FLAGS_thrift_port);
   auto socket = folly::AsyncSocket::newSocket(
       folly::EventBaseManager::get()->getEventBase(), addr, 5000);
   auto channel =
