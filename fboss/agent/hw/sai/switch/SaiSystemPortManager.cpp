@@ -157,4 +157,21 @@ SaiSystemPortHandle* SaiSystemPortManager::getSystemPortHandleImpl(
   return itr->second.get();
 }
 
+void SaiSystemPortManager::updateStats(
+    SystemPortID portId,
+    bool updateWatermarks) {
+  auto handlesItr = handles_.find(portId);
+  if (handlesItr == handles_.end()) {
+    return;
+  }
+  auto* handle = handlesItr->second.get();
+  // TODO - only populate queues that show up in qos config
+  std::vector<SaiQueueHandle*> configuredQueues;
+  for (auto& confAndQueueHandle : handle->queues) {
+    configuredQueues.push_back(confAndQueueHandle.second.get());
+  }
+  HwSysPortStats curPortStats;
+  managerTable_->queueManager().updateStats(
+      configuredQueues, curPortStats, updateWatermarks);
+}
 } // namespace facebook::fboss

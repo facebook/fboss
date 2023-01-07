@@ -268,7 +268,7 @@ SaiQueueManager::supportedNonWatermarkCounterIdsRead(int queueType) const {
 }
 
 const std::vector<sai_stat_id_t>&
-SaiQueueManager::voqNonWatermarkCounterIdsRead(int queueType) const {
+SaiQueueManager::voqNonWatermarkCounterIdsRead(int /*queueType*/) const {
   static std::vector<sai_stat_id_t> baseCounterIds(
       SaiQueueTraits::VoqNonWatermarkCounterIdsToRead.begin(),
       SaiQueueTraits::VoqNonWatermarkCounterIdsToRead.end());
@@ -390,8 +390,8 @@ void SaiQueueManager::updateStats(
     HwSysPortStats& hwSysPortStats,
     bool updateWatermarks) {
   static std::vector<sai_stat_id_t> nonWatermarkStatsReadAndClear(
-      SaiQueueTraits::NonWatermarkCounterIdsToReadAndClear.begin(),
-      SaiQueueTraits::NonWatermarkCounterIdsToReadAndClear.end());
+      SaiQueueTraits::VoqNonWatermarkCounterIdsToReadAndClear.begin(),
+      SaiQueueTraits::VoqNonWatermarkCounterIdsToReadAndClear.end());
   static std::vector<sai_stat_id_t> watermarkStatsReadAndClear(
       SaiQueueTraits::WatermarkCounterIdsToReadAndClear.begin(),
       SaiQueueTraits::WatermarkCounterIdsToReadAndClear.end());
@@ -402,8 +402,7 @@ void SaiQueueManager::updateStats(
     queueHandle->queue->updateStats(
         nonWatermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
     if (updateWatermarks) {
-      queueHandle->queue->updateStats(
-          watermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
+      // TODO collect watermarks on VOQ
     }
     const auto& counters = queueHandle->queue->getStats();
     auto queueId = SaiApiTable::getInstance()->queueApi().getAttribute(
