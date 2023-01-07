@@ -95,12 +95,6 @@ class HwPortFb303Stats {
       std::optional<std::string> oldQueueName);
 
   /*
-   * Reinit port or port queue stat
-   */
-  void reinitStat(
-      const std::string& statName,
-      std::optional<std::string> oldStatName);
-  /*
    * update port stat
    */
   void updateStat(
