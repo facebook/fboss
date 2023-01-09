@@ -263,7 +263,14 @@ class CmdShowInterfacePhy
       }
     }
 
-    if (!sideState.pmd()->lanes()->empty()) {
+    std::unordered_set<int> pmdLanes;
+    for (auto it : *sideState.pmd()->lanes()) {
+      pmdLanes.insert(it.first);
+    }
+    for (auto it : *sideStats.pmd()->lanes()) {
+      pmdLanes.insert(it.first);
+    }
+    if (!pmdLanes.empty()) {
       Table pmdTable;
       pmdTable.setHeader(
           {prefix + "PMD",
@@ -275,9 +282,9 @@ class CmdShowInterfacePhy
            "Eye Heights",
            "Eye Widths",
            "Rx PPM"});
-      for (const auto& laneInfo : *sideState.pmd()->lanes()) {
-        auto laneState = laneInfo.second;
-        auto laneStat = (sideStats.pmd()->lanes()[laneInfo.first]);
+      for (auto pmdLane : pmdLanes) {
+        auto laneState = (*sideState.pmd()->lanes())[pmdLane];
+        auto laneStat = (*sideStats.pmd()->lanes())[pmdLane];
         std::string sigDetLive = "N/A";
         std::string cdrLockLive = "N/A";
         std::string sigDetChanged = "N/A";
