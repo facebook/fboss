@@ -398,24 +398,24 @@ void FsdbPubSubManager::addSubscriptionImpl(
       subscribePath,
       isDelta,
       subscribeStats);
-  path2Subscriber_.withWLock([&](auto& path2Subscriber) {
-    auto [itr, inserted] = path2Subscriber.emplace(std::make_pair(
-        subsStr,
-        std::make_unique<SubscriberT>(
-            clientId_,
-            subscribePath,
-            subscriberEvb_,
-            reconnectEvb_,
-            subUnitAvailableCb,
-            subscribeStats,
-            stateChangeCb)));
-    if (!inserted) {
-      throw std::runtime_error(
-          "Subscription at : " + subsStr + " already exists");
-    }
-    XLOG(DBG2) << " Added subscription for: " << subsStr;
-    itr->second->setServerOptions(std::move(serverOptions));
-  });
+  auto path2SubscriberW = path2Subscriber_.wlock();
+  auto& path2Subscriber = *path2SubscriberW;
+  auto [itr, inserted] = path2Subscriber.emplace(std::make_pair(
+      subsStr,
+      std::make_unique<SubscriberT>(
+          clientId_,
+          subscribePath,
+          subscriberEvb_,
+          reconnectEvb_,
+          subUnitAvailableCb,
+          subscribeStats,
+          stateChangeCb)));
+  if (!inserted) {
+    throw std::runtime_error(
+        "Subscription at : " + subsStr + " already exists");
+  }
+  XLOG(DBG2) << " Added subscription for: " << subsStr;
+  itr->second->setServerOptions(std::move(serverOptions));
 }
 
 void FsdbPubSubManager::removeStateDeltaSubscription(
