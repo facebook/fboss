@@ -463,6 +463,8 @@ void SwSwitch::updateStats() {
                   .count() > FLAGS_fsdbStatsStreamIntervalSeconds) {
         AgentStats agentStats;
         agentStats.hwPortStats() = getHw()->getPortStats();
+        agentStats.sysPortStats() = getHw()->getSysPortStats();
+
         agentStats.hwAsicErrors() =
             getHw()->getSwitchStats()->getHwAsicErrors();
         agentStats.teFlowStats() = getTeFlowStats();
