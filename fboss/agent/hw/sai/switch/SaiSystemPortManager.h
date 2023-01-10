@@ -55,6 +55,9 @@ class SaiSystemPortManager {
       const std::shared_ptr<SystemPort>& oldSystemPort,
       const std::shared_ptr<SystemPort>& newSystemPort);
 
+  const Stats& getLastPortStats() const {
+    return portStats_;
+  }
   const SaiSystemPortHandle* getSystemPortHandle(SystemPortID swId) const {
     return getSystemPortHandleImpl(swId);
   }
