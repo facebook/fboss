@@ -1041,7 +1041,6 @@ TEST_F(BcmRouteTest, UnresolveResolveNextHop) {
       auto ntable = state1->getVlans()->getVlan(*vlanId)->getNdpTable()->modify(
           *vlanId, &state1);
       auto entry = entries[port];
-      auto* fields = entry->getFields();
       ntable->updateEntry(NeighborEntryFields<folly::IPAddressV6>::fromThrift(
           entry->toThrift()));
     }
