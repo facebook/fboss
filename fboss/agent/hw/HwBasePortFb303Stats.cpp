@@ -36,6 +36,46 @@ int64_t HwBasePortFb303Stats::getCounterLastIncrement(
   return portCounters_.getCounterLastIncrement(statKey.str());
 }
 
+void HwBasePortFb303Stats::reinitStats(std::optional<std::string> oldPortName) {
+  XLOG(DBG2) << "Reinitializing stats for " << portName_;
+
+  for (auto statKey : kPortStatKeys()) {
+    reinitStat(statKey, portName_, oldPortName);
+  }
+  for (auto queueIdAndName : queueId2Name_) {
+    for (auto statKey : kQueueStatKeys()) {
+      auto newStatName = statName(
+          statKey, portName_, queueIdAndName.first, queueIdAndName.second);
+      std::optional<std::string> oldStatName = oldPortName
+          ? std::optional<std::string>(statName(
+                statKey,
+                *oldPortName,
+                queueIdAndName.first,
+                queueIdAndName.second))
+          : std::nullopt;
+      portCounters_.reinitStat(newStatName, oldStatName);
+    }
+  }
+  if (macsecStatsInited_) {
+    reinitMacsecStats(oldPortName);
+  }
+}
+
+/*
+ * Reinit macsec stats
+ */
+void HwBasePortFb303Stats::reinitMacsecStats(
+    std::optional<std::string> oldPortName) {
+  auto reinitStats = [this, &oldPortName](const auto& keys) {
+    for (auto statKey : keys) {
+      reinitStat(statKey, portName_, oldPortName);
+    }
+  };
+  reinitStats(kInMacsecPortStatKeys());
+  reinitStats(kOutMacsecPortStatKeys());
+
+  macsecStatsInited_ = true;
+}
 /*
  * Reinit port stat
  */
@@ -71,14 +111,14 @@ void HwBasePortFb303Stats::queueChanged(
       ? std::nullopt
       : std::optional<std::string>(qitr->second);
   queueId2Name_[queueId] = queueName;
-  for (auto statKey : queueStatKeys()) {
+  for (auto statKey : kQueueStatKeys()) {
     reinitStat(statKey, queueId, oldQueueName);
   }
 }
 
 void HwBasePortFb303Stats::queueRemoved(int queueId) {
   auto qitr = queueId2Name_.find(queueId);
-  for (auto statKey : queueStatKeys()) {
+  for (auto statKey : kQueueStatKeys()) {
     portCounters_.removeStat(
         statName(statKey, portName_, queueId, queueId2Name_[queueId]));
   }

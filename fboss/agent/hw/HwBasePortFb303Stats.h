@@ -60,8 +60,16 @@ class HwBasePortFb303Stats {
 
   int64_t getCounterLastIncrement(folly::StringPiece statKey) const;
 
+  virtual const std::vector<folly::StringPiece>& kPortStatKeys() const = 0;
+  virtual const std::vector<folly::StringPiece>& kQueueStatKeys() const = 0;
+  virtual const std::vector<folly::StringPiece>& kInMacsecPortStatKeys()
+      const = 0;
+  virtual const std::vector<folly::StringPiece>& kOutMacsecPortStatKeys()
+      const = 0;
+
  protected:
   void reinitStats(std::optional<std::string> oldPortName);
+  void reinitMacsecStats(std::optional<std::string> oldPortName);
   /*
    * update port stat
    */
@@ -82,13 +90,6 @@ class HwBasePortFb303Stats {
       const std::map<int16_t, int64_t>& queueWatermarkBytes) const;
 
  private:
-  virtual const std::vector<folly::StringPiece>& portStatKeys() const = 0;
-  virtual const std::vector<folly::StringPiece>& queueStatKeys() const = 0;
-  virtual const std::vector<folly::StringPiece>& macsecPortInStatKeys()
-      const = 0;
-  virtual const std::vector<folly::StringPiece>& macsecPortOutStatKeys()
-      const = 0;
-  void reinitMacsecStats(std::optional<std::string> oldPortName);
   /*
    * Reinit port stat
    */
@@ -104,6 +105,7 @@ class HwBasePortFb303Stats {
       int queueId,
       std::optional<std::string> oldQueueName);
 
+ protected:
   std::string portName_;
   HwFb303Stats portCounters_;
   QueueId2Name queueId2Name_;

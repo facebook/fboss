@@ -296,7 +296,7 @@ TEST_F(PortManagerTest, portConsolidationAddPort) {
 void checkCounterExport(
     const std::string& portName,
     ExpectExport expectExport) {
-  for (auto statKey : HwPortFb303Stats::kPortStatKeys()) {
+  for (auto statKey : HwPortFb303Stats("dummy").kPortStatKeys()) {
     switch (expectExport) {
       case ExpectExport::EXPORT:
         EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
@@ -313,7 +313,7 @@ void checkCounterExport(
 TEST_F(PortManagerTest, changePortNameAndCheckCounters) {
   std::shared_ptr<Port> swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);
-  for (auto statKey : HwPortFb303Stats::kPortStatKeys()) {
+  for (auto statKey : HwPortFb303Stats("dummy").kPortStatKeys()) {
     EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, swPort->getName())));
   }
@@ -332,7 +332,7 @@ TEST_F(PortManagerTest, updateStats) {
   saiManagerTable->portManager().updateStats(swPort->getID());
   auto portStat =
       saiManagerTable->portManager().getLastPortStat(swPort->getID());
-  for (auto statKey : HwPortFb303Stats::kPortStatKeys()) {
+  for (auto statKey : HwPortFb303Stats("dummy").kPortStatKeys()) {
     EXPECT_EQ(
         portStat->getCounterLastIncrement(
             HwPortFb303Stats::statName(statKey, swPort->getName())),

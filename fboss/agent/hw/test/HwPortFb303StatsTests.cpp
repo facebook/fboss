@@ -204,7 +204,7 @@ void updateStats(HwPortFb303Stats& portStats) {
 
 void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
   auto curValue{1};
-  for (auto counterName : HwPortFb303Stats::kPortStatKeys()) {
+  for (auto counterName : portStats.kPortStatKeys()) {
     // +1 because first initialization is to -1
     auto actualVal = portStats.getCounterLastIncrement(
         HwPortFb303Stats::statName(counterName, kPortName));
@@ -213,7 +213,7 @@ void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
     XLOG(DBG2) << counterName << ": " << actualVal << " " << expectedVal;
   }
   curValue = 1;
-  for (auto counterName : HwPortFb303Stats::kQueueStatKeys()) {
+  for (auto counterName : portStats.kQueueStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
       EXPECT_EQ(
           portStats.getCounterLastIncrement(HwPortFb303Stats::statName(
@@ -226,14 +226,14 @@ void verifyUpdatedStats(const HwPortFb303Stats& portStats) {
     ++curValue;
   }
   curValue = 1;
-  for (auto counterName : HwPortFb303Stats::kInMacsecPortStatKeys()) {
+  for (auto counterName : portStats.kInMacsecPortStatKeys()) {
     EXPECT_EQ(
         portStats.getCounterLastIncrement(
             HwPortFb303Stats::statName(counterName, kPortName)),
         curValue++);
   }
   curValue = 1;
-  for (auto counterName : HwPortFb303Stats::kOutMacsecPortStatKeys()) {
+  for (auto counterName : portStats.kOutMacsecPortStatKeys()) {
     EXPECT_EQ(
         portStats.getCounterLastIncrement(
             HwPortFb303Stats::statName(counterName, kPortName)),
@@ -253,11 +253,11 @@ TEST(HwPortFb303StatsTest, StatName) {
 
 TEST(HwPortFb303StatsTest, StatsInit) {
   HwPortFb303Stats stats(kPortName, kQueue2Name);
-  for (auto statKey : HwPortFb303Stats::kPortStatKeys()) {
+  for (auto statKey : stats.kPortStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kPortName)));
   }
-  for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
+  for (auto statKey : stats.kQueueStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
       EXPECT_TRUE(fbData->getStatMap()->contains(HwPortFb303Stats::statName(
           statKey, kPortName, queueIdAndName.first, queueIdAndName.second)));
@@ -267,11 +267,12 @@ TEST(HwPortFb303StatsTest, StatsInit) {
 
 TEST(HwPortFb303StatsTest, StatsDeInit) {
   { HwPortFb303Stats stats(kPortName); }
-  for (auto statKey : HwPortFb303Stats::kPortStatKeys()) {
+  HwPortFb303Stats dummy("dummy");
+  for (auto statKey : dummy.kPortStatKeys()) {
     EXPECT_FALSE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kPortName)));
   }
-  for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
+  for (auto statKey : dummy.kQueueStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
       EXPECT_FALSE(fbData->getStatMap()->contains(HwPortFb303Stats::statName(
           statKey, kPortName, queueIdAndName.first, queueIdAndName.second)));
@@ -284,13 +285,13 @@ TEST(HwPortFb303StatsTest, ReInit) {
 
   HwPortFb303Stats stats(kPortName, kQueue2Name);
   stats.portNameChanged(kNewPortName);
-  for (const auto& sName : HwPortFb303Stats::kPortStatKeys()) {
+  for (const auto& sName : stats.kPortStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(sName, kNewPortName)));
     EXPECT_FALSE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(sName, kPortName)));
   }
-  for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
+  for (auto statKey : stats.kQueueStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
       EXPECT_TRUE(fbData->getStatMap()->contains(HwPortFb303Stats::statName(
           statKey, kNewPortName, queueIdAndName.first, queueIdAndName.second)));
@@ -310,7 +311,7 @@ TEST(HwPortFb303StatsTest, RenameQueue) {
   HwPortFb303Stats stats(kPortName, kQueue2Name);
   stats.queueChanged(1, "platinum");
   auto newQueueMapping = kQueue2Name;
-  for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
+  for (auto statKey : stats.kQueueStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kPortName, 1, "platinum")));
     EXPECT_FALSE(fbData->getStatMap()->contains(
@@ -325,7 +326,7 @@ TEST(HwPortFb303StatsTest, AddQueue) {
   HwPortFb303Stats stats(kPortName, kQueue2Name);
   stats.queueChanged(3, "platinum");
   auto newQueueMapping = kQueue2Name;
-  for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
+  for (auto statKey : stats.kQueueStatKeys()) {
     EXPECT_TRUE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kPortName, 1, "gold")));
     EXPECT_TRUE(fbData->getStatMap()->contains(
@@ -339,7 +340,7 @@ TEST(HwPortFb303StatsTest, RemoveQueue) {
   HwPortFb303Stats stats(kPortName, kQueue2Name);
   stats.queueRemoved(1);
   auto newQueueMapping = kQueue2Name;
-  for (auto statKey : HwPortFb303Stats::kQueueStatKeys()) {
+  for (auto statKey : stats.kQueueStatKeys()) {
     EXPECT_FALSE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(statKey, kPortName, 1, "gold")));
     EXPECT_TRUE(fbData->getStatMap()->contains(
@@ -352,7 +353,7 @@ TEST(HwPortFb303Stats, portNameChangeResetsValue) {
   updateStats(portStats);
   auto kNewPortName = "fab1/1/1";
   portStats.portNameChanged(kNewPortName);
-  for (auto counterName : HwPortFb303Stats::kPortStatKeys()) {
+  for (auto counterName : portStats.kPortStatKeys()) {
     EXPECT_EQ(
         portStats.getCounterLastIncrement(
             HwPortFb303Stats::statName(counterName, kNewPortName)),
@@ -362,7 +363,7 @@ TEST(HwPortFb303Stats, portNameChangeResetsValue) {
     EXPECT_FALSE(fbData->getStatMap()->contains(
         HwPortFb303Stats::statName(counterName, kPortName)));
   }
-  for (auto counterName : HwPortFb303Stats::kQueueStatKeys()) {
+  for (auto counterName : portStats.kQueueStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
       EXPECT_TRUE(fbData->getStatMap()->contains(HwPortFb303Stats::statName(
           counterName,
@@ -391,7 +392,7 @@ TEST(HwPortFb303Stats, queueNameChangeResetsValue) {
   portStats.queueChanged(1, "platinum");
   portStats.queueChanged(2, "bronze");
   HwPortFb303Stats::QueueId2Name newQueues = {{1, "platinum"}, {2, "bronze"}};
-  for (auto counterName : HwPortFb303Stats::kQueueStatKeys()) {
+  for (auto counterName : portStats.kQueueStatKeys()) {
     for (const auto& queueIdAndName : newQueues) {
       EXPECT_TRUE(fbData->getStatMap()->contains(HwPortFb303Stats::statName(
           counterName,
@@ -407,7 +408,7 @@ TEST(HwPortFb303Stats, queueNameChangeResetsValue) {
           0);
     }
   }
-  for (auto counterName : HwPortFb303Stats::kQueueStatKeys()) {
+  for (auto counterName : portStats.kQueueStatKeys()) {
     for (const auto& queueIdAndName : kQueue2Name) {
       EXPECT_FALSE(fbData->getStatMap()->contains(HwPortFb303Stats::statName(
           counterName,
