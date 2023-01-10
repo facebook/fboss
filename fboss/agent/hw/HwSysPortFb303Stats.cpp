@@ -57,7 +57,7 @@ void HwSysPortFb303Stats::updateStats(
       updateStat(timeRetrieved_, statKey, queueId, qitr->second);
     }
   };
-  for (const auto& queueIdAndName : queueId2Name_) {
+  for (const auto& queueIdAndName : queueId2Name()) {
     updateQueueStat(
         kOutDiscards(),
         queueIdAndName.first,

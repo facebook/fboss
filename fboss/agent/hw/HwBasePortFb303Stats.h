@@ -89,6 +89,13 @@ class HwBasePortFb303Stats {
   void updateQueueWatermarkStats(
       const std::map<int16_t, int64_t>& queueWatermarkBytes) const;
 
+  bool macsecStatsInited() const {
+    return macsecStatsInited_;
+  }
+  const QueueId2Name& queueId2Name() const {
+    return queueId2Name_;
+  }
+
  private:
   /*
    * Reinit port stat
@@ -105,7 +112,6 @@ class HwBasePortFb303Stats {
       int queueId,
       std::optional<std::string> oldQueueName);
 
- protected:
   std::string portName_;
   HwFb303Stats portCounters_;
   QueueId2Name queueId2Name_;

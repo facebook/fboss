@@ -159,7 +159,7 @@ void HwPortFb303Stats::updateStats(
       updateStat(timeRetrieved_, statKey, queueId, qitr->second);
     }
   };
-  for (const auto& queueIdAndName : queueId2Name_) {
+  for (const auto& queueIdAndName : queueId2Name()) {
     updateQueueStat(
         kOutCongestionDiscardsBytes(),
         queueIdAndName.first,
@@ -190,7 +190,7 @@ void HwPortFb303Stats::updateStats(
   }
   // Macsec stats
   if (curPortStats.macsecStats()) {
-    if (!macsecStatsInited_) {
+    if (!macsecStatsInited()) {
       reinitMacsecStats(std::nullopt);
     }
     auto updateMacsecPortStats = [this](auto& macsecPortStats, bool ingress) {
