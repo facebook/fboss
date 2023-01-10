@@ -263,7 +263,7 @@ class CmdShowInterfacePhy
       }
     }
 
-    std::unordered_set<int> pmdLanes;
+    std::set<int> pmdLanes;
     for (auto it : *sideState.pmd()->lanes()) {
       pmdLanes.insert(it.first);
     }
@@ -319,7 +319,7 @@ class CmdShowInterfacePhy
         }
         pmdTable.addRow(
             {"",
-             std::to_string(*laneState.lane()),
+             std::to_string(pmdLane),
              makeColorCellForLiveFlag(sigDetLive),
              sigDetChanged,
              makeColorCellForLiveFlag(cdrLockLive),
