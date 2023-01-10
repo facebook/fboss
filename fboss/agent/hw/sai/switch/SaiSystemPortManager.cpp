@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/HwSysPortFb303Stats.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -42,6 +44,8 @@ SaiSystemPortManager::SaiSystemPortManager(
       platform_(platform),
       concurrentIndices_(concurrentIndices) {}
 
+SaiSystemPortManager::~SaiSystemPortManager() {}
+
 SaiSystemPortTraits::CreateAttributes
 SaiSystemPortManager::attributesFromSwSystemPort(
     const std::shared_ptr<SystemPort>& swSystemPort) const {
@@ -72,6 +76,11 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
   SaiSystemPortTraits::CreateAttributes attributes =
       attributesFromSwSystemPort(swSystemPort);
 
+  if (swSystemPort->getEnabled()) {
+    portStats_.emplace(
+        swSystemPort->getID(),
+        std::make_unique<HwSysPortFb303Stats>(swSystemPort->getPortName()));
+  }
   auto handle = std::make_unique<SaiSystemPortHandle>();
 
   auto& systemPortStore = saiStore_->get<SaiSystemPortTraits>();
@@ -80,7 +89,7 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
   auto saiSystemPort = systemPortStore.setObject(
       systemPortKey, attributes, swSystemPort->getID());
   handle->systemPort = saiSystemPort;
-  loadQueues(*handle, swSystemPort->getNumVoqs());
+  loadQueues(*handle, swSystemPort);
   handles_.emplace(swSystemPort->getID(), std::move(handle));
   concurrentIndices_->sysPortIds.insert(
       {saiSystemPort->adapterKey(), swSystemPort->getID()});
@@ -101,17 +110,39 @@ void SaiSystemPortManager::changeSystemPort(
     addSystemPort(newSystemPort);
   } else {
     handle->systemPort->setAttributes(newAttributes);
+    if (newSystemPort->getEnabled()) {
+      if (!oldSystemPort->getEnabled()) {
+        // Port transitioned from disabled to enabled, setup port stats
+        portStats_.emplace(
+            newSystemPort->getID(),
+            std::make_unique<HwSysPortFb303Stats>(
+                newSystemPort->getPortName()));
+      } else if (oldSystemPort->getPortName() != newSystemPort->getPortName()) {
+        // Port was already enabled, but Port name changed - update stats
+        portStats_.find(newSystemPort->getID())
+            ->second->portNameChanged(newSystemPort->getPortName());
+      }
+    } else if (oldSystemPort->getEnabled()) {
+      // Port transitioned from enabled to disabled, remove stats
+      portStats_.erase(newSystemPort->getID());
+    }
+    // TODO:
+    // Compare qos queues changing and if so update qosmap
+    // and port queue stats.
+    // Note that we don't need to worry about numVoqs changing
+    // since that's a create only attribute, which upon change
+    // would cause a remove + add sys port sequence
   }
 }
 
 void SaiSystemPortManager::loadQueues(
     SaiSystemPortHandle& sysPortHandle,
-    int64_t numVoqs) const {
+    const std::shared_ptr<SystemPort>& swSystemPort) {
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::VOQ)) {
     return;
   }
   std::vector<sai_object_id_t> queueList;
-  queueList.resize(numVoqs);
+  queueList.resize(swSystemPort->getNumVoqs());
   SaiSystemPortTraits::Attributes::QosVoqList queueListAttribute{queueList};
   auto queueSaiIdList =
       SaiApiTable::getInstance()->systemPortApi().getAttribute(
@@ -129,6 +160,14 @@ void SaiSystemPortManager::loadQueues(
         return QueueSaiId(queueId);
       });
   sysPortHandle.queues = managerTable_->queueManager().loadQueues(queueSaiIds);
+  auto pitr = portStats_.find(swSystemPort->getID());
+  if (pitr != portStats_.end()) {
+    for (auto i = 0; i < swSystemPort->getNumVoqs(); ++i) {
+      // TODO pull name from qos config
+      auto queueName = folly::to<std::string>("queue", i);
+      pitr->second->queueChanged(i, queueName);
+    }
+  }
 }
 
 void SaiSystemPortManager::removeSystemPort(

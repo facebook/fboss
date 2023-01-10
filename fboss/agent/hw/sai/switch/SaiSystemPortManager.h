@@ -26,6 +26,7 @@ class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
 struct ConcurrentIndices;
+class HwSysPortFb303Stats;
 
 using SaiSystemPort = SaiObject<SaiSystemPortTraits>;
 
@@ -37,6 +38,8 @@ struct SaiSystemPortHandle {
 class SaiSystemPortManager {
   using Handles =
       folly::F14FastMap<SystemPortID, std::unique_ptr<SaiSystemPortHandle>>;
+  using Stats =
+      folly::F14FastMap<SystemPortID, std::unique_ptr<HwSysPortFb303Stats>>;
 
  public:
   SaiSystemPortManager(
@@ -44,6 +47,7 @@ class SaiSystemPortManager {
       SaiManagerTable* managerTable,
       SaiPlatform* platform,
       ConcurrentIndices* concurrentIndices);
+  ~SaiSystemPortManager();
   SystemPortSaiId addSystemPort(
       const std::shared_ptr<SystemPort>& swSystemPort);
   void removeSystemPort(const std::shared_ptr<SystemPort>& swSystemPort);
@@ -66,7 +70,9 @@ class SaiSystemPortManager {
   void updateStats(SystemPortID portId, bool updateWatermarks);
 
  private:
-  void loadQueues(SaiSystemPortHandle& sysPortHandle, int64_t numVoqs) const;
+  void loadQueues(
+      SaiSystemPortHandle& sysPortHandle,
+      const std::shared_ptr<SystemPort>& swSystemPort);
   SaiSystemPortTraits::CreateAttributes attributesFromSwSystemPort(
       const std::shared_ptr<SystemPort>& swSystemPort) const;
 
@@ -76,6 +82,7 @@ class SaiSystemPortManager {
   SaiPlatform* platform_;
   Handles handles_;
   ConcurrentIndices* concurrentIndices_;
+  Stats portStats_;
 };
 
 } // namespace facebook::fboss
