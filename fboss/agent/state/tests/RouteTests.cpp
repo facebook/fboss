@@ -148,9 +148,9 @@ TEST(Route, serializeRouteNextHopsMulti) {
 
   auto serialized = nhm1.toFollyDynamicLegacy();
 
-  auto nhm2 = RouteNextHopsMulti::fromFollyDynamicLegacy(serialized);
+  auto nhm2 = LegacyRouteNextHopsMulti::fromFollyDynamicLegacy(serialized);
 
-  EXPECT_TRUE(nhm1 == nhm2);
+  EXPECT_TRUE(nhm1 == *nhm2);
 }
 
 TEST(Route, RouteNextHopsMultiThrift) {
@@ -183,7 +183,7 @@ TEST(Route, RouteNextHopsMultiThrift) {
           std::optional<RouteCounterID>(std::nullopt),
           std::optional<cfg::AclLookupClass>(
               cfg::AclLookupClass::DST_CLASS_L3_DPR)));
-  validateNodeSerialization<RouteNextHopsMulti, true>(nhm1);
+  validateThriftStructNodeSerialization<RouteNextHopsMulti>(nhm1);
 }
 
 // Test priority ranking of nexthop lists within a RouteNextHopsMulti.

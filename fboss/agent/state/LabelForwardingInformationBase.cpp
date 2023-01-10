@@ -69,10 +69,10 @@ std::shared_ptr<LabelForwardingEntry>
 LabelForwardingInformationBase::fromFollyDynamicOldFormat(folly::dynamic json) {
   auto topLabel = static_cast<MplsLabel>(json[kIncomingLabel].asInt());
   auto entry = std::make_shared<LabelForwardingEntry>(topLabel);
-  auto labelNextHopsByClient(LabelNextHopsByClient::fromFollyDynamicLegacy(
-      json[kLabelNextHopsByClient]));
-  for (const auto& clientEntry : labelNextHopsByClient) {
-    entry->update(clientEntry.first, RouteNextHopEntry(clientEntry.second));
+  auto labelNextHopsByClient = LegacyRouteNextHopsMulti::fromFollyDynamicLegacy(
+      json[kLabelNextHopsByClient]);
+  for (const auto& clientEntry : *labelNextHopsByClient) {
+    entry->update(clientEntry.first, *clientEntry.second);
   }
   entry->setResolved(
       LabelNextHopEntry::fromFollyDynamicLegacy(json[kLabelNextHop]));
@@ -111,7 +111,7 @@ void LabelForwardingInformationBase::noRibToRibEntryConvertor(
       continue;
     }
     RouteNextHopSet nhSet;
-    auto rNHE = RouteNextHopEntry(clientEntry.second);
+    const auto& rNHE = *clientEntry.second;
     for (auto& nh : rNHE.getNextHopSet()) {
       const auto& addr = nh.addr();
       if (addr.isV6() && addr.isLinkLocal()) {

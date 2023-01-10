@@ -55,16 +55,21 @@ RouteFields<AddrT> RouteFields<AddrT>::fromFollyDynamicLegacy(
     const folly::dynamic& routeJson) {
   Prefix prefix = Prefix::fromFollyDynamicLegacy(routeJson[kPrefix]);
   RouteFields<AddrT> rt(prefix);
-  auto nexthopsmulti =
-      RouteNextHopsMulti::fromFollyDynamicLegacy(routeJson[kNextHopsMulti]);
+  auto nexthopsmulti = LegacyRouteNextHopsMulti::fromFollyDynamicLegacy(
+      routeJson[kNextHopsMulti]);
   auto fwd = RouteNextHopEntry::fromFollyDynamicLegacy(routeJson[kFwdInfo]);
   uint32_t flags = routeJson[kFlags].asInt();
   std::optional<cfg::AclLookupClass> classID{};
   if (routeJson.find(kClassID) != routeJson.items().end()) {
     classID = cfg::AclLookupClass(routeJson[kClassID].asInt());
   }
-  rt.writableData() =
-      getRouteFields(prefix, nexthopsmulti, fwd, flags, classID);
+  // THRIFT_COPY
+  rt.writableData() = getRouteFields(
+      prefix,
+      RouteNextHopsMulti(nexthopsmulti->toThrift()),
+      fwd,
+      flags,
+      classID);
   return rt;
 }
 
@@ -171,7 +176,7 @@ folly::dynamic RouteFields<AddrT>::migrateToThrifty(folly::dynamic const& dyn) {
         RouteFields<AddrT>::Prefix::migrateToThrifty(dyn[kPrefix]);
   }
   newDyn["nexthopsmulti"] =
-      RouteNextHopsMulti::migrateToThrifty(dyn[kNextHopsMulti]);
+      LegacyRouteNextHopsMulti::migrateToThrifty(dyn[kNextHopsMulti]);
   newDyn["fwd"] = RouteNextHopEntry::migrateToThrifty(dyn[kFwdInfo]);
   newDyn["flags"] = dyn[kFlags].asInt();
   if (dyn.find(kClassID) != dyn.items().end()) {
@@ -188,7 +193,7 @@ void RouteFields<AddrT>::migrateFromThrifty(folly::dynamic& dyn) {
   RouteFields<AddrT>::Prefix::migrateFromThrifty(dyn[kPrefix]);
   ThriftyUtils::renameField(dyn, "nexthopsmulti", std::string(kNextHopsMulti));
   ThriftyUtils::renameField(dyn, "fwd", std::string(kFwdInfo));
-  RouteNextHopsMulti::migrateFromThrifty(dyn[kNextHopsMulti]);
+  LegacyRouteNextHopsMulti::migrateFromThrifty(dyn[kNextHopsMulti]);
   RouteNextHopEntry::migrateFromThrifty(dyn[kFwdInfo]);
   dyn[kFlags] = dyn["flags"].asInt();
   if (dyn.find("classID") != dyn.items().end()) {

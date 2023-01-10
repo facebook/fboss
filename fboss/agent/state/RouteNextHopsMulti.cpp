@@ -28,33 +28,33 @@ namespace facebook::fboss {
 folly::dynamic RouteNextHopsMulti::toFollyDynamicLegacy() const {
   // Store the clientid->RouteNextHopEntry map as a dynamic::object
   folly::dynamic obj = folly::dynamic::object();
-  for (auto const& row : map()) {
+  auto mapRef = map();
+  for (auto const& row : *mapRef) {
     int clientid = static_cast<int>(row.first);
-    RouteNextHopEntry nhe{};
-    nhe.fromThrift(row.second);
+    const auto& nhe = *row.second;
     obj[folly::to<std::string>(clientid)] = nhe.toFollyDynamicLegacy();
   }
   return obj;
 }
 
-RouteNextHopsMulti RouteNextHopsMulti::fromFollyDynamicLegacy(
-    const folly::dynamic& json) {
+std::shared_ptr<const RouteNextHopsMulti>
+LegacyRouteNextHopsMulti::fromFollyDynamicLegacy(const folly::dynamic& json) {
   RouteNextHopsMulti nh;
   for (const auto& pair : json.items()) {
-    nh.update(
-        ClientID(pair.first.asInt()),
-        RouteNextHopEntry::fromFollyDynamicLegacy(pair.second));
+    auto entry = RouteNextHopEntry::fromFollyDynamicLegacy(pair.second);
+    nh.update(ClientID(pair.first.asInt()), entry);
   }
-  return RouteNextHopsMulti(nh.toThrift());
+  return std::make_shared<const RouteNextHopsMulti>(nh.toThrift());
 }
 
 std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy() const {
   std::vector<ClientAndNextHops> list;
-  for (const auto& srcPair : map()) {
+  auto mapRef = map();
+  for (const auto& srcPair : *mapRef) {
     ClientAndNextHops destPair;
     *destPair.clientId() = static_cast<int>(srcPair.first);
-    for (const auto& nh : *srcPair.second.nexthops()) {
-      destPair.nextHops()->push_back(nh);
+    for (const auto& nh : srcPair.second->getNextHopSet()) {
+      destPair.nextHops()->push_back(nh.toThrift());
     }
     list.push_back(destPair);
   }
@@ -63,10 +63,11 @@ std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy() const {
 
 std::string RouteNextHopsMulti::strLegacy() const {
   std::string ret = "";
-  for (auto const& row : map()) {
+  auto mapRef = map();
+  for (auto const& row : *mapRef) {
     ClientID clientid = row.first;
-    RouteNextHopEntry entry(row.second);
-    RouteNextHopSet const& nxtHps = entry.getNextHopSet();
+    const auto& entry = row.second;
+    RouteNextHopSet const& nxtHps = entry->getNextHopSet();
 
     ret.append(folly::to<std::string>("(client#", clientid, ": "));
     for (const auto& nh : nxtHps) {
@@ -77,21 +78,30 @@ std::string RouteNextHopsMulti::strLegacy() const {
   return ret;
 }
 
-void RouteNextHopsMulti::update(ClientID clientId, RouteNextHopEntry nhe) {
-  RouteNextHopsMulti::update(clientId, writableData(), nhe.toThrift());
+// THRIFT_COPY
+void RouteNextHopsMulti::update(
+    ClientID clientId,
+    const RouteNextHopEntry& nhe) {
+  auto data = this->toThrift();
+  RouteNextHopsMulti::update(clientId, data, nhe.toThrift());
+  this->fromThrift(data);
 }
 
+// THRIFT_COPY
 ClientID RouteNextHopsMulti::findLowestAdminDistance() {
-  return RouteNextHopsMulti::findLowestAdminDistance(data());
+  return RouteNextHopsMulti::findLowestAdminDistance(toThrift());
 }
 
 void RouteNextHopsMulti::delEntryForClient(ClientID clientId) {
-  RouteNextHopsMulti::delEntryForClient(clientId, writableData());
+  auto data = this->toThrift();
+  RouteNextHopsMulti::delEntryForClient(clientId, data);
+  this->fromThrift(data);
 }
 
+// THRIFT_COPY
 std::shared_ptr<const RouteNextHopEntry> RouteNextHopsMulti::getEntryForClient(
     ClientID clientId) const {
-  return RouteNextHopsMulti::getEntryForClient(clientId, data());
+  return RouteNextHopsMulti::getEntryForClient(clientId, toThrift());
 }
 
 bool RouteNextHopsMulti::isSame(ClientID id, const RouteNextHopEntry& nhe)
@@ -100,21 +110,14 @@ bool RouteNextHopsMulti::isSame(ClientID id, const RouteNextHopEntry& nhe)
   return entry && (*entry == nhe);
 }
 
+// THRIFT_COPY
 std::pair<ClientID, std::shared_ptr<const RouteNextHopEntry>>
 RouteNextHopsMulti::getBestEntry() const {
-  return RouteNextHopsMulti::getBestEntry(data());
+  return RouteNextHopsMulti::getBestEntry(toThrift());
 }
 
-state::RouteNextHopsMulti RouteNextHopsMulti::toThrift() const {
-  return data();
-}
-
-RouteNextHopsMulti RouteNextHopsMulti::fromThrift(
-    const state::RouteNextHopsMulti& multi) {
-  return RouteNextHopsMulti(multi);
-}
-
-folly::dynamic RouteNextHopsMulti::migrateToThrifty(folly::dynamic const& dyn) {
+folly::dynamic LegacyRouteNextHopsMulti::migrateToThrifty(
+    folly::dynamic const& dyn) {
   folly::dynamic newDyn = folly::dynamic::dynamic::object;
   folly::dynamic client2NextHopEntryDyn = folly::dynamic::object;
   auto multi = fromFollyDynamicLegacy(dyn);
@@ -123,11 +126,11 @@ folly::dynamic RouteNextHopsMulti::migrateToThrifty(folly::dynamic const& dyn) {
   }
   newDyn["client2NextHopEntry"] = client2NextHopEntryDyn;
   newDyn["lowestAdminDistanceClientId"] =
-      static_cast<int>(multi.lowestAdminDistanceClientId());
+      static_cast<int>(multi->lowestAdminDistanceClientId());
   return newDyn;
 }
 
-void RouteNextHopsMulti::migrateFromThrifty(folly::dynamic& dyn) {
+void LegacyRouteNextHopsMulti::migrateFromThrifty(folly::dynamic& dyn) {
   for (auto [key, value] : dyn["client2NextHopEntry"].items()) {
     auto clientID = key.asString();
     auto multiDynamic = value;
@@ -227,4 +230,14 @@ void RouteNextHopsMulti::delEntryForClient(
   }
 }
 
+std::shared_ptr<RouteNextHopsMulti> RouteNextHopsMulti::fromFollyDynamic(
+    const folly::dynamic& json) {
+  auto legacy = LegacyRouteNextHopsMulti::fromFollyDynamic(json);
+  return std::make_shared<RouteNextHopsMulti>(legacy.toThrift());
+}
+
+folly::dynamic RouteNextHopsMulti::toFollyDynamic() const {
+  LegacyRouteNextHopsMulti legacy(this->toThrift());
+  return legacy.toFollyDynamic();
+}
 } // namespace facebook::fboss

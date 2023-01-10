@@ -209,7 +209,7 @@ struct RouteFields
   static ThriftFields getRouteFields(
       const PrefixT<AddrT>& prefix,
       const RouteNextHopsMulti& multi =
-          RouteNextHopsMulti::fromThrift(state::RouteNextHopsMulti{}),
+          RouteNextHopsMulti(state::RouteNextHopsMulti{}),
       const RouteNextHopEntry& fwd =
           RouteNextHopEntry{
               RouteNextHopEntry::Action::DROP,
@@ -279,7 +279,7 @@ struct RouteFields
     }
   }
   RouteNextHopsMulti nexthopsmulti() const {
-    return RouteNextHopsMulti::fromThrift(*(this->data().nexthopsmulti()));
+    return RouteNextHopsMulti(*(this->data().nexthopsmulti()));
   }
   RouteNextHopEntry fwd() const {
     return RouteNextHopEntry(*(this->data().fwd()));
