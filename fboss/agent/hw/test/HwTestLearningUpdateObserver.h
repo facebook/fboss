@@ -29,6 +29,7 @@ class HwTestLearningUpdateObserver
   std::vector<std::pair<L2Entry, L2EntryUpdateType>> waitForLearningUpdates(
       int numUpdates = 1,
       std::optional<int> secondsToWait = std::nullopt);
+  void waitForStateUpdate();
 
  private:
   void packetReceived(RxPacket* /*pkt*/) noexcept override {}

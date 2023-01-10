@@ -607,6 +607,7 @@ class HwMacLearningAndMyStationInteractionTest : public HwMacLearningTest {
             getHwSwitch()->sendPacketOutOfPortSync(std::move(arpPacket), port);
           }
         }
+        l2LearningObserver_.waitForStateUpdate();
       };
       induceMacLearning();
       utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), kMinAgeInSecs());

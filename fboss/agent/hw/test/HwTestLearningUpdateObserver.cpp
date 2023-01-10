@@ -87,6 +87,11 @@ HwTestLearningUpdateObserver::waitForLearningUpdates(
   return data_;
 }
 
+void HwTestLearningUpdateObserver::waitForStateUpdate() {
+  std::lock_guard<std::mutex> lock(mtx_);
+  applyStateUpdateEventBase_.runInEventBaseThreadAndWait([]() { return; });
+}
+
 HwTestLearningUpdateAutoObserver::HwTestLearningUpdateAutoObserver(
     HwSwitchEnsemble* ensemble)
     : ensemble_(ensemble) {
