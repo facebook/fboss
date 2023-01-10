@@ -263,6 +263,7 @@ class HwSwitch {
 
   virtual std::map<PortID, phy::PhyInfo> updateAllPhyInfo() = 0;
   virtual std::map<PortID, FabricEndpoint> getFabricReachability() const = 0;
+  virtual std::map<std::string, HwSysPortStats> getSysPortStats() const = 0;
 
   /*
    * Get latest device watermark bytes

@@ -56,6 +56,9 @@ class SimSwitch : public HwSwitch {
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const override {
     return {};
   }
+  std::map<std::string, HwSysPortStats> getSysPortStats() const override {
+    return {};
+  }
 
   void fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) const override {
     return;

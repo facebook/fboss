@@ -107,6 +107,7 @@ class SaiSwitch : public HwSwitch {
       std::optional<uint8_t> queueId) noexcept override;
 
   folly::F14FastMap<std::string, HwPortStats> getPortStats() const override;
+  std::map<std::string, HwSysPortStats> getSysPortStats() const override;
 
   uint64_t getDeviceWatermarkBytes() const override;
 
@@ -314,6 +315,8 @@ class SaiSwitch : public HwSwitch {
   folly::F14FastMap<std::string, HwPortStats> getPortStatsLocked(
       const std::lock_guard<std::mutex>& lock) const;
 
+  std::map<std::string, HwSysPortStats> getSysPortStatsLocked(
+      const std::lock_guard<std::mutex>& lock) const;
   std::map<PortID, phy::PhyInfo> updateAllPhyInfoLocked();
 
   void updatePmdInfo(

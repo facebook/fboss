@@ -16,6 +16,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/HwPortFb303Stats.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
+#include "fboss/agent/hw/HwSysPortFb303Stats.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/AclApi.h"
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
@@ -1031,6 +1032,21 @@ folly::F14FastMap<std::string, HwPortStats> SaiSwitch::getPortStatsLocked(
     const std::lock_guard<std::mutex>& /* lock */) const {
   folly::F14FastMap<std::string, HwPortStats> portStatsMap;
   auto& portIdStatsMap = managerTable_->portManager().getLastPortStats();
+  for (auto& entry : portIdStatsMap) {
+    portStatsMap.emplace(entry.second->portName(), entry.second->portStats());
+  }
+  return portStatsMap;
+}
+
+std::map<std::string, HwSysPortStats> SaiSwitch::getSysPortStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return getSysPortStatsLocked(lock);
+}
+
+std::map<std::string, HwSysPortStats> SaiSwitch::getSysPortStatsLocked(
+    const std::lock_guard<std::mutex>& /* lock */) const {
+  std::map<std::string, HwSysPortStats> portStatsMap;
+  auto& portIdStatsMap = managerTable_->systemPortManager().getLastPortStats();
   for (auto& entry : portIdStatsMap) {
     portStatsMap.emplace(entry.second->portName(), entry.second->portStats());
   }
