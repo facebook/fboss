@@ -31,8 +31,9 @@ add_library(hw_fb303_stats
 )
 
 add_library(hw_port_fb303_stats
-  fboss/agent/hw/HwPortFb303Stats.cpp
   fboss/agent/hw/HwBasePortFb303Stats.cpp
+  fboss/agent/hw/HwPortFb303Stats.cpp
+  fboss/agent/hw/HwSysPortFb303Stats.cpp
   fboss/agent/hw/oss/HwBasePortFb303Stats.cpp
 )
 
