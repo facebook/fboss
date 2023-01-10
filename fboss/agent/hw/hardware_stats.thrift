@@ -83,6 +83,11 @@ struct HwSysPortStats {
   1: map<i16, i64> queueOutDiscardBytes_ = {};
   2: map<i16, i64> queueOutBytes_ = {};
   3: map<i16, i64> queueWatermarkBytes_ = {};
+
+  // seconds from epoch
+  // Field index at a distance to allow for other stat additions
+  100: i64 timestamp_ = STAT_UNINITIALIZED;
+  101: string portName_ = "";
 }
 
 struct HwTrunkStats {

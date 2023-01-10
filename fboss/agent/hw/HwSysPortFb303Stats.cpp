@@ -26,7 +26,7 @@ const std::vector<folly::StringPiece>& HwSysPortFb303Stats::kPortStatKeys()
 const std::vector<folly::StringPiece>& HwSysPortFb303Stats::kQueueStatKeys()
     const {
   static std::vector<folly::StringPiece> kQueueKeys{
-      kOutBytes(), kOutDiscards()};
+      kOutDiscards(), kOutBytes()};
   return kQueueKeys;
 }
 
