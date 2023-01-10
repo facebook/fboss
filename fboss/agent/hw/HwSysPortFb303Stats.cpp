@@ -44,4 +44,30 @@ HwSysPortFb303Stats::kOutMacsecPortStatKeys() const {
   return kMacsecOutKeys;
 }
 
+void HwSysPortFb303Stats::updateStats(
+    const HwSysPortStats& curPortStats,
+    const std::chrono::seconds& retrievedAt) {
+  timeRetrieved_ = retrievedAt;
+  auto updateQueueStat = [this](
+                             folly::StringPiece statKey,
+                             int queueId,
+                             const std::map<int16_t, int64_t>& queueStats) {
+    auto qitr = queueStats.find(queueId);
+    if (qitr != queueStats.end()) {
+      updateStat(timeRetrieved_, statKey, queueId, qitr->second);
+    }
+  };
+  for (const auto& queueIdAndName : queueId2Name_) {
+    updateQueueStat(
+        kOutDiscards(),
+        queueIdAndName.first,
+        *curPortStats.queueOutDiscardBytes_());
+    updateQueueStat(
+        kOutBytes(), queueIdAndName.first, *curPortStats.queueOutBytes_());
+  }
+  if (curPortStats.queueWatermarkBytes_()->size()) {
+    updateQueueWatermarkStats(*curPortStats.queueWatermarkBytes_());
+  }
+  portStats_ = curPortStats;
+}
 } // namespace facebook::fboss
