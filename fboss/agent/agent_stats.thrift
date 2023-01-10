@@ -18,4 +18,5 @@ struct AgentStats {
   4: hardware_stats.HwAsicErrors hwAsicErrors;
   5: i64 linkFlaps;
   6: map<string, hardware_stats.HwTeFlowStats> teFlowStats;
+  7: map<string, hardware_stats.HwSysPortStats> sysPortStats;
 }
