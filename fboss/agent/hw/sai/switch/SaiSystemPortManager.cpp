@@ -209,8 +209,17 @@ void SaiSystemPortManager::updateStats(
   for (auto& confAndQueueHandle : handle->queues) {
     configuredQueues.push_back(confAndQueueHandle.second.get());
   }
-  HwSysPortStats curPortStats;
+
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  auto portStatItr = portStats_.find(portId);
+  if (portStatItr == portStats_.end()) {
+    // We don't maintain port stats for disabled ports.
+    return;
+  }
+  const auto& prevPortStats = portStatItr->second->portStats();
+  HwSysPortStats curPortStats{prevPortStats};
   managerTable_->queueManager().updateStats(
       configuredQueues, curPortStats, updateWatermarks);
+  portStats_[portId]->updateStats(curPortStats, now);
 }
 } // namespace facebook::fboss
