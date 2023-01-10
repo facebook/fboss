@@ -79,10 +79,12 @@ class InSegEntryManagerTest : public ManagerTestBase {
       int nextHopBegin,
       int nextHopEnd,
       LabelForwardingAction::LabelForwardingType actionType) {
-    auto node = std::make_shared<LabelForwardingEntry>(
-        label,
-        ClientID(ClientID::OPENR),
-        getLabelNextHopEntryWithNextHops(nextHopBegin, nextHopEnd, actionType));
+    auto node =
+        std::make_shared<LabelForwardingEntry>(LabelForwardingEntry::makeThrift(
+            label,
+            ClientID(ClientID::OPENR),
+            getLabelNextHopEntryWithNextHops(
+                nextHopBegin, nextHopEnd, actionType)));
     LabelForwardingInformationBase::resolve(node);
     fib->addNode(node);
   }

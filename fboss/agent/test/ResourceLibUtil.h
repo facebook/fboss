@@ -211,10 +211,10 @@ class RouteGenerator : public ResourceGenerator<
 
   ResourceT get(IdT id) const override {
     const typename RouteFields<AddrT>::Prefix prefix = prefixGenerator_.get(id);
-    auto route = std::make_unique<RouteT>(
+    auto route = std::make_unique<RouteT>(RouteT::makeThrift(
         prefix,
         ClientID(1), // static route
-        RouteNextHopEntry(nextHopSet_, distance_));
+        RouteNextHopEntry(nextHopSet_, distance_)));
     route->setResolved(RouteNextHopEntry(nextHopSet_, distance_));
     return route;
   }

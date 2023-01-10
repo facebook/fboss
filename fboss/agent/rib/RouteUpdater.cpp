@@ -160,7 +160,9 @@ void RibRouteUpdater::addOrReplaceRoute(
   auto iter = mplsRoutes_->find(label);
   if (iter == mplsRoutes_->end()) {
     mplsRoutes_->emplace(std::make_pair(
-        label, std::make_shared<Route<LabelID>>(label, clientID, entry)));
+        label,
+        std::make_shared<Route<LabelID>>(
+            Route<LabelID>::makeThrift(label, clientID, entry))));
   } else {
     auto& route = iter->second;
     auto existingRouteForClient = route->getEntryForClient(clientID);

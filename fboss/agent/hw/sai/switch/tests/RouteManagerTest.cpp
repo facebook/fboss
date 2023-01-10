@@ -96,7 +96,8 @@ TEST_F(RouteManagerTest, addToCpuRoute) {
   TestInterface intf = testInterfaces.at(1);
   RouteFields<folly::IPAddressV4>::Prefix destination(
       intf.subnet.first.asV4(), intf.subnet.second);
-  auto r = std::make_shared<Route<folly::IPAddressV4>>(destination);
+  auto r = std::make_shared<Route<folly::IPAddressV4>>(
+      Route<folly::IPAddressV4>::makeThrift(destination));
   RouteNextHopEntry entry(
       RouteForwardAction::TO_CPU, AdminDistance::STATIC_ROUTE);
   r->update(ClientID{42}, entry);
@@ -145,7 +146,8 @@ TEST_F(RouteManagerTest, addDropRoute) {
   TestInterface intf = testInterfaces.at(1);
   RouteFields<folly::IPAddressV4>::Prefix destination(
       intf.subnet.first.asV4(), intf.subnet.second);
-  auto r = std::make_shared<Route<folly::IPAddressV4>>(destination);
+  auto r = std::make_shared<Route<folly::IPAddressV4>>(
+      RouteV4::makeThrift(destination));
   RouteNextHopEntry entry(
       RouteForwardAction::DROP, AdminDistance::STATIC_ROUTE);
   r->update(ClientID{42}, entry);
@@ -160,7 +162,8 @@ TEST_F(RouteManagerTest, addSubnetRoute) {
   ResolvedNextHop nh{intf.routerIp, InterfaceID(intf.id), ECMP_WEIGHT};
   RouteNextHopEntry::NextHopSet swNextHops{nh};
   RouteNextHopEntry entry(swNextHops, AdminDistance::DIRECTLY_CONNECTED);
-  auto r = std::make_shared<Route<folly::IPAddressV4>>(destination);
+  auto r = std::make_shared<Route<folly::IPAddressV4>>(
+      RouteV4::makeThrift(destination));
   r->update(ClientID::INTERFACE_ROUTE, entry);
   r->setResolved(entry);
   r->setConnected();
@@ -255,7 +258,8 @@ TEST_F(RouteManagerTest, updateNexthopToNexthopRoute) {
 TEST_F(RouteManagerTest, updateDropRouteToNextHopRoute) {
   RouteFields<folly::IPAddressV4>::Prefix destination(
       tr1.destination.first.asV4(), tr1.destination.second);
-  auto r1 = std::make_shared<Route<folly::IPAddressV4>>(destination);
+  auto r1 = std::make_shared<Route<folly::IPAddressV4>>(
+      RouteV4::makeThrift(destination));
   RouteNextHopEntry entry(
       RouteForwardAction::DROP, AdminDistance::STATIC_ROUTE);
   r1->update(ClientID{42}, entry);
@@ -306,7 +310,8 @@ TEST_F(RouteManagerTest, updateRouteDifferentNextHops) {
 TEST_F(RouteManagerTest, updateCpuRoutetoNextHopRoute) {
   RouteFields<folly::IPAddressV4>::Prefix destination(
       tr1.destination.first.asV4(), tr1.destination.second);
-  auto r1 = std::make_shared<Route<folly::IPAddressV4>>(destination);
+  auto r1 = std::make_shared<Route<folly::IPAddressV4>>(
+      RouteV4::makeThrift(destination));
   RouteNextHopEntry entry(
       RouteForwardAction::TO_CPU, AdminDistance::STATIC_ROUTE);
   r1->update(ClientID{42}, entry);
@@ -374,7 +379,8 @@ TEST_F(ToMeRouteTest, toMeRoutesSlash32) {
   ResolvedNextHop nh{testIntf.routerIp, InterfaceID(testIntf.id), ECMP_WEIGHT};
   RouteNextHopEntry::NextHopSet swNextHops{nh};
   RouteNextHopEntry entry(swNextHops, AdminDistance::DIRECTLY_CONNECTED);
-  auto r = std::make_shared<Route<folly::IPAddressV4>>(destination);
+  auto r = std::make_shared<Route<folly::IPAddressV4>>(
+      RouteV4::makeThrift(destination));
   r->update(ClientID::INTERFACE_ROUTE, entry);
   r->setResolved(entry);
   r->setConnected();

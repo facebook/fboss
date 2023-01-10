@@ -474,7 +474,8 @@ std::shared_ptr<Route<folly::IPAddressV4>> ManagerTestBase::makeRoute(
     swNextHops.emplace(makeNextHop(testInterface));
   }
   RouteNextHopEntry entry(swNextHops, AdminDistance::STATIC_ROUTE);
-  auto r = std::make_shared<Route<folly::IPAddressV4>>(destination);
+  auto r = std::make_shared<Route<folly::IPAddressV4>>(
+      Route<folly::IPAddressV4>::makeThrift(destination));
   r->update(ClientID{42}, entry);
   r->setResolved(entry);
   return r;

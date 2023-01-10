@@ -267,7 +267,7 @@ bool BcmRoute::canUseHostTable() const {
 }
 
 void BcmRoute::program(
-    RouteNextHopEntry&& fwd,
+    const RouteNextHopEntry& fwd,
     std::optional<cfg::AclLookupClass> classID) {
   // Route counters cannot be shared between v4 and v6 on Tomahawk4
   // and needs to be pre allocated. We support only v6 route counters
@@ -534,16 +534,17 @@ void BcmRouteTable::addRoute(bcm_vrf_t vrf, const RouteT* route) {
         route->getClassID()));
   }
   CHECK(route->isResolved());
-  RouteNextHopEntry fwd(route->getForwardInfo());
+  const auto& fwd = route->getForwardInfo();
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS) {
-    // THRIFT_COPY
-    fwd.fromThrift(RouteNextHopEntry(
-                       fwd.normalizedNextHops(),
-                       fwd.getAdminDistance(),
-                       fwd.getCounterID())
-                       .toThrift());
+    ret.first->second->program(
+        RouteNextHopEntry(
+            fwd.normalizedNextHops(),
+            fwd.getAdminDistance(),
+            fwd.getCounterID()),
+        route->getClassID());
+  } else {
+    ret.first->second->program(fwd, route->getClassID());
   }
-  ret.first->second->program(std::move(fwd), route->getClassID());
 }
 
 template <typename RouteT>

@@ -225,7 +225,8 @@ TEST(Route, listRanking) {
 TEST(Route, serializeRoute) {
   ClientID clientId = ClientID(1);
   auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
-  Route<IPAddressV4> rt(makePrefixV4("1.2.3.4/32"));
+  Route<IPAddressV4> rt(
+      Route<IPAddressV4>::makeThrift(makePrefixV4("1.2.3.4/32")));
   rt.update(clientId, RouteNextHopEntry(nxtHops, DISTANCE));
   validateNodeSerialization(rt);
 
@@ -248,7 +249,7 @@ TEST(Route, serializeMplsRoute) {
   auto nxtHops = makeNextHops(
       {"10.10.10.10", "11.11.11.11"},
       LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP));
-  Route<LabelID> rt(LabelID(100));
+  Route<LabelID> rt(Route<LabelID>::makeThrift(LabelID(100)));
   rt.update(clientId, RouteNextHopEntry(nxtHops, DISTANCE));
   validateNodeSerialization(rt);
 
@@ -272,10 +273,10 @@ TEST(Route, serializeRouteCounterID) {
   ClientID clientId = ClientID(1);
   auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
   std::optional<RouteCounterID> counterID("route.counter.0");
-  Route<IPAddressV4> rt(
+  Route<IPAddressV4> rt(Route<IPAddressV4>::makeThrift(
       makePrefixV4("1.2.3.4/32"),
       clientId,
-      RouteNextHopEntry(nxtHops, DISTANCE, counterID));
+      RouteNextHopEntry(nxtHops, DISTANCE, counterID)));
   rt.setResolved(RouteNextHopEntry(nxtHops, DISTANCE, counterID));
   validateNodeSerialization(rt);
 
@@ -300,11 +301,11 @@ TEST(Route, serializeRouteClassID) {
   auto nxtHops = makeNextHops({"10.10.10.10", "11.11.11.11"});
   std::optional<cfg::AclLookupClass> classID(
       cfg::AclLookupClass::DST_CLASS_L3_DPR);
-  Route<IPAddressV4> rt(
+  Route<IPAddressV4> rt(Route<IPAddressV4>::makeThrift(
       makePrefixV4("1.2.3.4/32"),
       clientId,
       RouteNextHopEntry(
-          nxtHops, DISTANCE, std::optional<RouteCounterID>(), classID));
+          nxtHops, DISTANCE, std::optional<RouteCounterID>(), classID)));
   rt.setResolved(RouteNextHopEntry(
       nxtHops, DISTANCE, std::optional<RouteCounterID>(), classID));
   validateNodeSerialization(rt);

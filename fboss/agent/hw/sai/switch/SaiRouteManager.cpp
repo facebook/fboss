@@ -149,7 +149,7 @@ void SaiRouteManager::addOrUpdateRoute(
     const std::shared_ptr<Route<AddrT>>& oldRoute,
     const std::shared_ptr<Route<AddrT>>& newRoute) {
   SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, newRoute);
-  auto fwd = newRoute->getForwardInfo();
+  const auto& fwd = newRoute->getForwardInfo();
   sai_int32_t packetAction;
   std::optional<SaiRouteTraits::CreateAttributes> attributes;
   SaiRouteHandle::NextHopHandle nextHopHandle;
@@ -386,7 +386,7 @@ std::shared_ptr<SaiCounterHandle> SaiRouteManager::getCounterHandleForRoute(
   std::shared_ptr<SaiCounterHandle> counterHandle;
   // Counters are supported only with IPv6 prefixes
   if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-    auto fwd = newRoute->getForwardInfo();
+    const auto& fwd = newRoute->getForwardInfo();
     if (fwd.getCounterID().has_value()) {
       counterHandle = managerTable_->counterManager().incRefOrAddRouteCounter(
           fwd.getCounterID().value());

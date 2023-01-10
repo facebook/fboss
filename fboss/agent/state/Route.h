@@ -26,6 +26,35 @@
 
 namespace facebook::fboss {
 
+namespace {
+/**
+ * Bit definition for RouteFields<>::flags
+ *
+ * CONNECTED: This route is directly connected. For example, a route based on
+ *            an interface subnet is a directly connected route.
+ * RESOLVED: This route has been resolved. 'RouteFields::fwd' is valid.
+ * UNRESOLVABLE: This route is not resolvable. A route without RESOLVED set
+ *               does not mean that it is UNRESOLVABLE.
+ *               A route with neither RESOLVED nor UNRESOLVABLE just means
+ *               the route needs to be resolved. As the result of process,
+ *               the route could have either RESOLVED set (resolved) or
+ *               UNRESOLVABLE set.
+ * PROCESSING: This route is being processed to resolve the nexthop.
+ *             This bit is set before look up a route to reach the nexthop.
+ *             If the route used to reach the nexthop also has this bit set,
+ *             that means we have a loop to resolve the route. In this case,
+ *             none of the routes in the loop is resolvable.
+ *             This bit is cleared when setting this route as RESOLVED or
+ *             UNRESOLVABLE.
+ */
+enum : uint32_t {
+  CONNECTED = 0x1,
+  RESOLVED = 0x2,
+  UNRESOLVABLE = 0x4,
+  PROCESSING = 0x8,
+};
+} // namespace
+
 template <typename AddrT>
 struct RouteFields;
 
@@ -68,6 +97,9 @@ struct RouteFields
       throw FbossError("Invalid label forwarding action for IP route");
     }
     update(clientId, entry);
+  }
+  explicit RouteFields(const ThriftFields& fields) {
+    this->writableData() = fields;
   }
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
@@ -140,32 +172,6 @@ struct RouteFields
   }
 
  private:
-  /**
-   * Bit definition for RouteFields<>::flags
-   *
-   * CONNECTED: This route is directly connected. For example, a route based on
-   *            an interface subnet is a directly connected route.
-   * RESOLVED: This route has been resolved. 'RouteFields::fwd' is valid.
-   * UNRESOLVABLE: This route is not resolvable. A route without RESOLVED set
-   *               does not mean that it is UNRESOLVABLE.
-   *               A route with neither RESOLVED nor UNRESOLVABLE just means
-   *               the route needs to be resolved. As the result of process,
-   *               the route could have either RESOLVED set (resolved) or
-   *               UNRESOLVABLE set.
-   * PROCESSING: This route is being processed to resolve the nexthop.
-   *             This bit is set before look up a route to reach the nexthop.
-   *             If the route used to reach the nexthop also has this bit set,
-   *             that means we have a loop to resolve the route. In this case,
-   *             none of the routes in the loop is resolvable.
-   *             This bit is cleared when setting this route as RESOLVED or
-   *             UNRESOLVABLE.
-   */
-  enum : uint32_t {
-    CONNECTED = 0x1,
-    RESOLVED = 0x2,
-    UNRESOLVABLE = 0x4,
-    PROCESSING = 0x8,
-  };
   void setFlagsProcessing() {
     setFlags(flags() | PROCESSING);
     setFlags(flags() & (~(RESOLVED | UNRESOLVABLE | CONNECTED)));
@@ -201,10 +207,6 @@ struct RouteFields
             argsFwd,
             argsFlags,
             argsClassID)) {}
-
-  explicit RouteFields(const ThriftFields& fields) {
-    this->writableData() = fields;
-  }
 
   static ThriftFields getRouteFields(
       const PrefixT<AddrT>& prefix,
@@ -297,37 +299,70 @@ struct RouteFields
 
 /// Route<> Class
 template <typename AddrT>
-class Route : public ThriftyBaseT<
-                  ThriftFieldsT<AddrT>,
-                  Route<AddrT>,
-                  RouteFields<AddrT>> {
+class Route : public ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>> {
  public:
-  using RouteBase = ThriftyBaseT<
-      typename RouteTraits<AddrT>::ThriftFieldsType,
-      Route<AddrT>,
-      RouteFields<AddrT>>;
-  using Prefix = typename RouteFields<AddrT>::Prefix;
+  using RouteBase = ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>>;
+  using Prefix = PrefixT<AddrT>;
   using Action = RouteForwardAction;
   using Addr = AddrT;
+  using LegacyFields = RouteFields<AddrT>;
 
   // Constructor for a route
-  Route(const Prefix& prefix, ClientID clientId, const RouteNextHopEntry& entry)
-      : RouteBase(prefix, clientId, entry) {}
+  explicit Route(const Prefix& prefix) {
+    if constexpr (!std::is_same_v<AddrT, LabelID>) {
+      this->template set<switch_state_tags::prefix>(prefix.toThrift());
+    } else {
+      this->template set<switch_state_tags::label>(prefix.toThrift());
+    }
+    this->template set<switch_state_tags::fwd>(state::RouteNextHopEntry{});
+    this->template set<switch_state_tags::flags>(0);
+  }
+
+  Route(
+      const Prefix& prefix,
+      ClientID clientId,
+      const RouteNextHopEntry& entry) {
+    if constexpr (!std::is_same_v<AddrT, LabelID>) {
+      this->template set<switch_state_tags::prefix>(prefix.toThrift());
+    } else {
+      this->template set<switch_state_tags::label>(prefix.toThrift());
+    }
+    this->template set<switch_state_tags::fwd>(state::RouteNextHopEntry{});
+    this->template set<switch_state_tags::flags>(0);
+    auto nexthopsmulti =
+        this->template safe_ref<switch_state_tags::nexthopsmulti>();
+    nexthopsmulti->update(clientId, entry);
+  }
+
+  template <typename... Args>
+  static ThriftFieldsT<AddrT> makeThrift(Args&&... args) {
+    auto fields = LegacyFields(std::forward<Args>(args)...);
+    return fields.toThrift();
+  }
 
   static std::shared_ptr<Route<AddrT>> fromFollyDynamicLegacy(
       const folly::dynamic& json);
 
+  static std::shared_ptr<Route<AddrT>> fromFollyDynamic(
+      const folly::dynamic& json);
+
+  // THRIFT_COPY
   folly::dynamic toFollyDynamicLegacy() const {
-    return RouteBase::getFields()->toFollyDynamicLegacy();
+    RouteFields<AddrT> fields{this->toThrift()};
+    return fields.toFollyDynamicLegacy();
   }
+
+  folly::dynamic toFollyDynamic() const override;
 
   static std::shared_ptr<Route<AddrT>> fromJson(
       const folly::fbstring& jsonStr) {
     return fromFollyDynamicLegacy(folly::parseJson(jsonStr));
   }
 
+  // THRIFT_COPY
   RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const {
-    return RouteBase::getFields()->toRouteDetails(normalizedNhopWeights);
+    RouteFields<AddrT> fields{this->toThrift()};
+    return fields.toRouteDetails(normalizedNhopWeights);
   }
 
   /*
@@ -338,62 +373,93 @@ class Route : public ThriftyBaseT<
 
   static void modify(std::shared_ptr<SwitchState>* state);
 
+  // THRIFT_COPY
   Prefix prefix() const {
-    return RouteBase::getFields()->prefix();
+    if constexpr (!std::is_same_v<AddrT, LabelID>) {
+      return Prefix::fromThrift(
+          this->template safe_cref<switch_state_tags::prefix>()->toThrift());
+    } else {
+      return Prefix::fromThrift(
+          this->template safe_cref<switch_state_tags::label>()->toThrift());
+    }
   }
   Prefix getID() const {
     return prefix();
   }
+  uint32_t flags() const {
+    return this->template cref<switch_state_tags::flags>()->cref();
+  }
   bool isResolved() const {
-    return RouteBase::getFields()->isResolved();
+    return flags() & RESOLVED;
   }
   bool isUnresolvable() const {
-    return RouteBase::getFields()->isUnresolvable();
+    return flags() & UNRESOLVABLE;
   }
   bool isConnected() const {
-    return RouteBase::getFields()->isConnected();
+    return flags() & CONNECTED;
   }
   bool isHostRoute() const {
-    return RouteBase::getFields()->isHostRoute();
+    if constexpr (
+        std::is_same_v<folly::IPAddressV6, AddrT> ||
+        std::is_same_v<folly::IPAddressV4, AddrT>) {
+      return prefix().mask() == prefix().network().bitCount();
+    } else {
+      return false;
+    }
   }
   bool isDrop() const {
-    return RouteBase::getFields()->isDrop();
+    return isResolved() &&
+        this->template cref<switch_state_tags::fwd>()->isDrop();
   }
   bool isToCPU() const {
-    return RouteBase::getFields()->isToCPU();
+    return isResolved() &&
+        this->template cref<switch_state_tags::fwd>()->isToCPU();
   }
   bool isProcessing() const {
-    return RouteBase::getFields()->isProcessing();
+    return (flags() & PROCESSING);
   }
   bool needResolve() const {
     // not resolved, nor unresolvable, nor in processing
-    return RouteBase::getFields()->needResolve();
+    return !(flags() & (RESOLVED | UNRESOLVABLE | PROCESSING));
   }
+  // THRIFT_COPY
   std::string str() const {
-    return RouteBase::getFields()->str();
+    auto fields = RouteFields<AddrT>(this->toThrift());
+    return fields.str();
   }
   // Return the forwarding info for this route
-  RouteNextHopEntry getForwardInfo() const {
-    return RouteBase::getFields()->fwd();
+  const RouteNextHopEntry& getForwardInfo() const {
+    auto entry = this->template safe_cref<switch_state_tags::fwd>();
+    return *entry;
   }
   std::shared_ptr<const RouteNextHopEntry> getEntryForClient(
       ClientID clientId) const {
-    return RouteBase::getFields()->getEntryForClient(clientId);
+    auto multi = this->template safe_cref<switch_state_tags::nexthopsmulti>();
+    return multi->getEntryForClient(clientId);
   }
   std::pair<ClientID, std::shared_ptr<const RouteNextHopEntry>> getBestEntry()
       const {
-    return RouteBase::getFields()->getBestEntry();
+    auto multi = this->template safe_cref<switch_state_tags::nexthopsmulti>();
+    return multi->getBestEntry();
   }
   bool hasNoEntry() const {
-    return RouteBase::getFields()->hasNoEntry();
+    auto multi = this->template safe_cref<switch_state_tags::nexthopsmulti>();
+    return multi->isEmpty();
   }
 
   size_t numClientEntries() const {
-    return RouteBase::getFields()->numClientEntries();
+    auto multi = this->template safe_cref<switch_state_tags::nexthopsmulti>();
+    return multi->size();
   }
 
   bool has(ClientID clientId, const RouteNextHopEntry& entry) const {
-    return RouteBase::getFields()->has(clientId, entry);
+    auto multi = this->template safe_cref<switch_state_tags::nexthopsmulti>();
+    auto found = multi->getEntryForClient(clientId);
+    return found && *found == entry;
+  }
+
+  void clearFlags() {
+    this->template set<switch_state_tags::flags>(0);
   }
 
   bool isSame(const Route* rt) const;
@@ -404,42 +470,73 @@ class Route : public ThriftyBaseT<
    * to a single thread
    */
   void setProcessing() {
-    RouteBase::writableFields()->setProcessing();
+    CHECK(!isProcessing());
+    setFlags(flags() | PROCESSING);
+    setFlags(flags() & (~(RESOLVED | UNRESOLVABLE | CONNECTED)));
   }
   void setConnected() {
-    RouteBase::writableFields()->setConnected();
+    setFlags(flags() | CONNECTED);
   }
+  // THRIFT_COPY
   void setResolved(const RouteNextHopEntry& fwd) {
-    RouteBase::writableFields()->setResolved(fwd);
+    this->template set<switch_state_tags::fwd>(fwd.toThrift());
+    setFlags(flags() | RESOLVED);
+    setFlags(flags() & (~(UNRESOLVABLE | PROCESSING)));
   }
   void setUnresolvable() {
-    RouteBase::writableFields()->setUnresolvable();
+    setFlags(flags() | UNRESOLVABLE);
+    setFlags(flags() & (~(RESOLVED | PROCESSING | CONNECTED)));
   }
   void clearForward() {
-    RouteBase::writableFields()->clearForward();
+    this->template set<switch_state_tags::fwd>(state::RouteNextHopEntry{});
+    setFlags(flags() & (~(RESOLVED | PROCESSING | CONNECTED | UNRESOLVABLE)));
   }
 
   void update(ClientID clientId, const RouteNextHopEntry& entry) {
-    RouteBase::writableFields()->update(clientId, entry);
+    if (this->template cref<switch_state_tags::nexthopsmulti>()
+            ->isPublished()) {
+      auto node =
+          this->template cref<switch_state_tags::nexthopsmulti>()->clone();
+      this->template ref<switch_state_tags::nexthopsmulti>() = node;
+    }
+    this->template ref<switch_state_tags::nexthopsmulti>()->update(
+        clientId, entry);
   }
 
   void updateClassID(std::optional<cfg::AclLookupClass> classID) {
-    RouteBase::writableFields()->updateClassID(classID);
+    if (!classID) {
+      this->template ref<switch_state_tags::classID>().reset();
+    } else {
+      this->template set<switch_state_tags::classID>(*classID);
+    }
   }
 
   std::optional<cfg::AclLookupClass> getClassID() const {
-    return RouteBase::getFields()->getClassID();
+    auto classID = this->template safe_cref<switch_state_tags::classID>();
+    if (!classID) {
+      return std::nullopt;
+    }
+    return classID->cref();
   }
   void delEntryForClient(ClientID clientId) {
-    RouteBase::writableFields()->delEntryForClient(clientId);
+    if (this->template cref<switch_state_tags::nexthopsmulti>()
+            ->isPublished()) {
+      auto node =
+          this->template cref<switch_state_tags::nexthopsmulti>()->clone();
+      this->template ref<switch_state_tags::nexthopsmulti>() = node;
+    }
+    this->template ref<switch_state_tags::nexthopsmulti>()->delEntryForClient(
+        clientId);
   }
 
-  RouteNextHopsMulti getEntryForClients() const {
-    return RouteBase::getFields()->getEntryForClients();
+  const RouteNextHopsMulti& getEntryForClients() const {
+    auto multi = this->template safe_cref<switch_state_tags::nexthopsmulti>();
+    return *multi;
   }
 
   bool isPopAndLookup() const {
-    const auto nexthops = RouteBase::getFields()->fwd().getNextHopSet();
+    auto fwd = this->template safe_cref<switch_state_tags::fwd>();
+    const auto nexthops = fwd->getNextHopSet();
     if (nexthops.size() == 1) {
       // there must be exactly one next hop for POP_AND_LOOKUP action
       return nexthops.begin()->isPopAndLookup();
@@ -448,13 +545,15 @@ class Route : public ThriftyBaseT<
   }
 
  private:
+  void setFlags(uint32_t flags) {
+    this->template ref<switch_state_tags::flags>() = flags;
+  }
   // no copy or assign operator
   Route(const Route&) = delete;
   Route& operator=(const Route&) = delete;
 
   // Inherit the constructors required for clone()
-  using ThriftyBaseT<ThriftFieldsT<AddrT>, Route<AddrT>, RouteFields<AddrT>>::
-      ThriftyBaseT;
+  using RouteBase::RouteBase;
   friend class CloneAllocator;
 };
 
@@ -462,4 +561,17 @@ using RouteV4 = Route<folly::IPAddressV4>;
 using RouteV6 = Route<folly::IPAddressV6>;
 using RouteMpls = Route<LabelID>;
 
+template <>
+struct IsThriftCowNode<Route<folly::IPAddressV4>> {
+  static constexpr bool value = true;
+};
+template <>
+struct IsThriftCowNode<Route<folly::IPAddressV6>> {
+  static constexpr bool value = true;
+};
+
+template <>
+struct IsThriftCowNode<Route<LabelID>> {
+  static constexpr bool value = true;
+};
 } // namespace facebook::fboss

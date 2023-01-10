@@ -229,20 +229,34 @@ template struct RouteFields<LabelID>;
 
 template <typename AddrT>
 bool Route<AddrT>::isSame(const Route<AddrT>* rt) const {
-  return *this->getFields() == *rt->getFields();
+  return *this == *rt;
 }
 
 template <typename AddrT>
 std::shared_ptr<Route<AddrT>> Route<AddrT>::fromFollyDynamicLegacy(
     const folly::dynamic& routeJson) {
-  return std::make_shared<Route<AddrT>>(
-      RouteFields<AddrT>::fromFollyDynamicLegacy(routeJson));
+  auto fields = RouteFields<AddrT>::fromFollyDynamicLegacy(routeJson);
+  return std::make_shared<Route<AddrT>>(fields.toThrift());
+}
+
+template <typename AddrT>
+std::shared_ptr<Route<AddrT>> Route<AddrT>::fromFollyDynamic(
+    const folly::dynamic& json) {
+  auto fields = RouteFields<AddrT>::fromFollyDynamic(json);
+  return std::make_shared<Route<AddrT>>(fields.toThrift());
+}
+
+template <typename AddrT>
+folly::dynamic Route<AddrT>::toFollyDynamic() const {
+  auto fields = RouteFields<AddrT>::fromThrift(this->toThrift());
+  return fields.toFollyDynamic();
 }
 
 template <typename AddrT>
 std::shared_ptr<Route<AddrT>> Route<AddrT>::cloneForReresolve() const {
   auto unresolvedRoute = this->clone();
-  unresolvedRoute->writableFields()->clearFlags();
+
+  unresolvedRoute->clearFlags();
   unresolvedRoute->clearForward();
   return unresolvedRoute;
 }

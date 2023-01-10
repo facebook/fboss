@@ -68,7 +68,8 @@ LabelForwardingInformationBase::labelEntryFromFollyDynamic(
 std::shared_ptr<LabelForwardingEntry>
 LabelForwardingInformationBase::fromFollyDynamicOldFormat(folly::dynamic json) {
   auto topLabel = static_cast<MplsLabel>(json[kIncomingLabel].asInt());
-  auto entry = std::make_shared<LabelForwardingEntry>(topLabel);
+  auto entry = std::make_shared<LabelForwardingEntry>(
+      LabelForwardingEntry::makeThrift(topLabel));
   auto labelNextHopsByClient = LegacyRouteNextHopsMulti::fromFollyDynamicLegacy(
       json[kLabelNextHopsByClient]);
   for (const auto& clientEntry : *labelNextHopsByClient) {
@@ -99,12 +100,13 @@ void LabelForwardingInformationBase::noRibToRibEntryConvertor(
     std::shared_ptr<LabelForwardingEntry>& entry) {
   CHECK(!entry->isPublished());
   // cache fwdinfo before modifying the route
-  auto fwd = entry->getForwardInfo();
+  const auto& fwd = entry->getForwardInfo();
 
   if (fwd.getAction() == LabelNextHopEntry::Action::DROP ||
       fwd.getAction() == LabelNextHopEntry::Action::TO_CPU) {
     return;
   }
+  auto entries = entry->cref<switch_state_tags::nexthopsmulti>()->clone();
   // only interface routes and v6 ll routes will have interface id
   for (auto& clientEntry : entry->getEntryForClients()) {
     if (clientEntry.first == ClientID::INTERFACE_ROUTE) {
@@ -121,11 +123,12 @@ void LabelForwardingInformationBase::noRibToRibEntryConvertor(
             nh.addr(), nh.weight(), nh.labelForwardingAction()));
       }
     }
-    entry->update(
+    entries->update(
         clientEntry.first,
         RouteNextHopEntry(nhSet, rNHE.getAdminDistance(), rNHE.getCounterID()));
   }
-  entry->setResolved(std::move(fwd));
+  entry->ref<switch_state_tags::nexthopsmulti>() = entries;
+  entry->setResolved(fwd);
 }
 
 LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
@@ -149,8 +152,9 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::programLabel(
                << " nhops: " << nextHopsStr << " nhop count:" << nexthopCount
                << " in label forwarding information base for client:"
                << static_cast<int>(client);
-    auto newEntry = std::make_shared<LabelForwardingEntry>(
-        label, client, LabelNextHopEntry(std::move(nexthops), distance));
+    auto newEntry =
+        std::make_shared<LabelForwardingEntry>(LabelForwardingEntry::makeThrift(
+            label, client, LabelNextHopEntry(std::move(nexthops), distance)));
     resolve(newEntry);
     writableLabelFib->addNode(newEntry);
   } else {

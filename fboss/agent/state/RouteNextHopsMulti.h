@@ -45,6 +45,11 @@ using ClientToNHopMap = std::map<ClientID, state::RouteNextHopEntry>;
 
 USE_THRIFT_COW(RouteNextHopsMulti);
 
+template <>
+struct thrift_cow::ThriftStructResolver<state::RouteNextHopsMulti> {
+  using type = RouteNextHopsMulti;
+};
+
 struct LegacyRouteNextHopsMulti : public ThriftyFields<
                                       LegacyRouteNextHopsMulti,
                                       state::RouteNextHopsMulti> {
@@ -70,7 +75,7 @@ struct LegacyRouteNextHopsMulti : public ThriftyFields<
  * Map form clientId -> RouteNextHopEntry
  */
 class RouteNextHopsMulti
-    : public ThriftStructNode<RouteNextHopsMulti, state::RouteNextHopsMulti> {
+    : public thrift_cow::ThriftStructNode<state::RouteNextHopsMulti> {
  private:
   auto map() {
     return this->safe_ref<switch_state_tags::client2NextHopEntry>();
@@ -84,7 +89,7 @@ class RouteNextHopsMulti
   ClientID findLowestAdminDistance();
 
  public:
-  using Base = ThriftStructNode<RouteNextHopsMulti, state::RouteNextHopsMulti>;
+  using Base = thrift_cow::ThriftStructNode<state::RouteNextHopsMulti>;
   using Base::Base;
 
   static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);

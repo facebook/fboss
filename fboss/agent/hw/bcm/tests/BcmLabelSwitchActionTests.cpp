@@ -40,44 +40,49 @@ class BcmLabelSwitchActionTest : public BcmTest {
   }
 
   void setupTestLabelForwardingEntries() {
-    entries_.push_back(std::make_shared<LabelForwardingEntry>(
-        5001,
-        ClientID::OPENR,
-        util::getSwapLabelNextHopEntry(
-            AdminDistance::DIRECTLY_CONNECTED,
-            InterfaceID(utility::kBaseVlanId),
-            {folly::IPAddress("1.1.1.1")})));
-    entries_.push_back(std::make_shared<LabelForwardingEntry>(
-        5002,
-        ClientID::OPENR,
-        util::getPhpLabelNextHopEntry(
-            AdminDistance::DIRECTLY_CONNECTED,
-            InterfaceID(utility::kBaseVlanId),
-            {folly::IPAddress("1.1.1.1")})));
-    entries_.push_back(std::make_shared<LabelForwardingEntry>(
-        5003,
-        ClientID::OPENR,
-        util::getPopLabelNextHopEntry(
-            AdminDistance::DIRECTLY_CONNECTED,
-            InterfaceID(utility::kBaseVlanId),
-            {folly::IPAddress("1.1.1.1")})));
-    entries_.push_back(std::make_shared<LabelForwardingEntry>(
-        5004,
-        ClientID::OPENR,
-        util::getPushLabelNextHopEntry(
-            AdminDistance::DIRECTLY_CONNECTED,
-            InterfaceID(utility::kBaseVlanId),
-            {folly::IPAddress("1.1.1.1")})));
-    entries_.push_back(std::make_shared<LabelForwardingEntry>(
-        5005,
-        ClientID::OPENR,
-        util::getPushLabelNextHopEntry(
-            AdminDistance::DIRECTLY_CONNECTED,
-            InterfaceID(utility::kBaseVlanId))));
+    entries_.push_back(
+        std::make_shared<LabelForwardingEntry>(LabelForwardingEntry::makeThrift(
+            5001,
+            ClientID::OPENR,
+            util::getSwapLabelNextHopEntry(
+                AdminDistance::DIRECTLY_CONNECTED,
+                InterfaceID(utility::kBaseVlanId),
+                {folly::IPAddress("1.1.1.1")}))));
+    entries_.push_back(
+        std::make_shared<LabelForwardingEntry>(LabelForwardingEntry::makeThrift(
+            5002,
+            ClientID::OPENR,
+            util::getPhpLabelNextHopEntry(
+                AdminDistance::DIRECTLY_CONNECTED,
+                InterfaceID(utility::kBaseVlanId),
+                {folly::IPAddress("1.1.1.1")}))));
+    entries_.push_back(
+        std::make_shared<LabelForwardingEntry>(LabelForwardingEntry::makeThrift(
+            5003,
+            ClientID::OPENR,
+            util::getPopLabelNextHopEntry(
+                AdminDistance::DIRECTLY_CONNECTED,
+                InterfaceID(utility::kBaseVlanId),
+                {folly::IPAddress("1.1.1.1")}))));
+    entries_.push_back(
+        std::make_shared<LabelForwardingEntry>(LabelForwardingEntry::makeThrift(
+            5004,
+            ClientID::OPENR,
+            util::getPushLabelNextHopEntry(
+                AdminDistance::DIRECTLY_CONNECTED,
+                InterfaceID(utility::kBaseVlanId),
+                {folly::IPAddress("1.1.1.1")}))));
+    entries_.push_back(
+        std::make_shared<LabelForwardingEntry>(LabelForwardingEntry::makeThrift(
+            5005,
+            ClientID::OPENR,
+            util::getPushLabelNextHopEntry(
+                AdminDistance::DIRECTLY_CONNECTED,
+                InterfaceID(utility::kBaseVlanId)))));
     LabelNextHopEntry nexthop{
         LabelNextHopEntry::Action::TO_CPU, AdminDistance::MAX_ADMIN_DISTANCE};
-    entries_.push_back(
-        std::make_shared<LabelForwardingEntry>(5006, ClientID::OPENR, nexthop));
+    entries_.push_back(std::make_shared<LabelForwardingEntry>(
+        LabelForwardingEntry::makeThrift(5006, ClientID::OPENR, nexthop)));
   }
 
   void addAllTestLabelForwardingEntries() {

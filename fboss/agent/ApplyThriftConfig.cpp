@@ -3747,9 +3747,10 @@ ThriftConfigApplier::createLabelForwardingEntry(
     LabelNextHopEntry::Action action,
     LabelNextHopSet nexthops) {
   return std::make_shared<LabelForwardingEntry>(
-      label,
-      ClientID::STATIC_ROUTE,
-      getStaticLabelNextHopEntry(action, nexthops));
+      LabelForwardingEntry::makeThrift(
+          label,
+          ClientID::STATIC_ROUTE,
+          getStaticLabelNextHopEntry(action, nexthops)));
 }
 
 std::shared_ptr<IpTunnelMap> ThriftConfigApplier::updateIpInIpTunnels() {

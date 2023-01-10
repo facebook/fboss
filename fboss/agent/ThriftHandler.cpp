@@ -1514,7 +1514,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
       XLOG(DBG2) << "Skipping unresolved route: " << route->toFollyDynamic();
       return;
     }
-    auto fwdInfo = route->getForwardInfo();
+    const auto& fwdInfo = route->getForwardInfo();
     tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network());
     tempRoute.dest()->prefixLength() = route->prefix().mask();
     tempRoute.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
@@ -1582,7 +1582,7 @@ void ThriftHandler::getIpRoute(
       *route.dest()->prefixLength() = 0;
       return;
     }
-    const auto fwdInfo = match->getForwardInfo();
+    const auto& fwdInfo = match->getForwardInfo();
     *route.dest()->ip() = toBinaryAddress(match->prefix().network());
     *route.dest()->prefixLength() = match->prefix().mask();
     *route.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
@@ -1601,7 +1601,7 @@ void ThriftHandler::getIpRoute(
       *route.dest()->prefixLength() = 0;
       return;
     }
-    const auto fwdInfo = match->getForwardInfo();
+    const auto& fwdInfo = match->getForwardInfo();
     *route.dest()->ip() = toBinaryAddress(match->prefix().network());
     *route.dest()->prefixLength() = match->prefix().mask();
     *route.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
