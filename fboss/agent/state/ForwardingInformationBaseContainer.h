@@ -63,12 +63,25 @@ struct ForwardingInformationBaseContainerFields
   std::shared_ptr<ForwardingInformationBaseV6> fibV6{nullptr};
 };
 
+USE_THRIFT_COW(ForwardingInformationBaseContainer)
+RESOLVE_STRUCT_MEMBER(
+    ForwardingInformationBaseContainer,
+    switch_state_tags::fibV4,
+    ForwardingInformationBaseV4)
+RESOLVE_STRUCT_MEMBER(
+    ForwardingInformationBaseContainer,
+    switch_state_tags::fibV6,
+    ForwardingInformationBaseV6)
+
 class ForwardingInformationBaseContainer
-    : public ThriftyBaseT<
-          state::FibContainerFields,
+    : public ThriftStructNode<
           ForwardingInformationBaseContainer,
-          ForwardingInformationBaseContainerFields> {
+          state::FibContainerFields> {
  public:
+  using LegacyFields = ForwardingInformationBaseContainerFields;
+  using Base = ThriftStructNode<
+      ForwardingInformationBaseContainer,
+      state::FibContainerFields>;
   explicit ForwardingInformationBaseContainer(RouterID vrf);
   ~ForwardingInformationBaseContainer() override;
 
@@ -87,9 +100,9 @@ class ForwardingInformationBaseContainer
   template <typename AddressT>
   void setFib(const std::shared_ptr<ForwardingInformationBase<AddressT>>& fib) {
     if constexpr (std::is_same_v<folly::IPAddressV6, AddressT>) {
-      writableFields()->fibV6 = fib;
+      this->ref<switch_state_tags::fibV6>() = fib;
     } else {
-      writableFields()->fibV4 = fib;
+      this->ref<switch_state_tags::fibV4>() = fib;
     }
   }
 
@@ -99,10 +112,13 @@ class ForwardingInformationBaseContainer
   static std::shared_ptr<ForwardingInformationBaseContainer>
   fromFollyDynamicLegacy(const folly::dynamic& json);
   folly::dynamic toFollyDynamicLegacy() const;
+  static std::shared_ptr<ForwardingInformationBaseContainer> fromFollyDynamic(
+      const folly::dynamic& json);
+  folly::dynamic toFollyDynamic() const override;
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyBaseT::ThriftyBaseT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 

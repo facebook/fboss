@@ -90,22 +90,23 @@ void ForwardingInformationBaseContainerFields::migrateFromThrifty(
 }
 
 ForwardingInformationBaseContainer::ForwardingInformationBaseContainer(
-    RouterID vrf)
-    : ThriftyBaseT(vrf) {}
+    RouterID vrf) {
+  set<switch_state_tags::vrf>(vrf);
+}
 
 ForwardingInformationBaseContainer::~ForwardingInformationBaseContainer() {}
 
 RouterID ForwardingInformationBaseContainer::getID() const {
-  return getFields()->vrf;
+  return RouterID(get<switch_state_tags::vrf>()->cref());
 }
 
 const std::shared_ptr<ForwardingInformationBaseV4>&
 ForwardingInformationBaseContainer::getFibV4() const {
-  return getFields()->fibV4;
+  return this->cref<switch_state_tags::fibV4>();
 }
 const std::shared_ptr<ForwardingInformationBaseV6>&
 ForwardingInformationBaseContainer::getFibV6() const {
-  return getFields()->fibV6;
+  return this->cref<switch_state_tags::fibV6>();
 }
 
 std::shared_ptr<ForwardingInformationBaseContainer>
@@ -113,12 +114,30 @@ ForwardingInformationBaseContainer::fromFollyDynamicLegacy(
     const folly::dynamic& json) {
   auto fields =
       ForwardingInformationBaseContainerFields::fromFollyDynamicLegacy(json);
-  return std::make_shared<ForwardingInformationBaseContainer>(fields);
+  return std::make_shared<ForwardingInformationBaseContainer>(
+      fields.toThrift());
+}
+
+std::shared_ptr<ForwardingInformationBaseContainer>
+ForwardingInformationBaseContainer::fromFollyDynamic(
+    const folly::dynamic& json) {
+  auto fields =
+      ForwardingInformationBaseContainerFields::fromFollyDynamic(json);
+  return std::make_shared<ForwardingInformationBaseContainer>(
+      fields.toThrift());
 }
 
 folly::dynamic ForwardingInformationBaseContainer::toFollyDynamicLegacy()
     const {
-  return getFields()->toFollyDynamicLegacy();
+  auto fields =
+      ForwardingInformationBaseContainerFields::fromThrift(this->toThrift());
+  return fields.toFollyDynamicLegacy();
+}
+
+folly::dynamic ForwardingInformationBaseContainer::toFollyDynamic() const {
+  auto fields =
+      ForwardingInformationBaseContainerFields::fromThrift(this->toThrift());
+  return fields.toFollyDynamic();
 }
 
 ForwardingInformationBaseContainer* ForwardingInformationBaseContainer::modify(
@@ -137,8 +156,8 @@ ForwardingInformationBaseContainer* ForwardingInformationBaseContainer::modify(
   return rtn;
 }
 
-template class NodeBaseT<
+template class ThriftStructNode<
     ForwardingInformationBaseContainer,
-    ForwardingInformationBaseContainerFields>;
+    state::FibContainerFields>;
 
 } // namespace facebook::fboss

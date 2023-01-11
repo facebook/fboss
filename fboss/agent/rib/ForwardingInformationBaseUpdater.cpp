@@ -69,11 +69,11 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
   auto nextFibContainer = previousFibContainer->modify(&nextState);
 
   if (newFibV4) {
-    nextFibContainer->writableFields()->fibV4 = std::move(newFibV4);
+    nextFibContainer->ref<switch_state_tags::fibV4>() = std::move(newFibV4);
   }
 
   if (newFibV6) {
-    nextFibContainer->writableFields()->fibV6 = std::move(newFibV6);
+    nextFibContainer->ref<switch_state_tags::fibV6>() = std::move(newFibV6);
   }
 
   if (newLabelFib) {

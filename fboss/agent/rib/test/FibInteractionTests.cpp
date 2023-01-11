@@ -50,8 +50,8 @@ TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
   auto fibContainer =
       std::make_shared<facebook::fboss::ForwardingInformationBaseContainer>(
           vrfOne);
-  fibContainer->writableFields()->fibV4 = v4Fib;
-  fibContainer->writableFields()->fibV6 = v6Fib;
+  fibContainer->ref<switch_state_tags::fibV4>() = v4Fib;
+  fibContainer->ref<switch_state_tags::fibV6>() = v6Fib;
 
   auto fibMap =
       std::make_shared<facebook::fboss::ForwardingInformationBaseMap>();
