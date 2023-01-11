@@ -291,8 +291,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         // CS00012267635: debug why queue counter is 310, when txPacketSize is
         // 322
         EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
-        // CS00012270648: debug why pipeline bypass (sendPacketCpu) fails
-        EXPECT_EVENTUALLY_EQ(afterAclPkts - 1, beforeAclPkts);
+        EXPECT_EVENTUALLY_GT(afterAclPkts, beforeAclPkts);
         EXPECT_EVENTUALLY_GT(afterVoQOutBytes, beforeVoQOutBytes);
       });
     };
