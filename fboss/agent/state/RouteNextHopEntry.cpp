@@ -112,7 +112,7 @@ NextHopWeight RouteNextHopEntry::getTotalWeight() const {
   return totalWeight(getNextHopSet());
 }
 
-std::string RouteNextHopEntry::str() const {
+std::string RouteNextHopEntry::str_DEPRACATED() const {
   std::string result;
   switch (getAction()) {
     case Action::DROP:
@@ -140,6 +140,12 @@ std::string RouteNextHopEntry::str() const {
           ? apache::thrift::util::enumNameSafe(AclLookupClass(*classID))
           : "none");
   return result;
+}
+
+std::string RouteNextHopEntry::str() const {
+  std::string jsonStr;
+  apache::thrift::SimpleJSONSerializer::serialize(this->toThrift(), &jsonStr);
+  return jsonStr;
 }
 
 bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b) {

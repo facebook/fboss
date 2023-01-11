@@ -119,6 +119,8 @@ class RouteNextHopEntry
   // Get the sum of the weights of all the nexthops in the entry
   NextHopWeight getTotalWeight() const;
 
+  std::string str_DEPRACATED() const;
+
   std::string str() const;
 
   /*

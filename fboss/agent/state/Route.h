@@ -426,8 +426,17 @@ class Route : public ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>> {
     // not resolved, nor unresolvable, nor in processing
     return !(flags() & (RESOLVED | UNRESOLVABLE | PROCESSING));
   }
-  // THRIFT_COPY
+
   std::string str() const {
+    if constexpr (std::is_same_v<AddrT, LabelID>) {
+      return folly::to<std::string>(prefix().value());
+    } else {
+      return prefix().str();
+    }
+  }
+
+  // THRIFT_COPY
+  std::string str_DEPRACATED() const {
     auto fields = RouteFields<AddrT>(this->toThrift());
     return fields.str();
   }
