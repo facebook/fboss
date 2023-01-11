@@ -8,38 +8,38 @@
   "sw": {
     "version": 0,
     "ports": [
-
+      
     ],
     "vlans": [
-
+      
     ],
     "vlanPorts": [
-
+      
     ],
     "defaultVlan": 0,
     "interfaces": [
-
+      
     ],
     "arpTimeoutSeconds": 60,
     "arpRefreshSeconds": 20,
     "arpAgerInterval": 5,
     "proactiveArp": false,
     "staticRoutesWithNhops": [
-
+      
     ],
     "staticRoutesToNull": [
-
+      
     ],
     "staticRoutesToCPU": [
-
+      
     ],
     "acls": [
-
+      
     ],
     "maxNeighborProbes": 300,
     "staleEntryInterval": 10,
     "aggregatePorts": [
-
+      
     ],
     "clientIdToAdminDistance": {
       "0": 20,
@@ -50,40 +50,40 @@
       "786": 10
     },
     "sFlowCollectors": [
-
+      
     ],
     "cpuQueues": [
-
+      
     ],
     "loadBalancers": [
-
+      
     ],
     "mirrors": [
-
+      
     ],
     "trafficCounters": [
-
+      
     ],
     "qosPolicies": [
-
+      
     ],
     "defaultPortQueues": [
-
+      
     ],
     "staticMplsRoutesWithNhops": [
-
+      
     ],
     "staticMplsRoutesToNull": [
-
+      
     ],
     "staticMplsRoutesToCPU": [
-
+      
     ],
     "staticIp2MplsRoutes": [
-
+      
     ],
     "portQueueConfigs": {
-
+      
     },
     "switchSettings": {
       "l2LearningMode": 0,
@@ -92,19 +92,32 @@
       "l2AgeTimerSeconds": 300,
       "maxRouteCounterIDs": 0,
       "blockNeighbors": [
-
+        
       ],
       "macAddrsToBlock": [
-
+        
       ],
       "switchType": 2,
       "switchId": 0,
       "exactMatchTableConfigs": [
-
+        
       ]
     },
     "dsfNodes": {
-
+      "0": {
+          "name": "intfNode0",
+          "switchId": 0,
+          "type": 2,
+          "loopbackIps": [
+            
+          ],
+          "systemPortRange": {
+            "minimum": 100,
+            "maximum": 120
+          },
+          "nodeMac": "02:00:00:00:0F:0B",
+          "asicType": 11
+      }
     }
   },
   "platform": {
@@ -119,6 +132,7 @@
           "custom_feature_adapter_do_collect_enable.BCM8885X_ADAPTER": "1",
           "custom_feature_kbp_multithread_en.BCM8885X": "0",
           "custom_feature_multithread_en.BCM8885X": "1",
+          "custom_feature_programmability_standard_image_name.BCM8885X": "standard_1",
           "custom_feature_ptp_cosq_port.BCM8885X": "204",
           "custom_feature_ts_pll_internal_clock_reference.BCM8885X": "0",
           "dma_desc_aggregator_buff_size_kb.BCM8885X": "100",
