@@ -231,6 +231,9 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
                 .at(kDefaultQueue));
       };
       auto getVoQOutBytes = [kPort, this]() {
+        if (!getAsic()->isSupported(HwAsic::Feature::VOQ)) {
+          return 0L;
+        }
         auto sysPortRange =
             getProgrammedState()->getSwitchSettings()->getSystemPortRange();
         CHECK(sysPortRange.has_value());
@@ -292,7 +295,9 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         // 322
         EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
         EXPECT_EVENTUALLY_GT(afterAclPkts, beforeAclPkts);
-        EXPECT_EVENTUALLY_GT(afterVoQOutBytes, beforeVoQOutBytes);
+        if (getAsic()->isSupported(HwAsic::Feature::VOQ)) {
+          EXPECT_EVENTUALLY_GT(afterVoQOutBytes, beforeVoQOutBytes);
+        }
       });
     };
 
