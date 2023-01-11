@@ -88,7 +88,6 @@ HwTestLearningUpdateObserver::waitForLearningUpdates(
 }
 
 void HwTestLearningUpdateObserver::waitForStateUpdate() {
-  std::lock_guard<std::mutex> lock(mtx_);
   applyStateUpdateEventBase_.runInEventBaseThreadAndWait([]() { return; });
 }
 
