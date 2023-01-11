@@ -21,8 +21,8 @@ class ForwardingInformationBaseContainerDelta
  public:
   using DeltaValue<ForwardingInformationBaseContainer>::DeltaValue;
 
-  NodeMapDelta<ForwardingInformationBaseV4> getV4FibDelta() const;
-  NodeMapDelta<ForwardingInformationBaseV6> getV6FibDelta() const;
+  thrift_cow::ThriftMapDelta<ForwardingInformationBaseV4> getV4FibDelta() const;
+  thrift_cow::ThriftMapDelta<ForwardingInformationBaseV6> getV6FibDelta() const;
 
   template <typename AddrT>
   auto getFibDelta() const {

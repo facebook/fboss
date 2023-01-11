@@ -251,7 +251,7 @@ TEST(Route, serializeMplsRoute) {
       LabelForwardingAction(LabelForwardingAction::LabelForwardingType::PHP));
   Route<LabelID> rt(Route<LabelID>::makeThrift(LabelID(100)));
   rt.update(clientId, RouteNextHopEntry(nxtHops, DISTANCE));
-  validateNodeSerialization(rt);
+  validateThriftStructNodeSerialization(rt);
 
   // to folly dynamic
   folly::dynamic obj = rt.toFollyDynamic();
@@ -264,8 +264,8 @@ TEST(Route, serializeMplsRoute) {
   // back to Route object
   auto rt2 = Route<LabelID>::fromFollyDynamic(obj2);
   ASSERT_TRUE(rt2->has(clientId, RouteNextHopEntry(nxtHops, DISTANCE)));
-  EXPECT_EQ(int32_t(rt2->getID().label()), 100);
-  validateNodeSerialization(*rt2);
+  EXPECT_EQ(int32_t(rt2->getID()), 100);
+  validateThriftStructNodeSerialization(*rt2);
 }
 
 // Serialization/deseralization of Routes with counterID
@@ -278,7 +278,7 @@ TEST(Route, serializeRouteCounterID) {
       clientId,
       RouteNextHopEntry(nxtHops, DISTANCE, counterID)));
   rt.setResolved(RouteNextHopEntry(nxtHops, DISTANCE, counterID));
-  validateNodeSerialization(rt);
+  validateThriftStructNodeSerialization(rt);
 
   // to folly dynamic
   folly::dynamic obj = rt.toFollyDynamic();

@@ -95,7 +95,7 @@ class StateDelta {
 
   thrift_cow::ThriftMapDelta<TransceiverMap> getTransceiversDelta() const;
   ForwardingInformationBaseMapDelta getFibsDelta() const;
-  NodeMapDelta<LabelForwardingInformationBase>
+  thrift_cow::ThriftMapDelta<LabelForwardingInformationBase>
   getLabelForwardingInformationBaseDelta() const;
   DeltaValue<SwitchSettings> getSwitchSettingsDelta() const;
   thrift_cow::ThriftMapDelta<SystemPortMap> getSystemPortsDelta() const;

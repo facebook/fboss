@@ -63,8 +63,10 @@ ForwardingInformationBaseContainerFields::fromThrift(
     state::FibContainerFields const& fields) {
   auto vrf = static_cast<RouterID>(*fields.vrf());
   auto fibContainer = ForwardingInformationBaseContainerFields(vrf);
-  fibContainer.fibV4 = ForwardingInformationBaseV4::fromThrift(*fields.fibV4());
-  fibContainer.fibV6 = ForwardingInformationBaseV6::fromThrift(*fields.fibV6());
+  fibContainer.fibV4 =
+      std::make_shared<ForwardingInformationBaseV4>(*fields.fibV4());
+  fibContainer.fibV6 =
+      std::make_shared<ForwardingInformationBaseV6>(*fields.fibV6());
   return fibContainer;
 }
 
@@ -72,15 +74,19 @@ folly::dynamic ForwardingInformationBaseContainerFields::migrateToThrifty(
     folly::dynamic const& dyn) {
   folly::dynamic newDyn = folly::dynamic::object;
   newDyn[kVrf] = dyn[kVrf].asInt();
-  newDyn[kFibV4] = ForwardingInformationBaseV4::migrateToThrifty(dyn[kFibV4]);
-  newDyn[kFibV6] = ForwardingInformationBaseV6::migrateToThrifty(dyn[kFibV6]);
+  newDyn[kFibV4] =
+      ForwardingInformationBaseV4::LegacyBaseBase::migrateToThrifty(
+          dyn[kFibV4]);
+  newDyn[kFibV6] =
+      ForwardingInformationBaseV6::LegacyBaseBase::migrateToThrifty(
+          dyn[kFibV6]);
   return newDyn;
 }
 
 void ForwardingInformationBaseContainerFields::migrateFromThrifty(
     folly::dynamic& dyn) {
-  ForwardingInformationBaseV4::migrateFromThrifty(dyn[kFibV4]);
-  ForwardingInformationBaseV6::migrateFromThrifty(dyn[kFibV6]);
+  ForwardingInformationBaseV4::LegacyBaseBase::migrateFromThrifty(dyn[kFibV4]);
+  ForwardingInformationBaseV6::LegacyBaseBase::migrateFromThrifty(dyn[kFibV6]);
 }
 
 ForwardingInformationBaseContainer::ForwardingInformationBaseContainer(

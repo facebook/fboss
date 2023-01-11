@@ -138,7 +138,7 @@ TEST(LabelFIBTests, toAndFromFollyDynamic) {
 
   validateNodeSerialization(*ribEntry1);
   validateNodeSerialization(*ribEntry2);
-  validateNodeMapSerialization(*lFib);
+  validateThriftMapMapSerialization(*lFib);
 }
 
 TEST(LabelFIBTests, forEachAdded) {

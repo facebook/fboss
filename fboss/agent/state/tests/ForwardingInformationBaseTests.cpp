@@ -97,7 +97,8 @@ TEST(ForwardingInformationBaseV4, IPv4DefaultPrefixComparesSmallest) {
   ForwardingInformationBaseV4 oldFib;
   auto newFib = getFibV4();
 
-  NodeMapDelta<ForwardingInformationBaseV4> delta(&oldFib, newFib.get());
+  thrift_cow::ThriftMapDelta<ForwardingInformationBaseV4> delta(
+      &oldFib, newFib.get());
   std::shared_ptr<RouteV4> firstRouteObserved;
 
   DeltaFunctions::forEachAdded(delta, [&](std::shared_ptr<RouteV4> newRoute) {
@@ -105,28 +106,33 @@ TEST(ForwardingInformationBaseV4, IPv4DefaultPrefixComparesSmallest) {
     return LoopAction::BREAK;
   });
 
-  validateNodeSerialization(*newFib);
+  validateThriftMapMapSerialization(*newFib);
   EXPECT_EQ(
       firstRouteObserved->prefix().network(), folly::IPAddressV4("0.0.0.0"));
   EXPECT_EQ(firstRouteObserved->prefix().mask(), 0);
 }
 
-TEST(ForwardingInformationBaseV6, IPv6DefaultPrefixComparesSmallest) {
+TEST(ForwardingInformationBaseV6, IPv6DefaultPrefixFound) {
   ForwardingInformationBaseV6 oldFib;
   auto newFib = getFibV6();
 
-  validateNodeSerialization(*newFib);
+  validateThriftMapMapSerialization(*newFib);
 
-  NodeMapDelta<ForwardingInformationBaseV6> delta(&oldFib, newFib.get());
-  std::shared_ptr<RouteV6> firstRouteObserved;
+  thrift_cow::ThriftMapDelta<ForwardingInformationBaseV6> delta(
+      &oldFib, newFib.get());
+  std::shared_ptr<RouteV6> defaultRouteObserved;
+
+  RoutePrefixV6 defaultPrefixV6{folly::IPAddressV6("::"), 0};
 
   DeltaFunctions::forEachAdded(delta, [&](std::shared_ptr<RouteV6> newRoute) {
-    firstRouteObserved = newRoute;
-    return LoopAction::BREAK;
+    if (newRoute->getID() == defaultPrefixV6.str()) {
+      defaultRouteObserved = newRoute;
+      return LoopAction::BREAK;
+    }
+    return LoopAction::CONTINUE;
   });
 
-  EXPECT_EQ(firstRouteObserved->prefix().network(), folly::IPAddressV6("::"));
-  EXPECT_EQ(firstRouteObserved->prefix().mask(), 0);
+  EXPECT_NE(defaultRouteObserved, nullptr);
 }
 
 TEST(ForwardingInformationBaseContainer, Thrifty) {

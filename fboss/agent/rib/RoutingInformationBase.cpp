@@ -28,6 +28,7 @@
 
 #include <exception>
 #include <memory>
+#include <type_traits>
 #include <utility>
 
 #include <folly/ScopeGuard.h>
@@ -136,7 +137,8 @@ void reconstructRibFromFib(
         }
       });
   addrToRoute->clear();
-  for (auto& route : *fib) {
+  for (auto& iter : std::as_const(*fib)) {
+    const auto& route = iter.second;
     addrToRoute->insert(route->prefix(), route);
   }
   // Copy unresolved routes
@@ -595,7 +597,8 @@ RibRouteTables RibRouteTables::fromFollyDynamic(
 
   if (fibs) {
     auto importRoutes = [](const auto& fib, auto* addrToRoute) {
-      for (auto& route : *fib) {
+      for (const auto& iter : std::as_const(*fib)) {
+        const auto& route = iter.second;
         auto [itr, inserted] = addrToRoute->insert(route->prefix(), route);
         if (!inserted) {
           // If RIB already had a route, replace it with FIB route so we
@@ -617,12 +620,13 @@ RibRouteTables RibRouteTables::fromFollyDynamic(
       importRoutes(fib->getFibV4(), &routeTables.v4NetworkToRoute);
       auto mplsTable = &routeTables.labelToRoute;
       if (FLAGS_mpls_rib && labelFib) {
-        for (const auto& route : *labelFib) {
+        for (const auto& iter : std::as_const(*labelFib)) {
+          const auto& route = iter.second;
           auto [itr, inserted] = mplsTable->insert(route->prefix(), route);
           if (!inserted) {
             itr->second = route;
           }
-          DCHECK_EQ(mplsTable->find(route->getID().value())->second, route);
+          DCHECK_EQ(mplsTable->find(route->getID())->second, route);
         }
       }
     }

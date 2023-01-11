@@ -27,13 +27,13 @@ LabelForwardingInformationBase::~LabelForwardingInformationBase() {}
 
 const std::shared_ptr<LabelForwardingEntry>&
 LabelForwardingInformationBase::getLabelForwardingEntry(Label labelFib) const {
-  return getNode(labelFib);
+  return getNode(labelFib.value());
 }
 
 std::shared_ptr<LabelForwardingEntry>
 LabelForwardingInformationBase::getLabelForwardingEntryIf(
     Label labelFib) const {
-  return getNodeIf(labelFib);
+  return getNodeIf(labelFib.value());
 }
 
 // Save entries in old format till code to parse new format is in prod
@@ -83,7 +83,7 @@ LabelForwardingInformationBase::fromFollyDynamicOldFormat(folly::dynamic json) {
 folly::dynamic LabelForwardingInformationBase::toFollyDynamicOldFormat(
     std::shared_ptr<LabelForwardingEntry> entry) {
   folly::dynamic json = folly::dynamic::object;
-  json[kIncomingLabel] = static_cast<int>(entry->getID().value());
+  json[kIncomingLabel] = static_cast<int>(entry->getID());
   json[kLabelNextHop] = entry->getForwardInfo().toFollyDynamicLegacy();
   json[kLabelNextHopsByClient] =
       entry->getEntryForClients().toFollyDynamicLegacy();
@@ -202,16 +202,16 @@ LabelForwardingInformationBase::purgeEntriesForClient(
     std::shared_ptr<SwitchState>* state,
     ClientID client) {
   auto* writableLabelFib = modify(state);
-  auto iter = writableLabelFib->writableNodes().begin();
-  while (iter != writableLabelFib->writableNodes().end()) {
+  auto iter = writableLabelFib->begin();
+  while (iter != writableLabelFib->end()) {
     auto entry = iter->second;
     if (entry->getEntryForClient(client)) {
       auto entryToModify = modifyLabelEntry(state, entry);
       entryToModify->delEntryForClient(client);
       if (entryToModify->getEntryForClients().isEmpty()) {
         XLOG(DBG1) << "Purging empty forwarding entry for label:"
-                   << entry->getID().label();
-        iter = writableLabelFib->writableNodes().erase(iter);
+                   << entry->getID();
+        iter = writableLabelFib->erase(iter);
         continue;
       } else {
         entryToModify->setResolved(*(entryToModify->getBestEntry().second));
@@ -229,7 +229,7 @@ LabelForwardingInformationBase* LabelForwardingInformationBase::modify(
     return this;
   }
 
-  auto newFib = clone();
+  auto newFib = this->clone();
   auto* ptr = newFib.get();
   (*state)->resetLabelForwardingInformationBase(std::move(newFib));
   return ptr;
@@ -278,8 +278,8 @@ LabelForwardingEntry* LabelForwardingInformationBase::modifyLabelEntry(
   return ptr;
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(
+template class ThriftMapNode<
     LabelForwardingInformationBase,
-    LabelForwardingRoute);
+    LabelForwardingInformationBaseTraits>;
 
 } // namespace facebook::fboss

@@ -145,9 +145,7 @@ class RibRollbackTest : public ::testing::Test {
     EXPECT_EQ(v6Expected + v4Expected, rib_.getRouteTableDetails(kRid).size());
     EXPECT_EQ(
         mplsExpected,
-        switchState_->getLabelForwardingInformationBase()
-            ->getAllNodes()
-            .size());
+        switchState_->getLabelForwardingInformationBase()->size());
     EXPECT_EQ(mplsExpected, rib_.getMplsRouteTableDetails().size());
   }
 

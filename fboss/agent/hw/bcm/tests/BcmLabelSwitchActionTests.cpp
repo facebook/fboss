@@ -110,7 +110,7 @@ class BcmLabelSwitchActionTest : public BcmTest {
             mplsEntry->getID());
     bcm_mpls_tunnel_switch_t info;
     bcm_mpls_tunnel_switch_t_init(&info);
-    info.label = entry->getID().value();
+    info.label = entry->getID();
     info.port = BCM_GPORT_INVALID;
     auto rv = bcm_mpls_tunnel_switch_get(getHwSwitch()->getUnit(), &info);
     LabelForwardingAction::LabelForwardingType labelForwardingType{
@@ -125,7 +125,7 @@ class BcmLabelSwitchActionTest : public BcmTest {
                                 ->type();
     }
     ASSERT_EQ(rv, BCM_E_NONE);
-    EXPECT_EQ(info.label, static_cast<int32_t>(entry->getID().value()));
+    EXPECT_EQ(info.label, static_cast<int32_t>(entry->getID()));
     EXPECT_EQ(
         info.action,
         utility::getLabelSwitchAction(
@@ -164,7 +164,7 @@ class BcmLabelSwitchActionTest : public BcmTest {
       const std::shared_ptr<LabelForwardingEntry>& entry) {
     bcm_mpls_tunnel_switch_t info;
     bcm_mpls_tunnel_switch_t_init(&info);
-    info.label = entry->getID().value();
+    info.label = entry->getID();
     info.port = BCM_GPORT_INVALID;
     auto rv = bcm_mpls_tunnel_switch_get(getHwSwitch()->getUnit(), &info);
     ASSERT_EQ(rv, BCM_E_NOT_FOUND);
@@ -217,7 +217,7 @@ class BcmLabelSwitchActionTest : public BcmTest {
     LabelForwardingInformationBase::resolve(entry);
     auto updater = getHwSwitchEnsemble()->getRouteUpdater();
     MplsRoute route;
-    route.topLabel() = entry->getID().value();
+    route.topLabel() = entry->getID();
     route.nextHops() =
         util::fromRouteNextHopSet(entry->getForwardInfo().getNextHopSet());
     updater.addRoute(entry->getBestEntry().first, route);
@@ -226,7 +226,7 @@ class BcmLabelSwitchActionTest : public BcmTest {
 
   void removeMplsRoute(std::shared_ptr<LabelForwardingEntry> entry) {
     auto updater = getHwSwitchEnsemble()->getRouteUpdater();
-    updater.delRoute(entry->getID().value(), ClientID(786));
+    updater.delRoute(entry->getID(), ClientID(786));
     updater.program();
   }
   std::vector<std::shared_ptr<LabelForwardingEntry>> entries_;

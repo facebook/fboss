@@ -169,9 +169,9 @@ DeltaValue<SwitchSettings> StateDelta::getSwitchSettingsDelta() const {
       old_->getSwitchSettings(), new_->getSwitchSettings());
 }
 
-NodeMapDelta<LabelForwardingInformationBase>
+thrift_cow::ThriftMapDelta<LabelForwardingInformationBase>
 StateDelta::getLabelForwardingInformationBaseDelta() const {
-  return NodeMapDelta<LabelForwardingInformationBase>(
+  return thrift_cow::ThriftMapDelta<LabelForwardingInformationBase>(
       old_->getLabelForwardingInformationBase().get(),
       new_->getLabelForwardingInformationBase().get());
 }
@@ -251,9 +251,9 @@ template class thrift_cow::ThriftMapDelta<TransceiverMap>;
 template class NodeMapDelta<
     ForwardingInformationBaseMap,
     ForwardingInformationBaseContainerDelta>;
-template class NodeMapDelta<ForwardingInformationBaseV4>;
-template class NodeMapDelta<ForwardingInformationBaseV6>;
-template class NodeMapDelta<LabelForwardingInformationBase>;
+template class thrift_cow::ThriftMapDelta<ForwardingInformationBaseV4>;
+template class thrift_cow::ThriftMapDelta<ForwardingInformationBaseV6>;
+template class thrift_cow::ThriftMapDelta<LabelForwardingInformationBase>;
 template class thrift_cow::ThriftMapDelta<SystemPortMap>;
 template class thrift_cow::ThriftMapDelta<IpTunnelMap>;
 template class thrift_cow::ThriftMapDelta<TeFlowTable>;

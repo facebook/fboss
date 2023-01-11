@@ -5,6 +5,7 @@
 #include <boost/container/flat_set.hpp>
 
 #include <fboss/agent/state/LabelForwardingEntry.h>
+#include <cstdint>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
 #include "fboss/agent/state/NodeMap.h"
@@ -30,12 +31,27 @@ struct LabelForwardingInformationBaseThriftTraits
   }
 };
 
+using LabelForwardingInformationBaseTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::integral,
+    apache::thrift::type_class::structure>;
+using LabelForwardingInformationBaseThriftType =
+    std::map<int32_t, state::LabelForwardingEntryFields>;
+
+class LabelForwardingInformationBase;
+using LabelForwardingInformationBaseTraits = ThriftMapNodeTraits<
+    LabelForwardingInformationBase,
+    LabelForwardingInformationBaseTypeClass,
+    LabelForwardingInformationBaseThriftType,
+    LabelForwardingEntry>;
+
 class LabelForwardingInformationBase
-    : public ThriftyNodeMapT<
+    : public ThriftMapNode<
           LabelForwardingInformationBase,
-          LabelForwardingRoute,
-          LabelForwardingInformationBaseThriftTraits> {
-  using BaseT = ThriftyNodeMapT<
+          LabelForwardingInformationBaseTraits> {
+  using Base = ThriftMapNode<
+      LabelForwardingInformationBase,
+      LabelForwardingInformationBaseTraits>;
+  using LegacyBase = ThriftyNodeMapT<
       LabelForwardingInformationBase,
       LabelForwardingRoute,
       LabelForwardingInformationBaseThriftTraits>;
@@ -43,7 +59,7 @@ class LabelForwardingInformationBase
  public:
   LabelForwardingInformationBase();
 
-  ~LabelForwardingInformationBase();
+  virtual ~LabelForwardingInformationBase() override;
 
   const std::shared_ptr<LabelForwardingEntry>& getLabelForwardingEntry(
       Label topLabel) const;
@@ -97,7 +113,7 @@ class LabelForwardingInformationBase
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyNodeMapT::ThriftyNodeMapT;
+  using Base::Base;
   friend class CloneAllocator;
   static std::shared_ptr<LabelForwardingEntry> fromFollyDynamicOldFormat(
       folly::dynamic entry);

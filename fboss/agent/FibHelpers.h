@@ -51,11 +51,11 @@ template <typename Func>
 void forAllRoutes(const std::shared_ptr<SwitchState>& state, Func func) {
   for (const auto& fibContainer : *state->getFibs()) {
     auto rid = fibContainer->getID();
-    for (const auto& route : *(fibContainer->getFibV6())) {
-      func(rid, route);
+    for (const auto& route : std::as_const(*(fibContainer->getFibV6()))) {
+      func(rid, route.second);
     }
-    for (const auto& route : *(fibContainer->getFibV4())) {
-      func(rid, route);
+    for (const auto& route : std::as_const(*(fibContainer->getFibV4()))) {
+      func(rid, route.second);
     }
   }
 }
@@ -73,8 +73,8 @@ void forEachChangedRoute(
     RemoveFn removedFn,
     const Args&... args) {
   auto removeAll = [&](RouterID rid, const auto& routes) {
-    for (const auto& oldRoute : routes) {
-      removedFn(args..., rid, oldRoute);
+    for (const auto& iter : routes) {
+      removedFn(args..., rid, iter.second);
     }
   };
   auto processRoutesDelta = [&](RouterID rid, const auto& routesDelta) {
@@ -96,7 +96,8 @@ void forEachChangedRoute(
     if (!newFibContainer) {
       auto const& oldFibContainer = fibContainerDelta.getOld();
       removeAll(
-          oldFibContainer->getID(), *oldFibContainer->template getFib<AddrT>());
+          oldFibContainer->getID(),
+          std::as_const(*oldFibContainer->template getFib<AddrT>()));
       continue;
     }
     processRoutesDelta(

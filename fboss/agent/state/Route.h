@@ -383,8 +383,12 @@ class Route : public ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>> {
           this->template safe_cref<switch_state_tags::label>()->toThrift());
     }
   }
-  Prefix getID() const {
-    return prefix();
+  auto getID() const {
+    if constexpr (std::is_same_v<AddrT, LabelID>) {
+      return prefix().value();
+    } else {
+      return prefix().str();
+    }
   }
   uint32_t flags() const {
     return this->template cref<switch_state_tags::flags>()->cref();

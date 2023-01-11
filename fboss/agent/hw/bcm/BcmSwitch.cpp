@@ -2999,13 +2999,12 @@ void BcmSwitch::processAddedLabelForwardingEntry(
     throw FbossError("Invalid MPLS routes");
   }
   writableLabelMap()->processAddedLabelSwitchAction(
-      addedEntry->getID().value(), addedEntry->getForwardInfo());
+      addedEntry->getID(), addedEntry->getForwardInfo());
 }
 
 void BcmSwitch::processRemovedLabelForwardingEntry(
     const std::shared_ptr<Route<LabelID>>& deletedEntry) {
-  writableLabelMap()->processRemovedLabelSwitchAction(
-      deletedEntry->getID().value());
+  writableLabelMap()->processRemovedLabelSwitchAction(deletedEntry->getID());
 }
 
 void BcmSwitch::processChangedLabelForwardingEntry(
@@ -3015,7 +3014,7 @@ void BcmSwitch::processChangedLabelForwardingEntry(
     throw FbossError("Invalid MPLS routes");
   }
   writableLabelMap()->processChangedLabelSwitchAction(
-      newEntry->getID().value(), newEntry->getForwardInfo());
+      newEntry->getID(), newEntry->getForwardInfo());
 }
 
 void BcmSwitch::l2LearningCallback(

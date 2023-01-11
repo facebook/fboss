@@ -962,17 +962,7 @@ struct Route {
   Route(uint32_t vrf, IPAddress prefix, uint8_t len)
       : vrf(vrf), prefix(prefix), len(len) {}
   bool operator<(const Route& rt) const {
-    if (vrf < rt.vrf) {
-      return true;
-    } else if (vrf > rt.vrf) {
-      return false;
-    }
-    if (len < rt.len) {
-      return true;
-    } else if (len > rt.len) {
-      return false;
-    }
-    return prefix < rt.prefix;
+    return std::tie(vrf, len, prefix) < std::tie(rt.vrf, rt.len, rt.prefix);
   }
   bool operator==(const Route& rt) const {
     return vrf == rt.vrf && len == rt.len && prefix == rt.prefix;

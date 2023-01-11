@@ -105,7 +105,7 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
     facebook::fboss::RoutePrefix<AddressT> fibPrefix{
         ribRoute->prefix().network(), ribRoute->prefix().mask()};
     std::shared_ptr<facebook::fboss::Route<AddressT>> fibRoute =
-        fib->getNodeIf(fibPrefix);
+        fib->getNodeIf(fibPrefix.str());
     if (fibRoute) {
       if (fibRoute == ribRoute || fibRoute->isSame(ribRoute.get())) {
         // Pointer or contents are same, reuse existing route
@@ -119,12 +119,13 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
       updated = true;
     }
     CHECK(fibRoute->isPublished());
-    updatedFib.emplace_hint(updatedFib.cend(), fibPrefix, fibRoute);
+    updatedFib.emplace_hint(updatedFib.cend(), fibPrefix.str(), fibRoute);
   }
   // Check for deleted routes. Routes that were in the previous FIB
   // and have now been removed
-  for (const auto& fibEntry : *fib) {
-    const auto& prefix = fibEntry->prefix();
+  for (const auto& iter : std::as_const(*fib)) {
+    const auto& fibEntry = iter.second;
+    auto prefix = fibEntry->getID();
     if (updatedFib.find(prefix) == updatedFib.end()) {
       updated = true;
       break;
@@ -185,7 +186,8 @@ ForwardingInformationBaseUpdater::createUpdatedLabelFib(
   }
   // Check for deleted routes. Routes that were in the previous FIB
   // and have now been removed
-  for (const auto& fibEntry : *fib) {
+  for (const auto& iter : std::as_const(*fib)) {
+    const auto& fibEntry = iter.second;
     const auto& label = fibEntry->getID();
     if (!newFib->getLabelForwardingEntryIf(label)) {
       updated = true;

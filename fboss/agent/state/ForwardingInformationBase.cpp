@@ -16,16 +16,10 @@
 namespace facebook::fboss {
 
 template <typename AddressT>
-ForwardingInformationBase<AddressT>::ForwardingInformationBase() {}
-
-template <typename AddressT>
-ForwardingInformationBase<AddressT>::~ForwardingInformationBase() {}
-
-template <typename AddressT>
 std::shared_ptr<Route<AddressT>>
 ForwardingInformationBase<AddressT>::exactMatch(
     const RoutePrefix<AddressT>& prefix) const {
-  return ForwardingInformationBase::Base::getNodeIf(prefix);
+  return ForwardingInformationBase::Base::getNodeIf(prefix.str());
 }
 
 template <typename AddressT>
@@ -41,12 +35,12 @@ ForwardingInformationBase<AddressT>* ForwardingInformationBase<
   return clonedFib.get();
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(
+template class ThriftMapNode<
     ForwardingInformationBase<folly::IPAddressV4>,
-    ForwardingInformationBaseTraits<folly::IPAddressV4>);
-FBOSS_INSTANTIATE_NODE_MAP(
+    ForwardingInformationBaseTraits<folly::IPAddressV4>>;
+template class ThriftMapNode<
     ForwardingInformationBase<folly::IPAddressV6>,
-    ForwardingInformationBaseTraits<folly::IPAddressV6>);
+    ForwardingInformationBaseTraits<folly::IPAddressV6>>;
 template class ForwardingInformationBase<folly::IPAddressV4>;
 template class ForwardingInformationBase<folly::IPAddressV6>;
 

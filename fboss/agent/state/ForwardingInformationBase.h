@@ -21,7 +21,7 @@
 namespace facebook::fboss {
 
 template <typename AddressT>
-using ForwardingInformationBaseTraits = NodeMapTraits<
+using LegacyForwardingInformationBaseTraits = NodeMapTraits<
     RoutePrefix<AddressT>,
     Route<AddressT>,
     NodeMapNoExtraFields,
@@ -44,20 +44,38 @@ struct ForwardingInformationBaseThriftTraits
   }
 };
 
+using ForwardingInformationBaseClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::string,
+    apache::thrift::type_class::structure>;
+using ForwardingInformationBaseType = std::map<std::string, state::RouteFields>;
+
+template <typename AddrT>
+class ForwardingInformationBase;
+
+template <typename AddrT>
+using ForwardingInformationBaseTraits = ThriftMapNodeTraits<
+    ForwardingInformationBase<AddrT>,
+    ForwardingInformationBaseClass,
+    ForwardingInformationBaseType,
+    Route<AddrT>>;
+
 template <typename AddressT>
 class ForwardingInformationBase
-    : public ThriftyNodeMapT<
+    : public ThriftMapNode<
           ForwardingInformationBase<AddressT>,
-          ForwardingInformationBaseTraits<AddressT>,
-          ForwardingInformationBaseThriftTraits<AddressT>> {
+          ForwardingInformationBaseTraits<AddressT>> {
  public:
-  ForwardingInformationBase();
-  ~ForwardingInformationBase() override;
+  ForwardingInformationBase() {}
+  virtual ~ForwardingInformationBase() override {}
 
-  using Base = ThriftyNodeMapT<
+  using LegacyBaseBase = ThriftyNodeMapT<
       ForwardingInformationBase<AddressT>,
-      ForwardingInformationBaseTraits<AddressT>,
+      LegacyForwardingInformationBaseTraits<AddressT>,
       ForwardingInformationBaseThriftTraits<AddressT>>;
+
+  using Base = ThriftMapNode<
+      ForwardingInformationBase<AddressT>,
+      ForwardingInformationBaseTraits<AddressT>>;
 
   std::shared_ptr<Route<AddressT>> exactMatch(
       const RoutePrefix<AddressT>& prefix) const;

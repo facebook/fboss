@@ -656,8 +656,8 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
   }
 
   void updateNode(std::shared_ptr<Node> node) {
-    removeNode(node->getID());
-    addNode(node);
+    auto id = node->getID();
+    this->ref(id) = std::move(node);
   }
 
   std::shared_ptr<Node> removeNode(KeyType key) {

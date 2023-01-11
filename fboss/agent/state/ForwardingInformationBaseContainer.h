@@ -49,8 +49,9 @@ struct ForwardingInformationBaseContainerFields
     auto fibV6Ptr = fibV6.get() ? fibV6.get() : &emptyV6;
     auto otherFibV4Ptr = other.fibV4.get() ? other.fibV4.get() : &emptyV4;
     auto otherFibV6Ptr = other.fibV6.get() ? other.fibV6.get() : &emptyV6;
-    return (vrf == other.vrf) && (*fibV4Ptr == *otherFibV4Ptr) &&
-        (*fibV6Ptr == *otherFibV6Ptr);
+    return (vrf == other.vrf) &&
+        (fibV4Ptr->toThrift() == otherFibV4Ptr->toThrift()) &&
+        (fibV6Ptr->toThrift() == otherFibV6Ptr->toThrift());
   }
 
   bool operator!=(const ForwardingInformationBaseContainerFields& other) const {

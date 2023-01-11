@@ -74,7 +74,8 @@ class NetworkToRouteMap
     auto routesJson = routes[kRoutes];
     for (const auto& routeJson : routesJson) {
       auto route = Route<AddressT>::fromFollyDynamic(routeJson);
-      networkToRouteMap.insert(route->getID(), std::move(route));
+      auto prefix = route->prefix();
+      networkToRouteMap.insert(prefix, std::move(route));
     }
 
     return networkToRouteMap;
