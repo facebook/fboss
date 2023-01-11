@@ -62,29 +62,33 @@ class HwMmuTuningTest : public HwLinkStateDependentTest {
     // than lower pri queue.
     sendUdpPkts(lowPriDscp, highPriDscp);
 
-    auto portStats =
-        getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
-    auto queueOutDiscardBytes = *portStats.queueOutDiscardBytes_();
-    auto queueOutDiscardPackets = *portStats.queueOutDiscardPackets_();
-    auto queueWaterMarks = *portStats.queueWatermarkBytes_();
-    XLOG(DBG2) << " Port discards: " << *portStats.outDiscards_()
-               << " low pri queue discards, bytes: "
-               << queueOutDiscardBytes[lowPriQueue]
-               << " packets: " << queueOutDiscardPackets[lowPriQueue]
-               << " high pri queue discards, bytes: "
-               << queueOutDiscardBytes[highPriQueue]
-               << " packets: " << queueOutDiscardPackets[highPriQueue];
-    auto lowPriWatermark = queueWaterMarks[lowPriQueue];
-    auto highPriWatermark = queueWaterMarks[highPriQueue];
-    XLOG(DBG2) << " Low pri queue ( " << lowPriQueue
-               << " ) watermark: " << lowPriWatermark << " High pri queue ( "
-               << highPriQueue << " ) watermark: " << highPriWatermark;
-    EXPECT_GE(highPriWatermark, lowPriWatermark);
-    EXPECT_GT(*portStats.outDiscards_(), 0);
-    EXPECT_GT(queueOutDiscardBytes[lowPriQueue], 0);
-    EXPECT_GT(queueOutDiscardBytes[highPriQueue], 0);
-    EXPECT_GT(queueOutDiscardPackets[lowPriQueue], 0);
-    EXPECT_GT(queueOutDiscardPackets[highPriQueue], 0);
+    auto countIncremented = [&](const auto& newStats) {
+      auto portStats = newStats.find(masterLogicalPortIds()[0])->second;
+      auto queueOutDiscardBytes = *portStats.queueOutDiscardBytes_();
+      auto queueOutDiscardPackets = *portStats.queueOutDiscardPackets_();
+      auto queueWaterMarks = *portStats.queueWatermarkBytes_();
+      XLOG(DBG2) << " Port discards: " << *portStats.outDiscards_()
+                 << " low pri queue discards, bytes: "
+                 << queueOutDiscardBytes[lowPriQueue]
+                 << " packets: " << queueOutDiscardPackets[lowPriQueue]
+                 << " high pri queue discards, bytes: "
+                 << queueOutDiscardBytes[highPriQueue]
+                 << " packets: " << queueOutDiscardPackets[highPriQueue];
+      auto lowPriWatermark = queueWaterMarks[lowPriQueue];
+      auto highPriWatermark = queueWaterMarks[highPriQueue];
+      XLOG(DBG2) << " Low pri queue ( " << lowPriQueue
+                 << " ) watermark: " << lowPriWatermark << " High pri queue ( "
+                 << highPriQueue << " ) watermark: " << highPriWatermark;
+      return highPriWatermark >= lowPriWatermark &&
+          *portStats.outDiscards_() > 0 &&
+          queueOutDiscardBytes[lowPriQueue] > 0 &&
+          queueOutDiscardBytes[highPriQueue] > 0 &&
+          queueOutDiscardPackets[lowPriQueue] > 0 &&
+          queueOutDiscardPackets[highPriQueue] > 0;
+    };
+    // Retry 5 times, separated by 200 ms.
+    EXPECT_TRUE(getHwSwitchEnsemble()->waitPortStatsCondition(
+        countIncremented, 5, std::chrono::milliseconds(200)));
     // After verification, enable tx to let packets go through.
     // New SDK expects buffer to be empty during teardown.
     if (!FLAGS_setup_for_warmboot) {
