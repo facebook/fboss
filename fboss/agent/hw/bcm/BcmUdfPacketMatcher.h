@@ -52,6 +52,7 @@ class BcmUdfPacketMatcher {
 
   BcmSwitch* hw_;
   bcm_udf_pkt_format_id_t udfPacketMatcherId_ = 0;
+  std::string bcmUdfPacketMatcherName_;
 };
 
 } // namespace facebook::fboss

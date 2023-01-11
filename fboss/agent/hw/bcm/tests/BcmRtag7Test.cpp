@@ -16,12 +16,6 @@
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/state/LoadBalancerMap.h"
 
-#include "fboss/agent/state/UdfConfig.h"
-#include "fboss/agent/state/UdfGroup.h"
-#include "fboss/agent/state/UdfGroupMap.h"
-#include "fboss/agent/state/UdfPacketMatcher.h"
-#include "fboss/agent/state/UdfPacketMatcherMap.h"
-
 #include <memory>
 
 using namespace facebook::fboss;

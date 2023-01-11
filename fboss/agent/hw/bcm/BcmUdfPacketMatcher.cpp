@@ -94,8 +94,9 @@ BcmUdfPacketMatcher::BcmUdfPacketMatcher(
   }
 
   auto warmBootCache = hw_->getWarmBootCache();
-  auto name = udfPacketMatcher->getID();
-  auto udfPacketMatcherInfoItr = warmBootCache->findUdfPktMatcherInfo(name);
+  bcmUdfPacketMatcherName_ = udfPacketMatcher->getID();
+  auto udfPacketMatcherInfoItr =
+      warmBootCache->findUdfPktMatcherInfo(bcmUdfPacketMatcherName_);
 
   if (udfPacketMatcherInfoItr !=
       warmBootCache->UdfPktMatcherNameToInfoMapEnd()) {
@@ -103,7 +104,8 @@ BcmUdfPacketMatcher::BcmUdfPacketMatcher(
     if (isBcmPktFormatCacheMatchesCfg(&cachedPktFormat, &pktFormat)) {
       udfPacketMatcherId_ = udfPacketMatcherInfoItr->second.first;
       warmBootCache->programmed(udfPacketMatcherInfoItr);
-      XLOG(DBG2) << "Warmboot PktFormat cache matches the cfg for " << name;
+      XLOG(DBG2) << "Warmboot PktFormat cache matches the cfg for "
+                 << bcmUdfPacketMatcherName_;
       return;
     }
   }
@@ -127,11 +129,10 @@ int BcmUdfPacketMatcher::udfPktFormatCreate(
       pktFormat,
       &udfPacketMatcherId_);
 
-  if (BCM_FAILURE(rv)) {
-    printf("Failed to create packet format, error code: %s\n", bcm_errmsg(rv));
-    return rv;
-  }
-
+  bcmCheckError(
+      rv,
+      "udfPktFormatCreate failed to create packet format for matcher ",
+      bcmUdfPacketMatcherName_);
   return rv;
 }
 
@@ -140,12 +141,13 @@ int BcmUdfPacketMatcher::udfPktFormatDelete(
   int rv = 0;
   /* Delete the packet format */
   rv = bcm_udf_pkt_format_destroy(hw_->getUnit(), pktMatcherId);
-
-  if (BCM_FAILURE(rv)) {
-    printf("bcm_udf_pkt_format_destroy() FAILED: %s\n", bcm_errmsg(rv));
-    return rv;
-  }
-
+  bcmLogFatal(
+      rv,
+      hw_,
+      "bcm_udf_pkt_format_destroy failed for ",
+      bcmUdfPacketMatcherName_.c_str(),
+      " packet id ",
+      pktMatcherId);
   return rv;
 }
 
