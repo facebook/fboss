@@ -79,6 +79,9 @@ class HwTest : public ::testing::Test,
   HwPortStats getLatestPortStats(PortID port);
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports);
+  HwSysPortStats getLatestSysPortStats(SystemPortID port);
+  std::map<SystemPortID, HwSysPortStats> getLatestSysPortStats(
+      const std::vector<SystemPortID>& ports);
 
   HwTrunkStats getLatestAggregatePortStats(AggregatePortID aggPort);
   std::map<AggregatePortID, HwTrunkStats> getLatestAggregatePortStats(

@@ -410,6 +410,29 @@ std::map<PortID, HwPortStats> HwSwitchEnsemble::getLatestPortStats(
   return portIdStatsMap;
 }
 
+HwSysPortStats HwSwitchEnsemble::getLatestSysPortStats(SystemPortID port) {
+  return getLatestSysPortStats(std::vector<SystemPortID>{port})[port];
+}
+
+std::map<SystemPortID, HwSysPortStats> HwSwitchEnsemble::getLatestSysPortStats(
+    const std::vector<SystemPortID>& ports) {
+  std::map<SystemPortID, HwSysPortStats> portIdStatsMap;
+  SwitchStats dummy{};
+  getHwSwitch()->updateStats(&dummy);
+
+  auto swState = getProgrammedState();
+  auto stats = getHwSwitch()->getSysPortStats();
+  for (auto [portName, stats] : stats) {
+    auto portId = swState->getSystemPorts()->getSystemPort(portName)->getID();
+    if (std::find(ports.begin(), ports.end(), (SystemPortID)portId) ==
+        ports.end()) {
+      continue;
+    }
+    portIdStatsMap.emplace((SystemPortID)portId, stats);
+  }
+  return portIdStatsMap;
+}
+
 HwTrunkStats HwSwitchEnsemble::getLatestAggregatePortStats(
     AggregatePortID aggregatePort) {
   return getLatestAggregatePortStats(

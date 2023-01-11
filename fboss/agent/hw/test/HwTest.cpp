@@ -176,6 +176,14 @@ std::map<PortID, HwPortStats> HwTest::getLatestPortStats(
     const std::vector<PortID>& ports) {
   return hwSwitchEnsemble_->getLatestPortStats(ports);
 }
+HwSysPortStats HwTest::getLatestSysPortStats(SystemPortID port) {
+  return getLatestSysPortStats(std::vector<SystemPortID>{port})[port];
+}
+
+std::map<SystemPortID, HwSysPortStats> HwTest::getLatestSysPortStats(
+    const std::vector<SystemPortID>& ports) {
+  return hwSwitchEnsemble_->getLatestSysPortStats(ports);
+}
 
 HwTrunkStats HwTest::getLatestAggregatePortStats(AggregatePortID aggPort) {
   return getLatestAggregatePortStats(
