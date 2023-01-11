@@ -495,6 +495,7 @@ class SaiTracer {
       "\n"
       "inline void rvCheck(int rv, int expected, int count) {\n"
       "  if (rv != expected) printf(\"Unexpected rv at %d with status %d\\n\", count, rv);\n"
+      "  else if (rv != 0) printf(\"Non 0 rv at %d with status %d\\n\", count, rv);\n"
       "}\n"
       "\n"
       "sai_object_id_t assignObject(sai_object_key_t* object_list, int object_count, int i, sai_object_id_t default_id) {\n"
