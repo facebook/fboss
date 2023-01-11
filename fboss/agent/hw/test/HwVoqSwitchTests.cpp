@@ -17,6 +17,7 @@
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace {
 constexpr uint8_t kDefaultQueue = 0;
@@ -192,7 +193,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
       addRemoveNeighbor(kPort, true /* add neighbor*/);
     };
 
-    auto verify = [this, ecmpHelper, kPort, isFrontPanel]() {
+    auto verify = [this, kPort, ecmpHelper, isFrontPanel]() {
       folly::IPAddressV6 kSrcIp("1::1");
       folly::IPAddressV6 kNeighborIp = ecmpHelper.ip(kPort);
       const auto srcMac = utility::kLocalCpuMac();
@@ -258,34 +259,42 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
       } else {
         getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
       }
-      auto [afterOutPkts, afterOutBytes] = getPortOutPktsBytes();
-      auto [afterQueueOutPkts, afterQueueOutBytes] = getQueueOutPktsBytes();
-      auto afterVoQOutBytes = getVoQOutBytes();
-      auto afterAclPkts = getAclPackets();
 
-      XLOG(DBG2) << "Stats:: beforeOutPkts: " << beforeOutPkts
-                 << " beforeOutBytes: " << beforeOutBytes
-                 << " beforeQueueOutPkts: " << beforeQueueOutPkts
-                 << " beforeQueueOutBytes: " << beforeQueueOutBytes
-                 << " beforeVoQOutBytes: " << beforeVoQOutBytes
-                 << " beforeAclPkts: " << beforeAclPkts
-                 << " txPacketSize: " << txPacketSize
-                 << " afterOutPkts: " << afterOutPkts
-                 << " afterOutBytes: " << afterOutBytes
-                 << " afterQueueOutPkts: " << afterQueueOutPkts
-                 << " afterQueueOutBytes: " << afterQueueOutBytes
-                 << " afterVoQOutBytes: " << afterVoQOutBytes
-                 << " afterAclPkts: " << afterAclPkts;
+      WITH_RETRIES({
+        auto afterVoQOutBytes = getVoQOutBytes();
+        auto afterAclPkts = getAclPackets();
+        auto portOutPktsAndBytes = getPortOutPktsBytes();
+        auto queueOutPktsAndBytes = getQueueOutPktsBytes();
+        auto afterOutPkts = portOutPktsAndBytes.first;
+        auto afterOutBytes = portOutPktsAndBytes.second;
+        auto afterQueueOutPkts = queueOutPktsAndBytes.first;
+        auto afterQueueOutBytes = queueOutPktsAndBytes.second;
 
-      EXPECT_EQ(afterOutPkts - 1, beforeOutPkts);
-      // CS00012267635: debug why we get 4 extra bytes
-      EXPECT_EQ(afterOutBytes - txPacketSize - 4, beforeOutBytes);
-      EXPECT_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
-      // CS00012267635: debug why queue counter is 310, when txPacketSize is 322
-      EXPECT_GE(afterQueueOutBytes, beforeQueueOutBytes);
-      // CS00012270648: debug why pipeline bypass (sendPacketCpu) fails
-      EXPECT_EQ(afterAclPkts - 1, beforeAclPkts);
-      EXPECT_GT(afterVoQOutBytes, beforeVoQOutBytes);
+        XLOG(DBG2) << "Stats:: beforeOutPkts: " << beforeOutPkts
+                   << " beforeOutBytes: " << beforeOutBytes
+                   << " beforeQueueOutPkts: " << beforeQueueOutPkts
+                   << " beforeQueueOutBytes: " << beforeQueueOutBytes
+                   << " beforeVoQOutBytes: " << beforeVoQOutBytes
+                   << " beforeAclPkts: " << beforeAclPkts
+                   << " txPacketSize: " << txPacketSize
+                   << " afterOutPkts: " << afterOutPkts
+                   << " afterOutBytes: " << afterOutBytes
+                   << " afterQueueOutPkts: " << afterQueueOutPkts
+                   << " afterQueueOutBytes: " << afterQueueOutBytes
+                   << " afterVoQOutBytes: " << afterVoQOutBytes
+                   << " afterAclPkts: " << afterAclPkts;
+
+        EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
+        // CS00012267635: debug why we get 4 extra bytes
+        EXPECT_EVENTUALLY_EQ(afterOutBytes - txPacketSize - 4, beforeOutBytes);
+        EXPECT_EVENTUALLY_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
+        // CS00012267635: debug why queue counter is 310, when txPacketSize is
+        // 322
+        EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
+        // CS00012270648: debug why pipeline bypass (sendPacketCpu) fails
+        EXPECT_EVENTUALLY_EQ(afterAclPkts - 1, beforeAclPkts);
+        EXPECT_EVENTUALLY_GT(afterVoQOutBytes, beforeVoQOutBytes);
+      });
     };
 
     verifyAcrossWarmBoots(setup, verify);
