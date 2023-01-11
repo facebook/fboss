@@ -72,4 +72,28 @@ SaiCloudRipperFabricPlatform::SaiCloudRipperFabricPlatform(
           std::make_unique<CloudRipperFabricPlatformMapping>(),
           localMac) {}
 
+std::vector<sai_system_port_config_t>
+SaiCloudRipperPlatform::getInternalSystemPortConfig() const {
+  CHECK(asic_) << " Asic must be set before getting sys port info";
+  CHECK(asic_->getSwitchId()) << " Switch Id must be set before sys port info";
+  auto switchIdVal = static_cast<uint32_t>(*asic_->getSwitchId());
+  // Below are a mixture system port configs for
+  // internal {loopback, CPU} ports. From the speeds (in Mbps)
+  // one can infer that ports 6-10 are 1G CPU ports and 10-14 are
+  // 100G loopback ports (TODO - confirm this with vendor)
+  //
+  return {
+      {11, switchIdVal, 0, 25, 100000, 8},
+      {12, switchIdVal, 2, 25, 100000, 8},
+      {13, switchIdVal, 4, 25, 100000, 8},
+      {14, switchIdVal, 6, 25, 100000, 8},
+      {15, switchIdVal, 8, 25, 100000, 8},
+      {16, switchIdVal, 10, 25, 100000, 8},
+      {6, switchIdVal, 0, 24, 1000, 8},
+      {7, switchIdVal, 4, 24, 1000, 8},
+      {8, switchIdVal, 6, 24, 1000, 8},
+      {9, switchIdVal, 8, 24, 1000, 8},
+      {10, switchIdVal, 1, 24, 1000, 8}};
+}
+
 } // namespace facebook::fboss
