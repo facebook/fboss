@@ -24,7 +24,7 @@ using namespace facebook::fboss;
 class QueueManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
-    setupStage = SetupStage::PORT | SetupStage::QUEUE;
+    setupStage = SetupStage::PORT | SetupStage::QUEUE | SetupStage::SYSTEM_PORT;
     ManagerTestBase::SetUp();
   }
 
