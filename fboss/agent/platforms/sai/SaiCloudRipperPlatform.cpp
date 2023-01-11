@@ -11,7 +11,9 @@
 #include "fboss/agent/platforms/sai/SaiCloudRipperPlatform.h"
 
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
+#include "fboss/agent/platforms/common/cloud_ripper/CloudRipperFabricPlatformMapping.h"
 #include "fboss/agent/platforms/common/cloud_ripper/CloudRipperPlatformMapping.h"
+#include "fboss/agent/platforms/common/cloud_ripper/CloudRipperVoqPlatformMapping.h"
 
 namespace facebook::fboss {
 
@@ -41,5 +43,33 @@ HwAsic* SaiCloudRipperPlatform::getAsic() const {
 }
 
 SaiCloudRipperPlatform::~SaiCloudRipperPlatform() {}
+
+SaiCloudRipperPlatform::SaiCloudRipperPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<CloudRipperVoqPlatformMapping> mapping,
+    folly::MacAddress localMac)
+    : SaiTajoPlatform(std::move(productInfo), std::move(mapping), localMac) {}
+
+SaiCloudRipperPlatform::SaiCloudRipperPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    std::unique_ptr<CloudRipperFabricPlatformMapping> mapping,
+    folly::MacAddress localMac)
+    : SaiTajoPlatform(std::move(productInfo), std::move(mapping), localMac) {}
+
+SaiCloudRipperVoqPlatform::SaiCloudRipperVoqPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac)
+    : SaiCloudRipperPlatform(
+          std::move(productInfo),
+          std::make_unique<CloudRipperVoqPlatformMapping>(),
+          localMac) {}
+
+SaiCloudRipperFabricPlatform::SaiCloudRipperFabricPlatform(
+    std::unique_ptr<PlatformProductInfo> productInfo,
+    folly::MacAddress localMac)
+    : SaiCloudRipperPlatform(
+          std::move(productInfo),
+          std::make_unique<CloudRipperFabricPlatformMapping>(),
+          localMac) {}
 
 } // namespace facebook::fboss

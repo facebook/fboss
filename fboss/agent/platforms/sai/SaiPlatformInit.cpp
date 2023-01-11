@@ -75,6 +75,12 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
   } else if (productInfo->getMode() == PlatformMode::CLOUDRIPPER) {
     return std::make_unique<SaiCloudRipperPlatform>(
         std::move(productInfo), localMac);
+  } else if (productInfo->getMode() == PlatformMode::CLOUDRIPPER_VOQ) {
+    return std::make_unique<SaiCloudRipperVoqPlatform>(
+        std::move(productInfo), localMac);
+  } else if (productInfo->getMode() == PlatformMode::CLOUDRIPPER_FABRIC) {
+    return std::make_unique<SaiCloudRipperFabricPlatform>(
+        std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::FUJI) {
     return std::make_unique<SaiBcmFujiPlatform>(
         std::move(productInfo), localMac);
