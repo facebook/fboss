@@ -176,6 +176,10 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::WEDGE400C_VOQ;
     } else if (FLAGS_mode == "wedge400c_fabric") {
       mode_ = PlatformMode::WEDGE400C_FABRIC;
+    } else if (FLAGS_mode == "cloudripper_voq") {
+      mode_ = PlatformMode::CLOUDRIPPER_VOQ;
+    } else if (FLAGS_mode == "cloudripper_fabric") {
+      mode_ = PlatformMode::CLOUDRIPPER_FABRIC;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }

@@ -50,6 +50,8 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
       desiredFw.crc() = 0x4dcf6a59;
       break;
     case PlatformMode::CLOUDRIPPER:
+    case PlatformMode::CLOUDRIPPER_VOQ:
+    case PlatformMode::CLOUDRIPPER_FABRIC:
       desiredFw.version() = 1;
       desiredFw.versionStr() = "1.92";
       desiredFw.minorVersion() = 92;

@@ -163,6 +163,8 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformMode::WEDGE400C_VOQ:
     case PlatformMode::WEDGE400C_FABRIC:
     case PlatformMode::CLOUDRIPPER:
+    case PlatformMode::CLOUDRIPPER_VOQ:
+    case PlatformMode::CLOUDRIPPER_FABRIC:
     case PlatformMode::LASSEN:
     case PlatformMode::SANDIA:
       return std::make_unique<PythonRepl>(ptys_->file.fd());
@@ -381,6 +383,8 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
     case PlatformMode::WEDGE400C_VOQ:
     case PlatformMode::WEDGE400C_FABRIC:
     case PlatformMode::CLOUDRIPPER:
+    case PlatformMode::CLOUDRIPPER_VOQ:
+    case PlatformMode::CLOUDRIPPER_FABRIC:
     case PlatformMode::LASSEN:
     case PlatformMode::SANDIA:
       return folly::to<std::string>("print('", UUID, "')\n");
@@ -432,6 +436,8 @@ std::string& DiagCmdServer::cleanUpOutput(
     case PlatformMode::SANDIA:
       return output;
     case PlatformMode::CLOUDRIPPER:
+    case PlatformMode::CLOUDRIPPER_VOQ:
+    case PlatformMode::CLOUDRIPPER_FABRIC:
       throw FbossError("Shell not supported for cloud ripper platform");
     case PlatformMode::FAKE_WEDGE:
     case PlatformMode::FAKE_WEDGE40:

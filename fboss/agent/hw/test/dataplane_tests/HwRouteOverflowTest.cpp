@@ -74,6 +74,8 @@ TEST_F(HwOverflowTest, overflowRoutes) {
     case PlatformMode::WEDGE400C_VOQ:
     case PlatformMode::WEDGE400C_FABRIC:
     case PlatformMode::CLOUDRIPPER:
+    case PlatformMode::CLOUDRIPPER_VOQ:
+    case PlatformMode::CLOUDRIPPER_FABRIC:
     case PlatformMode::LASSEN:
     case PlatformMode::SANDIA:
       XLOG(WARNING) << " No overflow test for 400C yet";
