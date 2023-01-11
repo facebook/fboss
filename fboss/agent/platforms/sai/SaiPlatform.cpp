@@ -214,7 +214,10 @@ void SaiPlatform::initPorts() {
         platformMode == PlatformMode::WEDGE400C_VOQ ||
         platformMode == PlatformMode::WEDGE400C_FABRIC) {
       saiPort = std::make_unique<SaiWedge400CPlatformPort>(portId, this);
-    } else if (platformMode == PlatformMode::CLOUDRIPPER) {
+    } else if (
+        platformMode == PlatformMode::CLOUDRIPPER ||
+        platformMode == PlatformMode::CLOUDRIPPER_VOQ ||
+        platformMode == PlatformMode::CLOUDRIPPER_FABRIC) {
       saiPort = std::make_unique<SaiCloudRipperPlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::WEDGE) {
       saiPort = std::make_unique<SaiBcmWedge40PlatformPort>(portId, this);
