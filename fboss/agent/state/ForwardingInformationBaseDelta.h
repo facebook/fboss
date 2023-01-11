@@ -34,8 +34,16 @@ class ForwardingInformationBaseContainerDelta
   }
 };
 
-using ForwardingInformationBaseMapDelta = NodeMapDelta<
+template <typename IGNORED>
+struct ForwardingInformationBaseMapDeltaTraits {
+  using mapped_type = typename ForwardingInformationBaseMap::mapped_type;
+  using ExtractorT =
+      thrift_cow::ThriftMapNodeExtractor<ForwardingInformationBaseMap>;
+  using DeltaValueT = ForwardingInformationBaseContainerDelta;
+};
+
+using ForwardingInformationBaseMapDelta = MapDelta<
     ForwardingInformationBaseMap,
-    ForwardingInformationBaseContainerDelta>;
+    ForwardingInformationBaseMapDeltaTraits>;
 
 } // namespace facebook::fboss

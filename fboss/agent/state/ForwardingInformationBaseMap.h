@@ -14,13 +14,14 @@
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/types.h"
 
+#include <cstdint>
 #include <memory>
 
 namespace facebook::fboss {
 
 class SwitchState;
 
-using ForwardingInformationBaseMapTraits =
+using LegacyForwardingInformationBaseMapTraits =
     NodeMapTraits<RouterID, ForwardingInformationBaseContainer>;
 
 struct ForwardingInformationBaseMapThriftTraits
@@ -35,12 +36,26 @@ struct ForwardingInformationBaseMapThriftTraits
   }
 };
 
-class ForwardingInformationBaseMap
-    : public ThriftyNodeMapT<
-          ForwardingInformationBaseMap,
-          ForwardingInformationBaseMapTraits,
-          ForwardingInformationBaseMapThriftTraits> {
+using ForwardingInformationBaseMapClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::integral,
+    apache::thrift::type_class::structure>;
+using ForwardingInformationBaseMapThriftType =
+    std::map<int16_t, state::FibContainerFields>;
+
+class ForwardingInformationBaseMap;
+using ForwardingInformationBaseMapTraits = ThriftMapNodeTraits<
+    ForwardingInformationBaseMap,
+    ForwardingInformationBaseMapClass,
+    ForwardingInformationBaseMapThriftType,
+    ForwardingInformationBaseContainer>;
+
+class ForwardingInformationBaseMap : public ThriftMapNode<
+                                         ForwardingInformationBaseMap,
+                                         ForwardingInformationBaseMapTraits> {
  public:
+  using BaseT = ThriftMapNode<
+      ForwardingInformationBaseMap,
+      ForwardingInformationBaseMapTraits>;
   ForwardingInformationBaseMap();
   ~ForwardingInformationBaseMap() override;
 
@@ -59,7 +74,7 @@ class ForwardingInformationBaseMap
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyNodeMapT::ThriftyNodeMapT;
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 

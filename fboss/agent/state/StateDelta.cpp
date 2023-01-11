@@ -248,9 +248,6 @@ template class thrift_cow::ThriftMapDelta<SflowCollectorMap>;
 template class thrift_cow::ThriftMapDelta<LoadBalancerMap>;
 template class thrift_cow::ThriftMapDelta<MirrorMap>;
 template class thrift_cow::ThriftMapDelta<TransceiverMap>;
-template class NodeMapDelta<
-    ForwardingInformationBaseMap,
-    ForwardingInformationBaseContainerDelta>;
 template class thrift_cow::ThriftMapDelta<ForwardingInformationBaseV4>;
 template class thrift_cow::ThriftMapDelta<ForwardingInformationBaseV6>;
 template class thrift_cow::ThriftMapDelta<LabelForwardingInformationBase>;

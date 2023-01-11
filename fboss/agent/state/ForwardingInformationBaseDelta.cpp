@@ -28,8 +28,8 @@ ForwardingInformationBaseContainerDelta::getV6FibDelta() const {
 
 template class thrift_cow::ThriftMapDelta<ForwardingInformationBaseV4>;
 template class thrift_cow::ThriftMapDelta<ForwardingInformationBaseV6>;
-template class NodeMapDelta<
+template class MapDelta<
     ForwardingInformationBaseMap,
-    ForwardingInformationBaseContainerDelta>;
+    ForwardingInformationBaseMapDeltaTraits>;
 
 } // namespace facebook::fboss

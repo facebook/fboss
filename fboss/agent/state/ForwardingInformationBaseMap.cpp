@@ -28,7 +28,8 @@ std::pair<uint64_t, uint64_t> ForwardingInformationBaseMap::getRouteCount()
   uint64_t v4Count = 0;
   uint64_t v6Count = 0;
 
-  for (const auto& fibContainer : *this) {
+  for (const auto& iter : std::as_const(*this)) {
+    const auto& fibContainer = iter.second;
     v4Count += fibContainer->getFibV4()->size();
     v6Count += fibContainer->getFibV6()->size();
   }
@@ -73,8 +74,8 @@ void ForwardingInformationBaseMap::updateForwardingInformationBaseContainer(
   }
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(
+template class ThriftMapNode<
     ForwardingInformationBaseMap,
-    ForwardingInformationBaseMapTraits);
+    ForwardingInformationBaseMapTraits>;
 
 } // namespace facebook::fboss

@@ -228,7 +228,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
     fields.pfcWatchdogRecoveryAction = *pfcWatchdogRecoveryAction;
   }
   fields.systemPorts->fromThrift(*state.systemPortMap());
-  fields.fibs = ForwardingInformationBaseMap::fromThrift(*state.fibs());
+  fields.fibs->fromThrift(*state.fibs());
   fields.labelFib->fromThrift(*state.labelFib());
   fields.qosPolicies->fromThrift(*state.qosPolicyMap());
   if (auto defaultQosPolicy = state.defaultDataPlaneQosPolicy()) {

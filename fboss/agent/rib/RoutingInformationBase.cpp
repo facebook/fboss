@@ -614,7 +614,8 @@ RibRouteTables RibRouteTables::fromFollyDynamic(
             route);
       }
     };
-    for (auto& fib : *fibs) {
+    for (const auto& iter : std::as_const(*fibs)) {
+      const auto& fib = iter.second;
       auto& routeTables = (*lockedRouteTables)[fib->getID()];
       importRoutes(fib->getFibV6(), &routeTables.v6NetworkToRoute);
       importRoutes(fib->getFibV4(), &routeTables.v4NetworkToRoute);

@@ -146,7 +146,7 @@ TEST(ForwardingInformationBaseContainer, Thrifty) {
   std::shared_ptr<ForwardingInformationBaseMap> fibs =
       std::make_shared<ForwardingInformationBaseMap>();
   fibs->addNode(container.clone());
-  validateNodeSerialization(*fibs);
+  validateThriftMapMapSerialization(*fibs);
 }
 
 } // namespace facebook::fboss
