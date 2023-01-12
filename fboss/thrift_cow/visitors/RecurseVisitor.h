@@ -30,6 +30,12 @@ enum class RecurseVisitMode {
   UNPUBLISHED
 };
 
+enum class RecurseVisitOrder {
+  PARENTS_FIRST,
+
+  CHILDREN_FIRST
+};
+
 template <typename>
 struct RecurseVisitor;
 
@@ -75,27 +81,33 @@ template <
 void visitNode(
     TraverseHelper& traverser,
     NodePtr& node,
-    const RecurseVisitMode& mode,
+    RecurseVisitMode mode,
+    RecurseVisitOrder order,
     Func&& f) {
-  if (mode == RecurseVisitMode::UNPUBLISHED) {
-    if (node->isPublished()) {
-      return;
-    }
-    invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
-  } else if (mode == RecurseVisitMode::FULL) {
-    invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+  if (mode == RecurseVisitMode::UNPUBLISHED && node->isPublished()) {
+    return;
   }
 
   if (traverser.shouldShortCircuit(VisitorType::RECURSE)) {
     return;
   }
 
+  bool visitIntermediate =
+      mode == RecurseVisitMode::FULL || mode == RecurseVisitMode::UNPUBLISHED;
+  if (visitIntermediate && order == RecurseVisitOrder::PARENTS_FIRST) {
+    invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+  }
+
   if constexpr (std::is_const_v<NodePtr>) {
     RecurseVisitor<TC>::visit(
-        traverser, *node->getFields(), mode, std::forward<Func>(f));
+        traverser, *node->getFields(), mode, order, std::forward<Func>(f));
   } else {
     RecurseVisitor<TC>::visit(
-        traverser, *node->writableFields(), mode, std::forward<Func>(f));
+        traverser, *node->writableFields(), mode, order, std::forward<Func>(f));
+  }
+
+  if (visitIntermediate && order == RecurseVisitOrder::CHILDREN_FIRST) {
+    invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
   }
 }
 
@@ -120,10 +132,11 @@ struct RecurseVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
   static inline void visit(
       TraverseHelper& traverser,
       NodePtr& node,
-      const RecurseVisitMode& mode,
+      RecurseVisitMode mode,
+      RecurseVisitOrder order,
       Func&& f) {
     return rv_detail::visitNode<TC>(
-        traverser, node, mode, std::forward<Func>(f));
+        traverser, node, mode, order, std::forward<Func>(f));
   }
 
   template <
@@ -137,7 +150,8 @@ struct RecurseVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
   static void visit(
       TraverseHelper& traverser,
       Fields& fields,
-      const RecurseVisitMode& /*mode*/,
+      RecurseVisitMode /*mode*/,
+      RecurseVisitOrder /*order*/,
       Func&& f) {
     for (auto& val : fields) {
       traverser.push(folly::to<std::string>(val->cref()));
@@ -167,10 +181,11 @@ struct RecurseVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
   static inline void visit(
       TraverseHelper& traverser,
       NodePtr& node,
-      const RecurseVisitMode& mode,
+      RecurseVisitMode mode,
+      RecurseVisitOrder order,
       Func&& f) {
     return rv_detail::visitNode<TC>(
-        traverser, node, mode, std::forward<Func>(f));
+        traverser, node, mode, order, std::forward<Func>(f));
   }
 
   template <
@@ -184,12 +199,13 @@ struct RecurseVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
   static void visit(
       TraverseHelper& traverser,
       Fields& fields,
-      const RecurseVisitMode& mode,
+      RecurseVisitMode mode,
+      RecurseVisitOrder order,
       Func&& f) {
     for (int i = 0; i < fields.size(); ++i) {
       traverser.push(folly::to<std::string>(i));
       RecurseVisitor<ValueTypeClass>::visit(
-          traverser, fields.ref(i), mode, std::forward<Func>(f));
+          traverser, fields.ref(i), mode, order, std::forward<Func>(f));
       traverser.pop();
     }
   }
@@ -215,10 +231,11 @@ struct RecurseVisitor<
   static inline void visit(
       TraverseHelper& traverser,
       NodePtr& node,
-      const RecurseVisitMode& mode,
+      RecurseVisitMode mode,
+      RecurseVisitOrder order,
       Func&& f) {
     return rv_detail::visitNode<TC>(
-        traverser, node, mode, std::forward<Func>(f));
+        traverser, node, mode, order, std::forward<Func>(f));
   }
 
   template <
@@ -232,20 +249,21 @@ struct RecurseVisitor<
   static void visit(
       TraverseHelper& traverser,
       Fields& fields,
-      const RecurseVisitMode& mode,
+      RecurseVisitMode mode,
+      RecurseVisitOrder order,
       Func&& f) {
     if constexpr (std::is_const_v<Fields>) {
       for (const auto& [key, val] : fields) {
         traverser.push(folly::to<std::string>(key));
         RecurseVisitor<MappedTypeClass>::visit(
-            traverser, val, mode, std::forward<Func>(f));
+            traverser, val, mode, order, std::forward<Func>(f));
         traverser.pop();
       }
     } else {
       for (auto& [key, val] : fields) {
         traverser.push(folly::to<std::string>(key));
         RecurseVisitor<MappedTypeClass>::visit(
-            traverser, val, mode, std::forward<Func>(f));
+            traverser, val, mode, order, std::forward<Func>(f));
         traverser.pop();
       }
     }
@@ -271,10 +289,11 @@ struct RecurseVisitor<apache::thrift::type_class::variant> {
   static inline void visit(
       TraverseHelper& traverser,
       NodePtr& node,
-      const RecurseVisitMode& mode,
+      RecurseVisitMode mode,
+      RecurseVisitOrder order,
       Func&& f) {
     return rv_detail::visitNode<TC>(
-        traverser, node, mode, std::forward<Func>(f));
+        traverser, node, mode, order, std::forward<Func>(f));
   }
 
   template <
@@ -288,7 +307,8 @@ struct RecurseVisitor<apache::thrift::type_class::variant> {
   static void visit(
       TraverseHelper& traverser,
       Fields& fields,
-      const RecurseVisitMode& mode,
+      RecurseVisitMode mode,
+      RecurseVisitOrder order,
       Func&& f) {
     using Members = typename Fields::Members;
 
@@ -306,11 +326,11 @@ struct RecurseVisitor<apache::thrift::type_class::variant> {
           if constexpr (std::is_const_v<Fields>) {
             const auto& ref = fields.template cref<name>();
             RecurseVisitor<tc>::visit(
-                traverser, ref, mode, std::forward<Func>(f));
+                traverser, ref, mode, order, std::forward<Func>(f));
           } else {
             auto& ref = fields.template ref<name>();
             RecurseVisitor<tc>::visit(
-                traverser, ref, mode, std::forward<Func>(f));
+                traverser, ref, mode, order, std::forward<Func>(f));
           }
           traverser.pop();
         });
@@ -324,9 +344,24 @@ template <>
 struct RecurseVisitor<apache::thrift::type_class::structure> {
   using TC = apache::thrift::type_class::structure;
   template <typename NodePtr, typename Func>
-  static void visit(NodePtr& node, const RecurseVisitMode& mode, Func&& f) {
+  static void visit(
+      NodePtr& node,
+      RecurseVisitMode mode,
+      RecurseVisitOrder order,
+      Func&& f) {
     SimpleTraverseHelper traverser;
-    return visit(traverser, node, mode, std::forward<Func>(f));
+    return visit(traverser, node, mode, order, std::forward<Func>(f));
+  }
+
+  template <typename NodePtr, typename Func>
+  static void visit(NodePtr& node, RecurseVisitMode mode, Func&& f) {
+    SimpleTraverseHelper traverser;
+    return visit(
+        traverser,
+        node,
+        mode,
+        RecurseVisitOrder::PARENTS_FIRST,
+        std::forward<Func>(f));
   }
 
   template <
@@ -342,10 +377,11 @@ struct RecurseVisitor<apache::thrift::type_class::structure> {
   static inline void visit(
       TraverseHelper& traverser,
       NodePtr& node,
-      const RecurseVisitMode& mode,
+      RecurseVisitMode mode,
+      RecurseVisitOrder order,
       Func&& f) {
     return rv_detail::visitNode<TC>(
-        traverser, node, mode, std::forward<Func>(f));
+        traverser, node, mode, order, std::forward<Func>(f));
   }
 
   template <
@@ -359,7 +395,8 @@ struct RecurseVisitor<apache::thrift::type_class::structure> {
   static void visit(
       TraverseHelper& traverser,
       Fields& fields,
-      const RecurseVisitMode& mode,
+      RecurseVisitMode mode,
+      RecurseVisitOrder order,
       Func&& f) {
     using Members = typename Fields::Members;
 
@@ -376,13 +413,13 @@ struct RecurseVisitor<apache::thrift::type_class::structure> {
         const auto& ref = fields.template cref<name>();
         if (ref) {
           RecurseVisitor<typename member::type_class>::visit(
-              traverser, ref, mode, std::forward<Func>(f));
+              traverser, ref, mode, order, std::forward<Func>(f));
         }
       } else {
         auto& ref = fields.template ref<name>();
         if (ref) {
           RecurseVisitor<typename member::type_class>::visit(
-              traverser, ref, mode, std::forward<Func>(f));
+              traverser, ref, mode, order, std::forward<Func>(f));
         }
       }
       traverser.pop();
@@ -409,7 +446,8 @@ struct RecurseVisitor {
   static void visit(
       TraverseHelper& traverser,
       Fields& fields,
-      const RecurseVisitMode& mode,
+      RecurseVisitMode mode,
+      RecurseVisitOrder order,
       Func&& f) {
     rv_detail::invokeVisitorFnHelper(traverser, fields, std::forward<Func>(f));
   }
