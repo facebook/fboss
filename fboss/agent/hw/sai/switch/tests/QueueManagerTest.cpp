@@ -223,35 +223,37 @@ TEST_F(QueueManagerTest, changePortQueue) {
   checkQueue(portHandle->queues, portSaiId, streamType, {newQueueIds});
 }
 
+template <typename PortStats>
 void checkCounterExportAndValue(
     const std::string& portName,
     int queueId,
     const std::string& queueName,
     ExpectExport expectExport,
-    const HwPortFb303Stats* portStat) {
-  for (auto statKey : HwPortFb303Stats("dummy").kQueueStatKeys()) {
+    const PortStats* portStat) {
+  for (auto statKey : PortStats("dummy").kQueueStatKeys()) {
     switch (expectExport) {
       case ExpectExport::EXPORT:
         EXPECT_TRUE(facebook::fbData->getStatMap()->contains(
-            HwPortFb303Stats::statName(statKey, portName, queueId, queueName)));
+            PortStats::statName(statKey, portName, queueId, queueName)));
         EXPECT_EQ(
-            portStat->getCounterLastIncrement(HwPortFb303Stats::statName(
-                statKey, portName, queueId, queueName)),
+            portStat->getCounterLastIncrement(
+                PortStats::statName(statKey, portName, queueId, queueName)),
             0);
         break;
       case ExpectExport::NO_EXPORT:
         EXPECT_FALSE(facebook::fbData->getStatMap()->contains(
-            HwPortFb303Stats::statName(statKey, portName, queueId, queueName)));
+            PortStats::statName(statKey, portName, queueId, queueName)));
         break;
     }
   }
 }
 
+template <typename PortStats>
 void checkCounterExportAndValue(
     const std::string& portName,
     const QueueConfig& queueConfig,
     ExpectExport expectExport,
-    const HwPortFb303Stats* portStat) {
+    const PortStats* portStat) {
   for (const auto& portQueue : queueConfig) {
     checkCounterExportAndValue(
         portName,
@@ -262,11 +264,12 @@ void checkCounterExportAndValue(
   }
 }
 
+template <typename PortStats>
 void checkCounterExportAndValue(
     const std::string& portName,
     const std::vector<int>& queueIds,
     ExpectExport expectExport,
-    const HwPortFb303Stats* portStat) {
+    const PortStats* portStat) {
   for (auto queueId : queueIds) {
     checkCounterExportAndValue(
         portName,
