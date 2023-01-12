@@ -48,7 +48,7 @@ void visitNode(
     f(traverser.path(), node);
   }
 
-  if (traverser.shouldShortCircuit()) {
+  if (traverser.shouldShortCircuit(VisitorType::RECURSE)) {
     return;
   }
 

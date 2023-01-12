@@ -91,7 +91,7 @@ bool visitNode(
     return false;
   }
 
-  if (traverser.shouldShortCircuit()) {
+  if (traverser.shouldShortCircuit(VisitorType::DELTA)) {
     return false;
   }
 
@@ -147,7 +147,7 @@ void visitAddedOrRemovedNode(
           f(subpath, oldSubNode, newSubNode, DeltaElemTag::NOT_MINIMAL);
         };
 
-    if (traverser.shouldShortCircuit()) {
+    if (traverser.shouldShortCircuit(VisitorType::DELTA)) {
       // Traverse helper says we don't need to recurse further
       //
       // TODO: use traversehelper in RecurseVisitor too to be able to
