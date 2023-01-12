@@ -21,7 +21,12 @@ enum class RecurseVisitMode {
   /*
    * In this mode, we only visit leaf nodes.
    */
-  LEAVES
+  LEAVES,
+
+  /*
+   * Similar to FULL, but we only visit unpublished nodes.
+   */
+  UNPUBLISHED
 };
 
 template <typename>
@@ -68,7 +73,12 @@ void visitNode(
     const std::shared_ptr<Node>& node,
     const RecurseVisitMode& mode,
     Func&& f) {
-  if (mode == RecurseVisitMode::FULL) {
+  if (mode == RecurseVisitMode::UNPUBLISHED) {
+    if (node->isPublished()) {
+      return;
+    }
+    invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
+  } else if (mode == RecurseVisitMode::FULL) {
     invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
   }
 
