@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include <fboss/thrift_cow/visitors/TraverseHelper.h>
 #include <thrift/lib/cpp2/Thrift.h>
 #include <thrift/lib/cpp2/TypeClass.h>
 #include <thrift/lib/cpp2/reflection/reflection.h>
@@ -33,21 +34,26 @@ namespace rv_detail {
 template <
     typename TC,
     typename Node,
+    typename TraverseHelper,
     typename Func,
     // only enable for Node types
     std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
         true>
 void visitNode(
-    std::vector<std::string>& path,
+    TraverseHelper& traverser,
     const std::shared_ptr<Node>& node,
     const RecurseVisitMode& mode,
     Func&& f) {
   if (mode == RecurseVisitMode::FULL) {
-    f(path, node);
+    f(traverser.path(), node);
+  }
+
+  if (traverser.shouldShortCircuit()) {
+    return;
   }
 
   RecurseVisitor<TC>::visit(
-      path, *node->getFields(), mode, std::forward<Func>(f));
+      traverser, *node->getFields(), mode, std::forward<Func>(f));
 }
 
 } // namespace rv_detail
@@ -60,34 +66,37 @@ struct RecurseVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
   using TC = apache::thrift::type_class::set<ValueTypeClass>;
   template <
       typename Node,
+      typename TraverseHelper,
       typename Func,
       // only enable for Node types
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
   static inline void visit(
-      std::vector<std::string>& path,
+      TraverseHelper& traverser,
       const std::shared_ptr<Node>& node,
       const RecurseVisitMode& mode,
       Func&& f) {
-    return rv_detail::visitNode<TC>(path, node, mode, std::forward<Func>(f));
+    return rv_detail::visitNode<TC>(
+        traverser, node, mode, std::forward<Func>(f));
   }
 
   template <
       typename Fields,
+      typename TraverseHelper,
       typename Func,
       // only enable for Fields types
       std::enable_if_t<
           std::is_same_v<typename Fields::CowType, FieldsType>,
           bool> = true>
   static void visit(
-      std::vector<std::string>& path,
+      TraverseHelper& traverser,
       const Fields& fields,
       const RecurseVisitMode& /*mode*/,
       Func&& f) {
     for (auto& val : fields) {
-      path.push_back(folly::to<std::string>(val->cref()));
-      f(path, typename Fields::value_type{val});
-      path.pop_back();
+      traverser.push(folly::to<std::string>(val->cref()));
+      f(traverser.path(), typename Fields::value_type{val});
+      traverser.pop();
     }
   }
 };
@@ -100,35 +109,38 @@ struct RecurseVisitor<apache::thrift::type_class::list<ValueTypeClass>> {
   using TC = apache::thrift::type_class::list<ValueTypeClass>;
   template <
       typename Node,
+      typename TraverseHelper,
       typename Func,
       // only enable for Node types
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
   static inline void visit(
-      std::vector<std::string>& path,
+      TraverseHelper& traverser,
       const std::shared_ptr<Node>& node,
       const RecurseVisitMode& mode,
       Func&& f) {
-    return rv_detail::visitNode<TC>(path, node, mode, std::forward<Func>(f));
+    return rv_detail::visitNode<TC>(
+        traverser, node, mode, std::forward<Func>(f));
   }
 
   template <
       typename Fields,
+      typename TraverseHelper,
       typename Func,
       // only enable for Fields types
       std::enable_if_t<
           std::is_same_v<typename Fields::CowType, FieldsType>,
           bool> = true>
   static void visit(
-      std::vector<std::string>& path,
+      TraverseHelper& traverser,
       const Fields& fields,
       const RecurseVisitMode& mode,
       Func&& f) {
     for (int i = 0; i < fields.size(); ++i) {
-      path.push_back(folly::to<std::string>(i));
+      traverser.push(folly::to<std::string>(i));
       RecurseVisitor<ValueTypeClass>::visit(
-          path, fields.at(i), mode, std::forward<Func>(f));
-      path.pop_back();
+          traverser, fields.at(i), mode, std::forward<Func>(f));
+      traverser.pop();
     }
   }
 };
@@ -142,35 +154,38 @@ struct RecurseVisitor<
   using TC = apache::thrift::type_class::map<KeyTypeClass, MappedTypeClass>;
   template <
       typename Node,
+      typename TraverseHelper,
       typename Func,
       // only enable for Node types
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
   static inline void visit(
-      std::vector<std::string>& path,
+      TraverseHelper& traverser,
       const std::shared_ptr<Node>& node,
       const RecurseVisitMode& mode,
       Func&& f) {
-    return rv_detail::visitNode<TC>(path, node, mode, std::forward<Func>(f));
+    return rv_detail::visitNode<TC>(
+        traverser, node, mode, std::forward<Func>(f));
   }
 
   template <
       typename Fields,
+      typename TraverseHelper,
       typename Func,
       // only enable for Fields types
       std::enable_if_t<
           std::is_same_v<typename Fields::CowType, FieldsType>,
           bool> = true>
   static void visit(
-      std::vector<std::string>& path,
+      TraverseHelper& traverser,
       const Fields& fields,
       const RecurseVisitMode& mode,
       Func&& f) {
     for (const auto& [key, val] : fields) {
-      path.push_back(folly::to<std::string>(key));
+      traverser.push(folly::to<std::string>(key));
       RecurseVisitor<MappedTypeClass>::visit(
-          path, val, mode, std::forward<Func>(f));
-      path.pop_back();
+          traverser, val, mode, std::forward<Func>(f));
+      traverser.pop();
     }
   }
 };
@@ -183,27 +198,30 @@ struct RecurseVisitor<apache::thrift::type_class::variant> {
   using TC = apache::thrift::type_class::variant;
   template <
       typename Node,
+      typename TraverseHelper,
       typename Func,
       // only enable for Node types
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
   static inline void visit(
-      std::vector<std::string>& path,
+      TraverseHelper& traverser,
       const std::shared_ptr<Node>& node,
       const RecurseVisitMode& mode,
       Func&& f) {
-    return rv_detail::visitNode<TC>(path, node, mode, std::forward<Func>(f));
+    return rv_detail::visitNode<TC>(
+        traverser, node, mode, std::forward<Func>(f));
   }
 
   template <
       typename Fields,
+      typename TraverseHelper,
       typename Func,
       // only enable for Fields types
       std::enable_if_t<
           std::is_same_v<typename Fields::CowType, FieldsType>,
           bool> = true>
   static void visit(
-      std::vector<std::string>& path,
+      TraverseHelper& traverser,
       const Fields& fields,
       const RecurseVisitMode& mode,
       Func&& f) {
@@ -215,14 +233,15 @@ struct RecurseVisitor<apache::thrift::type_class::variant> {
           using name = typename descriptor::metadata::name;
           using tc = typename descriptor::metadata::type_class;
 
-          const std::string memberName =
+          std::string memberName =
               std::string(fatal::z_data<name>(), fatal::size<name>::value);
 
-          path.push_back(memberName);
+          traverser.push(std::move(memberName));
 
           const auto& ref = fields.template cref<name>();
-          RecurseVisitor<tc>::visit(path, ref, mode, std::forward<Func>(f));
-          path.pop_back();
+          RecurseVisitor<tc>::visit(
+              traverser, ref, mode, std::forward<Func>(f));
+          traverser.pop();
         });
   }
 };
@@ -238,33 +257,36 @@ struct RecurseVisitor<apache::thrift::type_class::structure> {
       const std::shared_ptr<Node>& node,
       const RecurseVisitMode& mode,
       Func&& f) {
-    std::vector<std::string> path;
-    return visit(path, node, mode, std::forward<Func>(f));
+    SimpleTraverseHelper traverser;
+    return visit(traverser, node, mode, std::forward<Func>(f));
   }
 
   template <
       typename Node,
+      typename TraverseHelper,
       typename Func,
       // only enable for Node types
       std::enable_if_t<std::is_same_v<typename Node::CowType, NodeType>, bool> =
           true>
   static inline void visit(
-      std::vector<std::string>& path,
+      TraverseHelper& traverser,
       const std::shared_ptr<Node>& node,
       const RecurseVisitMode& mode,
       Func&& f) {
-    return rv_detail::visitNode<TC>(path, node, mode, std::forward<Func>(f));
+    return rv_detail::visitNode<TC>(
+        traverser, node, mode, std::forward<Func>(f));
   }
 
   template <
       typename Fields,
+      typename TraverseHelper,
       typename Func,
       // only enable for Fields types
       std::enable_if_t<
           std::is_same_v<typename Fields::CowType, FieldsType>,
           bool> = true>
   static void visit(
-      std::vector<std::string>& path,
+      TraverseHelper& traverser,
       const Fields& fields,
       const RecurseVisitMode& mode,
       Func&& f) {
@@ -275,17 +297,16 @@ struct RecurseVisitor<apache::thrift::type_class::structure> {
       using name = typename member::name;
 
       // Look for the expected member name
-      const std::string memberName(
-          fatal::z_data<name>(), fatal::size<name>::value);
+      std::string memberName(fatal::z_data<name>(), fatal::size<name>::value);
 
-      path.push_back(memberName);
+      traverser.push(std::move(memberName));
       const auto& ref = fields.template cref<name>();
 
       if (ref) {
         RecurseVisitor<typename member::type_class>::visit(
-            path, ref, mode, std::forward<Func>(f));
+            traverser, ref, mode, std::forward<Func>(f));
       }
-      path.pop_back();
+      traverser.pop();
     });
   }
 };
@@ -305,13 +326,13 @@ struct RecurseVisitor {
       "Forgot to specify reflection option or include fatal header file? "
       "Refer to thrift/lib/cpp2/reflection/reflection.h");
 
-  template <typename Fields, typename Func>
+  template <typename Fields, typename TraverseHelper, typename Func>
   static void visit(
-      std::vector<std::string>& path,
+      TraverseHelper& traverser,
       const Fields& fields,
       const RecurseVisitMode& mode,
       Func&& f) {
-    f(path, fields);
+    f(traverser.path(), fields);
   }
 };
 

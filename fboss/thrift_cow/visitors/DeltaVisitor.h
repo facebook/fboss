@@ -152,7 +152,7 @@ void visitAddedOrRemovedNode(
     }
 
     RecurseVisitor<TC>::visit(
-        path, target, RecurseVisitMode::FULL, std::move(processChange));
+        traverser, target, RecurseVisitMode::FULL, std::move(processChange));
   }
 }
 
