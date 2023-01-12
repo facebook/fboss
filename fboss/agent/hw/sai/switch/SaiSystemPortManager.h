@@ -78,6 +78,7 @@ class SaiSystemPortManager {
   void loadQueues(
       SaiSystemPortHandle& sysPortHandle,
       const std::shared_ptr<SystemPort>& swSystemPort);
+  void setupVoqStats(const std::shared_ptr<SystemPort>& swSystemPort);
   SaiSystemPortTraits::CreateAttributes attributesFromSwSystemPort(
       const std::shared_ptr<SystemPort>& swSystemPort) const;
 

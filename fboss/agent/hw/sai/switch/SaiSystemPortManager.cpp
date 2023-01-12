@@ -117,6 +117,7 @@ void SaiSystemPortManager::changeSystemPort(
             newSystemPort->getID(),
             std::make_unique<HwSysPortFb303Stats>(
                 newSystemPort->getPortName()));
+        setupVoqStats(newSystemPort);
       } else if (oldSystemPort->getPortName() != newSystemPort->getPortName()) {
         // Port was already enabled, but Port name changed - update stats
         portStats_.find(newSystemPort->getID())
@@ -139,6 +140,18 @@ const HwSysPortFb303Stats* SaiSystemPortManager::getLastPortStats(
     SystemPortID port) const {
   auto pitr = portStats_.find(port);
   return pitr != portStats_.end() ? pitr->second.get() : nullptr;
+}
+
+void SaiSystemPortManager::setupVoqStats(
+    const std::shared_ptr<SystemPort>& swSystemPort) {
+  auto pitr = portStats_.find(swSystemPort->getID());
+  if (pitr != portStats_.end()) {
+    for (auto i = 0; i < swSystemPort->getNumVoqs(); ++i) {
+      // TODO pull name from qos config
+      auto queueName = folly::to<std::string>("queue", i);
+      pitr->second->queueChanged(i, queueName);
+    }
+  }
 }
 
 void SaiSystemPortManager::loadQueues(
@@ -166,14 +179,7 @@ void SaiSystemPortManager::loadQueues(
         return QueueSaiId(queueId);
       });
   sysPortHandle.queues = managerTable_->queueManager().loadQueues(queueSaiIds);
-  auto pitr = portStats_.find(swSystemPort->getID());
-  if (pitr != portStats_.end()) {
-    for (auto i = 0; i < swSystemPort->getNumVoqs(); ++i) {
-      // TODO pull name from qos config
-      auto queueName = folly::to<std::string>("queue", i);
-      pitr->second->queueChanged(i, queueName);
-    }
-  }
+  setupVoqStats(swSystemPort);
 }
 
 void SaiSystemPortManager::removeSystemPort(

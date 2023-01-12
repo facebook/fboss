@@ -356,6 +356,28 @@ TEST_F(QueueManagerTest, removeSysPortAndCheckVoqStats) {
       nullptr);
 }
 
+TEST_F(QueueManagerTest, changeSysPortVoQsAndCheckVoqStats) {
+  auto sysPort = firstSysPort();
+  auto oldVoqs = voqIds(firstSysPortId());
+  auto newSysPort = sysPort->clone();
+  newSysPort->setNumVoqs(oldVoqs.size() - 1);
+  auto newVoqs = oldVoqs;
+  newVoqs.pop_back();
+  saiManagerTable->systemPortManager().changeSystemPort(sysPort, newSysPort);
+  saiManagerTable->systemPortManager().updateStats(newSysPort->getID(), true);
+  auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
+      newSysPort->getID());
+  checkCounterExportAndValue(
+      newSysPort->getPortName(), newVoqs, ExpectExport::EXPORT, portStat);
+
+  // Stats for removed voqs should no longer show up
+  checkCounterExportAndValue(
+      newSysPort->getPortName(),
+      {oldVoqs.back()},
+      ExpectExport::NO_EXPORT,
+      portStat);
+}
+
 TEST_F(QueueManagerTest, removePortQueueAndCheckQueueStats) {
   auto p0 = testInterfaces[0].remoteHosts[0].port;
   std::shared_ptr<Port> oldPort = makePort(p0);
@@ -444,6 +466,21 @@ TEST_F(QueueManagerTest, portDisableStopsCounterExport) {
       newNewPort->getName(), queueConfig, ExpectExport::NO_EXPORT, portStat);
 }
 
+TEST_F(QueueManagerTest, sysPortDisableStopsVoQStatsExport) {
+  auto sysPort = firstSysPort();
+  auto newSysPort = sysPort->clone();
+  newSysPort->setEnabled(false);
+  saiManagerTable->systemPortManager().changeSystemPort(sysPort, newSysPort);
+  saiManagerTable->systemPortManager().updateStats(newSysPort->getID(), true);
+  auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
+      newSysPort->getID());
+  checkCounterExportAndValue(
+      newSysPort->getPortName(),
+      voqIds(newSysPort->getID()),
+      ExpectExport::NO_EXPORT,
+      portStat);
+}
+
 TEST_F(QueueManagerTest, portReenableRestartsCounterExport) {
   auto p0 = testInterfaces[0].remoteHosts[0].port;
   std::shared_ptr<Port> oldPort = makePort(p0);
@@ -474,4 +511,30 @@ TEST_F(QueueManagerTest, portReenableRestartsCounterExport) {
   EXPECT_NE(portStat, nullptr);
   checkCounterExportAndValue(
       evenNewerPort->getName(), queueConfig, ExpectExport::EXPORT, portStat);
+}
+
+TEST_F(QueueManagerTest, sysPortReenableRestartsVoQStatsExport) {
+  auto sysPort = firstSysPort();
+  CHECK(sysPort->isPublished());
+  auto newSysPort = sysPort->clone();
+  newSysPort->setEnabled(false);
+  newSysPort->publish();
+  saiManagerTable->systemPortManager().changeSystemPort(sysPort, newSysPort);
+  saiManagerTable->systemPortManager().updateStats(newSysPort->getID(), true);
+  auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
+      newSysPort->getID());
+  checkCounterExportAndValue(
+      newSysPort->getPortName(),
+      voqIds(newSysPort->getID()),
+      ExpectExport::NO_EXPORT,
+      portStat);
+  // Reverse previous change to re-enable sys port
+  saiManagerTable->systemPortManager().changeSystemPort(newSysPort, sysPort);
+  portStat =
+      saiManagerTable->systemPortManager().getLastPortStats(sysPort->getID());
+  checkCounterExportAndValue(
+      sysPort->getPortName(),
+      voqIds(sysPort->getID()),
+      ExpectExport::EXPORT,
+      portStat);
 }
