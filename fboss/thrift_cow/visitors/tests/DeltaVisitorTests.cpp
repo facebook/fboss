@@ -40,7 +40,7 @@ TEST(DeltaVisitorTests, ChangeOneField) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](std::vector<std::string>& path,
+  auto processChange = [&](const std::vector<std::string>& path,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
@@ -91,7 +91,7 @@ TEST(DeltaVisitorTests, ChangeOneFieldInContainer) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](std::vector<std::string>& path,
+  auto processChange = [&](const std::vector<std::string>& path,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
@@ -131,7 +131,7 @@ TEST(DeltaVisitorTests, SetOptional) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](std::vector<std::string>& path,
+  auto processChange = [&](const std::vector<std::string>& path,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
@@ -186,7 +186,7 @@ TEST(DeltaVisitorTests, AddToMap) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](std::vector<std::string>& path,
+  auto processChange = [&](const std::vector<std::string>& path,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
@@ -254,7 +254,7 @@ TEST(DeltaVisitorTests, UpdateMap) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](std::vector<std::string>& path,
+  auto processChange = [&](const std::vector<std::string>& path,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
@@ -314,7 +314,7 @@ TEST(DeltaVisitorTests, DeleteFromMap) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](std::vector<std::string>& path,
+  auto processChange = [&](const std::vector<std::string>& path,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
@@ -374,7 +374,7 @@ TEST(DeltaVisitorTests, AddToList) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](std::vector<std::string>& path,
+  auto processChange = [&](const std::vector<std::string>& path,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
@@ -434,7 +434,7 @@ TEST(DeltaVisitorTests, DeleteFromList) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](std::vector<std::string>& path,
+  auto processChange = [&](const std::vector<std::string>& path,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
@@ -491,7 +491,7 @@ TEST(DeltaVisitorTests, EditVariantField) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](std::vector<std::string>& path,
+  auto processChange = [&](const std::vector<std::string>& path,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
@@ -544,7 +544,7 @@ TEST(DeltaVisitorTests, SwitchVariantField) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](std::vector<std::string>& path,
+  auto processChange = [&](const std::vector<std::string>& path,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
@@ -605,7 +605,7 @@ TEST(DeltaVisitorTests, SwitchVariantFieldToStruct) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
 
   PathTagSet differingPaths;
-  auto processChange = [&](std::vector<std::string>& path,
+  auto processChange = [&](const std::vector<std::string>& path,
                            auto&& /*oldValue*/,
                            auto&& /*newValue*/,
                            auto&& tag) {
