@@ -186,6 +186,7 @@ void SaiSystemPortManager::removeSystemPort(
   concurrentIndices_->sysPortSaiIds.erase(swId);
   concurrentIndices_->sysPortIds.erase(itr->second->systemPort->adapterKey());
   handles_.erase(itr);
+  portStats_.erase(swId);
   XLOG(DBG2) << "removed system port: " << swId;
 }
 

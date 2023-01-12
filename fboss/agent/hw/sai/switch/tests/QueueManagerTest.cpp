@@ -348,6 +348,14 @@ TEST_F(QueueManagerTest, changeSysPortAndCheckVoqStats) {
       portStat);
 }
 
+TEST_F(QueueManagerTest, removeSysPortAndCheckVoqStats) {
+  auto sysPort = firstSysPort();
+  saiManagerTable->systemPortManager().removeSystemPort(sysPort);
+  EXPECT_EQ(
+      saiManagerTable->systemPortManager().getLastPortStats(firstSysPortId()),
+      nullptr);
+}
+
 TEST_F(QueueManagerTest, removePortQueueAndCheckQueueStats) {
   auto p0 = testInterfaces[0].remoteHosts[0].port;
   std::shared_ptr<Port> oldPort = makePort(p0);
