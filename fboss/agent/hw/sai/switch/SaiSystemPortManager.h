@@ -58,6 +58,8 @@ class SaiSystemPortManager {
   const Stats& getLastPortStats() const {
     return portStats_;
   }
+  const HwSysPortFb303Stats* getLastPortStats(SystemPortID port) const;
+
   const SaiSystemPortHandle* getSystemPortHandle(SystemPortID swId) const {
     return getSystemPortHandleImpl(swId);
   }

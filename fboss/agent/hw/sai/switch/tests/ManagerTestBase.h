@@ -255,8 +255,9 @@ class ManagerTestBase : public ::testing::Test {
 
   std::shared_ptr<SwitchState> programmedState;
 
- private:
   static constexpr int kSysPortOffset = 100;
+
+ private:
   static constexpr uint8_t kPortQueueMax = 8;
 };
 

@@ -135,6 +135,12 @@ void SaiSystemPortManager::changeSystemPort(
   }
 }
 
+const HwSysPortFb303Stats* SaiSystemPortManager::getLastPortStats(
+    SystemPortID port) const {
+  auto pitr = portStats_.find(port);
+  return pitr != portStats_.end() ? pitr->second.get() : nullptr;
+}
+
 void SaiSystemPortManager::loadQueues(
     SaiSystemPortHandle& sysPortHandle,
     const std::shared_ptr<SystemPort>& swSystemPort) {

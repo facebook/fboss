@@ -8,11 +8,14 @@
  *
  */
 #include "fboss/agent/hw/HwPortFb303Stats.h"
+#include "fboss/agent/hw/HwSysPortFb303Stats.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/PortQueue.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 
 #include <string>
@@ -71,6 +74,29 @@ class QueueManagerTest : public ManagerTestBase {
       EXPECT_TRUE(queueHandle2 != queueHandles2.end());
       EXPECT_EQ(queueHandle1.second->queue, queueHandle2->second->queue);
     }
+  }
+  SystemPortID firstSysPortId() const {
+    return SystemPortID(
+        kSysPortOffset + testInterfaces[0].remoteHosts[0].port.id);
+  }
+  std::shared_ptr<SystemPort> firstSysPort() const {
+    return programmedState->getSystemPorts()->getSystemPort(firstSysPortId());
+  }
+  // TODO - look at only the configured VOQs once
+  // QOS is supported on system ports
+  std::vector<int> voqIds(SystemPortID sysPortId) const {
+    std::vector<int> voqs;
+    auto sysPort = programmedState->getSystemPorts()->getSystemPort(sysPortId);
+    if (sysPort->getQosPolicy()) {
+      // TODO - look at configured queues from qos policy
+    }
+    for (auto i = 0; i < sysPort->getNumVoqs(); ++i) {
+      voqs.push_back(i);
+    }
+    return voqs;
+  }
+  std::vector<int> voqIds() const {
+    return voqIds(firstSysPortId());
   }
 };
 
@@ -293,6 +319,18 @@ TEST_F(QueueManagerTest, addPortQueueAndCheckStats) {
       saiManagerTable->portManager().getLastPortStat(swPort->getID());
   checkCounterExportAndValue(
       swPort->getName(), queueConfig, ExpectExport::EXPORT, portStat);
+}
+
+TEST_F(QueueManagerTest, checkSysPortVoqStats) {
+  auto sysPort = firstSysPort();
+  saiManagerTable->systemPortManager().updateStats(sysPort->getID(), true);
+  auto portStat =
+      saiManagerTable->systemPortManager().getLastPortStats(sysPort->getID());
+  checkCounterExportAndValue(
+      sysPort->getPortName(),
+      voqIds(sysPort->getID()),
+      ExpectExport::EXPORT,
+      portStat);
 }
 
 TEST_F(QueueManagerTest, removePortQueueAndCheckQueueStats) {
