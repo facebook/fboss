@@ -31,6 +31,30 @@ struct NodeType;
 struct FieldsType;
 
 namespace rv_detail {
+
+/*
+ * invokeVisitorFnHelper allows us to support two different visitor
+ * signatures:
+ *
+ * 1. f(traverser, ...)
+ * 2. f(path, ...)
+ *
+ * This allows a visitor to leverage a stateful TraverseHelper if
+ * desired in the visit function.
+ */
+
+template <typename Node, typename TraverseHelper, typename Func>
+auto invokeVisitorFnHelper(TraverseHelper& traverser, Node&& node, Func&& f)
+    -> std::invoke_result_t<Func, TraverseHelper&, Node&&> {
+  return f(traverser, std::forward<Node>(node));
+}
+
+template <typename Node, typename TraverseHelper, typename Func>
+auto invokeVisitorFnHelper(TraverseHelper& traverser, Node&& node, Func&& f)
+    -> std::invoke_result_t<Func, const std::vector<std::string>&, Node&&> {
+  return f(traverser.path(), std::forward<Node>(node));
+}
+
 template <
     typename TC,
     typename Node,
@@ -45,7 +69,7 @@ void visitNode(
     const RecurseVisitMode& mode,
     Func&& f) {
   if (mode == RecurseVisitMode::FULL) {
-    f(traverser.path(), node);
+    invokeVisitorFnHelper(traverser, node, std::forward<Func>(f));
   }
 
   if (traverser.shouldShortCircuit(VisitorType::RECURSE)) {
@@ -95,7 +119,8 @@ struct RecurseVisitor<apache::thrift::type_class::set<ValueTypeClass>> {
       Func&& f) {
     for (auto& val : fields) {
       traverser.push(folly::to<std::string>(val->cref()));
-      f(traverser.path(), typename Fields::value_type{val});
+      rv_detail::invokeVisitorFnHelper(
+          traverser, typename Fields::value_type{val}, std::forward<Func>(f));
       traverser.pop();
     }
   }
@@ -332,7 +357,7 @@ struct RecurseVisitor {
       const Fields& fields,
       const RecurseVisitMode& mode,
       Func&& f) {
-    f(traverser.path(), fields);
+    rv_detail::invokeVisitorFnHelper(traverser, fields, std::forward<Func>(f));
   }
 };
 

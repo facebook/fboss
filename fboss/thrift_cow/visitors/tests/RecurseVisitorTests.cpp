@@ -38,7 +38,8 @@ TEST(RecurseVisitorTests, TestFullRecurse) {
 
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
   std::map<std::vector<std::string>, folly::dynamic> visited;
-  auto processPath = [&visited](auto&& path, auto&& node) {
+  auto processPath = [&visited](
+                         const std::vector<std::string>& path, auto&& node) {
     visited.emplace(std::make_pair(path, node->toFollyDynamic()));
   };
 
@@ -95,7 +96,8 @@ TEST(RecurseVisitorTests, TestLeafRecurse) {
 
   auto nodeA = std::make_shared<ThriftStructNode<TestStruct>>(structA);
   std::map<std::vector<std::string>, folly::dynamic> visited;
-  auto processPath = [&visited](auto&& path, auto&& node) {
+  auto processPath = [&visited](
+                         const std::vector<std::string>& path, auto&& node) {
     visited.emplace(std::make_pair(path, node->toFollyDynamic()));
   };
 

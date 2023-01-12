@@ -71,6 +71,50 @@ enum class DeltaVisitMode {
 };
 
 namespace dv_detail {
+
+/*
+ * invokeVisitorFnHelper allows us to support two different visitor
+ * signatures:
+ *
+ * 1. f(traverser, ...)
+ * 2. f(path, ...)
+ *
+ * This allows a visitor to leverage a stateful TraverseHelper if
+ * desired in the visit function.
+ */
+
+template <typename Node, typename TraverseHelper, typename Func>
+auto invokeVisitorFnHelper(
+    TraverseHelper& traverser,
+    const Node& oldNode,
+    const Node& newNode,
+    DeltaElemTag deltaElemTag,
+    Func&& f)
+    -> std::invoke_result_t<
+        Func,
+        TraverseHelper&,
+        const Node&,
+        const Node&,
+        DeltaElemTag> {
+  return f(traverser, oldNode, newNode, deltaElemTag);
+}
+
+template <typename Node, typename TraverseHelper, typename Func>
+auto invokeVisitorFnHelper(
+    TraverseHelper& traverser,
+    const Node& oldNode,
+    const Node& newNode,
+    DeltaElemTag deltaElemTag,
+    Func&& f)
+    -> std::invoke_result_t<
+        Func,
+        const std::vector<std::string>&,
+        const Node&,
+        const Node&,
+        DeltaElemTag> {
+  return f(traverser.path(), oldNode, newNode, deltaElemTag);
+}
+
 template <
     typename TC,
     typename Node,
@@ -104,7 +148,12 @@ bool visitNode(
 
   if (hasDifferences &&
       (mode == DeltaVisitMode::PARENTS || mode == DeltaVisitMode::FULL)) {
-    f(traverser.path(), oldNode, newNode, DeltaElemTag::NOT_MINIMAL);
+    invokeVisitorFnHelper(
+        traverser,
+        oldNode,
+        newNode,
+        DeltaElemTag::NOT_MINIMAL,
+        std::forward<Func>(f));
   }
 
   return hasDifferences;
@@ -128,14 +177,20 @@ void visitAddedOrRemovedNode(
   DCHECK(static_cast<bool>(oldNode) != static_cast<bool>(newNode));
 
   auto path = traverser.path();
-  f(path, oldNode, newNode, DeltaElemTag::MINIMAL);
+  invokeVisitorFnHelper(
+      traverser,
+      oldNode,
+      newNode,
+      DeltaElemTag::MINIMAL,
+      std::forward<Func>(f));
 
   if (mode == DeltaVisitMode::FULL) {
     bool isAdd = static_cast<bool>(newNode);
     auto target = (newNode) ? newNode : oldNode;
     auto processChange =
         [isAdd, initialPathSize = path.size(), f = std::forward<Func>(f)](
-            auto&& subpath, auto&& node) {
+            TraverseHelper& subTraverser, auto&& node) mutable {
+          const auto& subpath = subTraverser.path();
           if (subpath.size() == initialPathSize) {
             // skip visiting root, as we already visited it
             return;
@@ -144,7 +199,12 @@ void visitAddedOrRemovedNode(
           using SubNode = decltype(node);
           SubNode oldSubNode = (isAdd) ? SubNode{} : node;
           SubNode newSubNode = (isAdd) ? node : SubNode{};
-          f(subpath, oldSubNode, newSubNode, DeltaElemTag::NOT_MINIMAL);
+          invokeVisitorFnHelper(
+              subTraverser,
+              oldSubNode,
+              newSubNode,
+              DeltaElemTag::NOT_MINIMAL,
+              std::forward<Func>(f));
         };
 
     if (traverser.shouldShortCircuit(VisitorType::DELTA)) {
@@ -170,7 +230,12 @@ void visitAddedOrRemovedNode(
   // specialization for primitive node members
   CHECK(oldNode.has_value() != newNode.has_value());
 
-  f(traverser.path(), oldNode, newNode, DeltaElemTag::MINIMAL);
+  invokeVisitorFnHelper(
+      traverser,
+      oldNode,
+      newNode,
+      DeltaElemTag::MINIMAL,
+      std::forward<Func>(f));
 }
 
 } // namespace dv_detail
@@ -642,7 +707,12 @@ struct DeltaVisitor {
       const DeltaVisitMode& /*mode*/,
       Func&& f) {
     if (oldFields != newFields) {
-      f(traverser.path(), oldFields, newFields, DeltaElemTag::MINIMAL);
+      dv_detail::invokeVisitorFnHelper(
+          traverser,
+          oldFields,
+          newFields,
+          DeltaElemTag::MINIMAL,
+          std::forward<Func>(f));
       return true;
     }
 
