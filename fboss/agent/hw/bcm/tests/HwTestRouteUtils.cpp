@@ -46,6 +46,30 @@ getBcmRoute(int unit, const folly::CIDRNetwork& cidrNetwork, uint32_t flags) {
   return route;
 }
 
+bool isRoutePresent(
+    int unit,
+    RouterID rid,
+    const folly::CIDRNetwork& cidrNetwork) {
+  bcm_l3_route_t route;
+  bcm_l3_route_t_init(&route);
+
+  route.l3a_vrf = rid;
+  const auto& [networkIP, netmask] = cidrNetwork;
+  if (networkIP.isV4()) {
+    route.l3a_subnet = networkIP.asV4().toLongHBO();
+    route.l3a_ip_mask =
+        folly::IPAddressV4(folly::IPAddressV4::fetchMask(netmask)).toLongHBO();
+  } else { // IPv6
+    ipToBcmIp6(networkIP, &route.l3a_ip6_net);
+    memcpy(
+        &route.l3a_ip6_mask,
+        folly::IPAddressV6::fetchMask(netmask).data(),
+        sizeof(route.l3a_ip6_mask));
+    route.l3a_flags = BCM_L3_IP6;
+  }
+  return (0 == bcm_l3_route_get(unit, &route));
+}
+
 uint64_t getBcmRouteCounter(
     const HwSwitch* hwSwitch,
     std::optional<RouteCounterID> id) {
@@ -229,6 +253,14 @@ uint64_t getRouteStat(
     const HwSwitch* hwSwitch,
     std::optional<RouteCounterID> counterID) {
   return getBcmRouteCounter(hwSwitch, counterID);
+}
+
+bool isHwRoutePresent(
+    const HwSwitch* hwSwitch,
+    RouterID rid,
+    const folly::CIDRNetwork& cidrNetwork) {
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch);
+  return isRoutePresent(bcmSwitch->getUnit(), rid, cidrNetwork);
 }
 
 } // namespace facebook::fboss::utility

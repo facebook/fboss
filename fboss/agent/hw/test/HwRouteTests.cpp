@@ -568,4 +568,26 @@ TYPED_TEST(HwRouteTest, verifyHostRouteChange) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(HwRouteTest, VerifyDefaultRoute) {
+  // Don't run this test on fake asic
+  if (this->getPlatform()->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_FAKE ||
+      this->getPlatform()->getAsic()->getAsicType() ==
+          cfg::AsicType::ASIC_TYPE_MOCK) {
+    GTEST_SKIP();
+    return;
+  }
+  auto setup = [=]() { this->applyNewConfig(this->initialConfig()); };
+  auto verify = [=]() {
+    // default routes should exist always.
+    utility::isHwRoutePresent(
+        this->getHwSwitch(), this->kRouterID(), {folly::IPAddress("::"), 0});
+    utility::isHwRoutePresent(
+        this->getHwSwitch(),
+        this->kRouterID(),
+        {folly::IPAddress("0.0.0.0"), 0});
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

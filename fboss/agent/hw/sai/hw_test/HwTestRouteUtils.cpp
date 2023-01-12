@@ -167,4 +167,21 @@ uint64_t getRouteStat(
   } while (retries-- > 0);
   return initialStat;
 }
+
+bool isHwRoutePresent(
+    const HwSwitch* hwSwitch,
+    RouterID rid,
+    const folly::CIDRNetwork& cidrNetwork) {
+  const auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch);
+
+  auto routeAdapterKey = getSaiRouteAdapterKey(saiSwitch, rid, cidrNetwork);
+  try {
+    SaiApiTable::getInstance()->routeApi().getAttribute(
+        routeAdapterKey, SaiRouteTraits::Attributes::NextHopId());
+  } catch (const SaiApiError& err) {
+    return false;
+  }
+
+  return true;
+}
 } // namespace facebook::fboss::utility
