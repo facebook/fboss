@@ -70,6 +70,26 @@ TEST_F(SystemPortManagerTest, addSystemPortViaSwitchState) {
   EXPECT_EQ(configInfo.port_id, 1);
 }
 
+TEST_F(SystemPortManagerTest, assertVoq) {
+  std::shared_ptr<SystemPort> swSystemPort = makeSystemPort(std::nullopt);
+  auto state = programmedState;
+  auto sysPortMgr = state->getSystemPorts()->modify(&state);
+  sysPortMgr->addSystemPort(swSystemPort);
+  applyNewState(state);
+  auto handle =
+      saiManagerTable->systemPortManager().getSystemPortHandle(SystemPortID(1));
+  EXPECT_NE(handle, nullptr);
+  auto configInfo =
+      GET_ATTR(SystemPort, ConfigInfo, handle->systemPort->attributes());
+  EXPECT_EQ(configInfo.num_voq, 8);
+  EXPECT_EQ(handle->queues.size(), configInfo.num_voq);
+  for (const auto& confAndHandle : handle->queues) {
+    auto& queueHandle = confAndHandle.second;
+    auto queueType = GET_ATTR(Queue, Type, queueHandle->queue->attributes());
+    EXPECT_EQ(queueType, SAI_QUEUE_TYPE_UNICAST_VOQ);
+  }
+}
+
 TEST_F(SystemPortManagerTest, addRemoteSystemPortViaSwitchState) {
   std::shared_ptr<SystemPort> swSystemPort =
       makeSystemPort(std::nullopt, 1, 42 /*remote switch id*/);
