@@ -17,16 +17,14 @@
 namespace facebook::fboss::thrift_cow {
 
 /*
- * This visitor takes two thrift objects, comparing each field and
- * then running the provided function against any paths that differ
+ * This visitor takes two ThriftCow objects, finds changed paths and
+ * then runs the provided function against any paths that differ
  * between the two objects.
  *
  * This can be used to find changes between two versions of the state
  * so that we can serve any related subscriptions.
  *
- * NOTE: this is not super efficient right now. In particular, we use
- * operator== to recursively compare the objects, which can be
- * nontrivially expensive.
+ * NOTE: this MAY emit some bogus ...
  */
 
 template <typename TC>
@@ -87,6 +85,12 @@ bool visitNode(
     const std::shared_ptr<Node>& newNode,
     const DeltaVisitMode& mode,
     Func&& f) {
+  if (oldNode == newNode) {
+    // This is the main benefit of deltas against thrift cow trees,
+    // ability to shortcircuit delta when we KNOW there are no changes.
+    return false;
+  }
+
   if (traverser.shouldShortCircuit()) {
     return false;
   }
@@ -374,12 +378,9 @@ struct DeltaVisitor<
     for (const auto& [key, val] : oldFields) {
       traverser.push(folly::to<std::string>(key));
       if (auto it = newFields.find(key); it != newFields.end()) {
-        // only recurse further if pointers aren't equal
-        if (val != it->second) {
-          if (DeltaVisitor<MappedTypeClass>::visit(
-                  traverser, val, it->second, mode, std::forward<Func>(f))) {
-            hasDifferences = true;
-          }
+        if (DeltaVisitor<MappedTypeClass>::visit(
+                traverser, val, it->second, mode, std::forward<Func>(f))) {
+          hasDifferences = true;
         }
       } else {
         hasDifferences = true;
@@ -608,11 +609,9 @@ struct DeltaVisitor<apache::thrift::type_class::structure> {
       }
 
       // Recurse further if pointer has changed
-      if (oldRef != newRef) {
-        if (DeltaVisitor<tc>::visit(
-                traverser, oldRef, newRef, mode, std::forward<Func>(f))) {
-          hasDifferences = true;
-        }
+      if (DeltaVisitor<tc>::visit(
+              traverser, oldRef, newRef, mode, std::forward<Func>(f))) {
+        hasDifferences = true;
       }
     });
 
