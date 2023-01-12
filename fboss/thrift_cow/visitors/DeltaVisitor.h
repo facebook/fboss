@@ -87,6 +87,10 @@ bool visitNode(
     const std::shared_ptr<Node>& newNode,
     const DeltaVisitMode& mode,
     Func&& f) {
+  if (traverser.shouldShortCircuit()) {
+    return false;
+  }
+
   auto hasDifferences = DeltaVisitor<TC>::visit(
       traverser,
       *oldNode->getFields(),
@@ -138,7 +142,15 @@ void visitAddedOrRemovedNode(
           SubNode newSubNode = (isAdd) ? node : SubNode{};
           f(subpath, oldSubNode, newSubNode, DeltaElemTag::NOT_MINIMAL);
         };
-    // TODO: support a traversehelper in RecurseVisitor too?
+
+    if (traverser.shouldShortCircuit()) {
+      // Traverse helper says we don't need to recurse further
+      //
+      // TODO: use traversehelper in RecurseVisitor too to be able to
+      // short circuit during the full recurse.
+      return;
+    }
+
     RecurseVisitor<TC>::visit(
         path, target, RecurseVisitMode::FULL, std::move(processChange));
   }
