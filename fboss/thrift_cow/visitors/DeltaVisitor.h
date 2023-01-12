@@ -186,10 +186,10 @@ void visitAddedOrRemovedNode(
 
   if (mode == DeltaVisitMode::FULL) {
     bool isAdd = static_cast<bool>(newNode);
-    auto target = (newNode) ? newNode : oldNode;
+    const auto target = (newNode) ? newNode : oldNode;
     auto processChange =
         [isAdd, initialPathSize = path.size(), f = std::forward<Func>(f)](
-            TraverseHelper& subTraverser, auto&& node) mutable {
+            TraverseHelper& subTraverser, const auto& node) mutable {
           const auto& subpath = subTraverser.path();
           if (subpath.size() == initialPathSize) {
             // skip visiting root, as we already visited it
