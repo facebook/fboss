@@ -241,7 +241,7 @@ std::shared_ptr<SystemPort> makeSysPort(
     int64_t switchId) {
   auto sysPort = std::make_shared<SystemPort>(SystemPortID(sysPortId));
   sysPort->setSwitchId(SwitchID(switchId));
-  sysPort->setPortName("sysPort1");
+  sysPort->setPortName(folly::sformat("sysPort{}", sysPortId));
   sysPort->setCoreIndex(42);
   sysPort->setCorePortIndex(24);
   sysPort->setSpeedMbps(10000);
