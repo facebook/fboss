@@ -333,6 +333,21 @@ TEST_F(QueueManagerTest, checkSysPortVoqStats) {
       portStat);
 }
 
+TEST_F(QueueManagerTest, changeSysPortAndCheckVoqStats) {
+  auto sysPort = firstSysPort();
+  auto newSysPort = sysPort->clone();
+  newSysPort->setPortName(folly::sformat("new_{}", sysPort->getPortName()));
+  saiManagerTable->systemPortManager().changeSystemPort(sysPort, newSysPort);
+  saiManagerTable->systemPortManager().updateStats(newSysPort->getID(), true);
+  auto portStat = saiManagerTable->systemPortManager().getLastPortStats(
+      newSysPort->getID());
+  checkCounterExportAndValue(
+      newSysPort->getPortName(),
+      voqIds(newSysPort->getID()),
+      ExpectExport::EXPORT,
+      portStat);
+}
+
 TEST_F(QueueManagerTest, removePortQueueAndCheckQueueStats) {
   auto p0 = testInterfaces[0].remoteHosts[0].port;
   std::shared_ptr<Port> oldPort = makePort(p0);
