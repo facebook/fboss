@@ -48,7 +48,7 @@ folly::MacAddress kLocalCpuMac();
 
 std::vector<std::string> getLoopbackIps(SwitchID switchId);
 
-cfg::DsfNode dsfNodeConfig(const HwAsic& asic);
+cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId = 4);
 
 cfg::SwitchConfig oneL3IntfConfig(
     const HwSwitch* hwSwitch,

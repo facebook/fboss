@@ -498,22 +498,8 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
 TEST_F(HwVoqSwitchTest, multipleDsfNodes) {
   auto setup = [this]() {
     auto cfg = initialConfig();
-    int64_t otherSwitchId{4};
-    auto cloneAsic = [&]() -> std::shared_ptr<HwAsic> {
-      auto myAsic = getPlatform()->getAsic();
-      switch (myAsic->getAsicType()) {
-        case cfg::AsicType::ASIC_TYPE_INDUS:
-          return std::make_shared<IndusAsic>(
-              myAsic->getSwitchType(), otherSwitchId);
-        case cfg::AsicType::ASIC_TYPE_EBRO:
-          return std::make_shared<EbroAsic>(
-              myAsic->getSwitchType(), otherSwitchId);
-        default:
-          throw FbossError("Unexpected asic type: ", myAsic->getAsicTypeStr());
-      }
-    };
-    auto otherAsic = cloneAsic();
-    cfg.dsfNodes()->insert({otherSwitchId, utility::dsfNodeConfig(*otherAsic)});
+    auto otherDsfNodeCfg = utility::dsfNodeConfig(*getPlatform()->getAsic());
+    cfg.dsfNodes()->insert({*otherDsfNodeCfg.switchId(), otherDsfNodeCfg});
     applyNewConfig(cfg);
   };
   verifyAcrossWarmBoots(setup, [] {});

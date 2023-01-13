@@ -11,7 +11,10 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/switch_asics/BeasAsic.h"
+#include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/switch_asics/IndusAsic.h"
 #include "fboss/agent/hw/test/HwPortUtils.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/state/Port.h"
@@ -85,12 +88,28 @@ std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap() {
   return portProfileIDMap;
 }
 
-cfg::DsfNode dsfNodeConfig(const HwAsic& asic) {
+cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
   constexpr auto kSysPortBlockSize = 20;
+  auto cloneAsic = [&]() -> std::shared_ptr<HwAsic> {
+    switch (myAsic.getAsicType()) {
+      case cfg::AsicType::ASIC_TYPE_INDUS:
+        return std::make_unique<IndusAsic>(
+            myAsic.getSwitchType(), otherSwitchId);
+      case cfg::AsicType::ASIC_TYPE_BEAS:
+        return std::make_unique<BeasAsic>(
+            myAsic.getSwitchType(), otherSwitchId);
+      case cfg::AsicType::ASIC_TYPE_EBRO:
+        return std::make_unique<EbroAsic>(
+            myAsic.getSwitchType(), otherSwitchId);
+      default:
+        throw FbossError("Unexpected asic type: ", myAsic.getAsicTypeStr());
+    }
+  };
+  auto otherAsic = cloneAsic();
   cfg::DsfNode dsfNode;
-  dsfNode.switchId() = *asic.getSwitchId();
+  dsfNode.switchId() = *otherAsic->getSwitchId();
   dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
-  switch (asic.getSwitchType()) {
+  switch (otherAsic->getSwitchType()) {
     case cfg::SwitchType::VOQ:
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
       break;
@@ -99,7 +118,7 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& asic) {
       break;
     case cfg::SwitchType::NPU:
     case cfg::SwitchType::PHY:
-      throw FbossError("Unexpected switch type: ", asic.getSwitchType());
+      throw FbossError("Unexpected switch type: ", otherAsic->getSwitchType());
   }
   if (dsfNode.type() == cfg::DsfNodeType::INTERFACE_NODE) {
     dsfNode.systemPortRange()->minimum() =
@@ -108,7 +127,7 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& asic) {
         *dsfNode.systemPortRange()->minimum() + kSysPortBlockSize;
     dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
   }
-  dsfNode.asicType() = asic.getAsicType();
+  dsfNode.asicType() = otherAsic->getAsicType();
   return dsfNode;
 }
 
