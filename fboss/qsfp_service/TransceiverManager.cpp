@@ -592,7 +592,9 @@ TransceiverManager::getOverrideProgrammedIphyPortAndProfileForTest(
   return {};
 }
 
-void TransceiverManager::programExternalPhyPorts(TransceiverID id) {
+void TransceiverManager::programExternalPhyPorts(
+    TransceiverID id,
+    bool /* needResetDataPath */) {
   auto phyManager = getPhyManager();
   if (!phyManager) {
     return;

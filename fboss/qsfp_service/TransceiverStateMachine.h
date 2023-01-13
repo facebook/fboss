@@ -254,7 +254,8 @@ bool operator()(
     Target& /* trg */) {
   auto tcvrID = fsm.get_attribute(transceiverID);
   try {
-    fsm.get_attribute(transceiverMgrPtr)->programExternalPhyPorts(tcvrID);
+    fsm.get_attribute(transceiverMgrPtr)->programExternalPhyPorts(
+      tcvrID, fsm.get_attribute(needResetDataPath));
     fsm.get_attribute(isXphyProgrammed) = true;
     return true;
   } catch (const std::exception& ex) {

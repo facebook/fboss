@@ -710,7 +710,7 @@ TEST_F(TransceiverStateMachineTest, programXphy) {
       allStates,
       [this]() {
         // Make sure `programExternalPhyPorts` has been called
-        EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_))
+        EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_, false))
             .Times(1);
       },
       [this]() {
@@ -728,7 +728,7 @@ TEST_F(TransceiverStateMachineTest, programXphy) {
       allStates,
       [this]() {
         // Make sure `programExternalPhyPorts` has never been called
-        EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_))
+        EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_, false))
             .Times(0);
       } /* preUpdate */,
       []() {} /* verify */);
@@ -745,7 +745,7 @@ TEST_F(TransceiverStateMachineTest, programXphyFailed) {
       TransceiverStateMachineEvent::PROGRAM_XPHY,
       stateSet,
       [this]() {
-        EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_))
+        EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_, false))
             .Times(2)
             .WillOnce(ThrowFbossError());
       },
@@ -1612,7 +1612,8 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
 
     // Use updateStateBlocking() to skip PhyManager check
     // Make sure `programExternalPhyPorts` has been called
-    EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_)).Times(1);
+    EXPECT_CALL(*transceiverManager_, programExternalPhyPorts(id_, false))
+        .Times(1);
     transceiverManager_->updateStateBlocking(
         id_, TransceiverStateMachineEvent::PROGRAM_XPHY);
     EXPECT_EQ(
