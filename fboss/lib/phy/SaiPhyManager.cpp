@@ -358,7 +358,7 @@ void SaiPhyManager::programOnePort(
     PortID portId,
     cfg::PortProfileID portProfileId,
     std::optional<TransceiverInfo> transceiverInfo,
-    bool /* needResetDataPath */) {
+    bool needResetDataPath) {
   bool isChanged{false};
   {
     const auto& wLockedCache = getWLockedCache(portId);
@@ -378,7 +378,10 @@ void SaiPhyManager::programOnePort(
 
     // Before actually calling sai sdk to program the port again, we should
     // check whether the port has been programmed in HW with the same config.
-    if (!(wLockedCache->systemLanes.empty() ||
+    // We avoid reprogramming the port if the config matches with what we have
+    // already programmed before, unless the needResetDataPath flag is set
+    if (!needResetDataPath &&
+        !(wLockedCache->systemLanes.empty() ||
           wLockedCache->lineLanes.empty())) {
       const auto& actualPhyPortConfig =
           getHwPhyPortConfigLocked(wLockedCache, portId);
@@ -434,8 +437,8 @@ void SaiPhyManager::programOnePort(
       setPortToExternalPhyPortStats(portId, createExternalPhyPortStats(portId));
     }
   }
-  if (isChanged) {
-    // If needed, tune the XPHY-NPU link after XPHY port create
+  if (isChanged || needResetDataPath) {
+    // If needed, tune the XPHY-NPU link again
     xphyPortStateToggle(portId, phy::Side::SYSTEM);
   }
 }

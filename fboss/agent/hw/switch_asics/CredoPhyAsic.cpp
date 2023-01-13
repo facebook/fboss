@@ -11,6 +11,7 @@ bool CredoPhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::EMPTY_ACL_MATCHER:
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::FEC:
+    case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
       return true;
     default:
       return false;
