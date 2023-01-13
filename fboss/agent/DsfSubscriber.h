@@ -7,8 +7,12 @@
 #include <gtest/gtest.h>
 #include <memory>
 
+DECLARE_bool(dsf_subscriber_skip_hw_writes);
+DECLARE_bool(dsf_subscriber_cache_updated_state);
+
 namespace facebook::fboss {
 class SwSwitch;
+class SwitchState;
 class InterfaceMap;
 class SystemPortMap;
 namespace fsdb {
@@ -23,6 +27,10 @@ class DsfSubscriber : public StateObserver {
 
   void stop();
 
+  const std::shared_ptr<SwitchState> cachedState() const {
+    return cachedState_;
+  }
+
  private:
   void scheduleUpdate(
       const std::shared_ptr<SystemPortMap>& newSysPorts,
@@ -34,6 +42,7 @@ class DsfSubscriber : public StateObserver {
   static std::vector<std::string> getInterfacesPath();
   SwSwitch* sw_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
+  std::shared_ptr<SwitchState> cachedState_;
   FRIEND_TEST(DsfSubscriberTest, scheduleUpdate);
   FRIEND_TEST(DsfSubscriberTest, setupNeighbors);
 };

@@ -10,6 +10,12 @@
 
 #include <memory>
 
+DEFINE_bool(dsf_subscriber_skip_hw_writes, false, "Skip writing to HW");
+DEFINE_bool(
+    dsf_subscriber_cache_updated_state,
+    false,
+    "Cache switch state after update by dsf subsriber");
+
 namespace facebook::fboss {
 
 using ThriftMapTypeClass = apache::thrift::type_class::map<
@@ -38,7 +44,7 @@ void DsfSubscriber::scheduleUpdate(
              << " updated # of rifs: " << (newRifs ? newRifs->size() : 0);
   sw_->updateState(
       folly::sformat("Update state for node: {}", nodeName),
-      [newSysPorts, newRifs, nodeSwitchId, nodeName](
+      [this, newSysPorts, newRifs, nodeSwitchId, nodeName](
           const std::shared_ptr<SwitchState>& in) {
         if (nodeSwitchId == SwitchID(*in->getSwitchSettings()->getSwitchId())) {
           throw FbossError(
@@ -84,7 +90,10 @@ void DsfSubscriber::scheduleUpdate(
           auto remoteRifs = out->getRemoteInterfaces()->modify(&out);
           processDelta(delta, remoteRifs);
         }
-        if (changed) {
+        if (FLAGS_dsf_subscriber_cache_updated_state) {
+          cachedState_ = out;
+        }
+        if (changed && !FLAGS_dsf_subscriber_skip_hw_writes) {
           return out;
         }
         return std::shared_ptr<SwitchState>{};
