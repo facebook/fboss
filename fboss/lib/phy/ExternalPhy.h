@@ -172,7 +172,9 @@ class ExternalPhy {
                << " speed=" << speed;
   }
 
-  virtual void programOnePort(PhyPortConfig config) = 0;
+  virtual void programOnePort(
+      PhyPortConfig config,
+      bool /* needResetDataPath */) = 0;
 
   virtual bool isSupported(Feature feature) const = 0;
 

@@ -82,7 +82,8 @@ class SaiPhyManager : public PhyManager {
   void programOnePort(
       PortID portId,
       cfg::PortProfileID portProfileId,
-      std::optional<TransceiverInfo> transceiverInfo) override;
+      std::optional<TransceiverInfo> transceiverInfo,
+      bool needResetDataPath) override;
 
   template <typename platformT, typename xphychipT>
   void initializeSlotPhysImpl(PimID pimID);

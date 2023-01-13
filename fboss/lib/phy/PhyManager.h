@@ -90,7 +90,8 @@ class PhyManager {
   virtual void programOnePort(
       PortID portId,
       cfg::PortProfileID portProfileId,
-      std::optional<TransceiverInfo> transceiverInfo);
+      std::optional<TransceiverInfo> transceiverInfo,
+      bool needResetDataPath);
 
   // Return programmed profile id for a specific port
   std::optional<cfg::PortProfileID> getProgrammedProfile(PortID portID);

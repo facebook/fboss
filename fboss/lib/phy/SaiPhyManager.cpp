@@ -357,7 +357,8 @@ std::shared_ptr<SwitchState> SaiPhyManager::portUpdateHelper(
 void SaiPhyManager::programOnePort(
     PortID portId,
     cfg::PortProfileID portProfileId,
-    std::optional<TransceiverInfo> transceiverInfo) {
+    std::optional<TransceiverInfo> transceiverInfo,
+    bool /* needResetDataPath */) {
   bool isChanged{false};
   {
     const auto& wLockedCache = getWLockedCache(portId);

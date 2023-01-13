@@ -179,14 +179,15 @@ phy::PhyPortConfig PhyManager::getHwPhyPortConfig(PortID portID) {
 void PhyManager::programOnePort(
     PortID portId,
     cfg::PortProfileID portProfileId,
-    std::optional<TransceiverInfo> transceiverInfo) {
+    std::optional<TransceiverInfo> transceiverInfo,
+    bool needResetDataPath) {
   const auto& wLockedCache = getWLockedCache(portId);
 
   // This function will call ExternalPhy::programOnePort(phy::PhyPortConfig).
   auto* xphy = getExternalPhyLocked(wLockedCache);
   const auto& desiredPhyPortConfig =
       getDesiredPhyPortConfig(portId, portProfileId, transceiverInfo);
-  xphy->programOnePort(desiredPhyPortConfig);
+  xphy->programOnePort(desiredPhyPortConfig, needResetDataPath);
 
   // Once the port is programmed successfully, update the portToCacheInfo_
   bool isChanged = setPortToPortCacheInfoLocked(

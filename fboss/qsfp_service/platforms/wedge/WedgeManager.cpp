@@ -726,6 +726,8 @@ phy::PhyInfo WedgeManager::getXphyInfo(PortID portID) {
   }
 }
 
+// This function is used to handle thrift requests from clients to test
+// programming a xphy port on demand and used in the hw tests
 void WedgeManager::programXphyPort(
     PortID portId,
     cfg::PortProfileID portProfileId) {
@@ -747,7 +749,8 @@ void WedgeManager::programXphyPort(
     }
   }
 
-  phyManager_->programOnePort(portId, portProfileId, itTcvr);
+  phyManager_->programOnePort(
+      portId, portProfileId, itTcvr, false /* needResetDataPath */);
 }
 
 bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {

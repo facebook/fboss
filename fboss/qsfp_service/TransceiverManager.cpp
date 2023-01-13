@@ -594,7 +594,7 @@ TransceiverManager::getOverrideProgrammedIphyPortAndProfileForTest(
 
 void TransceiverManager::programExternalPhyPorts(
     TransceiverID id,
-    bool /* needResetDataPath */) {
+    bool needResetDataPath) {
   auto phyManager = getPhyManager();
   if (!phyManager) {
     return;
@@ -618,10 +618,12 @@ void TransceiverManager::programExternalPhyPorts(
       continue;
     }
 
-    phyManager->programOnePort(portID, portInfo.profile, transceiver);
+    phyManager->programOnePort(
+        portID, portInfo.profile, transceiver, needResetDataPath);
     XLOG(INFO) << "Programmed XPHY port for Transceiver=" << id
                << ", Port=" << portID << ", Profile="
-               << apache::thrift::util::enumNameSafe(portInfo.profile);
+               << apache::thrift::util::enumNameSafe(portInfo.profile)
+               << ", needResetDataPath=" << needResetDataPath;
   }
 }
 
