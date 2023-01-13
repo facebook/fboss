@@ -13,7 +13,7 @@ namespace fboss {
  * Remove the given file. Return true if file exists and
  * we were able to remove it, false otherwise
  */
-bool removeFile(const std::string& filename);
+bool removeFile(const std::string& filename, bool log = false);
 
 /*
  * Create given file. Throw if file could not be created else

@@ -129,8 +129,8 @@ void HwSwitchWarmBootHelper::setCanWarmBoot() {
 bool HwSwitchWarmBootHelper::checkAndClearWarmBootFlags() {
   // Return true if coldBootOnceFile does not exist and
   // canWarmBoot file exists
-  bool canWarmBoot = removeFile(warmBootFlag());
-  bool forceColdBoot = removeFile(forceColdBootOnceFlag());
+  bool canWarmBoot = removeFile(warmBootFlag(), true /*log*/);
+  bool forceColdBoot = removeFile(forceColdBootOnceFlag(), true /*log*/);
   return !forceColdBoot && canWarmBoot;
 }
 

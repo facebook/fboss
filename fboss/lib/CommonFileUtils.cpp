@@ -2,6 +2,7 @@
 
 #include "fboss/lib/CommonFileUtils.h"
 #include <boost/filesystem/operations.hpp>
+#include <folly/logging/xlog.h>
 #include <fstream>
 #include <sstream>
 #include "fboss/agent/SysError.h"
@@ -10,8 +11,12 @@
 
 namespace facebook::fboss {
 
-bool removeFile(const std::string& filename) {
+bool removeFile(const std::string& filename, bool log) {
   int rv = unlink(filename.c_str());
+  if (log) {
+    XLOG(INFO) << filename << ((rv == 0) ? " did exist" : " did not exist");
+  }
+
   if (rv == 0) {
     // The file existed and we successfully removed it.
     return true;
