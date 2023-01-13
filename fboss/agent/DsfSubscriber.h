@@ -27,6 +27,8 @@ class DsfSubscriber : public StateObserver {
 
   void stop();
 
+  // Used in tests for asserting on modifications
+  // made by DsfSubscriber
   const std::shared_ptr<SwitchState> cachedState() const {
     return cachedState_;
   }

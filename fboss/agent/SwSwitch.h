@@ -656,6 +656,9 @@ class SwSwitch : public HwSwitch::Callback {
   SwSwitchRouteUpdateWrapper getRouteUpdater() {
     return SwSwitchRouteUpdateWrapper(this, rib_.get());
   }
+  const DsfSubscriber* getDsfSubscriber() const {
+    return dsfSubscriber_.get();
+  }
 
   /*
    * Gets the flags the SwSwitch was initialized with.
