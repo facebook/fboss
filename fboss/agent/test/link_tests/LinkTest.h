@@ -121,6 +121,7 @@ class LinkTest : public AgentTest {
       const boost::container::flat_set<PortDescriptor>& ecmpPorts,
       utility::EcmpSetupTargetedPorts6& ecmp6);
   void initializeCabledPorts();
+  void logLinkDbgMessage(std::vector<PortID>& portIDs) const override;
 
   std::vector<PortID> cabledPorts_;
   std::set<TransceiverID> cabledTransceivers_;

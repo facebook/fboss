@@ -4,6 +4,7 @@
 #include <folly/Subprocess.h>
 #include <gflags/gflags.h>
 
+#include <thrift/lib/cpp2/protocol/DebugProtocol.h>
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwSwitch.h"
@@ -18,7 +19,9 @@
 #include "fboss/agent/test/link_tests/LinkTest.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types_custom_protocol.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 DECLARE_bool(enable_macsec);
@@ -369,6 +372,62 @@ void LinkTest::waitForLldpOnCabledPorts(
       { ASSERT_EVENTUALLY_TRUE(lldpNeighborsOnAllCabledPorts()); },
       retries,
       msBetweenRetry);
+}
+
+// Log debug information from IPHY, XPHY and optics
+void LinkTest::logLinkDbgMessage(std::vector<PortID>& portIDs) const {
+  auto iPhyInfos = sw()->getIPhyInfo(portIDs);
+  auto qsfpServiceClient = utils::createQsfpServiceClient();
+  auto portNames = getPortNames(portIDs);
+  std::map<std::string, phy::PhyInfo> xPhyInfos;
+  std::map<int32_t, TransceiverInfo> tcvrInfos;
+
+  try {
+    qsfpServiceClient->sync_getInterfacePhyInfo(xPhyInfos, portNames);
+  } catch (const std::exception& ex) {
+    XLOG(WARN) << "Failed to call qsfp_service getInterfacePhyInfo(). "
+               << folly::exceptionStr(ex);
+  }
+
+  std::vector<int32_t> tcvrIds;
+  for (auto portID : portIDs) {
+    tcvrIds.push_back(
+        platform()->getPlatformPort(portID)->getTransceiverID().value());
+  }
+
+  try {
+    qsfpServiceClient->sync_getTransceiverInfo(tcvrInfos, tcvrIds);
+  } catch (const std::exception& ex) {
+    XLOG(WARN) << "Failed to call qsfp_service getTransceiverInfo(). "
+               << folly::exceptionStr(ex);
+  }
+
+  for (auto portID : portIDs) {
+    auto portName = getPortName(portID);
+    XLOG(ERR) << "Debug information for " << portName;
+    if (iPhyInfos.find(portID) != iPhyInfos.end()) {
+      XLOG(ERR) << "IPHY INFO: "
+                << apache::thrift::debugString(iPhyInfos[portID]);
+    } else {
+      XLOG(ERR) << "IPHY info missing for " << portName;
+    }
+
+    if (xPhyInfos.find(portName) != xPhyInfos.end()) {
+      XLOG(ERR) << "XPHY INFO: "
+                << apache::thrift::debugString(xPhyInfos[portName]);
+    } else {
+      XLOG(ERR) << "XPHY info missing for " << portName;
+    }
+
+    auto tcvrId =
+        platform()->getPlatformPort(portID)->getTransceiverID().value();
+    if (tcvrInfos.find(tcvrId) != tcvrInfos.end()) {
+      XLOG(ERR) << "Transceiver INFO: "
+                << apache::thrift::debugString(tcvrInfos[tcvrId]);
+    } else {
+      XLOG(ERR) << "Transceiver info missing for " << portName;
+    }
+  }
 }
 
 int linkTestMain(int argc, char** argv, PlatformInitFn initPlatformFn) {

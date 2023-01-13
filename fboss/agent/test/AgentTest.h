@@ -109,6 +109,7 @@ class AgentTest : public ::testing::Test, public AgentInitializer {
       const std::string& configDir,
       const std::string& configFile) const;
   void reloadConfig(std::string reason) const;
+  virtual void logLinkDbgMessage(std::vector<PortID>& /* portIDs */) const {}
 
  private:
   template <typename AddrT>

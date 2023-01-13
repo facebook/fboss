@@ -182,6 +182,7 @@ void AgentTest::waitForLinkStatus(
       "Unexpected Link status {:d} for {:s}",
       !up,
       folly::join(",", getPortNames(badPorts)));
+  logLinkDbgMessage(badPorts);
   throw FbossError(msg);
 }
 
