@@ -168,6 +168,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
 
   virtual std::vector<PortID> masterLogicalPortIds(
       const std::set<cfg::PortType>& filter = {}) const = 0;
+  std::vector<SystemPortID> masterLogicalSysPortIds() const;
   virtual std::vector<PortID> getAllPortsInGroup(PortID portID) const = 0;
   virtual std::vector<FlexPortMode> getSupportedFlexPortModes() const = 0;
   virtual bool isRouteScaleEnabled() const = 0;
