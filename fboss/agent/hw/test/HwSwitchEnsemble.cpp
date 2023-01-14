@@ -441,11 +441,10 @@ std::map<SystemPortID, HwSysPortStats> HwSwitchEnsemble::getLatestSysPortStats(
   auto stats = getHwSwitch()->getSysPortStats();
   for (auto [portName, stats] : stats) {
     auto portId = swState->getSystemPorts()->getSystemPort(portName)->getID();
-    if (std::find(ports.begin(), ports.end(), (SystemPortID)portId) ==
-        ports.end()) {
+    if (std::find(ports.begin(), ports.end(), portId) == ports.end()) {
       continue;
     }
-    portIdStatsMap.emplace((SystemPortID)portId, stats);
+    portIdStatsMap.emplace(portId, stats);
   }
   return portIdStatsMap;
 }
