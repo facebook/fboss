@@ -60,11 +60,18 @@ class QsfpUtil {
   QsfpUtil& operator=(QsfpUtil const&) = delete;
 
  private:
+  void setChannelStateBitmask(uint8_t& data, uint32_t channel, bool disable);
+
+  static const uint8_t maxSffChannels = 4;
+  static const uint8_t maxCmisChannels = 8;
+
   bool directAccess_{false};
   ReadViaServiceFn readViaServiceFn_;
   WriteViaServiceFn writeViaServiceFn_;
   ReadViaDirectIoFn readViaDirectIoFn_;
   WriteViaDirectIoFn writeViaDirectIoFn_;
+  TransceiverManagementInterface moduleType_{
+      TransceiverManagementInterface::NONE};
   folly::EventBase* evb_{nullptr};
 };
 
