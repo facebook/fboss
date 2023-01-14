@@ -273,7 +273,8 @@ cfg::SwitchConfig genPortVlanCfg(
   config.switchSettings()->switchType() = asic->getSwitchType();
   if (asic->getSwitchId()) {
     config.switchSettings()->switchId() = *asic->getSwitchId();
-    config.dsfNodes()->insert({*asic->getSwitchId(), dsfNodeConfig(*asic)});
+    config.dsfNodes()->insert(
+        {*asic->getSwitchId(), dsfNodeConfig(*asic, *asic->getSwitchId())});
   }
   // Use getPortToDefaultProfileIDMap() to genetate the default config instead
   // of using PlatformMapping.
