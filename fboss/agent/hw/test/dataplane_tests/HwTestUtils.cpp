@@ -41,6 +41,19 @@ bool waitPortStatsConditionImpl(
   XLOG(DBG3) << "Awaited port stats condition was never satisfied";
   return false;
 }
+template <typename PortStatT>
+bool anyQueueBytesIncremented(
+    const PortStatT& origPortStat,
+    const PortStatT& newPortStat) {
+  return std::any_of(
+      origPortStat.queueOutBytes_()->begin(),
+      origPortStat.queueOutBytes_()->end(),
+      [&newPortStat](auto queueAndBytes) {
+        auto [qid, oldQbytes] = queueAndBytes;
+        const auto& newQueueStats = newPortStat.queueOutBytes_();
+        return newQueueStats->find(qid)->second > oldQbytes;
+      });
+}
 } // namespace
 bool waitPortStatsCondition(
     std::function<bool(const std::map<PortID, HwPortStats>&)> conditionFn,
@@ -79,15 +92,7 @@ bool waitForAnyPorAndQueutOutBytesIncrement(
           // Wait for queue stat increment if queues are supported
           // on this platform
           if (!queueStatsSupported ||
-              std::any_of(
-                  portStat.queueOutBytes_()->begin(),
-                  portStat.queueOutBytes_()->end(),
-                  [newPortStatItr](auto queueAndBytes) {
-                    auto [qid, oldQbytes] = queueAndBytes;
-                    const auto newQueueStats =
-                        newPortStatItr->second.queueOutBytes_();
-                    return newQueueStats->find(qid)->second > oldQbytes;
-                  })) {
+              anyQueueBytesIncremented(portStat, newPortStatItr->second)) {
             return true;
           }
         }
@@ -111,18 +116,9 @@ bool waitForAnyVoQOutBytesIncrement(
   auto conditionFn = [&originalPortStats](const auto& newPortStats) {
     for (const auto& [portId, portStat] : originalPortStats) {
       auto newPortStatItr = newPortStats.find(portId);
-      if (newPortStatItr != newPortStats.end()) {
-        if (std::any_of(
-                portStat.queueOutBytes_()->begin(),
-                portStat.queueOutBytes_()->end(),
-                [newPortStatItr](auto queueAndBytes) {
-                  auto [qid, oldQbytes] = queueAndBytes;
-                  const auto newQueueStats =
-                      newPortStatItr->second.queueOutBytes_();
-                  return newQueueStats->find(qid)->second > oldQbytes;
-                })) {
-          return true;
-        }
+      if (newPortStatItr != newPortStats.end() &&
+          anyQueueBytesIncremented(portStat, newPortStatItr->second)) {
+        return true;
       }
     }
     XLOG(DBG3) << "No port stats increased yet";
