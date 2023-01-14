@@ -929,12 +929,12 @@ void ThriftConfigApplier::validateUdfConfig(const UdfConfig& newUdfConfig) {
     const auto& udfGroupName = udfGroupEntry.first;
     const auto& udfPacketMatchersList =
         udfGroupEntry.second->getUdfPacketMatcherIds();
-    for (const auto& matcherId : udfPacketMatchersList) {
+    for (const auto& matcherMapName : udfPacketMatchersList) {
       const auto& udfPacketMatchers = newUdfConfig.getUdfPacketMatcherMap();
-      if (udfPacketMatchers->find(matcherId) == udfPacketMatchers->end()) {
+      if (udfPacketMatchers->find(matcherMapName) == udfPacketMatchers->end()) {
         throw FbossError(
             "Configuration does not exist for UdfPacketMatcherMap: ",
-            matcherId,
+            matcherMapName,
             " but exists in packetMatcherList for UdfGroup ",
             udfGroupName);
       }

@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/UdfConfig.h"
 #include "fboss/agent/state/UdfGroup.h"
@@ -275,4 +276,31 @@ TEST(Udf, applyConfig) {
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   ASSERT_NE(nullptr, stateV3);
   EXPECT_EQ(stateV3->getUdfConfig(), nullptr);
+}
+
+TEST(Udf, validateMissingPacketMatcherConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  cfg::UdfConfig udf;
+  config.udfConfig() = udf;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_EQ(nullptr, stateV1);
+  // no map has been populated
+  EXPECT_EQ(stateV0->getUdfConfig()->getUdfGroupMap()->size(), 0);
+
+  auto udfEntry = makeCfgUdfGroupEntry(kUdfGroupCfgName1.str());
+  // Add matchCfg_2 for packetMatcher while matchCfg_1 is associated with
+  // udfGroup
+  auto udfPacketmatcherEntry =
+      makeCfgUdfPacketMatcherEntry(kPacketMatcherCfgName2.str());
+  config.udfConfig() = makeUdfCfg({udfEntry}, {udfPacketmatcherEntry});
+
+  // As there is configuartion mismatch. It would throw following exception
+  // "Configuration does not exist for UdfPacketMatcherMap: matchCfg_1
+  // but exists in packetMatcherList for UdfGroup foo1"
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
