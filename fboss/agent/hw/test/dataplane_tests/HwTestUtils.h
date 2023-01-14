@@ -23,6 +23,9 @@ namespace facebook::fboss::utility {
 
 using HwPortStatsFunc = typename std::function<std::map<PortID, HwPortStats>(
     const std::vector<PortID>&)>;
+using HwSysPortStatsFunc =
+    typename std::function<std::map<SystemPortID, HwSysPortStats>(
+        const std::vector<SystemPortID>&)>;
 
 bool ensureSendPacketSwitched(
     HwSwitch* hwSwitch,
@@ -45,4 +48,11 @@ bool waitPortStatsCondition(
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry,
     HwPortStatsFunc getHwPortStats);
 
+bool waitSysPortStatsCondition(
+    std::function<bool(const std::map<SystemPortID, HwSysPortStats>&)>
+        conditionFn,
+    const std::vector<SystemPortID>& portIds,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry,
+    HwSysPortStatsFunc getHwSysPortStats);
 } // namespace facebook::fboss::utility
