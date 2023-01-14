@@ -544,6 +544,7 @@ if (NOT SAI_ONLY)
   add_library(qsfp_module STATIC
       fboss/qsfp_service/module/QsfpModule.cpp
       fboss/qsfp_service/module/oss/QsfpModule.cpp
+      fboss/qsfp_service/module/QsfpUtil.cpp
       fboss/qsfp_service/module/sff/SffFieldInfo.cpp
       fboss/qsfp_service/module/sff/SffModule.cpp
       fboss/qsfp_service/module/sff/Sff8472Module.cpp

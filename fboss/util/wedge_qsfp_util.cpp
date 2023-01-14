@@ -6,6 +6,7 @@
 #include "fboss/lib/usb/WedgeI2CBus.h"
 
 #include "fboss/qsfp_service/module/QsfpModule.h"
+#include "fboss/qsfp_service/module/QsfpUtil.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/module/sff/SffModule.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeQsfp.h"
