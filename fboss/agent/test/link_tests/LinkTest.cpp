@@ -181,13 +181,15 @@ LinkTest::getOpticalCabledPortsAndNames() const {
     auto tcvrInfo = transceiverInfos.find(tcvrId);
 
     if (tcvrInfo != transceiverInfos.end()) {
-      if (TransmitterTechnology::OPTICAL ==
-          *(tcvrInfo->second.cable().value_or({}).transmitterTech())) {
-        opticalPorts.push_back(port);
-        opticalPortNames += portName + " ";
-      } else {
-        XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
-                   << ", is not optics, skip it";
+      if (auto tcvrState = tcvrInfo->second.tcvrState()) {
+        if (TransmitterTechnology::OPTICAL ==
+            tcvrState->cable().value_or({}).transmitterTech()) {
+          opticalPorts.push_back(port);
+          opticalPortNames += portName + " ";
+        } else {
+          XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
+                     << ", is not optics, skip it";
+        }
       }
     } else {
       XLOG(DBG2) << "TransceiverInfo of transceiver: " << tcvrId + 1 << ", "
@@ -338,9 +340,11 @@ void LinkTest::waitForStateMachineState(
       // Only continue if the transceiver state machine matches
       if (auto transceiverInfoIt = info.find(transceiverID);
           transceiverInfoIt != info.end()) {
-        if (auto state = transceiverInfoIt->second.stateMachineState();
-            state.has_value() && *state == stateMachineState) {
-          continue;
+        if (auto tcvrState = transceiverInfoIt->second.tcvrState()) {
+          if (auto state = tcvrState->stateMachineState();
+              state.has_value() && *state == stateMachineState) {
+            continue;
+          }
         }
       }
       // Otherwise such transceiver is considered to be in a bad state
