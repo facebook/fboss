@@ -159,7 +159,11 @@ void WedgeManager::getTransceiversInfo(
     try {
       auto tcvrID = TransceiverID(i);
       info.insert({i, getTransceiverInfo(tcvrID)});
-      info[i].stateMachineState() = getCurrentState(tcvrID);
+      auto currentState = getCurrentState(tcvrID);
+      info[i].stateMachineState() = currentState;
+      if (info[i].tcvrState().has_value()) {
+        info[i].tcvrState()->stateMachineState() = currentState;
+      }
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Transceiver " << i
                 << ": Error calling getTransceiverInfo(): " << ex.what();
