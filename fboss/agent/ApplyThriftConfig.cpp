@@ -925,6 +925,21 @@ void ThriftConfigApplier::validateUdfConfig(const UdfConfig& newUdfConfig) {
   if (udfGroupMap == nullptr) {
     return;
   }
+
+  for (const auto& loadBalancerConfig : cfg_->get_loadBalancers()) {
+    auto loadBalancerId = loadBalancerConfig.get_id();
+    auto udfGroups = loadBalancerConfig.get_fieldSelection().udfGroups();
+    for (auto& udfGroupName : *udfGroups) {
+      if (udfGroupMap->find(udfGroupName) == udfGroupMap->end()) {
+        throw FbossError(
+            "Configuration does not exist for UdfGroup: ",
+            udfGroupName,
+            " but exists in UdfGroupList for LoadBalancer ",
+            loadBalancerId);
+      }
+    }
+  }
+
   for (const auto& udfGroupEntry : *udfGroupMap) {
     const auto& udfGroupName = udfGroupEntry.first;
     const auto& udfPacketMatchersList =
