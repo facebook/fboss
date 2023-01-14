@@ -30,6 +30,7 @@ using namespace facebook::fboss;
 
 using UdfGroupCfgList = std::vector<cfg::UdfGroup>;
 using UdfPacketMatcherCfgList = std::vector<cfg::UdfPacketMatcher>;
+using UdfGroupIds = std::vector<std::string>;
 
 std::shared_ptr<UdfGroup> createStateUdfGroup(
     const std::string& name,
@@ -301,6 +302,61 @@ TEST(Udf, validateMissingPacketMatcherConfig) {
   // As there is configuartion mismatch. It would throw following exception
   // "Configuration does not exist for UdfPacketMatcherMap: matchCfg_1
   // but exists in packetMatcherList for UdfGroup foo1"
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+cfg::LoadBalancer makeLoadBalancerCfg(UdfGroupIds udfGroupIds) {
+  cfg::LoadBalancer loadBalancer;
+  cfg::Fields fields;
+
+  loadBalancer.id() = LoadBalancerID::ECMP;
+
+  std::set<cfg::IPv4Field> v4Fields = {
+      cfg::IPv4Field::SOURCE_ADDRESS, cfg::IPv4Field::DESTINATION_ADDRESS};
+  fields.ipv4Fields() = std::move(v4Fields);
+
+  std::set<cfg::IPv6Field> v6Fields = {
+      cfg::IPv6Field::SOURCE_ADDRESS, cfg::IPv6Field::DESTINATION_ADDRESS};
+  fields.ipv6Fields() = std::move(v6Fields);
+
+  std::set<cfg::MPLSField> mplsFields = {
+      LoadBalancer::MPLSField::TOP_LABEL,
+      LoadBalancer::MPLSField::SECOND_LABEL,
+      LoadBalancer::MPLSField::THIRD_LABEL};
+  fields.mplsFields() = std::move(mplsFields);
+
+  std::set<cfg::TransportField> transportFields = {
+      cfg::TransportField::SOURCE_PORT, cfg::TransportField::DESTINATION_PORT};
+  fields.transportFields() = std::move(transportFields);
+
+  fields.udfGroups() = udfGroupIds;
+  loadBalancer.fieldSelection() = fields;
+
+  return loadBalancer;
+}
+
+TEST(Udf, validateMissingUdfGroupConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  cfg::LoadBalancer loadBalancer;
+  cfg::UdfConfig udf;
+
+  auto udfEntry = makeCfgUdfGroupEntry(kUdfGroupCfgName1.str());
+  auto udfPacketmatcherEntry =
+      makeCfgUdfPacketMatcherEntry(kPacketMatcherCfgName.str());
+
+  // Add UdfGroup foo2 in LoadBalancer UdfGroupList
+  // udfGroup, though the UdfConfig exist for UdfGroup foo1
+  loadBalancer = makeLoadBalancerCfg({kUdfGroupCfgName2.str()});
+  config.loadBalancers() = {loadBalancer};
+  config.udfConfig() = makeUdfCfg({udfEntry}, {udfPacketmatcherEntry});
+
+  // As there is configuartion mismatch. It would throw following exception
+  // "Configuration does not exist for UdfGroup: foo2 but exists in UdfGroupList
+  // for LoadBalancer 0"
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
