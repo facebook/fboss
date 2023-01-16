@@ -31,14 +31,22 @@ bool ensureSendPacketSwitched(
     HwSwitch* hwSwitch,
     std::unique_ptr<TxPacket> pkt,
     const std::vector<PortID>& portIds,
-    HwPortStatsFunc getHwPortStats);
+    const HwPortStatsFunc& getHwPortStats,
+    const std::vector<SystemPortID>& sysPortIds,
+    const HwSysPortStatsFunc& getHwSysPortStats);
+
+bool ensureSendPacketSwitched(
+    HwSwitch* hwSwitch,
+    std::unique_ptr<TxPacket> pkt,
+    const std::vector<PortID>& portIds,
+    const HwPortStatsFunc& getHwPortStats);
 
 bool ensureSendPacketOutOfPort(
     HwSwitch* hwSwitch,
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
     const std::vector<PortID>& ports,
-    HwPortStatsFunc getHwPortStats,
+    const HwPortStatsFunc& getHwPortStats,
     std::optional<uint8_t> queue = std::nullopt);
 
 bool waitPortStatsCondition(
@@ -46,7 +54,7 @@ bool waitPortStatsCondition(
     const std::vector<PortID>& portIds,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry,
-    HwPortStatsFunc getHwPortStats);
+    const HwPortStatsFunc& getHwPortStats);
 
 bool waitSysPortStatsCondition(
     std::function<bool(const std::map<SystemPortID, HwSysPortStats>&)>
@@ -54,5 +62,5 @@ bool waitSysPortStatsCondition(
     const std::vector<SystemPortID>& portIds,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry,
-    HwSysPortStatsFunc getHwSysPortStats);
+    const HwSysPortStatsFunc& getHwSysPortStats);
 } // namespace facebook::fboss::utility

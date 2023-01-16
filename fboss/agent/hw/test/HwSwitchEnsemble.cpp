@@ -362,12 +362,18 @@ bool HwSwitchEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
       [&](const std::vector<PortID>& portIds) -> std::map<PortID, HwPortStats> {
     return getLatestPortStats(portIds);
   };
+  auto getSysPortStats = [&](const std::vector<SystemPortID>& portIds)
+      -> std::map<SystemPortID, HwSysPortStats> {
+    return getLatestSysPortStats(portIds);
+  };
 
   return utility::ensureSendPacketSwitched(
       getHwSwitch(),
       std::move(pkt),
       masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}),
-      getPortStats);
+      getPortStats,
+      masterLogicalSysPortIds(),
+      getSysPortStats);
 }
 
 bool HwSwitchEnsemble::ensureSendPacketOutOfPort(

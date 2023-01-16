@@ -24,11 +24,11 @@ namespace {
 
 template <typename ConditionFN, typename PortT, typename StatsGetFn>
 bool waitPortStatsConditionImpl(
-    ConditionFN conditionFn,
+    const ConditionFN& conditionFn,
     const std::vector<PortT>& portIds,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry,
-    StatsGetFn getHwPortStats) {
+    const StatsGetFn& getHwPortStats) {
   auto newPortStats = getHwPortStats(portIds);
   while (retries--) {
     // TODO(borisb): exponential backoff!
@@ -60,7 +60,7 @@ bool waitPortStatsCondition(
     const std::vector<PortID>& portIds,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry,
-    HwPortStatsFunc getHwPortStats) {
+    const HwPortStatsFunc& getHwPortStats) {
   return waitPortStatsConditionImpl(
       conditionFn, portIds, retries, msBetweenRetry, getHwPortStats);
 }
@@ -71,7 +71,7 @@ bool waitSysPortStatsCondition(
     const std::vector<SystemPortID>& portIds,
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry,
-    HwSysPortStatsFunc getHwPortStats) {
+    const HwSysPortStatsFunc& getHwPortStats) {
   return waitPortStatsConditionImpl(
       conditionFn, portIds, retries, msBetweenRetry, getHwPortStats);
 }
@@ -80,7 +80,7 @@ bool waitForAnyPorAndQueutOutBytesIncrement(
     HwSwitch* hwSwitch,
     const std::map<PortID, HwPortStats>& originalPortStats,
     const std::vector<PortID>& portIds,
-    HwPortStatsFunc getHwPortStats) {
+    const HwPortStatsFunc& getHwPortStats) {
   auto queueStatsSupported =
       hwSwitch->getPlatform()->getAsic()->isSupported(HwAsic::Feature::L3_QOS);
   auto conditionFn = [&originalPortStats,
@@ -109,7 +109,7 @@ bool waitForAnyVoQOutBytesIncrement(
     HwSwitch* hwSwitch,
     const std::map<SystemPortID, HwSysPortStats>& originalPortStats,
     const std::vector<SystemPortID>& portIds,
-    HwSysPortStatsFunc getHwPortStats) {
+    const HwSysPortStatsFunc& getHwPortStats) {
   if (!hwSwitch->getPlatform()->getAsic()->isSupported(HwAsic::Feature::VOQ)) {
     throw FbossError("VOQs are unsupported on platform");
   }
@@ -132,12 +132,36 @@ bool ensureSendPacketSwitched(
     HwSwitch* hwSwitch,
     std::unique_ptr<TxPacket> pkt,
     const std::vector<PortID>& portIds,
-    HwPortStatsFunc getHwPortStats) {
+    const HwPortStatsFunc& getHwPortStats,
+    const std::vector<SystemPortID>& sysPortIds,
+    const HwSysPortStatsFunc& getHwSysPortStats) {
   auto originalPortStats = getHwPortStats(portIds);
+  auto originalSysPortStats = getHwSysPortStats(sysPortIds);
   bool result = hwSwitch->sendPacketSwitchedSync(std::move(pkt));
+  bool waitForVoqs = sysPortIds.size() &&
+      hwSwitch->getPlatform()->getAsic()->isSupported(HwAsic::Feature::VOQ);
   return result &&
       waitForAnyPorAndQueutOutBytesIncrement(
-             hwSwitch, originalPortStats, portIds, getHwPortStats);
+             hwSwitch, originalPortStats, portIds, getHwPortStats) &&
+      (!waitForVoqs ||
+       waitForAnyVoQOutBytesIncrement(
+           hwSwitch, originalSysPortStats, sysPortIds, getHwSysPortStats));
+}
+
+bool ensureSendPacketSwitched(
+    HwSwitch* hwSwitch,
+    std::unique_ptr<TxPacket> pkt,
+    const std::vector<PortID>& portIds,
+    const HwPortStatsFunc& getHwPortStats) {
+  auto noopGetSysPortStats = [](const std::vector<SystemPortID>&)
+      -> std::map<SystemPortID, HwSysPortStats> { return {}; };
+  return ensureSendPacketSwitched(
+      hwSwitch,
+      std::move(pkt),
+      portIds,
+      getHwPortStats,
+      {},
+      noopGetSysPortStats);
 }
 
 bool ensureSendPacketOutOfPort(
@@ -145,7 +169,7 @@ bool ensureSendPacketOutOfPort(
     std::unique_ptr<TxPacket> pkt,
     PortID portID,
     const std::vector<PortID>& ports,
-    HwPortStatsFunc getHwPortStats,
+    const HwPortStatsFunc& getHwPortStats,
     std::optional<uint8_t> queue) {
   auto originalPortStats = getHwPortStats(ports);
   bool result =
