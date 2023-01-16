@@ -44,8 +44,6 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
           SAI_PORT_STAT_IF_IN_OCTETS,
           SAI_PORT_STAT_IF_IN_ERRORS,
           SAI_PORT_STAT_IF_OUT_OCTETS,
-          SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES,
-          SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES,
       };
       return counterIds;
     }
