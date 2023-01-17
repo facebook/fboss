@@ -19,6 +19,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/switch_asics/IndusAsic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
@@ -54,7 +55,6 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
-    case cfg::AsicType::ASIC_TYPE_INDUS:
     case cfg::AsicType::ASIC_TYPE_BEAS:
       XLOG(FATAL) << " Not supported";
       break;
@@ -65,6 +65,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
       // Available buffer is per XPE
       CHECK_EQ(maxEgressPoolSize, availableBuffer * 4);
       break;
+    case cfg::AsicType::ASIC_TYPE_INDUS:
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
@@ -113,9 +114,19 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       return kCellsAvailable *
           static_cast<const Tomahawk4Asic*>(asic)->getMMUCellSize();
     }
+    case cfg::AsicType::ASIC_TYPE_INDUS: {
+      /*
+       * XXX: TODO: Need to check if there is a way to compute the
+       * buffers available for use in Indus without using the
+       * egress buffer attribute.
+       */
+      auto saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());
+      const auto switchId = saiSwitch->getSaiSwitchId();
+      return SaiApiTable::getInstance()->switchApi().getAttribute(
+          switchId, SaiSwitchTraits::Attributes::EgressPoolAvaialableSize{});
+    }
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
-    case cfg::AsicType::ASIC_TYPE_INDUS:
     case cfg::AsicType::ASIC_TYPE_BEAS:
       throw FbossError(
           "Not supported to get max egress pool for ASIC: ",

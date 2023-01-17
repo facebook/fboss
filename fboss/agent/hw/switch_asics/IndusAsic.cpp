@@ -70,6 +70,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
+    case HwAsic::Feature::BUFFER_POOL:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
@@ -109,7 +110,6 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     // TODO - get the features working on Indus ASIC
     case HwAsic::Feature::DEBUG_COUNTER:
-    case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::FABRIC_PORT_MTU:
     case HwAsic::Feature::EXTENDED_FEC:
