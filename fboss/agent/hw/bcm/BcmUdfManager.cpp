@@ -205,6 +205,8 @@ int BcmUdfManager::getBcmUdfGroupFieldSize(
 }
 
 BcmUdfManager::~BcmUdfManager() {
-  XLOG(DBG2) << "Destroying BcmUdfGroup";
+  XLOG(DBG2) << "Destroying BcmUdfManager";
+  udfGroupsMap_.clear();
+  udfPacketMatcherMap_.clear();
 }
 } // namespace facebook::fboss
