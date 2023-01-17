@@ -235,4 +235,34 @@ void SaiSystemPortManager::updateStats(
       configuredQueues, curPortStats, updateWatermarks);
   portStats_[portId]->updateStats(curPortStats, now);
 }
+std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
+    const std::shared_ptr<PortMap>& ports,
+    int64_t switchId,
+    std::optional<cfg::Range64> systemPortRange) {
+  auto sysPortMap = std::make_shared<SystemPortMap>();
+  CHECK(systemPortRange);
+  const std::set<cfg::PortType> kCreateSysPortsFor = {
+      cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
+  for (const auto& port : *ports) {
+    if (kCreateSysPortsFor.find(port->getPortType()) ==
+        kCreateSysPortsFor.end()) {
+      continue;
+    }
+    auto sysPort = std::make_shared<SystemPort>(
+        SystemPortID{*systemPortRange->minimum() + port->getID()});
+    sysPort->setSwitchId(SwitchID(switchId));
+    sysPort->setPortName(folly::sformat("{}:{}", switchId, port->getName()));
+    auto platformPort = platform_->getPlatformPort(port->getID());
+    sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
+    sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
+    sysPort->setSpeedMbps(static_cast<int>(port->getSpeed()));
+    sysPort->setNumVoqs(8);
+    sysPort->setEnabled(port->isEnabled());
+    sysPort->setQosPolicy(port->getQosPolicy());
+    sysPortMap->addSystemPort(std::move(sysPort));
+  }
+
+  return sysPortMap;
+}
+
 } // namespace facebook::fboss
