@@ -1811,7 +1811,7 @@ void SaiSwitch::initStoreAndManagersLocked(
       managerTable_->debugCounterManager().setupDebugCounters();
     }
     if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
-      managerTable_->bufferManager().setupEgressBufferPool();
+      managerTable_->bufferManager().setupBufferPool();
     }
     if (platform_->getAsic()->isSupported(
             HwAsic::Feature::COUNTER_REFRESH_INTERVAL)) {
