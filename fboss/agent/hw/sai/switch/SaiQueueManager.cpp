@@ -203,7 +203,11 @@ void SaiQueueManager::changeQueue(
       queueHandle->wredProfile = newWredProfile;
     }
   }
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
+  if ((platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) &&
+      (SAI_QUEUE_TYPE_FABRIC_TX !=
+       SaiApiTable::getInstance()->queueApi().getAttribute(
+           queueHandle->queue->adapterKey(),
+           SaiQueueTraits::Attributes::Type{}))) {
     auto newBufferProfile =
         managerTable_->bufferManager().getOrCreateProfile(newPortQueue);
     if (newBufferProfile != queueHandle->bufferProfile) {

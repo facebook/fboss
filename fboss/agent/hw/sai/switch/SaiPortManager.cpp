@@ -774,7 +774,11 @@ void SaiPortManager::changeQueue(
     SaiQueueConfig saiQueueConfig =
         std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
     auto queueHandle = getQueueHandle(swId, saiQueueConfig);
-    if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL) &&
+        (SAI_QUEUE_TYPE_FABRIC_TX !=
+         SaiApiTable::getInstance()->queueApi().getAttribute(
+             queueHandle->queue->adapterKey(),
+             SaiQueueTraits::Attributes::Type{}))) {
       newPortQueue->setReservedBytes(
           newPortQueue->getReservedBytes()
               ? *newPortQueue->getReservedBytes()
