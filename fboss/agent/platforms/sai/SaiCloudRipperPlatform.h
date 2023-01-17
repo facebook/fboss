@@ -37,8 +37,10 @@ class SaiCloudRipperPlatform : public SaiTajoPlatform {
   std::string getHwConfig() override;
 
  private:
-  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
-      override;
+  void setupAsic(
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId,
+      std::optional<cfg::Range64> systemPortRange) override;
   std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
       const override;
   std::unique_ptr<EbroAsic> asic_;

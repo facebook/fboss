@@ -31,7 +31,8 @@ Wedge40Platform::Wedge40Platform(
 
 void Wedge40Platform::setupAsic(
     cfg::SwitchType switchType,
-    std::optional<int64_t> switchId) {
+    std::optional<int64_t> switchId,
+    std::optional<cfg::Range64> /*systemPortRange*/) {
   asic_ = std::make_unique<Trident2Asic>(switchType, switchId);
 }
 

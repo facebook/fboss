@@ -27,7 +27,8 @@ SaiCloudRipperPlatform::SaiCloudRipperPlatform(
 
 void SaiCloudRipperPlatform::setupAsic(
     cfg::SwitchType switchType,
-    std::optional<int64_t> switchId) {
+    std::optional<int64_t> switchId,
+    std::optional<cfg::Range64> /*systemPortRange*/) {
   asic_ = std::make_unique<EbroAsic>(switchType, switchId);
 #if defined(TAJO_SDK_VERSION_1_56_0) || defined(TAJO_SDK_VERSION_1_58_0)
   asic_->setDefaultStreamType(cfg::StreamType::UNICAST);

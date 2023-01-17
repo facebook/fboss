@@ -25,7 +25,8 @@ SaiBcmElbertPlatform::SaiBcmElbertPlatform(
 
 void SaiBcmElbertPlatform::setupAsic(
     cfg::SwitchType switchType,
-    std::optional<int64_t> switchId) {
+    std::optional<int64_t> switchId,
+    std::optional<cfg::Range64> /*systemPortRange*/) {
   asic_ = std::make_unique<Tomahawk4Asic>(switchType, switchId);
 }
 HwAsic* SaiBcmElbertPlatform::getAsic() const {

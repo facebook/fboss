@@ -66,8 +66,10 @@ class SaiSandiaPhyPlatform : public SaiHwPlatform {
   }
 
  private:
-  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
-      override;
+  void setupAsic(
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId,
+      std::optional<cfg::Range64> systemPortRange) override;
   uint8_t pimId_{0};
   int phyId_{0};
   std::unique_ptr<MarvelPhyAsic> asic_;

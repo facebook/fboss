@@ -27,7 +27,8 @@ SaiBcmYampPlatform::SaiBcmYampPlatform(
 
 void SaiBcmYampPlatform::setupAsic(
     cfg::SwitchType switchType,
-    std::optional<int64_t> switchId) {
+    std::optional<int64_t> switchId,
+    std::optional<cfg::Range64> /*systemPortRange*/) {
   asic_ = std::make_unique<Tomahawk3Asic>(switchType, switchId);
 }
 

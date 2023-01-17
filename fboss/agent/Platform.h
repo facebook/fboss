@@ -313,7 +313,8 @@ class Platform {
   virtual void initImpl(uint32_t hwFeaturesDesired) = 0;
   virtual void setupAsic(
       cfg::SwitchType switchType,
-      std::optional<int64_t> switchId) = 0;
+      std::optional<int64_t> switchId,
+      std::optional<cfg::Range64> systemPortRange) = 0;
 
   std::unique_ptr<AgentConfig> config_;
 

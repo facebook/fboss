@@ -58,8 +58,10 @@ class SaiMakaluPlatform : public SaiBcmPlatform {
  private:
   std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
       const override;
-  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
-      override;
+  void setupAsic(
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId,
+      std::optional<cfg::Range64> systemPortRange) override;
   std::unique_ptr<IndusAsic> asic_;
 };
 

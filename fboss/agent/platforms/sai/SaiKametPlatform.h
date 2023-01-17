@@ -56,8 +56,10 @@ class SaiKametPlatform : public SaiBcmPlatform {
   }
 
  private:
-  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
-      override;
+  void setupAsic(
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId,
+      std::optional<cfg::Range64> systemPortRange) override;
   std::unique_ptr<BeasAsic> asic_;
 };
 

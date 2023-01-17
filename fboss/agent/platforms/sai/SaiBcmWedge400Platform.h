@@ -47,8 +47,10 @@ class SaiBcmWedge400Platform : public SaiBcmPlatform {
   std::unique_ptr<PlatformMapping> createWedge400PlatformMapping();
 
  private:
-  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
-      override;
+  void setupAsic(
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId,
+      std::optional<cfg::Range64> systemPortRange) override;
   std::unique_ptr<Tomahawk3Asic> asic_;
 };
 

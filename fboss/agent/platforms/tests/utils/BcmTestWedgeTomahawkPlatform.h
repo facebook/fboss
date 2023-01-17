@@ -60,8 +60,10 @@ class BcmTestWedgeTomahawkPlatform : public BcmTestWedgePlatform {
   }
 
  private:
-  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
-      override {
+  void setupAsic(
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId,
+      std::optional<cfg::Range64> /*systemPortRange*/) override {
     asic_ = std::make_unique<TomahawkAsic>(switchType, switchId);
   }
   // Forbidden copy constructor and assignment operator

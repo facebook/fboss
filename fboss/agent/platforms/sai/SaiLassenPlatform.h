@@ -25,8 +25,10 @@ class SaiLassenPlatform : public SaiTajoPlatform {
   HwAsic* getAsic() const override;
 
  private:
-  void setupAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
-      override;
+  void setupAsic(
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId,
+      std::optional<cfg::Range64> systemPortRange) override;
   std::unique_ptr<EbroAsic> asic_;
 };
 

@@ -142,10 +142,16 @@ void Platform::init(
   }
   const auto switchSettings = *config_->thrift.sw()->switchSettings();
   std::optional<int64_t> switchId;
+  std::optional<cfg::Range64> systemPortRange;
   if (switchSettings.switchId().has_value()) {
     switchId = *switchSettings.switchId();
+    const auto& dsfNodesConfig = *config_->thrift.sw()->dsfNodes();
+    const auto& dsfNodeConfig = dsfNodesConfig.find(*switchId);
+    if (dsfNodeConfig != dsfNodesConfig.end()) {
+      systemPortRange = *dsfNodeConfig->second.systemPortRange();
+    }
   }
-  setupAsic(*switchSettings.switchType(), switchId);
+  setupAsic(*switchSettings.switchType(), switchId, systemPortRange);
   initImpl(hwFeaturesDesired);
   // We should always initPorts() here instead of leaving the hw/ to call
   initPorts();
