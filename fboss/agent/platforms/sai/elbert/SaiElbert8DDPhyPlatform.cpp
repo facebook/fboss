@@ -92,8 +92,8 @@ SaiElbert8DDPhyPlatform::SaiElbert8DDPhyPlatform(
 void SaiElbert8DDPhyPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    std::optional<cfg::Range64> /*systemPortRange*/) {
-  asic_ = std::make_unique<CredoPhyAsic>(switchType, switchId);
+    std::optional<cfg::Range64> systemPortRange) {
+  asic_ = std::make_unique<CredoPhyAsic>(switchType, switchId, systemPortRange);
 }
 SaiElbert8DDPhyPlatform::~SaiElbert8DDPhyPlatform() {}
 

@@ -37,8 +37,11 @@ namespace facebook::fboss {
 HwAsic::HwAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
+    std::optional<cfg::Range64> systemPortRange,
     std::unordered_set<cfg::SwitchType> supportedModes)
-    : switchType_(switchType), switchId_(switchId) {
+    : switchType_(switchType),
+      switchId_(switchId),
+      systemPortRange_(systemPortRange) {
   if (supportedModes.find(switchType_) == supportedModes.end()) {
     throw std::runtime_error(
         folly::to<std::string>("Unsupported Mode: ", switchType_));
@@ -59,32 +62,40 @@ int HwAsic::getDefaultACLGroupID() const {
 std::unique_ptr<HwAsic> HwAsic::makeAsic(
     cfg::AsicType asicType,
     cfg::SwitchType switchType,
-    std::optional<int64_t> switchId) {
+    std::optional<int64_t> switchId,
+    std::optional<cfg::Range64> systemPortRange) {
   switch (asicType) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
-      return std::make_unique<FakeAsic>(switchType, switchId);
+      return std::make_unique<FakeAsic>(switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_MOCK:
-      return std::make_unique<MockAsic>(switchType, switchId);
+      return std::make_unique<MockAsic>(switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
-      return std::make_unique<Trident2Asic>(switchType, switchId);
+      return std::make_unique<Trident2Asic>(
+          switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
-      return std::make_unique<TomahawkAsic>(switchType, switchId);
+      return std::make_unique<TomahawkAsic>(
+          switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
-      return std::make_unique<Tomahawk3Asic>(switchType, switchId);
+      return std::make_unique<Tomahawk3Asic>(
+          switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
-      return std::make_unique<Tomahawk4Asic>(switchType, switchId);
+      return std::make_unique<Tomahawk4Asic>(
+          switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
-      return std::make_unique<CredoPhyAsic>(switchType, switchId);
+      return std::make_unique<CredoPhyAsic>(
+          switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_EBRO:
-      return std::make_unique<EbroAsic>(switchType, switchId);
+      return std::make_unique<EbroAsic>(switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_GARONNE:
-      return std::make_unique<GaronneAsic>(switchType, switchId);
+      return std::make_unique<GaronneAsic>(
+          switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
-      return std::make_unique<MarvelPhyAsic>(switchType, switchId);
+      return std::make_unique<MarvelPhyAsic>(
+          switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_INDUS:
-      return std::make_unique<IndusAsic>(switchType, switchId);
+      return std::make_unique<IndusAsic>(switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_BEAS:
-      return std::make_unique<BeasAsic>(switchType, switchId);
+      return std::make_unique<BeasAsic>(switchType, switchId, systemPortRange);
   };
   throw FbossError("Unexcepted asic type: ", asicType);
 }

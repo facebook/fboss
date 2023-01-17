@@ -28,8 +28,8 @@ SaiMakaluPlatform::SaiMakaluPlatform(
 void SaiMakaluPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    std::optional<cfg::Range64> /*systemPortRange*/) {
-  asic_ = std::make_unique<IndusAsic>(switchType, switchId);
+    std::optional<cfg::Range64> systemPortRange) {
+  asic_ = std::make_unique<IndusAsic>(switchType, switchId, systemPortRange);
 }
 
 HwAsic* SaiMakaluPlatform::getAsic() const {

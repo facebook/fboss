@@ -41,8 +41,8 @@ SaiFakePlatform::SaiFakePlatform(
 void SaiFakePlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    std::optional<cfg::Range64> /*systemPortRange*/) {
-  asic_ = std::make_unique<FakeAsic>(switchType, switchId);
+    std::optional<cfg::Range64> systemPortRange) {
+  asic_ = std::make_unique<FakeAsic>(switchType, switchId, systemPortRange);
 }
 
 std::string SaiFakePlatform::getVolatileStateDir() const {

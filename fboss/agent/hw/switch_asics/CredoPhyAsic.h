@@ -8,8 +8,11 @@ namespace facebook::fboss {
 
 class CredoPhyAsic : public HwAsic {
  public:
-  CredoPhyAsic(cfg::SwitchType type, std::optional<int64_t> id)
-      : HwAsic(type, id, {cfg::SwitchType::PHY}) {}
+  CredoPhyAsic(
+      cfg::SwitchType type,
+      std::optional<int64_t> id,
+      std::optional<cfg::Range64> systemPortRange)
+      : HwAsic(type, id, systemPortRange, {cfg::SwitchType::PHY}) {}
   bool isSupported(Feature feature) const override;
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_ELBERT_8DD;

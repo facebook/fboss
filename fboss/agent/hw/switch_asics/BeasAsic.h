@@ -8,8 +8,11 @@ namespace facebook::fboss {
 
 class BeasAsic : public BroadcomAsic {
  public:
-  BeasAsic(cfg::SwitchType type, std::optional<int64_t> id)
-      : BroadcomAsic(type, id, {cfg::SwitchType::FABRIC}) {}
+  BeasAsic(
+      cfg::SwitchType type,
+      std::optional<int64_t> id,
+      std::optional<cfg::Range64> systemPortRange)
+      : BroadcomAsic(type, id, systemPortRange, {cfg::SwitchType::FABRIC}) {}
   bool isSupported(Feature feature) const override;
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_BEAS;

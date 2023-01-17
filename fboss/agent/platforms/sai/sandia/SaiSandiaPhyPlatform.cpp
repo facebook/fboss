@@ -94,8 +94,9 @@ SaiSandiaPhyPlatform::SaiSandiaPhyPlatform(
 void SaiSandiaPhyPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    std::optional<cfg::Range64> /*systemPortRange*/) {
-  asic_ = std::make_unique<MarvelPhyAsic>(switchType, switchId);
+    std::optional<cfg::Range64> systemPortRange) {
+  asic_ =
+      std::make_unique<MarvelPhyAsic>(switchType, switchId, systemPortRange);
 }
 SaiSandiaPhyPlatform::~SaiSandiaPhyPlatform() {}
 

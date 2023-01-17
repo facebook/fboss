@@ -9,10 +9,14 @@ namespace facebook::fboss {
 
 class EbroAsic : public TajoAsic {
  public:
-  EbroAsic(cfg::SwitchType type, std::optional<int64_t> id)
+  EbroAsic(
+      cfg::SwitchType type,
+      std::optional<int64_t> id,
+      std::optional<cfg::Range64> systemPortRange)
       : TajoAsic(
             type,
             id,
+            systemPortRange,
             {cfg::SwitchType::NPU,
              cfg::SwitchType::VOQ,
              cfg::SwitchType::FABRIC}) {}

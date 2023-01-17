@@ -30,8 +30,8 @@ SaiBcmWedge40Platform::SaiBcmWedge40Platform(
 void SaiBcmWedge40Platform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    std::optional<cfg::Range64> /*systemPortRange*/) {
-  asic_ = std::make_unique<Trident2Asic>(switchType, switchId);
+    std::optional<cfg::Range64> systemPortRange) {
+  asic_ = std::make_unique<Trident2Asic>(switchType, switchId, systemPortRange);
 }
 
 HwAsic* SaiBcmWedge40Platform::getAsic() const {

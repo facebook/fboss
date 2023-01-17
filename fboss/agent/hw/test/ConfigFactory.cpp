@@ -91,16 +91,25 @@ std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap() {
 cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
   constexpr auto kSysPortBlockSize = 20;
   auto cloneAsic = [&]() -> std::shared_ptr<HwAsic> {
+    std::optional<cfg::Range64> systemPortRange;
+    auto mySystemPortRange = myAsic.getSystemPortRange();
+    if (mySystemPortRange.has_value()) {
+      cfg::Range64 range;
+      range.minimum() = *mySystemPortRange->maximum();
+      range.maximum() = *range.minimum() +
+          (*mySystemPortRange->maximum() - *mySystemPortRange->minimum());
+      systemPortRange = range;
+    }
     switch (myAsic.getAsicType()) {
       case cfg::AsicType::ASIC_TYPE_INDUS:
         return std::make_unique<IndusAsic>(
-            myAsic.getSwitchType(), otherSwitchId);
+            myAsic.getSwitchType(), otherSwitchId, systemPortRange);
       case cfg::AsicType::ASIC_TYPE_BEAS:
         return std::make_unique<BeasAsic>(
-            myAsic.getSwitchType(), otherSwitchId);
+            myAsic.getSwitchType(), otherSwitchId, systemPortRange);
       case cfg::AsicType::ASIC_TYPE_EBRO:
         return std::make_unique<EbroAsic>(
-            myAsic.getSwitchType(), otherSwitchId);
+            myAsic.getSwitchType(), otherSwitchId, systemPortRange);
       default:
         throw FbossError("Unexpected asic type: ", myAsic.getAsicTypeStr());
     }

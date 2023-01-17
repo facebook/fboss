@@ -10,10 +10,14 @@ namespace facebook::fboss {
 
 class MockAsic : public HwAsic {
  public:
-  MockAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
+  MockAsic(
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId,
+      std::optional<cfg::Range64> systemPortRange)
       : HwAsic(
             switchType,
             switchId,
+            systemPortRange,
             {cfg::SwitchType::NPU,
              cfg::SwitchType::VOQ,
              cfg::SwitchType::FABRIC}) {}

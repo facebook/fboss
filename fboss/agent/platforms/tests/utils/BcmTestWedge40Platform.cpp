@@ -29,8 +29,8 @@ BcmTestWedge40Platform::BcmTestWedge40Platform(
 void BcmTestWedge40Platform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    std::optional<cfg::Range64> /*systemPortRange*/) {
-  asic_ = std::make_unique<Trident2Asic>(switchType, switchId);
+    std::optional<cfg::Range64> systemPortRange) {
+  asic_ = std::make_unique<Trident2Asic>(switchType, switchId, systemPortRange);
 }
 
 std::unique_ptr<BcmTestPort> BcmTestWedge40Platform::createTestPort(PortID id) {

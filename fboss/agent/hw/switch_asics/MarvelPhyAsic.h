@@ -8,8 +8,11 @@ namespace facebook::fboss {
 
 class MarvelPhyAsic : public HwAsic {
  public:
-  MarvelPhyAsic(cfg::SwitchType type, std::optional<int64_t> id)
-      : HwAsic(type, id, {cfg::SwitchType::PHY}) {}
+  MarvelPhyAsic(
+      cfg::SwitchType type,
+      std::optional<int64_t> id,
+      std::optional<cfg::Range64> systemPortRange)
+      : HwAsic(type, id, systemPortRange, {cfg::SwitchType::PHY}) {}
   bool isSupported(Feature feature) const override;
   cfg::AsicType getAsicType() const override {
     return cfg::AsicType::ASIC_TYPE_SANDIA_PHY;

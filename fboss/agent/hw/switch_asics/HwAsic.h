@@ -11,6 +11,7 @@ class HwAsic {
   HwAsic(
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
+      std::optional<cfg::Range64> systemPortRange,
       std::unordered_set<cfg::SwitchType> supportedModes = {
           cfg::SwitchType::NPU});
   enum class Feature {
@@ -139,7 +140,8 @@ class HwAsic {
   static std::unique_ptr<HwAsic> makeAsic(
       cfg::AsicType asicType,
       cfg::SwitchType switchType,
-      std::optional<int64_t> switchID);
+      std::optional<int64_t> switchID,
+      std::optional<cfg::Range64> systemPortRange);
   virtual bool isSupported(Feature) const = 0;
   virtual cfg::AsicType getAsicType() const = 0;
   std::string getAsicTypeStr() const;
@@ -251,6 +253,9 @@ class HwAsic {
   std::optional<uint64_t> getSwitchId() const {
     return switchId_;
   }
+  std::optional<cfg::Range64> getSystemPortRange() const {
+    return systemPortRange_;
+  }
 
   cfg::StreamType getDefaultStreamType() const {
     return defaultStreamType_;
@@ -273,6 +278,7 @@ class HwAsic {
  private:
   cfg::SwitchType switchType_;
   std::optional<int64_t> switchId_;
+  std::optional<cfg::Range64> systemPortRange_;
   cfg::StreamType defaultStreamType_{cfg::StreamType::ALL};
 };
 

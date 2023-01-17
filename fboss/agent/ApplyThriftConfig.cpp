@@ -804,7 +804,8 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         return HwAsic::makeAsic(
             node->getAsicType(),
             cfg::SwitchType::VOQ,
-            static_cast<int64_t>(node->getSwitchId()));
+            static_cast<int64_t>(node->getSwitchId()),
+            node->getSystemPortRange());
       };
   auto processLoopbacks = [&](const std::shared_ptr<DsfNode>& node,
                               const HwAsic* dsfNodeAsic) {

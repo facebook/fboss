@@ -81,8 +81,8 @@ SaiCloudRipperPhyPlatform::SaiCloudRipperPhyPlatform(
 void SaiCloudRipperPhyPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    std::optional<cfg::Range64> /*systemPortRange*/) {
-  asic_ = std::make_unique<CredoPhyAsic>(switchType, switchId);
+    std::optional<cfg::Range64> systemPortRange) {
+  asic_ = std::make_unique<CredoPhyAsic>(switchType, switchId, systemPortRange);
 }
 
 SaiCloudRipperPhyPlatform::~SaiCloudRipperPhyPlatform() {}

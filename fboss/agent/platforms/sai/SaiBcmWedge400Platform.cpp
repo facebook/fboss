@@ -29,8 +29,9 @@ SaiBcmWedge400Platform::SaiBcmWedge400Platform(
 void SaiBcmWedge400Platform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
-    std::optional<cfg::Range64> /*systemPortRange*/) {
-  asic_ = std::make_unique<Tomahawk3Asic>(switchType, switchId);
+    std::optional<cfg::Range64> systemPortRange) {
+  asic_ =
+      std::make_unique<Tomahawk3Asic>(switchType, switchId, systemPortRange);
 }
 
 HwAsic* SaiBcmWedge400Platform::getAsic() const {

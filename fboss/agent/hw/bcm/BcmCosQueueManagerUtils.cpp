@@ -140,7 +140,7 @@ bcm_cosq_stat_t getBcmCosqStatType(
 const PortQueue& getTD2DefaultUCPortQueueSettings() {
   // Since the default queue is constant, we can use static to cache this
   // object here.
-  static Trident2Asic asic{cfg::SwitchType::NPU, std::nullopt};
+  static Trident2Asic asic{cfg::SwitchType::NPU, std::nullopt, std::nullopt};
   static const PortQueue kPortQueue{
       PortQueueFields(
           kDefaultPortQueueId,
@@ -165,7 +165,7 @@ const PortQueue& getTD2DefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTHDefaultUCPortQueueSettings() {
-  static TomahawkAsic asic{cfg::SwitchType::NPU, std::nullopt};
+  static TomahawkAsic asic{cfg::SwitchType::NPU, std::nullopt, std::nullopt};
   static const PortQueue kPortQueue{
       PortQueueFields(
           kDefaultPortQueueId,
@@ -190,7 +190,7 @@ const PortQueue& getTHDefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTH3DefaultUCPortQueueSettings() {
-  static Tomahawk3Asic asic{cfg::SwitchType::NPU, std::nullopt};
+  static Tomahawk3Asic asic{cfg::SwitchType::NPU, std::nullopt, std::nullopt};
   static const PortQueue kPortQueue{
       PortQueueFields(
           kDefaultPortQueueId,
@@ -215,7 +215,7 @@ const PortQueue& getTH3DefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTH4DefaultUCPortQueueSettings() {
-  static Tomahawk4Asic asic{cfg::SwitchType::NPU, std::nullopt};
+  static Tomahawk4Asic asic{cfg::SwitchType::NPU, std::nullopt, std::nullopt};
   static const PortQueue kPortQueue{
       PortQueueFields(
           kDefaultPortQueueId,
@@ -240,7 +240,7 @@ const PortQueue& getTH4DefaultUCPortQueueSettings() {
 }
 
 const PortQueue& getTD2DefaultMCPortQueueSettings() {
-  static Trident2Asic asic{cfg::SwitchType::NPU, std::nullopt};
+  static Trident2Asic asic{cfg::SwitchType::NPU, std::nullopt, std::nullopt};
   static const PortQueue kPortQueue{
       PortQueueFields(
           kDefaultPortQueueId,
@@ -265,7 +265,7 @@ const PortQueue& getTD2DefaultMCPortQueueSettings() {
 }
 
 const PortQueue& getTHDefaultMCPortQueueSettings() {
-  static TomahawkAsic asic{cfg::SwitchType::NPU, std::nullopt};
+  static TomahawkAsic asic{cfg::SwitchType::NPU, std::nullopt, std::nullopt};
   static const PortQueue kPortQueue{
       PortQueueFields(
           kDefaultPortQueueId,
@@ -290,7 +290,7 @@ const PortQueue& getTHDefaultMCPortQueueSettings() {
 }
 
 const PortQueue& getTH3DefaultMCPortQueueSettings() {
-  static Tomahawk3Asic asic{cfg::SwitchType::NPU, std::nullopt};
+  static Tomahawk3Asic asic{cfg::SwitchType::NPU, std::nullopt, std::nullopt};
   static const PortQueue kPortQueue{
       PortQueueFields(
           kDefaultPortQueueId,
@@ -315,7 +315,7 @@ const PortQueue& getTH3DefaultMCPortQueueSettings() {
 }
 
 const PortQueue& getTH4DefaultMCPortQueueSettings() {
-  static Tomahawk4Asic asic{cfg::SwitchType::NPU, std::nullopt};
+  static Tomahawk4Asic asic{cfg::SwitchType::NPU, std::nullopt, std::nullopt};
   static const PortQueue kPortQueue{
       PortQueueFields(
           kDefaultPortQueueId,
@@ -375,7 +375,7 @@ const PortQueue& getDefaultPortQueueSettings(
 }
 
 const PortQueue& getTD2DefaultMCCPUQueueSettings() {
-  static Trident2Asic asic{cfg::SwitchType::NPU, std::nullopt};
+  static Trident2Asic asic{cfg::SwitchType::NPU, std::nullopt, std::nullopt};
   static const PortQueue kPortQueue{
       PortQueueFields(
           kDefaultPortQueueId,
@@ -400,7 +400,7 @@ const PortQueue& getTD2DefaultMCCPUQueueSettings() {
 }
 
 const PortQueue& getTHDefaultMCCPUQueueSettings() {
-  static TomahawkAsic asic{cfg::SwitchType::NPU, std::nullopt};
+  static TomahawkAsic asic{cfg::SwitchType::NPU, std::nullopt, std::nullopt};
   static const PortQueue kPortQueue{
       PortQueueFields(
           kDefaultPortQueueId,
@@ -425,7 +425,7 @@ const PortQueue& getTHDefaultMCCPUQueueSettings() {
 }
 
 const PortQueue& getTH3DefaultMCCPUQueueSettings() {
-  static Tomahawk3Asic asic{cfg::SwitchType::NPU, std::nullopt};
+  static Tomahawk3Asic asic{cfg::SwitchType::NPU, std::nullopt, std::nullopt};
   static const PortQueue kPortQueue{
       PortQueueFields(
           kDefaultPortQueueId,
@@ -450,7 +450,7 @@ const PortQueue& getTH3DefaultMCCPUQueueSettings() {
 }
 
 const PortQueue& getTH4DefaultMCCPUQueueSettings() {
-  static Tomahawk4Asic asic{cfg::SwitchType::NPU, std::nullopt};
+  static Tomahawk4Asic asic{cfg::SwitchType::NPU, std::nullopt, std::nullopt};
   static const PortQueue kPortQueue{
       PortQueueFields(
           kDefaultPortQueueId,

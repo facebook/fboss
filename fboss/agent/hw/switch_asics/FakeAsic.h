@@ -12,10 +12,14 @@ namespace facebook::fboss {
 
 class FakeAsic : public HwAsic {
  public:
-  FakeAsic(cfg::SwitchType switchType, std::optional<int64_t> switchId)
+  FakeAsic(
+      cfg::SwitchType switchType,
+      std::optional<int64_t> switchId,
+      std::optional<cfg::Range64> systemPortRange)
       : HwAsic(
             switchType,
             switchId,
+            systemPortRange,
             {cfg::SwitchType::NPU,
              cfg::SwitchType::VOQ,
              cfg::SwitchType::FABRIC}) {}
