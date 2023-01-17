@@ -57,8 +57,8 @@ class LinkTest : public AgentTest {
   /*
    * Return plugged in optical transceivers and their names.
    */
-  std::tuple<std::vector<PortID>, std::string> getOpticalCabledPortsAndNames()
-      const;
+  std::tuple<std::vector<PortID>, std::string> getOpticalCabledPortsAndNames(
+      bool pluggableOnly = false) const;
 
   /*
    * Ports where we expect optics to be plugged in.

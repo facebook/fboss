@@ -164,7 +164,7 @@ void LinkTest::initializeCabledPorts() {
 }
 
 std::tuple<std::vector<PortID>, std::string>
-LinkTest::getOpticalCabledPortsAndNames() const {
+LinkTest::getOpticalCabledPortsAndNames(bool pluggableOnly) const {
   std::string opticalPortNames;
   std::vector<PortID> opticalPorts;
   std::vector<int32_t> transceiverIds;
@@ -184,8 +184,16 @@ LinkTest::getOpticalCabledPortsAndNames() const {
       if (auto tcvrState = tcvrInfo->second.tcvrState()) {
         if (TransmitterTechnology::OPTICAL ==
             tcvrState->cable().value_or({}).transmitterTech()) {
-          opticalPorts.push_back(port);
-          opticalPortNames += portName + " ";
+          if (!pluggableOnly ||
+              (pluggableOnly &&
+               (tcvrState->identifier().value_or({}) !=
+                TransceiverModuleIdentifier::MINIPHOTON_OBO))) {
+            opticalPorts.push_back(port);
+            opticalPortNames += portName + " ";
+          } else {
+            XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
+                       << ", is on-board optics, skip it";
+          }
         } else {
           XLOG(DBG2) << "Transceiver: " << tcvrId + 1 << ", " << portName
                      << ", is not optics, skip it";
