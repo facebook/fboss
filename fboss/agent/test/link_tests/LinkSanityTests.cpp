@@ -185,3 +185,65 @@ TEST_F(LinkTest, opticsTxDisableEnable) {
     XLOG(DBG2) << "opticsTxDisableEnable: links are up";
   }
 }
+
+// Tests that when link goes down then remediation is triggered
+TEST_F(LinkTest, testOpticsRemediation) {
+  auto verify = [this]() {
+    std::vector<int32_t> transceiverIds;
+    auto [ports, opticalPortNames] = getOpticalCabledPortsAndNames(true);
+    // Bring down the link on all the optical cabled ports. The link should go
+    // down and the remediation should get triggered
+    EXPECT_GT(ports.size(), 0);
+
+    const std::string txDisableCmd =
+        "wedge_qsfp_util " + opticalPortNames + " --tx-disable";
+    // @lint-ignore CLANGTIDY
+    folly::Subprocess(txDisableCmd).waitChecked();
+
+    for (const auto& port : ports) {
+      auto tcvrId =
+          platform()->getPlatformPort(port)->getTransceiverID().value();
+      transceiverIds.push_back(tcvrId);
+    }
+    XLOG(DBG2) << "Wait for all ports to be down " << opticalPortNames;
+    EXPECT_NO_THROW(waitForLinkStatus(ports, false));
+
+    // Check the module's remediation counter has increased.
+    // Exclude the Miniphoton ports
+    XLOG(DBG2) << "Check for Transceiver Info from qsfp_service now";
+
+    WITH_RETRIES_N_TIMED(
+        {
+          auto transceiverInfos = waitForTransceiverInfo(transceiverIds);
+          for (const auto& port : ports) {
+            auto tcvrId =
+                platform()->getPlatformPort(port)->getTransceiverID().value();
+            auto txInfoItr = transceiverInfos.find(tcvrId);
+            if ((txInfoItr != transceiverInfos.end()) &&
+                (txInfoItr->second.tcvrState().has_value() &&
+                 txInfoItr->second.tcvrState()->identifier().has_value() &&
+                 txInfoItr->second.tcvrState()->identifier().value() !=
+                     TransceiverModuleIdentifier::MINIPHOTON_OBO) &&
+                (txInfoItr->second.tcvrStats().has_value() &&
+                 txInfoItr->second.tcvrStats()
+                     ->remediationCounter()
+                     .has_value())) {
+              XLOG(DBG2) << "Tcvr Id " << tcvrId << " remediation counter "
+                         << txInfoItr->second.tcvrStats()
+                                ->remediationCounter()
+                                .value();
+              EXPECT_EVENTUALLY_GT(
+                  txInfoItr->second.tcvrStats()->remediationCounter().value(),
+                  0);
+            }
+          }
+        },
+        5,
+        std::chrono::seconds(60));
+
+    XLOG(DBG2) << "Wait for all ports to come up " << opticalPortNames;
+    EXPECT_NO_THROW(waitForLinkStatus(ports, true, 60, 5s));
+  };
+
+  verifyAcrossWarmBoots([]() {}, verify);
+}
