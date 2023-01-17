@@ -10,7 +10,6 @@
 #include "fboss/platform/helpers/Init.h"
 
 using namespace facebook;
-using namespace facebook::services;
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::fbdevd;
 

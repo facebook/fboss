@@ -7,7 +7,6 @@
 #include "fboss/platform/rackmon/RackmonThriftHandler.h"
 
 using namespace facebook;
-using namespace facebook::services;
 using namespace facebook::fboss::platform;
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG2; default:async=true");

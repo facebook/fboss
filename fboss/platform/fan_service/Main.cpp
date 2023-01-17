@@ -15,7 +15,6 @@
 #include "fboss/platform/helpers/Init.h"
 
 using namespace facebook;
-using namespace facebook::services;
 using namespace facebook::fboss::platform;
 
 DEFINE_int32(thrift_port, 5972, "Port for the thrift service");
