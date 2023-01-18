@@ -122,6 +122,7 @@ class HwAsic {
     SAI_TTL0_PACKET_FORWARD_ENABLE,
     XPHY_SAI_WARMBOOT,
     SHARED_INGRESS_EGRESS_BUFFER_POOL,
+    ROUTE_METADATA,
   };
 
   enum class AsicMode {
