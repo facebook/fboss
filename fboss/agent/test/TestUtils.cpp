@@ -267,9 +267,12 @@ cfg::DsfNode makeDsfNodeCfg(int64_t switchId, cfg::DsfNodeType type) {
   dsfNodeCfg.name() = folly::sformat("dsfNodeCfg{}", switchId);
   dsfNodeCfg.type() = type;
   const auto kBlockSize{100};
-  dsfNodeCfg.systemPortRange()->minimum() = switchId * kBlockSize;
-  dsfNodeCfg.systemPortRange()->maximum() = switchId * kBlockSize + kBlockSize;
+  cfg::Range64 sysPortRange;
+  sysPortRange.minimum() = switchId * kBlockSize;
+  sysPortRange.maximum() = switchId * kBlockSize + kBlockSize;
+  dsfNodeCfg.systemPortRange() = sysPortRange;
   dsfNodeCfg.loopbackIps() = getLoopbackIps(switchId);
+  dsfNodeCfg.nodeMac() = "02:00:00:00:0F:0B";
   dsfNodeCfg.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
   return dsfNodeCfg;
 }
