@@ -29,7 +29,7 @@ target_link_libraries(packet
 )
 
 add_library(sflow_structs
-  fboss/agent/packet/SflowStructs
+  fboss/agent/packet/SflowStructs.cpp
 )
 
 target_link_libraries(sflow_structs
