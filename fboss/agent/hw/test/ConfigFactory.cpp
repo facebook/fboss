@@ -130,11 +130,12 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
       throw FbossError("Unexpected switch type: ", otherAsic->getSwitchType());
   }
   if (dsfNode.type() == cfg::DsfNodeType::INTERFACE_NODE) {
-    dsfNode.systemPortRange()->minimum() =
-        100 + *dsfNode.switchId() * kSysPortBlockSize;
-    dsfNode.systemPortRange()->maximum() =
-        *dsfNode.systemPortRange()->minimum() + kSysPortBlockSize;
+    cfg::Range64 sysPortRange;
+    sysPortRange.minimum() = 100 + *dsfNode.switchId() * kSysPortBlockSize;
+    sysPortRange.maximum() = *sysPortRange.minimum() + kSysPortBlockSize;
+    dsfNode.systemPortRange() = sysPortRange;
     dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
+    dsfNode.nodeMac() = "02:00:00:00:0F:0B";
   }
   dsfNode.asicType() = otherAsic->getAsicType();
   return dsfNode;
