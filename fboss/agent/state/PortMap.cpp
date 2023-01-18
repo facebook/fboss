@@ -54,13 +54,13 @@ std::shared_ptr<Port> PortMap::getPort(const std::string& name) const {
 
 std::shared_ptr<Port> PortMap::getPortIf(const std::string& name) const {
   for (auto port : *this) {
-    if (name == port->getName()) {
-      return port;
+    if (name == port.second->getName()) {
+      return port.second;
     }
   }
   return nullptr;
 }
 
-FBOSS_INSTANTIATE_NODE_MAP(PortMap, PortMapTraits);
+template class ThriftMapNode<PortMap, PortMapTraits>;
 
 } // namespace facebook::fboss

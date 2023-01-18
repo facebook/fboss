@@ -62,7 +62,7 @@ class BcmPortIngressBufferManager {
       bcm_cos_queue_t cosq) const;
   int getPgResumeOffsetBytes(bcm_cos_queue_t cosQ) const;
   int getPgHeadroomLimitBytes(bcm_cos_queue_t cosQ) const;
-  void programPg(const PortPgConfig* pgConfig, const int cosq);
+  void programPg(state::PortPgFields pgConfig, const int cosq);
   void resetPgToDefault(int pgId);
   void resetIngressPoolsToDefault();
   void resetPgsToDefault(const std::shared_ptr<Port> port);

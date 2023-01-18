@@ -304,7 +304,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
           auto newPortMap = newState->getPorts()->modify(&newState);
 
           for (auto port : *newPortMap) {
-            auto newPort = port->clone();
+            auto newPort = port.second->clone();
             newPort->setLookupClassesToDistributeTrafficOn(lookupClasses);
             newPortMap->updatePort(newPort);
           }

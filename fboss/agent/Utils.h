@@ -14,6 +14,7 @@
 
 #include <boost/container/flat_map.hpp>
 #include <boost/iterator/filter_iterator.hpp>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV4.h>
@@ -21,6 +22,7 @@
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
 #include <folly/lang/Bits.h>
+#include <folly/logging/xlog.h>
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -200,6 +202,25 @@ class StopWatch {
 inline constexpr uint8_t kGetNetworkControlTrafficClass() {
   // Network Control << ECN-bits
   return 48 << 2;
+}
+
+template <typename Enum>
+std::string enumToName(Enum enumInput) {
+  auto name = apache::thrift::util::enumName(enumInput);
+  if (name == nullptr) {
+    XLOG(FATAL) << "Unexpected enum: " << static_cast<int>(enumInput);
+  }
+  return name;
+}
+
+template <typename Enum>
+Enum nameToEnum(const std::string& valueAsString) {
+  Enum enumOutput;
+  if (!apache::thrift::TEnumTraits<Enum>::findValue(
+          valueAsString, &enumOutput)) {
+    XLOG(FATAL) << "Invalid enum value as string: " << valueAsString;
+  }
+  return enumOutput;
 }
 
 } // namespace facebook::fboss

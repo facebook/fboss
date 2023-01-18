@@ -197,38 +197,48 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
         getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0]));
     auto swPgConfig = swPort->getPortPgConfigs();
 
-    EXPECT_EQ(swPort->getPortPgConfigs().value().size(), portPgsHw.size());
+    EXPECT_EQ(swPort->getPortPgConfigs()->size(), portPgsHw.size());
 
     int i = 0;
     // both vectors are sorted to start with lowest pg id
-    for (const auto& pgConfig : *swPgConfig) {
-      EXPECT_EQ(pgConfig->getID(), portPgsHw[i]->getID());
-      EXPECT_EQ(pgConfig->getScalingFactor(), portPgsHw[i]->getScalingFactor());
+    for (const auto& pgConfig : std::as_const(*swPgConfig)) {
+      auto id = pgConfig->cref<switch_state_tags::id>()->cref();
+      EXPECT_EQ(id, portPgsHw[i]->getID());
+
+      cfg::MMUScalingFactor scalingFactor;
+      if (auto scalingFactorStr =
+              pgConfig->cref<switch_state_tags::scalingFactor>()) {
+        scalingFactor =
+            nameToEnum<cfg::MMUScalingFactor>(scalingFactorStr->cref());
+        EXPECT_EQ(scalingFactor, *portPgsHw[i]->getScalingFactor());
+      } else {
+        EXPECT_EQ(std::nullopt, portPgsHw[i]->getScalingFactor());
+      }
       EXPECT_EQ(
-          pgConfig->getResumeOffsetBytes().value(),
+          pgConfig->cref<switch_state_tags::resumeOffsetBytes>()->cref(),
           portPgsHw[i]->getResumeOffsetBytes().value());
-      EXPECT_EQ(pgConfig->getMinLimitBytes(), portPgsHw[i]->getMinLimitBytes());
+      EXPECT_EQ(
+          pgConfig->cref<switch_state_tags::minLimitBytes>()->cref(),
+          portPgsHw[i]->getMinLimitBytes());
 
       int pgHeadroom = 0;
       // for pgs with headroom, lossless mode + pfc should be enabled
-      if (auto pgHdrmOpt = pgConfig->getHeadroomLimitBytes()) {
-        pgHeadroom = *pgHdrmOpt;
+      if (auto pgHdrmOpt =
+              pgConfig->cref<switch_state_tags::headroomLimitBytes>()) {
+        pgHeadroom = pgHdrmOpt->cref();
       }
       EXPECT_EQ(pgHeadroom, portPgsHw[i]->getHeadroomLimitBytes());
-      const auto bufferPoolPtr = pgConfig->getBufferPoolConfig();
+      const auto bufferPool =
+          pgConfig->cref<switch_state_tags::bufferPoolConfig>();
       EXPECT_EQ(
-          (*bufferPoolPtr)->getSharedBytes(),
+          bufferPool->cref<switch_state_tags::sharedBytes>()->cref(),
           (*bufferPoolHwPtr).getSharedBytes());
       EXPECT_EQ(
-          (*bufferPoolPtr)->getHeadroomBytes(),
+          bufferPool->cref<switch_state_tags::headroomBytes>()->cref(),
           (*bufferPoolHwPtr).getHeadroomBytes());
       // we are in lossless mode if headroom > 0, else lossless mode = 0
-      EXPECT_EQ(
-          bcmPort->getProgrammedPgLosslessMode(pgConfig->getID()),
-          pgHeadroom ? 1 : 0);
-      EXPECT_EQ(
-          bcmPort->getProgrammedPfcStatusInPg(pgConfig->getID()),
-          pfcEnable ? 1 : 0);
+      EXPECT_EQ(bcmPort->getProgrammedPgLosslessMode(id), pgHeadroom ? 1 : 0);
+      EXPECT_EQ(bcmPort->getProgrammedPfcStatusInPg(id), pfcEnable ? 1 : 0);
       i++;
     }
   }

@@ -179,9 +179,7 @@ TEST(PortPgConfig, applyConfig) {
   EXPECT_NE(nullptr, stateV1);
   auto pgCfgs = stateV1->getPort(PortID(1))->getPortPgConfigs();
   EXPECT_TRUE(pgCfgs);
-
-  auto pgCfgValue = pgCfgs.value();
-  EXPECT_EQ(kStateTestNumPortPgs, pgCfgValue.size());
+  EXPECT_EQ(kStateTestNumPortPgs, pgCfgs->size());
 
   auto createPortPgConfig = [&](const int pgIdStart,
                                 const int pgIdEnd,
@@ -212,18 +210,6 @@ TEST(PortPgConfig, applyConfig) {
     config.bufferPoolConfigs() = bufferPoolCfgMap;
   };
 
-  auto validateBufferPoolCfg = [&](const int sharedBytes,
-                                   const int headroomBytes,
-                                   const auto& pgCfgsNew) {
-    EXPECT_TRUE(pgCfgsNew);
-    for (const auto& pgCfg : *pgCfgsNew) {
-      auto bufferPoolCfgPtr = pgCfg->getBufferPoolConfig();
-      EXPECT_EQ((*bufferPoolCfgPtr)->getID(), kBufferPoolName.str());
-      EXPECT_EQ((*bufferPoolCfgPtr)->getSharedBytes(), sharedBytes);
-      EXPECT_EQ((*bufferPoolCfgPtr)->getHeadroomBytes(), headroomBytes);
-    }
-  };
-
   // validate that for same number of PGs, if contents differ
   // we push the change
   createPortPgConfig(
@@ -240,16 +226,20 @@ TEST(PortPgConfig, applyConfig) {
 
   auto pgCfgs1 = stateV2->getPort(PortID(1))->getPortPgConfigs();
   EXPECT_TRUE(pgCfgs1);
-  pgCfgValue = pgCfgs1.value();
-  EXPECT_EQ(kStateTestNumPortPgs, pgCfgValue.size());
+  EXPECT_EQ(kStateTestNumPortPgs, pgCfgs1->size());
 
   for (pgId = 0; pgId < kStateTestNumPortPgs; pgId++) {
     auto name = folly::to<std::string>("pg", pgId);
-    EXPECT_EQ(pgCfgValue[pgId]->getName(), name);
+    EXPECT_EQ(pgCfgs1->at(pgId)->cref<switch_state_tags::name>()->cref(), name);
+    cfg::MMUScalingFactor scalingFactor = nameToEnum<cfg::MMUScalingFactor>(
+        pgCfgs1->at(pgId)->cref<switch_state_tags::scalingFactor>()->cref());
+    EXPECT_EQ(scalingFactor, cfg::MMUScalingFactor::EIGHT);
     EXPECT_EQ(
-        pgCfgValue[pgId]->getScalingFactor(), cfg::MMUScalingFactor::EIGHT);
-    EXPECT_EQ(pgCfgValue[pgId]->getMinLimitBytes(), 1000);
-    EXPECT_EQ(pgCfgValue[pgId]->getBufferPoolName(), kBufferPoolName.str());
+        pgCfgs1->at(pgId)->cref<switch_state_tags::minLimitBytes>()->cref(),
+        1000);
+    EXPECT_EQ(
+        pgCfgs1->at(pgId)->cref<switch_state_tags::bufferPoolName>()->cref(),
+        kBufferPoolName.str());
   }
 
   {
@@ -266,9 +256,8 @@ TEST(PortPgConfig, applyConfig) {
 
     auto pgCfgsNew = stateV3->getPort(PortID(1))->getPortPgConfigs();
     EXPECT_TRUE(pgCfgsNew);
-    pgCfgValue = pgCfgsNew.value();
     EXPECT_EQ(
-        cfg::switch_config_constants::PORT_PG_VALUE_MAX(), pgCfgValue.size());
+        cfg::switch_config_constants::PORT_PG_VALUE_MAX(), pgCfgsNew->size());
   }
 
   {
@@ -286,8 +275,7 @@ TEST(PortPgConfig, applyConfig) {
 
     auto pgCfgsNew = stateV3->getPort(PortID(1))->getPortPgConfigs();
     EXPECT_TRUE(pgCfgsNew);
-    pgCfgValue = pgCfgsNew.value();
-    EXPECT_EQ(kStateTestNumPortPgs, pgCfgValue.size());
+    EXPECT_EQ(kStateTestNumPortPgs, pgCfgsNew->size());
 
     // no cfg change, ensure that PG logic can detect no change
     auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
@@ -308,7 +296,22 @@ TEST(PortPgConfig, applyConfig) {
     EXPECT_NE(nullptr, stateV3);
 
     const auto& pgCfgsNew = stateV3->getPort(PortID(1))->getPortPgConfigs();
-    validateBufferPoolCfg(kBufferSharedBytes, kBufferHdrmBytes, pgCfgsNew);
+
+    // TODO(zecheng): Make type inference work with lambda
+    EXPECT_TRUE(pgCfgsNew);
+    for (const auto& pgCfg : std::as_const(*pgCfgsNew)) {
+      const auto bufferPoolCfg =
+          pgCfg->cref<switch_state_tags::bufferPoolConfig>();
+      EXPECT_EQ(
+          bufferPoolCfg->cref<switch_state_tags::id>()->cref(),
+          kBufferPoolName.str());
+      EXPECT_EQ(
+          bufferPoolCfg->cref<switch_state_tags::sharedBytes>()->cref(),
+          kBufferSharedBytes);
+      EXPECT_EQ(
+          bufferPoolCfg->cref<switch_state_tags::headroomBytes>()->cref(),
+          kBufferHdrmBytes);
+    }
 
     // modify contents of the buffer pool
     // ensure they get reflected
@@ -320,8 +323,21 @@ TEST(PortPgConfig, applyConfig) {
     auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
     EXPECT_NE(nullptr, stateV4);
     const auto& pgCfgsNew1 = stateV4->getPort(PortID(1))->getPortPgConfigs();
-    validateBufferPoolCfg(
-        kBufferSharedBytes + kDelta, kBufferHdrmBytes + kDelta, pgCfgsNew1);
+
+    EXPECT_TRUE(pgCfgsNew1);
+    for (const auto& pgCfg : std::as_const(*pgCfgsNew1)) {
+      const auto bufferPoolCfg =
+          pgCfg->cref<switch_state_tags::bufferPoolConfig>();
+      EXPECT_EQ(
+          bufferPoolCfg->cref<switch_state_tags::id>()->cref(),
+          kBufferPoolName.str());
+      EXPECT_EQ(
+          bufferPoolCfg->cref<switch_state_tags::sharedBytes>()->cref(),
+          kBufferSharedBytes + kDelta);
+      EXPECT_EQ(
+          bufferPoolCfg->cref<switch_state_tags::headroomBytes>()->cref(),
+          kBufferHdrmBytes + kDelta);
+    }
 
     // no change expected here
     bufferPoolCfgMap.clear();
@@ -340,7 +356,7 @@ TEST(PortPgConfig, applyConfig) {
     EXPECT_NE(nullptr, stateV5);
     const auto& pgCfgsNew2 = stateV5->getPort(PortID(1))->getPortPgConfigs();
     for (const auto& pgCfg : *pgCfgsNew2) {
-      EXPECT_FALSE(pgCfg->getBufferPoolConfig());
+      EXPECT_FALSE(pgCfg->cref<switch_state_tags::bufferPoolConfig>());
     }
   }
 

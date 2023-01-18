@@ -613,7 +613,7 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   auto bootState = make_shared<SwitchState>();
 
   uint32_t flags = 0;
-  for (const auto& kv : *portTable_) {
+  for (const auto& kv : std::as_const(*portTable_)) {
     uint32_t port_flags;
     PortID portID = kv.first;
 
@@ -660,12 +660,15 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
   // On cold boot all ports are in Vlan 1
   auto vlan = make_shared<Vlan>(VlanID(1), std::string("InitVlan"));
   Vlan::MemberPorts memberPorts;
-  for (const auto& kv : *portTable_) {
+  for (const auto& kv : std::as_const(*portTable_)) {
     PortID portID = kv.first;
     BcmPort* bcmPort = kv.second;
-    string name = folly::to<string>("port", portID);
 
-    auto swPort = make_shared<Port>(portID, name);
+    state::PortFields portFields;
+    portFields.portId() = portID;
+    portFields.portName() = folly::to<string>("port", portID);
+    auto swPort = std::make_shared<Port>(std::move(portFields));
+
     auto platformPort = getPlatform()->getPlatformPort(portID);
     swPort->setProfileId(
         platformPort->getProfileIDBySpeed(bcmPort->getSpeed()));
@@ -730,7 +733,7 @@ void BcmSwitch::setupLinkscan() {
     // Sometimes after warmboot sw does not have the correct state of every port
     // so we need to update sw state here. This needs to be done after linkscan
     // is enabled otherwise the sdk may return inconsistent results
-    for (auto& port : *portTable_) {
+    for (auto& port : std::as_const(*portTable_)) {
       callback_->linkStateChanged(port.first, port.second->isUp());
     }
   }
@@ -1347,7 +1350,7 @@ void BcmSwitch::processEnabledPortQueues(const shared_ptr<Port>& port) {
   auto id = port->getID();
   auto bcmPort = portTable_->getBcmPort(id);
 
-  for (const auto& queue : port->getPortQueues()) {
+  for (const auto& queue : std::as_const(*port->getPortQueues())) {
     XLOG(DBG1) << "Enable cos queue settings on port " << port->getID()
                << " queue: " << static_cast<int>(queue->getID());
     bcmPort->setupQueue(*queue);
@@ -1384,16 +1387,16 @@ void BcmSwitch::processEnabledPorts(const StateDelta& delta) {
 }
 
 bool BcmSwitch::processChangedIngressPoolCfg(
-    std::optional<BufferPoolCfgPtr> oldBufferPoolCfgPtr,
-    std::optional<BufferPoolCfgPtr> newBufferPoolCfgPtr) {
+    std::optional<state::BufferPoolFields> oldBufferPoolCfg,
+    std::optional<state::BufferPoolFields> newBufferPoolCfg) {
   // bufferPool <-> noBufferPool
-  if ((oldBufferPoolCfgPtr && !newBufferPoolCfgPtr) ||
-      (!oldBufferPoolCfgPtr && newBufferPoolCfgPtr)) {
+  if ((oldBufferPoolCfg && !newBufferPoolCfg) ||
+      (!oldBufferPoolCfg && newBufferPoolCfg)) {
     return true;
   }
   // bufferPool exists old and new, but doesn't match
-  if (oldBufferPoolCfgPtr && newBufferPoolCfgPtr) {
-    if (*oldBufferPoolCfgPtr != *newBufferPoolCfgPtr) {
+  if (oldBufferPoolCfg && newBufferPoolCfg) {
+    if (*oldBufferPoolCfg != *newBufferPoolCfg) {
       return true;
     }
   }
@@ -1475,7 +1478,7 @@ bool BcmSwitch::processChangedPgCfg(
     const std::shared_ptr<Port>& newPort) {
   const auto& oldPortPgCfgs = oldPort->getPortPgConfigs();
   const auto& newPortPgCfgs = newPort->getPortPgConfigs();
-  std::map<int, std::shared_ptr<PortPgConfig>> newPortPgConfigMap;
+  std::map<int, state::PortPgFields> newPortPgConfigMap;
 
   if (!oldPortPgCfgs && !newPortPgCfgs) {
     // no change before or after
@@ -1487,25 +1490,32 @@ bool BcmSwitch::processChangedPgCfg(
     return true;
   }
 
-  if ((*oldPortPgCfgs).size() != (*newPortPgCfgs).size()) {
+  if (oldPortPgCfgs->size() != newPortPgCfgs->size()) {
     return true;
   }
 
-  for (const auto& portPg : *newPortPgCfgs) {
-    newPortPgConfigMap.emplace(std::make_pair(portPg->getID(), portPg));
+  for (const auto& portPg : std::as_const(*newPortPgCfgs)) {
+    // THRIFT_COPY
+    newPortPgConfigMap.emplace(
+        portPg->cref<switch_state_tags::id>()->cref(), portPg->toThrift());
   }
 
-  for (const auto& oldPortPg : *oldPortPgCfgs) {
-    auto iter = newPortPgConfigMap.find(oldPortPg->getID());
-    if ((iter == newPortPgConfigMap.end()) || (*iter->second != *oldPortPg)) {
+  for (const auto& oldPortPg : std::as_const(*oldPortPgCfgs)) {
+    auto iter = newPortPgConfigMap.find(
+        oldPortPg->cref<switch_state_tags::id>()->cref());
+    // THRIFT_COPY
+    auto oldPortPgThrift = oldPortPg->toThrift();
+    if ((iter == newPortPgConfigMap.end()) ||
+        (iter->second != oldPortPgThrift)) {
       return true;
     }
 
     // also validate buffer pools associated with the given pg if any
-    const auto& oldBufferPoolCfgPtr = oldPortPg->getBufferPoolConfig();
-    const auto& newBufferPoolCfgPtr = iter->second->getBufferPoolConfig();
-    if (processChangedIngressPoolCfg(
-            oldBufferPoolCfgPtr, newBufferPoolCfgPtr)) {
+    const auto& oldBufferPoolCfg =
+        oldPortPgThrift.bufferPoolConfig().to_optional();
+    const auto& newBufferPoolCfg =
+        iter->second.bufferPoolConfig().to_optional();
+    if (processChangedIngressPoolCfg(oldBufferPoolCfg, newBufferPoolCfg)) {
       XLOG(DBG1) << "New ingress buffer pool changes on port: "
                  << newPort->getID();
       return true;
@@ -1524,9 +1534,9 @@ void BcmSwitch::processChangedPortQueues(
 
   // We expect the number of port queues to remain constant because this is
   // defined by the hardware
-  for (const auto& newQueue : newPort->getPortQueues()) {
-    if (oldPort->getPortQueues().size() > 0 &&
-        *(oldPort->getPortQueues().at(newQueue->getID())) == *newQueue) {
+  for (const auto& newQueue : newPort->getPortQueues()->impl()) {
+    if (oldPort->getPortQueues()->size() > 0 &&
+        *(oldPort->getPortQueues()->at(newQueue->getID())) == *newQueue) {
       continue;
     }
 
@@ -1621,7 +1631,7 @@ void BcmSwitch::processChangedPorts(const StateDelta& delta) {
           bcmPort->program(newPort);
         }
 
-        if (newPort->getPortQueues().size() != 0 &&
+        if (newPort->getPortQueues()->size() != 0 &&
             !platform_->getAsic()->isSupported(HwAsic::Feature::L3_QOS)) {
           throw FbossError(
               "Changing settings for cos queues not supported on ",
@@ -1767,7 +1777,7 @@ bool BcmSwitch::isValidPortUpdate(
     return !portGroup || portGroup->validConfiguration(newState);
   }
   if (!isValidPortQueueUpdate(
-          oldPort->getPortQueues(), newPort->getPortQueues())) {
+          oldPort->getPortQueues()->impl(), newPort->getPortQueues()->impl())) {
     return false;
   }
   if (!isValidPortQosPolicyUpdate(oldPort, newPort, newState)) {
@@ -2693,7 +2703,7 @@ void BcmSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
 
 folly::F14FastMap<std::string, HwPortStats> BcmSwitch::getPortStats() const {
   folly::F14FastMap<std::string, HwPortStats> portStats;
-  for (auto& bcmPortEntry : *portTable_) {
+  for (auto& bcmPortEntry : std::as_const(*portTable_)) {
     auto stat = bcmPortEntry.second->getPortStats();
     if (stat) {
       portStats.emplace(bcmPortEntry.second->getPortName(), *stat);

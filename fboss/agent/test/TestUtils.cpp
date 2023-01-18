@@ -93,7 +93,7 @@ shared_ptr<SwitchState> setAllPortState(
   auto newState = in->clone();
   auto newPortMap = newState->getPorts()->modify(&newState);
   for (auto port : *newPortMap) {
-    auto newPort = port->clone();
+    auto newPort = port.second->clone();
     newPort->setOperState(up);
     newPort->setAdminState(
         up ? cfg::PortState::ENABLED : cfg::PortState::DISABLED);
@@ -508,7 +508,7 @@ shared_ptr<SwitchState> testStateAWithLookupClasses() {
   auto newState = testStateAWithPortsUp()->clone();
   auto newPortMap = newState->getPorts()->modify(&newState);
   for (auto port : *newPortMap) {
-    auto newPort = port->clone();
+    auto newPort = port.second->clone();
     newPort->setLookupClassesToDistributeTrafficOn({
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
         cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1,
@@ -794,9 +794,9 @@ void updateMacAddrsToBlock(
 std::vector<std::shared_ptr<Port>> getPortsInLoopbackMode(
     const std::shared_ptr<SwitchState>& state) {
   std::vector<std::shared_ptr<Port>> lbPorts;
-  for (auto port : *state->getPorts()) {
-    if (port->getLoopbackMode() != cfg::PortLoopbackMode::NONE) {
-      lbPorts.push_back(port);
+  for (auto port : std::as_const(*state->getPorts())) {
+    if (port.second->getLoopbackMode() != cfg::PortLoopbackMode::NONE) {
+      lbPorts.push_back(port.second);
     }
   }
   return lbPorts;

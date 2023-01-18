@@ -672,17 +672,20 @@ void LookupClassUpdater::updateStateObserverLocalCache(
     const std::shared_ptr<SwitchState>& switchState) {
   CHECK(!inited_);
 
-  for (auto port : *switchState->getPorts()) {
-    initPort(switchState, port);
-    for (auto vlanMember : port->getVlans()) {
+  for (auto port : std::as_const(*switchState->getPorts())) {
+    initPort(switchState, port.second);
+    // THRIFT_COPY
+    for (auto vlanMember : port.second->getVlans()) {
       auto vlanID = vlanMember.first;
       auto vlan = switchState->getVlans()->getVlanIf(vlanID);
       if (!vlan) {
         continue;
       }
-      updateStateObserverLocalCacheHelper<folly::MacAddress>(vlan, port);
-      updateStateObserverLocalCacheHelper<folly::IPAddressV6>(vlan, port);
-      updateStateObserverLocalCacheHelper<folly::IPAddressV4>(vlan, port);
+      updateStateObserverLocalCacheHelper<folly::MacAddress>(vlan, port.second);
+      updateStateObserverLocalCacheHelper<folly::IPAddressV6>(
+          vlan, port.second);
+      updateStateObserverLocalCacheHelper<folly::IPAddressV4>(
+          vlan, port.second);
     }
   }
 }

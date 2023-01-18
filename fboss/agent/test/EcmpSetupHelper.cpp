@@ -88,9 +88,9 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::computePortDesc2Interface(
     const std::shared_ptr<SwitchState>& inputState) const {
   boost::container::flat_map<PortDescriptor, InterfaceID> portDesc2Interface;
   flat_set<PortID> portIds;
-  for (const auto& port : *inputState->getPorts().get()) {
-    if (port->getPortType() == cfg::PortType::INTERFACE_PORT) {
-      portIds.insert(port->getID());
+  for (const auto& port : std::as_const(*inputState->getPorts())) {
+    if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+      portIds.insert(port.second->getID());
     }
   }
   for (const auto& portId : portIds) {

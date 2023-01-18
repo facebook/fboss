@@ -51,8 +51,8 @@ void AgentHwTest::SetUp() {
     // up)
     sw()->updateStateBlocking("set port preemphasis 0", [&](const auto& state) {
       std::shared_ptr<SwitchState> newState{state};
-      for (auto& port : *newState->getPorts()) {
-        auto newPort = port->modify(&newState);
+      for (auto& port : std::as_const(*newState->getPorts())) {
+        auto newPort = port.second->modify(&newState);
         auto pinConfigs = newPort->getPinConfigs();
         for (auto& pin : pinConfigs) {
           pin.tx() = phy::TxSettings();

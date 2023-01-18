@@ -213,10 +213,10 @@ TEST(PortQueue, stateDelta) {
   EXPECT_EQ(
       platform->getAsic()->getDefaultNumPortQueues(
           cfg::StreamType::UNICAST, false),
-      queues1.size());
+      queues1->size());
   // The first kStateTestNumPortQueues should have weight changed
   for (int i = 0; i < kStateTestNumPortQueues; i++) {
-    EXPECT_EQ(i, queues1.at(i)->getWeight());
+    EXPECT_EQ(i, queues1->at(i)->getWeight());
   }
   // The rest queue should be default
   for (int i = kStateTestNumPortQueues;
@@ -225,7 +225,7 @@ TEST(PortQueue, stateDelta) {
        i++) {
     auto defaultQ = std::make_shared<PortQueue>(static_cast<uint8_t>(i));
     defaultQ->setStreamType(cfg::StreamType::UNICAST);
-    EXPECT_EQ(*defaultQ, *(queues1.at(i)));
+    EXPECT_EQ(*defaultQ, *(queues1->at(i)));
   }
 
   config.portQueueConfigs()["queue_config"][0].weight() = 5;
@@ -236,8 +236,8 @@ TEST(PortQueue, stateDelta) {
   EXPECT_EQ(
       platform->getAsic()->getDefaultNumPortQueues(
           cfg::StreamType::UNICAST, false),
-      queues2.size());
-  EXPECT_EQ(5, queues2.at(0)->getWeight());
+      queues2->size());
+  EXPECT_EQ(5, queues2->at(0)->getWeight());
 
   config.portQueueConfigs()["queue_config"].pop_back();
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
@@ -245,8 +245,8 @@ TEST(PortQueue, stateDelta) {
   EXPECT_EQ(
       platform->getAsic()->getDefaultNumPortQueues(
           cfg::StreamType::UNICAST, false),
-      queues3.size());
-  EXPECT_EQ(1, queues3.at(3)->getWeight());
+      queues3->size());
+  EXPECT_EQ(1, queues3->at(3)->getWeight());
 
   cfg::PortQueue queueExtra;
   queueExtra.id() = 11;
@@ -278,11 +278,11 @@ TEST(PortQueue, aqmState) {
   EXPECT_EQ(
       platform->getAsic()->getDefaultNumPortQueues(
           cfg::StreamType::UNICAST, false),
-      queues1.size());
+      queues1->size());
   std::vector<cfg::ActiveQueueManagement> aqms{};
   aqms.resize(1);
   aqms[0] = getEarlyDropAqmConfig();
-  EXPECT_EQ(queues1.at(0)->getAqms()->toThrift(), aqms);
+  EXPECT_EQ(queues1->at(0)->getAqms()->toThrift(), aqms);
 }
 
 TEST(PortQueue, aqmBadState) {
@@ -319,7 +319,7 @@ TEST(PortQueue, resetPartOfConfigs) {
     auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
     EXPECT_NE(nullptr, stateV1);
     auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
-    EXPECT_TRUE(queues1.at(0)->getReservedBytes().has_value());
+    EXPECT_TRUE(queues1->at(0)->getReservedBytes().has_value());
 
     // reset reservedBytes
     config.portQueueConfigs()["queue_config"][0].reservedBytes().reset();
@@ -327,14 +327,14 @@ TEST(PortQueue, resetPartOfConfigs) {
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_TRUE(stateV2 != nullptr);
     auto queues2 = stateV2->getPort(PortID(1))->getPortQueues();
-    EXPECT_FALSE(queues2.at(0)->getReservedBytes().has_value());
+    EXPECT_FALSE(queues2->at(0)->getReservedBytes().has_value());
   }
   {
     auto config = generateTestConfig();
     auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
     EXPECT_NE(nullptr, stateV1);
     auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
-    EXPECT_TRUE(queues1.at(0)->getScalingFactor().has_value());
+    EXPECT_TRUE(queues1->at(0)->getScalingFactor().has_value());
 
     // reset scalingFactor
     config.portQueueConfigs()["queue_config"][0].scalingFactor().reset();
@@ -342,14 +342,14 @@ TEST(PortQueue, resetPartOfConfigs) {
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_TRUE(stateV2 != nullptr);
     auto queues2 = stateV2->getPort(PortID(1))->getPortQueues();
-    EXPECT_FALSE(queues2.at(0)->getScalingFactor().has_value());
+    EXPECT_FALSE(queues2->at(0)->getScalingFactor().has_value());
   }
   {
     auto config = generateTestConfig();
     auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
     EXPECT_NE(nullptr, stateV1);
     auto queues1 = stateV1->getPort(PortID(1))->getPortQueues();
-    EXPECT_EQ(2, queues1.at(0)->getAqms()->size());
+    EXPECT_EQ(2, queues1->at(0)->getAqms()->size());
 
     // reset aqm
     config.portQueueConfigs()["queue_config"][0].aqms().reset();
@@ -357,7 +357,8 @@ TEST(PortQueue, resetPartOfConfigs) {
     auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
     EXPECT_TRUE(stateV2 != nullptr);
     auto queues2 = stateV2->getPort(PortID(1))->getPortQueues();
-    EXPECT_TRUE(!queues2.at(0)->getAqms() || queues2.at(0)->getAqms()->empty());
+    EXPECT_TRUE(
+        !queues2->at(0)->getAqms() || queues2->at(0)->getAqms()->empty());
   }
 }
 
@@ -368,9 +369,9 @@ TEST(PortQueue, checkSwConfPortQueueMatch) {
   auto config = generateTestConfig();
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
-  auto& swQueues = stateV1->getPort(PortID(1))->getPortQueues();
+  auto swQueues = stateV1->getPort(PortID(1))->getPortQueues();
   auto& cfgQueue = config.portQueueConfigs()["queue_config"][0];
-  EXPECT_TRUE(checkSwConfPortQueueMatch(swQueues.at(0), &cfgQueue));
+  EXPECT_TRUE(checkSwConfPortQueueMatch(swQueues->at(0), &cfgQueue));
 }
 
 TEST(PortQueue, checkValidPortQueueConfigRef) {
@@ -406,7 +407,7 @@ TEST(PortQueue, checkNoPortQueueTrafficClass) {
   state = publishAndApplyConfig(state, &config, platform.get());
   auto swQueues = state->getPort(PortID(1))->getPortQueues();
 
-  EXPECT_FALSE(swQueues[0]->getTrafficClass().has_value());
+  EXPECT_FALSE(swQueues->at(0)->getTrafficClass().has_value());
 }
 
 TEST(PortQueue, checkPortQueueTrafficClass) {
@@ -422,7 +423,7 @@ TEST(PortQueue, checkPortQueueTrafficClass) {
   auto swQueues = state->getPort(PortID(1))->getPortQueues();
 
   EXPECT_EQ(
-      swQueues[0]->getTrafficClass().value(), static_cast<TrafficClass>(9));
+      swQueues->at(0)->getTrafficClass().value(), static_cast<TrafficClass>(9));
 }
 
 TEST(PortQueue, addPortQueueTrafficClass) {
@@ -432,7 +433,7 @@ TEST(PortQueue, addPortQueueTrafficClass) {
   auto config = generateTestConfig();
   state = publishAndApplyConfig(state, &config, platform.get());
   auto swQueues = state->getPort(PortID(1))->getPortQueues();
-  EXPECT_FALSE(swQueues[0]->getTrafficClass().has_value());
+  EXPECT_FALSE(swQueues->at(0)->getTrafficClass().has_value());
 
   auto policy = generateQosPolicy({{9, 0}});
   config.qosPolicies()->push_back(policy);
@@ -442,7 +443,7 @@ TEST(PortQueue, addPortQueueTrafficClass) {
   state = publishAndApplyConfig(state, &config, platform.get());
   swQueues = state->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(
-      swQueues[0]->getTrafficClass().value(), static_cast<TrafficClass>(9));
+      swQueues->at(0)->getTrafficClass().value(), static_cast<TrafficClass>(9));
 }
 
 TEST(PortQueue, updatePortQueueTrafficClass) {
@@ -461,7 +462,7 @@ TEST(PortQueue, updatePortQueueTrafficClass) {
   state = publishAndApplyConfig(state, &config, platform.get());
   auto swQueues = state->getPort(PortID(1))->getPortQueues();
   EXPECT_EQ(
-      swQueues[0]->getTrafficClass().value(), static_cast<TrafficClass>(7));
+      swQueues->at(0)->getTrafficClass().value(), static_cast<TrafficClass>(7));
 }
 
 TEST(PortQueue, removePortQueueTrafficClass) {
@@ -478,7 +479,7 @@ TEST(PortQueue, removePortQueueTrafficClass) {
   config.qosPolicies()[0].qosMap()->trafficClassToQueueId()->clear();
   state = publishAndApplyConfig(state, &config, platform.get());
   auto swQueues = state->getPort(PortID(1))->getPortQueues();
-  EXPECT_FALSE(swQueues[0]->getTrafficClass().has_value());
+  EXPECT_FALSE(swQueues->at(0)->getTrafficClass().has_value());
 }
 
 TEST(PortQueue, verifyPfcPriorityToQueue) {
@@ -489,7 +490,7 @@ TEST(PortQueue, verifyPfcPriorityToQueue) {
   state = publishAndApplyConfig(state, &config, platform.get());
   auto swQueues = state->getPort(PortID(1))->getPortQueues();
 
-  EXPECT_FALSE(swQueues[0]->getPfcPrioritySet().has_value());
+  EXPECT_FALSE(swQueues->at(0)->getPfcPrioritySet().has_value());
 
   auto policy = generateQosPolicyWithPfcAndTrafficClass({}, {{7, 0}});
   config.qosPolicies()->push_back(policy);
@@ -502,12 +503,12 @@ TEST(PortQueue, verifyPfcPriorityToQueue) {
 
   std::set<PfcPriority> pfcPrisForQueue0;
   pfcPrisForQueue0.insert(static_cast<PfcPriority>(7));
-  EXPECT_EQ(swQueues[0]->getPfcPrioritySet().value(), pfcPrisForQueue0);
+  EXPECT_EQ(swQueues->at(0)->getPfcPrioritySet().value(), pfcPrisForQueue0);
 
   config.qosPolicies()[0].qosMap()->pfcPriorityToQueueId()->clear();
   state = publishAndApplyConfig(state, &config, platform.get());
   swQueues = state->getPort(PortID(1))->getPortQueues();
-  EXPECT_FALSE(swQueues[0]->getPfcPrioritySet().has_value());
+  EXPECT_FALSE(swQueues->at(0)->getPfcPrioritySet().has_value());
 
   config.qosPolicies()[0].qosMap()->pfcPriorityToQueueId()->emplace(2, 0);
 
@@ -516,7 +517,7 @@ TEST(PortQueue, verifyPfcPriorityToQueue) {
 
   state = publishAndApplyConfig(state, &config, platform.get());
   swQueues = state->getPort(PortID(1))->getPortQueues();
-  EXPECT_EQ(swQueues[0]->getPfcPrioritySet().value(), pfcPrisForQueue0);
+  EXPECT_EQ(swQueues->at(0)->getPfcPrioritySet().value(), pfcPrisForQueue0);
 }
 
 TEST(PortQueue, verifyMultiplePfcPriorityToSingleQueue) {
@@ -528,7 +529,7 @@ TEST(PortQueue, verifyMultiplePfcPriorityToSingleQueue) {
   state = publishAndApplyConfig(state, &config, platform.get());
   auto swQueues = state->getPort(PortID(1))->getPortQueues();
 
-  EXPECT_FALSE(swQueues[0]->getPfcPrioritySet().has_value());
+  EXPECT_FALSE(swQueues->at(0)->getPfcPrioritySet().has_value());
 
   // insert pfcPri {2,3,7} for queue 0
   // {4} for queue 1
@@ -548,11 +549,11 @@ TEST(PortQueue, verifyMultiplePfcPriorityToSingleQueue) {
   pfcPrisForQueue0.insert(static_cast<PfcPriority>(2));
   pfcPrisForQueue0.insert(static_cast<PfcPriority>(3));
 
-  EXPECT_EQ(swQueues[0]->getPfcPrioritySet().value(), pfcPrisForQueue0);
+  EXPECT_EQ(swQueues->at(0)->getPfcPrioritySet().value(), pfcPrisForQueue0);
 
   std::set<PfcPriority> pfcPrisForQueue1;
   pfcPrisForQueue1.insert(static_cast<PfcPriority>(4));
-  EXPECT_EQ(swQueues[1]->getPfcPrioritySet().value(), pfcPrisForQueue1);
+  EXPECT_EQ(swQueues->at(1)->getPfcPrioritySet().value(), pfcPrisForQueue1);
 }
 
 TEST(PortQueue, verifyPfcPriorityAndTrafficClass) {
@@ -572,7 +573,7 @@ TEST(PortQueue, verifyPfcPriorityAndTrafficClass) {
   std::set<PfcPriority> pfcPris;
   pfcPris.insert(static_cast<PfcPriority>(2));
 
-  EXPECT_EQ(swQueues[0]->getPfcPrioritySet().value(), pfcPris);
+  EXPECT_EQ(swQueues->at(0)->getPfcPrioritySet().value(), pfcPris);
   EXPECT_EQ(
-      swQueues[0]->getTrafficClass().value(), static_cast<TrafficClass>(7));
+      swQueues->at(0)->getTrafficClass().value(), static_cast<TrafficClass>(7));
 }

@@ -153,17 +153,17 @@ void SaiBufferManager::setupEgressBufferPool() {
       store.setObject(SAI_BUFFER_POOL_TYPE_EGRESS, c);
 }
 
-void SaiBufferManager::setupIngressBufferPool(const PortPgConfig& portPgCfg) {
+void SaiBufferManager::setupIngressBufferPool(
+    const state::BufferPoolFields& bufferPoolCfg) {
   if (ingressBufferPoolHandle_) {
     return;
   }
   ingressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
   auto& store = saiStore_->get<SaiBufferPoolTraits>();
-  auto bufferPoolCfg = portPgCfg.getBufferPoolConfig().value();
 
   // Pool size is the sum of (shared + headroom) * number of memory buffers
   auto poolSize =
-      (bufferPoolCfg->getSharedBytes() + bufferPoolCfg->getHeadroomBytes()) *
+      (*bufferPoolCfg.sharedBytes() + *bufferPoolCfg.headroomBytes()) *
       platform_->getAsic()->getNumMemoryBuffers();
   // XoffSize configuration is needed only when PFC is supported
   std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
@@ -172,7 +172,7 @@ void SaiBufferManager::setupIngressBufferPool(const PortPgConfig& portPgCfg) {
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
     defined(SAI_VERSION_9_0_EA_DNX_ODP)
   if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
-    xoffSize = bufferPoolCfg->getHeadroomBytes() *
+    xoffSize = *bufferPoolCfg.headroomBytes() *
         platform_->getAsic()->getNumMemoryBuffers();
   }
 #endif
@@ -186,7 +186,7 @@ void SaiBufferManager::setupIngressBufferPool(const PortPgConfig& portPgCfg) {
 }
 
 void SaiBufferManager::setupIngressEgressBufferPool(
-    const PortPgConfig* portPgCfg) {
+    const std::optional<state::BufferPoolFields> bufferPoolCfg) {
   std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
   if (!ingressEgressBufferPoolHandle_) {
     auto availableBuffer = getSwitchEgressPoolAvailableSize(platform_);
@@ -205,13 +205,13 @@ void SaiBufferManager::setupIngressEgressBufferPool(
         store.setObject(SAI_BUFFER_POOL_TYPE_BOTH, c);
   }
   // XoffSize is set separately as it is part of ingress config alone
-  if (portPgCfg && platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
+  if (bufferPoolCfg &&
+      platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
 #if defined(TAJO_SDK) || defined(SAI_VERSION_8_2_0_0_ODP) ||                   \
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
     defined(SAI_VERSION_9_0_EA_DNX_ODP)
-    auto bufferPoolCfg = portPgCfg->getBufferPoolConfig().value();
     SaiBufferPoolTraits::Attributes::XoffSize xoffSize =
-        bufferPoolCfg->getHeadroomBytes() *
+        *(*bufferPoolCfg).headroomBytes() *
         platform_->getAsic()->getNumMemoryBuffers();
     SaiApiTable::getInstance()->bufferApi().setAttribute(
         ingressEgressBufferPoolHandle_->bufferPool->adapterKey(), xoffSize);
@@ -260,14 +260,15 @@ SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
       pool, reservedBytes, mode, dynThresh, 0, 0, 0};
 }
 
-void SaiBufferManager::setupBufferPool(const PortPgConfig* ingressPgCfg) {
+void SaiBufferManager::setupBufferPool(
+    std::optional<state::BufferPoolFields> bufferPoolCfg) {
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL)) {
-    setupIngressEgressBufferPool(ingressPgCfg);
+    setupIngressEgressBufferPool(bufferPoolCfg);
   } else {
     // Call ingress or egress buffer pool based on the cfg passed in!
-    if (ingressPgCfg) {
-      setupIngressBufferPool(*ingressPgCfg);
+    if (bufferPoolCfg) {
+      setupIngressBufferPool(*bufferPoolCfg);
     } else {
       setupEgressBufferPool();
     }
@@ -287,34 +288,39 @@ std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateProfile(
 }
 
 SaiBufferProfileTraits::CreateAttributes
-SaiBufferManager::ingressProfileCreateAttrs(const PortPgConfig& config) const {
+SaiBufferManager::ingressProfileCreateAttrs(
+    const state::PortPgFields& config) const {
   SaiBufferProfileTraits::Attributes::PoolId pool{
       getIngressBufferPoolHandle()->bufferPool->adapterKey()};
   SaiBufferProfileTraits::Attributes::ReservedBytes reservedBytes =
-      config.getMinLimitBytes();
+      *config.minLimitBytes();
   SaiBufferProfileTraits::Attributes::ThresholdMode mode{
       SAI_BUFFER_PROFILE_THRESHOLD_MODE_STATIC};
   SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynThresh{0};
-  if (config.getScalingFactor()) {
+  if (config.scalingFactor()) {
     mode = SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC;
-    dynThresh = static_cast<sai_uint8_t>(config.getScalingFactor().value());
+    dynThresh = static_cast<sai_uint8_t>(
+        nameToEnum<cfg::MMUScalingFactor>(*config.scalingFactor()));
   }
   SaiBufferProfileTraits::Attributes::XoffTh xoffTh{0};
-  if (config.getHeadroomLimitBytes()) {
-    xoffTh = config.getHeadroomLimitBytes().value();
+  if (config.headroomLimitBytes()) {
+    xoffTh = *config.headroomLimitBytes();
   }
   SaiBufferProfileTraits::Attributes::XonTh xonTh{0}; // Not configured!
   SaiBufferProfileTraits::Attributes::XonOffsetTh xonOffsetTh{0};
-  if (config.getResumeOffsetBytes()) {
-    xonOffsetTh = config.getResumeOffsetBytes().value();
+  if (config.resumeOffsetBytes()) {
+    xonOffsetTh = *config.resumeOffsetBytes();
   }
   return SaiBufferProfileTraits::CreateAttributes{
       pool, reservedBytes, mode, dynThresh, xoffTh, xonTh, xonOffsetTh};
 }
 
 std::shared_ptr<SaiBufferProfile> SaiBufferManager::getOrCreateIngressProfile(
-    const PortPgConfig& portPgConfig) {
-  setupBufferPool(&portPgConfig);
+    const state::PortPgFields& portPgConfig) {
+  if (!portPgConfig.bufferPoolConfig()) {
+    XLOG(FATAL) << "Empty buffer pool config from portPgConfig.";
+  }
+  setupBufferPool(*portPgConfig.bufferPoolConfig());
   auto attributes = ingressProfileCreateAttrs(portPgConfig);
   auto& store = saiStore_->get<SaiBufferProfileTraits>();
   SaiBufferProfileTraits::AdapterHostKey k = tupleProjection<
@@ -337,10 +343,14 @@ void SaiBufferManager::createIngressBufferPool(
    * of warm boot, hence we dont need to handle update case for
    * buffer pool config as well.
    */
-  const auto& portPgCfgs = port->getPortPgConfigs();
-  if (portPgCfgs.has_value()) {
-    const auto& portPgCfg = (*portPgCfgs)[0];
-    setupBufferPool(portPgCfg.get());
+  if (!ingressBufferPoolHandle_) {
+    const auto& portPgCfgs = port->getPortPgConfigs();
+    if (portPgCfgs) {
+      const auto& portPgCfg = (*portPgCfgs).at(0);
+      // THRIFT_COPY
+      setupBufferPool(
+          portPgCfg->cref<switch_state_tags::bufferPoolConfig>()->toThrift());
+    }
   }
 }
 

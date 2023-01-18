@@ -176,10 +176,21 @@ void SaiPhyManager::sakInstallRx(
   auto updateFn = [saiPlatform, portId, this, &sak, &sci](
                       std::shared_ptr<SwitchState> in) {
     return portUpdateHelper(in, portId, saiPlatform, [&sak, &sci](auto& port) {
-      auto rxSaks = port->getRxSaks();
-      PortFields::MKASakKey key{sci, *sak.assocNum()};
-      rxSaks.erase(key);
-      rxSaks.emplace(std::make_pair(key, sak));
+      // THRIFT_COPY
+      auto rxSaks = port->getRxSaks()->toThrift();
+      state::MKASakKey key;
+      key.sci() = sci;
+      key.associationNum() = *sak.assocNum();
+      for (auto iter = rxSaks.cbegin(); iter != rxSaks.cend(); ++iter) {
+        if (*iter->sakKey() == key) {
+          rxSaks.erase(iter);
+          break;
+        }
+      }
+      state::RxSak rxSak;
+      rxSak.sakKey() = key;
+      rxSak.sak() = sak;
+      rxSaks.push_back(rxSak);
       port->setRxSaks(rxSaks);
     });
   };
@@ -195,12 +206,16 @@ void SaiPhyManager::sakDeleteRx(
   auto updateFn = [saiPlatform, portId, this, &sak, &sci](
                       std::shared_ptr<SwitchState> in) {
     return portUpdateHelper(in, portId, saiPlatform, [&sak, &sci](auto& port) {
-      auto rxSaks = port->getRxSaks();
-      PortFields::MKASakKey key{sci, *sak.assocNum()};
-      auto it = rxSaks.find(key);
-      if (it != rxSaks.end() && it->second == sak) {
-        rxSaks.erase(key);
-        port->setRxSaks(rxSaks);
+      // THRIFT_COPY
+      auto rxSaks = port->getRxSaks()->toThrift();
+      state::MKASakKey key;
+      key.sci() = sci;
+      key.associationNum() = *sak.assocNum();
+      for (auto iter = rxSaks.cbegin(); iter != rxSaks.cend(); ++iter) {
+        if (*iter->sakKey() == key) {
+          rxSaks.erase(iter);
+          break;
+        }
       }
     });
   };
@@ -233,8 +248,8 @@ mka::MKASakHealthResponse SaiPhyManager::sakHealthCheck(
   auto port = switchState->getPorts()->getPortIf(portId);
   if (port) {
     txActive = port->getTxSak() && *port->getTxSak() == sak;
-    for (const auto& keyAndSak : port->getRxSaks()) {
-      if (keyAndSak.second == sak) {
+    for (const auto& keyAndSak : port->getRxSaks()->impl()) {
+      if (keyAndSak->cref<switch_state_tags::sak>()->toThrift() == sak) {
         rxActive = true;
         break;
       }

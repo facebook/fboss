@@ -170,8 +170,10 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
     const TestPort& testPort,
     std::optional<cfg::PortSpeed> expectedSpeed,
     bool isXphyPort) const {
-  std::string name = folly::sformat("port{}", testPort.id);
-  auto swPort = std::make_shared<Port>(PortID(testPort.id), name);
+  state::PortFields portFields;
+  portFields.portId() = testPort.id;
+  portFields.portName() = folly::sformat("port{}", testPort.id);
+  auto swPort = std::make_shared<Port>(std::move(portFields));
   if (testPort.enabled) {
     swPort->setAdminState(cfg::PortState::ENABLED);
   }

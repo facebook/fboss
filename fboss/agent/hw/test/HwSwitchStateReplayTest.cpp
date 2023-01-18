@@ -59,10 +59,10 @@ class HwSwitchStateReplayTest : public HwTest {
   void runTest() {
     auto setup = [=]() {
       auto wbState = getWarmBootState();
-      for (auto port : *wbState->getPorts()) {
-        if (port->isUp()) {
-          port->setLoopbackMode(getAsic()->desiredLoopbackMode());
-          XLOG(DBG2) << " Setting loopback mode for : " << port->getID();
+      for (auto port : std::as_const(*wbState->getPorts())) {
+        if (port.second->isUp()) {
+          port.second->setLoopbackMode(getAsic()->desiredLoopbackMode());
+          XLOG(DBG2) << " Setting loopback mode for : " << port.second->getID();
         }
       }
       applyNewState(wbState);

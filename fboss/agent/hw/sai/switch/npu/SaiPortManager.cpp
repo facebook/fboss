@@ -262,7 +262,10 @@ void SaiPortManager::changePortImpl(
     // Port transitioned from enabled to disabled, remove stats
     portStats_.erase(newPort->getID());
   }
-  changeQueue(newPort, oldPort->getPortQueues(), newPort->getPortQueues());
+  changeQueue(
+      newPort,
+      oldPort->getPortQueues()->impl(),
+      newPort->getPortQueues()->impl());
 }
 
 void SaiPortManager::attributesFromSaiStore(

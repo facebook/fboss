@@ -48,8 +48,10 @@ void MultiNodeTest::setupConfigFlag() {
   auto pMap = std::make_shared<PortMap>();
   const auto& swConfig = *baseConfig->thrift.sw();
   for (const auto& portCfg : *swConfig.ports()) {
-    auto port = std::make_shared<Port>(
-        PortID(*portCfg.logicalID()), portCfg.name().value_or({}));
+    state::PortFields portFields;
+    portFields.portId() = *portCfg.logicalID();
+    portFields.portName() = portCfg.name().value_or({});
+    auto port = std::make_shared<Port>(portFields);
     port->setSpeed(*portCfg.speed());
     port->setProfileId(*portCfg.profileID());
     pMap->addPort(port);

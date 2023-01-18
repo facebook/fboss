@@ -162,11 +162,14 @@ int BcmPortIngressBufferManager::getProgrammedPfcStatusInPg(
 }
 
 void BcmPortIngressBufferManager::programPg(
-    const PortPgConfig* portPgCfg,
+    state::PortPgFields portPgCfg,
     const int cosq) {
   int sharedDynamicEnable = 1;
-  const auto& scalingFactor = portPgCfg->getScalingFactor();
-  if (!scalingFactor) {
+  cfg::MMUScalingFactor scalingFactor;
+  if (portPgCfg.scalingFactor()) {
+    scalingFactor =
+        nameToEnum<cfg::MMUScalingFactor>(*portPgCfg.scalingFactor());
+  } else {
     sharedDynamicEnable = 0;
   }
 
@@ -177,7 +180,7 @@ void BcmPortIngressBufferManager::programPg(
       "bcmCosqControlIngressPortPGSharedDynamicEnable");
 
   if (sharedDynamicEnable) {
-    auto alpha = utility::cfgAlphaToBcmAlpha(*scalingFactor);
+    auto alpha = utility::cfgAlphaToBcmAlpha(scalingFactor);
     writeCosqTypeToHwIfNeeded(
         cosq,
         bcmCosqControlDropLimitAlpha,
@@ -185,14 +188,14 @@ void BcmPortIngressBufferManager::programPg(
         "bcmCosqControlDropLimitAlpha");
   }
 
-  int pgMinLimitBytes = portPgCfg->getMinLimitBytes();
+  int pgMinLimitBytes = *portPgCfg.minLimitBytes();
   writeCosqTypeToHwIfNeeded(
       cosq,
       bcmCosqControlIngressPortPGMinLimitBytes,
       pgMinLimitBytes,
       "bcmCosqControlIngressPortPGMinLimitBytes");
 
-  auto hdrmBytes = portPgCfg->getHeadroomLimitBytes();
+  auto hdrmBytes = portPgCfg.headroomLimitBytes();
   int headroomBytes = hdrmBytes ? *hdrmBytes : 0;
   writeCosqTypeToHwIfNeeded(
       cosq,
@@ -200,7 +203,7 @@ void BcmPortIngressBufferManager::programPg(
       headroomBytes,
       "bcmCosqControlIngressPortPGHeadroomLimitBytes");
 
-  auto resumeBytes = portPgCfg->getResumeOffsetBytes();
+  auto resumeBytes = portPgCfg.resumeOffsetBytes();
   if (resumeBytes) {
     writeCosqTypeToHwIfNeeded(
         cosq,
@@ -212,7 +215,8 @@ void BcmPortIngressBufferManager::programPg(
 
 void BcmPortIngressBufferManager::resetPgToDefault(int pgId) {
   const auto& portPg = getDefaultPgSettings();
-  programPg(&portPg, pgId);
+  // THRIFT_COPY
+  programPg(portPg.getFields()->toThrift(), pgId);
   // disable pfc on default pgs
   programPfcOnPgIfNeeded(pgId, false);
 }
@@ -283,8 +287,8 @@ void BcmPortIngressBufferManager::programLosslessMode(
   // lossless look for headroom limit set to determine its lossless
   if (const auto& pgConfigs = port->getPortPgConfigs()) {
     for (const auto& pgConfig : *pgConfigs) {
-      if (pgConfig->getHeadroomLimitBytes()) {
-        losslessPgList.insert(pgConfig->getID());
+      if (pgConfig->cref<switch_state_tags::headroomLimitBytes>()) {
+        losslessPgList.insert(pgConfig->cref<switch_state_tags::id>()->cref());
       }
     }
   }
@@ -312,11 +316,14 @@ void BcmPortIngressBufferManager::reprogramPgs(
   }
 
   if (portPgCfgs) {
-    for (const auto& portPgCfg : *portPgCfgs) {
-      programPg(portPgCfg.get(), portPgCfg->getID());
+    for (const auto& portPgCfg : std::as_const(*portPgCfgs)) {
+      programPg(
+          portPgCfg->toThrift(),
+          portPgCfg->cref<switch_state_tags::id>()->cref());
       // enable pfc on pg if so
-      programPfcOnPgIfNeeded(portPgCfg->getID(), isPfcEnabled);
-      newPgList.insert(portPgCfg->getID());
+      programPfcOnPgIfNeeded(
+          portPgCfg->cref<switch_state_tags::id>()->cref(), isPfcEnabled);
+      newPgList.insert(portPgCfg->cref<switch_state_tags::id>()->cref());
     }
 
     // find pgs in original list but not in new list
@@ -343,13 +350,16 @@ void BcmPortIngressBufferManager::reprogramPgs(
 void BcmPortIngressBufferManager::reprogramIngressPools(
     const std::shared_ptr<Port> port) {
   const auto& portPgCfgs = port->getPortPgConfigs();
-  for (const auto& portPgCfg : *portPgCfgs) {
-    if (auto bufferPoolPtr = portPgCfg->getBufferPoolConfig()) {
-      auto currentGlobalHeadroomBytes =
-          getIngressPoolHeadroomBytes(portPgCfg->getID());
-      auto currentGlobalSharedBytes = getIngressSharedBytes(portPgCfg->getID());
-      auto newGlobalSharedBytes = (*bufferPoolPtr)->getSharedBytes();
-      auto newGlobalHeadroomBytes = (*bufferPoolPtr)->getHeadroomBytes();
+  for (const auto& portPgCfg : std::as_const(*portPgCfgs)) {
+    auto portPgId = portPgCfg->cref<switch_state_tags::id>()->cref();
+    if (auto bufferPoolCfg =
+            portPgCfg->cref<switch_state_tags::bufferPoolConfig>()) {
+      auto currentGlobalHeadroomBytes = getIngressPoolHeadroomBytes(portPgId);
+      auto currentGlobalSharedBytes = getIngressSharedBytes(portPgId);
+      auto newGlobalSharedBytes =
+          bufferPoolCfg->cref<switch_state_tags::sharedBytes>()->cref();
+      auto newGlobalHeadroomBytes =
+          bufferPoolCfg->cref<switch_state_tags::headroomBytes>()->cref();
 
       // When we program shared pool, SDK runs a check on hdrm + shared buffer
       // and it shouldn't exceed the MAX. If we program shared buffer first
@@ -366,14 +376,14 @@ void BcmPortIngressBufferManager::reprogramIngressPools(
 
       if (newGlobalHeadroomBytes < currentGlobalHeadroomBytes) {
         // new global hdrm is lower than current, lets program this one first
-        setIngressPoolHeadroomBytes(portPgCfg->getID(), newGlobalHeadroomBytes);
-        setIngressSharedBytes(portPgCfg->getID(), newGlobalSharedBytes);
+        setIngressPoolHeadroomBytes(portPgId, newGlobalHeadroomBytes);
+        setIngressSharedBytes(portPgId, newGlobalSharedBytes);
       } else {
         // (1) new shared ingress pool is lower than current
         // (2) new shared ingress pool  > current
         // (3) new global hdroom pool > current
-        setIngressSharedBytes(portPgCfg->getID(), newGlobalSharedBytes);
-        setIngressPoolHeadroomBytes(portPgCfg->getID(), newGlobalHeadroomBytes);
+        setIngressSharedBytes(portPgId, newGlobalSharedBytes);
+        setIngressPoolHeadroomBytes(portPgId, newGlobalHeadroomBytes);
       }
     }
   }

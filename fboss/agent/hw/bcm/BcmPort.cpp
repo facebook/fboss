@@ -96,12 +96,12 @@ static constexpr int kCodewordErrorsPageSize = 8;
 bool hasPortQueueChanges(
     const shared_ptr<facebook::fboss::Port>& oldPort,
     const shared_ptr<facebook::fboss::Port>& newPort) {
-  if (oldPort->getPortQueues().size() != newPort->getPortQueues().size()) {
+  if (oldPort->getPortQueues()->size() != newPort->getPortQueues()->size()) {
     return true;
   }
 
-  for (const auto& newQueue : newPort->getPortQueues()) {
-    auto oldQueue = oldPort->getPortQueues().at(newQueue->getID());
+  for (const auto& newQueue : std::as_const(*(newPort->getPortQueues()))) {
+    auto oldQueue = oldPort->getPortQueues()->impl().at(newQueue->getID());
     if (oldQueue->getName() != newQueue->getName()) {
       return true;
     }
@@ -323,15 +323,16 @@ void BcmPort::removePortStat(folly::StringPiece statKey) {
 void BcmPort::removePortPfcStatsLocked(
     const BcmPort::PortStatsWLockedPtr& /* lockedPortStatsPtr */,
     const std::shared_ptr<Port>& swPort,
-    std::optional<std::vector<PfcPriority>> priorities) {
+    Port::PfcPriorityList priorities) {
   XLOG(DBG3) << "Destroy PFC stats for " << swPort->getName();
 
   // Destroy per priority PFC statistics
-  if (priorities.has_value()) {
-    for (auto pri : priorities.value()) {
-      removePortStat(getPfcPriorityStatsKey(kInPfc(), pri));
-      removePortStat(getPfcPriorityStatsKey(kInPfcXon(), pri));
-      removePortStat(getPfcPriorityStatsKey(kOutPfc(), pri));
+  if (priorities) {
+    for (auto pri : *priorities) {
+      PfcPriority priority = static_cast<PfcPriority>(pri->cref());
+      removePortStat(getPfcPriorityStatsKey(kInPfc(), priority));
+      removePortStat(getPfcPriorityStatsKey(kInPfcXon(), priority));
+      removePortStat(getPfcPriorityStatsKey(kOutPfc(), priority));
     }
   }
 
@@ -345,12 +346,13 @@ void BcmPort::reinitPortPfcStats(const std::shared_ptr<Port>& swPort) {
 
   XLOG(DBG3) << "Reinitializing PFC stats for " << portName;
   // Reinit per priority PFC statistics
-  std::optional<std::vector<PfcPriority>> pfcPri = swPort->getPfcPriorities();
-  if (pfcPri.has_value()) {
-    for (auto pri : pfcPri.value()) {
-      reinitPortStat(getPfcPriorityStatsKey(kInPfc(), pri), portName);
-      reinitPortStat(getPfcPriorityStatsKey(kInPfcXon(), pri), portName);
-      reinitPortStat(getPfcPriorityStatsKey(kOutPfc(), pri), portName);
+  auto pfcPri = swPort->getPfcPriorities();
+  if (pfcPri) {
+    for (auto pri : *pfcPri) {
+      PfcPriority priority = static_cast<PfcPriority>(pri->cref());
+      reinitPortStat(getPfcPriorityStatsKey(kInPfc(), priority), portName);
+      reinitPortStat(getPfcPriorityStatsKey(kInPfcXon(), priority), portName);
+      reinitPortStat(getPfcPriorityStatsKey(kOutPfc(), priority), portName);
     }
   }
 
@@ -396,7 +398,7 @@ void BcmPort::reinitPortStatsLocked(
 
   if (swPort) {
     queueManager_->setPortName(portName);
-    queueManager_->setupQueueCounters(swPort->getPortQueues());
+    queueManager_->setupQueueCounters(swPort->getPortQueues()->impl());
   }
 
   // (re) init out queue length
@@ -688,7 +690,8 @@ void BcmPort::program(const shared_ptr<Port>& port) {
   setupPrbs(port);
 
   // Update Inter-packet frame if needed.
-  if (auto ipgBits = port->getProfileConfig().interPacketGapBits()) {
+  phy::ProfileSideConfig profileConfig = port->getProfileConfig();
+  if (auto ipgBits = profileConfig.interPacketGapBits()) {
     setInterPacketGapBits(*ipgBits);
   }
 
@@ -1612,26 +1615,27 @@ std::string BcmPort::getPfcPriorityStatsKey(
 void BcmPort::updatePortPfcStats(
     std::chrono::seconds now,
     HwPortStats& portStats,
-    std::optional<std::vector<PfcPriority>> pfcPriorities) {
+    Port::PfcPriorityList pfcPriorities) {
   // Update per priority statistics for the priorities
   // which are enabled for PFC!
-  if (pfcPriorities.has_value()) {
-    for (auto pri : pfcPriorities.value()) {
+  if (pfcPriorities) {
+    for (auto pri : *pfcPriorities) {
+      PfcPriority pfcPri = static_cast<PfcPriority>(pri->cref());
       updateStat(
           now,
-          getPfcPriorityStatsKey(kInPfc(), pri),
-          kInPfcStats.at(pri),
-          &(portStats.inPfc_()[pri]));
+          getPfcPriorityStatsKey(kInPfc(), pfcPri),
+          kInPfcStats.at(pfcPri),
+          &(portStats.inPfc_()[pfcPri]));
       updateStat(
           now,
-          getPfcPriorityStatsKey(kInPfcXon(), pri),
-          kInPfcXonStats.at(pri),
-          &(portStats.inPfcXon_()[pri]));
+          getPfcPriorityStatsKey(kInPfcXon(), pfcPri),
+          kInPfcXonStats.at(pfcPri),
+          &(portStats.inPfcXon_()[pfcPri]));
       updateStat(
           now,
-          getPfcPriorityStatsKey(kOutPfc(), pri),
-          kOutPfcStats.at(pri),
-          &(portStats.outPfc_()[pri]));
+          getPfcPriorityStatsKey(kOutPfc(), pfcPri),
+          kOutPfcStats.at(pfcPri),
+          &(portStats.outPfc_()[pfcPri]));
     }
   }
 
@@ -2433,8 +2437,13 @@ void BcmPort::getProgrammedPfcWatchdogParams(
 std::vector<PfcPriority> BcmPort::getLastConfiguredPfcPriorities() {
   std::vector<PfcPriority> enabledPfcPriorities;
   auto savedPort = getProgrammedSettings();
-  if (savedPort && savedPort->getPfcPriorities().has_value()) {
-    enabledPfcPriorities = savedPort->getPfcPriorities().value();
+  if (savedPort) {
+    if (auto pfcPriorities = savedPort->getPfcPriorities()) {
+      for (auto pfcPri : *pfcPriorities) {
+        enabledPfcPriorities.push_back(
+            static_cast<PfcPriority>(pfcPri->cref()));
+      }
+    }
   }
   return enabledPfcPriorities;
 }
@@ -2465,8 +2474,8 @@ bool BcmPort::pfcWatchdogNeedsReprogramming(const std::shared_ptr<Port>& port) {
    * not hit unconfig flow.
    */
   int enabledPfcPriority = 0;
-  if (port->getPfcPriorities().has_value()) {
-    enabledPfcPriority = *port->getPfcPriorities().value().begin();
+  if (port->getPfcPriorities()) {
+    enabledPfcPriority = port->getPfcPriorities()->at(0)->cref();
   } else {
     auto lastPfcPriorities = getLastConfiguredPfcPriorities();
     if (!lastPfcPriorities.empty()) {
@@ -2603,7 +2612,12 @@ void BcmPort::programPfcWatchdog(const std::shared_ptr<Port>& swPort) {
   if (swPort->getPfc().has_value() &&
       swPort->getPfc()->watchdog().has_value()) {
     populatePfcWatchdogParams(swPort->getPfc()->watchdog().value());
-    enabledPfcPriorities = swPort->getPfcPriorities().value();
+    if (auto pfcPriorities = swPort->getPfcPriorities()) {
+      for (const auto& pfcPri : *pfcPriorities) {
+        enabledPfcPriorities.push_back(
+            static_cast<PfcPriority>(pfcPri->cref()));
+      }
+    }
   } else {
     // Default values initialized will be used, expected for unconfig cases.
     enabledPfcPriorities = getLastConfiguredPfcPriorities();
@@ -2892,7 +2906,7 @@ cfg::PortProfileID BcmPort::getCurrentProfile() const {
 bool BcmPort::isPortPgConfigured() const {
   return (
       hw_->getPlatform()->getAsic()->isSupported(HwAsic::Feature::PFC) &&
-      (*programmedSettings_.rlock())->getPortPgConfigs().has_value());
+      (*programmedSettings_.rlock())->getPortPgConfigs());
 }
 
 PortPgConfigs BcmPort::getCurrentProgrammedPgSettings() const {

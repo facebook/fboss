@@ -354,8 +354,8 @@ class LookupClassUpdaterTest : public ::testing::Test {
           auto newState = state->clone();
           auto newPortMap = newState->getPorts()->modify(&newState);
 
-          for (auto port : *newPortMap) {
-            auto newPort = port->clone();
+          for (auto port : std::as_const(*newPortMap)) {
+            auto newPort = port.second->clone();
             newPort->setLookupClassesToDistributeTrafficOn(lookupClasses);
             newPortMap->updatePort(newPort);
           }

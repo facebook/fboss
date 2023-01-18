@@ -72,7 +72,7 @@ class StateDelta {
     return other.oldState() == old_ && other.newState() == new_;
   }
 
-  NodeMapDelta<PortMap> getPortsDelta() const;
+  thrift_cow::ThriftMapDelta<PortMap> getPortsDelta() const;
   VlanMapDelta getVlansDelta() const;
   InterfaceMapDelta getIntfsDelta() const;
   DeltaValue<QosPolicy> getDefaultDataPlaneQosPolicyDelta() const;

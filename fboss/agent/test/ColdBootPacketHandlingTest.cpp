@@ -99,9 +99,15 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
  private:
   std::shared_ptr<SwitchState> getColdBootState() const {
     auto coldBootState = make_shared<SwitchState>();
-    std::array<std::shared_ptr<Port>, 2> ports{
-        make_shared<Port>(PortID(1), "port1"),
-        make_shared<Port>(PortID(2), "port2")};
+    state::PortFields portFields1;
+    portFields1.portId() = PortID(1);
+    portFields1.portName() = "port1";
+    auto port1 = std::make_shared<Port>(std::move(portFields1));
+    state::PortFields portFields2;
+    portFields2.portId() = PortID(2);
+    portFields2.portName() = "port2";
+    auto port2 = std::make_shared<Port>(std::move(portFields2));
+    std::array<std::shared_ptr<Port>, 2> ports{port1, port2};
     // On cold boot all ports are in Vlan 1
     auto vlan = make_shared<Vlan>(VlanID(1), std::string("InitVlan"));
     Vlan::MemberPorts memberPorts;

@@ -399,18 +399,22 @@ void SaiPortManager::loadPortQueues(const Port& swPort) {
   portHandle->queues = managerTable_->queueManager().loadQueues(queueSaiIds);
 
   auto asic = platform_->getAsic();
-  for (auto portQueue : swPort.getPortQueues()) {
+  QueueConfig updatedPortQueue;
+  for (auto portQueue : std::as_const(*swPort.getPortQueues())) {
     auto queueKey =
         std::make_pair(portQueue->getID(), portQueue->getStreamType());
     const auto& configuredQueue = portHandle->queues[queueKey];
     portHandle->configuredQueues.push_back(configuredQueue.get());
+    // TODO(zecheng): Modifying switch state in hw switch is generally bad
+    // practice. Need to refactor to avoid it.
+    auto clonedPortQueue = portQueue->clone();
     if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) {
-      portQueue->setReservedBytes(
+      clonedPortQueue->setReservedBytes(
           portQueue->getReservedBytes()
               ? *portQueue->getReservedBytes()
               : asic->getDefaultReservedBytes(
                     portQueue->getStreamType(), false /* not cpu port*/));
-      portQueue->setScalingFactor(
+      clonedPortQueue->setScalingFactor(
           portQueue->getScalingFactor()
               ? *portQueue->getScalingFactor()
               : asic->getDefaultScalingFactor(
@@ -428,9 +432,10 @@ void SaiPortManager::loadPortQueues(const Port& swPort) {
       // for disabled ports
       pitr->second->queueChanged(portQueue->getID(), queueName);
     }
+    updatedPortQueue.push_back(clonedPortQueue);
   }
   managerTable_->queueManager().ensurePortQueueConfig(
-      saiPort->adapterKey(), portHandle->queues, swPort.getPortQueues());
+      saiPort->adapterKey(), portHandle->queues, updatedPortQueue);
 }
 
 void SaiPortManager::addMirror(const std::shared_ptr<Port>& swPort) {
@@ -618,12 +623,15 @@ void SaiPortManager::programPfcBuffers(const std::shared_ptr<Port>& swPort) {
   }
   managerTable_->bufferManager().createIngressBufferPool(swPort);
   const auto& portPgCfgs = swPort->getPortPgConfigs();
-  if (portPgCfgs.has_value()) {
+  if (portPgCfgs) {
     const auto& ingressPgSaiIds = getIngressPriorityGroupSaiIds(swPort);
     for (const auto& portPgCfg : *portPgCfgs) {
+      // THRIFT_COPY
+      auto portPgCfgThrift = portPgCfg->toThrift();
       auto bufferProfile =
-          managerTable_->bufferManager().getOrCreateIngressProfile(*portPgCfg);
-      auto pgId = portPgCfg->getID();
+          managerTable_->bufferManager().getOrCreateIngressProfile(
+              portPgCfgThrift);
+      auto pgId = *portPgCfgThrift.id();
       applyPriorityGroupBufferProfile(
           swPort, bufferProfile, ingressPgSaiIds.at(pgId));
     }
@@ -770,22 +778,25 @@ void SaiPortManager::changeQueue(
   auto pitr = portStats_.find(swId);
   portHandle->configuredQueues.clear();
   const auto asic = platform_->getAsic();
-  for (auto newPortQueue : newQueueConfig) {
+  for (auto newPortQueue : std::as_const(newQueueConfig)) {
     // Queue create or update
     SaiQueueConfig saiQueueConfig =
         std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
     auto queueHandle = getQueueHandle(swId, saiQueueConfig);
+    // TODO(zecheng): Modifying switch state in hw switch is generally bad
+    // practice. Need to refactor to avoid it.
+    auto portQueue = newPortQueue->clone();
     if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL) &&
         (SAI_QUEUE_TYPE_FABRIC_TX !=
          SaiApiTable::getInstance()->queueApi().getAttribute(
              queueHandle->queue->adapterKey(),
              SaiQueueTraits::Attributes::Type{}))) {
-      newPortQueue->setReservedBytes(
+      portQueue->setReservedBytes(
           newPortQueue->getReservedBytes()
               ? *newPortQueue->getReservedBytes()
               : asic->getDefaultReservedBytes(
                     newPortQueue->getStreamType(), false /* not cpu port*/));
-      newPortQueue->setScalingFactor(
+      portQueue->setScalingFactor(
           newPortQueue->getScalingFactor()
               ? *newPortQueue->getScalingFactor()
               : asic->getDefaultScalingFactor(
@@ -794,7 +805,7 @@ void SaiPortManager::changeQueue(
         newPortQueue->getReservedBytes() || newPortQueue->getScalingFactor()) {
       throw FbossError("Reserved bytes, scaling factor setting not supported");
     }
-    managerTable_->queueManager().changeQueue(queueHandle, *newPortQueue);
+    managerTable_->queueManager().changeQueue(queueHandle, *portQueue);
     auto queueName = newPortQueue->getName()
         ? *newPortQueue->getName()
         : folly::to<std::string>("queue", newPortQueue->getID());
@@ -806,7 +817,7 @@ void SaiPortManager::changeQueue(
     portHandle->configuredQueues.push_back(queueHandle);
   }
 
-  for (auto oldPortQueue : oldQueueConfig) {
+  for (auto oldPortQueue : std::as_const(oldQueueConfig)) {
     auto portQueueIter = std::find_if(
         newQueueConfig.begin(),
         newQueueConfig.end(),
@@ -959,7 +970,10 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   }
   auto portID = platform_->findPortID(speed, lanes, portSaiId);
   auto platformPort = platform_->getPort(portID);
-  auto port = std::make_shared<Port>(portID, folly::to<std::string>(portID));
+  state::PortFields portFields;
+  portFields.portId() = portID;
+  portFields.portName() = folly::to<std::string>(portID);
+  auto port = std::make_shared<Port>(std::move(portFields));
 
   switch (portType.value()) {
     case SAI_PORT_TYPE_LOGICAL:
@@ -1622,9 +1636,7 @@ void SaiPortManager::programMacsec(
   if (oldMacsecDesired && !newMacsecDesired) {
     XLOG(DBG2) << "programMacsec setting macsecDesired=false on port = "
                << newPort->getName() << ", Deleting all Rx and Tx SAK";
-    auto rxSaks = newPort->getRxSaks();
-    rxSaks.clear();
-    newPort->setRxSaks(rxSaks);
+    newPort->setRxSaks({});
     newPort->setTxSak(std::nullopt);
   } else if (
       newMacsecDesired &&
@@ -1698,46 +1710,56 @@ void SaiPortManager::programMacsec(
     }
   }
   // RX SAKS
-  auto oldRxSaks = oldPort ? oldPort->getRxSaks() : PortFields::RxSaks{};
-  auto newRxSaks = newPort->getRxSaks();
+  auto oldRxSaks =
+      oldPort ? oldPort->getRxSaks()->toThrift() : std::vector<state::RxSak>();
+  auto newRxSaks = newPort->getRxSaks()->toThrift();
   for (const auto& keyAndSak : newRxSaks) {
-    const auto& [key, sak] = keyAndSak;
-    auto kitr = oldRxSaks.find(key);
-    if (kitr == oldRxSaks.end() || sak != kitr->second) {
-      // Either no SAK RX for this key before. Or the previous SAK with the same
-      // key did not match the new SAK
-      if (kitr != oldRxSaks.end()) {
-        // There was a prev SAK with the same key. Delete it
-        macsecManager.deleteMacsec(
-            portId,
-            kitr->second,
-            kitr->first.sci,
-            SAI_MACSEC_DIRECTION_INGRESS);
+    bool isSame = false;
+    const auto& key = *keyAndSak.sakKey();
+    const auto& sak = *keyAndSak.sak();
+    for (auto iter = oldRxSaks.cbegin(); iter != oldRxSaks.cend(); ++iter) {
+      const auto& oldKey = *iter->sakKey();
+      if (oldKey == key) {
+        const auto& oldSak = *iter->sak();
+        if (sak != oldSak) {
+          // previous SAK with the same key did not match the new SAK. Delete
+          // it.
+          macsecManager.deleteMacsec(
+              portId, oldSak, *key.sci(), SAI_MACSEC_DIRECTION_INGRESS);
+        } else {
+          // Old and new are the same
+          isSame = true;
+        }
+        // The RX SAK is already present so no need to reprogram or delete it
+        oldRxSaks.erase(iter);
+        break;
       }
+    }
+    if (!isSame) {
       // Use the SCI from the key. Since for RX we use SCI of peer, which
       // is stored in MKASakKey
       XLOG(DBG2) << "Setup Ingress Macsec for MAC="
-                 << key.sci.macAddress().value()
-                 << " port=" << key.sci.port().value();
+                 << key.sci()->macAddress().value()
+                 << " port=" << key.sci()->port().value();
       macsecManager.setupMacsec(
-          portId, sak, key.sci, SAI_MACSEC_DIRECTION_INGRESS);
+          portId, sak, *key.sci(), SAI_MACSEC_DIRECTION_INGRESS);
     }
-    // The RX SAK is already present so no need to reprogram or delete it
-    oldRxSaks.erase(key);
   }
   // Erase whatever could not be found in newRxSaks
   for (const auto& keyAndSak : oldRxSaks) {
-    const auto& [key, sak] = keyAndSak;
+    const auto& key = *keyAndSak.sakKey();
+    const auto& sak = *keyAndSak.sak();
     // We are about to prune MACSEC SAK/SCI, do a round of stat collection
     // to get SA, SCI counters since last stat collection. After delete,
     // we won't have access to this SAK/SCI counters
     updateStats(portId, false);
     // Use the SCI from the key. Since for RX we use SCI of peer, which
     // is stored in MKASakKey
-    XLOG(DBG2) << "Deleting old Rx SAK for MAC=" << key.sci.macAddress().value()
-               << " port=" << key.sci.port().value();
+    XLOG(DBG2) << "Deleting old Rx SAK for MAC="
+               << key.sci()->macAddress().value()
+               << " port=" << key.sci()->port().value();
     macsecManager.deleteMacsec(
-        portId, sak, key.sci, SAI_MACSEC_DIRECTION_INGRESS);
+        portId, sak, *key.sci(), SAI_MACSEC_DIRECTION_INGRESS);
   }
   // If macsecDesired changed to False then cleanup Macsec states including ACL
   if (oldMacsecDesired && !newMacsecDesired) {

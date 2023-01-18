@@ -364,15 +364,15 @@ void setPortToDefaultProfileIDMap(
   // initialized. But for those who don't have any default port, we'll fall
   // back to use PlatformPort and the safe PortProfileID
   if (ports->numPorts() > 0) {
-    for (const auto& port : *ports) {
-      auto profileID = port->getProfileID();
+    for (const auto& port : std::as_const(*ports)) {
+      auto profileID = port.second->getProfileID();
       // In case the profileID learnt from HW is using default, then use speed
       // to get the real profileID
       if (profileID == cfg::PortProfileID::PROFILE_DEFAULT) {
-        auto platformPort = platform->getPlatformPort(port->getID());
-        profileID = platformPort->getProfileIDBySpeed(port->getSpeed());
+        auto platformPort = platform->getPlatformPort(port.second->getID());
+        profileID = platformPort->getProfileIDBySpeed(port.second->getSpeed());
       }
-      getPortToDefaultProfileIDMap().emplace(port->getID(), profileID);
+      getPortToDefaultProfileIDMap().emplace(port.second->getID(), profileID);
     }
   } else {
     const auto& safeProfileIDs = getSafeProfileIDs(

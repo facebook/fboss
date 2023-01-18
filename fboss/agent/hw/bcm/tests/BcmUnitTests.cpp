@@ -21,12 +21,12 @@ using facebook::fboss::BcmPortGroup;
 using facebook::fboss::PlatformMapping;
 using facebook::fboss::PlatformPortProfileConfigMatcher;
 using facebook::fboss::Port;
-using facebook::fboss::PortFields;
 using facebook::fboss::PortID;
 using facebook::fboss::Wedge100PlatformMapping;
 using facebook::fboss::cfg::PortProfileID;
 using facebook::fboss::cfg::PortSpeed;
 using facebook::fboss::cfg::PortState;
+using facebook::fboss::state::PortFields;
 
 namespace {
 const auto kPlatformMapping = std::make_unique<Wedge100PlatformMapping>();
@@ -45,8 +45,10 @@ struct PortData {
             PlatformPortProfileConfigMatcher(info.profileID, info.id));
         itProfile.has_value() ||
         info.profileID == PortProfileID::PROFILE_DEFAULT) {
-      auto port =
-          std::make_shared<Port>(info.id, "test" + std::to_string(info.id));
+      PortFields portFields;
+      portFields.portId() = info.id;
+      portFields.portName() = folly::to<std::string>("test", info.id);
+      auto port = std::make_shared<Port>(std::move(portFields));
       port->setAdminState(info.state);
       port->setProfileId(info.profileID);
       if (info.profileID == PortProfileID::PROFILE_DEFAULT) {

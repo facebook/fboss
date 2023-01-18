@@ -291,11 +291,11 @@ TurboFSWRouteScaleGenerator::TurboFSWRouteScaleGenerator(
       v4PrefixLabelDistributionSpec_(
           {{26, {11, 1, 500}}, {32, {3761, 376, 600}}}) {
   boost::container::flat_set<PortDescriptor> allPorts;
-  for (auto port : *startingState->getPorts()) {
-    if (!port->isEnabled()) {
+  for (auto port : std::as_const(*startingState->getPorts())) {
+    if (!port.second->isEnabled()) {
       continue;
     }
-    allPorts.insert(PortDescriptor(port->getID()));
+    allPorts.insert(PortDescriptor(port.second->getID()));
   }
   CHECK_GE(allPorts.size(), ecmpWidth);
 

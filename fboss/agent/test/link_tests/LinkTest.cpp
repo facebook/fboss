@@ -278,18 +278,18 @@ bool LinkTest::lldpNeighborsOnAllCabledPorts() const {
 }
 
 PortID LinkTest::getPortID(const std::string& portName) const {
-  for (auto port : *sw()->getState()->getPorts()) {
-    if (port->getName() == portName) {
-      return port->getID();
+  for (auto port : std::as_const(*sw()->getState()->getPorts())) {
+    if (port.second->getName() == portName) {
+      return port.second->getID();
     }
   }
   throw FbossError("No port named: ", portName);
 }
 
 std::string LinkTest::getPortName(PortID portId) const {
-  for (auto port : *sw()->getState()->getPorts()) {
-    if (port->getID() == portId) {
-      return port->getName();
+  for (auto port : std::as_const(*sw()->getState()->getPorts())) {
+    if (port.second->getID() == portId) {
+      return port.second->getName();
     }
   }
   throw FbossError("No port with ID: ", portId);

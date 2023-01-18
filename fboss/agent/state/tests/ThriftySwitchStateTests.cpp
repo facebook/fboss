@@ -40,12 +40,19 @@ TEST(ThriftySwitchState, BasicTest) {
 }
 
 TEST(ThriftySwitchState, PortMap) {
-  auto port1 = std::make_shared<Port>(PortID(1), "eth2/1/1");
-  auto port2 = std::make_shared<Port>(PortID(2), "eth2/2/1");
+  state::PortFields portFields1;
+  portFields1.portId() = PortID(1);
+  portFields1.portName() = "eth2/1/1";
+  auto port1 = std::make_shared<Port>(std::move(portFields1));
+  state::PortFields portFields2;
+  portFields2.portId() = PortID(2);
+  portFields2.portName() = "eth2/2/1";
+  auto port2 = std::make_shared<Port>(std::move(portFields2));
+
   auto portMap = std::make_shared<PortMap>();
   portMap->addPort(port1);
   portMap->addPort(port2);
-  validateNodeMapSerialization(*portMap);
+  validateThriftMapMapSerialization(*portMap);
 
   auto state = SwitchState();
   state.resetPorts(portMap);

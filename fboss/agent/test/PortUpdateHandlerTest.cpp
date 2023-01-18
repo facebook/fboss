@@ -42,9 +42,10 @@ class PortUpdateHandlerTest : public ::testing::Test {
     // rename all port name fron portX to eth1/X/1
     initPorts = initState->getPorts();
     newPorts = std::make_shared<PortMap>();
-    for (const auto& origPort : *initPorts) {
-      auto newPort = origPort->clone();
-      newPort->setName(folly::to<string>("eth1/", origPort->getID(), "/1"));
+    for (const auto& origPort : std::as_const(*initPorts)) {
+      auto newPort = origPort.second->clone();
+      newPort->setName(
+          folly::to<string>("eth1/", origPort.second->getID(), "/1"));
       newPort->setOperState(true);
       newPorts->addPort(newPort);
     }
@@ -58,17 +59,18 @@ class PortUpdateHandlerTest : public ::testing::Test {
   void expectPortCounterExist(
       CounterCache& counters,
       std::shared_ptr<PortMap> ports) {
-    for (const auto& port : *ports) {
-      EXPECT_TRUE(counters.checkExist(port->getName() + ".up"));
-      EXPECT_EQ(counters.value(port->getName() + ".up"), port->isUp());
+    for (const auto& port : std::as_const(*ports)) {
+      EXPECT_TRUE(counters.checkExist(port.second->getName() + ".up"));
+      EXPECT_EQ(
+          counters.value(port.second->getName() + ".up"), port.second->isUp());
     }
   }
 
   void expectPortCounterNotExist(
       CounterCache& counters,
       std::shared_ptr<PortMap> ports) {
-    for (const auto& port : *ports) {
-      EXPECT_FALSE(counters.checkExist(port->getName() + ".up"));
+    for (const auto& port : std::as_const(*ports)) {
+      EXPECT_FALSE(counters.checkExist(port.second->getName() + ".up"));
     }
   }
 

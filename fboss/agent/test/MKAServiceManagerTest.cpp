@@ -87,8 +87,8 @@ class MKAServiceManagerTest : public testing::Test {
     handle_ = setupTestHandle(enableMacsec);
     sw_ = handle_->getSw();
     sw_->initialConfigApplied(steady_clock::now());
-    for (const auto& port : *(sw_->getState()->getPorts())) {
-      activePort_ = port->getID();
+    for (const auto& port : std::as_const(*(sw_->getState()->getPorts()))) {
+      activePort_ = port.second->getID();
       break;
     }
     if (enableMacsec) {

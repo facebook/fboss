@@ -48,7 +48,8 @@ class EncapIndexAllocatorTest : public ::testing::Test {
     nbr.interfaceId() = static_cast<int>(firstVlan->getInterfaceID());
     nbr.ipaddress() = ip.str();
     nbr.portId() =
-        PortDescriptor((*getSw()->getState()->getPorts()->begin())->getID())
+        PortDescriptor(
+            (*getSw()->getState()->getPorts()->cbegin()).second->getID())
             .toThrift();
     nbr.state() = state::NeighborState::Reachable;
     nbr.encapIndex() = encapIdx;
@@ -68,7 +69,8 @@ class EncapIndexAllocatorTest : public ::testing::Test {
     nbr.interfaceId() = static_cast<int>(firstIntf->getID());
     nbr.ipaddress() = ip.str();
     nbr.portId() =
-        PortDescriptor((*getSw()->getState()->getPorts()->begin())->getID())
+        PortDescriptor(
+            (*getSw()->getState()->getPorts()->cbegin()).second->getID())
             .toThrift();
     nbr.state() = state::NeighborState::Reachable;
     nbr.encapIndex() = encapIdx;

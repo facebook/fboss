@@ -1196,14 +1196,14 @@ bool LookupClassRouteUpdater::isSubnetCachedByLookupClasses(
   }
 
   bool searchInterfaceAddresses = false;
-  for (const auto& port : *switchState->getPorts()) {
-    if (port->getLookupClassesToDistributeTrafficOn().size() == 0) {
+  for (const auto& port : std::as_const(*switchState->getPorts())) {
+    if (port.second->getLookupClassesToDistributeTrafficOn().size() == 0) {
       continue;
     }
 
     // port is member of vlan for addressToSearch i.e. blocked IP
-    auto it = port->getVlans().find(vlanID);
-    if (it == port->getVlans().end()) {
+    auto it = port.second->getVlans().find(vlanID);
+    if (it == port.second->getVlans().end()) {
       continue;
     }
 

@@ -80,11 +80,11 @@ struct PortFields {
   2: required string portName;
   3: string portDescription;
   // TODO: use switch_config.PortState?
-  4: string portState;
-  5: bool portOperState;
+  4: string portState = "DISABLED";
+  5: bool portOperState = false;
   6: i32 ingressVlan;
   // TODO: use switch_config.PortSpeed?
-  7: string portSpeed;
+  7: string portSpeed = "DEFAULT";
   // TODO: use switch_config.PortPause?
   10: bool rxPause;
   11: bool txPause;
@@ -92,20 +92,20 @@ struct PortFields {
   13: i32 sFlowIngressRate;
   14: i32 sFlowEgressRate;
   15: list<PortQueueFields> queues;
-  16: string portLoopbackMode;
+  16: string portLoopbackMode = "NONE";
   17: optional string ingressMirror;
   18: optional string egressMirror;
   19: optional string qosPolicy;
   20: optional string sampleDest;
   // TODO: this will deprecate port speed and port fec
-  21: string portProfileID;
+  21: string portProfileID = "PROFILE_DEFAULT";
   22: list<switch_config.AclLookupClass> lookupClassesToDistrubuteTrafficOn;
   23: i32 maxFrameSize = switch_config.DEFAULT_PORT_MTU;
   24: optional switch_config.PortPfc pfc;
   25: optional list<PortPgFields> pgConfigs;
   // TODO: Current warmboot state doesn't have such field yet
-  26: optional phy.ProfileSideConfig profileConfig;
-  27: optional list<phy.PinConfig> pinConfigs;
+  26: phy.ProfileSideConfig profileConfig;
+  27: list<phy.PinConfig> pinConfigs;
   28: optional phy.ProfileSideConfig lineProfileConfig;
   29: optional list<phy.PinConfig> linePinConfigs;
   30: switch_config.PortType portType = switch_config.PortType.INTERFACE_PORT;

@@ -181,7 +181,7 @@ SwitchStateFields SwitchStateFields::fromThrift(
     const state::SwitchState& state) {
   auto fields = SwitchStateFields();
   auto skipAclTableGroupMapParsing = false;
-  fields.ports = PortMap::fromThrift(state.get_portMap());
+  fields.ports->fromThrift(state.get_portMap());
   fields.vlans->fromThrift(state.get_vlanMap());
   /*
    * As a part of transitioning to Multi ACL table, we need to pick up the
@@ -281,7 +281,7 @@ bool SwitchStateFields::operator==(const SwitchStateFields& other) const {
       systemPorts->toThrift() == other.systemPorts->toThrift() &&
       remoteSystemPorts->toThrift() == other.remoteSystemPorts->toThrift() &&
       dsfNodes->toThrift() == other.dsfNodes->toThrift() &&
-      std::tie(*ports, *acls) == std::tie(*other.ports, *other.acls) &&
+      ports->toThrift() == other.ports->toThrift() && *acls == *other.acls &&
       udfConfig->toThrift() == other.udfConfig->toThrift();
 }
 

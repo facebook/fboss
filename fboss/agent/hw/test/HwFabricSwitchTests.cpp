@@ -28,9 +28,10 @@ TEST_F(HwFabricSwitchTest, init) {
   auto setup = [this]() {};
   auto verify = [this]() {
     auto state = getProgrammedState();
-    for (auto& port : *state->getPorts()) {
-      EXPECT_EQ(port->getAdminState(), cfg::PortState::ENABLED);
-      EXPECT_EQ(port->getLoopbackMode(), getAsic()->desiredLoopbackMode());
+    for (auto& port : std::as_const(*state->getPorts())) {
+      EXPECT_EQ(port.second->getAdminState(), cfg::PortState::ENABLED);
+      EXPECT_EQ(
+          port.second->getLoopbackMode(), getAsic()->desiredLoopbackMode());
     }
   };
   verifyAcrossWarmBoots(setup, verify);

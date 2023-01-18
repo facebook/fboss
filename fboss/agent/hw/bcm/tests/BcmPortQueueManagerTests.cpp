@@ -162,7 +162,7 @@ class BcmPortQueueManagerTest : public BcmCosQueueManagerTest {
   QueueConfig getSwQueues() override {
     auto swPort =
         getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0]));
-    return swPort->getPortQueues();
+    return swPort->getPortQueues()->impl();
   }
   int mmuCellBytes() const {
     return getPlatform()->getMMUCellBytes();

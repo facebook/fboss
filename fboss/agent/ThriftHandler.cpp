@@ -203,7 +203,7 @@ void getPortInfoHelper(
     }
   }
 
-  for (const auto& queue : port->getPortQueues()) {
+  for (const auto& queue : std::as_const(*port->getPortQueues())) {
     PortQueueThrift pq;
     *pq.id() = queue->getID();
     *pq.mode() = apache::thrift::TEnumTraits<cfg::QueueScheduling>::findName(
@@ -976,10 +976,10 @@ void ThriftHandler::getAllPortInfo(map<int32_t, PortInfoThrift>& portInfoMap) {
   // NOTE: important to take pointer to switch state before iterating over
   // list of ports
   std::shared_ptr<SwitchState> swState = sw_->getState();
-  for (const auto& port : *(swState->getPorts())) {
-    auto portId = port->getID();
+  for (const auto& port : std::as_const(*(swState->getPorts()))) {
+    auto portId = port.second->getID();
     auto& portInfo = portInfoMap[portId];
-    getPortInfoHelper(*sw_, portInfo, port);
+    getPortInfoHelper(*sw_, portInfo, port.second);
   }
 }
 
@@ -1014,7 +1014,7 @@ void ThriftHandler::clearPortStats(unique_ptr<vector<int32_t>> ports) {
     auto portName = port->getName().empty()
         ? folly::to<std::string>("port", portId)
         : port->getName();
-    for (int i = 0; i < port->getPortQueues().size(); ++i) {
+    for (int i = 0; i < port->getPortQueues()->size(); ++i) {
       auto portQueue = folly::to<std::string>(portName, ".", "queue", i, ".");
       portKeys.emplace_back(
           folly::to<std::string>(portQueue, "out_congestion_discards_bytes"));
@@ -1091,8 +1091,8 @@ void ThriftHandler::clearAllPortStats() {
   ensureConfigured(__func__);
   auto allPorts = std::make_unique<std::vector<int32_t>>();
   std::shared_ptr<SwitchState> swState = sw_->getState();
-  for (const auto& port : *(swState->getPorts())) {
-    allPorts->push_back(port->getID());
+  for (const auto& port : std::as_const(*(swState->getPorts()))) {
+    allPorts->push_back(port.second->getID());
   }
   clearPortStats(std::move(allPorts));
 }
@@ -1390,8 +1390,9 @@ void ThriftHandler::getAllPortLoopbackMode(
     std::map<int32_t, PortLoopbackMode>& port2LbMode) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
-  for (auto& port : *sw_->getState()->getPorts()) {
-    port2LbMode[port->getID()] = toThriftLoopbackMode(port->getLoopbackMode());
+  for (auto& port : std::as_const(*sw_->getState()->getPorts())) {
+    port2LbMode[port.second->getID()] =
+        toThriftLoopbackMode(port.second->getLoopbackMode());
   }
 }
 

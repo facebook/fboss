@@ -40,8 +40,9 @@ namespace facebook::fboss {
 
 StateDelta::~StateDelta() {}
 
-NodeMapDelta<PortMap> StateDelta::getPortsDelta() const {
-  return NodeMapDelta<PortMap>(old_->getPorts().get(), new_->getPorts().get());
+thrift_cow::ThriftMapDelta<PortMap> StateDelta::getPortsDelta() const {
+  return thrift_cow::ThriftMapDelta<PortMap>(
+      old_->getPorts().get(), new_->getPorts().get());
 }
 
 VlanMapDelta StateDelta::getVlansDelta() const {
@@ -238,7 +239,7 @@ std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
 
 // Explicit instantiations of NodeMapDelta that are used by StateDelta.
 template class thrift_cow::ThriftMapDelta<InterfaceMap>;
-template class NodeMapDelta<PortMap>;
+template class thrift_cow::ThriftMapDelta<PortMap>;
 template class thrift_cow::ThriftMapDelta<AclMap>;
 template class thrift_cow::ThriftMapDelta<AclTableGroupMap>;
 template class thrift_cow::ThriftMapDelta<AclTableMap>;

@@ -243,22 +243,23 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
   CHECK(systemPortRange);
   const std::set<cfg::PortType> kCreateSysPortsFor = {
       cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
-  for (const auto& port : *ports) {
-    if (kCreateSysPortsFor.find(port->getPortType()) ==
+  for (const auto& port : std::as_const(*ports)) {
+    if (kCreateSysPortsFor.find(port.second->getPortType()) ==
         kCreateSysPortsFor.end()) {
       continue;
     }
     auto sysPort = std::make_shared<SystemPort>(
-        SystemPortID{*systemPortRange->minimum() + port->getID()});
+        SystemPortID{*systemPortRange->minimum() + port.second->getID()});
     sysPort->setSwitchId(SwitchID(switchId));
-    sysPort->setPortName(folly::sformat("{}:{}", switchId, port->getName()));
-    auto platformPort = platform_->getPlatformPort(port->getID());
+    sysPort->setPortName(
+        folly::sformat("{}:{}", switchId, port.second->getName()));
+    auto platformPort = platform_->getPlatformPort(port.second->getID());
     sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
     sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
-    sysPort->setSpeedMbps(static_cast<int>(port->getSpeed()));
+    sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
     sysPort->setNumVoqs(8);
-    sysPort->setEnabled(port->isEnabled());
-    sysPort->setQosPolicy(port->getQosPolicy());
+    sysPort->setEnabled(port.second->isEnabled());
+    sysPort->setQosPolicy(port.second->getQosPolicy());
     sysPortMap->addSystemPort(std::move(sysPort));
   }
 

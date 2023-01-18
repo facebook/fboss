@@ -144,8 +144,9 @@ TEST(SystemPort, sysPortNameApplyConfig) {
   CHECK(switchIdOpt.has_value());
   auto switchId = *switchIdOpt;
   auto nodeName = *config.dsfNodes()->find(switchId)->second.name();
-  for (auto port : *stateV1->getPorts()) {
-    auto sysPortName = folly::sformat("{}:{}", nodeName, port->getName());
+  for (auto port : std::as_const(*stateV1->getPorts())) {
+    auto sysPortName =
+        folly::sformat("{}:{}", nodeName, port.second->getName());
     XLOG(DBG2) << " Looking for sys port : " << sysPortName;
     EXPECT_NE(nullptr, stateV1->getSystemPorts()->getSystemPortIf(sysPortName));
   }

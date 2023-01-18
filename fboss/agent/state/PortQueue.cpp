@@ -239,8 +239,8 @@ std::string PortQueue::toString() const {
   if (aqms && !aqms->empty()) {
     ss << ", aqms=[";
     for (const auto& aqm : std::as_const(*aqms)) {
-      const auto& behavior = aqm->ref<switch_config_tags::behavior>();
-      const auto& detection = aqm->ref<switch_config_tags::detection>();
+      const auto& behavior = aqm->cref<switch_config_tags::behavior>();
+      const auto& detection = aqm->cref<switch_config_tags::detection>();
 
       ss << "(behavior=" << apache::thrift::util::enumName(behavior->toThrift())
          << ", detection=[min="

@@ -40,9 +40,11 @@ TEST_F(BcmPortStressTest, statEnableLoop) {
   auto verify = [=]() {
     auto portTable = static_cast<BcmSwitch*>(getHwSwitch())->getPortTable();
     for (auto i = 0; i < 500; ++i) {
-      for (const auto& port : *getProgrammedState()->getPorts()) {
-        if (port->isEnabled()) {
-          portTable->getBcmPortIf(port->getID())->enableStatCollection(port);
+      for (const auto& port :
+           std::as_const(*getProgrammedState()->getPorts())) {
+        if (port.second->isEnabled()) {
+          portTable->getBcmPortIf(port.second->getID())
+              ->enableStatCollection(port.second);
         }
       }
     }

@@ -162,13 +162,8 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   if (portThrift.pfc()) {
     port.pfc = portThrift.pfc().value();
   }
-
-  if (auto profileCfg = portThrift.profileConfig()) {
-    port.profileConfig = *profileCfg;
-  }
-  if (auto pinCfgs = portThrift.pinConfigs()) {
-    port.pinConfigs = *pinCfgs;
-  }
+  port.profileConfig = *portThrift.profileConfig();
+  port.pinConfigs = *portThrift.pinConfigs();
   if (auto lineProfileCfg = portThrift.lineProfileConfig()) {
     port.lineProfileConfig = *lineProfileCfg;
   }
@@ -348,8 +343,6 @@ bool PortFields::operator==(const PortFields& other) const {
       portType == other.portType;
 }
 
-Port::Port(PortID id, const std::string& name) : ThriftyBaseT(id, name) {}
-
 Port* Port::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
     CHECK(!(*state)->isPublished());
@@ -363,11 +356,16 @@ Port* Port::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
+Port::Port(PortID id, const std::string& name) {
+  set<switch_state_tags::portId>(id);
+  set<switch_state_tags::portName>(name);
+}
+
 void Port::fillPhyInfo(phy::PhyInfo* phyInfo) {
   phyInfo->name() = getName();
   phyInfo->speed() = getSpeed();
 }
 
-template class NodeBaseT<Port, PortFields>;
+template class ThriftStructNode<Port, state::PortFields>;
 
 } // namespace facebook::fboss

@@ -247,7 +247,7 @@ class ThriftConfigApplier {
   void setPortQueue(
       std::shared_ptr<PortQueue> newQueue,
       const cfg::PortQueue* cfg);
-  std::optional<std::vector<PfcPriority>> findEnabledPfcPriorities(
+  std::optional<std::vector<int16_t>> findEnabledPfcPriorities(
       PortPgConfigs& portPgConfigs);
   std::shared_ptr<PortQueue> updatePortQueue(
       const std::shared_ptr<PortQueue>& orig,
@@ -1127,22 +1127,23 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
   auto nodeName = *cfg_->dsfNodes()->find(switchId)->second.name();
   std::set<cfg::PortType> kCreateSysPortsFor = {
       cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
-  for (const auto& port : *ports) {
-    if (kCreateSysPortsFor.find(port->getPortType()) ==
+  for (const auto& port : std::as_const(*ports)) {
+    if (kCreateSysPortsFor.find(port.second->getPortType()) ==
         kCreateSysPortsFor.end()) {
       continue;
     }
     auto sysPort = std::make_shared<SystemPort>(
-        SystemPortID{*systemPortRange->minimum() + port->getID()});
+        SystemPortID{*systemPortRange->minimum() + port.second->getID()});
     sysPort->setSwitchId(SwitchID(switchId));
-    sysPort->setPortName(folly::sformat("{}:{}", nodeName, port->getName()));
-    auto platformPort = platform_->getPlatformPort(port->getID());
+    sysPort->setPortName(
+        folly::sformat("{}:{}", nodeName, port.second->getName()));
+    auto platformPort = platform_->getPlatformPort(port.second->getID());
     sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
     sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
-    sysPort->setSpeedMbps(static_cast<int>(port->getSpeed()));
+    sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
     sysPort->setNumVoqs(8);
-    sysPort->setEnabled(port->isEnabled());
-    sysPort->setQosPolicy(port->getQosPolicy());
+    sysPort->setEnabled(port.second->isEnabled());
+    sysPort->setQosPolicy(port.second->getQosPolicy());
     sysPorts->addSystemPort(std::move(sysPort));
   }
 
@@ -1151,7 +1152,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
 
 shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
     const std::shared_ptr<TransceiverMap>& transceiverMap) {
-  auto origPorts = orig_->getPorts();
+  const auto origPorts = orig_->getPorts();
   PortMap::NodeContainer newPorts;
   bool changed = false;
 
@@ -1168,8 +1169,10 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
       transceiver = transceiverMap->getTransceiverIf(*tcvrID);
     }
     if (!origPort) {
-      auto port = std::make_shared<Port>(
-          PortID(*portCfg.logicalID()), portCfg.name().value_or({}));
+      state::PortFields portFields;
+      portFields.portId() = *portCfg.logicalID();
+      portFields.portName() = portCfg.name().value_or({});
+      auto port = std::make_shared<Port>(std::move(portFields));
       newPort = updatePort(port, &portCfg, transceiver);
     } else {
       newPort = updatePort(origPort, &portCfg, transceiver);
@@ -1177,9 +1180,9 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
     changed |= updateMap(&newPorts, origPort, newPort);
   }
 
-  for (const auto& origPort : *origPorts) {
+  for (const auto& origPort : std::as_const(*origPorts)) {
     // This port was listed in the config, and has already been configured
-    if (newPorts.find(origPort->getID()) != newPorts.end()) {
+    if (newPorts.find(origPort.second->getID()) != newPorts.end()) {
       continue;
     }
 
@@ -1191,7 +1194,8 @@ shared_ptr<PortMap> ThriftConfigApplier::updatePorts(
       changed = true;
     } else {
       throw FbossError(
-          "New config is missing configuration for port ", origPort->getID());
+          "New config is missing configuration for port ",
+          origPort.second->getID());
     }
   }
 
@@ -1310,7 +1314,7 @@ std::shared_ptr<PortPgConfig> ThriftConfigApplier::createPortPg(
 bool ThriftConfigApplier::isPgConfigUnchanged(
     std::optional<PortPgConfigs> newPortPgCfgs,
     const shared_ptr<Port>& orig) {
-  flat_map<int, std::shared_ptr<PortPgConfig>> newPortPgConfigMap;
+  std::map<int, std::shared_ptr<PortPgConfig>> newPortPgConfigMap;
   const auto& origPortPgConfig = orig->getPortPgConfigs();
 
   if (!origPortPgConfig && !newPortPgCfgs) {
@@ -1325,38 +1329,25 @@ bool ThriftConfigApplier::isPgConfigUnchanged(
   }
 
   // both oldPgCfg and newPgCfg exists
-  if ((*newPortPgCfgs).size() != (*origPortPgConfig).size()) {
+  if ((*newPortPgCfgs).size() != origPortPgConfig->size()) {
     return false;
   }
 
   // come here only if we have both orig, and new port pg cfg and have same size
   for (const auto& portPg : *newPortPgCfgs) {
-    newPortPgConfigMap.emplace(std::make_pair(portPg->getID(), portPg));
+    newPortPgConfigMap[portPg->getID()] = portPg;
   }
 
   for (const auto& origPg : *origPortPgConfig) {
-    auto newPortPgConfigIter = newPortPgConfigMap.find(origPg->getID());
+    auto newPortPgConfigIter =
+        newPortPgConfigMap.find(origPg->cref<switch_state_tags::id>()->cref());
+    // THRIFT_COPY - no need to compare buffer pool since toThrift() will
+    // compare thrift fields for buffer pool as well.
     if ((newPortPgConfigIter == newPortPgConfigMap.end()) ||
-        ((*newPortPgConfigIter->second != *origPg))) {
+        ((newPortPgConfigIter->second->toThrift() != origPg->toThrift()))) {
       // pg id in the original cfg, is no longer there is new one
       // or the contents of the PG doesn't match
       return false;
-    }
-    // since buffer pool is part of port pg as well, compare to
-    // see if it changed as well
-    const auto& newBufferPoolCfgPtr =
-        newPortPgConfigIter->second->getBufferPoolConfig();
-    const auto& oldBufferPoolCfgPtr = origPg->getBufferPoolConfig();
-    // old buffer cfg exists and new one doesn't or vice versa
-    if ((newBufferPoolCfgPtr && !oldBufferPoolCfgPtr) ||
-        (!newBufferPoolCfgPtr && oldBufferPoolCfgPtr)) {
-      return false;
-    }
-    // contents changed in the buffer pool
-    if (newBufferPoolCfgPtr && oldBufferPoolCfgPtr) {
-      if (*oldBufferPoolCfgPtr != *newBufferPoolCfgPtr) {
-        return false;
-      }
     }
   }
   return true;
@@ -1401,16 +1392,16 @@ PortPgConfigs ThriftConfigApplier::updatePortPgConfigs(
   return newPortPgConfigs;
 }
 
-std::optional<std::vector<PfcPriority>>
+std::optional<std::vector<int16_t>>
 ThriftConfigApplier::findEnabledPfcPriorities(PortPgConfigs& portPgCfgs) {
   if (portPgCfgs.empty()) {
     return std::nullopt;
   }
 
-  std::vector<PfcPriority> tmpPfcPri;
+  std::vector<int16_t> tmpPfcPri;
   for (auto& portPgCfg : portPgCfgs) {
     // We have a 1:1 mapping between PG id and PFC priority
-    tmpPfcPri.push_back(static_cast<PfcPriority>(portPgCfg->getID()));
+    tmpPfcPri.push_back(static_cast<int16_t>(portPgCfg->getID()));
   }
   if (tmpPfcPri.empty()) {
     return std::nullopt;
@@ -1646,13 +1637,17 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     auto maxQueues =
         platform_->getAsic()->getDefaultNumPortQueues(streamType, false);
     auto tmpPortQueues = updatePortQueues(
-        orig->getPortQueues(), cfgPortQueues, maxQueues, streamType, qosMap);
+        orig->getPortQueues()->impl(),
+        cfgPortQueues,
+        maxQueues,
+        streamType,
+        qosMap);
     portQueues.insert(
         portQueues.begin(), tmpPortQueues.begin(), tmpPortQueues.end());
   }
-  bool queuesUnchanged = portQueues.size() == orig->getPortQueues().size();
+  bool queuesUnchanged = portQueues.size() == orig->getPortQueues()->size();
   for (int i = 0; i < portQueues.size() && queuesUnchanged; i++) {
-    if (*(portQueues.at(i)) != *(orig->getPortQueues().at(i))) {
+    if (*(portQueues.at(i)) != *(orig->getPortQueues()->at(i))) {
       queuesUnchanged = false;
       break;
     }
@@ -1672,7 +1667,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   }
 
   auto newPfc = std::optional<cfg::PortPfc>();
-  auto newPfcPriorities = std::optional<std::vector<PfcPriority>>();
+  auto newPfcPriorities = std::optional<std::vector<int16_t>>();
   std::optional<PortPgConfigs> portPgCfgs;
   // lets compare the portPgConfigs
   bool portPgConfigUnchanged = true;
@@ -1784,6 +1779,19 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   auto profileConfigUnchanged =
       (*newProfileConfigRef == orig->getProfileConfig());
 
+  const auto& oldPfcPriorities = orig->getPfcPriorities();
+  auto pfcPrioritiesUnchanged = !newPfcPriorities && !oldPfcPriorities;
+  if (newPfcPriorities && oldPfcPriorities &&
+      (*newPfcPriorities).size() == oldPfcPriorities->size()) {
+    pfcPrioritiesUnchanged = true;
+    for (int i = 0; i < (*newPfcPriorities).size(); ++i) {
+      if ((*newPfcPriorities).at(i) != oldPfcPriorities->at(i)->cref()) {
+        pfcPrioritiesUnchanged = false;
+        break;
+      }
+    }
+  }
+
   const auto& newPinConfigs =
       platform_->getPlatformMapping()->getPortIphyPinConfigs(matcher);
   auto pinConfigsUnchanged = (newPinConfigs == orig->getPinConfigs());
@@ -1800,7 +1808,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->speed() == orig->getSpeed() &&
       *portConf->profileID() == orig->getProfileID() &&
       *portConf->pause() == orig->getPause() && newPfc == orig->getPfc() &&
-      newPfcPriorities == orig->getPfcPriorities() &&
+      pfcPrioritiesUnchanged &&
       *portConf->sFlowIngressRate() == orig->getSflowIngressRate() &&
       *portConf->sFlowEgressRate() == orig->getSflowEgressRate() &&
       newSampleDest == orig->getSampleDestination() &&
@@ -3528,24 +3536,24 @@ std::shared_ptr<MirrorMap> ThriftConfigApplier::updateMirrors() {
     changed = true;
   }
 
-  for (auto& port : *(new_->getPorts())) {
-    auto portInMirror = port->getIngressMirror();
-    auto portEgMirror = port->getEgressMirror();
+  for (auto& port : std::as_const(*(new_->getPorts()))) {
+    auto portInMirror = port.second->getIngressMirror();
+    auto portEgMirror = port.second->getEgressMirror();
     if (portInMirror.has_value()) {
       auto inMirrorMapEntry = newMirrors->find(portInMirror.value());
       if (inMirrorMapEntry == newMirrors->end()) {
         throw FbossError(
             "Mirror ", portInMirror.value(), " for port is not found");
       }
-      if (port->getSampleDestination() &&
-          port->getSampleDestination().value() ==
+      if (port.second->getSampleDestination() &&
+          port.second->getSampleDestination().value() ==
               cfg::SampleDestination::MIRROR &&
           inMirrorMapEntry->second->type() != Mirror::Type::SFLOW) {
         throw FbossError(
             "Ingress mirror ",
             portInMirror.value(),
             " for sampled port ",
-            port->getID(),
+            port.second->getID(),
             " not sflow");
       }
     }
@@ -3583,9 +3591,9 @@ std::shared_ptr<Mirror> ThriftConfigApplier::createMirror(
     std::shared_ptr<Port> mirrorToPort{nullptr};
     switch (egressPort->getType()) {
       case cfg::MirrorEgressPort::Type::name:
-        for (auto& port : *(new_->getPorts())) {
-          if (port->getName() == egressPort->get_name()) {
-            mirrorToPort = port;
+        for (auto& port : std::as_const(*(new_->getPorts()))) {
+          if (port.second->getName() == egressPort->get_name()) {
+            mirrorToPort = port.second;
             break;
           }
         }
@@ -3716,12 +3724,13 @@ std::optional<cfg::PfcWatchdogRecoveryAction>
 ThriftConfigApplier::getPfcWatchdogRecoveryAction() {
   std::shared_ptr<Port> firstPort;
   std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction{};
-  for (const auto& port : *new_->getPorts()) {
-    if (port->getPfc().has_value() && port->getPfc()->watchdog().has_value()) {
-      auto pfcWd = port->getPfc()->watchdog().value();
+  for (const auto& port : std::as_const(*new_->getPorts())) {
+    if (port.second->getPfc().has_value() &&
+        port.second->getPfc()->watchdog().has_value()) {
+      auto pfcWd = port.second->getPfc()->watchdog().value();
       if (!recoveryAction.has_value()) {
         recoveryAction = *pfcWd.recoveryAction();
-        firstPort = port;
+        firstPort = port.second;
         XLOG(DBG2) << "PFC watchdog recovery action initialized to "
                    << (int)*pfcWd.recoveryAction();
       } else if (*recoveryAction != *pfcWd.recoveryAction()) {
@@ -3730,7 +3739,7 @@ ThriftConfigApplier::getPfcWatchdogRecoveryAction() {
             "PFC watchdog deadlock recovery action ",
             *pfcWd.recoveryAction(),
             " on ",
-            port->getName(),
+            port.second->getName(),
             " conflicting with ",
             firstPort->getName());
       }

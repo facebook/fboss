@@ -45,9 +45,11 @@ class SaiBufferManager {
 
   std::shared_ptr<SaiBufferProfile> getOrCreateProfile(const PortQueue& queue);
   std::shared_ptr<SaiBufferProfile> getOrCreateIngressProfile(
-      const PortPgConfig& portPgConfig);
+      const state::PortPgFields& portPgConfig);
 
-  void setupBufferPool(const PortPgConfig* ingressPgCfg = std::nullptr_t());
+  void setupBufferPool(
+      const std::optional<state::BufferPoolFields> ingressPgCfg = std::nullopt);
+
   void updateStats();
   void createIngressBufferPool(const std::shared_ptr<Port> port);
   uint64_t getDeviceWatermarkBytes() const {
@@ -63,13 +65,14 @@ class SaiBufferManager {
   SaiBufferProfileTraits::CreateAttributes profileCreateAttrs(
       const PortQueue& queue) const;
   SaiBufferProfileTraits::CreateAttributes ingressProfileCreateAttrs(
-      const PortPgConfig& config) const;
+      const state::PortPgFields& config) const;
   void setBufferPoolXoffSize(
       std::shared_ptr<SaiBufferPoolHandle> bufferPoolHandle,
       const PortPgConfig* portPgCfg);
   void setupEgressBufferPool();
-  void setupIngressBufferPool(const PortPgConfig& cfg);
-  void setupIngressEgressBufferPool(const PortPgConfig* cfg);
+  void setupIngressBufferPool(const state::BufferPoolFields& bufferPoolCfg);
+  void setupIngressEgressBufferPool(
+      const std::optional<state::BufferPoolFields> ingressPgCfg);
   SaiBufferPoolHandle* getEgressBufferPoolHandle() const;
   SaiBufferPoolHandle* getIngressBufferPoolHandle() const;
 

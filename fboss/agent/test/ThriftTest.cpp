@@ -1742,11 +1742,11 @@ TEST_F(ThriftTest, getLoopbackMode) {
 TEST_F(ThriftTest, setLoopbackMode) {
   ThriftHandler handler(sw_);
   std::map<int32_t, PortLoopbackMode> port2LoopbackMode;
-  auto firstPort = (*sw_->getState()->getPorts()->begin())->getID();
+  auto firstPort = (*sw_->getState()->getPorts()->cbegin()).second->getID();
   auto otherPortsUnchanged = [firstPort, this]() {
-    for (auto& port : *sw_->getState()->getPorts()) {
-      if (port->getID() != firstPort) {
-        EXPECT_EQ(port->getLoopbackMode(), cfg::PortLoopbackMode::NONE);
+    for (auto& port : std::as_const(*sw_->getState()->getPorts())) {
+      if (port.second->getID() != firstPort) {
+        EXPECT_EQ(port.second->getLoopbackMode(), cfg::PortLoopbackMode::NONE);
       }
     }
   };

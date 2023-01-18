@@ -19,7 +19,7 @@ namespace facebook::fboss {
 
 class SwitchState;
 class Port;
-typedef NodeMapTraits<PortID, Port> PortMapTraits;
+using PortMapLegacyTraits = NodeMapTraits<PortID, Port>;
 
 struct PortMapThriftTraits
     : public ThriftyNodeMapTraits<int16_t, state::PortFields> {
@@ -29,12 +29,22 @@ struct PortMapThriftTraits
   }
 };
 
+using PortMapTypeClass = apache::thrift::type_class::map<
+    apache::thrift::type_class::integral,
+    apache::thrift::type_class::structure>;
+using PortMapThriftType = std::map<int16_t, state::PortFields>;
+
+class PortMap;
+using PortMapTraits =
+    ThriftMapNodeTraits<PortMap, PortMapTypeClass, PortMapThriftType, Port>;
+
 /*
  * A container for the set of ports.
  */
-class PortMap
-    : public ThriftyNodeMapT<PortMap, PortMapTraits, PortMapThriftTraits> {
+class PortMap : public ThriftMapNode<PortMap, PortMapTraits> {
  public:
+  using Base = ThriftMapNode<PortMap, PortMapTraits>;
+
   PortMap();
   ~PortMap() override;
 
@@ -67,7 +77,7 @@ class PortMap
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyNodeMapT::ThriftyNodeMapT;
+  using Base::Base;
   friend class CloneAllocator;
 };
 

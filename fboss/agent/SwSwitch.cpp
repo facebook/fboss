@@ -1182,8 +1182,8 @@ InterfaceStats* SwSwitch::interfaceStats(InterfaceID intfID) {
 map<int32_t, PortStatus> SwSwitch::getPortStatus() {
   map<int32_t, PortStatus> statusMap;
   std::shared_ptr<PortMap> portMap = getState()->getPorts();
-  for (const auto& p : *portMap) {
-    statusMap[p->getID()] = fillInPortStatus(*p, this);
+  for (const auto& p : std::as_const(*portMap)) {
+    statusMap[p.second->getID()] = fillInPortStatus(*p.second, this);
   }
   return statusMap;
 }

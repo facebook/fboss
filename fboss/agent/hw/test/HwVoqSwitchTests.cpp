@@ -331,9 +331,10 @@ TEST_F(HwVoqSwitchTest, init) {
 
   auto verify = [this]() {
     auto state = getProgrammedState();
-    for (auto& port : *state->getPorts()) {
-      if (port->isEnabled()) {
-        EXPECT_EQ(port->getLoopbackMode(), getAsic()->desiredLoopbackMode());
+    for (auto& port : std::as_const(*state->getPorts())) {
+      if (port.second->isEnabled()) {
+        EXPECT_EQ(
+            port.second->getLoopbackMode(), getAsic()->desiredLoopbackMode());
       }
     }
   };
