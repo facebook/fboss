@@ -421,10 +421,11 @@ SaiRouteManager::refOrCreateManagedRouteNextHop(
       return existingManagedRouteNextHop;
     }
   }
-
+  auto routeMetadataSupported =
+      platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_METADATA);
   PortSaiId cpuPort = managerTable_->switchManager().getCpuPort();
-  auto managedRouteNextHop =
-      std::make_shared<ManagedRouteNextHopT>(cpuPort, this, entry, nexthop);
+  auto managedRouteNextHop = std::make_shared<ManagedRouteNextHopT>(
+      cpuPort, this, entry, nexthop, routeMetadataSupported);
   SaiObjectEventPublisher::getInstance()->get<NextHopTraitsT>().subscribe(
       managedRouteNextHop);
   return managedRouteNextHop;
@@ -435,13 +436,15 @@ ManagedRouteNextHop<NextHopTraitsT>::ManagedRouteNextHop(
     PortSaiId cpuPort,
     SaiRouteManager* routeManager,
     SaiRouteTraits::AdapterHostKey routeKey,
-    std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop)
+    std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop,
+    bool routeMetadataSupported)
     : detail::SaiObjectEventSubscriber<NextHopTraitsT>(
           managedNextHop->adapterHostKey()),
       cpuPort_(cpuPort),
       routeManager_(routeManager),
       routeKey_(std::move(routeKey)),
-      managedNextHop_(managedNextHop) {}
+      managedNextHop_(managedNextHop),
+      routeMetadataSupported_(routeMetadataSupported) {}
 
 template <typename NextHopTraitsT>
 void ManagedRouteNextHop<NextHopTraitsT>::afterCreate(
@@ -458,9 +461,10 @@ void ManagedRouteNextHop<NextHopTraitsT>::afterCreate(
     return;
   }
   auto& api = SaiApiTable::getInstance()->routeApi();
-  SaiRouteTraits::Attributes::Metadata currentMetadata = api.getAttribute(
-      route->adapterKey(), SaiRouteTraits::Attributes::Metadata{});
-
+  SaiRouteTraits::Attributes::Metadata currentMetadata = routeMetadataSupported_
+      ? api.getAttribute(
+            route->adapterKey(), SaiRouteTraits::Attributes::Metadata{})
+      : 0;
   auto attributes = route->attributes();
   sai_object_id_t nextHopId = nexthop->adapterKey();
   auto& currentNextHop =

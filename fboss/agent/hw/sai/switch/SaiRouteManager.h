@@ -48,7 +48,8 @@ class ManagedRouteNextHop
       PortSaiId cpuPort,
       SaiRouteManager* routeManager,
       SaiRouteTraits::AdapterHostKey routeKey,
-      std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop);
+      std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop,
+      bool routeMetadataSupported);
   void afterCreate(PublisherObject nexthop) override;
   void beforeRemove() override;
   void linkDown() override {}
@@ -64,6 +65,7 @@ class ManagedRouteNextHop
   SaiRouteManager* routeManager_;
   typename SaiRouteTraits::AdapterHostKey routeKey_;
   std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop_;
+  bool routeMetadataSupported_;
 };
 
 using ManagedRouteIpNextHop = ManagedRouteNextHop<SaiIpNextHopTraits>;
