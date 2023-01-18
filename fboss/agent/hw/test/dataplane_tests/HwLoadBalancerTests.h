@@ -46,7 +46,27 @@
         facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(            \
             getPlatform()),                                                  \
         facebook::fboss::utility::kHwTest##MULTIPATH_TYPE##Weights(),        \
-        kLoopThroughFrontPanelPort);                                         \
+        kLoopThroughFrontPanelPort,                                          \
+        true);                                                               \
+  }
+
+#define RUN_HW_LOAD_BALANCER_NEGATIVE_TEST(                                  \
+    TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)                   \
+  TEST_F(TEST_FIXTURE, TEST_NAME(MULTIPATH_TYPE, HASH_TYPE, TRAFFIC_TYPE)) { \
+    if (BOOST_PP_STRINGIZE(MULTIPATH_TYPE) == std::string{"WideUcmp"} &&                    \
+            !getPlatform()->getAsic()->isSupported(                          \
+                HwAsic::Feature::WIDE_ECMP)) {                               \
+      return;                                                                \
+    }                                                                        \
+    static bool kLoopThroughFrontPanelPort =                                 \
+        (BOOST_PP_STRINGIZE(TRAFFIC_TYPE) != std::string{"Cpu"});            \
+    runLoadBalanceTest(                                                      \
+        8,                                                                   \
+        facebook::fboss::utility::getEcmp##HASH_TYPE##HashConfig(            \
+            getPlatform()),                                                  \
+        facebook::fboss::utility::kHwTest##MULTIPATH_TYPE##Weights(),        \
+        kLoopThroughFrontPanelPort,                                          \
+        false);                                                              \
   }
 
 #define RUN_SHRINK_EXPAND_HW_LOAD_BALANCER_TEST(TEST_FIXTURE, HASH_TYPE) \
@@ -63,6 +83,11 @@
 #define RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL( \
     TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE)   \
   RUN_HW_LOAD_BALANCER_TEST(TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE, FrontPanel)
+
+#define RUN_HW_LOAD_BALANCER_NEGATIVE_TEST_FRONT_PANEL( \
+    TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE)            \
+  RUN_HW_LOAD_BALANCER_NEGATIVE_TEST(                   \
+      TEST_FIXTURE, MULTIPATH_TYPE, HASH_TYPE, FrontPanel)
 
 #define RUN_ALL_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE)       \
   RUN_HW_LOAD_BALANCER_TEST_CPU(TEST_FIXTURE, Ecmp, Full)     \
@@ -122,7 +147,8 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       unsigned int ecmpWidth,
       const std::vector<NextHopWeight>& weights,
       bool loopThroughFrontPanel,
-      uint8_t deviation) {
+      uint8_t deviation,
+      bool loadBalanceExpected) {
     bool isLoadBalanced = utility::pumpTrafficAndVerifyLoadBalanced(
         [=]() { helper_->pumpTraffic(ecmpWidth, loopThroughFrontPanel); },
         [=]() {
@@ -139,7 +165,12 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
         [=]() {
           return helper_->isLoadBalanced(ecmpWidth, weights, deviation);
         });
-    EXPECT_TRUE(isLoadBalanced);
+
+    if (loadBalanceExpected) {
+      EXPECT_TRUE(isLoadBalanced);
+    } else {
+      EXPECT_FALSE(isLoadBalanced);
+    }
   }
 
   void resolveNextHopsandClearStats(unsigned int ecmpWidth) {
@@ -169,6 +200,7 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
       const cfg::LoadBalancer& loadBalancer,
       const std::vector<NextHopWeight>& weights,
       bool loopThroughFrontPanel = false,
+      bool loadBalanceExpected = true,
       uint8_t deviation = 25) {
     if (skipTest()) {
       return;
@@ -176,7 +208,11 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
     auto setup = [=]() { programECMP(ecmpWidth, loadBalancer, weights); };
     auto verify = [=]() {
       pumpTrafficPortAndVerifyLoadBalanced(
-          ecmpWidth, weights, loopThroughFrontPanel, deviation);
+          ecmpWidth,
+          weights,
+          loopThroughFrontPanel,
+          deviation,
+          loadBalanceExpected);
     };
     verifyAcrossWarmBoots(setup, verify);
   }
@@ -202,7 +238,8 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
             width,
             {}, /*weights*/
             false /*loopThroughFrontPanel*/,
-            deviation);
+            deviation,
+            true);
         // Now that we are done checking, unresolve the shrunk next hop
         unresolveNextHop(width);
       }
@@ -213,7 +250,8 @@ class HwLoadBalancerTest : public HwLinkStateDependentTest {
             width,
             {}, /*weights*/
             false /*loopThroughFrontPanel*/,
-            deviation);
+            deviation,
+            true);
         width++;
       }
     };

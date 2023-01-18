@@ -36,6 +36,31 @@ class HwLoadBalancerTestV6RoCE
   }
 };
 
+class HwLoadBalancerNegativeTestV6RoCE
+    : public HwLoadBalancerTest<utility::HwIpV6RoCEEcmpDataPlaneTestUtil> {
+  std::unique_ptr<utility::HwIpV6RoCEEcmpDataPlaneTestUtil> getECMPHelper()
+      override {
+    return std::make_unique<utility::HwIpV6RoCEEcmpDataPlaneTestUtil>(
+        getHwSwitchEnsemble(), RouterID(0));
+  }
+
+ private:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode());
+    cfg::UdfConfig udfCfg;
+    cfg.udfConfig() = udfCfg;
+    return cfg;
+  }
+};
+
 RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL(HwLoadBalancerTestV6RoCE, Ecmp, FullUdf)
+
+RUN_HW_LOAD_BALANCER_NEGATIVE_TEST_FRONT_PANEL(
+    HwLoadBalancerNegativeTestV6RoCE,
+    Ecmp,
+    Full)
 
 } // namespace facebook::fboss
