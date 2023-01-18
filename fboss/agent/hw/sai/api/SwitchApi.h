@@ -407,7 +407,8 @@ struct SaiSwitchTraits {
     using HwEccErrorInitiate =
         SaiExtensionAttribute<sai_uint16_t, HwEccErrorInitiateWrapper>;
 
-#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) || \
+    defined(SAI_VERSION_8_2_0_0_SIM_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
     struct AttributeDllPathWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -458,7 +459,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::MaxEcmpMemberCount>,
       std::optional<Attributes::EcmpMemberCount>
 #endif
-#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) || \
+    defined(SAI_VERSION_8_2_0_0_SIM_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
       ,
       std::optional<Attributes::DllPath>
 #endif
@@ -546,7 +548,8 @@ SAI_ATTRIBUTE_NAME(Switch, HwEccErrorInitiate)
 SAI_ATTRIBUTE_NAME(Switch, MaxEcmpMemberCount)
 SAI_ATTRIBUTE_NAME(Switch, EcmpMemberCount)
 #endif
-#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) || \
+    defined(SAI_VERSION_8_2_0_0_SIM_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
 SAI_ATTRIBUTE_NAME(Switch, DllPath)
 #endif
 

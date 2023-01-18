@@ -298,7 +298,8 @@ SaiPortManager::SaiPortManager(
           HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT)),
       concurrentIndices_(concurrentIndices),
       hwLaneListIsPmdLaneList_(true) {
-#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) || \
+    defined(SAI_VERSION_8_2_0_0_SIM_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
   auto& portStore = saiStore_->get<SaiPortTraits>();
   auto saiPort = portStore.objects().begin()->second.lock();
   auto portSaiId = saiPort->adapterKey();
@@ -938,7 +939,8 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
     PortSaiId portSaiId,
     cfg::SwitchType switchType) const {
   auto speed = static_cast<cfg::PortSpeed>(GET_ATTR(Port, Speed, attributes));
-#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) || \
+    defined(SAI_VERSION_8_2_0_0_SIM_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
   std::vector<uint32_t> lanes;
   if (hwLaneListIsPmdLaneList_) {
     lanes = GET_ATTR(Port, HwLaneList, attributes);
@@ -1076,6 +1078,7 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
       utility::isReedSolomonFec(getFECMode(portId))) {
 #if defined(SAI_VERSION_7_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_ODP) || \
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                 \
+    defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                 \
     defined(TAJO_SDK_VERSION_1_42_4) || defined(SAI_VERSION_9_0_EA_ODP) ||  \
     defined(SAI_VERSION_9_0_EA_DNX_ODP)
     return true;
@@ -1848,7 +1851,8 @@ TransmitterTechnology SaiPortManager::getMedium(PortID portID) const {
 }
 
 uint8_t SaiPortManager::getNumPmdLanes(PortSaiId saiPortId) const {
-#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) || \
+    defined(SAI_VERSION_8_2_0_0_SIM_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
   std::vector<uint32_t> lanes;
   if (hwLaneListIsPmdLaneList_) {
     lanes = SaiApiTable::getInstance()->portApi().getAttribute(

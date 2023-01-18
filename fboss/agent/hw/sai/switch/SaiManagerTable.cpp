@@ -109,6 +109,7 @@ void SaiManagerTable::createSaiTableManagers(
 #if !defined(SAI_VERSION_5_1_0_3_ODP) && !defined(SAI_VERSION_7_2_0_0_ODP) && \
     !defined(SAI_VERSION_8_2_0_0_ODP) &&                                      \
     !defined(SAI_VERSION_8_2_0_0_DNX_ODP) &&                                  \
+    !defined(SAI_VERSION_8_2_0_0_SIM_ODP) &&                                  \
     !defined(SAI_VERSION_9_0_EA_ODP) && !defined(SAI_VERSION_9_0_EA_DNX_ODP)
   tamManager_ = std::make_unique<SaiTamManager>(saiStore, this, platform);
 #endif
@@ -189,6 +190,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
 #if !defined(SAI_VERSION_5_1_0_3_ODP) && !defined(SAI_VERSION_7_2_0_0_ODP) && \
     !defined(SAI_VERSION_8_2_0_0_ODP) &&                                      \
     !defined(SAI_VERSION_8_2_0_0_DNX_ODP) &&                                  \
+    !defined(SAI_VERSION_8_2_0_0_SIM_ODP) &&                                  \
     !defined(SAI_VERSION_9_0_EA_ODP) && !defined(SAI_VERSION_9_0_EA_DNX_ODP)
   tamManager_.reset();
 #endif

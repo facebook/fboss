@@ -94,7 +94,7 @@ void SaiPortManager::changePortByRecreate(
   if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PORT_VCO_CHANGE)) {
     auto portHandle = getPortHandle(newPort->getID());
     // disable linkscan
-#if defined(SAI_VERSION_8_2_0_0_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_SIM_ODP)
     SaiPortTraits::Attributes::DiagModeEnable diagEnable{true};
     SaiApiTable::getInstance()->portApi().setAttribute(
         portHandle->port->adapterKey(), diagEnable);
@@ -136,7 +136,7 @@ void SaiPortManager::changePortByRecreate(
           pendingNewPorts_.erase(portId);
           // port should already be enabled
           // enable linkscan
-#if defined(SAI_VERSION_8_2_0_0_ODP)
+#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_SIM_ODP)
           auto handle = getPortHandle(portId);
           SaiPortTraits::Attributes::DiagModeEnable diagDisable{false};
           SaiApiTable::getInstance()->portApi().setAttribute(
