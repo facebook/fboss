@@ -32,8 +32,8 @@ void SnapshotWrapper::publish(const std::set<std::string>& portNames) {
   // rather than just wiping the duplicate data prior to logging it.
   auto patchedSnapshot = snapshot_;
   if (patchedSnapshot.transceiverInfo_ref()) {
-    patchedSnapshot.transceiverInfo_ref()->tcvrStats_ref().reset();
-    patchedSnapshot.transceiverInfo_ref()->tcvrState_ref().reset();
+    patchedSnapshot.transceiverInfo_ref()->tcvrStats_ref() = TcvrStats();
+    patchedSnapshot.transceiverInfo_ref()->tcvrState_ref() = TcvrState();
   }
   auto serializedSnapshot =
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(

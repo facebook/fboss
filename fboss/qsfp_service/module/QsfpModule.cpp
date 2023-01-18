@@ -191,8 +191,8 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   info.transceiver() = type();
   info.port() = qsfpImpl_->getNum();
 
-  auto& tcvrState = info.tcvrState().ensure();
-  auto& tcvrStats = info.tcvrStats().ensure();
+  auto& tcvrState = *info.tcvrState();
+  auto& tcvrStats = *info.tcvrStats();
   tcvrState.present().copy_from(info.present());
   tcvrState.transceiver().copy_from(info.transceiver());
   tcvrState.port().copy_from(info.port());

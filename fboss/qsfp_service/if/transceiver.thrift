@@ -464,8 +464,8 @@ struct TransceiverInfo {
   // fields, we can then remove the old fields and make the new fields
   // non-optional. If making changes during this transition, please
   // make sure to change both the new and the old structs.
-  29: optional TcvrState tcvrState;
-  30: optional TcvrStats tcvrStats;
+  29: TcvrState tcvrState;
+  30: TcvrStats tcvrStats;
 }
 
 typedef binary (cpp2.type = "folly::IOBuf") IOBuf

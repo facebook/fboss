@@ -161,9 +161,7 @@ void WedgeManager::getTransceiversInfo(
       info.insert({i, getTransceiverInfo(tcvrID)});
       auto currentState = getCurrentState(tcvrID);
       info[i].stateMachineState() = currentState;
-      if (info[i].tcvrState().has_value()) {
-        info[i].tcvrState()->stateMachineState() = currentState;
-      }
+      info[i].tcvrState()->stateMachineState() = currentState;
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Transceiver " << i
                 << ": Error calling getTransceiverInfo(): " << ex.what();
@@ -392,18 +390,14 @@ void WedgeManager::publishTransceiversToFsdb(
     if (iter == tcvrInfos.end()) {
       continue;
     }
-    if (auto tcvrState = iter->second.tcvrState()) {
-      fsdbSyncManager_->updateTcvrState(id, std::move(*tcvrState));
-    }
+    fsdbSyncManager_->updateTcvrState(id, std::move(*iter->second.tcvrState()));
   }
 
   // Publish all stats (No deltas. Just publish the best we have for all
   // transceivers.)
   QsfpFsdbSyncManager::TcvrStatsMap stats;
   for (const auto& [id, info] : tcvrInfos) {
-    if (info.tcvrStats()) {
-      stats[id] = *info.tcvrStats();
-    }
+    stats[id] = *info.tcvrStats();
   }
   fsdbSyncManager_->updateTcvrStats(std::move(stats));
 }
