@@ -3826,7 +3826,13 @@ shared_ptr<IpTunnel> ThriftConfigApplier::createIpInIpTunnel(
     const cfg::IpInIpTunnel& config) {
   auto tunnel = make_shared<IpTunnel>(*config.ipInIpTunnelId());
   tunnel->setType(cfg::TunnelType::IP_IN_IP);
+  if (config.tunnelType().has_value()) {
+    tunnel->setType(*config.tunnelType());
+  }
   tunnel->setTunnelTermType(cfg::TunnelTerminationType::P2MP);
+  if (config.tunnelTermType().has_value()) {
+    tunnel->setTunnelTermType(*config.tunnelTermType());
+  }
   tunnel->setUnderlayIntfId(InterfaceID(*config.underlayIntfID()));
   if (auto ttl = config.ttlMode()) {
     tunnel->setTTLMode(static_cast<cfg::IpTunnelMode>(*ttl));
