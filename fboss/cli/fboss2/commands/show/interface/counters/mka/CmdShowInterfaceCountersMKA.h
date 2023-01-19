@@ -229,24 +229,23 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
             {"OctetsProtected", std::to_string(*stats.octetsProtected())});
         if (ingress) {
           table.addRow(
-              {"UncheckedPacktes", std::to_string(*stats.inUncheckedPkts())});
+              {"UncheckedPackets", std::to_string(*stats.inUncheckedPkts())});
           table.addRow(
-              {"DelayedPacktes", std::to_string(*stats.inDelayedPkts())});
-          table.addRow({"LatePacktes", std::to_string(*stats.inLatePkts())});
-          table.addRow({"LatePacktes", std::to_string(*stats.inLatePkts())});
+              {"DelayedPackets", std::to_string(*stats.inDelayedPkts())});
+          table.addRow({"LatePackets", std::to_string(*stats.inLatePkts())});
           table.addRow(
-              {"InvalidPacktes", std::to_string(*stats.inInvalidPkts())});
+              {"InvalidPackets", std::to_string(*stats.inInvalidPkts())});
           table.addRow(
-              {"NotValidPacktes", std::to_string(*stats.inNotValidPkts())});
-          table.addRow({"NoSaPacktes", std::to_string(*stats.inNoSaPkts())});
+              {"NotValidPackets", std::to_string(*stats.inNotValidPkts())});
+          table.addRow({"NoSaPackets", std::to_string(*stats.inNoSaPkts())});
           table.addRow(
-              {"UnusedSaPacktes", std::to_string(*stats.inUnusedSaPkts())});
-          table.addRow({"OkPacktes", std::to_string(*stats.inOkPkts())});
+              {"UnusedSaPackets", std::to_string(*stats.inUnusedSaPkts())});
+          table.addRow({"OkPackets", std::to_string(*stats.inOkPkts())});
         } else {
           table.addRow(
-              {"EncryptedPacktes", std::to_string(*stats.outEncryptedPkts())});
+              {"EncryptedPackets", std::to_string(*stats.outEncryptedPkts())});
           table.addRow(
-              {"ProtectedPacktes", std::to_string(*stats.outProtectedPkts())});
+              {"ProtectedPackets", std::to_string(*stats.outProtectedPkts())});
         }
         out << table << std::endl;
       };
