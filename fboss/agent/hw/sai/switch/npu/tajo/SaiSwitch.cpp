@@ -30,7 +30,8 @@ std::string eventName(sai_switch_event_type_t type) {
 }
 
 #if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_56_0) || \
-    defined(TAJO_SDK_VERSION_1_58_0) || defined(TAJO_SDK_VERSION_1_58_1)
+    defined(TAJO_SDK_VERSION_1_58_0) || defined(TAJO_SDK_VERSION_1_58_1) || \
+    defined(TAJO_SDK_VERSION_1_60_0)
 std::string correctionType(sai_tam_switch_event_ecc_err_type_t type) {
   switch (type) {
     case SAI_TAM_SWITCH_EVENT_ECC_ERR_TYPE_ECC_COR:
@@ -78,7 +79,8 @@ void SaiSwitch::tamEventCallback(
       auto errorType = eventDesc->event.switch_event.data.parity_error.err_type;
       switch (errorType) {
 #if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_56_0) || \
-    defined(TAJO_SDK_VERSION_1_58_0) || defined(TAJO_SDK_VERSION_1_58_1)
+    defined(TAJO_SDK_VERSION_1_58_0) || defined(TAJO_SDK_VERSION_1_58_1) || \
+    defined(TAJO_SDK_VERSION_1_60_0)
         case SAI_TAM_SWITCH_EVENT_ECC_ERR_TYPE_ECC_COR:
           getSwitchStats()->corrParityError();
           break;
