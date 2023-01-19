@@ -3846,9 +3846,15 @@ shared_ptr<IpTunnel> ThriftConfigApplier::createIpInIpTunnel(
   // IP in IP tunnel decap: dst ip is the src of Tunnel state
   // (state default: encap)
   tunnel->setSrcIP(folly::IPAddressV6(*config.dstIp()));
-  tunnel->setDstIP(folly::IPAddressV6(*config.srcIp()));
-  tunnel->setSrcIPMask(folly::IPAddressV6(*config.dstIpMask()));
-  tunnel->setDstIPMask(folly::IPAddressV6(*config.srcIpMask()));
+  if (config.srcIp().has_value()) {
+    tunnel->setDstIP(folly::IPAddressV6(*config.srcIp()));
+  }
+  if (config.dstIpMask().has_value()) {
+    tunnel->setSrcIPMask(folly::IPAddressV6(*config.dstIpMask()));
+  }
+  if (config.srcIpMask().has_value()) {
+    tunnel->setDstIPMask(folly::IPAddressV6(*config.srcIpMask()));
+  }
 
   return tunnel;
 }

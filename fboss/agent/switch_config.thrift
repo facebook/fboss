@@ -1515,9 +1515,9 @@ struct IpInIpTunnel {
   1: string ipInIpTunnelId;
   2: i32 underlayIntfID;
   3: string dstIp;
-  4: string srcIp;
-  5: string dstIpMask;
-  6: string srcIpMask;
+  4: optional string srcIp;
+  5: optional string dstIpMask;
+  6: optional string srcIpMask;
   7: optional IpTunnelMode ttlMode;
   8: optional IpTunnelMode dscpMode;
   9: optional IpTunnelMode ecnMode;
