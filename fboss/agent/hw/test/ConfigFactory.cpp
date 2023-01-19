@@ -92,12 +92,13 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
   auto createAsic = [](const HwAsic& fromAsic,
                        int64_t switchId) -> std::shared_ptr<HwAsic> {
     std::optional<cfg::Range64> systemPortRange;
-    auto mySystemPortRange = fromAsic.getSystemPortRange();
-    if (mySystemPortRange.has_value()) {
+    auto fromAsicSystemPortRange = fromAsic.getSystemPortRange();
+    if (fromAsicSystemPortRange.has_value()) {
       cfg::Range64 range;
-      range.minimum() = *mySystemPortRange->maximum();
-      range.maximum() = *range.minimum() +
-          (*mySystemPortRange->maximum() - *mySystemPortRange->minimum());
+      auto blockSize = *fromAsicSystemPortRange->maximum() -
+          *fromAsicSystemPortRange->minimum();
+      range.minimum() = 100 + switchId * blockSize;
+      range.maximum() = *range.minimum() + blockSize;
       systemPortRange = range;
     }
     switch (fromAsic.getAsicType()) {
