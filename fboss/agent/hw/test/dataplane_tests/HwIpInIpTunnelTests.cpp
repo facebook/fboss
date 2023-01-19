@@ -54,9 +54,8 @@ class HwIpInIpTunnelTest : public HwLinkStateDependentTest {
         InterfaceID(*initialConfig().interfaces()[0].intfID());
     // in brcm-sai: masks are not supported
     tunnel.dstIp() = dstIp;
-    tunnel.srcIp() = "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF";
-    tunnel.dstIpMask() = "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF";
-    tunnel.srcIpMask() = "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF";
+    tunnel.tunnelTermType() = cfg::TunnelTerminationType::P2MP;
+    tunnel.tunnelType() = cfg::TunnelType::IP_IN_IP;
     tunnel.ttlMode() = cfg::IpTunnelMode::PIPE;
     tunnel.dscpMode() = cfg::IpTunnelMode::PIPE;
     tunnel.ecnMode() = cfg::IpTunnelMode::PIPE;
