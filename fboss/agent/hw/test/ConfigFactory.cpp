@@ -89,10 +89,10 @@ std::unordered_map<PortID, cfg::PortProfileID>& getPortToDefaultProfileIDMap() {
 }
 
 cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
-  constexpr auto kSysPortBlockSize = 20;
-  auto cloneAsic = [&]() -> std::shared_ptr<HwAsic> {
+  auto createAsic = [](const HwAsic& fromAsic,
+                       int64_t switchId) -> std::shared_ptr<HwAsic> {
     std::optional<cfg::Range64> systemPortRange;
-    auto mySystemPortRange = myAsic.getSystemPortRange();
+    auto mySystemPortRange = fromAsic.getSystemPortRange();
     if (mySystemPortRange.has_value()) {
       cfg::Range64 range;
       range.minimum() = *mySystemPortRange->maximum();
@@ -100,27 +100,31 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
           (*mySystemPortRange->maximum() - *mySystemPortRange->minimum());
       systemPortRange = range;
     }
-    switch (myAsic.getAsicType()) {
+    switch (fromAsic.getAsicType()) {
       case cfg::AsicType::ASIC_TYPE_INDUS:
         return std::make_unique<IndusAsic>(
-            myAsic.getSwitchType(), otherSwitchId, systemPortRange);
+            fromAsic.getSwitchType(), switchId, systemPortRange);
       case cfg::AsicType::ASIC_TYPE_BEAS:
         return std::make_unique<BeasAsic>(
-            myAsic.getSwitchType(), otherSwitchId, systemPortRange);
+            fromAsic.getSwitchType(), switchId, std::nullopt);
       case cfg::AsicType::ASIC_TYPE_EBRO:
         return std::make_unique<EbroAsic>(
-            myAsic.getSwitchType(), otherSwitchId, systemPortRange);
+            fromAsic.getSwitchType(), switchId, systemPortRange);
       default:
-        throw FbossError("Unexpected asic type: ", myAsic.getAsicTypeStr());
+        throw FbossError("Unexpected asic type: ", fromAsic.getAsicTypeStr());
     }
   };
-  auto otherAsic = cloneAsic();
+  auto otherAsic = createAsic(myAsic, otherSwitchId);
   cfg::DsfNode dsfNode;
   dsfNode.switchId() = *otherAsic->getSwitchId();
   dsfNode.name() = folly::sformat("hwTestSwitch{}", *dsfNode.switchId());
   switch (otherAsic->getSwitchType()) {
     case cfg::SwitchType::VOQ:
       dsfNode.type() = cfg::DsfNodeType::INTERFACE_NODE;
+      CHECK(otherAsic->getSystemPortRange().has_value());
+      dsfNode.systemPortRange() = *otherAsic->getSystemPortRange();
+      dsfNode.nodeMac() = "02:00:00:00:0F:0B";
+      dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
       break;
     case cfg::SwitchType::FABRIC:
       dsfNode.type() = cfg::DsfNodeType::FABRIC_NODE;
@@ -128,14 +132,6 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
     case cfg::SwitchType::NPU:
     case cfg::SwitchType::PHY:
       throw FbossError("Unexpected switch type: ", otherAsic->getSwitchType());
-  }
-  if (dsfNode.type() == cfg::DsfNodeType::INTERFACE_NODE) {
-    cfg::Range64 sysPortRange;
-    sysPortRange.minimum() = 100 + *dsfNode.switchId() * kSysPortBlockSize;
-    sysPortRange.maximum() = *sysPortRange.minimum() + kSysPortBlockSize;
-    dsfNode.systemPortRange() = sysPortRange;
-    dsfNode.loopbackIps() = getLoopbackIps(SwitchID(*dsfNode.switchId()));
-    dsfNode.nodeMac() = "02:00:00:00:0F:0B";
   }
   dsfNode.asicType() = otherAsic->getAsicType();
   return dsfNode;
