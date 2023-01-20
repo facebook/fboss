@@ -48,7 +48,6 @@ mka::MKASak makeSak(
   return sak;
 }
 
-auto kPortProfile = cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL;
 } // namespace
 
 namespace facebook::fboss {
