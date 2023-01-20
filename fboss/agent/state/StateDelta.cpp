@@ -127,16 +127,30 @@ thrift_cow::ThriftMapDelta<LoadBalancerMap> StateDelta::getLoadBalancersDelta()
 }
 
 thrift_cow::ThriftMapDelta<UdfGroupMap> StateDelta::getUdfGroupDelta() const {
+  std::shared_ptr<UdfGroupMap> oldUdfGroupMap;
+  if (old_->getUdfConfig()) {
+    oldUdfGroupMap = old_->getUdfConfig()->getUdfGroupMap();
+  }
+  std::shared_ptr<UdfGroupMap> newUdfGroupMap;
+  if (new_->getUdfConfig()) {
+    newUdfGroupMap = new_->getUdfConfig()->getUdfGroupMap();
+  }
   return thrift_cow::ThriftMapDelta<UdfGroupMap>(
-      old_->getUdfConfig()->getUdfGroupMap().get(),
-      new_->getUdfConfig()->getUdfGroupMap().get());
+      oldUdfGroupMap.get(), newUdfGroupMap.get());
 }
 
 thrift_cow::ThriftMapDelta<UdfPacketMatcherMap>
 StateDelta::getUdfPacketMatcherDelta() const {
+  std::shared_ptr<UdfPacketMatcherMap> oldUdfPacketMatcherMap;
+  if (old_->getUdfConfig()) {
+    oldUdfPacketMatcherMap = old_->getUdfConfig()->getUdfPacketMatcherMap();
+  }
+  std::shared_ptr<UdfPacketMatcherMap> newUdfPacketMatcherMap;
+  if (new_->getUdfConfig()) {
+    newUdfPacketMatcherMap = new_->getUdfConfig()->getUdfPacketMatcherMap();
+  }
   return thrift_cow::ThriftMapDelta<UdfPacketMatcherMap>(
-      old_->getUdfConfig()->getUdfPacketMatcherMap().get(),
-      new_->getUdfConfig()->getUdfPacketMatcherMap().get());
+      oldUdfPacketMatcherMap.get(), newUdfPacketMatcherMap.get());
 }
 
 thrift_cow::ThriftMapDelta<DsfNodeMap> StateDelta::getDsfNodesDelta() const {
