@@ -173,7 +173,9 @@ state::SwitchState SwitchStateFields::toThrift() const {
   // Remote objects
   state.remoteSystemPortMap() = remoteSystemPorts->toThrift();
   state.remoteInterfaceMap() = remoteInterfaces->toThrift();
-  state.udfConfig() = udfConfig->toThrift();
+  if (udfConfig) {
+    state.udfConfig() = udfConfig->toThrift();
+  }
   return state;
 }
 
