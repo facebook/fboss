@@ -82,8 +82,9 @@ struct PortFields : public ThriftyFields<PortFields, state::PortFields> {
   };
   using RxSaks = std::map<MKASakKey, mka::MKASak>;
 
-  state::RxSak rxSakToThrift(const MKASakKey& sakKey, const mka::MKASak& sak)
-      const;
+  static state::RxSak rxSakToThrift(
+      const MKASakKey& sakKey,
+      const mka::MKASak& sak);
   static std::pair<MKASakKey, mka::MKASak> rxSakFromThrift(state::RxSak rxSak);
 
   const PortID id{0};
@@ -272,11 +273,22 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
     set<switch_state_tags::txSecureAssociationKey>(txSak.value());
   }
-  auto getRxSaks() const {
-    return safe_cref<switch_state_tags::rxSecureAssociationKeys>();
+  // THRIFT_COPY
+  RxSaks getRxSaksMap() const {
+    RxSaks rxSecureAssociationKeys;
+    for (auto rxSak :
+         *(safe_cref<switch_state_tags::rxSecureAssociationKeys>())) {
+      rxSecureAssociationKeys.emplace(
+          PortFields::rxSakFromThrift(rxSak->toThrift()));
+    }
+    return rxSecureAssociationKeys;
   }
-  void setRxSaks(const std::vector<state::RxSak>& rxSaks) {
-    set<switch_state_tags::rxSecureAssociationKeys>(rxSaks);
+  void setRxSaksMap(const RxSaks& rxSecureAssociationKeys) {
+    std::vector<state::RxSak> rxSaks{};
+    for (const auto& [mkaSakKey, mkaSak] : rxSecureAssociationKeys) {
+      rxSaks.push_back(PortFields::rxSakToThrift(mkaSakKey, mkaSak));
+    }
+    setRxSaks(rxSaks);
   }
 
   bool getMacsecDesired() const {
@@ -611,6 +623,13 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
   void fillPhyInfo(phy::PhyInfo* phyInfo);
 
  private:
+  auto getRxSaks() const {
+    return safe_cref<switch_state_tags::rxSecureAssociationKeys>();
+  }
+  void setRxSaks(const std::vector<state::RxSak>& rxSaks) {
+    set<switch_state_tags::rxSecureAssociationKeys>(rxSaks);
+  }
+
   // Inherit the constructors required for clone()
   using BaseT::BaseT;
   friend class CloneAllocator;

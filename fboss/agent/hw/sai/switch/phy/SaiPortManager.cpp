@@ -120,9 +120,7 @@ void SaiPortManager::changePortImpl(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
   auto nonMacsecFieldsChange = [](const auto& l, const auto& r) {
-    // THRIFT_COPY
-    if (l.getTxSak() == r.getTxSak() &&
-        l.getRxSaks()->toThrift() == r.getRxSaks()->toThrift() &&
+    if (l.getTxSak() == r.getTxSak() && l.getRxSaksMap() == r.getRxSaksMap() &&
         l.getMacsecDesired() == r.getMacsecDesired() &&
         l.getDropUnencrypted() == r.getDropUnencrypted()) {
       // We got a port change, while MACSEC fields did not change
@@ -136,7 +134,7 @@ void SaiPortManager::changePortImpl(
     // Clear MACSEC, we will program that just after addPort
     auto portSansMacsec = newPort->clone();
     portSansMacsec->setTxSak(std::nullopt);
-    portSansMacsec->setRxSaks({});
+    portSansMacsec->setRxSaksMap({});
     addPort(portSansMacsec);
   }
   programMacsec(oldPort, newPort);

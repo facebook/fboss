@@ -825,7 +825,8 @@ TEST(Port, portSerilization) {
   EXPECT_EQ(port->getLLDPValidations().size(), 1);
 
   // RxSaks
-  EXPECT_TRUE(port->getRxSaks()->empty());
+  EXPECT_TRUE(
+      port->cref<switch_state_tags::rxSecureAssociationKeys>()->empty());
   state::MKASakKey sakKey;
   sakKey.sci() = mka::MKASci{};
   sakKey.associationNum() = 42;
@@ -833,8 +834,9 @@ TEST(Port, portSerilization) {
   rxSak.sakKey() = sakKey;
   rxSak.sak() = mka::MKASak{};
   std::vector<state::RxSak> rxSaks{rxSak};
-  port->setRxSaks(rxSaks);
-  EXPECT_EQ(port->getRxSaks()->size(), 1);
+  port->set<switch_state_tags::rxSecureAssociationKeys>(rxSaks);
+  EXPECT_EQ(
+      port->cref<switch_state_tags::rxSecureAssociationKeys>()->size(), 1);
 
   // txSecureAssociationKey
   EXPECT_EQ(port->getTxSak(), std::nullopt);

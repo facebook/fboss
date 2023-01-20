@@ -28,7 +28,7 @@ namespace facebook::fboss {
 
 state::RxSak PortFields::rxSakToThrift(
     const PortFields::MKASakKey& sakKey,
-    const mka::MKASak& sak) const {
+    const mka::MKASak& sak) {
   state::MKASakKey sakKeyThrift;
   *sakKeyThrift.sci() = sakKey.sci;
   *sakKeyThrift.associationNum() = sakKey.associationNum;

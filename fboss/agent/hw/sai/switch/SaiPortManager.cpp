@@ -1636,7 +1636,7 @@ void SaiPortManager::programMacsec(
   if (oldMacsecDesired && !newMacsecDesired) {
     XLOG(DBG2) << "programMacsec setting macsecDesired=false on port = "
                << newPort->getName() << ", Deleting all Rx and Tx SAK";
-    newPort->setRxSaks({});
+    newPort->setRxSaksMap({});
     newPort->setTxSak(std::nullopt);
   } else if (
       newMacsecDesired &&
@@ -1710,56 +1710,46 @@ void SaiPortManager::programMacsec(
     }
   }
   // RX SAKS
-  auto oldRxSaks =
-      oldPort ? oldPort->getRxSaks()->toThrift() : std::vector<state::RxSak>();
-  auto newRxSaks = newPort->getRxSaks()->toThrift();
+  auto oldRxSaks = oldPort ? oldPort->getRxSaksMap() : PortFields::RxSaks{};
+  auto newRxSaks = newPort->getRxSaksMap();
   for (const auto& keyAndSak : newRxSaks) {
-    bool isSame = false;
-    const auto& key = *keyAndSak.sakKey();
-    const auto& sak = *keyAndSak.sak();
-    for (auto iter = oldRxSaks.cbegin(); iter != oldRxSaks.cend(); ++iter) {
-      const auto& oldKey = *iter->sakKey();
-      if (oldKey == key) {
-        const auto& oldSak = *iter->sak();
-        if (sak != oldSak) {
-          // previous SAK with the same key did not match the new SAK. Delete
-          // it.
-          macsecManager.deleteMacsec(
-              portId, oldSak, *key.sci(), SAI_MACSEC_DIRECTION_INGRESS);
-        } else {
-          // Old and new are the same
-          isSame = true;
-        }
-        // The RX SAK is already present so no need to reprogram or delete it
-        oldRxSaks.erase(iter);
-        break;
+    const auto& [key, sak] = keyAndSak;
+    auto kitr = oldRxSaks.find(key);
+    if (kitr == oldRxSaks.end() || sak != kitr->second) {
+      // Either no SAK RX for this key before. Or the previous SAK with the same
+      // key did not match the new SAK
+      if (kitr != oldRxSaks.end()) {
+        // There was a prev SAK with the same key. Delete it
+        macsecManager.deleteMacsec(
+            portId,
+            kitr->second,
+            kitr->first.sci,
+            SAI_MACSEC_DIRECTION_INGRESS);
       }
-    }
-    if (!isSame) {
       // Use the SCI from the key. Since for RX we use SCI of peer, which
       // is stored in MKASakKey
       XLOG(DBG2) << "Setup Ingress Macsec for MAC="
-                 << key.sci()->macAddress().value()
-                 << " port=" << key.sci()->port().value();
+                 << key.sci.macAddress().value()
+                 << " port=" << key.sci.port().value();
       macsecManager.setupMacsec(
-          portId, sak, *key.sci(), SAI_MACSEC_DIRECTION_INGRESS);
+          portId, sak, key.sci, SAI_MACSEC_DIRECTION_INGRESS);
     }
+    // The RX SAK is already present so no need to reprogram or delete it
+    oldRxSaks.erase(key);
   }
   // Erase whatever could not be found in newRxSaks
   for (const auto& keyAndSak : oldRxSaks) {
-    const auto& key = *keyAndSak.sakKey();
-    const auto& sak = *keyAndSak.sak();
+    const auto& [key, sak] = keyAndSak;
     // We are about to prune MACSEC SAK/SCI, do a round of stat collection
     // to get SA, SCI counters since last stat collection. After delete,
     // we won't have access to this SAK/SCI counters
     updateStats(portId, false);
     // Use the SCI from the key. Since for RX we use SCI of peer, which
     // is stored in MKASakKey
-    XLOG(DBG2) << "Deleting old Rx SAK for MAC="
-               << key.sci()->macAddress().value()
-               << " port=" << key.sci()->port().value();
+    XLOG(DBG2) << "Deleting old Rx SAK for MAC=" << key.sci.macAddress().value()
+               << " port=" << key.sci.port().value();
     macsecManager.deleteMacsec(
-        portId, sak, *key.sci(), SAI_MACSEC_DIRECTION_INGRESS);
+        portId, sak, key.sci, SAI_MACSEC_DIRECTION_INGRESS);
   }
   // If macsecDesired changed to False then cleanup Macsec states including ACL
   if (oldMacsecDesired && !newMacsecDesired) {
