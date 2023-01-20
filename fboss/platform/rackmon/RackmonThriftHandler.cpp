@@ -56,19 +56,19 @@ ModbusRegisterValue ThriftHandler::transformRegisterValue(
       auto& hexValue = std::get<std::vector<uint8_t>>(value.value);
       std::vector<int8_t> conv(hexValue.size());
       std::copy(hexValue.begin(), hexValue.end(), conv.begin());
-      target.value()->set_rawValue(conv);
+      target.value()->rawValue_ref() = conv;
     } break;
     case rackmon::RegisterValueType::INTEGER:
       target.type() = RegisterValueType::INTEGER;
-      target.value()->set_intValue(std::get<int32_t>(value.value));
+      target.value()->intValue_ref() = std::get<int32_t>(value.value);
       break;
     case rackmon::RegisterValueType::STRING:
       target.type() = RegisterValueType::STRING;
-      target.value()->set_strValue(std::get<std::string>(value.value));
+      target.value()->strValue_ref() = std::get<std::string>(value.value);
       break;
     case rackmon::RegisterValueType::FLOAT:
       target.type() = RegisterValueType::FLOAT;
-      target.value()->set_floatValue(std::get<float>(value.value));
+      target.value()->floatValue_ref() = std::get<float>(value.value);
       break;
     case rackmon::RegisterValueType::FLAGS: {
       target.type() = RegisterValueType::FLAGS;
@@ -82,7 +82,7 @@ ModbusRegisterValue ThriftHandler::transformRegisterValue(
         flag.bitOffset() = flagPos;
         flags.emplace_back(flag);
       }
-      target.value()->set_flagsValue(flags);
+      target.value()->flagsValue_ref() = flags;
     } break;
     default:
       throw std::runtime_error("Unsupported Value");
