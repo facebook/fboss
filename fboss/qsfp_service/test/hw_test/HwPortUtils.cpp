@@ -11,13 +11,15 @@
 
 #include "fboss/agent/AgentConfig.h"
 
+#ifndef IS_OSS
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
-#include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/phy/SaiPhyManager.h"
+#endif
+#include "fboss/lib/phy/PhyManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 
 #include <folly/logging/xlog.h>
@@ -96,7 +98,9 @@ void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble) {
           PlatformMode::SANDIA) {
     return;
   }
-
+  // FIXME: [oss-fix] Remove this when linking to a SAI library is supported in
+  // OSS build
+#ifndef IS_OSS
   auto saiPhyManager =
       static_cast<SaiPhyManager*>(qsfpEnsemble->getPhyManager());
   // The goal here is to check whether:
@@ -128,6 +132,7 @@ void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble) {
       saiPortHandle->sysPort->adapterKey(),
       SaiPortTraits::Attributes::AdminState{});
   EXPECT_TRUE(adminState);
+#endif
 }
 
 std::optional<TransceiverID> getTranscieverIdx(
