@@ -2,7 +2,7 @@
 # cmake/FooBar.cmake
 
 add_library(ledIO
-  fboss/lib/led/LedIO.h
+  fboss/lib/led/LedIO.cpp
 )
 
 target_link_libraries(ledIO
