@@ -360,3 +360,64 @@ TEST(Udf, validateMissingUdfGroupConfig) {
   EXPECT_THROW(
       publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
 }
+
+TEST(Udf, removeUdfConfigStateDelta) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  cfg::UdfConfig udf;
+  config.udfConfig() = udf;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_EQ(nullptr, stateV1);
+  // no map has been populated
+  EXPECT_EQ(stateV0->getUdfConfig()->getUdfGroupMap()->size(), 0);
+
+  auto udfEntry = makeCfgUdfGroupEntry(kUdfGroupCfgName1.str());
+  auto udfPacketmatcherEntry =
+      makeCfgUdfPacketMatcherEntry(kPacketMatcherCfgName.str());
+
+  // add udfGroup, udfPacketMatcher entries to the udf cfg
+  config.udfConfig() = makeUdfCfg({udfEntry}, {udfPacketmatcherEntry});
+  auto stateV2 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+
+  // one entry has been added <foo1>
+  EXPECT_EQ(stateV2->getUdfConfig()->getUdfGroupMap()->size(), 1);
+  // one entry has been added <matchCfg_1>
+  EXPECT_EQ(stateV2->getUdfConfig()->getUdfPacketMatcherMap()->size(), 1);
+
+  // undo udf cfg
+  config.udfConfig().reset();
+  auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
+  ASSERT_NE(nullptr, stateV3);
+  EXPECT_EQ(stateV3->getUdfConfig(), nullptr);
+
+  StateDelta delta(stateV2, stateV3);
+  std::set<std::string> foundRemovedUdfGroup;
+  DeltaFunctions::forEachRemoved(
+      delta.getUdfGroupDelta(), [&](const std::shared_ptr<UdfGroup>& udfGroup) {
+        auto ret = foundRemovedUdfGroup.insert(udfGroup->getID());
+        EXPECT_TRUE(ret.second);
+      });
+
+  EXPECT_EQ(foundRemovedUdfGroup.size(), 1);
+  EXPECT_NE(
+      foundRemovedUdfGroup.find(kUdfGroupCfgName1.str()),
+      foundRemovedUdfGroup.end());
+
+  std::set<std::string> foundRemovedUdfPacketMatcher;
+  DeltaFunctions::forEachRemoved(
+      delta.getUdfPacketMatcherDelta(),
+      [&](const std::shared_ptr<UdfPacketMatcher>& udfPacketMatcher) {
+        auto ret =
+            foundRemovedUdfPacketMatcher.insert(udfPacketMatcher->getID());
+        EXPECT_TRUE(ret.second);
+      });
+
+  EXPECT_EQ(foundRemovedUdfPacketMatcher.size(), 1);
+  EXPECT_NE(
+      foundRemovedUdfPacketMatcher.find(kPacketMatcherCfgName.str()),
+      foundRemovedUdfPacketMatcher.end());
+}
