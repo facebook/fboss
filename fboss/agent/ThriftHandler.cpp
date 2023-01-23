@@ -214,11 +214,21 @@ void getPortInfoHelper(
     }
     if (queue->getReservedBytes()) {
       pq.reservedBytes() = queue->getReservedBytes().value();
+    } else if (sw.getPlatform()->getAsic()->isSupported(
+                   HwAsic::Feature::BUFFER_POOL)) {
+      pq.reservedBytes() = sw.getPlatform()->getAsic()->getDefaultReservedBytes(
+          queue->getStreamType(), false);
     }
     if (queue->getScalingFactor()) {
       pq.scalingFactor() =
           apache::thrift::TEnumTraits<cfg::MMUScalingFactor>::findName(
               queue->getScalingFactor().value());
+    } else if (sw.getPlatform()->getAsic()->isSupported(
+                   HwAsic::Feature::BUFFER_POOL)) {
+      pq.scalingFactor() =
+          apache::thrift::TEnumTraits<cfg::MMUScalingFactor>::findName(
+              sw.getPlatform()->getAsic()->getDefaultScalingFactor(
+                  queue->getStreamType(), false));
     }
     if (const auto& aqms = queue->getAqms()) {
       std::vector<ActiveQueueManagement> aqmsThrift;
