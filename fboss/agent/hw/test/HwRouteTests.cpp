@@ -43,11 +43,9 @@ class HwRouteTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        {masterLogicalPortIds()[0],
-         masterLogicalPortIds()[1],
-         masterLogicalPortIds()[2],
-         masterLogicalPortIds()[3]},
-        getAsic()->desiredLoopbackMode());
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode(),
+        true);
   }
 
   HwSwitchEnsemble::Features featuresDesired() const override {
@@ -65,7 +63,7 @@ class HwRouteTest : public HwLinkStateDependentTest {
   std::vector<PortDescriptor> portDescs() const {
     std::vector<PortDescriptor> ports;
     for (auto i = 0; i < 4; ++i) {
-      ports.push_back(PortDescriptor(masterLogicalPortIds()[i]));
+      ports.push_back(PortDescriptor(masterLogicalInterfacePortIds()[i]));
     }
     return ports;
   }
@@ -387,14 +385,14 @@ TYPED_TEST(HwRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
         ecmpHelper.nhop(ports[1]).ip));
     this->applyNewState(ecmpHelper.unresolveNextHops(
         this->getProgrammedState(),
-        {PortDescriptor(this->masterLogicalPortIds()[0]),
-         PortDescriptor(this->masterLogicalPortIds()[1])}));
+        {PortDescriptor(this->masterLogicalInterfacePortIds()[0]),
+         PortDescriptor(this->masterLogicalInterfacePortIds()[1])}));
     this->applyNewState(ecmpHelper.resolveNextHops(
         this->getProgrammedState(),
-        {PortDescriptor(this->masterLogicalPortIds()[0])}));
+        {PortDescriptor(this->masterLogicalInterfacePortIds()[0])}));
     ecmpHelper.programRoutes(
         this->getRouteUpdater(),
-        {PortDescriptor(this->masterLogicalPortIds()[0])},
+        {PortDescriptor(this->masterLogicalInterfacePortIds()[0])},
         {this->kGetRoutePrefix0()});
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -426,14 +424,14 @@ TYPED_TEST(HwRouteTest, StaticIp2MplsRoutes) {
         this->getProgrammedState(), this->kRouterID());
     ecmpHelper.programRoutes(
         this->getRouteUpdater(),
-        {PortDescriptor(this->masterLogicalPortIds()[0]),
-         PortDescriptor(this->masterLogicalPortIds()[1])},
+        {PortDescriptor(this->masterLogicalInterfacePortIds()[0]),
+         PortDescriptor(this->masterLogicalInterfacePortIds()[1])},
         {this->kGetRoutePrefix0()});
 
     this->applyNewState(ecmpHelper.resolveNextHops(
         this->getProgrammedState(),
-        {PortDescriptor(this->masterLogicalPortIds()[0]),
-         PortDescriptor(this->masterLogicalPortIds()[1])}));
+        {PortDescriptor(this->masterLogicalInterfacePortIds()[0]),
+         PortDescriptor(this->masterLogicalInterfacePortIds()[1])}));
   };
   auto verify = [=]() {
     // prefix 1 subnet reachable via prefix 0 with mpls stack over this stack
