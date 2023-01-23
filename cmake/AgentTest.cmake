@@ -127,3 +127,16 @@ target_link_libraries(multinode_tests
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+add_library(agent_ensemble
+  fboss/agent/test/AgentEnsemble.cpp
+)
+
+target_link_libraries(agent_ensemble
+  route_distribution_gen
+  main
+  fboss_agent
+  config_factory
+  config_factory
+  fboss_config_utils
+)

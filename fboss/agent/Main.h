@@ -80,7 +80,7 @@ typedef std::unique_ptr<Platform> (
     *PlatformInitFn)(std::unique_ptr<AgentConfig>, uint32_t featuresDesired);
 
 class AgentInitializer {
- protected:
+ public:
   SwSwitch* sw() const {
     return sw_.get();
   }
@@ -91,7 +91,6 @@ class AgentInitializer {
     return initializer_.get();
   }
 
- public:
   virtual ~AgentInitializer() = default;
   void stopServices();
   void createSwitch(
@@ -102,7 +101,6 @@ class AgentInitializer {
   int initAgent();
   void stopAgent(bool setupWarmboot);
 
- protected:
   /*
    * API to all flag overrides for individual tests. Primarily
    * used for features which we don't want to enable for
