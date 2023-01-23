@@ -90,4 +90,8 @@ target_link_libraries(qsfp_bsp_core
   device_mdio
   fpga_device
   phy_management_base
+  i2c_ctrl
+  fpga_multi_pim_container
+  ledIO
+  led_mapping_cpp2
 )
