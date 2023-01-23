@@ -387,12 +387,12 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
     // refresh not work as expected. Adding enough retries to make sure that we
     // at least can meet all `expectedStates` after 10 times.
     WITH_RETRIES_N_TIMED(
+        10 /* retries */,
+        std::chrono::milliseconds(10000) /* msBetweenRetry */,
         EXPECT_EVENTUALLY_TRUE(refreshStateMachinesTillMeetAllStates(
             expectedStates,
             true /* isRemediated */,
-            false /* isAgentColdboot */)),
-        10 /* retries */,
-        std::chrono::milliseconds(10000) /* msBetweenRetry */);
+            false /* isAgentColdboot */)));
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
@@ -443,10 +443,10 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
       // current refresh not work as expected. Adding enough retries to make
       // sure that we at least can meet all `expectedStates` after 10 times.
       WITH_RETRIES_N_TIMED(
-          EXPECT_EVENTUALLY_TRUE(refreshStateMachinesTillMeetAllStates(
-              expectedStates, false /* isRemediated */, isAgentColdboot)),
           10 /* retries */,
-          std::chrono::milliseconds(10000) /* msBetweenRetry */);
+          std::chrono::milliseconds(10000) /* msBetweenRetry */,
+          EXPECT_EVENTUALLY_TRUE(refreshStateMachinesTillMeetAllStates(
+              expectedStates, false /* isRemediated */, isAgentColdboot)));
     };
 
     // First verify warmboot config change

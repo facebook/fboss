@@ -319,7 +319,7 @@ TEST_F(LinkTest, iPhyInfoTest) {
   // Make sure the stats thread had a chance to update the iphy data before
   // starting the test
   WITH_RETRIES_N_TIMED(
-      {
+      20 /* retries */, std::chrono::milliseconds(1000) /* msBetweenRetry */, {
         phyInfoBefore = sw()->getIPhyInfo(cabledPorts);
         for (const auto& port : cabledPorts) {
           auto phyIt = phyInfoBefore.find(port);
@@ -333,14 +333,12 @@ TEST_F(LinkTest, iPhyInfoTest) {
           EXPECT_EVENTUALLY_TRUE(
               phyIt->second.state().value_or({}).linkState().value_or({}));
         }
-      },
-      20 /* retries */,
-      std::chrono::milliseconds(1000) /* msBetweenRetry */);
+      });
 
   std::map<PortID, const phy::PhyInfo> phyInfoAfter;
   // Monitor the link for 35 seconds and collect phy stats
   WITH_RETRIES_N_TIMED(
-      {
+      35 /* retries */, std::chrono::milliseconds(1000) /* msBetweenRetry */, {
         phyInfoAfter = sw()->getIPhyInfo(cabledPorts);
         for (const auto& port : cabledPorts) {
           auto phyIt = phyInfoAfter.find(port);
@@ -358,9 +356,7 @@ TEST_F(LinkTest, iPhyInfoTest) {
                   *(phyInfoBefore[port].stats().value_or({}).timeCollected()),
               20);
         }
-      },
-      35 /* retries */,
-      std::chrono::milliseconds(1000) /* msBetweenRetry */);
+      });
 
   // Validate PhyInfo
   for (const auto& port : cabledPorts) {
@@ -383,6 +379,8 @@ TEST_F(LinkTest, xPhyInfoTest) {
 
   // Wait for at least 1 snapshot from every active port before we start
   WITH_RETRIES_N_TIMED(
+      kMaxNumXphyInfoCollectionCheck /* retries */,
+      kSecondsBetweenXphyInfoCollectionCheck /* retry period */,
       {
         for (const auto& port : cabledPorts) {
           if (phyInfoBefore.count(port)) {
@@ -404,9 +402,7 @@ TEST_F(LinkTest, xPhyInfoTest) {
               << getPortName(port) << " didn't update phy stats";
           phyInfoBefore.emplace(port, *phyInfo);
         }
-      },
-      kMaxNumXphyInfoCollectionCheck /* retries */,
-      kSecondsBetweenXphyInfoCollectionCheck /* retry period */);
+      });
 
   const auto timeStart = std::chrono::steady_clock::now();
 
@@ -416,6 +412,8 @@ TEST_F(LinkTest, xPhyInfoTest) {
 
   std::map<PortID, const phy::PhyInfo> phyInfoAfter;
   WITH_RETRIES_N_TIMED(
+      kMaxNumXphyInfoCollectionCheck /* retries */,
+      kSecondsBetweenXphyInfoCollectionCheck /* retry period */,
       {
         for (const auto& port : cabledPorts) {
           if (phyInfoAfter.count(port)) {
@@ -441,9 +439,7 @@ TEST_F(LinkTest, xPhyInfoTest) {
               << getPortName(port) << " has no updated xphy stats.";
           phyInfoAfter.emplace(port, *phyInfo);
         }
-      },
-      kMaxNumXphyInfoCollectionCheck /* retries */,
-      kSecondsBetweenXphyInfoCollectionCheck /* retry period */);
+      });
 
   const auto timeEnd = std::chrono::steady_clock::now();
   const auto timeTaken =

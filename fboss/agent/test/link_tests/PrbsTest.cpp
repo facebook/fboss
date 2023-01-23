@@ -102,10 +102,9 @@ class PrbsTest : public LinkTest {
     enabledState.checkerEnabled().reset();
     // Retry for a minute to give the qsfp_service enough chance to
     // successfully refresh a transceiver
-    WITH_RETRIES_N_TIMED(
-        { EXPECT_EVENTUALLY_TRUE(setPrbsOnAllInterfaces(enabledState)); },
-        12,
-        std::chrono::milliseconds(5000));
+    WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
+      EXPECT_EVENTUALLY_TRUE(setPrbsOnAllInterfaces(enabledState));
+    });
 
     // Certain CMIS optics work more reliably when there is a 10s time between
     // enabling the generator and the checker
@@ -116,21 +115,17 @@ class PrbsTest : public LinkTest {
     enabledState.generatorEnabled().reset();
     // Retry for a minute to give the qsfp_service enough chance to
     // successfully refresh a transceiver
-    WITH_RETRIES_N_TIMED(
-        { EXPECT_EVENTUALLY_TRUE(setPrbsOnAllInterfaces(enabledState)); },
-        12,
-        std::chrono::milliseconds(5000));
+    WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
+      EXPECT_EVENTUALLY_TRUE(setPrbsOnAllInterfaces(enabledState));
+    });
 
     // 3. Check Prbs State on all ports, they all should be enabled
     XLOG(DBG2) << "Checking PRBS state after enabling PRBS";
     // Retry for a minute to give the qsfp_service enough chance to
     // successfully refresh a transceiver
-    WITH_RETRIES_N_TIMED(
-        {
-          EXPECT_EVENTUALLY_TRUE(checkPrbsStateOnAllInterfaces(enabledState));
-        },
-        12,
-        std::chrono::milliseconds(5000));
+    WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
+      EXPECT_EVENTUALLY_TRUE(checkPrbsStateOnAllInterfaces(enabledState));
+    });
 
     // 4. Let PRBS warm up for 30 seconds
     /* sleep override */ std::this_thread::sleep_for(30s);
@@ -163,21 +158,17 @@ class PrbsTest : public LinkTest {
     XLOG(DBG2) << "Disabling PRBS";
     // Retry for a minute to give the qsfp_service enough chance to
     // successfully refresh a transceiver
-    WITH_RETRIES_N_TIMED(
-        { EXPECT_EVENTUALLY_TRUE(setPrbsOnAllInterfaces(disabledState)); },
-        12,
-        std::chrono::milliseconds(5000));
+    WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
+      EXPECT_EVENTUALLY_TRUE(setPrbsOnAllInterfaces(disabledState));
+    });
 
     // 11. Check Prbs State on all ports, they all should be disabled
     XLOG(DBG2) << "Checking PRBS state after disabling PRBS";
     // Retry for a minute to give the qsfp_service enough chance to
     // successfully refresh a transceiver
-    WITH_RETRIES_N_TIMED(
-        {
-          EXPECT_EVENTUALLY_TRUE(checkPrbsStateOnAllInterfaces(disabledState));
-        },
-        12,
-        std::chrono::milliseconds(5000));
+    WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
+      EXPECT_EVENTUALLY_TRUE(checkPrbsStateOnAllInterfaces(disabledState));
+    });
 
     // 12. Link and traffic should come back up now
     XLOG(DBG2) << "Waiting for links and traffic to come back up";
@@ -213,14 +204,11 @@ class PrbsTest : public LinkTest {
       state.polynomial_ref() = testPort.polynomial;
       if (component == phy::PortComponent::ASIC) {
         auto agentClient = utils::createWedgeAgentClient();
-        WITH_RETRIES_N_TIMED(
-            {
-              EXPECT_EVENTUALLY_TRUE(
-                  setPrbsOnInterface<apache::thrift::Client<FbossCtrl>>(
-                      agentClient.get(), interfaceName, component, state));
-            },
-            6,
-            std::chrono::milliseconds(5000));
+        WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
+          EXPECT_EVENTUALLY_TRUE(
+              setPrbsOnInterface<apache::thrift::Client<FbossCtrl>>(
+                  agentClient.get(), interfaceName, component, state));
+        });
       } else if (
           component == phy::PortComponent::GB_LINE ||
           component == phy::PortComponent::GB_SYSTEM) {
@@ -230,17 +218,11 @@ class PrbsTest : public LinkTest {
         auto qsfpServiceClient = utils::createQsfpServiceClient();
         // Retry for a minute to give the qsfp_service enough chance to
         // successfully refresh a transceiver
-        WITH_RETRIES_N_TIMED(
-            {
-              EXPECT_EVENTUALLY_TRUE(
-                  setPrbsOnInterface<apache::thrift::Client<QsfpService>>(
-                      qsfpServiceClient.get(),
-                      interfaceName,
-                      component,
-                      state));
-            },
-            12,
-            std::chrono::milliseconds(5000));
+        WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
+          EXPECT_EVENTUALLY_TRUE(
+              setPrbsOnInterface<apache::thrift::Client<QsfpService>>(
+                  qsfpServiceClient.get(), interfaceName, component, state));
+        });
       }
     }
     return true;
@@ -253,14 +235,11 @@ class PrbsTest : public LinkTest {
       state.polynomial_ref() = testPort.polynomial;
       if (component == phy::PortComponent::ASIC) {
         auto agentClient = utils::createWedgeAgentClient();
-        WITH_RETRIES_N_TIMED(
-            {
-              EXPECT_EVENTUALLY_TRUE(
-                  checkPrbsStateOnInterface<apache::thrift::Client<FbossCtrl>>(
-                      agentClient.get(), interfaceName, component, state));
-            },
-            6,
-            std::chrono::milliseconds(5000));
+        WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
+          EXPECT_EVENTUALLY_TRUE(
+              checkPrbsStateOnInterface<apache::thrift::Client<FbossCtrl>>(
+                  agentClient.get(), interfaceName, component, state));
+        });
       } else if (
           component == phy::PortComponent::GB_LINE ||
           component == phy::PortComponent::GB_SYSTEM) {
@@ -270,14 +249,11 @@ class PrbsTest : public LinkTest {
         auto qsfpServiceClient = utils::createQsfpServiceClient();
         // Retry for a minute to give the qsfp_service enough chance to
         // successfully refresh a transceiver
-        WITH_RETRIES_N_TIMED(
-            {
-              EXPECT_EVENTUALLY_TRUE(checkPrbsStateOnInterface<
-                                     apache::thrift::Client<QsfpService>>(
+        WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
+          EXPECT_EVENTUALLY_TRUE(
+              checkPrbsStateOnInterface<apache::thrift::Client<QsfpService>>(
                   qsfpServiceClient.get(), interfaceName, component, state));
-            },
-            12,
-            std::chrono::milliseconds(5000));
+        });
       }
     }
     return true;
@@ -347,33 +323,30 @@ class PrbsTest : public LinkTest {
       Client* client,
       std::string& interfaceName,
       phy::PortComponent component) {
-    WITH_RETRIES_N_TIMED(
-        {
-          phy::PrbsStats stats;
-          client->sync_getInterfacePrbsStats(stats, interfaceName, component);
-          ASSERT_EVENTUALLY_FALSE(stats.get_laneStats().empty());
-          for (const auto& laneStat : stats.get_laneStats()) {
-            EXPECT_EVENTUALLY_TRUE(laneStat.get_locked());
-            EXPECT_EVENTUALLY_FALSE(laneStat.get_numLossOfLock());
-            EXPECT_EVENTUALLY_TRUE(
-                laneStat.get_ber() >= 0 && laneStat.get_ber() < 1);
-            EXPECT_EVENTUALLY_TRUE(
-                laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < 1);
-            EXPECT_EVENTUALLY_TRUE(laneStat.get_ber() <= laneStat.get_maxBer());
-            EXPECT_EVENTUALLY_TRUE(laneStat.get_timeSinceLastLocked());
-            XLOG(DBG2) << folly::sformat(
-                "Interface {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
-                interfaceName,
-                laneStat.get_laneId(),
-                laneStat.get_locked(),
-                laneStat.get_numLossOfLock(),
-                laneStat.get_ber(),
-                laneStat.get_maxBer(),
-                laneStat.get_timeSinceLastLocked());
-          }
-        },
-        12,
-        std::chrono::milliseconds(5000));
+    WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
+      phy::PrbsStats stats;
+      client->sync_getInterfacePrbsStats(stats, interfaceName, component);
+      ASSERT_EVENTUALLY_FALSE(stats.get_laneStats().empty());
+      for (const auto& laneStat : stats.get_laneStats()) {
+        EXPECT_EVENTUALLY_TRUE(laneStat.get_locked());
+        EXPECT_EVENTUALLY_FALSE(laneStat.get_numLossOfLock());
+        EXPECT_EVENTUALLY_TRUE(
+            laneStat.get_ber() >= 0 && laneStat.get_ber() < 1);
+        EXPECT_EVENTUALLY_TRUE(
+            laneStat.get_maxBer() >= 0 && laneStat.get_maxBer() < 1);
+        EXPECT_EVENTUALLY_TRUE(laneStat.get_ber() <= laneStat.get_maxBer());
+        EXPECT_EVENTUALLY_TRUE(laneStat.get_timeSinceLastLocked());
+        XLOG(DBG2) << folly::sformat(
+            "Interface {:s}, lane: {:d}, locked: {:d}, numLossOfLock: {:d}, ber: {:e}, maxBer: {:e}, timeSinceLastLock: {:d}",
+            interfaceName,
+            laneStat.get_laneId(),
+            laneStat.get_locked(),
+            laneStat.get_numLossOfLock(),
+            laneStat.get_ber(),
+            laneStat.get_maxBer(),
+            laneStat.get_timeSinceLastLocked());
+      }
+    });
   }
 
   void checkPrbsStatsAfterClearOnAllInterfaces(
@@ -387,18 +360,15 @@ class PrbsTest : public LinkTest {
         // return stats when prbs is disabled
         if (prbsEnabled) {
           auto agentClient = utils::createWedgeAgentClient();
-          WITH_RETRIES_N_TIMED(
-              {
-                EXPECT_EVENTUALLY_TRUE(checkPrbsStatsAfterClearOnInterface<
-                                       apache::thrift::Client<FbossCtrl>>(
-                    agentClient.get(),
-                    timestampBeforeClear,
-                    interfaceName,
-                    component,
-                    prbsEnabled));
-              },
-              6,
-              std::chrono::milliseconds(5000));
+          WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
+            EXPECT_EVENTUALLY_TRUE(checkPrbsStatsAfterClearOnInterface<
+                                   apache::thrift::Client<FbossCtrl>>(
+                agentClient.get(),
+                timestampBeforeClear,
+                interfaceName,
+                component,
+                prbsEnabled));
+          });
         }
       } else if (
           component == phy::PortComponent::GB_LINE ||
@@ -409,18 +379,15 @@ class PrbsTest : public LinkTest {
         auto qsfpServiceClient = utils::createQsfpServiceClient();
         // Retry for a minute to give the qsfp_service enough chance to
         // successfully refresh a transceiver
-        WITH_RETRIES_N_TIMED(
-            {
-              EXPECT_EVENTUALLY_TRUE(checkPrbsStatsAfterClearOnInterface<
-                                     apache::thrift::Client<QsfpService>>(
-                  qsfpServiceClient.get(),
-                  timestampBeforeClear,
-                  interfaceName,
-                  component,
-                  prbsEnabled));
-            },
-            12,
-            std::chrono::milliseconds(5000));
+        WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
+          EXPECT_EVENTUALLY_TRUE(checkPrbsStatsAfterClearOnInterface<
+                                 apache::thrift::Client<QsfpService>>(
+              qsfpServiceClient.get(),
+              timestampBeforeClear,
+              interfaceName,
+              component,
+              prbsEnabled));
+        });
       }
     }
   }
@@ -455,14 +422,11 @@ class PrbsTest : public LinkTest {
       auto component = testPort.component;
       if (component == phy::PortComponent::ASIC) {
         auto agentClient = utils::createWedgeAgentClient();
-        WITH_RETRIES_N_TIMED(
-            {
-              EXPECT_EVENTUALLY_TRUE(
-                  clearPrbsStatsOnInterface<apache::thrift::Client<FbossCtrl>>(
-                      agentClient.get(), interfaceName, component));
-            },
-            6,
-            std::chrono::milliseconds(5000));
+        WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
+          EXPECT_EVENTUALLY_TRUE(
+              clearPrbsStatsOnInterface<apache::thrift::Client<FbossCtrl>>(
+                  agentClient.get(), interfaceName, component));
+        });
       } else if (
           component == phy::PortComponent::GB_LINE ||
           component == phy::PortComponent::GB_SYSTEM) {
@@ -472,14 +436,11 @@ class PrbsTest : public LinkTest {
         auto qsfpServiceClient = utils::createQsfpServiceClient();
         // Retry for a minute to give the qsfp_service enough chance to
         // successfully refresh a transceiver
-        WITH_RETRIES_N_TIMED(
-            {
-              EXPECT_EVENTUALLY_TRUE(clearPrbsStatsOnInterface<
-                                     apache::thrift::Client<QsfpService>>(
+        WITH_RETRIES_N_TIMED(12, std::chrono::milliseconds(5000), {
+          EXPECT_EVENTUALLY_TRUE(
+              clearPrbsStatsOnInterface<apache::thrift::Client<QsfpService>>(
                   qsfpServiceClient.get(), interfaceName, component));
-            },
-            12,
-            std::chrono::milliseconds(5000));
+        });
       }
     }
   }

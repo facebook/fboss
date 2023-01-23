@@ -78,16 +78,14 @@ class StreamClientTest : public ::testing::Test {
       bool expectRunning,
       const std::vector<TestFsdbStreamClient*>& clients) const {
 #if FOLLY_HAS_COROUTINES
-    WITH_RETRIES_N(
-        {
-          EXPECT_EVENTUALLY_TRUE(std::all_of(
-              clients.begin(),
-              clients.end(),
-              [expectRunning](const auto& streamClient) {
-                return streamClient->serviceLoopRunning() == expectRunning;
-              }));
-        },
-        kRetries);
+    WITH_RETRIES_N(kRetries, {
+      EXPECT_EVENTUALLY_TRUE(std::all_of(
+          clients.begin(),
+          clients.end(),
+          [expectRunning](const auto& streamClient) {
+            return streamClient->serviceLoopRunning() == expectRunning;
+          }));
+    });
 #endif
   }
   void verifyServiceLoopRunning(bool expectRunning) const {

@@ -109,29 +109,27 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
   std::map<int32_t, ModuleStatus> moduleStatuses;
 
   auto wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-  WITH_RETRIES_N(
-      {
-        refreshTransceiversWithRetry();
-        transceivers.clear();
-        wedgeManager->getTransceiversInfo(
-            transceivers, getExpectedLegacyTransceiverIds());
-        EXPECT_EVENTUALLY_GT(transceivers.size(), 0);
+  WITH_RETRIES_N(kMaxRefreshesForReadyState, {
+    refreshTransceiversWithRetry();
+    transceivers.clear();
+    wedgeManager->getTransceiversInfo(
+        transceivers, getExpectedLegacyTransceiverIds());
+    EXPECT_EVENTUALLY_GT(transceivers.size(), 0);
 
-        for (auto idAndTransceiver : transceivers) {
-          if (*idAndTransceiver.second.present()) {
-            auto mgmtInterface =
-                idAndTransceiver.second.transceiverManagementInterface();
-            CHECK(mgmtInterface);
-            if (mgmtInterface == TransceiverManagementInterface::CMIS) {
-              auto state = idAndTransceiver.second.status()->cmisModuleState();
-              CHECK(state);
-              EXPECT_EVENTUALLY_EQ(state, CmisModuleState::READY)
-                  << "Cmis module not ready on tcvr " << idAndTransceiver.first;
-            }
-          }
+    for (auto idAndTransceiver : transceivers) {
+      if (*idAndTransceiver.second.present()) {
+        auto mgmtInterface =
+            idAndTransceiver.second.transceiverManagementInterface();
+        CHECK(mgmtInterface);
+        if (mgmtInterface == TransceiverManagementInterface::CMIS) {
+          auto state = idAndTransceiver.second.status()->cmisModuleState();
+          CHECK(state);
+          EXPECT_EVENTUALLY_EQ(state, CmisModuleState::READY)
+              << "Cmis module not ready on tcvr " << idAndTransceiver.first;
         }
-      },
-      kMaxRefreshesForReadyState);
+      }
+    }
+  });
 
   // clear existing module status flags from previous refreshes
   wedgeManager->getAndClearTransceiversModuleStatus(

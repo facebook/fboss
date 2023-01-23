@@ -75,26 +75,24 @@ class BgpIntegrationTest : public AgentIntegrationTest {
         servicerouter::cpp2::getClientFactory()
             .getSRClientUnique<TBgpServiceAsyncClient>("", clientParams);
 
-    WITH_RETRIES_N(
-        {
-          std::vector<TBgpSession> sessions;
-          try {
-            client->sync_getBgpSessions(sessions);
-          } catch (const std::exception& e) {
-            XLOG(DBG3) << "checkBgpState: (transient) exception: " << e.what();
-            continue;
-          }
-          EXPECT_EQ(sessions.size(), kNumBgpSessions);
-          for (const auto& session : sessions) {
-            if (sessionsToCheck.count(session.my_addr().value())) {
-              EXPECT_EVENTUALLY_EQ(session.peer()->peer_state(), state)
-                  << "Peer never reached state "
-                  << apache::thrift::util::enumNameSafe(TBgpPeerState(state))
-                  << " for " << session.my_addr().value();
-            }
-          }
-        },
-        retries);
+    WITH_RETRIES_N(retries, {
+      std::vector<TBgpSession> sessions;
+      try {
+        client->sync_getBgpSessions(sessions);
+      } catch (const std::exception& e) {
+        XLOG(DBG3) << "checkBgpState: (transient) exception: " << e.what();
+        continue;
+      }
+      EXPECT_EQ(sessions.size(), kNumBgpSessions);
+      for (const auto& session : sessions) {
+        if (sessionsToCheck.count(session.my_addr().value())) {
+          EXPECT_EVENTUALLY_EQ(session.peer()->peer_state(), state)
+              << "Peer never reached state "
+              << apache::thrift::util::enumNameSafe(TBgpPeerState(state))
+              << " for " << session.my_addr().value();
+        }
+      }
+    });
   }
 
   void checkAgentState() {

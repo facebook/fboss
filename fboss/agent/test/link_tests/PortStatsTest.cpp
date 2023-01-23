@@ -90,13 +90,13 @@ TEST_F(PortStatsTest, xphySanity) {
   // Stat collection might need some time to get the first stats after ports
   // are up. Use retry to get the first stats
   WITH_RETRIES_N_TIMED(
+      kMaxNumXphyInfoCollectionCheck /* retries */,
+      kSecondsBetweenXphyInfoCollectionCheck /* retry period */,
       {
         portStatsBefore = getXphyPortStats();
         ASSERT_EVENTUALLY_TRUE(portStatsBefore.has_value())
             << "Never has complete xphy port stats";
-      },
-      kMaxNumXphyInfoCollectionCheck /* retries */,
-      kSecondsBetweenXphyInfoCollectionCheck /* retry period */)
+      })
 
   // sleep override to wait for the second stats to be ready
   std::this_thread::sleep_for(std::chrono::seconds(

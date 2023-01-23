@@ -212,34 +212,27 @@ TEST_F(LinkTest, testOpticsRemediation) {
     // Exclude the Miniphoton ports
     XLOG(DBG2) << "Check for Transceiver Info from qsfp_service now";
 
-    WITH_RETRIES_N_TIMED(
-        {
-          auto transceiverInfos = waitForTransceiverInfo(transceiverIds);
-          for (const auto& port : ports) {
-            auto tcvrId =
-                platform()->getPlatformPort(port)->getTransceiverID().value();
-            auto txInfoItr = transceiverInfos.find(tcvrId);
-            if ((txInfoItr != transceiverInfos.end()) &&
-                (txInfoItr->second.tcvrState().has_value() &&
-                 txInfoItr->second.tcvrState()->identifier().has_value() &&
-                 txInfoItr->second.tcvrState()->identifier().value() !=
-                     TransceiverModuleIdentifier::MINIPHOTON_OBO) &&
-                (txInfoItr->second.tcvrStats().has_value() &&
-                 txInfoItr->second.tcvrStats()
-                     ->remediationCounter()
-                     .has_value())) {
-              XLOG(DBG2) << "Tcvr Id " << tcvrId << " remediation counter "
-                         << txInfoItr->second.tcvrStats()
-                                ->remediationCounter()
-                                .value();
-              EXPECT_EVENTUALLY_GT(
-                  txInfoItr->second.tcvrStats()->remediationCounter().value(),
-                  0);
-            }
-          }
-        },
-        5,
-        std::chrono::seconds(60));
+    WITH_RETRIES_N_TIMED(5, std::chrono::seconds(60), {
+      auto transceiverInfos = waitForTransceiverInfo(transceiverIds);
+      for (const auto& port : ports) {
+        auto tcvrId =
+            platform()->getPlatformPort(port)->getTransceiverID().value();
+        auto txInfoItr = transceiverInfos.find(tcvrId);
+        if ((txInfoItr != transceiverInfos.end()) &&
+            (txInfoItr->second.tcvrState().has_value() &&
+             txInfoItr->second.tcvrState()->identifier().has_value() &&
+             txInfoItr->second.tcvrState()->identifier().value() !=
+                 TransceiverModuleIdentifier::MINIPHOTON_OBO) &&
+            (txInfoItr->second.tcvrStats().has_value() &&
+             txInfoItr->second.tcvrStats()->remediationCounter().has_value())) {
+          XLOG(DBG2)
+              << "Tcvr Id " << tcvrId << " remediation counter "
+              << txInfoItr->second.tcvrStats()->remediationCounter().value();
+          EXPECT_EVENTUALLY_GT(
+              txInfoItr->second.tcvrStats()->remediationCounter().value(), 0);
+        }
+      }
+    });
 
     XLOG(DBG2) << "Wait for all ports to come up " << opticalPortNames;
     EXPECT_NO_THROW(waitForLinkStatus(ports, true, 60, 5s));

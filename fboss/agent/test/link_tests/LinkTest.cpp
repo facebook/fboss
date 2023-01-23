@@ -378,10 +378,9 @@ void LinkTest::waitForStateMachineState(
 void LinkTest::waitForLldpOnCabledPorts(
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
-  WITH_RETRIES_N_TIMED(
-      { ASSERT_EVENTUALLY_TRUE(lldpNeighborsOnAllCabledPorts()); },
-      retries,
-      msBetweenRetry);
+  WITH_RETRIES_N_TIMED(retries, msBetweenRetry, {
+    ASSERT_EVENTUALLY_TRUE(lldpNeighborsOnAllCabledPorts());
+  });
 }
 
 // Log debug information from IPHY, XPHY and optics

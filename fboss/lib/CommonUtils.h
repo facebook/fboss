@@ -60,11 +60,13 @@ inline int64_t getCumulativeValue(
  * checkWithRetry in tests.
  * USAGES:
  *
- * WITH_RETRIES_N_TIMED({
+ * WITH_RETRIES_N_TIMED(
+ *  30, std::chrono::milliseconds(1000),
+ *  {
  *   auto someData = foo();
  *   ASSERT_EVENTUALLY_TRUE(someData.bar());
  *   ASSERT_EVENTUALLY_EQ(someData.bar().baz(), 0) << "baz is not zero!";
- * }, 30, std::chrono::milliseconds(1000));
+ *  });
  *
  * WITH_RETRIES(ASSERT_EVENTUALLY_TRUE(someBoolExpr()));
  *
@@ -77,8 +79,13 @@ inline int64_t getCumulativeValue(
  * EXPECT_EVENTUALLY: Unlike ASSERT_EVENTUALLY, during retries EXPECT_EVENTUALLY
  * will continue execution in case of failure. After all retires we will hard
  * EXPECT all checks
+
+ * Using ... to capture everything (the logic to test) and replace whatever has
+ * been passed with the single __VA_ARGS__. Without ..., if 'test' is a code
+ * block, the parser could separate that into multiple tokens and cause
+ * compilation errors
  */
-#define WITH_RETRIES_N_TIMED(tests, maxRetries, sleepTime)              \
+#define WITH_RETRIES_N_TIMED(maxRetries, sleepTime, ...)                \
   {                                                                     \
     int WITH_RETRIES_tries = 0;                                         \
     while (WITH_RETRIES_tries++ < maxRetries) {                         \
@@ -95,7 +102,7 @@ inline int64_t getCumulativeValue(
        * - soft asserts will throw _SoftAssertFail so we can loop again \
        */                                                               \
       try {                                                             \
-        tests;                                                          \
+        __VA_ARGS__;                                                    \
       } catch (const _SoftAssertFail&) {                                \
         continue;                                                       \
       }                                                                 \
@@ -107,11 +114,12 @@ inline int64_t getCumulativeValue(
   }
 
 // Helper with default sleep time
-#define WITH_RETRIES_N(tests, maxRetries) \
-  WITH_RETRIES_N_TIMED(tests, maxRetries, std::chrono::milliseconds(1000));
+#define WITH_RETRIES_N(maxRetries, ...) \
+  WITH_RETRIES_N_TIMED(                 \
+      maxRetries, std::chrono::milliseconds(1000), __VA_ARGS__);
 
 // Helper with default retries and sleep time
-#define WITH_RETRIES(tests) WITH_RETRIES_N(tests, 30);
+#define WITH_RETRIES(...) WITH_RETRIES_N(30, __VA_ARGS__);
 
 // Should ONLY be used inside WITH_RETIRES*. See helpers below
 #define _ASSERT_EVENTUALLY(softTest, hardTest)                         \
