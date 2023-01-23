@@ -9,7 +9,6 @@ add_library(product_info
 )
 
 target_link_libraries(product_info
-  ctrl_cpp2
+  product_info_cpp2
   Folly::folly
 )
-

@@ -11,7 +11,8 @@
 
 #include <folly/Range.h>
 #include <optional>
-#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+
+#include "fboss/agent/if/gen-cpp2/product_info_types.h"
 #include "fboss/lib/platforms/PlatformMode.h"
 
 DECLARE_string(fruid_filepath);

@@ -1,0 +1,31 @@
+namespace cpp2 facebook.fboss
+namespace go neteng.fboss.product_info
+namespace php fboss
+namespace py neteng.fboss.product_info
+namespace py3 neteng.fboss
+namespace py.asyncio neteng.fboss.asyncio.product_info
+
+struct ProductInfo {
+  1: string oem;
+  2: string product;
+  3: string serial;
+  4: string macRangeStart;
+  5: i16 macRangeSize;
+  6: string mfgDate;
+  7: string systemPartNumber;
+  8: string assembledAt;
+  9: string pcbManufacturer;
+  10: string assetTag;
+  11: string partNumber;
+  12: string odmPcbaPartNumber;
+  13: string odmPcbaSerial;
+  14: string fbPcbPartNumber;
+  15: i16 version;
+  16: i16 subVersion;
+  17: i16 productionState;
+  18: i16 productVersion;
+  19: string bmcMac;
+  20: string mgmtMac;
+  21: string fabricLocation;
+  22: string fbPcbaPartNumber;
+}

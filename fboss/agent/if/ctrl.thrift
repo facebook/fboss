@@ -10,6 +10,7 @@ include "common/fb303/if/fb303.thrift"
 include "common/network/if/Address.thrift"
 include "fboss/agent/if/mpls.thrift"
 include "fboss/agent/if/common.thrift"
+include "fboss/agent/if/product_info.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/agent/platform_config.thrift"
@@ -221,31 +222,6 @@ struct InterfaceDetail {
   5: string mac;
   6: list<IpPrefix> address;
   7: i32 mtu;
-}
-
-struct ProductInfo {
-  1: string oem;
-  2: string product;
-  3: string serial;
-  4: string macRangeStart;
-  5: i16 macRangeSize;
-  6: string mfgDate;
-  7: string systemPartNumber;
-  8: string assembledAt;
-  9: string pcbManufacturer;
-  10: string assetTag;
-  11: string partNumber;
-  12: string odmPcbaPartNumber;
-  13: string odmPcbaSerial;
-  14: string fbPcbPartNumber;
-  15: i16 version;
-  16: i16 subVersion;
-  17: i16 productionState;
-  18: i16 productVersion;
-  19: string bmcMac;
-  20: string mgmtMac;
-  21: string fabricLocation;
-  22: string fbPcbaPartNumber;
 }
 
 /*
@@ -1039,7 +1015,9 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * Return product information
    */
-  ProductInfo getProductInfo() throws (1: fboss.FbossBaseError error);
+  product_info.ProductInfo getProductInfo() throws (
+    1: fboss.FbossBaseError error,
+  );
 
   /*
    * Force reload configurations from the config file. Useful when config file
