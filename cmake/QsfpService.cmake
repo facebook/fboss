@@ -1,4 +1,4 @@
-# CMake to build libraries and binaries in fboss/agent/hw/bcm
+# CMake to build libraries and binaries in fboss/qsfp_service
 
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
@@ -94,4 +94,23 @@ target_link_libraries(qsfp_bsp_core
   fpga_multi_pim_container
   ledIO
   led_mapping_cpp2
+)
+
+add_library(transceiver_manager STATIC
+    fboss/qsfp_service/TransceiverManager.cpp
+    fboss/qsfp_service/TransceiverStateMachine.cpp
+    fboss/qsfp_service/TransceiverStateMachineUpdate.cpp
+)
+
+target_link_libraries(transceiver_manager
+  fboss_error
+  fboss_types
+  qsfp_config
+  phy_management_base
+  thrift_service_client
+  common_file_utils
+  qsfp_platforms_wedge
+  thread_heartbeat
+  utils
+  product_info
 )

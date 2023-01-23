@@ -543,39 +543,12 @@ if (NOT SAI_ONLY)
       fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
   )
 
-  add_library(transceiver_manager STATIC
-      fboss/qsfp_service/TransceiverManager.cpp
-      fboss/qsfp_service/TransceiverStateMachine.cpp
-      fboss/qsfp_service/TransceiverStateMachineUpdate.cpp
-  )
-
-  add_library(qsfp_module STATIC
-      fboss/qsfp_service/module/QsfpModule.cpp
-      fboss/qsfp_service/module/oss/QsfpModule.cpp
-      fboss/qsfp_service/module/QsfpUtil.cpp
-      fboss/qsfp_service/module/sff/SffFieldInfo.cpp
-      fboss/qsfp_service/module/sff/SffModule.cpp
-      fboss/qsfp_service/module/sff/Sff8472Module.cpp
-      fboss/qsfp_service/module/sff/Sff8472FieldInfo.cpp
-      fboss/qsfp_service/module/oss/SffModule.cpp
-      fboss/qsfp_service/module/cmis/CmisFieldInfo.cpp
-      fboss/qsfp_service/module/cmis/CmisModule.cpp
-  )
-
   add_executable(qsfp_service
       fboss/qsfp_service/QsfpServer.cpp
       fboss/qsfp_service/oss/QsfpServer.cpp
       fboss/qsfp_service/Main.cpp
       fboss/qsfp_service/QsfpServiceHandler.cpp
       fboss/qsfp_service/QsfpServiceSignalHandler.cpp
-      fboss/qsfp_service/platforms/wedge/BspWedgeManager.cpp
-      fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
-      fboss/qsfp_service/platforms/wedge/WedgeQsfp.cpp
-      fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
-      fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
-      fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
-      fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp
-      fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
   )
 
   # TODO (skhare) refactor fboss_agent and remove this library
@@ -1005,21 +978,6 @@ if (NOT SAI_ONLY)
     "-DINCLUDE_L3 -DBCM_ESW_SUPPORT"
   )
 
-  target_link_libraries(transceiver_manager
-    fboss_error
-    fboss_types
-    qsfp_config
-    phy_management_base
-    thrift_service_client
-    common_file_utils
-  )
-
-  target_link_libraries(qsfp_module
-    fboss_i2c_lib
-    qsfp_config_parser
-    snapshot_manager
-  )
-
   target_link_libraries(switch_asics_old fboss_agent)
   target_link_libraries(wedge_agent fboss_agent)
   target_link_libraries(qsfp_service
@@ -1028,6 +986,7 @@ if (NOT SAI_ONLY)
       qsfp_config
       phy_management_base
       transceiver_manager
+      qsfp_platforms_wedge
   )
 
   add_executable(cp2112_util
@@ -1036,13 +995,6 @@ if (NOT SAI_ONLY)
   target_link_libraries(cp2112_util fboss_agent)
 
   add_executable(wedge_qsfp_util
-      fboss/qsfp_service/platforms/wedge/BspWedgeManager.cpp
-      fboss/qsfp_service/platforms/wedge/WedgeManager.cpp
-      fboss/qsfp_service/platforms/wedge/Wedge100Manager.cpp
-      fboss/qsfp_service/platforms/wedge/GalaxyManager.cpp
-      fboss/qsfp_service/platforms/wedge/Wedge40Manager.cpp
-      fboss/qsfp_service/platforms/wedge/WedgeManagerInit.cpp
-      fboss/qsfp_service/platforms/wedge/oss/WedgeManagerInit.cpp
       fboss/util/wedge_qsfp_util.cpp
       fboss/util/qsfp_util_main.cpp
       fboss/util/qsfp/QsfpUtilTx.cpp
@@ -1065,6 +1017,7 @@ if (NOT SAI_ONLY)
       ${YAML-CPP}
       phy_management_base
       transceiver_manager
+      qsfp_platforms_wedge
   )
 
   # Don't include fboss/agent/test/ArpBenchmark.cpp
