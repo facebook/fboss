@@ -132,9 +132,12 @@ void PlatformProductInfo::initMode() {
         modelName.find("Sandia") == 0 || modelName.find("SANDIA") == 0 ||
         modelName.find("8508-F-SYS-HV") == 0) {
       mode_ = PlatformMode::SANDIA;
-    } else if (modelName.find("Makalu") == 0) {
+    } else if (
+        modelName.find("Makalu") == 0 ||
+        modelName.find("S9710-76D-BB12") == 0) {
       mode_ = PlatformMode::MAKALU;
-    } else if (modelName.find("Kamet") == 0) {
+    } else if (
+        modelName.find("Kamet") == 0 || modelName.find("S9705-48D-4B4") == 0) {
       mode_ = PlatformMode::KAMET;
     } else {
       throw std::runtime_error("invalid model name " + modelName);
