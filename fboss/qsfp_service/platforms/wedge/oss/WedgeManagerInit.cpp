@@ -47,10 +47,6 @@ std::unique_ptr<WedgeManager> createSandiaWedgeManager() {
   return std::unique_ptr<WedgeManager>{};
 }
 
-std::unique_ptr<WedgeManager> createKametWedgeManager() {
-  return std::unique_ptr<WedgeManager>{};
-}
-
 std::unique_ptr<WedgeManager> createMakaluWedgeManager() {
   return std::unique_ptr<WedgeManager>{};
 }
