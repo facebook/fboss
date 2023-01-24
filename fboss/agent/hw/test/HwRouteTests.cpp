@@ -463,7 +463,6 @@ TYPED_TEST(HwRouteTest, VerifyRouting) {
   auto constexpr isV4 = std::is_same_v<AddrT, folly::IPAddressV4>;
   auto ports = this->portDescs();
   auto setup = [=]() {
-    this->applyNewConfig(this->initialConfig());
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     this->applyNewState(
@@ -483,9 +482,7 @@ TYPED_TEST(HwRouteTest, VerifyRouting) {
         folly::IPAddressV4("101.0.0.1"),
         folly::IPAddressV4("201.0.0.1"),
         1234,
-        4321,
-        0,
-        255);
+        4321);
 
     auto v6TxPkt = utility::makeUDPTxPacket(
         this->getHwSwitch(),
@@ -495,9 +492,7 @@ TYPED_TEST(HwRouteTest, VerifyRouting) {
         folly::IPAddressV6("101::1"),
         folly::IPAddressV6("201::1"),
         1234,
-        4321,
-        0,
-        255);
+        4321);
 
     auto ensemble = this->getHwSwitchEnsemble();
     auto snooper = std::make_unique<HwTestPacketSnooper>(ensemble);
