@@ -41,7 +41,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     return PortDescriptor(masterLogicalInterfacePortIds()[0]);
   }
   PortDescriptor portDesc2() const {
-    return PortDescriptor(masterLogicalPortIds()[1]);
+    return PortDescriptor(masterLogicalInterfacePortIds()[1]);
   }
 
   void setupECMPForwarding(
@@ -288,18 +288,25 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
           293624 /* pgHeadroom */);
       setupEcmpTraffic();
       validateInitPfcCounters(
-          {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, pfcPriority);
+          {masterLogicalInterfacePortIds()[0],
+           masterLogicalInterfacePortIds()[1]},
+          pfcPriority);
     };
     auto verify = [&]() {
       // ensure counter is 0 before we start traffic
       pumpTraffic(trafficClass);
       // ensure counter is > 0, after the traffic
       validatePfcCounters(
-          pfcPriority, {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+          pfcPriority,
+          {masterLogicalInterfacePortIds()[0],
+           masterLogicalInterfacePortIds()[1]});
       // stop traffic so that unconfiguration can happen without issues
-      stopTraffic({masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+      stopTraffic(
+          {masterLogicalInterfacePortIds()[0],
+           masterLogicalInterfacePortIds()[1]});
       validateIngressDropCounters(
-          {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+          {masterLogicalInterfacePortIds()[0],
+           masterLogicalInterfacePortIds()[1]});
     };
     verifyAcrossWarmBoots(setup, verify);
   }
@@ -315,18 +322,25 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
           0 /* pgHeadroom */);
       setupEcmpTraffic();
       validateInitPfcCounters(
-          {masterLogicalPortIds()[0], masterLogicalPortIds()[1]}, pfcPriority);
+          {masterLogicalInterfacePortIds()[0],
+           masterLogicalInterfacePortIds()[1]},
+          pfcPriority);
     };
     auto verify = [&]() {
       // ensure counter is 0 before we start traffic
       pumpTraffic(trafficClass);
       // ensure counter is > 0, after the traffic
       validatePfcCounters(
-          pfcPriority, {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+          pfcPriority,
+          {masterLogicalInterfacePortIds()[0],
+           masterLogicalInterfacePortIds()[1]});
       // stop traffic so that unconfiguration can happen without issues
-      stopTraffic({masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+      stopTraffic(
+          {masterLogicalInterfacePortIds()[0],
+           masterLogicalInterfacePortIds()[1]});
       validateIngressDropCounters(
-          {masterLogicalPortIds()[0], masterLogicalPortIds()[1]});
+          {masterLogicalInterfacePortIds()[0],
+           masterLogicalInterfacePortIds()[1]});
     };
     verifyAcrossWarmBoots(setup, verify);
   }
@@ -340,7 +354,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
         {kDestIp1(), 128});
     setupECMPForwarding(
         ecmpHelper6,
-        PortDescriptor(masterLogicalPortIds()[1]),
+        PortDescriptor(masterLogicalInterfacePortIds()[1]),
         {kDestIp2(), 128});
     disableTTLDecrements(ecmpHelper6);
   }
