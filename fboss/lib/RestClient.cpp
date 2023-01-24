@@ -58,14 +58,14 @@ std::string RestClient::requestWithOutput(
   CURL* curl;
   CURLcode resp;
   std::stringbuf write_buffer;
-  endpoint_ = endpoint_ + path;
+  auto endpoint = endpoint_ + path;
   /* for curl errors */
   char error[CURL_ERROR_SIZE];
 
   curl = curl_easy_init();
   if (curl) {
     /* Set the curl options */
-    curl_easy_setopt(curl, CURLOPT_URL, endpoint_.c_str());
+    curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
     curl_easy_setopt(curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP);
     curl_easy_setopt(curl, CURLOPT_PORT, port_);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout_.count());
@@ -95,7 +95,7 @@ std::string RestClient::requestWithOutput(
     if (resp == CURLE_OK) {
       return write_buffer.str();
     } else {
-      throw FbossError("Error querying api: ", endpoint_, " error: ", error);
+      throw FbossError("Error querying api: ", endpoint, " error: ", error);
     }
   }
   throw FbossError("Error initializing curl interface");
