@@ -238,11 +238,13 @@ std::set<PortID> getCabledPorts(const AgentConfig& config) {
 std::vector<TransceiverID> getCabledPortTranceivers(
     const AgentConfig& config,
     const HwQsfpEnsemble* ensemble) {
-  std::vector<TransceiverID> transceivers;
+  std::unordered_set<TransceiverID> transceivers;
+  // There could be multiple ports in a single transceiver. Therefore use a set
+  // to get unique cabled transceivers
   for (auto port : getCabledPorts(config)) {
-    transceivers.push_back(*getTranscieverIdx(port, ensemble));
+    transceivers.insert(*getTranscieverIdx(port, ensemble));
   }
-  return transceivers;
+  return std::vector<TransceiverID>(transceivers.begin(), transceivers.end());
 }
 
 bool match(std::vector<TransceiverID> l, std::vector<TransceiverID> r) {
