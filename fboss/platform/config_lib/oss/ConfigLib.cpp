@@ -9,4 +9,9 @@ std::string getSensorServiceConfig(
   throw std::runtime_error("Unimplemented function");
 }
 
+std::string getFbdevdConfig(
+    const std::optional<std::string>& /* platformName */) {
+  throw std::runtime_error("Unimplemented function");
+}
+
 } // namespace facebook::fboss::platform::config_lib
