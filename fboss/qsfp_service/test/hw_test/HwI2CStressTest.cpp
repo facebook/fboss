@@ -87,7 +87,7 @@ TEST_F(HwTest, i2cStressWrite) {
       folly::gen::from(transceivers) |
       folly::gen::filter([&transceiversInfo](int32_t tcvrId) {
         auto tcvrInfo = transceiversInfo[tcvrId];
-        auto transmitterTech = tcvrInfo.cable().value_or({}).transmitterTech();
+        auto transmitterTech = *tcvrInfo.cable().value_or({}).transmitterTech();
         return transmitterTech == TransmitterTechnology::OPTICAL;
       }) |
       folly::gen::as<std::vector>();
