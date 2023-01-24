@@ -13,8 +13,6 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestMplsUtils.h"
-#include "fboss/agent/hw/test/HwTestPacketSnooper.h"
-#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestRouteUtils.h"
 #include "fboss/agent/packet/PktFactory.h"
@@ -155,9 +153,8 @@ TYPED_TEST_SUITE(HwRouteTest, IpTypes);
 TYPED_TEST(HwRouteTest, VerifyClassID) {
   auto setup = [=]() {
     // 3 routes r0, r1, r2. r0 & r1 have classID, r2 does not.
-    auto state = this->applyNewConfig(this->initialConfig());
-    auto state2 = this->addRoutes(
-        state,
+    this->addRoutes(
+        this->getProgrammedState(),
         {this->kGetRoutePrefix0(),
          this->kGetRoutePrefix1(),
          this->kGetRoutePrefix2()});
@@ -198,8 +195,7 @@ TYPED_TEST(HwRouteTest, VerifyClassID) {
 
 TYPED_TEST(HwRouteTest, VerifyClassIdWithNhopResolutionFlap) {
   auto setup = [=]() {
-    auto state = this->applyNewConfig(this->initialConfig());
-    this->addRoutes(state, {this->kGetRoutePrefix0()});
+    this->addRoutes(this->getProgrammedState(), {this->kGetRoutePrefix0()});
     auto updater = this->getHwSwitchEnsemble()->getRouteUpdater();
     updater.programClassID(
         this->kRouterID(),
@@ -231,7 +227,6 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedNextHop) {
   using AddrT = typename TestFixture::Type;
   auto ports = this->portDescs();
   auto setup = [=]() {
-    this->applyNewConfig(this->initialConfig());
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     ecmpHelper.programRoutes(
@@ -271,7 +266,6 @@ TYPED_TEST(HwRouteTest, UnresolveResolvedNextHop) {
   using AddrT = typename TestFixture::Type;
 
   auto setup = [=]() {
-    this->applyNewConfig(this->initialConfig());
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     this->applyNewState(
@@ -299,7 +293,6 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
   auto setup = [=]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
-    this->applyNewConfig(this->initialConfig());
     ecmpHelper.programRoutes(
         this->getRouteUpdater(),
         {ports[0], ports[1]},
@@ -357,7 +350,6 @@ TYPED_TEST(HwRouteTest, UnresolvedAndResolvedMultiNextHop) {
 TYPED_TEST(HwRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
   auto ports = this->portDescs();
   using AddrT = typename TestFixture::Type;
-  auto setup = [=]() { this->applyNewConfig(this->initialConfig()); };
   auto verify = [=]() {
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
@@ -396,7 +388,7 @@ TYPED_TEST(HwRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
         {PortDescriptor(this->masterLogicalInterfacePortIds()[0])},
         {this->kGetRoutePrefix0()});
   };
-  this->verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots([] {}, verify);
 }
 
 TYPED_TEST(HwRouteTest, StaticIp2MplsRoutes) {
@@ -531,7 +523,6 @@ TYPED_TEST(HwRouteTest, verifyHostRouteChange) {
   auto ports = this->portDescs();
 
   auto setup = [=]() {
-    this->applyNewConfig(this->initialConfig());
     utility::EcmpSetupTargetedPorts<AddrT> ecmpHelper(
         this->getProgrammedState(), this->kRouterID());
     this->applyNewState(ecmpHelper.resolveNextHops(
@@ -573,7 +564,6 @@ TYPED_TEST(HwRouteTest, VerifyDefaultRoute) {
     GTEST_SKIP();
     return;
   }
-  auto setup = [=]() { this->applyNewConfig(this->initialConfig()); };
   auto verify = [=]() {
     // default routes should exist always.
     utility::isHwRoutePresent(
@@ -583,7 +573,7 @@ TYPED_TEST(HwRouteTest, VerifyDefaultRoute) {
         this->kRouterID(),
         {folly::IPAddress("0.0.0.0"), 0});
   };
-  this->verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots([] {}, verify);
 }
 
 } // namespace facebook::fboss
