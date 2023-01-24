@@ -114,3 +114,23 @@ target_link_libraries(transceiver_manager
   utils
   product_info
 )
+
+add_library(qsfp_handler
+  fboss/qsfp_service/QsfpServiceHandler.cpp
+)
+
+target_link_libraries(qsfp_handler
+  Folly::folly
+  transceiver_manager
+  log_thrift_call
+)
+
+add_library(qsfp_core
+  fboss/qsfp_service/QsfpServer.cpp
+  fboss/qsfp_service/QsfpServiceSignalHandler.cpp
+  fboss/qsfp_service/oss/QsfpServer.cpp
+)
+
+target_link_libraries(qsfp_core
+  qsfp_handler
+)
