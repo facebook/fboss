@@ -38,7 +38,7 @@ void HwTransceiverUtils::verifyTransceiverSettings(
     XLOG(INFO) << " Skip verifying optics settings: " << *transceiver.port()
                << ", for copper cable";
   } else {
-    verifyOpticsSettings(transceiver);
+    verifyOpticsSettings(transceiver, profile);
   }
 
   verifyMediaInterfaceCompliance(transceiver, profile);
@@ -47,7 +47,8 @@ void HwTransceiverUtils::verifyTransceiverSettings(
 }
 
 void HwTransceiverUtils::verifyOpticsSettings(
-    const TransceiverInfo& transceiver) {
+    const TransceiverInfo& transceiver,
+    cfg::PortProfileID profile) {
   auto settings = apache::thrift::can_throw(*transceiver.settings());
 
   for (auto& mediaLane :
@@ -57,7 +58,10 @@ void HwTransceiverUtils::verifyOpticsSettings(
         << ", Lane=" << *mediaLane.lane()
         << " txDisable doesn't match expected";
     if (*transceiver.transceiver() == TransceiverType::QSFP) {
-      EXPECT_FALSE(*mediaLane.txSquelch())
+      EXPECT_EQ(
+          *mediaLane.txSquelch(),
+          profile ==
+              cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL)
           << "Transceiver:" << *transceiver.port()
           << ", Lane=" << *mediaLane.lane()
           << " txSquelch doesn't match expected";
@@ -74,7 +78,10 @@ void HwTransceiverUtils::verifyOpticsSettings(
 
     for (auto& hostLane :
          apache::thrift::can_throw(*settings.hostLaneSettings())) {
-      EXPECT_FALSE(*hostLane.rxSquelch())
+      EXPECT_EQ(
+          *hostLane.rxSquelch(),
+          profile ==
+              cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL)
           << "Transceiver:" << *transceiver.port()
           << ", Lane=" << *hostLane.lane()
           << " rxSquelch doesn't match expected";
@@ -111,6 +118,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
 
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N:
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL:
       verify200gProfile(mgmtInterface, mediaInterfaces);
       break;
 
@@ -124,6 +132,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       break;
 
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER:
+    case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER:
       verifyCopper200gProfile(transceiver, mediaInterfaces);
       break;
 

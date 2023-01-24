@@ -30,7 +30,9 @@ class HwTransceiverUtils {
       bool skipCheckingIndividualCapability = true);
 
  private:
-  static void verifyOpticsSettings(const TransceiverInfo& transceiver);
+  static void verifyOpticsSettings(
+      const TransceiverInfo& transceiver,
+      cfg::PortProfileID profile);
   static void verifyMediaInterfaceCompliance(
       const TransceiverInfo& transceiver,
       cfg::PortProfileID profile);
