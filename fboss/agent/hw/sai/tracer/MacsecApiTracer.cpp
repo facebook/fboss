@@ -37,6 +37,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _MacsecSAMap {
 #endif
       SAI_ATTR_MAP(MacsecSA, MinimumXpn), SAI_ATTR_MAP(MacsecSA, SAK),
       SAI_ATTR_MAP(MacsecSA, Salt), SAI_ATTR_MAP(MacsecSA, SCID),
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+      SAI_ATTR_MAP(MacsecSA, CurrentXpn),
+#endif
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _MacsecSCMap {

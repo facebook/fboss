@@ -107,6 +107,10 @@ struct SaiMacsecSATraits {
         EnumType,
         SAI_MACSEC_SA_ATTR_SALT,
         std::array<uint8_t, sizeof(sai_macsec_salt_t)>>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+    using CurrentXpn =
+        SaiAttribute<EnumType, SAI_MACSEC_SA_ATTR_CURRENT_XPN, sai_uint64_t>;
+#endif
   };
 
   using AdapterKey = MacsecSASaiId;
@@ -156,6 +160,9 @@ SAI_ATTRIBUTE_NAME(MacsecSA, MinimumXpn)
 SAI_ATTRIBUTE_NAME(MacsecSA, SAK)
 SAI_ATTRIBUTE_NAME(MacsecSA, Salt)
 SAI_ATTRIBUTE_NAME(MacsecSA, SCID)
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+SAI_ATTRIBUTE_NAME(MacsecSA, CurrentXpn)
+#endif
 
 template <>
 struct SaiObjectHasStats<SaiMacsecSATraits> : public std::true_type {};

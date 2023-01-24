@@ -61,6 +61,7 @@ struct FakeMacsecSA {
   SaiMacsecSak sak;
   SaiMacsecSalt salt;
   sai_uint64_t minimumXpn{0};
+  sai_uint64_t currentXpn{0};
 };
 
 struct FakeMacsecSC {

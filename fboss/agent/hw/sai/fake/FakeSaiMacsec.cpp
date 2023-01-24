@@ -257,6 +257,11 @@ sai_status_t get_macsec_sa_attribute_fn(
       case SAI_MACSEC_SA_ATTR_MINIMUM_XPN:
         attr[i].value.u64 = macsecSA.minimumXpn;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+      case SAI_MACSEC_SA_ATTR_CURRENT_XPN:
+        attr[i].value.u64 = macsecSA.currentXpn;
+        break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
