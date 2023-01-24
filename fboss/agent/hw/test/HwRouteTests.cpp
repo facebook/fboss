@@ -22,6 +22,7 @@
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
@@ -471,9 +472,12 @@ TYPED_TEST(HwRouteTest, VerifyRouting) {
         this->getRouteUpdater(), {ports[0]}, {this->kDefaultPrefix()});
   };
   auto verify = [=]() {
+    const auto egressPort = ports[0].phyPortID();
     auto vlanId = utility::firstVlanID(this->initialConfig());
     auto intfMac = utility::getFirstInterfaceMac(this->getProgrammedState());
 
+    auto beforeOutPkts =
+        *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
     auto v4TxPkt = utility::makeUDPTxPacket(
         this->getHwSwitch(),
         vlanId,
@@ -494,21 +498,20 @@ TYPED_TEST(HwRouteTest, VerifyRouting) {
         1234,
         4321);
 
-    auto ensemble = this->getHwSwitchEnsemble();
-    auto snooper = std::make_unique<HwTestPacketSnooper>(ensemble);
-    auto entry = std::make_unique<HwTestPacketTrapEntry>(
-        ensemble->getHwSwitch(), ports[0].phyPortID());
     if (isV4) {
       this->getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
           std::move(v4TxPkt), ports[1].phyPortID());
-
     } else {
       this->getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
           std::move(v6TxPkt), ports[1].phyPortID());
     }
-
-    auto frameRx = snooper->waitForPacket(1);
-    ASSERT_TRUE(frameRx.has_value());
+    WITH_RETRIES({
+      auto afterOutPkts =
+          *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
+      XLOG(DBG2) << "Stats:: beforeOutPkts: " << beforeOutPkts
+                 << " afterOutPkts: " << afterOutPkts;
+      EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
+    });
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
