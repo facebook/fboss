@@ -64,14 +64,19 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
                  << " -> " << std::to_string(bytesCountAfter);
 
       if (bumpOnHit) {
-        // Bump by 2, once on the way out and once when it loops back in
-        // Bytes count is twice the size of the packet, since the bytes counter
-        // is increased on the way out and in.
-        EXPECT_EQ(pktCountBefore + 2, pktCountAfter);
+        // On VOQ switches, we see a counter bump by 1, for the time the
+        // packet is routed out. The looped packet which gets dropped does
+        // not seem to incur a counter bump. On non VOQ switches OTOH,
+        // we see a bump by 2 once on the way out and once when it loops back
+        // in.
+        auto pktsHit =
+            getAsic()->getSwitchType() == cfg::SwitchType::VOQ ? 1 : 2;
+        EXPECT_EQ(pktCountBefore + pktsHit, pktCountAfter);
 
         // TODO: Still need to debug. For some test cases, we are getting more
         // bytes in aclCounter. Ex. 4 Bytes extra in Tomahawk4 tests.
-        EXPECT_LE(bytesCountBefore + (2 * sizeOfPacketSent), bytesCountAfter);
+        EXPECT_LE(
+            bytesCountBefore + (pktsHit * sizeOfPacketSent), bytesCountAfter);
       } else {
         EXPECT_EQ(pktCountBefore, pktCountAfter);
         EXPECT_EQ(bytesCountBefore, bytesCountAfter);
@@ -83,8 +88,8 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
 
  private:
   size_t sendPacket(bool frontPanel, uint8_t ttl) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(initialConfig());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
