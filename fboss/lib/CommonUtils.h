@@ -174,6 +174,8 @@ inline int64_t getCumulativeValue(
   _EXPECT_EVENTUALLY(expr1 >= expr2, EXPECT_GE(expr1, expr2))
 #define EXPECT_EVENTUALLY_LT(expr1, expr2) \
   _EXPECT_EVENTUALLY(expr1 < expr2, EXPECT_LT(expr1, expr2))
+#define EXPECT_EVENTUALLY_LE(expr1, expr2) \
+  _EXPECT_EVENTUALLY(expr1 <= expr2, EXPECT_LE(expr1, expr2))
 
 #ifndef IS_OSS
 // Folly::folly_exception_tracer* is not available in OSS.
