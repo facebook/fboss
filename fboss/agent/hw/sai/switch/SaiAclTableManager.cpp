@@ -1209,6 +1209,9 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::DST_IPV6,
         cfg::AclTableQualifier::SRC_PORT,
         cfg::AclTableQualifier::DSCP,
+        cfg::AclTableQualifier::IP_PROTOCOL,
+        cfg::AclTableQualifier::IP_TYPE,
+        cfg::AclTableQualifier::TTL,
     };
 
     return indusQualifiers;
