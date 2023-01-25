@@ -196,7 +196,7 @@ TEST_F(BcmMmuTests, PgMinLimitBytes) {
       if (cfgPorts.find(portId) != cfgPorts.end()) {
         // we expect PGMin values ot be set only for the lossless PGs
         // on programmed ports only
-        for (const auto pgId : utility::kLosslessPgs()) {
+        for (const auto pgId : utility::kLosslessPgs(getHwSwitch())) {
           EXPECT_LE(pgId, cfg::switch_config_constants::PORT_PG_VALUE_MAX());
           expectedValues[pgId] = utility::kPgMinLimitCells() * mmuBytesPerCell;
         }
@@ -277,7 +277,7 @@ TEST_F(BcmMmuTests, ZionExMmuConfigMax) {
     auto bcmPort =
         getHwSwitch()->getPortTable()->getBcmPort(masterLogicalPortIds()[0]);
     // get first pg
-    auto pgId = utility::kLosslessPgs()[0];
+    auto pgId = utility::kLosslessPgs(getHwSwitch())[0];
     const int mmuBytesPerCell = getPlatform()->getMMUCellBytes();
     EXPECT_GE(
         bcmPort->getIngressSharedBytes(pgId),

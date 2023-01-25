@@ -16,8 +16,15 @@
 
 namespace facebook::fboss::utility {
 
-std::vector<int> kLosslessPgs() {
-  return {6, 7};
+std::vector<int> kLosslessPgs(const HwSwitch* hwSwitch) {
+  auto mode = hwSwitch->getPlatform()->getMode();
+  switch (mode) {
+    case PlatformMode::FUJI:
+      return {6};
+    default:
+      //  this is for fake bcm
+      return {6, 7};
+  }
 }
 
 int kPgMinLimitCells() {
@@ -31,20 +38,43 @@ int kGlobalSharedBufferCells(const HwSwitch* hwSwitch) {
     case PlatformMode::MINIPACK:
     case PlatformMode::YAMP:
       return 117436;
+    case PlatformMode::FUJI:
+      return 204753;
     default:
       //  this is for fake bcm
       return 115196;
       break;
   }
 }
-int kGlobalHeadroomBufferCells() {
-  return 12432;
+int kGlobalHeadroomBufferCells(const HwSwitch* hwSwitch) {
+  auto mode = hwSwitch->getPlatform()->getMode();
+  switch (mode) {
+    case PlatformMode::FUJI:
+      return 25383;
+    default:
+      //  this is for fake bcm
+      return 12432;
+  }
 }
-int kDownlinkPgHeadroomLimitCells() {
-  return 1156;
+int kDownlinkPgHeadroomLimitCells(const HwSwitch* hwSwitch) {
+  auto mode = hwSwitch->getPlatform()->getMode();
+  switch (mode) {
+    case PlatformMode::FUJI:
+      return 2160;
+    default:
+      //  this is for fake bcm
+      return 1156;
+  }
 }
-int kUplinkPgHeadroomLimitCells() {
-  return 1668;
+int kUplinkPgHeadroomLimitCells(const HwSwitch* hwSwitch) {
+  auto mode = hwSwitch->getPlatform()->getMode();
+  switch (mode) {
+    case PlatformMode::FUJI:
+      return 3184;
+    default:
+      //  this is for fake bcm
+      return 1668;
+  }
 }
 int kPgResumeLimitCells() {
   return 19;
@@ -90,11 +120,12 @@ void enablePfcMapsConfig(cfg::SwitchConfig& cfg) {
 void enablePgConfigConfig(
     cfg::SwitchConfig& cfg,
     const int mmuCellBytes,
+    const HwSwitch* hwSwitch,
     const std::map<std::string, bool>& pgProfileMap) {
   std::vector<cfg::PortPgConfig> portPgConfigs;
   std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
   for (const auto& [pgProfileName, useUplinkProfile] : pgProfileMap) {
-    for (const auto& pgId : kLosslessPgs()) {
+    for (const auto& pgId : kLosslessPgs(hwSwitch)) {
       cfg::PortPgConfig pgConfig;
       CHECK_LE(pgId, cfg::switch_config_constants::PORT_PG_VALUE_MAX());
       pgConfig.id() = pgId;
@@ -102,8 +133,8 @@ void enablePgConfigConfig(
       // provide atleast 1 cell worth of minLimit
       pgConfig.minLimitBytes() = kPgMinLimitCells() * mmuCellBytes;
       pgConfig.headroomLimitBytes() =
-          (useUplinkProfile ? kUplinkPgHeadroomLimitCells()
-                            : kDownlinkPgHeadroomLimitCells()) *
+          (useUplinkProfile ? kUplinkPgHeadroomLimitCells(hwSwitch)
+                            : kDownlinkPgHeadroomLimitCells(hwSwitch)) *
           mmuCellBytes;
       pgConfig.scalingFactor() = cfg::MMUScalingFactor::ONE;
       pgConfig.resumeOffsetBytes() = kPgResumeLimitCells() * mmuCellBytes;
@@ -122,7 +153,8 @@ void enableBufferPoolConfig(
   std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
   cfg::BufferPoolConfig poolConfig;
   poolConfig.sharedBytes() = kGlobalSharedBufferCells(hwSwitch) * mmuCellBytes;
-  poolConfig.headroomBytes() = kGlobalHeadroomBufferCells() * mmuCellBytes;
+  poolConfig.headroomBytes() =
+      kGlobalHeadroomBufferCells(hwSwitch) * mmuCellBytes;
   bufferPoolCfgMap.insert({"bufferNew", poolConfig});
   cfg.bufferPoolConfigs() = bufferPoolCfgMap;
 }
@@ -140,7 +172,7 @@ void addPfcConfig(
   // create pg profile with specific name, also specify if we want
   // to use uplink/downlink profile for it or not
   pgProfileMap.insert({kPgConfigName, false});
-  enablePgConfigConfig(cfg, mmuCellBytes, pgProfileMap);
+  enablePgConfigConfig(cfg, mmuCellBytes, hwSwitch, pgProfileMap);
   enableBufferPoolConfig(cfg, mmuCellBytes, hwSwitch);
 }
 
@@ -159,7 +191,7 @@ void addUplinkDownlinkPfcConfig(
   // to use uplink or downlink profiles for it
   pgProfileMap.insert({"uplinks", true});
   pgProfileMap.insert({"downlinks", false});
-  enablePgConfigConfig(cfg, mmuCellBytes, pgProfileMap);
+  enablePgConfigConfig(cfg, mmuCellBytes, hwSwitch, pgProfileMap);
   enableBufferPoolConfig(cfg, mmuCellBytes, hwSwitch);
 }
 
