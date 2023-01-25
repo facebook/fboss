@@ -521,12 +521,12 @@ struct SwitchState {
   6: map<string, MirrorFields> mirrorMap;
   7: ControlPlaneFields controlPlane;
   8: SwitchSettingsFields switchSettings;
-  9: i16 defaultVlan;
-  10: i64 arpTimeout;
-  11: i64 ndpTimeout;
-  12: i32 arpAgerInterval;
-  13: i32 maxNeighborProbes;
-  14: i64 staleEntryInterval;
+  9: i16 defaultVlan = 0;
+  10: i64 arpTimeout = 60;
+  11: i64 ndpTimeout = 60;
+  12: i32 arpAgerInterval = 5;
+  13: i32 maxNeighborProbes = 300;
+  14: i64 staleEntryInterval = 10;
   15: Address.BinaryAddress dhcpV4RelaySrc;
   16: Address.BinaryAddress dhcpV6RelaySrc;
   17: Address.BinaryAddress dhcpV4ReplySrc;
