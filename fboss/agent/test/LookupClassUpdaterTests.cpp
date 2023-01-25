@@ -956,7 +956,7 @@ TYPED_TEST(LookupClassUpdaterNeighborTest, NeighborBlockMacChange) {
       cfg::AclLookupClass::CLASS_DROP /* macClassID */);
 
   // unblock neighbor
-  updateBlockedNeighbor(this->getSw(), {{}});
+  updateBlockedNeighbor(this->getSw(), {});
   this->verifyMacClassIDHelper(
       this->kMacAddress2(),
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
@@ -1155,7 +1155,7 @@ TYPED_TEST(
       cfg::AclLookupClass::CLASS_DROP /* macClassID */);
 
   // unblock MAC that the neighbor no longer resolves to: neighbor unblocked
-  updateMacAddrsToBlock(this->getSw(), {{}});
+  updateMacAddrsToBlock(this->getSw(), {});
   this->verifyMacClassIDHelper(
       this->kMacAddress2(),
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,

@@ -331,7 +331,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(
         this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
 
-    updateBlockedNeighbor(this->getSw(), {{}});
+    updateBlockedNeighbor(this->getSw(), {});
 
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
   }
@@ -346,7 +346,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(
         this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
 
-    updateBlockedNeighbor(this->getSw(), {{}});
+    updateBlockedNeighbor(this->getSw(), {});
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
   }
 
@@ -360,7 +360,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     this->verifyClassIDHelper(
         this->kroutePrefix1(), cfg::AclLookupClass::CLASS_DROP);
 
-    updateBlockedNeighbor(this->getSw(), {{}});
+    updateBlockedNeighbor(this->getSw(), {});
     this->verifyClassIDHelper(this->kroutePrefix1(), expectedClassID);
   }
 
@@ -622,7 +622,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
         this->getSw(), {{this->kVlan(), this->kIpAddressA()}});
     auto subnetCacheAfterBlocking = getSubnetCache();
 
-    updateBlockedNeighbor(this->getSw(), {{}});
+    updateBlockedNeighbor(this->getSw(), {});
     auto subnetCacheAfterUnblocking = getSubnetCache();
 
     printSubnetCache(subnetCacheAfterBlocking, "subnetCacheAfterBlocking");
@@ -685,7 +685,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     auto subnetCacheNeighborAUnBlockedNeighborBBlocked = getSubnetCache();
 
     // neighborA unblocked, neighborB unblocked
-    updateBlockedNeighbor(this->getSw(), {{}});
+    updateBlockedNeighbor(this->getSw(), {});
     auto subnetCacheNeighborAUnBlockedNeighborBUnBlocked = getSubnetCache();
 
     bool noLookupClasses = !expectedClassID1.has_value();
@@ -750,7 +750,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
     auto subnetCacheNeighborAUnBlockedNeighborDBlocked = getSubnetCache();
 
     // neighborA unblocked, neighborD unblocked
-    updateBlockedNeighbor(this->getSw(), {{}});
+    updateBlockedNeighbor(this->getSw(), {});
     auto subnetCacheNeighborAUnBlockedNeighborDUnBlocked = getSubnetCache();
 
     bool noLookupClasses = !expectedClassID1.has_value();
@@ -1290,7 +1290,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, MultipleRoutesBlockUnblockNexthop) {
   this->resolveNeighbor(this->kIpAddressB(), this->kMacAddressB());
 
   // route1's nexthop unblocked, route2's nexthop unblocked
-  updateBlockedNeighbor(this->getSw(), {{}});
+  updateBlockedNeighbor(this->getSw(), {});
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
   this->verifyClassIDHelper(
@@ -1322,7 +1322,7 @@ TYPED_TEST(LookupClassRouteUpdaterTest, MultipleRoutesBlockUnblockNexthop) {
       this->kroutePrefix2(), cfg::AclLookupClass::CLASS_DROP);
 
   // route1's nexthop unblocked, route2's nexthop unblocked
-  updateBlockedNeighbor(this->getSw(), {{}});
+  updateBlockedNeighbor(this->getSw(), {});
   this->verifyClassIDHelper(
       this->kroutePrefix1(), cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
   this->verifyClassIDHelper(

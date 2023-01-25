@@ -153,7 +153,7 @@ TEST(SwitchSettingsTest, applyBlockNeighbors) {
   // Check default value
   auto switchSettingsV0 = stateV0->getSwitchSettings();
   ASSERT_NE(nullptr, switchSettingsV0);
-  EXPECT_EQ(switchSettingsV0->getBlockNeighbors().size(), 0);
+  EXPECT_EQ(switchSettingsV0->getBlockNeighbors()->size(), 0);
 
   // Check if value is updated
   cfg::SwitchConfig config;
@@ -168,14 +168,21 @@ TEST(SwitchSettingsTest, applyBlockNeighbors) {
   auto switchSettingsV1 = stateV1->getSwitchSettings();
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
-  EXPECT_EQ(switchSettingsV1->getBlockNeighbors().size(), 1);
+  EXPECT_EQ(switchSettingsV1->getBlockNeighbors()->size(), 1);
 
   EXPECT_EQ(
-      int(switchSettingsV1->getBlockNeighbors()[0].first),
+      switchSettingsV1->getBlockNeighbors()
+          ->at(0)
+          ->cref<switch_state_tags::blockNeighborVlanID>()
+          ->toThrift(),
       blockNeighbor.vlanID());
   EXPECT_EQ(
-      switchSettingsV1->getBlockNeighbors()[0].second.str(),
-      blockNeighbor.ipAddress());
+      switchSettingsV1->getBlockNeighbors()
+          ->at(0)
+          ->cref<switch_state_tags::blockNeighborIP>()
+          ->toThrift(),
+      facebook::network::toBinaryAddress(
+          folly::IPAddress(*blockNeighbor.ipAddress())));
 }
 
 TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
@@ -185,7 +192,7 @@ TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
   // Check default value
   auto switchSettingsV0 = stateV0->getSwitchSettings();
   ASSERT_NE(nullptr, switchSettingsV0);
-  EXPECT_EQ(switchSettingsV0->getMacAddrsToBlock().size(), 0);
+  EXPECT_EQ(switchSettingsV0->getMacAddrsToBlock()->size(), 0);
 
   // Check if value is updated
   cfg::SwitchConfig config;
@@ -200,13 +207,13 @@ TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
   auto switchSettingsV1 = stateV1->getSwitchSettings();
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
-  EXPECT_EQ(switchSettingsV1->getMacAddrsToBlock().size(), 1);
+  EXPECT_EQ(switchSettingsV1->getMacAddrsToBlock()->size(), 1);
 
   EXPECT_EQ(
-      int(switchSettingsV1->getMacAddrsToBlock()[0].first),
+      int(switchSettingsV1->getMacAddrsToBlock_DEPRECATED()[0].first),
       macAddrToBlock.vlanID());
   EXPECT_EQ(
-      switchSettingsV1->getMacAddrsToBlock()[0].second.toString(),
+      switchSettingsV1->getMacAddrsToBlock_DEPRECATED()[0].second.toString(),
       macAddrToBlock.macAddress());
 }
 
@@ -285,7 +292,7 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   // Check default value
   auto switchSettingsV0 = stateV0->getSwitchSettings();
   ASSERT_NE(nullptr, switchSettingsV0);
-  EXPECT_EQ(switchSettingsV0->getBlockNeighbors().size(), 0);
+  EXPECT_EQ(switchSettingsV0->getBlockNeighbors()->size(), 0);
 
   // Check if value is updated
   cfg::SwitchConfig config = testConfigA(cfg::SwitchType::VOQ);
@@ -322,7 +329,7 @@ TEST(SwitchSettingsTest, applyExactMatchTableConfig) {
   // Check default value
   auto switchSettingsV0 = stateV0->getSwitchSettings();
   ASSERT_NE(nullptr, switchSettingsV0);
-  EXPECT_EQ(switchSettingsV0->getExactMatchTableConfig().size(), 0);
+  EXPECT_EQ(switchSettingsV0->getExactMatchTableConfig()->size(), 0);
 
   // Check if value is updated
   cfg::SwitchConfig config;
@@ -337,12 +344,20 @@ TEST(SwitchSettingsTest, applyExactMatchTableConfig) {
   auto switchSettingsV1 = stateV1->getSwitchSettings();
   ASSERT_NE(nullptr, switchSettingsV1);
   EXPECT_FALSE(switchSettingsV1->isPublished());
-  EXPECT_EQ(switchSettingsV1->getExactMatchTableConfig().size(), 1);
+  EXPECT_EQ(switchSettingsV1->getExactMatchTableConfig()->size(), 1);
   EXPECT_EQ(
-      switchSettingsV1->getExactMatchTableConfig()[0].name(), "TeFlowTable");
+      switchSettingsV1->getExactMatchTableConfig()
+          ->at(0)
+          ->cref<switch_config_tags::name>()
+          ->toThrift(),
+      "TeFlowTable");
 
   EXPECT_EQ(
-      switchSettingsV1->getExactMatchTableConfig()[0].dstPrefixLength(), 59);
+      switchSettingsV1->getExactMatchTableConfig()
+          ->at(0)
+          ->cref<switch_config_tags::dstPrefixLength>()
+          ->toThrift(),
+      59);
 
   // update prefix length
   (*config.switchSettings()->exactMatchTableConfigs())[0].dstPrefixLength() =
@@ -350,13 +365,16 @@ TEST(SwitchSettingsTest, applyExactMatchTableConfig) {
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_EQ(
       stateV2->getSwitchSettings()
-          ->getExactMatchTableConfig()[0]
-          .dstPrefixLength(),
+          ->getExactMatchTableConfig()
+          ->at(0)
+          ->cref<switch_config_tags::dstPrefixLength>()
+          ->toThrift(),
       51);
 
   // delete the config
   cfg::SwitchConfig emptyConfig;
   auto stateV3 = publishAndApplyConfig(stateV2, &emptyConfig, platform.get());
   EXPECT_NE(nullptr, stateV3);
-  EXPECT_EQ(stateV3->getSwitchSettings()->getExactMatchTableConfig().size(), 0);
+  EXPECT_EQ(
+      stateV3->getSwitchSettings()->getExactMatchTableConfig()->size(), 0);
 }

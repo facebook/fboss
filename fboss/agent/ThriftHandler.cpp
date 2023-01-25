@@ -2397,11 +2397,15 @@ void ThriftHandler::getBlockedNeighbors(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
 
-  for (const auto& [vlanID, ipAddress] :
-       sw_->getState()->getSwitchSettings()->getBlockNeighbors()) {
+  for (const auto& iter :
+       *(sw_->getState()->getSwitchSettings()->getBlockNeighbors())) {
     cfg::Neighbor blockedNeighbor;
-    blockedNeighbor.vlanID() = vlanID;
-    blockedNeighbor.ipAddress() = ipAddress.str();
+    blockedNeighbor.vlanID() =
+        iter->cref<switch_state_tags::blockNeighborVlanID>()->toThrift();
+    blockedNeighbor.ipAddress() =
+        network::toIPAddress(
+            iter->cref<switch_state_tags::blockNeighborIP>()->toThrift())
+            .str();
     blockedNeighbors.emplace_back(std::move(blockedNeighbor));
   }
 }
@@ -2413,7 +2417,7 @@ void ThriftHandler::setNeighborsToBlock(
 
   if (neighborsToBlock) {
     if ((*neighborsToBlock).size() != 0 &&
-        sw_->getState()->getSwitchSettings()->getMacAddrsToBlock().size() !=
+        sw_->getState()->getSwitchSettings()->getMacAddrsToBlock()->size() !=
             0) {
       throw FbossError(
           "Setting MAC addr blocklist and Neighbor blocklist simultaneously is not supported");
@@ -2455,8 +2459,12 @@ void ThriftHandler::getMacAddrsToBlock(
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
 
-  for (const auto& [vlanID, macAddress] :
-       sw_->getState()->getSwitchSettings()->getMacAddrsToBlock()) {
+  for (const auto& iter :
+       *(sw_->getState()->getSwitchSettings()->getMacAddrsToBlock())) {
+    auto vlanID = VlanID(
+        iter->cref<switch_state_tags::macAddrToBlockVlanID>()->toThrift());
+    auto macAddress = folly::MacAddress(
+        iter->cref<switch_state_tags::macAddrToBlockAddr>()->toThrift());
     cfg::MacAndVlan blockedMacAddr;
     blockedMacAddr.vlanID() = vlanID;
     blockedMacAddr.macAddress() = macAddress.toString();
@@ -2471,7 +2479,8 @@ void ThriftHandler::setMacAddrsToBlock(
 
   if (macAddrsToBlock) {
     if ((*macAddrsToBlock).size() != 0 &&
-        sw_->getState()->getSwitchSettings()->getBlockNeighbors().size() != 0) {
+        sw_->getState()->getSwitchSettings()->getBlockNeighbors()->size() !=
+            0) {
       throw FbossError(
           "Setting MAC addr blocklist and Neighbor blocklist simultaneously is not supported");
     }

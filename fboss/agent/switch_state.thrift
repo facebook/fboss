@@ -302,11 +302,11 @@ struct BlockedMacAddress {
 }
 
 struct SwitchSettingsFields {
-  1: switch_config.L2LearningMode l2LearningMode;
-  2: bool qcmEnable;
-  3: bool ptpTcEnable;
-  4: i32 l2AgeTimerSeconds;
-  5: i32 maxRouteCounterIDs;
+  1: switch_config.L2LearningMode l2LearningMode = switch_config.L2LearningMode.HARDWARE;
+  2: bool qcmEnable = false;
+  3: bool ptpTcEnable = false;
+  4: i32 l2AgeTimerSeconds = 300;
+  5: i32 maxRouteCounterIDs = 0;
   6: list<BlockedNeighbor> blockNeighbors;
   7: list<BlockedMacAddress> macAddrsToBlock;
   // Switch type

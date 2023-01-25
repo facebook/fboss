@@ -358,8 +358,12 @@ void LookupClassRouteUpdater::processInterfaceAdded(
    * added blocked neighbor if there is no interface for that subnet.
    * Thus, when an interface is added, process blocked neighbor list again.
    */
-  for (const auto& [blockedVlanID, blockedNeighborIP] :
-       switchState->getSwitchSettings()->getBlockNeighbors()) {
+  for (const auto& iter :
+       *(switchState->getSwitchSettings()->getBlockNeighbors())) {
+    auto blockedVlanID = VlanID(
+        iter->cref<switch_state_tags::blockNeighborVlanID>()->toThrift());
+    auto blockedNeighborIP = network::toIPAddress(
+        iter->cref<switch_state_tags::blockNeighborIP>()->toThrift());
     if (blockedVlanID != vlanID) {
       continue;
     }
@@ -379,8 +383,12 @@ void LookupClassRouteUpdater::processInterfaceAdded(
    * added blocked mac address if there is no interface for that subnet.
    * Thus, when an interface is added, process blocked mac address list again.
    */
-  for (const auto& [blockedVlanID, blockedNeighborMac] :
-       switchState->getSwitchSettings()->getMacAddrsToBlock()) {
+  for (const auto& iter :
+       *(switchState->getSwitchSettings()->getMacAddrsToBlock())) {
+    auto blockedVlanID = VlanID(
+        iter->cref<switch_state_tags::macAddrToBlockVlanID>()->toThrift());
+    auto blockedNeighborMac = folly::MacAddress(
+        iter->cref<switch_state_tags::macAddrToBlockAddr>()->toThrift());
     if (blockedVlanID != vlanID) {
       continue;
     }
@@ -1164,8 +1172,12 @@ bool LookupClassRouteUpdater::isSubnetCachedByBlockedNeighborIP(
     const std::shared_ptr<SwitchState>& switchState,
     VlanID vlanID,
     const folly::CIDRNetwork& addressToSearch) const {
-  for (const auto& [blockedVlanID, blockedNeighborIP] :
-       switchState->getSwitchSettings()->getBlockNeighbors()) {
+  for (const auto& iter :
+       *(switchState->getSwitchSettings()->getBlockNeighbors())) {
+    auto blockedVlanID = VlanID(
+        iter->cref<switch_state_tags::blockNeighborVlanID>()->toThrift());
+    auto blockedNeighborIP = network::toIPAddress(
+        iter->cref<switch_state_tags::blockNeighborIP>()->toThrift());
     if (blockedVlanID != vlanID) {
       continue;
     }
@@ -1289,8 +1301,10 @@ void LookupClassRouteUpdater::processBlockNeighborUpdates(
   auto oldState = stateDelta.oldState();
   auto newState = stateDelta.newState();
 
-  auto oldBlockedNeighbors{oldState->getSwitchSettings()->getBlockNeighbors()};
-  auto newBlockedNeighbors{newState->getSwitchSettings()->getBlockNeighbors()};
+  auto oldBlockedNeighbors{
+      oldState->getSwitchSettings()->getBlockNeighbors_DEPRECATED()};
+  auto newBlockedNeighbors{
+      newState->getSwitchSettings()->getBlockNeighbors_DEPRECATED()};
 
   sort(oldBlockedNeighbors.begin(), oldBlockedNeighbors.end());
   sort(newBlockedNeighbors.begin(), newBlockedNeighbors.end());
@@ -1434,10 +1448,10 @@ void LookupClassRouteUpdater::processMacAddrsToBlockUpdates(
   auto newState = stateDelta.newState();
 
   std::vector<std::pair<VlanID, folly::MacAddress>> oldMacAddrsToBlock(
-      oldState->getSwitchSettings()->getMacAddrsToBlock());
+      oldState->getSwitchSettings()->getMacAddrsToBlock_DEPRECATED());
 
   std::vector<std::pair<VlanID, folly::MacAddress>> newMacAddrsToBlock(
-      newState->getSwitchSettings()->getMacAddrsToBlock());
+      newState->getSwitchSettings()->getMacAddrsToBlock_DEPRECATED());
 
   sort(oldMacAddrsToBlock.begin(), oldMacAddrsToBlock.end());
   sort(newMacAddrsToBlock.begin(), newMacAddrsToBlock.end());

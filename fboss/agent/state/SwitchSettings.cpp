@@ -153,24 +153,6 @@ SwitchSettings* SwitchSettings::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
-bool SwitchSettings::operator==(const SwitchSettings& switchSettings) const {
-  return (
-      (getFields()->l2LearningMode == switchSettings.getL2LearningMode()) &&
-      (getFields()->qcmEnable == switchSettings.isQcmEnable()) &&
-      (getFields()->ptpTcEnable == switchSettings.isPtpTcEnable()) &&
-      (getFields()->qcmEnable == switchSettings.isQcmEnable()) &&
-      (getFields()->l2AgeTimerSeconds ==
-       switchSettings.getL2AgeTimerSeconds()) &&
-      (getFields()->maxRouteCounterIDs ==
-       switchSettings.getMaxRouteCounterIDs()) &&
-      getFields()->blockNeighbors == switchSettings.getBlockNeighbors() &&
-      getFields()->macAddrsToBlock == switchSettings.getMacAddrsToBlock() &&
-      getFields()->switchType == switchSettings.getSwitchType() &&
-      getFields()->switchId == switchSettings.getSwitchId() &&
-      getFields()->exactMatchTableConfigs ==
-          switchSettings.getExactMatchTableConfig());
-}
-
 state::SwitchSettingsFields SwitchSettingsFields::toThrift() const {
   state::SwitchSettingsFields thriftFields{};
   thriftFields.l2LearningMode() = l2LearningMode;
@@ -307,9 +289,6 @@ void SwitchSettingsFields::migrateFromThrifty(folly::dynamic& dyn) {
   }
 }
 
-template class ThriftyBaseT<
-    state::SwitchSettingsFields,
-    SwitchSettings,
-    SwitchSettingsFields>;
+template class ThriftStructNode<SwitchSettings, state::SwitchSettingsFields>;
 
 } // namespace facebook::fboss

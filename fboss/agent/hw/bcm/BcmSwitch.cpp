@@ -1123,8 +1123,9 @@ void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
         newSwitchSettings->getMaxRouteCounterIDs());
   }
 
-  if (oldSwitchSettings->getExactMatchTableConfig() !=
-      newSwitchSettings->getExactMatchTableConfig()) {
+  // THRIFT_COPY
+  if (oldSwitchSettings->getExactMatchTableConfig()->toThrift() !=
+      newSwitchSettings->getExactMatchTableConfig()->toThrift()) {
     XLOG(DBG3) << "ExactMatch table setting changed";
     teFlowTable_->processTeFlowConfigChanged(newSwitchSettings);
   }

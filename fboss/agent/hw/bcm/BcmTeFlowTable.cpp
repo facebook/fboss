@@ -30,10 +30,11 @@ void BcmTeFlowTable::processTeFlowConfigChanged(
   auto dstIpPrefixLength = 0;
   auto exactMatchTableConfigs = switchSettings->getExactMatchTableConfig();
   std::string teFlowTableName(cfg::switch_config_constants::TeFlowTableName());
-  for (const auto& tableConfig : exactMatchTableConfigs) {
-    if ((tableConfig.name() == teFlowTableName) &&
-        tableConfig.dstPrefixLength().has_value()) {
-      dstIpPrefixLength = tableConfig.dstPrefixLength().value();
+  for (const auto& tableConfig : *exactMatchTableConfigs) {
+    if ((tableConfig->cref<switch_config_tags::name>() == teFlowTableName) &&
+        tableConfig->cref<switch_config_tags::dstPrefixLength>().has_value()) {
+      dstIpPrefixLength =
+          tableConfig->cref<switch_config_tags::dstPrefixLength>()->toThrift();
     }
   }
   const auto warmBootCache = hw_->getWarmBootCache();

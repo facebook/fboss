@@ -70,124 +70,192 @@ struct SwitchSettingsFields
   std::optional<cfg::Range64> systemPortRange;
 };
 
+USE_THRIFT_COW(SwitchSettings)
 /*
  * SwitchSettings stores state about path settings of traffic to userver CPU
  * on the switch.
  */
-class SwitchSettings : public ThriftyBaseT<
-                           state::SwitchSettingsFields,
-                           SwitchSettings,
-                           SwitchSettingsFields> {
+class SwitchSettings
+    : public ThriftStructNode<SwitchSettings, state::SwitchSettingsFields> {
  public:
+  using BaseT = ThriftStructNode<SwitchSettings, state::SwitchSettingsFields>;
   static std::shared_ptr<SwitchSettings> fromFollyDynamicLegacy(
       const folly::dynamic& json) {
     const auto& fields = SwitchSettingsFields::fromFollyDynamicLegacy(json);
-    return std::make_shared<SwitchSettings>(fields);
+    return std::make_shared<SwitchSettings>(fields.toThrift());
+  }
+
+  static std::shared_ptr<SwitchSettings> fromFollyDynamic(
+      const folly::dynamic& json) {
+    const auto& fields = SwitchSettingsFields::fromFollyDynamic(json);
+    return std::make_shared<SwitchSettings>(fields.toThrift());
   }
 
   folly::dynamic toFollyDynamicLegacy() const {
-    return getFields()->toFollyDynamicLegacy();
+    auto fields = SwitchSettingsFields::fromThrift(toThrift());
+    return fields.toFollyDynamicLegacy();
+  }
+
+  folly::dynamic toFollyDynamic() const override {
+    auto fields = SwitchSettingsFields::fromThrift(toThrift());
+    return fields.toFollyDynamic();
   }
 
   cfg::L2LearningMode getL2LearningMode() const {
-    return getFields()->l2LearningMode;
+    return cref<switch_state_tags::l2LearningMode>()->toThrift();
   }
 
   void setL2LearningMode(cfg::L2LearningMode l2LearningMode) {
-    writableFields()->l2LearningMode = l2LearningMode;
+    set<switch_state_tags::l2LearningMode>(l2LearningMode);
   }
 
   bool isQcmEnable() const {
-    return getFields()->qcmEnable;
+    return cref<switch_state_tags::qcmEnable>()->toThrift();
   }
 
   void setQcmEnable(const bool enable) {
-    writableFields()->qcmEnable = enable;
+    set<switch_state_tags::qcmEnable>(enable);
   }
 
   bool isPtpTcEnable() const {
-    return getFields()->ptpTcEnable;
+    return cref<switch_state_tags::ptpTcEnable>()->toThrift();
   }
 
   void setPtpTcEnable(const bool enable) {
-    writableFields()->ptpTcEnable = enable;
+    set<switch_state_tags::ptpTcEnable>(enable);
   }
 
   uint32_t getL2AgeTimerSeconds() const {
-    return getFields()->l2AgeTimerSeconds;
+    return cref<switch_state_tags::l2AgeTimerSeconds>()->toThrift();
   }
 
   void setL2AgeTimerSeconds(uint32_t val) {
-    writableFields()->l2AgeTimerSeconds = val;
+    set<switch_state_tags::l2AgeTimerSeconds>(val);
   }
 
   uint32_t getMaxRouteCounterIDs() const {
-    return getFields()->maxRouteCounterIDs;
+    return cref<switch_state_tags::maxRouteCounterIDs>()->toThrift();
   }
 
   void setMaxRouteCounterIDs(uint32_t numCounterIDs) {
-    writableFields()->maxRouteCounterIDs = numCounterIDs;
+    set<switch_state_tags::maxRouteCounterIDs>(numCounterIDs);
   }
 
-  std::vector<std::pair<VlanID, folly::IPAddress>> getBlockNeighbors() const {
-    return getFields()->blockNeighbors;
+  auto getBlockNeighbors() const {
+    return safe_cref<switch_state_tags::blockNeighbors>();
+  }
+
+  // THRIFT_COPY
+  std::vector<std::pair<VlanID, folly::IPAddress>>
+  getBlockNeighbors_DEPRECATED() const {
+    std::vector<std::pair<VlanID, folly::IPAddress>> blockedNeighbors;
+    for (const auto& iter : *(getBlockNeighbors())) {
+      auto blockedVlanID = VlanID(
+          iter->cref<switch_state_tags::blockNeighborVlanID>()->toThrift());
+      auto blockedNeighborIP = network::toIPAddress(
+          iter->cref<switch_state_tags::blockNeighborIP>()->toThrift());
+      blockedNeighbors.push_back(
+          std::make_pair(blockedVlanID, blockedNeighborIP));
+    }
+    return blockedNeighbors;
   }
 
   void setBlockNeighbors(
       const std::vector<std::pair<VlanID, folly::IPAddress>>& blockNeighbors) {
-    writableFields()->blockNeighbors = blockNeighbors;
+    std::vector<state::BlockedNeighbor> neighbors{};
+    for (auto& entry : blockNeighbors) {
+      state::BlockedNeighbor neighbor;
+      neighbor.blockNeighborVlanID_ref() = entry.first;
+      neighbor.blockNeighborIP_ref() = network::toBinaryAddress(entry.second);
+      neighbors.push_back(neighbor);
+    }
+    setBlockNeighbors(neighbors);
   }
 
-  std::vector<std::pair<VlanID, folly::MacAddress>> getMacAddrsToBlock() const {
-    return getFields()->macAddrsToBlock;
+  void setBlockNeighbors(const std::vector<state::BlockedNeighbor>& neighbors) {
+    set<switch_state_tags::blockNeighbors>(neighbors);
+  }
+
+  auto getMacAddrsToBlock() const {
+    return safe_cref<switch_state_tags::macAddrsToBlock>();
+  }
+
+  // THRIFT_COPY
+  std::vector<std::pair<VlanID, folly::MacAddress>>
+  getMacAddrsToBlock_DEPRECATED() const {
+    std::vector<std::pair<VlanID, folly::MacAddress>> macAddrs{};
+    for (const auto& iter : *(getMacAddrsToBlock())) {
+      auto blockedVlanID = VlanID(
+          iter->cref<switch_state_tags::macAddrToBlockVlanID>()->toThrift());
+      auto blockedMac = folly::MacAddress(
+          iter->cref<switch_state_tags::macAddrToBlockAddr>()->toThrift());
+      macAddrs.push_back(std::make_pair(blockedVlanID, blockedMac));
+    }
+    return macAddrs;
   }
 
   void setMacAddrsToBlock(
       const std::vector<std::pair<VlanID, folly::MacAddress>>&
           macAddrsToBlock) {
-    writableFields()->macAddrsToBlock = macAddrsToBlock;
+    std::vector<state::BlockedMacAddress> macAddrs{};
+    for (auto& entry : macAddrsToBlock) {
+      state::BlockedMacAddress macAddr;
+      macAddr.macAddrToBlockVlanID_ref() = entry.first;
+      macAddr.macAddrToBlockAddr_ref() = entry.second.toString();
+      macAddrs.push_back(macAddr);
+    }
+    set<switch_state_tags::macAddrsToBlock>(macAddrs);
   }
 
   cfg::SwitchType getSwitchType() const {
-    return getFields()->switchType;
+    return cref<switch_state_tags::switchType>()->toThrift();
   }
   void setSwitchType(cfg::SwitchType type) {
-    writableFields()->switchType = type;
+    set<switch_state_tags::switchType>(type);
   }
 
   std::optional<int64_t> getSwitchId() const {
-    return getFields()->switchId;
+    if (auto switchId = cref<switch_state_tags::switchId>()) {
+      return switchId->toThrift();
+    }
+    return std::nullopt;
   }
   void setSwitchId(std::optional<int64_t> switchId) {
-    writableFields()->switchId = switchId;
+    if (!switchId) {
+      ref<switch_state_tags::switchId>().reset();
+    } else {
+      set<switch_state_tags::switchId>(*switchId);
+    }
   }
 
-  std::vector<cfg::ExactMatchTableConfig> getExactMatchTableConfig() const {
-    return getFields()->exactMatchTableConfigs;
+  auto getExactMatchTableConfig() const {
+    return safe_cref<switch_state_tags::exactMatchTableConfigs>();
   }
 
   void setExactMatchTableConfig(
       const std::vector<cfg::ExactMatchTableConfig>& exactMatchConfigs) {
-    writableFields()->exactMatchTableConfigs = exactMatchConfigs;
+    set<switch_state_tags::exactMatchTableConfigs>(exactMatchConfigs);
   }
 
   std::optional<cfg::Range64> getSystemPortRange() const {
-    return getFields()->systemPortRange;
+    if (auto range = cref<switch_state_tags::systemPortRange>()) {
+      return range->toThrift();
+    }
+    return std::nullopt;
   }
   void setSystemPortRange(std::optional<cfg::Range64> systemPortRange) {
-    writableFields()->systemPortRange = systemPortRange;
+    if (!systemPortRange) {
+      ref<switch_state_tags::systemPortRange>().reset();
+    } else {
+      set<switch_state_tags::systemPortRange>(*systemPortRange);
+    }
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
-  bool operator==(const SwitchSettings& switchSettings) const;
-  bool operator!=(const SwitchSettings& switchSettings) {
-    return !(*this == switchSettings);
-  }
-
  private:
   // Inherit the constructors required for clone()
-  using ThriftyBaseT::ThriftyBaseT;
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 

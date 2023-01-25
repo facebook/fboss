@@ -3249,13 +3249,17 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     switchSettingsChange = true;
   }
 
-  std::vector<std::pair<VlanID, folly::IPAddress>> cfgBlockNeighbors;
+  std::vector<state::BlockedNeighbor> cfgBlockNeighbors;
   for (const auto& blockNeighbor : *cfg_->switchSettings()->blockNeighbors()) {
-    cfgBlockNeighbors.emplace_back(
-        VlanID(*blockNeighbor.vlanID()),
-        folly::IPAddress(*blockNeighbor.ipAddress()));
+    state::BlockedNeighbor neighbor{};
+    neighbor.blockNeighborVlanID_ref() = *blockNeighbor.vlanID();
+    neighbor.blockNeighborIP_ref() =
+        network::toBinaryAddress(folly::IPAddress(*blockNeighbor.ipAddress()));
+    cfgBlockNeighbors.emplace_back(neighbor);
   }
-  if (origSwitchSettings->getBlockNeighbors() != cfgBlockNeighbors) {
+  // THRIFT_COPY
+  if (origSwitchSettings->getBlockNeighbors()->toThrift() !=
+      cfgBlockNeighbors) {
     newSwitchSettings->setBlockNeighbors(cfgBlockNeighbors);
     switchSettingsChange = true;
   }
@@ -3267,7 +3271,8 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
         VlanID(*macAddrToBlock.vlanID()),
         folly::MacAddress(*macAddrToBlock.macAddress()));
   }
-  if (origSwitchSettings->getMacAddrsToBlock() != cfgMacAddrsToBlock) {
+  if (origSwitchSettings->getMacAddrsToBlock_DEPRECATED() !=
+      cfgMacAddrsToBlock) {
     newSwitchSettings->setMacAddrsToBlock(cfgMacAddrsToBlock);
     switchSettingsChange = true;
   }
@@ -3288,7 +3293,8 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
 
   auto originalExactMatchTableConfig =
       origSwitchSettings->getExactMatchTableConfig();
-  if (originalExactMatchTableConfig !=
+  // THRIFT_COPY
+  if (originalExactMatchTableConfig->toThrift() !=
       *cfg_->switchSettings()->exactMatchTableConfigs()) {
     if (cfg_->switchSettings()->exactMatchTableConfigs()->size() > 1) {
       throw FbossError("Multiple EM tables not supported yet");

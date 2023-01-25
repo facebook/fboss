@@ -248,29 +248,32 @@ TEST_F(ThriftTest, setPortState) {
 TEST_F(ThriftTest, getAndSetNeighborsToBlock) {
   ThriftHandler handler(sw_);
 
-  auto blockListVerify = [&handler](
-                             std::vector<std::pair<VlanID, folly::IPAddress>>
-                                 neighborsToBlock) {
-    auto cfgNeighborsToBlock = std::make_unique<std::vector<cfg::Neighbor>>();
+  auto blockListVerify =
+      [&handler](
+          std::vector<std::pair<VlanID, folly::IPAddress>> neighborsToBlock) {
+        auto cfgNeighborsToBlock =
+            std::make_unique<std::vector<cfg::Neighbor>>();
 
-    for (const auto& [vlanID, ipAddress] : neighborsToBlock) {
-      cfg::Neighbor neighbor;
-      neighbor.vlanID() = vlanID;
-      neighbor.ipAddress() = ipAddress.str();
-      cfgNeighborsToBlock->emplace_back(neighbor);
-    }
-    auto expectedCfgNeighborsToBlock = *cfgNeighborsToBlock;
-    handler.setNeighborsToBlock(std::move(cfgNeighborsToBlock));
-    waitForStateUpdates(handler.getSw());
+        for (const auto& [vlanID, ipAddress] : neighborsToBlock) {
+          cfg::Neighbor neighbor;
+          neighbor.vlanID() = vlanID;
+          neighbor.ipAddress() = ipAddress.str();
+          cfgNeighborsToBlock->emplace_back(neighbor);
+        }
+        auto expectedCfgNeighborsToBlock = *cfgNeighborsToBlock;
+        handler.setNeighborsToBlock(std::move(cfgNeighborsToBlock));
+        waitForStateUpdates(handler.getSw());
 
-    auto gotBlockedNeighbors =
-        handler.getSw()->getState()->getSwitchSettings()->getBlockNeighbors();
-    EXPECT_EQ(neighborsToBlock, gotBlockedNeighbors);
+        auto gotBlockedNeighbors = handler.getSw()
+                                       ->getState()
+                                       ->getSwitchSettings()
+                                       ->getBlockNeighbors_DEPRECATED();
+        EXPECT_EQ(neighborsToBlock, gotBlockedNeighbors);
 
-    std::vector<cfg::Neighbor> gotBlockedNeighborsViaThrift;
-    handler.getBlockedNeighbors(gotBlockedNeighborsViaThrift);
-    EXPECT_EQ(gotBlockedNeighborsViaThrift, expectedCfgNeighborsToBlock);
-  };
+        std::vector<cfg::Neighbor> gotBlockedNeighborsViaThrift;
+        handler.getBlockedNeighbors(gotBlockedNeighborsViaThrift);
+        EXPECT_EQ(gotBlockedNeighborsViaThrift, expectedCfgNeighborsToBlock);
+      };
 
   // set blockneighbor1
   blockListVerify(
@@ -290,7 +293,11 @@ TEST_F(ThriftTest, getAndSetNeighborsToBlock) {
   handler.setNeighborsToBlock({});
   waitForStateUpdates(sw_);
   EXPECT_EQ(
-      0, sw_->getState()->getSwitchSettings()->getBlockNeighbors().size());
+      0,
+      sw_->getState()
+          ->getSwitchSettings()
+          ->getBlockNeighbors_DEPRECATED()
+          .size());
   handler.getBlockedNeighbors(blockedNeighbors);
   EXPECT_TRUE(blockedNeighbors.empty());
 
@@ -299,7 +306,11 @@ TEST_F(ThriftTest, getAndSetNeighborsToBlock) {
   handler.setNeighborsToBlock(std::move(neighborsToBlock));
   waitForStateUpdates(sw_);
   EXPECT_EQ(
-      0, sw_->getState()->getSwitchSettings()->getBlockNeighbors().size());
+      0,
+      sw_->getState()
+          ->getSwitchSettings()
+          ->getBlockNeighbors_DEPRECATED()
+          .size());
   handler.getBlockedNeighbors(blockedNeighbors);
   EXPECT_TRUE(blockedNeighbors.empty());
 
@@ -320,29 +331,32 @@ TEST_F(ThriftTest, getAndSetNeighborsToBlock) {
 TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
   ThriftHandler handler(sw_);
 
-  auto blockListVerify = [&handler](
-                             std::vector<std::pair<VlanID, folly::MacAddress>>
-                                 macAddrsToBlock) {
-    auto cfgMacAddrsToBlock = std::make_unique<std::vector<cfg::MacAndVlan>>();
+  auto blockListVerify =
+      [&handler](
+          std::vector<std::pair<VlanID, folly::MacAddress>> macAddrsToBlock) {
+        auto cfgMacAddrsToBlock =
+            std::make_unique<std::vector<cfg::MacAndVlan>>();
 
-    for (const auto& [vlanID, macAddress] : macAddrsToBlock) {
-      cfg::MacAndVlan macAndVlan;
-      macAndVlan.vlanID() = vlanID;
-      macAndVlan.macAddress() = macAddress.toString();
-      cfgMacAddrsToBlock->emplace_back(macAndVlan);
-    }
-    auto expectedCfgMacAddrsToBlock = *cfgMacAddrsToBlock;
-    handler.setMacAddrsToBlock(std::move(cfgMacAddrsToBlock));
-    waitForStateUpdates(handler.getSw());
+        for (const auto& [vlanID, macAddress] : macAddrsToBlock) {
+          cfg::MacAndVlan macAndVlan;
+          macAndVlan.vlanID() = vlanID;
+          macAndVlan.macAddress() = macAddress.toString();
+          cfgMacAddrsToBlock->emplace_back(macAndVlan);
+        }
+        auto expectedCfgMacAddrsToBlock = *cfgMacAddrsToBlock;
+        handler.setMacAddrsToBlock(std::move(cfgMacAddrsToBlock));
+        waitForStateUpdates(handler.getSw());
 
-    auto gotMacAddrsToBlock =
-        handler.getSw()->getState()->getSwitchSettings()->getMacAddrsToBlock();
-    EXPECT_EQ(macAddrsToBlock, gotMacAddrsToBlock);
+        auto gotMacAddrsToBlock = handler.getSw()
+                                      ->getState()
+                                      ->getSwitchSettings()
+                                      ->getMacAddrsToBlock_DEPRECATED();
+        EXPECT_EQ(macAddrsToBlock, gotMacAddrsToBlock);
 
-    std::vector<cfg::MacAndVlan> gotMacAddrsToBlockViaThrift;
-    handler.getMacAddrsToBlock(gotMacAddrsToBlockViaThrift);
-    EXPECT_EQ(gotMacAddrsToBlockViaThrift, expectedCfgMacAddrsToBlock);
-  };
+        std::vector<cfg::MacAndVlan> gotMacAddrsToBlockViaThrift;
+        handler.getMacAddrsToBlock(gotMacAddrsToBlockViaThrift);
+        EXPECT_EQ(gotMacAddrsToBlockViaThrift, expectedCfgMacAddrsToBlock);
+      };
 
   // set blockneighbor1
   blockListVerify({{VlanID(2000), folly::MacAddress("00:11:22:33:44:55")}});
@@ -360,7 +374,11 @@ TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
   handler.setMacAddrsToBlock({});
   waitForStateUpdates(sw_);
   EXPECT_EQ(
-      0, sw_->getState()->getSwitchSettings()->getMacAddrsToBlock().size());
+      0,
+      sw_->getState()
+          ->getSwitchSettings()
+          ->getMacAddrsToBlock_DEPRECATED()
+          .size());
   handler.getMacAddrsToBlock(macAddrsToBlock);
   EXPECT_TRUE(macAddrsToBlock.empty());
 
@@ -369,7 +387,11 @@ TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
   handler.setMacAddrsToBlock(std::move(macAddrsToBlock2));
   waitForStateUpdates(sw_);
   EXPECT_EQ(
-      0, sw_->getState()->getSwitchSettings()->getMacAddrsToBlock().size());
+      0,
+      sw_->getState()
+          ->getSwitchSettings()
+          ->getMacAddrsToBlock_DEPRECATED()
+          .size());
   handler.getMacAddrsToBlock(macAddrsToBlock);
   EXPECT_TRUE(macAddrsToBlock.empty());
 
