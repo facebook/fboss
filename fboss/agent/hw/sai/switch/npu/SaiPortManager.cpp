@@ -634,33 +634,6 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
   SaiPortSerdesTraits::Attributes::RxAcCouplingByPass::ValueType
       rxAcCouplingByPass;
 
-#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
-  SaiPortSerdesTraits::Attributes::TxDiffEncoderEn::ValueType txDiffEncoderEn;
-  SaiPortSerdesTraits::Attributes::TxDigGain::ValueType txDigGain;
-  SaiPortSerdesTraits::Attributes::TxFfeCoeff0::ValueType txFfeCoeff0;
-  SaiPortSerdesTraits::Attributes::TxFfeCoeff1::ValueType txFfeCoeff1;
-  SaiPortSerdesTraits::Attributes::TxFfeCoeff2::ValueType txFfeCoeff2;
-  SaiPortSerdesTraits::Attributes::TxFfeCoeff3::ValueType txFfeCoeff3;
-  SaiPortSerdesTraits::Attributes::TxFfeCoeff4::ValueType txFfeCoeff4;
-  SaiPortSerdesTraits::Attributes::TxParityEncoderEn::ValueType
-      txParityEncoderEn;
-  SaiPortSerdesTraits::Attributes::TxThpEn::ValueType txThpEn;
-
-  SaiPortSerdesTraits::Attributes::RxChannelReach::ValueType rxChannelReach;
-  SaiPortSerdesTraits::Attributes::RxDiffEncoderEn::ValueType rxDiffEncoderEn;
-  SaiPortSerdesTraits::Attributes::RxFbfCoefInitVal::ValueType rxFbfCoefInitVal;
-  SaiPortSerdesTraits::Attributes::RxFbfLmsEnable::ValueType rxFbfLmsEnable;
-  SaiPortSerdesTraits::Attributes::RxInstgScanOptimize::ValueType
-      rxInstgScanOptimize;
-  SaiPortSerdesTraits::Attributes::RxInstgTableEndRow::ValueType
-      rxInstgTableEndRow;
-  SaiPortSerdesTraits::Attributes::RxInstgTableStartRow::ValueType
-      rxInstgTableStartRow;
-  SaiPortSerdesTraits::Attributes::RxParityEncoderEn::ValueType
-      rxParityEncoderEn;
-  SaiPortSerdesTraits::Attributes::RxThpEn::ValueType rxThpEn;
-#endif
-
   // Now use pinConfigs from SW port as the source of truth
   auto numExpectedTxLanes = 0;
   auto numExpectedRxLanes = 0;
@@ -673,35 +646,6 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       if (auto driveCurrent = tx->driveCurrent()) {
         txIDriver.push_back(driveCurrent.value());
       }
-#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
-      if (auto diffEncoderEn = tx->diffEncoderEn()) {
-        txDiffEncoderEn.push_back(diffEncoderEn.value());
-      }
-      if (auto digGain = tx->digGain()) {
-        txDigGain.push_back(digGain.value());
-      }
-      if (auto ffeCoeff0 = tx->ffeCoeff0()) {
-        txFfeCoeff0.push_back(ffeCoeff0.value());
-      }
-      if (auto ffeCoeff1 = tx->ffeCoeff1()) {
-        txFfeCoeff1.push_back(ffeCoeff1.value());
-      }
-      if (auto ffeCoeff2 = tx->ffeCoeff2()) {
-        txFfeCoeff2.push_back(ffeCoeff2.value());
-      }
-      if (auto ffeCoeff3 = tx->ffeCoeff3()) {
-        txFfeCoeff3.push_back(ffeCoeff3.value());
-      }
-      if (auto ffeCoeff4 = tx->ffeCoeff4()) {
-        txFfeCoeff4.push_back(ffeCoeff4.value());
-      }
-      if (auto parityEncoderEn = tx->parityEncoderEn()) {
-        txParityEncoderEn.push_back(parityEncoderEn.value());
-      }
-      if (auto thpEn = tx->thpEn()) {
-        txThpEn.push_back(thpEn.value());
-      }
-#endif
     }
     if (auto rx = pinConfig.rx()) {
       ++numExpectedRxLanes;
@@ -717,35 +661,6 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       if (auto acCouplingByPass = rx->acCouplingBypass()) {
         rxAcCouplingByPass.push_back(*acCouplingByPass);
       }
-#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
-      if (auto channelReach = rx->channelReach()) {
-        rxChannelReach.push_back(*channelReach);
-      }
-      if (auto diffEncoderEn = rx->diffEncoderEn()) {
-        rxDiffEncoderEn.push_back(*diffEncoderEn);
-      }
-      if (auto fbfCoefInitVal = rx->fbfCoefInitVal()) {
-        rxFbfCoefInitVal.push_back(*fbfCoefInitVal);
-      }
-      if (auto fbfLmsEnable = rx->fbfLmsEnable()) {
-        rxFbfLmsEnable.push_back(*fbfLmsEnable);
-      }
-      if (auto instgScanOptimize = rx->instgScanOptimize()) {
-        rxInstgScanOptimize.push_back(*instgScanOptimize);
-      }
-      if (auto instgTableEndRow = rx->instgTableEndRow()) {
-        rxInstgTableEndRow.push_back(*instgTableEndRow);
-      }
-      if (auto instgTableStartRow = rx->instgTableStartRow()) {
-        rxInstgTableStartRow.push_back(*instgTableStartRow);
-      }
-      if (auto parityEncoderEn = rx->parityEncoderEn()) {
-        rxParityEncoderEn.push_back(*parityEncoderEn);
-      }
-      if (auto thpEn = rx->thpEn()) {
-        rxThpEn.push_back(*thpEn);
-      }
-#endif
     }
   }
 
@@ -770,29 +685,6 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     setTxRxAttr(
         attrs, SaiPortSerdesTraits::Attributes::Preemphasis{}, preempahsis);
   }
-
-#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
-  setTxRxAttr(
-      attrs,
-      SaiPortSerdesTraits::Attributes::TxDiffEncoderEn{},
-      txDiffEncoderEn);
-  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxDigGain{}, txDigGain);
-  setTxRxAttr(
-      attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff0{}, txFfeCoeff0);
-  setTxRxAttr(
-      attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff1{}, txFfeCoeff1);
-  setTxRxAttr(
-      attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff2{}, txFfeCoeff2);
-  setTxRxAttr(
-      attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff3{}, txFfeCoeff3);
-  setTxRxAttr(
-      attrs, SaiPortSerdesTraits::Attributes::TxFfeCoeff4{}, txFfeCoeff4);
-  setTxRxAttr(
-      attrs,
-      SaiPortSerdesTraits::Attributes::TxParityEncoderEn{},
-      txParityEncoderEn);
-  setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxThpEn{}, txThpEn);
-#endif
 
   if (numExpectedRxLanes) {
     setTxRxAttr(
@@ -846,41 +738,6 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         attrs,
         SaiPortSerdesTraits::Attributes::RxAcCouplingByPass{},
         rxAcCouplingByPass);
-#if defined(TAJO_SDK_VERSION_1_56_1) || defined(TAJO_SDK_VERSION_1_58_1)
-    setTxRxAttr(
-        attrs,
-        SaiPortSerdesTraits::Attributes::RxChannelReach{},
-        rxChannelReach);
-    setTxRxAttr(
-        attrs,
-        SaiPortSerdesTraits::Attributes::RxDiffEncoderEn{},
-        rxDiffEncoderEn);
-    setTxRxAttr(
-        attrs,
-        SaiPortSerdesTraits::Attributes::RxFbfCoefInitVal{},
-        rxFbfCoefInitVal);
-    setTxRxAttr(
-        attrs,
-        SaiPortSerdesTraits::Attributes::RxFbfLmsEnable{},
-        rxFbfLmsEnable);
-    setTxRxAttr(
-        attrs,
-        SaiPortSerdesTraits::Attributes::RxInstgScanOptimize{},
-        rxInstgScanOptimize);
-    setTxRxAttr(
-        attrs,
-        SaiPortSerdesTraits::Attributes::RxInstgTableEndRow{},
-        rxInstgTableEndRow);
-    setTxRxAttr(
-        attrs,
-        SaiPortSerdesTraits::Attributes::RxInstgTableStartRow{},
-        rxInstgTableStartRow);
-    setTxRxAttr(
-        attrs,
-        SaiPortSerdesTraits::Attributes::RxParityEncoderEn{},
-        rxParityEncoderEn);
-    setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::RxThpEn{}, rxThpEn);
-#endif
   }
   return attrs;
 }
