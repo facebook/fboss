@@ -24,4 +24,5 @@ target_link_libraries(qsfp_platforms_wedge
   wedge40_platform_mapping
   kamet_platform_mapping
   platform_base
+  qsfp_config
 )

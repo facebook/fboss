@@ -994,32 +994,6 @@ if (NOT SAI_ONLY)
   )
   target_link_libraries(cp2112_util fboss_agent)
 
-  add_executable(wedge_qsfp_util
-      fboss/util/wedge_qsfp_util.cpp
-      fboss/util/qsfp_util_main.cpp
-      fboss/util/qsfp/QsfpUtilTx.cpp
-      fboss/util/qsfp/QsfpServiceDetector.cpp
-      fboss/util/oss/wedge_qsfp_util.cpp
-      fboss/lib/firmware_storage/FbossFirmware.cpp
-      fboss/lib/firmware_storage/FbossFirmware.h
-      fboss/lib/firmware_storage/FbossFwStorage.cpp
-      fboss/lib/firmware_storage/FbossFwStorage.h
-      fboss/lib/i2c/CdbCommandBlock.h
-      fboss/lib/i2c/CdbCommandBlock.cpp
-      fboss/lib/i2c/FirmwareUpgrader.cpp
-      fboss/lib/i2c/FirmwareUpgrader.h
-  )
-  target_link_libraries(wedge_qsfp_util
-      fboss_agent
-      qsfp_config
-      qsfp_lib
-      qsfp_module
-      ${YAML-CPP}
-      phy_management_base
-      transceiver_manager
-      qsfp_platforms_wedge
-  )
-
   # Don't include fboss/agent/test/ArpBenchmark.cpp
   # It depends on the Sim implementation and needs its own target
   add_executable(agent_test
