@@ -233,8 +233,8 @@ TEST(ThriftySwitchState, AclTableGroupMap) {
   const std::string kAcl1b = "acl1b";
   const std::string kAcl2a = "acl2a";
   const std::string kGroup1 = "group1";
-  int priority1 = 100000;
-  int priority2 = 100000;
+  int priority1 = AclTable::kDataplaneAclMaxPriority;
+  int priority2 = AclTable::kDataplaneAclMaxPriority;
   const cfg::AclStage kAclStage1 = cfg::AclStage::INGRESS;
 
   auto entry1a = std::make_shared<AclEntry>(priority1++, kAcl1a);

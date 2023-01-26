@@ -88,8 +88,6 @@ using std::shared_ptr;
 namespace {
 
 const uint8_t kV6LinkLocalAddrMask{64};
-// Needed until CoPP is removed from code and put into config
-const int kAclStartPriority = 100000;
 
 // Only one buffer pool is supported systemwide. Variable to track the name
 // and validate during a config change.
@@ -2489,7 +2487,7 @@ std::shared_ptr<AclMap> ThriftConfigApplier::updateAcls(
   AclMap::NodeContainer newAcls;
   bool changed = false;
   int numExistingProcessed = 0;
-  int priority = kAclStartPriority;
+  int priority = AclTable::kDataplaneAclMaxPriority;
   int cpuPriority = 1;
 
   // Start with the DROP acls, these should have highest priority

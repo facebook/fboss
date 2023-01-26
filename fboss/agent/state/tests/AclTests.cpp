@@ -32,11 +32,6 @@ using std::shared_ptr;
 
 DECLARE_bool(enable_acl_table_group);
 
-namespace {
-// We offset the start point in ApplyThriftConfig
-constexpr auto kAclStartPriority = 100000;
-} // namespace
-
 TEST(Acl, applyConfig) {
   FLAGS_enable_acl_table_group = false;
   auto platform = createMockPlatform();
@@ -70,7 +65,7 @@ TEST(Acl, applyConfig) {
   ASSERT_NE(nullptr, aclV1);
   EXPECT_NE(aclV0, aclV1);
 
-  EXPECT_EQ(0 + kAclStartPriority, aclV1->getPriority());
+  EXPECT_EQ(0 + AclTable::kDataplaneAclMaxPriority, aclV1->getPriority());
   EXPECT_EQ(cfg::AclActionType::DENY, aclV1->getActionType());
   EXPECT_EQ(5, aclV1->getSrcPort());
   EXPECT_EQ(8, aclV1->getDstPort());
@@ -135,7 +130,7 @@ TEST(Acl, applyConfig) {
   auto aclV3 = stateV3->getAcl("acl3");
   ASSERT_NE(nullptr, aclV3);
   EXPECT_NE(aclV0, aclV3);
-  EXPECT_EQ(0 + kAclStartPriority, aclV3->getPriority());
+  EXPECT_EQ(0 + AclTable::kDataplaneAclMaxPriority, aclV3->getPriority());
   EXPECT_EQ(cfg::AclActionType::PERMIT, aclV3->getActionType());
   EXPECT_FALSE(!aclV3->getL4SrcPort());
   EXPECT_EQ(aclV3->getL4SrcPort().value(), 1);
@@ -317,7 +312,7 @@ TEST(Acl, Icmp) {
   EXPECT_NE(nullptr, stateV1);
   auto aclV1 = stateV1->getAcl("acl1");
   ASSERT_NE(nullptr, aclV1);
-  EXPECT_EQ(0 + kAclStartPriority, aclV1->getPriority());
+  EXPECT_EQ(0 + AclTable::kDataplaneAclMaxPriority, aclV1->getPriority());
   EXPECT_EQ(cfg::AclActionType::DENY, aclV1->getActionType());
   EXPECT_EQ(128, aclV1->getIcmpType().value());
   EXPECT_EQ(0, aclV1->getIcmpCode().value());
@@ -422,11 +417,21 @@ TEST(Acl, AclGeneration) {
   EXPECT_NE(acls->getEntryIf("acl3"), nullptr);
   EXPECT_NE(acls->getEntryIf("acl5"), nullptr);
 
-  EXPECT_EQ(acls->getEntryIf("acl1")->getPriority(), kAclStartPriority);
-  EXPECT_EQ(acls->getEntryIf("acl4")->getPriority(), kAclStartPriority + 1);
-  EXPECT_EQ(acls->getEntryIf("acl2")->getPriority(), kAclStartPriority + 2);
-  EXPECT_EQ(acls->getEntryIf("acl3")->getPriority(), kAclStartPriority + 3);
-  EXPECT_EQ(acls->getEntryIf("acl5")->getPriority(), kAclStartPriority + 4);
+  EXPECT_EQ(
+      acls->getEntryIf("acl1")->getPriority(),
+      AclTable::kDataplaneAclMaxPriority);
+  EXPECT_EQ(
+      acls->getEntryIf("acl4")->getPriority(),
+      AclTable::kDataplaneAclMaxPriority + 1);
+  EXPECT_EQ(
+      acls->getEntryIf("acl2")->getPriority(),
+      AclTable::kDataplaneAclMaxPriority + 2);
+  EXPECT_EQ(
+      acls->getEntryIf("acl3")->getPriority(),
+      AclTable::kDataplaneAclMaxPriority + 3);
+  EXPECT_EQ(
+      acls->getEntryIf("acl5")->getPriority(),
+      AclTable::kDataplaneAclMaxPriority + 4);
 
   // Ensure that the global actions in global traffic policy has been added to
   // the ACL entries

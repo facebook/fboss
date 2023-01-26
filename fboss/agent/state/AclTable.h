@@ -154,6 +154,11 @@ class AclTable : public ThriftStructNode<AclTable, state::AclTableFields> {
     set<switch_state_tags::qualifiers>(qualifiers);
   }
 
+  // Offset applied to dataplane ACL priority. Dataplane ACL
+  // entries are given priorites >= 100K and CPU ACL entries
+  // priorities < 100K.
+  static constexpr auto kDataplaneAclMaxPriority = 100000;
+
  private:
   // Inherit the constructors required for clone()
   using Base::Base;

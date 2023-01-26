@@ -35,7 +35,6 @@
 namespace {
 const facebook::fboss::Label kTopLabel{1101};
 constexpr auto kGetQueueOutPktsRetryTimes = 5;
-const int kAclStartPriority = 100000;
 const std::string kAclName = "acl0";
 using TestTypes =
     ::testing::Types<facebook::fboss::PortID, facebook::fboss::AggregatePortID>;
@@ -338,7 +337,8 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     } else {
       newState = getProgrammedState()->clone();
     }
-    auto newAcl = std::make_shared<AclEntry>(kAclStartPriority, aclName);
+    auto newAcl =
+        std::make_shared<AclEntry>(AclTable::kDataplaneAclMaxPriority, aclName);
     newAcl->setDstIp(folly::IPAddress::tryCreateNetwork(dstPrefix).value());
     newAcl->setVlanID(ingressVlanId);
     auto cfgRedirectToNextHop = cfg::RedirectToNextHopAction();

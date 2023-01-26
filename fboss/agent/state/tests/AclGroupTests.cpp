@@ -29,8 +29,6 @@ using std::shared_ptr;
 
 DECLARE_bool(enable_acl_table_group);
 
-const int kAclStartPriority = 100000;
-
 const std::string kDscp1 = "dscp1";
 const std::string kDscp2 = "dscp2";
 const std::string kDscp3 = "dscp3";
@@ -425,8 +423,8 @@ TEST(AclGroup, SerializeMultiAclTableGroupMap) {
 
 TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
   FLAGS_enable_acl_table_group = true;
-  int priority1 = kAclStartPriority;
-  int priority2 = kAclStartPriority;
+  int priority1 = AclTable::kDataplaneAclMaxPriority;
+  int priority2 = AclTable::kDataplaneAclMaxPriority;
 
   auto platform = createMockPlatform();
   auto stateEmpty = make_shared<SwitchState>();
@@ -569,8 +567,8 @@ TEST(AclGroup, ApplyConfigColdbootMultipleAclTable) {
 
 TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   FLAGS_enable_acl_table_group = true;
-  int priority1 = kAclStartPriority;
-  int priority2 = kAclStartPriority;
+  int priority1 = AclTable::kDataplaneAclMaxPriority;
+  int priority2 = AclTable::kDataplaneAclMaxPriority;
   auto platform = createMockPlatform();
 
   // State unchanged
@@ -639,7 +637,7 @@ TEST(AclGroup, ApplyConfigWarmbootMultipleAclTable) {
   EXPECT_EQ(nullptr, stateV1);
 
   // Add a table
-  int priority3 = kAclStartPriority;
+  int priority3 = AclTable::kDataplaneAclMaxPriority;
   cfg::AclTable cfgTable3;
   cfgTable3.name_ref() = kTable3;
   cfgTable3.priority_ref() = 3;
