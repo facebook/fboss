@@ -37,10 +37,8 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     SRC_PORT,
   };
 
-  void counterBumpOnHitHelper(
-      bool bumpOnHit,
-      bool frontPanel,
-      AclType aclType = AclType::TTLD) {
+  void
+  counterBumpOnHitHelper(bool bumpOnHit, bool frontPanel, AclType aclType) {
     auto setup = [this, aclType]() {
       applyNewState(helper_->resolveNextHops(getProgrammedState(), 2));
       helper_->programRoutes(getRouteUpdater(), kEcmpWidth);
@@ -74,15 +72,19 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
                    << "aclBytesCounter: " << aclBytesCountBefore << " -> "
                    << aclBytesCountAfter;
 
-        EXPECT_EVENTUALLY_GT(pktsAfter, pktsBefore);
         if (bumpOnHit) {
+          EXPECT_EVENTUALLY_GT(pktsAfter, pktsBefore);
+          auto pktsHit = 1;
+          // For non SRC_PORT ACLS
           // On VOQ switches, we see a counter bump by 1, for the time the
           // packet is routed out. The looped packet which gets dropped does
           // not seem to incur a counter bump. On non VOQ switches OTOH,
           // we see a bump by 2 once on the way out and once when it loops back
           // in.
-          auto pktsHit =
-              getAsic()->getSwitchType() == cfg::SwitchType::VOQ ? 1 : 2;
+          if (aclType != AclType::SRC_PORT &&
+              getAsic()->getSwitchType() == cfg::SwitchType::NPU) {
+            ++pktsHit;
+          }
           EXPECT_EVENTUALLY_EQ(aclPktCountBefore + pktsHit, aclPktCountAfter);
 
           // TODO: Still need to debug. For some test cases, we are getting more
@@ -154,7 +156,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         *acl->ttl()->mask() = 128;
         break;
       case AclType::SRC_PORT:
-        // TODO
+        acl->srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
         break;
     }
     std::vector<cfg::CounterType> setCounterTypes{
@@ -163,32 +165,42 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
   }
 
   static inline constexpr auto kEcmpWidth = 1;
-  const VlanID kVlanID{utility::kBaseVlanId};
-  const InterfaceID kIntfID{utility::kBaseVlanId};
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
   static constexpr auto kAclName = "test-acl";
   static constexpr auto kCounterName = "test-acl-stat";
 };
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
-TEST_F(HwAclCounterTest, VerifyCounterBumpOnHitFrontPanel) {
-  counterBumpOnHitHelper(true /* bump on hit */, true /* front panel port */);
+TEST_F(HwAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
+  counterBumpOnHitHelper(
+      true /* bump on hit */, true /* front panel port */, AclType::TTLD);
 }
 
+TEST_F(HwAclCounterTest, VerifyCounterBumpOnSportHitFrontPanel) {
+  counterBumpOnHitHelper(
+      true /* bump on hit */, true /* front panel port */, AclType::SRC_PORT);
+}
 // Verify that traffic originating on the CPU increments ACL counter.
-TEST_F(HwAclCounterTest, VerifyCounterBumpOnHitCpu) {
-  counterBumpOnHitHelper(true /* bump on hit */, false /* cpu port */);
+TEST_F(HwAclCounterTest, VerifyCounterBumpOnTtlHitCpu) {
+  counterBumpOnHitHelper(
+      true /* bump on hit */, false /* cpu port */, AclType::TTLD);
+}
+
+TEST_F(HwAclCounterTest, VerifyCounterBumpOnSportHitCpu) {
+  counterBumpOnHitHelper(
+      true /* bump on hit */, false /* cpu port */, AclType::SRC_PORT);
 }
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
-TEST_F(HwAclCounterTest, VerifyCounterNoHitNoBumpFrontPanel) {
+TEST_F(HwAclCounterTest, VerifyCounterNoTtlHitNoBumpFrontPanel) {
   counterBumpOnHitHelper(
-      false /* no hit, no bump */, true /* front panel port */);
+      false /* no hit, no bump */, true /* front panel port */, AclType::TTLD);
 }
 
 // Verify that traffic originating on the CPU increments ACL counter.
 TEST_F(HwAclCounterTest, VerifyCounterNoHitNoBumpCpu) {
-  counterBumpOnHitHelper(false /* no hit, no bump */, false /* cpu port */);
+  counterBumpOnHitHelper(
+      false /* no hit, no bump */, false /* cpu port */, AclType::TTLD);
 }
 
 } // namespace facebook::fboss
