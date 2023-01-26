@@ -6,7 +6,7 @@
 
 namespace facebook::fboss {
 
-void benchmarksMain(int argc, char* argsv, PlatformInitFn initPlatform);
+void benchmarksMain(int argc, char* args[], PlatformInitFn initPlatform);
 
 std::unique_ptr<facebook::fboss::AgentEnsemble> createAgentEnsemble(
     AgentEnsembleConfigFn initialConfigFn,
