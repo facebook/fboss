@@ -824,6 +824,17 @@ int __real_bcm_vlan_destroy_all(int unit);
 
 int __real_bcm_vlan_list_destroy(int unit, bcm_vlan_data_t* list, int count);
 
+int __real_bcm_l3_egress_ecmp_ethertype_set(
+    int unit,
+    uint32 flags,
+    int ethertype_count,
+    int* ethertype_array);
+
+int __real_bcm_l3_egress_ecmp_member_status_set(
+    int unit,
+    bcm_if_t intf,
+    int status);
+
 int __real_bcm_port_untagged_vlan_set(
     int unit,
     bcm_port_t port,
@@ -3844,6 +3855,22 @@ int __wrap_bcm_l3_route_traverse(
 
 int __wrap_bcm_vlan_list_destroy(int unit, bcm_vlan_data_t* list, int count) {
   CALL_WRAPPERS_RV(bcm_vlan_list_destroy(unit, list, count));
+}
+
+int __wrap_bcm_l3_egress_ecmp_ethertype_set(
+    int unit,
+    uint32 flags,
+    int ethertype_count,
+    int* ethertype_array) {
+  CALL_WRAPPERS_RV(bcm_l3_egress_ecmp_ethertype_set(
+      unit, flags, ethertype_count, ethertype_array));
+}
+
+int __wrap_bcm_l3_egress_ecmp_member_status_set(
+    int unit,
+    bcm_if_t intf,
+    int status) {
+  CALL_WRAPPERS_RV(bcm_l3_egress_ecmp_member_status_set(unit, intf, status));
 }
 
 int __wrap_bcm_l2_addr_get(

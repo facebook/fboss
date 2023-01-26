@@ -310,6 +310,10 @@ string BcmCinter::getNextPfcPriToPgVar() {
   return to<string>("pfcPriToPg_", ++tmpPfcPriToPgCreated_);
 }
 
+string BcmCinter::getNextEthertypeVar() {
+  return to<string>("etherType_", ++tmpEthertype_);
+}
+
 string BcmCinter::getNextPfcPriToQueueVar() {
   return to<string>("pfcPriToQueue_", ++tmpPfcPriToQueueCreated_);
 }
@@ -401,7 +405,11 @@ vector<string> BcmCinter::cintForL3Ecmp(const bcm_l3_egress_ecmp_t& ecmp) {
       to<string>("ecmp.flags=", ecmp.flags),
       to<string>("ecmp.max_paths=", ecmp.max_paths),
       to<string>("ecmp.ecmp_intf=", getCintVar(l3IntfIdVars, ecmp.ecmp_intf)),
-      to<string>("ecmp.ecmp_group_flags=", ecmp.ecmp_group_flags)};
+      to<string>("ecmp.ecmp_group_flags=", ecmp.ecmp_group_flags),
+      to<string>("ecmp.dynamic_mode=", ecmp.dynamic_mode),
+      to<string>("ecmp.dynamic_size=", ecmp.dynamic_size),
+      to<string>("ecmp.dynamic_age=", ecmp.dynamic_age)};
+
   return cintLines;
 }
 
@@ -2591,7 +2599,16 @@ vector<string> BcmCinter::cintForL3Egress(const bcm_l3_egress_t* l3_egress) {
       to<string>("l3_egress.qos_map_id = ", l3_egress->qos_map_id),
       to<string>("l3_egress.mpls_qos_map_id = ", l3_egress->mpls_qos_map_id),
       to<string>("l3_egress.mpls_flags = ", l3_egress->mpls_flags),
-      to<string>("l3_egress.mpls_label = ", l3_egress->mpls_label)};
+      to<string>("l3_egress.mpls_label = ", l3_egress->mpls_label),
+      to<string>(
+          "l3_egress.dynamic_load_weight = ", l3_egress->dynamic_load_weight),
+      to<string>(
+          "l3_egress.dynamic_queue_size_weight = ",
+          l3_egress->dynamic_queue_size_weight),
+      to<string>(
+          "l3_egress.dynamic_scaling_factor = ",
+          l3_egress->dynamic_scaling_factor)};
+
   return cintLines;
 }
 
@@ -2916,6 +2933,43 @@ int BcmCinter::bcm_qos_port_map_set(
 int BcmCinter::bcm_port_dscp_map_mode_set(int unit, bcm_port_t port, int mode) {
   writeCintLines(wrapFunc(to<string>(
       "bcm_port_dscp_map_mode_set(", makeParamStr(unit, port, mode), ")")));
+  return 0;
+}
+
+int BcmCinter::bcm_l3_egress_ecmp_ethertype_set(
+    int unit,
+    uint32 flags,
+    int ethertype_count,
+    int* ethertype_array) {
+  std::vector<string> argValues;
+  string arrayVarName = getNextEthertypeVar();
+  for (int i = 0; i < ethertype_count; ++i) {
+    argValues.push_back(to<string>(ethertype_array[i]));
+  }
+  string argVarArray = to<string>(
+      "int ", arrayVarName, "[] =", " {", join(", ", argValues), "}");
+  vector<string> cint = {argVarArray};
+
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_l3_egress_ecmp_ethertype_set(",
+      makeParamStr(unit, flags, ethertype_count, arrayVarName),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
+int BcmCinter::bcm_l3_egress_ecmp_member_status_set(
+    int unit,
+    bcm_if_t intf,
+    int status) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_l3_egress_ecmp_member_status_set(",
+      makeParamStr(unit, intf, status),
+      ")")));
   return 0;
 }
 

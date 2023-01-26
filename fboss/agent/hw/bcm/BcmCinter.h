@@ -283,6 +283,13 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       uint16 mask) override;
   int bcm_switch_control_set(int unit, bcm_switch_control_t type, int arg)
       override;
+  int bcm_l3_egress_ecmp_ethertype_set(
+      int unit,
+      uint32 flags,
+      int ethertype_count,
+      int* ethertype_array) override;
+  int bcm_l3_egress_ecmp_member_status_set(int unit, bcm_if_t intf, int status)
+      override;
   int bcm_switch_control_port_set(
       int unit,
       bcm_port_t port,
@@ -1937,6 +1944,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::string getNextTimeInterfaceVar();
   std::string getNextTimeSpecVar();
   std::string getNextStateCounterVar();
+  std::string getNextEthertypeVar();
 
   /*
    * Wrap a generated cint function call with return error code
@@ -2112,6 +2120,7 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::atomic<uint> tmpTimeInterfaceCreated_{0};
   std::atomic<uint> tmpTimeSpecCreated_{0};
   std::atomic<uint> tmpStateCounterCreated_{0};
+  std::atomic<uint> tmpEthertype_{0};
 
   std::unique_ptr<AsyncLogger> asyncLogger_;
 
