@@ -5,7 +5,7 @@
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
 
-#include "fboss/platform/fbdevd/darwin/DarwinDeviceTopology.h"
+#include "fboss/platform/fbdevd/FbdevdImpl.h"
 #include "fboss/platform/fbdevd/if/gen-cpp2/FbdevManager.h"
 #include "fboss/platform/helpers/Init.h"
 
@@ -19,6 +19,8 @@ int main(int argc, char** argv) {
   // Init FB and export build values
   helpers::init(argc, argv);
   fb303::registerFollyLoggingOptionHandlers();
+
+  auto serviceImpl = std::make_shared<FbdevdImpl>();
 
   // Set up scheduler.
   folly::FunctionScheduler scheduler;
