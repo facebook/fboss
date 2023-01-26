@@ -253,7 +253,7 @@ add_executable(bcm_init_and_exit_40Gx10G /dev/null)
 
 target_link_libraries(bcm_init_and_exit_40Gx10G
   -Wl,--whole-archive
-  bcm_switch_ensemble
+  bcm_agent_benchmarks_main
   bcm_copp_utils
   config_factory
   hw_init_and_exit_40Gx10G
@@ -264,7 +264,7 @@ add_executable(bcm_init_and_exit_100Gx10G /dev/null)
 
 target_link_libraries(bcm_init_and_exit_100Gx10G
   -Wl,--whole-archive
-  bcm_switch_ensemble
+  bcm_agent_benchmarks_main
   bcm_copp_utils
   config_factory
   hw_init_and_exit_100Gx10G
@@ -275,7 +275,7 @@ add_executable(bcm_init_and_exit_100Gx25G /dev/null)
 
 target_link_libraries(bcm_init_and_exit_100Gx25G
   -Wl,--whole-archive
-  bcm_switch_ensemble
+  bcm_agent_benchmarks_main
   bcm_copp_utils
   config_factory
   hw_init_and_exit_100Gx25G
@@ -286,7 +286,7 @@ add_executable(bcm_init_and_exit_100Gx50G /dev/null)
 
 target_link_libraries(bcm_init_and_exit_100Gx50G
   -Wl,--whole-archive
-  bcm_switch_ensemble
+  bcm_agent_benchmarks_main
   bcm_copp_utils
   config_factory
   hw_init_and_exit_100Gx50G
@@ -297,7 +297,7 @@ add_executable(bcm_init_and_exit_100Gx100G /dev/null)
 
 target_link_libraries(bcm_init_and_exit_100Gx100G
   -Wl,--whole-archive
-  bcm_switch_ensemble
+  bcm_agent_benchmarks_main
   bcm_copp_utils
   config_factory
   hw_init_and_exit_100Gx100G

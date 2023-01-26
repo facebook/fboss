@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/hw/benchmarks/HwInitAndExitBenchmarkHelper.h"
+#include <fboss/agent/SwSwitch.h>
+#include <fboss/agent/test/AgentEnsemble.h>
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -29,6 +31,8 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 #include <iostream>
+
+#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 
 using namespace facebook::fboss;
 
@@ -103,7 +107,7 @@ std::optional<uint16_t> getUplinksCount(
 }
 
 utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
-    const HwSwitchEnsemble* ensemble) {
+    const AgentEnsemble* ensemble) {
   /*
    * |  Platform   |  Role  |
    * |  TRIDENT2   |   RSW  |
@@ -116,11 +120,11 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
    * be categorized as th_atom_init_and_exit_100Gx100G which is applicable
    * for wedge100, wedge100S and Galaxy. Hence, use FSW route scale for TH.
    */
-  auto asicType =
-      ensemble->getHwSwitch()->getPlatform()->getAsic()->getAsicType();
+  auto* swSwitch = ensemble->getSw();
+  auto asicType = ensemble->getHw()->getPlatform()->getAsic()->getAsicType();
 
   if (asicType == cfg::AsicType::ASIC_TYPE_TRIDENT2) {
-    return utility::RSWRouteScaleGenerator(ensemble->getProgrammedState())
+    return utility::RSWRouteScaleGenerator(swSwitch->getState())
         .getThriftRoutes();
   } else if (
       asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
@@ -129,10 +133,10 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
       asicType == cfg::AsicType::ASIC_TYPE_GARONNE ||
       asicType == cfg::AsicType::ASIC_TYPE_INDUS ||
       asicType == cfg::AsicType::ASIC_TYPE_BEAS) {
-    return utility::HgridUuRouteScaleGenerator(ensemble->getProgrammedState())
+    return utility::HgridUuRouteScaleGenerator(swSwitch->getState())
         .getThriftRoutes();
   } else if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK) {
-    return utility::FSWRouteScaleGenerator(ensemble->getProgrammedState())
+    return utility::FSWRouteScaleGenerator(swSwitch->getState())
         .getThriftRoutes();
   } else {
     CHECK(false) << "Invalid asic type for route scale";
@@ -143,59 +147,53 @@ void initandExitBenchmarkHelper(
     cfg::PortSpeed uplinkSpeed,
     cfg::PortSpeed downlinkSpeed) {
   folly::BenchmarkSuspender suspender;
-  std::unique_ptr<HwSwitchEnsemble> ensemble;
+  std::unique_ptr<AgentEnsemble> ensemble{};
+
+  AgentEnsembleConfigFn initialConfig = [uplinkSpeed, downlinkSpeed](
+                                            HwSwitch* hwSwitch,
+                                            const std::vector<PortID>& ports) {
+    auto numUplinks = getUplinksCount(hwSwitch, uplinkSpeed, downlinkSpeed);
+    if (!numUplinks) {
+      return utility::oneL3IntfNPortConfig(hwSwitch, ports);
+    }
+    /*
+     * Based on the uplink/downlink speed, use the ConfigFactory to create
+     * agent config to mimic the production config. For instance, in TH,
+     * 100Gx10G as config type will create 100G uplinks and 10G downlinks
+     */
+
+    auto config = utility::createUplinkDownlinkConfig(
+        hwSwitch,
+        ports,
+        numUplinks.value(),
+        uplinkSpeed,
+        downlinkSpeed,
+        hwSwitch->getPlatform()->getAsic()->desiredLoopbackMode());
+    utility::addProdFeaturesToConfig(config, hwSwitch);
+    return config;
+  };
+
   suspender.dismiss();
   {
     /*
      * Measure the hw switch init time
      */
-    ScopedCallTimer timeIt;
-    ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
-  }
-  suspender.rehire();
-  auto hwSwitch = ensemble->getHwSwitch();
-  auto numUplinks = getUplinksCount(hwSwitch, uplinkSpeed, downlinkSpeed);
-  if (!numUplinks) {
-    return;
-  }
-  /*
-   * Based on the uplink/downlink speed, use the ConfigFactory to create
-   * agent config to mimic the production config. For instance, in TH,
-   * 100Gx10G as config type will create 100G uplinks and 10G downlinks
-   */
-  auto config = utility::createUplinkDownlinkConfig(
-      hwSwitch,
-      ensemble->masterLogicalPortIds(),
-      numUplinks.value(),
-      uplinkSpeed,
-      downlinkSpeed,
-      hwSwitch->getPlatform()->getAsic()->desiredLoopbackMode());
-  utility::addProdFeaturesToConfig(config, hwSwitch);
-
-  /*
-   * This is to measure the performance when the config is applied during
-   * coldboot/warmboot. This measures the time agent took to transition
-   * from INITIALIZED to CONFIGURED.
-   * We reuse initToConfigBenchmarkHelper for both coldboot init and
-   * warmboot setup. Enable benchmarking only for coldboot/warmbot init and
-   * disable when setting up for warmboot
-   */
-  suspender.dismiss();
-  {
-    ScopedCallTimer timeIt;
     /*
-     * Do not apply the config through HwSwitchEnsemble::applyInitialConfig
-     * since it disables and enables the port and waits for the port to be UP
-     * before returning. We would like to measure the performance only for hw
-     * switch init and also the state transition from INIT TO CONFIGURED.
+     * This is to measure the performance when the config is applied during
+     * coldboot/warmboot. This measures the time agent took to transition
+     * from INITIALIZED to CONFIGURED.
+     * We reuse initToConfigBenchmarkHelper for both coldboot init and
+     * warmboot setup. Enable benchmarking only for coldboot/warmbot init and
+     * disable when setting up for warmboot
      */
-    ensemble->applyNewConfig(config);
-    ensemble->switchRunStateChanged(SwitchRunState::CONFIGURED);
+    ScopedCallTimer timeIt;
+    ensemble = createAgentEnsemble(initialConfig);
+    ensemble->startAgent();
   }
   suspender.rehire();
   auto routeChunks = getRoutes(ensemble.get());
-  auto updater = ensemble->getRouteUpdater();
-  updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
+  auto updater = ensemble->getSw()->getRouteUpdater();
+  ensemble->programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
   if (FLAGS_setup_for_warmboot) {
     ScopedCallTimer timeIt;
     // Static such that the object destructor runs as late as possible. In

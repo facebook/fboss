@@ -239,8 +239,8 @@ add_library(hw_init_and_exit_benchmark_helper
 
 target_link_libraries(hw_init_and_exit_benchmark_helper
   config_factory
-  hw_switch_ensemble
-  hw_benchmark_main
+  agent_ensemble
+  agent_benchmarks
   route_scale_gen
   prod_config_utils
   Folly::folly

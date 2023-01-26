@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
+DECLARE_bool(tun_intf);
 DEFINE_bool(
     setup_for_warmboot,
     false,
@@ -46,6 +47,12 @@ void AgentEnsemble::setupEnsemble(
 }
 
 void AgentEnsemble::startAgent() {
+  // TODO: provide a way to enable tun intf, for now disable it expressedly,
+  // this can also be done with CLI option, however netcastle runners can not
+  // use that option, because hw tests and hw benchmarks using hwswitch ensemble
+  // doesn't have CLI option to disable tun intf. Also get rid of explicit
+  // setting this flag and emply CLI option to disable tun manager.
+  FLAGS_tun_intf = false;
   auto* initializer = agentInitializer();
   asyncInitThread_.reset(
       new std::thread([initializer] { initializer->initAgent(); }));
