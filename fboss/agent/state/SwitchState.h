@@ -27,6 +27,7 @@
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/DsfNodeMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/IpTunnelMap.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
@@ -42,6 +43,7 @@
 #include "fboss/agent/state/TeFlowTable.h"
 #include "fboss/agent/state/TransceiverMap.h"
 #include "fboss/agent/state/UdfConfig.h"
+#include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 #include "fboss/agent/types.h"
 
@@ -64,6 +66,9 @@ struct SwitchStateFields
     : public ThriftyFields<SwitchStateFields, state::SwitchState> {
   SwitchStateFields();
 
+  explicit SwitchStateFields(const state::SwitchState& data) {
+    writableData() = data;
+  }
   template <typename Fn>
   void forEachChild(Fn fn) {
     fn(ports.get());
@@ -154,6 +159,81 @@ struct SwitchStateFields
   std::optional<cfg::PfcWatchdogRecoveryAction> pfcWatchdogRecoveryAction{};
 };
 
+USE_THRIFT_COW(SwitchState);
+RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::portMap, PortMap);
+RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::vlanMap, VlanMap);
+RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::aclMap, AclMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::transceiverMap,
+    TransceiverMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::bufferPoolCfgMap,
+    BufferPoolCfgMap);
+RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::mirrorMap, MirrorMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::controlPlane,
+    ControlPlane);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::switchSettings,
+    SwitchSettings);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::systemPortMap,
+    SystemPortMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::fibs,
+    ForwardingInformationBaseMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::labelFib,
+    LabelForwardingInformationBase);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::qosPolicyMap,
+    QosPolicyMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::sflowCollectorMap,
+    SflowCollectorMap);
+RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::ipTunnelMap, IpTunnelMap);
+RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::teFlowTable, TeFlowTable);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::aggregatePortMap,
+    AggregatePortMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::loadBalancerMap,
+    LoadBalancerMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::aclTableGroupMap,
+    AclTableGroupMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::interfaceMap,
+    InterfaceMap);
+RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::dsfNodes, DsfNodeMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::remoteSystemPortMap,
+    SystemPortMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::remoteInterfaceMap,
+    InterfaceMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::defaultDataPlaneQosPolicy,
+    QosPolicy);
+RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::qcmCfg, QcmCfg);
+RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::udfConfig, UdfConfig);
+
 /*
  * SwitchState stores the current switch configuration.
  *
@@ -186,54 +266,34 @@ struct SwitchStateFields
  * without making a new copy-on-write version of the SwitchState.  Therefore
  * locks are used to protect access to dynamic data.
  */
-class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
+class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
  public:
+  using BaseT = ThriftStructNode<SwitchState, state::SwitchState>;
   /*
    * Create a new, empty state.
    */
   SwitchState();
   ~SwitchState() override;
 
-  state::SwitchState toThrift() const {
-    return this->getFields()->toThrift();
-  }
-
-  static std::shared_ptr<SwitchState> fromThrift(
-      const state::SwitchState& obj) {
-    auto fields = SwitchStateFields::fromThrift(obj);
-    return std::make_shared<SwitchState>(fields);
-  }
-
   static std::shared_ptr<SwitchState> fromFollyDynamic(
-      const folly::dynamic& json) {
-    const auto& fields = SwitchStateFields::fromFollyDynamic(json);
-    return std::make_shared<SwitchState>(fields);
-  }
+      const folly::dynamic& json);
 
   static std::shared_ptr<SwitchState> fromJson(const folly::fbstring& jsonStr) {
     return fromFollyDynamic(folly::parseJson(jsonStr));
   }
 
   static std::unique_ptr<SwitchState> uniquePtrFromThrift(
-      const state::SwitchState& switchState) {
-    const auto& fields = SwitchStateFields::fromThrift(switchState);
-    return std::make_unique<SwitchState>(fields);
-  }
+      const state::SwitchState& switchState);
 
   static std::unique_ptr<SwitchState> uniquePtrFromFollyDynamic(
-      const folly::dynamic& json) {
-    const auto& fields = SwitchStateFields::fromFollyDynamic(json);
-    return std::make_unique<SwitchState>(fields);
-  }
+      const folly::dynamic& json);
 
   static std::unique_ptr<SwitchState> uniquePtrFromJson(
       const folly::fbstring& jsonStr) {
     return uniquePtrFromFollyDynamic(folly::parseJson(jsonStr));
   }
 
-  folly::dynamic toFollyDynamic() const override {
-    return getFields()->toFollyDynamic();
-  }
+  folly::dynamic toFollyDynamic() const override;
 
   static void modify(std::shared_ptr<SwitchState>* state);
 
@@ -261,52 +321,47 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
       const std::shared_ptr<TeFlowEntry>& oldFlowEntry,
       std::shared_ptr<SwitchState>* appliedState);
 
-  bool operator==(const SwitchState& other) const {
-    return *getFields() == *other.getFields();
-  }
-
   const std::shared_ptr<PortMap>& getPorts() const {
-    return getFields()->ports;
+    return cref<switch_state_tags::portMap>();
   }
   std::shared_ptr<Port> getPort(PortID id) const;
 
   const std::shared_ptr<AggregatePortMap> getAggregatePorts() const {
-    return getFields()->aggPorts;
+    return cref<switch_state_tags::aggregatePortMap>();
   }
 
   const std::shared_ptr<VlanMap>& getVlans() const {
-    return getFields()->vlans;
+    return cref<switch_state_tags::vlanMap>();
   }
 
-  VlanID getDefaultVlan() const {
-    return getFields()->defaultVlan;
-  }
-  void setDefaultVlan(VlanID id);
+  VlanID getDefaultVlan() const;
+  void setDefaultVlan(const VlanID& id);
 
   const std::shared_ptr<QosPolicy> getDefaultDataPlaneQosPolicy() const {
-    return getFields()->defaultDataPlaneQosPolicy;
+    return cref<switch_state_tags::defaultDataPlaneQosPolicy>();
   }
 
   void setDefaultDataPlaneQosPolicy(std::shared_ptr<QosPolicy> qosPolicy) {
-    writableFields()->defaultDataPlaneQosPolicy = std::move(qosPolicy);
+    ref<switch_state_tags::defaultDataPlaneQosPolicy>() = qosPolicy;
   }
 
   const std::shared_ptr<InterfaceMap>& getInterfaces() const {
-    return getFields()->interfaces;
+    return cref<switch_state_tags::interfaceMap>();
   }
 
   std::shared_ptr<AclEntry> getAcl(const std::string& name) const;
 
   const std::shared_ptr<AclMap>& getAcls() const {
-    return getFields()->acls;
+    return cref<switch_state_tags::aclMap>();
   }
 
   const std::shared_ptr<AclTableGroupMap>& getAclTableGroups() const {
-    return getFields()->aclTableGroups;
+    return cref<switch_state_tags::aclTableGroupMap>();
   }
 
   std::chrono::seconds getArpTimeout() const {
-    return getFields()->arpTimeout;
+    auto arpTimeout = cref<switch_state_tags::arpTimeout>()->toThrift();
+    return std::chrono::seconds(arpTimeout);
   }
 
   std::shared_ptr<const AclMap> getAclsForTable(
@@ -317,54 +372,57 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
       cfg::AclStage aclStage) const;
 
   const std::shared_ptr<SflowCollectorMap>& getSflowCollectors() const {
-    return getFields()->sFlowCollectors;
+    return cref<switch_state_tags::sflowCollectorMap>();
   }
 
   std::shared_ptr<QosPolicy> getQosPolicy(const std::string& name) const {
-    return getFields()->qosPolicies->getQosPolicyIf(name);
+    return getQosPolicies()->getQosPolicyIf(name);
   }
 
   const std::shared_ptr<QosPolicyMap>& getQosPolicies() const {
-    return getFields()->qosPolicies;
+    return cref<switch_state_tags::qosPolicyMap>();
   }
 
   const std::shared_ptr<ControlPlane>& getControlPlane() const {
-    return getFields()->controlPlane;
+    return cref<switch_state_tags::controlPlane>();
   }
 
   const std::shared_ptr<SwitchSettings>& getSwitchSettings() const {
-    return getFields()->switchSettings;
+    return cref<switch_state_tags::switchSettings>();
   }
 
   const std::shared_ptr<QcmCfg> getQcmCfg() const {
-    return getFields()->qcmCfg;
+    return cref<switch_state_tags::qcmCfg>();
   }
 
   const std::shared_ptr<BufferPoolCfgMap> getBufferPoolCfgs() const {
-    return getFields()->bufferPoolCfgs;
+    return cref<switch_state_tags::bufferPoolCfgMap>();
   }
 
   void setArpTimeout(std::chrono::seconds timeout);
 
   std::chrono::seconds getNdpTimeout() const {
-    return getFields()->ndpTimeout;
+    return std::chrono::seconds(
+        cref<switch_state_tags::ndpTimeout>()->toThrift());
   }
 
   void setNdpTimeout(std::chrono::seconds timeout);
 
   std::chrono::seconds getArpAgerInterval() const {
-    return getFields()->arpAgerInterval;
+    return std::chrono::seconds(
+        cref<switch_state_tags::arpAgerInterval>()->toThrift());
   }
 
   void setArpAgerInterval(std::chrono::seconds interval);
 
   uint32_t getMaxNeighborProbes() const {
-    return getFields()->maxNeighborProbes;
+    return cref<switch_state_tags::maxNeighborProbes>()->toThrift();
   }
   void setMaxNeighborProbes(uint32_t maxNeighborProbes);
 
   std::chrono::seconds getStaleEntryInterval() const {
-    return getFields()->staleEntryInterval;
+    return std::chrono::seconds(
+        cref<switch_state_tags::staleEntryInterval>()->toThrift());
   }
 
   void setStaleEntryInterval(std::chrono::seconds interval);
@@ -372,41 +430,62 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   // dhcp relay packet IP overrides
 
   folly::IPAddressV4 getDhcpV4RelaySrc() const {
-    return getFields()->dhcpV4RelaySrc;
+    return network::toIPAddress(
+               cref<switch_state_tags::dhcpV4RelaySrc>()->toThrift())
+        .asV4();
   }
   void setDhcpV4RelaySrc(folly::IPAddressV4 v4RelaySrc) {
-    writableFields()->dhcpV4RelaySrc = v4RelaySrc;
+    set<switch_state_tags::dhcpV4RelaySrc>(
+        network::toBinaryAddress(v4RelaySrc));
   }
 
   folly::IPAddressV6 getDhcpV6RelaySrc() const {
-    return getFields()->dhcpV6RelaySrc;
+    return network::toIPAddress(
+               cref<switch_state_tags::dhcpV6RelaySrc>()->toThrift())
+        .asV6();
   }
   void setDhcpV6RelaySrc(folly::IPAddressV6 v6RelaySrc) {
-    writableFields()->dhcpV6RelaySrc = v6RelaySrc;
+    set<switch_state_tags::dhcpV6RelaySrc>(
+        network::toBinaryAddress(v6RelaySrc));
   }
 
   folly::IPAddressV4 getDhcpV4ReplySrc() const {
-    return getFields()->dhcpV4ReplySrc;
+    return network::toIPAddress(
+               cref<switch_state_tags::dhcpV4ReplySrc>()->toThrift())
+        .asV4();
   }
   void setDhcpV4ReplySrc(folly::IPAddressV4 v4ReplySrc) {
-    writableFields()->dhcpV4ReplySrc = v4ReplySrc;
+    set<switch_state_tags::dhcpV4ReplySrc>(
+        network::toBinaryAddress(v4ReplySrc));
   }
 
   folly::IPAddressV6 getDhcpV6ReplySrc() const {
-    return getFields()->dhcpV6ReplySrc;
+    return network::toIPAddress(
+               cref<switch_state_tags::dhcpV6ReplySrc>()->toThrift())
+        .asV6();
   }
   void setDhcpV6ReplySrc(folly::IPAddressV6 v6ReplySrc) {
-    writableFields()->dhcpV6ReplySrc = v6ReplySrc;
+    set<switch_state_tags::dhcpV6ReplySrc>(
+        network::toBinaryAddress(v6ReplySrc));
   }
 
+  // THRIFT_COPY
   std::optional<cfg::PfcWatchdogRecoveryAction> getPfcWatchdogRecoveryAction()
       const {
-    return getFields()->pfcWatchdogRecoveryAction;
+    auto action = safe_cref<switch_state_tags::pfcWatchdogRecoveryAction>();
+    if (!action) {
+      return std::nullopt;
+    }
+    return action->toThrift();
   }
 
   void setPfcWatchdogRecoveryAction(
       std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction) {
-    writableFields()->pfcWatchdogRecoveryAction = recoveryAction;
+    if (!recoveryAction) {
+      ref<switch_state_tags::pfcWatchdogRecoveryAction>().reset();
+    } else {
+      set<switch_state_tags::pfcWatchdogRecoveryAction>(*recoveryAction);
+    }
   }
 
   const std::shared_ptr<LoadBalancerMap>& getLoadBalancers() const;
@@ -414,38 +493,38 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
   const std::shared_ptr<ForwardingInformationBaseMap>& getFibs() const;
   const std::shared_ptr<LabelForwardingInformationBase>&
   getLabelForwardingInformationBase() const {
-    return getFields()->labelFib;
+    return cref<switch_state_tags::labelFib>();
   }
 
   const std::shared_ptr<TransceiverMap>& getTransceivers() const {
-    return getFields()->transceivers;
+    return cref<switch_state_tags::transceiverMap>();
   }
   const std::shared_ptr<SystemPortMap>& getSystemPorts() const {
-    return getFields()->systemPorts;
+    return cref<switch_state_tags::systemPortMap>();
   }
   const std::shared_ptr<IpTunnelMap>& getTunnels() const {
-    return getFields()->ipTunnels;
+    return cref<switch_state_tags::ipTunnelMap>();
   }
   const std::shared_ptr<TeFlowTable>& getTeFlowTable() const {
-    return getFields()->teFlowTable;
+    return cref<switch_state_tags::teFlowTable>();
   }
 
   const std::shared_ptr<DsfNodeMap>& getDsfNodes() const {
-    return getFields()->dsfNodes;
+    return cref<switch_state_tags::dsfNodes>();
   }
 
   const std::shared_ptr<UdfConfig>& getUdfConfig() const {
-    return getFields()->udfConfig;
+    return cref<switch_state_tags::udfConfig>();
   }
 
   /*
    * Remote objects
    */
   const std::shared_ptr<SystemPortMap>& getRemoteSystemPorts() const {
-    return getFields()->remoteSystemPorts;
+    return cref<switch_state_tags::remoteSystemPortMap>();
   }
   const std::shared_ptr<InterfaceMap>& getRemoteInterfaces() const {
-    return getFields()->remoteInterfaces;
+    return cref<switch_state_tags::remoteInterfaceMap>();
   }
   /*
    * Get system ports for a given switch id
@@ -501,27 +580,20 @@ class SwitchState : public NodeBaseT<SwitchState, SwitchStateFields> {
 
   void resetRemoteSystemPorts(std::shared_ptr<SystemPortMap> systemPorts);
   void resetRemoteIntfs(std::shared_ptr<InterfaceMap> intfs);
-  void publish() override {
-    using BaseT = NodeBaseT<SwitchState, SwitchStateFields>;
-    if (auto defaultDataPlaneQosPolicy = getDefaultDataPlaneQosPolicy()) {
-      defaultDataPlaneQosPolicy->publish();
-    }
-    if (auto qcmCfg = getQcmCfg()) {
-      qcmCfg->publish();
-    }
-    if (auto bufferPoolCfg = getBufferPoolCfgs()) {
-      bufferPoolCfg->publish();
-    }
-    if (auto udfCfg = getUdfConfig()) {
-      udfCfg->publish();
-    }
-    BaseT::publish();
+
+  static std::shared_ptr<SwitchState> fromThrift(
+      const state::SwitchState& data);
+  state::SwitchState toThrift() const;
+
+  bool operator==(const SwitchState& other) const;
+  bool operator!=(const SwitchState& other) const {
+    return !(*this == other);
   }
 
  private:
   bool isLocalSwitchId(SwitchID switchId) const;
   // Inherit the constructor required for clone()
-  using NodeBaseT::NodeBaseT;
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 
