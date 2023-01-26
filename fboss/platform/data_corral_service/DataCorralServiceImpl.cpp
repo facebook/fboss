@@ -13,7 +13,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
-#include "fboss/lib/platforms/PlatformProductInfo.h" // @manual=//fboss/lib/platforms:product-info
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/platform/data_corral_service/DataCorralServiceImpl.h"
 #include "fboss/platform/data_corral_service/darwin/DarwinChassisManager.h"
 #include "fboss/platform/weutil/Weutil.h"
