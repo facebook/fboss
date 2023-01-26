@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
 
@@ -50,37 +51,38 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
       // TTL is configured for value >= 128
       auto ttl = bumpOnHit ? 200 : 10;
       size_t sizeOfPacketSent = sendPacket(frontPanel, ttl);
+      WITH_RETRIES({
+        auto pktCountAfter = utility::getAclInOutPackets(
+            getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
 
-      auto pktCountAfter = utility::getAclInOutPackets(
-          getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
+        auto bytesCountAfter = utility::getAclInOutBytes(
+            getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
 
-      auto bytesCountAfter = utility::getAclInOutBytes(
-          getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
+        XLOG(DBG2) << "\n"
+                   << "aclPacketCounter: " << std::to_string(pktCountBefore)
+                   << " -> " << std::to_string(pktCountAfter) << "\n"
+                   << "aclBytesCounter: " << std::to_string(bytesCountBefore)
+                   << " -> " << std::to_string(bytesCountAfter);
 
-      XLOG(DBG2) << "\n"
-                 << "aclPacketCounter: " << std::to_string(pktCountBefore)
-                 << " -> " << std::to_string(pktCountAfter) << "\n"
-                 << "aclBytesCounter: " << std::to_string(bytesCountBefore)
-                 << " -> " << std::to_string(bytesCountAfter);
+        if (bumpOnHit) {
+          // On VOQ switches, we see a counter bump by 1, for the time the
+          // packet is routed out. The looped packet which gets dropped does
+          // not seem to incur a counter bump. On non VOQ switches OTOH,
+          // we see a bump by 2 once on the way out and once when it loops back
+          // in.
+          auto pktsHit =
+              getAsic()->getSwitchType() == cfg::SwitchType::VOQ ? 1 : 2;
+          EXPECT_EVENTUALLY_EQ(pktCountBefore + pktsHit, pktCountAfter);
 
-      if (bumpOnHit) {
-        // On VOQ switches, we see a counter bump by 1, for the time the
-        // packet is routed out. The looped packet which gets dropped does
-        // not seem to incur a counter bump. On non VOQ switches OTOH,
-        // we see a bump by 2 once on the way out and once when it loops back
-        // in.
-        auto pktsHit =
-            getAsic()->getSwitchType() == cfg::SwitchType::VOQ ? 1 : 2;
-        EXPECT_EQ(pktCountBefore + pktsHit, pktCountAfter);
-
-        // TODO: Still need to debug. For some test cases, we are getting more
-        // bytes in aclCounter. Ex. 4 Bytes extra in Tomahawk4 tests.
-        EXPECT_LE(
-            bytesCountBefore + (pktsHit * sizeOfPacketSent), bytesCountAfter);
-      } else {
-        EXPECT_EQ(pktCountBefore, pktCountAfter);
-        EXPECT_EQ(bytesCountBefore, bytesCountAfter);
-      }
+          // TODO: Still need to debug. For some test cases, we are getting more
+          // bytes in aclCounter. Ex. 4 Bytes extra in Tomahawk4 tests.
+          EXPECT_EVENTUALLY_LE(
+              bytesCountBefore + (pktsHit * sizeOfPacketSent), bytesCountAfter);
+        } else {
+          EXPECT_EVENTUALLY_EQ(pktCountBefore, pktCountAfter);
+          EXPECT_EVENTUALLY_EQ(bytesCountBefore, bytesCountAfter);
+        }
+      });
     };
 
     verifyAcrossWarmBoots(setup, verify);
