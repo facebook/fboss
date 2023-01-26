@@ -43,27 +43,33 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     };
 
     auto verify = [this, bumpOnHit, frontPanel]() {
-      auto pktCountBefore = utility::getAclInOutPackets(
+      auto egressPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
+      auto pktsBefore = *getLatestPortStats(egressPort).outUnicastPkts__ref();
+      auto aclPktCountBefore = utility::getAclInOutPackets(
           getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
 
-      auto bytesCountBefore = utility::getAclInOutBytes(
+      auto aclBytesCountBefore = utility::getAclInOutBytes(
           getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
       // TTL is configured for value >= 128
       auto ttl = bumpOnHit ? 200 : 10;
       size_t sizeOfPacketSent = sendPacket(frontPanel, ttl);
       WITH_RETRIES({
-        auto pktCountAfter = utility::getAclInOutPackets(
+        auto aclPktCountAfter = utility::getAclInOutPackets(
             getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
 
-        auto bytesCountAfter = utility::getAclInOutBytes(
+        auto aclBytesCountAfter = utility::getAclInOutBytes(
             getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
 
+        auto pktsAfter = *getLatestPortStats(egressPort).outUnicastPkts__ref();
         XLOG(DBG2) << "\n"
-                   << "aclPacketCounter: " << std::to_string(pktCountBefore)
-                   << " -> " << std::to_string(pktCountAfter) << "\n"
-                   << "aclBytesCounter: " << std::to_string(bytesCountBefore)
-                   << " -> " << std::to_string(bytesCountAfter);
+                   << "PacketCounter: " << pktsBefore << " -> " << pktsAfter
+                   << "\n"
+                   << "aclPacketCounter: " << aclPktCountBefore << " -> "
+                   << (aclPktCountAfter) << "\n"
+                   << "aclBytesCounter: " << aclBytesCountBefore << " -> "
+                   << aclBytesCountAfter;
 
+        EXPECT_EVENTUALLY_GT(pktsAfter, pktsBefore);
         if (bumpOnHit) {
           // On VOQ switches, we see a counter bump by 1, for the time the
           // packet is routed out. The looped packet which gets dropped does
@@ -72,15 +78,16 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
           // in.
           auto pktsHit =
               getAsic()->getSwitchType() == cfg::SwitchType::VOQ ? 1 : 2;
-          EXPECT_EVENTUALLY_EQ(pktCountBefore + pktsHit, pktCountAfter);
+          EXPECT_EVENTUALLY_EQ(aclPktCountBefore + pktsHit, aclPktCountAfter);
 
           // TODO: Still need to debug. For some test cases, we are getting more
           // bytes in aclCounter. Ex. 4 Bytes extra in Tomahawk4 tests.
           EXPECT_EVENTUALLY_LE(
-              bytesCountBefore + (pktsHit * sizeOfPacketSent), bytesCountAfter);
+              aclBytesCountBefore + (pktsHit * sizeOfPacketSent),
+              aclBytesCountAfter);
         } else {
-          EXPECT_EVENTUALLY_EQ(pktCountBefore, pktCountAfter);
-          EXPECT_EVENTUALLY_EQ(bytesCountBefore, bytesCountAfter);
+          EXPECT_EVENTUALLY_EQ(aclPktCountBefore, aclPktCountAfter);
+          EXPECT_EVENTUALLY_EQ(aclBytesCountBefore, aclBytesCountAfter);
         }
       });
     };
