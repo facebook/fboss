@@ -32,17 +32,24 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
         getAsic()->desiredLoopbackMode());
     return cfg;
   }
+  enum AclType {
+    TTLD,
+    SRC_PORT,
+  };
 
-  void counterBumpOnHitHelper(bool bumpOnHit, bool frontPanel) {
-    auto setup = [this]() {
+  void counterBumpOnHitHelper(
+      bool bumpOnHit,
+      bool frontPanel,
+      AclType aclType = AclType::TTLD) {
+    auto setup = [this, aclType]() {
       applyNewState(helper_->resolveNextHops(getProgrammedState(), 2));
       helper_->programRoutes(getRouteUpdater(), kEcmpWidth);
       auto newCfg{initialConfig()};
-      addTtlAclStat(&newCfg);
+      addAclAndStat(&newCfg, aclType);
       applyNewConfig(newCfg);
     };
 
-    auto verify = [this, bumpOnHit, frontPanel]() {
+    auto verify = [this, bumpOnHit, frontPanel, aclType]() {
       auto egressPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
       auto pktsBefore = *getLatestPortStats(egressPort).outUnicastPkts__ref();
       auto aclPktCountBefore = utility::getAclInOutPackets(
@@ -50,9 +57,7 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
 
       auto aclBytesCountBefore = utility::getAclInOutBytes(
           getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
-      // TTL is configured for value >= 128
-      auto ttl = bumpOnHit ? 200 : 10;
-      size_t sizeOfPacketSent = sendPacket(frontPanel, ttl);
+      size_t sizeOfPacketSent = sendPacket(frontPanel, bumpOnHit, aclType);
       WITH_RETRIES({
         auto aclPktCountAfter = utility::getAclInOutPackets(
             getHwSwitch(), getProgrammedState(), kAclName, kCounterName);
@@ -96,7 +101,9 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
   }
 
  private:
-  size_t sendPacket(bool frontPanel, uint8_t ttl) {
+  size_t sendPacket(bool frontPanel, bool bumpOnHit, AclType aclType) {
+    // TTL is configured for value >= 128
+    auto ttl = bumpOnHit && aclType == AclType::TTLD ? 200 : 10;
     auto vlanId = utility::firstVlanID(initialConfig());
     auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
@@ -135,14 +142,21 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
     return folly::IPAddressV6("2620:0:1cfe:face:b00c::10");
   }
 
-  void addTtlAclStat(cfg::SwitchConfig* config) const {
+  void addAclAndStat(cfg::SwitchConfig* config, AclType aclType) const {
     auto acl = utility::addAcl(config, kAclName);
-    acl->srcIp() = "2620:0:1cfe:face:b00c::/64";
-    acl->proto() = 0x11;
-    acl->ipType() = cfg::IpType::IP6;
-    acl->ttl() = cfg::Ttl();
-    *acl->ttl()->value() = 128;
-    *acl->ttl()->mask() = 128;
+    switch (aclType) {
+      case AclType::TTLD:
+        acl->srcIp() = "2620:0:1cfe:face:b00c::/64";
+        acl->proto() = 0x11;
+        acl->ipType() = cfg::IpType::IP6;
+        acl->ttl() = cfg::Ttl();
+        *acl->ttl()->value() = 128;
+        *acl->ttl()->mask() = 128;
+        break;
+      case AclType::SRC_PORT:
+        // TODO
+        break;
+    }
     std::vector<cfg::CounterType> setCounterTypes{
         cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
     utility::addAclStat(config, kAclName, kCounterName, setCounterTypes);
@@ -152,8 +166,8 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
   const VlanID kVlanID{utility::kBaseVlanId};
   const InterfaceID kIntfID{utility::kBaseVlanId};
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
-  static constexpr auto kAclName = "ttld-acl";
-  static constexpr auto kCounterName = "ttld-stat";
+  static constexpr auto kAclName = "test-acl";
+  static constexpr auto kCounterName = "test-acl-stat";
 };
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
