@@ -123,6 +123,7 @@ class HwAsic {
     XPHY_SAI_WARMBOOT,
     SHARED_INGRESS_EGRESS_BUFFER_POOL,
     ROUTE_METADATA,
+    DLB,
   };
 
   enum class AsicMode {

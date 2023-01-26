@@ -121,6 +121,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
     case HwAsic::Feature::XPHY_SAI_WARMBOOT:
     case HwAsic::Feature::ROUTE_METADATA:
+    case HwAsic::Feature::DLB:
       return false;
   }
   return false;
