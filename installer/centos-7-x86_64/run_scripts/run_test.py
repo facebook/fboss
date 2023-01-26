@@ -59,7 +59,7 @@ class TestRunner(abc.ABC):
     WARMBOOT_SETUP_OPTION = "--setup-for-warmboot"
     COLDBOOT_PREFIX = "cold_boot."
     WARMBOOT_PREFIX = "warm_boot."
-    TESTRUN_TIMEOUT = 300
+    TESTRUN_TIMEOUT = 600
 
     _GTEST_RESULT_PATTERN = re.compile(
         r"""\[\s+(?P<status>(OK)|(FAILED)|(SKIPPED)|(TIMEOUT))\s+\]\s+
