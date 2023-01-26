@@ -134,3 +134,18 @@ add_library(qsfp_core
 target_link_libraries(qsfp_core
   qsfp_handler
 )
+
+add_executable(qsfp_service
+    fboss/qsfp_service/Main.cpp
+)
+
+target_link_libraries(qsfp_service
+    qsfp_module
+    qsfp_config
+    phy_management_base
+    transceiver_manager
+    qsfp_platforms_wedge
+    log_thrift_call
+    qsfp_core
+    qsfp_handler
+)

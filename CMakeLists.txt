@@ -543,14 +543,6 @@ if (NOT SAI_ONLY)
       fboss/agent/platforms/wedge/oss/WedgePlatform.cpp
   )
 
-  add_executable(qsfp_service
-      fboss/qsfp_service/QsfpServer.cpp
-      fboss/qsfp_service/oss/QsfpServer.cpp
-      fboss/qsfp_service/Main.cpp
-      fboss/qsfp_service/QsfpServiceHandler.cpp
-      fboss/qsfp_service/QsfpServiceSignalHandler.cpp
-  )
-
   # TODO (skhare) refactor fboss_agent and remove this library
   add_library(switch_asics_old STATIC
       fboss/agent/hw/switch_asics/FakeAsic.h
@@ -981,14 +973,6 @@ if (NOT SAI_ONLY)
 
   target_link_libraries(switch_asics_old fboss_agent)
   target_link_libraries(wedge_agent fboss_agent)
-  target_link_libraries(qsfp_service
-      qsfp_module
-      fboss_agent
-      qsfp_config
-      phy_management_base
-      transceiver_manager
-      qsfp_platforms_wedge
-  )
 
   add_executable(cp2112_util
       fboss/util/cp2112_util.cpp
