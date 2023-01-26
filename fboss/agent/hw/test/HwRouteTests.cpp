@@ -556,14 +556,6 @@ TYPED_TEST(HwRouteTest, verifyHostRouteChange) {
 }
 
 TYPED_TEST(HwRouteTest, VerifyDefaultRoute) {
-  // Don't run this test on fake asic
-  if (this->getPlatform()->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_FAKE ||
-      this->getPlatform()->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_MOCK) {
-    GTEST_SKIP();
-    return;
-  }
   auto verify = [=]() {
     // default routes should exist always.
     utility::isHwRoutePresent(
