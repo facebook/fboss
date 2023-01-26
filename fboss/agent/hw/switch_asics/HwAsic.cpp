@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/switch_asics/MockAsic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
+#include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 
@@ -80,6 +81,9 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
           switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       return std::make_unique<Tomahawk4Asic>(
+          switchType, switchId, systemPortRange);
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+      return std::make_unique<Tomahawk5Asic>(
           switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
       return std::make_unique<CredoPhyAsic>(

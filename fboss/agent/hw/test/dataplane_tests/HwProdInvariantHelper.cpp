@@ -173,6 +173,7 @@ void HwProdInvariantHelper::verifySafeDiagCmds() {
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_INDUS:
     case cfg::AsicType::ASIC_TYPE_BEAS:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
       break;
 
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:

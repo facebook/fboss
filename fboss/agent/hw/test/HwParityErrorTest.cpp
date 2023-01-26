@@ -72,6 +72,7 @@ class HwParityErrorTest : public HwLinkStateDependentTest {
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
         utility::triggerParityError(getHwSwitchEnsemble());
     }
   }

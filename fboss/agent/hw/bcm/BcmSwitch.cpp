@@ -3580,7 +3580,8 @@ void BcmSwitch::disableHotSwap() const {
         // For TD2 and TH, we patch the SDK to disable hot swap,
         break;
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
-      case cfg::AsicType::ASIC_TYPE_TOMAHAWK4: {
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK5: {
         auto rv = bcm_switch_control_set(unit_, bcmSwitchPcieHotSwapDisable, 1);
         bcmCheckError(rv, "Failed to disable hotswap");
       } break;

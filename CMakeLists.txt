@@ -556,6 +556,7 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/switch_asics/FakeAsic.h
       fboss/agent/hw/switch_asics/HwAsic.cpp
       fboss/agent/hw/switch_asics/HwAsic.h
+      fboss/agent/hw/switch_asics/Tomahawk5Asic.cpp
       fboss/agent/hw/switch_asics/Tomahawk4Asic.cpp
       fboss/agent/hw/switch_asics/Tomahawk3Asic.cpp
       fboss/agent/hw/switch_asics/TomahawkAsic.cpp
