@@ -3133,17 +3133,17 @@ shared_ptr<BufferPoolCfgMap> ThriftConfigApplier::updateBufferPoolConfigs(
   BufferPoolCfgMap::NodeContainer newBufferPoolConfigMap;
   auto newCfgedBufferPools = cfg_->bufferPoolConfigs();
 
-  if (!newCfgedBufferPools && origBufferPoolConfigs->empty()) {
+  if (!newCfgedBufferPools && !origBufferPoolConfigs) {
     return nullptr;
   }
 
-  if (!newCfgedBufferPools && !origBufferPoolConfigs->empty()) {
+  if (!newCfgedBufferPools && origBufferPoolConfigs) {
     // old cfg eixists but new one doesn't
     *changed = true;
     return nullptr;
   }
 
-  if (newCfgedBufferPools && origBufferPoolConfigs->empty()) {
+  if (newCfgedBufferPools && !origBufferPoolConfigs) {
     *changed = true;
   }
 

@@ -250,10 +250,6 @@ struct ThriftMapFields {
     return !(*this == that);
   }
 
-  void clear() {
-    storage_.clear();
-  }
-
  private:
   template <typename... Args>
   value_type childFactory(Args&&... args) {
@@ -425,10 +421,6 @@ class ThriftMapNode
     return this->getFields()->size();
   }
 
-  bool empty() const {
-    return size() == 0;
-  }
-
   void modify(const std::string& token) {
     if constexpr (std::is_same_v<
                       typename Fields::KeyTypeClass,
@@ -503,10 +495,6 @@ class ThriftMapNode
   }
   bool operator!=(const Self& that) const {
     return !(*this == that);
-  }
-
-  void clear() {
-    this->writableFields()->clear();
   }
 
  private:
