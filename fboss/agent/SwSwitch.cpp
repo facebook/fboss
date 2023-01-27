@@ -498,8 +498,9 @@ void SwSwitch::updateStats() {
   }
 }
 
-std::map<std::string, HwTeFlowStats> SwSwitch::getTeFlowStats() {
-  std::map<std::string, HwTeFlowStats> teFlowStats;
+TeFlowStats SwSwitch::getTeFlowStats() {
+  TeFlowStats teFlowStats;
+  std::map<std::string, HwTeFlowStats> hwTeFlowStats;
   auto statMap = facebook::fb303::fbData->getStatMap();
   for (const auto& [flowStr, flowEntry] :
        std::as_const(*getState()->getTeFlowTable())) {
@@ -513,9 +514,12 @@ std::map<std::string, HwTeFlowStats> SwSwitch::getTeFlowStats() {
       // Cumulative (ALLTIME) counters are at (numLevels - 1)
       HwTeFlowStats flowStat;
       flowStat.bytes() = lockedStatPtr->sum(numLevels - 1);
-      teFlowStats.emplace(counter->toThrift(), std::move(flowStat));
+      hwTeFlowStats.emplace(counter->toThrift(), std::move(flowStat));
     }
   }
+  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+  teFlowStats.timestamp() = now.count();
+  teFlowStats.hwTeFlowStats() = std::move(hwTeFlowStats);
   return teFlowStats;
 }
 

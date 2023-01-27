@@ -200,7 +200,12 @@ struct HwAsicErrors {
 }
 
 struct HwTeFlowStats {
-  1: i64 bytes;
+  1: i64 bytes = STAT_UNINITIALIZED;
+}
+
+struct TeFlowStats {
+  1: map<string, HwTeFlowStats> hwTeFlowStats;
+  2: i64 timestamp;
 }
 
 struct HwRxReasonStats {

@@ -767,7 +767,7 @@ class SwSwitch : public HwSwitch::Callback {
       std::shared_ptr<SwitchState> state,
       const folly::IPAddressV6& target);
 
-  std::map<std::string, HwTeFlowStats> getTeFlowStats();
+  TeFlowStats getTeFlowStats();
 
   VlanID getVlanIDHelper(std::optional<VlanID> vlanID) const;
 

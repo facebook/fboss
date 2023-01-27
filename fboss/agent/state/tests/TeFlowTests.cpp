@@ -293,8 +293,10 @@ TEST_F(TeFlowTest, TeFlowCounter) {
   CounterCache counters(sw_);
   counters.update();
   auto teFlowStats = sw_->getTeFlowStats();
-  EXPECT_EQ(teFlowStats.size(), 2);
-  for (const auto& stat : teFlowStats) {
+  auto hwTeFlowStats = teFlowStats.hwTeFlowStats();
+  EXPECT_EQ(hwTeFlowStats->size(), 2);
+  EXPECT_NE(teFlowStats.timestamp(), 0);
+  for (const auto& stat : *hwTeFlowStats) {
     EXPECT_EQ(*stat.second.bytes(), testByteCounterValue);
   }
 }
