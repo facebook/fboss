@@ -159,28 +159,12 @@ class BgpIntegrationTest : public AgentIntegrationTest {
     EXPECT_NE(aliveSince, prevAliveSince);
   }
 
-  void checkRoute(folly::IPAddressV6 prefix, uint8_t length, bool exists) {
+  template <typename TIpAddress>
+  void checkRoute(TIpAddress prefix, uint8_t length, bool exists) {
     WITH_RETRIES({
       const auto& fibContainer =
           sw()->getState()->getFibs()->getFibContainer(RouterID(0));
-      auto fib = fibContainer->template getFib<folly::IPAddressV6>();
-      auto testRoute = fib->getRouteIf({prefix, length});
-      if (exists) {
-        EXPECT_EVENTUALLY_NE(testRoute, nullptr);
-        if (testRoute) {
-          EXPECT_TRUE(testRoute->getEntryForClient(ClientID::BGPD));
-        }
-      } else {
-        EXPECT_EVENTUALLY_EQ(testRoute, nullptr);
-      }
-    });
-  }
-
-  void checkRouteV4(folly::IPAddressV4 prefix, uint8_t length, bool exists) {
-    WITH_RETRIES({
-      const auto& fibContainer =
-          sw()->getState()->getFibs()->getFibContainer(RouterID(0));
-      auto fib = fibContainer->template getFib<folly::IPAddressV4>();
+      auto fib = fibContainer->template getFib<TIpAddress>();
       auto testRoute = fib->getRouteIf({prefix, length});
       if (exists) {
         EXPECT_EVENTUALLY_NE(testRoute, nullptr);
@@ -261,7 +245,7 @@ class BgpIntegrationTest : public AgentIntegrationTest {
               if (addr.isV6()) {
                 checkRoute(addr.asV6(), *route.dest()->prefixLength(), true);
               } else {
-                checkRouteV4(addr.asV4(), *route.dest()->prefixLength(), true);
+                checkRoute(addr.asV4(), *route.dest()->prefixLength(), true);
               }
             });
       }
