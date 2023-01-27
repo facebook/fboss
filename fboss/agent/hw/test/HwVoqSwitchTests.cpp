@@ -184,16 +184,18 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     }
   }
 
-  void sendPacketHelper(bool isFrontPanel) {
+  void sendPacketHelper(bool isFrontPanel, bool checkAclCounter = true) {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
     const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
 
-    auto setup = [this, kPort, ecmpHelper]() {
-      addDscpAclWithCounter();
+    auto setup = [this, kPort, ecmpHelper, checkAclCounter]() {
+      if (checkAclCounter) {
+        addDscpAclWithCounter();
+      }
       addRemoveNeighbor(kPort, true /* add neighbor*/);
     };
 
-    auto verify = [this, kPort, ecmpHelper, isFrontPanel]() {
+    auto verify = [this, kPort, ecmpHelper, isFrontPanel, checkAclCounter]() {
       folly::IPAddressV6 kSrcIp("1::1");
       folly::IPAddressV6 kNeighborIp = ecmpHelper.ip(kPort);
       const auto srcMac = utility::kLocalCpuMac();
@@ -242,12 +244,13 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
             kDefaultQueue);
       };
 
-      auto getAclPackets = [this]() {
-        return utility::getAclInOutPackets(
-            getHwSwitch(),
-            getProgrammedState(),
-            kDscpAclName(),
-            kDscpAclCounterName());
+      auto getAclPackets = [this, checkAclCounter]() {
+        return checkAclCounter ? utility::getAclInOutPackets(
+                                     getHwSwitch(),
+                                     getProgrammedState(),
+                                     kDscpAclName(),
+                                     kDscpAclCounterName())
+                               : 0;
       };
 
       auto [beforeOutPkts, beforeOutBytes] = getPortOutPktsBytes();
@@ -294,7 +297,9 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         // CS00012267635: debug why queue counter is 310, when txPacketSize is
         // 322
         EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
-        EXPECT_EVENTUALLY_GT(afterAclPkts, beforeAclPkts);
+        if (checkAclCounter) {
+          EXPECT_EVENTUALLY_GT(afterAclPkts, beforeAclPkts);
+        }
         if (getAsic()->isSupported(HwAsic::Feature::VOQ)) {
           EXPECT_EVENTUALLY_GT(afterVoQOutBytes, beforeVoQOutBytes);
         }
