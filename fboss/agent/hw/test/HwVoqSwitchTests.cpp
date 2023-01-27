@@ -11,6 +11,8 @@
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/hw/test/HwTestPacketSnooper.h"
+#include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
 #include "fboss/agent/state/Interface.h"
@@ -419,6 +421,22 @@ TEST_F(HwVoqSwitchTest, sendPacketFrontPanel) {
   sendPacketHelper(true /* front panel */);
 }
 
+TEST_F(HwVoqSwitchTest, trapPktsOnPort) {
+  auto verify = [this]() {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+    auto ensemble = getHwSwitchEnsemble();
+    auto snooper = std::make_unique<HwTestPacketSnooper>(ensemble);
+    auto entry = std::make_unique<HwTestPacketTrapEntry>(
+        ensemble->getHwSwitch(), kPort.phyPortID());
+    sendPacketHelper(true /* front panel */, false /*checkAclCounter*/);
+    WITH_RETRIES({
+      auto frameRx = snooper->waitForPacket(1);
+      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+    });
+  };
+  verifyAcrossWarmBoots([] {}, verify);
+}
 TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
@@ -563,4 +581,5 @@ TEST_F(HwVoqSwitchTest, collectStats) {
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
+
 } // namespace facebook::fboss
