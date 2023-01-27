@@ -274,7 +274,8 @@ cfg::SwitchConfig genPortVlanCfg(
     const std::map<PortID, VlanID>& port2vlan,
     const std::vector<VlanID>& vlans,
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
-    bool optimizePortProfile = true) {
+    bool optimizePortProfile = true,
+    bool enableFabricPorts = false) {
   cfg::SwitchConfig config;
   auto asic = hwSwitch->getPlatform()->getAsic();
   config.switchSettings()->switchType() = asic->getSwitchType();
@@ -307,7 +308,6 @@ cfg::SwitchConfig genPortVlanCfg(
   auto kPortMTU = 9412;
   for (auto portID : ports) {
     auto portCfg = findCfgPort(config, portID);
-    portCfg->state() = cfg::PortState::ENABLED;
     portCfg->loopbackMode() = lbMode;
     if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
       portCfg->ingressVlan() = 0;
@@ -315,7 +315,10 @@ cfg::SwitchConfig genPortVlanCfg(
                                     HwAsic::Feature::FABRIC_PORT_MTU)
           ? kPortMTU
           : 0;
+      portCfg->state() = enableFabricPorts ? cfg::PortState::ENABLED
+                                           : cfg::PortState::DISABLED;
     } else {
+      portCfg->state() = cfg::PortState::ENABLED;
       portCfg->ingressVlan() = port2vlan.find(portID)->second;
       portCfg->maxFrameSize() = kPortMTU;
     }
@@ -468,7 +471,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     cfg::PortLoopbackMode lbMode,
     bool interfaceHasSubnet,
     bool setInterfaceMac,
-    int baseIntfId) {
+    int baseIntfId,
+    bool enableFabricPorts) {
   return multiplePortsPerIntfConfig(
       hwSwitch,
       ports,
@@ -476,7 +480,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       interfaceHasSubnet,
       setInterfaceMac,
       baseIntfId,
-      1);
+      1, /* portPerIntf*/
+      enableFabricPorts);
 }
 
 cfg::SwitchConfig multiplePortsPerIntfConfig(
@@ -486,7 +491,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     bool interfaceHasSubnet,
     bool setInterfaceMac,
     const int baseVlanId,
-    const int portsPerIntf) {
+    const int portsPerIntf,
+    bool enableFabricPorts) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<VlanID> vlans;
   std::vector<PortID> vlanPorts;
@@ -515,7 +521,14 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
       port2vlan[port] = VlanID(0);
     }
   }
-  auto config = genPortVlanCfg(hwSwitch, vlanPorts, port2vlan, vlans, lbMode);
+  auto config = genPortVlanCfg(
+      hwSwitch,
+      vlanPorts,
+      port2vlan,
+      vlans,
+      lbMode,
+      true /*optimizePortProfile*/,
+      enableFabricPorts);
   auto addInterface = [&config, baseVlanId](
                           int32_t intfId,
                           int32_t vlanId,

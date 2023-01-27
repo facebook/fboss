@@ -16,7 +16,11 @@ class HwFabricSwitchTest : public HwLinkStateDependentTest {
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode(),
-        false /*interfaceHasSubnet*/);
+        false /*interfaceHasSubnet*/,
+        false, /*setInterfaceMac*/
+        utility::kBaseVlanId,
+        true /*enable fabric ports*/
+    );
   }
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();

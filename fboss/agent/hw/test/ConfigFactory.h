@@ -78,7 +78,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     cfg::PortLoopbackMode lbMode = cfg::PortLoopbackMode::NONE,
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
-    int baseVlanId = kBaseVlanId);
+    int baseVlanId = kBaseVlanId,
+    bool enableFabricPorts = false);
 cfg::SwitchConfig multiplePortsPerIntfConfig(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
@@ -86,7 +87,8 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
     bool interfaceHasSubnet = true,
     bool setInterfaceMac = true,
     const int baseVlanId = kBaseVlanId,
-    const int portsPerVlan = 1);
+    const int portsPerVlan = 1,
+    bool enableFabricPorts = false);
 
 cfg::SwitchConfig twoL3IntfConfig(
     const HwSwitch* hwSwitch,
