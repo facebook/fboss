@@ -35,7 +35,12 @@ from argparse import ArgumentParser
 #  ./run_test.py sai --config fuji.agent.materialized_JSON --filter HwVlanTest.VlanApplyConfig --sdk_logging /root/skhare/sai_replayer_logs --no-oss --sai-bin /root/skhare/sai_test-brcm-7.2.0.0_odp --mgmt-if eth0
 #
 # All tests matching following filter are expected to PASS on Makalu
+# Basic VOQ switch tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwVoqSwitchTest*
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwVoqSwitchWithFabriPortsTest.*
+# LB Tests
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV4.*:-*Ucmp*:-*Shrink*
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV6.*:-*Ucmp*:-*Shrink*
 # All tests matching following filter are expected to PASS on Kamet
 # ./run_test.py sai --config kamet.agent.materialized_JSON --filter=HwFabricSwitchTest*
 
