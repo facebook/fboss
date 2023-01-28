@@ -1498,15 +1498,11 @@ void SaiPortManager::programSamplingMirror(
    */
 
   if (direction == MirrorDirection::INGRESS) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::IngressSampleMirrorSession{mirrorOidList});
-#endif
   } else {
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::EgressSampleMirrorSession{mirrorOidList});
-#endif
   }
 
   XLOG(DBG) << "Programming sampling mirror on port: " << std::hex

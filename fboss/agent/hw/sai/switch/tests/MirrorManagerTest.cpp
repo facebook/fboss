@@ -127,7 +127,6 @@ class MirrorManagerTest : public ManagerTestBase {
     EXPECT_EQ(gotTtl, ttl);
   }
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
   void checkSflowMirror(
       std::string mirrorId = "mirror1",
       PortID portId = PortID(1),
@@ -175,7 +174,6 @@ class MirrorManagerTest : public ManagerTestBase {
         mirrorSaiId, SaiSflowMirrorTraits::Attributes::UdpDstPort{});
     EXPECT_EQ(gotUdpDstPort, udpDstPort);
   }
-#endif
 };
 
 TEST_F(MirrorManagerTest, createLocalMirror) {
@@ -218,13 +216,11 @@ TEST_F(MirrorManagerTest, createErspanMirror) {
 }
 
 TEST_F(MirrorManagerTest, createSflowMirror) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
   std::string mirrorId = "mirror1";
   std::shared_ptr<Port> swPort1 = makePort(p1);
   saiManagerTable->portManager().addPort(swPort1);
   createTunnelMirror(SAI_MIRROR_SESSION_TYPE_SFLOW, mirrorId, PortID(p1.id));
   checkSflowMirror(mirrorId, PortID(p1.id));
-#endif
 }
 
 TEST_F(MirrorManagerTest, portMirroring) {
@@ -247,7 +243,6 @@ TEST_F(MirrorManagerTest, portMirroring) {
 }
 
 TEST_F(MirrorManagerTest, portMirroringAndSampling) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
   std::string mirrorId1 = "mirror1";
   std::shared_ptr<Port> swPort1 = makePort(p0);
   saiManagerTable->portManager().addPort(swPort1);
@@ -276,5 +271,4 @@ TEST_F(MirrorManagerTest, portMirroringAndSampling) {
       portHandle->port->adapterKey(),
       SaiPortTraits::Attributes::IngressSampleMirrorSession{});
   EXPECT_EQ(gotSampleMirrorSaiIdList[0], mirrorHandle->adapterKey());
-#endif
 }

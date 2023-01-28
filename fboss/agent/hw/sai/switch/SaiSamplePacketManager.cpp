@@ -26,9 +26,7 @@ sai_samplepacket_type_t getSamplePacketType(
     case facebook::fboss::cfg::SampleDestination::CPU:
       return SAI_SAMPLEPACKET_TYPE_SLOW_PATH;
     case facebook::fboss::cfg::SampleDestination::MIRROR:
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
       return SAI_SAMPLEPACKET_TYPE_MIRROR_SESSION;
-#endif
     default:
       throw facebook::fboss::FbossError("sample destination is invalid");
   }

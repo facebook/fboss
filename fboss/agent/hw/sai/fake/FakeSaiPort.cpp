@@ -145,7 +145,6 @@ sai_status_t create_port_fn(
       case SAI_PORT_ATTR_EGRESS_SAMPLEPACKET_ENABLE:
         egressSamplePacket = attr_list[i].value.oid;
         break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
       case SAI_PORT_ATTR_INGRESS_SAMPLE_MIRROR_SESSION: {
         for (int j = 0; j < attr_list[i].value.objlist.count; ++j) {
           ingressMirrorList.push_back(attr_list[i].value.objlist.list[j]);
@@ -156,7 +155,6 @@ sai_status_t create_port_fn(
           egressMirrorList.push_back(attr_list[i].value.objlist.list[j]);
         }
       } break;
-#endif
       case SAI_PORT_ATTR_INGRESS_MACSEC_ACL:
         ingressMacsecAcl = attr_list[i].value.oid;
         break;
@@ -433,7 +431,6 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_EGRESS_SAMPLEPACKET_ENABLE:
       port.egressSamplePacket = attr->value.oid;
       break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
     case SAI_PORT_ATTR_INGRESS_SAMPLE_MIRROR_SESSION: {
       auto& ingressSampleMirrorList = port.ingressSampleMirrorList;
       ingressSampleMirrorList.clear();
@@ -448,7 +445,6 @@ sai_status_t set_port_attribute_fn(
         egressSampleMirrorList.push_back(attr->value.objlist.list[j]);
       }
     } break;
-#endif
     case SAI_PORT_ATTR_PRBS_POLYNOMIAL:
       port.prbsPolynomial = attr->value.u32;
       break;
@@ -689,7 +685,6 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_PORT_SERDES_ID:
         attr[i].value.oid = SAI_NULL_OBJECT_ID;
         break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
       case SAI_PORT_ATTR_INGRESS_SAMPLE_MIRROR_SESSION:
         if (port.ingressSampleMirrorList.size() > attr[i].value.objlist.count) {
           attr[i].value.objlist.count = port.ingressSampleMirrorList.size();
@@ -710,7 +705,6 @@ sai_status_t get_port_attribute_fn(
         }
         attr[i].value.objlist.count = port.egressSampleMirrorList.size();
         break;
-#endif
       case SAI_PORT_ATTR_PRBS_POLYNOMIAL:
         attr[i].value.u32 = port.prbsPolynomial;
         break;

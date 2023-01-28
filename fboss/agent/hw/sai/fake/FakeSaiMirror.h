@@ -49,7 +49,6 @@ struct FakeMirror {
         greProtocolType(greProtocolType),
         ttl(ttl),
         truncateSize(truncateSize) {}
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
   FakeMirror(
       sai_mirror_session_type_t type,
       sai_object_id_t monitorPort,
@@ -75,7 +74,6 @@ struct FakeMirror {
         udpDstPort(udpDstPort),
         ttl(ttl),
         truncateSize(truncateSize) {}
-#endif
   sai_object_id_t id;
   sai_int32_t type;
   sai_object_id_t monitorPort;

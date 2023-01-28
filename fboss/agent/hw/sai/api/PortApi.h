@@ -116,11 +116,7 @@ struct SaiPortTraits {
         SaiObjectIdDefault>;
     using DisableTtlDecrement = SaiAttribute<
         EnumType,
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
         SAI_PORT_ATTR_DISABLE_DECREMENT_TTL,
-#else
-        SAI_PORT_ATTR_DECREMENT_TTL,
-#endif
         bool,
         SaiBoolDefaultFalse>;
     using InterfaceType = SaiAttribute<
@@ -158,7 +154,6 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_EGRESS_SAMPLEPACKET_ENABLE,
         SaiObjectIdT,
         SaiObjectIdDefault>;
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
     using IngressSampleMirrorSession = SaiAttribute<
         EnumType,
         SAI_PORT_ATTR_INGRESS_SAMPLE_MIRROR_SESSION,
@@ -169,7 +164,6 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_EGRESS_SAMPLE_MIRROR_SESSION,
         std::vector<sai_object_id_t>,
         SaiObjectIdListDefault>;
-#endif
     using PrbsPolynomial =
         SaiAttribute<EnumType, SAI_PORT_ATTR_PRBS_POLYNOMIAL, sai_uint32_t>;
     using PrbsConfig =
@@ -316,10 +310,8 @@ struct SaiPortTraits {
       std::optional<Attributes::EgressMirrorSession>,
       std::optional<Attributes::IngressSamplePacketEnable>,
       std::optional<Attributes::EgressSamplePacketEnable>,
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
       std::optional<Attributes::IngressSampleMirrorSession>,
       std::optional<Attributes::EgressSampleMirrorSession>,
-#endif
       std::optional<Attributes::IngressMacSecAcl>,
       std::optional<Attributes::EgressMacSecAcl>,
       std::optional<Attributes::SystemPortId>,
@@ -400,10 +392,8 @@ SAI_ATTRIBUTE_NAME(Port, IngressMirrorSession)
 SAI_ATTRIBUTE_NAME(Port, EgressMirrorSession)
 SAI_ATTRIBUTE_NAME(Port, IngressSamplePacketEnable)
 SAI_ATTRIBUTE_NAME(Port, EgressSamplePacketEnable)
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
 SAI_ATTRIBUTE_NAME(Port, IngressSampleMirrorSession)
 SAI_ATTRIBUTE_NAME(Port, EgressSampleMirrorSession)
-#endif
 
 SAI_ATTRIBUTE_NAME(Port, PrbsPolynomial)
 SAI_ATTRIBUTE_NAME(Port, PrbsConfig)

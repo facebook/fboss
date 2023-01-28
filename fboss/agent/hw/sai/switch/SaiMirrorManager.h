@@ -26,9 +26,7 @@ class SaiStore;
 
 using SaiMirror2Port = SaiObject<SaiLocalMirrorTraits>;
 using SaiMirror2GreTunnel = SaiObject<SaiEnhancedRemoteMirrorTraits>;
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
 using SaiMirrorSflowTunnel = SaiObject<SaiSflowMirrorTraits>;
-#endif
 
 struct SaiMirrorHandle {
   SaiMirrorHandle(std::string mirrorId, SaiManagerTable* managerTable)
@@ -36,12 +34,8 @@ struct SaiMirrorHandle {
   ~SaiMirrorHandle();
   using SaiMirror = std::variant<
       std::shared_ptr<SaiMirror2Port>,
-      std::shared_ptr<SaiMirror2GreTunnel>
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
-      ,
-      std::shared_ptr<SaiMirrorSflowTunnel>
-#endif
-      >;
+      std::shared_ptr<SaiMirror2GreTunnel>,
+      std::shared_ptr<SaiMirrorSflowTunnel>>;
   std::string mirrorId;
   SaiManagerTable* managerTable;
   SaiMirror mirror;

@@ -19,23 +19,21 @@
 using folly::to;
 
 namespace {
-std::map<int32_t, std::pair<std::string, std::size_t>> _MirrorSessionMap {
-  SAI_ATTR_MAP(EnhancedRemoteMirror, Type),
-      SAI_ATTR_MAP(EnhancedRemoteMirror, MonitorPort),
-      SAI_ATTR_MAP(EnhancedRemoteMirror, TruncateSize),
-      SAI_ATTR_MAP(EnhancedRemoteMirror, Tos),
-      SAI_ATTR_MAP(EnhancedRemoteMirror, ErspanEncapsulationType),
-      SAI_ATTR_MAP(EnhancedRemoteMirror, GreProtocolType),
-      SAI_ATTR_MAP(EnhancedRemoteMirror, Ttl),
-      SAI_ATTR_MAP(EnhancedRemoteMirror, SrcIpAddress),
-      SAI_ATTR_MAP(EnhancedRemoteMirror, DstIpAddress),
-      SAI_ATTR_MAP(EnhancedRemoteMirror, SrcMacAddress),
-      SAI_ATTR_MAP(EnhancedRemoteMirror, DstMacAddress),
-      SAI_ATTR_MAP(EnhancedRemoteMirror, IpHeaderVersion),
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
-      SAI_ATTR_MAP(SflowMirror, UdpSrcPort),
-      SAI_ATTR_MAP(SflowMirror, UdpDstPort),
-#endif
+std::map<int32_t, std::pair<std::string, std::size_t>> _MirrorSessionMap{
+    SAI_ATTR_MAP(EnhancedRemoteMirror, Type),
+    SAI_ATTR_MAP(EnhancedRemoteMirror, MonitorPort),
+    SAI_ATTR_MAP(EnhancedRemoteMirror, TruncateSize),
+    SAI_ATTR_MAP(EnhancedRemoteMirror, Tos),
+    SAI_ATTR_MAP(EnhancedRemoteMirror, ErspanEncapsulationType),
+    SAI_ATTR_MAP(EnhancedRemoteMirror, GreProtocolType),
+    SAI_ATTR_MAP(EnhancedRemoteMirror, Ttl),
+    SAI_ATTR_MAP(EnhancedRemoteMirror, SrcIpAddress),
+    SAI_ATTR_MAP(EnhancedRemoteMirror, DstIpAddress),
+    SAI_ATTR_MAP(EnhancedRemoteMirror, SrcMacAddress),
+    SAI_ATTR_MAP(EnhancedRemoteMirror, DstMacAddress),
+    SAI_ATTR_MAP(EnhancedRemoteMirror, IpHeaderVersion),
+    SAI_ATTR_MAP(SflowMirror, UdpSrcPort),
+    SAI_ATTR_MAP(SflowMirror, UdpDstPort),
 };
 } // namespace
 namespace facebook::fboss {

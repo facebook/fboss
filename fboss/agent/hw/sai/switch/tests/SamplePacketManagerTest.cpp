@@ -47,9 +47,7 @@ class SamplePacketManagerTest : public ManagerTestBase {
     sai_samplepacket_type_t expectedSampleType =
         SAI_SAMPLEPACKET_TYPE_SLOW_PATH;
     if (sampleDestination == cfg::SampleDestination::MIRROR) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
       expectedSampleType = SAI_SAMPLEPACKET_TYPE_MIRROR_SESSION;
-#endif
     }
     EXPECT_EQ(gotType, expectedSampleType);
   }

@@ -133,11 +133,7 @@ struct SaiNextHopTraitsT {
     using Type = SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_TYPE, sai_int32_t>;
     using DisableTtlDecrement = SaiAttribute<
         EnumType,
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
         SAI_NEXT_HOP_ATTR_DISABLE_DECREMENT_TTL,
-#else
-        SAI_NEXT_HOP_ATTR_DECREMENT_TTL,
-#endif
         bool,
         SaiBoolDefaultFalse>;
   };

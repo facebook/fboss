@@ -598,9 +598,7 @@ class SaiStore {
       SaiObjectStore<SaiIpNextHopTraits>,
       SaiObjectStore<SaiLocalMirrorTraits>,
       SaiObjectStore<SaiEnhancedRemoteMirrorTraits>,
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
       SaiObjectStore<SaiSflowMirrorTraits>,
-#endif
       SaiObjectStore<SaiMplsNextHopTraits>,
       SaiObjectStore<SaiNeighborTraits>,
       SaiObjectStore<SaiHostifTrapGroupTraits>,

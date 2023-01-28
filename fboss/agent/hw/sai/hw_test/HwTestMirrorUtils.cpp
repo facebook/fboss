@@ -129,7 +129,6 @@ static void verifyResolvedSflowMirror(
     const SaiSwitch* saiSwitch,
     const std::shared_ptr<facebook::fboss::Mirror>& mirror,
     SaiMirrorHandle* mirrorHandle) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
   auto portHandle = saiSwitch->managerTable()->portManager().getPortHandle(
       mirror->getEgressPort().value());
   ASSERT_NE(portHandle, nullptr);
@@ -186,7 +185,6 @@ static void verifyResolvedSflowMirror(
   auto ttl = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       mirrorHandle->adapterKey(), SaiSflowMirrorTraits::Attributes::Ttl());
   EXPECT_EQ(ttl, tunnel->ttl);
-#endif
 }
 
 void verifyResolvedMirror(
@@ -229,7 +227,6 @@ static void verifyPortMirrorDestinationImpl(
       saiSwitch->managerTable()->portManager().getPortHandle(port);
   std::vector<sai_object_id_t> mirrorSaiOidList;
   if (flags & MIRROR_PORT_SFLOW) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
     if (flags & MIRROR_PORT_INGRESS) {
       mirrorSaiOidList = SaiApiTable::getInstance()->portApi().getAttribute(
           portHandle->port->adapterKey(),
@@ -239,7 +236,6 @@ static void verifyPortMirrorDestinationImpl(
           portHandle->port->adapterKey(),
           SaiPortTraits::Attributes::EgressSampleMirrorSession());
     }
-#endif
   } else {
     if (flags & MIRROR_PORT_INGRESS) {
       mirrorSaiOidList = SaiApiTable::getInstance()->portApi().getAttribute(
@@ -286,13 +282,9 @@ void verifyNoAclMirrorDestination(
 bool isMirrorSflowTunnelEnabled(
     facebook::fboss::HwSwitch* /* hwSwitch */,
     uint64_t destination) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
   auto type = SaiApiTable::getInstance()->mirrorApi().getAttribute(
       MirrorSaiId(destination), SaiSflowMirrorTraits::Attributes::Type());
   return type == SAI_MIRROR_SESSION_TYPE_SFLOW;
-#else
-  return false;
-#endif
 }
 
 HwResourceStats getHwTableStats(facebook::fboss::HwSwitch* /* hwSwitch */) {

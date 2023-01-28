@@ -113,7 +113,6 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE> {
       Attributes::DstIpAddress>;
 };
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
 template <>
 struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_SFLOW> {
   using EnumType = sai_mirror_session_attr_t;
@@ -184,7 +183,6 @@ struct SaiMirrorTraits<SAI_MIRROR_SESSION_TYPE_SFLOW> {
       typename Attributes::UdpSrcPort,
       typename Attributes::UdpDstPort>;
 };
-#endif
 } // namespace detail
 
 class MirrorApi;
@@ -207,9 +205,7 @@ struct SaiMirrorTraitsT {
 using SaiLocalMirrorTraits = SaiMirrorTraitsT<SAI_MIRROR_SESSION_TYPE_LOCAL>;
 using SaiEnhancedRemoteMirrorTraits =
     SaiMirrorTraitsT<SAI_MIRROR_SESSION_TYPE_ENHANCED_REMOTE>;
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
 using SaiSflowMirrorTraits = SaiMirrorTraitsT<SAI_MIRROR_SESSION_TYPE_SFLOW>;
-#endif
 
 template <>
 struct SaiObjectHasConditionalAttributes<SaiLocalMirrorTraits>
@@ -217,21 +213,15 @@ struct SaiObjectHasConditionalAttributes<SaiLocalMirrorTraits>
 template <>
 struct SaiObjectHasConditionalAttributes<SaiEnhancedRemoteMirrorTraits>
     : public std::true_type {};
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
 template <>
 struct SaiObjectHasConditionalAttributes<SaiSflowMirrorTraits>
     : public std::true_type {};
-#endif
 
 // TODO: Add SaiSflowMirrorTraits here.
 using SaiMirrorTraits = ConditionObjectTraits<
     SaiLocalMirrorTraits,
-    SaiEnhancedRemoteMirrorTraits
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
-    ,
-    SaiSflowMirrorTraits
-#endif
-    >;
+    SaiEnhancedRemoteMirrorTraits,
+    SaiSflowMirrorTraits>;
 using SaiMirrorAdapterHostKey = typename SaiMirrorTraits::AdapterHostKey;
 using SaiMirrorAdaptertKey = typename SaiMirrorTraits::AdapterKey<MirrorSaiId>;
 
@@ -247,10 +237,8 @@ SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, DstIpAddress)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, SrcMacAddress)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, DstMacAddress)
 SAI_ATTRIBUTE_NAME(EnhancedRemoteMirror, IpHeaderVersion)
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
 SAI_ATTRIBUTE_NAME(SflowMirror, UdpSrcPort)
 SAI_ATTRIBUTE_NAME(SflowMirror, UdpDstPort)
-#endif
 
 class MirrorApi : public SaiApi<MirrorApi> {
  public:

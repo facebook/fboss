@@ -60,7 +60,6 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorErSpan(
   return store.setObject(k, attributes);
 }
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
 SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSflow(
     const std::shared_ptr<Mirror>& mirror,
     PortSaiId monitorPort) {
@@ -91,7 +90,6 @@ SaiMirrorHandle::SaiMirror SaiMirrorManager::addMirrorSflow(
   auto& store = saiStore_->get<SaiSflowMirrorTraits>();
   return store.setObject(k, attributes);
 }
-#endif
 
 SaiMirrorHandle::~SaiMirrorHandle() {
   managerTable->portManager().programMirrorOnAllPorts(
@@ -122,12 +120,8 @@ void SaiMirrorManager::addMirror(const std::shared_ptr<Mirror>& mirror) {
   if (mirror->getMirrorTunnel().has_value()) {
     auto mirrorTunnel = mirror->getMirrorTunnel().value();
     if (mirrorTunnel.udpPorts.has_value()) {
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
       mirrorHandle->mirror =
           addMirrorSflow(mirror, monitorPortHandle->port->adapterKey());
-#else
-      throw FbossError("sflow mirror not supported");
-#endif
     } else {
       mirrorHandle->mirror =
           addMirrorErSpan(mirror, monitorPortHandle->port->adapterKey());

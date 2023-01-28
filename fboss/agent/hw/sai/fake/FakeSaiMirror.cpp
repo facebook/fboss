@@ -30,10 +30,8 @@ sai_status_t create_mirror_session_fn(
   std::optional<folly::IPAddress> dstIp;
   std::optional<folly::MacAddress> srcMac;
   std::optional<folly::MacAddress> dstMac;
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
   std::optional<sai_uint16_t> udpSrcPort;
   std::optional<sai_uint16_t> udpDstPort;
-#endif
   std::optional<uint8_t> ttl;
   std::optional<uint8_t> tos;
   std::optional<sai_erspan_encapsulation_type_t> erspanEncapType;
@@ -61,14 +59,12 @@ sai_status_t create_mirror_session_fn(
       case SAI_MIRROR_SESSION_ATTR_DST_MAC_ADDRESS:
         dstMac = facebook::fboss::fromSaiMacAddress(attr_list[i].value.mac);
         break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
       case SAI_MIRROR_SESSION_ATTR_UDP_SRC_PORT:
         udpSrcPort = attr_list[i].value.u16;
         break;
       case SAI_MIRROR_SESSION_ATTR_UDP_DST_PORT:
         udpDstPort = attr_list[i].value.u16;
         break;
-#endif
       case SAI_MIRROR_SESSION_ATTR_ERSPAN_ENCAPSULATION_TYPE:
         erspanEncapType = static_cast<sai_erspan_encapsulation_type_t>(
             attr_list[i].value.s32);
@@ -117,7 +113,6 @@ sai_status_t create_mirror_session_fn(
         greProtocolType.value(),
         ttl.has_value() ? ttl.value() : (uint8_t)0,
         truncateSize.has_value() ? truncateSize.value() : (uint16_t)0);
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
   } else if (type == SAI_MIRROR_SESSION_TYPE_SFLOW) {
     if (!srcIp || !dstIp || !srcMac || !dstMac || !tos || !udpSrcPort ||
         !udpDstPort) {
@@ -136,7 +131,6 @@ sai_status_t create_mirror_session_fn(
         udpDstPort.value(),
         ttl.has_value() ? ttl.value() : (uint8_t)0,
         truncateSize.has_value() ? truncateSize.value() : (uint16_t)0);
-#endif
   } else {
     return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -180,14 +174,12 @@ sai_status_t set_mirror_session_attribute_fn(
     case SAI_MIRROR_SESSION_ATTR_IPHDR_VERSION:
       mirrorSession.ipHeaderVersion = attr->value.u8;
       break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
     case SAI_MIRROR_SESSION_ATTR_UDP_SRC_PORT:
       mirrorSession.udpSrcPort = attr->value.u16;
       break;
     case SAI_MIRROR_SESSION_ATTR_UDP_DST_PORT:
       mirrorSession.udpDstPort = attr->value.u16;
       break;
-#endif
     case SAI_MIRROR_SESSION_ATTR_ERSPAN_ENCAPSULATION_TYPE:
       return SAI_STATUS_INVALID_PARAMETER;
     case SAI_MIRROR_SESSION_ATTR_TRUNCATE_SIZE:
@@ -241,14 +233,12 @@ sai_status_t get_mirror_session_attribute_fn(
       case SAI_MIRROR_SESSION_ATTR_IPHDR_VERSION:
         attr_list[i].value.u8 = mirrorSession.ipHeaderVersion;
         break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 7, 0)
       case SAI_MIRROR_SESSION_ATTR_UDP_SRC_PORT:
         attr_list[i].value.u16 = mirrorSession.udpSrcPort;
         break;
       case SAI_MIRROR_SESSION_ATTR_UDP_DST_PORT:
         attr_list[i].value.u16 = mirrorSession.udpDstPort;
         break;
-#endif
       case SAI_MIRROR_SESSION_ATTR_ERSPAN_ENCAPSULATION_TYPE:
         attr_list[i].value.s32 =
             static_cast<int32_t>(mirrorSession.erspanEncapType);
