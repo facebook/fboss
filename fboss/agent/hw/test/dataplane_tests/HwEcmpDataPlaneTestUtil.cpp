@@ -175,14 +175,14 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     std::optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
-  auto firstVlan = programmedState->getVlans()->cbegin()->second;
-  auto mac = utility::getInterfaceMac(programmedState, firstVlan->getID());
+  auto vlanId = utility::firstVlanID(programmedState);
+  auto intfMac = utility::getFirstInterfaceMac(programmedState);
 
   utility::pumpTraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,
       ensemble->getHwSwitch(),
-      mac,
-      firstVlan->getID(),
+      intfMac,
+      vlanId,
       port);
 }
 
@@ -197,14 +197,14 @@ void HwIpRoCEEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
     std::optional<PortID> port) {
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
-  auto firstVlan = programmedState->getVlans()->cbegin()->second;
-  auto mac = utility::getInterfaceMac(programmedState, firstVlan->getID());
+  auto vlanId = utility::firstVlanID(programmedState);
+  auto intfMac = utility::getFirstInterfaceMac(programmedState);
 
   utility::pumpRoCETraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,
       ensemble->getHwSwitch(),
-      mac,
-      firstVlan->getID(),
+      intfMac,
+      vlanId,
       port);
 }
 
