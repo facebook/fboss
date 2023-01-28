@@ -88,7 +88,8 @@ namespace facebook::fboss {
 class HwAclPriorityTest : public HwTest {
  protected:
   cfg::SwitchConfig initialConfig() const {
-    return utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
   }
 };
 
