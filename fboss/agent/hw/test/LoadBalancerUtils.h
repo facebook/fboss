@@ -31,6 +31,13 @@ class HwSwitchEnsemble;
 
 namespace facebook::fboss::utility {
 
+inline const std::string kUdfGroupName("dstQueuePair");
+inline const std::string kUdfPktMatcherName("l4UdpRoce");
+inline const int kUdfStartOffsetInBytes(13);
+inline const int kUdfFieldSizeInBytes(3);
+inline const int kUdfL4DstPort(4791);
+inline const int kRandomUdfL4SrcPort(62946);
+
 cfg::LoadBalancer getEcmpHalfHashConfig(const Platform* platform);
 cfg::LoadBalancer getEcmpFullHashConfig(const Platform* platform);
 cfg::LoadBalancer getEcmpFullUdfHashConfig(const Platform* platform);
