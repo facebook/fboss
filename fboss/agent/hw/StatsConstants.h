@@ -233,6 +233,10 @@ inline folly::StringPiece constexpr kInMacsecUntaggedPkts() {
   return "in_macsec_untagged_pkts";
 }
 
+inline folly::StringPiece constexpr kInMacsecCurrentXpn() {
+  return "in_macsec_sa_current_xpn";
+}
+
 inline folly::StringPiece constexpr kOutPreMacsecDropPkts() {
   return "out_premacsec_drop_pkts";
 }
@@ -254,5 +258,9 @@ inline folly::StringPiece constexpr kOutMacsecUntaggedPkts() {
 
 inline folly::StringPiece constexpr kOutMacsecTooLongDroppedPkts() {
   return "out_macsec_too_long_dropped_pkts";
+}
+
+inline folly::StringPiece constexpr kOutMacsecCurrentXpn() {
+  return "out_macsec_sa_current_xpn";
 }
 } // namespace facebook::fboss

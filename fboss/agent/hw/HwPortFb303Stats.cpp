@@ -76,6 +76,7 @@ const std::vector<folly::StringPiece>& HwPortFb303Stats::kInMacsecPortStatKeys()
       kInMacsecNoSADroppedPkts(),
       kInMacsecUnusedSAPkts(),
       kInMacsecUntaggedPkts(),
+      kInMacsecCurrentXpn(),
   };
   return kMacsecInKeys;
 }
@@ -89,6 +90,7 @@ HwPortFb303Stats::kOutMacsecPortStatKeys() const {
       kOutMacsecEncryptedBytes(),
       kOutMacsecTooLongDroppedPkts(),
       kOutMacsecUntaggedPkts(),
+      kOutMacsecCurrentXpn(),
   };
   return kMacsecOutKeys;
 }
@@ -255,6 +257,10 @@ void HwPortFb303Stats::updateStats(
             timeRetrieved_,
             kInMacsecUntaggedPkts(),
             *macsecPortStats.noMacsecTagPkts());
+        updateStat(
+            timeRetrieved_,
+            kInMacsecCurrentXpn(),
+            *macsecPortStats.inCurrentXpn());
       } else {
         updateStat(
             timeRetrieved_,
@@ -264,6 +270,10 @@ void HwPortFb303Stats::updateStats(
             timeRetrieved_,
             kOutMacsecTooLongDroppedPkts(),
             *macsecPortStats.outTooLongDroppedPkts());
+        updateStat(
+            timeRetrieved_,
+            kOutMacsecCurrentXpn(),
+            *macsecPortStats.outCurrentXpn());
       }
     };
     updateMacsecPortStats(
