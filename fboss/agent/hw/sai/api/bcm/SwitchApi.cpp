@@ -39,13 +39,15 @@ SaiSwitchTraits::Attributes::HwEccErrorInitiateWrapper::operator()() {
   return std::nullopt;
 }
 
-#if defined(SAI_VERSION_8_2_0_0_ODP) || \
-    defined(SAI_VERSION_8_2_0_0_SIM_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeDllPathWrapper::operator()() {
+#if defined(SAI_VERSION_8_2_0_0_ODP) || \
+    defined(SAI_VERSION_8_2_0_0_SIM_ODP) || defined(SAI_VERSION_9_0_EA_ODP)
   return SAI_SWITCH_ATTR_ISSU_CUSTOM_DLL_PATH;
-}
+#else
+  return std::nullopt;
 #endif
+}
 
 void SwitchApi::registerParityErrorSwitchEventCallback(
     SwitchSaiId id,

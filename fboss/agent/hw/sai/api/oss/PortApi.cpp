@@ -28,4 +28,12 @@ std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
     AttributeRxAfeAdaptiveEnableWrapper::operator()() {
   return std::nullopt;
 }
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeSerdesLaneList::operator()() {
+  return std::nullopt;
+}
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeDiagModeEnable::operator()() {
+  return std::nullopt;
+}
 } // namespace facebook::fboss

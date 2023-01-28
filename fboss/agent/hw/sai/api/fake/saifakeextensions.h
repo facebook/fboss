@@ -37,6 +37,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_EXT_FAKE_ACL_FIELD_LIST,
   SAI_SWITCH_ATTR_DEFAULT_EGRESS_BUFFER_POOL_SHARED_SIZE,
   SAI_SWITCH_ATTR_EXT_FAKE_HW_ECC_ERROR_INITIATE,
+  SAI_SWITCH_ATTR_ISSU_CUSTOM_DLL_PATH,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {
@@ -46,4 +47,6 @@ typedef enum _sai_tam_event_extensions_attr_t {
 
 typedef enum _sai_port_extensions_attr_t {
   SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID = SAI_PORT_ATTR_CUSTOM_RANGE_START,
+  SAI_PORT_ATTR_SERDES_LANE_LIST,
+  SAI_PORT_ATTR_DIAGNOSTICS_MODE_ENABLE,
 } sai_port_extensions_attr_t;
