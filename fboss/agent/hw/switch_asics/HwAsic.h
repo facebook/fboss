@@ -124,6 +124,7 @@ class HwAsic {
     SHARED_INGRESS_EGRESS_BUFFER_POOL,
     ROUTE_METADATA,
     DLB,
+    P4_WARMBOOT,
   };
 
   enum class AsicMode {

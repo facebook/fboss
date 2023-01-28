@@ -122,6 +122,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::XPHY_SAI_WARMBOOT:
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::DLB:
+    case HwAsic::Feature::P4_WARMBOOT:
       return false;
   }
   return false;

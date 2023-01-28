@@ -117,6 +117,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::XPHY_SAI_WARMBOOT:
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::DLB:
+    case HwAsic::Feature::P4_WARMBOOT:
       return false;
   }
   return false;
