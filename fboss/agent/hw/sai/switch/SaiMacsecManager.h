@@ -38,6 +38,7 @@ struct SaiMacsecSecureChannelHandle {
   std::shared_ptr<SaiMacsecSecureChannel> secureChannel;
   folly::F14FastMap<uint8_t, std::shared_ptr<SaiMacsecSecureAssoc>>
       secureAssocs;
+  uint8_t latestSaAn{0};
 };
 
 struct SaiMacsecPortHandle {

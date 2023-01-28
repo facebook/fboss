@@ -106,8 +106,10 @@ struct MacsecPortStats {
   12: i64 inInvalidPkts = 0; // from SA.inInvalidPkts
   13: i64 inNoSaDroppedPkts = 0; // from SA.inNoSaPkts
   14: i64 inUnusedSaPkts = 0; // from SA.inUnusedSaPkts
+  15: i64 inCurrentXpn = 0; // from SA.inCurrentXpn
   // Out Errors
   30: i64 outTooLongDroppedPkts = 0; // from Flow.outTooLongPkts
+  31: i64 outCurrentXpn = 0; // from SA.outCurrentXpn
   // In/Out error counters
   45: i64 noMacsecTagPkts = 0; // from Flow.untaggedPkts
 }
@@ -187,6 +189,10 @@ struct MacsecSaStats {
   12: i64 inUnusedSaPkts;
   // In packets that passed all checks on a controlled port
   13: i64 inOkPkts;
+  // Current egress extended packet number
+  14: i64 outCurrentXpn;
+  // Current ingress extended packet number
+  15: i64 inCurrentXpn;
 }
 
 struct MacsecAclStats {

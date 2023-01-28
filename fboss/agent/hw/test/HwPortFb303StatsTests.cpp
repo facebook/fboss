@@ -46,7 +46,9 @@ HwPortStats getInitedStats() {
           12, // inInvalidPkts
           13, // inNoSaDroppedPkts
           14, // inUnusedSaPkts
+          16, // inCurrentXpn
           0, // outTooLongDroppedPkts
+          0, // outCurrentXpn
           15 // noMacsecTagPkts
       },
       // egress macsec port stats
@@ -66,7 +68,9 @@ HwPortStats getInitedStats() {
           0, // inInvalidPkts
           0, // inNoSaDroppedPkts
           0, // inUnusedSaPkts
+          0, // inCurrentXpn
           5, // outTooLongDroppedPkts
+          7, // outCurrentXpn
           6 // noMacsecTagPkts
       },
       {}, // ingress flow stats
@@ -140,40 +144,46 @@ void updateStats(HwPortFb303Stats& portStats) {
       apache::thrift::FragileConstructor(),
       mka::MacsecPortStats{
           apache::thrift::FragileConstructor(),
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0}, // ingress  macsec port stats
+          0, // preMacsecDropPkts
+          0, // controlPkts
+          0, // dataPkts
+          0, // octetsEncrypted
+          0, // inBadOrNoMacsecTagDroppedPkts
+          0, // inNoSciDroppedPkts
+          0, // inUnknownSciPkts
+          0, // inOverrunDroppedPkts
+          0, // inDelayedPkts
+          0, // inLateDroppedPkts
+          0, // inNotValidDroppedPkts
+          0, // inInvalidPkts
+          0, // inNoSaDroppedPkts
+          0, // inUnusedSaPkts
+          0, // inCurrentXpn
+          0, // outTooLongDroppedPkts
+          0, // outCurrentXpn
+          0 // noMacsecTagPkts
+      }, // ingress  macsec port stats
       mka::MacsecPortStats{
           apache::thrift::FragileConstructor(),
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0}, // egress  macsec port stats
+          0, // preMacsecDropPkts
+          0, // controlPkts
+          0, // dataPkts
+          0, // octetsEncrypted
+          0, // inBadOrNoMacsecTagDroppedPkts
+          0, // inNoSciDroppedPkts
+          0, // inUnknownSciPkts
+          0, // inOverrunDroppedPkts
+          0, // inDelayedPkts
+          0, // inLateDroppedPkts
+          0, // inNotValidDroppedPkts
+          0, // inInvalidPkts
+          0, // inNoSaDroppedPkts
+          0, // inUnusedSaPkts
+          0, // inCurrentXpn
+          0, // outTooLongDroppedPkts
+          0, // outCurrentXpn
+          0 // noMacsecTagPkts
+      }, // egress  macsec port stats
       {}, // ingress flow stats
       {}, // egress flow stats
       {{}}, // rx SA stats

@@ -670,6 +670,7 @@ MacsecSASaiId SaiMacsecManager::addMacsecSecureAssoc(
   auto saiObj = store.setObject(key, attributes);
 
   scHandle->secureAssocs.emplace(assocNum, std::move(saiObj));
+  scHandle->latestSaAn = assocNum;
   return scHandle->secureAssocs[assocNum]->adapterKey();
 }
 
@@ -1587,8 +1588,9 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
       for (const auto& macsecSa : macsecSc.second->secureAssocs) {
         macsecSa.second->updateStats<SaiMacsecSATraits>();
         mka::MKASecureAssociationId saId;
+        uint8_t assocNum = macsecSa.first;
         saId.sci() = sci;
-        saId.assocNum() = macsecSa.first;
+        saId.assocNum() = assocNum;
 
         // Find saStats for a given sa
         auto findSaStats = [](const std::vector<MacsecSaIdSaStats>& saStats,
@@ -1605,6 +1607,25 @@ void SaiMacsecManager::updateStats(PortID port, HwPortStats& portStats) {
         auto prevSaStats = findSaStats(saStats, saId);
         auto curSaStats = fillSaStats(macsecSa.second->getStats(), direction);
         updateMacsecPortStats(prevSaStats, curSaStats, macsecPortStats);
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
+        // Fill in the Current Packet Number for ingress and egress SA
+        // Roll up these XPN to port level stats. The port level XPN reflects
+        // latest installed SA's XPN
+        auto saHandle = macsecSa.second->adapterKey();
+        auto currXpn = SaiApiTable::getInstance()->macsecApi().getAttribute(
+            MacsecSASaiId(saHandle),
+            SaiMacsecSATraits::Attributes::CurrentXpn());
+        if (direction == SAI_MACSEC_DIRECTION_INGRESS) {
+          curSaStats.inCurrentXpn() = currXpn;
+          if (macsecSc.second->latestSaAn == assocNum) {
+            *macsecPortStats.inCurrentXpn() = currXpn;
+          }
+        } else {
+          curSaStats.outCurrentXpn() = currXpn;
+          *macsecPortStats.outCurrentXpn() = currXpn;
+        }
+#endif
 
         MacsecSaIdSaStats singleSaStats;
         singleSaStats.saId() = saId;
