@@ -27,7 +27,8 @@ extern "C" {
 namespace {
 using namespace facebook::fboss;
 constexpr sai_uint8_t kSectagOffset = 12;
-constexpr sai_int32_t kReplayProtectionWindow = 100;
+// Vendor recommended replay protection window size for 400Gbps link
+constexpr sai_int32_t kReplayProtectionWindow = 4096;
 
 static std::array<uint8_t, 12> kDefaultSaltValue{
     0x9d,
