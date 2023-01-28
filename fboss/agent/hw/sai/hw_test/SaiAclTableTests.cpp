@@ -19,7 +19,7 @@ class SaiAclTableRecreateTests : public HwTest {
   }
   cfg::SwitchConfig initialConfig() const {
     return utility::onePortPerInterfaceConfig(
-        getHwSwitch(), {masterLogicalPortIds()[0]});
+        getHwSwitch(), masterLogicalPortIds());
   }
 };
 
