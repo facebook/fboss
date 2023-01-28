@@ -259,7 +259,7 @@ void pumpTraffic(
         folly::sformat(isV6 ? "1001::{}" : "100.0.0.{}", i + 1));
     for (auto j = 0; j < 100; ++j) {
       auto dstIp = folly::IPAddress(
-          folly::sformat(isV6 ? "2001::{}" : "200.0.0.{}", j + 1));
+          folly::sformat(isV6 ? "2001::{}" : "201.0.0.{}", j + 1));
       auto pkt = makeUDPTxPacket(
           hw,
           vlan,
