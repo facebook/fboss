@@ -129,6 +129,10 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
           {"TooLongDroppedPkts",
            "--",
            std::to_string(*outStats.outTooLongDroppedPkts())});
+      table.addRow(
+          {"CurrentXPN",
+           std::to_string(*inStats.inCurrentXpn()),
+           std::to_string(*outStats.outCurrentXpn())});
 
       out << table << std::endl;
     };
@@ -240,12 +244,15 @@ class CmdShowInterfaceCountersMKA : public CmdHandler<
           table.addRow({"NoSaPackets", std::to_string(*stats.inNoSaPkts())});
           table.addRow(
               {"UnusedSaPackets", std::to_string(*stats.inUnusedSaPkts())});
+          table.addRow({"InCurrentXpn", std::to_string(*stats.inCurrentXpn())});
           table.addRow({"OkPackets", std::to_string(*stats.inOkPkts())});
         } else {
           table.addRow(
               {"EncryptedPackets", std::to_string(*stats.outEncryptedPkts())});
           table.addRow(
               {"ProtectedPackets", std::to_string(*stats.outProtectedPkts())});
+          table.addRow(
+              {"OutCurentXpn", std::to_string(*stats.outCurrentXpn())});
         }
         out << table << std::endl;
       };

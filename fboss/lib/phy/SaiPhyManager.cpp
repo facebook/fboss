@@ -831,6 +831,8 @@ mka::MacsecSaStats SaiPhyManager::getMacsecSecureAssocStats(
       returnSaStats.outProtectedPkts() =
           returnSaStats.outProtectedPkts().value() +
           singleSaStat.saStats()->outProtectedPkts().value();
+      returnSaStats.outCurrentXpn() =
+          singleSaStat.saStats()->outCurrentXpn().value();
       returnSaStats.inUncheckedPkts() =
           returnSaStats.inUncheckedPkts().value() +
           singleSaStat.saStats()->inUncheckedPkts().value();
@@ -846,6 +848,8 @@ mka::MacsecSaStats SaiPhyManager::getMacsecSecureAssocStats(
           singleSaStat.saStats()->inNoSaPkts().value();
       returnSaStats.inUnusedSaPkts() = returnSaStats.inUnusedSaPkts().value() +
           singleSaStat.saStats()->inUnusedSaPkts().value();
+      returnSaStats.inCurrentXpn() =
+          singleSaStat.saStats()->inCurrentXpn().value();
       returnSaStats.inOkPkts() = returnSaStats.inOkPkts().value() +
           singleSaStat.saStats()->inOkPkts().value();
     }
