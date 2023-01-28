@@ -333,7 +333,23 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwVoqSwitchTest, init) {
+class HwVoqSwitchWithFabricPortsTest : public HwVoqSwitchTest {
+ public:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode(),
+        true, /*interfaceHasSubnet*/
+        false, /*setInterfaceMac*/
+        utility::kBaseVlanId,
+        true /*enable fabric ports*/
+    );
+    return cfg;
+  }
+};
+
+TEST_F(HwVoqSwitchWithFabricPortsTest, init) {
   auto setup = [this]() {};
 
   auto verify = [this]() {
@@ -346,6 +362,15 @@ TEST_F(HwVoqSwitchTest, init) {
     }
   };
   verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwVoqSwitchWithFabricPortsTest, collectStats) {
+  auto verify = [this]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    SwitchStats dummy;
+    getHwSwitch()->updateStats(&dummy);
+  };
+  verifyAcrossWarmBoots([] {}, verify);
 }
 
 TEST_F(HwVoqSwitchTest, remoteSystemPort) {
@@ -571,15 +596,6 @@ TEST_F(HwVoqSwitchTest, AclCounter) {
 TEST_F(HwVoqSwitchTest, checkFabricReacability) {
   verifyAcrossWarmBoots(
       [] {}, [this]() { checkFabricReachability(getHwSwitch()); });
-}
-
-TEST_F(HwVoqSwitchTest, collectStats) {
-  auto verify = [this]() {
-    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
-    SwitchStats dummy;
-    getHwSwitch()->updateStats(&dummy);
-  };
-  verifyAcrossWarmBoots([] {}, verify);
 }
 
 } // namespace facebook::fboss
