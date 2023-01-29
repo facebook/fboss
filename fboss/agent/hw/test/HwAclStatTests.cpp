@@ -27,7 +27,8 @@ namespace facebook::fboss {
 class HwAclStatTest : public HwTest {
  protected:
   cfg::SwitchConfig initialConfig() const {
-    return utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
   }
 
   cfg::AclEntry* addDscpAcl(
