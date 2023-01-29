@@ -42,6 +42,7 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV4.*:-*Ucmp*:-*Shrink*
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV6.*:-*Ucmp*:-*Shrink*
 # Route programming tests
+# ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwAlpmStressTest.*
 # ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=SaiNextHopGroupTest:-*addNextHopGroupPortDown*
 # V4 routes
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwRouteTest/0.*:-*Mpls*:*ClassId*:*ClassID*
