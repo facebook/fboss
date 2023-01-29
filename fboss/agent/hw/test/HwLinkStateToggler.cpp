@@ -149,7 +149,8 @@ void HwLinkStateToggler::bringUpPorts(
     const cfg::SwitchConfig& initCfg) {
   std::vector<PortID> portsToBringUp;
   folly::gen::from(*initCfg.ports()) | folly::gen::filter([](const auto& port) {
-    return *port.state() == cfg::PortState::ENABLED;
+    return *port.state() == cfg::PortState::ENABLED &&
+        *port.portType() != cfg::PortType::RECYCLE_PORT;
   }) | folly::gen::map([](const auto& port) {
     return PortID(*port.logicalID());
   }) | folly::gen::appendTo(portsToBringUp);
