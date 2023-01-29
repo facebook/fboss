@@ -41,6 +41,15 @@ from argparse import ArgumentParser
 # LB Tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV4.*:-*Ucmp*:-*Shrink*
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV6.*:-*Ucmp*:-*Shrink*
+# Basic Route programming tests
+# V4 routes
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwRouteTest/0.*:-*Mpls*:*ClassId*:*ClassID*
+# V6 routes
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwRouteTest/1.*:-*Mpls*:*ClassId*:*ClassID*
+# ACLs
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwAclPriorityTest.*:-*AclsChanged*
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwAclCounterTest.*:-*Ttl*
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=SaiAclTableRecreateTests.*
 # All tests matching following filter are expected to PASS on Kamet
 # ./run_test.py sai --config kamet.agent.materialized_JSON --filter=HwFabricSwitchTest*
 
