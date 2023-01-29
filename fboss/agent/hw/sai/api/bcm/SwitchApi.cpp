@@ -49,6 +49,11 @@ SaiSwitchTraits::Attributes::AttributeDllPathWrapper::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeRestartIssuWrapper::operator()() {
+  return std::nullopt;
+}
+
 void SwitchApi::registerParityErrorSwitchEventCallback(
     SwitchSaiId id,
     void* switch_event_cb) const {

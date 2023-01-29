@@ -426,7 +426,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         std::nullopt, // Max ECMP member count
         std::nullopt, // ECMP member count
 #endif
-        dllPath,
+        dllPath, std::nullopt,
   };
 }
 

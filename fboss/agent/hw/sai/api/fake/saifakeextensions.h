@@ -38,6 +38,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_DEFAULT_EGRESS_BUFFER_POOL_SHARED_SIZE,
   SAI_SWITCH_ATTR_EXT_FAKE_HW_ECC_ERROR_INITIATE,
   SAI_SWITCH_ATTR_ISSU_CUSTOM_DLL_PATH,
+  SAI_SWITCH_ATTR_EXT_RESTART_ISSU,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

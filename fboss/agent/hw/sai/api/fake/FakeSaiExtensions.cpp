@@ -83,4 +83,9 @@ SaiPortTraits::Attributes::AttributeDiagModeEnable::operator()() {
   return SAI_PORT_ATTR_DIAGNOSTICS_MODE_ENABLE;
 }
 
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeRestartIssuWrapper::operator()() {
+  return SAI_SWITCH_ATTR_EXT_RESTART_ISSU;
+}
+
 } // namespace facebook::fboss

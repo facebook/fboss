@@ -411,6 +411,11 @@ struct SaiSwitchTraits {
     };
     using DllPath =
         SaiExtensionAttribute<std::vector<int8_t>, AttributeDllPathWrapper>;
+    struct AttributeRestartIssuWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using RestartIssu =
+        SaiExtensionAttribute<bool, AttributeRestartIssuWrapper>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -456,7 +461,8 @@ struct SaiSwitchTraits {
       std::optional<Attributes::EcmpMemberCount>
 #endif
       ,
-      std::optional<Attributes::DllPath>>;
+      std::optional<Attributes::DllPath>,
+      std::optional<Attributes::RestartIssu>>;
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
@@ -541,6 +547,7 @@ SAI_ATTRIBUTE_NAME(Switch, MaxEcmpMemberCount)
 SAI_ATTRIBUTE_NAME(Switch, EcmpMemberCount)
 #endif
 SAI_ATTRIBUTE_NAME(Switch, DllPath)
+SAI_ATTRIBUTE_NAME(Switch, RestartIssu)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:
