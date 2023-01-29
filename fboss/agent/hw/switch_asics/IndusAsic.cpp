@@ -49,7 +49,6 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
     case HwAsic::Feature::PORT_TX_DISABLE:
-    case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::PORT_EYE_VALUES:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::ROUTE_PROGRAMMING:
@@ -73,6 +72,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
       return true;
 
+    case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::QCM:
