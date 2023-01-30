@@ -121,6 +121,11 @@ class SaiPlatform : public Platform, public StateObserver {
   const std::set<sai_api_t>& getDefaultPhyAsicSupportedApis() const;
   virtual const std::set<sai_api_t>& getSupportedApiList() const;
 
+  virtual const std::unordered_map<std::string, std::string>
+  getSaiProfileVendorExtensionValues() const {
+    return std::unordered_map<std::string, std::string>();
+  }
+
  protected:
   std::unique_ptr<SaiSwitch> saiSwitch_;
   virtual void updatePorts(const StateDelta& delta);

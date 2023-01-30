@@ -192,6 +192,9 @@ void SaiPlatform::initSaiProfileValues() {
       SAI_KEY_WARM_BOOT_WRITE_FILE, getWarmBootHelper()->warmBootDataPath()));
   kSaiProfileValues.insert(std::make_pair(
       SAI_KEY_BOOT_TYPE, getWarmBootHelper()->canWarmBoot() ? "1" : "0"));
+  auto vendorProfileValues = getSaiProfileVendorExtensionValues();
+  kSaiProfileValues.insert(
+      vendorProfileValues.begin(), vendorProfileValues.end());
 }
 
 void SaiPlatform::initImpl(uint32_t hwFeaturesDesired) {

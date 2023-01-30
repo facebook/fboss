@@ -37,6 +37,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiKametPlatform.cpp
 
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatform.cpp
+  fboss/agent/platforms/sai/oss/SaiTajoPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiBcmGalaxyPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmFujiPlatformPort.cpp

@@ -43,6 +43,9 @@ class SaiTajoPlatform : public SaiHwPlatform {
     return false;
   }
   void initLEDs() override {}
+
+  const std::unordered_map<std::string, std::string>
+  getSaiProfileVendorExtensionValues() const override;
 };
 
 } // namespace facebook::fboss
