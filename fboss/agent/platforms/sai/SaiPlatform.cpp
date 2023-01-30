@@ -47,8 +47,6 @@ DEFINE_string(
     firmware_path,
     "/etc/packages/neteng-fboss-wedge_agent/current",
     "Path to load the firmware");
-// TODO - get this information from config
-DEFINE_int32(num_voq_switches, 10, "Num VOQ switches in cluster");
 namespace {
 
 std::unordered_map<std::string, std::string> kSaiProfileValues;
@@ -355,7 +353,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       // For a mixed HW deployment, update config to reflect
       // ASIC type to switch mapping, then use that information
       // to compute total cores in VOQ switch cluster.
-      cores = FLAGS_num_voq_switches * getAsic()->getNumCores();
+      cores = getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO
+          ? 10
+          : 20 * getAsic()->getNumCores();
       sysPortConfigs = SaiSwitchTraits::Attributes::SysPortConfigList{
           getInternalSystemPortConfig()};
     }
