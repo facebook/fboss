@@ -69,6 +69,11 @@ DEFINE_bool(
     "However, it's needed for testing e.g. HwL4PortBlackHolingTest");
 
 DEFINE_bool(
+    enable_elapsed_time_log,
+    false,
+    "Flag to indicate whether to log the elapsed time of SDK API calls.");
+
+DEFINE_bool(
     enable_get_attr_log,
     false,
     "Flag to indicate whether to log the get API calls. "
@@ -724,7 +729,7 @@ void SaiTracer::logInsegEntryCreateFn(
   writeToFile(lines);
 }
 
-void SaiTracer::logCreateFn(
+std::string SaiTracer::logCreateFn(
     const string& fn_name,
     sai_object_id_t* create_object_id,
     sai_object_id_t switch_id,
@@ -732,7 +737,7 @@ void SaiTracer::logCreateFn(
     const sai_attribute_t* attr_list,
     sai_object_type_t object_type) {
   if (!FLAGS_enable_replayer) {
-    return;
+    return "";
   }
 
   // First fill in attribute list
@@ -749,6 +754,7 @@ void SaiTracer::logCreateFn(
       fn_name, varName, getVariable(switch_id), attr_count, object_type));
 
   writeToFile(lines, false);
+  return varName;
 }
 
 void SaiTracer::logRouteEntryRemoveFn(
@@ -1287,8 +1293,6 @@ std::tuple<string, string> SaiTracer::declareVariable(
       varCounts_, object_type, "Unsupported Sai Object type in Sai Tracer")++;
   string varName = to<string>(varPrefix, num);
 
-  // Add this variable to the variable map
-  variables_.emplace(*object_id, varName);
   return std::make_tuple(to<string>(varType, varName), varName);
 }
 
@@ -1614,7 +1618,10 @@ string SaiTracer::rvCheck(sai_status_t rv) {
   return to<string>("rvCheck(rv,", rv, ",", numCalls_++, ")");
 }
 
-string SaiTracer::logTimeAndRv(sai_status_t rv, sai_object_id_t object_id) {
+string SaiTracer::logTimeAndRv(
+    sai_status_t rv,
+    sai_object_id_t object_id,
+    std::chrono::system_clock::time_point begin) {
   auto now = std::chrono::system_clock::now();
   auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                     now.time_since_epoch()) %
@@ -1635,6 +1642,14 @@ string SaiTracer::logTimeAndRv(sai_status_t rv, sai_object_id_t object_id) {
   }
 
   outStringStream << " rv: " << rv;
+
+  if (begin != std::chrono::system_clock::time_point::min()) {
+    outStringStream << " elapsed time " << std::dec
+                    << std::chrono::duration_cast<std::chrono::microseconds>(
+                           now - begin)
+                           .count()
+                    << " μs";
+  }
 
   return outStringStream.str();
 }
@@ -1679,10 +1694,20 @@ uint32_t SaiTracer::checkListCount(
   return FLAGS_default_list_size * sizeof(int) / elem_size;
 }
 
-void SaiTracer::logPostInvocation(sai_status_t rv, sai_object_id_t object_id) {
+void SaiTracer::logPostInvocation(
+    sai_status_t rv,
+    sai_object_id_t object_id,
+    std::chrono::system_clock::time_point begin,
+    std::optional<std::string> varName) {
+  // In the case of create fn, objectID is known after invocation.
+  // Therefore, add it to the variable mapping here.
+  if (varName) {
+    variables_.emplace(object_id, *varName);
+  }
+
   vector<string> lines;
   // Log current timestamp, object id and return value
-  lines.push_back(logTimeAndRv(rv, object_id));
+  lines.push_back(logTimeAndRv(rv, object_id, begin));
 
   // Check return value to be the same as the original run
   lines.push_back(rvCheck(rv));

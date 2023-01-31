@@ -31,6 +31,7 @@ extern "C" {
 
 DECLARE_bool(enable_replayer);
 DECLARE_bool(enable_packet_log);
+DECLARE_bool(enable_elapsed_time_log);
 
 using PrimitiveFunction = std::string (*)(const sai_attribute_t*, int);
 using AttributeFunction =
@@ -90,7 +91,7 @@ class SaiTracer {
       const sai_attribute_t* attr_list,
       sai_status_t rv);
 
-  void logCreateFn(
+  std::string logCreateFn(
       const std::string& fn_name,
       sai_object_id_t* create_object_id,
       sai_object_id_t switch_id,
@@ -198,7 +199,11 @@ class SaiTracer {
       const std::vector<std::string>& strVec,
       bool linefeed = true);
 
-  void logPostInvocation(sai_status_t rv, sai_object_id_t object_id);
+  void logPostInvocation(
+      sai_status_t rv,
+      sai_object_id_t object_id,
+      std::chrono::system_clock::time_point begin,
+      std::optional<std::string> varName = std::nullopt);
 
   sai_acl_api_t* aclApi_;
   sai_bridge_api_t* bridgeApi_;
@@ -310,7 +315,9 @@ class SaiTracer {
 
   std::string logTimeAndRv(
       sai_status_t rv,
-      sai_object_id_t object_id = SAI_NULL_OBJECT_ID);
+      sai_object_id_t object_id = SAI_NULL_OBJECT_ID,
+      std::chrono::system_clock::time_point begin =
+          std::chrono::system_clock::time_point::min());
 
   void checkAttrCount(uint32_t attr_count);
 
@@ -524,16 +531,20 @@ class SaiTracer {
       sai_object_id_t switch_id,                                           \
       uint32_t attr_count,                                                 \
       const sai_attribute_t* attr_list) {                                  \
-    SaiTracer::getInstance()->logCreateFn(                                 \
+    auto varName = SaiTracer::getInstance()->logCreateFn(                  \
         "create_" #obj_type,                                               \
         obj_type##_id,                                                     \
         switch_id,                                                         \
         attr_count,                                                        \
         attr_list,                                                         \
         sai_obj_type);                                                     \
+    auto begin = FLAGS_enable_elapsed_time_log                             \
+        ? std::chrono::system_clock::now()                                 \
+        : std::chrono::system_clock::time_point::min();                    \
     auto rv = SaiTracer::getInstance()->api_type##Api_->create_##obj_type( \
         obj_type##_id, switch_id, attr_count, attr_list);                  \
-    SaiTracer::getInstance()->logPostInvocation(rv, *obj_type##_id);       \
+    SaiTracer::getInstance()->logPostInvocation(                           \
+        rv, *obj_type##_id, begin, varName);                               \
     return rv;                                                             \
   }
 
