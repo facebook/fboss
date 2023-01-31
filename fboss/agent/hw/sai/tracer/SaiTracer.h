@@ -116,8 +116,7 @@ class SaiTracer {
   void logRemoveFn(
       const std::string& fn_name,
       sai_object_id_t remove_object_id,
-      sai_object_type_t object_type,
-      sai_status_t rv);
+      sai_object_type_t object_type);
 
   void logRouteEntrySetAttrFn(
       const sai_route_entry_t* route_entry,
@@ -550,11 +549,15 @@ class SaiTracer {
 
 #define WRAP_REMOVE_FUNC(obj_type, sai_obj_type, api_type)                 \
   sai_status_t wrap_remove_##obj_type(sai_object_id_t obj_type##_id) {     \
+    SaiTracer::getInstance()->logRemoveFn(                                 \
+        "remove_" #obj_type, obj_type##_id, sai_obj_type);                 \
+    auto begin = FLAGS_enable_elapsed_time_log                             \
+        ? std::chrono::system_clock::now()                                 \
+        : std::chrono::system_clock::time_point::min();                    \
     auto rv = SaiTracer::getInstance()->api_type##Api_->remove_##obj_type( \
         obj_type##_id);                                                    \
+    SaiTracer::getInstance()->logPostInvocation(rv, obj_type##_id, begin); \
                                                                            \
-    SaiTracer::getInstance()->logRemoveFn(                                 \
-        "remove_" #obj_type, obj_type##_id, sai_obj_type, rv);             \
     return rv;                                                             \
   }
 

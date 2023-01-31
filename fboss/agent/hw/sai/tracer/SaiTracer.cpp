@@ -868,16 +868,12 @@ void SaiTracer::logInsegEntryRemoveFn(
 void SaiTracer::logRemoveFn(
     const string& fn_name,
     sai_object_id_t remove_object_id,
-    sai_object_type_t object_type,
-    sai_status_t rv) {
+    sai_object_type_t object_type) {
   if (!FLAGS_enable_replayer) {
     return;
   }
 
   vector<string> lines{};
-
-  // Log current timestamp, object id and return value
-  lines.push_back(logTimeAndRv(rv, remove_object_id));
 
   // Make the remove call
   lines.push_back(to<string>(
@@ -889,10 +885,7 @@ void SaiTracer::logRemoveFn(
       getVariable(remove_object_id),
       ")"));
 
-  // Check return value to be the same as the original run
-  lines.push_back(rvCheck(rv));
-
-  writeToFile(lines);
+  writeToFile(lines, false);
 
   // Remove object from variables_
   variables_.erase(remove_object_id);
