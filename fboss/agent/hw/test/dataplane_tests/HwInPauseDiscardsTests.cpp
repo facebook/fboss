@@ -40,13 +40,13 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
     payload.insert(payload.end(), padding.begin(), padding.end());
     auto pkt = utility::makeEthTxPacket(
         getHwSwitch(),
-        VlanID(1),
+        utility::firstVlanID(getProgrammedState()),
         getPlatform()->getLocalMac(),
         folly::MacAddress("01:80:C2:00:00:01"),
         ETHERTYPE::ETHERTYPE_EPON,
         payload);
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-        std::move(pkt), PortID(masterLogicalPortIds()[0]));
+        std::move(pkt), PortID(masterLogicalInterfacePortIds()[0]));
   }
 
  protected:
@@ -55,8 +55,8 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
       if (enableRxPause) {
         auto newState = getProgrammedState()->clone();
         auto portMap = newState->getPorts()->modify(&newState);
-        auto port =
-            portMap->getPort(PortID(masterLogicalPortIds()[0]))->clone();
+        auto port = portMap->getPort(PortID(masterLogicalInterfacePortIds()[0]))
+                        ->clone();
         cfg::PortPause pauseCfg;
         *pauseCfg.rx() = true;
         port->setPause(pauseCfg);
@@ -65,9 +65,11 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
       }
     };
     auto verify = [=]() {
-      auto portStatsBefore = getLatestPortStats(masterLogicalPortIds()[0]);
+      auto portStatsBefore =
+          getLatestPortStats(masterLogicalInterfacePortIds()[0]);
       pumpTraffic();
-      auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
+      auto portStatsAfter =
+          getLatestPortStats(masterLogicalInterfacePortIds()[0]);
 
       /*
        * Certain asics count the pause packets when pause is disabled while
