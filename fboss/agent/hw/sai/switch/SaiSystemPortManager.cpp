@@ -266,4 +266,8 @@ std::shared_ptr<SystemPortMap> SaiSystemPortManager::constructSystemPorts(
   return sysPortMap;
 }
 
+void SaiSystemPortManager::setQosPolicy() {}
+
+void SaiSystemPortManager::clearQosPolicy() {}
+
 } // namespace facebook::fboss

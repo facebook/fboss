@@ -78,6 +78,10 @@ class SaiSystemPortManager {
   }
   void updateStats(SystemPortID portId, bool updateWatermarks);
 
+  void setQosPolicy();
+
+  void clearQosPolicy();
+
  private:
   void loadQueues(
       SaiSystemPortHandle& sysPortHandle,
