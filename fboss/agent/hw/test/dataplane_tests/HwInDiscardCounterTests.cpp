@@ -41,21 +41,21 @@ class HwInDiscardsCounterTest : public HwLinkStateDependentTest {
 
  protected:
   void pumpTraffic(bool isV6) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcIp = IPAddress(isV6 ? "1001::1" : "10.0.0.1");
     auto dstIp = IPAddress(isV6 ? "100:100:100::1" : "100.100.100.1");
     auto pkt = utility::makeUDPTxPacket(
-        getHwSwitch(), VlanID(1), intfMac, intfMac, srcIp, dstIp, 10000, 10001);
+        getHwSwitch(), vlanId, intfMac, intfMac, srcIp, dstIp, 10000, 10001);
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-        std::move(pkt), PortID(masterLogicalPortIds()[0]));
+        std::move(pkt), PortID(masterLogicalInterfacePortIds()[0]));
   }
 };
 
 TEST_F(HwInDiscardsCounterTest, nullRouteHit) {
   auto setup = [=]() {};
   auto verify = [=]() {
-    PortID portId = masterLogicalPortIds()[0];
+    PortID portId = masterLogicalInterfacePortIds()[0];
     auto portStatsBefore = getLatestPortStats(portId);
     pumpTraffic(true);
     pumpTraffic(false);
