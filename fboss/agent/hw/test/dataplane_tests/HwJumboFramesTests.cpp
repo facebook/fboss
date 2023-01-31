@@ -32,20 +32,19 @@ namespace facebook::fboss {
 class HwJumboFramesTest : public HwLinkStateDependentTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::oneL3IntfConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
+        masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
     cfg.interfaces()[0].mtu() = 9000;
     return cfg;
   }
 
   void sendPkt(int payloadSize) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto mac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto mac = utility::getFirstInterfaceMac(getProgrammedState());
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
-        vlanId,
+        utility::firstVlanID(getProgrammedState()),
         mac,
         mac,
         folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
@@ -67,11 +66,14 @@ class HwJumboFramesTest : public HwLinkStateDependentTest {
     };
 
     auto verify = [=]() {
-      auto portStatsBefore = getLatestPortStats(masterLogicalPortIds()[0]);
+      utility::EcmpSetupAnyNPorts6 ecmpHelper(
+          getProgrammedState(), RouterID(0));
+      auto port = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
+      auto portStatsBefore = getLatestPortStats(port);
       auto pktsBefore = getPortOutPkts(portStatsBefore);
       auto bytesBefore = *portStatsBefore.outBytes_();
       sendPkt(payloadSize);
-      auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
+      auto portStatsAfter = getLatestPortStats(port);
       auto pktsAfter = getPortOutPkts(portStatsAfter);
       auto bytesAfter = *portStatsAfter.outBytes_();
       if (expectPacketDrop) {

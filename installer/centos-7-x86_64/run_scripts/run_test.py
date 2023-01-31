@@ -38,6 +38,9 @@ from argparse import ArgumentParser
 # Basic VOQ switch tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwVoqSwitchTest*
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwVoqSwitchWithFabriPortsTest.*
+# Basic forwarding tests
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwJumboFramesTest.*
+#
 # LB Tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV4.*:-*Ucmp*:-*Shrink*
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV6.*:-*Ucmp*:-*Shrink*
