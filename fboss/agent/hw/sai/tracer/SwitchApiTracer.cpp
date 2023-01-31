@@ -122,10 +122,14 @@ sai_status_t wrap_set_switch_attribute(
     auto* tracer = SaiTracer::getInstance().get();
     rv = tracer->switchApi_->set_switch_attribute(switch_id, attr);
   } else {
+    SaiTracer::getInstance()->logSetAttrFn(
+        "set_switch_attribute", switch_id, attr, SAI_OBJECT_TYPE_SWITCH);
+    auto begin = FLAGS_enable_elapsed_time_log
+        ? std::chrono::system_clock::now()
+        : std::chrono::system_clock::time_point::min();
     rv = SaiTracer::getInstance()->switchApi_->set_switch_attribute(
         switch_id, attr);
-    SaiTracer::getInstance()->logSetAttrFn(
-        "set_switch_attribute", switch_id, attr, SAI_OBJECT_TYPE_SWITCH, rv);
+    SaiTracer::getInstance()->logPostInvocation(rv, switch_id, begin);
   }
   return rv;
 }
