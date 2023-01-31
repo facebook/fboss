@@ -13,6 +13,7 @@
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 using namespace ::testing;
