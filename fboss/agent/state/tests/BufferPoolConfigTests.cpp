@@ -113,7 +113,8 @@ TEST(BufferPoolConfigTest, applyConfig) {
   const int kSharedBytes = 1500;
 
   cfg::SwitchConfig config;
-  EXPECT_EQ(nullptr, stateV0->getBufferPoolCfgs());
+  EXPECT_NE(nullptr, stateV0->getBufferPoolCfgs());
+  EXPECT_EQ(0, stateV0->getBufferPoolCfgs()->size());
   std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
 
   auto updateBufferPoolCfg = [&](const std::string& key,
