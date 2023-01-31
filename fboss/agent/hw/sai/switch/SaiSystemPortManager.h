@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/SystemPortApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/switch/SaiQosMapManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SystemPort.h"
@@ -91,12 +92,14 @@ class SaiSystemPortManager {
       const std::shared_ptr<SystemPort>& swSystemPort) const;
 
   SaiSystemPortHandle* getSystemPortHandleImpl(SystemPortID swId) const;
+  void setQosMapOnAllSystemPorts(QosMapSaiId qosMapId);
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   Handles handles_;
   ConcurrentIndices* concurrentIndices_;
   Stats portStats_;
+  std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
 };
 
 } // namespace facebook::fboss
