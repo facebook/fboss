@@ -48,7 +48,7 @@ const cfg::AclStage kAclStage2 = cfg::AclStage::INGRESS_MACSEC;
 
 const std::string kGroup1 = "group1";
 const std::string kGroup2 = "group2";
-const std::string kAclTableGroupName = "Ingress ACL Group";
+const std::string kAclTableGroupName = "ingress-ACL-Table-Group";
 
 const std::string kAcl1a = "acl1a";
 const std::string kAcl1b = "acl1b";

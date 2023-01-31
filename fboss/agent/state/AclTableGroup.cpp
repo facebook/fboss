@@ -22,7 +22,7 @@ using folly::IPAddress;
 namespace {
 constexpr auto kAclStage = "aclStage";
 constexpr auto kName = "name";
-constexpr auto kAclTableGroupName = "Ingress ACL Group";
+constexpr auto kAclTableGroupName = "ingress-ACL-Table-Group";
 } // namespace
 
 namespace facebook::fboss {
