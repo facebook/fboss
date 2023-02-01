@@ -112,6 +112,7 @@ phy::VCOFrequency BcmPlatform::getVCOFrequency(
       return phy::VCOFrequency::VCO_20_625GHZ;
     case cfg::PortSpeed::GIGE:
       FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::EIGHTHUNDREDG:
     case cfg::PortSpeed::DEFAULT:
       return phy::VCOFrequency::UNKNOWN;
   }

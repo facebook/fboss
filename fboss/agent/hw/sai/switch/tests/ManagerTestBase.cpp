@@ -222,6 +222,10 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
       swPort->setProfileId(
           cfg::PortProfileID::PROFILE_400G_8_PAM4_RS544X2N_OPTICAL);
       break;
+    case cfg::PortSpeed::EIGHTHUNDREDG:
+      swPort->setProfileId(
+          cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_OPTICAL);
+      break;
   }
   auto platformPort = saiPlatform->getPort(swPort->getID());
   PlatformPortProfileConfigMatcher matcher{

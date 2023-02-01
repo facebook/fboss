@@ -192,6 +192,9 @@ TEST(ThriftEnum, assertPortSpeeds) {
       case PortSpeed::FOURHUNDREDG:
         EXPECT_EQ(static_cast<int>(key), 400000);
         break;
+      case PortSpeed::EIGHTHUNDREDG:
+        EXPECT_EQ(static_cast<int>(key), 800000);
+        break;
     }
   }
 }

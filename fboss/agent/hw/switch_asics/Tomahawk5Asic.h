@@ -24,7 +24,7 @@ class Tomahawk5Asic : public BroadcomXgsAsic {
     return asicMode;
   }
   cfg::PortSpeed getMaxPortSpeed() const override {
-    return cfg::PortSpeed::FOURHUNDREDG;
+    return cfg::PortSpeed::EIGHTHUNDREDG;
   }
   int getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
       const override;
