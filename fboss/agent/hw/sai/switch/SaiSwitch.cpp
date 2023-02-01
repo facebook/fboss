@@ -1687,10 +1687,11 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
 
   // For VOQ switch, create system ports for existing egress ports
   if (switchType_ == cfg::SwitchType::VOQ) {
+    CHECK(getSwitchId().has_value());
     state->resetSystemPorts(
         managerTable_->systemPortManager().constructSystemPorts(
             state->getPorts(),
-            switchId_,
+            getSwitchId().value(),
             platform_->getAsic()->getSystemPortRange()));
   }
 
