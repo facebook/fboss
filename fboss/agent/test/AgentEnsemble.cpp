@@ -22,6 +22,9 @@ void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
 }
 } // namespace
 namespace facebook::fboss {
+AgentEnsemble::AgentEnsemble(const std::string& configFileName) {
+  configFile_ = configFileName;
+}
 
 void AgentEnsemble::setupEnsemble(
     int argc,
@@ -61,14 +64,20 @@ void AgentEnsemble::startAgent() {
 }
 
 void AgentEnsemble::writeConfig(const cfg::SwitchConfig& config) {
-  auto agentConfig = AgentConfig::fromFile(FLAGS_config)->thrift;
+  auto* initializer = agentInitializer();
+  auto agentConfig = initializer->sw()->getPlatform()->config()->thrift;
   agentConfig.sw() = config;
   auto newAgentConfig = AgentConfig(
       agentConfig,
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(
           agentConfig));
-  newAgentConfig.dumpConfig(FLAGS_config);
-
+  auto testConfigDir =
+      initializer->sw()->getPlatform()->getPersistentStateDir() +
+      "/agent_ensemble/";
+  utilCreateDir(testConfigDir);
+  auto fileName = testConfigDir + configFile_;
+  newAgentConfig.dumpConfig(fileName);
+  FLAGS_config = fileName;
   initFlagDefaults(*newAgentConfig.thrift.defaultCommandLineArgs());
 }
 

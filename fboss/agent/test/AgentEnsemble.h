@@ -19,6 +19,7 @@ using AgentEnsembleConfigFn = std::function<
 class AgentEnsemble {
  public:
   AgentEnsemble() {}
+  explicit AgentEnsemble(const std::string& configFileName);
 
   ~AgentEnsemble();
   void setupEnsemble(
@@ -75,6 +76,7 @@ class AgentEnsemble {
   cfg::SwitchConfig initialConfig_;
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
   std::vector<PortID> masterLogicalPortIds_;
+  std::string configFile_{"agent.conf"};
 };
 
 } // namespace facebook::fboss
