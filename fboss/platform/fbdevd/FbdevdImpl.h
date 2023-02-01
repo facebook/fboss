@@ -21,7 +21,7 @@ class FbdevdImpl {
   // Fbdevd config file full path
   std::string confFileName_{};
 
-  fbossPlatformDesc fbdevdConfig_;
+  FbdevdConfig fbdevdConfig_;
 
   void initPlatformConfig();
 };

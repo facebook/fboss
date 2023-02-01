@@ -95,7 +95,7 @@ struct FruModule {
 }
 
 // Structure to describe a specific FBOSS switch.
-struct fbossPlatformDesc {
+struct FbdevdConfig {
   1: string platformName;
 
   // List of kernel modules that need to be loaded. It's no-op if the

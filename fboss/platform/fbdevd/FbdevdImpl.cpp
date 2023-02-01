@@ -23,7 +23,7 @@ void FbdevdImpl::initPlatformConfig() {
   // Clear everything before filling the structure
   fbdevdConfig_ = {};
 
-  apache::thrift::SimpleJSONSerializer::deserialize<fbossPlatformDesc>(
+  apache::thrift::SimpleJSONSerializer::deserialize<FbdevdConfig>(
       fbdevdConfJson, fbdevdConfig_);
 
   XLOG(DBG2) << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
