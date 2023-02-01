@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
 #include "fboss/agent/hw/bcm/tests/BcmTestUtils.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
+#include "fboss/agent/packet/IPProto.h"
 
 #include <memory>
 
@@ -51,6 +52,28 @@ TEST_F(BcmUdfTest, checkUdfGroupConfiguration) {
     ASSERT_EQ(udfInfo.layer, bcmUdfLayerL4OuterHeader);
     ASSERT_EQ(udfInfo.start, utility::kUdfStartOffsetInBytes * 8);
     ASSERT_EQ(udfInfo.width, utility::kUdfFieldSizeInBytes * 8);
+  };
+
+  verifyAcrossWarmBoots(setupUdfConfig, verifyUdfConfig);
+};
+
+TEST_F(BcmUdfTest, checkUdfPktMatcherConfiguration) {
+  auto setupUdfConfig = [=]() { applyNewState(setupUdfConfiguration(true)); };
+  auto verifyUdfConfig = [=]() {
+    const int udfPacketMatcherId =
+        getHwSwitch()->getUdfMgr()->getBcmUdfPacketMatcherId(
+            utility::kUdfPktMatcherName);
+    /* get udf pkt info */
+    bcm_udf_pkt_format_info_t pktFormat;
+    bcm_udf_pkt_format_info_t_init(&pktFormat);
+    auto rv = bcm_udf_pkt_format_info_get(
+        getHwSwitch()->getUnit(), udfPacketMatcherId, &pktFormat);
+    bcmCheckError(
+        rv,
+        "Unable to get pkt_format for udfPacketMatcherId: ",
+        udfPacketMatcherId);
+    ASSERT_EQ(pktFormat.ip_protocol, static_cast<int>(IP_PROTO::IP_PROTO_UDP));
+    ASSERT_EQ(pktFormat.l4_dst_port, utility::kUdfL4DstPort);
   };
 
   verifyAcrossWarmBoots(setupUdfConfig, verifyUdfConfig);
