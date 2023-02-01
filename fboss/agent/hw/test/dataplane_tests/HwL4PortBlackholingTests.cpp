@@ -32,17 +32,17 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
     return pow(2, 16) - 1;
   }
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::oneL3IntfConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
+        masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
     return cfg;
   }
   void pumpTraffic(bool isV6) {
-    auto srcIp = IPAddress(isV6 ? "1001::1" : "100.0.0.1");
-    auto dstIp = IPAddress(isV6 ? "2001::1" : "200.0.0.1");
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto mac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto srcIp = IPAddress(isV6 ? "1001::1" : "101.0.0.1");
+    auto dstIp = IPAddress(isV6 ? "2001::1" : "201.0.0.1");
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto mac = utility::getFirstInterfaceMac(getProgrammedState());
     enum class Dir { SRC_PORT, DST_PORT };
     for (auto l4Port = 1; l4Port <= kNumL4Ports(); ++l4Port) {
       for (auto dir : {Dir::SRC_PORT, Dir::DST_PORT}) {
@@ -71,9 +71,10 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
           utility::EcmpSetupAnyNPorts4(getProgrammedState(), kRid), 1);
     };
     auto verify = [=]() {
-      auto originalPortStats = getLatestPortStats(masterLogicalPortIds());
+      auto originalPortStats =
+          getLatestPortStats(masterLogicalInterfacePortIds());
       int numL4Ports = kNumL4Ports();
-      PortID portId = masterLogicalPortIds()[0];
+      PortID portId = masterLogicalInterfacePortIds()[0];
       auto expectPackets = [&originalPortStats, numL4Ports, portId](
                                const auto& newPortStats) -> bool {
         auto original = getPortOutPkts(originalPortStats.at(portId));
@@ -89,7 +90,8 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
         return current - original == 2 * numL4Ports;
       };
       pumpTraffic(isV6);
-      EXPECT_TRUE(getHwSwitchEnsemble()->waitPortStatsCondition(expectPackets));
+      EXPECT_TRUE(getHwSwitchEnsemble()->waitPortStatsCondition(
+          expectPackets, 10 /*retries*/, std::chrono::milliseconds(1000)));
     };
     verifyAcrossWarmBoots(setup, verify);
   }

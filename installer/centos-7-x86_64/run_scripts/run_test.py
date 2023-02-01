@@ -41,6 +41,7 @@ from argparse import ArgumentParser
 # Basic forwarding tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwJumboFramesTest.*
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoopBackTest.*
+# ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwL4PortBlackHolingTest.*
 #
 # Load Balancer Tests
 # UCMP support lacking DNX
