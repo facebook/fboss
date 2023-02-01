@@ -9,7 +9,6 @@
  */
 #include "fboss/agent/state/LoadBalancer.h"
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/Platform.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 
 #include <folly/MacAddress.h>

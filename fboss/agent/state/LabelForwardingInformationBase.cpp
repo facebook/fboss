@@ -2,7 +2,6 @@
 
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include <fboss/agent/state/LabelForwardingEntry.h>
-#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
