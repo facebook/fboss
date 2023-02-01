@@ -11,7 +11,6 @@
 
 #include <fboss/agent/AddressUtil.h>
 #include <folly/IPAddress.h>
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"

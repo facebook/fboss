@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_constants.h"
 #include "fboss/agent/state/NodeBase.h"

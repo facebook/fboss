@@ -12,7 +12,6 @@
 
 #include <folly/IPAddress.h>
 
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/NodeBase.h"

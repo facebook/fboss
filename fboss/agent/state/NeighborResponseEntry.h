@@ -11,7 +11,7 @@
 
 #include <folly/MacAddress.h>
 #include <memory>
-#include "fboss/agent/Utils.h"
+
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/Thrifty.h"

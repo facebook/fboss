@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/EnumUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/state/BufferPoolConfig.h"

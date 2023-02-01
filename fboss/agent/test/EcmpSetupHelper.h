@@ -25,6 +25,7 @@
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
+class Interface;
 class SwitchState;
 class RouteUpdateWrapper;
 } // namespace facebook::fboss

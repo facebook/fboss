@@ -13,6 +13,7 @@
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/platforms/wedge/WedgePlatform.h"
 #include "fboss/agent/platforms/wedge/galaxy/GalaxyFCPlatform.h"
 #include "fboss/agent/platforms/wedge/galaxy/GalaxyLCPlatform.h"

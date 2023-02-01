@@ -10,7 +10,6 @@
 #pragma once
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/Utils.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AclTableMap.h"
 #include "fboss/agent/state/NodeBase.h"
