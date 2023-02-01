@@ -81,8 +81,8 @@ class HwL4PortBlackHolingTest : public HwLinkStateDependentTest {
         auto current = getPortOutPkts(newPortStats.at(portId));
         XLOGF(
             INFO,
-            "Checking current port outBytes ({}) - "
-            "original port outBytes: ({}) ==  "
+            "Checking current port outPkts ({}) - "
+            "original port outPkts: ({}) ==  "
             "2 * number of l4 ports ({})",
             current,
             original,
