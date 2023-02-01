@@ -40,8 +40,10 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwVoqSwitchWithFabriPortsTest.*
 # Basic forwarding tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwJumboFramesTest.*
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoopBackTest.*
 #
-# LB Tests
+# Load Balancer Tests
+# UCMP support lacking DNX
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV4.*:-*Ucmp*:-*Shrink*
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV6.*:-*Ucmp*:-*Shrink*
 # Route programming tests

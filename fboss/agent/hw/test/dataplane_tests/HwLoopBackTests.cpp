@@ -26,9 +26,9 @@ namespace facebook::fboss {
 class HwLoopBackTest : public HwLinkStateDependentTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::oneL3IntfConfig(
+    return utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
+        masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
   }
 
@@ -53,7 +53,7 @@ class HwLoopBackTest : public HwLinkStateDependentTest {
 
     if (frontPanel) {
       getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-          std::move(txPacket), masterLogicalPortIds()[0]);
+          std::move(txPacket), masterLogicalInterfacePortIds()[0]);
     } else {
       getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
     }
@@ -70,9 +70,11 @@ class HwLoopBackTest : public HwLinkStateDependentTest {
       resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     };
     auto verify = [=]() {
-      auto beforePortStats = getLatestPortStats(masterLogicalPortIds()[0]);
+      auto beforePortStats =
+          getLatestPortStats(masterLogicalInterfacePortIds()[0]);
       sendPkt(frontPanel, pktTtl);
-      auto afterPortStats = getLatestPortStats(masterLogicalPortIds()[0]);
+      auto afterPortStats =
+          getLatestPortStats(masterLogicalInterfacePortIds()[0]);
       // For packets going out to front panel, they would not go through the
       // routing logic the very first time (but directly looped back).
       // Therefore, the counter would plus one compared to the cpu port.
