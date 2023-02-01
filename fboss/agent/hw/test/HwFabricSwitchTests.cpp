@@ -50,7 +50,7 @@ TEST_F(HwFabricSwitchTest, collectStats) {
   verifyAcrossWarmBoots([] {}, verify);
 }
 
-TEST_F(HwFabricSwitchTest, checkFabricReacability) {
+TEST_F(HwFabricSwitchTest, checkFabricReachability) {
   verifyAcrossWarmBoots(
       [] {}, [this]() { checkFabricReachability(getHwSwitch()); });
 }

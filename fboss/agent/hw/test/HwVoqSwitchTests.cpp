@@ -593,7 +593,7 @@ TEST_F(HwVoqSwitchTest, AclCounter) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwVoqSwitchTest, checkFabricReacability) {
+TEST_F(HwVoqSwitchTest, checkFabricReachability) {
   verifyAcrossWarmBoots(
       [] {}, [this]() { checkFabricReachability(getHwSwitch()); });
 }
