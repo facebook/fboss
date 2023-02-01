@@ -22,6 +22,9 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/lib/FunctionCallTimeReporter.h"
 
+#include "fboss/agent/benchmarks/AgentBenchmarks.h"
+#include "fboss/agent/test/AgentEnsemble.h"
+
 DECLARE_bool(json);
 
 namespace facebook::fboss {
@@ -35,24 +38,27 @@ namespace facebook::fboss {
 template <typename RouteScaleGeneratorT>
 void routeAddDelBenchmarker(bool measureAdd) {
   folly::BenchmarkSuspender suspender;
-  auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
-  auto config = utility::onePortPerInterfaceConfig(
-      ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
-  ensemble->applyInitialConfig(config);
-  auto routeGenerator = RouteScaleGeneratorT(ensemble->getProgrammedState());
+  AgentEnsembleConfigFn initialConfigFn = [](HwSwitch* hwSwitch,
+                                             const std::vector<PortID>& ports) {
+    return utility::onePortPerInterfaceConfig(hwSwitch, ports);
+  };
+  auto ensemble = createAgentEnsemble(initialConfigFn);
+  ensemble->startAgent();
+  auto* sw = ensemble->getSw();
+
+  auto routeGenerator = RouteScaleGeneratorT(sw->getState());
   if (!routeGenerator.isSupported(ensemble->getPlatform()->getMode())) {
     // skip if this is not supported for a platform
     return;
   }
-  ensemble->applyNewState(
-      routeGenerator.resolveNextHops(ensemble->getProgrammedState()));
+  ensemble->applyNewState(routeGenerator.resolveNextHops(sw->getState()));
   const RouterID kRid(0);
   auto routeChunks = routeGenerator.getThriftRoutes();
   auto allThriftRoutes = routeGenerator.allThriftRoutes();
   // Get routes with one smaller ecmp width to capture a peering
   // flap and following route updates
   auto allThriftRoutesNarrowerEcmp = RouteScaleGeneratorT(
-                                         ensemble->getProgrammedState(),
+                                         sw->getState(),
                                          allThriftRoutes.size(),
                                          routeGenerator.ecmpWidth() - 1)
                                          .allThriftRoutes();
@@ -60,7 +66,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
   std::atomic<bool> done{false};
 
   auto doLookups = [&ensemble, kRid, &done]() {
-    auto programmedState = ensemble->getProgrammedState();
+    auto programmedState = ensemble->getSw()->getState();
     std::vector<folly::IPAddressV6> addrsToLookup;
     utility::IPAddressGenerator<folly::IPAddressV6> ipAddrGen;
     for (auto i = 0; i < 1000; ++i) {
@@ -87,7 +93,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
              &recordMaxLookupTime](const auto& addr) {
               StopWatch lookupTimer(std::nullopt, FLAGS_json);
               findLongestMatchRoute(
-                  ensemble->getRib(), kRid, addr, programmedState);
+                  ensemble->getSw()->getRib(), kRid, addr, programmedState);
               recordMaxLookupTime(lookupTimer, worstCaseLookupMsecs);
             });
         recordMaxLookupTime(bulkLookupTimer, worstCaseBulkLookupMsecs);
@@ -109,7 +115,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
   };
   // Start parallel lookup thread
   std::thread lookupThread([&doLookups]() { doLookups(); });
-  auto updater = ensemble->getRouteUpdater();
+  auto updater = ensemble->getSw()->getRouteUpdater();
   if (measureAdd) {
     {
       // Route add benchmark
@@ -119,7 +125,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
       suspender.dismiss();
       // Program 1 chunk to seed ~4k routes
       // program remaining chunks
-      updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
+      ensemble->programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
       // We are about to blow away all routes, before that
       // deactivate benchmark measurement.
       suspender.rehire();
@@ -148,12 +154,12 @@ void routeAddDelBenchmarker(bool measureAdd) {
     // Sync fib with all routes
     syncFib(allThriftRoutes);
   } else {
-    updater.programRoutes(kRid, ClientID::BGPD, routeChunks);
+    ensemble->programRoutes(kRid, ClientID::BGPD, routeChunks);
     ScopedCallTimer timeIt;
     // We are about to blow away all routes, before that
     // activate benchmark measurement.
     suspender.dismiss();
-    updater.unprogramRoutes(kRid, ClientID::BGPD, routeChunks);
+    ensemble->unprogramRoutes(kRid, ClientID::BGPD, routeChunks);
     suspender.rehire();
   }
   done = true;

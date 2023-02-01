@@ -138,4 +138,15 @@ void AgentEnsemble::gracefulExit() {
   initializer->stopAgent(true);
 }
 
+std::shared_ptr<SwitchState> AgentEnsemble::applyNewState(
+    const std::shared_ptr<SwitchState>& state) {
+  if (!state) {
+    return getSw()->getState();
+  }
+  getSw()->updateStateBlocking(
+      "apply new state",
+      [state](const std::shared_ptr<SwitchState>&) { return state; });
+  return getSw()->getState();
+}
+
 } // namespace facebook::fboss

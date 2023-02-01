@@ -43,10 +43,11 @@ add_library(hw_fsw_scale_route_add_speed
 )
 
 target_link_libraries(hw_fsw_scale_route_add_speed
+  agent_ensemble
+  agent_benchmarks
   config_factory
   hw_packet_utils
   ecmp_helper
-  hw_benchmark_main
   function_call_time_reporter
   Folly::folly
 )
@@ -56,10 +57,11 @@ add_library(hw_fsw_scale_route_del_speed
 )
 
 target_link_libraries(hw_fsw_scale_route_del_speed
+  agent_ensemble
+  agent_benchmarks
   config_factory
   hw_packet_utils
   ecmp_helper
-  hw_benchmark_main
   function_call_time_reporter
   Folly::folly
 )
@@ -69,10 +71,11 @@ add_library(hw_th_alpm_scale_route_add_speed
 )
 
 target_link_libraries(hw_th_alpm_scale_route_add_speed
+  agent_ensemble
+  agent_benchmarks
   config_factory
   hw_packet_utils
   ecmp_helper
-  hw_benchmark_main
   function_call_time_reporter
   Folly::folly
 )
@@ -82,10 +85,11 @@ add_library(hw_th_alpm_scale_route_del_speed
 )
 
 target_link_libraries(hw_th_alpm_scale_route_del_speed
+  agent_ensemble
+  agent_benchmarks
   config_factory
   hw_packet_utils
   ecmp_helper
-  hw_benchmark_main
   function_call_time_reporter
   Folly::folly
 )
@@ -95,10 +99,11 @@ add_library(hw_hgrid_du_scale_route_add_speed
 )
 
 target_link_libraries(hw_hgrid_du_scale_route_add_speed
+  agent_ensemble
+  agent_benchmarks
   config_factory
   hw_packet_utils
   ecmp_helper
-  hw_benchmark_main
   function_call_time_reporter
   Folly::folly
 )
@@ -108,10 +113,11 @@ add_library(hw_hgrid_du_scale_route_del_speed
 )
 
 target_link_libraries(hw_hgrid_du_scale_route_del_speed
+  agent_ensemble
+  agent_benchmarks
   config_factory
   hw_packet_utils
   ecmp_helper
-  hw_benchmark_main
   function_call_time_reporter
   Folly::folly
 )
@@ -121,10 +127,11 @@ add_library(hw_hgrid_uu_scale_route_add_speed
 )
 
 target_link_libraries(hw_hgrid_uu_scale_route_add_speed
+  agent_ensemble
+  agent_benchmarks
   config_factory
   hw_packet_utils
   ecmp_helper
-  hw_benchmark_main
   function_call_time_reporter
   Folly::folly
 )
@@ -134,10 +141,11 @@ add_library(hw_hgrid_uu_scale_route_del_speed
 )
 
 target_link_libraries(hw_hgrid_uu_scale_route_del_speed
+  agent_ensemble
+  agent_benchmarks
   config_factory
   hw_packet_utils
   ecmp_helper
-  hw_benchmark_main
   function_call_time_reporter
   Folly::folly
 )

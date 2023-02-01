@@ -15,6 +15,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_fsw_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_agent_benchmarks_main
     hw_fsw_scale_route_add_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
@@ -33,6 +34,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_fsw_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_agent_benchmarks_main
     hw_fsw_scale_route_del_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
@@ -51,6 +53,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_th_alpm_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_agent_benchmarks_main
     hw_th_alpm_scale_route_add_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
@@ -69,6 +72,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_th_alpm_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_agent_benchmarks_main
     hw_th_alpm_scale_route_del_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
@@ -105,6 +109,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_hgrid_du_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_agent_benchmarks_main
     hw_hgrid_du_scale_route_del_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
@@ -123,6 +128,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_hgrid_uu_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_agent_benchmarks_main
     hw_hgrid_uu_scale_route_add_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
@@ -141,6 +147,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_hgrid_uu_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_agent_benchmarks_main
     hw_hgrid_uu_scale_route_del_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
@@ -159,6 +166,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_anticipated_scale_route_add_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_agent_benchmarks_main
     hw_anticipated_scale_route_add_speed
     route_scale_gen
     ${SAI_IMPL_ARG}
@@ -177,6 +185,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_anticipated_scale_route_del_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_agent_benchmarks_main
     hw_anticipated_scale_route_del_speed
     route_scale_gen
     ${SAI_IMPL_ARG}

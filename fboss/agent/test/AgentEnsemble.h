@@ -53,6 +53,9 @@ class AgentEnsemble {
     return getSw()->getHw();
   }
 
+  std::shared_ptr<SwitchState> applyNewState(
+      const std::shared_ptr<SwitchState>& state);
+
   const std::vector<PortID>& masterLogicalPortIds() const;
 
   void programRoutes(
