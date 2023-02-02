@@ -14,7 +14,7 @@
 #include <cstring>
 #include <iostream>
 #include <iterator>
-#include "fboss/agent/DHCPv4Handler.h"
+#include "fboss/agent/DHCPv4OptionsOfInterest.h"
 #include "fboss/agent/FbossError.h"
 
 using folly::IPAddressV4;
@@ -29,7 +29,8 @@ class SwSwitch;
 const uint8_t DHCPv4Packet::kOptionsCookie[] = {99, 130, 83, 99};
 
 bool DHCPv4Packet::isOptionWithoutLength(uint8_t op) {
-  return op == DHCPv4Handler::PAD || op == DHCPv4Handler::END;
+  return op == DHCPv4OptionsOfInterest::PAD ||
+      op == DHCPv4OptionsOfInterest::END;
 }
 
 void DHCPv4Packet::parse(Cursor* cursor) {
@@ -100,7 +101,7 @@ DHCPv4Packet::appendOption(uint8_t op, uint8_t len, const uint8_t* bytes) {
 }
 
 void DHCPv4Packet::appendPadding(size_t length) {
-  options.insert(options.end(), length, DHCPv4Handler::PAD);
+  options.insert(options.end(), length, DHCPv4OptionsOfInterest::PAD);
 }
 
 void DHCPv4Packet::padToMinLength() {

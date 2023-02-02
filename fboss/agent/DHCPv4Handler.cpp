@@ -14,6 +14,8 @@
 #include <folly/io/IOBuf.h>
 #include <folly/logging/xlog.h>
 #include <string>
+
+#include "fboss/agent/DHCPv4OptionsOfInterest.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/RxPacket.h"

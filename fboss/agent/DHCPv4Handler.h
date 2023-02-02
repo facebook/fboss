@@ -27,13 +27,6 @@ class IPv4Hdr;
 class DHCPv4Handler {
  public:
   enum BootpMsgType { BOOTREQUEST = 1, BOOTREPLY = 2 };
-  enum OptionsOfInterest {
-    PAD = 0,
-    DHCP_MESSAGE_TYPE = 53,
-    DHCP_MAX_MESSAGE_SIZE = 57,
-    DHCP_AGENT_OPTIONS = 82,
-    END = 255
-  };
   enum SubOptionsOfInterest { AGENT_CIRCUIT_ID = 1 };
   static constexpr uint16_t kBootPSPort = 67;
   static constexpr uint16_t kBootPCPort = 68;

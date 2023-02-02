@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <memory>
 #include <string>
-#include "fboss/agent/DHCPv4Handler.h"
+#include "fboss/agent/DHCPv4OptionsOfInterest.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
@@ -172,23 +172,23 @@ TEST(DHCPv4Packet, getOption) {
   auto dhcpPkt = makeDHCPPacket();
   vector<uint8_t> optData;
   EXPECT_TRUE(DHCPv4Packet::getOptionSlow(
-      DHCPv4Handler::DHCP_MESSAGE_TYPE, dhcpPkt.options, optData));
+      DHCPv4OptionsOfInterest::DHCP_MESSAGE_TYPE, dhcpPkt.options, optData));
   EXPECT_EQ(1, optData.size());
   EXPECT_EQ(1, optData[0]);
 
   optData.clear();
   EXPECT_TRUE(DHCPv4Packet::getOptionSlow(
-      DHCPv4Handler::PAD, dhcpPkt.options, optData));
+      DHCPv4OptionsOfInterest::PAD, dhcpPkt.options, optData));
   EXPECT_EQ(0, optData.size());
 
   optData.clear();
   EXPECT_TRUE(DHCPv4Packet::getOptionSlow(
-      DHCPv4Handler::END, dhcpPkt.options, optData));
+      DHCPv4OptionsOfInterest::END, dhcpPkt.options, optData));
   EXPECT_EQ(0, optData.size());
 
   optData.clear();
   EXPECT_FALSE(DHCPv4Packet::getOptionSlow(
-      DHCPv4Handler::DHCP_AGENT_OPTIONS, dhcpPkt.options, optData));
+      DHCPv4OptionsOfInterest::DHCP_AGENT_OPTIONS, dhcpPkt.options, optData));
   EXPECT_EQ(0, optData.size());
 }
 
