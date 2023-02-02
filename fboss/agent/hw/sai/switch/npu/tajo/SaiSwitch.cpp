@@ -65,7 +65,7 @@ void SaiSwitch::tamEventCallback(
     uint32_t /*attr_count*/,
     const sai_attribute_t* /*attr_list*/) {
   auto eventDesc = static_cast<const sai_tam_event_desc_t*>(buffer);
-  if (eventDesc->type != SAI_TAM_EVENT_TYPE_SWITCH) {
+  if (eventDesc->type != (sai_tam_event_type_t)SAI_TAM_EVENT_TYPE_SWITCH) {
     // not a switch type event
     return;
   }
