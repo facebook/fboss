@@ -138,8 +138,19 @@ sai_status_t wrap_get_switch_attribute(
     sai_object_id_t switch_id,
     uint32_t attr_count,
     sai_attribute_t* attr_list) {
-  return SaiTracer::getInstance()->switchApi_->get_switch_attribute(
+  SaiTracer::getInstance()->logGetAttrFn(
+      "get_switch_attribute",
+      switch_id,
+      attr_count,
+      attr_list,
+      SAI_OBJECT_TYPE_SWITCH);
+  auto begin = FLAGS_enable_elapsed_time_log
+      ? std::chrono::system_clock::now()
+      : std::chrono::system_clock::time_point::min();
+  auto rv = SaiTracer::getInstance()->switchApi_->get_switch_attribute(
       switch_id, attr_count, attr_list);
+  SaiTracer::getInstance()->logPostInvocation(rv, switch_id, begin);
+  return rv;
 }
 
 sai_status_t wrap_get_switch_stats(

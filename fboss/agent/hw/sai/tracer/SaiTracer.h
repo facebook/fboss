@@ -32,6 +32,7 @@ extern "C" {
 DECLARE_bool(enable_replayer);
 DECLARE_bool(enable_packet_log);
 DECLARE_bool(enable_elapsed_time_log);
+DECLARE_bool(enable_get_attr_log);
 
 using PrimitiveFunction = std::string (*)(const sai_attribute_t*, int);
 using AttributeFunction =
@@ -143,8 +144,7 @@ class SaiTracer {
       sai_object_id_t get_object_id,
       uint32_t attr_count,
       const sai_attribute_t* attr,
-      sai_object_type_t object_type,
-      sai_status_t rv);
+      sai_object_type_t object_type);
 
   void logSetAttrFn(
       const std::string& fn_name,
@@ -576,23 +576,30 @@ class SaiTracer {
     return rv;                                                                \
   }
 
-#define WRAP_GET_ATTR_FUNC(obj_type, sai_obj_type, api_type)                  \
-  sai_status_t wrap_get_##obj_type##_attribute(                               \
-      sai_object_id_t obj_type##_id,                                          \
-      uint32_t attr_count,                                                    \
-      sai_attribute_t* attr_list) {                                           \
-    auto rv =                                                                 \
-        SaiTracer::getInstance()->api_type##Api_->get_##obj_type##_attribute( \
-            obj_type##_id, attr_count, attr_list);                            \
-                                                                              \
-    SaiTracer::getInstance()->logGetAttrFn(                                   \
-        "get_" #obj_type "_attribute",                                        \
-        obj_type##_id,                                                        \
-        attr_count,                                                           \
-        attr_list,                                                            \
-        sai_obj_type,                                                         \
-        rv);                                                                  \
-    return rv;                                                                \
+#define WRAP_GET_ATTR_FUNC(obj_type, sai_obj_type, api_type)                 \
+  sai_status_t wrap_get_##obj_type##_attribute(                              \
+      sai_object_id_t obj_type##_id,                                         \
+      uint32_t attr_count,                                                   \
+      sai_attribute_t* attr_list) {                                          \
+    if (FLAGS_enable_get_attr_log) {                                         \
+      SaiTracer::getInstance()->logGetAttrFn(                                \
+          "get_" #obj_type "_attribute",                                     \
+          obj_type##_id,                                                     \
+          attr_count,                                                        \
+          attr_list,                                                         \
+          sai_obj_type);                                                     \
+      auto begin = FLAGS_enable_elapsed_time_log                             \
+          ? std::chrono::system_clock::now()                                 \
+          : std::chrono::system_clock::time_point::min();                    \
+      auto rv = SaiTracer::getInstance()                                     \
+                    ->api_type##Api_->get_##obj_type##_attribute(            \
+                        obj_type##_id, attr_count, attr_list);               \
+      SaiTracer::getInstance()->logPostInvocation(rv, obj_type##_id, begin); \
+      return rv;                                                             \
+    }                                                                        \
+    return SaiTracer::getInstance()                                          \
+        ->api_type##Api_->get_##obj_type##_attribute(                        \
+            obj_type##_id, attr_count, attr_list);                           \
   }
 
 #define WRAP_BULK_SET_ATTR_FUNC(obj_type, sai_obj_type, api_type)              \

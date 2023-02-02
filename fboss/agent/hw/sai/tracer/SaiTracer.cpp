@@ -1020,8 +1020,7 @@ void SaiTracer::logGetAttrFn(
     sai_object_id_t get_object_id,
     uint32_t attr_count,
     const sai_attribute_t* attr,
-    sai_object_type_t object_type,
-    sai_status_t rv) {
+    sai_object_type_t object_type) {
   if (!FLAGS_enable_replayer || !FLAGS_enable_get_attr_log) {
     return;
   }
@@ -1029,9 +1028,6 @@ void SaiTracer::logGetAttrFn(
   vector<string> lines = setAttrList(attr, attr_count, object_type);
   lines.push_back(
       to<string>("memset(get_attribute,0,ATTR_SIZE*", maxAttrCount_, ")"));
-
-  // Log current timestamp, object id and return value
-  lines.push_back(logTimeAndRv(rv, get_object_id));
 
   // Make getAttribute call
   lines.push_back(to<string>(
@@ -1045,10 +1041,7 @@ void SaiTracer::logGetAttrFn(
       attr_count,
       ",get_attribute)"));
 
-  // Check return value to be the same as the original run
-  lines.push_back(rvCheck(rv));
-
-  writeToFile(lines);
+  writeToFile(lines, false);
 }
 
 void SaiTracer::logSetAttrFn(
