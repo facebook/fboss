@@ -79,6 +79,7 @@ TeFlowTable* TeFlowTable::modify(std::shared_ptr<SwitchState>* state) {
     CHECK(!(*state)->isPublished());
     return this;
   }
+  SwitchState::modify(state);
 
   auto newTable = clone();
   auto* ptr = newTable.get();
