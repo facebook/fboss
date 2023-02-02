@@ -45,6 +45,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     case HwAsic::Feature::ROUTE_METADATA:
+    case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
       return true;
 
     case HwAsic::Feature::ERSPANv6:

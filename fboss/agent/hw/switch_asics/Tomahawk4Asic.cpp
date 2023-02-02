@@ -92,6 +92,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::DLB:
+    case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
       return true;
     // features only supported by B0 version, or any physical device
     // where used chip is always B0.

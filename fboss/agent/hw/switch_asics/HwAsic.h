@@ -125,6 +125,7 @@ class HwAsic {
     ROUTE_METADATA,
     DLB,
     P4_WARMBOOT,
+    IN_PAUSE_INCREMENTS_DISCARDS,
   };
 
   enum class AsicMode {

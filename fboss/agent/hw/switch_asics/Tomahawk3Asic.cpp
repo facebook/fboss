@@ -73,6 +73,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::QOS_MAP_GLOBAL:
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::DLB:
+    case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
       return true;
 
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
