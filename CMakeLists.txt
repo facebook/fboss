@@ -70,10 +70,12 @@ if (SAI_BRCM_IMPL)
   # TODO (skhare) IS_OSS_BRCM_SAI is only a short-term change to unblock.
   # Refactor/fix the code and then remove this flag.
   add_definitions (-DIS_OSS_BRCM_SAI=true)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSAI_VERSION_7_2_0_0_ODP")
+  # TODO: Replace SAI_VERSION_9_0_EA_DNX_ODP with SAI_VERSION_9_0_EA_ODP
+  # to build bcm xgs
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSAI_VERSION_9_0_EA_DNX_ODP")
   set(SAI_VER_MAJOR "1")
-  set(SAI_VER_MINOR "10")
-  set(SAI_VER_RELEASE "2")
+  set(SAI_VER_MINOR "11")
+  set(SAI_VER_RELEASE "0")
 else()
   set(SAI_VER_MAJOR "1")
   set(SAI_VER_MINOR "7")
