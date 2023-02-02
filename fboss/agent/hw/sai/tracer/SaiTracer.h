@@ -71,8 +71,7 @@ class SaiTracer {
   void logRouteEntryCreateFn(
       const sai_route_entry_t* route_entry,
       uint32_t attr_count,
-      const sai_attribute_t* attr_list,
-      sai_status_t rv);
+      const sai_attribute_t* attr_list);
 
   void logNeighborEntryCreateFn(
       const sai_neighbor_entry_t* neighbor_entry,
@@ -100,9 +99,7 @@ class SaiTracer {
       const sai_attribute_t* attr_list,
       sai_object_type_t object_type);
 
-  void logRouteEntryRemoveFn(
-      const sai_route_entry_t* route_entry,
-      sai_status_t rv);
+  void logRouteEntryRemoveFn(const sai_route_entry_t* route_entry);
 
   void logNeighborEntryRemoveFn(
       const sai_neighbor_entry_t* neighbor_entry,
@@ -121,8 +118,7 @@ class SaiTracer {
 
   void logRouteEntrySetAttrFn(
       const sai_route_entry_t* route_entry,
-      const sai_attribute_t* attr,
-      sai_status_t rv);
+      const sai_attribute_t* attr);
 
   void logNeighborEntrySetAttrFn(
       const sai_neighbor_entry_t* neighbor_entry,

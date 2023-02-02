@@ -588,8 +588,7 @@ void SaiTracer::logSwitchCreateFn(
 void SaiTracer::logRouteEntryCreateFn(
     const sai_route_entry_t* route_entry,
     uint32_t attr_count,
-    const sai_attribute_t* attr_list,
-    sai_status_t rv) {
+    const sai_attribute_t* attr_list) {
   if (!FLAGS_enable_replayer) {
     return;
   }
@@ -600,9 +599,6 @@ void SaiTracer::logRouteEntryCreateFn(
 
   // Then setup route entry (switch, virtual router and destination)
   setRouteEntry(route_entry, lines);
-
-  // Log timestamp and return value
-  lines.push_back(logTimeAndRv(rv));
 
   // Make the function call
   lines.push_back(to<string>(
@@ -615,10 +611,7 @@ void SaiTracer::logRouteEntryCreateFn(
       attr_count,
       ",s_a)"));
 
-  // Check return value to be the same as the original run
-  lines.push_back(rvCheck(rv));
-
-  writeToFile(lines);
+  writeToFile(lines, false);
 }
 
 void SaiTracer::logNeighborEntryCreateFn(
@@ -757,18 +750,13 @@ std::string SaiTracer::logCreateFn(
   return varName;
 }
 
-void SaiTracer::logRouteEntryRemoveFn(
-    const sai_route_entry_t* route_entry,
-    sai_status_t rv) {
+void SaiTracer::logRouteEntryRemoveFn(const sai_route_entry_t* route_entry) {
   if (!FLAGS_enable_replayer) {
     return;
   }
 
   vector<string> lines{};
   setRouteEntry(route_entry, lines);
-
-  // Log timestamp and return value
-  lines.push_back(logTimeAndRv(rv));
 
   lines.push_back(to<string>(
       "rv=",
@@ -778,10 +766,7 @@ void SaiTracer::logRouteEntryRemoveFn(
           "Unsupported Sai Object type in Sai Tracer"),
       "remove_route_entry(&r_e)"));
 
-  // Check return value to be the same as the original run
-  lines.push_back(rvCheck(rv));
-
-  writeToFile(lines);
+  writeToFile(lines, false);
 }
 
 void SaiTracer::logNeighborEntryRemoveFn(
@@ -893,8 +878,7 @@ void SaiTracer::logRemoveFn(
 
 void SaiTracer::logRouteEntrySetAttrFn(
     const sai_route_entry_t* route_entry,
-    const sai_attribute_t* attr,
-    sai_status_t rv) {
+    const sai_attribute_t* attr) {
   if (!FLAGS_enable_replayer) {
     return;
   }
@@ -903,9 +887,6 @@ void SaiTracer::logRouteEntrySetAttrFn(
   vector<string> lines = setAttrList(attr, 1, SAI_OBJECT_TYPE_ROUTE_ENTRY);
 
   setRouteEntry(route_entry, lines);
-
-  // Log timestamp and return value
-  lines.push_back(logTimeAndRv(rv));
 
   // Make setAttribute call
   lines.push_back(to<string>(
@@ -916,10 +897,7 @@ void SaiTracer::logRouteEntrySetAttrFn(
           "Unsupported Sai Object type in Sai Tracer"),
       "set_route_entry_attribute(&r_e, s_a)"));
 
-  // Check return value to be the same as the original run
-  lines.push_back(rvCheck(rv));
-
-  writeToFile(lines);
+  writeToFile(lines, false);
 }
 
 void SaiTracer::logNeighborEntrySetAttrFn(
