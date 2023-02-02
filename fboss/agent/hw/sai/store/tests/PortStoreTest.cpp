@@ -44,8 +44,10 @@ class PortStoreTest : public SaiStoreTest {
           std::nullopt, // PTP Mode
           std::nullopt, // PFC Mode
           std::nullopt, // PFC Priorities
+#if !defined(TAJO_SDK)
           std::nullopt, // PFC Rx Priorities
           std::nullopt, // PFC Tx Priorities
+#endif
           std::nullopt, // TC to Priority Group map
           std::nullopt, // PFC Priority to Queue map
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
