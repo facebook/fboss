@@ -1177,8 +1177,13 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   const auto& counters = handle->port->getStats();
   fillHwPortStats(counters, managerTable_->debugCounterManager(), curPortStats);
   std::vector<utility::CounterPrevAndCur> toSubtractFromInDiscardsRaw = {
-      {*prevPortStats.inDstNullDiscards_(), *curPortStats.inDstNullDiscards_()},
-      {*prevPortStats.inPause_(), *curPortStats.inPause_()}};
+      {*prevPortStats.inDstNullDiscards_(),
+       *curPortStats.inDstNullDiscards_()}};
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS)) {
+    toSubtractFromInDiscardsRaw.push_back(
+        {*prevPortStats.inPause_(), *curPortStats.inPause_()});
+  }
   *curPortStats.inDiscards_() += utility::subtractIncrements(
       {*prevPortStats.inDiscardsRaw_(), *curPortStats.inDiscardsRaw_()},
       toSubtractFromInDiscardsRaw);
