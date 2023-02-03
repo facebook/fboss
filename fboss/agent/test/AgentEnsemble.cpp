@@ -21,6 +21,11 @@ void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
         item.first.c_str(), item.second.c_str(), gflags::SET_FLAGS_DEFAULT);
   }
 }
+
+int kArgc;
+char** kArgv;
+facebook::fboss::PlatformInitFn kPlatformInitFn;
+
 } // namespace
 namespace facebook::fboss {
 AgentEnsemble::AgentEnsemble(const std::string& configFileName) {
@@ -158,6 +163,21 @@ void AgentEnsemble::enableExactMatch(bcm::BcmConfig& config) {
     auto& cfg = *(config.config());
     cfg["fpem_mem_entries"] = "0x10000";
   }
+}
+
+void ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform) {
+  kArgc = argc;
+  kArgv = argv;
+  kPlatformInitFn = std::move(initPlatform);
+}
+
+std::unique_ptr<AgentEnsemble> createAgentEnsemble(
+    AgentEnsembleConfigFn initialConfigFn,
+    uint32_t featuresDesired) {
+  auto ensemble = std::make_unique<AgentEnsemble>();
+  ensemble->setupEnsemble(
+      kArgc, kArgv, featuresDesired, kPlatformInitFn, initialConfigFn);
+  return ensemble;
 }
 
 } // namespace facebook::fboss

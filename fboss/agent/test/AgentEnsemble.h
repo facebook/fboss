@@ -85,4 +85,12 @@ class AgentEnsemble {
   std::string configFile_{"agent.conf"};
 };
 
+void ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform);
+
+std::unique_ptr<AgentEnsemble> createAgentEnsemble(
+    AgentEnsembleConfigFn initialConfigFn,
+    uint32_t featuresDesired =
+        (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
+         HwSwitch::FeaturesDesired::LINKSCAN_DESIRED));
+
 } // namespace facebook::fboss

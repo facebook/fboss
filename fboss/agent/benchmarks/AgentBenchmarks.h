@@ -8,10 +8,4 @@ namespace facebook::fboss {
 
 void benchmarksMain(int argc, char* args[], PlatformInitFn initPlatform);
 
-std::unique_ptr<facebook::fboss::AgentEnsemble> createAgentEnsemble(
-    AgentEnsembleConfigFn initialConfigFn,
-    uint32_t featuresDesired =
-        (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
-         HwSwitch::FeaturesDesired::LINKSCAN_DESIRED));
-
 } // namespace facebook::fboss
