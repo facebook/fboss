@@ -69,7 +69,7 @@ class IPv6Handler : public StateObserver {
    * internally in response to incoming packets
    */
   void sendNeighborAdvertisement(
-      VlanID vlan,
+      std::optional<VlanID> vlan,
       folly::MacAddress srcMac,
       folly::IPAddressV6 srcIP,
       folly::MacAddress dstMac,

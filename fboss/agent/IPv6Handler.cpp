@@ -886,7 +886,7 @@ void IPv6Handler::floodNeighborAdvertisements() {
         continue;
       }
       sendNeighborAdvertisement(
-          intf->getVlanID(),
+          intf->getVlanIDIf(),
           intf->getMac(),
           addrEntry.asV6(),
           MacAddress::BROADCAST,
@@ -896,7 +896,7 @@ void IPv6Handler::floodNeighborAdvertisements() {
 }
 
 void IPv6Handler::sendNeighborAdvertisement(
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     MacAddress srcMac,
     IPAddressV6 srcIP,
     MacAddress dstMac,
