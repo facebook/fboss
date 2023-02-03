@@ -165,7 +165,7 @@ DEFINE_extract(std::vector<sai_int32_t>, s32list);
 DEFINE_extract(std::vector<sai_qos_map_t>, qosmap);
 DEFINE_extract(std::vector<sai_port_lane_eye_values_t>, porteyevalues);
 DEFINE_extract(std::vector<sai_port_err_status_t>, porterror);
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
 DEFINE_extract(
     std::vector<sai_port_lane_latch_status_t>,
     portlanelatchstatuslist);

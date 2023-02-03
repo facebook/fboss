@@ -1094,7 +1094,7 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) ||                                 \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) ||                                 \
     defined(TAJO_SDK_VERSION_1_42_4) || defined(SAI_VERSION_9_0_EA_ODP) ||  \
-    defined(SAI_VERSION_9_0_EA_DNX_ODP)
+    defined(SAI_VERSION_9_0_EA_DNX_ODP) || defined(TAJO_SDK_VERSION_1_42_8)
     return true;
 #endif
   }
@@ -1781,7 +1781,7 @@ std::vector<sai_port_lane_eye_values_t> SaiPortManager::getPortEyeValues(
       saiPortId, SaiPortTraits::Attributes::PortEyeValues{});
 }
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
 std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxSignalDetect(
     PortSaiId saiPortId,
     uint8_t numPmdLanes) const {

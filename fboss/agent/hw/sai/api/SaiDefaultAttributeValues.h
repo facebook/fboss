@@ -121,7 +121,7 @@ struct SaiPortErrStatusDefault {
   }
 };
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
 struct SaiPortLaneLatchStatusDefault {
   sai_port_lane_latch_status_t operator()() const {
     return sai_port_lane_latch_status_t{0, {false, false}};

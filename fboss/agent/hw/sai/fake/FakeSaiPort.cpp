@@ -477,7 +477,7 @@ sai_status_t set_port_attribute_fn(
                 .list[j];
       }
     } break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
     case SAI_PORT_ATTR_RX_SIGNAL_DETECT: {
       port.portRxSignalDetect.count =
           static_cast<sai_port_lane_latch_status_list_t>(
@@ -735,7 +735,7 @@ sai_status_t get_port_attribute_fn(
           attr[i].value.porteyevalues.list[j] = port.portEyeValues.list[j];
         }
         break;
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3)
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
       case SAI_PORT_ATTR_RX_SIGNAL_DETECT:
         attr[i].value.portlanelatchstatuslist.count =
             port.portRxSignalDetect.count;
