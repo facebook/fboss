@@ -124,6 +124,7 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
   InterfaceID getID() const {
     return InterfaceID(get<switch_state_tags::interfaceId>()->cref());
   }
+  std::optional<SystemPortID> getSystemPortID() const;
 
   RouterID getRouterID() const {
     return RouterID(get<switch_state_tags::routerId>()->cref());

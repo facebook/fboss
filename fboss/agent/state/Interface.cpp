@@ -172,6 +172,14 @@ bool Interface::canReachAddress(const folly::IPAddress& dest) const {
   return getAddressToReach(dest).has_value();
 }
 
+std::optional<SystemPortID> Interface::getSystemPortID() const {
+  std::optional<SystemPortID> sysPort;
+  if (getType() == cfg::InterfaceType::SYSTEM_PORT) {
+    sysPort = SystemPortID(static_cast<int>(getID()));
+  }
+  return sysPort;
+}
+
 bool Interface::isIpAttached(
     folly::IPAddress ip,
     InterfaceID intfID,

@@ -635,3 +635,26 @@ TEST(Interface, getRemoteInterfacesBySwitchId) {
 
   EXPECT_EQ(stateV2->getInterfaces(SwitchID(remoteSwitchId))->size(), 1);
 }
+
+TEST(Interface, getInterfaceSysPortIDVoqSwitch) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigA(cfg::SwitchType::VOQ);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto intf = stateV1->getInterfaces()->begin()->second;
+  EXPECT_TRUE(intf->getSystemPortID().has_value());
+  EXPECT_EQ(
+      static_cast<int64_t>(intf->getID()),
+      static_cast<int64_t>(intf->getSystemPortID().value()));
+}
+
+TEST(Interface, getInterfaceSysPortID) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigA();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto intf = stateV1->getInterfaces()->begin()->second;
+  EXPECT_FALSE(intf->getSystemPortID().has_value());
+}
