@@ -183,6 +183,13 @@ bool isAnyInterfacePortInLoopbackMode(
     std::shared_ptr<SwitchState> swState,
     const std::shared_ptr<Interface> interface);
 
+PortID getPortID(
+    SystemPortID sysPortId,
+    const std::shared_ptr<SwitchState>& state);
+std::vector<PortID> getPortsForInterface(
+    InterfaceID intf,
+    const std::shared_ptr<SwitchState>& state);
+
 class StopWatch {
  public:
   StopWatch(std::optional<std::string> name, bool json);

@@ -296,7 +296,6 @@ UnicastRoute makeUnicastRoute(
   route.nextHops() = thriftNextHopsFromAddresses(addrs);
   return route;
 }
-
 bool isAnyInterfacePortInLoopbackMode(
     std::shared_ptr<SwitchState> swState,
     const std::shared_ptr<Interface> interface) {
@@ -320,6 +319,42 @@ bool isAnyInterfacePortInLoopbackMode(
     }
   }
   return false;
+}
+
+PortID getPortID(
+    SystemPortID sysPortId,
+    const std::shared_ptr<SwitchState>& state) {
+  auto mySwitchId = state->getSwitchSettings()->getSwitchId();
+  CHECK(mySwitchId);
+  auto sysPortRange = state->getDsfNodes()
+                          ->getDsfNodeIf(SwitchID(*mySwitchId))
+                          ->getSystemPortRange();
+  return PortID(static_cast<int64_t>(sysPortId) - *sysPortRange.minimum());
+}
+
+std::vector<PortID> getPortsForInterface(
+    InterfaceID intfId,
+    const std::shared_ptr<SwitchState>& state) {
+  auto intf = state->getInterfaces()->getInterfaceIf(intfId);
+  if (!intf) {
+    return {};
+  }
+  std::vector<PortID> ports;
+  switch (intf->getType()) {
+    case cfg::InterfaceType::VLAN: {
+      auto vlanId = intf->getVlanID();
+      auto vlan = state->getVlans()->getVlanIf(vlanId);
+      if (vlan) {
+        for (const auto& memberPort : vlan->getPorts()) {
+          ports.push_back(PortID(memberPort.first));
+        }
+      }
+    } break;
+    case cfg::InterfaceType::SYSTEM_PORT:
+      ports.push_back(getPortID(intf->getSystemPortID().value(), state));
+      break;
+  }
+  return ports;
 }
 
 StopWatch::StopWatch(std::optional<std::string> name, bool json)
