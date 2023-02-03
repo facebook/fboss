@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/benchmarks/HwTeFlowScaleBenchmarkHelper.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
@@ -37,35 +38,54 @@ void teFlowAddDelEntriesBenchmarkHelper(bool measureAdd) {
   // @lint-ignore CLANGTIDY
   FLAGS_enable_exact_match = true;
   folly::BenchmarkSuspender suspender;
-  auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
-  auto hwSwitch = ensemble->getHwSwitch();
-  std::vector<PortID> ports = {
-      ensemble->masterLogicalPortIds()[0], ensemble->masterLogicalPortIds()[1]};
-  CHECK_GT(ports.size(), 0);
-  auto config = utility::onePortPerInterfaceConfig(
-      hwSwitch, ports, cfg::PortLoopbackMode::MAC);
-  ensemble->applyInitialConfig(config);
-  auto ecmpHelper =
-      utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState(), RouterID(0));
+
+  AgentEnsembleSwitchConfigFn initialConfigFn =
+      [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
+        CHECK_GT(ports.size(), 0);
+        return utility::onePortPerInterfaceConfig(
+            hwSwitch, {ports[0], ports[1]}, cfg::PortLoopbackMode::MAC);
+      };
+  AgentEnsemblePlatformConfigFn platformConfigFn =
+      [](cfg::PlatformConfig& config) {
+        if (!(config.chip()->getType() == config.chip()->bcm)) {
+          return;
+        }
+        auto& bcm = *(config.chip()->bcm_ref());
+        // enable exact match in platform config
+        AgentEnsemble::enableExactMatch(bcm);
+      };
+  auto ensemble = createAgentEnsemble(initialConfigFn, platformConfigFn);
+  ensemble->startAgent();
+  auto ports = ensemble->masterLogicalPortIds();
+  auto hwSwitch = ensemble->getHw();
+  auto state = ensemble->getSw()->getState();
+  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(state, RouterID(0));
   // Setup EM Config
-  utility::setExactMatchCfg(ensemble.get(), prefixLength);
+  utility::setExactMatchCfg(&state, prefixLength);
+  ensemble->applyNewState(state);
   // Resolve nextHops
+  CHECK_GE(ports.size(), 2);
   ensemble->applyNewState(ecmpHelper.resolveNextHops(
-      ensemble->getProgrammedState(), {PortDescriptor(ports[0])}));
+      ensemble->getSw()->getState(), {PortDescriptor(ports[0])}));
   ensemble->applyNewState(ecmpHelper.resolveNextHops(
-      ensemble->getProgrammedState(), {PortDescriptor(ports[1])}));
+      ensemble->getSw()->getState(), {PortDescriptor(ports[1])}));
   // Add Entries
   auto flowEntries =
       makeFlowEntries("100", nextHopAddr, ifName, ports[0], numEntries);
   if (measureAdd) {
+    state = ensemble->getSw()->getState();
+    utility::addFlowEntries(&state, flowEntries);
     suspender.dismiss();
-    utility::addFlowEntries(ensemble.get(), flowEntries);
+    state = ensemble->applyNewState(state, true /* rollback on fail */);
     suspender.rehire();
   } else {
-    utility::addFlowEntries(ensemble.get(), flowEntries);
+    state = ensemble->getSw()->getState();
+    utility::addFlowEntries(&state, flowEntries);
+    state = ensemble->applyNewState(state, true /* rollback on fail */);
     CHECK_EQ(utility::getNumTeFlowEntries(hwSwitch), numEntries);
+    utility::deleteFlowEntries(&state, flowEntries);
     suspender.dismiss();
-    utility::deleteFlowEntries(ensemble.get(), flowEntries);
+    state = ensemble->applyNewState(state, true /* rollback on fail */);
     suspender.rehire();
   }
 }

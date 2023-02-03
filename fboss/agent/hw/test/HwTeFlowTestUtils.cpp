@@ -138,13 +138,18 @@ void deleteFlowEntry(
 void deleteFlowEntries(
     HwSwitchEnsemble* hwEnsemble,
     std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries) {
-  auto teFlows = hwEnsemble->getProgrammedState()->getTeFlowTable()->clone();
+  auto newState = hwEnsemble->getProgrammedState();
+  deleteFlowEntries(&newState, flowEntries);
+  hwEnsemble->applyNewState(newState);
+}
+
+void deleteFlowEntries(
+    std::shared_ptr<SwitchState>* state,
+    std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries) {
+  auto teFlows = (*state)->getTeFlowTable()->modify(state);
   for (auto& flowEntry : flowEntries) {
     teFlows->removeNode(flowEntry);
   }
-  auto newState = hwEnsemble->getProgrammedState()->clone();
-  newState->resetTeFlowTable(teFlows);
-  hwEnsemble->applyNewState(newState);
 }
 
 void modifyFlowEntry(

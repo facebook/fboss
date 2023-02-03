@@ -177,7 +177,8 @@ add_library(hw_teflow_scale_add
 target_link_libraries(hw_teflow_scale_add
   config_factory
   hw_teflow_utils
-  hw_benchmark_main
+  agent_ensemble
+  agent_benchmarks
   Folly::folly
 )
 
@@ -188,7 +189,8 @@ add_library(hw_teflow_scale_del
 target_link_libraries(hw_teflow_scale_del
   config_factory
   hw_teflow_utils
-  hw_benchmark_main
+  agent_ensemble
+  agent_benchmarks
   Folly::folly
 )
 

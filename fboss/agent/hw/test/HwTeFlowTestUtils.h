@@ -50,6 +50,9 @@ void deleteFlowEntry(
 void deleteFlowEntries(
     HwSwitchEnsemble* hwEnsemble,
     std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries);
+void deleteFlowEntries(
+    std::shared_ptr<SwitchState>* state,
+    std::vector<std::shared_ptr<TeFlowEntry>>& flowEntries);
 
 void modifyFlowEntry(
     HwSwitchEnsemble* hwEnsemble,
