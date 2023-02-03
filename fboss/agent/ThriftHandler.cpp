@@ -1127,10 +1127,36 @@ void ThriftHandler::getRunningConfig(std::string& configStr) {
 
 void ThriftHandler::getCurrentStateJSON(
     std::string& ret,
-    std::unique_ptr<std::string> jsonPointerStr) {
-  auto log = LOG_THRIFT_CALL(DBG1, *jsonPointerStr);
-  throw FbossError(
-      "getCurrentStateJSON no longer supported by agent due to thrift migration");
+    std::unique_ptr<std::string> path) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+
+  // Split path into vector of string
+  std::vector<std::string> thriftPath;
+  auto start = 0;
+  for (auto end = 0; (end = path->find("/", end)) != std::string::npos; ++end) {
+    thriftPath.push_back(path->substr(start, end - start));
+    start = end + 1;
+  }
+  thriftPath.push_back(path->substr(start));
+
+  auto traverseResult = thrift_cow::RootPathVisitor::visit(
+      *std::const_pointer_cast<const SwitchState>(sw_->getState()),
+      thriftPath.begin(),
+      thriftPath.end(),
+      thrift_cow::PathVisitMode::LEAF,
+      [&](auto& node, auto /* begin */, auto /* end */) {
+        ret = node.encode(fsdb::OperProtocol::SIMPLE_JSON);
+      });
+  switch (traverseResult) {
+    case thrift_cow::ThriftTraverseResult::OK:
+      break;
+    case thrift_cow::ThriftTraverseResult::VISITOR_EXCEPTION:
+      throw FbossError("Visitor exception when traversing thrift path.");
+      break;
+    default:
+      throw FbossError("Invalid thrift path provided.");
+  }
 }
 
 void ThriftHandler::patchCurrentStateJSON(

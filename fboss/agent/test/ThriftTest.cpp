@@ -1987,6 +1987,33 @@ TEST_F(ThriftTest, applySpeedAndProfileMismatchConfig) {
       FbossError);
 }
 
+TEST_F(ThriftTest, getCurrentStateJSON) {
+  ThriftHandler handler(sw_);
+  std::string out;
+  std::string in = "portMap/1";
+  handler.getCurrentStateJSON(out, std::make_unique<std::string>(in));
+  auto dyn = folly::parseJson(out);
+  EXPECT_EQ(dyn["portId"], 1);
+  EXPECT_EQ(dyn["portName"], "port1");
+  EXPECT_EQ(dyn["portState"], "ENABLED");
+
+  in = "portMap/1/portOperState";
+  handler.getCurrentStateJSON(out, std::make_unique<std::string>(in));
+  EXPECT_EQ(out, "false");
+
+  // Empty thrift path
+  in = "";
+  EXPECT_THROW(
+      handler.getCurrentStateJSON(out, std::make_unique<std::string>(in)),
+      FbossError);
+
+  // Invalid thrift path
+  in = "invalid/path";
+  EXPECT_THROW(
+      handler.getCurrentStateJSON(out, std::make_unique<std::string>(in)),
+      FbossError);
+}
+
 class ThriftTeFlowTest : public ::testing::Test {
  public:
   void SetUp() override {

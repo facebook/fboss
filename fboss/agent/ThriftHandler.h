@@ -348,9 +348,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getConfigAppliedInfo(ConfigAppliedInfo& configAppliedInfo) override;
 
   /**
-   * Serialize live running switch state at the path pointer by JSON Pointer
+   * Serialize live running switch state at the path pointer by thrift path
    */
-  void getCurrentStateJSON(std::string& ret, std::unique_ptr<std::string>)
+  void getCurrentStateJSON(std::string& ret, std::unique_ptr<std::string> path)
       override;
 
   /**

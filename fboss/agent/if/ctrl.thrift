@@ -1042,9 +1042,9 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   );
 
   /*
-   * Serialize switch state at path pointed by JSON pointer
+   * Serialize switch state at thrift path
    */
-  string getCurrentStateJSON(1: string jsonPointer);
+  string getCurrentStateJSON(1: string path);
 
   /*
    * Apply patch at given path within the state tree. jsonPatch must  be
