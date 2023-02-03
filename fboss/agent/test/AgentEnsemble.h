@@ -75,6 +75,8 @@ class AgentEnsemble {
 
   static void enableExactMatch(bcm::BcmConfig& config);
 
+  static std::string getInputConfigFile();
+
  private:
   void writeConfig(const cfg::SwitchConfig& config);
 

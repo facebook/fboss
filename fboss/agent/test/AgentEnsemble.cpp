@@ -25,8 +25,10 @@ void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
 int kArgc;
 char** kArgv;
 facebook::fboss::PlatformInitFn kPlatformInitFn;
+static std::string kInputConfigFile;
 
 } // namespace
+
 namespace facebook::fboss {
 AgentEnsemble::AgentEnsemble(const std::string& configFileName) {
   configFile_ = configFileName;
@@ -83,6 +85,10 @@ void AgentEnsemble::writeConfig(const cfg::SwitchConfig& config) {
   utilCreateDir(testConfigDir);
   auto fileName = testConfigDir + configFile_;
   newAgentConfig.dumpConfig(fileName);
+  if (kInputConfigFile.empty()) {
+    // saving the original config file.
+    kInputConfigFile = FLAGS_config;
+  }
   FLAGS_config = fileName;
   initFlagDefaults(*newAgentConfig.thrift.defaultCommandLineArgs());
 }
@@ -163,6 +169,13 @@ void AgentEnsemble::enableExactMatch(bcm::BcmConfig& config) {
     auto& cfg = *(config.config());
     cfg["fpem_mem_entries"] = "0x10000";
   }
+}
+
+std::string AgentEnsemble::getInputConfigFile() {
+  if (kInputConfigFile.empty()) {
+    return FLAGS_config;
+  }
+  return kInputConfigFile;
 }
 
 void ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform) {
