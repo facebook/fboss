@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <fboss/agent/gen-cpp2/agent_config_types.h>
+#include <fboss/agent/gen-cpp2/platform_config_types.h>
 #include <fboss/agent/gen-cpp2/switch_config_types.h>
 #include <fboss/agent/hw/bcm/gen-cpp2/bcm_config_types.h>
 #include <functional>
@@ -16,6 +18,7 @@ namespace facebook::fboss {
 
 using AgentEnsembleSwitchConfigFn = std::function<
     cfg::SwitchConfig(HwSwitch* hwSwitch, const std::vector<PortID>&)>;
+using AgentEnsemblePlatformConfigFn = std::function<void(cfg::PlatformConfig&)>;
 
 class AgentEnsemble {
  public:
@@ -28,7 +31,9 @@ class AgentEnsemble {
       char** argv,
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatform,
-      AgentEnsembleSwitchConfigFn initConfig);
+      AgentEnsembleSwitchConfigFn initConfig,
+      AgentEnsemblePlatformConfigFn platformConfig =
+          AgentEnsemblePlatformConfigFn());
 
   void startAgent();
 
@@ -79,6 +84,7 @@ class AgentEnsemble {
 
  private:
   void writeConfig(const cfg::SwitchConfig& config);
+  void writeConfig(const cfg::AgentConfig& config);
 
   AgentInitializer agentInitializer_{};
   cfg::SwitchConfig initialConfig_;

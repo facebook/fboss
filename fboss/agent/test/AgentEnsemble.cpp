@@ -39,7 +39,16 @@ void AgentEnsemble::setupEnsemble(
     char** argv,
     uint32_t hwFeaturesDesired,
     PlatformInitFn initPlatform,
-    AgentEnsembleSwitchConfigFn initialConfig) {
+    AgentEnsembleSwitchConfigFn initialConfigFn,
+    AgentEnsemblePlatformConfigFn platformConfigFn) {
+  if (platformConfigFn) {
+    auto agentConf =
+        AgentConfig::fromFile(AgentEnsemble::getInputConfigFile())->thrift;
+    platformConfigFn(*(agentConf.platform()));
+    // some platform config may need cold boots. so dump the config before
+    // creating a switch
+    writeConfig(agentConf);
+  }
   auto* initializer = agentInitializer();
   initializer->createSwitch(argc, argv, hwFeaturesDesired, initPlatform);
 
@@ -51,7 +60,7 @@ void AgentEnsemble::setupEnsemble(
   for (const auto& port : portsByControllingPort) {
     masterLogicalPortIds_.push_back(port.first);
   }
-  initialConfig_ = initialConfig(getHw(), masterLogicalPortIds_);
+  initialConfig_ = initialConfigFn(getHw(), masterLogicalPortIds_);
   writeConfig(initialConfig_);
   // reload the new config
   getPlatform()->reloadConfig();
@@ -75,6 +84,11 @@ void AgentEnsemble::writeConfig(const cfg::SwitchConfig& config) {
   auto* initializer = agentInitializer();
   auto agentConfig = initializer->sw()->getPlatform()->config()->thrift;
   agentConfig.sw() = config;
+  writeConfig(agentConfig);
+}
+
+void AgentEnsemble::writeConfig(const cfg::AgentConfig& agentConfig) {
+  auto* initializer = agentInitializer();
   auto newAgentConfig = AgentConfig(
       agentConfig,
       apache::thrift::SimpleJSONSerializer::serialize<std::string>(
