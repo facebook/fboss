@@ -52,7 +52,6 @@ if (SAI_TAJO_IMPL)
     fboss/agent/hw/sai/switch/npu/tajo/SaiTamManager.cpp
     fboss/agent/hw/sai/switch/npu/tajo/SaiPortManager.cpp
     fboss/agent/hw/sai/switch/npu/tajo/SaiAclTableManager.cpp
-    fboss/agent/hw/sai/switch/npu/tajo/SaiDebugCounterManager.cpp
   )
 elseif (SAI_BRCM_IMPL)
   list(APPEND SAI_SWITCH_SRC
@@ -60,7 +59,6 @@ elseif (SAI_BRCM_IMPL)
     fboss/agent/hw/sai/switch/npu/bcm/SaiTamManager.cpp
     fboss/agent/hw/sai/switch/npu/bcm/SaiPortManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiAclTableManager.cpp
-    fboss/agent/hw/sai/switch/oss/SaiDebugCounterManager.cpp
   )
 else()
   list(APPEND SAI_SWITCH_SRC
@@ -68,7 +66,6 @@ else()
     fboss/agent/hw/sai/switch/oss/SaiTamManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiPortManager.cpp
     fboss/agent/hw/sai/switch/oss/SaiAclTableManager.cpp
-    fboss/agent/hw/sai/switch/oss/SaiDebugCounterManager.cpp
   )
 endif()
 
