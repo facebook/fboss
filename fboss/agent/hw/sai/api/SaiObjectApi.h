@@ -52,7 +52,8 @@ uint32_t getObjectCount(sai_object_id_t switch_id) {
   sai_status_t status =
       sai_get_object_count(switch_id, SaiObjectTraits::ObjectType, &count);
   // For objects that are not supported yet by SAI SDK, return count 0.
-  if (status == SAI_STATUS_NOT_IMPLEMENTED) {
+  if (status == SAI_STATUS_NOT_IMPLEMENTED ||
+      status == SAI_STATUS_NOT_SUPPORTED) {
     return 0;
   }
   saiCheckError(
