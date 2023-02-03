@@ -88,8 +88,12 @@ class HwInPauseDiscardsCounterTest : public HwLinkStateDependentTest {
                   cfg::AsicType::ASIC_TYPE_EBRO
           ? 0
           : 1;
+      auto expectedDiscardsIncrement =
+          isSupported(HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS)
+          ? expectedPktCount
+          : 0;
       EXPECT_EQ(
-          expectedPktCount,
+          expectedDiscardsIncrement,
           *portStatsAfter.inDiscardsRaw_() - *portStatsBefore.inDiscardsRaw_());
       EXPECT_EQ(
           expectedPktCount,
