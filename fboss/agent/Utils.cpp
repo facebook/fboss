@@ -296,30 +296,6 @@ UnicastRoute makeUnicastRoute(
   route.nextHops() = thriftNextHopsFromAddresses(addrs);
   return route;
 }
-bool isAnyInterfacePortInLoopbackMode(
-    std::shared_ptr<SwitchState> swState,
-    const std::shared_ptr<Interface> interface) {
-  auto vlanId = interface->getVlanID();
-  auto vlan = swState->getVlans()->getVlanIf(vlanId);
-  if (vlan) {
-    // walk all ports for the given interface and ensure that there are no
-    // loopbacks configured This is mostly for the agent tests for which we dont
-    // want to flood grat arp when we are in loopback resulting in these pkts
-    // getting looped back forever
-    for (const auto& memberPort : vlan->getPorts()) {
-      auto* port =
-          swState->getPorts()->getPortIf(PortID(memberPort.first)).get();
-      if (port) {
-        if (port->getLoopbackMode() != cfg::PortLoopbackMode::NONE) {
-          XLOG(DBG2) << "Port: " << port->getName()
-                     << " is in loopback mode for vlanId: " << (int)vlanId;
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
 
 PortID getPortID(
     SystemPortID sysPortId,
@@ -355,6 +331,25 @@ std::vector<PortID> getPortsForInterface(
       break;
   }
   return ports;
+}
+
+bool isAnyInterfacePortInLoopbackMode(
+    std::shared_ptr<SwitchState> swState,
+    const std::shared_ptr<Interface> interface) {
+  // walk all ports for the given interface and ensure that there are no
+  // loopbacks configured This is mostly for the agent tests for which we dont
+  // want to flood grat arp when we are in loopback resulting in these pkts
+  // getting looped back forever
+  for (auto portId : getPortsForInterface(interface->getID(), swState)) {
+    auto port = swState->getPorts()->getPortIf(portId);
+    if (port && port->getLoopbackMode() != cfg::PortLoopbackMode::NONE) {
+      XLOG(DBG2) << "Port: " << port->getName()
+                 << " in interface: " << interface->getID()
+                 << " is in loopback mode";
+      return true;
+    }
+  }
+  return false;
 }
 
 StopWatch::StopWatch(std::optional<std::string> name, bool json)
