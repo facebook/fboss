@@ -469,6 +469,7 @@ void SwSwitch::updateStats() {
             getHw()->getSwitchStats()->getHwAsicErrors();
         agentStats.teFlowStats() = getTeFlowStats();
         stats()->fillAgentStats(agentStats);
+        agentStats.bufferPoolStats() = getBufferPoolStats();
         fsdbSyncer_->statsUpdated(std::move(agentStats));
         publishedStatsToFsdbAt_ = now;
       }
@@ -521,6 +522,12 @@ TeFlowStats SwSwitch::getTeFlowStats() {
   teFlowStats.timestamp() = now.count();
   teFlowStats.hwTeFlowStats() = std::move(hwTeFlowStats);
   return teFlowStats;
+}
+
+HwBufferPoolStats SwSwitch::getBufferPoolStats() const {
+  HwBufferPoolStats stats;
+  stats.deviceWatermarkBytes() = getHw()->getDeviceWatermarkBytes();
+  return stats;
 }
 
 void SwSwitch::registerNeighborListener(

@@ -211,3 +211,7 @@ struct TeFlowStats {
 struct HwRxReasonStats {
   1: map<i64, i64> rxReasonStats;
 }
+
+struct HwBufferPoolStats {
+  1: i64 deviceWatermarkBytes;
+}

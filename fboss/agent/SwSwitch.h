@@ -769,6 +769,8 @@ class SwSwitch : public HwSwitch::Callback {
 
   TeFlowStats getTeFlowStats();
 
+  HwBufferPoolStats getBufferPoolStats() const;
+
   VlanID getVlanIDHelper(std::optional<VlanID> vlanID) const;
 
  private:
