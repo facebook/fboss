@@ -917,8 +917,16 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldNeighborDstUserMeta.has_value() ||
        platform_->getAsic()->isSupported(HwAsic::Feature::EMPTY_ACL_MATCHER));
   if (fieldSrcPort.has_value()) {
-    matcherIsValid &= platform_->getAsic()->isSupported(
+    auto srcPortQualifierSupported = platform_->getAsic()->isSupported(
         HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER);
+    bool isTajo = platform_->getAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
+    if (isTajo) {
+#if !defined(TAJO_SDK_VERSION_1_58_0) && !defined(TAJO_SDK_VERSION_1_60_0)
+      srcPortQualifierSupported = false;
+#endif
+    }
+    matcherIsValid &= srcPortQualifierSupported;
   }
   auto actionIsValid =
       (aclActionPacketAction.has_value() || aclActionCounter.has_value() ||
@@ -1173,6 +1181,9 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
         cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
         cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
 
+#if defined(TAJO_SDK_VERSION_1_58_0) || defined(TAJO_SDK_VERSION_1_60_0)
+    tajoQualifiers.insert(cfg::AclTableQualifier::SRC_PORT);
+#endif
     return tajoQualifiers;
   } else if (isIndus) {
     // TODO(skhare)

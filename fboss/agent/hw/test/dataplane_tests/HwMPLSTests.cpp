@@ -45,10 +45,22 @@ namespace facebook::fboss {
 template <typename PortType>
 class HwMPLSTest : public HwLinkStateDependentTest {
   struct HwPacketVerifier {
+    bool isSrcPortQualifierSupported() {
+      auto srcPortQualifierSupported =
+          ensemble_->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER);
+      bool isTajo = ensemble_->getPlatform()->getAsic()->getAsicVendor() ==
+          HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
+      if (isTajo) {
+#if !defined(TAJO_SDK_VERSION_1_58_0) && !defined(TAJO_SDK_VERSION_1_60_0)
+        srcPortQualifierSupported = false;
+#endif
+      }
+      return srcPortQualifierSupported;
+    }
     HwPacketVerifier(HwSwitchEnsemble* ensemble, PortID port, MPLSHdr hdr)
         : ensemble_(ensemble), entry_{}, snooper_{}, expectedHdr_(hdr) {
-      if (!ensemble->getPlatform()->getAsic()->isSupported(
-              HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)) {
+      if (!isSrcPortQualifierSupported()) {
         return;
       }
       // capture packet exiting port (entering back due to loopback)
@@ -58,8 +70,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
     }
 
     ~HwPacketVerifier() {
-      if (!ensemble_->getPlatform()->getAsic()->isSupported(
-              HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER)) {
+      if (!isSrcPortQualifierSupported()) {
         return;
       }
       auto pkt = snooper_->waitForPacket(10);
