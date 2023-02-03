@@ -165,7 +165,7 @@ class BuildHelper:
             "\n"
             "[download]\n"
             "url = https://github.com/opencomputeproject/SAI/archive/v1.11.0.tar.gz\n"
-            "sha256 = e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n"
+            "sha256 = 240d0211bbea2758faabfdbfa5e5488d837a47d42839bfe99b4bfbff52ab6c11\n"
             "\n"
             "[build]\n"
             "builder = nop\n"
