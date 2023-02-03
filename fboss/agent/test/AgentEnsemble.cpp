@@ -3,6 +3,7 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -147,6 +148,16 @@ std::shared_ptr<SwitchState> AgentEnsemble::applyNewState(
       "apply new state",
       [state](const std::shared_ptr<SwitchState>&) { return state; });
   return getSw()->getState();
+}
+
+void AgentEnsemble::enableExactMatch(bcm::BcmConfig& config) {
+  if (auto yamlCfg = config.yamlConfig()) {
+    // use common func
+    facebook::fboss::enableExactMatch(*yamlCfg);
+  } else {
+    auto& cfg = *(config.config());
+    cfg["fpem_mem_entries"] = "0x10000";
+  }
 }
 
 } // namespace facebook::fboss

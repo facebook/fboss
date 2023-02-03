@@ -210,4 +210,6 @@ inline constexpr uint8_t kGetNetworkControlTrafficClass() {
   return 48 << 2;
 }
 
+void enableExactMatch(std::string& yamlCfg);
+
 } // namespace facebook::fboss

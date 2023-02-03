@@ -3,6 +3,7 @@
 #pragma once
 
 #include <fboss/agent/gen-cpp2/switch_config_types.h>
+#include <fboss/agent/hw/bcm/gen-cpp2/bcm_config_types.h>
 #include <functional>
 #include "fboss/agent/Main.h"
 
@@ -71,6 +72,8 @@ class AgentEnsemble {
           routeChunks);
 
   void gracefulExit();
+
+  static void enableExactMatch(bcm::BcmConfig& config);
 
  private:
   void writeConfig(const cfg::SwitchConfig& config);
