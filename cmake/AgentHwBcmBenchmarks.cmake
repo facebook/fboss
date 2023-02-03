@@ -383,7 +383,7 @@ target_link_libraries(bcm_teflow_stats_collection_speed
   hw_teflow_stats_collection_speed
   bcm_teflow_utils
   -Wl,--no-whole-archive
-  hw_benchmark_main
+  bcm_agent_benchmarks_main
   Folly::folly
   ${OPENNSA}
   Folly::follybenchmark

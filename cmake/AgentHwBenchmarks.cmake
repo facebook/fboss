@@ -199,7 +199,8 @@ add_library(hw_teflow_stats_collection_speed
 target_link_libraries(hw_teflow_stats_collection_speed
   config_factory
   hw_teflow_utils
-  hw_benchmark_main
+  agent_ensemble
+  agent_benchmarks
   Folly::folly
 )
 

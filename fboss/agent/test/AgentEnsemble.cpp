@@ -41,13 +41,17 @@ void AgentEnsemble::setupEnsemble(
     PlatformInitFn initPlatform,
     AgentEnsembleSwitchConfigFn initialConfigFn,
     AgentEnsemblePlatformConfigFn platformConfigFn) {
+  // to ensure FLAGS_config is set, as this is used in case platform config is
+  // overriden by the application.
+  gflags::ParseCommandLineFlags(&argc, &argv, false);
+
   if (platformConfigFn) {
     auto agentConf =
         AgentConfig::fromFile(AgentEnsemble::getInputConfigFile())->thrift;
     platformConfigFn(*(agentConf.platform()));
-    // some platform config may need cold boots. so dump the config before
+    // some platform config may need cold boots. so overwrite the config before
     // creating a switch
-    writeConfig(agentConf);
+    writeConfig(agentConf, FLAGS_config);
   }
   auto* initializer = agentInitializer();
   initializer->createSwitch(argc, argv, hwFeaturesDesired, initPlatform);
@@ -89,15 +93,21 @@ void AgentEnsemble::writeConfig(const cfg::SwitchConfig& config) {
 
 void AgentEnsemble::writeConfig(const cfg::AgentConfig& agentConfig) {
   auto* initializer = agentInitializer();
-  auto newAgentConfig = AgentConfig(
-      agentConfig,
-      apache::thrift::SimpleJSONSerializer::serialize<std::string>(
-          agentConfig));
   auto testConfigDir =
       initializer->sw()->getPlatform()->getPersistentStateDir() +
       "/agent_ensemble/";
   utilCreateDir(testConfigDir);
   auto fileName = testConfigDir + configFile_;
+  writeConfig(agentConfig, fileName);
+}
+
+void AgentEnsemble::writeConfig(
+    const cfg::AgentConfig& agentConfig,
+    const std::string& fileName) {
+  auto newAgentConfig = AgentConfig(
+      agentConfig,
+      apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+          agentConfig));
   newAgentConfig.dumpConfig(fileName);
   if (kInputConfigFile.empty()) {
     // saving the original config file.
@@ -165,13 +175,18 @@ void AgentEnsemble::gracefulExit() {
 }
 
 std::shared_ptr<SwitchState> AgentEnsemble::applyNewState(
-    const std::shared_ptr<SwitchState>& state) {
+    const std::shared_ptr<SwitchState>& state,
+    bool transaction) {
   if (!state) {
     return getSw()->getState();
   }
-  getSw()->updateStateBlocking(
-      "apply new state",
-      [state](const std::shared_ptr<SwitchState>&) { return state; });
+  transaction
+      ? getSw()->updateStateWithHwFailureProtection(
+            "apply new state with failure protection",
+            [state](const std::shared_ptr<SwitchState>&) { return state; })
+      : getSw()->updateStateBlocking(
+            "apply new state",
+            [state](const std::shared_ptr<SwitchState>&) { return state; });
   return getSw()->getState();
 }
 
@@ -200,10 +215,16 @@ void ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform) {
 
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     AgentEnsembleSwitchConfigFn initialConfigFn,
+    AgentEnsemblePlatformConfigFn platformConfigFn,
     uint32_t featuresDesired) {
   auto ensemble = std::make_unique<AgentEnsemble>();
   ensemble->setupEnsemble(
-      kArgc, kArgv, featuresDesired, kPlatformInitFn, initialConfigFn);
+      kArgc,
+      kArgv,
+      featuresDesired,
+      kPlatformInitFn,
+      initialConfigFn,
+      platformConfigFn);
   return ensemble;
 }
 

@@ -60,7 +60,8 @@ class AgentEnsemble {
   }
 
   std::shared_ptr<SwitchState> applyNewState(
-      const std::shared_ptr<SwitchState>& state);
+      const std::shared_ptr<SwitchState>& state,
+      bool transaction = false);
 
   const std::vector<PortID>& masterLogicalPortIds() const;
 
@@ -85,6 +86,7 @@ class AgentEnsemble {
  private:
   void writeConfig(const cfg::SwitchConfig& config);
   void writeConfig(const cfg::AgentConfig& config);
+  void writeConfig(const cfg::AgentConfig& config, const std::string& file);
 
   AgentInitializer agentInitializer_{};
   cfg::SwitchConfig initialConfig_;
@@ -97,6 +99,8 @@ void ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform);
 
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     AgentEnsembleSwitchConfigFn initialConfigFn,
+    AgentEnsemblePlatformConfigFn platformConfigFn =
+        AgentEnsemblePlatformConfigFn(),
     uint32_t featuresDesired =
         (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
          HwSwitch::FeaturesDesired::LINKSCAN_DESIRED));
