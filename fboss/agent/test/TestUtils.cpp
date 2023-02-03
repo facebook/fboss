@@ -228,6 +228,11 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
     cfg.ports()->push_back(recyclePort);
     addRecyclePortRif(myNode, cfg);
   }
+  if (switchType == cfg::SwitchType::VOQ) {
+    for (auto& intf : *cfg.interfaces()) {
+      intf.type() = cfg::InterfaceType::SYSTEM_PORT;
+    }
+  }
   return cfg;
 }
 
