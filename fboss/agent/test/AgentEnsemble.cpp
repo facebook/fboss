@@ -39,7 +39,7 @@ void AgentEnsemble::setupEnsemble(
     char** argv,
     uint32_t hwFeaturesDesired,
     PlatformInitFn initPlatform,
-    AgentEnsembleConfigFn initialConfig) {
+    AgentEnsembleSwitchConfigFn initialConfig) {
   auto* initializer = agentInitializer();
   initializer->createSwitch(argc, argv, hwFeaturesDesired, initPlatform);
 
@@ -185,7 +185,7 @@ void ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform) {
 }
 
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
-    AgentEnsembleConfigFn initialConfigFn,
+    AgentEnsembleSwitchConfigFn initialConfigFn,
     uint32_t featuresDesired) {
   auto ensemble = std::make_unique<AgentEnsemble>();
   ensemble->setupEnsemble(

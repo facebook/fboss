@@ -38,10 +38,10 @@ namespace facebook::fboss {
 template <typename RouteScaleGeneratorT>
 void routeAddDelBenchmarker(bool measureAdd) {
   folly::BenchmarkSuspender suspender;
-  AgentEnsembleConfigFn initialConfigFn = [](HwSwitch* hwSwitch,
-                                             const std::vector<PortID>& ports) {
-    return utility::onePortPerInterfaceConfig(hwSwitch, ports);
-  };
+  AgentEnsembleSwitchConfigFn initialConfigFn =
+      [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
+        return utility::onePortPerInterfaceConfig(hwSwitch, ports);
+      };
   auto ensemble = createAgentEnsemble(initialConfigFn);
   ensemble->startAgent();
   auto* sw = ensemble->getSw();

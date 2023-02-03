@@ -149,29 +149,29 @@ void initandExitBenchmarkHelper(
   folly::BenchmarkSuspender suspender;
   std::unique_ptr<AgentEnsemble> ensemble{};
 
-  AgentEnsembleConfigFn initialConfig = [uplinkSpeed, downlinkSpeed](
-                                            HwSwitch* hwSwitch,
-                                            const std::vector<PortID>& ports) {
-    auto numUplinks = getUplinksCount(hwSwitch, uplinkSpeed, downlinkSpeed);
-    if (!numUplinks) {
-      return utility::oneL3IntfNPortConfig(hwSwitch, ports);
-    }
-    /*
-     * Based on the uplink/downlink speed, use the ConfigFactory to create
-     * agent config to mimic the production config. For instance, in TH,
-     * 100Gx10G as config type will create 100G uplinks and 10G downlinks
-     */
+  AgentEnsembleSwitchConfigFn initialConfig =
+      [uplinkSpeed, downlinkSpeed](
+          HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
+        auto numUplinks = getUplinksCount(hwSwitch, uplinkSpeed, downlinkSpeed);
+        if (!numUplinks) {
+          return utility::oneL3IntfNPortConfig(hwSwitch, ports);
+        }
+        /*
+         * Based on the uplink/downlink speed, use the ConfigFactory to create
+         * agent config to mimic the production config. For instance, in TH,
+         * 100Gx10G as config type will create 100G uplinks and 10G downlinks
+         */
 
-    auto config = utility::createUplinkDownlinkConfig(
-        hwSwitch,
-        ports,
-        numUplinks.value(),
-        uplinkSpeed,
-        downlinkSpeed,
-        hwSwitch->getPlatform()->getAsic()->desiredLoopbackMode());
-    utility::addProdFeaturesToConfig(config, hwSwitch);
-    return config;
-  };
+        auto config = utility::createUplinkDownlinkConfig(
+            hwSwitch,
+            ports,
+            numUplinks.value(),
+            uplinkSpeed,
+            downlinkSpeed,
+            hwSwitch->getPlatform()->getAsic()->desiredLoopbackMode());
+        utility::addProdFeaturesToConfig(config, hwSwitch);
+        return config;
+      };
 
   suspender.dismiss();
   {

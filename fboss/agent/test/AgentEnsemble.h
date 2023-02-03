@@ -14,7 +14,7 @@ DECLARE_bool(setup_for_warmboot);
 
 namespace facebook::fboss {
 
-using AgentEnsembleConfigFn = std::function<
+using AgentEnsembleSwitchConfigFn = std::function<
     cfg::SwitchConfig(HwSwitch* hwSwitch, const std::vector<PortID>&)>;
 
 class AgentEnsemble {
@@ -28,7 +28,7 @@ class AgentEnsemble {
       char** argv,
       uint32_t hwFeaturesDesired,
       PlatformInitFn initPlatform,
-      AgentEnsembleConfigFn initConfig);
+      AgentEnsembleSwitchConfigFn initConfig);
 
   void startAgent();
 
@@ -90,7 +90,7 @@ class AgentEnsemble {
 void ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform);
 
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
-    AgentEnsembleConfigFn initialConfigFn,
+    AgentEnsembleSwitchConfigFn initialConfigFn,
     uint32_t featuresDesired =
         (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
          HwSwitch::FeaturesDesired::LINKSCAN_DESIRED));
