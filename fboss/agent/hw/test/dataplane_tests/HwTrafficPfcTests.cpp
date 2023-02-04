@@ -1,4 +1,7 @@
+#include <fb303/ServiceData.h>
+
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTest.h"
@@ -57,6 +60,30 @@ void validatePfcCounters(
   for (const auto& portId : portIds) {
     EXPECT_TRUE(getPfcCountersRetry(ensemble, portId, pri));
   }
+}
+
+void validateBufferPoolWatermarkCounters(
+    facebook::fboss::HwSwitchEnsemble* ensemble,
+    const int /* pri */,
+    const std::vector<facebook::fboss::PortID>& /* portIds */) {
+  int retries = 5;
+  uint64_t globalSharedWatermarks{};
+  while (retries-- && !globalSharedWatermarks) {
+    // TODO: Migrate to a waitStatsCondition() util
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    facebook::fboss::SwitchStats dummy;
+    ensemble->getHwSwitch()->updateStats(&dummy);
+    auto counters = facebook::fb303::fbData->getRegexCounters(
+        {"buffer_watermark_global_shared.*.p100.60"});
+    for (const auto& ctr : counters) {
+      if (ctr.second) {
+        globalSharedWatermarks = ctr.second;
+        XLOG(DBG0) << ctr.first << " : " << ctr.second;
+        break;
+      }
+    }
+  }
+  EXPECT_TRUE(globalSharedWatermarks > 0);
 }
 
 } // namespace
@@ -264,7 +291,14 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
   }
 
  protected:
-  void runTestWithDefaultPfcCfg(const int trafficClass, const int pfcPriority) {
+  void runTestWithDefaultPfcCfg(
+      const int trafficClass,
+      const int pfcPriority,
+      std::function<void(
+          HwSwitchEnsemble* ensemble,
+          const int pri,
+          const std::vector<PortID>& portIds)> validateCounterFn =
+          validatePfcCounters) {
     auto setup = [&]() {
       setupConfigAndEcmpTraffic();
       validateInitPfcCounters(
@@ -275,8 +309,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     auto verify = [&]() {
       // ensure counter is 0 before we start traffic
       pumpTraffic(trafficClass);
-      // ensure counter is > 0, after the traffic
-      validatePfcCounters(
+      // check counters are as expected
+      validateCounterFn(
           getHwSwitchEnsemble(),
           pfcPriority,
           {masterLogicalInterfacePortIds()[0],
@@ -494,6 +528,14 @@ TEST_F(HwTrafficPfcTest, verifyPfcDefault) {
   const int trafficClass = 0;
   const int pfcPriority = 0;
   runTestWithDefaultPfcCfg(trafficClass, pfcPriority);
+}
+
+TEST_F(HwTrafficPfcTest, verifyBufferPoolWatermarks) {
+  // default to map dscp to priority = 0
+  const int trafficClass = 0;
+  const int pfcPriority = 0;
+  runTestWithDefaultPfcCfg(
+      trafficClass, pfcPriority, validateBufferPoolWatermarkCounters);
 }
 
 TEST_F(HwTrafficPfcTest, verifyPfcWithGlobalHeadRoomToZero) {
