@@ -51,6 +51,8 @@ class SaiBufferManager {
       const std::optional<state::BufferPoolFields> ingressPgCfg = std::nullopt);
 
   void updateStats();
+  void updateIngressBufferPoolStats();
+  void updateEgressBufferPoolStats();
   void createIngressBufferPool(const std::shared_ptr<Port> port);
   uint64_t getDeviceWatermarkBytes() const {
     return deviceWatermarkBytes_;

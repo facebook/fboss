@@ -237,14 +237,56 @@ SaiBufferPoolHandle* SaiBufferManager::getEgressBufferPoolHandle() const {
                                         : egressBufferPoolHandle_.get();
 }
 
-void SaiBufferManager::updateStats() {
-  auto bufferPoolHandle = getEgressBufferPoolHandle();
-  if (bufferPoolHandle) {
-    bufferPoolHandle->bufferPool->updateStats();
-    auto counters = bufferPoolHandle->bufferPool->getStats();
-    deviceWatermarkBytes_ = counters[SAI_BUFFER_POOL_STAT_WATERMARK_BYTES];
-    publishDeviceWatermark(deviceWatermarkBytes_);
+void SaiBufferManager::updateEgressBufferPoolStats() {
+  if (!egressBufferPoolHandle_) {
+    // Applies to platforms with SHARED_INGRESS_EGRESS_BUFFER_POOL, where
+    // watermarks are polled as part of ingress itself.
+    return;
   }
+  egressBufferPoolHandle_->bufferPool->updateStats();
+  auto counters = egressBufferPoolHandle_->bufferPool->getStats();
+  deviceWatermarkBytes_ = counters[SAI_BUFFER_POOL_STAT_WATERMARK_BYTES];
+}
+
+void SaiBufferManager::updateIngressBufferPoolStats() {
+  auto ingressBufferPoolHandle = getIngressBufferPoolHandle();
+  if (!ingressBufferPoolHandle) {
+    return;
+  }
+  static std::vector<sai_stat_id_t> counterIdsToReadAndClear;
+  if (!counterIdsToReadAndClear.size()) {
+    // TODO: Request for per ITM buffer pool stats in SAI
+    counterIdsToReadAndClear.push_back(SAI_BUFFER_POOL_STAT_WATERMARK_BYTES);
+    if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_INDUS) {
+      // TODO: Wait for the fix for CS00012274607 to enable this for all!
+      counterIdsToReadAndClear.push_back(
+          SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES);
+    }
+  }
+  ingressBufferPoolHandle->bufferPool->updateStats(
+      counterIdsToReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
+  auto counters = ingressBufferPoolHandle->bufferPool->getStats();
+  auto maxGlobalSharedBytes = counters[SAI_BUFFER_POOL_STAT_WATERMARK_BYTES];
+  auto maxGlobalHeadroomBytes =
+      counters[SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES];
+  publishGlobalWatermarks(maxGlobalHeadroomBytes, maxGlobalSharedBytes);
+
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL)) {
+    /*
+     * There is only a single buffer pool for these devices and hence the
+     * same stats needs to be updated as device watermark as well.
+     */
+    deviceWatermarkBytes_ = counters[SAI_BUFFER_POOL_STAT_WATERMARK_BYTES];
+  }
+}
+
+void SaiBufferManager::updateStats() {
+  updateIngressBufferPoolStats();
+  updateEgressBufferPoolStats();
+  // Device watermarks are collected from ingress for some and egress for
+  // some other platforms, hence publish it here.
+  publishDeviceWatermark(deviceWatermarkBytes_);
 }
 
 SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
