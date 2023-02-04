@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
         FLAGS_update_module_firmware || FLAGS_get_module_fw_info ||
         FLAGS_app_sel || FLAGS_cdb_command || FLAGS_update_bulk_module_fw ||
         FLAGS_vdm_info || FLAGS_prbs_start || FLAGS_prbs_stop ||
-        FLAGS_prbs_stats || FLAGS_module_io_stats);
+        FLAGS_prbs_stats || FLAGS_module_io_stats || FLAGS_batch_ops);
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
