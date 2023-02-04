@@ -1,6 +1,7 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
+#include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -14,6 +15,51 @@
 using folly::IPAddress;
 using folly::IPAddressV6;
 using std::string;
+
+namespace {
+std::tuple<int, int, int> getPfcTxRxXonHwPortStats(
+    const facebook::fboss::HwPortStats& portStats,
+    const int pfcPriority) {
+  return {
+      portStats.get_outPfc_().at(pfcPriority),
+      portStats.get_inPfc_().at(pfcPriority),
+      portStats.get_inPfcXon_().at(pfcPriority)};
+}
+
+bool getPfcCountersRetry(
+    facebook::fboss::HwSwitchEnsemble* ensemble,
+    const facebook::fboss::PortID& portId,
+    const int pfcPriority) {
+  int txPfcCtr = 0, rxPfcCtr = 0, rxPfcXonCtr = 0;
+
+  auto pfcCountersIncrementing = [&](const auto& newStats) {
+    auto portStatsIter = newStats.find(portId);
+    std::tie(txPfcCtr, rxPfcCtr, rxPfcXonCtr) =
+        getPfcTxRxXonHwPortStats(portStatsIter->second, pfcPriority);
+    XLOG(DBG0) << " Port: " << portId << " PFC TX/RX PFC/RX_PFC_XON "
+               << txPfcCtr << "/" << rxPfcCtr << "/" << rxPfcXonCtr
+               << ", priority: " << pfcPriority;
+    if (txPfcCtr > 0 && rxPfcCtr > 0 && rxPfcXonCtr > 0) {
+      return true;
+    }
+    return false;
+  };
+
+  return ensemble->waitPortStatsCondition(
+      pfcCountersIncrementing, 10, std::chrono::milliseconds(500));
+}
+
+void validatePfcCounters(
+    facebook::fboss::HwSwitchEnsemble* ensemble,
+    const int pri,
+    const std::vector<facebook::fboss::PortID>& portIds) {
+  // no need t retry if looking for baseline counter
+  for (const auto& portId : portIds) {
+    EXPECT_TRUE(getPfcCountersRetry(ensemble, portId, pri));
+  }
+}
+
+} // namespace
 
 namespace facebook::fboss {
 
@@ -184,13 +230,10 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
   }
 
   std::tuple<int, int, int> getTxRxXonPfcCounters(
-      const PortID& portId,
+      const facebook::fboss::PortID& portId,
       const int pfcPriority) {
-    int txPfcCtr = getLatestPortStats(portId).get_outPfc_().at(pfcPriority);
-    int rxPfcCtr = getLatestPortStats(portId).get_inPfc_().at(pfcPriority);
-    int rxPfcXonCtr =
-        getLatestPortStats(portId).get_inPfcXon_().at(pfcPriority);
-    return {txPfcCtr, rxPfcCtr, rxPfcXonCtr};
+    auto portStats = getLatestPortStats(portId);
+    return getPfcTxRxXonHwPortStats(portStats, pfcPriority);
   }
 
   void validateInitPfcCounters(
@@ -207,38 +250,6 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       std::tie(txPfcCtr, rxPfcCtr, rxPfcXonCtr) =
           getTxRxXonPfcCounters(portId, pfcPriority);
       EXPECT_TRUE((txPfcCtr == 0) && (rxPfcCtr == 0) && (rxPfcXonCtr == 0));
-    }
-  }
-
-  bool getPfcCountersRetry(const PortID& portId, const int pfcPriority) {
-    int txPfcCtr = 0, rxPfcCtr = 0, rxPfcXonCtr = 0;
-    int retries = 5;
-    bool countersIncrementing = false;
-    // retry as long as we can OR we get an expected output
-    while (retries--) {
-      // sleep for a bit before checking counters
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-      std::tie(txPfcCtr, rxPfcCtr, rxPfcXonCtr) =
-          getTxRxXonPfcCounters(portId, pfcPriority);
-      if (txPfcCtr > 0 && rxPfcCtr > 0 && rxPfcXonCtr > 0) {
-        // there is no undoing this state
-        countersIncrementing = true;
-        break;
-      }
-    };
-    XLOG(DBG0) << " Port: " << portId << " PFC TX/RX PFC/RX_PFC_XON "
-               << txPfcCtr << "/" << rxPfcCtr << "/" << rxPfcXonCtr
-               << ", priority: " << pfcPriority;
-    if (countersIncrementing) {
-      return true;
-    }
-    return false;
-  }
-
-  void validatePfcCounters(const int pri, const std::vector<PortID>& portIds) {
-    // no need t retry if looking for baseline counter
-    for (const auto& portId : portIds) {
-      EXPECT_TRUE(getPfcCountersRetry(portId, pri));
     }
   }
 
@@ -266,6 +277,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       pumpTraffic(trafficClass);
       // ensure counter is > 0, after the traffic
       validatePfcCounters(
+          getHwSwitchEnsemble(),
           pfcPriority,
           {masterLogicalInterfacePortIds()[0],
            masterLogicalInterfacePortIds()[1]});
@@ -297,6 +309,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       pumpTraffic(trafficClass);
       // ensure counter is > 0, after the traffic
       validatePfcCounters(
+          getHwSwitchEnsemble(),
           pfcPriority,
           {masterLogicalInterfacePortIds()[0],
            masterLogicalInterfacePortIds()[1]});
@@ -331,6 +344,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       pumpTraffic(trafficClass);
       // ensure counter is > 0, after the traffic
       validatePfcCounters(
+          getHwSwitchEnsemble(),
           pfcPriority,
           {masterLogicalInterfacePortIds()[0],
            masterLogicalInterfacePortIds()[1]});
