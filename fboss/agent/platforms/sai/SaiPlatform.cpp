@@ -13,7 +13,9 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/hw/switch_asics/IndusAsic.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
@@ -349,16 +351,32 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
                                                 : SAI_SWITCH_TYPE_FABRIC;
     switchId = swId;
     if (swType == cfg::SwitchType::VOQ) {
-      // TODO - compute this information from config. Note that
-      // the this computation assumes symmetric deployment,
-      // viz all VOQ switch nodes are the HW type and thus
-      // have the same number of cores as this VOQ switches.
-      // For a mixed HW deployment, update config to reflect
-      // ASIC type to switch mapping, then use that information
-      // to compute total cores in VOQ switch cluster.
-      cores = getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO
-          ? 10
-          : 20 * getAsic()->getNumCores();
+      auto agentCfg = config();
+      CHECK(agentCfg) << " agent config must be set ";
+      uint32_t systemCores = 0;
+      const IndusAsic indus(cfg::SwitchType::VOQ, 0, std::nullopt);
+      const EbroAsic ebro(cfg::SwitchType::VOQ, 0, std::nullopt);
+      for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
+        if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {
+          continue;
+        }
+        switch (*dsfNode.asicType()) {
+          case cfg::AsicType::ASIC_TYPE_INDUS:
+            systemCores += indus.getNumCores();
+            break;
+          case cfg::AsicType::ASIC_TYPE_EBRO:
+            systemCores += ebro.getNumCores();
+            break;
+          default:
+            throw FbossError("Unexpected asic type: ", *dsfNode.asicType());
+        }
+      }
+      // FIXME: for some HwTest we create multiple DsfNode config
+      // as part of the test. This though is done post init and
+      // does not get factored in MaxSystemCores setting here.
+      // Fix this by percolating this information to init.
+      uint32_t minCores = 2 * getAsic()->getNumCores();
+      cores = std::max(minCores, systemCores);
       sysPortConfigs = SaiSwitchTraits::Attributes::SysPortConfigList{
           getInternalSystemPortConfig()};
     }
