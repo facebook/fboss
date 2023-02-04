@@ -256,6 +256,14 @@ struct SaiPortTraits {
         EnumType,
         SAI_PORT_ATTR_RX_LOCK_STATUS,
         std::vector<sai_port_lane_latch_status_t>>;
+    using FecAlignmentLock = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_FEC_ALIGNMENT_LOCK,
+        std::vector<sai_port_lane_latch_status_t>>;
+    using PcsRxLinkStatus = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_PCS_RX_LINK_STATUS,
+        sai_latch_status_t>;
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
     using InterFrameGap = SaiAttribute<
@@ -419,6 +427,8 @@ SAI_ATTRIBUTE_NAME(Port, QosPfcPriorityToQueueMap)
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
 SAI_ATTRIBUTE_NAME(Port, RxSignalDetect)
 SAI_ATTRIBUTE_NAME(Port, RxLockStatus)
+SAI_ATTRIBUTE_NAME(Port, FecAlignmentLock)
+SAI_ATTRIBUTE_NAME(Port, PcsRxLinkStatus)
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
 SAI_ATTRIBUTE_NAME(Port, InterFrameGap)

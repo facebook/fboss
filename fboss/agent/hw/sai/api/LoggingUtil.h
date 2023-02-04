@@ -277,6 +277,24 @@ struct formatter<sai_port_lane_latch_status_t> {
         latchStatus.value.changed);
   }
 };
+
+// Formatting for sai_latch_status_t
+template <>
+struct formatter<sai_latch_status_t> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const sai_latch_status_t& latchStatus, FormatContext& ctx) {
+    return format_to(
+        ctx.out(),
+        "latch_status.current_status: {}, latch_status.changed: {}",
+        latchStatus.current_status,
+        latchStatus.changed);
+  }
+};
 #endif
 
 // Formatting for AclEntryField<T>

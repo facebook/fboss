@@ -130,6 +130,11 @@ template <>
 struct WrappedSaiType<std::vector<sai_port_lane_latch_status_t>> {
   using value = sai_port_lane_latch_status_list_t;
 };
+
+template <>
+struct WrappedSaiType<sai_latch_status_t> {
+  using value = sai_latch_status_t;
+};
 #endif
 
 template <>

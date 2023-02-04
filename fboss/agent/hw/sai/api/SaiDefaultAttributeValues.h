@@ -127,6 +127,12 @@ struct SaiPortLaneLatchStatusDefault {
     return sai_port_lane_latch_status_t{0, {false, false}};
   }
 };
+
+struct SaiLatchStatusDefault {
+  sai_latch_status_t operator()() const {
+    return sai_latch_status_t();
+  }
+};
 #endif
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)

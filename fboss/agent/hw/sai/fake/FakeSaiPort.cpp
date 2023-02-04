@@ -508,6 +508,25 @@ sai_status_t set_port_attribute_fn(
                                   .list[j];
       }
     } break;
+    case SAI_PORT_ATTR_FEC_ALIGNMENT_LOCK: {
+      port.portFecAlignmentLockStatus.count =
+          static_cast<sai_port_lane_latch_status_list_t>(
+              attr->value.portlanelatchstatuslist)
+              .count;
+      auto& fecAMLockStatusList = port.portFecAlignmentLockStatus.list;
+      auto fecAMLockStatusVector = std::vector<sai_port_lane_latch_status_t>();
+      fecAMLockStatusVector.resize(port.portFecAlignmentLockStatus.count);
+      fecAMLockStatusList = fecAMLockStatusVector.data();
+      for (int j = 0; j < port.portFecAlignmentLockStatus.count; j++) {
+        fecAMLockStatusList[j] = static_cast<sai_port_lane_latch_status_list_t>(
+                                     attr->value.portlanelatchstatuslist)
+                                     .list[j];
+      }
+    } break;
+    case SAI_PORT_ATTR_PCS_RX_LINK_STATUS: {
+      port.portPcsLinkStatus = static_cast<sai_port_lane_latch_status_list_t>(
+          attr->value.latchstatus);
+    } break;
 #endif
     case SAI_PORT_ATTR_ERR_STATUS_LIST: {
       port.portError.count =
@@ -751,6 +770,17 @@ sai_status_t get_port_attribute_fn(
           attr[i].value.portlanelatchstatuslist.list[j] =
               port.portRxLockStatus.list[j];
         }
+        break;
+      case SAI_PORT_ATTR_FEC_ALIGNMENT_LOCK:
+        attr[i].value.portlanelatchstatuslist.count =
+            port.portFecAlignmentLockStatus.count;
+        for (int j = 0; j < port.portFecAlignmentLockStatus.count; j++) {
+          attr[i].value.portlanelatchstatuslist.list[j] =
+              port.portFecAlignmentLockStatus.list[j];
+        }
+        break;
+      case SAI_PORT_ATTR_PCS_RX_LINK_STATUS:
+        attr[i].value.latchstatus = port.portPcsLinkStatus;
         break;
 #endif
       case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_MODE:
