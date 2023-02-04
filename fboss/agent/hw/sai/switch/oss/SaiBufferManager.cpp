@@ -13,4 +13,7 @@
 namespace facebook::fboss {
 
 void SaiBufferManager::publishDeviceWatermark(uint64_t /*peakBytes*/) const {}
+void SaiBufferManager::publishGlobalWatermarks(
+    const uint64_t& /*globalHeadroomBytes*/,
+    const uint64_t& /*globalSharedBytes*/) const {};
 } // namespace facebook::fboss
