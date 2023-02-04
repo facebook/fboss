@@ -77,6 +77,7 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   void stopObservers();
   struct HwSwitchEnsembleInitInfo {
     std::optional<TransceiverInfo> overrideTransceiverInfo;
+    std::optional<std::map<int64_t, cfg::DsfNode>> dsfNodes;
   };
   enum Feature : uint32_t {
     PACKET_RX,
