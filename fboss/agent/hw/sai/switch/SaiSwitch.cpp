@@ -2065,6 +2065,19 @@ void SaiSwitch::packetRxCallbackPort(
       }
       swVlanId = vlanItr->second;
     }
+  } else { // VOQ / FABRIC
+    if (portSaiId != getCPUPortSaiId()) {
+      if (portItr == concurrentIndices_->portIds.cend()) {
+        // TODO: add counter to keep track of spurious rx packet
+        XLOG(ERR) << "RX packet had port with unknown sai id: 0x" << std::hex
+                  << portSaiId;
+        return;
+      } else {
+        swPortId = portItr->second;
+        XLOG(DBG6) << "VOQ RX packet with sai id: 0x" << std::hex << portSaiId
+                   << " portID: " << swPortId;
+      }
+    }
   }
 
   /*
