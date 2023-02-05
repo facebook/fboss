@@ -111,11 +111,13 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
 
     // neighbor entries are modified to set isLocal=false
     // Thus, if neighbor table is non-empty, programmed vs. actually
-        // programmed would be unequal.
+    // programmed would be unequal for published state.
+    // for unpublished state, the passed state would be modified, and thus,
+    // programmed vs actually programmed state would be equal.
     EXPECT_TRUE(
         rifs->toThrift() !=
             sw_->getState()->getRemoteInterfaces()->toThrift() ||
-            noNeighbors);
+        noNeighbors || !publishState);
   };
 
   auto makeNbrs = []() {
@@ -197,6 +199,7 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     }
   };
 
+  verifySetupNeighbors(false /* publishState */);
   verifySetupNeighbors(true /* publishState */);
 }
 } // namespace facebook::fboss
