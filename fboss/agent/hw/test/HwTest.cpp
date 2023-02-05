@@ -91,11 +91,12 @@ void HwTest::SetUp() {
   folly::SingletonVault::singleton()->reenableInstances();
   HwSwitchEnsemble::HwSwitchEnsembleInitInfo initInfo;
   initInfo.overrideTransceiverInfo = overrideTransceiverInfo();
-  initInfo.dsfNodes = overrideDsfNodes();
   // Set watermark stats update interval to 0 so we always refresh BST stats
   // in each updateStats call
   FLAGS_update_watermark_stats_interval_s = 0;
   hwSwitchEnsemble_ = createHwEnsemble(featuresDesired());
+  initInfo.overrideDsfNodes =
+      overrideDsfNodes(hwSwitchEnsemble_->dsfNodesFromInputConfig());
   hwSwitchEnsemble_->init(initInfo);
   hwSwitchEnsemble_->addHwEventObserver(this);
   if (getHwSwitch()->getBootType() == BootType::WARM_BOOT) {

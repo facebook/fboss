@@ -201,7 +201,8 @@ void BcmSwitchEnsemble::runDiagCommand(
 
 void BcmSwitchEnsemble::init(
     const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info) {
-  CHECK(!info.dsfNodes.has_value()) << " Dsf nodes not support in BCM tests";
+  CHECK(!info.overrideDsfNodes.has_value())
+      << " Dsf nodes not supported in BCM tests";
   auto platform = createTestPlatform();
   auto bcmTestPlatform = static_cast<BcmTestPlatform*>(platform.get());
   std::unique_ptr<AgentConfig> agentConfig;

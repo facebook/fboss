@@ -145,9 +145,9 @@ std::map<int64_t, cfg::DsfNode> SaiSwitchEnsemble::dsfNodesFromInputConfig()
 void SaiSwitchEnsemble::init(
     const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info) {
   auto agentConfig = getAgentConfig();
-  if (info.dsfNodes.has_value()) {
+  if (info.overrideDsfNodes.has_value()) {
     cfg::AgentConfig thrift = agentConfig->thrift;
-    thrift.sw()->dsfNodes() = *info.dsfNodes;
+    thrift.sw()->dsfNodes() = *info.overrideDsfNodes;
     agentConfig = std::make_unique<AgentConfig>(thrift, "");
   }
   initFlagDefaults(*agentConfig->thrift.defaultCommandLineArgs());

@@ -167,8 +167,8 @@ class HwTest : public ::testing::Test,
   virtual std::optional<TransceiverInfo> overrideTransceiverInfo() const {
     return std::nullopt;
   }
-  virtual std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes()
-      const {
+  virtual std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes(
+      const std::map<int64_t, cfg::DsfNode>& /*curDsfNodes*/) const {
     return std::nullopt;
   }
 
