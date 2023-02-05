@@ -2002,7 +2002,16 @@ void SaiSwitch::packetRxCallbackPort(
     bool allowMissingSrcPort,
     cfg::PacketRxReason rxReason) {
   PortID swPortId(0);
-  VlanID swVlanId(0);
+  std::optional<VlanID> swVlanId = (switchType_ == cfg::SwitchType::VOQ ||
+                                    switchType_ == cfg::SwitchType::FABRIC)
+      ? std::nullopt
+      : std::make_optional(VlanID(0));
+  auto swVlanIdStr = [swVlanId]() {
+    return swVlanId.has_value()
+        ? folly::to<std::string>(static_cast<int>(swVlanId.value()))
+        : "None";
+  };
+
   auto rxPacket = std::make_unique<SaiRxPacket>(
       buffer_size, buffer, PortID(0), VlanID(0), rxReason);
   const auto portItr = concurrentIndices_->portIds.find(portSaiId);
@@ -2023,35 +2032,39 @@ void SaiSwitch::packetRxCallbackPort(
    * We use the cached cpu port id to avoid holding manager table locks in
    * the Rx path.
    */
-  if (portSaiId == getCPUPortSaiId() ||
-      (allowMissingSrcPort && portItr == concurrentIndices_->portIds.cend())) {
-    folly::io::Cursor cursor(rxPacket->buf());
-    EthHdr ethHdr{cursor};
-    auto vlanTags = ethHdr.getVlanTags();
-    if (vlanTags.size() == 1) {
-      swVlanId = VlanID(vlanTags[0].vid());
-      XLOG(DBG6) << "Rx packet on cpu port. "
-                 << "Found vlan from packet: " << swVlanId;
-    } else {
-      XLOG(ERR) << "RX packet on cpu port has no vlan tag "
-                << "or multiple vlan tags: 0x" << std::hex << portSaiId;
-      return;
-    }
-  } else if (portItr == concurrentIndices_->portIds.cend()) {
-    // TODO: add counter to keep track of spurious rx packet
-    XLOG(DBG) << "RX packet had port with unknown sai id: 0x" << std::hex
-              << portSaiId;
-    return;
-  } else {
-    swPortId = portItr->second;
-    const auto vlanItr =
-        concurrentIndices_->vlanIds.find(PortDescriptorSaiId(portSaiId));
-    if (vlanItr == concurrentIndices_->vlanIds.cend()) {
-      XLOG(ERR) << "RX packet had port in no known vlan: 0x" << std::hex
+  if (!(switchType_ == cfg::SwitchType::VOQ ||
+        switchType_ == cfg::SwitchType::FABRIC)) {
+    if (portSaiId == getCPUPortSaiId() ||
+        (allowMissingSrcPort &&
+         portItr == concurrentIndices_->portIds.cend())) {
+      folly::io::Cursor cursor(rxPacket->buf());
+      EthHdr ethHdr{cursor};
+      auto vlanTags = ethHdr.getVlanTags();
+      if (vlanTags.size() == 1) {
+        swVlanId = VlanID(vlanTags[0].vid());
+        XLOG(DBG6) << "Rx packet on cpu port. "
+                   << "Found vlan from packet: " << swVlanIdStr();
+      } else {
+        XLOG(ERR) << "RX packet on cpu port has no vlan tag "
+                  << "or multiple vlan tags: 0x" << std::hex << portSaiId;
+        return;
+      }
+    } else if (portItr == concurrentIndices_->portIds.cend()) {
+      // TODO: add counter to keep track of spurious rx packet
+      XLOG(DBG) << "RX packet had port with unknown sai id: 0x" << std::hex
                 << portSaiId;
       return;
+    } else {
+      swPortId = portItr->second;
+      const auto vlanItr =
+          concurrentIndices_->vlanIds.find(PortDescriptorSaiId(portSaiId));
+      if (vlanItr == concurrentIndices_->vlanIds.cend()) {
+        XLOG(ERR) << "RX packet had port in no known vlan: 0x" << std::hex
+                  << portSaiId;
+        return;
+      }
+      swVlanId = vlanItr->second;
     }
-    swVlanId = vlanItr->second;
   }
 
   /*
@@ -2059,8 +2072,10 @@ void SaiSwitch::packetRxCallbackPort(
    */
   rxPacket->setSrcPort(swPortId);
   rxPacket->setSrcVlan(swVlanId);
-  XLOG(DBG6) << "Rx packet on port: " << swPortId << " vlan: " << swVlanId
+
+  XLOG(DBG6) << "Rx packet on port: " << swPortId << " vlan: " << swVlanIdStr()
              << " trap: " << packetRxReasonToString(rxReason);
+
   folly::io::Cursor c0(rxPacket->buf());
   XLOG(DBG6) << PktUtil::hexDump(c0);
   callback_->packetReceived(std::move(rxPacket));
