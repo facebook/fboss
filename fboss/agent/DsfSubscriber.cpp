@@ -55,40 +55,67 @@ void DsfSubscriber::scheduleUpdate(
         }
         bool changed{false};
         auto out = in->clone();
-        auto processDelta = [&](auto& delta, auto& mapToUpdate) {
-          DeltaFunctions::forEachChanged(
-              delta,
-              [&](const auto& oldNode, const auto& newNode) {
-                if (*oldNode != *newNode) {
-                  // Compare contents as we reconstructed
-                  // map from deserialized FSDB
-                  // subscriptions. So can't just rely on
-                  // pointer comparison here.
-                  mapToUpdate->updateNode(newNode);
-                  changed = true;
-                }
-              },
-              [&](const auto& newNode) {
-                mapToUpdate->addNode(newNode);
-                changed = true;
-              },
-              [&](const auto& rmNode) {
-                mapToUpdate->removeNode(rmNode);
-                changed = true;
-              });
+
+        auto makeRemoteSysPort = [&](const auto& node) { return node; };
+        auto makeRemoteRif = [&](const auto& node) {
+          auto clonedNode = node->clone();
+
+          if (node->isPublished()) {
+            clonedNode->setArpTable(node->getArpTable()->toThrift());
+            clonedNode->setNdpTable(node->getNdpTable()->toThrift());
+          }
+
+          // Local neighbor entry on one DSF node is remote neighbor entry on
+          // every other DSF node. Thus, for neighbor entry received from other
+          // DSF nodes, set isLocal = False before programming it.
+          for (const auto& arpEntry : *clonedNode->getArpTable()) {
+            arpEntry.second->setIsLocal(false);
+          }
+          for (const auto& ndpEntry : *clonedNode->getNdpTable()) {
+            ndpEntry.second->setIsLocal(false);
+          }
+
+          return clonedNode;
         };
+
+        auto processDelta =
+            [&](auto& delta, auto& mapToUpdate, auto& makeRemote) {
+              DeltaFunctions::forEachChanged(
+                  delta,
+                  [&](const auto& oldNode, const auto& newNode) {
+                    if (*oldNode != *newNode) {
+                      // Compare contents as we reconstructed
+                      // map from deserialized FSDB
+                      // subscriptions. So can't just rely on
+                      // pointer comparison here.
+                      auto clonedNode = makeRemote(newNode);
+                      mapToUpdate->updateNode(clonedNode);
+                      changed = true;
+                    }
+                  },
+                  [&](const auto& newNode) {
+                    auto clonedNode = makeRemote(newNode);
+                    mapToUpdate->addNode(clonedNode);
+                    changed = true;
+                  },
+                  [&](const auto& rmNode) {
+                    mapToUpdate->removeNode(rmNode);
+                    changed = true;
+                  });
+            };
+
         if (newSysPorts) {
           auto origSysPorts = out->getSystemPorts(nodeSwitchId);
           thrift_cow::ThriftMapDelta<SystemPortMap> delta(
               origSysPorts.get(), newSysPorts.get());
           auto remoteSysPorts = out->getRemoteSystemPorts()->modify(&out);
-          processDelta(delta, remoteSysPorts);
+          processDelta(delta, remoteSysPorts, makeRemoteSysPort);
         }
         if (newRifs) {
           auto origRifs = out->getInterfaces(nodeSwitchId);
           InterfaceMapDelta delta(origRifs.get(), newRifs.get());
           auto remoteRifs = out->getRemoteInterfaces()->modify(&out);
-          processDelta(delta, remoteRifs);
+          processDelta(delta, remoteRifs, makeRemoteRif);
         }
         if (FLAGS_dsf_subscriber_cache_updated_state) {
           cachedState_ = out;

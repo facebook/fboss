@@ -78,6 +78,21 @@ TEST_F(DsfSubscriberTest, scheduleUpdate) {
 
 TEST_F(DsfSubscriberTest, setupNeighbors) {
   auto updateAndCompareTables = [this](const auto& sysPorts, const auto& rifs) {
+    rifs->publish();
+
+    // dsfSubscriber_->scheduleUpdate is expected to set isLocal to False, and
+    // rest of the structure should remain the same.
+    auto expectedRifs = InterfaceMap(rifs->toThrift());
+    for (auto intfIter : expectedRifs) {
+      auto& intf = intfIter.second;
+      for (auto& ndpEntry : *intf->getNdpTable()) {
+        ndpEntry.second->setIsLocal(false);
+      }
+      for (auto& arpEntry : *intf->getArpTable()) {
+        arpEntry.second->setIsLocal(false);
+      }
+    }
+
     dsfSubscriber_->scheduleUpdate(
         sysPorts, rifs, "switch", SwitchID(kRemoteSwitchId));
     waitForStateUpdates(sw_);
@@ -85,7 +100,8 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
         sysPorts->toThrift(),
         sw_->getState()->getRemoteSystemPorts()->toThrift());
     EXPECT_EQ(
-        rifs->toThrift(), sw_->getState()->getRemoteInterfaces()->toThrift());
+        expectedRifs.toThrift(),
+        sw_->getState()->getRemoteInterfaces()->toThrift());
   };
   {
     // No neighbors
@@ -110,6 +126,7 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
       port.portType() = cfg::PortDescriptorType::SystemPort;
       nbr.portId() = port;
       nbr.interfaceId() = rif;
+      nbr.isLocal() = true;
       folly::IPAddress ipAddr(ip);
       if (ipAddr.isV6()) {
         ndpTable.insert({ip, nbr});
