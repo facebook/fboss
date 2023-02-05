@@ -121,6 +121,9 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   const HwAsic* getAsic() const {
     return getPlatform()->getAsic();
   }
+  virtual std::map<int64_t, cfg::DsfNode> dsfNodesFromInputConfig() const {
+    return {};
+  }
   virtual void init(
       const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& /*info*/) = 0;
 

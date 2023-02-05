@@ -38,6 +38,7 @@ DECLARE_bool(setup_thrift);
 DECLARE_string(config);
 
 namespace {
+using namespace facebook::fboss;
 using folly::AsyncSignalHandler;
 
 void initFlagDefaults(const std::map<std::string, std::string>& defaults) {
@@ -62,6 +63,10 @@ class SignalHandler : public AsyncSignalHandler {
  private:
 };
 
+std::unique_ptr<AgentConfig> getAgentConfig() {
+  return FLAGS_config.empty() ? AgentConfig::fromDefaultFile()
+                              : AgentConfig::fromFile(FLAGS_config);
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -132,14 +137,14 @@ void SaiSwitchEnsemble::runDiagCommand(
       std::make_unique<ClientInformation>(clientInfo));
 }
 
+std::map<int64_t, cfg::DsfNode> SaiSwitchEnsemble::dsfNodesFromInputConfig()
+    const {
+  return *getAgentConfig()->thrift.sw()->dsfNodes();
+}
+
 void SaiSwitchEnsemble::init(
     const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info) {
-  std::unique_ptr<AgentConfig> agentConfig;
-  if (!FLAGS_config.empty()) {
-    agentConfig = AgentConfig::fromFile(FLAGS_config);
-  } else {
-    agentConfig = AgentConfig::fromDefaultFile();
-  }
+  auto agentConfig = getAgentConfig();
   if (info.dsfNodes.has_value()) {
     cfg::AgentConfig thrift = agentConfig->thrift;
     thrift.sw()->dsfNodes() = *info.dsfNodes;

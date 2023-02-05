@@ -67,6 +67,7 @@ class SaiSwitchEnsemble : public HwSwitchEnsemble {
   bool isSai() const override {
     return true;
   }
+  std::map<int64_t, cfg::DsfNode> dsfNodesFromInputConfig() const override;
 
  private:
   std::unique_ptr<std::thread> setupThrift() override {
