@@ -25,7 +25,7 @@ namespace facebook::fboss {
  * members - HwSwitch, Platform) interfaces.
  */
 
-std::unique_ptr<HwSwitchEnsemble> createHwEnsemble(
+std::unique_ptr<HwSwitchEnsemble> createAndInitHwEnsemble(
     const HwSwitchEnsemble::Features& featuresDesired,
     const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info =
         HwSwitchEnsemble::HwSwitchEnsembleInitInfo{});

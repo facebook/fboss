@@ -36,7 +36,7 @@ DEFINE_bool(
 namespace facebook::fboss {
 
 void runBenchmark() {
-  auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
+  auto ensemble = createAndInitHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto hwSwitch = ensemble->getHwSwitch();
   auto config = utility::onePortPerInterfaceConfig(
       hwSwitch, ensemble->masterLogicalPortIds());

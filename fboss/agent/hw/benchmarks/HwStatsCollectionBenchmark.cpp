@@ -42,7 +42,7 @@ RouteNextHopSet makeNextHops(std::vector<std::string> ipsAsStrings) {
  */
 BENCHMARK(HwStatsCollection) {
   folly::BenchmarkSuspender suspender;
-  auto ensemble = createHwEnsemble({HwSwitchEnsemble::LINKSCAN});
+  auto ensemble = createAndInitHwEnsemble({HwSwitchEnsemble::LINKSCAN});
   auto hwSwitch = ensemble->getHwSwitch();
   std::vector<PortID> ports = ensemble->masterLogicalPortIds();
   // maximum 48 master logical ports (taken from wedge400) to get

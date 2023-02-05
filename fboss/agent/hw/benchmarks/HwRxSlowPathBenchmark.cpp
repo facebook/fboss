@@ -41,7 +41,7 @@ const std::string kDstIp = "2620:0:1cfe:face:b00c::4";
 
 void runRxSlowPathBenchmark() {
   constexpr int kEcmpWidth = 1;
-  auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
+  auto ensemble = createAndInitHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto hwSwitch = ensemble->getHwSwitch();
   auto portUsed = ensemble->masterLogicalPortIds()[0];
   auto config = utility::oneL3IntfConfig(hwSwitch, portUsed);

@@ -32,7 +32,7 @@ using utility::getEcmpSizeInHw;
 BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
   folly::BenchmarkSuspender suspender;
   constexpr int kEcmpWidth = 4;
-  auto ensemble = createHwEnsemble(
+  auto ensemble = createAndInitHwEnsemble(
       {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX});
   auto hwSwitch = ensemble->getHwSwitch();
 

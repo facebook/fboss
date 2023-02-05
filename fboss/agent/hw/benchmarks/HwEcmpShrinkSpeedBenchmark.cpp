@@ -29,7 +29,7 @@ using utility::getEcmpSizeInHw;
 BENCHMARK(HwEcmpGroupShrink) {
   folly::BenchmarkSuspender suspender;
   constexpr int kEcmpWidth = 4;
-  auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
+  auto ensemble = createAndInitHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto hwSwitch = ensemble->getHwSwitch();
   auto config = utility::onePortPerInterfaceConfig(
       hwSwitch, ensemble->masterLogicalPortIds());

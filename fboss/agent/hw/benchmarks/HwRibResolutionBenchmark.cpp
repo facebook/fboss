@@ -23,7 +23,7 @@ namespace facebook::fboss {
 
 BENCHMARK(RibResolutionBenchmark) {
   folly::BenchmarkSuspender suspender;
-  auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
+  auto ensemble = createAndInitHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto config = utility::onePortPerInterfaceConfig(
       ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfig(config);

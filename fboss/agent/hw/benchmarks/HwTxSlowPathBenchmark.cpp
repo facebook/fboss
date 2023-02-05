@@ -42,7 +42,7 @@ std::pair<uint64_t, uint64_t> getOutPktsAndBytes(
 
 void runTxSlowPathBenchmark() {
   constexpr int kEcmpWidth = 1;
-  auto ensemble = createHwEnsemble(HwSwitchEnsemble::getAllFeatures());
+  auto ensemble = createAndInitHwEnsemble(HwSwitchEnsemble::getAllFeatures());
   auto hwSwitch = ensemble->getHwSwitch();
   auto portUsed = ensemble->masterLogicalPortIds()[0];
   auto config = utility::oneL3IntfConfig(hwSwitch, portUsed);
