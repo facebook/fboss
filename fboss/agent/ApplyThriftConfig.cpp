@@ -280,6 +280,7 @@ class ThriftConfigApplier {
   std::pair<folly::MacAddress, uint16_t> getSystemLacpConfig();
   uint8_t computeMinimumLinkCount(const cfg::AggregatePort& cfg);
   std::shared_ptr<VlanMap> updateVlans();
+  std::shared_ptr<VlanMap> updatePseudoVlans();
   std::shared_ptr<Vlan> createVlan(const cfg::Vlan* config);
   std::shared_ptr<Vlan> updateVlan(
       const std::shared_ptr<Vlan>& orig,
@@ -764,6 +765,26 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       changed = true;
     }
   }
+
+  {
+    auto switchType = *cfg_->switchSettings()->switchType();
+
+    // VOQ/Fabric switches require that the packets are not tagged with any
+    // VLAN. We are gradually enhancing wedge_agent to handle tagged as well as
+    // untagged packets. During this transition, we will use VlanID 0 as
+    // "pseudoVlan" to populate SwitchState/Neighbor cache etc. data structures.
+    // Once the wedge_agent changes are complete, we will no longer need
+    // pseudoVlan notion.
+    if (switchType == cfg::SwitchType::VOQ ||
+        switchType == cfg::SwitchType::FABRIC) {
+      auto pseudoVlans = updatePseudoVlans();
+      if (pseudoVlans) {
+        new_->resetVlans(std::move(pseudoVlans));
+        changed = true;
+      }
+    }
+  }
+
   if (!changed) {
     return nullptr;
   }
@@ -2134,6 +2155,11 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
   newVlan->setDhcpV4Relay(newDhcpV4Relay);
   newVlan->setDhcpV6Relay(newDhcpV6Relay);
   return newVlan;
+}
+
+shared_ptr<VlanMap> ThriftConfigApplier::updatePseudoVlans() {
+  // TODO(skhare) implement
+  return nullptr;
 }
 
 std::shared_ptr<QosPolicyMap> ThriftConfigApplier::updateQosPolicies() {
