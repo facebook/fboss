@@ -167,6 +167,10 @@ class HwTest : public ::testing::Test,
   virtual std::optional<TransceiverInfo> overrideTransceiverInfo() const {
     return std::nullopt;
   }
+  virtual std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes()
+      const {
+    return std::nullopt;
+  }
 
   std::shared_ptr<SwitchState> applyNewStateImpl(
       const std::shared_ptr<SwitchState>& newState,

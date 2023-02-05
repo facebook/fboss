@@ -140,6 +140,11 @@ void SaiSwitchEnsemble::init(
   } else {
     agentConfig = AgentConfig::fromDefaultFile();
   }
+  if (info.dsfNodes.has_value()) {
+    cfg::AgentConfig thrift = agentConfig->thrift;
+    thrift.sw()->dsfNodes() = *info.dsfNodes;
+    agentConfig = std::make_unique<AgentConfig>(thrift, "");
+  }
   initFlagDefaults(*agentConfig->thrift.defaultCommandLineArgs());
   auto platform =
       initSaiPlatform(std::move(agentConfig), getHwSwitchFeatures());
