@@ -126,6 +126,8 @@ class HwAsic {
     DLB,
     P4_WARMBOOT,
     IN_PAUSE_INCREMENTS_DISCARDS,
+    FEC_AM_LOCK_STATUS,
+    PCS_RX_LINK_STATUS,
   };
 
   enum class AsicMode {

@@ -124,6 +124,8 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::DLB:
     case HwAsic::Feature::P4_WARMBOOT:
+    case HwAsic::Feature::FEC_AM_LOCK_STATUS:
+    case HwAsic::Feature::PCS_RX_LINK_STATUS:
       return false;
   }
   return false;

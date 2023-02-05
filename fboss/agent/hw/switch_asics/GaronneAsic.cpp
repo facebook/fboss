@@ -128,6 +128,8 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::DLB:
     case HwAsic::Feature::P4_WARMBOOT:
+    case HwAsic::Feature::FEC_AM_LOCK_STATUS:
+    case HwAsic::Feature::PCS_RX_LINK_STATUS:
       return false;
   }
   return false;
