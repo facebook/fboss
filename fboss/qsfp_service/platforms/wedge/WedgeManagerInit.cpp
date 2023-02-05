@@ -10,8 +10,10 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
 #include "fboss/agent/platforms/common/kamet/KametPlatformMapping.h"
+#include "fboss/agent/platforms/common/makalu/MakaluPlatformMapping.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include "fboss/lib/bsp/kamet/KametBspPlatformMapping.h"
+#include "fboss/lib/bsp/makalu/MakaluBspPlatformMapping.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/qsfp_service/platforms/wedge/BspWedgeManager.h"
 #include "fboss/qsfp_service/platforms/wedge/GalaxyManager.h"
@@ -66,6 +68,16 @@ std::unique_ptr<WedgeManager> createKametWedgeManager() {
       std::make_unique<BspTransceiverApi>(systemContainer),
       std::make_unique<KametPlatformMapping>(),
       PlatformMode::KAMET);
+}
+
+std::unique_ptr<WedgeManager> createMakaluWedgeManager() {
+  auto systemContainer =
+      BspGenericSystemContainer<MakaluBspPlatformMapping>::getInstance().get();
+  return std::make_unique<BspWedgeManager>(
+      systemContainer,
+      std::make_unique<BspTransceiverApi>(systemContainer),
+      std::make_unique<MakaluPlatformMapping>(),
+      PlatformMode::MAKALU);
 }
 } // namespace fboss
 } // namespace facebook

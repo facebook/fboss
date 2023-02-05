@@ -23,6 +23,7 @@ target_link_libraries(qsfp_platforms_wedge
   wedge100_platform_mapping
   wedge40_platform_mapping
   kamet_platform_mapping
+  makalu_platform_mapping
   platform_base
   qsfp_config
 )
