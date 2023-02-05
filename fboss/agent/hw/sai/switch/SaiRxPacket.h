@@ -40,7 +40,7 @@ class SaiRxPacket : public RxPacket {
   /*
    * Set the VLAN on which this packet was received.
    */
-  void setSrcVlan(VlanID srcVlan) {
+  void setSrcVlan(std::optional<VlanID> srcVlan) {
     srcVlan_ = srcVlan;
   }
 
