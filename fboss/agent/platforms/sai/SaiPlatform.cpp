@@ -371,12 +371,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
             throw FbossError("Unexpected asic type: ", *dsfNode.asicType());
         }
       }
-      // FIXME: for some HwTest we create multiple DsfNode config
-      // as part of the test. This though is done post init and
-      // does not get factored in MaxSystemCores setting here.
-      // Fix this by percolating this information to init.
-      uint32_t minCores = 2 * getAsic()->getNumCores();
-      cores = std::max(minCores, systemCores);
+      cores = systemCores;
       sysPortConfigs = SaiSwitchTraits::Attributes::SysPortConfigList{
           getInternalSystemPortConfig()};
     }
