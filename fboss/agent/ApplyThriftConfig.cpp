@@ -2980,6 +2980,8 @@ bool ThriftConfigApplier::updateNbrResponseTablesFromAllIntfCfg(Vlan* vlan) {
   ArpResponseTable::NodeContainer arpTable;
   NdpResponseTable::NodeContainer ndpTable;
 
+  std::set<std::pair<folly::IPAddress, uint8_t>> ipAddrsAdded;
+
   // Add every interface IP address to neighbor response table for pseudo vlan.
   for (const auto& interfaceCfg : *cfg_->interfaces()) {
     auto mac = getInterfaceMac(&interfaceCfg);
@@ -2987,6 +2989,13 @@ bool ThriftConfigApplier::updateNbrResponseTablesFromAllIntfCfg(Vlan* vlan) {
     auto addresses = getInterfaceAddresses(&interfaceCfg);
 
     for (const auto& [ip, mask] : addresses) {
+      auto ipAndMask = std::make_pair(ip, mask);
+      auto it = ipAddrsAdded.find(ipAndMask);
+      if (it != ipAddrsAdded.end()) {
+        continue;
+      }
+      ipAddrsAdded.insert(ipAndMask);
+
       if (ip.isV4()) {
         auto origNode = origArp->getEntry(ip.asV4());
         auto newNode = updateNeighborResponseEntry(
