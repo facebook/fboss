@@ -120,7 +120,7 @@ TEST(SystemPort, sysPortApplyConfigSwitchIdChange) {
   ASSERT_NE(nullptr, stateV1);
   EXPECT_EQ(stateV1->getSystemPorts()->size(), stateV1->getPorts()->size());
   auto prevSwitchId = *config.switchSettings()->switchId();
-  config = updateSwitchID(config, 2);
+  config = updateSwitchID(config, prevSwitchId, 2);
 
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);

@@ -283,14 +283,16 @@ std::shared_ptr<SystemPort> makeSysPort(
   sysPort->setQosPolicy(qosPolicy);
   return sysPort;
 }
+
 cfg::SwitchConfig updateSwitchID(
     const cfg::SwitchConfig& origCfg,
+    int64_t oldSwitchId,
     int64_t newSwitchId) {
   auto newCfg{origCfg};
-  CHECK(origCfg.switchSettings()->switchId());
-  newCfg.switchSettings()->switchId() = newSwitchId;
-  newCfg.dsfNodes()->insert({newSwitchId, makeDsfNodeCfg(newSwitchId)});
-  addRecyclePortRif(newCfg.dsfNodes()->find(newSwitchId)->second, newCfg);
+
+  removeSwitchID(newCfg, oldSwitchId);
+  addSwitchID(newCfg, newSwitchId);
+
   return newCfg;
 }
 

@@ -94,6 +94,7 @@ cfg::DsfNode makeDsfNodeCfg(
 
 cfg::SwitchConfig updateSwitchID(
     const cfg::SwitchConfig& origCfg,
+    int64_t oldSwitchId,
     int64_t newSwitchId);
 
 std::shared_ptr<SystemPort> makeSysPort(
