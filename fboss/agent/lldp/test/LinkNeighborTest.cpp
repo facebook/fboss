@@ -50,41 +50,45 @@ const uint8_t basicLldpPacket[] = {
 };
 
 TEST(LinkNeighbor, parseLldp) {
-  IOBuf iob(IOBuf::WRAP_BUFFER, basicLldpPacket, sizeof(basicLldpPacket));
-  Cursor cursor(&iob);
+  auto parseLldpHelper = [](std::optional<VlanID> srcVlan) {
+    IOBuf iob(IOBuf::WRAP_BUFFER, basicLldpPacket, sizeof(basicLldpPacket));
+    Cursor cursor(&iob);
 
-  // Parse the data
-  MacAddress destMac = PktUtil::readMac(&cursor);
-  EXPECT_EQ(MacAddress("01:80:c2:00:00:0e"), destMac);
-  MacAddress srcMac = PktUtil::readMac(&cursor);
-  EXPECT_EQ(MacAddress("2c:54:2d:f5:89:3e"), srcMac);
-  uint16_t ethertype = cursor.readBE<uint16_t>();
-  EXPECT_EQ(0x88cc, ethertype);
+    // Parse the data
+    MacAddress destMac = PktUtil::readMac(&cursor);
+    EXPECT_EQ(MacAddress("01:80:c2:00:00:0e"), destMac);
+    MacAddress srcMac = PktUtil::readMac(&cursor);
+    EXPECT_EQ(MacAddress("2c:54:2d:f5:89:3e"), srcMac);
+    uint16_t ethertype = cursor.readBE<uint16_t>();
+    EXPECT_EQ(0x88cc, ethertype);
 
-  LinkNeighbor info;
-  PortID srcPort{0};
-  VlanID srcVlan{1};
-  bool ret = info.parseLldpPdu(srcPort, srcVlan, srcMac, ethertype, &cursor);
-  ASSERT_TRUE(ret);
+    LinkNeighbor info;
+    PortID srcPort{0};
+    bool ret = info.parseLldpPdu(srcPort, srcVlan, srcMac, ethertype, &cursor);
+    ASSERT_TRUE(ret);
 
-  EXPECT_EQ(lldp::LinkProtocol::LLDP, info.getProtocol());
-  EXPECT_EQ(lldp::LldpChassisIdType::MAC_ADDRESS, info.getChassisIdType());
-  EXPECT_EQ("\x2c\x54\x2d\xf5\x89\x3e", info.getChassisId());
+    EXPECT_EQ(lldp::LinkProtocol::LLDP, info.getProtocol());
+    EXPECT_EQ(lldp::LldpChassisIdType::MAC_ADDRESS, info.getChassisIdType());
+    EXPECT_EQ("\x2c\x54\x2d\xf5\x89\x3e", info.getChassisId());
 
-  EXPECT_EQ(lldp::LldpPortIdType::INTERFACE_NAME, info.getPortIdType());
-  EXPECT_EQ("Ethernet1/23", info.getPortId());
+    EXPECT_EQ(lldp::LldpPortIdType::INTERFACE_NAME, info.getPortIdType());
+    EXPECT_EQ("Ethernet1/23", info.getPortId());
 
-  EXPECT_EQ(seconds(120), info.getTTL());
-  auto expire = steady_clock::now() + seconds(120);
-  auto delta = expire - info.getExpirationTime();
-  EXPECT_LE(delta, seconds(1));
-  EXPECT_GE(delta, seconds(0));
+    EXPECT_EQ(seconds(120), info.getTTL());
+    auto expire = steady_clock::now() + seconds(120);
+    auto delta = expire - info.getExpirationTime();
+    EXPECT_LE(delta, seconds(1));
+    EXPECT_GE(delta, seconds(0));
 
-  EXPECT_EQ(0x0014, info.getCapabilities());
-  EXPECT_EQ(0x0014, info.getEnabledCapabilities());
+    EXPECT_EQ(0x0014, info.getCapabilities());
+    EXPECT_EQ(0x0014, info.getEnabledCapabilities());
 
-  EXPECT_EQ("rsw1br.07.prn2.facebook.com.facebook.com", info.getSystemName());
-  EXPECT_EQ("SERVERS", info.getPortDescription());
+    EXPECT_EQ("rsw1br.07.prn2.facebook.com.facebook.com", info.getSystemName());
+    EXPECT_EQ("SERVERS", info.getPortDescription());
+  };
+
+  parseLldpHelper(VlanID(1));
+  parseLldpHelper(std::nullopt /* VlanID */);
 }
 
 const uint8_t badLldpPacket[] = {
