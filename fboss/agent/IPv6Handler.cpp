@@ -211,7 +211,8 @@ void IPv6Handler::handlePacket(
     sw_->portStats(port)->ipv6HopExceeded();
     // Look up cpu mac from platform
     MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
-    sendICMPv6TimeExceeded(pkt->getSrcVlan(), cpuMac, cpuMac, ipv6, cursor);
+    sendICMPv6TimeExceeded(
+        port, pkt->getSrcVlan(), cpuMac, cpuMac, ipv6, cursor);
     return;
   }
 
@@ -549,6 +550,7 @@ void IPv6Handler::handleNeighborAdvertisement(
 }
 
 void IPv6Handler::sendICMPv6TimeExceeded(
+    PortID srcPort,
     VlanID srcVlan,
     MacAddress dst,
     MacAddress src,

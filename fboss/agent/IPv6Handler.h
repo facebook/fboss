@@ -116,6 +116,7 @@ class IPv6Handler : public StateObserver {
   void intfDeleted(const Interface* intf);
 
   void sendICMPv6TimeExceeded(
+      PortID srcPort,
       VlanID srcVlan,
       folly::MacAddress dst,
       folly::MacAddress src,
