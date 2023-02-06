@@ -89,6 +89,8 @@ namespace {
 
 const uint8_t kV6LinkLocalAddrMask{64};
 
+facebook::fboss::VlanID kPseudoVlanID(0);
+
 // Only one buffer pool is supported systemwide. Variable to track the name
 // and validate during a config change.
 std::optional<std::string> sharedBufferPoolName;
@@ -281,6 +283,8 @@ class ThriftConfigApplier {
   uint8_t computeMinimumLinkCount(const cfg::AggregatePort& cfg);
   std::shared_ptr<VlanMap> updateVlans();
   std::shared_ptr<VlanMap> updatePseudoVlans();
+  shared_ptr<Vlan> createPseudoVlan();
+  shared_ptr<Vlan> updatePseudoVlan(const shared_ptr<Vlan>& orig);
   std::shared_ptr<Vlan> createVlan(const cfg::Vlan* config);
   std::shared_ptr<Vlan> updateVlan(
       const std::shared_ptr<Vlan>& orig,
@@ -332,6 +336,7 @@ class ThriftConfigApplier {
       IPAddr ip,
       IntefaceIpInfo addrInfo);
   bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
+  bool updateNbrResponseTablesFromAllIntfCfg(Vlan* vlan);
   bool updateDhcpOverrides(Vlan* vlan, const cfg::Vlan* config);
   std::shared_ptr<InterfaceMap> updateInterfaces();
   shared_ptr<Interface> createInterface(
@@ -2176,8 +2181,51 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
 }
 
 shared_ptr<VlanMap> ThriftConfigApplier::updatePseudoVlans() {
-  // TODO(skhare) implement
-  return nullptr;
+  auto switchType = *cfg_->switchSettings()->switchType();
+  CHECK(
+      switchType == cfg::SwitchType::VOQ ||
+      switchType == cfg::SwitchType::FABRIC);
+
+  auto origVlans = orig_->getVlans();
+  auto origVlan = origVlans->getVlanIf(kPseudoVlanID);
+  VlanMap::NodeContainer newVlans;
+  bool changed = false;
+
+  shared_ptr<Vlan> newVlan;
+  if (origVlan) {
+    // update pseudo VLAN
+    newVlan = updatePseudoVlan(origVlan);
+  } else {
+    newVlan = createPseudoVlan();
+  }
+
+  changed |= updateMap(&newVlans, origVlan, newVlan);
+
+  if (!changed) {
+    return nullptr;
+  }
+
+  return origVlans->clone(std::move(newVlans));
+}
+
+shared_ptr<Vlan> ThriftConfigApplier::updatePseudoVlan(
+    const shared_ptr<Vlan>& orig) {
+  auto newVlan = orig->clone();
+  bool changed_neighbor_table =
+      updateNbrResponseTablesFromAllIntfCfg(newVlan.get());
+
+  if (!changed_neighbor_table) {
+    return nullptr;
+  }
+
+  return newVlan;
+}
+
+shared_ptr<Vlan> ThriftConfigApplier::createPseudoVlan() {
+  auto vlan = make_shared<Vlan>(kPseudoVlanID, std::string("pseudoVlan"));
+  updateNbrResponseTablesFromAllIntfCfg(vlan.get());
+
+  return vlan;
 }
 
 std::shared_ptr<QosPolicyMap> ThriftConfigApplier::updateQosPolicies() {
@@ -2923,6 +2971,51 @@ ThriftConfigApplier::updateNeighborResponseEntry(
     return std::make_shared<NeighborResponseEntry>(
         ip, addrInfo.mac, addrInfo.interfaceID);
   }
+}
+
+bool ThriftConfigApplier::updateNbrResponseTablesFromAllIntfCfg(Vlan* vlan) {
+  auto arpChanged = false, ndpChanged = false;
+  auto origArp = vlan->getArpResponseTable();
+  auto origNdp = vlan->getNdpResponseTable();
+  ArpResponseTable::NodeContainer arpTable;
+  NdpResponseTable::NodeContainer ndpTable;
+
+  // Add every interface IP address to neighbor response table for pseudo vlan.
+  for (const auto& interfaceCfg : *cfg_->interfaces()) {
+    auto mac = getInterfaceMac(&interfaceCfg);
+    auto intfID = InterfaceID(*interfaceCfg.intfID());
+    auto addresses = getInterfaceAddresses(&interfaceCfg);
+
+    for (const auto& [ip, mask] : addresses) {
+      if (ip.isV4()) {
+        auto origNode = origArp->getEntry(ip.asV4());
+        auto newNode = updateNeighborResponseEntry(
+            origNode,
+            ip.asV4(),
+            ThriftConfigApplier::IntefaceIpInfo{mask, mac, intfID});
+        arpChanged |= updateMap(&arpTable, origNode, newNode);
+      } else {
+        auto origNode = origNdp->getEntry(ip.asV6());
+        auto newNode = updateNeighborResponseEntry(
+            origNode,
+            ip.asV6(),
+            ThriftConfigApplier::IntefaceIpInfo{mask, mac, intfID});
+        ndpChanged |= updateMap(&ndpTable, origNode, newNode);
+      }
+    }
+  }
+
+  arpChanged |= origArp->size() != arpTable.size();
+  ndpChanged |= origNdp->size() != ndpTable.size();
+
+  if (arpChanged) {
+    vlan->setArpResponseTable(origArp->clone(std::move(arpTable)));
+  }
+  if (ndpChanged) {
+    vlan->setNdpResponseTable(origNdp->clone(std::move(ndpTable)));
+  }
+
+  return arpChanged || ndpChanged;
 }
 
 bool ThriftConfigApplier::updateNeighborResponseTables(
