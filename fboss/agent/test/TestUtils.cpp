@@ -177,58 +177,62 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
       cfg.vlanPorts()[p].logicalPort() = p + kInterfacePortIdBegin;
       cfg.vlanPorts()[p].vlanID() = p < 10 + kInterfacePortIdBegin ? 1 : 55;
     }
-  }
-
-  cfg.interfaces()->resize(2);
-  cfg.interfaces()[0].intfID() = 1;
-  cfg.interfaces()[0].routerID() = 0;
-  if (switchType == cfg::SwitchType::NPU) {
+    cfg.interfaces()->resize(2);
+    cfg.interfaces()[0].intfID() = 1;
+    cfg.interfaces()[0].routerID() = 0;
     cfg.interfaces()[0].vlanID() = 1;
-  }
-  cfg.interfaces()[0].name() = "fboss1";
-  cfg.interfaces()[0].mac() = "00:02:00:00:00:01";
-  cfg.interfaces()[0].mtu() = 9000;
-  cfg.interfaces()[0].ipAddresses()->resize(4);
-  cfg.interfaces()[0].ipAddresses()[0] = "10.0.0.1/24";
-  cfg.interfaces()[0].ipAddresses()[1] = "192.168.0.1/24";
-  cfg.interfaces()[0].ipAddresses()[2] = "2401:db00:2110:3001::0001/64";
-  cfg.interfaces()[0].ipAddresses()[3] = "fe80::/64"; // link local
+    cfg.interfaces()[0].name() = "fboss1";
+    cfg.interfaces()[0].mac() = "00:02:00:00:00:01";
+    cfg.interfaces()[0].mtu() = 9000;
+    cfg.interfaces()[0].ipAddresses()->resize(4);
+    cfg.interfaces()[0].ipAddresses()[0] = "10.0.0.1/24";
+    cfg.interfaces()[0].ipAddresses()[1] = "192.168.0.1/24";
+    cfg.interfaces()[0].ipAddresses()[2] = "2401:db00:2110:3001::0001/64";
+    cfg.interfaces()[0].ipAddresses()[3] = "fe80::/64"; // link local
 
-  cfg.interfaces()[1].intfID() = 55;
-  cfg.interfaces()[1].routerID() = 0;
-  if (switchType == cfg::SwitchType::NPU) {
+    cfg.interfaces()[1].intfID() = 55;
+    cfg.interfaces()[1].routerID() = 0;
     cfg.interfaces()[1].vlanID() = 55;
-  }
-  cfg.interfaces()[1].name() = "fboss55";
-  cfg.interfaces()[1].mac() = "00:02:00:00:00:55";
-  cfg.interfaces()[1].mtu() = 9000;
-  cfg.interfaces()[1].ipAddresses()->resize(4);
-  cfg.interfaces()[1].ipAddresses()[0] = "10.0.55.1/24";
-  cfg.interfaces()[1].ipAddresses()[1] = "192.168.55.1/24";
-  cfg.interfaces()[1].ipAddresses()[2] = "2401:db00:2110:3055::0001/64";
-  cfg.interfaces()[1].ipAddresses()[3] = "169.254.0.0/16"; // link local
-
-  if (switchType != cfg::SwitchType::NPU) {
+    cfg.interfaces()[1].name() = "fboss55";
+    cfg.interfaces()[1].mac() = "00:02:00:00:00:55";
+    cfg.interfaces()[1].mtu() = 9000;
+    cfg.interfaces()[1].ipAddresses()->resize(4);
+    cfg.interfaces()[1].ipAddresses()[0] = "10.0.55.1/24";
+    cfg.interfaces()[1].ipAddresses()[1] = "192.168.55.1/24";
+    cfg.interfaces()[1].ipAddresses()[2] = "2401:db00:2110:3055::0001/64";
+    cfg.interfaces()[1].ipAddresses()[3] = "169.254.0.0/16"; // link local
+  } else {
     cfg.switchSettings()->switchId() = 1;
-  }
-  if (switchType == cfg::SwitchType::VOQ) {
-    cfg::DsfNode myNode = makeDsfNodeCfg(1);
-    cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
-    cfg::Port recyclePort;
-    recyclePort.logicalID() = 1;
-    recyclePort.name() = "rcy1/1/1";
-    recyclePort.speed() = cfg::PortSpeed::HUNDREDG;
-    recyclePort.profileID() =
-        cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER;
-    recyclePort.portType() = cfg::PortType::RECYCLE_PORT;
-    cfg.ports()->push_back(recyclePort);
-    addRecyclePortRif(myNode, cfg);
-  }
-  if (switchType == cfg::SwitchType::VOQ) {
-    for (auto& intf : *cfg.interfaces()) {
-      intf.type() = cfg::InterfaceType::SYSTEM_PORT;
+    if (switchType == cfg::SwitchType::VOQ) {
+      cfg::DsfNode myNode = makeDsfNodeCfg(1);
+      cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
+      cfg.interfaces()->resize(kPortCount);
+      CHECK(myNode.systemPortRange().has_value());
+      for (auto i = 0; i < kPortCount; ++i) {
+        auto intfId =
+            *cfg.ports()[i].logicalID() + *myNode.systemPortRange()->minimum();
+        cfg.interfaces()[i].intfID() = intfId;
+        cfg.interfaces()[i].routerID() = 0;
+        cfg.interfaces()[i].type() = cfg::InterfaceType::SYSTEM_PORT;
+        cfg.interfaces()[i].name() = folly::sformat("fboss{}", intfId);
+        cfg.interfaces()[i].mac() = "00:02:00:00:00:55";
+        cfg.interfaces()[i].mtu() = 9000;
+        cfg.interfaces()[i].ipAddresses()->resize(1);
+        cfg.interfaces()[i].ipAddresses()[0] = folly::sformat(
+            "2401:db00:2110:30{}::1/64", *cfg.ports()[i].logicalID());
+      }
+      cfg::Port recyclePort;
+      recyclePort.logicalID() = 1;
+      recyclePort.name() = "rcy1/1/1";
+      recyclePort.speed() = cfg::PortSpeed::HUNDREDG;
+      recyclePort.profileID() =
+          cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER;
+      recyclePort.portType() = cfg::PortType::RECYCLE_PORT;
+      cfg.ports()->push_back(recyclePort);
+      addRecyclePortRif(myNode, cfg);
     }
   }
+
   return cfg;
 }
 
