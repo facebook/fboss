@@ -23,7 +23,7 @@ DEFINE_int32(
 DEFINE_int32(thrift_port, 5970, "Port for the thrift service");
 
 DEFINE_string(
-    config_path,
+    config_file,
     "",
-    "Optional platform sensor configuration file path. "
+    "Optional platform sensor configuration file. "
     "If empty we pick the platform default config");
