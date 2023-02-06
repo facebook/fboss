@@ -908,3 +908,26 @@ TEST(Port, verifyInterfaceIDsForNonVoqSwitches) {
     }
   }
 }
+
+TEST(Port, verifyInterfaceIDsForVoqSwitches) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = testConfigA(cfg::SwitchType::VOQ);
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+
+  auto dsfIter = config.dsfNodes()->find(
+      static_cast<int64_t>(*config.switchSettings()->switchId()));
+  EXPECT_TRUE(dsfIter != config.dsfNodes()->end());
+  auto myNode = dsfIter->second;
+
+  for (const auto& port : std::as_const(*(stateV1->getPorts()))) {
+    for (const auto& intfID : *port.second->getInterfaceIDs()) {
+      auto expectedIntfID =
+          *myNode.systemPortRange()->minimum() + port.second->getID();
+      auto gotIntfID = static_cast<int>(intfID->cref());
+      EXPECT_EQ(expectedIntfID, gotIntfID);
+    }
+  }
+}
