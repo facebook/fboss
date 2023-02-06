@@ -119,6 +119,20 @@ struct PortFields {
   38: optional mka_structs.MKASak txSecureAssociationKey;
   39: bool macsecDesired = false;
   40: bool dropUnencrypted = false;
+  // List of interfaces for given port:
+  //
+  // For the systems with VLAN based RIFs (non-VOQ/non-FABRIC):
+  //   - A port could be part of multiple VLANs.
+  //   - every VLAN corresponds to an interface.
+  //   - interfaceIDs contains the list of interfaces for VLANs the port is
+  //     part of.
+  //   - In practice, a port is only part of single VLAN, so this vector always
+  //     has size of 1.
+  //
+  // For the systems with Port based RIFs (VOQ/FABRIC switches):
+  //   - interfaceIDs contains single element viz. the interface corresponding
+  //     to this port.
+  41: list<i32> interfaceIDs;
 }
 
 struct SystemPortFields {
