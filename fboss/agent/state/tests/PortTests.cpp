@@ -21,9 +21,11 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
+#include <boost/container/flat_map.hpp>
 #include <gtest/gtest.h>
 
 using namespace facebook::fboss;
+using boost::container::flat_map;
 using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
@@ -857,4 +859,52 @@ TEST(Port, portSerilization) {
   EXPECT_TRUE(port->getDropUnencrypted());
 
   validateNodeSerialization(*port);
+}
+
+TEST(Port, verifyInterfaceIDsForNonVoqSwitches) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = testConfigA();
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+
+  auto getExpectedPort2Interface = [](const auto& config) {
+    flat_map<VlanID, int32_t> vlan2Interface;
+    for (const auto& interfaceCfg : *config.interfaces()) {
+      vlan2Interface[VlanID(*interfaceCfg.vlanID())] = *interfaceCfg.intfID();
+    }
+
+    flat_map<PortID, Port::VlanMembership> port2Vlans;
+    for (const auto& vp : *config.vlanPorts()) {
+      PortID portID(*vp.logicalPort());
+      VlanID vlanID(*vp.vlanID());
+
+      port2Vlans[portID].insert(
+          std::make_pair(vlanID, Port::VlanInfo(*vp.emitTags())));
+    }
+
+    flat_map<PortID, int32_t> port2Interface;
+    for (const auto& portCfg : *config.ports()) {
+      auto portID = PortID(*portCfg.logicalID());
+      for (const auto& [vlanID, vlanInfo] : port2Vlans[portID]) {
+        auto it = vlan2Interface.find(vlanID);
+        EXPECT_TRUE(it != vlan2Interface.end());
+        port2Interface.insert(std::make_pair(portID, it->second));
+      }
+    }
+    return port2Interface;
+  };
+
+  auto expectedPort2Interface = getExpectedPort2Interface(config);
+
+  for (const auto& port : std::as_const(*(stateV1->getPorts()))) {
+    for (const auto& intfID : *port.second->getInterfaceIDs()) {
+      auto portID = port.second->getID();
+      auto expectedIntfID = expectedPort2Interface[portID];
+      auto gotIntfID = int(intfID->cref());
+
+      EXPECT_EQ(expectedIntfID, gotIntfID);
+    }
+  }
 }
