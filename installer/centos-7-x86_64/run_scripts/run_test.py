@@ -38,6 +38,7 @@ from argparse import ArgumentParser
 # Basic VOQ switch tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwVoqSwitchTest*
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwVoqSwitchWithFabriPortsTest.*
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwVoqSwitchWithMultipleDsfNodesTest.*
 # Basic forwarding tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwJumboFramesTest.*
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoopBackTest.*
