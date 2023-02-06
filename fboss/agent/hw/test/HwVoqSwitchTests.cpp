@@ -373,6 +373,11 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, collectStats) {
   verifyAcrossWarmBoots([] {}, verify);
 }
 
+TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricReachability) {
+  verifyAcrossWarmBoots(
+      [] {}, [this]() { checkFabricReachability(getHwSwitch()); });
+}
+
 TEST_F(HwVoqSwitchTest, remoteSystemPort) {
   auto setup = [this]() { addRemoteSysPort(SystemPortID(401)); };
   verifyAcrossWarmBoots(setup, [] {});
@@ -581,11 +586,6 @@ TEST_F(HwVoqSwitchTest, AclCounter) {
   };
 
   verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(HwVoqSwitchTest, checkFabricReachability) {
-  verifyAcrossWarmBoots(
-      [] {}, [this]() { checkFabricReachability(getHwSwitch()); });
 }
 
 class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
