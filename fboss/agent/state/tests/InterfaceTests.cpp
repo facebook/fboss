@@ -728,4 +728,20 @@ TEST(Interface, verifyPseudoVlanProcessing) {
   // Apply same config, and verify no change in pseudo vlans
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   EXPECT_EQ(nullptr, stateV2);
+
+  // Apply modified config (2 interfaces => 1 interface), and verify if pseudo
+  // vlans are populated correctly
+  auto config2 = testConfigA(cfg::SwitchType::VOQ);
+  config2.interfaces()->resize(1);
+  auto stateV3 = publishAndApplyConfig(stateV1, &config2, platform.get());
+  verifyConfigPseudoVlansMatch(config2, stateV3);
+
+  // Modify an interface (e.g. MAC addr for an interface), and verify if pseudo
+  // vlans are populated correctly
+  auto config3 = testConfigA(cfg::SwitchType::VOQ);
+  auto currMac = folly::MacAddress(*config3.interfaces()[0].mac());
+  auto newMac = folly::MacAddress::fromHBO(currMac.u64HBO() + 1);
+  config3.interfaces()[0].mac() = newMac.toString();
+  auto stateV4 = publishAndApplyConfig(stateV1, &config3, platform.get());
+  verifyConfigPseudoVlansMatch(config3, stateV4);
 }
