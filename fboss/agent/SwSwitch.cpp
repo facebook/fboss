@@ -2092,4 +2092,14 @@ std::optional<VlanID> SwSwitch::getCPUVlan() const {
       : std::make_optional(VlanID(4095));
 }
 
+InterfaceID SwSwitch::getInterfaceIDForPort(PortID portID) const {
+  auto port = getState()->getPorts()->getPortIf(portID);
+  CHECK(port);
+  // On VOQ/Fabric switches, port and interface have 1:1 relation.
+  // For non VOQ/Fabric switches, in practice, a port is always part of a
+  // single VLAN (and thus single interface).
+  CHECK_EQ(port->getInterfaceIDs()->size(), 1);
+  return InterfaceID(port->getInterfaceIDs()->at(0)->cref());
+}
+
 } // namespace facebook::fboss

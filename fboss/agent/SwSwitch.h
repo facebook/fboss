@@ -773,6 +773,8 @@ class SwSwitch : public HwSwitch::Callback {
 
   VlanID getVlanIDHelper(std::optional<VlanID> vlanID) const;
 
+  InterfaceID getInterfaceIDForPort(PortID portID) const;
+
  private:
   void updateStateBlockingImpl(
       folly::StringPiece name,
