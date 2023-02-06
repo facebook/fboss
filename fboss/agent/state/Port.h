@@ -614,6 +614,14 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::linePinConfigs>(pinCfgs);
   }
 
+  auto getInterfaceIDs() const {
+    return safe_cref<switch_state_tags::interfaceIDs>();
+  }
+
+  void setInterfaceIDs(const std::vector<int32_t>& interfaceIDs) {
+    set<switch_state_tags::interfaceIDs>(interfaceIDs);
+  }
+
   static std::shared_ptr<Port> fromFollyDynamic(const folly::dynamic& dyn) {
     auto fields = PortFields::fromFollyDynamic(dyn);
     return std::make_shared<Port>(fields.toThrift());
