@@ -55,6 +55,17 @@ UnicastRoute makeUnicastRouteHelper(
   nr.adminDistance() = admin;
   return nr;
 }
+
+IPAddressV6 getIPv6Address(InterfaceID intfID, Interface::AddressesType addrs) {
+  for (auto iter : std::as_const(*addrs)) {
+    auto address = folly::IPAddress(iter.first);
+    if (address.isV6()) {
+      return address.asV6();
+    }
+  }
+  throw FbossError("Cannot find IPv6 address for interface ", intfID);
+}
+
 } // namespace
 void utilCreateDir(folly::StringPiece path) {
   try {
@@ -110,16 +121,17 @@ IPAddressV4 getSwitchVlanIP(
 IPAddressV6 getSwitchVlanIPv6(
     const std::shared_ptr<SwitchState>& state,
     VlanID vlan) {
-  IPAddressV6 switchIp;
   auto vlanInterface = state->getInterfaces()->getInterfaceInVlan(vlan);
-  for (auto iter : std::as_const(*vlanInterface->getAddresses())) {
-    auto address = folly::IPAddress(iter.first);
-    if (address.isV6()) {
-      switchIp = address.asV6();
-      return switchIp;
-    }
-  }
-  throw FbossError("Cannot find IPv6 address for vlan ", vlan);
+
+  return getIPv6Address(vlanInterface->getID(), vlanInterface->getAddresses());
+}
+
+IPAddressV6 getSwitchIntfIPv6(
+    const std::shared_ptr<SwitchState>& state,
+    InterfaceID intfID) {
+  auto interface = state->getInterfaces()->getInterface(intfID);
+
+  return getIPv6Address(intfID, interface->getAddresses());
 }
 
 void incNiceValue(const uint32_t increment) {

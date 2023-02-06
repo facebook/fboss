@@ -79,6 +79,15 @@ folly::IPAddressV6 getSwitchVlanIPv6(
     VlanID vlan);
 
 /**
+ * Helper function to get an IPv6 address for a particular interface
+ * used to set src IP address for DHCPv6 and ICMPv6 packets
+ * throw an FbossError in case no IPv6 address exists.
+ */
+folly::IPAddressV6 getSwitchIntfIPv6(
+    const std::shared_ptr<SwitchState>& state,
+    InterfaceID intfID);
+
+/**
  * Helper function to get an IPvv6 address of any(first) interface.
  */
 folly::IPAddressV6 getAnyIntfIPv6(const std::shared_ptr<SwitchState>& state);
