@@ -25,7 +25,7 @@ SensorsTest::~SensorsTest() {}
 
 void SensorsTest::SetUp() {
   thriftHandler_ = std::make_shared<SensorServiceThriftHandler>(
-      std::make_shared<SensorServiceImpl>(""));
+      std::make_shared<SensorServiceImpl>(FLAGS_config_file));
 }
 
 void SensorsTest::TearDown() {}
