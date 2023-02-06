@@ -709,7 +709,7 @@ void IPv6Handler::sendUnicastNeighborSolicitation(
     const folly::IPAddressV6& srcIP,
     const folly::MacAddress& srcMac,
     const VlanID& vlanID,
-    const std::optional<PortDescriptor>& portDescriptor) {
+    const PortDescriptor& portDescriptor) {
   auto state = sw->getState();
   auto vlan = state->getVlans()->getVlanIf(vlanID);
   if (!Interface::isIpAttached(targetIP, vlan->getInterfaceID(), state)) {

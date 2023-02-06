@@ -101,8 +101,7 @@ class IPv6Handler : public StateObserver {
       const folly::IPAddressV6& srcIP,
       const folly::MacAddress& srcMac,
       const VlanID& vlanID,
-      const std::optional<PortDescriptor>& portDescriptor =
-          std::optional<PortDescriptor>());
+      const PortDescriptor& portDescriptor);
 
  private:
   struct ICMPHeaders;

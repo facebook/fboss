@@ -149,16 +149,8 @@ inline void NdpCache::checkReachability(
     srcIP = srcIntf->getAddressToReach(targetIP)->first.asV6();
   }
   // unicast solicitation
-  std::optional<PortDescriptor> portDescriptor;
-  portDescriptor.emplace(port);
   IPv6Handler::sendUnicastNeighborSolicitation(
-      getSw(),
-      targetIP,
-      targetMac,
-      srcIP,
-      srcMac,
-      vlan->getID(),
-      portDescriptor);
+      getSw(), targetIP, targetMac, srcIP, srcMac, vlan->getID(), port);
 }
 
 inline void NdpCache::probeFor(folly::IPAddressV6 ip) const {
