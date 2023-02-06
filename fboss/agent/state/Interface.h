@@ -199,6 +199,15 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     set<switch_state_tags::isStateSyncDisabled>(isStateSyncDisabled);
   }
 
+  template <typename NTableT>
+  auto getTable() const {
+    if constexpr (std::is_same_v<NTableT, ArpTable>) {
+      return getArpTable();
+    } else if constexpr (std::is_same_v<NTableT, NdpTable>) {
+      return getNdpTable();
+    }
+  }
+
   std::shared_ptr<ArpTable> getArpTable() const {
     return get<switch_state_tags::arpTable>();
   }
