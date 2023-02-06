@@ -177,10 +177,6 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
       cfg.vlanPorts()[p].logicalPort() = p + kInterfacePortIdBegin;
       cfg.vlanPorts()[p].vlanID() = p < 10 + kInterfacePortIdBegin ? 1 : 55;
     }
-  } else {
-    cfg.vlans()->resize(1);
-    cfg.vlans()[0].id() = 0;
-    cfg.vlans()[0].name() = "Vlan0";
   }
 
   cfg.interfaces()->resize(2);
