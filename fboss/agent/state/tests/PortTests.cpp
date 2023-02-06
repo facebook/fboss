@@ -144,6 +144,12 @@ TEST(Port, applyConfig) {
   *config.vlanPorts()[0].logicalPort() = 1;
   *config.vlanPorts()[0].vlanID() = 2021;
   *config.vlanPorts()[0].emitTags() = false;
+  config.vlans()->resize(3);
+  *config.vlans()[2].id() = 2021;
+  config.interfaces()->resize(3);
+  *config.interfaces()[2].intfID() = 2021;
+  *config.interfaces()[2].vlanID() = 2021;
+  config.interfaces()[2].mac() = "00:00:00:00:00:21";
 
   Port::VlanMembership expectedVlansV2;
   expectedVlansV2.insert(make_pair(VlanID(2021), Port::VlanInfo(false)));

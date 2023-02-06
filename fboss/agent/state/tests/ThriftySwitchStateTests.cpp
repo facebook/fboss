@@ -277,15 +277,18 @@ TEST(ThriftySwitchState, InterfaceMap) {
   config.vlans()->resize(2);
   *config.vlans()[0].id() = 1;
   config.vlans()[0].intfID() = 1;
-  *config.vlans()[1].id() = 2;
-  config.vlans()[1].intfID() = 2;
+
+  *config.vlans()[1].id() = 55;
+  config.vlans()[1].intfID() = 55;
+
   config.interfaces()->resize(2);
   *config.interfaces()[0].intfID() = 1;
   *config.interfaces()[0].vlanID() = 1;
   config.interfaces()[0].mac() = "00:00:00:00:00:11";
-  *config.interfaces()[1].intfID() = 2;
-  *config.interfaces()[1].vlanID() = 2;
-  config.interfaces()[1].mac() = "00:00:00:00:00:22";
+
+  *config.interfaces()[1].intfID() = 55;
+  *config.interfaces()[1].vlanID() = 55;
+  config.interfaces()[1].mac() = "00:00:00:00:00:55";
 
   auto endState = publishAndApplyConfig(startState, &config, platform.get());
   ASSERT_NE(nullptr, endState);

@@ -88,6 +88,10 @@ TEST(Vlan, applyConfig) {
   config.vlanPorts()[1].vlanID() = 1234;
   config.vlanPorts()[1].emitTags() = true;
 
+  config.interfaces()->resize(1);
+  config.interfaces()[0].intfID() = 1234;
+  config.interfaces()[0].vlanID() = 1234;
+
   Vlan::MemberPorts expectedPorts;
   expectedPorts.insert(std::make_pair(1, false));
   expectedPorts.insert(std::make_pair(2, true));
