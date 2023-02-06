@@ -54,12 +54,12 @@ target_link_libraries(sensor_service
   fb303::fb303
 )
 
-add_executable(sensors_test
+add_executable(sensor_service_hw_test
   fboss/platform/sensor_service/hw_test/Main.cpp
   fboss/platform/sensor_service/hw_test/SensorsTest.cpp
 )
 
-target_link_libraries(sensors_test
+target_link_libraries(sensor_service_hw_test
   sensor_service_lib
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
