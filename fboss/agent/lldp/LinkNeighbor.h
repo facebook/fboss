@@ -184,7 +184,7 @@ class LinkNeighbor
    */
   bool parseLldpPdu(
       PortID srcPort,
-      VlanID vlan,
+      std::optional<VlanID> vlanID,
       folly::MacAddress srcMac,
       uint16_t ethertype,
       folly::io::Cursor* cursor);
@@ -204,7 +204,7 @@ class LinkNeighbor
    */
   bool parseCdpPdu(
       PortID srcPort,
-      VlanID vlan,
+      std::optional<VlanID> vlanID,
       folly::MacAddress srcMac,
       uint16_t ethertype,
       folly::io::Cursor* cursor);

@@ -110,7 +110,7 @@ std::string LinkNeighbor::humanReadableNetAddr(const std::string& data) {
 
 bool LinkNeighbor::parseLldpPdu(
     PortID srcPort,
-    VlanID vlan,
+    std::optional<VlanID> vlanID,
     folly::MacAddress srcMac,
     uint16_t ethertype,
     folly::io::Cursor* cursor) {
@@ -120,7 +120,8 @@ bool LinkNeighbor::parseLldpPdu(
 
   ref<lldp_tags::protocol>() = lldp::LinkProtocol::LLDP;
   ref<lldp_tags::localPort>() = srcPort;
-  ref<lldp_tags::localVlan>() = vlan;
+  // TODO(skhare) make localVlan optional
+  ref<lldp_tags::localVlan>() = vlanID.has_value() ? vlanID.value() : 0;
   ref<lldp_tags::srcMac>() = srcMac.u64NBO();
 
   bool chassisIdPresent{false};
@@ -245,7 +246,7 @@ void LinkNeighbor::parseLldpSystemCaps(Cursor* cursor, uint16_t length) {
 
 bool LinkNeighbor::parseCdpPdu(
     PortID srcPort,
-    VlanID vlan,
+    std::optional<VlanID> vlanID,
     MacAddress srcMac,
     uint16_t ethertype,
     folly::io::Cursor* cursor) {
@@ -257,7 +258,8 @@ bool LinkNeighbor::parseCdpPdu(
 
   ref<lldp_tags::protocol>() = lldp::LinkProtocol::CDP;
   ref<lldp_tags::localPort>() = srcPort;
-  ref<lldp_tags::localVlan>() = vlan;
+  // TODO(skhare) make localVlan optional
+  ref<lldp_tags::localVlan>() = vlanID.has_value() ? vlanID.value() : 0;
   ref<lldp_tags::srcMac>() = srcMac.u64NBO();
 
   try {

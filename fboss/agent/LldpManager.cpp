@@ -93,7 +93,7 @@ void LldpManager::handlePacket(
   sw_->stats()->LldpRecvdPkt();
 
   bool ret = neighbor->parseLldpPdu(
-      pkt->getSrcPort(), pkt->getSrcVlan(), src, ETHERTYPE_LLDP, &cursor);
+      pkt->getSrcPort(), pkt->getSrcVlanIf(), src, ETHERTYPE_LLDP, &cursor);
 
   if (!ret) {
     // LinkNeighbor will have already logged a message about the error.
