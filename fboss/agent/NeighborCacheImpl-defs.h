@@ -64,6 +64,30 @@ bool checkVlanAndIntf(
 
 template <typename NTable>
 void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
+  SwSwitch::StateUpdateFn updateFn;
+
+  switch (sw_->getState()->getSwitchSettings()->getSwitchType()) {
+    case cfg::SwitchType::NPU:
+      updateFn = getUpdateFnToProgramEntryForNpu(entry);
+      break;
+    case cfg::SwitchType::VOQ:
+      updateFn = getUpdateFnToProgramEntryForVoq(entry);
+      break;
+    case cfg::SwitchType::FABRIC:
+    case cfg::SwitchType::PHY:
+      throw FbossError(
+          "Programming entry is not supported for switch type: ",
+          (sw_->getState()->getSwitchSettings()->getSwitchType()));
+  }
+
+  sw_->updateState(
+      folly::to<std::string>("add neighbor ", entry->getFields().ip),
+      std::move(updateFn));
+}
+
+template <typename NTable>
+SwSwitch::StateUpdateFn
+NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForNpu(Entry* entry) {
   CHECK(!entry->isPending());
 
   auto fields = entry->getFields();
@@ -108,8 +132,25 @@ void NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
     return newState;
   };
 
-  sw_->updateState(
-      folly::to<std::string>("add neighbor ", fields.ip), std::move(updateFn));
+  return updateFn;
+}
+
+template <typename NTable>
+SwSwitch::StateUpdateFn
+NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVoq(Entry* entry) {
+  CHECK(!entry->isPending());
+
+  auto fields = entry->getFields();
+  auto updateFn = [this,
+                   fields](const std::shared_ptr<SwitchState>& state) mutable
+      -> std::shared_ptr<SwitchState> {
+    std::shared_ptr<SwitchState> newState{state};
+
+    // TODO
+    return newState;
+  };
+
+  return updateFn;
 }
 
 template <typename NTable>
