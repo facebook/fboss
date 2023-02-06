@@ -8,6 +8,20 @@ add_custom_command(
   DEPENDS fboss/platform/rackmon/configs/interface/rackmon.conf fboss/platform/rackmon/configs/interface/rackmon_pls.conf fboss/platform/rackmon/configs/register_map/orv2_psu.json
 )
 
+add_fbthrift_cpp_library(
+  rackmon_cpp2
+  fboss/platform/rackmon/if/rackmonsvc.thrift
+  SERVICES
+  RackmonCtrl
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    fb303_cpp2
+    fboss_cpp2
+)
+
+
 add_library(rackmon_lib
   fboss/platform/rackmon/RackmonThriftHandler.cpp
   fboss/platform/rackmon/Device.cpp

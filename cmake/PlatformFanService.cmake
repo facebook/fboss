@@ -3,6 +3,15 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+add_fbthrift_cpp_library(
+  fan_config_structs_types_cpp2
+  fboss/platform/fan_service/if/fan_config_structs.thrift
+  OPTIONS
+    json
+    reflection
+)
+
+
 add_library(fan_service_lib
   fboss/platform/fan_service/Bsp.cpp
   fboss/platform/fan_service/ControlLogic.cpp
@@ -39,4 +48,15 @@ add_executable(fan_service
 target_link_libraries(fan_service
   fan_service_lib
   fb303::fb303
+)
+
+add_library(fan_service_hw_tests
+  fboss/platform/fan_service/hw_test/FanServiceTest.cpp
+)
+
+target_link_libraries(fan_service_hw_tests
+  fan_service_lib
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
 )
