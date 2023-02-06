@@ -398,6 +398,10 @@ class ThriftConfigApplier {
   void validateUdfConfig(const UdfConfig& newUdfConfig);
   std::shared_ptr<UdfConfig> updateUdfConfig(bool* changed);
 
+  void processInterfaceForPortForNonVoqSwitches();
+  void processInterfaceForPortForVoqSwitches();
+  void processInterfaceForPort();
+
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
   const cfg::SwitchConfig* cfg_{nullptr};
@@ -423,6 +427,7 @@ class ThriftConfigApplier {
   flat_map<PortID, Port::VlanMembership> portVlans_;
   flat_map<VlanID, Vlan::MemberPorts> vlanPorts_;
   flat_map<VlanID, IntefaceInfo> vlanInterfaces_;
+  flat_map<PortID, std::vector<int32_t>> port2InterfaceId_;
 };
 
 shared_ptr<SwitchState> ThriftConfigApplier::run() {
@@ -458,22 +463,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   {
-    auto newPorts = updatePorts(new_->getTransceivers());
-    if (newPorts) {
-      new_->resetPorts(std::move(newPorts));
-      if (new_->getSwitchSettings()->getSwitchType() == cfg::SwitchType::VOQ) {
-        CHECK(cfg_->switchSettings()->switchId().has_value())
-            << "Switch id must be set for VOQ switch";
-        new_->resetSystemPorts(updateSystemPorts(
-            new_->getPorts(),
-            new_->getSwitchSettings()->getSwitchId(),
-            new_->getSwitchSettings()->getSystemPortRange()));
-      }
-      changed = true;
-    }
-  }
-
-  {
     auto newSwitchSettings = updateSwitchSettings();
     if (newSwitchSettings) {
       if (newSwitchSettings->getSwitchType() !=
@@ -489,6 +478,25 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       changed = true;
     }
   }
+
+  processInterfaceForPort();
+
+  {
+    auto newPorts = updatePorts(new_->getTransceivers());
+    if (newPorts) {
+      new_->resetPorts(std::move(newPorts));
+      if (new_->getSwitchSettings()->getSwitchType() == cfg::SwitchType::VOQ) {
+        CHECK(cfg_->switchSettings()->switchId().has_value())
+            << "Switch id must be set for VOQ switch";
+        new_->resetSystemPorts(updateSystemPorts(
+            new_->getPorts(),
+            new_->getSwitchSettings()->getSwitchId(),
+            new_->getSwitchSettings()->getSystemPortRange()));
+      }
+      changed = true;
+    }
+  }
+
   {
     auto newAggPorts = updateAggregatePorts();
     if (newAggPorts) {
@@ -1059,6 +1067,64 @@ void ThriftConfigApplier::processVlanPorts() {
       throw FbossError(
           "duplicate VlanPort for vlan ", vlanID, ", port ", portID);
     }
+  }
+}
+
+void ThriftConfigApplier::processInterfaceForPortForVoqSwitches() {
+  auto systemPortRange = new_->getSwitchSettings()->getSystemPortRange();
+  for (const auto& portCfg : *cfg_->ports()) {
+    auto portType = *portCfg.portType();
+    auto portID = PortID(*portCfg.logicalID());
+
+    switch (portType) {
+      case cfg::PortType::INTERFACE_PORT:
+      case cfg::PortType::RECYCLE_PORT: {
+        // system port is 1:1 with every interface and recycle port.
+        // interface is 1:1 with system port.
+        // InterfaceID is chosen to be the same as systemPortID. Thus:
+        auto interfaceID = SystemPortID{*systemPortRange->minimum() + portID};
+        port2InterfaceId_[portID].push_back(interfaceID);
+      } break;
+      case cfg::PortType::FABRIC_PORT:
+      case cfg::PortType::CPU_PORT:
+        // no interface for fabric/cpu port
+        break;
+    }
+  }
+}
+
+void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches() {
+  flat_map<VlanID, InterfaceID> vlan2InterfaceId;
+  for (const auto& interfaceCfg : *cfg_->interfaces()) {
+    vlan2InterfaceId[VlanID(*interfaceCfg.vlanID())] =
+        InterfaceID(*interfaceCfg.intfID());
+  }
+
+  for (const auto& portCfg : *cfg_->ports()) {
+    auto portID = PortID(*portCfg.logicalID());
+
+    for (const auto& [vlanID, vlanInfo] : portVlans_[portID]) {
+      auto it = vlan2InterfaceId.find(vlanID);
+      if (it == vlan2InterfaceId.end()) {
+        throw FbossError("VLAN ", vlanID, " has no interface");
+      }
+      port2InterfaceId_[portID].push_back(it->second);
+    }
+  }
+}
+
+void ThriftConfigApplier::processInterfaceForPort() {
+  // Build Port -> interface mappings in port2InterfaceId_
+  auto switchType = *cfg_->switchSettings()->switchType();
+  switch (switchType) {
+    case cfg::SwitchType::VOQ:
+    case cfg::SwitchType::FABRIC:
+      processInterfaceForPortForVoqSwitches();
+      break;
+    case cfg::SwitchType::NPU:
+    case cfg::SwitchType::PHY:
+      processInterfaceForPortForNonVoqSwitches();
+      break;
   }
 }
 
@@ -1880,6 +1946,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setProfileConfig(*newProfileConfigRef);
   newPort->resetPinConfigs(newPinConfigs);
   newPort->setPortType(*portConf->portType());
+  newPort->setInterfaceIDs(port2InterfaceId_[orig->getID()]);
   return newPort;
 }
 
