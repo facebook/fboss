@@ -34,8 +34,37 @@ from argparse import ArgumentParser
 # Running non-OSS:
 #  ./run_test.py sai --config fuji.agent.materialized_JSON --filter HwVlanTest.VlanApplyConfig --sdk_logging /root/skhare/sai_replayer_logs --no-oss --sai-bin /root/skhare/sai_test-brcm-7.2.0.0_odp --mgmt-if eth0
 #
-# All tests matching following filter are expected to PASS on Makalu
-# Note: For Makalu test runs suffix --coldboot_only to all tests. Warm boot
+# All tests matching the following filters pass on w400C in VOQ mode
+# Note: For w400c (VOQ) mode test runs, suffix --coldboot_only to all tests.
+# Warm boot# is not yet supported on w400c in voq mode.
+# VOQ tests
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchTest.*:-*sendPacketCpu*:*trapPktsOnPort*:*AclQualifier*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchWithMultipleDsfNodesTest.*
+#
+# Basic forwarding tests
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwLoopBackTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwL4PortBlackHolingTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwJumboFramesTest.*
+# Route programming tests
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwRouteTest/1.*:-*Mpls*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwRouteTest/1.*:-*Mpls*
+# ACL tests
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwAclCounterTest.*:-*Sport*:*BumpOn*Cpu*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=SaiAclTableRecreateTests.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwAclPriorityTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwAclMatchActionsTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwAclStatTest.*
+# Counter Tests
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwInDiscardsCounterTest.*
+#
+# All tests matching the following filters pass on w400C in fabric mode
+# Note: For w400c (fabric) mode test runs, suffix --coldboot_only to all tests.
+# Warm boot# is not yet supported on w400c in fabric mode.
+# ./run_test.py sai --config wedge400c_fabric.agent.materialized_JSON --filter=HwFabricSwitchTest.*
+
+# All tests matching following filters are expected to PASS on Makalu
+# Note: For Makalu test runs, suffix --coldboot_only to all tests. Warm boot
 # is not yet supported on Makalu
 # Basic VOQ switch tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwVoqSwitchTest*
@@ -66,7 +95,7 @@ from argparse import ArgumentParser
 # --filter=HwAclStatTest.*:-*AclStatCreate:*AclStatCreateShared:*AclStatCreateMultiple:*AclStatMultipleActions:*AclStatDeleteShared*:*AclStatDeleteSharedPostWarmBoot:*AclStatRename*:*AclStatModify:*AclStatShuffle:*StatNumberOfCounters:*AclStatChangeCounterType
 
 # All tests matching following filter are expected to PASS on Kamet
-# Note: For Kamet test runs suffix --coldboot_only to all tests. Warm boot
+# Note: For Kamet test runs, suffix --coldboot_only to all tests. Warm boot
 # is not yet supported on Kamet
 # ./run_test.py sai --config kamet.agent.materialized_JSON --filter=HwFabricSwitchTest*
 
