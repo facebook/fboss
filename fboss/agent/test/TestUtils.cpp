@@ -236,6 +236,34 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
   return cfg;
 }
 
+void removeSwitchID(cfg::SwitchConfig& newCfg, int64_t oldSwitchId) {
+  CHECK(*newCfg.switchSettings()->switchType() == cfg::SwitchType::VOQ);
+  CHECK(newCfg.switchSettings()->switchId());
+  CHECK(*newCfg.switchSettings()->switchId() == oldSwitchId);
+
+  newCfg.switchSettings()->switchId().reset();
+  newCfg.dsfNodes()->erase(oldSwitchId);
+
+  cfg::DsfNode oldNode = makeDsfNodeCfg(oldSwitchId);
+  newCfg.interfaces()->erase(
+      std::remove_if(
+          newCfg.interfaces()->begin(),
+          newCfg.interfaces()->end(),
+          [&](auto& interface) {
+            return *interface.intfID() == recycleSysPortId(oldNode);
+          }),
+      newCfg.interfaces()->end());
+}
+
+void addSwitchID(cfg::SwitchConfig& newCfg, int64_t newSwitchId) {
+  CHECK(*newCfg.switchSettings()->switchType() == cfg::SwitchType::VOQ);
+  CHECK(!newCfg.switchSettings()->switchId());
+
+  newCfg.switchSettings()->switchId() = newSwitchId;
+  newCfg.dsfNodes()->insert({newSwitchId, makeDsfNodeCfg(newSwitchId)});
+  addRecyclePortRif(newCfg.dsfNodes()->find(newSwitchId)->second, newCfg);
+}
+
 } // namespace
 
 namespace facebook::fboss {
