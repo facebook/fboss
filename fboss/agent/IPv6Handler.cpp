@@ -219,12 +219,11 @@ void IPv6Handler::handlePacket(
     // packets destined for us
     // Anything not handled by the controller, we will forward it to the host,
     // i.e. ping, ssh, bgp...
-    PortID portID = pkt->getSrcPort();
     if (ipv6.payloadLength > intf->getMtu()) {
       // Generate PTB as interface to dst intf has MTU smaller than payload
       sendICMPv6PacketTooBig(
-          portID, pkt->getSrcVlan(), src, dst, ipv6, intf->getMtu(), cursor);
-      sw_->portStats(portID)->pktDropped();
+          port, pkt->getSrcVlan(), src, dst, ipv6, intf->getMtu(), cursor);
+      sw_->portStats(port)->pktDropped();
       return;
     }
     if (ipv6.nextHeader == static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP)) {
@@ -236,9 +235,9 @@ void IPv6Handler::handlePacket(
     }
 
     if (sw_->sendPacketToHost(intf->getID(), std::move(pkt))) {
-      sw_->portStats(portID)->pktToHost(l3Len);
+      sw_->portStats(port)->pktToHost(l3Len);
     } else {
-      sw_->portStats(portID)->pktDropped();
+      sw_->portStats(port)->pktDropped();
     }
     return;
   }
