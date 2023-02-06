@@ -678,3 +678,54 @@ TEST(Interface, getInterfacePorts) {
   auto intf = stateV1->getInterfaces()->begin()->second;
   EXPECT_EQ(getPortsForInterface(intf->getID(), stateV1).size(), 11);
 }
+
+TEST(Interface, verifyPseudoVlanProcessing) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  auto verifyConfigPseudoVlansMatch = [](const auto& config,
+                                         const auto& state) {
+    for (const auto& interfaceCfg : *config.interfaces()) {
+      for (const auto& addr : *interfaceCfg.ipAddresses()) {
+        auto ipAddr = folly::IPAddress::createNetwork(addr, -1, false).first;
+        auto expectedMac = interfaceCfg.mac();
+        auto expectedIntfID = interfaceCfg.intfID();
+
+        if (ipAddr.isV4()) {
+          auto arpResponseEntry = state->getVlans()
+                                      ->getVlan(VlanID(0))
+                                      ->getArpResponseTable()
+                                      ->getEntry(ipAddr.asV4());
+          EXPECT_TRUE(arpResponseEntry != nullptr);
+          // no MAC for recycle port RIFs
+          if (expectedMac) {
+            EXPECT_EQ(*expectedMac, arpResponseEntry->getMac().toString());
+          }
+          EXPECT_EQ(
+              InterfaceID(*expectedIntfID), arpResponseEntry->getInterfaceID());
+        } else {
+          auto ndpResponseEntry = state->getVlans()
+                                      ->getVlan(VlanID(0))
+                                      ->getNdpResponseTable()
+                                      ->getEntry(ipAddr.asV6());
+          EXPECT_TRUE(ndpResponseEntry != nullptr);
+          // no MAC for recycle port RIFs
+          if (expectedMac) {
+            EXPECT_EQ(*expectedMac, ndpResponseEntry->getMac().toString());
+          }
+          EXPECT_EQ(
+              InterfaceID(*expectedIntfID), ndpResponseEntry->getInterfaceID());
+        }
+      }
+    }
+  };
+
+  // Verify if pseudo vlans are populated correctly
+  auto config = testConfigA(cfg::SwitchType::VOQ);
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  verifyConfigPseudoVlansMatch(config, stateV1);
+
+  // Apply same config, and verify no change in pseudo vlans
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  EXPECT_EQ(nullptr, stateV2);
+}
