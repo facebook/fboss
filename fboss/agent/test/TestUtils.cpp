@@ -478,6 +478,7 @@ shared_ptr<SwitchState> testStateA() {
     vlan1->addPort(PortID(idx), false);
     auto port = state->getPorts()->getPortIf(PortID(idx));
     port->addVlan(vlan1->getID(), false);
+    port->setInterfaceIDs({1});
   }
   // Add VLAN 55, and ports 11-20 which belong to it.
   auto vlan55 = make_shared<Vlan>(VlanID(55), std::string("Vlan55"));
@@ -487,6 +488,7 @@ shared_ptr<SwitchState> testStateA() {
     vlan55->addPort(PortID(idx), false);
     auto port = state->getPorts()->getPortIf(PortID(idx));
     port->addVlan(vlan55->getID(), false);
+    port->setInterfaceIDs({55});
   }
   // Add Interface 1 to VLAN 1
   auto intf1 = make_shared<Interface>(
