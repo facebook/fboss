@@ -2059,6 +2059,24 @@ uint8_t ThriftConfigApplier::computeMinimumLinkCount(
 }
 
 shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
+  // TODO(skhare)
+  // VOQ/Fabric switches require that the packets are not tagged with any
+  // VLAN. We are gradually enhancing wedge_agent to handle tagged as well as
+  // untagged packets. During this transition, we will use PseudoVlan (VlanID
+  // 0) to populate SwitchState/Neighbor cache etc. data structures.
+  // Thus, for VOQ/Fabric switches, cfg_ will not carry vlan, but after
+  // updatePseudoVlan() runs, origVlans will carry pseudoVlan which will be
+  // removed by updateVlans() processig.
+  // Avoid it by skipping updateVlans() for VOQ/Fabric switches.
+  // Once wedge_agent changes are complete, we can remove this check as
+  // cfg_->vlans and origVlans will always be empty for VOQ/Fabric switches and
+  // then this function will be a no-op
+  auto switchType = *cfg_->switchSettings()->switchType();
+  if (switchType == cfg::SwitchType::VOQ ||
+      switchType == cfg::SwitchType::FABRIC) {
+    return nullptr;
+  }
+
   auto origVlans = orig_->getVlans();
   VlanMap::NodeContainer newVlans;
   bool changed = false;
