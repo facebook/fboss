@@ -1181,12 +1181,14 @@ std::map<PortID, phy::PhyInfo> SaiSwitch::updateAllPhyInfoLocked() {
     // Update PCS Info
     updatePcsInfo(
         *phyParams.line(),
+        *(*phyParams.state()).line(),
         *(*phyParams.stats()).line(),
         swPort,
         phy::Side::LINE,
         lastPhyInfo,
         fb303PortStat,
-        *phyParams.speed());
+        *phyParams.speed(),
+        portHandle->port);
 
     // Update Reconciliation Sublayer (RS) Info
     updateRsInfo(
@@ -1351,17 +1353,50 @@ void SaiSwitch::updatePmdInfo(
 
 void SaiSwitch::updatePcsInfo(
     phy::PhySideInfo& sideInfo,
+    phy::PhySideState& sideState,
     phy::PhySideStats& sideStats,
     PortID swPort,
     phy::Side side,
     phy::PhyInfo& lastPhyInfo,
     const HwPortFb303Stats* fb303PortStat,
-    cfg::PortSpeed speed) {
+    cfg::PortSpeed speed,
+    std::shared_ptr<SaiPort> port) {
   auto fecMode = getPortFECMode(swPort);
+
+  phy::PcsState pcsState;
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
+  if (auto pcsLinkStatus =
+          managerTable_->portManager().getPcsRxLinkStatus(port->adapterKey())) {
+    pcsState.pcsRxStatusLive() = pcsLinkStatus->current_status;
+    pcsState.pcsRxStatusLatched() = pcsLinkStatus->changed;
+  }
+#endif
+
   if (utility::isReedSolomonFec(fecMode)) {
     phy::PcsStats pcsStats;
     phy::PcsInfo pcsInfo;
     phy::RsFecInfo rsFec;
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
+    auto fecLanes = utility::reedSolomonFecLanes(speed);
+    auto fecAmLock = managerTable_->portManager().getFecAlignmentLockStatus(
+        port->adapterKey(), fecLanes);
+    phy::RsFecState fecState;
+    for (auto fecAm : fecAmLock) {
+      // SDKs sometimes return data for more FEC lanes than the FEC block on the
+      // port actually uses
+      if (fecAm.lane < fecLanes) {
+        phy::RsFecLaneState fecLaneState;
+        fecLaneState.lane() = fecAm.lane;
+        fecLaneState.fecAlignmentLockLive() = fecAm.value.current_status;
+        fecLaneState.fecAlignmentLockChanged() = fecAm.value.changed;
+
+        fecState.lanes()[fecAm.lane] = fecLaneState;
+      }
+    }
+    pcsState.rsFecState() = fecState;
+#endif
+
     rsFec.correctedCodewords() =
         *(fb303PortStat->portStats().fecCorrectableErrors());
     rsFec.uncorrectedCodewords() =
@@ -1395,6 +1430,8 @@ void SaiSwitch::updatePcsInfo(
     sideInfo.pcs() = pcsInfo;
     sideStats.pcs() = pcsStats;
   }
+
+  sideState.pcs() = pcsState;
 }
 
 bool SaiSwitch::rxSignalDetectSupportedInSdk() const {

@@ -330,12 +330,14 @@ class SaiSwitch : public HwSwitch {
 
   void updatePcsInfo(
       phy::PhySideInfo& sideInfo,
+      phy::PhySideState& sideState,
       phy::PhySideStats& sideStats,
       PortID swPort,
       phy::Side side,
       phy::PhyInfo& lastPhyInfo,
       const HwPortFb303Stats* fb303PortStat,
-      cfg::PortSpeed speed);
+      cfg::PortSpeed speed,
+      std::shared_ptr<SaiPort> port);
 
   void updateRsInfo(
       phy::PhySideInfo& sideInfo,
