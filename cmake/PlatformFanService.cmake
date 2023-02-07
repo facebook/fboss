@@ -50,11 +50,11 @@ target_link_libraries(fan_service
   fb303::fb303
 )
 
-add_library(fan_service_hw_tests
+add_executable(fan_service_hw_test
   fboss/platform/fan_service/hw_test/FanServiceTest.cpp
 )
 
-target_link_libraries(fan_service_hw_tests
+target_link_libraries(fan_service_hw_test
   fan_service_lib
   Folly::folly
   ${GTEST}
