@@ -230,13 +230,45 @@ class CmdShowInterfacePhy
     if (sideState.pcs().has_value() || sideStats.pcs().has_value()) {
       Table pcsTable;
       Table rsFecTable;
-      bool hasPcsData{false}, hasRsFecData{false};
+      Table rsFecStateTable;
+      bool hasPcsData{false}, hasRsFecData{false}, hasRsFecState{false};
       if (sideState.pcs().has_value()) {
         if (auto pcsRxStatusLive = sideState.pcs()->pcsRxStatusLive()) {
+          pcsTable.setHeader({prefix + "PCS", ""});
           pcsTable.addRow(
               {prefix + "PCS RX Link Status Live",
                makeColorCellForLiveFlag(std::to_string(*pcsRxStatusLive))});
+          if (auto pcsRxStatusLatched = sideState.pcs()->pcsRxStatusLatched()) {
+            pcsTable.addRow(
+                {prefix + "PCS RX Link Status Changed",
+                 std::to_string(*pcsRxStatusLatched)});
+          }
           hasPcsData = true;
+        }
+        if (auto rsFecState = sideState.pcs()->rsFecState()) {
+          rsFecStateTable.setHeader(
+              {prefix + "RS FEC State",
+               "Lane",
+               "Alignment Lock Live",
+               "Alignment Lock Changed"});
+          for (auto& fecLaneState : *rsFecState->lanes()) {
+            std::string fecAmLive = "N/A";
+            std::string fecAmChanged = "N/A";
+            if (auto fecAmLiveState =
+                    fecLaneState.second.fecAlignmentLockLive()) {
+              fecAmLive = std::to_string(*fecAmLiveState);
+            }
+            if (auto fecAmChangedState =
+                    fecLaneState.second.fecAlignmentLockChanged()) {
+              fecAmChanged = std::to_string(*fecAmChangedState);
+            }
+            rsFecStateTable.addRow(
+                {"",
+                 std::to_string(*(fecLaneState.second.lane())),
+                 makeColorCellForLiveFlag(fecAmLive),
+                 fecAmChanged});
+          }
+          hasRsFecState = true;
         }
       }
       if (sideStats.pcs().has_value()) {
@@ -254,11 +286,13 @@ class CmdShowInterfacePhy
           hasRsFecData = true;
         }
         if (hasPcsData) {
-          pcsTable.setHeader({prefix + "PCS", ""});
           out << pcsTable;
         }
         if (hasRsFecData) {
           out << rsFecTable;
+        }
+        if (hasRsFecState) {
+          out << rsFecStateTable;
         }
       }
     }
