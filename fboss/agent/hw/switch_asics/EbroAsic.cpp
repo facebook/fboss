@@ -66,6 +66,8 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
+    case HwAsic::Feature::FEC_AM_LOCK_STATUS:
+    case HwAsic::Feature::PCS_RX_LINK_STATUS:
       return true;
     // VOQ vs NPU mode dependent features
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
@@ -127,8 +129,6 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::XPHY_SAI_WARMBOOT:
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::DLB:
-    case HwAsic::Feature::FEC_AM_LOCK_STATUS:
-    case HwAsic::Feature::PCS_RX_LINK_STATUS:
       return false;
   }
   return false;
