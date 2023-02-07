@@ -19,9 +19,8 @@ namespace facebook::fboss {
 class HwPfcTest : public HwTest {
  protected:
   cfg::SwitchConfig initialConfig() const {
-    std::vector<PortID> ports = {
-        masterLogicalInterfacePortIds()[0], masterLogicalInterfacePortIds()[1]};
-    return utility::onePortPerInterfaceConfig(getHwSwitch(), std::move(ports));
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
   }
 
   // Basic config with 2 L3 interface config
