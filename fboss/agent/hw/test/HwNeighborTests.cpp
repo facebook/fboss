@@ -94,34 +94,50 @@ class HwNeighborTest : public HwLinkStateDependentTest {
     XLOG(FATAL) << " No vlans on non-npu switches";
   }
   InterfaceID kIntfID() const {
-    if (getProgrammedState()->getSwitchSettings()->getSwitchType() ==
-        cfg::SwitchType::NPU) {
+    auto switchType =
+        getProgrammedState()->getSwitchSettings()->getSwitchType();
+    if (switchType == cfg::SwitchType::NPU) {
       return InterfaceID(static_cast<int>(kVlanID()));
+    } else if (switchType == cfg::SwitchType::VOQ) {
+      CHECK(!programToTrunk) << " Trunks not supported yet on VOQ switches";
+      auto portId = this->portDescriptor().phyPortID();
+      return InterfaceID((*getProgrammedState()
+                               ->getPorts()
+                               ->getPort(portId)
+                               ->getInterfaceIDs()
+                               ->begin())
+                             ->toThrift());
     }
-    XLOG(FATAL) << "TODO: VOQ switch support";
+    XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
   }
 
-  PortDescriptor portDescriptor() {
+  PortDescriptor portDescriptor() const {
     if (programToTrunk) {
       return PortDescriptor(kAggID);
     }
-    return PortDescriptor(masterLogicalPortIds()[0]);
+    return PortDescriptor(masterLogicalInterfacePortIds()[0]);
   }
 
   auto getNeighborTable(std::shared_ptr<SwitchState> state) {
-    if (state->getSwitchSettings()->getSwitchType() == cfg::SwitchType::NPU) {
+    auto switchType =
+        getProgrammedState()->getSwitchSettings()->getSwitchType();
+    if (switchType == cfg::SwitchType::NPU) {
       return state->getVlans()
           ->getVlan(kVlanID())
           ->template getNeighborTable<NTable>()
           ->modify(kVlanID(), &state);
+    } else if (switchType == cfg::SwitchType::VOQ) {
+      return state->getInterfaces()
+          ->getInterface(kIntfID())
+          ->template getNeighborEntryTable<IPAddrT>()
+          ->modify(kIntfID(), &state);
     }
-    XLOG(FATAL) << "TODO: VOQ switch support";
+    XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
   }
   std::shared_ptr<SwitchState> addNeighbor(
       const std::shared_ptr<SwitchState>& inState) {
     auto ip = NeighborT::getNeighborAddress();
     auto outState{inState->clone()};
-
     auto neighborTable = getNeighborTable(outState);
     neighborTable->addPendingEntry(ip, kIntfID());
     return outState;
@@ -279,7 +295,7 @@ TYPED_TEST(HwNeighborTest, LinkDownOnResolvedEntry) {
     auto state = this->addNeighbor(this->getProgrammedState());
     auto newState = this->resolveNeighbor(state);
     newState = this->applyNewState(newState);
-    this->bringDownPort(this->masterLogicalPortIds()[0]);
+    this->bringDownPort(this->masterLogicalInterfacePortIds()[0]);
   };
   auto verify = [this]() {
     // There is a behavior differnce b/w SAI and BcmSwitch on link down
@@ -301,8 +317,8 @@ TYPED_TEST(HwNeighborTest, LinkDownAndUpOnResolvedEntry) {
     auto state = this->addNeighbor(this->getProgrammedState());
     auto newState = this->resolveNeighbor(state);
     newState = this->applyNewState(newState);
-    this->bringDownPort(this->masterLogicalPortIds()[0]);
-    this->bringUpPort(this->masterLogicalPortIds()[0]);
+    this->bringDownPort(this->masterLogicalInterfacePortIds()[0]);
+    this->bringUpPort(this->masterLogicalInterfacePortIds()[0]);
   };
   auto verify = [this]() {
     // There is a behavior differnce b/w SAI and BcmSwitch on link down
