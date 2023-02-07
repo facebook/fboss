@@ -92,11 +92,9 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
   uint16_t getFlowPort(int index, bool isSai, FlowType type) const {
     switch (type) {
       case FlowType::TCP:
-        return isSai ? tcpPortsForSai_.find(index)->second
-                     : tcpPorts_.find(index)->second;
+        return isSai ? tcpPortsForSai_[index] : tcpPorts_[index];
       case FlowType::UDP:
-        return isSai ? udpPortsForSai_.find(index)->second
-                     : udpPorts_.find(index)->second;
+        return isSai ? udpPortsForSai_[index] : udpPorts_[index];
     }
   }
   uint16_t getFlowPort(int index, FlowType type) const {
@@ -204,11 +202,11 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
 
  protected:
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
-  std::array<PortID, 4> ports_{};
-  std::map<int, int> tcpPorts_{};
-  std::map<int, int> udpPorts_{};
-  std::map<int, int> tcpPortsForSai_{};
-  std::map<int, int> udpPortsForSai_{};
+  std::array<PortID, kEcmpWidth4> ports_{};
+  std::array<int, kEcmpWidth4> tcpPorts_{};
+  std::array<int, kEcmpWidth4> udpPorts_{};
+  std::array<int, kEcmpWidth4> tcpPortsForSai_{};
+  std::array<int, kEcmpWidth4> udpPortsForSai_{};
 };
 
 TEST_F(HwHashConsistencyTest, TcpEgressLinks) {
