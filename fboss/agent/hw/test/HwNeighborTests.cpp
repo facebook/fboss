@@ -8,6 +8,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestNeighborUtils.h"
+#include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 
 using namespace ::testing;
@@ -83,22 +84,46 @@ class HwNeighborTest : public HwLinkStateDependentTest {
     }
     return cfg;
   }
+  VlanID kVlanID() const {
+    if (getProgrammedState()->getSwitchSettings()->getSwitchType() ==
+        cfg::SwitchType::NPU) {
+      auto vlanId = utility::firstVlanID(getProgrammedState());
+      CHECK(vlanId.has_value());
+      return *vlanId;
+    }
+    XLOG(FATAL) << " No vlans on non-npu switches";
+  }
+  InterfaceID kIntfID() const {
+    if (getProgrammedState()->getSwitchSettings()->getSwitchType() ==
+        cfg::SwitchType::NPU) {
+      return InterfaceID(static_cast<int>(kVlanID()));
+    }
+    XLOG(FATAL) << "TODO: VOQ switch support";
+  }
 
   PortDescriptor portDescriptor() {
-    if (programToTrunk)
+    if (programToTrunk) {
       return PortDescriptor(kAggID);
+    }
     return PortDescriptor(masterLogicalPortIds()[0]);
   }
 
+  auto getNeighborTable(std::shared_ptr<SwitchState> state) {
+    if (state->getSwitchSettings()->getSwitchType() == cfg::SwitchType::NPU) {
+      return state->getVlans()
+          ->getVlan(kVlanID())
+          ->template getNeighborTable<NTable>()
+          ->modify(kVlanID(), &state);
+    }
+    XLOG(FATAL) << "TODO: VOQ switch support";
+  }
   std::shared_ptr<SwitchState> addNeighbor(
       const std::shared_ptr<SwitchState>& inState) {
     auto ip = NeighborT::getNeighborAddress();
     auto outState{inState->clone()};
-    auto neighborTable = outState->getVlans()
-                             ->getVlan(kVlanID)
-                             ->template getNeighborTable<NTable>()
-                             ->modify(kVlanID, &outState);
-    neighborTable->addPendingEntry(ip, kIntfID);
+
+    auto neighborTable = getNeighborTable(outState);
+    neighborTable->addPendingEntry(ip, kIntfID());
     return outState;
   }
 
@@ -107,11 +132,7 @@ class HwNeighborTest : public HwLinkStateDependentTest {
     auto ip = NeighborT::getNeighborAddress();
     auto outState{inState->clone()};
 
-    auto neighborTable = outState->getVlans()
-                             ->getVlan(kVlanID)
-                             ->template getNeighborTable<NTable>()
-                             ->modify(kVlanID, &outState);
-
+    auto neighborTable = getNeighborTable(outState);
     neighborTable->removeEntry(ip);
     return outState;
   }
@@ -121,17 +142,13 @@ class HwNeighborTest : public HwLinkStateDependentTest {
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
     auto ip = NeighborT::getNeighborAddress();
     auto outState{inState->clone()};
-    auto neighborTable = outState->getVlans()
-                             ->getVlan(kVlanID)
-                             ->template getNeighborTable<NTable>()
-                             ->modify(kVlanID, &outState);
-
+    auto neighborTable = getNeighborTable(outState);
     auto lookupClassValue = lookupClass ? lookupClass.value() : kLookupClass;
     neighborTable->updateEntry(
         ip,
         kNeighborMac,
         portDescriptor(),
-        kIntfID,
+        kIntfID(),
         NeighborState::REACHABLE,
         lookupClassValue);
     return outState;
@@ -149,13 +166,13 @@ class HwNeighborTest : public HwLinkStateDependentTest {
      * Resolved entry should have a classID associated with it.
      */
     auto gotClassid = utility::getNbrClassId(
-        this->getHwSwitch(), kIntfID, NeighborT::getNeighborAddress());
+        this->getHwSwitch(), kIntfID(), NeighborT::getNeighborAddress());
     EXPECT_TRUE(programToTrunk || classID == gotClassid.value());
   }
 
   bool nbrExists() const {
     return utility::nbrExists(
-        this->getHwSwitch(), this->kIntfID, this->getNeighborAddress());
+        this->getHwSwitch(), this->kIntfID(), this->getNeighborAddress());
   }
   folly::IPAddress getNeighborAddress() const {
     return NeighborT::getNeighborAddress();
@@ -163,11 +180,8 @@ class HwNeighborTest : public HwLinkStateDependentTest {
 
   bool isProgrammedToCPU() const {
     return utility::nbrProgrammedToCpu(
-        this->getHwSwitch(), kIntfID, this->getNeighborAddress());
+        this->getHwSwitch(), kIntfID(), this->getNeighborAddress());
   }
-
-  const VlanID kVlanID{utility::kBaseVlanId};
-  const InterfaceID kIntfID{utility::kBaseVlanId};
 
   const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
   const cfg::AclLookupClass kLookupClass{
