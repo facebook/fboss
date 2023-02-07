@@ -305,21 +305,6 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_EQ(switchSettingsV1->getSwitchType(), cfg::SwitchType::VOQ);
   EXPECT_EQ(switchSettingsV1->getSwitchId(), 1);
   validateNodeSerialization(*switchSettingsV1);
-
-  // Flip back to NPU switch type
-  *config.switchSettings()->switchType() = cfg::SwitchType::NPU;
-  config.switchSettings()->switchId().reset();
-  EXPECT_FALSE(config.switchSettings()->switchId().has_value());
-
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
-  EXPECT_NE(nullptr, stateV2);
-  auto switchSettingsV2 = stateV2->getSwitchSettings();
-  ASSERT_NE(nullptr, switchSettingsV2);
-  EXPECT_FALSE(switchSettingsV2->isPublished());
-  EXPECT_EQ(switchSettingsV2->getSwitchType(), cfg::SwitchType::NPU);
-  EXPECT_FALSE(switchSettingsV2->getSwitchId().has_value());
-  validateNodeSerialization(*switchSettingsV2);
-  EXPECT_EQ(nullptr, publishAndApplyConfig(stateV2, &config, platform.get()));
 }
 
 TEST(SwitchSettingsTest, applyExactMatchTableConfig) {

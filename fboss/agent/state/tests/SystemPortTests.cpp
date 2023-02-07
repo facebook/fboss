@@ -98,41 +98,6 @@ TEST(SystemPort, sysPortApplyConfig) {
   EXPECT_EQ(stateV2->getSystemPorts()->size(), stateV2->getPorts()->size() - 1);
 }
 
-TEST(SystemPort, sysPortApplyConfigSwitchTypeChange) {
-  auto platform = createMockPlatform();
-  auto stateV0 = std::make_shared<SwitchState>();
-  auto config = testConfigA(cfg::SwitchType::VOQ);
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  ASSERT_NE(nullptr, stateV1);
-  EXPECT_EQ(stateV1->getSystemPorts()->size(), stateV1->getPorts()->size());
-  config.switchSettings()->switchType() = cfg::SwitchType::NPU;
-  config.switchSettings()->switchId().reset();
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
-  ASSERT_NE(nullptr, stateV2);
-  EXPECT_EQ(stateV2->getSystemPorts()->size(), 0);
-}
-
-TEST(SystemPort, sysPortApplyConfigSwitchIdChange) {
-  auto platform = createMockPlatform();
-  auto stateV0 = std::make_shared<SwitchState>();
-  auto config = testConfigA(cfg::SwitchType::VOQ);
-  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
-  ASSERT_NE(nullptr, stateV1);
-  EXPECT_EQ(stateV1->getSystemPorts()->size(), stateV1->getPorts()->size());
-  auto prevSwitchId = *config.switchSettings()->switchId();
-  config = updateSwitchID(config, prevSwitchId, 2);
-
-  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
-  ASSERT_NE(nullptr, stateV2);
-  EXPECT_EQ(
-      stateV2->getSystemPorts()->size(), stateV1->getSystemPorts()->size());
-
-  for (const auto& idAndSysPort : std::as_const(*stateV2->getSystemPorts())) {
-    const auto& sysPort = idAndSysPort.second;
-    EXPECT_EQ(sysPort->getSwitchId(), SwitchID(2));
-  }
-}
-
 TEST(SystemPort, sysPortNameApplyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = std::make_shared<SwitchState>();

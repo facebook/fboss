@@ -3156,6 +3156,25 @@ std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
     auto origIntf = origIntfs->getInterfaceIf(id);
     shared_ptr<Interface> newIntf;
     auto newAddrs = getInterfaceAddresses(&interfaceCfg);
+    if (interfaceCfg.type() == cfg::InterfaceType::SYSTEM_PORT) {
+      auto mySwitchId = cfg_->switchSettings()->switchId();
+      CHECK(mySwitchId.has_value());
+      auto myDsfNode = cfg_->dsfNodes()->find(*mySwitchId)->second;
+      auto sysPortRange = myDsfNode.systemPortRange();
+      CHECK(sysPortRange.has_value());
+      if (interfaceCfg.intfID() < sysPortRange->minimum() ||
+          interfaceCfg.intfID() > sysPortRange->maximum()) {
+        throw FbossError(
+            "Interface intfID :",
+            *interfaceCfg.intfID(),
+            "is out of range for this VOQ switch intfID: ",
+            *mySwitchId,
+            "sys port range, min: ",
+            *sysPortRange->minimum(),
+            " max: ",
+            *sysPortRange->maximum());
+      }
+    }
     if (origIntf) {
       newIntf = updateInterface(origIntf, &interfaceCfg, newAddrs);
       ++numExistingProcessed;
