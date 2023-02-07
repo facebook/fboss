@@ -193,6 +193,11 @@ class SaiPortManager {
   std::vector<sai_port_lane_latch_status_t> getRxLockStatus(
       PortSaiId saiPortId,
       uint8_t numPmdLanes) const;
+  std::vector<sai_port_lane_latch_status_t> getFecAlignmentLockStatus(
+      PortSaiId saiPortId,
+      uint8_t numFecLanes) const;
+  std::optional<sai_latch_status_t> getPcsRxLinkStatus(
+      PortSaiId saiPortId) const;
 #endif
 
   void enableAfeAdaptiveMode(PortID portId);
