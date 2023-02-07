@@ -83,6 +83,11 @@ void InterfaceMap::addInterface(const std::shared_ptr<Interface>& interface) {
   addNode(interface);
 }
 
+void InterfaceMap::updateInterface(
+    const std::shared_ptr<Interface>& interface) {
+  updateNode(interface);
+}
+
 InterfaceMap* InterfaceMap::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
     CHECK(!(*state)->isPublished());

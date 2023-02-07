@@ -194,6 +194,19 @@ bool Interface::isIpAttached(
   return intf->canReachAddress(ip);
 }
 
+Interface* Interface::modify(std::shared_ptr<SwitchState>* state) {
+  if (!isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return this;
+  }
+
+  InterfaceMap* interfaces = (*state)->getInterfaces()->modify(state);
+  auto newInterface = clone();
+  auto* ptr = newInterface.get();
+  interfaces->updateInterface(std::move(newInterface));
+  return ptr;
+}
+
 template class ThriftStructNode<Interface, state::InterfaceFields>;
 
 } // namespace facebook::fboss

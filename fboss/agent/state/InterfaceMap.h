@@ -106,6 +106,7 @@ class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
    */
 
   void addInterface(const std::shared_ptr<Interface>& interface);
+  void updateInterface(const std::shared_ptr<Interface>& interface);
 
   /*
    * Serialize to a folly::dynamic object

@@ -165,6 +165,7 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
     return getType() == cfg::InterfaceType::VLAN ? getVlanID() : VlanID(0);
   }
 
+  Interface* modify(std::shared_ptr<SwitchState>* state);
   int getMtu() const {
     return get<switch_state_tags::mtu>()->cref();
   }

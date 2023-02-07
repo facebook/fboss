@@ -745,3 +745,22 @@ TEST(Interface, verifyPseudoVlanProcessing) {
   auto stateV4 = publishAndApplyConfig(stateV1, &config3, platform.get());
   verifyConfigPseudoVlansMatch(config3, stateV4);
 }
+
+TEST(Interface, modify) {
+  auto platform = createMockPlatform();
+  auto stateV0 = std::make_shared<SwitchState>();
+  auto config = testConfigA();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto intf = stateV1->getInterfaces()->begin()->second;
+  auto intfModified = intf->modify(&stateV1);
+  EXPECT_EQ(intf.get(), intfModified);
+  intf->publish();
+  intfModified = intf->modify(&stateV1);
+  EXPECT_NE(intf.get(), intfModified);
+  auto oldMtu = intfModified->getMtu();
+  auto newMtu = oldMtu + 1000;
+  intfModified->setMtu(newMtu);
+  EXPECT_EQ(
+      stateV1->getInterfaces()->getInterface(intf->getID())->getMtu(), newMtu);
+}
