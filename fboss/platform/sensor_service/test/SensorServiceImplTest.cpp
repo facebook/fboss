@@ -1,11 +1,11 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/platform/sensor_service/SensorServiceImpl.h"
 #include <folly/experimental/TestUtil.h>
-#include "fboss/platform/helpers/Utils.h"
-#include "fboss/platform/sensor_service/test/TestUtils.h"
-
 #include <gtest/gtest.h>
+
+#include "fboss/platform/helpers/Utils.h"
+#include "fboss/platform/sensor_service/SensorServiceImpl.h"
+#include "fboss/platform/sensor_service/test/TestUtils.h"
 
 using namespace facebook::fboss::platform::sensor_service;
 

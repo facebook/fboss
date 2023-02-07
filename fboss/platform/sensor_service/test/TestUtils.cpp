@@ -1,9 +1,10 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/platform/sensor_service/test/TestUtils.h"
 #include <folly/FileUtil.h>
 #include <folly/dynamic.h>
-#include "thrift/lib/cpp2/protocol/Serializer.h"
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+
+#include "fboss/platform/sensor_service/test/TestUtils.h"
 
 using namespace facebook::fboss::platform::sensor_service;
 
