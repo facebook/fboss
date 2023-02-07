@@ -31,29 +31,29 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     }
 
     /* experiments revealed these which L4 ports map to which switch port */
-    tcpPorts_[0] = 10001;
-    tcpPorts_[1] = 10005;
-    tcpPorts_[2] = 10007;
-    tcpPorts_[3] = 10000;
+    tcpPorts_[0] = {10001, 10001};
+    tcpPorts_[1] = {10005, 10005};
+    tcpPorts_[2] = {10007, 10007};
+    tcpPorts_[3] = {10000, 10000};
     udpPorts_ = tcpPorts_;
 
     if (getPlatform()->getAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_EBRO) {
-      tcpPortsForSai_[0] = 10002;
-      tcpPortsForSai_[1] = 10004;
-      tcpPortsForSai_[2] = 10000;
-      tcpPortsForSai_[3] = 10001;
+      tcpPortsForSai_[0] = {10002, 10002};
+      tcpPortsForSai_[1] = {10004, 10004};
+      tcpPortsForSai_[2] = {10000, 10000};
+      tcpPortsForSai_[3] = {10001, 10001};
 
-      udpPortsForSai_[0] = 10000;
-      udpPortsForSai_[1] = 10006;
-      udpPortsForSai_[2] = 10002;
-      udpPortsForSai_[3] = 10003;
+      udpPortsForSai_[0] = {10000, 10000};
+      udpPortsForSai_[1] = {10006, 10006};
+      udpPortsForSai_[2] = {10002, 10002};
+      udpPortsForSai_[3] = {10003, 10003};
 
     } else {
-      tcpPortsForSai_[0] = 10003;
-      tcpPortsForSai_[1] = 10000;
-      tcpPortsForSai_[2] = 10002;
-      tcpPortsForSai_[3] = 10001;
+      tcpPortsForSai_[0] = {10003, 10003};
+      tcpPortsForSai_[1] = {10000, 10000};
+      tcpPortsForSai_[2] = {10002, 10002};
+      tcpPortsForSai_[3] = {10001, 10001};
       udpPortsForSai_ = tcpPortsForSai_;
     }
   }
@@ -89,7 +89,8 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     resolve ? resolveNhops({ports_[index]}) : unresolveNhops({ports_[index]});
   }
 
-  uint16_t getFlowPort(int index, bool isSai, FlowType type) const {
+  std::pair<uint16_t, uint16_t>
+  getFlowPort(int index, bool isSai, FlowType type) const {
     switch (type) {
       case FlowType::TCP:
         return isSai ? tcpPortsForSai_[index] : tcpPorts_[index];
@@ -97,12 +98,12 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
         return isSai ? udpPortsForSai_[index] : udpPorts_[index];
     }
   }
-  uint16_t getFlowPort(int index, FlowType type) const {
+  std::pair<uint16_t, uint16_t> getFlowPort(int index, FlowType type) const {
     auto isSai = getHwSwitchEnsemble()->isSai();
     return getFlowPort(index, isSai, type);
   }
 
-  void sendFlowWithPort(uint16_t port, FlowType type) {
+  void sendFlowWithPort(uint16_t l4SrcPort, uint16_t l4DstPort, FlowType type) {
     auto vlanId = utility::firstVlanID(initialConfig());
     auto dstMac = utility::getFirstInterfaceMac(getProgrammedState());
 
@@ -113,8 +114,8 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
         dstMac,
         folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"),
         folly::IPAddressV6("2401:db00:11c:8200:0:0:0:104"),
-        port,
-        port);
+        l4SrcPort,
+        l4DstPort);
     auto udpPkt = utility::makeUDPTxPacket(
         getHwSwitch(),
         vlanId,
@@ -122,8 +123,8 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
         dstMac,
         folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"),
         folly::IPAddressV6("2401:db00:11c:8200:0:0:0:104"),
-        port,
-        port);
+        l4SrcPort,
+        l4DstPort);
 
     switch (type) {
       case FlowType::TCP:
@@ -135,19 +136,23 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     }
   }
   void sendFlow(int index, FlowType type) {
-    auto port = getFlowPort(index, type);
-    sendFlowWithPort(port, type);
+    auto srcAndDstPort = getFlowPort(index, type);
+    sendFlowWithPort(srcAndDstPort.first, srcAndDstPort.second, type);
   }
   void verifyFlowEgress(int index, FlowType flowType) {
-    XLOG(DBG2) << " For flow port: " << getFlowPort(index, flowType)
+    auto srcAndDstPort = getFlowPort(index, flowType);
+    XLOG(DBG2) << " For flow ports: (" << srcAndDstPort.first << ", "
+               << srcAndDstPort.second << ")"
                << " expecting increment of 1 on port at index: " << index;
     WITH_RETRIES({
       EXPECT_EVENTUALLY_EQ(
           getPortOutPkts(this->getLatestPortStats(ports_[index])), 1);
       auto pktCnt = 0;
       for (auto i = 0; i < kEcmpWidth4; i++) {
+        srcAndDstPort = getFlowPort(index, flowType);
         auto pkts = getPortOutPkts(this->getLatestPortStats(ports_[i]));
-        XLOG(DBG2) << " For flow port: " << getFlowPort(index, flowType)
+        XLOG(DBG2) << " For flow ports: (" << srcAndDstPort.first << ", "
+                   << srcAndDstPort.second << ")"
                    << " pkt egress increment on port at index: " << i
                    << " is: " << pkts;
         pktCnt += pkts;
@@ -203,10 +208,10 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
  protected:
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
   std::array<PortID, kEcmpWidth4> ports_{};
-  std::array<int, kEcmpWidth4> tcpPorts_{};
-  std::array<int, kEcmpWidth4> udpPorts_{};
-  std::array<int, kEcmpWidth4> tcpPortsForSai_{};
-  std::array<int, kEcmpWidth4> udpPortsForSai_{};
+  std::array<std::pair<uint16_t, uint16_t>, kEcmpWidth4> tcpPorts_{};
+  std::array<std::pair<uint16_t, uint16_t>, kEcmpWidth4> udpPorts_{};
+  std::array<std::pair<uint16_t, uint16_t>, kEcmpWidth4> tcpPortsForSai_{};
+  std::array<std::pair<uint16_t, uint16_t>, kEcmpWidth4> udpPortsForSai_{};
 };
 
 TEST_F(HwHashConsistencyTest, TcpEgressLinks) {
