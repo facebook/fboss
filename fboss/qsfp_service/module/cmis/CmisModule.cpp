@@ -927,7 +927,11 @@ FlagLevels CmisModule::getChannelFlags(CmisField field, int channel) {
   int dataAddress;
 
   CHECK_GE(channel, 0);
-  CHECK_LE(channel, 8);
+  if (channel > 8) {
+    QSFP_LOG(ERR, this) << folly::sformat(
+        "getChannelFlags: Channel id {:d} is invalid", channel);
+    return FlagLevels{};
+  }
 
   getQsfpFieldAddress(field, dataAddress, offset, length);
   const uint8_t* data = getQsfpValuePtr(dataAddress, offset, length);
