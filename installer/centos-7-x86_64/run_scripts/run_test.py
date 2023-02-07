@@ -80,6 +80,8 @@ from argparse import ArgumentParser
 # UCMP support lacking DNX
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV4.*:-*Ucmp*:-*Shrink*
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV6.*:-*Ucmp*:-*Shrink*
+# LB Tests with ROCE traffic
+# ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwLoadBalancerNegativeTestV6RoCE.*
 # Route programming tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwAlpmStressTest.*
 # ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=SaiNextHopGroupTest:-*addNextHopGroupPortDown*
