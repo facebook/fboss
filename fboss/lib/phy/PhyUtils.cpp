@@ -22,6 +22,24 @@ bool isReedSolomonFec(phy::FecMode fec) {
   return false;
 }
 
+uint8_t reedSolomonFecLanes(cfg::PortSpeed speed) {
+  switch (speed) {
+    case cfg::PortSpeed::TWENTYFIVEG:
+      return 1;
+    case cfg::PortSpeed::FIFTYG:
+    case cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG:
+      return 2;
+    case cfg::PortSpeed::HUNDREDG:
+      return 4;
+    case cfg::PortSpeed::TWOHUNDREDG:
+      return 8;
+    case cfg::PortSpeed::FOURHUNDREDG:
+      return 16;
+    default:
+      return 0;
+  }
+}
+
 double
 ber(uint64_t erroredBits, cfg::PortSpeed speed, uint64_t timeDeltaInSeconds) {
   double totalBits =

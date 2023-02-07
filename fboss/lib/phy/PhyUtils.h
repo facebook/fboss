@@ -2,12 +2,15 @@
 
 #pragma once
 
+#include <cstdint>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
 namespace facebook::fboss::utility {
 
 bool isReedSolomonFec(phy::FecMode fec);
+
+uint8_t reedSolomonFecLanes(cfg::PortSpeed speed);
 
 double
 ber(uint64_t erroredBits, cfg::PortSpeed speed, uint64_t timeDeltaInSeconds);
