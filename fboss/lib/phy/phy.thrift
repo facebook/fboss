@@ -362,6 +362,17 @@ struct PcsInfo {
 struct PcsState {
   1: optional bool pcsRxStatusLive;
   2: optional bool pcsRxStatusLatched;
+  3: optional RsFecState rsFecState;
+}
+
+struct RsFecState {
+  1: map<i16, RsFecLaneState> lanes;
+}
+
+struct RsFecLaneState {
+  1: i16 lane;
+  2: optional bool fecAlignmentLockLive;
+  3: optional bool fecAlignmentLockChanged;
 }
 
 struct PcsStats {
