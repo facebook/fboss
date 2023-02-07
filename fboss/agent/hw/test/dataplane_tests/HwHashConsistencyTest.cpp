@@ -37,8 +37,8 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
     tcpPorts_[3] = {10000, 10000};
     udpPorts_ = tcpPorts_;
 
-    if (getPlatform()->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_EBRO) {
+    auto asicType = getPlatform()->getAsic()->getAsicType();
+    if (asicType == cfg::AsicType::ASIC_TYPE_EBRO) {
       tcpPortsForSai_[0] = {10002, 10002};
       tcpPortsForSai_[1] = {10004, 10004};
       tcpPortsForSai_[2] = {10000, 10000};
@@ -48,6 +48,13 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
       udpPortsForSai_[1] = {10006, 10006};
       udpPortsForSai_[2] = {10002, 10002};
       udpPortsForSai_[3] = {10003, 10003};
+
+    } else if (asicType == cfg::AsicType::ASIC_TYPE_INDUS) {
+      tcpPortsForSai_[0] = {10002, 10010};
+      tcpPortsForSai_[1] = {10002, 10006};
+      tcpPortsForSai_[2] = {10002, 10014};
+      tcpPortsForSai_[3] = {10002, 10002};
+      udpPortsForSai_ = tcpPortsForSai_;
 
     } else {
       tcpPortsForSai_[0] = {10003, 10003};
