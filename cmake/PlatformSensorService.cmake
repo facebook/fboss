@@ -64,3 +64,15 @@ target_link_libraries(sensor_service_hw_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+add_executable(sensor_service_impl_test
+  fboss/platform/sensor_service/test/SensorServiceImplTest.cpp
+  fboss/platform/sensor_service/test/TestUtils.cpp
+)
+
+target_link_libraries(sensor_service_impl_test
+  platform_utils
+  sensor_service_lib
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
