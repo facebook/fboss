@@ -1105,8 +1105,17 @@ void ThriftConfigApplier::processInterfaceForPortForNonVoqSwitches() {
 
     for (const auto& [vlanID, vlanInfo] : portVlans_[portID]) {
       auto it = vlan2InterfaceId.find(vlanID);
+      // Skip if vlan has no interface && port is not enabled
       if (it == vlan2InterfaceId.end()) {
-        throw FbossError("VLAN ", vlanID, " has no interface");
+        if (*portCfg.state() != cfg::PortState::ENABLED) {
+          continue;
+        }
+        throw FbossError(
+            "VLAN ",
+            vlanID,
+            " has no interface, even when corresp port ",
+            portID,
+            " is enabled");
       }
       port2InterfaceId_[portID].push_back(it->second);
     }
