@@ -21,6 +21,7 @@ namespace facebook::fboss {
 
 class SwitchState;
 class Vlan;
+class Interface;
 
 template <typename IPADDR, typename ENTRY>
 struct NeighborTableTraits {
@@ -94,15 +95,16 @@ class NeighborTable
   std::shared_ptr<Entry> getEntryIf(AddressType ip) const {
     return this->getNodeIf(ip.str());
   }
-
-  SUBCLASS* modify(Vlan** vlan, std::shared_ptr<SwitchState>* state);
-
   /**
    * Return a modifiable version of current table. If the table is cloned, all
    * nodes to the root are cloned, and cloned state is put in the output
    * parameter.
    */
+
+  SUBCLASS* modify(Vlan** vlan, std::shared_ptr<SwitchState>* state);
   SUBCLASS* modify(VlanID vlanId, std::shared_ptr<SwitchState>* state);
+  SUBCLASS* modify(Interface** intf, std::shared_ptr<SwitchState>* state);
+  SUBCLASS* modify(InterfaceID intfId, std::shared_ptr<SwitchState>* state);
 
   void addEntry(
       AddressType ip,

@@ -59,6 +59,39 @@ SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
 }
 
 template <typename IPADDR, typename ENTRY, typename SUBCLASS>
+SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
+    Interface** interface,
+    std::shared_ptr<SwitchState>* state) {
+  if (!this->isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return boost::polymorphic_downcast<SUBCLASS*>(this);
+  }
+
+  *interface = (*interface)->modify(state);
+  auto newTable = this->clone();
+  (*interface)->setNeighborEntryTable<IPADDR>(newTable->toThrift());
+  return (*interface)->getNeighborEntryTable<IPADDR>().get();
+}
+
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
+SUBCLASS* NeighborTable<IPADDR, ENTRY, SUBCLASS>::modify(
+    InterfaceID interfaceId,
+    std::shared_ptr<SwitchState>* state) {
+  if (!this->isPublished()) {
+    CHECK(!(*state)->isPublished());
+    return boost::polymorphic_downcast<SUBCLASS*>(this);
+  }
+  // Make clone of table
+  auto newTable = this->clone();
+  // Make clone of interface
+  auto interfacePtr =
+      (*state)->getInterfaces()->getInterface(interfaceId).get();
+  interfacePtr = interfacePtr->modify(state);
+  interfacePtr->setNeighborEntryTable<IPADDR>(newTable->toThrift());
+  return interfacePtr->getNeighborEntryTable<IPADDR>().get();
+}
+
+template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 void NeighborTable<IPADDR, ENTRY, SUBCLASS>::addEntry(
     AddressType ip,
     folly::MacAddress mac,
