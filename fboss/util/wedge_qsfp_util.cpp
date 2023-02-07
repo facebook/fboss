@@ -1041,7 +1041,7 @@ std::map<int32_t, DOMDataUnion> fetchDataFromQsfpService(
 
   std::vector<int32_t> presentPorts;
   for (auto& qsfpInfo : qsfpInfoMap) {
-    if (*qsfpInfo.second.present()) {
+    if (*can_throw(qsfpInfo.second.tcvrState())->present()) {
       presentPorts.push_back(qsfpInfo.first);
     }
   }
@@ -1580,25 +1580,28 @@ void printThresholds(const AlarmThreshold& thresholds) {
 void printManagementInterface(
     const TransceiverInfo& transceiverInfo,
     const char* fmt) {
-  if (auto mgmtInterface = transceiverInfo.transceiverManagementInterface()) {
+  const TcvrState& tcvrState = *can_throw(transceiverInfo.tcvrState());
+  if (auto mgmtInterface = tcvrState.transceiverManagementInterface()) {
     printf(fmt, apache::thrift::util::enumNameSafe(*mgmtInterface).c_str());
   }
 }
 
 void printVerboseInfo(const TransceiverInfo& transceiverInfo) {
-  auto globalSensors = transceiverInfo.sensor();
+  const TcvrState& tcvrState = *can_throw(transceiverInfo.tcvrState());
+  const TcvrStats& tcvrStats = *can_throw(transceiverInfo.tcvrStats());
+  auto globalSensors = tcvrStats.sensor();
 
   if (globalSensors) {
     printGlobalInterruptFlags(*globalSensors);
   }
-  printChannelInterruptFlags(*(transceiverInfo.channels()));
-  if (auto thresholds = transceiverInfo.thresholds()) {
+  printChannelInterruptFlags(*(tcvrStats.channels()));
+  if (auto thresholds = tcvrState.thresholds()) {
     printThresholds(*thresholds);
   }
 }
 
 void printVendorInfo(const TransceiverInfo& transceiverInfo) {
-  if (auto vendor = transceiverInfo.vendor()) {
+  if (auto vendor = can_throw(transceiverInfo.tcvrState())->vendor()) {
     auto vendorInfo = *vendor;
     printf("  Vendor Info:\n");
     auto name = *(vendorInfo.name());
@@ -1646,24 +1649,26 @@ void printCableInfo(const Cable& cable) {
 }
 
 void printDomMonitors(const TransceiverInfo& transceiverInfo) {
-  auto globalSensors = transceiverInfo.sensor();
-  printLaneDomMonitors(*(transceiverInfo.channels()));
+  const TcvrStats& tcvrStats = *can_throw(transceiverInfo.tcvrStats());
+  auto globalSensors = tcvrStats.sensor();
+  printLaneDomMonitors(*(tcvrStats.channels()));
   if (globalSensors) {
     printGlobalDomMonitors(*globalSensors);
   }
 }
 
 void printSignalsAndSettings(const TransceiverInfo& transceiverInfo) {
-  auto settings = *(transceiverInfo.settings());
+  const TcvrState& tcvrState = *can_throw(transceiverInfo.tcvrState());
+  auto settings = *(tcvrState.settings());
   // TODO(ccpowers): This is to support tx signals in both hostSignals (new)
   // and mediaSignals(deprecated). Once more of the fleet has the new flags,
   // we should remove support for the tx flags in mediaLaneSignals
   auto hasNewTxFlags = false;
-  if (auto hostSignals = transceiverInfo.hostLaneSignals()) {
+  if (auto hostSignals = tcvrState.hostLaneSignals()) {
     printHostLaneSignals(*hostSignals);
     hasNewTxFlags = hostSignals->size() > 0 && hostSignals->begin()->txLos();
   }
-  if (auto mediaSignals = transceiverInfo.mediaLaneSignals()) {
+  if (auto mediaSignals = tcvrState.mediaLaneSignals()) {
     printMediaLaneSignals(*mediaSignals, !hasNewTxFlags);
   }
   if (auto hostSettings = settings.hostLaneSettings()) {
@@ -1678,18 +1683,19 @@ void printSff8472DetailService(
     const TransceiverInfo& transceiverInfo,
     unsigned int port,
     bool /* verbose */) {
-  auto settings = *(transceiverInfo.settings());
+  const TcvrState& tcvrState = *can_throw(transceiverInfo.tcvrState());
+  auto settings = *(tcvrState.settings());
 
   printf("Port %d\n", port);
 
   // ------ Module Status -------
   printf("  Module Status:\n");
-  if (auto identifier = transceiverInfo.identifier()) {
+  if (auto identifier = tcvrState.identifier()) {
     printf(
         "    Transceiver Identifier: %s\n",
         apache::thrift::util::enumNameSafe(*identifier).c_str());
   }
-  if (auto stateMachineState = transceiverInfo.stateMachineState()) {
+  if (auto stateMachineState = tcvrState.stateMachineState()) {
     printf(
         "    StateMachine State: %s\n",
         apache::thrift::util::enumNameSafe(*stateMachineState).c_str());
@@ -1722,27 +1728,29 @@ void printSffDetailService(
     const TransceiverInfo& transceiverInfo,
     unsigned int port,
     bool verbose) {
-  auto settings = *(transceiverInfo.settings());
+  const TcvrState& tcvrState = *can_throw(transceiverInfo.tcvrState());
+
+  auto& settings = *(tcvrState.settings());
 
   printf("Port %d\n", port);
 
   // ------ Module Status -------
   printf("  Module Status:\n");
-  if (auto identifier = transceiverInfo.identifier()) {
+  if (auto identifier = tcvrState.identifier()) {
     printf(
         "    Transceiver Identifier: %s\n",
         apache::thrift::util::enumNameSafe(*identifier).c_str());
   }
-  if (auto status = transceiverInfo.status()) {
+  if (auto status = tcvrState.status()) {
     printf("    InterruptL: 0x%02x\n", *(status->interruptL()));
     printf("    Data_Not_Ready: 0x%02x\n", *(status->dataNotReady()));
   }
-  if (auto ext = transceiverInfo.extendedSpecificationComplianceCode()) {
+  if (auto ext = tcvrState.extendedSpecificationComplianceCode()) {
     printf(
         "    Extended Specification Compliance Code: %s\n",
         apache::thrift::util::enumNameSafe(*(ext)).c_str());
   }
-  if (auto stateMachineState = transceiverInfo.stateMachineState()) {
+  if (auto stateMachineState = tcvrState.stateMachineState()) {
     printf(
         "    StateMachine State: %s\n",
         apache::thrift::util::enumNameSafe(*stateMachineState).c_str());
@@ -1759,13 +1767,13 @@ void printSffDetailService(
 
   printVendorInfo(transceiverInfo);
 
-  if (auto cable = transceiverInfo.cable()) {
+  if (auto cable = tcvrState.cable()) {
     printCableInfo(*cable);
   }
-  if (transceiverInfo.eepromCsumValid().has_value()) {
+  if (tcvrState.eepromCsumValid().has_value()) {
     printf(
         "  EEPROM Checksum: %s\n",
-        *transceiverInfo.eepromCsumValid() ? "Valid" : "Invalid");
+        *tcvrState.eepromCsumValid() ? "Valid" : "Invalid");
   }
   printf("  Module Control:\n");
   printf(
@@ -2015,10 +2023,13 @@ void printCmisDetailService(
     const TransceiverInfo& transceiverInfo,
     unsigned int port,
     bool verbose) {
-  auto moduleStatus = transceiverInfo.status();
-  auto channels = *(transceiverInfo.channels());
+  const TcvrState& tcvrState = *can_throw(transceiverInfo.tcvrState());
+  const TcvrStats& tcvrStats = *can_throw(transceiverInfo.tcvrStats());
+
+  auto moduleStatus = tcvrState.status();
+  auto channels = *(tcvrStats.channels());
   printf("Port %d\n", port);
-  auto settings = *(transceiverInfo.settings());
+  auto settings = *(tcvrState.settings());
 
   printManagementInterface(
       transceiverInfo, "  Transceiver Management Interface: %s\n");
@@ -2029,7 +2040,7 @@ void printCmisDetailService(
         apache::thrift::util::enumNameSafe(*(moduleStatus->cmisModuleState()))
             .c_str());
   }
-  if (auto stateMachineState = transceiverInfo.stateMachineState()) {
+  if (auto stateMachineState = tcvrState.stateMachineState()) {
     printf(
         "    StateMachine State: %s\n",
         apache::thrift::util::enumNameSafe(*stateMachineState).c_str());
@@ -2058,7 +2069,7 @@ void printCmisDetailService(
   if (verbose) {
     printVerboseInfo(transceiverInfo);
   }
-  if (transceiverInfo.eepromCsumValid().has_value()) {
+  if (tcvrState.eepromCsumValid().has_value()) {
     printf(
         "  EEPROM Checksum: %s\n",
         *transceiverInfo.eepromCsumValid() ? "Valid" : "Invalid");
@@ -2286,7 +2297,8 @@ void printPortDetailService(
     const TransceiverInfo& transceiverInfo,
     unsigned int port,
     bool verbose) {
-  if (auto mgmtInterface = transceiverInfo.transceiverManagementInterface()) {
+  if (auto mgmtInterface = can_throw(transceiverInfo.tcvrState())
+                               ->transceiverManagementInterface()) {
     if (*mgmtInterface == TransceiverManagementInterface::SFF) {
       printSffDetailService(transceiverInfo, port, verbose);
     } else if (*mgmtInterface == TransceiverManagementInterface::SFF8472) {
