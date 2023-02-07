@@ -31,13 +31,28 @@ namespace facebook::fboss {
 class HwSwitchStateReplayTest : public HwTest {
   std::shared_ptr<SwitchState> getWarmBootState() {
     if (FLAGS_replay_switch_state_file.size()) {
-      std::string warmBootJson;
-      auto ret =
-          folly::readFile(FLAGS_replay_switch_state_file.c_str(), warmBootJson);
+      std::vector<std::byte> bytes;
+      auto ret = folly::readFile(FLAGS_replay_switch_state_file.c_str(), bytes);
       sysCheckError(
           ret,
           "Unable to read switch state from : ",
           FLAGS_replay_switch_state_file);
+      // By default parse switch state as thrift
+      state::WarmbootState thriftState;
+      auto buf = folly::IOBuf::copyBuffer(bytes.data(), bytes.size());
+      apache::thrift::BinaryProtocolReader reader;
+      reader.setInput(buf.get());
+      try {
+        thriftState.read(&reader);
+        return SwitchState::fromThrift(*thriftState.swSwitchState());
+      } catch (const std::exception& e) {
+        XLOG(INFO)
+            << "Failed to parse replay switch state file to thrift. Falling back to json.";
+      }
+
+      // Failed to parse thrift - fall back to JSON.
+      std::string warmBootJson(
+          reinterpret_cast<const char*>(bytes.data()), bytes.size());
       return SwitchState::fromFollyDynamic(
           folly::parseJson(warmBootJson)["swSwitch"]);
     }
