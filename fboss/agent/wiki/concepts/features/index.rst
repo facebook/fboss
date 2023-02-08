@@ -11,3 +11,4 @@
    tunnel_intfs
    watermark_stats
    acls
+   stats
