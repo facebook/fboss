@@ -849,6 +849,12 @@ enum PortType {
   CPU_PORT = 2,
   RECYCLE_PORT = 3,
 }
+
+struct PortNeighbor {
+  1: string remoteSystem;
+  2: string remotePort;
+}
+
 /**
  * Configuration for a single logical port
  */
@@ -995,6 +1001,12 @@ struct Port {
    * Port type to convey type for this port
    */
   27: PortType portType = PortType.INTERFACE_PORT;
+
+  /*
+   * List of neighbors reachable over this link
+   * includes information on remote system and ports
+   */
+  28: list<PortNeighbor> expectedNeighborReachability = [];
 }
 
 enum LacpPortRate {

@@ -133,6 +133,7 @@ struct PortFields {
   //   - interfaceIDs contains single element viz. the interface corresponding
   //     to this port.
   41: list<i32> interfaceIDs;
+  42: list<switch_config.PortNeighbor> expectedNeighborReachability;
 }
 
 struct SystemPortFields {
