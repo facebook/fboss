@@ -10,6 +10,7 @@
 #include "fboss/lib/phy/ExternalPhyPortStatsUtils.h"
 
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include <fb303/ServiceData.h>
 

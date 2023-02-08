@@ -5,6 +5,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/ExternalPhyPortStatsUtils.h"

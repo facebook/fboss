@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include "fboss/agent/Platform.h"
 #include "fboss/agent/gen-cpp2/platform_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/types.h"

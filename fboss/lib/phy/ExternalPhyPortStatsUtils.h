@@ -10,7 +10,6 @@
 #pragma once
 
 #include "common/stats/MonotonicCounter.h"
-#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/lib/phy/ExternalPhy.h"
 
 #include <chrono>
