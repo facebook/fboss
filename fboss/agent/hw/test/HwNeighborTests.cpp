@@ -159,14 +159,13 @@ class HwNeighborTest : public HwLinkStateDependentTest {
     auto ip = NeighborT::getNeighborAddress();
     auto outState{inState->clone()};
     auto neighborTable = getNeighborTable(outState);
-    auto lookupClassValue = lookupClass ? lookupClass.value() : kLookupClass;
     neighborTable->updateEntry(
         ip,
         kNeighborMac,
         portDescriptor(),
         kIntfID(),
         NeighborState::REACHABLE,
-        lookupClassValue);
+        lookupClass);
     return outState;
   }
 
@@ -183,6 +182,7 @@ class HwNeighborTest : public HwLinkStateDependentTest {
      */
     auto gotClassid = utility::getNbrClassId(
         this->getHwSwitch(), kIntfID(), NeighborT::getNeighborAddress());
+    XLOG(INFO) << " GOT CLASSID: " << gotClassid.value();
     EXPECT_TRUE(programToTrunk || classID == gotClassid.value());
   }
 
@@ -223,18 +223,16 @@ TYPED_TEST(HwNeighborTest, ResolvePendingEntry) {
     auto newState = this->resolveNeighbor(state);
     this->applyNewState(newState);
   };
-  auto verify = [this]() {
-    EXPECT_FALSE(this->isProgrammedToCPU());
-    this->verifyClassId(static_cast<int>(this->kLookupClass));
-  };
+  auto verify = [this]() { EXPECT_FALSE(this->isProgrammedToCPU()); };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
 TYPED_TEST(HwNeighborTest, ResolvePendingEntryThenChangeLookupClass) {
   auto setup = [this]() {
     auto state = this->addNeighbor(this->getProgrammedState());
-    auto newState = this->resolveNeighbor(state);
+    auto newState = this->resolveNeighbor(state, this->kLookupClass);
     this->applyNewState(newState);
+    this->verifyClassId(static_cast<int>(this->kLookupClass));
     newState = this->resolveNeighbor(state, this->kLookupClass2);
     this->applyNewState(newState);
   };
@@ -306,7 +304,6 @@ TYPED_TEST(HwNeighborTest, LinkDownOnResolvedEntry) {
       // egress to neighbor entry is not updated on link down
       // if it is not part of ecmp group
       EXPECT_FALSE(this->isProgrammedToCPU());
-      this->verifyClassId(static_cast<int>(this->kLookupClass));
     }
   };
   this->verifyAcrossWarmBoots(setup, verify);
@@ -329,7 +326,6 @@ TYPED_TEST(HwNeighborTest, LinkDownAndUpOnResolvedEntry) {
       // egress to neighbor entry is not updated on link down
       // if it is not part of ecmp group
       EXPECT_FALSE(this->isProgrammedToCPU());
-      this->verifyClassId(static_cast<int>(this->kLookupClass));
     }
   };
 
