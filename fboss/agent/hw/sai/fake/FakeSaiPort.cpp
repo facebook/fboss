@@ -524,8 +524,8 @@ sai_status_t set_port_attribute_fn(
       }
     } break;
     case SAI_PORT_ATTR_PCS_RX_LINK_STATUS: {
-      port.portPcsLinkStatus = static_cast<sai_port_lane_latch_status_list_t>(
-          attr->value.latchstatus);
+      port.portPcsLinkStatus =
+          static_cast<sai_latch_status_t>(attr->value.latchstatus);
     } break;
 #endif
     case SAI_PORT_ATTR_ERR_STATUS_LIST: {
