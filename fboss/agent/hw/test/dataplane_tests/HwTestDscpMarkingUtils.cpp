@@ -160,6 +160,18 @@ void addDscpAclEntryWithCounter(
 
 // Utility to add ICP Marking ACL table to a multi acl table group
 void addDscpAclTable(cfg::SwitchConfig* config, int16_t priority) {
+  std::vector<cfg::AclTableQualifier> qualifiers = {
+      cfg::AclTableQualifier::L4_SRC_PORT,
+      cfg::AclTableQualifier::L4_DST_PORT,
+      cfg::AclTableQualifier::IP_PROTOCOL,
+      cfg::AclTableQualifier::ICMPV4_TYPE,
+      cfg::AclTableQualifier::ICMPV4_CODE,
+      cfg::AclTableQualifier::ICMPV6_TYPE,
+      cfg::AclTableQualifier::ICMPV6_CODE,
+      cfg::AclTableQualifier::DSCP};
+#if defined(TAJO_SDK_VERSION_1_58_0) || defined(TAJO_SDK_VERSION_1_60_0)
+  qualifiers.push_back(cfg::AclTableQualifier::TTL);
+#endif
   utility::addAclTable(
       config,
       getDscpAclTableName(),
@@ -168,14 +180,8 @@ void addDscpAclTable(cfg::SwitchConfig* config, int16_t priority) {
        cfg::AclTableActionType::COUNTER,
        cfg::AclTableActionType::SET_TC,
        cfg::AclTableActionType::SET_DSCP},
-      {cfg::AclTableQualifier::L4_SRC_PORT,
-       cfg::AclTableQualifier::L4_DST_PORT,
-       cfg::AclTableQualifier::IP_PROTOCOL,
-       cfg::AclTableQualifier::ICMPV4_TYPE,
-       cfg::AclTableQualifier::ICMPV4_CODE,
-       cfg::AclTableQualifier::ICMPV6_TYPE,
-       cfg::AclTableQualifier::ICMPV6_CODE,
-       cfg::AclTableQualifier::DSCP});
+      qualifiers);
+
   addDscpAclEntryWithCounter(config, getDscpAclTableName());
 }
 } // namespace facebook::fboss::utility

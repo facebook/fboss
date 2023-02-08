@@ -59,13 +59,17 @@ class SaiAclTableGroupTest : public HwTest {
   }
 
   void addAclTable1(cfg::SwitchConfig& cfg) {
+    std::vector<cfg::AclTableQualifier> qualifiers = {
+        cfg::AclTableQualifier::DSCP};
+    std::vector<cfg::AclTableActionType> actions = {
+        cfg::AclTableActionType::PACKET_ACTION};
+#if defined(TAJO_SDK_VERSION_1_58_0) || defined(TAJO_SDK_VERSION_1_60_0)
+    qualifiers.push_back(cfg::AclTableQualifier::TTL);
+    actions.push_back(cfg::AclTableActionType::COUNTER);
+#endif
     // table1 with dscp matcher ACL entry
     utility::addAclTable(
-        &cfg,
-        kAclTable1(),
-        1 /* priority */,
-        {cfg::AclTableActionType::PACKET_ACTION},
-        {cfg::AclTableQualifier::DSCP});
+        &cfg, kAclTable1(), 1 /* priority */, actions, qualifiers);
   }
 
   void addAclTable2(cfg::SwitchConfig& cfg) {

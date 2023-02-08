@@ -275,14 +275,22 @@ void addQueuePerHostAclEntry(
 
 // Utility to add {L2, neighbor, route}-Acl Table to Multi Acl table group
 void addQueuePerHostAclTables(cfg::SwitchConfig* config, int16_t priority) {
+  std::vector<cfg::AclTableQualifier> qualifiers = {
+      cfg::AclTableQualifier::LOOKUP_CLASS_L2,
+      cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
+      cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE};
+  std::vector<cfg::AclTableActionType> actions = {
+      cfg::AclTableActionType::PACKET_ACTION, cfg::AclTableActionType::SET_TC};
+#if defined(TAJO_SDK_VERSION_1_58_0) || defined(TAJO_SDK_VERSION_1_60_0)
+  qualifiers.push_back(cfg::AclTableQualifier::TTL);
+  actions.push_back(cfg::AclTableActionType::COUNTER);
+#endif
   utility::addAclTable(
       config,
       getQueuePerHostAclTableName(),
       priority, // priority
-      {cfg::AclTableActionType::PACKET_ACTION, cfg::AclTableActionType::SET_TC},
-      {cfg::AclTableQualifier::LOOKUP_CLASS_L2,
-       cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR,
-       cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE});
+      actions,
+      qualifiers);
 
   addQueuePerHostAclEntry(config, getQueuePerHostAclTableName());
 }
