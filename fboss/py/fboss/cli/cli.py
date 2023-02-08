@@ -215,6 +215,7 @@ class LldpCli(object):
         help="Level of verbosity indicated by count, i.e -vvv",
     )
     @click.pass_obj
+    @fboss2_deprecate("show lldp", level=DeprecationLevel.WARN)
     def lldp(cli_opts, port, verbose):
         """Show LLDP neighbors"""
         lldp.LldpCmd(cli_opts).run(port, verbose)
