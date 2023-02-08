@@ -299,9 +299,11 @@ int AgentInitializer::initAgent() {
 }
 
 void AgentInitializer::stopServices() {
+  // stop Thrift server: stop all worker threads and
   // stop accepting new connections
-  server_->stopListening();
-  XLOG(DBG2) << "Stopped thrift server listening";
+  XLOG(DBG2) << "Stopping thrift server";
+  server_->stop();
+  XLOG(DBG2) << "Stopped thrift server";
   initializer_->stopFunctionScheduler();
   XLOG(DBG2) << "Stopped stats FunctionScheduler";
   fbossFinalize();
