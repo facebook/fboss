@@ -56,6 +56,12 @@ MultiPimPlatformPimContainer::PimType MinipackSystemContainer::getPimType(
       return MultiPimPlatformPimContainer::PimType::MINIPACK_16Q;
     case kMinipack16OPimVal:
       return MultiPimPlatformPimContainer::PimType::MINIPACK_16O;
+    case kFacebookFpgaPimTypeBase:
+      throw FbossError(
+          "Error in reading PIM Type from DOM FPGA, register value: ",
+          curPimTypeReg,
+          " for pim:",
+          pim);
     default:
       throw FbossError(
           "Unrecognized pim type with register value:",

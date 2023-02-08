@@ -132,6 +132,10 @@ FbDomFpga::PimType FbDomFpga::getPimType() {
     case static_cast<uint32_t>(FbDomFpga::PimType::MINIPACK_16Q):
     case static_cast<uint32_t>(FbDomFpga::PimType::MINIPACK_16O):
       return static_cast<FbDomFpga::PimType>(curPimTypeReg);
+    case kFacebookFpgaPimTypeBase:
+      throw FbossError(
+          "Error in reading PIM Type from DOM FPGA, register value:",
+          curPimTypeReg);
     default:
       throw FbossError(
           "Unrecognized pim type with register value:", curPimTypeReg);
