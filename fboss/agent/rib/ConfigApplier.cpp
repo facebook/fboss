@@ -9,7 +9,6 @@
  */
 
 #include "fboss/agent/rib/ConfigApplier.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/RouteUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
