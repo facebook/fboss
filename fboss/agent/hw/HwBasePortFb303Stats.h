@@ -34,7 +34,7 @@ class HwBasePortFb303Stats {
     return portName_;
   }
 
-  void portNameChanged(const std::string& newName) {
+  virtual void portNameChanged(const std::string& newName) {
     auto oldPortName = portName_;
     portName_ = newName;
     reinitStats(oldPortName);

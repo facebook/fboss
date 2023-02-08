@@ -116,6 +116,14 @@ TEST(HwSysPortFb303Stats, UpdateStats) {
   verifyUpdatedStats(portStats);
 }
 
+TEST(HwSysPortFb303StatsTest, PortName) {
+  constexpr auto kNewPortName = "eth1/2/1";
+  HwSysPortFb303Stats stats(kPortName, kQueue2Name);
+  EXPECT_EQ(*stats.portStats().portName_(), kPortName);
+  stats.portNameChanged(kNewPortName);
+  EXPECT_EQ(*stats.portStats().portName_(), kNewPortName);
+}
+
 TEST(HwSysPortFb303StatsTest, RenameQueue) {
   HwSysPortFb303Stats stats(kPortName, kQueue2Name);
   stats.queueChanged(1, "platinum");

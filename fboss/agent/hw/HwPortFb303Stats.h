@@ -27,6 +27,7 @@ class HwPortFb303Stats : public HwBasePortFb303Stats {
       const std::string& portName,
       QueueId2Name queueId2Name = {})
       : HwBasePortFb303Stats(portName, queueId2Name) {
+    portStats_.portName_() = portName;
     reinitStats(std::nullopt);
   }
 
@@ -34,6 +35,11 @@ class HwPortFb303Stats : public HwBasePortFb303Stats {
   void updateStats(
       const HwPortStats& latestStats,
       const std::chrono::seconds& retrievedAt);
+
+  virtual void portNameChanged(const std::string& newName) override {
+    portStats_.portName_() = newName;
+    HwBasePortFb303Stats::portNameChanged(newName);
+  }
 
   const HwPortStats& portStats() const {
     return portStats_;
