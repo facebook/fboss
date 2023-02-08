@@ -43,20 +43,23 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchWithMultipleDsfNodesTest.*
 #
 # Basic forwarding tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwLoopBackTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwL4PortBlackHolingTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwJumboFramesTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwLoopBackTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwL4PortBlackHolingTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwJumboFramesTest.*
 # Route programming tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwRouteTest/1.*:-*Mpls*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwRouteTest/1.*:-*Mpls*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwRouteTest/0.*:-*Mpls*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwRouteTest/1.*:-*Mpls*
+# Neighbor programming tests
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwNeighborTest/0.*:-*LookupClass
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwNeighborTest/2.*:-*LookupClass
 # ACL tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwAclCounterTest.*:-*Sport*:*BumpOn*Cpu*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=SaiAclTableRecreateTests.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwAclPriorityTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwAclMatchActionsTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwAclStatTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwAclCounterTest.*:-*Sport*:*BumpOn*Cpu*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=SaiAclTableRecreateTests.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwAclPriorityTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwAclMatchActionsTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwAclStatTest.*
 # Counter Tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON  --filter=HwInDiscardsCounterTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwInDiscardsCounterTest.*
 #
 # All tests matching the following filters pass on w400C in fabric mode
 # Note: For w400c (fabric) mode test runs, suffix --coldboot_only to all tests.
@@ -86,6 +89,9 @@ from argparse import ArgumentParser
 # Route programming tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwAlpmStressTest.*
 # ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=SaiNextHopGroupTest:-*addNextHopGroupPortDown*
+# Neighbor programming tests
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwNeighborTest/0.*:-*LookupClass
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwNeighborTest/2.*:-*LookupClass
 # V4 routes
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwRouteTest/0.*:-*Mpls*:*ClassId*:*ClassID*
 # V6 routes
