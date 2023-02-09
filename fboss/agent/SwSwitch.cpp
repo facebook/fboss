@@ -54,7 +54,6 @@
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TeFlowNexthopHandler.h"
-#include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
