@@ -1,9 +1,9 @@
 /*
  * This file is used to generate class interfaces and implementations for
- * `NeighborUpdater`, `NeighborUpdaterImpl` and `NeighborUpdaterNoopImpl`. Having the definition in a
- * centralized place ensures that these classes are in sync and agree on the
- * argument types being used.
- * This file defines a couple of utility macros, followed by multiple calls to
+ * `NeighborUpdater`, `NeighborUpdaterImpl` and `NeighborUpdaterNoopImpl`.
+ * Having the definition in a centralized place ensures that these classes are
+ * in sync and agree on the argument types being used. This file defines a
+ * couple of utility macros, followed by multiple calls to
  * `NEIGHBOR_UPDATER_METHOD()`. This macro is *not* defined in this file; it's
  * the job of the caller to define a `NEIGHBOR_UPDATER_METHOD()` first, and
  * *then* include this file.
@@ -11,6 +11,8 @@
  * See https://en.wikipedia.org/wiki/X_Macro for a more detailed explanation of
  * this technique.
  */
+
+// clang-format off
 
 #define GET_MACRO(_IGNORED,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,NAME,...) NAME
 

@@ -60,7 +60,7 @@ class NeighborUpdater : public StateObserver {
 
   void stateUpdated(const StateDelta& delta) override;
 
-  // Zero-cost forwarders. See comment in NeighborUpdater.def.
+  // Zero-cost forwarders. See comment in NeighborUpdater-defs.h.
 #define ARG_TEMPLATE_PARAMETER(TYPE, NAME) typename T_##NAME
 #define ARG_RVALUE_REF_TYPE(TYPE, NAME) T_##NAME&& NAME
 #define ARG_FORWARDER(TYPE, NAME) std::forward<T_##NAME>(NAME)
@@ -86,7 +86,7 @@ class NeighborUpdater : public StateObserver {
       return std::visit([&](auto&& arg) { return arg.NAME(); }, *impl);    \
     });                                                                    \
   }
-#include "fboss/agent/NeighborUpdater.def"
+#include "fboss/agent/NeighborUpdater-defs.h"
 #undef NEIGHBOR_UPDATER_METHOD
 
  public:

@@ -36,7 +36,7 @@ class NeighborUpdaterNoopImpl {
 #define ARG_LIST_ENTRY(TYPE, NAME) TYPE NAME
 #define NEIGHBOR_UPDATER_METHOD(VISIBILITY, NAME, RETURN_TYPE, ...) \
   RETURN_TYPE NAME(ARG_LIST(ARG_LIST_ENTRY, ##__VA_ARGS__));
-#include "fboss/agent/NeighborUpdater.def"
+#include "fboss/agent/NeighborUpdater-defs.h"
 #undef NEIGHBOR_UPDATER_METHOD
 
   void portChanged(

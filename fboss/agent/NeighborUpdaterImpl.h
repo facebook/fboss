@@ -63,12 +63,12 @@ class NeighborUpdaterImpl {
   // because only NeighborUpdater should be using this class and that is marked
   // as a friend class anyway.
   //
-  // See comment in NeighborUpdater.def
+  // See comment in NeighborUpdater-defs.h
  private:
 #define ARG_LIST_ENTRY(TYPE, NAME) TYPE NAME
 #define NEIGHBOR_UPDATER_METHOD(VISIBILITY, NAME, RETURN_TYPE, ...) \
   RETURN_TYPE NAME(ARG_LIST(ARG_LIST_ENTRY, ##__VA_ARGS__));
-#include "fboss/agent/NeighborUpdater.def"
+#include "fboss/agent/NeighborUpdater-defs.h"
 #undef NEIGHBOR_UPDATER_METHOD
 
   std::shared_ptr<NeighborCaches> createCaches(
