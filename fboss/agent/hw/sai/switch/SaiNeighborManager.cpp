@@ -267,7 +267,9 @@ PortRifNeighbor::PortRifNeighbor(
     std::optional<sai_uint32_t> metadata,
     std::optional<sai_uint32_t> encapIndex,
     bool isLocal)
-    : manager_(manager), handle_(std::make_unique<SaiNeighborHandle>()) {
+    : manager_(manager),
+      saiPortAndIntf_(saiPortAndIntf),
+      handle_(std::make_unique<SaiNeighborHandle>()) {
   const auto& ip = std::get<folly::IPAddress>(intfIDAndIpAndMac);
   auto rifSaiId = std::get<RouterInterfaceSaiId>(saiPortAndIntf);
   auto adapterHostKey = SaiNeighborTraits::NeighborEntry(
