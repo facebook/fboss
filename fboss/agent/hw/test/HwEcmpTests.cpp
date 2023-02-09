@@ -99,6 +99,25 @@ class HwEcmpTest : public HwLinkStateDependentTest {
   void verifyResolvedUcmp(
       const folly::CIDRNetwork& routePrefix,
       const std::vector<NextHopWeight>& hwWs);
+
+  auto getNdpTable(PortDescriptor port, std::shared_ptr<SwitchState>& state) {
+    auto switchType =
+        getProgrammedState()->getSwitchSettings()->getSwitchType();
+    if (switchType == cfg::SwitchType::NPU) {
+      auto vlanId = ecmpHelper_->getVlan(port, getProgrammedState());
+      return state->getVlans()->getVlan(*vlanId)->getNdpTable()->modify(
+          *vlanId, &state);
+    } else {
+      auto portId = port.phyPortID();
+      InterfaceID intfId(
+          (*state->getPorts()->getPort(portId)->getInterfaceIDs()->begin())
+              ->toThrift());
+      return state->getInterfaces()
+          ->getInterface(intfId)
+          ->getNdpTable()
+          ->modify(intfId, &state);
+    }
+  }
 };
 
 void HwEcmpTest::programResolvedUcmp(
@@ -444,9 +463,7 @@ TEST_F(HwEcmpTest, ResolvePendingResolveNexthop) {
     for (auto i = 0; i < 2; i++) {
       const auto& ecmpNextHop = ecmpHelper_->nhop(i);
       auto port = ecmpNextHop.portDesc;
-      auto vlanId = ecmpHelper_->getVlan(port, getProgrammedState());
-      auto ntable = state0->getVlans()->getVlan(*vlanId)->getNdpTable()->modify(
-          *vlanId, &state0);
+      auto ntable = getNdpTable(port, state0);
       auto entry = ntable->getEntry(ecmpNextHop.ip);
       auto intfId = entry->getIntfID();
       ntable->removeEntry(ecmpNextHop.ip);
@@ -460,10 +477,7 @@ TEST_F(HwEcmpTest, ResolvePendingResolveNexthop) {
     for (auto i = 0; i < 2; i++) {
       const auto& ecmpNextHop = ecmpHelper_->nhop(i);
       auto port = ecmpNextHop.portDesc;
-      auto vlanId = ecmpHelper_->getVlan(port, getProgrammedState());
-      auto ntable = state1->getVlans()->getVlan(*vlanId)->getNdpTable()->modify(
-          *vlanId, &state1);
-
+      auto ntable = getNdpTable(port, state1);
       auto entry = entries[port];
       ntable->updateEntry(NeighborEntryFields<folly::IPAddressV6>::fromThrift(
           entry->toThrift()));
