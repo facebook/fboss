@@ -1653,6 +1653,14 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
         }
       }
       managerTable_->fdbManager().handleLinkDown(SaiPortDescriptor(swPortId));
+      if (getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
+        // On VOQ switches, there are not FDB entries. Rather we only have
+        // L3 ports which in turn are associated with RIFs or type (system)
+        // port. Neighbors then tied to these RIFs. So we need to directly
+        // signal Port RIF neighbors of a corresponding link going down.
+        managerTable_->neighborManager().handleLinkDown(
+            SaiPortDescriptor(swPortId));
+      }
       /*
        * Enable AFE adaptive mode (S249471) on TAJO platforms when a port
        * flaps
