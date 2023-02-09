@@ -379,6 +379,28 @@ void ManagedVlanRifNeighbor::handleLinkDown() {
       .notifyLinkDown(object->adapterHostKey());
 }
 
+void PortRifNeighbor::handleLinkDown() {
+  XLOGF(
+      DBG2,
+      "neighbor {} notifying link down to subscribed next hops",
+      neighbor_->adapterHostKey());
+  SaiObjectEventPublisher::getInstance()
+      ->get<SaiNeighborTraits>()
+      .notifyLinkDown(neighbor_->adapterHostKey());
+}
+
+void SaiNeighborManager::handleLinkDown(const SaiPortDescriptor& port) {
+  CHECK(platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ);
+  for (auto& [nbrEntry, neighbor] : neighbors_) {
+    if (neighbor->getRifType() != cfg::InterfaceType::SYSTEM_PORT) {
+      continue;
+    }
+    if (neighbor->getSaiPortDesc() == port) {
+      neighbor->handleLinkDown();
+    }
+  }
+}
+
 template SaiNeighborTraits::NeighborEntry
 SaiNeighborManager::saiEntryFromSwEntry<NdpEntry>(
     const std::shared_ptr<NdpEntry>& swEntry);

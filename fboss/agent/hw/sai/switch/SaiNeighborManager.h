@@ -99,9 +99,8 @@ class PortRifNeighbor {
       std::optional<sai_uint32_t> encapIndex,
       bool isLocal);
 
-  void handleLinkDown() {
-    // TODO
-  }
+  void handleLinkDown();
+
   SaiNeighborHandle* getHandle() const {
     return handle_.get();
   }
@@ -208,9 +207,7 @@ class SaiNeighborManager {
   std::string listManagedObjects() const;
   SwitchSaiId getSwitchSaiId() const;
 
-  void handleLinkDown(const SaiPortDescriptor& /*port*/) {
-    // TODO
-  }
+  void handleLinkDown(const SaiPortDescriptor& /*port*/);
 
  private:
   SaiNeighborHandle* getNeighborHandleImpl(
