@@ -137,8 +137,7 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
     std::vector<PfcPriority> tmpPfcPriorities;
     PortPgConfigs tmpPgConfigs;
     for (const auto& pgConfig : pgConfigs.value()) {
-      tmpPgConfigs.push_back(
-          std::make_shared<PortPgConfig>(PortPgFields::fromThrift(pgConfig)));
+      tmpPgConfigs.push_back(std::make_shared<PortPgConfig>(pgConfig));
       tmpPfcPriorities.push_back(static_cast<PfcPriority>(*pgConfig.id()));
     }
     port.pgConfigs = tmpPgConfigs;

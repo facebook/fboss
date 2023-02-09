@@ -428,15 +428,15 @@ void BcmPortIngressBufferManager::programIngressBuffers(
 }
 
 const PortPgConfig& getDefaultPriorityGroupSettings() {
-  static const PortPgConfig portPgConfig{PortPgFields{
-      kDefaultPortPgId,
-      utility::bcmAlphaToCfgAlpha(kDefaultPgAlpha),
-      std::nullopt,
-      kDefaultMinLimitBytes,
-      kDefaultHeadroomLimitBytes,
-      kdefaultResumeOffsetBytes,
-      "",
-  }};
+  static const PortPgConfig portPgConfig{PortPgConfig::makeThrift(
+      kDefaultPortPgId, // id
+      utility::bcmAlphaToCfgAlpha(kDefaultPgAlpha), // scaling factor
+      std::nullopt, // name
+      kDefaultMinLimitBytes, // minLimitBytes
+      kDefaultHeadroomLimitBytes, // headroomLimitBytes
+      kdefaultResumeOffsetBytes, // resumeOffsetBytes
+      "" // bufferPoolName
+      )};
   return portPgConfig;
 }
 

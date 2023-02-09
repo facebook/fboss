@@ -81,6 +81,6 @@ PortPgFields PortPgFields::fromThrift(state::PortPgFields const& portPgThrift) {
   return portPg;
 }
 
-template class NodeBaseT<PortPgConfig, PortPgFields>;
+template class ThriftStructNode<PortPgConfig, state::PortPgFields>;
 
 } // namespace facebook::fboss

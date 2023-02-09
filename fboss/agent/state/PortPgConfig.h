@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "Thrifty.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
@@ -62,95 +63,142 @@ struct PortPgFields : public ThriftyFields<PortPgFields, state::PortPgFields> {
   std::optional<BufferPoolCfgPtr> bufferPoolConfigPtr;
 };
 
+USE_THRIFT_COW(PortPgConfig);
+RESOLVE_STRUCT_MEMBER(
+    PortPgConfig,
+    switch_state_tags::bufferPoolConfig,
+    BufferPoolCfg);
+
 /*
  * PortPgConfig defines the behaviour of the per port queues
  */
 class PortPgConfig
-    : public ThriftyBaseT<state::PortPgFields, PortPgConfig, PortPgFields> {
+    : public ThriftStructNode<PortPgConfig, state::PortPgFields> {
  public:
+  using BaseT = ThriftStructNode<PortPgConfig, state::PortPgFields>;
   explicit PortPgConfig(uint8_t id) {
-    writableFields()->id = id;
-  }
-
-  bool operator==(const PortPgConfig& portPg) const {
-    return getFields()->id == portPg.getID() &&
-        getFields()->minLimitBytes == portPg.getMinLimitBytes() &&
-        getFields()->scalingFactor == portPg.getScalingFactor() &&
-        getFields()->name == portPg.getName() &&
-        getFields()->headroomLimitBytes == portPg.getHeadroomLimitBytes() &&
-        getFields()->resumeOffsetBytes == portPg.getResumeOffsetBytes() &&
-        getFields()->bufferPoolName == portPg.getBufferPoolName();
-  }
-  bool operator!=(const PortPgConfig& portPg) const {
-    return !(*this == portPg);
+    set<switch_state_tags::id>(id);
   }
 
   // std::string toString() const;
 
   uint8_t getID() const {
-    return getFields()->id;
+    return safe_cref<switch_state_tags::id>()->toThrift();
   }
 
   int getMinLimitBytes() const {
-    return getFields()->minLimitBytes;
+    return safe_cref<switch_state_tags::minLimitBytes>()->toThrift();
   }
 
   void setMinLimitBytes(int minLimitBytes) {
-    writableFields()->minLimitBytes = minLimitBytes;
+    ref<switch_state_tags::minLimitBytes>() = minLimitBytes;
   }
 
   std::optional<cfg::MMUScalingFactor> getScalingFactor() const {
-    return getFields()->scalingFactor;
+    if (auto scalingFactor = safe_cref<switch_state_tags::scalingFactor>()) {
+      cfg::MMUScalingFactor cfgMMUScalingFactor{};
+      apache::thrift::util::tryParseEnum(
+          scalingFactor->toThrift(), &cfgMMUScalingFactor);
+      return cfgMMUScalingFactor;
+    }
+    return std::nullopt;
   }
 
   void setScalingFactor(cfg::MMUScalingFactor scalingFactor) {
-    writableFields()->scalingFactor = scalingFactor;
+    set<switch_state_tags::scalingFactor>(
+        apache::thrift::util::enumName(scalingFactor));
   }
 
   std::optional<std::string> getName() const {
-    return getFields()->name;
+    if (auto name = safe_cref<switch_state_tags::name>()) {
+      return name->toThrift();
+    }
+    return std::nullopt;
   }
 
   void setName(const std::string& name) {
-    writableFields()->name = name;
+    set<switch_state_tags::name>(name);
   }
 
   std::optional<int> getHeadroomLimitBytes() const {
-    return getFields()->headroomLimitBytes;
+    if (auto headroomLimitBytes =
+            safe_cref<switch_state_tags::headroomLimitBytes>()) {
+      return headroomLimitBytes->toThrift();
+    }
+    return std::nullopt;
   }
 
   void setHeadroomLimitBytes(int headroomLimitBytes) {
-    writableFields()->headroomLimitBytes = headroomLimitBytes;
+    set<switch_state_tags::headroomLimitBytes>(headroomLimitBytes);
   }
 
   std::optional<int> getResumeOffsetBytes() const {
-    return getFields()->resumeOffsetBytes;
+    if (auto resumeOffsetBytes =
+            safe_cref<switch_state_tags::resumeOffsetBytes>()) {
+      return resumeOffsetBytes->toThrift();
+    }
+    return std::nullopt;
   }
 
   void setResumeOffsetBytes(int resumeOffsetBytes) {
-    writableFields()->resumeOffsetBytes = resumeOffsetBytes;
+    set<switch_state_tags::resumeOffsetBytes>(resumeOffsetBytes);
   }
 
   std::string getBufferPoolName() const {
-    return getFields()->bufferPoolName;
+    return safe_cref<switch_state_tags::bufferPoolName>()->toThrift();
   }
 
   void setBufferPoolName(const std::string& name) {
-    writableFields()->bufferPoolName = name;
+    ref<switch_state_tags::bufferPoolName>() = name;
   }
 
   std::optional<BufferPoolCfgPtr> getBufferPoolConfig() const {
-    return getFields()->bufferPoolConfigPtr;
+    if (auto bufferPoolConfigPtr =
+            safe_cref<switch_state_tags::bufferPoolConfig>()) {
+      return bufferPoolConfigPtr;
+    }
+    return std::nullopt;
   }
 
   void setBufferPoolConfig(BufferPoolCfgPtr bufferPoolConfigPtr) {
-    writableFields()->bufferPoolConfigPtr = bufferPoolConfigPtr;
+    ref<switch_state_tags::bufferPoolConfig>() = bufferPoolConfigPtr;
+  }
+
+  static state::PortPgFields makeThrift(
+      uint8_t id,
+      std::optional<cfg::MMUScalingFactor> scalingFactor,
+      const std::optional<std::string>& name,
+      int minLimitBytes,
+      std::optional<int> headroomLimitBytes,
+      std::optional<int> resumeOffsetBytes,
+      const std::string& bufferPoolName,
+      const std::optional<state::BufferPoolFields>& bufferPoolConfig =
+          std::nullopt) {
+    state::PortPgFields obj{};
+    obj.id() = id;
+    if (scalingFactor) {
+      obj.scalingFactor() = apache::thrift::util::enumName(*scalingFactor);
+    }
+    if (name) {
+      obj.name() = *name;
+    }
+    obj.minLimitBytes() = minLimitBytes;
+    if (headroomLimitBytes) {
+      obj.headroomLimitBytes() = *headroomLimitBytes;
+    }
+    if (resumeOffsetBytes) {
+      obj.resumeOffsetBytes() = *resumeOffsetBytes;
+    }
+    obj.bufferPoolName() = bufferPoolName;
+    if (bufferPoolConfig) {
+      obj.bufferPoolConfig() = *bufferPoolConfig;
+    }
+    return obj;
   }
 
  private:
   // Inherit the constructors required for clone()
-  using ThriftyBaseT<state::PortPgFields, PortPgConfig, PortPgFields>::
-      ThriftyBaseT;
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 
