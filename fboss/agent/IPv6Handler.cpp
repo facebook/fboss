@@ -134,16 +134,12 @@ void IPv6Handler::handlePacket(
     MacAddress dst,
     MacAddress src,
     Cursor cursor) {
-  auto vlanID = pkt->getSrcVlanIf();
-  auto vlanIDStr = vlanID.has_value()
-      ? folly::to<std::string>(static_cast<int>(vlanID.value()))
-      : "None";
   const uint32_t l3Len = pkt->getLength() - (cursor - Cursor(pkt->buf()));
   IPv6Hdr ipv6(cursor); // note: advances our cursor object
   XLOG(DBG4) << "IPv6 (" << l3Len
              << " bytes)"
                 " port: "
-             << pkt->getSrcPort() << " vlan: " << vlanIDStr
+             << pkt->getSrcPort() << " vlan: " << pkt->getSrcVlan()
              << " src: " << ipv6.srcAddr.str() << " (" << src << ")"
              << " dst: " << ipv6.dstAddr.str() << " (" << dst << ")"
              << " nextHeader: " << static_cast<int>(ipv6.nextHeader);
@@ -192,13 +188,11 @@ void IPv6Handler::handlePacket(
     // Forward multicast packet directly to corresponding host interface
     // and let Linux handle it. In software we consume ICMPv6 Multicast
     // packets for function of NDP protocol, rest all are forwarded to host.
-    auto intfID = sw_->getInterfaceIDForPort(port);
-    intf = state->getInterfaces()->getInterfaceIf(intfID);
+    intf = interfaceMap->getInterfaceInVlanIf(pkt->getSrcVlan());
   } else if (ipv6.dstAddr.isLinkLocal()) {
     // Forward link-local packet directly to corresponding host interface
     // provided desAddr is assigned to that interface.
-    auto intfID = sw_->getInterfaceIDForPort(port);
-    intf = state->getInterfaces()->getInterfaceIf(intfID);
+    intf = interfaceMap->getInterfaceInVlanIf(pkt->getSrcVlan());
     if (intf && !(intf->hasAddress(ipv6.dstAddr))) {
       intf = nullptr;
     }
@@ -217,7 +211,8 @@ void IPv6Handler::handlePacket(
     sw_->portStats(port)->ipv6HopExceeded();
     // Look up cpu mac from platform
     MacAddress cpuMac = sw_->getPlatform()->getLocalMac();
-    sendICMPv6TimeExceeded(port, vlanID, cpuMac, cpuMac, ipv6, cursor);
+    sendICMPv6TimeExceeded(
+        port, pkt->getSrcVlan(), cpuMac, cpuMac, ipv6, cursor);
     return;
   }
 
@@ -556,7 +551,7 @@ void IPv6Handler::handleNeighborAdvertisement(
 
 void IPv6Handler::sendICMPv6TimeExceeded(
     PortID srcPort,
-    std::optional<VlanID> srcVlan,
+    VlanID srcVlan,
     MacAddress dst,
     MacAddress src,
     IPv6Hdr& v6Hdr,
@@ -601,12 +596,8 @@ void IPv6Handler::sendICMPv6TimeExceeded(
       ICMPv6Code::ICMPV6_CODE_TIME_EXCEEDED_HOPLIMIT_EXCEEDED,
       icmpPayloadLength,
       serializeBody);
-
-  auto srcVlanStr = srcVlan.has_value()
-      ? folly::to<std::string>(static_cast<int>(srcVlan.value()))
-      : "None";
   XLOG(DBG4) << "sending ICMPv6 Time Exceeded with srcMac  " << src
-             << " dstMac: " << dst << " vlan: " << srcVlanStr
+             << " dstMac: " << dst << " vlan: " << srcVlan
              << " dstIp: " << v6Hdr.srcAddr.str() << " srcIP: " << srcIp.str()
              << " bodyLength: " << icmpPayloadLength;
   sw_->sendPacketSwitchedAsync(std::move(icmpPkt));
@@ -614,7 +605,7 @@ void IPv6Handler::sendICMPv6TimeExceeded(
 
 void IPv6Handler::sendICMPv6PacketTooBig(
     PortID srcPort,
-    std::optional<VlanID> srcVlan,
+    VlanID srcVlan,
     folly::MacAddress dst,
     folly::MacAddress src,
     IPv6Hdr& v6Hdr,
@@ -653,11 +644,8 @@ void IPv6Handler::sendICMPv6PacketTooBig(
       bodyLength,
       serializeBody);
 
-  auto srcVlanStr = srcVlan.has_value()
-      ? folly::to<std::string>(static_cast<int>(srcVlan.value()))
-      : "None";
   XLOG(DBG4) << "sending ICMPv6 Packet Too Big with srcMac  " << src
-             << " dstMac: " << dst << " vlan: " << srcVlanStr
+             << " dstMac: " << dst << " vlan: " << srcVlan
              << " dstIp: " << v6Hdr.srcAddr.str() << " srcIP: " << srcIp.str()
              << " bodyLength: " << bodyLength;
   sw_->sendPacketSwitchedAsync(std::move(icmpPkt));

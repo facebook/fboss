@@ -117,7 +117,7 @@ class IPv6Handler : public StateObserver {
 
   void sendICMPv6TimeExceeded(
       PortID srcPort,
-      std::optional<VlanID> srcVlan,
+      VlanID srcVlan,
       folly::MacAddress dst,
       folly::MacAddress src,
       IPv6Hdr& v6Hdr,
@@ -125,7 +125,7 @@ class IPv6Handler : public StateObserver {
 
   void sendICMPv6PacketTooBig(
       PortID srcPort,
-      std::optional<VlanID> srcVlan,
+      VlanID srcVlan,
       folly::MacAddress dst,
       folly::MacAddress src,
       IPv6Hdr& v6Hdr,
