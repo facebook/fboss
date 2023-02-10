@@ -7,9 +7,11 @@
 #include <fboss/agent/gen-cpp2/switch_config_types.h>
 #include <fboss/agent/hw/bcm/gen-cpp2/bcm_config_types.h>
 #include <functional>
+#include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Main.h"
 
 #include "fboss/agent/test/RouteDistributionGenerator.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
 
 DECLARE_string(config);
 DECLARE_bool(setup_for_warmboot);
@@ -20,7 +22,7 @@ using AgentEnsembleSwitchConfigFn = std::function<
     cfg::SwitchConfig(HwSwitch* hwSwitch, const std::vector<PortID>&)>;
 using AgentEnsemblePlatformConfigFn = std::function<void(cfg::PlatformConfig&)>;
 
-class AgentEnsemble {
+class AgentEnsemble : public TestEnsembleIf {
  public:
   AgentEnsemble() {}
   explicit AgentEnsemble(const std::string& configFileName);
@@ -37,7 +39,7 @@ class AgentEnsemble {
 
   void startAgent();
 
-  void applyNewConfig(cfg::SwitchConfig& config, bool activate = true);
+  void applyNewConfig(const cfg::SwitchConfig& config, bool activate);
 
   const AgentInitializer* agentInitializer() const {
     return &agentInitializer_;
@@ -51,6 +53,20 @@ class AgentEnsemble {
     return agentInitializer_.sw();
   }
 
+  std::shared_ptr<SwitchState> getProgrammedState() const override {
+    return getSw()->getState();
+  }
+
+  void applyInitialConfig(const cfg::SwitchConfig& /* config */) override {
+    throw FbossError("Not Implement");
+  }
+
+  std::shared_ptr<SwitchState> applyNewConfig(
+      const cfg::SwitchConfig& config) override {
+    applyNewConfig(config, true);
+    return getProgrammedState();
+  }
+
   Platform* getPlatform() const {
     return agentInitializer_.platform();
   }
@@ -60,8 +76,8 @@ class AgentEnsemble {
   }
 
   std::shared_ptr<SwitchState> applyNewState(
-      const std::shared_ptr<SwitchState>& state,
-      bool transaction = false);
+      std::shared_ptr<SwitchState> state,
+      bool transaction = false) override;
 
   const std::vector<PortID>& masterLogicalPortIds() const;
 
@@ -82,6 +98,31 @@ class AgentEnsemble {
   static void enableExactMatch(bcm::BcmConfig& config);
 
   static std::string getInputConfigFile();
+
+  void packetReceived(std::unique_ptr<RxPacket> /*pkt*/) noexcept override {}
+
+  void linkStateChanged(
+      PortID /*port*/,
+      bool /*up*/,
+      std::optional<phy::LinkFaultStatus> /*iPhyFaultStatus*/ =
+          std::nullopt) override {}
+
+  void l2LearningUpdateReceived(
+      L2Entry /* l2Entry */,
+      L2EntryUpdateType /*l2EntryUpdateType*/) override {}
+
+  void exitFatal() const noexcept override {}
+
+  void pfcWatchdogStateChanged(const PortID& /*port*/, const bool /*deadlock*/)
+      override {}
+
+  HwSwitch* getHwSwitch() override {
+    return getHw();
+  }
+
+  const HwSwitch* getHwSwitch() const override {
+    return getHw();
+  }
 
  private:
   void writeConfig(const cfg::SwitchConfig& config);

@@ -125,7 +125,9 @@ AgentEnsemble::~AgentEnsemble() {
   initializer->stopAgent(false);
 }
 
-void AgentEnsemble::applyNewConfig(cfg::SwitchConfig& config, bool activate) {
+void AgentEnsemble::applyNewConfig(
+    const cfg::SwitchConfig& config,
+    bool activate) {
   writeConfig(config);
   if (activate) {
     getSw()->applyConfig("applying new config", config);
@@ -175,7 +177,7 @@ void AgentEnsemble::gracefulExit() {
 }
 
 std::shared_ptr<SwitchState> AgentEnsemble::applyNewState(
-    const std::shared_ptr<SwitchState>& state,
+    std::shared_ptr<SwitchState> state,
     bool transaction) {
   if (!state) {
     return getSw()->getState();
