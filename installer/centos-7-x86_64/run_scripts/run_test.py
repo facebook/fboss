@@ -41,7 +41,8 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchTest.*:-*sendPacketCpu*:*trapPktsOnPort*:*AclQualifier*
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.*
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchWithMultipleDsfNodesTest.*
-#
+# ECMP Tests
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwEcmpTest.*
 # Basic forwarding tests
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwLoopBackTest.*
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwL4PortBlackHolingTest.*
@@ -79,6 +80,8 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwL4PortBlackHolingTest.*
 # Counter tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwInPauseDiscardsCounterTest.*
+# ECMP Tests
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwEcmpTest.*:-*Ucmp*
 # Load Balancer Tests
 # UCMP support lacking in DNX
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV4.*:-*Ucmp*:-*Shrink*
