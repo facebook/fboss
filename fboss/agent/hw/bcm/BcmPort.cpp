@@ -1641,6 +1641,10 @@ void BcmPort::updatePortPfcStats(
     }
   }
 
+  // out pfc collection
+  updateStat(
+      now, kOutPfc(), snmpBcmTxPFCControlFrame, &(*portStats.outPfcCtrl_()));
+
   /*
    * PFC count will be subtracted from the discards to compute the actual
    * discards Read discards first followed by PFC count. This will ensure that
