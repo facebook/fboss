@@ -15,7 +15,7 @@ bool MarvelPhyAsic::isSupported(Feature feature) const {
       return true;
     // TODO(rajank):
     // Enable PHY Warmboot once tested
-    case HwAsic::Feature::XPHY_SAI_WARMBOOT:
+    case HwAsic::Feature::WARMBOOT:
       return false;
     default:
       return false;

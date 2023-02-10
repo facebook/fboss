@@ -71,6 +71,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
       return true;
     // VOQ vs NPU mode dependent features
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
+    case HwAsic::Feature::WARMBOOT:
       return getSwitchType() == cfg::SwitchType::NPU;
     case HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE:
       return getSwitchType() == cfg::SwitchType::VOQ;
@@ -126,7 +127,6 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::FABRIC_TX_QUEUES:
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
-    case HwAsic::Feature::XPHY_SAI_WARMBOOT:
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::DLB:
       return false;

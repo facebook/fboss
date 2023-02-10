@@ -1097,7 +1097,7 @@ void SaiPhyManager::gracefulExit() {
     for (auto& platformItr : pimPlatform) {
       GlobalXphyID xphyID = platformItr.first;
       if (!getSaiPlatform(xphyID)->getAsic()->isSupported(
-              HwAsic::Feature::XPHY_SAI_WARMBOOT)) {
+              HwAsic::Feature::WARMBOOT)) {
         XLOG(DBG3) << "gracefulExit: Warmboot not supported for this platform";
         return;
       }
