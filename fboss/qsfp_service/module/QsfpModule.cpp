@@ -646,10 +646,10 @@ bool QsfpModule::shouldRemediateLocked() {
   // `FLAGS_remediate_interval`, instead we just need to wait for
   // `FLAGS_initial_remediate_interval`. (D26014510)
   bool remediationCooled = false;
-  if (lastDownTime_ > lastRemediateTime_) {
-    // New lastDownTime_ means the port just recently went down
-    remediationCooled =
-        (now - lastDownTime_) > FLAGS_initial_remediate_interval;
+  auto lastDownTime = lastDownTime_.load();
+  if (lastDownTime > lastRemediateTime_) {
+    // New lastDownTime means the port just recently went down
+    remediationCooled = (now - lastDownTime) > FLAGS_initial_remediate_interval;
   } else {
     remediationCooled = (now - lastRemediateTime_) > FLAGS_remediate_interval;
   }
@@ -948,7 +948,7 @@ bool QsfpModule::tryRemediateLocked() {
 }
 
 void QsfpModule::markLastDownTime() {
-  lastDownTime_ = std::time(nullptr);
+  lastDownTime_.store(std::time(nullptr));
 }
 
 /*

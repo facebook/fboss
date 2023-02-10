@@ -217,7 +217,7 @@ class QsfpModule : public Transceiver {
   void markLastDownTime() override;
 
   time_t getLastDownTime() const override {
-    return lastDownTime_;
+    return lastDownTime_.load();
   }
 
   phy::PrbsStats getPortPrbsStats(phy::Side side) override {
@@ -268,7 +268,7 @@ class QsfpModule : public Transceiver {
   time_t lastRemediateTime_{0};
 
   // last time we know that no port was up on this transceiver.
-  time_t lastDownTime_{0};
+  std::atomic<time_t> lastDownTime_{0};
 
   // Diagnostic capabilities of the module
   folly::Synchronized<std::optional<DiagsCapability>> diagsCapability_;
