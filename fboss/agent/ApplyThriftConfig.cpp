@@ -859,7 +859,8 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
       addresses.insert(network);
       state::NeighborEntryFields neighbor;
       neighbor.ipaddress() = network.first.str();
-      neighbor.mac() = node->getMac().toString();
+      CHECK(node->getMac().has_value());
+      neighbor.mac() = node->getMac()->toString();
       neighbor.portId()->portType() = cfg::PortDescriptorType::SystemPort;
       neighbor.portId()->portId() = recyclePortId;
       neighbor.interfaceId() = recyclePortId;
@@ -910,12 +911,13 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     auto sysPorts = new_->getRemoteSystemPorts()->clone();
     sysPorts->addNode(sysPort);
     new_->resetRemoteSystemPorts(sysPorts);
+    CHECK(node->getMac().has_value());
     auto intf = std::make_shared<Interface>(
         InterfaceID(recyclePortId),
         RouterID(0),
         std::optional<VlanID>(std::nullopt),
         folly::StringPiece(sysPort->getPortName()),
-        node->getMac(),
+        *node->getMac(),
         9000,
         true,
         true,
