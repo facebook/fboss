@@ -13,7 +13,6 @@
 #include <gmock/gmock.h>
 
 #include "fboss/agent/hw/mock/MockRxPacket.h"
-#include "fboss/agent/test/TestUtils.h"
 
 namespace facebook::fboss {
 
