@@ -832,6 +832,14 @@ TEST(Port, portSerilization) {
   port->setExpectedLLDPValues(lldpMap);
   EXPECT_EQ(port->getLLDPValidations().size(), 1);
 
+  // expected Neighbor reachability values
+  EXPECT_TRUE(port->getExpectedNeighborValues()->empty());
+  cfg::PortNeighbor nbr;
+  nbr.remoteSystem() = "RemoteA";
+  nbr.remotePort() = "portA";
+  port->setExpectedNeighborReachability({nbr});
+  EXPECT_EQ(port->getExpectedNeighborValues()->size(), 1);
+
   // RxSaks
   EXPECT_TRUE(
       port->cref<switch_state_tags::rxSecureAssociationKeys>()->empty());
@@ -929,5 +937,29 @@ TEST(Port, verifyInterfaceIDsForVoqSwitches) {
       auto gotIntfID = static_cast<int>(intfID->cref());
       EXPECT_EQ(expectedIntfID, gotIntfID);
     }
+  }
+}
+
+TEST(Port, verifyNeighborReachability) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = testConfigA(cfg::SwitchType::VOQ);
+
+  cfg::PortNeighbor nbr;
+  nbr.remoteSystem() = "RemoteA";
+  nbr.remotePort() = "portA";
+
+  config.ports()[0].expectedNeighborReachability() = {nbr};
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+
+  for (const auto& nbrIter : *(stateV1->getPorts()
+                                   ->getPortIf(PortID(1))
+                                   ->getExpectedNeighborValues())) {
+    EXPECT_EQ(
+        nbrIter->cref<switch_config_tags::remoteSystem>()->toThrift(),
+        "RemoteA");
+    EXPECT_EQ(
+        nbrIter->cref<switch_config_tags::remotePort>()->toThrift(), "portA");
   }
 }
