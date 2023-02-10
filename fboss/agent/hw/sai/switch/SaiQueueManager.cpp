@@ -406,7 +406,8 @@ void SaiQueueManager::updateStats(
     queueHandle->queue->updateStats(
         nonWatermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
     if (updateWatermarks) {
-      // TODO collect watermarks on VOQ
+      queueHandle->queue->updateStats(
+          watermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
     }
     const auto& counters = queueHandle->queue->getStats();
     auto queueId = SaiApiTable::getInstance()->queueApi().getAttribute(
