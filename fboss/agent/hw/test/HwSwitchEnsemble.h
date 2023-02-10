@@ -17,6 +17,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/tests/utils/TestPlatformTypes.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/types.h"
 
 #include <folly/Synchronized.h>
@@ -39,7 +40,7 @@ class Platform;
 class SwitchState;
 class HwLinkStateToggler;
 
-class HwSwitchEnsemble : public HwSwitch::Callback {
+class HwSwitchEnsemble : public TestEnsembleIf {
  public:
   class HwSwitchEventObserverIf {
    public:
@@ -91,17 +92,18 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   ~HwSwitchEnsemble() override;
   std::shared_ptr<SwitchState> applyNewState(
       std::shared_ptr<SwitchState> newState,
-      bool rollbackOnHwOverflow = false) {
+      bool rollbackOnHwOverflow = false) override {
     return applyNewStateImpl(newState, false, rollbackOnHwOverflow);
   }
   std::shared_ptr<SwitchState> applyNewStateTransaction(
       std::shared_ptr<SwitchState> newState) {
     return applyNewStateImpl(newState, true);
   }
-  void applyInitialConfig(const cfg::SwitchConfig& cfg);
-  std::shared_ptr<SwitchState> applyNewConfig(const cfg::SwitchConfig& config);
+  void applyInitialConfig(const cfg::SwitchConfig& cfg) override;
+  std::shared_ptr<SwitchState> applyNewConfig(
+      const cfg::SwitchConfig& config) override;
 
-  std::shared_ptr<SwitchState> getProgrammedState() const;
+  std::shared_ptr<SwitchState> getProgrammedState() const override;
   HwLinkStateToggler* getLinkToggler() {
     return linkToggler_.get();
   }
@@ -114,8 +116,8 @@ class HwSwitchEnsemble : public HwSwitch::Callback {
   virtual const Platform* getPlatform() const {
     return platform_.get();
   }
-  virtual HwSwitch* getHwSwitch();
-  virtual const HwSwitch* getHwSwitch() const {
+  HwSwitch* getHwSwitch() override;
+  const HwSwitch* getHwSwitch() const override {
     return const_cast<HwSwitchEnsemble*>(this)->getHwSwitch();
   }
   const HwAsic* getAsic() const {
