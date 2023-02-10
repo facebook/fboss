@@ -16,7 +16,6 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/platforms/wedge/WedgePlatformInit.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/MultiNodeTest.h"

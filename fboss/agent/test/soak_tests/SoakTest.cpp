@@ -3,7 +3,6 @@
 #include <gflags/gflags.h>
 #include <chrono>
 
-#include "fboss/agent/platforms/wedge/WedgePlatformInit.h"
 #include "fboss/agent/test/soak_tests/SoakTest.h"
 
 DEFINE_int32(soak_loops, -1, "Number of soak test loops to run");

@@ -11,7 +11,6 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
-#include "fboss/agent/platforms/wedge/WedgePlatformInit.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/SwitchState.h"

@@ -19,7 +19,6 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
-#include "fboss/agent/platforms/wedge/WedgePlatformInit.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteNextHop.h"
