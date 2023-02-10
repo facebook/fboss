@@ -9,7 +9,6 @@
  */
 #pragma once
 #include <fboss/agent/hw/test/HwSwitchEnsemble.h>
-#include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/types.h"

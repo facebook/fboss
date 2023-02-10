@@ -12,7 +12,6 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
-#include "fboss/agent/hw/test/TrafficPolicyUtils.h"
 
 #include <folly/logging/xlog.h>
 
