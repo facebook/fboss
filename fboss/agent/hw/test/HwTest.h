@@ -133,7 +133,7 @@ class HwTest : public ::testing::Test,
       logStage("verifyPostWarmboot()");
       verifyPostWarmboot();
     }
-    if (FLAGS_setup_for_warmboot) {
+    if (FLAGS_setup_for_warmboot && isSupported(HwAsic::Feature::WARMBOOT)) {
       logStage("tearDownSwitchEnsemble() for warmboot");
       tearDownSwitchEnsemble(true);
     }

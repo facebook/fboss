@@ -72,4 +72,12 @@ uint32_t HwSwitch::generateDeterministicSeed(LoadBalancerID loadBalancerID) {
   return generateDeterministicSeed(
       loadBalancerID, getPlatform()->getLocalMac());
 }
+
+void HwSwitch::gracefulExit(
+    folly::dynamic& follySwitchState,
+    state::WarmbootState& thriftSwitchState) {
+  if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::WARMBOOT)) {
+    gracefulExitImpl(follySwitchState, thriftSwitchState);
+  }
+}
 } // namespace facebook::fboss

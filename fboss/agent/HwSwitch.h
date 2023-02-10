@@ -275,9 +275,7 @@ class HwSwitch {
    */
   void gracefulExit(
       folly::dynamic& follySwitchState,
-      state::WarmbootState& thriftSwitchState) {
-    gracefulExitImpl(follySwitchState, thriftSwitchState);
-  }
+      state::WarmbootState& thriftSwitchState);
 
   /*
    * Get Hw Switch state in a folly::dynamic
