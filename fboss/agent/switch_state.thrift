@@ -565,6 +565,7 @@ struct SwitchState {
   32: optional QosPolicyFields defaultDataPlaneQosPolicy;
   33: map<i64, switch_config.DsfNode> dsfNodes;
   34: switch_config.UdfConfig udfConfig;
+  35: optional switch_config.FlowletSwitchingConfig flowletSwitchingConfig;
   // Remote objects
   500: map<i64, SystemPortFields> remoteSystemPortMap;
   501: map<i32, InterfaceFields> remoteInterfaceMap;
