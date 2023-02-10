@@ -255,4 +255,9 @@ bool isHwRoutePresent(
   return isRoutePresent(bcmSwitch->getUnit(), rid, cidrNetwork);
 }
 
+bool isRouteCounterSupported(const HwSwitch* hwSwitch) {
+  return hwSwitch->getPlatform()->getAsic()->isSupported(
+      HwAsic::Feature::ROUTE_COUNTERS);
+}
+
 } // namespace facebook::fboss::utility

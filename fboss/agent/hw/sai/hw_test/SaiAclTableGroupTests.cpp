@@ -55,7 +55,12 @@ class SaiAclTableGroupTest : public HwTest {
   }
 
   bool isSupported() const {
-    return HwTest::isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES);
+    bool multipleAclTableSupport =
+        HwTest::isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES);
+#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+    multipleAclTableSupport = false;
+#endif
+    return multipleAclTableSupport;
   }
 
   void addAclTable1(cfg::SwitchConfig& cfg) {

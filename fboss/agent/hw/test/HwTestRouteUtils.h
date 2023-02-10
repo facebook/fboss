@@ -59,4 +59,6 @@ bool isHwRoutePresent(
     RouterID rid,
     const folly::CIDRNetwork& cidrNetwork);
 
+bool isRouteCounterSupported(const HwSwitch* hwSwitch);
+
 } // namespace facebook::fboss::utility

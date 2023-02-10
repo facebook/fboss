@@ -99,8 +99,10 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
     }
     if (platform_->getAsic()->isSupported(
             HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER)) {
+#if !defined(TAJO_SDK_VERSION_1_42_1) && !defined(TAJO_SDK_VERSION_1_42_8)
       counterIds.emplace_back(managerTable_->debugCounterManager()
                                   .getMPLSLookupFailedCounterStatId());
+#endif
     }
     if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
       counterIds.reserve(

@@ -331,7 +331,12 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
   }
 
   void verifyMultipleAclTablesHelper(bool frontPanel) {
-    ASSERT_TRUE(HwTest::isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
+    bool multipleAclTableSupport =
+        HwTest::isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES);
+#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+    multipleAclTableSupport = false;
+#endif
+    ASSERT_TRUE(multipleAclTableSupport);
 
     auto setup = [this]() {
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
@@ -457,7 +462,12 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
   }
 
   void verifyDscpTtlAclTablesHelper(bool frontPanel) {
-    ASSERT_TRUE(HwTest::isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES));
+    bool multipleAclTableSupport =
+        HwTest::isSupported(HwAsic::Feature::MULTIPLE_ACL_TABLES);
+#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+    multipleAclTableSupport = false;
+#endif
+    ASSERT_TRUE(multipleAclTableSupport);
 
     auto setup = [this]() {
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);

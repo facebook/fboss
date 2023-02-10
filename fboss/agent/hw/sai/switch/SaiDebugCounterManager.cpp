@@ -45,10 +45,15 @@ void SaiDebugCounterManager::setupPortL3BlackHoleCounter() {
 }
 
 void SaiDebugCounterManager::setupMPLSLookupFailedCounter() {
-  if (!platform_->getAsic()->isSupported(
-          HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER)) {
+  bool mplsLookupFailCounterSupport = platform_->getAsic()->isSupported(
+      HwAsic::Feature::SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER);
+#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+  mplsLookupFailCounterSupport = false;
+#endif
+  if (!mplsLookupFailCounterSupport) {
     return;
   }
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   SaiDebugCounterTraits::CreateAttributes attrs{
       SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,

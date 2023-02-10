@@ -184,4 +184,13 @@ bool isHwRoutePresent(
 
   return true;
 }
+
+bool isRouteCounterSupported(const HwSwitch* hwSwitch) {
+  bool routeCountersSupported = hwSwitch->getPlatform()->getAsic()->isSupported(
+      HwAsic::Feature::ROUTE_COUNTERS);
+#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+  routeCountersSupported = false;
+#endif
+  return routeCountersSupported;
+}
 } // namespace facebook::fboss::utility

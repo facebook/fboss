@@ -10,6 +10,7 @@
 
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/hw/test/HwTestRouteUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwOverflowTest.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
@@ -122,7 +123,7 @@ class HwRouteCounterOverflowTest : public HwOverflowTest {
 };
 
 TEST_F(HwRouteCounterOverflowTest, overflowRouteCounters) {
-  if (!getPlatform()->getAsic()->isSupported(HwAsic::Feature::ROUTE_COUNTERS)) {
+  if (!utility::isRouteCounterSupported(getHwSwitch())) {
     return;
   }
   applyNewState(

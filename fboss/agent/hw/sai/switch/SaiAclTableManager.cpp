@@ -919,13 +919,9 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
   if (fieldSrcPort.has_value()) {
     auto srcPortQualifierSupported = platform_->getAsic()->isSupported(
         HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER);
-    bool isTajo = platform_->getAsic()->getAsicVendor() ==
-        HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
-    if (isTajo) {
-#if !defined(TAJO_SDK_VERSION_1_58_0) && !defined(TAJO_SDK_VERSION_1_60_0)
-      srcPortQualifierSupported = false;
+#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+    srcPortQualifierSupported = false;
 #endif
-    }
     matcherIsValid &= srcPortQualifierSupported;
   }
   auto actionIsValid =
@@ -1412,8 +1408,12 @@ bool SaiAclTableManager::areQualifiersSupportedInDefaultAclTable(
 void SaiAclTableManager::recreateAclTable(
     std::shared_ptr<SaiAclTable>& aclTable,
     const SaiAclTableTraits::CreateAttributes& newAttributes) {
-  if (!platform_->getAsic()->isSupported(
-          HwAsic::Feature::SAI_ACL_TABLE_UPDATE)) {
+  bool aclTableUpdateSupport =
+      platform_->getAsic()->isSupported(HwAsic::Feature::SAI_ACL_TABLE_UPDATE);
+#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+  aclTableUpdateSupport = false;
+#endif
+  if (!aclTableUpdateSupport) {
     XLOG(WARNING) << "feature to update acl table is not supported";
     return;
   }

@@ -137,8 +137,7 @@ class HwRouteStatTest : public HwLinkStateDependentTest {
   }
 
   bool skipTest() const {
-    return !getPlatform()->getAsic()->isSupported(
-        HwAsic::Feature::ROUTE_COUNTERS);
+    return !utility::isRouteCounterSupported(getHwSwitch());
   }
 
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper6_;

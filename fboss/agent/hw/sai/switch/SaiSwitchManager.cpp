@@ -550,6 +550,9 @@ bool SaiSwitchManager::isMplsQoSMapSupported() const {
 #if defined(SAI_VERSION_5_1_0_3_ODP) || defined(SAI_VERSION_7_2_0_0_ODP)
   return false;
 #endif
+#if defined(TAJO_SDK_VERSION_1_42_1) || defined(TAJO_SDK_VERSION_1_42_8)
+  return false;
+#endif
   return platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_QOS);
 }
 } // namespace facebook::fboss
