@@ -91,13 +91,13 @@ TEST(DsfNode, dsfNodeApplyConfig) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  EXPECT_EQ(stateV1->getDsfNodes()->size(), 1);
+  EXPECT_EQ(stateV1->getDsfNodes()->size(), 2);
   // Add node
-  config.dsfNodes()->insert({2, makeDsfNodeCfg(2)});
+  config.dsfNodes()->insert({5, makeDsfNodeCfg(5)});
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
 
   ASSERT_NE(nullptr, stateV2);
-  EXPECT_EQ(stateV2->getDsfNodes()->size(), 2);
+  EXPECT_EQ(stateV2->getDsfNodes()->size(), 3);
   EXPECT_EQ(
       stateV2->getRemoteSystemPorts()->size(),
       stateV1->getRemoteSystemPorts()->size() + 1);
@@ -106,13 +106,13 @@ TEST(DsfNode, dsfNodeApplyConfig) {
       stateV1->getRemoteInterfaces()->size() + 1);
 
   // Update node
-  config.dsfNodes()->erase(2);
-  auto updatedDsfNode = makeDsfNodeCfg(2);
+  config.dsfNodes()->erase(5);
+  auto updatedDsfNode = makeDsfNodeCfg(5);
   updatedDsfNode.name() = "newName";
-  config.dsfNodes()->insert({2, updatedDsfNode});
+  config.dsfNodes()->insert({5, updatedDsfNode});
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   ASSERT_NE(nullptr, stateV3);
-  EXPECT_EQ(stateV3->getDsfNodes()->size(), 2);
+  EXPECT_EQ(stateV3->getDsfNodes()->size(), 3);
   EXPECT_EQ(
       stateV3->getRemoteSystemPorts()->size(),
       stateV2->getRemoteSystemPorts()->size());
@@ -121,10 +121,10 @@ TEST(DsfNode, dsfNodeApplyConfig) {
       stateV2->getRemoteInterfaces()->size());
 
   // Erase node
-  config.dsfNodes()->erase(2);
+  config.dsfNodes()->erase(5);
   auto stateV4 = publishAndApplyConfig(stateV3, &config, platform.get());
   ASSERT_NE(nullptr, stateV4);
-  EXPECT_EQ(stateV4->getDsfNodes()->size(), 1);
+  EXPECT_EQ(stateV4->getDsfNodes()->size(), 2);
   EXPECT_EQ(
       stateV4->getRemoteSystemPorts()->size(),
       stateV3->getRemoteSystemPorts()->size() - 1);
@@ -139,13 +139,13 @@ TEST(DsfNode, dsfNodeUpdateLocalDsfNodeConfig) {
   auto config = testConfigA(cfg::SwitchType::VOQ);
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   ASSERT_NE(nullptr, stateV1);
-  EXPECT_EQ(stateV1->getDsfNodes()->size(), 1);
+  EXPECT_EQ(stateV1->getDsfNodes()->size(), 2);
   EXPECT_GT(config.dsfNodes()[1].loopbackIps()->size(), 0);
   config.dsfNodes()[1].loopbackIps()->clear();
   EXPECT_EQ(config.dsfNodes()[1].loopbackIps()->size(), 0);
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   ASSERT_NE(nullptr, stateV2);
-  EXPECT_EQ(stateV1->getDsfNodes()->size(), 1);
+  EXPECT_EQ(stateV1->getDsfNodes()->size(), 2);
 }
 
 TEST(DSFNode, loopackIpsSorted) {

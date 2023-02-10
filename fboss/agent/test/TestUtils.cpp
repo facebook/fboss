@@ -204,6 +204,7 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
   } else {
     cfg.switchSettings()->switchId() = 1;
     if (switchType == cfg::SwitchType::VOQ) {
+      // Add config for VOQ DsfNode
       cfg::DsfNode myNode = makeDsfNodeCfg(1);
       cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
       cfg.interfaces()->resize(kPortCount);
@@ -230,6 +231,10 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
       recyclePort.portType() = cfg::PortType::RECYCLE_PORT;
       cfg.ports()->push_back(recyclePort);
       addRecyclePortRif(myNode, cfg);
+      // Add a fabric node to DSF node as well. In prod DsfNode map will have
+      // both IN and FN nodes
+      auto fnNode = makeDsfNodeCfg(2, cfg::DsfNodeType::FABRIC_NODE);
+      cfg.dsfNodes()->insert({*fnNode.switchId(), fnNode});
     }
   }
 
@@ -301,13 +306,15 @@ cfg::DsfNode makeDsfNodeCfg(int64_t switchId, cfg::DsfNodeType type) {
   dsfNodeCfg.switchId() = switchId;
   dsfNodeCfg.name() = folly::sformat("dsfNodeCfg{}", switchId);
   dsfNodeCfg.type() = type;
-  const auto kBlockSize{100};
-  cfg::Range64 sysPortRange;
-  sysPortRange.minimum() = switchId * kBlockSize;
-  sysPortRange.maximum() = switchId * kBlockSize + kBlockSize;
-  dsfNodeCfg.systemPortRange() = sysPortRange;
-  dsfNodeCfg.loopbackIps() = getLoopbackIps(switchId);
-  dsfNodeCfg.nodeMac() = "02:00:00:00:0F:0B";
+  if (type == cfg::DsfNodeType::INTERFACE_NODE) {
+    const auto kBlockSize{100};
+    cfg::Range64 sysPortRange;
+    sysPortRange.minimum() = switchId * kBlockSize;
+    sysPortRange.maximum() = switchId * kBlockSize + kBlockSize;
+    dsfNodeCfg.systemPortRange() = sysPortRange;
+    dsfNodeCfg.loopbackIps() = getLoopbackIps(switchId);
+    dsfNodeCfg.nodeMac() = "02:00:00:00:0F:0B";
+  }
   dsfNodeCfg.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
   return dsfNodeCfg;
 }
