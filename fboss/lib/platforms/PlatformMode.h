@@ -41,6 +41,7 @@ enum class PlatformMode : char {
   WEDGE400C_FABRIC,
   CLOUDRIPPER_VOQ,
   CLOUDRIPPER_FABRIC,
+  MONTBLANC,
 };
 
 inline std::string toString(PlatformMode mode) {
@@ -91,6 +92,8 @@ inline std::string toString(PlatformMode mode) {
       return "CLOUDRIPPER_VOQ";
     case PlatformMode::CLOUDRIPPER_FABRIC:
       return "CLOUDRIPPER_FABRIC";
+    case PlatformMode::MONTBLANC:
+      return "MONTBLANC";
   }
   throw std::runtime_error("Unknown mode");
   return "Unknown";

@@ -91,6 +91,8 @@ TEST_F(HwOverflowTest, overflowRoutes) {
     case PlatformMode::KAMET:
       // No overflow test for KAMET yet
       break;
+    case PlatformMode::MONTBLANC:
+      break;
   }
   if (routeChunks.size() == 0) {
     return;

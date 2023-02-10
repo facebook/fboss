@@ -157,6 +157,7 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformMode::DARWIN:
     case PlatformMode::MAKALU:
     case PlatformMode::KAMET:
+    case PlatformMode::MONTBLANC:
       return std::make_unique<SaiRepl>(hw_->getSaiSwitchId());
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
@@ -377,6 +378,7 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
     case PlatformMode::DARWIN:
     case PlatformMode::MAKALU:
     case PlatformMode::KAMET:
+    case PlatformMode::MONTBLANC:
       return UUID + "\n";
     case PlatformMode::WEDGE400C:
     case PlatformMode::WEDGE400C_SIM:
@@ -412,6 +414,7 @@ std::string& DiagCmdServer::cleanUpOutput(
     case PlatformMode::DARWIN:
     case PlatformMode::MAKALU:
     case PlatformMode::KAMET:
+    case PlatformMode::MONTBLANC:
       // Clean up the back of the string
       if (!output.empty() && !input.empty()) {
         std::string shell = "drivshell>";

@@ -39,6 +39,7 @@ TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
     case PlatformMode::LASSEN:
     case PlatformMode::MAKALU:
     case PlatformMode::KAMET:
+    case PlatformMode::MONTBLANC:
       throw FbossError("No xphys to check FW version on");
     case PlatformMode::ELBERT:
       desiredFw.version() = 1;
