@@ -11,6 +11,9 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     reflection
+  DEPENDS
+    gpio_cpp2
+    i2c_cpp2
 )
 
 add_fbthrift_cpp_library(
