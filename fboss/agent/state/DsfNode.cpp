@@ -43,8 +43,12 @@ void DsfNode::setLoopbackIps(const std::vector<std::string>& loopbackIps) {
   set<switch_config_tags::loopbackIps>(loopbackIps);
 }
 
-cfg::Range64 DsfNode::getSystemPortRange() const {
-  return get<switch_config_tags::systemPortRange>()->toThrift();
+std::optional<cfg::Range64> DsfNode::getSystemPortRange() const {
+  std::optional<cfg::Range64> sysPortRange;
+  if (get<switch_config_tags::systemPortRange>()) {
+    sysPortRange = get<switch_config_tags::systemPortRange>()->toThrift();
+  }
+  return sysPortRange;
 }
 
 folly::MacAddress DsfNode::getMac() const {

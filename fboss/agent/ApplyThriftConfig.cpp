@@ -821,7 +821,8 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
   thrift_cow::ThriftMapDelta delta(
       orig_->getDsfNodes().get(), new_->getDsfNodes().get());
   auto getRecyclePortId = [](const std::shared_ptr<DsfNode>& node) {
-    return *node->getSystemPortRange().minimum() + 1;
+    CHECK(node->getSystemPortRange().has_value());
+    return *node->getSystemPortRange()->minimum() + 1;
   };
   auto isLocal = [mySwitchId, this](const std::shared_ptr<DsfNode>& node) {
     return SwitchID(*mySwitchId) == node->getSwitchId();

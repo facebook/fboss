@@ -314,11 +314,12 @@ PortID getPortID(
     SystemPortID sysPortId,
     const std::shared_ptr<SwitchState>& state) {
   auto mySwitchId = state->getSwitchSettings()->getSwitchId();
-  CHECK(mySwitchId);
+  CHECK(mySwitchId.has_value());
   auto sysPortRange = state->getDsfNodes()
                           ->getDsfNodeIf(SwitchID(*mySwitchId))
                           ->getSystemPortRange();
-  return PortID(static_cast<int64_t>(sysPortId) - *sysPortRange.minimum());
+  CHECK(sysPortRange.has_value());
+  return PortID(static_cast<int64_t>(sysPortId) - *sysPortRange->minimum());
 }
 
 std::vector<PortID> getPortsForInterface(
