@@ -2369,6 +2369,7 @@
           "sai_pkt_rx_custom_cfg": "1",
           "sai_pkt_rx_pkt_size": "16512",
           "sai_recycle_port_lane_base": "220",
+          "sai_trigger_linkscan_remote_local_faults": "0",
           "sai_uncached_port_stats": "0x1",
           "sai_vfp_smac_drop_filter_disable": "1",
           "sat_enable.BCM8885X": "1",
