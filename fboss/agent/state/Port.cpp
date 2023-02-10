@@ -189,6 +189,8 @@ PortFields PortFields::fromThrift(state::PortFields const& portThrift) {
   }
 
   port.expectedLLDPValues = *portThrift.expectedLLDPValues();
+  port.expectedNeighborReachability =
+      *portThrift.expectedNeighborReachability();
 
   for (const auto& rxSak : *portThrift.rxSecureAssociationKeys()) {
     port.rxSecureAssociationKeys.emplace(rxSakFromThrift(rxSak));
@@ -307,6 +309,7 @@ state::PortFields PortFields::toThrift() const {
   }
 
   *port.expectedLLDPValues() = expectedLLDPValues;
+  *port.expectedNeighborReachability() = expectedNeighborReachability;
 
   for (const auto& [mkaSakKey, mkaSak] : rxSecureAssociationKeys) {
     port.rxSecureAssociationKeys()->push_back(rxSakToThrift(mkaSakKey, mkaSak));
@@ -334,6 +337,7 @@ bool PortFields::operator==(const PortFields& other) const {
       ingressMirror == other.ingressMirror &&
       egressMirror == other.egressMirror && qosPolicy == other.qosPolicy &&
       expectedLLDPValues == other.expectedLLDPValues &&
+      expectedNeighborReachability == other.expectedNeighborReachability &&
       lookupClassesToDistrubuteTrafficOn ==
       other.lookupClassesToDistrubuteTrafficOn &&
       profileID == other.profileID && maxFrameSize == other.maxFrameSize &&

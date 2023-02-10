@@ -1917,6 +1917,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       *portConf->loopbackMode() == orig->getLoopbackMode() &&
       mirrorsUnChanged && newQosPolicy == orig->getQosPolicy() &&
       *portConf->expectedLLDPValues() == orig->getLLDPValidations() &&
+      *portConf->expectedNeighborReachability() ==
+          orig->getExpectedNeighborValues()->toThrift() &&
       *portConf->maxFrameSize() == orig->getMaxFrameSize() &&
       lookupClassesUnchanged && profileConfigUnchanged && pinConfigsUnchanged &&
       *portConf->portType() == orig->getPortType()) {
@@ -1956,6 +1958,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->resetPinConfigs(newPinConfigs);
   newPort->setPortType(*portConf->portType());
   newPort->setInterfaceIDs(port2InterfaceId_[orig->getID()]);
+  newPort->setExpectedNeighborReachability(
+      *portConf->expectedNeighborReachability());
   return newPort;
 }
 

@@ -45,6 +45,7 @@ struct PortFields : public ThriftyFields<PortFields, state::PortFields> {
 
   using VlanMembership = boost::container::flat_map<VlanID, VlanInfo>;
   using LLDPValidations = std::map<cfg::LLDPTag, std::string>;
+  using NeighborReachability = std::vector<cfg::PortNeighbor>;
 
   enum class OperState {
     DOWN = 0,
@@ -117,6 +118,7 @@ struct PortFields : public ThriftyFields<PortFields, state::PortFields> {
   std::optional<std::string> egressMirror;
   std::optional<std::string> qosPolicy;
   LLDPValidations expectedLLDPValues;
+  NeighborReachability expectedNeighborReachability;
   std::vector<cfg::AclLookupClass> lookupClassesToDistrubuteTrafficOn;
   cfg::PortProfileID profileID{cfg::PortProfileID::PROFILE_DEFAULT};
   // Default value from switch_config.thrift
@@ -153,6 +155,7 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
   using VlanMembership = PortFields::VlanMembership;
   using OperState = PortFields::OperState;
   using LLDPValidations = PortFields::LLDPValidations;
+  using NeighborReachability = PortFields::NeighborReachability;
   using MKASakKey = PortFields::MKASakKey;
   using RxSaks = PortFields::RxSaks;
   using PfcPriorityList = thrift_cow::detail::ReferenceWrapper<
@@ -558,8 +561,16 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     return cref<switch_state_tags::expectedLLDPValues>()->toThrift();
   }
 
+  auto getExpectedNeighborValues() const {
+    return safe_cref<switch_state_tags::expectedNeighborReachability>();
+  }
+
   void setExpectedLLDPValues(LLDPValidations vals) {
     set<switch_state_tags::expectedLLDPValues>(vals);
+  }
+
+  void setExpectedNeighborReachability(const NeighborReachability& vals) {
+    set<switch_state_tags::expectedNeighborReachability>(vals);
   }
 
   std::vector<cfg::AclLookupClass> getLookupClassesToDistributeTrafficOn()
