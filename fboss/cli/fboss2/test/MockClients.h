@@ -31,7 +31,10 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
       (std::vector<facebook::fboss::ArpEntryThrift>&));
 
   using PortInfoMap = std::map<int, facebook::fboss::PortInfoThrift>&;
+  using Out = std::string&;
+  using HwObjects = std::unique_ptr<std::vector<HwObjectType>>;
   MOCK_METHOD(void, getAllPortInfo, (PortInfoMap));
+  MOCK_METHOD(void, listHwObjects, (Out, HwObjects, bool));
   MOCK_METHOD(SSLType, getSSLPolicy, ());
   MOCK_METHOD(void, setPortState, (int32_t, bool));
   MOCK_METHOD(

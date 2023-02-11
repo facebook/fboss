@@ -49,6 +49,7 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_VIP_INJECTOR_ID,
   OBJECT_ARG_TYPE_ID_AREA_LIST,
   OBJECT_ARG_TYPE_ID_NODE_LIST,
+  OBJECT_ARG_TYPE_ID_HW_OBJECT_LIST,
   OBJECT_ARG_TYPE_DEBUG_LEVEL,
   OBJECT_ARG_TYPE_PRBS_COMPONENT,
   OBJECT_ARG_TYPE_PRBS_STATE,
@@ -351,6 +352,21 @@ class FsdbClientId : public BaseObjectArgType<std::string> {
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_CLIENT_ID;
+};
+
+class HwObjectList : public BaseObjectArgType<HwObjectType> {
+ public:
+  /* implicit */ HwObjectList() : BaseObjectArgType() {}
+  /* implicit */ HwObjectList(std::vector<std::string> hwObjectTypeArgList) {
+    for (auto const& hwObjectTypeArg : hwObjectTypeArgList) {
+      HwObjectType hwObjectType =
+          apache::thrift::util::enumValueOrThrow<HwObjectType>(hwObjectTypeArg);
+      data_.push_back(hwObjectType);
+    }
+  }
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_ID_HW_OBJECT_LIST;
 };
 
 // Called after CLI11 is initlized but before parsing, for any final

@@ -139,6 +139,11 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
           args,
           "Client ID representing fsdb publishers/subscribers IDs e.g.\n"
           "'agent'\n");
+    } else if (
+        cmd.argType ==
+        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_HW_OBJECT_LIST) {
+      subCmd->add_option(
+          "hw_object_type", args, "Hardware (HW) object type(s)\n");
     }
   } else {
     subCmd->require_subcommand();

@@ -30,6 +30,7 @@
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
+#include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h"
@@ -244,6 +245,12 @@ const CommandTree& kCommandTree() {
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST,
        "Show teflow information",
        commandHandler<CmdShowTeFlow>},
+
+      {"show",
+       "hw-object",
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_HW_OBJECT_LIST,
+       "Show HW Objects",
+       commandHandler<CmdShowHwObject>},
 
       {"clear",
        "arp",

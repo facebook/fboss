@@ -124,4 +124,21 @@ TEST(CmdArgsTest, FsdbPath) {
   EXPECT_THROW(utils::FsdbPath({"invalid", "args"}), std::runtime_error);
 }
 
+TEST(CmdArgsTest, HwObjectList) {
+  // test valid arguments
+  ASSERT_NO_THROW(utils::HwObjectList({"PORT"}));
+  EXPECT_THAT(
+      utils::HwObjectList({"PORT"}).data(), ElementsAre(HwObjectType::PORT));
+  ASSERT_NO_THROW(utils::HwObjectList({"LAG", "MIRROR"}));
+  EXPECT_THAT(
+      utils::HwObjectList({"LAG", "MIRROR"}).data(),
+      ElementsAre(HwObjectType::LAG, HwObjectType::MIRROR));
+
+  // test invalid arguments
+  ASSERT_THROW(utils::HwObjectList({"M"}), std::out_of_range);
+  ASSERT_THROW(utils::HwObjectList({""}), std::out_of_range);
+  ASSERT_THROW(
+      utils::HwObjectList({"QUEUE", "VLAN", "AAA"}), std::out_of_range);
+}
+
 } // namespace facebook::fboss
