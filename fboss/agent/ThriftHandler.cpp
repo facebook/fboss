@@ -2725,4 +2725,8 @@ void ThriftHandler::getFabricReachability(
     reachability.insert({portName, fabricEndpoint});
   }
 }
+
+void ThriftHandler::getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) {
+  dsfNodes = sw_->getState()->getDsfNodes()->toThrift();
+}
 } // namespace facebook::fboss
