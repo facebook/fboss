@@ -2261,3 +2261,22 @@ TEST_F(ThriftTeFlowTest, teFlowSyncUpdateHwProtection) {
       },
       FbossTeUpdateError);
 }
+
+class ThriftVoqSwitchTest : public ::testing::Test {
+ public:
+  void SetUp() override {
+    auto config = testConfigA(cfg::SwitchType::VOQ);
+    handle_ = createTestHandle(&config);
+    sw_ = handle_->getSw();
+    sw_->initialConfigApplied(std::chrono::steady_clock::now());
+  }
+  SwSwitch* sw_;
+  std::unique_ptr<HwTestHandle> handle_;
+};
+
+TEST_F(ThriftVoqSwitchTest, getDsfNodes) {
+  ThriftHandler handler(sw_);
+  std::map<int64_t, cfg::DsfNode> dsfNodes;
+  handler.getDsfNodes(dsfNodes);
+  EXPECT_EQ(dsfNodes.size(), 2);
+}
