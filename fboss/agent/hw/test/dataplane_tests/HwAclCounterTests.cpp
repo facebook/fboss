@@ -74,24 +74,19 @@ class HwAclCounterTest : public HwLinkStateDependentTest {
 
         if (bumpOnHit) {
           EXPECT_EVENTUALLY_GT(pktsAfter, pktsBefore);
-          auto pktsHit = 1;
-          // For non SRC_PORT ACLS
-          // On VOQ switches, we see a counter bump by 1, for the time the
-          // packet is routed out. The looped packet which gets dropped does
-          // not seem to incur a counter bump. On non VOQ switches OTOH,
-          // we see a bump by 2 once on the way out and once when it loops back
-          // in.
-          if (aclType != AclType::SRC_PORT &&
-              getAsic()->getSwitchType() == cfg::SwitchType::NPU) {
-            ++pktsHit;
-          }
-          EXPECT_EVENTUALLY_EQ(aclPktCountBefore + pktsHit, aclPktCountAfter);
-
-          // TODO: Still need to debug. For some test cases, we are getting more
-          // bytes in aclCounter. Ex. 4 Bytes extra in Tomahawk4 tests.
+          // On some ASICs looped back pkt hits the ACL before being
+          // dropped in the ingress pipeline, hence GE
+          EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + 1);
+          // At most we should get a pkt bump of 2
+          EXPECT_EVENTUALLY_LE(aclPktCountAfter, aclPktCountBefore + 2);
+          EXPECT_EVENTUALLY_GE(
+              aclBytesCountAfter, aclBytesCountBefore + sizeOfPacketSent);
+          // On native BCM we see 4 extra bytes in the acl counter. This is
+          // likely due to ingress vlan getting imposed and getting counted
+          // when packet hits acl in ingress pipeline
           EXPECT_EVENTUALLY_LE(
-              aclBytesCountBefore + (pktsHit * sizeOfPacketSent),
-              aclBytesCountAfter);
+              aclBytesCountAfter,
+              aclBytesCountBefore + (2 * sizeOfPacketSent) + 4);
         } else {
           EXPECT_EVENTUALLY_EQ(aclPktCountBefore, aclPktCountAfter);
           EXPECT_EVENTUALLY_EQ(aclBytesCountBefore, aclBytesCountAfter);
