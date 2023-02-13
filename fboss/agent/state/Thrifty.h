@@ -50,48 +50,6 @@ static constexpr bool kIsThriftCowNode = IsThriftCowNode<NodeT>::value;
 // All thrift state maps need to have an items field
 inline constexpr folly::StringPiece kItems{"items"};
 
-template <typename ThriftKeyT, typename NodeT>
-struct ThriftyNodeMapTraits : public NodeMapTraits<
-                                  ThriftKeyT,
-                                  NodeT,
-                                  NodeMapNoExtraFields,
-                                  std::map<ThriftKeyT, NodeT>> {
-  static const std::string& getThriftKeyName() {
-    static const std::string _key = "id";
-    return _key;
-  }
-
-  template <typename NodeKeyT>
-  static const std::string getKeyFromLegacyNode(
-      const folly::dynamic& dyn,
-      const std::string& keyName) {
-    auto& legacyKey = dyn[keyName];
-    if (legacyKey.isNull() or legacyKey.isArray()) {
-      throw FbossError("key of map is null or array");
-    }
-    std::string key{};
-    if constexpr (!is_fboss_key_object_type<NodeKeyT>::value) {
-      key = legacyKey.asString();
-    } else {
-      // in cases where key is actually an object we need to convert this to
-      // proper string representation
-      key = NodeKeyT::fromFollyDynamicLegacy(legacyKey).str();
-    }
-    return key;
-  }
-
-  // convert key from cpp version to one thrift will like
-  template <typename NodeKey>
-  static const ThriftKeyT convertKey(const NodeKey& key) {
-    return static_cast<ThriftKeyT>(key);
-  }
-
-  // parse dynamic key into thrift acceptable type
-  static const ThriftKeyT parseKey(const folly::dynamic& key) {
-    return key.asInt();
-  }
-};
-
 class ThriftyUtils {
  public:
   static void renameField(

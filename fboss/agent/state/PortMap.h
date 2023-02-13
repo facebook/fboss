@@ -19,15 +19,6 @@ namespace facebook::fboss {
 
 class SwitchState;
 class Port;
-using PortMapLegacyTraits = NodeMapTraits<PortID, Port>;
-
-struct PortMapThriftTraits
-    : public ThriftyNodeMapTraits<int16_t, state::PortFields> {
-  static inline const std::string& getThriftKeyName() {
-    static const std::string _key = "portId";
-    return _key;
-  }
-};
 
 using PortMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::integral,

@@ -17,17 +17,6 @@
 
 namespace facebook::fboss {
 
-struct BufferPoolCfgMapThriftTraits
-    : public ThriftyNodeMapTraits<std::string, state::BufferPoolFields> {
-  static inline const std::string& getThriftKeyName() {
-    static const std::string _key = "id";
-    return _key;
-  }
-  static const KeyType parseKey(const folly::dynamic& key) {
-    return key.asString();
-  }
-};
-
 using BufferPoolCfgMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::string,
     apache::thrift::type_class::structure>;

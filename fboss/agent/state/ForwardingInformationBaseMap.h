@@ -24,18 +24,6 @@ class SwitchState;
 using LegacyForwardingInformationBaseMapTraits =
     NodeMapTraits<RouterID, ForwardingInformationBaseContainer>;
 
-struct ForwardingInformationBaseMapThriftTraits
-    : public ThriftyNodeMapTraits<int16_t, state::FibContainerFields> {
-  static inline const std::string& getThriftKeyName() {
-    static const std::string _key = "vrf";
-    return _key;
-  }
-
-  static KeyType parseKey(const folly::dynamic& key) {
-    return key.asInt();
-  }
-};
-
 using ForwardingInformationBaseMapClass = apache::thrift::type_class::map<
     apache::thrift::type_class::integral,
     apache::thrift::type_class::structure>;

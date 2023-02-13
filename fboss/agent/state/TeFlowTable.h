@@ -19,22 +19,6 @@ class SwitchState;
 
 using TeFlowTableTraits = NodeMapTraits<TeFlow, TeFlowEntry>;
 
-struct TeFlowTableThriftLegacyTraits
-    : public ThriftyNodeMapTraits<std::string, state::TeFlowEntryFields> {
-  static inline const std::string& getThriftKeyName() {
-    static const std::string _key = "flow";
-    return _key;
-  }
-  static const KeyType parseKey(const folly::dynamic& key) {
-    return key.asString();
-  }
-  static const KeyType convertKey(const TeFlow& key) {
-    std::string flowJson;
-    apache::thrift::SimpleJSONSerializer::serialize(key, &flowJson);
-    return flowJson;
-  }
-};
-
 using TeFlowTableTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::string,
     apache::thrift::type_class::structure>;

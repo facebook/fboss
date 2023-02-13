@@ -31,25 +31,6 @@ struct NeighborResponseTableTraits {
   }
 };
 
-template <typename IPADDR, typename ENTRY>
-struct NeighborResponseTableThriftTraits
-    : public ThriftyNodeMapTraits<
-          std::string,
-          state::NeighborResponseEntryFields> {
-  static inline const std::string& getThriftKeyName() {
-    static const std::string _key = "ipAddress";
-    return _key;
-  }
-
-  static const KeyType convertKey(const IPADDR& key) {
-    return key.str();
-  }
-
-  static const KeyType parseKey(const folly::dynamic& key) {
-    return key.asString();
-  }
-};
-
 using NbrResponseTableTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::string,
     apache::thrift::type_class::structure>;

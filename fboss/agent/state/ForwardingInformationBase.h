@@ -27,23 +27,6 @@ using LegacyForwardingInformationBaseTraits = NodeMapTraits<
     NodeMapNoExtraFields,
     std::map<RoutePrefix<AddressT>, std::shared_ptr<Route<AddressT>>>>;
 
-template <typename AddrT>
-struct ForwardingInformationBaseThriftTraits
-    : public ThriftyNodeMapTraits<std::string, state::RouteFields> {
-  static inline const std::string& getThriftKeyName() {
-    static const std::string _key = "prefix";
-    return _key;
-  }
-
-  static const std::string parseKey(const folly::dynamic& key) {
-    return key.asString();
-  }
-
-  static std::string convertKey(const RoutePrefix<AddrT>& prefix) {
-    return prefix.str();
-  }
-};
-
 using ForwardingInformationBaseClass = apache::thrift::type_class::map<
     apache::thrift::type_class::string,
     apache::thrift::type_class::structure>;

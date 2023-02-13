@@ -15,22 +15,6 @@ namespace facebook::fboss {
 
 using LabelForwardingRoute = NodeMapTraits<Label, LabelForwardingEntry>;
 
-struct LabelForwardingInformationBaseThriftTraits
-    : public ThriftyNodeMapTraits<int32_t, state::LabelForwardingEntryFields> {
-  static inline const std::string& getThriftKeyName() {
-    static const std::string _key = "prefix";
-    return _key;
-  }
-
-  static KeyType parseKey(const folly::dynamic& key) {
-    return key.asInt();
-  }
-
-  static int32_t convertKey(const Label& label) {
-    return label.value();
-  }
-};
-
 using LabelForwardingInformationBaseTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::integral,
     apache::thrift::type_class::structure>;

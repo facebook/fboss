@@ -19,19 +19,6 @@ namespace facebook::fboss {
 
 class SwitchState;
 class Vlan;
-using VlanMapLegacyTraits = NodeMapTraits<
-    VlanID,
-    Vlan,
-    NodeMapNoExtraFields,
-    std::map<VlanID, std::shared_ptr<Vlan>>>;
-
-struct VlanMapThriftTraits
-    : public ThriftyNodeMapTraits<int16_t, state::VlanFields> {
-  static inline const std::string& getThriftKeyName() {
-    static const std::string _key = "vlanId";
-    return _key;
-  }
-};
 
 using VlanMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::integral,

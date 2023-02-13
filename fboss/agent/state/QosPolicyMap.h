@@ -22,18 +22,6 @@ namespace facebook::fboss {
 
 using QosPolicyMapLegacyTraits = NodeMapTraits<std::string, QosPolicy>;
 
-struct QosPolicyMapThriftTraits
-    : public ThriftyNodeMapTraits<std::string, state::QosPolicyFields> {
-  static inline const std::string& getThriftKeyName() {
-    static const std::string _key = "name";
-    return _key;
-  }
-
-  static const KeyType parseKey(const folly::dynamic& key) {
-    return key.asString();
-  }
-};
-
 using QosPolicyMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::string,
     apache::thrift::type_class::structure>;
