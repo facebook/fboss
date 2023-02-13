@@ -15,4 +15,12 @@ bool rxLockStatusSupportedInSdk() {
   return true;
 }
 
+bool pcsRxLinkStatusSupportedInSdk() {
+  return false;
+}
+
+bool fecAlignmentLockSupportedInSdk() {
+  return false;
+}
+
 } // namespace facebook::fboss

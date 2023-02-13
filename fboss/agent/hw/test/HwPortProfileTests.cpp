@@ -80,6 +80,9 @@ class HwPortProfileTest : public HwTest {
       expectPmdCdrLock = false;
     }
 
+    bool expectPcsRxLinkStatus = pcsRxLinkStatusSupportedInSdk();
+    bool expectFecAMLock = fecAlignmentLockSupportedInSdk();
+
     auto serializedSnapshot =
         apache::thrift::SimpleJSONSerializer::serialize<std::string>(phyInfo);
     XLOG(DBG3) << "Snapshot for port " << portID << " = " << serializedSnapshot;
@@ -148,12 +151,31 @@ class HwPortProfileTest : public HwTest {
       }
     }
 
+    if (expectPcsRxLinkStatus) {
+      ASSERT_TRUE(lineState.pcs().has_value());
+      ASSERT_TRUE(lineState.pcs()->pcsRxStatusLive().has_value());
+      ASSERT_TRUE(lineState.pcs()->pcsRxStatusLatched().has_value());
+    }
+
     // Verify RsFEC counters if applicable
     auto isRsFec =
         utility::isReedSolomonFec(getHwSwitch()->getPortFECMode(portID));
     if (isRsFec) {
       ASSERT_TRUE(lineStats.pcs().has_value());
       ASSERT_TRUE(lineStats.pcs()->rsFec().has_value());
+
+      if (expectFecAMLock) {
+        ASSERT_TRUE(lineState.pcs().has_value());
+        ASSERT_TRUE(lineState.pcs()->rsFecState().has_value());
+        ASSERT_TRUE(
+            lineState.pcs()->rsFecState()->lanes()->size() ==
+            utility::reedSolomonFecLanes(port->getSpeed()));
+        for (auto fecLane :
+             *lineState.pcs().ensure().rsFecState().ensure().lanes()) {
+          ASSERT_TRUE(fecLane.second.fecAlignmentLockLive().has_value());
+          ASSERT_TRUE(fecLane.second.fecAlignmentLockChanged().has_value());
+        }
+      }
     }
   }
 

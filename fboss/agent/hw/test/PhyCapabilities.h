@@ -5,4 +5,6 @@
 namespace facebook::fboss {
 bool rxSignalDetectSupportedInSdk();
 bool rxLockStatusSupportedInSdk();
+bool pcsRxLinkStatusSupportedInSdk();
+bool fecAlignmentLockSupportedInSdk();
 } // namespace facebook::fboss

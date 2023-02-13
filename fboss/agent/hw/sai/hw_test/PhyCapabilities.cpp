@@ -19,4 +19,18 @@ bool rxLockStatusSupportedInSdk() {
   return false;
 }
 
+bool pcsRxLinkStatusSupportedInSdk() {
+#if defined(TAJO_SDK_VERSION_1_42_8)
+  return true;
+#endif
+  return false;
+}
+
+bool fecAlignmentLockSupportedInSdk() {
+#if defined(TAJO_SDK_VERSION_1_42_8)
+  return true;
+#endif
+  return false;
+}
+
 } // namespace facebook::fboss
