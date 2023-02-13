@@ -283,6 +283,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getFabricReachability(
       std::map<std::string, FabricEndpoint>& reachability) override;
   void getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) override;
+  void getSystemPorts(std::map<int64_t, SystemPortThrift>& sysPorts) override;
   /*
    * Event handler for when a connection is destroyed.  When there is an ongoing
    * duplex connection, there may be other threads that depend on the connection

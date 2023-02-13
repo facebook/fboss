@@ -2729,4 +2729,13 @@ void ThriftHandler::getFabricReachability(
 void ThriftHandler::getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) {
   dsfNodes = sw_->getState()->getDsfNodes()->toThrift();
 }
+
+void ThriftHandler::getSystemPorts(
+    std::map<int64_t, SystemPortThrift>& sysPorts) {
+  auto state = sw_->getState();
+  sysPorts = state->getSystemPorts()->toThrift();
+  auto remoteSysPorts = state->getRemoteSystemPorts()->toThrift();
+  sysPorts.merge(remoteSysPorts);
+}
+
 } // namespace facebook::fboss
