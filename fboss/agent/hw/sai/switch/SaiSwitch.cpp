@@ -1442,20 +1442,6 @@ void SaiSwitch::updatePcsInfo(
   sideState.pcs() = pcsState;
 }
 
-bool SaiSwitch::rxSignalDetectSupportedInSdk() const {
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
-  return true;
-#endif
-  return false;
-}
-
-bool SaiSwitch::rxLockStatusSupportedInSdk() const {
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
-  return true;
-#endif
-  return false;
-}
-
 void SaiSwitch::updateRsInfo(
     phy::PhySideInfo& sideInfo,
     phy::PhySideState& sideState,

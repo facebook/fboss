@@ -7,6 +7,7 @@
 #include "fboss/lib/phy/PhyUtils.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/hw/test/PhyCapabilities.h"
 
 namespace facebook::fboss {
 template <cfg::PortProfileID Profile>
@@ -70,8 +71,8 @@ class HwPortProfileTest : public HwTest {
 
     // Start with the expectation that PMD diagnostics are available if
     // supported by SDK and then exclude certain cases below
-    bool expectPmdSignalDetect = getHwSwitch()->rxSignalDetectSupportedInSdk();
-    bool expectPmdCdrLock = getHwSwitch()->rxLockStatusSupportedInSdk();
+    bool expectPmdSignalDetect = rxSignalDetectSupportedInSdk();
+    bool expectPmdCdrLock = rxLockStatusSupportedInSdk();
     if (getPlatform()->getAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_TOMAHAWK) {
       // TH will never support these diagnostics with native or SAI SDKs

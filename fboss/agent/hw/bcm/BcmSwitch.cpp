@@ -2737,20 +2737,6 @@ void BcmSwitch::updateGlobalStats() {
   }
 }
 
-bool BcmSwitch::rxSignalDetectSupportedInSdk() const {
-#if defined(BCM_SDK_VERSION_GTE_6_5_26)
-  return true;
-#endif
-  return false;
-}
-
-bool BcmSwitch::rxLockStatusSupportedInSdk() const {
-#if defined(BCM_SDK_VERSION_GTE_6_5_24)
-  return true;
-#endif
-  return false;
-}
-
 std::map<PortID, phy::PhyInfo> BcmSwitch::updateAllPhyInfo() {
   return portTable_->updateIPhyInfo();
 }

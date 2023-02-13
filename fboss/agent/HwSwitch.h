@@ -388,15 +388,6 @@ class HwSwitch {
       LoadBalancerID loadBalancerID,
       folly::MacAddress mac) const = 0;
 
-  // These functions return true when the SDK supports these diagnostics, not
-  // necessarily for a particular speed/ASIC
-  virtual bool rxSignalDetectSupportedInSdk() const {
-    return false;
-  }
-  virtual bool rxLockStatusSupportedInSdk() const {
-    return false;
-  }
-
  private:
   virtual HwInitResult initImpl(
       Callback* callback,
