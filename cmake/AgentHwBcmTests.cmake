@@ -99,9 +99,18 @@ target_link_libraries(bcm_test
   sflow_cpp2
   packettrace_cpp2
   wedge_led_utils
+  bcm_phy_capabilities
   Folly::folly
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
+)
+
+add_library(bcm_phy_capabilities
+  fboss/agent/hw/bcm/tests/PhyCapabilities.cpp
+)
+
+target_link_libraries(bcm_phy_capabilities
+  bcm
 )
 
 add_library(bcm_switch_ensemble

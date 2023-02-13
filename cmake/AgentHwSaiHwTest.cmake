@@ -35,7 +35,21 @@ target_link_libraries(sai_switch_ensemble
   sai_traced_api
 )
 
+add_library(sai_phy_capabilities
+  fboss/agent/hw/sai/hw_test/PhyCapabilities.cpp
+)
+
+target_link_libraries(sai_phy_capabilities
+  sai_switch
+)
+
 set_target_properties(sai_switch_ensemble PROPERTIES COMPILE_FLAGS
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+)
+
+set_target_properties(sai_phy_capabilities PROPERTIES COMPILE_FLAGS
   "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
   -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
@@ -165,6 +179,7 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     ${SAI_IMPL_ARG}
     sai_switch_ensemble
+    sai_phy_capabilities
     hw_switch_test
     hw_test_main
     -Wl,--no-whole-archive
