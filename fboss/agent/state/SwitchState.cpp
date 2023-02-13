@@ -761,12 +761,6 @@ void SwitchState::revertNewTeFlowEntry(
   }
 }
 
-std::shared_ptr<SwitchState> SwitchState::fromFollyDynamic(
-    const folly::dynamic& json) {
-  const auto& fields = SwitchStateFields::fromFollyDynamic(json);
-  return SwitchState::fromThrift(fields.toThrift());
-}
-
 std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     const state::SwitchState& switchState) {
   auto state = std::make_unique<SwitchState>();
@@ -788,17 +782,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     }
   }
   return state;
-}
-
-std::unique_ptr<SwitchState> SwitchState::uniquePtrFromFollyDynamic(
-    const folly::dynamic& json) {
-  const auto& fields = SwitchStateFields::fromFollyDynamic(json);
-  return uniquePtrFromThrift(fields.toThrift());
-}
-
-folly::dynamic SwitchState::toFollyDynamic() const {
-  SwitchStateFields fields(toThrift());
-  return fields.toFollyDynamic();
 }
 
 VlanID SwitchState::getDefaultVlan() const {

@@ -1778,8 +1778,7 @@ HwInitResult SaiSwitch::initLocked(
       ret.switchState =
           SwitchState::fromThrift(*switchStateThrift->swSwitchState());
     } else {
-      ret.switchState =
-          SwitchState::fromFollyDynamic(switchStateJson[kSwSwitch]);
+      XLOG(FATAL) << "Thrift switch state not found";
     }
     if (platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE)) {
       adapterKeysJson = std::make_unique<folly::dynamic>(

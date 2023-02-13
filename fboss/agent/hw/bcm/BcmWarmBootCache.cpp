@@ -517,8 +517,7 @@ void BcmWarmBootCache::populateFromWarmBootState(
     dumpedSwSwitchState_ =
         SwitchState::uniquePtrFromThrift(*thriftState->swSwitchState());
   } else {
-    dumpedSwSwitchState_ =
-        SwitchState::uniquePtrFromFollyDynamic(warmBootState[kSwSwitch]);
+    XLOG(FATAL) << "Thrift switch state not found";
   }
   dumpedSwSwitchState_->publish();
   CHECK(dumpedSwSwitchState_)

@@ -275,25 +275,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   SwitchState();
   ~SwitchState() override;
 
-  static std::shared_ptr<SwitchState> fromFollyDynamic(
-      const folly::dynamic& json);
-
-  static std::shared_ptr<SwitchState> fromJson(const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
   static std::unique_ptr<SwitchState> uniquePtrFromThrift(
       const state::SwitchState& switchState);
-
-  static std::unique_ptr<SwitchState> uniquePtrFromFollyDynamic(
-      const folly::dynamic& json);
-
-  static std::unique_ptr<SwitchState> uniquePtrFromJson(
-      const folly::fbstring& jsonStr) {
-    return uniquePtrFromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
-  folly::dynamic toFollyDynamic() const override;
 
   static void modify(std::shared_ptr<SwitchState>* state);
 

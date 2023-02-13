@@ -46,15 +46,8 @@ class HwSwitchStateReplayTest : public HwTest {
         thriftState.read(&reader);
         return SwitchState::fromThrift(*thriftState.swSwitchState());
       } catch (const std::exception& e) {
-        XLOG(INFO)
-            << "Failed to parse replay switch state file to thrift. Falling back to json.";
+        XLOG(FATAL) << "Failed to parse replay switch state file to thrift.";
       }
-
-      // Failed to parse thrift - fall back to JSON.
-      std::string warmBootJson(
-          reinterpret_cast<const char*>(bytes.data()), bytes.size());
-      return SwitchState::fromFollyDynamic(
-          folly::parseJson(warmBootJson)["swSwitch"]);
     }
     // No file was given as input. This would happen when this gets
     // invoked as part of bcm_test test suite. In which case, just

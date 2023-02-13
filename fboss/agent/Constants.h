@@ -50,7 +50,6 @@ inline constexpr folly::StringPiece kRibV6{"ribV6"};
 inline constexpr folly::StringPiece kRibMpls{"ribMpls"};
 inline constexpr folly::StringPiece kRouterId{"routerId"};
 inline constexpr folly::StringPiece kStack{"stack"};
-inline constexpr folly::StringPiece kSwSwitch{"swSwitch"};
 inline constexpr folly::StringPiece kTeFlowGroupId{"teFlowGroupId"};
 inline constexpr folly::StringPiece kVlan{"vlan"};
 inline constexpr folly::StringPiece kVrf{"vrf"};
