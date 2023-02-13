@@ -68,11 +68,6 @@ class ForwardingInformationBase
   ForwardingInformationBase() {}
   virtual ~ForwardingInformationBase() override {}
 
-  using LegacyBaseBase = ThriftyNodeMapT<
-      ForwardingInformationBase<AddressT>,
-      LegacyForwardingInformationBaseTraits<AddressT>,
-      ForwardingInformationBaseThriftTraits<AddressT>>;
-
   using Base = ThriftMapNode<
       ForwardingInformationBase<AddressT>,
       ForwardingInformationBaseTraits<AddressT>>;

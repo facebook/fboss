@@ -56,8 +56,6 @@ using MacTableTraits = ThriftMapNodeTraits<
 class MacTable : public ThriftMapNode<MacTable, MacTableTraits> {
  public:
   using Base = ThriftMapNode<MacTable, MacTableTraits>;
-  using LegacyBaseT =
-      ThriftyNodeMapT<MacTable, MacTableTraitsLegacy, MacTableThriftTraits>;
   MacTable();
   ~MacTable() override;
 

@@ -79,10 +79,6 @@ template <typename IPADDR, typename ENTRY, typename SUBCLASS>
 class NeighborTable
     : public ThriftMapNode<SUBCLASS, NbrTableTraits<SUBCLASS, ENTRY>> {
  public:
-  using LegacyBaseT = ThriftyNodeMapT<
-      SUBCLASS,
-      NeighborTableTraits<IPADDR, ENTRY>,
-      NeighborTableThriftTraits<IPADDR, ENTRY>>;
   typedef IPADDR AddressType;
   typedef ENTRY Entry;
 

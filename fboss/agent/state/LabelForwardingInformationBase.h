@@ -51,10 +51,6 @@ class LabelForwardingInformationBase
   using Base = ThriftMapNode<
       LabelForwardingInformationBase,
       LabelForwardingInformationBaseTraits>;
-  using LegacyBase = ThriftyNodeMapT<
-      LabelForwardingInformationBase,
-      LabelForwardingRoute,
-      LabelForwardingInformationBaseThriftTraits>;
 
  public:
   LabelForwardingInformationBase();
