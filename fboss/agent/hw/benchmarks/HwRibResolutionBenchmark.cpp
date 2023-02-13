@@ -27,7 +27,7 @@ BENCHMARK(RibResolutionBenchmark) {
   auto config = utility::onePortPerInterfaceConfig(
       ensemble->getHwSwitch(), ensemble->masterLogicalPortIds());
   ensemble->applyInitialConfig(config);
-  utility::THAlpmRouteScaleGenerator gen(ensemble->getProgrammedState(), true);
+  utility::THAlpmRouteScaleGenerator gen(ensemble->getProgrammedState());
   const auto& routeChunks = gen.getThriftRoutes();
   // Create a dummy rib since we don't want to go through
   // HwSwitchEnsemble and write to HW
