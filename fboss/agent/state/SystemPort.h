@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
@@ -49,67 +49,66 @@ class SystemPort
   using Base = ThriftStructNode<SystemPort, state::SystemPortFields>;
   using LegacyFields = SystemPortFields;
   explicit SystemPort(SystemPortID id) {
-    set<switch_state_tags::portId>(static_cast<int64_t>(id));
+    set<common_if_tags::portId>(static_cast<int64_t>(id));
   }
   SystemPortID getID() const {
     return static_cast<SystemPortID>(
-        cref<switch_state_tags::portId>()->toThrift());
+        cref<common_if_tags::portId>()->toThrift());
   }
   SwitchID getSwitchId() const {
-    return static_cast<SwitchID>(
-        cref<switch_state_tags::switchId>()->toThrift());
+    return static_cast<SwitchID>(cref<common_if_tags::switchId>()->toThrift());
   }
   void setSwitchId(SwitchID swId) {
-    set<switch_state_tags::switchId>(static_cast<int64_t>(swId));
+    set<common_if_tags::switchId>(static_cast<int64_t>(swId));
   }
   std::string getPortName() const {
-    return get<switch_state_tags::portName>()->toThrift();
+    return get<common_if_tags::portName>()->toThrift();
   }
   void setPortName(const std::string& portName) {
-    set<switch_state_tags::portName>(portName);
+    set<common_if_tags::portName>(portName);
   }
   int64_t getCoreIndex() const {
-    return cref<switch_state_tags::coreIndex>()->toThrift();
+    return cref<common_if_tags::coreIndex>()->toThrift();
   }
   void setCoreIndex(int64_t coreIndex) {
-    set<switch_state_tags::coreIndex>(coreIndex);
+    set<common_if_tags::coreIndex>(coreIndex);
   }
 
   int64_t getCorePortIndex() const {
-    return cref<switch_state_tags::corePortIndex>()->toThrift();
+    return cref<common_if_tags::corePortIndex>()->toThrift();
   }
   void setCorePortIndex(int64_t corePortIndex) {
-    set<switch_state_tags::corePortIndex>(corePortIndex);
+    set<common_if_tags::corePortIndex>(corePortIndex);
   }
   int64_t getSpeedMbps() const {
-    return cref<switch_state_tags::speedMbps>()->toThrift();
+    return cref<common_if_tags::speedMbps>()->toThrift();
   }
   void setSpeedMbps(int64_t speedMbps) {
-    set<switch_state_tags::speedMbps>(speedMbps);
+    set<common_if_tags::speedMbps>(speedMbps);
   }
   int64_t getNumVoqs() const {
-    return cref<switch_state_tags::numVoqs>()->toThrift();
+    return cref<common_if_tags::numVoqs>()->toThrift();
   }
   void setNumVoqs(int64_t numVoqs) {
-    set<switch_state_tags::numVoqs>(numVoqs);
+    set<common_if_tags::numVoqs>(numVoqs);
   }
   bool getEnabled() const {
-    return cref<switch_state_tags::enabled>()->toThrift();
+    return cref<common_if_tags::enabled>()->toThrift();
   }
   void setEnabled(bool enabled) {
-    set<switch_state_tags::enabled>(enabled);
+    set<common_if_tags::enabled>(enabled);
   }
   std::optional<std::string> getQosPolicy() const {
-    if (const auto& policy = cref<switch_state_tags::qosPolicy>()) {
+    if (const auto& policy = cref<common_if_tags::qosPolicy>()) {
       return policy->toThrift();
     }
     return std::nullopt;
   }
   void setQosPolicy(const std::optional<std::string>& qosPolicy) {
     if (qosPolicy) {
-      set<switch_state_tags::qosPolicy>(qosPolicy.value());
+      set<common_if_tags::qosPolicy>(qosPolicy.value());
     } else {
-      ref<switch_state_tags::qosPolicy>().reset();
+      ref<common_if_tags::qosPolicy>().reset();
     }
   }
 
