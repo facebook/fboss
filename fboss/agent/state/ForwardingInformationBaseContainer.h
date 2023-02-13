@@ -38,8 +38,6 @@ struct ForwardingInformationBaseContainerFields
   state::FibContainerFields toThrift() const override;
   static ForwardingInformationBaseContainerFields fromThrift(
       state::FibContainerFields const& fields);
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
 
   bool operator==(const ForwardingInformationBaseContainerFields& other) const {
     ForwardingInformationBaseV4 emptyV4{};

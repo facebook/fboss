@@ -99,8 +99,6 @@ struct AclEntryFields
 
   state::AclEntryFields toThrift() const override;
   static AclEntryFields fromThrift(state::AclEntryFields const& ma);
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
 
   folly::dynamic toFollyDynamicLegacy() const;
   static AclEntryFields fromFollyDynamicLegacy(const folly::dynamic& json);

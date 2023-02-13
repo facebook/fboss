@@ -167,8 +167,6 @@ class MatchAction {
 
   state::MatchAction toThrift() const;
   static MatchAction fromThrift(state::MatchAction const& ma);
-  static folly::dynamic migrateToThrifty(const folly::dynamic& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
 
   folly::dynamic toFollyDynamic() const;
   static MatchAction fromFollyDynamic(const folly::dynamic& actionJson);

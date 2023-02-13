@@ -191,42 +191,6 @@ AclEntryFields AclEntryFields::fromThrift(state::AclEntryFields const& entry) {
   return aclEntryFields;
 }
 
-// TODO: remove all migration along with old ser/des after next disruptive push
-folly::dynamic AclEntryFields::migrateToThrifty(const folly::dynamic& dyn) {
-  folly::dynamic newDyn = dyn;
-
-  // rename IpType -> ipType just for thrift name convention
-  ThriftyUtils::renameField(newDyn, kIpType, "ipType");
-
-  ThriftyUtils::changeEnumToInt<cfg::IpFragMatch>(newDyn, kIpFrag);
-  ThriftyUtils::changeEnumToInt<cfg::AclLookupClass>(newDyn, kLookupClassL2);
-  ThriftyUtils::changeEnumToInt<cfg::AclLookupClass>(newDyn, kLookupClass);
-  ThriftyUtils::changeEnumToInt<cfg::AclLookupClass>(
-      newDyn, kLookupClassNeighbor);
-  ThriftyUtils::changeEnumToInt<cfg::AclLookupClass>(newDyn, kLookupClassRoute);
-  ThriftyUtils::changeEnumToInt<cfg::AclActionType>(newDyn, kActionType);
-  if (auto it = newDyn.find(kAclAction); it != newDyn.items().end()) {
-    it->second = MatchAction::migrateToThrifty(it->second);
-  }
-
-  return newDyn;
-}
-
-void AclEntryFields::migrateFromThrifty(folly::dynamic& dyn) {
-  ThriftyUtils::renameField(dyn, "ipType", kIpType);
-
-  ThriftyUtils::changeEnumToString<cfg::IpFragMatch>(dyn, kIpFrag);
-  ThriftyUtils::changeEnumToString<cfg::AclLookupClass>(dyn, kLookupClassL2);
-  ThriftyUtils::changeEnumToString<cfg::AclLookupClass>(dyn, kLookupClass);
-  ThriftyUtils::changeEnumToString<cfg::AclLookupClass>(
-      dyn, kLookupClassNeighbor);
-  ThriftyUtils::changeEnumToString<cfg::AclLookupClass>(dyn, kLookupClassRoute);
-  ThriftyUtils::changeEnumToString<cfg::AclActionType>(dyn, kActionType);
-  if (auto it = dyn.find(kAclAction); it != dyn.items().end()) {
-    MatchAction::migrateFromThrifty(it->second);
-  }
-}
-
 folly::dynamic AclEntryFields::toFollyDynamicLegacy() const {
   folly::dynamic aclEntry = folly::dynamic::object;
   if (srcIp.first) {

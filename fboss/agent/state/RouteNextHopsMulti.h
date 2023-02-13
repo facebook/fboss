@@ -67,8 +67,6 @@ struct LegacyRouteNextHopsMulti : public ThriftyFields<
 
   static std::shared_ptr<const RouteNextHopsMulti> fromFollyDynamicLegacy(
       folly::dynamic const& dyn);
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
 };
 
 /**

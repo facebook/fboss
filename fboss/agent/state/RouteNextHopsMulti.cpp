@@ -115,31 +115,6 @@ RouteNextHopsMulti::getBestEntry() const {
   return RouteNextHopsMulti::getBestEntry(toThrift());
 }
 
-folly::dynamic LegacyRouteNextHopsMulti::migrateToThrifty(
-    folly::dynamic const& dyn) {
-  folly::dynamic newDyn = folly::dynamic::dynamic::object;
-  folly::dynamic client2NextHopEntryDyn = folly::dynamic::object;
-  auto multi = fromFollyDynamicLegacy(dyn);
-  for (auto [key, value] : dyn.items()) {
-    client2NextHopEntryDyn[key] = RouteNextHopEntry::migrateToThrifty(value);
-  }
-  newDyn["client2NextHopEntry"] = client2NextHopEntryDyn;
-  newDyn["lowestAdminDistanceClientId"] =
-      static_cast<int>(multi->lowestAdminDistanceClientId());
-  return newDyn;
-}
-
-void LegacyRouteNextHopsMulti::migrateFromThrifty(folly::dynamic& dyn) {
-  for (auto [key, value] : dyn["client2NextHopEntry"].items()) {
-    auto clientID = key.asString();
-    auto multiDynamic = value;
-    RouteNextHopEntry::migrateFromThrifty(multiDynamic);
-    dyn[clientID] = multiDynamic;
-  }
-  dyn.erase("client2NextHopEntry");
-  dyn.erase("lowestAdminDistanceClientId");
-}
-
 std::pair<ClientID, std::shared_ptr<const RouteNextHopEntry>>
 RouteNextHopsMulti::getBestEntry(
     const state::RouteNextHopsMulti& nexthopsmulti) {

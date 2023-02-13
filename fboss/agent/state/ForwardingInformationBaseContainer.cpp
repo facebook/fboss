@@ -70,25 +70,6 @@ ForwardingInformationBaseContainerFields::fromThrift(
   return fibContainer;
 }
 
-folly::dynamic ForwardingInformationBaseContainerFields::migrateToThrifty(
-    folly::dynamic const& dyn) {
-  folly::dynamic newDyn = folly::dynamic::object;
-  newDyn[kVrf] = dyn[kVrf].asInt();
-  newDyn[kFibV4] =
-      ForwardingInformationBaseV4::LegacyBaseBase::migrateToThrifty(
-          dyn[kFibV4]);
-  newDyn[kFibV6] =
-      ForwardingInformationBaseV6::LegacyBaseBase::migrateToThrifty(
-          dyn[kFibV6]);
-  return newDyn;
-}
-
-void ForwardingInformationBaseContainerFields::migrateFromThrifty(
-    folly::dynamic& dyn) {
-  ForwardingInformationBaseV4::LegacyBaseBase::migrateFromThrifty(dyn[kFibV4]);
-  ForwardingInformationBaseV6::LegacyBaseBase::migrateFromThrifty(dyn[kFibV6]);
-}
-
 ForwardingInformationBaseContainer::ForwardingInformationBaseContainer(
     RouterID vrf) {
   set<switch_state_tags::vrf>(vrf);

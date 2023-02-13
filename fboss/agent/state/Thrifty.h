@@ -149,7 +149,8 @@ class ThriftyUtils {
 
   static bool nodeNeedsMigration(const folly::dynamic& dyn) {
     return !dyn.isObject() ||
-        !dyn.getDefault(kThriftySchemaUpToDate, false).asBool();
+        !dyn.getDefault(kThriftySchemaUpToDate, true /* migrated to thrift */)
+             .asBool();
   }
 
   // given folly dynamic of ip, return binary address
@@ -258,25 +259,16 @@ template <typename Derived, typename ThriftT>
 class ThriftyFields {
  public:
   using ThriftType = ThriftT;
+  using FieldsT = Derived;
+
   ThriftyFields() {}
   explicit ThriftyFields(const ThriftT& data) : data_(data) {}
 
   virtual ~ThriftyFields() = default;
 
-  //  migrateTo does not modify dyn so we don't have to change the call sites of
-  //  fromFollyDynamic, migrateFrom does not have this limitation
-  static folly::dynamic migrateToThrifty(const folly::dynamic& dyn) {
-    return dyn;
-  }
-  static void migrateFromThrifty(folly::dynamic& dyn) {
-    dyn[ThriftyUtils::kThriftySchemaUpToDate] = true;
-  }
-
-  using FieldsT = Derived;
-
   static FieldsT fromFollyDynamic(folly::dynamic const& dyn) {
     if (ThriftyUtils::nodeNeedsMigration(dyn)) {
-      return fromJson(folly::toJson(FieldsT::migrateToThrifty(dyn)));
+      XLOG(FATAL) << "incomptaible schema detected";
     } else {
       // Schema is up to date meaning there is no migration required
       return fromJson(folly::toJson(dyn));
@@ -285,7 +277,6 @@ class ThriftyFields {
 
   folly::dynamic toFollyDynamic() const {
     auto dyn = folly::parseJson(this->str());
-    FieldsT::migrateFromThrifty(dyn);
     return dyn;
   }
 
@@ -358,7 +349,7 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
 
   static std::shared_ptr<NodeMap> fromFollyDynamic(folly::dynamic const& dyn) {
     if (ThriftyUtils::nodeNeedsMigration(dyn)) {
-      return fromFollyDynamicImpl(NodeMap::migrateToThrifty(dyn));
+      XLOG(FATAL) << "Incompatible schema detected";
     } else {
       // Schema is up to date meaning there is not migration required
       return fromFollyDynamicImpl(dyn);
@@ -400,66 +391,7 @@ class ThriftyNodeMapT : public NodeMapT<NodeMap, TraitsT> {
       apache::thrift::SimpleJSONSerializer::serialize(val, &jsonStr);
       dyn[folly::to<std::string>(key)] = folly::parseJson(jsonStr);
     }
-    NodeMap::migrateFromThrifty(dyn);
     return dyn;
-  }
-
-  /*
-   * Old style NodeMapT serlization has the nodes in a list but with thrift we
-   * can probably just encode a map directly. So in thrift we'll use the name
-   * "items" instead of "entries and to migrate we'll duplicate the data as a
-   * list under "entries" and a map under "items"
-   */
-  static folly::dynamic migrateToThrifty(const folly::dynamic& dyn) {
-    folly::dynamic newItems = folly::dynamic::object;
-    auto* entries = getEntries(dyn);
-    for (auto& item : *entries) {
-      if (ThriftyUtils::nodeNeedsMigration(item)) {
-        auto key = ThriftyTraitsT::template getKeyFromLegacyNode<KeyType>(
-            item, ThriftyTraitsT::getThriftKeyName());
-        if constexpr (!kIsThriftCowNode<typename TraitsT::Node>) {
-          newItems[key] = TraitsT::Node::Fields::migrateToThrifty(item);
-        } else {
-          newItems[key] = TraitsT::Node::LegacyFields::migrateToThrifty(item);
-        }
-      } else {
-        newItems[item[ThriftyTraitsT::getThriftKeyName()].asString()] = item;
-      }
-    }
-    return newItems;
-  }
-
-  static void migrateFromThrifty(folly::dynamic& dyn) {
-    auto schemaUpToDate = true;
-    folly::dynamic entries = folly::dynamic::array;
-    std::set<std::string> keys{};
-
-    for (auto& item : dyn.items()) {
-      // dyn.items() is an uordered map and the order in which items are
-      // returned is underterministic. enforce the order, so entries are always
-      // in the same order.
-      keys.insert(item.first.asString());
-    }
-
-    for (auto key : keys) {
-      auto& item = dyn[key];
-      if constexpr (!kIsThriftCowNode<typename TraitsT::Node>) {
-        TraitsT::Node::Fields::migrateFromThrifty(item);
-      } else {
-        TraitsT::Node::LegacyFields::migrateFromThrifty(item);
-      }
-      if (!item.getDefault(ThriftyUtils::kThriftySchemaUpToDate, false)
-               .asBool()) {
-        schemaUpToDate = false;
-      }
-      entries.push_back(item);
-    }
-
-    dyn[kEntries] = entries;
-    // TODO: fill out extra fields as needed
-    dyn[kExtraFields] = folly::dynamic::object;
-
-    dyn[ThriftyUtils::kThriftySchemaUpToDate] = schemaUpToDate;
   }
 
   // for testing purposes. These are mirrors of to/from FollyDynamic defined in

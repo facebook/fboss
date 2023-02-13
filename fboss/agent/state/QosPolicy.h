@@ -127,8 +127,6 @@ struct QosPolicyFields
   }
   static QosPolicyFields fromThrift(
       state::QosPolicyFields const& qosPolicyFields);
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
   folly::dynamic toFollyDynamicLegacy() const;
   static QosPolicyFields fromFollyDynamicLegacy(
       const folly::dynamic& qosPolicy);

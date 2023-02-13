@@ -305,18 +305,6 @@ LoadBalancerFields LoadBalancerFields::fromThrift(
   return fields;
 }
 
-folly::dynamic LoadBalancerFields::migrateToThrifty(folly::dynamic const& dyn) {
-  folly::dynamic obj = dyn;
-  auto seed = static_cast<int32_t>(obj["seed"].asInt());
-  obj["seed"] = seed;
-  return obj;
-}
-
-void LoadBalancerFields::migrateFromThrifty(folly::dynamic& dyn) {
-  auto seed = dyn["seed"].asInt();
-  dyn["seed"] = static_cast<uint32_t>(seed);
-}
-
 std::shared_ptr<LoadBalancer> LoadBalancer::fromThrift(
     const state::LoadBalancerFields& fields) {
   return std::make_shared<LoadBalancer>(fields);

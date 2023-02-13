@@ -68,8 +68,6 @@ struct RoutePrefix
 
   state::RoutePrefix toThrift() const override;
   static RoutePrefix fromThrift(const state::RoutePrefix& prefix);
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
 
   /*
    * Serialize to folly::dynamic

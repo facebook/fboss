@@ -42,8 +42,6 @@ struct SflowCollectorFields
   }
   static SflowCollectorFields fromThrift(
       state::SflowCollectorFields const& sflowCollectorThrift);
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
   folly::dynamic toFollyDynamicLegacy() const;
   static SflowCollectorFields fromFollyDynamicLegacy(
       const folly::dynamic& sflowCollectorJson);

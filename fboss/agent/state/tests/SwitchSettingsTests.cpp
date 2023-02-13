@@ -217,34 +217,6 @@ TEST(SwitchSettingsTest, applyMacAddrsToBlock) {
       macAddrToBlock.macAddress());
 }
 
-TEST(SwitchSettingsTest, ToFromJSON) {
-  std::string jsonStr = R"(
-        {
-          "l2LearningMode": 1,
-          "qcmEnable": true,
-          "ptpTcEnable": true,
-          "l2AgeTimerSeconds": 600,
-          "maxRouteCounterIDs": 10,
-          "blockNeighbors": [],
-          "macAddrsToBlock": [],
-          "switchType": 0
-        }
-  )";
-
-  auto switchSettings =
-      SwitchSettings::fromFollyDynamic(folly::parseJson(jsonStr));
-  EXPECT_EQ(cfg::L2LearningMode::SOFTWARE, switchSettings->getL2LearningMode());
-  EXPECT_TRUE(switchSettings->isQcmEnable());
-  EXPECT_TRUE(switchSettings->isPtpTcEnable());
-  EXPECT_EQ(600, switchSettings->getL2AgeTimerSeconds());
-  EXPECT_EQ(10, switchSettings->getMaxRouteCounterIDs());
-
-  auto dyn1 = switchSettings->toFollyDynamic();
-  auto dyn2 = folly::parseJson(jsonStr);
-
-  EXPECT_EQ(dyn1, dyn2);
-}
-
 TEST(SwitchSettingsTest, ThrifyMigration) {
   folly::IPAddress ip("1.1.1.1");
   auto addr = facebook::network::toBinaryAddress(ip);

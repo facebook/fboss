@@ -166,42 +166,6 @@ void RouteFields<AddrT>::delEntryForClient(ClientID clientId) {
 }
 
 template <typename AddrT>
-folly::dynamic RouteFields<AddrT>::migrateToThrifty(folly::dynamic const& dyn) {
-  folly::dynamic newDyn = folly::dynamic::object;
-  if constexpr (std::is_same_v<AddrT, LabelID>) {
-    newDyn["label"] =
-        RouteFields<AddrT>::Prefix::migrateToThrifty(dyn[kPrefix]);
-  } else {
-    newDyn["prefix"] =
-        RouteFields<AddrT>::Prefix::migrateToThrifty(dyn[kPrefix]);
-  }
-  newDyn["nexthopsmulti"] =
-      LegacyRouteNextHopsMulti::migrateToThrifty(dyn[kNextHopsMulti]);
-  newDyn["fwd"] = RouteNextHopEntry::migrateToThrifty(dyn[kFwdInfo]);
-  newDyn["flags"] = dyn[kFlags].asInt();
-  if (dyn.find(kClassID) != dyn.items().end()) {
-    newDyn["classID"] = dyn[kClassID].asInt();
-  }
-  return newDyn;
-}
-
-template <typename AddrT>
-void RouteFields<AddrT>::migrateFromThrifty(folly::dynamic& dyn) {
-  if constexpr (std::is_same_v<AddrT, LabelID>) {
-    ThriftyUtils::renameField(dyn, "label", std::string(kPrefix));
-  }
-  RouteFields<AddrT>::Prefix::migrateFromThrifty(dyn[kPrefix]);
-  ThriftyUtils::renameField(dyn, "nexthopsmulti", std::string(kNextHopsMulti));
-  ThriftyUtils::renameField(dyn, "fwd", std::string(kFwdInfo));
-  LegacyRouteNextHopsMulti::migrateFromThrifty(dyn[kNextHopsMulti]);
-  RouteNextHopEntry::migrateFromThrifty(dyn[kFwdInfo]);
-  dyn[kFlags] = dyn["flags"].asInt();
-  if (dyn.find("classID") != dyn.items().end()) {
-    dyn[kClassID] = dyn["classID"].asInt();
-  }
-}
-
-template <typename AddrT>
 ThriftFieldsT<AddrT> RouteFields<AddrT>::getRouteFields(
     const PrefixT<AddrT>& prefix,
     const RouteNextHopsMulti& multi,

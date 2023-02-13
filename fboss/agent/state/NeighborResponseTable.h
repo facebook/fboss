@@ -83,19 +83,6 @@ class NeighborResponseTable
 
   NeighborResponseTable() {}
 
-  static folly::dynamic migrateToThrifty(const folly::dynamic& dyn) {
-    folly::dynamic newItems = folly::dynamic::object;
-    for (auto item : dyn.items()) {
-      // inject key into node for ThriftyNodeMapT to find
-      item.second[NeighborResponseTableThriftTraits<IPADDR, ENTRY>::
-                      getThriftKeyName()] = item.first;
-      newItems[item.first] = item.second;
-    }
-    return newItems;
-  }
-
-  static void migrateFromThrifty(folly::dynamic& /* dyn */) {}
-
   std::shared_ptr<ENTRY> getEntry(AddressType ip) const {
     return this->getNodeIf(ip.str());
   }

@@ -155,38 +155,6 @@ QcmCfgFields QcmCfgFields::fromFollyDynamicLegacy(const folly::dynamic& json) {
   return qcmCfgFields;
 }
 
-folly::dynamic QcmCfgFields::migrateToThrifty(folly::dynamic const& dyn) {
-  folly::dynamic newDyn = dyn;
-  auto toIpPrefix = [](const std::string& s) {
-    folly::CIDRNetwork cidr = folly::IPAddress::createNetwork(s, -1, false);
-    auto prefix = ThriftyUtils::toIpPrefix(cidr);
-    std::string jsonStr;
-    apache::thrift::SimpleJSONSerializer::serialize(prefix, &jsonStr);
-    return folly::parseJson(jsonStr);
-  };
-  auto dstIp = dyn["collectorDstIp"].asString();
-  auto srcIp = dyn["collectorSrcIp"].asString();
-  newDyn["collectorDstIp"] = toIpPrefix(dstIp);
-  newDyn["collectorSrcIp"] = toIpPrefix(srcIp);
-  return newDyn;
-}
-
-void QcmCfgFields::migrateFromThrifty(folly::dynamic& dyn) {
-  auto fromIpPrefix = [](folly::dynamic& prefix) {
-    auto jsonStr = folly::toJson(prefix);
-    auto inBuf =
-        folly::IOBuf::wrapBufferAsValue(jsonStr.data(), jsonStr.size());
-    auto obj = apache::thrift::SimpleJSONSerializer::deserialize<IpPrefix>(
-        folly::io::Cursor{&inBuf});
-    auto cidr = ThriftyUtils::toCIDRNetwork(obj);
-    return folly::IPAddress::networkToString(cidr);
-  };
-  auto dstIp = dyn["collectorDstIp"];
-  auto srcIp = dyn["collectorSrcIp"];
-  dyn["collectorDstIp"] = fromIpPrefix(dstIp);
-  dyn["collectorSrcIp"] = fromIpPrefix(srcIp);
-}
-
 template class ThriftStructNode<QcmCfg, state::QcmCfgFields>;
 
 } // namespace facebook::fboss

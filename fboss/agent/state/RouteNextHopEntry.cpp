@@ -709,51 +709,6 @@ void RouteNextHopEntry::normalizeNextHopWeightsToMaxPaths(
   }
 }
 
-folly::dynamic RouteNextHopEntry::migrateToThrifty(folly::dynamic const& dyn) {
-  folly::dynamic newDyn = dyn;
-  auto action = dyn[kAction].asString();
-  newDyn[kAction] = folly::to<int>(str2ForwardAction(action));
-  RouteNextHopSet nhops{};
-  std::vector<NextHop> nexthops{};
-  for (auto& nhop : dyn[kNexthops]) {
-    nexthops.emplace_back(util::nextHopFromFollyDynamic(nhop));
-  }
-  nhops.insert(std::begin(nexthops), std::end(nexthops));
-  folly::dynamic nhopsDynamic = folly::dynamic::array;
-  auto nhopsThrift = util::fromRouteNextHopSet(nhops);
-  for (auto& nhop : nhopsThrift) {
-    std::string jsonStr;
-    apache::thrift::SimpleJSONSerializer::serialize(nhop, &jsonStr);
-    nhopsDynamic.push_back(folly::parseJson(jsonStr));
-  }
-  newDyn[kNexthops] = nhopsDynamic;
-  return newDyn;
-}
-
-void RouteNextHopEntry::migrateFromThrifty(folly::dynamic& dyn) {
-  auto action = static_cast<RouteForwardAction>(dyn[kAction].asInt());
-  dyn[kAction] = forwardActionStr(action);
-  folly::dynamic nhopsDynamic = folly::dynamic::array;
-  if (dyn.find(kNexthops) != dyn.items().end()) {
-    std::vector<NextHopThrift> nhopsThrift{};
-
-    for (auto& nhop : dyn[kNexthops]) {
-      auto jsonStr = folly::toJson(nhop);
-      auto inBuf =
-          folly::IOBuf::wrapBufferAsValue(jsonStr.data(), jsonStr.size());
-      auto nhopThrift =
-          apache::thrift::SimpleJSONSerializer::deserialize<NextHopThrift>(
-              folly::io::Cursor{&inBuf});
-      nhopsThrift.push_back(nhopThrift);
-    }
-    auto nhops = util::toRouteNextHopSet(nhopsThrift, true);
-    for (auto& nhop : nhops) {
-      nhopsDynamic.push_back(nhop.toFollyDynamic());
-    }
-  }
-  dyn[kNexthops] = nhopsDynamic;
-}
-
 state::RouteNextHopEntry RouteNextHopEntry::getRouteNextHopEntryThrift(
     Action action,
     AdminDistance distance,

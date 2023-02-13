@@ -163,9 +163,6 @@ struct RouteFields
     return RouteFields(fields);
   }
 
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
-
   void clearFlags() {
     this->writableData().flags() = 0;
   }

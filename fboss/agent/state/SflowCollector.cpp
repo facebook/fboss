@@ -29,26 +29,6 @@ SflowCollectorFields SflowCollectorFields::fromThrift(
       *sflowCollectorThrift.address()->port());
 }
 
-folly::dynamic SflowCollectorFields::migrateToThrifty(
-    const folly::dynamic& dyn) {
-  folly::dynamic newDyn = folly::dynamic::object;
-  auto host = dyn[kIp].asString();
-  auto port = dyn[kPort].asInt();
-  newDyn[kId] = folly::to<std::string>(host, ":", port);
-
-  folly::dynamic socketAddress = folly::dynamic::object;
-  socketAddress[kHost] = host;
-  socketAddress[kPort] = port;
-  newDyn[kAddress] = socketAddress;
-
-  return newDyn;
-}
-
-void SflowCollectorFields::migrateFromThrifty(folly::dynamic& dyn) {
-  dyn[kIp] = dyn[kAddress][kHost];
-  dyn[kPort] = dyn[kAddress][kPort];
-}
-
 folly::dynamic SflowCollectorFields::toFollyDynamicLegacy() const {
   folly::dynamic collector = folly::dynamic::object;
   collector[kIp] = *data().address()->host();

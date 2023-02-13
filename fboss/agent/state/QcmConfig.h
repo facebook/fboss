@@ -161,8 +161,6 @@ struct QcmCfgFields : public ThriftyFields<QcmCfgFields, state::QcmCfgFields> {
   bool operator!=(const QcmCfgFields& other) const {
     return !(data() == other.data());
   }
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
 };
 
 USE_THRIFT_COW(QcmCfg);

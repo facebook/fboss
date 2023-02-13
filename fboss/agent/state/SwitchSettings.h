@@ -32,8 +32,6 @@ struct SwitchSettingsFields
   state::SwitchSettingsFields toThrift() const override;
   static SwitchSettingsFields fromThrift(
       state::SwitchSettingsFields const& fields);
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
 
   bool operator==(const SwitchSettingsFields& other) const {
     return std::tie(

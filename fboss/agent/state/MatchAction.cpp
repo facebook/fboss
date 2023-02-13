@@ -92,35 +92,6 @@ MatchAction MatchAction::fromThrift(state::MatchAction const& ma) {
   return matchAction;
 }
 
-// TODO: remove all migration along with old ser/des after next disruptive push
-folly::dynamic MatchAction::migrateToThrifty(const folly::dynamic& dyn) {
-  folly::dynamic newDyn = dyn;
-
-  if (auto it = newDyn.find(kQueueMatchAction); it != newDyn.items().end()) {
-    const auto action = it->second;
-    newDyn[kThriftSendToQueue] = folly::dynamic::object;
-    newDyn[kThriftSendToQueue][kThriftSendToCPU] = action[kSendToCPU].asBool();
-    newDyn[kThriftSendToQueue][kThriftAction] = action;
-  }
-  ThriftyUtils::renameField(newDyn, kCounter, kThriftTrafficCounter);
-  ThriftyUtils::renameField(newDyn, kSetDscpMatchAction, kThriftSetDscp);
-  ThriftyUtils::renameField(newDyn, kToCpuAction, kThriftToCpuAction);
-
-  return newDyn;
-}
-
-void MatchAction::migrateFromThrifty(folly::dynamic& dyn) {
-  if (auto it = dyn.find(kThriftSendToQueue); it != dyn.items().end()) {
-    const auto action = it->second[kThriftAction];
-    const auto sendToCPU = it->second[kThriftSendToCPU];
-    dyn[kQueueMatchAction] = action;
-    dyn[kQueueMatchAction][kSendToCPU] = sendToCPU;
-  }
-  ThriftyUtils::renameField(dyn, kThriftTrafficCounter, kCounter);
-  ThriftyUtils::renameField(dyn, kThriftSetDscp, kSetDscpMatchAction);
-  ThriftyUtils::renameField(dyn, kThriftToCpuAction, kToCpuAction);
-}
-
 folly::dynamic MatchAction::toFollyDynamic() const {
   folly::dynamic matchAction = folly::dynamic::object;
   if (sendToQueue_) {

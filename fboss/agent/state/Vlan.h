@@ -74,8 +74,6 @@ struct VlanFields : public ThriftyFields<VlanFields, state::VlanFields> {
 
   state::VlanFields toThrift() const override;
   static VlanFields fromThrift(const state::VlanFields& vlanTh);
-  static folly::dynamic migrateToThrifty(const folly::dynamic& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
 
   folly::dynamic toFollyDynamicLegacy() const;
   static VlanFields fromFollyDynamicLegacy(const folly::dynamic& vlanJson);

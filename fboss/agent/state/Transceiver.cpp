@@ -34,25 +34,6 @@ TransceiverSpecFields TransceiverSpecFields::fromThrift(
   return tcvrFields;
 }
 
-folly::dynamic TransceiverSpecFields::migrateToThrifty(
-    const folly::dynamic& dyn) {
-  folly::dynamic newDyn = dyn;
-
-  ThriftyUtils::changeEnumToInt<MediaInterfaceCode>(newDyn, kMediaInterface);
-  ThriftyUtils::changeEnumToInt<TransceiverManagementInterface>(
-      newDyn, kManagementInterface);
-
-  return newDyn;
-}
-
-void TransceiverSpecFields::migrateFromThrifty(folly::dynamic& dyn) {
-  ThriftyUtils::changeEnumToString<facebook::fboss::MediaInterfaceCode>(
-      dyn, kMediaInterface);
-  ThriftyUtils::changeEnumToString<
-      facebook::fboss::TransceiverManagementInterface>(
-      dyn, kManagementInterface);
-}
-
 folly::dynamic TransceiverSpecFields::toFollyDynamicLegacy() const {
   folly::dynamic tcvr = folly::dynamic::object;
   auto thriftData = data();

@@ -299,68 +299,6 @@ MirrorFields MirrorFields::fromThrift(state::MirrorFields const& fields) {
   return MirrorFields(fields);
 }
 
-folly::dynamic MirrorFields::migrateToThrifty(folly::dynamic const& dyn) {
-  folly::dynamic newDyn = dyn;
-  if (newDyn.find(kSrcIp) != newDyn.items().end()) {
-    ThriftyUtils::translateTo<network::thrift::BinaryAddress>(newDyn[kSrcIp]);
-  }
-  if (newDyn.find(kDestinationIp) != newDyn.items().end()) {
-    if (!newDyn[kDestinationIp].empty()) {
-      ThriftyUtils::translateTo<network::thrift::BinaryAddress>(
-          newDyn[kDestinationIp]);
-    } else {
-      newDyn.erase(kDestinationIp);
-    }
-  }
-  if (dyn.find(kEgressPort) != dyn.items().end()) {
-    if (!dyn[kEgressPort].empty()) {
-      newDyn[kEgressPort] = dyn[kEgressPort].asInt();
-    } else {
-      newDyn.erase(kEgressPort);
-    }
-  }
-  if (newDyn.find(kTunnel) != newDyn.items().end()) {
-    if (!newDyn[kTunnel].empty()) {
-      ThriftyUtils::translateTo<network::thrift::BinaryAddress>(
-          newDyn[kTunnel][kSrcIp]);
-      ThriftyUtils::translateTo<network::thrift::BinaryAddress>(
-          newDyn[kTunnel][kDstIp]);
-    } else {
-      newDyn.erase(kTunnel);
-    }
-  }
-  return newDyn;
-}
-
-void MirrorFields::migrateFromThrifty(folly::dynamic& dyn) {
-  bool isResolved = true; // span
-  if (dyn.find(kSrcIp) != dyn.items().end()) {
-    ThriftyUtils::translateTo<folly::IPAddress>(dyn[kSrcIp]);
-  }
-  if (dyn.find(kDestinationIp) != dyn.items().end()) {
-    // erspan or sflow
-    isResolved = false;
-    ThriftyUtils::translateTo<folly::IPAddress>(dyn[kDestinationIp]);
-  } else {
-    dyn[kDestinationIp] = folly::dynamic::object;
-  }
-  if (dyn.find(kTunnel) != dyn.items().end()) {
-    ThriftyUtils::translateTo<folly::IPAddress>(dyn[kTunnel][kSrcIp]);
-    ThriftyUtils::translateTo<folly::IPAddress>(dyn[kTunnel][kDstIp]);
-    // erspan or sflow is resolved
-    isResolved = true;
-  } else {
-    dyn[kTunnel] = folly::dynamic::object;
-  }
-  if (dyn.find(kEgressPort) != dyn.items().end()) {
-    dyn[kEgressPort] =
-        folly::to<std::string>(static_cast<PortID>(dyn[kEgressPort].asInt()));
-  } else {
-    dyn[kEgressPort] = folly::dynamic::object;
-  }
-  dyn[kIsResolved] = isResolved;
-}
-
 template class ThriftStructNode<Mirror, state::MirrorFields>;
 
 } // namespace facebook::fboss

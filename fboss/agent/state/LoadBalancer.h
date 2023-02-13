@@ -41,8 +41,6 @@ struct LoadBalancerFields
 
   state::LoadBalancerFields toThrift() const override;
   static LoadBalancerFields fromThrift(state::LoadBalancerFields const& fields);
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
 
   LoadBalancerFields(
       LoadBalancerID id,

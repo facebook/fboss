@@ -192,9 +192,6 @@ class RouteNextHopEntry
       std::vector<uint64_t>& nhWeights,
       uint64_t normalizedPathCount);
 
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
-
  private:
   static state::RouteNextHopEntry getRouteNextHopEntryThrift(
       Action action,

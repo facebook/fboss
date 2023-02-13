@@ -206,45 +206,6 @@ VlanFields VlanFields::fromFollyDynamicLegacy(const folly::dynamic& vlanJson) {
   return vlan;
 }
 
-folly::dynamic VlanFields::migrateToThrifty(const folly::dynamic& dyn) {
-  folly::dynamic newDyn = dyn;
-
-  // memberPorts used to be a map<id, PortInfo> but changing this to
-  // map<id, bool> since the tagged field is the only thing in PortInfo.
-  // renaming to "port" so we can support both for backwards compatibility
-  folly::dynamic newPorts = folly::dynamic::object();
-  for (const auto& [portId, info] : newDyn[kMemberPorts].items()) {
-    auto portInfo = PortInfo::fromFollyDynamic(info);
-    newPorts[portId] = portInfo.tagged;
-  }
-  newDyn["ports"] = newPorts;
-  newDyn[kArpTable] =
-      ArpTable::LegacyBaseT::migrateToThrifty(newDyn[kArpTable]);
-  newDyn[kNdpTable] =
-      NdpTable::LegacyBaseT::migrateToThrifty(newDyn[kNdpTable]);
-  newDyn[kArpResponseTable] =
-      ArpResponseTable::migrateToThrifty(newDyn[kArpResponseTable]);
-  newDyn[kNdpResponseTable] =
-      NdpResponseTable::migrateToThrifty(newDyn[kNdpResponseTable]);
-  newDyn[kMacTable] =
-      MacTable::LegacyBaseT::migrateToThrifty(newDyn[kMacTable]);
-  return newDyn;
-}
-void VlanFields::migrateFromThrifty(folly::dynamic& dyn) {
-  folly::dynamic legacyMemberPorts = folly::dynamic::object();
-  for (const auto& [portId, tagged] : dyn["ports"].items()) {
-    auto portInfo = PortInfo(tagged.asBool());
-    legacyMemberPorts[portId] = portInfo.toFollyDynamic();
-  }
-  dyn[kMemberPorts] = legacyMemberPorts;
-
-  ArpTable::LegacyBaseT::migrateFromThrifty(dyn[kArpTable]);
-  NdpTable::LegacyBaseT::migrateFromThrifty(dyn[kNdpTable]);
-  ArpResponseTable::migrateFromThrifty(dyn[kArpResponseTable]);
-  NdpResponseTable::migrateFromThrifty(dyn[kNdpResponseTable]);
-  MacTable::LegacyBaseT::migrateFromThrifty(dyn[kMacTable]);
-}
-
 bool VlanFields::operator==(const VlanFields& o) const {
   return std::tie(
              id,
