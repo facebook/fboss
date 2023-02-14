@@ -286,7 +286,7 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
       cursor,
       dstMac,
       intf->getMac(),
-      intf->getVlanID(),
+      intf->getVlanIDIf(),
       ipv6,
       bodyLength,
       serializeBody);
