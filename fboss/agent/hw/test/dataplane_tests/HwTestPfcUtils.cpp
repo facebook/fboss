@@ -38,8 +38,8 @@ int kGlobalSharedBufferCells(const HwSwitch* hwSwitch) {
     case PlatformMode::MINIPACK:
     case PlatformMode::YAMP:
       return 117436;
+    // Using default value for FUJI till Buffer tuning value is finalized.
     case PlatformMode::FUJI:
-      return 204753;
     default:
       //  this is for fake bcm
       return 115196;
