@@ -566,7 +566,7 @@ void SwSwitch::exitFatal() const noexcept {
 void SwSwitch::publishRxPacket(RxPacket* pkt, uint16_t ethertype) {
   RxPacketData pubPkt;
   pubPkt.srcPort = pkt->getSrcPort();
-  pubPkt.srcVlan = pkt->getSrcVlan();
+  pubPkt.srcVlan = getVlanIDHelper(pkt->getSrcVlanIf());
 
   for (const auto& r : pkt->getReasons()) {
     RxReason reason;
