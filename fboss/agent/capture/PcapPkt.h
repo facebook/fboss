@@ -34,7 +34,7 @@ struct RxReason {
 // A struct holding data of a packet received by the CPU
 struct RxPacketData {
   int32_t srcPort;
-  int32_t srcVlan;
+  std::optional<int32_t> srcVlan;
 
   // The data in the packet
   folly::fbstring packetData;
@@ -97,7 +97,7 @@ class PcapPkt {
   PortID port() const {
     return port_;
   }
-  VlanID vlan() const {
+  std::optional<VlanID> vlan() const {
     return vlan_;
   }
   TimePoint timestamp() const {
@@ -143,7 +143,7 @@ class PcapPkt {
   // will egress from.
   PortID port_{0};
   // The VLAN the packet was sent or received on.
-  VlanID vlan_{0};
+  std::optional<VlanID> vlan_;
   TimePoint timestamp_;
   // The packet contents, starting from the ethernet header.
   folly::IOBuf buf_;

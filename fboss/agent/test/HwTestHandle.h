@@ -31,7 +31,7 @@ class HwTestHandle {
   virtual void rxPacket(
       std::unique_ptr<folly::IOBuf> buf,
       const PortID srcPort,
-      const VlanID srcVlan) = 0;
+      const std::optional<VlanID> srcVlan) = 0;
   virtual void forcePortDown(const PortID port) = 0;
   virtual void forcePortUp(const PortID port) = 0;
   virtual void forcePortFlap(const PortID port) = 0;

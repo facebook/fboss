@@ -19,7 +19,7 @@ namespace facebook::fboss {
 void MockTestHandle::rxPacket(
     std::unique_ptr<folly::IOBuf> buf,
     PortID srcPort,
-    VlanID srcVlan) {
+    std::optional<VlanID> srcVlan) {
   auto pkt = std::make_unique<MockRxPacket>(std::move(buf));
   pkt->padToLength(68);
   pkt->setSrcPort(srcPort);

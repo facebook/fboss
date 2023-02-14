@@ -31,8 +31,8 @@ class MockRxPacket : public RxPacket {
   void setSrcPort(PortID id) {
     srcPort_ = id;
   }
-  void setSrcVlan(VlanID id) {
-    srcVlan_ = id;
+  void setSrcVlan(std::optional<VlanID> srcVlan) {
+    srcVlan_ = srcVlan;
   }
 
  private:

@@ -24,7 +24,7 @@ PcapPkt::PcapPkt(const RxPacket* pkt, TimePoint timestamp)
     : initialized_(true),
       rx_(true),
       port_(pkt->getSrcPort()),
-      vlan_(pkt->getSrcVlan()),
+      vlan_(pkt->getSrcVlanIf()),
       timestamp_(timestamp),
       buf_(),
       reasons_() {
