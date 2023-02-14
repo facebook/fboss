@@ -57,6 +57,7 @@
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
 #include "fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h"
+#include "fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h"
 #include "fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
@@ -94,6 +95,7 @@
 #include "fboss/cli/fboss2/commands/show/ndp/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/route/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/systemport/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/gen-cpp2/model_visitation.h"
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
@@ -279,6 +281,7 @@ CmdHandler<CmdShowInterfacePhymap, CmdShowInterfacePhymapTraits>::run();
 template void
 CmdHandler<CmdShowInterfaceTraffic, CmdShowInterfaceTrafficTraits>::run();
 template void CmdHandler<CmdShowSdkDump, CmdShowSdkDumpTraits>::run();
+template void CmdHandler<CmdShowSystemPort, CmdShowSystemPortTraits>::run();
 template void CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::run();
 
 template void CmdHandler<CmdClearInterface, CmdClearInterfaceTraits>::run();
@@ -357,6 +360,8 @@ template const ValidFilterMapType CmdHandler<
     CmdShowInterfaceTrafficTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdShowSdkDump, CmdShowSdkDumpTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowSystemPort, CmdShowSystemPortTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::getValidFilters();
 

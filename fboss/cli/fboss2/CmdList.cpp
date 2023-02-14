@@ -56,6 +56,7 @@
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
 #include "fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h"
+#include "fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h"
 #include "fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 
@@ -97,6 +98,7 @@ const CommandTree& kCommandTree() {
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
        "Show Fabric reachability",
        commandHandler<CmdShowFabric>},
+
       {"show",
        "dsfnodes",
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
@@ -245,6 +247,13 @@ const CommandTree& kCommandTree() {
               },
           },
       },
+
+      {"show",
+       "systemport",
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_SYSTEM_PORT_LIST,
+       "Show system port information",
+       commandHandler<CmdShowSystemPort>,
+       getValidFilterHandler<CmdShowSystemPort>},
 
       {"show",
        "teflow",

@@ -74,6 +74,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_systemport_model
+  fboss/cli/fboss2/commands/show/systemport/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_transceiver_model
   fboss/cli/fboss2/commands/show/transceiver/model.thrift
   OPTIONS
@@ -249,6 +256,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/interface/prbs/state/CmdShowInterfacePrbsState.h
   fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h
   fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h
+  fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h
   fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/CmdSubcommands.cpp
@@ -308,6 +316,7 @@ target_link_libraries(fboss2
   show_route_model
   show_mpls_route_model
   show_mac_model
+  show_systemport_model
   show_teflow_model
   ${RE2}
 )
