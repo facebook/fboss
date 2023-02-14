@@ -2280,3 +2280,14 @@ TEST_F(ThriftVoqSwitchTest, getDsfNodes) {
   handler.getDsfNodes(dsfNodes);
   EXPECT_EQ(dsfNodes.size(), 2);
 }
+
+TEST_F(ThriftVoqSwitchTest, getSysPorts) {
+  ThriftHandler handler(sw_);
+  std::map<int64_t, SystemPortThrift> sysPorts;
+  handler.getSystemPorts(sysPorts);
+  EXPECT_GT(sysPorts.size(), 1);
+  EXPECT_EQ(
+      sysPorts.size(),
+      sw_->getState()->getSystemPorts()->size() +
+          sw_->getState()->getRemoteSystemPorts()->size());
+}
