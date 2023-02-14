@@ -281,17 +281,7 @@ TEST(QosPolicy, SerializePolicies) {
   auto state = publishAndApplyConfig(stateV0, &config, platform.get());
 
   auto qosPolicies = state->getQosPolicies();
-  auto serialized = qosPolicies->toFollyDynamic();
-  auto qosPoliciesBack = QosPolicyMap::fromFollyDynamic(serialized);
-
-  EXPECT_TRUE(qosPolicies->size() == qosPoliciesBack->size());
-  for (const auto& name : {"qosPolicy_1", "qosPolicy_2"}) {
-    auto q1 = qosPolicies->getQosPolicyIf(name);
-    auto q2 = qosPoliciesBack->getQosPolicyIf(name);
-    EXPECT_NE(nullptr, q1);
-    EXPECT_NE(nullptr, q2);
-    EXPECT_TRUE(*q1 == *q2);
-  }
+  validateThriftMapMapSerialization(*qosPolicies);
 }
 
 TEST(QosPolicy, SerializePoliciesWithMap) {
@@ -341,17 +331,7 @@ TEST(QosPolicy, SerializePoliciesWithMap) {
   auto state = publishAndApplyConfig(stateV0, &config, platform.get());
 
   auto qosPolicies = state->getQosPolicies();
-  auto serialized = qosPolicies->toFollyDynamic();
-  auto qosPoliciesBack = QosPolicyMap::fromFollyDynamic(serialized);
-
-  EXPECT_TRUE(qosPolicies->size() == qosPoliciesBack->size());
-  for (const auto& name : {"qosPolicy_1", "qosPolicy_2"}) {
-    auto q1 = qosPolicies->getQosPolicyIf(name);
-    auto q2 = qosPoliciesBack->getQosPolicyIf(name);
-    EXPECT_NE(nullptr, q1);
-    EXPECT_NE(nullptr, q2);
-    EXPECT_TRUE(*q1 == *q2);
-  }
+  validateThriftMapMapSerialization(*qosPolicies);
 }
 
 TEST(QosPolicy, EmptyRules) {

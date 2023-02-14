@@ -24,13 +24,6 @@ AclTableMap::AclTableMap() {}
 
 AclTableMap::~AclTableMap() {}
 
-std::shared_ptr<AclTableMap> AclTableMap::createDefaultAclTableMap(
-    const folly::dynamic& swJson) {
-  auto aclTableMap = std::make_shared<AclTableMap>();
-  aclTableMap->addNode(AclTable::createDefaultAclTable(swJson));
-  return aclTableMap;
-}
-
 std::shared_ptr<AclTableMap> AclTableMap::createDefaultAclTableMapFromThrift(
     std::map<std::string, state::AclEntryFields> const& thriftMap) {
   auto aclTableMap = std::make_shared<AclTableMap>();

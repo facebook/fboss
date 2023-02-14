@@ -126,16 +126,9 @@ TEST(LabelFIBTests, toAndFromFollyDynamic) {
       {syncFibs, RouteUpdateWrapper::SyncFibInfo::SyncFibType::MPLS_ONLY});
 
   auto lFib = sw->getState()->getLabelForwardingInformationBase();
-  auto generated =
-      LabelForwardingInformationBase::fromFollyDynamic(lFib->toFollyDynamic());
 
   auto ribEntry1 = lFib->getLabelForwardingEntry(5001);
-  EXPECT_TRUE(
-      ribEntry1->isSame(generated->getLabelForwardingEntry(5001).get()));
   auto ribEntry2 = lFib->getLabelForwardingEntry(5002);
-  EXPECT_TRUE(
-      ribEntry2->isSame(generated->getLabelForwardingEntry(5002).get()));
-
   validateNodeSerialization(*ribEntry1);
   validateNodeSerialization(*ribEntry2);
   validateThriftMapMapSerialization(*lFib);

@@ -43,17 +43,9 @@ class AclTableGroupMap
   AclTableGroupMap();
   virtual ~AclTableGroupMap() override;
 
-  static std::shared_ptr<AclTableGroupMap> createDefaultAclTableGroupMap(
-      const folly::dynamic& swJson);
-
   static std::shared_ptr<AclTableGroupMap>
   createDefaultAclTableGroupMapFromThrift(
       std::map<std::string, state::AclEntryFields> const& thriftMap);
-
-  static const folly::dynamic& getAclTableGroupMapName(
-      const folly::dynamic& swJson) {
-    return AclTableGroup::getAclTableGroupName(swJson[kAclTableGroups]);
-  }
 
   static std::shared_ptr<AclMap> getDefaultAclTableGroupMap(
       std::map<cfg::AclStage, state::AclTableGroupFields> const& thriftMap);

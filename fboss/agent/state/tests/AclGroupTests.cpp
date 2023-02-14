@@ -217,8 +217,8 @@ TEST(AclGroup, SerializeAclMap) {
   map->addEntry(entry1);
   map->addEntry(entry2);
 
-  auto serialized = map->toFollyDynamic();
-  auto mapBack = AclMap::fromFollyDynamic(serialized);
+  auto serialized = map->toThrift();
+  auto mapBack = std::make_shared<AclMap>(serialized);
 
   EXPECT_EQ(*map, *mapBack);
   verifyAclHelper(mapBack, entry1, entry2);
@@ -239,8 +239,8 @@ TEST(AclGroup, SerializeAclMap) {
   map->removeEntry(entry1);
   EXPECT_FALSE(map->getEntryIf(entry1->getID()));
 
-  serialized = map->toFollyDynamic();
-  mapBack = AclMap::fromFollyDynamic(serialized);
+  serialized = map->toThrift();
+  mapBack = std::make_shared<AclMap>(serialized);
 
   EXPECT_EQ(*map, *mapBack);
   EXPECT_FALSE(mapBack->getEntryIf(entry1->getID()));
@@ -264,8 +264,8 @@ TEST(AclGroup, SerializeAclTable) {
   table->setQualifiers(kQualifiers);
   validateNodeSerialization(*table);
 
-  auto serialized = table->toFollyDynamic();
-  auto tableBack = AclTable::fromFollyDynamic(serialized);
+  auto serialized = table->toThrift();
+  auto tableBack = std::make_shared<AclTable>(serialized);
 
   EXPECT_EQ(*table, *tableBack);
   EXPECT_EQ(tableBack->getPriority(), 1);
@@ -278,8 +278,8 @@ TEST(AclGroup, SerializeAclTable) {
   table->setPriority(2);
   EXPECT_EQ(table->getPriority(), 2);
 
-  serialized = table->toFollyDynamic();
-  tableBack = AclTable::fromFollyDynamic(serialized);
+  serialized = table->toThrift();
+  tableBack = std::make_shared<AclTable>(serialized);
 
   EXPECT_EQ(*table, *tableBack);
   EXPECT_EQ(tableBack->getPriority(), 2);
@@ -315,8 +315,8 @@ TEST(AclGroup, SerializeAclTableMap) {
   tableMap->addTable(table2);
   validateThriftMapMapSerialization(*tableMap);
 
-  auto serialized = tableMap->toFollyDynamic();
-  auto tableMapBack = AclTableMap::fromFollyDynamic(serialized);
+  auto serialized = tableMap->toThrift();
+  auto tableMapBack = std::make_shared<AclTableMap>(serialized);
 
   EXPECT_EQ(*tableMap, *tableMapBack);
   EXPECT_EQ(tableMapBack->getTableIf(kTable1)->getID(), kTable1);
@@ -331,8 +331,8 @@ TEST(AclGroup, SerializeAclTableMap) {
   table3->setAclMap(map3);
   tableMap->addTable(table3);
 
-  serialized = tableMap->toFollyDynamic();
-  tableMapBack = AclTableMap::fromFollyDynamic(serialized);
+  serialized = tableMap->toThrift();
+  tableMapBack = std::make_shared<AclTableMap>(serialized);
 
   EXPECT_EQ(*tableMap, *tableMapBack);
   EXPECT_EQ(tableMapBack->getTableIf(kTable1)->getID(), kTable1);
@@ -371,8 +371,8 @@ TEST(AclGroup, SerializeAclTableGroup) {
   tableGroup->setName(kGroup1);
   validateThriftStructNodeSerialization(*tableGroup);
 
-  auto serialized = tableGroup->toFollyDynamic();
-  auto tableGroupBack = AclTableGroup::fromFollyDynamic(serialized);
+  auto serialized = tableGroup->toThrift();
+  auto tableGroupBack = std::make_shared<AclTableGroup>(serialized);
 
   EXPECT_EQ(*tableGroup, *tableGroupBack);
   EXPECT_EQ(tableGroupBack->getID(), kAclStage1);

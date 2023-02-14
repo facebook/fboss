@@ -497,7 +497,7 @@ void validateNodeSerialization(const Node& node) {
 
 template <typename Node>
 void validateThriftStructNodeSerialization(const Node& node) {
-  auto nodeBack = Node::fromFollyDynamic(node.toFollyDynamic());
+  auto nodeBack = std::make_shared<Node>(node.toThrift());
   EXPECT_EQ(node, *nodeBack);
   nodeBack = std::make_shared<Node>();
   nodeBack->fromThrift(node.toThrift());
@@ -526,9 +526,7 @@ void validateNodeMapSerialization(const NodeMap& nodeMap) {
 
 template <typename NodeMap>
 void validateThriftMapMapSerialization(const NodeMap& nodeMap) {
-  auto nodeMapBack = NodeMap::fromFollyDynamic(nodeMap.toFollyDynamic());
-  EXPECT_TRUE(nodeMap.toThrift() == nodeMapBack->toThrift());
-  nodeMapBack->fromThrift(nodeMap.toThrift());
+  auto nodeMapBack = std::make_shared<NodeMap>(nodeMap.toThrift());
   EXPECT_TRUE(nodeMap.toThrift() == nodeMapBack->toThrift());
 }
 } // namespace facebook::fboss

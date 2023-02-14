@@ -48,8 +48,6 @@ struct VlanFields : public ThriftyFields<VlanFields, state::VlanFields> {
     bool operator!=(const PortInfo& other) const {
       return !(*this == other);
     }
-    folly::dynamic toFollyDynamic() const;
-    static PortInfo fromFollyDynamic(const folly::dynamic& json);
     bool tagged;
   };
   typedef boost::container::flat_map<PortID, PortInfo> MemberPorts;
@@ -74,9 +72,6 @@ struct VlanFields : public ThriftyFields<VlanFields, state::VlanFields> {
 
   state::VlanFields toThrift() const override;
   static VlanFields fromThrift(const state::VlanFields& vlanTh);
-
-  folly::dynamic toFollyDynamicLegacy() const;
-  static VlanFields fromFollyDynamicLegacy(const folly::dynamic& vlanJson);
 
   // used primarily for testing
   bool operator==(const VlanFields& other) const;
@@ -128,31 +123,6 @@ class Vlan : public ThriftStructNode<Vlan, state::VlanFields> {
 
   Vlan(VlanID id, std::string name);
   Vlan(const cfg::Vlan* config, MemberPorts ports);
-
-  static std::shared_ptr<Vlan> fromFollyDynamicLegacy(
-      const folly::dynamic& json) {
-    const auto fields = VlanFields::fromFollyDynamicLegacy(json);
-    return std::make_shared<Vlan>(fields.toThrift());
-  }
-
-  static std::shared_ptr<Vlan> fromFollyDynamic(const folly::dynamic& json) {
-    const auto fields = VlanFields::fromFollyDynamic(json);
-    return std::make_shared<Vlan>(fields.toThrift());
-  }
-
-  static std::shared_ptr<Vlan> fromJson(const folly::fbstring& jsonStr) {
-    return fromFollyDynamicLegacy(folly::parseJson(jsonStr));
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    auto fields = VlanFields::fromThrift(toThrift());
-    return fields.toFollyDynamicLegacy();
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    auto fields = VlanFields::fromThrift(toThrift());
-    return fields.toFollyDynamic();
-  }
 
   VlanID getID() const {
     return static_cast<VlanID>(get<switch_state_tags::vlanId>()->cref());

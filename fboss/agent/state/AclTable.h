@@ -41,9 +41,6 @@ struct AclTableFields
   template <typename Fn>
   void forEachChild(Fn) {}
 
-  folly::dynamic toFollyDynamic() const;
-  static AclTableFields fromFollyDynamic(const folly::dynamic& json);
-  static AclTableFields createDefaultAclTableFields(const folly::dynamic& json);
   static AclTableFields createDefaultAclTableFieldsFromThrift(
       std::map<std::string, state::AclEntryFields> const& thriftMap);
 
@@ -76,28 +73,12 @@ class AclTable : public ThriftStructNode<AclTable, state::AclTableFields> {
  public:
   using Base = ThriftStructNode<AclTable, state::AclTableFields>;
   explicit AclTable(int priority, const std::string& name);
-  static std::shared_ptr<AclTable> fromFollyDynamic(
-      const folly::dynamic& json) {
-    auto fields = AclTableFields::fromFollyDynamic(json);
-    return std::make_shared<AclTable>(fields.toThrift());
-  }
-
-  static std::shared_ptr<AclTable> createDefaultAclTable(
-      const folly::dynamic& json) {
-    auto fields = AclTableFields::createDefaultAclTableFields(json);
-    return std::make_shared<AclTable>(fields.toThrift());
-  }
 
   static std::shared_ptr<AclTable> createDefaultAclTableFromThrift(
       std::map<std::string, state::AclEntryFields> const& thriftMap) {
     auto fields =
         AclTableFields::createDefaultAclTableFieldsFromThrift(thriftMap);
     return std::make_shared<AclTable>(fields.toThrift());
-  }
-
-  static const folly::dynamic& getAclTableName(
-      const folly::dynamic& aclTableJson) {
-    return AclMap::getAclMapName(aclTableJson[kEntries]);
   }
 
   static std::shared_ptr<AclMap> getDefaultAclTable(
@@ -108,11 +89,6 @@ class AclTable : public ThriftStructNode<AclTable, state::AclTableFields> {
       XLOG(ERR) << "AclTable missing from warmboot state file";
       return nullptr;
     }
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    auto fields = AclTableFields::fromThrift(toThrift());
-    return fields.toFollyDynamic();
   }
 
   int getPriority() const {

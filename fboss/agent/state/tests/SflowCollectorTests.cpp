@@ -21,11 +21,6 @@ using namespace facebook::fboss;
 TEST(SflowCollector, SerializeSflowCollector) {
   auto sflowCollector = std::make_unique<SflowCollector>(
       std::string("1.2.3.4"), static_cast<uint16_t>(8080));
-  auto serialized = sflowCollector->toFollyDynamic();
-  auto sflowCollectorBack = SflowCollector::fromFollyDynamic(serialized);
-
-  EXPECT_TRUE(*sflowCollector == *sflowCollectorBack);
-
   validateNodeSerialization(*sflowCollector);
 }
 
@@ -37,17 +32,5 @@ TEST(SflowCollectorMap, SerializeSflowCollectorMap) {
   SflowCollectorMap sflowCollectorMap;
   sflowCollectorMap.addNode(sflowCollector1);
   sflowCollectorMap.addNode(sflowCollector2);
-
-  EXPECT_EQ(sflowCollectorMap.size(), 2);
-  EXPECT_EQ(
-      sflowCollectorMap.getNode(sflowCollector1->getID())->getAddress(),
-      folly::SocketAddress("1.2.3.4", 8080));
-  EXPECT_EQ(
-      sflowCollectorMap.getNode(sflowCollector2->getID())->getAddress(),
-      folly::SocketAddress("2::3", 9090));
-
-  auto serialized = sflowCollectorMap.toFollyDynamic();
-  auto sflowCollectorMapBack = SflowCollectorMap::fromFollyDynamic(serialized);
-  EXPECT_TRUE(
-      sflowCollectorMap.toThrift() == sflowCollectorMapBack->toThrift());
+  validateThriftMapMapSerialization(sflowCollectorMap);
 }

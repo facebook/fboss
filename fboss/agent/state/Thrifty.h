@@ -364,37 +364,6 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
     }
     return iter->second;
   }
-
-  static std::shared_ptr<MAP> fromFollyDynamicLegacy(
-      const folly::dynamic& dyn) {
-    auto map = std::make_shared<MAP>();
-    auto entries = dyn[kEntries];
-    for (const auto& entry : entries) {
-      map->addNode(Node::fromFollyDynamic(entry));
-    }
-    return map;
-  }
-
-  static std::shared_ptr<MAP> fromFollyDynamic(const folly::dynamic& dyn) {
-    return fromFollyDynamicLegacy(dyn);
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    return toFollyDynamicLegacy();
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    folly::dynamic nodesJson = folly::dynamic::array;
-    for (auto iter : std::as_const(*this)) {
-      auto node = iter.second;
-      nodesJson.push_back(node->toFollyDynamic());
-    }
-    folly::dynamic json = folly::dynamic::object;
-    json[kEntries] = std::move(nodesJson);
-    // TODO: handle extra fields
-    json[kExtraFields] = folly::dynamic::object;
-    return json;
-  }
 };
 
 #define RESOLVE_STRUCT_MEMBER(NODE, MEMBER_NAME, MEMBER_TYPE)                \

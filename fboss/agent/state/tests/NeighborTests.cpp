@@ -27,10 +27,8 @@ using folly::MacAddress;
 
 template <typename NeighborEntryT>
 void serializeTest(const NeighborEntryT& entry) {
-  auto serialized = entry.toFollyDynamic();
-  auto entryBack = NeighborEntryT::fromFollyDynamic(serialized);
-
-  EXPECT_EQ(entry.toThrift(), entryBack->toThrift());
+  auto entryBack = NeighborEntryT(entry.toThrift());
+  EXPECT_EQ(entry.toThrift(), entryBack.toThrift());
 }
 
 TEST(ArpEntry, serialize) {

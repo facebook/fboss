@@ -40,28 +40,11 @@ class AclTableMap : public ThriftMapNode<AclTableMap, AclTableMapTraits> {
   AclTableMap();
   ~AclTableMap() override;
 
-  static std::shared_ptr<AclTableMap> createDefaultAclTableMap(
-      const folly::dynamic& swJson);
   static std::shared_ptr<AclTableMap> createDefaultAclTableMapFromThrift(
       std::map<std::string, state::AclEntryFields> const& thriftMap);
 
   static std::shared_ptr<AclMap> getDefaultAclTableMap(
       std::map<std::string, state::AclTableFields> const& thriftMap);
-
-  static const folly::dynamic& getAclTableMapName(
-      const folly::dynamic& aclTableMapJson) {
-    /*
-     * The first entry in the entries vector should contain the INGRESS ACL
-     * STAGE table group that we are interested in
-     */
-    if (aclTableMapJson[0].find(kAclTableMap) !=
-        aclTableMapJson[0].items().end()) {
-      return AclTable::getAclTableName(aclTableMapJson[0][kAclTableMap]);
-    } else {
-      throw FbossError(
-          "aclTableGroups should contain atleast one entry with AclTableMap");
-    }
-  }
 
   bool operator==(const AclTableMap& aclTableMap) const {
     if (numTables() != aclTableMap.numTables()) {

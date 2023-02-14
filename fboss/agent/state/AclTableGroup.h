@@ -42,10 +42,6 @@ struct AclTableGroupFields
   template <typename Fn>
   void forEachChild(Fn) {}
 
-  folly::dynamic toFollyDynamic() const;
-  static AclTableGroupFields fromFollyDynamic(const folly::dynamic& json);
-  static AclTableGroupFields createDefaultAclTableGroupFields(
-      const folly::dynamic& swJson);
   static AclTableGroupFields createDefaultAclTableGroupFieldsFromThrift(
       std::map<std::string, state::AclEntryFields> const& thriftMap);
   state::AclTableGroupFields toThrift() const override {
@@ -81,17 +77,6 @@ class AclTableGroup
   using BaseT = ThriftStructNode<AclTableGroup, state::AclTableGroupFields>;
 
   explicit AclTableGroup(cfg::AclStage stage);
-  static std::shared_ptr<AclTableGroup> fromFollyDynamic(
-      const folly::dynamic& json) {
-    auto fields = AclTableGroupFields::fromFollyDynamic(json);
-    return std::make_shared<AclTableGroup>(fields.toThrift());
-  }
-
-  static std::shared_ptr<AclTableGroup> createDefaultAclTableGroup(
-      const folly::dynamic& json) {
-    auto fields = AclTableGroupFields::createDefaultAclTableGroupFields(json);
-    return std::make_shared<AclTableGroup>(fields.toThrift());
-  }
 
   static std::shared_ptr<AclTableGroup> createDefaultAclTableGroupFromThrift(
       std::map<std::string, state::AclEntryFields> const& thriftMap) {
@@ -99,11 +84,6 @@ class AclTableGroup
         AclTableGroupFields::createDefaultAclTableGroupFieldsFromThrift(
             thriftMap);
     return std::make_shared<AclTableGroup>(fields.toThrift());
-  }
-
-  static const folly::dynamic& getAclTableGroupName(
-      const folly::dynamic& aclTableGroupJson) {
-    return AclTableMap::getAclTableMapName(aclTableGroupJson[kEntries]);
   }
 
   static std::shared_ptr<AclMap> getDefaultAclTableGroup(
@@ -114,11 +94,6 @@ class AclTableGroup
       XLOG(ERR) << "AclTableGroup missing from warmboot state file";
       return nullptr;
     }
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    auto fields = AclTableGroupFields::fromThrift(toThrift());
-    return fields.toFollyDynamic();
   }
 
   cfg::AclStage getID() const {

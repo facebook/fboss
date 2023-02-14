@@ -28,27 +28,6 @@ ForwardingInformationBaseContainerFields::
   fibV6 = std::make_shared<ForwardingInformationBaseV6>();
 }
 
-folly::dynamic ForwardingInformationBaseContainerFields::toFollyDynamicLegacy()
-    const {
-  folly::dynamic json = folly::dynamic::object;
-  json[kVrf] = static_cast<int>(vrf);
-  json[kFibV4] = fibV4->toFollyDynamicLegacy();
-  json[kFibV6] = fibV6->toFollyDynamicLegacy();
-  return json;
-}
-
-ForwardingInformationBaseContainerFields
-ForwardingInformationBaseContainerFields::fromFollyDynamicLegacy(
-    const folly::dynamic& dyn) {
-  auto vrf = static_cast<RouterID>(dyn[kVrf].asInt());
-  ForwardingInformationBaseContainerFields fields{vrf};
-  fields.fibV4 =
-      ForwardingInformationBaseV4::fromFollyDynamicLegacy(dyn[kFibV4]);
-  fields.fibV6 =
-      ForwardingInformationBaseV6::fromFollyDynamicLegacy(dyn[kFibV6]);
-  return fields;
-}
-
 state::FibContainerFields ForwardingInformationBaseContainerFields::toThrift()
     const {
   state::FibContainerFields fields{};
@@ -88,37 +67,6 @@ ForwardingInformationBaseContainer::getFibV4() const {
 const std::shared_ptr<ForwardingInformationBaseV6>&
 ForwardingInformationBaseContainer::getFibV6() const {
   return this->cref<switch_state_tags::fibV6>();
-}
-
-std::shared_ptr<ForwardingInformationBaseContainer>
-ForwardingInformationBaseContainer::fromFollyDynamicLegacy(
-    const folly::dynamic& json) {
-  auto fields =
-      ForwardingInformationBaseContainerFields::fromFollyDynamicLegacy(json);
-  return std::make_shared<ForwardingInformationBaseContainer>(
-      fields.toThrift());
-}
-
-std::shared_ptr<ForwardingInformationBaseContainer>
-ForwardingInformationBaseContainer::fromFollyDynamic(
-    const folly::dynamic& json) {
-  auto fields =
-      ForwardingInformationBaseContainerFields::fromFollyDynamic(json);
-  return std::make_shared<ForwardingInformationBaseContainer>(
-      fields.toThrift());
-}
-
-folly::dynamic ForwardingInformationBaseContainer::toFollyDynamicLegacy()
-    const {
-  auto fields =
-      ForwardingInformationBaseContainerFields::fromThrift(this->toThrift());
-  return fields.toFollyDynamicLegacy();
-}
-
-folly::dynamic ForwardingInformationBaseContainer::toFollyDynamic() const {
-  auto fields =
-      ForwardingInformationBaseContainerFields::fromThrift(this->toThrift());
-  return fields.toFollyDynamic();
 }
 
 ForwardingInformationBaseContainer* ForwardingInformationBaseContainer::modify(

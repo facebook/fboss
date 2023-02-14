@@ -20,14 +20,6 @@ AclTableGroupMap::AclTableGroupMap() {}
 AclTableGroupMap::~AclTableGroupMap() {}
 
 std::shared_ptr<AclTableGroupMap>
-AclTableGroupMap::createDefaultAclTableGroupMap(const folly::dynamic& swJson) {
-  auto aclTableGroupMap = std::make_shared<AclTableGroupMap>();
-  aclTableGroupMap->addNode(AclTableGroup::createDefaultAclTableGroup(swJson));
-
-  return aclTableGroupMap;
-}
-
-std::shared_ptr<AclTableGroupMap>
 AclTableGroupMap::createDefaultAclTableGroupMapFromThrift(
     std::map<std::string, state::AclEntryFields> const& thriftMap) {
   auto aclTableGroupMap = std::make_shared<AclTableGroupMap>();

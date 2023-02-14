@@ -1013,8 +1013,8 @@ TEST(ArpTest, ArpTableSerialization) {
   EXPECT_NE(vlan, nullptr);
   auto arpTable = vlan->getArpTable();
   EXPECT_NE(arpTable, nullptr);
-  auto serializedArpTable = arpTable->toFollyDynamic();
-  auto unserializedArpTable = arpTable->fromFollyDynamic(serializedArpTable);
+  auto serializedArpTable = arpTable->toThrift();
+  auto unserializedArpTable = std::make_shared<ArpTable>(serializedArpTable);
 
   testSendArpRequest(sw, vlanID, senderIP, targetIP);
 
@@ -1023,8 +1023,8 @@ TEST(ArpTest, ArpTableSerialization) {
   EXPECT_NE(vlan, nullptr);
   arpTable = vlan->getArpTable();
   EXPECT_NE(arpTable, nullptr);
-  serializedArpTable = arpTable->toFollyDynamic();
-  unserializedArpTable = arpTable->fromFollyDynamic(serializedArpTable);
+  serializedArpTable = arpTable->toThrift();
+  unserializedArpTable = std::make_shared<ArpTable>(serializedArpTable);
 
   // Should also see a pending entry
   auto entry = getArpEntry(sw, targetIP, vlanID);
