@@ -672,7 +672,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeTCPTxPacket(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeARPTxPacket(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddress& srcIp,
