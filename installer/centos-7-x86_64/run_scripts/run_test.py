@@ -105,6 +105,8 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=SaiAclTableRecreateTests.*
 # ./run_test.py sai --config makalu.agent.materialized_JSON
 # --filter=HwAclStatTest.*:-*AclStatCreate:*AclStatCreateShared:*AclStatCreateMultiple:*AclStatMultipleActions:*AclStatDeleteShared*:*AclStatDeleteSharedPostWarmBoot:*AclStatRename*:*AclStatModify:*AclStatShuffle:*StatNumberOfCounters:*AclStatChangeCounterType
+# Packet send test
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwPacketSendTest.PortTxEnableTest
 # PFC tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwPfcTest.*:-*Watchdog*
 

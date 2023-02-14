@@ -34,12 +34,10 @@ namespace facebook::fboss {
 class HwPacketSendTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::oneL3IntfConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
+        masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
-    utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
-    utility::addCpuQueueConfig(cfg, getAsic());
     return cfg;
   }
   HwSwitchEnsemble::Features featuresDesired() const override {
@@ -183,9 +181,10 @@ class HwPacketFloodTest : public HwLinkStateDependentTest {
 TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
   auto setup = [=]() {};
   auto verify = [=]() {
-    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds()[0]);
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto portStatsBefore =
+        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+    auto vlanId = utility::firstVlanID(initialConfig());
+    auto intfMac = utility::getFirstInterfaceMac(initialConfig());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto payLoadSize = 256;
     auto txPacket = utility::makeEthTxPacket(
@@ -198,8 +197,9 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
     // vlan tag should be removed
     auto pktLengthSent = EthHdr::SIZE + payLoadSize;
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-        std::move(txPacket), masterLogicalPortIds()[0], std::nullopt);
-    auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
+        std::move(txPacket), masterLogicalInterfacePortIds()[0], std::nullopt);
+    auto portStatsAfter =
+        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
     XLOG(DBG2) << "Lldp Packet:"
                << " before pkts:" << *portStatsBefore.outMulticastPkts_()
                << ", after pkts:" << *portStatsAfter.outMulticastPkts_()
@@ -221,9 +221,10 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelOutOfPort) {
 TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
   auto setup = [=]() {};
   auto verify = [=]() {
-    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds()[0]);
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto portStatsBefore =
+        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+    auto vlanId = utility::firstVlanID(initialConfig());
+    auto intfMac = utility::getFirstInterfaceMac(initialConfig());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto payLoadSize = 256;
     auto numPkts = 20;
@@ -242,12 +243,15 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
       txPacket->buf()->cloneInto(*buf);
       bufs.push_back(buf);
       getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-          std::move(txPacket), masterLogicalPortIds()[0], std::nullopt);
+          std::move(txPacket),
+          masterLogicalInterfacePortIds()[0],
+          std::nullopt);
     }
     for (auto buf : bufs) {
       delete buf;
     }
-    auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
+    auto portStatsAfter =
+        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
     XLOG(DBG2) << "Lldp Packet:"
                << " before pkts:" << *portStatsBefore.outMulticastPkts_()
                << ", after pkts:" << *portStatsAfter.outMulticastPkts_()
@@ -270,9 +274,10 @@ TEST_F(HwPacketSendTest, LldpToFrontPanelWithBufClone) {
 TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
   auto setup = [=]() {};
   auto verify = [=]() {
-    auto portStatsBefore = getLatestPortStats(masterLogicalPortIds()[0]);
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto portStatsBefore =
+        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+    auto vlanId = utility::firstVlanID(initialConfig());
+    auto intfMac = utility::getFirstInterfaceMac(initialConfig());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto randomIP = folly::IPAddressV4("1.1.1.5");
     auto txPacket = utility::makeARPTxPacket(
@@ -285,7 +290,8 @@ TEST_F(HwPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
         ARP_OPER::ARP_OPER_REQUEST,
         std::nullopt);
     getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
-    auto portStatsAfter = getLatestPortStats(masterLogicalPortIds()[0]);
+    auto portStatsAfter =
+        getLatestPortStats(masterLogicalInterfacePortIds()[0]);
     XLOG(DBG2) << "ARP Packet:"
                << " before pkts:" << *portStatsBefore.outBroadcastPkts_()
                << ", after pkts:" << *portStatsAfter.outBroadcastPkts_()
@@ -306,8 +312,8 @@ TEST_F(HwPacketSendTest, PortTxEnableTest) {
   auto setup = [=]() {};
   auto verify = [=]() {
     constexpr auto kNumPacketsToSend{100};
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(initialConfig());
+    auto intfMac = utility::getFirstInterfaceMac(initialConfig());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     auto sendTcpPkts = [=](int numPacketsToSend) {
@@ -332,7 +338,7 @@ TEST_F(HwPacketSendTest, PortTxEnableTest) {
             255,
             std::vector<uint8_t>(kPayLoadLen, 0xff));
         getHwSwitch()->sendPacketOutOfPortSync(
-            std::move(txPacket), masterLogicalPortIds()[0]);
+            std::move(txPacket), masterLogicalInterfacePortIds()[0]);
       }
     };
 
@@ -345,24 +351,26 @@ TEST_F(HwPacketSendTest, PortTxEnableTest) {
     };
 
     // Disable TX on port
-    utility::setPortTxEnable(getHwSwitch(), masterLogicalPortIds()[0], false);
+    utility::setPortTxEnable(
+        getHwSwitch(), masterLogicalInterfacePortIds()[0], false);
 
-    auto portStatsT0 = getLatestPortStats(masterLogicalPortIds()[0]);
+    auto portStatsT0 = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
     sendTcpPkts(kNumPacketsToSend);
     // We don't know how many packets will get out, wait for atleast 1.
-    waitForTxDoneOnPort(masterLogicalPortIds()[0], 1, portStatsT0);
+    waitForTxDoneOnPort(masterLogicalInterfacePortIds()[0], 1, portStatsT0);
 
-    auto portStatsT1 = getLatestPortStats(masterLogicalPortIds()[0]);
+    auto portStatsT1 = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
     /*
      * Most platforms would allow some packets to be TXed even after TX
      * disable is set. But after the initial set of packets TX, no further
      * TX happens, verify the same.
      */
     sendTcpPkts(kNumPacketsToSend);
-    auto portStatsT2 = getLatestPortStats(masterLogicalPortIds()[0]);
+    auto portStatsT2 = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
 
     // Enable TX on port, and wait for a while for packets to TX
-    utility::setPortTxEnable(getHwSwitch(), masterLogicalPortIds()[0], true);
+    utility::setPortTxEnable(
+        getHwSwitch(), masterLogicalInterfacePortIds()[0], true);
     /*
      * For most platforms where TX disable will not drop traffic, will have
      * the out count increment. However, there are implementations like in
@@ -371,9 +379,9 @@ TEST_F(HwPacketSendTest, PortTxEnableTest) {
      * or drop counts to increment, if neither, return after a timeout.
      */
     waitForTxDoneOnPort(
-        masterLogicalPortIds()[0], kNumPacketsToSend * 2, portStatsT0);
+        masterLogicalInterfacePortIds()[0], kNumPacketsToSend * 2, portStatsT0);
 
-    auto portStatsT3 = getLatestPortStats(masterLogicalPortIds()[0]);
+    auto portStatsT3 = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
     XLOG(DBG0) << "Expected number of packets to be TXed: "
                << kNumPacketsToSend * 2;
     XLOG(DBG0) << "Delta packets during test, T0:T1 -> "
