@@ -384,7 +384,7 @@ void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     // Essentially for l3 intf with subnet X, we
     // would compute next hops by incrementing last octet
     // of subnet.
-    int lastOctet = bytes[bytes.size() - 1] + (++offset);
+    int lastOctet = (bytes[bytes.size() - 1] + (++offset)) % 255;
     // Fail if we goto 255 at the last oct
     CHECK_GT(255, lastOctet);
     bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
@@ -718,7 +718,7 @@ void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     // Essentially for l3 intf with subnet X, we
     // would compute next hops by incrementing last octet
     // of subnet.
-    int lastOctet = bytes[bytes.size() - 1] + (++offset);
+    int lastOctet = (bytes[bytes.size() - 1] + (++offset)) % 255;
     // Fail if we goto 255 at the last oct
     CHECK_GT(255, lastOctet);
     bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
