@@ -52,9 +52,6 @@ class IPv6Handler : public StateObserver {
       folly::io::Cursor cursor);
 
   void floodNeighborAdvertisements();
-  void sendNeighborSolicitation(
-      const folly::IPAddressV6& targetIP,
-      const std::shared_ptr<Vlan> vlan);
 
   /*
    * TODO(aeckert): 17949183 unify packet handling pipeline and then
