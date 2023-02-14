@@ -133,6 +133,9 @@ class TunManager : public StateObserver {
    */
   int getTableId(InterfaceID ifID) const;
 
+  int getTableIdForNpu(InterfaceID ifID) const;
+  int getTableIdForVoq(InterfaceID ifID) const;
+
   /**
    * Add/remove an IP rule for source routing based on a given address
    *

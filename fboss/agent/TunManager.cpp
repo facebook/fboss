@@ -232,6 +232,30 @@ void TunManager::setIntfStatus(
 }
 
 int TunManager::getTableId(InterfaceID ifID) const {
+  int tableId;
+  auto switchType = sw_->getState()->getSwitchSettings()->getSwitchType();
+
+  switch (switchType) {
+    case cfg::SwitchType::NPU:
+      tableId = getTableIdForNpu(ifID);
+      break;
+    case cfg::SwitchType::VOQ:
+      tableId = getTableIdForVoq(ifID);
+      break;
+    case cfg::SwitchType::PHY:
+    case cfg::SwitchType::FABRIC:
+      CHECK(false);
+      throw FbossError("No system port range in SwitchSettings for VOQ switch");
+  }
+
+  // Sanity checks. Generated ID must be in range [1-253]
+  CHECK_GE(tableId, 1);
+  CHECK_LE(tableId, 253);
+
+  return tableId;
+}
+
+int TunManager::getTableIdForNpu(InterfaceID ifID) const {
   // Kernel only supports up to 256 tables. The last few are used by kernel
   // as main, default, and local. IDs 0, 254 and 255 are not available. So we
   // use range 1-253 for our usecase.
@@ -252,11 +276,12 @@ int TunManager::getTableId(InterfaceID ifID) const {
     tableId = 250 - (ifID - 10); // 250, 249, 248, ...
   }
 
-  // Sanity checks. Generated ID must be in range [1-253]
-  CHECK_GE(tableId, 1);
-  CHECK_LE(tableId, 253);
-
   return tableId;
+}
+
+int TunManager::getTableIdForVoq(InterfaceID ifID) const {
+  // TODO(skhare)
+  return 0;
 }
 
 int TunManager::getInterfaceMtu(InterfaceID ifID) const {
