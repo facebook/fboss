@@ -58,7 +58,8 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_AS_SEQUENCE,
   OBJECT_ARG_TYPE_LOCAL_PREFERENCE,
   OBJECT_ARG_TYPE_PHY_CHIP_TYPE,
-  OBJECT_ARG_TYPE_FSDB_CLIENT_ID
+  OBJECT_ARG_TYPE_FSDB_CLIENT_ID,
+  OBJECT_ARG_TYPE_ID_SYSTEM_PORT_LIST,
 };
 
 template <typename T>
@@ -166,6 +167,36 @@ class PortList : public BaseObjectArgType<std::string> {
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
+};
+
+/**
+ * Whether input port name conforms to the required pattern
+ * 'switchName:moduleNum/port/subport' For example,
+ * rdsw001.n001.z004.snc1:eth1/5/3 will be parsed to five parts:
+ * rdsw001.n001.z004.snc1 (switch name), eth(module name),
+ * 1(module number), 5(port number), 3(subport number). Error will be
+ * thrown if the port name is not valid.
+ */
+class SystemPortList : public BaseObjectArgType<std::string> {
+ public:
+  /* implicit */ SystemPortList() : BaseObjectArgType() {}
+  /* implicit */ SystemPortList(const std::vector<std::string>& ports) {
+    static const RE2 exp("([^:]+):([a-z]+)(\\d+)/(\\d+)/(\\d)");
+    for (auto const& port : ports) {
+      if (!RE2::FullMatch(port, exp)) {
+        throw std::invalid_argument(folly::to<std::string>(
+            "Invalid port name: ",
+            port,
+            "\nPort name must match 'switch:moduleNum/port/subport' pattern"));
+      }
+    }
+    // deduplicate ports while ensuring order
+    std::set<std::string> uniquePorts(ports.begin(), ports.end());
+    data_ = std::vector<std::string>(uniquePorts.begin(), uniquePorts.end());
+  }
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_ID_SYSTEM_PORT_LIST;
 };
 
 class Message : public BaseObjectArgType<std::string> {
