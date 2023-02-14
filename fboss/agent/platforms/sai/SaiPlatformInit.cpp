@@ -21,6 +21,7 @@
 #include "fboss/agent/platforms/sai/SaiBcmGalaxyFCPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmGalaxyLCPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatform.h"
+#include "fboss/agent/platforms/sai/SaiBcmMontblancPlatform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge100Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge400Platform.h"
 #include "fboss/agent/platforms/sai/SaiBcmWedge40Platform.h"
@@ -99,6 +100,9 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
         std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::KAMET) {
     return std::make_unique<SaiKametPlatform>(std::move(productInfo), localMac);
+  } else if (productInfo->getMode() == PlatformMode::MONTBLANC) {
+    return std::make_unique<SaiBcmMontblancPlatform>(
+        std::move(productInfo), localMac);
   }
 
   return nullptr;

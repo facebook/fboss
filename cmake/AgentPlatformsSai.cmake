@@ -35,6 +35,8 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiTajoPlatformPort.cpp
   fboss/agent/platforms/sai/SaiMakaluPlatform.cpp
   fboss/agent/platforms/sai/SaiKametPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmMontblancPlatform.cpp
+  fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.cpp
 
   fboss/agent/platforms/sai/oss/SaiBcmMinipackPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiTajoPlatform.cpp
@@ -89,6 +91,7 @@ target_link_libraries(sai_platform
   cloud_ripper_platform_mapping
   makalu_platform_mapping
   kamet_platform_mapping
+  montblanc_platform_mapping
 )
 
 set_target_properties(sai_platform PROPERTIES COMPILE_FLAGS
