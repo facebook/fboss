@@ -52,98 +52,118 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
     subCmd->callback(*handler);
 
     auto& args = CmdArgsLists::getInstance()->refAt(depth);
-    if (cmd.argType ==
-        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_COMMUNITY_LIST) {
-      subCmd->add_option("communities", args, "BGP community(s)");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_DEBUG_LEVEL) {
-      subCmd->add_option("level", args, "Debug level");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST) {
-      subCmd->add_option("ipv6Addrs", args, "IPv6 addr(s)");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST) {
-      subCmd->add_option("ipAddrs", args, "IPv4 or IPv6 addr(s)");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PEERID_LIST) {
-      subCmd->add_option("peerID", args, "BGP remote peer ID (int)");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST) {
-      subCmd->add_option("ports", args, "Port(s)");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE) {
-      subCmd->add_option("msg", args, "Message");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_AREA_LIST) {
-      subCmd->add_option("areas", args, "Openr areas");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NODE_LIST) {
-      subCmd->add_option("nodes", args, "Openr node names");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT) {
-      subCmd->add_option(
-          "component",
-          args,
-          "name(s) of PRBS component, one or multiple of "
-          "asic/xphy_system/xphy_line/transceiver_system/transceiver_line");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PHY_CHIP_TYPE) {
-      subCmd->add_option(
-          "phyChipType",
-          args,
-          "phy chip type(s), one or multiple of asic/xphy");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_AS_SEQUENCE) {
-      subCmd->add_option("sequence", args, "AS sequence");
-    } else if (
-        cmd.argType ==
-        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_LOCAL_PREFERENCE) {
-      subCmd->add_option("preference", args, "Local preference num");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_STATE) {
-      subCmd->add_option(
-          "state",
-          args,
-          "PRBS state to set - some examples \n"
-          "'off' -> Disables PRBS on both generator and checker\n"
-          "'off generator checker' -> Disables PRBS on both generator and checker\n"
-          "'off generator' -> Disables PRBS on the generator only\n"
-          "'off checker' -> Disables PRBS on the checker only\n"
-          "'prbs31 generator' -> Enables PRBS31 only on the generator\n"
-          "'prbs31q generator checker' -> Enables PRBS31Q on both generator and checker\n");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PORT_STATE) {
-      subCmd->add_option(
-          "state",
-          args,
-          "Port state to set - some examples \n"
-          "'enable' -> Enables port\n"
-          "'disable' -> Disables port\n");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_PATH) {
-      subCmd->add_option(
-          "fsdb_path",
-          args,
-          "Path in fsdb model, delimited and prefixed by slashes (/). Slashes inside keys like port name \n"
-          "need to be escaped (eth2/1/1 -> eth2\\/1\\/1). Ex:\n"
-          "\tstats path - \"/agent/hwPortStats/eth2\\/1\\/1\" -- Note the quotes, otherwise the shell will drop the escape (can double escape without quotes)\n"
-          "\tstate path - /agent/switchState\n");
-    } else if (
-        cmd.argType ==
-        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_VIP_INJECTOR_ID) {
-      subCmd->add_option("injector", args, "Injector");
-    } else if (
-        cmd.argType == utils::ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_CLIENT_ID) {
-      subCmd->add_option(
-          "fsdb_client_id",
-          args,
-          "Client ID representing fsdb publishers/subscribers IDs e.g.\n"
-          "'agent'\n");
-    } else if (
-        cmd.argType ==
-        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_HW_OBJECT_LIST) {
-      subCmd->add_option(
-          "hw_object_type", args, "Hardware (HW) object type(s)\n");
+    switch (cmd.argType) {
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_COMMUNITY_LIST: {
+        subCmd->add_option("communities", args, "BGP community(s)");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_DEBUG_LEVEL: {
+        subCmd->add_option("level", args, "Debug level");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IPV6_LIST: {
+        subCmd->add_option("ipv6Addrs", args, "IPv6 addr(s)");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST: {
+        subCmd->add_option("ipAddrs", args, "IPv4 or IPv6 addr(s)");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PEERID_LIST: {
+        subCmd->add_option("peerID", args, "BGP remote peer ID (int)");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST: {
+        subCmd->add_option("ports", args, "Port(s)");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE: {
+        subCmd->add_option("msg", args, "Message");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_AREA_LIST: {
+        subCmd->add_option("areas", args, "Openr areas");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NODE_LIST: {
+        subCmd->add_option("nodes", args, "Openr node names");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT: {
+        subCmd->add_option(
+            "component",
+            args,
+            "name(s) of PRBS component, one or multiple of "
+            "asic/xphy_system/xphy_line/transceiver_system/transceiver_line");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PHY_CHIP_TYPE: {
+        subCmd->add_option(
+            "phyChipType",
+            args,
+            "phy chip type(s), one or multiple of asic/xphy");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_AS_SEQUENCE: {
+        subCmd->add_option("sequence", args, "AS sequence");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_LOCAL_PREFERENCE: {
+        subCmd->add_option("preference", args, "Local preference num");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_STATE: {
+        subCmd->add_option(
+            "state",
+            args,
+            "PRBS state to set - some examples \n"
+            "'off' -> Disables PRBS on both generator and checker\n"
+            "'off generator checker' -> Disables PRBS on both generator and checker\n"
+            "'off generator' -> Disables PRBS on the generator only\n"
+            "'off checker' -> Disables PRBS on the checker only\n"
+            "'prbs31 generator' -> Enables PRBS31 only on the generator\n"
+            "'prbs31q generator checker' -> Enables PRBS31Q on both generator and checker\n");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PORT_STATE: {
+        subCmd->add_option(
+            "state",
+            args,
+            "Port state to set - some examples \n"
+            "'enable' -> Enables port\n"
+            "'disable' -> Disables port\n");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_PATH: {
+        subCmd->add_option(
+            "fsdb_path",
+            args,
+            "Path in fsdb model, delimited and prefixed by slashes (/). Slashes inside keys like port name \n"
+            "need to be escaped (eth2/1/1 -> eth2\\/1\\/1). Ex:\n"
+            "\tstats path - \"/agent/hwPortStats/eth2\\/1\\/1\" -- Note the quotes, otherwise the shell will drop the escape (can double escape without quotes)\n"
+            "\tstate path - /agent/switchState\n");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_VIP_INJECTOR_ID: {
+        subCmd->add_option("injector", args, "Injector");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_FSDB_CLIENT_ID: {
+        subCmd->add_option(
+            "fsdb_client_id",
+            args,
+            "Client ID representing fsdb publishers/subscribers IDs e.g.\n"
+            "'agent'\n");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_HW_OBJECT_LIST: {
+        subCmd->add_option(
+            "hw_object_type", args, "Hardware (HW) object type(s)\n");
+        break;
+      }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
+        break;
     }
   } else {
     subCmd->require_subcommand();
