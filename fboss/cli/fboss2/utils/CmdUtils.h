@@ -495,4 +495,8 @@ auto filterTupleMonostates(Tuple tup) {
 bool comparePortName(
     const std::basic_string<char>& nameA,
     const std::basic_string<char>& nameB);
+
+bool compareSystemPortName(
+    const std::basic_string<char>& nameA,
+    const std::basic_string<char>& nameB);
 } // namespace facebook::fboss::utils
