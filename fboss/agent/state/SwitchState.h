@@ -100,11 +100,6 @@ struct SwitchStateFields
   // Used for testing thrifty conversion
   bool operator==(const SwitchStateFields& other) const;
 
-  /*
-   * Reconstruct object from folly::dynamic
-   */
-  static SwitchStateFields fromFollyDynamic(const folly::dynamic& json);
-
   // Static state, which can be accessed without locking.
   std::shared_ptr<PortMap> ports;
   std::shared_ptr<AggregatePortMap> aggPorts;
