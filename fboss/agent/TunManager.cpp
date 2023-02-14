@@ -280,8 +280,22 @@ int TunManager::getTableIdForNpu(InterfaceID ifID) const {
 }
 
 int TunManager::getTableIdForVoq(InterfaceID ifID) const {
-  // TODO(skhare)
-  return 0;
+  // Kernel only supports up to 256 tables. The last few are used by kernel
+  // as main, default, and local. IDs 0, 254 and 255 are not available. So we
+  // use range 1-253 for our usecase.
+  //
+  // VOQ systems use port based RIFs.
+  // Port based RIF IDs are assigned starting minimum system port range.
+  // Thus, map ifID to 1-253 with ifID - sysPortMin + 1
+  // In practice, [sysPortMin, sysPortMax] range is << 253, so no risk of
+  // overflow. Moreover, getTableID asserts that the computed ID is <= 253
+  if (!sw_->getState()->getSwitchSettings()->getSystemPortRange()) {
+    throw FbossError("No system port range in SwitchSettings for VOQ switch");
+  }
+  auto sysPortMin =
+      *sw_->getState()->getSwitchSettings()->getSystemPortRange()->minimum();
+
+  return ifID - sysPortMin;
 }
 
 int TunManager::getInterfaceMtu(InterfaceID ifID) const {
