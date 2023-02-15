@@ -56,6 +56,8 @@ DEFINE_string(
     "/var/facebook/fboss/qsfp_service/phy",
     "Directory for storing phy persistent state");
 
+DEFINE_bool(hide_fabric_ports, false, "Elide ports of type fabric");
+
 namespace facebook::fboss {
 
 Platform::Platform(
