@@ -102,77 +102,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         &newCfg, kDscpAclName(), kDscpAclCounterName(), kCounterTypes());
     applyNewConfig(newCfg);
   }
-  void addRemoteSysPort(SystemPortID portId) {
-    auto newState = getProgrammedState()->clone();
-    auto localPort = newState->getSystemPorts()->cbegin()->second;
-    auto remoteSystemPorts =
-        newState->getRemoteSystemPorts()->modify(&newState);
-    auto numPrevPorts = remoteSystemPorts->size();
-    auto remoteSysPort = std::make_shared<SystemPort>(portId);
-    remoteSysPort->setSwitchId(kRemoteSwitchId);
-    remoteSysPort->setNumVoqs(localPort->getNumVoqs());
-    remoteSysPort->setCoreIndex(localPort->getCoreIndex());
-    remoteSysPort->setCorePortIndex(localPort->getCorePortIndex());
-    remoteSysPort->setSpeedMbps(localPort->getSpeedMbps());
-    remoteSysPort->setEnabled(true);
-    remoteSystemPorts->addSystemPort(remoteSysPort);
-    applyNewState(newState);
-    EXPECT_EQ(
-        getProgrammedState()->getRemoteSystemPorts()->size(), numPrevPorts + 1);
-  }
-  void addRemoteInterface(
-      InterfaceID intfId,
-      const Interface::Addresses& subnets) {
-    auto newState = getProgrammedState();
-    auto newRemoteInterfaces =
-        newState->getRemoteInterfaces()->modify(&newState);
-    auto numPrevIntfs = newRemoteInterfaces->size();
-    auto newRemoteInterface = std::make_shared<Interface>(
-        intfId,
-        RouterID(0),
-        std::optional<VlanID>(std::nullopt),
-        folly::StringPiece("RemoteIntf"),
-        folly::MacAddress("c6:ca:2b:2a:b1:b6"),
-        9000,
-        false,
-        false,
-        cfg::InterfaceType::SYSTEM_PORT);
-    newRemoteInterface->setAddresses(subnets);
-    newRemoteInterfaces->addInterface(newRemoteInterface);
-    applyNewState(newState);
-    EXPECT_EQ(
-        getProgrammedState()->getRemoteInterfaces()->size(), numPrevIntfs + 1);
-  }
-  void addRemoveRemoteNeighbor(
-      const folly::IPAddressV6& neighborIp,
-      InterfaceID intfID,
-      PortDescriptor port,
-      bool add,
-      std::optional<int64_t> encapIndex = std::nullopt) {
-    auto outState = getProgrammedState();
-    auto interfaceMap = outState->getRemoteInterfaces()->modify(&outState);
-    auto interface = interfaceMap->getInterface(intfID)->clone();
-    auto ndpTable = interfaceMap->getInterface(intfID)->getNdpTable()->clone();
-    if (add) {
-      const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
-      state::NeighborEntryFields ndp;
-      ndp.mac() = kNeighborMac.toString();
-      ndp.ipaddress() = neighborIp.str();
-      ndp.portId() = port.toThrift();
-      ndp.interfaceId() = static_cast<int>(intfID);
-      ndp.state() = state::NeighborState::Reachable;
-      if (encapIndex) {
-        ndp.encapIndex() = *encapIndex;
-      }
-      ndp.isLocal() = encapIndex == std::nullopt;
-      ndpTable->emplace(neighborIp.str(), std::move(ndp));
-    } else {
-      ndpTable->remove(neighborIp.str());
-    }
-    interface->setNdpTable(ndpTable->toThrift());
-    interfaceMap->updateNode(interface);
-    applyNewState(outState);
-  }
   void addRemoveNeighbor(
       PortDescriptor port,
       bool add,
@@ -556,6 +485,79 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
     auto otherDsfNodeCfg = utility::dsfNodeConfig(*asic, kRemoteSwitchId);
     dsfNodes.insert({*otherDsfNodeCfg.switchId(), otherDsfNodeCfg});
     return dsfNodes;
+  }
+
+ protected:
+  void addRemoteSysPort(SystemPortID portId) {
+    auto newState = getProgrammedState()->clone();
+    auto localPort = newState->getSystemPorts()->cbegin()->second;
+    auto remoteSystemPorts =
+        newState->getRemoteSystemPorts()->modify(&newState);
+    auto numPrevPorts = remoteSystemPorts->size();
+    auto remoteSysPort = std::make_shared<SystemPort>(portId);
+    remoteSysPort->setSwitchId(kRemoteSwitchId);
+    remoteSysPort->setNumVoqs(localPort->getNumVoqs());
+    remoteSysPort->setCoreIndex(localPort->getCoreIndex());
+    remoteSysPort->setCorePortIndex(localPort->getCorePortIndex());
+    remoteSysPort->setSpeedMbps(localPort->getSpeedMbps());
+    remoteSysPort->setEnabled(true);
+    remoteSystemPorts->addSystemPort(remoteSysPort);
+    applyNewState(newState);
+    EXPECT_EQ(
+        getProgrammedState()->getRemoteSystemPorts()->size(), numPrevPorts + 1);
+  }
+  void addRemoteInterface(
+      InterfaceID intfId,
+      const Interface::Addresses& subnets) {
+    auto newState = getProgrammedState();
+    auto newRemoteInterfaces =
+        newState->getRemoteInterfaces()->modify(&newState);
+    auto numPrevIntfs = newRemoteInterfaces->size();
+    auto newRemoteInterface = std::make_shared<Interface>(
+        intfId,
+        RouterID(0),
+        std::optional<VlanID>(std::nullopt),
+        folly::StringPiece("RemoteIntf"),
+        folly::MacAddress("c6:ca:2b:2a:b1:b6"),
+        9000,
+        false,
+        false,
+        cfg::InterfaceType::SYSTEM_PORT);
+    newRemoteInterface->setAddresses(subnets);
+    newRemoteInterfaces->addInterface(newRemoteInterface);
+    applyNewState(newState);
+    EXPECT_EQ(
+        getProgrammedState()->getRemoteInterfaces()->size(), numPrevIntfs + 1);
+  }
+  void addRemoveRemoteNeighbor(
+      const folly::IPAddressV6& neighborIp,
+      InterfaceID intfID,
+      PortDescriptor port,
+      bool add,
+      std::optional<int64_t> encapIndex = std::nullopt) {
+    auto outState = getProgrammedState();
+    auto interfaceMap = outState->getRemoteInterfaces()->modify(&outState);
+    auto interface = interfaceMap->getInterface(intfID)->clone();
+    auto ndpTable = interfaceMap->getInterface(intfID)->getNdpTable()->clone();
+    if (add) {
+      const folly::MacAddress kNeighborMac{"2:3:4:5:6:7"};
+      state::NeighborEntryFields ndp;
+      ndp.mac() = kNeighborMac.toString();
+      ndp.ipaddress() = neighborIp.str();
+      ndp.portId() = port.toThrift();
+      ndp.interfaceId() = static_cast<int>(intfID);
+      ndp.state() = state::NeighborState::Reachable;
+      if (encapIndex) {
+        ndp.encapIndex() = *encapIndex;
+      }
+      ndp.isLocal() = encapIndex == std::nullopt;
+      ndpTable->emplace(neighborIp.str(), std::move(ndp));
+    } else {
+      ndpTable->remove(neighborIp.str());
+    }
+    interface->setNdpTable(ndpTable->toThrift());
+    interfaceMap->updateNode(interface);
+    applyNewState(outState);
   }
 };
 
