@@ -316,7 +316,7 @@ target_link_libraries(bcm_rib_resolution_speed
   hw_rib_resolution_speed
   route_scale_gen
   -Wl,--no-whole-archive
-  hw_benchmark_main
+  bcm_agent_benchmarks_main
   Folly::folly
   ${OPENNSA}
   Folly::follybenchmark

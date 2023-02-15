@@ -404,6 +404,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     sai_switch_ensemble
     hw_rib_resolution_speed
+    sai_agent_benchmarks_main
     route_scale_gen
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
