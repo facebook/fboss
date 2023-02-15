@@ -342,6 +342,70 @@ void systemPortConfigListAttr(
   }
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
+void latchStatusAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines) {
+  string prefix = to<string>("s_a", "[", i, "].value.latchstatus.");
+  attrLines.push_back(to<string>(
+      prefix,
+      "current_status=",
+      attr_list[i].value.latchstatus.current_status));
+  attrLines.push_back(
+      to<string>(prefix, "changed=", attr_list[i].value.latchstatus.changed));
+}
+
+void portLaneLatchStatusListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    vector<string>& attrLines) {
+  // First make sure we have enough lists for use
+  uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
+      listIndex + 1,
+      sizeof(sai_uint32_t),
+      attr_list[i].value.portlanelatchstatuslist.count);
+
+  string prefix = to<string>("s_a", "[", i, "].value.portlanelatchstatuslist.");
+  attrLines.push_back(to<string>(
+      prefix, "count=", attr_list[i].value.portlanelatchstatuslist.count));
+  if (attr_list[i].value.portlanelatchstatuslist.list) {
+    attrLines.push_back(to<string>(
+        prefix, "list=(sai_port_lane_latch_status_t*)(list_", listIndex, ")"));
+    for (int j = 0; j <
+         std::min(attr_list[i].value.portlanelatchstatuslist.count, listLimit);
+         ++j) {
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].",
+          "lane=",
+          attr_list[i].value.portlanelatchstatuslist.list[j].lane));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].",
+          "current_status=",
+          attr_list[i]
+              .value.portlanelatchstatuslist.list[j]
+              .value.current_status));
+      attrLines.push_back(to<string>(
+          prefix,
+          "list[",
+          j,
+          "].",
+          "changed=",
+          attr_list[i].value.portlanelatchstatuslist.list[j].value.changed));
+    }
+  } else {
+    attrLines.push_back(to<string>(prefix, "list=NULL"));
+  }
+}
+#endif
+
 std::string boolAttr(const sai_attribute_t* attr_list, int i) {
   return to<string>(
       "s_a[",

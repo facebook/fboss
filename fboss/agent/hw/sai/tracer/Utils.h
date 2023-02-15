@@ -149,6 +149,19 @@ void qosMapListAttr(
     uint32_t listIndex,
     std::vector<std::string>& attrLines);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
+void latchStatusAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    std::vector<std::string>& attrLines);
+
+void portLaneLatchStatusListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    std::vector<std::string>& attrLines);
+#endif
+
 void systemPortConfigListAttr(
     const sai_attribute_t* attr_list,
     int i,
