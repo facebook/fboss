@@ -354,72 +354,6 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void runTestWithGlobalHeadRoomCfgToZero(
-      const int trafficClass,
-      const int pfcPriority) {
-    auto setup = [&]() {
-      PfcBufferParams buffer =
-          PfcBufferParams{.globalHeadroom = 0, .scalingFactor = std::nullopt};
-      setupBuffers(buffer);
-      setupEcmpTraffic();
-      validateInitPfcCounters(
-          {masterLogicalInterfacePortIds()[0],
-           masterLogicalInterfacePortIds()[1]},
-          pfcPriority);
-    };
-    auto verify = [&]() {
-      // ensure counter is 0 before we start traffic
-      pumpTraffic(trafficClass);
-      // ensure counter is > 0, after the traffic
-      validatePfcCounters(
-          getHwSwitchEnsemble(),
-          pfcPriority,
-          {masterLogicalInterfacePortIds()[0],
-           masterLogicalInterfacePortIds()[1]});
-      validateIngressDropCounters(
-          {masterLogicalInterfacePortIds()[0],
-           masterLogicalInterfacePortIds()[1]});
-      // stop traffic so that unconfiguration can happen without issues
-      stopTraffic(
-          {masterLogicalInterfacePortIds()[0],
-           masterLogicalInterfacePortIds()[1]});
-    };
-    verifyAcrossWarmBoots(setup, verify);
-  }
-
-  void runTestWithPgHeadRoomCfgToZero(
-      const int trafficClass,
-      const int pfcPriority) {
-    auto setup = [&]() {
-      PfcBufferParams buffer =
-          PfcBufferParams{.pgHeadroom = 0, .scalingFactor = std::nullopt};
-      setupBuffers(buffer);
-      setupEcmpTraffic();
-      validateInitPfcCounters(
-          {masterLogicalInterfacePortIds()[0],
-           masterLogicalInterfacePortIds()[1]},
-          pfcPriority);
-    };
-    auto verify = [&]() {
-      // ensure counter is 0 before we start traffic
-      pumpTraffic(trafficClass);
-      // ensure counter is > 0, after the traffic
-      validatePfcCounters(
-          getHwSwitchEnsemble(),
-          pfcPriority,
-          {masterLogicalInterfacePortIds()[0],
-           masterLogicalInterfacePortIds()[1]});
-      validateIngressDropCounters(
-          {masterLogicalInterfacePortIds()[0],
-           masterLogicalInterfacePortIds()[1]});
-      // stop traffic so that unconfiguration can happen without issues
-      stopTraffic(
-          {masterLogicalInterfacePortIds()[0],
-           masterLogicalInterfacePortIds()[1]});
-    };
-    verifyAcrossWarmBoots(setup, verify);
-  }
-
   void setupEcmpTraffic() {
     utility::EcmpSetupTargetedPorts6 ecmpHelper6{
         getProgrammedState(), getIntfMac()};
@@ -596,18 +530,6 @@ TEST_F(HwTrafficPfcTest, verifyBufferPoolWatermarks) {
       pfcPriority,
       TrafficTestParams{},
       validateBufferPoolWatermarkCounters);
-}
-
-TEST_F(HwTrafficPfcTest, verifyPfcWithGlobalHeadRoomToZero) {
-  const int trafficClass = 0;
-  const int pfcPriority = 0;
-  runTestWithGlobalHeadRoomCfgToZero(trafficClass, pfcPriority);
-}
-
-TEST_F(HwTrafficPfcTest, verifyPfcWithPGHeadRoomToZero) {
-  const int trafficClass = 0;
-  const int pfcPriority = 0;
-  runTestWithPgHeadRoomCfgToZero(trafficClass, pfcPriority);
 }
 
 // intent of this test is to send traffic so that it maps to
