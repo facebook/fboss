@@ -30,6 +30,7 @@
 #include <chrono>
 
 DECLARE_string(mac);
+DECLARE_uint64(ingress_egress_buffer_pool_size);
 namespace folly {
 struct dynamic;
 }

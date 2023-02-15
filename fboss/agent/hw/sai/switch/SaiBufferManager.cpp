@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -198,8 +199,14 @@ void SaiBufferManager::setupIngressEgressBufferPool(
   std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
   if (!ingressEgressBufferPoolHandle_) {
     auto availableBuffer = getSwitchEgressPoolAvailableSize(platform_);
-    auto poolSize =
-        availableBuffer * platform_->getAsic()->getNumMemoryBuffers();
+    uint64_t poolSize;
+    if (FLAGS_ingress_egress_buffer_pool_size) {
+      // An option for test to override the buffer pool size to be used.
+      poolSize = FLAGS_ingress_egress_buffer_pool_size *
+          platform_->getAsic()->getNumMemoryBuffers();
+    } else {
+      poolSize = availableBuffer * platform_->getAsic()->getNumMemoryBuffers();
+    }
 
     ingressEgressBufferPoolHandle_ = std::make_unique<SaiBufferPoolHandle>();
     SaiBufferPoolTraits::CreateAttributes c{
