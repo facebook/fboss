@@ -333,7 +333,7 @@ target_link_libraries(bcm_rib_sync_fib_speed
   hw_rib_sync_fib_speed
   route_scale_gen
   -Wl,--no-whole-archive
-  hw_benchmark_main
+  bcm_agent_benchmarks_main
   Folly::folly
   ${OPENNSA}
   Folly::follybenchmark
