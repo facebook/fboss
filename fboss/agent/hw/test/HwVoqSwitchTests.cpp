@@ -606,7 +606,7 @@ class HwVoqSwitchWithMultipleDsfNodesTest : public HwVoqSwitchTest {
         cfg::SwitchType::VOQ,
         *firstDsfNode.switchId(),
         *firstDsfNode.systemPortRange());
-    auto otherDsfNodeCfg = utility::dsfNodeConfig(*asic);
+    auto otherDsfNodeCfg = utility::dsfNodeConfig(*asic, kRemoteSwitchId);
     dsfNodes.insert({*otherDsfNodeCfg.switchId(), otherDsfNodeCfg});
     return dsfNodes;
   }
