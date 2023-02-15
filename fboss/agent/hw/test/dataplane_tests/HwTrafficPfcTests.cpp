@@ -347,11 +347,11 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
           pfcPriority,
           {masterLogicalInterfacePortIds()[0],
            masterLogicalInterfacePortIds()[1]});
-      // stop traffic so that unconfiguration can happen without issues
-      stopTraffic(
+      validateIngressDropCounters(
           {masterLogicalInterfacePortIds()[0],
            masterLogicalInterfacePortIds()[1]});
-      validateIngressDropCounters(
+      // stop traffic so that unconfiguration can happen without issues
+      stopTraffic(
           {masterLogicalInterfacePortIds()[0],
            masterLogicalInterfacePortIds()[1]});
     };
@@ -382,11 +382,11 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
           pfcPriority,
           {masterLogicalInterfacePortIds()[0],
            masterLogicalInterfacePortIds()[1]});
-      // stop traffic so that unconfiguration can happen without issues
-      stopTraffic(
+      validateIngressDropCounters(
           {masterLogicalInterfacePortIds()[0],
            masterLogicalInterfacePortIds()[1]});
-      validateIngressDropCounters(
+      // stop traffic so that unconfiguration can happen without issues
+      stopTraffic(
           {masterLogicalInterfacePortIds()[0],
            masterLogicalInterfacePortIds()[1]});
     };
