@@ -349,7 +349,7 @@ SaiBufferManager::ingressProfileCreateAttrs(
   SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynThresh{0};
   if (config.scalingFactor()) {
     mode = SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC;
-    dynThresh = static_cast<sai_uint8_t>(
+    dynThresh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
         nameToEnum<cfg::MMUScalingFactor>(*config.scalingFactor()));
   }
   SaiBufferProfileTraits::Attributes::XoffTh xoffTh{0};
