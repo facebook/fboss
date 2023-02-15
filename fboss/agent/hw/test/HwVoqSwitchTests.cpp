@@ -378,11 +378,6 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricReachability) {
       [] {}, [this]() { checkFabricReachability(getHwSwitch()); });
 }
 
-TEST_F(HwVoqSwitchTest, remoteSystemPort) {
-  auto setup = [this]() { addRemoteSysPort(SystemPortID(401)); };
-  verifyAcrossWarmBoots(setup, [] {});
-}
-
 TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
   auto setup = [this]() {
     const PortDescriptor kPort(
@@ -391,54 +386,6 @@ TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
     addRemoveNeighbor(kPort, true);
     // Remove neighbor
     addRemoveNeighbor(kPort, false);
-  };
-  verifyAcrossWarmBoots(setup, [] {});
-}
-
-TEST_F(HwVoqSwitchTest, remoteRouterInterface) {
-  auto setup = [this]() {
-    auto constexpr remotePortId = 401;
-    addRemoteSysPort(SystemPortID(remotePortId));
-    addRemoteInterface(
-        InterfaceID(remotePortId),
-        // TODO - following assumes we haven't
-        // already used up the subnets below for
-        // local interfaces. In that sense it
-        // has a implicit coupling with how ConfigFactory
-        // generates subnets for local interfaces
-        {
-            {folly::IPAddress("100::1"), 64},
-            {folly::IPAddress("100.0.0.1"), 24},
-        });
-  };
-  verifyAcrossWarmBoots(setup, [] {});
-}
-
-TEST_F(HwVoqSwitchTest, addRemoveRemoteNeighbor) {
-  auto setup = [this]() {
-    auto constexpr remotePortId = 401;
-    const SystemPortID kRemoteSysPortId(remotePortId);
-    addRemoteSysPort(kRemoteSysPortId);
-    const InterfaceID kIntfId(remotePortId);
-    addRemoteInterface(
-        kIntfId,
-        // TODO - following assumes we haven't
-        // already used up the subnets below for
-        // local interfaces. In that sense it
-        // has a implicit coupling with how ConfigFactory
-        // generates subnets for local interfaces
-        {
-            {folly::IPAddress("100::1"), 64},
-            {folly::IPAddress("100.0.0.1"), 24},
-        });
-    folly::IPAddressV6 kNeighborIp("100::2");
-    uint64_t dummyEncapIndex = 401;
-    PortDescriptor kPort(kRemoteSysPortId);
-    // Add neighbor
-    addRemoveRemoteNeighbor(kNeighborIp, kIntfId, kPort, true, dummyEncapIndex);
-    // Remove neighbor
-    addRemoveRemoteNeighbor(
-        kNeighborIp, kIntfId, kPort, false, dummyEncapIndex);
   };
   verifyAcrossWarmBoots(setup, [] {});
 }
@@ -616,4 +563,56 @@ TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, twoDsfNodes) {
   verifyAcrossWarmBoots([] {}, [] {});
 }
 
+TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, remoteSystemPort) {
+  auto setup = [this]() { addRemoteSysPort(SystemPortID(401)); };
+  verifyAcrossWarmBoots(setup, [] {});
+}
+
+TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, remoteRouterInterface) {
+  auto setup = [this]() {
+    auto constexpr remotePortId = 401;
+    addRemoteSysPort(SystemPortID(remotePortId));
+    addRemoteInterface(
+        InterfaceID(remotePortId),
+        // TODO - following assumes we haven't
+        // already used up the subnets below for
+        // local interfaces. In that sense it
+        // has a implicit coupling with how ConfigFactory
+        // generates subnets for local interfaces
+        {
+            {folly::IPAddress("100::1"), 64},
+            {folly::IPAddress("100.0.0.1"), 24},
+        });
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
+
+TEST_F(HwVoqSwitchWithMultipleDsfNodesTest, addRemoveRemoteNeighbor) {
+  auto setup = [this]() {
+    auto constexpr remotePortId = 401;
+    const SystemPortID kRemoteSysPortId(remotePortId);
+    addRemoteSysPort(kRemoteSysPortId);
+    const InterfaceID kIntfId(remotePortId);
+    addRemoteInterface(
+        kIntfId,
+        // TODO - following assumes we haven't
+        // already used up the subnets below for
+        // local interfaces. In that sense it
+        // has a implicit coupling with how ConfigFactory
+        // generates subnets for local interfaces
+        {
+            {folly::IPAddress("100::1"), 64},
+            {folly::IPAddress("100.0.0.1"), 24},
+        });
+    folly::IPAddressV6 kNeighborIp("100::2");
+    uint64_t dummyEncapIndex = 401;
+    PortDescriptor kPort(kRemoteSysPortId);
+    // Add neighbor
+    addRemoveRemoteNeighbor(kNeighborIp, kIntfId, kPort, true, dummyEncapIndex);
+    // Remove neighbor
+    addRemoveRemoteNeighbor(
+        kNeighborIp, kIntfId, kPort, false, dummyEncapIndex);
+  };
+  verifyAcrossWarmBoots(setup, [] {});
+}
 } // namespace facebook::fboss
