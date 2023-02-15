@@ -233,7 +233,7 @@ add_executable(bcm_warm_boot_exit_speed /dev/null)
 
 target_link_libraries(bcm_warm_boot_exit_speed
   -Wl,--whole-archive
-  bcm_switch_ensemble
+  bcm_agent_benchmarks_main
   hw_warm_boot_exit_speed
   -Wl,--no-whole-archive
 )

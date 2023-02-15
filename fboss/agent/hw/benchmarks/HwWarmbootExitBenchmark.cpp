@@ -11,14 +11,14 @@
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
-#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 
+#include "fboss/agent/benchmarks/AgentBenchmarks.h"
+
+#include <folly/Benchmark.h>
 #include <folly/IPAddressV6.h>
 #include <folly/dynamic.h>
 #include <folly/init/Init.h>
@@ -27,20 +27,19 @@
 #include <chrono>
 #include <iostream>
 
-DEFINE_bool(json, true, "Output in json form");
-DEFINE_bool(
-    setup_for_warmboot,
-    false,
-    "Set to true will prepare the device for warmboot");
+// @lint-ignore CLANGTIDY
+DECLARE_bool(json);
 
 namespace facebook::fboss {
 
 void runBenchmark() {
-  auto ensemble = createAndInitHwEnsemble(HwSwitchEnsemble::getAllFeatures());
-  auto hwSwitch = ensemble->getHwSwitch();
-  auto config = utility::onePortPerInterfaceConfig(
-      hwSwitch, ensemble->masterLogicalPortIds());
-  ensemble->applyInitialConfig(config);
+  AgentEnsembleSwitchConfigFn initialConfig =
+      [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
+        return utility::onePortPerInterfaceConfig(hwSwitch, ports);
+      };
+  auto ensemble = createAgentEnsemble(initialConfig);
+
+  ensemble->startAgent();
 
   utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;
   if (ensemble->getPlatform()->getMode() == PlatformMode::WEDGE) {
@@ -76,23 +75,13 @@ void runBenchmark() {
         utility::FSWRouteScaleGenerator(ensemble->getProgrammedState())
             .getThriftRoutes();
   }
-  auto updater = ensemble->getRouteUpdater();
-  updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
-  // Static such that the object destructor runs as late as possible. In
+  ensemble->programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
   // Static such that the object destructor runs as late as possible. In
   // particular in this case, destructor (and thus the duration calculation)
   // will run at the time of program exit when static variable destructors run
   static StopWatch timer("warm_boot_msecs", FLAGS_json);
-  ensemble->gracefulExit();
-  // Leak HwSwitchEnsemble for warmboot, so that
-  // we don't run destructors and unprogram h/w. We are
-  // going to exit the process anyways.
-  __attribute__((unused)) auto leakedHwEnsemble = ensemble.release();
+  // @lint-ignore CLANGTIDY
+  FLAGS_setup_for_warmboot = true;
+  ensemble.reset();
 }
 } // namespace facebook::fboss
-
-int main(int argc, char* argv[]) {
-  folly::init(&argc, &argv, true);
-  facebook::fboss::runBenchmark();
-  return 0;
-}

@@ -22,7 +22,8 @@ add_library(hw_warm_boot_exit_speed
 
 target_link_libraries(hw_warm_boot_exit_speed
   config_factory
-  hw_switch_ensemble
+  agent_ensemble
+  agent_benchmarks
   route_scale_gen
   Folly::folly
 )

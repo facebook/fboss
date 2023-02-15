@@ -237,7 +237,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_warm_boot_exit_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
-    sai_switch_ensemble
+    sai_agent_benchmarks_main
     hw_warm_boot_exit_speed
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
