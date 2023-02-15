@@ -56,12 +56,6 @@ DEFINE_string(
     "/var/facebook/fboss/qsfp_service/phy",
     "Directory for storing phy persistent state");
 
-// Eventually we remove the whole xphy programming from wedge_agent.
-DEFINE_bool(
-    skip_xphy_programming,
-    true,
-    "Skip all xphy programming in wedge_agent");
-
 namespace facebook::fboss {
 
 Platform::Platform(

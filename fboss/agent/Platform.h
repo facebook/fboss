@@ -20,8 +20,6 @@
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
-DECLARE_bool(skip_xphy_programming);
-
 namespace facebook::fboss {
 
 class AgentConfig;
