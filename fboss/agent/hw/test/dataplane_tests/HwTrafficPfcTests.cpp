@@ -2,9 +2,9 @@
 
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
-#include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
@@ -113,6 +113,13 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
  private:
   void SetUp() override {
     FLAGS_mmu_lossless_mode = true;
+    /*
+     * Makes this flag available so that it can be used in early
+     * stages of init to setup common buffer pool for specific
+     * asics like Indus.
+     */
+    FLAGS_ingress_egress_buffer_pool_size =
+        kGlobalSharedBytes + kGlobalHeadroomBytes;
     HwLinkStateDependentTest::SetUp();
   }
 
@@ -486,7 +493,20 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
 
 class HwTrafficPfcGenTest
     : public HwTrafficPfcTest,
-      public testing::WithParamInterface<TrafficTestParams> {};
+      public testing::WithParamInterface<TrafficTestParams> {
+  void SetUp() override {
+    auto testParams = GetParam();
+    FLAGS_mmu_lossless_mode = true;
+    /*
+     * Makes this flag available so that it can be used in early
+     * stages of init to setup common buffer pool for specific
+     * asics like Indus.
+     */
+    FLAGS_ingress_egress_buffer_pool_size =
+        testParams.buffer.globalShared + testParams.buffer.globalHeadroom;
+    HwLinkStateDependentTest::SetUp();
+  }
+};
 
 INSTANTIATE_TEST_SUITE_P(
     HwTrafficPfcTest,
