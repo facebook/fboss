@@ -550,11 +550,41 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig cfg_;
 };
 
-TEST_F(HwTrafficPfcTest, verifyPfcDefault) {
+class HwTrafficPfcGenTest
+    : public HwTrafficPfcTest,
+      public testing::WithParamInterface<TrafficTestParams> {};
+
+INSTANTIATE_TEST_SUITE_P(
+    HwTrafficPfcTest,
+    HwTrafficPfcGenTest,
+    testing::Values(
+        TrafficTestParams{},
+        TrafficTestParams{
+            .buffer =
+                PfcBufferParams{.pgHeadroom = 0, .scalingFactor = std::nullopt},
+            .expectDrop = true},
+        TrafficTestParams{
+            .buffer =
+                PfcBufferParams{
+                    .globalHeadroom = 0,
+                    .scalingFactor = std::nullopt},
+            .expectDrop = true}),
+    [](const ::testing::TestParamInfo<TrafficTestParams>& info) {
+      auto testParams = info.param;
+      if (testParams.buffer.pgHeadroom == 0) {
+        return "WithZeroPgHeadRoomCfg";
+      } else if (testParams.buffer.globalHeadroom == 0) {
+        return "WithZeroGlobalHeadRoomCfg";
+      } else {
+        return "WithDefaultCfg";
+      }
+    });
+
+TEST_P(HwTrafficPfcGenTest, verifyPfc) {
   // default to map dscp to priority = 0
   const int trafficClass = 0;
   const int pfcPriority = 0;
-  runTestWithDefaultPfcCfg(trafficClass, pfcPriority);
+  runTestWithDefaultPfcCfg(trafficClass, pfcPriority, GetParam());
 }
 
 TEST_F(HwTrafficPfcTest, verifyBufferPoolWatermarks) {
