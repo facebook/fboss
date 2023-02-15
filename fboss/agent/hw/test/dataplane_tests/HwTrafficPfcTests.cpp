@@ -20,6 +20,23 @@ using folly::IPAddressV6;
 using std::string;
 
 namespace {
+static constexpr auto kGlobalSharedBytes{20000};
+static constexpr auto kGlobalHeadroomBytes{4771136};
+static constexpr auto kPgLimitBytes{2200};
+static constexpr auto kPgHeadroomBytes{293624};
+
+struct PfcBufferParams {
+  int globalShared = kGlobalSharedBytes;
+  int globalHeadroom = kGlobalHeadroomBytes;
+  int pgLimit = kPgLimitBytes;
+  int pgHeadroom = kPgHeadroomBytes;
+};
+
+struct TrafficTestParams {
+  PfcBufferParams buffer = PfcBufferParams{};
+  bool expectDrop = false;
+};
+
 std::tuple<int, int, int> getPfcTxRxXonHwPortStats(
     const facebook::fboss::HwPortStats& portStats,
     const int pfcPriority) {
@@ -228,11 +245,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     portPgConfigMap["foo"] = portPgConfigs;
   }
 
-  void setupBuffers(
-      int globalSharedBytes = 20000,
-      int globalHeadroomBytes = 4771136,
-      int pgLimit = 2200,
-      int pgHeadroom = 293624) {
+  void setupBuffers(PfcBufferParams buffer = PfcBufferParams{}) {
     auto newCfg{initialConfig()};
     setupPfc(
         newCfg,
@@ -240,13 +253,13 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
          masterLogicalInterfacePortIds()[1]});
 
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-    setupPortPgConfig(portPgConfigMap, pgLimit, pgHeadroom);
+    setupPortPgConfig(portPgConfigMap, buffer.pgLimit, buffer.pgHeadroom);
     newCfg.portPgConfigs() = portPgConfigMap;
 
     // create buffer pool
     std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
     setupBufferPoolConfig(
-        bufferPoolCfgMap, globalSharedBytes, globalHeadroomBytes);
+        bufferPoolCfgMap, buffer.globalShared, buffer.globalHeadroom);
     newCfg.bufferPoolConfigs() = bufferPoolCfgMap;
     cfg_ = newCfg;
     applyNewConfig(newCfg);
@@ -294,13 +307,15 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
   void runTestWithDefaultPfcCfg(
       const int trafficClass,
       const int pfcPriority,
+      TrafficTestParams testParams = TrafficTestParams{},
       std::function<void(
           HwSwitchEnsemble* ensemble,
           const int pri,
           const std::vector<PortID>& portIds)> validateCounterFn =
           validatePfcCounters) {
     auto setup = [&]() {
-      setupConfigAndEcmpTraffic();
+      setupBuffers(testParams.buffer);
+      setupEcmpTraffic();
       validateInitPfcCounters(
           {masterLogicalInterfacePortIds()[0],
            masterLogicalInterfacePortIds()[1]},
@@ -315,6 +330,11 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
           pfcPriority,
           {masterLogicalInterfacePortIds()[0],
            masterLogicalInterfacePortIds()[1]});
+      if (testParams.expectDrop) {
+        validateIngressDropCounters(
+            {masterLogicalInterfacePortIds()[0],
+             masterLogicalInterfacePortIds()[1]});
+      }
       // stop traffic so that unconfiguration can happen without issues
       stopTraffic(
           {masterLogicalInterfacePortIds()[0],
@@ -327,11 +347,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       const int trafficClass,
       const int pfcPriority) {
     auto setup = [&]() {
-      setupBuffers(
-          20000, /* globalSharedBytes */
-          0, /* globalHeadroom */
-          2200, /* pgLimit */
-          293624 /* pgHeadroom */);
+      PfcBufferParams buffer = PfcBufferParams{.globalHeadroom = 0};
+      setupBuffers(buffer);
       setupEcmpTraffic();
       validateInitPfcCounters(
           {masterLogicalInterfacePortIds()[0],
@@ -362,11 +379,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       const int trafficClass,
       const int pfcPriority) {
     auto setup = [&]() {
-      setupBuffers(
-          20000, /* globalSharedBytes */
-          4771136, /* globalHeadroom */
-          2200, /* pgLimit */
-          0 /* pgHeadroom */);
+      PfcBufferParams buffer = PfcBufferParams{.pgHeadroom = 0};
+      setupBuffers(buffer);
       setupEcmpTraffic();
       validateInitPfcCounters(
           {masterLogicalInterfacePortIds()[0],
@@ -535,7 +549,10 @@ TEST_F(HwTrafficPfcTest, verifyBufferPoolWatermarks) {
   const int trafficClass = 0;
   const int pfcPriority = 0;
   runTestWithDefaultPfcCfg(
-      trafficClass, pfcPriority, validateBufferPoolWatermarkCounters);
+      trafficClass,
+      pfcPriority,
+      TrafficTestParams{},
+      validateBufferPoolWatermarkCounters);
 }
 
 TEST_F(HwTrafficPfcTest, verifyPfcWithGlobalHeadRoomToZero) {
