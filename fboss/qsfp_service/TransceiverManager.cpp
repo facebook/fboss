@@ -1,6 +1,7 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include "fboss/qsfp_service/TransceiverManager.h"
 
+#include <fb303/ThreadCachedServiceData.h>
 #include <folly/DynamicConverter.h>
 #include <folly/FileUtil.h>
 #include <folly/json.h>
@@ -46,6 +47,8 @@ constexpr auto kAgentConfigAppliedInfoStateKey = "agentConfigAppliedInfo";
 constexpr auto kAgentConfigLastAppliedInMsKey = "agentConfigLastAppliedInMs";
 constexpr auto kAgentConfigLastColdbootAppliedInMsKey =
     "agentConfigLastColdbootAppliedInMs";
+static constexpr auto kStateMachineThreadHeartbeatMissed =
+    "state_machine_thread_heartbeat_missed";
 } // namespace
 
 namespace facebook::fboss {
@@ -266,7 +269,12 @@ void TransceiverManager::startThreads() {
   heartbeatWatchdog_ = std::make_unique<ThreadHeartbeatWatchdog>(
       std::chrono::milliseconds(
           FLAGS_state_machine_update_thread_heartbeat_ms * 10),
-      [this]() { stateMachineThreadHeartbeatMissedCount_ += 1; });
+      [this]() {
+        stateMachineThreadHeartbeatMissedCount_ += 1;
+        tcData().setCounter(
+            kStateMachineThreadHeartbeatMissed,
+            stateMachineThreadHeartbeatMissedCount_);
+      });
   for (auto heartbeat : heartbeats_) {
     heartbeatWatchdog_->startMonitoringHeartbeat(heartbeat);
   }
