@@ -119,10 +119,7 @@ void AgentEnsemble::writeConfig(
 
 AgentEnsemble::~AgentEnsemble() {
   auto* initializer = agentInitializer();
-
-  // if ensemble is leaked and released it would be exit for warmboot.
-  // exit for cold boot.
-  initializer->stopAgent(false);
+  initializer->stopAgent(FLAGS_setup_for_warmboot);
 }
 
 void AgentEnsemble::applyNewConfig(
@@ -168,12 +165,6 @@ void AgentEnsemble::unprogramRoutes(
         });
     updater.program();
   }
-}
-
-void AgentEnsemble::gracefulExit() {
-  auto* initializer = agentInitializer();
-  // exit for warm boot
-  initializer->stopAgent(true);
 }
 
 std::shared_ptr<SwitchState> AgentEnsemble::applyNewState(
