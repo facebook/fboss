@@ -30,6 +30,8 @@ struct PfcBufferParams {
   int globalHeadroom = kGlobalHeadroomBytes;
   int pgLimit = kPgLimitBytes;
   int pgHeadroom = kPgHeadroomBytes;
+  std::optional<facebook::fboss::cfg::MMUScalingFactor> scalingFactor =
+      facebook::fboss::cfg::MMUScalingFactor::ONE_128TH;
 };
 
 struct TrafficTestParams {
@@ -228,7 +230,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
   void setupPortPgConfig(
       std::map<std::string, std::vector<cfg::PortPgConfig>>& portPgConfigMap,
       int pgLimit,
-      int pgHeadroom) {
+      int pgHeadroom,
+      std::optional<cfg::MMUScalingFactor> scalingFactor) {
     std::vector<cfg::PortPgConfig> portPgConfigs;
     // create 2 pgs
     for (auto pgId = 0; pgId < 2; ++pgId) {
@@ -239,6 +242,10 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       pgConfig.minLimitBytes() = pgLimit;
       // set large enough headroom to avoid drop
       pgConfig.headroomLimitBytes() = pgHeadroom;
+      // set scaling factor
+      if (scalingFactor) {
+        pgConfig.scalingFactor() = *scalingFactor;
+      }
       portPgConfigs.emplace_back(pgConfig);
     }
 
@@ -253,7 +260,11 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
          masterLogicalInterfacePortIds()[1]});
 
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-    setupPortPgConfig(portPgConfigMap, buffer.pgLimit, buffer.pgHeadroom);
+    setupPortPgConfig(
+        portPgConfigMap,
+        buffer.pgLimit,
+        buffer.pgHeadroom,
+        buffer.scalingFactor);
     newCfg.portPgConfigs() = portPgConfigMap;
 
     // create buffer pool
@@ -347,7 +358,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       const int trafficClass,
       const int pfcPriority) {
     auto setup = [&]() {
-      PfcBufferParams buffer = PfcBufferParams{.globalHeadroom = 0};
+      PfcBufferParams buffer =
+          PfcBufferParams{.globalHeadroom = 0, .scalingFactor = std::nullopt};
       setupBuffers(buffer);
       setupEcmpTraffic();
       validateInitPfcCounters(
@@ -379,7 +391,8 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       const int trafficClass,
       const int pfcPriority) {
     auto setup = [&]() {
-      PfcBufferParams buffer = PfcBufferParams{.pgHeadroom = 0};
+      PfcBufferParams buffer =
+          PfcBufferParams{.pgHeadroom = 0, .scalingFactor = std::nullopt};
       setupBuffers(buffer);
       setupEcmpTraffic();
       validateInitPfcCounters(
