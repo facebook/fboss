@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/lib/usb/Minipack16QI2CBus.h"
-#include "fboss/agent/Utils.h"
 #include "fboss/lib/fpga/MinipackSystemContainer.h"
 
 #include <folly/container/Enumerate.h>

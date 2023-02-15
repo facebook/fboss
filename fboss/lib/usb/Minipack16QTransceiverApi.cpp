@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/lib/usb/Minipack16QTransceiverApi.h"
-#include "fboss/agent/Utils.h"
 #include "fboss/lib/fpga/MinipackSystemContainer.h"
 
 namespace {
