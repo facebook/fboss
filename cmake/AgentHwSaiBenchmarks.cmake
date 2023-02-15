@@ -221,6 +221,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
     -Wl,--whole-archive
     sai_switch_ensemble
     hw_tx_slow_path_rate
+    sai_agent_benchmarks_main
     ${SAI_IMPL_ARG}
     -Wl,--no-whole-archive
   )

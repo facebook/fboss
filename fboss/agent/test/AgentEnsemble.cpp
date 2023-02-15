@@ -3,7 +3,9 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
+
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -221,4 +223,25 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
   return ensemble;
 }
 
+std::map<PortID, HwPortStats> AgentEnsemble::getLatestPortStats(
+    const std::vector<PortID>& ports) {
+  std::map<PortID, HwPortStats> portIdStatsMap;
+  SwitchStats dummy{};
+  getHw()->updateStats(&dummy);
+
+  auto swState = getSw()->getState();
+  auto stats = getHw()->getPortStats();
+  for (auto [portName, stats] : stats) {
+    auto portId = swState->getPorts()->getPort(portName)->getID();
+    if (std::find(ports.begin(), ports.end(), (PortID)portId) == ports.end()) {
+      continue;
+    }
+    portIdStatsMap.emplace((PortID)portId, stats);
+  }
+  return portIdStatsMap;
+}
+
+HwPortStats AgentEnsemble::getLatestPortStats(const PortID& port) {
+  return getLatestPortStats(std::vector<PortID>{port})[port];
+}
 } // namespace facebook::fboss

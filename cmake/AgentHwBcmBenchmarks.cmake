@@ -224,6 +224,7 @@ target_link_libraries(bcm_tx_slow_path_rate
   -Wl,--whole-archive
   bcm_switch_ensemble
   hw_tx_slow_path_rate
+  bcm_agent_benchmarks_main
   resourcelibutil
   -Wl,--no-whole-archive
 )
@@ -242,7 +243,7 @@ add_executable(bcm_rx_slow_path_rate /dev/null)
 target_link_libraries(bcm_rx_slow_path_rate
   -Wl,--whole-archive
   bcm_switch_ensemble
-  hw_tx_slow_path_rate
+  hw_rx_slow_path_rate
   bcm_copp_utils
   bcm_qos_utils
   bcm_packet_trap_helper

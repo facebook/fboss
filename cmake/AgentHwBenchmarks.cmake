@@ -8,6 +8,8 @@ add_library(hw_tx_slow_path_rate
 )
 
 target_link_libraries(hw_tx_slow_path_rate
+  agent_ensemble
+  agent_benchmarks
   config_factory
   hw_packet_utils
   ecmp_helper

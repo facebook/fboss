@@ -122,6 +122,11 @@ class AgentEnsemble : public TestEnsembleIf {
     return getHw();
   }
 
+  std::map<PortID, HwPortStats> getLatestPortStats(
+      const std::vector<PortID>& ports);
+
+  HwPortStats getLatestPortStats(const PortID& port);
+
  private:
   void writeConfig(const cfg::SwitchConfig& config);
   void writeConfig(const cfg::AgentConfig& config);
