@@ -66,6 +66,16 @@ IPAddressV6 getIPv6Address(InterfaceID intfID, Interface::AddressesType addrs) {
   throw FbossError("Cannot find IPv6 address for interface ", intfID);
 }
 
+IPAddressV4 getIPAddress(InterfaceID intfID, Interface::AddressesType addrs) {
+  for (auto iter : std::as_const(*addrs)) {
+    auto address = folly::IPAddress(iter.first);
+    if (address.isV4()) {
+      return address.asV4();
+    }
+  }
+  throw FbossError("Cannot find IPv4 address for interface ", intfID);
+}
+
 } // namespace
 void utilCreateDir(folly::StringPiece path) {
   try {
@@ -108,14 +118,16 @@ IPAddressV4 getSwitchVlanIP(
     VlanID vlan) {
   IPAddressV4 switchIp;
   auto vlanInterface = state->getInterfaces()->getInterfaceInVlan(vlan);
-  for (auto iter : std::as_const(*vlanInterface->getAddresses())) {
-    auto address = folly::IPAddress(iter.first);
-    if (address.isV4()) {
-      switchIp = address.asV4();
-      return switchIp;
-    }
-  }
-  throw FbossError("Cannot find IP address for vlan", vlan);
+
+  return getIPAddress(vlanInterface->getID(), vlanInterface->getAddresses());
+}
+
+IPAddressV4 getSwitchIntfIP(
+    const std::shared_ptr<SwitchState>& state,
+    InterfaceID intfID) {
+  auto interface = state->getInterfaces()->getInterface(intfID);
+
+  return getIPAddress(intfID, interface->getAddresses());
 }
 
 IPAddressV6 getSwitchVlanIPv6(

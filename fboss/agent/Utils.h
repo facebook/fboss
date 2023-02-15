@@ -65,6 +65,15 @@ folly::IPAddressV4 getSwitchVlanIP(
     VlanID vlan);
 
 /**
+ * Helper function to get an IPv4 address for a particular interface
+ * Used to set src IP address for DHCP and ICMP packets
+ * throw an FbossError in case no IP address exists.
+ */
+folly::IPAddressV4 getSwitchIntfIP(
+    const std::shared_ptr<SwitchState>& state,
+    InterfaceID intfID);
+
+/**
  * Helper function to get an IPv4 address of any(first) interface.
  */
 folly::IPAddressV4 getAnyIntfIP(const std::shared_ptr<SwitchState>& state);
