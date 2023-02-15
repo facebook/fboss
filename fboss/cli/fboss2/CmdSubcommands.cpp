@@ -161,6 +161,15 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
             "hw_object_type", args, "Hardware (HW) object type(s)\n");
         break;
       }
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_SYSTEM_PORT_LIST:
+        subCmd->add_option(
+            "sys_ports",
+            args,
+            "System port in the format switch:moduleNum/port/subport\n"
+            "e.g. rdsw001.n001.z004.snc1:eth1/5/3 will be parsed to five"
+            "parts: rdsw001.n001.z004.snc1 (switch name), eth(module name)"
+            "1(module number), 5(port number), 3(subport number)\n");
+        break;
       case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
       case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
         break;
