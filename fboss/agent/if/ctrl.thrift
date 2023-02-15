@@ -618,6 +618,8 @@ struct FabricEndpoint {
   // only when isAttached == true
   5: bool isAttached;
   6: switch_config.SwitchType switchType;
+  7: optional i64 expectedSwitchId;
+  8: optional i32 expectedPortId;
 }
 
 service FbossCtrl extends phy.FbossCommonPhyCtrl {
