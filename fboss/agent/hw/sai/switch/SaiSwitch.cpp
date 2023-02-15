@@ -1720,8 +1720,19 @@ std::shared_ptr<SwitchState> SaiSwitch::getColdBootSwitchState() {
   if (platform_->getAsic()->getAsicType() !=
       cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
     // reconstruct ports
-    state->resetPorts(
-        managerTable_->portManager().reconstructPortsFromStore(switchType_));
+    auto portMap =
+        managerTable_->portManager().reconstructPortsFromStore(switchType_);
+    auto ports = std::make_shared<PortMap>();
+    if (FLAGS_hide_fabric_ports) {
+      for (auto [id, port] : *portMap) {
+        if (port->getPortType() != cfg::PortType::FABRIC_PORT) {
+          ports->addPort(port);
+        }
+      }
+    } else {
+      ports = std::move(portMap);
+    }
+    state->resetPorts(ports);
   }
 
   // For VOQ switch, create system ports for existing egress ports

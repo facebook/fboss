@@ -111,9 +111,18 @@ SaiPlatform::SaiPlatform(
       qsfpCache_(std::make_unique<AutoInitQsfpCache>()) {
   const auto& portsByMasterPort =
       utility::getSubsidiaryPortIDs(getPlatformPorts());
+  const auto& platPorts = getPlatformPorts();
   CHECK(portsByMasterPort.size() > 1);
   for (auto itPort : portsByMasterPort) {
-    masterLogicalPortIds_.push_back(itPort.first);
+    if (FLAGS_hide_fabric_ports) {
+      if (*platPorts.find(static_cast<int32_t>(itPort.first))
+               ->second.mapping()
+               ->portType() != cfg::PortType::FABRIC_PORT) {
+        masterLogicalPortIds_.push_back(itPort.first);
+      }
+    } else {
+      masterLogicalPortIds_.push_back(itPort.first);
+    }
   }
 }
 
