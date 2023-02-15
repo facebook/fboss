@@ -276,6 +276,11 @@ class HwVoqSwitchWithFabricPortsTest : public HwVoqSwitchTest {
     );
     return cfg;
   }
+
+ private:
+  bool hideFabricPorts() const override {
+    return false;
+  }
 };
 
 TEST_F(HwVoqSwitchWithFabricPortsTest, init) {

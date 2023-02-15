@@ -164,6 +164,7 @@ class HwTest : public ::testing::Test,
   std::vector<cfg::AsicType> getOtherAsicTypes() const;
 
  private:
+  virtual bool hideFabricPorts() const;
   virtual std::optional<TransceiverInfo> overrideTransceiverInfo() const {
     return std::nullopt;
   }

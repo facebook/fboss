@@ -84,7 +84,15 @@ std::vector<PortID> HwTest::getAllPortsInGroup(PortID portID) const {
   return hwSwitchEnsemble_->getAllPortsInGroup(portID);
 }
 
+bool HwTest::hideFabricPorts() const {
+  // Due to the speedup in test run time (6m->21s on makalu)
+  // we want to skip over fabric ports in a overwhelming
+  // majority of test cases. Make this the default HwTest mode
+  return true;
+}
+
 void HwTest::SetUp() {
+  FLAGS_hide_fabric_ports = hideFabricPorts();
   // Reset any global state being tracked in singletons
   // Each test then sets up its own state as needed.
   folly::SingletonVault::singleton()->destroyInstances();

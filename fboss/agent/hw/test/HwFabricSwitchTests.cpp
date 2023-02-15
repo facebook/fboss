@@ -26,6 +26,11 @@ class HwFabricSwitchTest : public HwLinkStateDependentTest {
     HwLinkStateDependentTest::SetUp();
     ASSERT_EQ(getHwSwitch()->getSwitchType(), cfg::SwitchType::FABRIC);
   }
+
+ private:
+  bool hideFabricPorts() const override {
+    return false;
+  }
 };
 
 TEST_F(HwFabricSwitchTest, init) {
