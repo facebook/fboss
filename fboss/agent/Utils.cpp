@@ -56,24 +56,21 @@ UnicastRoute makeUnicastRouteHelper(
   return nr;
 }
 
-IPAddressV6 getIPv6Address(InterfaceID intfID, Interface::AddressesType addrs) {
+template <typename AddrT>
+AddrT getIPAddress(InterfaceID intfID, const Interface::AddressesType addrs) {
   for (auto iter : std::as_const(*addrs)) {
     auto address = folly::IPAddress(iter.first);
-    if (address.isV6()) {
-      return address.asV6();
+    if constexpr (std::is_same_v<AddrT, IPAddressV4>) {
+      if (address.isV4()) {
+        return address.asV4();
+      }
+    } else {
+      if (address.isV6()) {
+        return address.asV6();
+      }
     }
   }
-  throw FbossError("Cannot find IPv6 address for interface ", intfID);
-}
-
-IPAddressV4 getIPAddress(InterfaceID intfID, Interface::AddressesType addrs) {
-  for (auto iter : std::as_const(*addrs)) {
-    auto address = folly::IPAddress(iter.first);
-    if (address.isV4()) {
-      return address.asV4();
-    }
-  }
-  throw FbossError("Cannot find IPv4 address for interface ", intfID);
+  throw FbossError("Cannot find IP address for interface ", intfID);
 }
 
 } // namespace
@@ -119,7 +116,8 @@ IPAddressV4 getSwitchVlanIP(
   IPAddressV4 switchIp;
   auto vlanInterface = state->getInterfaces()->getInterfaceInVlan(vlan);
 
-  return getIPAddress(vlanInterface->getID(), vlanInterface->getAddresses());
+  return getIPAddress<IPAddressV4>(
+      vlanInterface->getID(), vlanInterface->getAddresses());
 }
 
 IPAddressV4 getSwitchIntfIP(
@@ -127,7 +125,7 @@ IPAddressV4 getSwitchIntfIP(
     InterfaceID intfID) {
   auto interface = state->getInterfaces()->getInterface(intfID);
 
-  return getIPAddress(intfID, interface->getAddresses());
+  return getIPAddress<IPAddressV4>(intfID, interface->getAddresses());
 }
 
 IPAddressV6 getSwitchVlanIPv6(
@@ -135,7 +133,8 @@ IPAddressV6 getSwitchVlanIPv6(
     VlanID vlan) {
   auto vlanInterface = state->getInterfaces()->getInterfaceInVlan(vlan);
 
-  return getIPv6Address(vlanInterface->getID(), vlanInterface->getAddresses());
+  return getIPAddress<IPAddressV6>(
+      vlanInterface->getID(), vlanInterface->getAddresses());
 }
 
 IPAddressV6 getSwitchIntfIPv6(
@@ -143,7 +142,7 @@ IPAddressV6 getSwitchIntfIPv6(
     InterfaceID intfID) {
   auto interface = state->getInterfaces()->getInterface(intfID);
 
-  return getIPv6Address(intfID, interface->getAddresses());
+  return getIPAddress<IPAddressV6>(intfID, interface->getAddresses());
 }
 
 void incNiceValue(const uint32_t increment) {
