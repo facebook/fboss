@@ -35,8 +35,6 @@ from argparse import ArgumentParser
 #  ./run_test.py sai --config fuji.agent.materialized_JSON --filter HwVlanTest.VlanApplyConfig --sdk_logging /root/skhare/sai_replayer_logs --no-oss --sai-bin /root/skhare/sai_test-brcm-7.2.0.0_odp --mgmt-if eth0
 #
 # All tests matching the following filters pass on w400C in VOQ mode
-# Note: For w400c (VOQ) mode test runs, suffix --coldboot_only to all tests.
-# Warm boot# is not yet supported on w400c in voq mode.
 # VOQ tests
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchTest.*:-*sendPacketCpu*:*trapPktsOnPort*:*AclQualifier*
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.*
@@ -63,13 +61,9 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwInDiscardsCounterTest.*
 #
 # All tests matching the following filters pass on w400C in fabric mode
-# Note: For w400c (fabric) mode test runs, suffix --coldboot_only to all tests.
-# Warm boot# is not yet supported on w400c in fabric mode.
 # ./run_test.py sai --config wedge400c_fabric.agent.materialized_JSON --filter=HwFabricSwitchTest.*
 
 # All tests matching following filters are expected to PASS on Makalu
-# Note: For Makalu test runs, suffix --coldboot_only to all tests. Warm boot
-# is not yet supported on Makalu
 # Basic VOQ switch tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwVoqSwitchTest*
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwVoqSwitchWithFabriPortsTest.*
@@ -109,10 +103,7 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwPacketSendTest.PortTxEnableTest
 # PFC tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwPfcTest.*:-*Watchdog*
-
 # All tests matching following filter are expected to PASS on Kamet
-# Note: For Kamet test runs, suffix --coldboot_only to all tests. Warm boot
-# is not yet supported on Kamet
 # ./run_test.py sai --config kamet.agent.materialized_JSON --filter=HwFabricSwitchTest*
 
 OPT_ARG_COLDBOOT = "--coldboot_only"
