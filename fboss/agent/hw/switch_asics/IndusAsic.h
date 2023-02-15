@@ -88,10 +88,6 @@ class IndusAsic : public BroadcomAsic {
   bool scalingFactorBasedDynamicThresholdSupported() const override {
     return false;
   }
-  int getBufferDynThreshFromScalingFactor(
-      cfg::MMUScalingFactor /* scalingFactor */) const override {
-    throw FbossError("Dynamic buffer threshold unsupported!");
-  }
   cfg::Range64 getReservedEncapIndexRange() const override;
   HwAsic::RecyclePortInfo getRecyclePortInfo() const override;
   uint32_t getNumMemoryBuffers() const override {
