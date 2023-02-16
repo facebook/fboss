@@ -184,6 +184,14 @@ class SwSwitch : public HwSwitch::Callback {
       std::unique_ptr<TunManager> tunMgr,
       SwitchFlags flags = SwitchFlags::DEFAULT);
 
+  // can be used in the tests, where a test orchestrating ensemble can be
+  // injected between HwSwitch and SwSwitch an ensemble must dispatch events to
+  // SwSwitch as soon as it receives.
+  void init(
+      HwSwitch::Callback* callback,
+      std::unique_ptr<TunManager> tunMgr,
+      SwitchFlags flags = SwitchFlags::DEFAULT);
+
   bool isFullyInitialized() const;
 
   bool isInitialized() const;

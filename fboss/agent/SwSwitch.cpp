@@ -587,11 +587,14 @@ void SwSwitch::publishTxPacket(TxPacket* pkt, uint16_t ethertype) {
   pubPkt.packetData = copy_buf.moveToFbString();
 }
 
-void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
+void SwSwitch::init(
+    HwSwitch::Callback* callback,
+    std::unique_ptr<TunManager> tunMgr,
+    SwitchFlags flags) {
   auto begin = steady_clock::now();
   flags_ = flags;
   auto hwInitRet = hw_->init(
-      this,
+      callback,
       false /*failHwCallsOnWarmboot*/,
       platform_->getAsic()->getSwitchType(),
       platform_->getAsic()->getSwitchId());
@@ -722,6 +725,10 @@ void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
     logRouteUpdates("::", 0, kAllFibUpdates);
     logRouteUpdates("0.0.0.0", 0, kAllFibUpdates);
   }
+}
+
+void SwSwitch::init(std::unique_ptr<TunManager> tunMgr, SwitchFlags flags) {
+  this->init(this, std::move(tunMgr), flags);
 }
 
 void SwSwitch::initialConfigApplied(const steady_clock::time_point& startTime) {
