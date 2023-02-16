@@ -31,6 +31,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/kamet/KametPlatformMapping.h"
 #include "fboss/agent/platforms/common/makalu/MakaluPlatformMapping.h"
+#include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CFabricPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CVoqPlatformMapping.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
@@ -2733,6 +2734,7 @@ void ThriftHandler::getFabricReachability(
             }
             break;
           case cfg::AsicType::ASIC_TYPE_INDUS:
+            // this can be a problem, INDUS ASIC is tied into Makalu. Yangra also uses INDUS.
             platformMapping = &makalu;
             remotePortOffset = 256;
             break;

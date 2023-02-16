@@ -34,6 +34,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiTajoPlatform.cpp
   fboss/agent/platforms/sai/SaiTajoPlatformPort.cpp
   fboss/agent/platforms/sai/SaiMakaluPlatform.cpp
+  fboss/agent/platforms/sai/SaiYangraPlatform.cpp
   fboss/agent/platforms/sai/SaiKametPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMontblancPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.cpp
@@ -57,6 +58,8 @@ add_library(sai_platform
   fboss/agent/platforms/sai/oss/SaiPlatformInit.cpp
   fboss/agent/platforms/sai/oss/SaiMakaluPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMakaluPlatformPort.cpp
+  fboss/agent/platforms/sai/oss/SaiYangraPlatform.cpp
+  fboss/agent/platforms/sai/oss/SaiYangraPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiKametPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiKametPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiSandiaPlatformPort.cpp

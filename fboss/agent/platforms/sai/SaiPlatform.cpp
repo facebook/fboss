@@ -33,6 +33,7 @@
 #include "fboss/agent/platforms/sai/SaiKametPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiLassenPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMakaluPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiYangraPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiSandiaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/state/Port.h"
@@ -262,6 +263,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiSandiaPlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::MAKALU) {
       saiPort = std::make_unique<SaiMakaluPlatformPort>(portId, this);
+    } else if (platformMode == PlatformMode::YANGRA) {
+      saiPort = std::make_unique<SaiYangraPlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::KAMET) {
       saiPort = std::make_unique<SaiKametPlatformPort>(portId, this);
     } else if (platformMode == PlatformMode::MONTBLANC) {

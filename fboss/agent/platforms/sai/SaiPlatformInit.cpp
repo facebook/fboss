@@ -30,6 +30,7 @@
 #include "fboss/agent/platforms/sai/SaiKametPlatform.h"
 #include "fboss/agent/platforms/sai/SaiLassenPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMakaluPlatform.h"
+#include "fboss/agent/platforms/sai/SaiYangraPlatform.h"
 #include "fboss/agent/platforms/sai/SaiSandiaPlatform.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
 
@@ -97,6 +98,9 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
         std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::MAKALU) {
     return std::make_unique<SaiMakaluPlatform>(
+        std::move(productInfo), localMac);
+  } else if (productInfo->getMode() == PlatformMode::YANGRA) {
+    return std::make_unique<SaiYangraPlatform>(
         std::move(productInfo), localMac);
   } else if (productInfo->getMode() == PlatformMode::KAMET) {
     return std::make_unique<SaiKametPlatform>(std::move(productInfo), localMac);

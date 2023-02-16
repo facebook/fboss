@@ -47,6 +47,7 @@ class SetupFboss:
     BCM_CONFIG_DIR = os.path.join(os.environ["FBOSS_DATA"], "bcm_configs")
     TH = "th"
     TH3 = "th3"
+    J2CP = "j2cp"
 
     def __init__(self):
         output = subprocess.check_output(["lspci"]).decode("utf-8").split("\n")
@@ -71,6 +72,18 @@ class SetupFboss:
                 *[os.environ["FBOSS_DATA"], SetupFboss.TH3, SetupFboss.BDE_CONF]
             )
             PLATFORM = "MINIPACK+FSW"
+            self.src_bcm_conf_full_path = os.path.join(
+                SetupFboss.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
+            )
+
+        elif [x for x in output if "Broadcom" in x and "8850" in x]:
+            self.src_fruid_full_path = os.path.join(
+                *[os.environ["FBOSS_DATA"], SetupFboss.J2CP, SetupFboss.FRUID_CONF]
+            )
+            self.src_bde_full_path = os.path.join(
+                *[os.environ["FBOSS_DATA"], SetupFboss.J2CP, SetupFboss.BDE_CONF]
+            )
+            PLATFORM = "YANGRA"
             self.src_bcm_conf_full_path = os.path.join(
                 SetupFboss.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
             )
