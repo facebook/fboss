@@ -598,6 +598,30 @@ PortLoopbackMode toThriftLoopbackMode(cfg::PortLoopbackMode mode) {
   }
   throw FbossError("Bogus loopback mode: ", mode);
 }
+// NOTE : pass by value of state is deliberate. We want to bump
+// a reference cnt and not have sw switch state deleted from
+// underneath us due to parallel updates
+template <typename AddressT, typename NeighborThriftT>
+void addRemoteNeighbors(
+    const std::shared_ptr<SwitchState> state,
+    std::vector<NeighborThriftT>& nbrs) {
+  auto remoteRifs = state->getRemoteInterfaces();
+  for (const auto& idAndRif : std::as_const(*remoteRifs)) {
+    const auto& rif = idAndRif.second;
+    for (const auto& ipAndEntry :
+         std::as_const(*rif->getNeighborEntryTable<AddressT>())) {
+      const auto& entry = ipAndEntry.second;
+      NeighborThriftT nbrThrift;
+      nbrThrift.ip() = facebook::network::toBinaryAddress(entry->getIP());
+      nbrThrift.mac() = entry->getMac().toString();
+      CHECK(rif->getSystemPortID().has_value());
+      nbrThrift.port() = static_cast<int32_t>(*rif->getSystemPortID());
+      nbrThrift.vlanName() = "--";
+      nbrThrift.state() = "--";
+      nbrs.push_back(nbrThrift);
+    }
+  }
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -896,6 +920,7 @@ void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
       ndpTable.begin(),
       std::make_move_iterator(std::begin(entries)),
       std::make_move_iterator(std::end(entries)));
+  addRemoteNeighbors<folly::IPAddressV6>(sw_->getState(), ndpTable);
 }
 
 void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
@@ -907,6 +932,7 @@ void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
       arpTable.begin(),
       std::make_move_iterator(std::begin(entries)),
       std::make_move_iterator(std::end(entries)));
+  addRemoteNeighbors<folly::IPAddressV4>(sw_->getState(), arpTable);
 }
 
 void ThriftHandler::getL2Table(std::vector<L2EntryThrift>& l2Table) {
