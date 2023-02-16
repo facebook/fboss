@@ -36,6 +36,10 @@ class TeFlowTest : public ::testing::Test {
  public:
   void SetUp() override {
     auto config = testConfigA();
+    cfg::ExactMatchTableConfig tableConfig;
+    tableConfig.name() = "TeFlowTable";
+    tableConfig.dstPrefixLength() = 64;
+    config.switchSettings()->exactMatchTableConfigs() = {tableConfig};
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
     sw_->getNeighborUpdater()->receivedNdpMine(
@@ -66,10 +70,10 @@ class TeFlowTest : public ::testing::Test {
     return result;
   }
 
-  TeFlow makeFlowKey(std::string dstIp) {
+  TeFlow makeFlowKey(std::string dstIp, int prefixLength = 64) {
     TeFlow flow;
     flow.srcPort() = 100;
-    flow.dstPrefix() = ipPrefix(dstIp, 64);
+    flow.dstPrefix() = ipPrefix(dstIp, prefixLength);
     return flow;
   }
 
@@ -91,10 +95,11 @@ class TeFlowTest : public ::testing::Test {
       std::string dstIp,
       std::string nhop = kNhopAddrA,
       std::string ifname = "fboss1",
-      std::string counterID = kCounterID) {
+      std::string counterID = kCounterID,
+      int prefixLength = 64) {
     FlowEntry flowEntry;
     flowEntry.flow()->srcPort() = 100;
-    flowEntry.flow()->dstPrefix() = ipPrefix(dstIp, 64);
+    flowEntry.flow()->dstPrefix() = ipPrefix(dstIp, prefixLength);
     flowEntry.counterID() = counterID;
     flowEntry.nextHops()->resize(1);
     flowEntry.nextHops()[0].address() = toBinaryAddress(IPAddress(nhop));

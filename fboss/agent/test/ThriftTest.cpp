@@ -2018,6 +2018,10 @@ class ThriftTeFlowTest : public ::testing::Test {
  public:
   void SetUp() override {
     auto config = testConfigA();
+    cfg::ExactMatchTableConfig tableConfig;
+    tableConfig.name() = "TeFlowTable";
+    tableConfig.dstPrefixLength() = 64;
+    config.switchSettings()->exactMatchTableConfigs() = {tableConfig};
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
     sw_->initialConfigApplied(std::chrono::steady_clock::now());

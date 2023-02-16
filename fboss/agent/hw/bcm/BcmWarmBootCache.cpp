@@ -1782,9 +1782,16 @@ void BcmWarmBootCache::populateTeFlows(
     bcmCheckError(rv, "Unable to get Dst Ip6 for entry=", bcmEntry);
 
     auto destIp = ipFromBcm(hwAddr);
+    XLOG(DBG2) << "Populate TeFlowEntry, recovered from h/w. "
+               << "Teflow: srcPort=" << hwSrcPort << " destIp= " << destIp
+               << " teflow entry=" << bcmEntry;
     CHECK(teflows.find({hwSrcPort, destIp}) == teflows.end());
     teflows.emplace(std::make_pair(hwSrcPort, destIp), bcmEntry);
   }
+
+  XLOG(DBG1) << "Teflow map count=" << teflows.size()
+             << " for group=" << groupId;
+  CHECK_EQ(teflows.size(), entryCount);
 }
 
 void BcmWarmBootCache::populateTeFlowStats(

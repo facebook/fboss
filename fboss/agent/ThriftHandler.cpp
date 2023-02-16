@@ -2631,8 +2631,39 @@ void ThriftHandler::addTeFlows(
 void ThriftHandler::addTeFlowsImpl(
     std::shared_ptr<SwitchState>* state,
     const std::vector<FlowEntry>& teFlowEntries) const {
+  auto exactMatchTableConfigs =
+      (*state)->getSwitchSettings()->getExactMatchTableConfig()->toThrift();
+  std::string teFlowTableName(cfg::switch_config_constants::TeFlowTableName());
+  auto dstIpPrefixLength = 0;
+  for (const auto& tableConfig : exactMatchTableConfigs) {
+    if ((tableConfig.name() == teFlowTableName) &&
+        tableConfig.dstPrefixLength().has_value()) {
+      dstIpPrefixLength = tableConfig.dstPrefixLength().value();
+    }
+  }
+  if (!dstIpPrefixLength) {
+    throw FbossError("Invalid dstIpPrefixLength configuration");
+  }
+
   auto teFlowTable = (*state)->getTeFlowTable().get()->modify(state);
   for (const auto& teFlowEntry : teFlowEntries) {
+    if (!teFlowEntry.flow()->dstPrefix().has_value() ||
+        !teFlowEntry.flow()->srcPort().has_value()) {
+      throw FbossError("Invalid dstPrefix or srcPort in TeFlow entry");
+    }
+
+    auto prefix = teFlowEntry.flow()->dstPrefix().value();
+    if (*prefix.prefixLength() != dstIpPrefixLength) {
+      std::string flowString{};
+      folly::IPAddress ipaddr = network::toIPAddress(*prefix.ip());
+      flowString.append(fmt::format(
+          "dstPrefix:{}/{},srcPort:{}",
+          ipaddr.str(),
+          *prefix.prefixLength(),
+          teFlowEntry.flow()->srcPort().value()));
+      throw FbossError("Invalid prefix length in TeFlow entry: ", flowString);
+    }
+
     teFlowTable = teFlowTable->addTeFlowEntry(state, teFlowEntry);
   }
 }

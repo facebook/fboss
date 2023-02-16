@@ -64,7 +64,7 @@ void BcmTeFlowEntry::createTeFlowQualifiers() {
   if (const auto& srcPort = flow->cref<ctrl_if_tags::srcPort>()) {
     rv = bcm_field_qualify_SrcPort(
         hw_->getUnit(), handle_, 0, 0xff, srcPort->toThrift(), 0xff);
-    bcmCheckError(rv, "failed to qualify src port");
+    bcmCheckError(rv, teFlow_->str(), "failed to qualify src port");
   }
 
   if (const auto& dstPrefix = flow->cref<ctrl_if_tags::dstPrefix>()) {
@@ -80,7 +80,7 @@ void BcmTeFlowEntry::createTeFlowQualifiers() {
     facebook::fboss::ipToBcmIp6(ipaddr, &addr);
     memcpy(&mask, folly::IPAddressV6::fetchMask(pfxLen).data(), sizeof(mask));
     rv = bcm_field_qualify_DstIp6(hw_->getUnit(), handle_, addr, mask);
-    bcmCheckError(rv, "failed to qualify dst Ip6");
+    bcmCheckError(rv, teFlow_->str(), "failed to qualify dst Ip6");
   }
 }
 
@@ -119,18 +119,18 @@ void BcmTeFlowEntry::createTeFlowActions() {
   XLOG(DBG3) << "Setting egress Id:" << egressId << " for handle :" << handle_;
   auto rv = bcm_field_action_add(
       hw_->getUnit(), handle_, bcmFieldActionL3Switch, egressId, 0);
-  bcmCheckError(rv, "failed to action add");
+  bcmCheckError(rv, teFlow_->str(), "failed to action add");
 }
 
 void BcmTeFlowEntry::removeTeFlowActions() {
   auto rv =
       bcm_field_action_remove(hw_->getUnit(), handle_, bcmFieldActionL3Switch);
-  bcmCheckError(rv, "failed to action remove ");
+  bcmCheckError(rv, teFlow_->str(), "failed to action remove ");
 }
 
 void BcmTeFlowEntry::installTeFlowEntry() {
   auto rv = bcm_field_entry_install(hw_->getUnit(), handle_);
-  bcmCheckError(rv, "failed to install field group");
+  bcmCheckError(rv, teFlow_->str(), "failed to install field group");
 }
 
 void BcmTeFlowEntry::createTeFlowEntry() {
@@ -145,7 +145,7 @@ void BcmTeFlowEntry::createTeFlowEntry() {
         BCM_E_FULL,
         "Failed to created field entry. Exact Match entries exhausted");
   }
-  bcmCheckError(rv, "failed to create field entry");
+  bcmCheckError(rv, teFlow_->str(), "failed to create field entry");
 
   createTeFlowQualifiers();
   int enabled = teFlow_->getEnabled() ? 1 : 0;
