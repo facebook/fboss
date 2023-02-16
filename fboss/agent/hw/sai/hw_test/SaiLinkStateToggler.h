@@ -10,25 +10,26 @@
 
 #pragma once
 
-#include "fboss/agent/hw/sai/hw_test/SaiSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 
 #include <memory>
 
 namespace facebook::fboss {
 
-class SaiSwitchEnsemble;
 class Port;
+class TestEnsembleIf;
+class SaiSwitch;
 
 class SaiLinkStateToggler : public HwLinkStateToggler {
  public:
   SaiLinkStateToggler(
-      SaiSwitchEnsemble* ensemble,
+      TestEnsembleIf* ensemble,
       cfg::PortLoopbackMode desiredLoopbackMode)
       : HwLinkStateToggler(ensemble, desiredLoopbackMode),
         saiEnsemble_(ensemble) {}
 
  private:
+  SaiSwitch* getHw() const;
   void invokeLinkScanIfNeeded(PortID /*port*/, bool /*isUp*/) override {
     // TODO
   }
@@ -36,7 +37,7 @@ class SaiLinkStateToggler : public HwLinkStateToggler {
       override;
   void setLinkTraining(const std::shared_ptr<Port>& port, bool enable) override;
 
-  SaiSwitchEnsemble* saiEnsemble_;
+  TestEnsembleIf* saiEnsemble_;
 };
 
 } // namespace facebook::fboss

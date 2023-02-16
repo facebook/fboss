@@ -11,10 +11,11 @@
 #include "fboss/agent/hw/bcm/tests/BcmLinkStateToggler.h"
 
 #include "fboss/agent/hw/bcm/BcmError.h"
+#include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
-#include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/test/TestEnsembleIf.h"
 
 #include <memory>
 
@@ -25,12 +26,13 @@ extern "C" {
 namespace facebook::fboss {
 
 BcmSwitch* BcmLinkStateToggler::getHw() {
-  return static_cast<BcmSwitchEnsemble*>(getHwSwitchEnsemble())->getHwSwitch();
+  return static_cast<BcmSwitch*>(getHwSwitchEnsemble()->getHwSwitch());
 }
 
 void BcmLinkStateToggler::invokeLinkScanIfNeeded(PortID port, bool isUp) {
-  if (!static_cast<BcmTestPlatform*>(getHw()->getPlatform())
-           ->hasLinkScanCapability()) {
+  auto* platform = dynamic_cast<BcmPlatform*>(getHw()->getPlatform());
+  CHECK(platform);
+  if (!platform->hasLinkScanCapability()) {
     /* if platform doesn't support link-scan, such as fake then mimic linkscan
      * by specifically invoking hwSwitch's link scan callback */
     bcm_port_info_t portInfo;

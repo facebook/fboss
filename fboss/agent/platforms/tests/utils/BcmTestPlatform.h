@@ -49,7 +49,6 @@ class BcmTestPlatform : public BcmPlatform {
   bool canUseHostTableForHostRoutes() const override {
     return true;
   }
-  virtual bool hasLinkScanCapability() const = 0;
   TransceiverIdxThrift getPortMapping(
       PortID /* unused */,
       cfg::PortSpeed /* speed */) const override {

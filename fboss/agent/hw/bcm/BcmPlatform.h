@@ -138,6 +138,10 @@ class BcmPlatform : public Platform {
    */
   void dumpHwConfig() const;
 
+  virtual bool hasLinkScanCapability() const {
+    return true;
+  }
+
  protected:
   std::unique_ptr<BcmWarmBootHelper> warmBootHelper_;
 

@@ -25,11 +25,12 @@ class RoutingInformationBase;
 class Platform;
 class SwitchState;
 class HwSwitchEnsemble;
+class TestEnsembleIf;
 
 class HwLinkStateToggler {
  public:
   explicit HwLinkStateToggler(
-      HwSwitchEnsemble* ensemble,
+      TestEnsembleIf* ensemble,
       cfg::PortLoopbackMode desiredLoopbackMode = cfg::PortLoopbackMode::MAC)
       : hwEnsemble_(ensemble), desiredLoopbackMode_(desiredLoopbackMode) {}
   virtual ~HwLinkStateToggler() {}
@@ -48,7 +49,7 @@ class HwLinkStateToggler {
   }
 
  protected:
-  HwSwitchEnsemble* getHwSwitchEnsemble() {
+  TestEnsembleIf* getHwSwitchEnsemble() const {
     return hwEnsemble_;
   }
 
@@ -77,7 +78,7 @@ class HwLinkStateToggler {
   bool desiredPortEventOccurred_{false};
   std::condition_variable linkEventCV_;
 
-  HwSwitchEnsemble* hwEnsemble_;
+  TestEnsembleIf* hwEnsemble_;
   const cfg::PortLoopbackMode desiredLoopbackMode_;
 };
 

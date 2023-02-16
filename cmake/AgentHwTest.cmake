@@ -359,3 +359,13 @@ target_link_libraries(hw_queue_per_host_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+add_library(hw_linkstate_toggler
+  fboss/agent/hw/test/HwLinkStateToggler.cpp
+)
+
+target_link_libraries(hw_linkstate_toggler
+  hw_switch
+  state
+  core
+)

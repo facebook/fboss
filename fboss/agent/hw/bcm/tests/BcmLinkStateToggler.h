@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "fboss/agent/hw/bcm/tests/BcmSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
 
 #include <memory>
@@ -19,12 +18,12 @@ namespace facebook::fboss {
 
 class BcmSwitch;
 class Port;
-class BcmSwitchEnsemble;
+class TestEnsembleIf;
 
 class BcmLinkStateToggler : public HwLinkStateToggler {
  public:
   BcmLinkStateToggler(
-      BcmSwitchEnsemble* ensemble,
+      TestEnsembleIf* ensemble,
       cfg::PortLoopbackMode desiredLoopbackMode)
       : HwLinkStateToggler(ensemble, desiredLoopbackMode) {}
 
