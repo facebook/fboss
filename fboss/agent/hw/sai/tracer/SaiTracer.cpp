@@ -546,8 +546,7 @@ void SaiTracer::logApiQuery(sai_api_t api_id, const std::string& api_var) {
 void SaiTracer::logSwitchCreateFn(
     sai_object_id_t* switch_id,
     uint32_t attr_count,
-    const sai_attribute_t* attr_list,
-    sai_status_t rv) {
+    const sai_attribute_t* attr_list) {
   if (!FLAGS_enable_replayer) {
     return;
   }
@@ -563,9 +562,6 @@ void SaiTracer::logSwitchCreateFn(
       declareVariable(switch_id, SAI_OBJECT_TYPE_SWITCH);
   lines.push_back(declaration);
 
-  // Log current timestamp, object id and return value
-  lines.push_back(logTimeAndRv(rv, *switch_id));
-
   // Make the function call
   lines.push_back(to<string>(
       "rv=",
@@ -579,10 +575,7 @@ void SaiTracer::logSwitchCreateFn(
       attr_count,
       ",s_a)"));
 
-  // Check return value to be the same as the original run
-  lines.push_back(rvCheck(rv));
-
-  writeToFile(lines);
+  writeToFile(lines, /*linefeed*/ false);
 }
 
 void SaiTracer::logRouteEntryCreateFn(
@@ -611,7 +604,7 @@ void SaiTracer::logRouteEntryCreateFn(
       attr_count,
       ",s_a)"));
 
-  writeToFile(lines, false);
+  writeToFile(lines, /*linefeed*/ false);
 }
 
 void SaiTracer::logNeighborEntryCreateFn(
@@ -746,7 +739,7 @@ std::string SaiTracer::logCreateFn(
   lines.push_back(createFnCall(
       fn_name, varName, getVariable(switch_id), attr_count, object_type));
 
-  writeToFile(lines, false);
+  writeToFile(lines, /*linefeed*/ false);
   return varName;
 }
 
@@ -766,7 +759,7 @@ void SaiTracer::logRouteEntryRemoveFn(const sai_route_entry_t* route_entry) {
           "Unsupported Sai Object type in Sai Tracer"),
       "remove_route_entry(&r_e)"));
 
-  writeToFile(lines, false);
+  writeToFile(lines, /*linefeed*/ false);
 }
 
 void SaiTracer::logNeighborEntryRemoveFn(
@@ -870,7 +863,7 @@ void SaiTracer::logRemoveFn(
       getVariable(remove_object_id),
       ")"));
 
-  writeToFile(lines, false);
+  writeToFile(lines, /*linefeed*/ false);
 
   // Remove object from variables_
   variables_.erase(remove_object_id);
@@ -897,7 +890,7 @@ void SaiTracer::logRouteEntrySetAttrFn(
           "Unsupported Sai Object type in Sai Tracer"),
       "set_route_entry_attribute(&r_e, s_a)"));
 
-  writeToFile(lines, false);
+  writeToFile(lines, /*linefeed*/ false);
 }
 
 void SaiTracer::logNeighborEntrySetAttrFn(
@@ -1019,7 +1012,7 @@ void SaiTracer::logGetAttrFn(
       attr_count,
       ",get_attribute)"));
 
-  writeToFile(lines, false);
+  writeToFile(lines, /*linefeed*/ false);
 }
 
 void SaiTracer::logSetAttrFn(
@@ -1044,7 +1037,7 @@ void SaiTracer::logSetAttrFn(
       getVariable(set_object_id),
       ",s_a)"));
 
-  writeToFile(lines, false);
+  writeToFile(lines, /*linefeed*/ false);
 }
 
 void SaiTracer::logBulkSetAttrFn(

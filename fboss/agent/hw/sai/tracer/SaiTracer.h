@@ -65,8 +65,7 @@ class SaiTracer {
   void logSwitchCreateFn(
       sai_object_id_t* switch_id,
       uint32_t attr_count,
-      const sai_attribute_t* attr_list,
-      sai_status_t rv);
+      const sai_attribute_t* attr_list);
 
   void logRouteEntryCreateFn(
       const sai_route_entry_t* route_entry,
