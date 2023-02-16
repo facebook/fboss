@@ -216,17 +216,33 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
                             ->getPorts()
                             ->getPort(portAndIp.first)
                             ->getName();
+
+        auto fb303BufferWatermarkUcastNonZero = [&]() {
+          auto counters = fb303::fbData->getRegexCounters({folly::sformat(
+              "buffer_watermark_ucast.{}.queue{}.*.p100.60",
+              portName,
+              queueId)});
+          EXPECT_EQ(1, counters.size());
+          // Unfortunately since  we use quantile stats, which compute
+          // a MAX over a period, we can't really assert on the exact
+          // value, just on its presence
+          if ((*counters.begin()).second > 0) {
+            return true;
+          }
+          return false;
+        };
+
+        // Assert zero watermark
+        assertWatermark(portAndIp.first, queueId, true /*expectZero*/, 2);
+        // Send traffic
         sendUdpPkts(dscpsForQueue[0], portAndIp.second);
         // Assert non zero watermark
-        assertWatermark(portAndIp.first, queueId, false);
+        assertWatermark(portAndIp.first, queueId, false /*expectZero*/, 2);
+        // Wait for watermarks in fb303
+        EXPECT_TRUE(getHwSwitchEnsemble()->waitStatsCondition(
+            fb303BufferWatermarkUcastNonZero, [] {}));
         // Assert zero watermark
-        assertWatermark(portAndIp.first, queueId, true, 5);
-        auto counters = fb303::fbData->getRegexCounters({folly::sformat(
-            "buffer_watermark_ucast.{}.queue{}.*.p100.60", portName, queueId)});
-        EXPECT_EQ(1, counters.size());
-        // Unfortunately since  we use quantile stats, which compute
-        // a MAX over a period, we can't really assert on the exact
-        // value, just on its presence
+        assertWatermark(portAndIp.first, queueId, true /*expectZero*/, 5);
       }
     };
     verifyAcrossWarmBoots(setup, verify);
