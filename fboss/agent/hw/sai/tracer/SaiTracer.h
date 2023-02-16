@@ -584,18 +584,18 @@ class SaiTracer {
       uint32_t attr_count,                                                   \
       sai_attribute_t* attr_list) {                                          \
     if (FLAGS_enable_get_attr_log) {                                         \
-      SaiTracer::getInstance()->logGetAttrFn(                                \
-          "get_" #obj_type "_attribute",                                     \
-          obj_type##_id,                                                     \
-          attr_count,                                                        \
-          attr_list,                                                         \
-          sai_obj_type);                                                     \
       auto begin = FLAGS_enable_elapsed_time_log                             \
           ? std::chrono::system_clock::now()                                 \
           : std::chrono::system_clock::time_point::min();                    \
       auto rv = SaiTracer::getInstance()                                     \
                     ->api_type##Api_->get_##obj_type##_attribute(            \
                         obj_type##_id, attr_count, attr_list);               \
+      SaiTracer::getInstance()->logGetAttrFn(                                \
+          "get_" #obj_type "_attribute",                                     \
+          obj_type##_id,                                                     \
+          attr_count,                                                        \
+          attr_list,                                                         \
+          sai_obj_type);                                                     \
       SaiTracer::getInstance()->logPostInvocation(rv, obj_type##_id, begin); \
       return rv;                                                             \
     }                                                                        \
