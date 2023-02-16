@@ -20,6 +20,7 @@ typedef binary (cpp2.type = "::folly::fbstring") fbbinary
 typedef string (cpp2.type = "::folly::fbstring") fbstring
 
 const i32 DEFAULT_CTRL_PORT = 5909;
+const i32 NO_VLAN = -1;
 
 // Using the defaults from here:
 // https://en.wikipedia.org/wiki/Administrative_distance
@@ -137,7 +138,8 @@ struct ArpEntryThrift {
   2: i32 port;
   3: string vlanName;
   4: Address.BinaryAddress ip;
-  5: i32 vlanID;
+  // VlanId populated only for interfaces of type VLAN
+  5: i32 vlanID = NO_VLAN;
   6: string state;
   7: i32 ttl;
   8: i32 classID;
@@ -218,7 +220,7 @@ struct InterfaceDetail {
   1: string interfaceName;
   2: i32 interfaceId;
   // VlanId populated only for interfaces of type VLAN
-  3: i32 vlanId = -1;
+  3: i32 vlanId = NO_VLAN;
   4: i32 routerId;
   5: string mac;
   6: list<IpPrefix> address;
@@ -356,7 +358,8 @@ struct NdpEntryThrift {
   2: string mac;
   3: i32 port;
   4: string vlanName;
-  5: i32 vlanID;
+  // VlanId populated only for interfaces of type VLAN
+  5: i32 vlanID = NO_VLAN;
   6: string state;
   7: i32 ttl;
   8: i32 classID;
