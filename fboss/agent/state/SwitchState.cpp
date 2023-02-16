@@ -77,6 +77,7 @@ constexpr auto kRemoteSystemPorts = "remoteSystemPorts";
 constexpr auto kRemoteInterfaces = "remoteInterfaces";
 constexpr auto kDsfNodes = "dsfNodes";
 constexpr auto kUdfConfig = "udfConfig";
+constexpr auto kFlowletSwitchingConfig = "flowletSwitchingConfig";
 } // namespace
 
 // TODO: it might be worth splitting up limits for ecmp/ucmp
@@ -176,6 +177,9 @@ state::SwitchState SwitchStateFields::toThrift() const {
   if (udfConfig) {
     state.udfConfig() = udfConfig->toThrift();
   }
+  if (flowletSwitchingConfig) {
+    state.flowletSwitchingConfig() = flowletSwitchingConfig->toThrift();
+  }
   return state;
 }
 
@@ -265,6 +269,10 @@ SwitchStateFields SwitchStateFields::fromThrift(
   fields.remoteSystemPorts->fromThrift(*state.remoteSystemPortMap());
   fields.remoteInterfaces->fromThrift(*state.remoteInterfaceMap());
   fields.udfConfig->fromThrift(*state.udfConfig());
+  if (auto flowletSwitchingConfig = state.flowletSwitchingConfig()) {
+    fields.flowletSwitchingConfig = std::make_shared<FlowletSwitchingConfig>();
+    fields.flowletSwitchingConfig->fromThrift(*flowletSwitchingConfig);
+  }
   return fields;
 }
 
@@ -446,6 +454,11 @@ void SwitchState::resetQcmCfg(std::shared_ptr<QcmCfg> qcmCfg) {
 
 void SwitchState::resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs) {
   ref<switch_state_tags::bufferPoolCfgMap>() = cfgs;
+}
+
+void SwitchState::resetFlowletSwitchingConfig(
+    std::shared_ptr<FlowletSwitchingConfig> flowletSwitchingConfig) {
+  ref<switch_state_tags::flowletSwitchingConfig>() = flowletSwitchingConfig;
 }
 
 const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {

@@ -26,6 +26,7 @@
 #include "fboss/agent/state/BufferPoolConfigMap.h"
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/DsfNodeMap.h"
+#include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -61,6 +62,7 @@ class SwitchSettings;
 class QcmCfg;
 class BufferPoolCfg;
 class BufferPoolCfgMap;
+class FlowletSwitchingConfig;
 
 struct SwitchStateFields
     : public ThriftyFields<SwitchStateFields, state::SwitchState> {
@@ -122,6 +124,7 @@ struct SwitchStateFields
   std::shared_ptr<IpTunnelMap> ipTunnels;
   std::shared_ptr<TeFlowTable> teFlowTable;
   std::shared_ptr<DsfNodeMap> dsfNodes;
+  std::shared_ptr<FlowletSwitchingConfig> flowletSwitchingConfig;
   VlanID defaultVlan{0};
 
   std::shared_ptr<QosPolicy> defaultDataPlaneQosPolicy;
@@ -228,6 +231,10 @@ RESOLVE_STRUCT_MEMBER(
     QosPolicy);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::qcmCfg, QcmCfg);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::udfConfig, UdfConfig);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::flowletSwitchingConfig,
+    FlowletSwitchingConfig);
 
 /*
  * SwitchState stores the current switch configuration.
@@ -495,6 +502,11 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     return cref<switch_state_tags::udfConfig>();
   }
 
+  const std::shared_ptr<FlowletSwitchingConfig>& getFlowletSwitchingConfig()
+      const {
+    return cref<switch_state_tags::flowletSwitchingConfig>();
+  }
+
   /*
    * Remote objects
    */
@@ -555,6 +567,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   std::shared_ptr<AclTableGroupMap>& getAclTablesForStage(
       const folly::dynamic& swJson);
   void resetUdfConfig(std::shared_ptr<UdfConfig> udf);
+  void resetFlowletSwitchingConfig(
+      std::shared_ptr<FlowletSwitchingConfig> flowletSwitchingConfig);
 
   void resetRemoteSystemPorts(std::shared_ptr<SystemPortMap> systemPorts);
   void resetRemoteIntfs(std::shared_ptr<InterfaceMap> intfs);
