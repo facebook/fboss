@@ -605,11 +605,13 @@ template <typename AddressT, typename NeighborThriftT>
 void addRemoteNeighbors(
     const std::shared_ptr<SwitchState> state,
     std::vector<NeighborThriftT>& nbrs) {
-  auto remoteRifs = state->getRemoteInterfaces();
+  const auto& remoteRifs = state->getRemoteInterfaces();
+  const auto& remoteSysPorts = state->getRemoteSystemPorts();
   for (const auto& idAndRif : std::as_const(*remoteRifs)) {
     const auto& rif = idAndRif.second;
-    for (const auto& ipAndEntry :
-         std::as_const(*rif->getNeighborEntryTable<AddressT>())) {
+    const auto& nbrTable =
+        std::as_const(*rif->getNeighborEntryTable<AddressT>());
+    for (const auto& ipAndEntry : nbrTable) {
       const auto& entry = ipAndEntry.second;
       NeighborThriftT nbrThrift;
       nbrThrift.ip() = facebook::network::toBinaryAddress(entry->getIP());
@@ -618,6 +620,12 @@ void addRemoteNeighbors(
       nbrThrift.port() = static_cast<int32_t>(*rif->getSystemPortID());
       nbrThrift.vlanName() = "--";
       nbrThrift.state() = "--";
+      nbrThrift.isLocal() = false;
+      const auto& sysPort =
+          remoteSysPorts->getSystemPortIf(*rif->getSystemPortID());
+      if (sysPort) {
+        nbrThrift.switchId() = static_cast<int64_t>(sysPort->getSwitchId());
+      }
       nbrs.push_back(nbrThrift);
     }
   }
