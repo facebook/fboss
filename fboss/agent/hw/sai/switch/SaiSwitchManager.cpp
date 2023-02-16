@@ -540,7 +540,7 @@ bool SaiSwitchManager::isGlobalQoSMapSupported() const {
 #if defined(SAI_VERSION_5_1_0_3_ODP) || defined(SAI_VERSION_7_2_0_0_ODP) ||    \
     defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_SIM) ||    \
     defined(SAI_VERSION_8_2_0_0_DNX_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
-    defined(SAI_VERSION_9_0_EA_DNX_ODP)
+    defined(SAI_VERSION_9_0_EA_DNX_ODP) || defined(SAI_VERSION_9_0_EA_SIM_ODP)
   return false;
 #endif
   return platform_->getAsic()->isSupported(HwAsic::Feature::QOS_MAP_GLOBAL);
