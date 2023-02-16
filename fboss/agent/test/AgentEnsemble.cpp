@@ -67,7 +67,7 @@ void AgentEnsemble::setupEnsemble(
     masterLogicalPortIds_.push_back(port.first);
   }
   initialConfig_ = initialConfigFn(getHw(), masterLogicalPortIds_);
-  writeConfig(initialConfig_);
+  applyInitialConfig(initialConfig_);
   // reload the new config
   getPlatform()->reloadConfig();
 }
@@ -80,10 +80,14 @@ void AgentEnsemble::startAgent() {
   // setting this flag and emply CLI option to disable tun manager.
   FLAGS_tun_intf = false;
   auto* initializer = agentInitializer();
-  asyncInitThread_.reset(
-      new std::thread([initializer] { initializer->initAgent(); }));
+  asyncInitThread_.reset(new std::thread([this, initializer] {
+    // hardware switch events will be dispatched to agent ensemble
+    // agent ensemble is responsible to dispatch them to SwSwitch
+    initializer->initAgent(this);
+  }));
   asyncInitThread_->detach();
   initializer->initializer()->waitForInitDone();
+  // if cold booting, invoke link toggler
 }
 
 void AgentEnsemble::writeConfig(const cfg::SwitchConfig& config) {
