@@ -67,6 +67,11 @@ class SaiBufferManager {
   void publishGlobalWatermarks(
       const uint64_t& globalHeadroomBytes,
       const uint64_t& globalSharedBytes) const;
+  void publishPgWatermarks(
+      const std::string& portName,
+      const int& pg,
+      const uint64_t& pgHeadroomBytes,
+      const uint64_t& pgSharedBytes) const;
   SaiBufferProfileTraits::CreateAttributes profileCreateAttrs(
       const PortQueue& queue) const;
   SaiBufferProfileTraits::CreateAttributes ingressProfileCreateAttrs(
