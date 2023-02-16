@@ -217,7 +217,8 @@ struct LacpPartnerPair {
 struct InterfaceDetail {
   1: string interfaceName;
   2: i32 interfaceId;
-  3: i32 vlanId;
+  // VlanId populated only for interfaces of type VLAN
+  3: i32 vlanId = -1;
   4: i32 routerId;
   5: string mac;
   6: list<IpPrefix> address;

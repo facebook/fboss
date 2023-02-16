@@ -834,7 +834,9 @@ static void populateInterfaceDetail(
     const std::shared_ptr<Interface> intf) {
   *interfaceDetail.interfaceName() = intf->getName();
   *interfaceDetail.interfaceId() = intf->getID();
-  *interfaceDetail.vlanId() = intf->getVlanID();
+  if (intf->getVlanIDIf().has_value()) {
+    *interfaceDetail.vlanId() = intf->getVlanID();
+  }
   *interfaceDetail.routerId() = intf->getRouterID();
   *interfaceDetail.mtu() = intf->getMtu();
   *interfaceDetail.mac() = intf->getMac().toString();
