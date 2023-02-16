@@ -39,6 +39,7 @@
 #include "fboss/agent/state/BufferPoolConfig.h"
 #include "fboss/agent/state/BufferPoolConfigMap.h"
 #include "fboss/agent/state/ControlPlane.h"
+#include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/IpTunnel.h"
@@ -401,6 +402,11 @@ class ThriftConfigApplier {
   void processInterfaceForPortForNonVoqSwitches();
   void processInterfaceForPortForVoqSwitches();
   void processInterfaceForPort();
+
+  shared_ptr<FlowletSwitchingConfig> updateFlowletSwitchingConfig(
+      bool* changed);
+  shared_ptr<FlowletSwitchingConfig> createFlowletSwitchingConfig(
+      const cfg::FlowletSwitchingConfig& config);
 
   std::shared_ptr<SwitchState> orig_;
   std::shared_ptr<SwitchState> new_;
@@ -775,6 +781,16 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     auto newUdfCfg = updateUdfConfig(&udfCfgChanged);
     if (udfCfgChanged) {
       new_->resetUdfConfig(std::move(newUdfCfg));
+      changed = true;
+    }
+  }
+
+  {
+    bool flowletSwitchingChanged = false;
+    auto newFlowletSwitchingConfig =
+        updateFlowletSwitchingConfig(&flowletSwitchingChanged);
+    if (flowletSwitchingChanged) {
+      new_->resetFlowletSwitchingConfig(std::move(newFlowletSwitchingConfig));
       changed = true;
     }
   }
@@ -3374,6 +3390,35 @@ shared_ptr<QcmCfg> ThriftConfigApplier::createQcmCfg(
   return newQcmCfg;
 }
 
+shared_ptr<FlowletSwitchingConfig>
+ThriftConfigApplier::createFlowletSwitchingConfig(
+    const cfg::FlowletSwitchingConfig& config) {
+  auto newFlowletSwitchingConfig = make_shared<FlowletSwitchingConfig>();
+
+  newFlowletSwitchingConfig->setInactivityIntervalUsecs(
+      *config.inactivityIntervalUsecs());
+  newFlowletSwitchingConfig->setFlowletTableSize(*config.flowletTableSize());
+  newFlowletSwitchingConfig->setDynamicEgressLoadExponent(
+      *config.dynamicEgressLoadExponent());
+  newFlowletSwitchingConfig->setDynamicQueueExponent(
+      *config.dynamicQueueExponent());
+  newFlowletSwitchingConfig->setDynamicQueueMinThresholdBytes(
+      *config.dynamicQueueMinThresholdBytes());
+  newFlowletSwitchingConfig->setDynamicQueueMaxThresholdBytes(
+      *config.dynamicQueueMaxThresholdBytes());
+  newFlowletSwitchingConfig->setDynamicSampleRate(*config.dynamicSampleRate());
+  if (auto portScalingFactor = config.portScalingFactor()) {
+    newFlowletSwitchingConfig->setPortScalingFactor(*portScalingFactor);
+  }
+  if (auto portLoadWeight = config.portLoadWeight()) {
+    newFlowletSwitchingConfig->setPortLoadWeight(*portLoadWeight);
+  }
+  if (auto portQueueWeight = config.portQueueWeight()) {
+    newFlowletSwitchingConfig->setPortQueueWeight(*portQueueWeight);
+  }
+  return newFlowletSwitchingConfig;
+}
+
 shared_ptr<BufferPoolCfgMap> ThriftConfigApplier::updateBufferPoolConfigs(
     bool* changed) {
   *changed = false;
@@ -3455,6 +3500,26 @@ shared_ptr<QcmCfg> ThriftConfigApplier::updateQcmCfg(bool* changed) {
   }
   *changed = true;
   return newQcmCfg;
+}
+
+shared_ptr<FlowletSwitchingConfig>
+ThriftConfigApplier::updateFlowletSwitchingConfig(bool* changed) {
+  auto origFlowletSwitchingConfig = orig_->getFlowletSwitchingConfig();
+  if (!cfg_->flowletSwitchingConfig()) {
+    if (origFlowletSwitchingConfig) {
+      // going from cfg to empty
+      *changed = true;
+    }
+    return nullptr;
+  }
+  auto newFlowletSwitchingConfig =
+      createFlowletSwitchingConfig(*cfg_->flowletSwitchingConfig());
+  if (origFlowletSwitchingConfig &&
+      (*origFlowletSwitchingConfig == *newFlowletSwitchingConfig)) {
+    return nullptr;
+  }
+  *changed = true;
+  return newFlowletSwitchingConfig;
 }
 
 shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
