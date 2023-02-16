@@ -411,6 +411,15 @@ bool HwSwitchEnsemble::waitPortStatsCondition(
       getPortStatsFn);
 }
 
+bool HwSwitchEnsemble::waitStatsCondition(
+    const std::function<bool()>& conditionFn,
+    const std::function<void()>& updateStatsFn,
+    uint32_t retries,
+    const std::chrono::duration<uint32_t, std::milli> msBetweenRetry) {
+  return utility::waitStatsCondition(
+      conditionFn, updateStatsFn, retries, msBetweenRetry);
+}
+
 HwPortStats HwSwitchEnsemble::getLatestPortStats(PortID port) {
   return getLatestPortStats(std::vector<PortID>{port})[port];
 }

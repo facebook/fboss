@@ -171,6 +171,12 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       uint32_t retries = 20,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(20));
+  bool waitStatsCondition(
+      const std::function<bool()>& conditionFn,
+      const std::function<void()>& updateStatsFn,
+      uint32_t retries = 20,
+      const std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+          std::chrono::milliseconds(20));
 
   virtual std::vector<PortID> masterLogicalPortIds(
       const std::set<cfg::PortType>& filter = {}) const = 0;

@@ -9,6 +9,7 @@
  */
 
 #pragma once
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/types.h"
@@ -63,4 +64,10 @@ bool waitSysPortStatsCondition(
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry,
     const HwSysPortStatsFunc& getHwSysPortStats);
+
+bool waitStatsCondition(
+    const std::function<bool()>& conditionFn,
+    const std::function<void()>& updateStatsFn,
+    uint32_t retries,
+    const std::chrono::duration<uint32_t, std::milli>& msBetweenRetry);
 } // namespace facebook::fboss::utility

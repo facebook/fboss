@@ -40,6 +40,25 @@ bool waitPortStatsConditionImpl(
   XLOG(DBG3) << "Awaited port stats condition was never satisfied";
   return false;
 }
+
+template <typename ConditionFn, typename UpdateStatsFn>
+bool waitStatsConditionImpl(
+    const ConditionFn& conditionFn,
+    const UpdateStatsFn& updateStatsFn,
+    uint32_t retries,
+    const std::chrono::duration<uint32_t, std::milli>& msBetweenRetry) {
+  while (retries--) {
+    updateStatsFn();
+    // TODO: exponential backoff!
+    if (conditionFn()) {
+      return true;
+    }
+    std::this_thread::sleep_for(msBetweenRetry);
+  }
+  XLOG(DBG3) << "Awaited stats condition was never satisfied!";
+  return false;
+}
+
 template <typename PortStatT>
 bool anyQueueBytesIncremented(
     const PortStatT& origPortStat,
@@ -73,6 +92,15 @@ bool waitSysPortStatsCondition(
     const HwSysPortStatsFunc& getHwPortStats) {
   return waitPortStatsConditionImpl(
       conditionFn, portIds, retries, msBetweenRetry, getHwPortStats);
+}
+
+bool waitStatsCondition(
+    const std::function<bool()>& conditionFn,
+    const std::function<void()>& updateStatsFn,
+    uint32_t retries,
+    const std::chrono::duration<uint32_t, std::milli>& msBetweenRetry) {
+  return waitStatsConditionImpl(
+      conditionFn, updateStatsFn, retries, msBetweenRetry);
 }
 
 bool waitForAnyPorAndQueutOutBytesIncrement(
