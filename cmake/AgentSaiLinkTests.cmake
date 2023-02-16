@@ -34,4 +34,6 @@ function(BUILD_SAI_LINK_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
 
 endfunction()
 
-BUILD_SAI_LINK_TEST("fake" fake_sai)
+if (BUILD_SAI_FAKE_LINK_TEST)
+  BUILD_SAI_LINK_TEST("fake" fake_sai)
+endif()

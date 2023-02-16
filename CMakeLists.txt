@@ -66,6 +66,16 @@ if ($ENV{SAI_BRCM_IMPL})
   set (SAI_BRCM_IMPL ON)
 endif()
 
+option(BUILD_SAI_FAKE_LINK_TEST "Building of SAI Fake Link Test binaries" OFF)
+if ($ENV{BUILD_SAI_FAKE_LINK_TEST})
+  message(STATUS "ENV BUILD_SAI_FAKE_LINK_TEST is set")
+  set (BUILD_SAI_FAKE_LINK_TEST ON)
+endif()
+
+if (BUILD_SAI_FAKE_LINK_TEST)
+  message(STATUS "Configured to build SAI Fake Link Test binaries")
+endif()
+
 if (SAI_BRCM_IMPL)
   # TODO (skhare) IS_OSS_BRCM_SAI is only a short-term change to unblock.
   # Refactor/fix the code and then remove this flag.
@@ -1059,8 +1069,8 @@ foreach(cmakeFile ${cmakeFiles})
     message(status " Skipping OpenNSA BCM binaries")
   # Skip building LinkTest, enable this for non SAI_ONLY build
   # once the compilation issues with LinkTest are fixed
-  elseif(${cmakeFile} MATCHES "LinkTest")
-    message(status " Skipping LinkTest binaries")
+  elseif(NOT SAI_ONLY AND ${cmakeFile} MATCHES "BcmLinkTest")
+    message(status " Skipping BCM LinkTest binaries")
   else()
     message(status " INCLUDE ${cmakeFile}")
     INCLUDE(${cmakeFile})
@@ -1080,3 +1090,9 @@ install(
 install(
   TARGETS
   sai_replayer-fake-${SAI_VER_SUFFIX})
+
+if (BUILD_SAI_FAKE_LINK_TEST)
+install(
+  TARGETS
+  sai_link_test-fake-${SAI_VER_SUFFIX})
+endif()

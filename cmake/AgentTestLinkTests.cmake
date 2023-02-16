@@ -12,8 +12,8 @@ add_library(link_tests
 
 target_link_libraries(link_tests
   agent_test_lib
+  ecmp_helper
   main
-  fboss_agent
   config_factory
   fboss_config_utils
   load_balancer_utils
