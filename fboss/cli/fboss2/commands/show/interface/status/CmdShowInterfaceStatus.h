@@ -103,7 +103,9 @@ class CmdShowInterfaceStatus
         ifStatus.description() = portInfo.get_description();
         ifStatus.status() =
             (operState == facebook::fboss::PortOperState::UP) ? "up" : "down";
-        ifStatus.vlan() = portInfo.get_vlans()[0];
+        if (portInfo.get_vlans().size()) {
+          ifStatus.vlan() = portInfo.get_vlans()[0];
+        }
         ifStatus.speed() =
             std::to_string(portInfo.get_speedMbps() / 1000) + "G";
         if (transceiver.get_vendor()) {
@@ -144,7 +146,9 @@ class CmdShowInterfaceStatus
           portStatus.get_name(),
           portStatus.get_description(),
           colorStatusCell(portStatus.get_status()),
-          std::to_string(portStatus.get_vlan()),
+          (portStatus.vlan().has_value()
+               ? std::to_string(*portStatus.get_vlan())
+               : "--"),
           portStatus.get_speed(),
           colorTransCell(portStatus.get_vendor()),
           colorTransCell(portStatus.get_mpn()),

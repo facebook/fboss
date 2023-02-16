@@ -8,7 +8,7 @@ struct InterfaceStatus {
   1: string name;
   2: string description;
   3: string status;
-  4: i32 vlan;
+  4: optional i32 vlan;
   5: string speed;
   6: string vendor;
   7: string mpn;

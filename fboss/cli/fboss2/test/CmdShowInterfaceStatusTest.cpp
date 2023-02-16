@@ -101,19 +101,22 @@ TEST_F(CmdShowInterfaceStatusTestFixture, createModel) {
   EXPECT_EQ(statusModel.size(), 3);
 
   EXPECT_EQ(statusModel[0].get_name(), "eth1/1/1");
-  EXPECT_EQ(statusModel[0].get_vlan(), 2001);
+  ASSERT_TRUE(statusModel[0].vlan().has_value());
+  EXPECT_EQ(*statusModel[0].get_vlan(), 2001);
   EXPECT_EQ(statusModel[0].get_speed(), "100G");
   EXPECT_EQ(statusModel[0].get_vendor(), "INTEL CORP");
   EXPECT_EQ(statusModel[0].get_mpn(), "SPTSBP2CLCKS");
 
   EXPECT_EQ(statusModel[1].get_name(), "eth2/1/1");
-  EXPECT_EQ(statusModel[1].get_vlan(), 2002);
+  ASSERT_TRUE(statusModel[1].vlan().has_value());
+  EXPECT_EQ(*statusModel[1].get_vlan(), 2002);
   EXPECT_EQ(statusModel[1].get_speed(), "200G");
   EXPECT_EQ(statusModel[1].get_vendor(), "INNOLIGHT");
   EXPECT_EQ(statusModel[1].get_mpn(), "TR-FC13H-HFB");
 
   EXPECT_EQ(statusModel[2].get_name(), "eth3/1/1");
-  EXPECT_EQ(statusModel[2].get_vlan(), 2003);
+  ASSERT_TRUE(statusModel[2].vlan().has_value());
+  EXPECT_EQ(*statusModel[2].get_vlan(), 2003);
   EXPECT_EQ(statusModel[2].get_speed(), "400G");
   EXPECT_EQ(statusModel[2].get_vendor(), "Not Present");
   EXPECT_EQ(statusModel[2].get_mpn(), "Not Present");
