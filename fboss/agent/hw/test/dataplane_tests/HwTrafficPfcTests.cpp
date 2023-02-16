@@ -85,24 +85,23 @@ void validateBufferPoolWatermarkCounters(
     facebook::fboss::HwSwitchEnsemble* ensemble,
     const int /* pri */,
     const std::vector<facebook::fboss::PortID>& /* portIds */) {
-  int retries = 5;
-  uint64_t globalSharedWatermarks{};
-  while (retries-- && !globalSharedWatermarks) {
-    // TODO: Migrate to a waitStatsCondition() util
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    facebook::fboss::SwitchStats dummy;
-    ensemble->getHwSwitch()->updateStats(&dummy);
+  auto globalSharedWatermarksIncrementing = [&]() {
     auto counters = facebook::fb303::fbData->getRegexCounters(
         {"buffer_watermark_global_shared.*.p100.60"});
     for (const auto& ctr : counters) {
       if (ctr.second) {
-        globalSharedWatermarks = ctr.second;
         XLOG(DBG0) << ctr.first << " : " << ctr.second;
-        break;
+        return true;
       }
     }
-  }
-  EXPECT_TRUE(globalSharedWatermarks > 0);
+    return false;
+  };
+  auto updateStats = [&]() {
+    facebook::fboss::SwitchStats dummy;
+    ensemble->getHwSwitch()->updateStats(&dummy);
+  };
+  EXPECT_TRUE(ensemble->waitStatsCondition(
+      globalSharedWatermarksIncrementing, updateStats));
 }
 
 } // namespace
