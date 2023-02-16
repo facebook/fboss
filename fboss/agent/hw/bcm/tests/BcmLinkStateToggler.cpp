@@ -76,4 +76,10 @@ void BcmLinkStateToggler::setLinkTraining(
   CHECK(false) << "Setting Link Training is not supported";
 }
 
+std::unique_ptr<HwLinkStateToggler> createHwLinkStateToggler(
+    TestEnsembleIf* ensemble,
+    cfg::PortLoopbackMode desiredLoopbackMode) {
+  return std::make_unique<BcmLinkStateToggler>(ensemble, desiredLoopbackMode);
+}
+
 } // namespace facebook::fboss

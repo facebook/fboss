@@ -11,6 +11,7 @@
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/Main.h"
 
+#include "fboss/agent/hw/test/HwLinkStateToggler.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 
@@ -45,6 +46,8 @@ class AgentEnsemble : public TestEnsembleIf {
   const AgentInitializer* agentInitializer() const {
     return &agentInitializer_;
   }
+
+  void setupLinkStateToggler();
 
   AgentInitializer* agentInitializer() {
     return &agentInitializer_;
@@ -108,7 +111,12 @@ class AgentEnsemble : public TestEnsembleIf {
       bool up,
       std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
           std::nullopt) override {
-    getSw()->linkStateChanged(port, up, iPhyFaultStatus);
+    if (getHwSwitch()->getRunState() >= SwitchRunState::INITIALIZED) {
+      getSw()->linkStateChanged(port, up, iPhyFaultStatus);
+    }
+    if (linkToggler_) {
+      linkToggler_->linkStateChanged(port, up);
+    }
   }
 
   void l2LearningUpdateReceived(
@@ -139,6 +147,10 @@ class AgentEnsemble : public TestEnsembleIf {
 
   HwPortStats getLatestPortStats(const PortID& port);
 
+  void setLoopbackMode(cfg::PortLoopbackMode mode) {
+    mode_ = mode;
+  }
+
  private:
   void writeConfig(const cfg::SwitchConfig& config);
   void writeConfig(const cfg::AgentConfig& config);
@@ -149,6 +161,8 @@ class AgentEnsemble : public TestEnsembleIf {
   std::unique_ptr<std::thread> asyncInitThread_{nullptr};
   std::vector<PortID> masterLogicalPortIds_;
   std::string configFile_{"agent.conf"};
+  std::unique_ptr<HwLinkStateToggler> linkToggler_;
+  cfg::PortLoopbackMode mode_{cfg::PortLoopbackMode::MAC};
 };
 
 void ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform);

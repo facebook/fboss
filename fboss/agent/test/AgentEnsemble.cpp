@@ -88,6 +88,10 @@ void AgentEnsemble::startAgent() {
   asyncInitThread_->detach();
   initializer->initializer()->waitForInitDone();
   // if cold booting, invoke link toggler
+  if (getHw()->getBootType() != BootType::WARM_BOOT &&
+      linkToggler_ != nullptr) {
+    linkToggler_->applyInitialConfig(initialConfig_);
+  }
 }
 
 void AgentEnsemble::writeConfig(const cfg::SwitchConfig& config) {
@@ -197,6 +201,13 @@ void AgentEnsemble::enableExactMatch(bcm::BcmConfig& config) {
     auto& cfg = *(config.config());
     cfg["fpem_mem_entries"] = "0x10000";
   }
+}
+
+void AgentEnsemble::setupLinkStateToggler() {
+  if (linkToggler_) {
+    return;
+  }
+  linkToggler_ = createHwLinkStateToggler(this, mode_);
 }
 
 std::string AgentEnsemble::getInputConfigFile() {

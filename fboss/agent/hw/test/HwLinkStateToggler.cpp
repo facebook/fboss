@@ -69,7 +69,7 @@ void HwLinkStateToggler::portStateChangeImpl(
                << " event on : " << port;
 
     /* toggle the oper state */
-    newState = newState->clone();
+    newState = hwEnsemble_->getProgrammedState();
     newPort = newState->getPorts()->getPort(port)->modify(&newState);
     newPort->setOperState(up);
     hwEnsemble_->applyNewState(newState);
