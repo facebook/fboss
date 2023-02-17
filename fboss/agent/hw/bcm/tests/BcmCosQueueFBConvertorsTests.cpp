@@ -13,6 +13,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/bcm/BcmCosQueueFBConvertors.h"
+#include "fboss/agent/hw/bcm/tests/BcmUnitTestUtils.h"
 
 // Need to define bde in a single cpp_unittest
 extern "C" {
