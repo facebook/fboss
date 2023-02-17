@@ -37,16 +37,24 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
       const ObjectArgType& queriedNdpEntries) {
     std::vector<facebook::fboss::NdpEntryThrift> entries;
     std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
+    std::map<int64_t, cfg::DsfNode> dsfNodes;
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
 
     client->sync_getNdpTable(entries);
     client->sync_getAllPortInfo(portEntries);
-    return createModel(entries, queriedNdpEntries, portEntries);
+    try {
+      // TODO: Remove try catch once wedge_agent with getDsfNodes API
+      // is rolled out
+      client->sync_getDsfNodes(dsfNodes);
+    } catch (const std::exception&) {
+    }
+    return createModel(entries, queriedNdpEntries, portEntries, dsfNodes);
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    constexpr auto fmtString = "{:<45}{:<19}{:<12}{:<19}{:<14}{:<9}{:<12}\n";
+    constexpr auto fmtString =
+        "{:<45}{:<19}{:<12}{:<19}{:<14}{:<9}{:<12}{:<45}\n";
 
     out << fmt::format(
         fmtString,
@@ -56,7 +64,8 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
         "VLAN",
         "State",
         "TTL",
-        "CLASSID");
+        "CLASSID",
+        "Voq Switch");
 
     for (const auto& entry : model.get_ndpEntries()) {
       auto vlan = entry.get_vlanName();
@@ -72,7 +81,8 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
           vlan,
           entry.get_state(),
           entry.get_ttl(),
-          entry.get_classID());
+          entry.get_classID(),
+          entry.get_switchName());
     }
     out << std::endl;
   }
@@ -80,7 +90,8 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
   RetType createModel(
       std::vector<facebook::fboss::NdpEntryThrift> ndpEntries,
       const ObjectArgType& queriedNdpEntries,
-      std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries) {
+      std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries,
+      const std::map<int64_t, cfg::DsfNode>& dsfNodes) {
     RetType model;
     std::unordered_set<std::string> queriedSet(
         queriedNdpEntries.begin(), queriedNdpEntries.end());
@@ -103,6 +114,14 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
         ndpDetails.state() = entry.get_state();
         ndpDetails.ttl() = entry.get_ttl();
         ndpDetails.classID() = entry.get_classID();
+        ndpDetails.switchName() = "--";
+        if (entry.switchId().has_value()) {
+          auto ditr = dsfNodes.find(*entry.switchId());
+          ndpDetails.switchName() = ditr != dsfNodes.end()
+              ? folly::to<std::string>(
+                    *ditr->second.name(), " (", *entry.switchId(), ")")
+              : folly::to<std::string>(*entry.switchId());
+        }
 
         model.ndpEntries()->push_back(ndpDetails);
       }
