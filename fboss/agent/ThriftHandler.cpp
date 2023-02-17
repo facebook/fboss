@@ -608,6 +608,7 @@ void addRemoteNeighbors(
   if (state->getSwitchSettings()->getSwitchType() != cfg::SwitchType::VOQ) {
     return;
   }
+
   CHECK(state->getSwitchSettings()->getSwitchId().has_value());
   for (auto& nbr : nbrs) {
     nbr.switchId() = *state->getSwitchSettings()->getSwitchId();
@@ -635,6 +636,37 @@ void addRemoteNeighbors(
       }
       nbrs.push_back(nbrThrift);
     }
+  }
+}
+template <typename AddressT, typename NeighborThriftT>
+void addRecylePortRifNeighbors(
+    const std::shared_ptr<SwitchState> state,
+    std::vector<NeighborThriftT>& nbrs) {
+  if (state->getSwitchSettings()->getSwitchType() != cfg::SwitchType::VOQ) {
+    return;
+  }
+
+  constexpr auto kRecylePortId = 1;
+  auto localRecycleRifId = InterfaceID(
+      *state->getSwitchSettings()->getSystemPortRange()->minimum() +
+      kRecylePortId);
+  const auto& localRecycleRif =
+      state->getInterfaces()->getInterface(localRecycleRifId);
+  const auto& nbrTable =
+      std::as_const(*localRecycleRif->getNeighborEntryTable<AddressT>());
+  for (const auto& ipAndEntry : nbrTable) {
+    const auto& entry = ipAndEntry.second;
+    NeighborThriftT nbrThrift;
+    nbrThrift.ip() = facebook::network::toBinaryAddress(entry->getIP());
+    nbrThrift.mac() = entry->getMac().toString();
+    nbrThrift.port() = kRecylePortId;
+    nbrThrift.vlanName() = "--";
+    nbrThrift.state() = "--";
+    nbrThrift.isLocal() = true;
+    nbrThrift.switchId() =
+        static_cast<int64_t>(*state->getSwitchSettings()->getSwitchId());
+
+    nbrs.push_back(nbrThrift);
   }
 }
 } // namespace
@@ -935,6 +967,7 @@ void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
       ndpTable.begin(),
       std::make_move_iterator(std::begin(entries)),
       std::make_move_iterator(std::end(entries)));
+  addRecylePortRifNeighbors<folly::IPAddressV6>(sw_->getState(), ndpTable);
   addRemoteNeighbors<folly::IPAddressV6>(sw_->getState(), ndpTable);
 }
 
@@ -947,6 +980,7 @@ void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
       arpTable.begin(),
       std::make_move_iterator(std::begin(entries)),
       std::make_move_iterator(std::end(entries)));
+  addRecylePortRifNeighbors<folly::IPAddressV4>(sw_->getState(), arpTable);
   addRemoteNeighbors<folly::IPAddressV4>(sw_->getState(), arpTable);
 }
 
