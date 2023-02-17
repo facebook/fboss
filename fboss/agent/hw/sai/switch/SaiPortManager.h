@@ -323,6 +323,7 @@ class SaiPortManager {
   std::unordered_map<PortID, std::vector<sai_stat_id_t>> port2SupportedStats_;
   std::unordered_map<PortID, std::shared_ptr<Port>> pendingNewPorts_;
   bool hwLaneListIsPmdLaneList_;
+  bool tcToQueueMapAllowedOnPort_;
 };
 
 } // namespace facebook::fboss

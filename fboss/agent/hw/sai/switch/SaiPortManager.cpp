@@ -297,7 +297,9 @@ SaiPortManager::SaiPortManager(
       removePortsAtExit_(platform_->getAsic()->isSupported(
           HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT)),
       concurrentIndices_(concurrentIndices),
-      hwLaneListIsPmdLaneList_(true) {
+      hwLaneListIsPmdLaneList_(true),
+      tcToQueueMapAllowedOnPort_(!platform_->getAsic()->isSupported(
+          HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT)) {
 #if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
     defined(SAI_VERSION_9_0_EA_SIM_ODP)
@@ -1292,8 +1294,19 @@ void SaiPortManager::setQosMaps(
               SaiPortTraits::Attributes::QosDscpToTcMap{mapping});
           break;
         case SAI_QOS_MAP_TYPE_TC_TO_QUEUE:
-          port->setOptionalAttribute(
-              SaiPortTraits::Attributes::QosTcToQueueMap{mapping});
+          /*
+           * On certain platforms, applying TC to QUEUE mapping on front panel
+           * port will be applied on system port by the underlying SDK.
+           * It can applied in either of them - Front panel port or on system
+           * port. We decided to go with system port for two reasons 1) Remote
+           * system port on a local device also need to be applied with this TC
+           * to Queue Map 2) Cleaner approach to have the separation of applying
+           * TC to Queue map on all system ports in VOQ mode
+           */
+          if (tcToQueueMapAllowedOnPort_) {
+            port->setOptionalAttribute(
+                SaiPortTraits::Attributes::QosTcToQueueMap{mapping});
+          }
           break;
         case SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP:
           port->setOptionalAttribute(
