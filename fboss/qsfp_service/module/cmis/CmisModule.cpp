@@ -847,6 +847,11 @@ SMFMediaInterfaceCode CmisModule::getSmfMediaInterface() const {
   return (SMFMediaInterfaceCode)currentApplication;
 }
 
+MediaTypeEncodings CmisModule::getMediaTypeEncoding() const {
+  return static_cast<MediaTypeEncodings>(
+      getSettingsValue(CmisField::MEDIA_TYPE_ENCODINGS));
+}
+
 bool CmisModule::getMediaInterfaceId(
     std::vector<MediaInterfaceId>& mediaInterface) {
   assert(mediaInterface.size() == numMediaLanes());

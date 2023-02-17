@@ -244,10 +244,17 @@ enum Ethernet10GComplianceCode {
   ER_10G = 0x80,
 }
 
+enum PassiveCuMediaInterfaceCode {
+  UNKNOWN = 0x0,
+  COPPER = 0x1,
+  LOOPBACK = 0xBF,
+}
+
 union MediaInterfaceUnion {
   1: SMFMediaInterfaceCode smfCode;
   2: ExtendedSpecComplianceCode extendedSpecificationComplianceCode;
   3: Ethernet10GComplianceCode ethernet10GComplianceCode;
+  4: PassiveCuMediaInterfaceCode passiveCuCode;
 }
 
 enum MediaTypeEncodings {

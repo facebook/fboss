@@ -264,6 +264,10 @@ class CmisModule : public QsfpModule {
   bool getMediaInterfaceId(
       std::vector<MediaInterfaceId>& mediaInterface) override;
   /*
+   * Gets the Media Type encoding (byte 85 in CMIS)
+   */
+  MediaTypeEncodings getMediaTypeEncoding() const;
+  /*
    * Gets the Single Mode Fiber Interface codes from SFF-8024
    */
   SMFMediaInterfaceCode getSmfMediaInterface() const;
