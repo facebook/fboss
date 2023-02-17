@@ -35,6 +35,7 @@ class FsdbService;
 class FsdbStreamClient {
  public:
   enum class State : uint16_t { DISCONNECTED, CONNECTED, CANCELLED };
+  enum class Priority : uint8_t { NORMAL, PRIORITY, CRITICAL };
 
   struct ServerOptions {
     ServerOptions(const std::string& dstIp, uint16_t dstPort)
@@ -44,9 +45,19 @@ class FsdbStreamClient {
         : dstAddr(folly::SocketAddress(dstIp, dstPort)),
           srcAddr(folly::SocketAddress(srcIp, 0)) {}
 
+    ServerOptions(
+        const std::string& dstIp,
+        uint16_t dstPort,
+        std::string srcIp,
+        Priority priority)
+        : dstAddr(folly::SocketAddress(dstIp, dstPort)),
+          srcAddr(folly::SocketAddress(srcIp, 0)),
+          priority{priority} {}
+
     folly::SocketAddress dstAddr;
     std::string fsdbPort;
     std::optional<folly::SocketAddress> srcAddr;
+    std::optional<Priority> priority;
   };
 
   using FsdbStreamStateChangeCb = std::function<void(State, State)>;
