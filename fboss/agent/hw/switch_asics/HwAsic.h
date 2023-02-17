@@ -128,6 +128,7 @@ class HwAsic {
     IN_PAUSE_INCREMENTS_DISCARDS,
     FEC_AM_LOCK_STATUS,
     PCS_RX_LINK_STATUS,
+    TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT,
   };
 
   enum class AsicMode {

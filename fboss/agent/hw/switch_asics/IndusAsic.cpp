@@ -70,6 +70,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
       return true;
 
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
