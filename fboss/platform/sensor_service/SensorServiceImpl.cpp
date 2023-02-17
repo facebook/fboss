@@ -19,6 +19,8 @@
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include "fboss/platform/sensor_service/gen-cpp2/sensor_service_stats_types.h"
 
+#include <fb303/ServiceData.h>
+
 DEFINE_int32(
     fsdb_statsStream_interval_seconds,
     5,
@@ -38,6 +40,9 @@ const std::string kSourceMock = "mock";
 const std::string kSensorFieldName = "name";
 
 const std::string kLmsensorCommand = "sensors -j";
+
+auto constexpr kSensorReadFailure = "sensor_read.{}.failure";
+
 } // namespace
 namespace facebook::fboss::platform::sensor_service {
 using namespace facebook::fboss::platform::helpers;
@@ -222,11 +227,15 @@ void SensorServiceImpl::getSensorDataFromPath() {
             sensorName,
             sensorLiveData.path,
             sensorLiveData.value);
+        fb303::fbData->setCounter(
+            fmt::format(kSensorReadFailure, sensorName), 0);
       } else {
         XLOG(INFO) << fmt::format(
             "Could not read data for {} from {}",
             sensorName,
             sensorLiveData.path);
+        fb303::fbData->setCounter(
+            fmt::format(kSensorReadFailure, sensorName), 1);
       }
     }
   });
