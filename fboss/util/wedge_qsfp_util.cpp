@@ -2046,11 +2046,18 @@ void printCmisDetailService(
         apache::thrift::util::enumNameSafe(*stateMachineState).c_str());
   }
   if (auto mediaInterfaceId = settings.mediaInterface()) {
-    printf(
-        "  Media Interface: %s\n",
-        apache::thrift::util::enumNameSafe(
-            (*mediaInterfaceId)[0].media()->get_smfCode())
-            .c_str());
+    std::string mediaInterface;
+    if ((*mediaInterfaceId)[0].media()->getType() ==
+        MediaInterfaceUnion::smfCode) {
+      mediaInterface = apache::thrift::util::enumNameSafe(
+          (*mediaInterfaceId)[0].media()->get_smfCode());
+    } else if (
+        (*mediaInterfaceId)[0].media()->getType() ==
+        MediaInterfaceUnion::passiveCuCode) {
+      mediaInterface = apache::thrift::util::enumNameSafe(
+          (*mediaInterfaceId)[0].media()->get_passiveCuCode());
+    }
+    printf("  Media Interface: %s\n", mediaInterface.c_str());
   }
   printf(
       "  Power Control: %s\n",
