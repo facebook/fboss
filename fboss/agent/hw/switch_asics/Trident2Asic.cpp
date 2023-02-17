@@ -122,6 +122,7 @@ bool Trident2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
+    case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
       return false;
   }
   return false;

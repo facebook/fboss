@@ -94,6 +94,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DLB:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::WARMBOOT:
+    case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
       return true;
     // features only supported by B0 version, or any physical device
     // where used chip is always B0.

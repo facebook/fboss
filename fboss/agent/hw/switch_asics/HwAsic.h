@@ -129,6 +129,7 @@ class HwAsic {
     FEC_AM_LOCK_STATUS,
     PCS_RX_LINK_STATUS,
     TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT,
+    SAI_CONFIGURE_SIX_TAP,
   };
 
   enum class AsicMode {
