@@ -107,5 +107,11 @@ class Sfp10GTransceiver : public FakeTransceiverImpl {
  public:
   explicit Sfp10GTransceiver(int module);
 };
+
+class Cmis400GCr8Transceiver : public FakeTransceiverImpl {
+ public:
+  explicit Cmis400GCr8Transceiver(int module);
+};
+
 } // namespace fboss
 } // namespace facebook
