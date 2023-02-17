@@ -83,6 +83,8 @@ class SaiSystemPortManager {
 
   void clearQosPolicy();
 
+  void resetQosMaps();
+
  private:
   void loadQueues(
       SaiSystemPortHandle& sysPortHandle,
@@ -100,6 +102,7 @@ class SaiSystemPortManager {
   ConcurrentIndices* concurrentIndices_;
   Stats portStats_;
   std::shared_ptr<SaiQosMap> globalTcToQueueQosMap_;
+  bool tcToQueueMapAllowedOnSystemPort_;
 };
 
 } // namespace facebook::fboss
