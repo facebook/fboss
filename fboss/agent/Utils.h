@@ -15,6 +15,7 @@
 #include <boost/container/flat_map.hpp>
 #include <boost/iterator/filter_iterator.hpp>
 
+#include <folly/FileUtil.h>
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
@@ -22,6 +23,8 @@
 #include <folly/Range.h>
 #include <folly/lang/Bits.h>
 #include <folly/logging/xlog.h>
+
+#include <thrift/lib/cpp2/protocol/BinaryProtocol.h>
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -117,20 +120,6 @@ void incNiceValue(const uint32_t increment);
  * Serialize folly dynamic to JSON and write to file
  */
 bool dumpStateToFile(const std::string& filename, const folly::dynamic& json);
-
-/*
- * Serialize thrift struct to binary and write to file
- */
-bool dumpThriftStateToFile(
-    const std::string& filename,
-    const state::WarmbootState& thriftState);
-
-/*
- * Deserialize thrift struct to from file and write into thriftState
- */
-bool readThriftStateFromFile(
-    const std::string& filename,
-    state::WarmbootState& thriftState);
 
 /*
  * Whether thrift state is valid for sw switch state recovery
@@ -230,5 +219,43 @@ inline constexpr uint8_t kGetNetworkControlTrafficClass() {
 }
 
 void enableExactMatch(std::string& yamlCfg);
+
+/*
+ * Serialize thrift struct to binary and write to file
+ */
+template <typename ThriftT>
+bool dumpBinaryThriftToFile(
+    const std::string& filename,
+    const ThriftT& thrift) {
+  apache::thrift::BinaryProtocolWriter writer;
+  folly::IOBufQueue queue;
+  writer.setOutput(&queue);
+  auto bytesWritten = thrift.write(&writer);
+  std::vector<std::byte> result;
+  result.resize(bytesWritten);
+  // @lint-ignore CLANGTIDY
+  folly::io::Cursor(queue.front()).pull(result.data(), bytesWritten);
+  return folly::writeFile(result, filename.c_str());
+}
+
+/*
+ * Deserialize thrift struct to from file and write into thriftState
+ */
+template <typename ThriftT>
+bool readThriftFromBinaryFile(
+    const std::string& filename,
+    ThriftT& thriftState) {
+  std::vector<std::byte> serializedThrift;
+  auto ret = folly::readFile(filename.c_str(), serializedThrift);
+  if (ret) {
+    auto buf = folly::IOBuf::copyBuffer(
+        serializedThrift.data(), serializedThrift.size());
+    apache::thrift::BinaryProtocolReader reader;
+    reader.setInput(buf.get());
+    thriftState.read(&reader);
+    return true;
+  }
+  return false;
+}
 
 } // namespace facebook::fboss

@@ -557,7 +557,7 @@ void SwSwitch::exitFatal() const noexcept {
   state::WarmbootState thriftSwitchState;
   *thriftSwitchState.swSwitchState() = getAppliedState()->toThrift();
   if (!dumpStateToFile(platform_->getCrashSwitchStateFile(), switchState) ||
-      !dumpThriftStateToFile(
+      !dumpBinaryThriftToFile(
           platform_->getCrashThriftSwitchStateFile(), thriftSwitchState)) {
     XLOG(ERR) << "Unable to write switch state JSON or Thrift to file";
   }
@@ -1113,12 +1113,12 @@ std::shared_ptr<SwitchState> SwSwitch::applyUpdate(
     // tasks before we fatal. An example would be to dump the current hw state.
     //
     // Another thing we could try here is rolling back to the old state.
+    XLOG(ERR) << "error applying state change to hardware: "
+              << folly::exceptionStr(ex);
     hw_->exitFatal();
 
     dumpBadStateUpdate(oldState, newState);
-
-    XLOG(FATAL) << "error applying state change to hardware: "
-                << folly::exceptionStr(ex);
+    XLOG(FATAL) << "encountered a fatal error: " << folly::exceptionStr(ex);
   }
 
   setStateInternal(newAppliedState);
@@ -1141,16 +1141,16 @@ void SwSwitch::dumpBadStateUpdate(
   // dump the previous state and target state to understand what led to the
   // crash
   utilCreateDir(platform_->getCrashBadStateUpdateDir());
-  if (!dumpStateToFile(
+  if (!dumpBinaryThriftToFile(
           platform_->getCrashBadStateUpdateOldStateFile(),
-          oldState->toFollyDynamic())) {
-    XLOG(ERR) << "Unable to write old switch state JSON to "
+          oldState->toThrift())) {
+    XLOG(ERR) << "Unable to write old switch state thrift to "
               << platform_->getCrashBadStateUpdateOldStateFile();
   }
-  if (!dumpStateToFile(
+  if (!dumpBinaryThriftToFile(
           platform_->getCrashBadStateUpdateNewStateFile(),
-          newState->toFollyDynamic())) {
-    XLOG(ERR) << "Unable to write new switch state JSON to "
+          newState->toThrift())) {
+    XLOG(ERR) << "Unable to write new switch state thrift to "
               << platform_->getCrashBadStateUpdateNewStateFile();
   }
 }
