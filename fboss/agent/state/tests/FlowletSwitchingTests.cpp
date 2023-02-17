@@ -78,14 +78,6 @@ TEST(FlowletSwitching, publish) {
   EXPECT_TRUE(state->getFlowletSwitchingConfig()->isPublished());
 }
 
-TEST(FlowletSwitching, serDeserFlowletSwitchingConfig) {
-  auto flowletSwitchingConfig = std::make_shared<FlowletSwitchingConfig>();
-  auto serialized = flowletSwitchingConfig->toFollyDynamic();
-  auto flowletSwitchingConfigBack =
-      FlowletSwitchingConfig::fromFollyDynamic(serialized);
-  EXPECT_TRUE(*flowletSwitchingConfig == *flowletSwitchingConfigBack);
-}
-
 TEST(FlowletSwitching, serDeserSwitchState) {
   auto state = std::make_shared<SwitchState>();
 

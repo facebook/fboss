@@ -175,35 +175,6 @@ bool dumpStateToFile(const std::string& filename, const folly::dynamic& json) {
   return folly::writeFile(folly::toPrettyJson(json), filename.c_str());
 }
 
-bool dumpThriftStateToFile(
-    const std::string& filename,
-    const state::WarmbootState& thriftState) {
-  apache::thrift::BinaryProtocolWriter writer;
-  folly::IOBufQueue queue;
-  writer.setOutput(&queue);
-  auto bytesWritten = thriftState.write(&writer);
-  std::vector<std::byte> result;
-  result.resize(bytesWritten);
-  folly::io::Cursor(queue.front()).pull(result.data(), bytesWritten);
-  return folly::writeFile(result, filename.c_str());
-}
-
-bool readThriftStateFromFile(
-    const std::string& filename,
-    state::WarmbootState& thriftState) {
-  std::vector<std::byte> serializedThrift;
-  auto ret = folly::readFile(filename.c_str(), serializedThrift);
-  if (ret) {
-    auto buf = folly::IOBuf::copyBuffer(
-        serializedThrift.data(), serializedThrift.size());
-    apache::thrift::BinaryProtocolReader reader;
-    reader.setInput(buf.get());
-    thriftState.read(&reader);
-    return true;
-  }
-  return false;
-}
-
 bool isValidThriftStateFile(
     const std::string& follyStateFileName,
     const std::string& thriftStateFileName) {

@@ -140,7 +140,7 @@ bool HwSwitchWarmBootHelper::storeWarmBootState(
   warmBootStateWritten_ =
       dumpStateToFile(warmBootFollySwitchStateFile(), follySwitchState);
   if (FLAGS_dump_thrift_state) {
-    warmBootStateWritten_ &= dumpThriftStateToFile(
+    warmBootStateWritten_ &= dumpBinaryThriftToFile(
         warmBootThriftSwitchStateFile(), thriftSwitchState);
   }
   return warmBootStateWritten_;
@@ -158,7 +158,7 @@ HwSwitchWarmBootHelper::getWarmBootState() const {
   state::WarmbootState thriftState;
   if (isValidThriftStateFile(
           warmBootFollySwitchStateFile(), warmBootThriftSwitchStateFile()) &&
-      readThriftStateFromFile(warmBootThriftSwitchStateFile(), thriftState)) {
+      readThriftFromBinaryFile(warmBootThriftSwitchStateFile(), thriftState)) {
     return std::make_tuple(folly::parseJson(warmBootJson), thriftState);
   }
   return std::make_tuple(folly::parseJson(warmBootJson), std::nullopt);

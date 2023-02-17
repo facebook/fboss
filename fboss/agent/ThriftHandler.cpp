@@ -606,11 +606,13 @@ template <typename AddressT, typename NeighborThriftT>
 void addRemoteNeighbors(
     const std::shared_ptr<SwitchState> state,
     std::vector<NeighborThriftT>& nbrs) {
-  auto remoteRifs = state->getRemoteInterfaces();
+  const auto& remoteRifs = state->getRemoteInterfaces();
+  const auto& remoteSysPorts = state->getRemoteSystemPorts();
   for (const auto& idAndRif : std::as_const(*remoteRifs)) {
     const auto& rif = idAndRif.second;
-    for (const auto& ipAndEntry :
-         std::as_const(*rif->getNeighborEntryTable<AddressT>())) {
+    const auto& nbrTable =
+        std::as_const(*rif->getNeighborEntryTable<AddressT>());
+    for (const auto& ipAndEntry : nbrTable) {
       const auto& entry = ipAndEntry.second;
       NeighborThriftT nbrThrift;
       nbrThrift.ip() = facebook::network::toBinaryAddress(entry->getIP());
@@ -619,6 +621,12 @@ void addRemoteNeighbors(
       nbrThrift.port() = static_cast<int32_t>(*rif->getSystemPortID());
       nbrThrift.vlanName() = "--";
       nbrThrift.state() = "--";
+      nbrThrift.isLocal() = false;
+      const auto& sysPort =
+          remoteSysPorts->getSystemPortIf(*rif->getSystemPortID());
+      if (sysPort) {
+        nbrThrift.switchId() = static_cast<int64_t>(sysPort->getSwitchId());
+      }
       nbrs.push_back(nbrThrift);
     }
   }
@@ -2624,8 +2632,39 @@ void ThriftHandler::addTeFlows(
 void ThriftHandler::addTeFlowsImpl(
     std::shared_ptr<SwitchState>* state,
     const std::vector<FlowEntry>& teFlowEntries) const {
+  auto exactMatchTableConfigs =
+      (*state)->getSwitchSettings()->getExactMatchTableConfig()->toThrift();
+  std::string teFlowTableName(cfg::switch_config_constants::TeFlowTableName());
+  auto dstIpPrefixLength = 0;
+  for (const auto& tableConfig : exactMatchTableConfigs) {
+    if ((tableConfig.name() == teFlowTableName) &&
+        tableConfig.dstPrefixLength().has_value()) {
+      dstIpPrefixLength = tableConfig.dstPrefixLength().value();
+    }
+  }
+  if (!dstIpPrefixLength) {
+    throw FbossError("Invalid dstIpPrefixLength configuration");
+  }
+
   auto teFlowTable = (*state)->getTeFlowTable().get()->modify(state);
   for (const auto& teFlowEntry : teFlowEntries) {
+    if (!teFlowEntry.flow()->dstPrefix().has_value() ||
+        !teFlowEntry.flow()->srcPort().has_value()) {
+      throw FbossError("Invalid dstPrefix or srcPort in TeFlow entry");
+    }
+
+    auto prefix = teFlowEntry.flow()->dstPrefix().value();
+    if (*prefix.prefixLength() != dstIpPrefixLength) {
+      std::string flowString{};
+      folly::IPAddress ipaddr = network::toIPAddress(*prefix.ip());
+      flowString.append(fmt::format(
+          "dstPrefix:{}/{},srcPort:{}",
+          ipaddr.str(),
+          *prefix.prefixLength(),
+          teFlowEntry.flow()->srcPort().value()));
+      throw FbossError("Invalid prefix length in TeFlow entry: ", flowString);
+    }
+
     teFlowTable = teFlowTable->addTeFlowEntry(state, teFlowEntry);
   }
 }

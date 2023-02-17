@@ -13,4 +13,6 @@ struct NdpEntry {
   6: string state;
   7: i32 ttl;
   8: i32 classID;
+  9: bool isLocal;
+  10: optional i64 switchId;
 }

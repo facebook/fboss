@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <fboss/agent/if/gen-cpp2/ctrl_constants.h>
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <cstdint>
 #include "fboss/cli/fboss2/CmdHandler.h"
@@ -78,19 +79,25 @@ class CmdShowArp : public CmdHandler<CmdShowArp, CmdShowArpTraits> {
 
     for (const auto& entry : arpEntries) {
       cli::ArpEntry arpDetails;
+      auto vlan = entry.get_vlanName();
+      if (entry.get_vlanID() != ctrl_constants::NO_VLAN()) {
+        vlan += folly::to<std::string>(" (", entry.get_vlanID(), ")");
+      }
 
       auto ip = folly::IPAddress::fromBinary(
           folly::ByteRange(folly::StringPiece(entry.get_ip().get_addr())));
       arpDetails.ip() = ip.str();
       arpDetails.mac() = entry.get_mac();
       arpDetails.port() = entry.get_port();
-      arpDetails.vlan() = folly::to<std::string>(
-          entry.get_vlanName(), " (", entry.get_vlanID(), ")");
+      arpDetails.vlan() = vlan;
       arpDetails.state() = entry.get_state();
       arpDetails.ttl() = entry.get_ttl();
       arpDetails.classID() = entry.get_classID();
-      arpDetails.ifName() = portEntries[entry.get_port()].get_name();
-
+      if (*entry.isLocal()) {
+        arpDetails.ifName() = portEntries[entry.get_port()].get_name();
+      } else {
+        arpDetails.ifName() = folly::to<std::string>(entry.get_port());
+      }
       model.arpEntries()->push_back(arpDetails);
     }
     return model;

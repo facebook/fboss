@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <fboss/agent/if/gen-cpp2/ctrl_constants.h>
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <cstdint>
 #include "fboss/cli/fboss2/CmdHandler.h"
@@ -58,8 +59,10 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
         "CLASSID");
 
     for (const auto& entry : model.get_ndpEntries()) {
-      auto vlan = folly::to<std::string>(
-          entry.get_vlanName(), " (", entry.get_vlanID(), ")");
+      auto vlan = entry.get_vlanName();
+      if (entry.get_vlanID() != ctrl_constants::NO_VLAN()) {
+        vlan += folly::to<std::string>(" (", entry.get_vlanID(), ")");
+      }
 
       out << fmt::format(
           fmtString,
@@ -90,7 +93,11 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
         cli::NdpEntry ndpDetails;
         ndpDetails.ip() = ip.str();
         ndpDetails.mac() = entry.get_mac();
-        ndpDetails.port() = portEntries[entry.get_port()].get_name();
+        if (*entry.isLocal()) {
+          ndpDetails.port() = portEntries[entry.get_port()].get_name();
+        } else {
+          ndpDetails.port() = folly::to<std::string>(entry.get_port());
+        }
         ndpDetails.vlanName() = entry.get_vlanName();
         ndpDetails.vlanID() = entry.get_vlanID();
         ndpDetails.state() = entry.get_state();

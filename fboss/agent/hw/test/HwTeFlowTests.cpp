@@ -345,4 +345,25 @@ TEST_F(HwTeFlowTest, validateHwProtection) {
   // Some entries will be missing due to overflow
   EXPECT_NE(utility::getNumTeFlowEntries(getHwSwitch()), 32500);
 }
+
+TEST_F(HwTeFlowTest, verifyTeFlowScale) {
+  if (this->skipTest()) {
+    return;
+  }
+
+  auto setup = [&]() {
+    setExactMatchCfg(getHwSwitchEnsemble(), kPrefixLength1);
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
+    auto flowEntries = makeFlowEntries(
+        "100", kNhopAddrA, kIfName1, masterLogicalPortIds()[0], 8192);
+    addFlowEntries(getHwSwitchEnsemble(), flowEntries);
+  };
+
+  auto verify = [&]() {
+    EXPECT_EQ(utility::getNumTeFlowEntries(getHwSwitch()), 8192);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 } // namespace facebook::fboss

@@ -92,11 +92,13 @@ sai_status_t wrap_create_switch(
     sai_object_id_t* switch_id,
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
+  auto begin = FLAGS_enable_elapsed_time_log
+      ? std::chrono::system_clock::now()
+      : std::chrono::system_clock::time_point::min();
   auto rv = SaiTracer::getInstance()->switchApi_->create_switch(
       switch_id, attr_count, attr_list);
-
-  SaiTracer::getInstance()->logSwitchCreateFn(
-      switch_id, attr_count, attr_list, rv);
+  SaiTracer::getInstance()->logSwitchCreateFn(switch_id, attr_count, attr_list);
+  SaiTracer::getInstance()->logPostInvocation(rv, *switch_id, begin);
   return rv;
 }
 
