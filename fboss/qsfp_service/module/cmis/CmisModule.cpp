@@ -891,11 +891,18 @@ void CmisModule::getApplicationCapabilities() {
   getQsfpFieldAddress(
       CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
 
+  moduleCapabilities_.clear();
   for (uint8_t i = 0; i < 8; i++) {
     data = getQsfpValuePtr(dataAddress, offset + i * length, length);
 
     if (data[0] == 0xff) {
       break;
+    }
+
+    if (moduleCapabilities_.find(data[1]) != moduleCapabilities_.end()) {
+      // Capability for this application already exists. Prioritize the first
+      // one that was found
+      continue;
     }
 
     QSFP_LOG(DBG3, this) << folly::sformat(
@@ -1942,6 +1949,11 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
  * the setting is specified in the qsfp config
  */
 void CmisModule::configureModule() {
+  if (getMediaTypeEncoding() == MediaTypeEncodings::PASSIVE_CU) {
+    // Nothing to configure for passive copper modules
+    return;
+  }
+
   auto appCode = getSmfMediaInterface();
 
   QSFP_LOG(INFO, this) << "configureModule for application "
