@@ -278,7 +278,8 @@ void SaiSystemPortManager::setQosPolicy() {
   if (platform_->getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
     return;
   }
-  if (managerTable_->switchManager().isGlobalQoSMapSupported()) {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT)) {
     return;
   }
   auto& qosMapManager = managerTable_->qosMapManager();
@@ -291,7 +292,8 @@ void SaiSystemPortManager::clearQosPolicy() {
   if (platform_->getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
     return;
   }
-  if (managerTable_->switchManager().isGlobalQoSMapSupported()) {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT)) {
     return;
   }
   setQosMapOnAllSystemPorts(QosMapSaiId(SAI_NULL_OBJECT_ID));
