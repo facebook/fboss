@@ -605,6 +605,13 @@ template <typename AddressT, typename NeighborThriftT>
 void addRemoteNeighbors(
     const std::shared_ptr<SwitchState> state,
     std::vector<NeighborThriftT>& nbrs) {
+  if (state->getSwitchSettings()->getSwitchType() != cfg::SwitchType::VOQ) {
+    return;
+  }
+  CHECK(state->getSwitchSettings()->getSwitchId().has_value());
+  for (auto& nbr : nbrs) {
+    nbr.switchId() = *state->getSwitchSettings()->getSwitchId();
+  }
   const auto& remoteRifs = state->getRemoteInterfaces();
   const auto& remoteSysPorts = state->getRemoteSystemPorts();
   for (const auto& idAndRif : std::as_const(*remoteRifs)) {
