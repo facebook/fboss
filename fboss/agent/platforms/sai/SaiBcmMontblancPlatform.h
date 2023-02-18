@@ -27,8 +27,7 @@ class SaiBcmMontblancPlatform : public SaiBcmPlatform {
   }
 
   uint32_t numCellsAvailable() const override {
-    // TODO: update this number
-    return 223662;
+    return 319960;
   }
 
   bool isSerdesApiSupported() const override {
