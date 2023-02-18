@@ -2765,6 +2765,8 @@ void ThriftHandler::getTeFlowTableDetails(
 
 void ThriftHandler::getFabricReachability(
     std::map<std::string, FabricEndpoint>& reachability) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   auto portId2FabricEndpoint = sw_->getHw()->getFabricReachability();
   auto state = sw_->getState();
   static MakaluPlatformMapping makalu;
@@ -2835,11 +2837,15 @@ void ThriftHandler::getFabricReachability(
 }
 
 void ThriftHandler::getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   dsfNodes = sw_->getState()->getDsfNodes()->toThrift();
 }
 
 void ThriftHandler::getSystemPorts(
     std::map<int64_t, SystemPortThrift>& sysPorts) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   auto state = sw_->getState();
   sysPorts = state->getSystemPorts()->toThrift();
   auto remoteSysPorts = state->getRemoteSystemPorts()->toThrift();
