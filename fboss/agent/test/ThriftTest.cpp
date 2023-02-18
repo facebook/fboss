@@ -242,20 +242,19 @@ TYPED_TEST(ThriftTestAllSwitchTypes, LinkLocalRoutes) {
   ASSERT_EQ(longestMatchRoute->prefix().network(), ip);
 }
 
-TEST_F(ThriftTest, flushNonExistentNeighbor) {
-  ThriftHandler handler(sw_);
-  EXPECT_EQ(
-      handler.flushNeighborEntry(
-          std::make_unique<BinaryAddress>(
-              toBinaryAddress(IPAddress("100.100.100.1"))),
-          1),
-      0);
-  EXPECT_EQ(
-      handler.flushNeighborEntry(
-          std::make_unique<BinaryAddress>(
-              toBinaryAddress(IPAddress("100::100"))),
-          1),
-      0);
+TYPED_TEST(ThriftTestAllSwitchTypes, flushNonExistentNeighbor) {
+  ThriftHandler handler(this->sw_);
+  auto v4Addr = std::make_unique<BinaryAddress>(
+      toBinaryAddress(IPAddress("100.100.100.1")));
+  auto v6Addr =
+      std::make_unique<BinaryAddress>(toBinaryAddress(IPAddress("100::100")));
+  if (this->isNpu()) {
+    EXPECT_EQ(handler.flushNeighborEntry(std::move(v4Addr), 1), 0);
+    EXPECT_EQ(handler.flushNeighborEntry(std::move(v6Addr), 1), 0);
+  } else {
+    EXPECT_THROW(handler.flushNeighborEntry(std::move(v4Addr), 1), FbossError);
+    EXPECT_THROW(handler.flushNeighborEntry(std::move(v6Addr), 1), FbossError);
+  }
 }
 
 TEST_F(ThriftTest, setPortState) {
