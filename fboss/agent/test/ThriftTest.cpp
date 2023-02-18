@@ -99,7 +99,7 @@ class ThriftTest : public ::testing::Test {
 };
 
 TEST_F(ThriftTest, getInterfaceDetail) {
-  ThriftHandler handler(sw_);
+  ThriftHandler handler(this->sw_);
 
   // Query the two interfaces configured by testStateA()
   InterfaceDetail info;
@@ -138,19 +138,49 @@ TEST_F(ThriftTest, getInterfaceDetail) {
   EXPECT_THROW(handler.getInterfaceDetail(info, 123), FbossError);
 }
 
-TEST_F(ThriftTest, listHwObjects) {
-  ThriftHandler handler(sw_);
+template <typename SwitchTypeT>
+class ThriftTestAllSwitchTypes : public ::testing::Test {
+ public:
+  static auto constexpr switchType = SwitchTypeT::switchType;
+  void SetUp() override {
+    auto config = testConfigA(SwitchTypeT::switchType);
+    handle_ = createTestHandle(&config);
+    sw_ = handle_->getSw();
+    sw_->initialConfigApplied(std::chrono::steady_clock::now());
+  }
+  bool isVoq() const {
+    return switchType == cfg::SwitchType::VOQ;
+  }
+  bool isFabric() const {
+    return switchType == cfg::SwitchType::FABRIC;
+  }
+  bool isNpu() const {
+    return switchType == cfg::SwitchType::NPU;
+  }
+  int interfaceIdOffset() const {
+    return isVoq()
+        ? *sw_->getState()->getSwitchSettings()->getSystemPortRange()->minimum()
+        : 0;
+  }
+  SwSwitch* sw_;
+  std::unique_ptr<HwTestHandle> handle_;
+};
+
+TYPED_TEST_SUITE(ThriftTestAllSwitchTypes, SwitchTypes);
+
+TYPED_TEST(ThriftTestAllSwitchTypes, listHwObjects) {
+  ThriftHandler handler(this->sw_);
   std::string out;
   std::vector<HwObjectType> in{HwObjectType::PORT};
-  EXPECT_HW_CALL(sw_, listObjects(in, testing::_)).Times(1);
+  EXPECT_HW_CALL(this->sw_, listObjects(in, testing::_)).Times(1);
   handler.listHwObjects(
       out, std::make_unique<std::vector<HwObjectType>>(in), false);
 }
 
-TEST_F(ThriftTest, getHwDebugDump) {
-  ThriftHandler handler(sw_);
+TYPED_TEST(ThriftTestAllSwitchTypes, getHwDebugDump) {
+  ThriftHandler handler(this->sw_);
   std::string out;
-  EXPECT_HW_CALL(sw_, dumpDebugState(testing::_)).Times(1);
+  EXPECT_HW_CALL(this->sw_, dumpDebugState(testing::_)).Times(1);
   // Mock getHwDebugDump doesn't write any thing so expect FbossError
   EXPECT_THROW(handler.getHwDebugDump(out), FbossError);
 }
@@ -199,12 +229,12 @@ TEST(ThriftEnum, assertPortSpeeds) {
   }
 }
 
-TEST_F(ThriftTest, LinkLocalRoutes) {
+TYPED_TEST(ThriftTestAllSwitchTypes, LinkLocalRoutes) {
   // Link local addr.
   auto ip = IPAddressV6("fe80::");
   // Find longest match to link local addr.
   auto longestMatchRoute = findLongestMatchRoute(
-      sw_->getRib(), RouterID(0), ip, this->sw_->getState());
+      this->sw_->getRib(), RouterID(0), ip, this->sw_->getState());
   // Verify that a route is found. Link local route should always
   // be present
   ASSERT_NE(nullptr, longestMatchRoute);
