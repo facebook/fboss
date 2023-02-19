@@ -2776,9 +2776,15 @@ void ThriftHandler::getFabricReachability(
   for (auto [portId, fabricEndpoint] : portId2FabricEndpoint) {
     auto portName = state->getPorts()->getPort(portId)->getName();
     if (*fabricEndpoint.isAttached()) {
-      if (fabricEndpoint.switchType() == cfg::SwitchType::FABRIC) {
+      // Some SAI implementations don't support setting non-0 switchID for
+      // Fabric switches. For such implementations, FBOSS sets switchID=0 for
+      // Fabric switches. Thus, ignore received switchID for Fabric switches on
+      // these implementations.
+      if (fabricEndpoint.switchType() == cfg::SwitchType::FABRIC &&
+          fabricEndpoint.switchId() == 0) {
         fabricEndpoint.switchId() = -1;
       }
+
       auto swId = *fabricEndpoint.switchId();
       auto node = state->getDsfNodes()->getDsfNodeIf(SwitchID(swId));
       // Pull platform mapping of remote end. Used to lookup remote
