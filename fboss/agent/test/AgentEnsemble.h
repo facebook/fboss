@@ -98,6 +98,8 @@ class AgentEnsemble : public TestEnsembleIf {
       const utility::RouteDistributionGenerator::ThriftRouteChunks&
           routeChunks);
 
+  void gracefulExit();
+
   static void enableExactMatch(bcm::BcmConfig& config);
 
   static std::string getInputConfigFile();
