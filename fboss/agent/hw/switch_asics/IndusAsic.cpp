@@ -73,6 +73,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
       return true;
 
+    case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:

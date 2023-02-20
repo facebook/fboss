@@ -130,6 +130,7 @@ class HwAsic {
     PCS_RX_LINK_STATUS,
     TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT,
     SAI_CONFIGURE_SIX_TAP,
+    UDF_HASH_FIELD_QUERY,
   };
 
   enum class AsicMode {
