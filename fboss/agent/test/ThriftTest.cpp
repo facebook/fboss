@@ -257,22 +257,22 @@ TYPED_TEST(ThriftTestAllSwitchTypes, flushNonExistentNeighbor) {
   }
 }
 
-TEST_F(ThriftTest, setPortState) {
-  const PortID port1{1};
-  ThriftHandler handler(sw_);
-  handler.setPortState(port1, true);
-  sw_->linkStateChanged(port1, true);
-  waitForStateUpdates(sw_);
+TYPED_TEST(ThriftTestAllSwitchTypes, setPortState) {
+  const PortID port5{5};
+  ThriftHandler handler(this->sw_);
+  handler.setPortState(port5, true);
+  this->sw_->linkStateChanged(port5, true);
+  waitForStateUpdates(this->sw_);
 
-  auto port = sw_->getState()->getPorts()->getPortIf(port1);
+  auto port = this->sw_->getState()->getPorts()->getPortIf(port5);
   EXPECT_TRUE(port->isUp());
   EXPECT_TRUE(port->isEnabled());
 
-  sw_->linkStateChanged(port1, false);
-  handler.setPortState(port1, false);
-  waitForStateUpdates(sw_);
+  this->sw_->linkStateChanged(port5, false);
+  handler.setPortState(port5, false);
+  waitForStateUpdates(this->sw_);
 
-  port = sw_->getState()->getPorts()->getPortIf(port1);
+  port = this->sw_->getState()->getPorts()->getPortIf(port5);
   EXPECT_FALSE(port->isUp());
   EXPECT_FALSE(port->isEnabled());
 }
