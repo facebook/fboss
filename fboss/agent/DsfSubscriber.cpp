@@ -2,6 +2,7 @@
 
 #include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/state/DsfNode.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -133,7 +134,8 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   const auto& newSwitchSettings = stateDelta.newState()->getSwitchSettings();
   if (newSwitchSettings->getSwitchType() == cfg::SwitchType::VOQ) {
     if (!fsdbPubSubMgr_) {
-      fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>("agent");
+      fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>(
+          folly::sformat("{}:agent", getLocalHostname()));
     }
   } else {
     fsdbPubSubMgr_.reset();
