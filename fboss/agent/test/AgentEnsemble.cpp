@@ -85,7 +85,6 @@ void AgentEnsemble::startAgent() {
     // agent ensemble is responsible to dispatch them to SwSwitch
     initializer->initAgent(this);
   }));
-  asyncInitThread_->detach();
   initializer->initializer()->waitForInitDone();
   // if cold booting, invoke link toggler
   if (getHw()->getBootType() != BootType::WARM_BOOT &&
@@ -129,10 +128,9 @@ void AgentEnsemble::writeConfig(
 
 AgentEnsemble::~AgentEnsemble() {
   auto* initializer = agentInitializer();
-
-  // if ensemble is leaked and released it would be exit for warmboot.
-  // exit for cold boot.
   initializer->stopAgent(false);
+  asyncInitThread_->join();
+  asyncInitThread_.reset();
 }
 
 void AgentEnsemble::applyNewConfig(

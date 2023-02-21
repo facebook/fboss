@@ -114,10 +114,9 @@ class AgentEnsemble : public TestEnsembleIf {
       std::optional<phy::LinkFaultStatus> iPhyFaultStatus =
           std::nullopt) override {
     if (getHwSwitch()->getRunState() >= SwitchRunState::INITIALIZED) {
-      getSw()->linkStateChanged(port, up, iPhyFaultStatus);
-    }
-    if (linkToggler_) {
-      linkToggler_->linkStateChanged(port, up);
+      if (linkToggler_) {
+        linkToggler_->linkStateChanged(port, up);
+      }
     }
   }
 
