@@ -2595,6 +2595,8 @@ void ThriftHandler::getMacAddrsToBlock(
 
 void ThriftHandler::setMacAddrsToBlock(
     std::unique_ptr<std::vector<cfg::MacAndVlan>> macAddrsToBlock) {
+  ensureConfigured(__func__);
+  ensureNPU(__func__);
   std::string macAddrsToBlockStr;
   std::vector<std::pair<VlanID, folly::MacAddress>> blockMacAddrs;
 
