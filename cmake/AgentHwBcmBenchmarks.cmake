@@ -9,13 +9,12 @@ target_link_libraries(bcm_ecmp_shrink_speed
   -Wl,--whole-archive
   bcm
   config
-  bcm_switch_ensemble
   config_factory
   hw_ecmp_shrink_speed
   bcm_ecmp_utils
   bcm_port_utils
   -Wl,--no-whole-archive
-  hw_benchmark_main
+  bcm_agent_benchmarks_main
   ${OPENNSA}
   Folly::folly
   Folly::follybenchmark

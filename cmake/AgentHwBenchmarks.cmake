@@ -217,7 +217,8 @@ target_link_libraries(hw_ecmp_shrink_speed
   config_factory
   hw_packet_utils
   ecmp_helper
-  hw_benchmark_main
+  agent_ensemble
+  agent_benchmarks
   function_call_time_reporter
   Folly::folly
 )

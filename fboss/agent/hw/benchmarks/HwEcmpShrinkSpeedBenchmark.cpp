@@ -8,11 +8,10 @@
  *
  */
 
+#include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
-#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
-#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/state/Port.h"
@@ -22,6 +21,9 @@
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
 
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/benchmarks/AgentBenchmarks.h"
+
 namespace facebook::fboss {
 
 using utility::getEcmpSizeInHw;
@@ -29,25 +31,29 @@ using utility::getEcmpSizeInHw;
 BENCHMARK(HwEcmpGroupShrink) {
   folly::BenchmarkSuspender suspender;
   constexpr int kEcmpWidth = 4;
-  auto ensemble = createAndInitHwEnsemble(HwSwitchEnsemble::getAllFeatures());
-  auto hwSwitch = ensemble->getHwSwitch();
-  auto config = utility::onePortPerInterfaceConfig(
-      hwSwitch, ensemble->masterLogicalPortIds());
-  ensemble->applyInitialConfig(config);
-  auto ecmpHelper =
-      utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState());
+  AgentEnsembleSwitchConfigFn initialConfigFn =
+      [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
+        return utility::onePortPerInterfaceConfig(hwSwitch, ports);
+      };
+  auto ensemble = createAgentEnsemble(initialConfigFn);
+  auto hwSwitch = ensemble->getHw();
+  ensemble->setupLinkStateToggler();
+  auto ports = ensemble->masterLogicalPortIds();
+  ensemble->startAgent();
+  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState());
   ensemble->applyNewState(
-      ecmpHelper.resolveNextHops(ensemble->getProgrammedState(), kEcmpWidth));
+      ecmpHelper.resolveNextHops(ensemble->getSw()->getState(), kEcmpWidth));
   ecmpHelper.programRoutes(
-      std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
-          ensemble->getRouteUpdater()),
+      std::make_unique<SwSwitchRouteUpdateWrapper>(
+          ensemble->getSw(), ensemble->getSw()->getRib()),
       kEcmpWidth);
   auto prefix = folly::CIDRNetwork(folly::IPAddress("::"), 0);
   CHECK_EQ(
       kEcmpWidth,
       getEcmpSizeInHw(hwSwitch, prefix, ecmpHelper.getRouterId(), kEcmpWidth));
   // Warm up the stats cache
-  ensemble->getLatestPortStats(ensemble->masterLogicalPortIds());
+  SwitchStats dummy{};
+  ensemble->getHw()->updateStats(&dummy);
 
   // Toggle loopback mode via direct SDK calls rathe than going through
   // applyState interface. We want to start the clock ASAP post the link toggle,
@@ -55,7 +61,7 @@ BENCHMARK(HwEcmpGroupShrink) {
   // accurate reading for this micro benchmark.
   utility::setPortLoopbackMode(
       hwSwitch,
-      ecmpHelper.ecmpPortDescriptorAt(0).phyPortID(),
+      ecmpHelper.nhop(0).portDesc.phyPortID(),
       cfg::PortLoopbackMode::NONE);
   {
     ScopedCallTimer timeIt;

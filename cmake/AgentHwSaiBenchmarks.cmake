@@ -254,8 +254,8 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_ecmp_shrink_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
-    sai_switch_ensemble
     hw_ecmp_shrink_speed
+    sai_agent_benchmarks_main
     sai_ecmp_utils
     sai_port_utils
     ${SAI_IMPL_ARG}
