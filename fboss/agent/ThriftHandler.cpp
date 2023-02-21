@@ -2513,8 +2513,15 @@ void ThriftHandler::getBlockedNeighbors(
   }
 }
 
+bool ThriftHandler::isNpuSwitch() const {
+  return sw_->getState()->getSwitchSettings()->getSwitchType() ==
+      cfg::SwitchType::NPU;
+}
+
 void ThriftHandler::setNeighborsToBlock(
     std::unique_ptr<std::vector<cfg::Neighbor>> neighborsToBlock) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   std::string neighborsToBlockStr;
   std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
 
@@ -2544,8 +2551,6 @@ void ThriftHandler::setNeighborsToBlock(
           folly::IPAddress(*neighborToBlock.ipAddress()));
     }
   }
-
-  auto log = LOG_THRIFT_CALL(DBG1, neighborsToBlockStr);
 
   sw_->updateStateBlocking(
       "Update blocked neighbors ",

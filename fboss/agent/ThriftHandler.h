@@ -464,6 +464,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
     FbossError error(folly::exceptionStr(ex));
     callback->exception(error);
   }
+  bool isNpuSwitch() const;
 
   /*
    * A pointer to the SwSwitch.  We don't own this.
