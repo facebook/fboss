@@ -277,11 +277,11 @@ TYPED_TEST(ThriftTestAllSwitchTypes, setPortState) {
   EXPECT_FALSE(port->isEnabled());
 }
 
-TEST_F(ThriftTest, getAndSetNeighborsToBlock) {
-  ThriftHandler handler(sw_);
+TYPED_TEST(ThriftTestAllSwitchTypes, getAndSetNeighborsToBlock) {
+  ThriftHandler handler(this->sw_);
 
   auto blockListVerify =
-      [&handler](
+      [this, &handler](
           std::vector<std::pair<VlanID, folly::IPAddress>> neighborsToBlock) {
         auto cfgNeighborsToBlock =
             std::make_unique<std::vector<cfg::Neighbor>>();
@@ -293,18 +293,30 @@ TEST_F(ThriftTest, getAndSetNeighborsToBlock) {
           cfgNeighborsToBlock->emplace_back(neighbor);
         }
         auto expectedCfgNeighborsToBlock = *cfgNeighborsToBlock;
-        handler.setNeighborsToBlock(std::move(cfgNeighborsToBlock));
+        if (this->isNpu()) {
+          handler.setNeighborsToBlock(std::move(cfgNeighborsToBlock));
+        } else {
+          EXPECT_THROW(
+              handler.setNeighborsToBlock(std::move(cfgNeighborsToBlock)),
+              FbossError);
+        }
         waitForStateUpdates(handler.getSw());
 
         auto gotBlockedNeighbors = handler.getSw()
                                        ->getState()
                                        ->getSwitchSettings()
                                        ->getBlockNeighbors_DEPRECATED();
-        EXPECT_EQ(neighborsToBlock, gotBlockedNeighbors);
 
         std::vector<cfg::Neighbor> gotBlockedNeighborsViaThrift;
         handler.getBlockedNeighbors(gotBlockedNeighborsViaThrift);
-        EXPECT_EQ(gotBlockedNeighborsViaThrift, expectedCfgNeighborsToBlock);
+        if (this->isNpu()) {
+          EXPECT_EQ(neighborsToBlock, gotBlockedNeighbors);
+          EXPECT_EQ(gotBlockedNeighborsViaThrift, expectedCfgNeighborsToBlock);
+        } else {
+          std::vector<std::pair<VlanID, folly::IPAddress>> expectedBlockedNbrs;
+          EXPECT_EQ(expectedBlockedNbrs, gotBlockedNeighbors);
+          EXPECT_EQ(std::vector<cfg::Neighbor>(), gotBlockedNeighborsViaThrift);
+        }
       };
 
   // set blockneighbor1
@@ -319,27 +331,33 @@ TEST_F(ThriftTest, getAndSetNeighborsToBlock) {
   // set blockNeighbor2
   blockListVerify(
       {{VlanID(2000), folly::IPAddress("2401:db00:2110:3001::0004")}});
-
+  auto setNeighborsToBlock =
+      [this, &handler](std::unique_ptr<std::vector<cfg::Neighbor>> toBlock) {
+        if (this->isNpu()) {
+          handler.setNeighborsToBlock(std::move(toBlock));
+          waitForStateUpdates(this->sw_);
+        } else {
+          EXPECT_THROW(
+              handler.setNeighborsToBlock(std::move(toBlock)), FbossError);
+        }
+      };
   // set null list (clears block list)
   std::vector<cfg::Neighbor> blockedNeighbors;
-  handler.setNeighborsToBlock({});
-  waitForStateUpdates(sw_);
+  setNeighborsToBlock({});
   EXPECT_EQ(
       0,
-      sw_->getState()
+      this->sw_->getState()
           ->getSwitchSettings()
           ->getBlockNeighbors_DEPRECATED()
           .size());
   handler.getBlockedNeighbors(blockedNeighbors);
   EXPECT_TRUE(blockedNeighbors.empty());
-
   // set empty list (clears block list)
   auto neighborsToBlock = std::make_unique<std::vector<cfg::Neighbor>>();
-  handler.setNeighborsToBlock(std::move(neighborsToBlock));
-  waitForStateUpdates(sw_);
+  setNeighborsToBlock(std::move(neighborsToBlock));
   EXPECT_EQ(
       0,
-      sw_->getState()
+      this->sw_->getState()
           ->getSwitchSettings()
           ->getBlockNeighbors_DEPRECATED()
           .size());
