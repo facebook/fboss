@@ -32,7 +32,7 @@ target_link_libraries(bcm_ecmp_shrink_with_competing_route_updates_speed
   bcm_ecmp_utils
   bcm_port_utils
   -Wl,--no-whole-archive
-  hw_benchmark_main
+  bcm_agent_benchmarks_main
   ${OPENNSA}
   Folly::folly
   Folly::follybenchmark
