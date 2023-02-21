@@ -2108,6 +2108,18 @@ void ThriftHandler::ensureConfigured(StringPiece function) const {
       "fully configured yet");
 }
 
+void ThriftHandler::ensureNPU(StringPiece function) const {
+  ensureConfigured(function);
+  if (isNpuSwitch()) {
+    return;
+  }
+
+  if (!function.empty()) {
+    XLOG(DBG1) << "failing thrift on non NPU Switch type: " << function;
+  }
+  throw FbossError(function, " is only supported on NPU switch type");
+}
+
 // If this is a premature client disconnect from a duplex connection, we need to
 // clean up state.  Failure to do so may allow the server's duplex clients to
 // use the destroyed context => segfaults.
@@ -2522,6 +2534,7 @@ void ThriftHandler::setNeighborsToBlock(
     std::unique_ptr<std::vector<cfg::Neighbor>> neighborsToBlock) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
+  ensureNPU(__func__);
   std::string neighborsToBlockStr;
   std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
 
