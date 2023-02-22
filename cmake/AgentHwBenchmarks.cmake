@@ -246,6 +246,8 @@ target_link_libraries(hw_rx_slow_path_rate
   config_factory
   hw_packet_utils
   ecmp_helper
+  agent_ensemble
+  agent_benchmarks
   Folly::folly
 )
 
