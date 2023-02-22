@@ -239,6 +239,10 @@ class QsfpModule : public Transceiver {
 
   time_t getModulePauseRemediationUntil() override;
 
+  static TransceiverManagementInterface getTransceiverManagementInterface(
+      const uint8_t moduleId,
+      const unsigned int oneBasedPort);
+
  protected:
   /* Qsfp Internal Implementation */
   std::unique_ptr<TransceiverImpl> qsfpImpl_;

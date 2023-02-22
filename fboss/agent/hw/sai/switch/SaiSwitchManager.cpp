@@ -214,16 +214,20 @@ SaiHashTraits::CreateAttributes SaiSwitchManager::getProgrammedHashAttr() {
       SaiApiTable::getInstance()->hashApi().getAttribute(
           HashSaiId{programmedHash.value().value()},
           SaiHashTraits::Attributes::NativeHashFieldList{});
-  auto programmedUDFGroupList =
-      SaiApiTable::getInstance()->hashApi().getAttribute(
-          HashSaiId{programmedHash.value().value()},
-          SaiHashTraits::Attributes::UDFGroupList{});
-
   if (!programmedNativeHashFieldList.empty()) {
     nativeHashFieldList = programmedNativeHashFieldList;
   }
-  if (!programmedUDFGroupList.empty()) {
-    udfGroupList = programmedUDFGroupList;
+
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::UDF_HASH_FIELD_QUERY)) {
+    auto programmedUDFGroupList =
+        SaiApiTable::getInstance()->hashApi().getAttribute(
+            HashSaiId{programmedHash.value().value()},
+            SaiHashTraits::Attributes::UDFGroupList{});
+
+    if (!programmedUDFGroupList.empty()) {
+      udfGroupList = programmedUDFGroupList;
+    }
   }
 
   return hashCreateAttrs;

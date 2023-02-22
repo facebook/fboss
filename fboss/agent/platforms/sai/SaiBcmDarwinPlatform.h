@@ -19,7 +19,8 @@ class SaiBcmDarwinPlatform : public SaiBcmPlatform {
  public:
   explicit SaiBcmDarwinPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac);
+      folly::MacAddress localMac,
+      const std::string& platformMappingStr);
   ~SaiBcmDarwinPlatform() override;
   HwAsic* getAsic() const override;
   uint32_t numLanesPerCore() const override {

@@ -86,7 +86,7 @@ class CmdShowNdpTestFixture : public testing::Test {
 TEST_F(CmdShowNdpTestFixture, createModel) {
   auto cmd = CmdShowNdp();
   CmdShowNdpTraits::ObjectArgType queriedEntries;
-  auto model = cmd.createModel(ndpEntries, queriedEntries, portEntries);
+  auto model = cmd.createModel(ndpEntries, queriedEntries, portEntries, {});
   auto entries = model.get_ndpEntries();
 
   EXPECT_EQ(entries.size(), 2);
@@ -113,7 +113,7 @@ TEST_F(CmdShowNdpTestFixture, createModel) {
 TEST_F(CmdShowNdpTestFixture, printOutput) {
   auto cmd = CmdShowNdp();
   CmdShowNdpTraits::ObjectArgType queriedEntries;
-  auto model = cmd.createModel(ndpEntries, queriedEntries, portEntries);
+  auto model = cmd.createModel(ndpEntries, queriedEntries, portEntries, {});
 
   std::stringstream ss;
   cmd.printOutput(model, ss);

@@ -17,6 +17,7 @@ namespace fboss {
 class Wedge400PlatformMapping : public PlatformMapping {
  public:
   Wedge400PlatformMapping();
+  explicit Wedge400PlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

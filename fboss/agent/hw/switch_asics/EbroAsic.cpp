@@ -74,6 +74,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_ACL_TABLE_UPDATE:
     case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
+    case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
       return true;
     // VOQ vs NPU mode dependent features
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
@@ -129,6 +130,8 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::DLB:
+    case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
+    case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
       return false;
   }
   return false;

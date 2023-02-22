@@ -16,7 +16,7 @@ namespace fboss {
 
 class FujiPlatformMapping : public PlatformMapping {
  public:
-  explicit FujiPlatformMapping();
+  explicit FujiPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -19,10 +19,13 @@ namespace facebook::fboss {
 
 SaiKametPlatform::SaiKametPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiBcmPlatform(
           std::move(productInfo),
-          std::make_unique<KametPlatformMapping>(),
+          platformMappingStr.empty()
+              ? std::make_unique<KametPlatformMapping>()
+              : std::make_unique<KametPlatformMapping>(platformMappingStr),
           localMac) {}
 
 void SaiKametPlatform::setupAsic(

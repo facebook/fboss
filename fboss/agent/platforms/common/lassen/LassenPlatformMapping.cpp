@@ -29162,5 +29162,10 @@ namespace facebook {
 namespace fboss {
 LassenPlatformMapping::LassenPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
+
+LassenPlatformMapping::LassenPlatformMapping(
+    const std::string& platformMappingStr)
+    : PlatformMapping(platformMappingStr) {}
+
 } // namespace fboss
 } // namespace facebook

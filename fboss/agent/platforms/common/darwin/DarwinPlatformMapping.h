@@ -17,6 +17,7 @@ namespace fboss {
 class DarwinPlatformMapping : public PlatformMapping {
  public:
   DarwinPlatformMapping();
+  explicit DarwinPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

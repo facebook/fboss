@@ -19,10 +19,13 @@ namespace facebook::fboss {
 
 SaiMakaluPlatform::SaiMakaluPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiBcmPlatform(
           std::move(productInfo),
-          std::make_unique<MakaluPlatformMapping>(),
+          platformMappingStr.empty()
+              ? std::make_unique<MakaluPlatformMapping>()
+              : std::make_unique<MakaluPlatformMapping>(platformMappingStr),
           localMac) {}
 
 void SaiMakaluPlatform::setupAsic(

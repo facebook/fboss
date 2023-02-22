@@ -16201,4 +16201,8 @@ namespace facebook::fboss {
 Wedge400CEbbLabPlatformMapping::Wedge400CEbbLabPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
+Wedge400CEbbLabPlatformMapping::Wedge400CEbbLabPlatformMapping(
+    const std::string& platformMappingStr)
+    : PlatformMapping(platformMappingStr) {}
+
 } // namespace facebook::fboss

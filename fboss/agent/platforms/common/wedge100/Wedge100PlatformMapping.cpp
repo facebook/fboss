@@ -41045,6 +41045,10 @@ namespace fboss {
 Wedge100PlatformMapping::Wedge100PlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
+Wedge100PlatformMapping::Wedge100PlatformMapping(
+    const std::string& platformMappingStr)
+    : PlatformMapping(platformMappingStr) {}
+
 void Wedge100PlatformMapping::customizePlatformPortConfigOverrideFactor(
     std::optional<cfg::PlatformPortConfigOverrideFactor>& factor) const {
   // Wedge100PlatformMapping downlink cable length can only support 1.0 to 3.0

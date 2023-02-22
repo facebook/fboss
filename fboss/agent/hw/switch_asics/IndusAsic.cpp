@@ -70,8 +70,10 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
       return true;
 
+    case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::SAI_LAG_HASH:
     case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
@@ -126,6 +128,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::P4_WARMBOOT:
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
+    case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
       return false;
   }
   return false;

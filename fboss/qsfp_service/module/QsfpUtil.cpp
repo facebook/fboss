@@ -6,6 +6,10 @@
 
 namespace facebook::fboss {
 
+namespace {
+constexpr int kNumRetryGetModuleType = 5;
+}
+
 QsfpUtil::QsfpUtil(
     ReadViaServiceFn readFn,
     WriteViaServiceFn writeFn,
@@ -46,6 +50,74 @@ void QsfpUtil::setChannelStateBitmask(
       data &= ~(1 << (channel - 1));
     }
   }
+}
+
+/*
+ * This function returns the transceiver management interfaces
+ * by reading the register 0 indirectly from modules. If there is an error,
+ * this function returns an empty interface map.
+ */
+std::map<int32_t, TransceiverManagementInterface>
+QsfpUtil::getModuleTypeViaService(const std::vector<unsigned int>& ports) {
+  std::map<int32_t, TransceiverManagementInterface> moduleTypes;
+  const int offset = 0;
+  const int length = 1;
+  const int page = 0;
+  std::vector<int32_t> idx = zeroBasedPortIds(ports);
+  std::map<int32_t, ReadResponse> readResp;
+  readViaServiceFn_(
+      idx,
+      {TransceiverI2CApi::ADDR_QSFP, offset, length, page},
+      *evb_,
+      readResp);
+
+  if (readResp.empty()) {
+    XLOG(ERR) << "Indirect read error in getting module type";
+    return moduleTypes;
+  }
+
+  for (const auto& response : readResp) {
+    const auto moduleId = *(response.second.data()->data());
+    const TransceiverManagementInterface modType =
+        QsfpModule::getTransceiverManagementInterface(
+            moduleId, response.first + 1);
+
+    moduleTypes[response.first] = modType;
+  }
+
+  return moduleTypes;
+}
+
+/*
+ * This function returns the transceiver management interface
+ * by reading the register 0 directly from module
+ */
+TransceiverManagementInterface QsfpUtil::getModuleType(unsigned int port) {
+  uint8_t moduleId = static_cast<uint8_t>(TransceiverModuleIdentifier::UNKNOWN);
+
+  // Get the module id to differentiate between CMIS (0x1e) and SFF
+  for (auto retry = 0; retry < kNumRetryGetModuleType; retry++) {
+    try {
+      readViaDirectIoFn_(port, {TransceiverI2CApi::ADDR_QSFP, 0, 1}, &moduleId);
+    } catch (const I2cError& ex) {
+      fprintf(
+          stderr, "QSFP %d: not present or read error, retrying...\n", port);
+    }
+  }
+
+  return QsfpModule::getTransceiverManagementInterface(moduleId, port);
+}
+
+std::vector<int32_t> QsfpUtil::zeroBasedPortIds(
+    const std::vector<unsigned int>& ports) {
+  std::vector<int32_t> idx;
+  for (auto port : ports) {
+    // Direct I2C bus starts from 1 instead of 0, however qsfp_service
+    // index starts from 0. So here we try to comply to match that
+    // behavior.
+    idx.push_back(port - 1);
+  }
+  return idx;
 }
 
 } // namespace facebook::fboss

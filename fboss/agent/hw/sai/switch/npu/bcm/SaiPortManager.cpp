@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
@@ -91,22 +92,20 @@ bool SaiPortManager::checkPortSerdesAttributes(
 void SaiPortManager::changePortByRecreate(
     const std::shared_ptr<Port>& oldPort,
     const std::shared_ptr<Port>& newPort) {
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PORT_VCO_CHANGE)) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PORT_VCO_CHANGE) &&
+      static_cast<SaiBcmPlatform*>(platform_)->needPortVcoChange(
+          oldPort->getSpeed(),
+          *(oldPort->getProfileConfig().fec()),
+          newPort->getSpeed(),
+          *(newPort->getProfileConfig().fec()))) {
+    // To change to a different VCO, we need to remove all the ports in the
+    // Port Macro and re-create the removed ports with the new speed.
     auto portHandle = getPortHandle(newPort->getID());
-    // disable linkscan
-#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_SIM_ODP)
-    SaiPortTraits::Attributes::DiagModeEnable diagEnable{true};
-    SaiApiTable::getInstance()->portApi().setAttribute(
-        portHandle->port->adapterKey(), diagEnable);
-    XLOG(DBG2) << "Disable linkscan for port " << newPort->getID();
-#endif
     // disable port
     SaiPortTraits::Attributes::AdminState adminDisable{false};
     SaiApiTable::getInstance()->portApi().setAttribute(
         portHandle->port->adapterKey(), adminDisable);
     removePort(oldPort);
-    // To change to a different VCO, we need to remove all the ports in the
-    // Port Macro and re-create the removed ports with the new speed.
     pendingNewPorts_[newPort->getID()] = newPort;
     bool allPortsInGroupRemoved = true;
     auto& platformPortEntry =
@@ -135,14 +134,6 @@ void SaiPortManager::changePortByRecreate(
           addPort(pendingNewPorts_[portId]);
           pendingNewPorts_.erase(portId);
           // port should already be enabled
-          // enable linkscan
-#if defined(SAI_VERSION_8_2_0_0_ODP) || defined(SAI_VERSION_8_2_0_0_SIM_ODP)
-          auto handle = getPortHandle(portId);
-          SaiPortTraits::Attributes::DiagModeEnable diagDisable{false};
-          SaiApiTable::getInstance()->portApi().setAttribute(
-              handle->port->adapterKey(), diagDisable);
-          XLOG(DBG2) << "Enable linkscan for port " << portId;
-#endif
         }
       }
     }

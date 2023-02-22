@@ -18,6 +18,7 @@
 #include "fboss/lib/usb/TransceiverPlatformI2cApi.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
+#include "fboss/qsfp_service/module/QsfpModule.h"
 
 #include <memory>
 #include <utility>
@@ -61,6 +62,13 @@ class QsfpUtil {
 
  private:
   void setChannelStateBitmask(uint8_t& data, uint32_t channel, bool disable);
+
+  std::map<int32_t, TransceiverManagementInterface> getModuleTypeViaService(
+      const std::vector<unsigned int>& ports);
+
+  TransceiverManagementInterface getModuleType(unsigned int port);
+
+  std::vector<int32_t> zeroBasedPortIds(const std::vector<unsigned int>& ports);
 
   static const uint8_t maxSffChannels = 4;
   static const uint8_t maxCmisChannels = 8;

@@ -41,6 +41,7 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchWithMultipleDsfNodesTest.*
 # ECMP Tests
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwEcmpTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=SaiNextHopGroupTest.*
 # Basic forwarding tests
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwLoopBackTest.*
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwL4PortBlackHolingTest.*
@@ -84,8 +85,8 @@ from argparse import ArgumentParser
 # LB Tests with ROCE traffic
 # ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwLoadBalancerNegativeTestV6RoCE.*
 # Route programming tests
-# ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwAlpmStressTest.*
-# ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=SaiNextHopGroupTest:-*addNextHopGroupPortDown*
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwAlpmStressTest.*
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=SaiNextHopGroupTest.*
 # Neighbor programming tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwNeighborTest/0.*:-*LookupClass
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwNeighborTest/2.*:-*LookupClass
@@ -103,6 +104,8 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwPacketSendTest.PortTxEnableTest
 # PFC tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwPfcTest.*:-*Watchdog*
+# PFC traffic tests
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwTrafficPfc*:-*Watchdog*:*Zero*
 # All tests matching following filter are expected to PASS on Kamet
 # ./run_test.py sai --config kamet.agent.materialized_JSON --filter=HwFabricSwitchTest*
 

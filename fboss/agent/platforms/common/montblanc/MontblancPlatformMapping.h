@@ -17,6 +17,7 @@ namespace fboss {
 class MontblancPlatformMapping : public PlatformMapping {
  public:
   MontblancPlatformMapping();
+  explicit MontblancPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

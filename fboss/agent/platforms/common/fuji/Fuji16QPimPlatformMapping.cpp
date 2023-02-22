@@ -97650,5 +97650,10 @@ namespace facebook {
 namespace fboss {
 Fuji16QPimPlatformMapping::Fuji16QPimPlatformMapping()
     : MultiPimPlatformMapping(kJsonPlatformMappingStr) {}
+
+Fuji16QPimPlatformMapping::Fuji16QPimPlatformMapping(
+    const std::string& platformMappingStr)
+    : MultiPimPlatformMapping(platformMappingStr) {}
+
 } // namespace fboss
 } // namespace facebook

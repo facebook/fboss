@@ -4,6 +4,8 @@
 
 #include "fboss/agent/test/AgentEnsemble.h"
 
+#include <folly/Benchmark.h>
+
 namespace facebook::fboss {
 
 void benchmarksMain(int argc, char* argv[], PlatformInitFn initPlatform) {

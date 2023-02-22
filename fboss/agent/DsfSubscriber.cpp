@@ -2,10 +2,12 @@
 
 #include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/Utils.h"
 #include "fboss/agent/state/DsfNode.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
 
 #include <memory>
@@ -132,7 +134,8 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   const auto& newSwitchSettings = stateDelta.newState()->getSwitchSettings();
   if (newSwitchSettings->getSwitchType() == cfg::SwitchType::VOQ) {
     if (!fsdbPubSubMgr_) {
-      fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>("agent");
+      fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>(
+          folly::sformat("{}:agent", getLocalHostname()));
     }
   } else {
     fsdbPubSubMgr_.reset();
@@ -159,6 +162,26 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
         false /*apply mask*/);
     return network.first.str();
   };
+
+  auto getServerOptions = [mySwitchId, getLoopbackIp](
+                              const std::shared_ptr<DsfNode>& node,
+                              const auto& state) {
+    auto selfDsfNode = state->getDsfNodes()->getNodeIf(*mySwitchId);
+    CHECK(selfDsfNode);
+    CHECK(selfDsfNode->getLoopbackIpsSorted().size() != 0);
+
+    // Subscribe to FSDB of DSF node in the cluster with:
+    //  dstIP = inband IP of that DSF node
+    //  dstPort = FSDB port
+    //  srcIP = self inband IP
+    auto serverOptions = fsdb::FsdbStreamClient::ServerOptions(
+        getLoopbackIp(node),
+        FLAGS_fsdbPort,
+        (*selfDsfNode->getLoopbackIpsSorted().begin()).first.str());
+
+    return serverOptions;
+  };
+
   auto addDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
     // No need to setup subscriptions to (local) yourself
     // Only IN nodes have control plane, so ignore non IN DSF nodes
@@ -207,7 +230,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
           }
           scheduleUpdate(newSysPorts, newRifs, nodeName, nodeSwitchId);
         },
-        getLoopbackIp(node));
+        getServerOptions(node, stateDelta.newState()));
   };
   auto rmDsfNode = [&](const std::shared_ptr<DsfNode>& node) {
     // No need to setup subscriptions to (local) yourself

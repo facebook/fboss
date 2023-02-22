@@ -14,7 +14,7 @@
 namespace facebook::fboss {
 class SandiaPlatformMapping : public PlatformMapping {
  public:
-  SandiaPlatformMapping();
+  explicit SandiaPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -136,6 +136,13 @@ class CmisModule : public QsfpModule {
    */
   void customizeTransceiverLocked(
       cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT) override;
+
+  /*
+   * If the current power state is not same as desired one then change it and
+   * return true when module is in ready state
+   */
+  bool ensureTransceiverReady();
+
   /*
    * Based on identifier, sets whether the upper memory of the module is flat or
    * paged.
@@ -263,6 +270,10 @@ class CmisModule : public QsfpModule {
    */
   bool getMediaInterfaceId(
       std::vector<MediaInterfaceId>& mediaInterface) override;
+  /*
+   * Gets the Media Type encoding (byte 85 in CMIS)
+   */
+  MediaTypeEncodings getMediaTypeEncoding() const;
   /*
    * Gets the Single Mode Fiber Interface codes from SFF-8024
    */

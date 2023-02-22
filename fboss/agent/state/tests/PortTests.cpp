@@ -751,7 +751,7 @@ TEST(Port, portFabricType) {
     EXPECT_EQ(port.second->getPortType(), cfg::PortType::INTERFACE_PORT);
     auto newPort = port.second->clone();
     newPort->setPortType(cfg::PortType::FABRIC_PORT);
-    auto newerPort = Port::fromFollyDynamic(newPort->toFollyDynamic());
+    auto newerPort = std::make_shared<Port>(newPort->toThrift());
     EXPECT_EQ(newerPort->getPortType(), cfg::PortType::FABRIC_PORT);
   }
 }

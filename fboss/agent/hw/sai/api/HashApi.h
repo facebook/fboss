@@ -39,7 +39,8 @@ struct SaiHashTraits {
     using UDFGroupList = SaiAttribute<
         EnumType,
         SAI_HASH_ATTR_UDF_GROUP_LIST,
-        std::vector<sai_object_id_t>>;
+        std::vector<sai_object_id_t>,
+        SaiObjectIdListDefault>;
   };
   using AdapterKey = HashSaiId;
   using AdapterHostKey = std::tuple<

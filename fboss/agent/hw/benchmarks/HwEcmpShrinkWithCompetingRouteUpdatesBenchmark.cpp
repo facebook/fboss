@@ -10,15 +10,16 @@
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateToggler.h"
-#include "fboss/agent/hw/test/HwSwitchEnsemble.h"
-#include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
-#include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/HwTestEcmpUtils.h"
 #include "fboss/agent/hw/test/HwTestPortUtils.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
 #include "fboss/lib/FunctionCallTimeReporter.h"
+
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
+#include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/benchmarks/AgentBenchmarks.h"
 
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
@@ -32,20 +33,22 @@ using utility::getEcmpSizeInHw;
 BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
   folly::BenchmarkSuspender suspender;
   constexpr int kEcmpWidth = 4;
-  auto ensemble = createAndInitHwEnsemble(
-      {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX});
-  auto hwSwitch = ensemble->getHwSwitch();
+  std::unique_ptr<AgentEnsemble> ensemble{};
 
-  auto config = utility::onePortPerInterfaceConfig(
-      hwSwitch, ensemble->masterLogicalPortIds());
-  ensemble->applyInitialConfig(config);
-  auto ecmpHelper =
-      utility::EcmpSetupAnyNPorts6(ensemble->getProgrammedState());
-  ensemble->applyNewState(
-      ecmpHelper.resolveNextHops(ensemble->getProgrammedState(), kEcmpWidth));
+  AgentEnsembleSwitchConfigFn initialConfigFn =
+      [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
+        return utility::onePortPerInterfaceConfig(hwSwitch, ports);
+      };
+  ensemble = createAgentEnsemble(initialConfigFn);
+  ensemble->setupLinkStateToggler();
+  ensemble->startAgent();
+  auto hwSwitch = ensemble->getHw();
+  auto state = ensemble->getSw()->getState();
+  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(state);
+  ensemble->applyNewState(ecmpHelper.resolveNextHops(state, kEcmpWidth));
   ecmpHelper.programRoutes(
-      std::make_unique<HwSwitchEnsembleRouteUpdateWrapper>(
-          ensemble->getRouteUpdater()),
+      std::make_unique<SwSwitchRouteUpdateWrapper>(
+          ensemble->getSw(), ensemble->getSw()->getRib()),
       kEcmpWidth);
 
   auto prefix = folly::CIDRNetwork(folly::IPAddress("::"), 0);
@@ -53,9 +56,10 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
       kEcmpWidth,
       getEcmpSizeInHw(hwSwitch, prefix, ecmpHelper.getRouterId(), kEcmpWidth));
   // Warm up the stats cache
-  ensemble->getLatestPortStats(ensemble->masterLogicalPortIds());
+  SwitchStats dummy{};
+  ensemble->getHw()->updateStats(&dummy);
   auto routeChunks = utility::RouteDistributionGenerator(
-                         ensemble->getProgrammedState(),
+                         ensemble->getSw()->getState(),
                          {{64, 10'000}},
                          {{}},
                          10'000,
@@ -64,8 +68,7 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
                          .getThriftRoutes();
 
   std::thread t([&ensemble, &routeChunks]() {
-    auto updater = ensemble->getRouteUpdater();
-    updater.programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
+    ensemble->programRoutes(RouterID(0), ClientID::BGPD, routeChunks);
   });
 
   // Toggle loopback mode via direct SDK calls rathe than going through

@@ -40,6 +40,14 @@ class SaiBcmPlatform : public SaiHwPlatform {
   virtual bool supportsDynamicBcmConfig() const {
     return false;
   }
+  virtual bool needPortVcoChange(
+      cfg::PortSpeed oldSpeed,
+      phy::FecMode oldFec,
+      cfg::PortSpeed newSpeed,
+      phy::FecMode newFec) const;
+  virtual phy::VCOFrequency getPortVcoFrequency(
+      cfg::PortSpeed speed,
+      phy::FecMode fec) const;
 
  protected:
   void initWedgeLED(int led, folly::ByteRange range);

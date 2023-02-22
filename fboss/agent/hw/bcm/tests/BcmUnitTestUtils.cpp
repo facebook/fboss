@@ -7,17 +7,11 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/hw/bcm/tests/BcmUnitTestUtils.h"
 
 #include <assert.h>
 
 extern "C" {
-/*
- * Linking with BCM libs requires us to define these symbols in our
- * application. For actual wedge_agent code we define these in
- * BcmFacebookAPI.cpp. For test functions, rather than pulling in
- * all BCM  api code just define these symbols here and have tests link
- */
-
 int bde_create() {
   assert(0);
   return 0;

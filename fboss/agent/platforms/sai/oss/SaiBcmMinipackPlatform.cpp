@@ -19,11 +19,13 @@ namespace facebook::fboss {
 
 SaiBcmMinipackPlatform::SaiBcmMinipackPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiBcmPlatform(
           std::move(productInfo),
           std::make_unique<MinipackPlatformMapping>(
-              ExternalPhyVersion::MILN5_2),
+              ExternalPhyVersion::MILN5_2,
+              platformMappingStr),
           localMac) {}
 
 } // namespace facebook::fboss

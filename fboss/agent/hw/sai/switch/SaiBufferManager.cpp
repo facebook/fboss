@@ -296,6 +296,36 @@ void SaiBufferManager::updateStats() {
   publishDeviceWatermark(deviceWatermarkBytes_);
 }
 
+void SaiBufferManager::updateIngressPriorityGroupStats(
+    const PortID& portId,
+    const std::string& portName,
+    bool updateWatermarks) {
+  /*
+   * As of now, only watermark stats are supported for IngressPriorityGroup.
+   * Hence returning here if watermark stats collection is not needed. Will
+   * need modifications to this code if we enable non-watermark stats as well,
+   * to poll watermark and non-watermark stats differently based on the
+   * updateWatermarks option.
+   */
+  if (!updateWatermarks) {
+    return;
+  }
+  SaiPortHandle* portHandle =
+      managerTable_->portManager().getPortHandle(portId);
+  for (const auto& ipgInfo : portHandle->configuredIngressPriorityGroups) {
+    const auto& ingressPriorityGroup =
+        ipgInfo.second.pgHandle->ingressPriorityGroup;
+    ingressPriorityGroup->updateStats();
+    auto counters = ingressPriorityGroup->getStats();
+    auto maxPgSharedBytes =
+        counters[SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES];
+    auto maxPgHeadroomBytes =
+        counters[SAI_INGRESS_PRIORITY_GROUP_STAT_XOFF_ROOM_WATERMARK_BYTES];
+    publishPgWatermarks(
+        portName, ipgInfo.first, maxPgSharedBytes, maxPgHeadroomBytes);
+  }
+}
+
 SaiBufferProfileTraits::CreateAttributes SaiBufferManager::profileCreateAttrs(
     const PortQueue& queue) const {
   SaiBufferProfileTraits::Attributes::PoolId pool{
@@ -421,6 +451,26 @@ void SaiBufferManager::setIngressPriorityGroupBufferProfile(
         bufferProfile->adapterKey()};
   }
   SaiApiTable::getInstance()->bufferApi().setAttribute(pgId, bufferProfileId);
+}
+
+SaiIngressPriorityGroupHandles SaiBufferManager::loadIngressPriorityGroups(
+    const std::vector<IngressPriorityGroupSaiId>& ingressPriorityGroupSaiIds) {
+  SaiIngressPriorityGroupHandles ingressPriorityGroupHandles;
+  auto& store = saiStore_->get<SaiIngressPriorityGroupTraits>();
+
+  for (auto ingressPriorityGroupSaiId : ingressPriorityGroupSaiIds) {
+    auto ingressPriorityGroupHandle =
+        std::make_unique<SaiIngressPriorityGroupHandle>();
+    ingressPriorityGroupHandle->ingressPriorityGroup =
+        store.loadObjectOwnedByAdapter(
+            SaiIngressPriorityGroupTraits::AdapterKey{
+                ingressPriorityGroupSaiId});
+    auto index = SaiApiTable::getInstance()->bufferApi().getAttribute(
+        ingressPriorityGroupSaiId,
+        SaiIngressPriorityGroupTraits::Attributes::Index{});
+    ingressPriorityGroupHandles[index] = std::move(ingressPriorityGroupHandle);
+  }
+  return ingressPriorityGroupHandles;
 }
 
 } // namespace facebook::fboss

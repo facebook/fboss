@@ -20,10 +20,13 @@ namespace facebook::fboss {
 
 SaiBcmWedge100Platform::SaiBcmWedge100Platform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiBcmPlatform(
           std::move(productInfo),
-          std::make_unique<Wedge100PlatformMapping>(),
+          platformMappingStr.empty()
+              ? std::make_unique<Wedge100PlatformMapping>()
+              : std::make_unique<Wedge100PlatformMapping>(platformMappingStr),
           localMac) {}
 
 void SaiBcmWedge100Platform::setupAsic(

@@ -44,6 +44,14 @@ namespace cfg {
 class SwitchConfig;
 }
 
+template <cfg::SwitchType type>
+struct SwitchTypeT {
+  static constexpr auto switchType = type;
+};
+
+using SwitchTypes = ::testing::
+    Types<SwitchTypeT<cfg::SwitchType::NPU>, SwitchTypeT<cfg::SwitchType::VOQ>>;
+
 /*
  * In the non unit test code state passed to apply*Config is the state
  * returned from SwSwitch init, which is always published. However this

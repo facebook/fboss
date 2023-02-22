@@ -201,7 +201,11 @@ void initandExitBenchmarkHelper(
     // will run at the time of program exit when static variable destructors
     // run
     static StopWatch timer("warm_boot_msecs", FLAGS_json);
-    ensemble.reset();
+    ensemble->gracefulExit();
+    // Leak HwSwitchEnsemble for warmboot, so that
+    // we don't run destructors and unprogram h/w. We are
+    // going to exit the process anyways.
+    __attribute__((unused)) auto leakedHwEnsemble = ensemble.release();
   }
 }
 } // namespace facebook::fboss::utility

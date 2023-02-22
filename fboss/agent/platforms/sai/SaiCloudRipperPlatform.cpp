@@ -19,10 +19,14 @@ namespace facebook::fboss {
 
 SaiCloudRipperPlatform::SaiCloudRipperPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiTajoPlatform(
           std::move(productInfo),
-          std::make_unique<CloudRipperPlatformMapping>(),
+          platformMappingStr.empty()
+              ? std::make_unique<CloudRipperPlatformMapping>()
+              : std::make_unique<CloudRipperPlatformMapping>(
+                    platformMappingStr),
           localMac) {}
 
 void SaiCloudRipperPlatform::setupAsic(
@@ -59,18 +63,26 @@ SaiCloudRipperPlatform::SaiCloudRipperPlatform(
 
 SaiCloudRipperVoqPlatform::SaiCloudRipperVoqPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiCloudRipperPlatform(
           std::move(productInfo),
-          std::make_unique<CloudRipperVoqPlatformMapping>(),
+          platformMappingStr.empty()
+              ? std::make_unique<CloudRipperVoqPlatformMapping>()
+              : std::make_unique<CloudRipperVoqPlatformMapping>(
+                    platformMappingStr),
           localMac) {}
 
 SaiCloudRipperFabricPlatform::SaiCloudRipperFabricPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiCloudRipperPlatform(
           std::move(productInfo),
-          std::make_unique<CloudRipperFabricPlatformMapping>(),
+          platformMappingStr.empty()
+              ? std::make_unique<CloudRipperFabricPlatformMapping>()
+              : std::make_unique<CloudRipperFabricPlatformMapping>(
+                    platformMappingStr),
           localMac) {}
 
 std::vector<sai_system_port_config_t>

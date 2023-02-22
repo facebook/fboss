@@ -8507,5 +8507,9 @@ namespace fboss {
 Wedge400CGrandTetonPlatformMapping::Wedge400CGrandTetonPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
+Wedge400CGrandTetonPlatformMapping::Wedge400CGrandTetonPlatformMapping(
+    const std::string& platformMappingStr)
+    : PlatformMapping(platformMappingStr) {}
+
 } // namespace fboss
 } // namespace facebook

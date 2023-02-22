@@ -334,4 +334,40 @@ TEST_F(CmisTest, moduleEepromChecksumTest) {
   csumValid = xcvrCmis200GFr4Bad->verifyEepromChecksums();
   EXPECT_FALSE(csumValid);
 }
+
+TEST_F(CmisTest, cmis400GCr8TransceiverInfoTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis400GCr8Transceiver>(xcvrID);
+  const auto& info = xcvr->getTransceiverInfo();
+  EXPECT_TRUE(info.transceiverManagementInterface());
+  EXPECT_EQ(
+      info.transceiverManagementInterface(),
+      TransceiverManagementInterface::CMIS);
+  EXPECT_EQ(xcvr->numHostLanes(), 8);
+  EXPECT_EQ(xcvr->numMediaLanes(), 8);
+  EXPECT_EQ(info.moduleMediaInterface(), MediaInterfaceCode::CR8_400G);
+  for (auto& media : *info.settings()->mediaInterface()) {
+    EXPECT_EQ(
+        media.media()->get_passiveCuCode(),
+        PassiveCuMediaInterfaceCode::COPPER);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::CR8_400G);
+  }
+  // Check cmisStateChanged
+  EXPECT_TRUE(
+      info.status() && info.status()->cmisStateChanged() &&
+      *info.status()->cmisStateChanged());
+
+  // Verify update qsfp data logic
+  if (auto status = info.status(); status && status->cmisModuleState()) {
+    EXPECT_EQ(*status->cmisModuleState(), CmisModuleState::READY);
+  } else {
+    throw FbossError("Missing CMIS Module state");
+  }
+
+  TransceiverTestsHelper tests(info);
+  tests.verifyVendorName("FACETEST");
+
+  auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
+  EXPECT_FALSE(diagsCap.has_value());
+}
 } // namespace facebook::fboss

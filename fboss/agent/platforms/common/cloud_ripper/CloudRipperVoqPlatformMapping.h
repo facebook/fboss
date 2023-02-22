@@ -17,6 +17,7 @@ namespace fboss {
 class CloudRipperVoqPlatformMapping : public PlatformMapping {
  public:
   CloudRipperVoqPlatformMapping();
+  explicit CloudRipperVoqPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

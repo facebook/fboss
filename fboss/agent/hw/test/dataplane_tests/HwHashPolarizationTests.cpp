@@ -50,14 +50,16 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     pktsReceived_.wlock()->emplace_back(utility::EthFrame{cursor});
   }
   std::vector<PortID> getEcmpPorts() const {
-    auto masterLogicalPorts = masterLogicalPortIds();
+    auto masterLogicalInterfacePorts = masterLogicalInterfacePortIds();
     return {
-        masterLogicalPorts.begin(), masterLogicalPorts.begin() + kEcmpWidth};
+        masterLogicalInterfacePorts.begin(),
+        masterLogicalInterfacePorts.begin() + kEcmpWidth};
   }
   std::vector<PortDescriptor> getEcmpPortDesc() const {
-    auto masterLogicalPorts = masterLogicalPortIds();
+    auto masterLogicalInterfacePorts = masterLogicalInterfacePortIds();
     return {
-        masterLogicalPorts.begin(), masterLogicalPorts.begin() + kEcmpWidth};
+        masterLogicalInterfacePorts.begin(),
+        masterLogicalInterfacePorts.begin() + kEcmpWidth};
   }
 
  protected:
@@ -129,7 +131,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
             getHwSwitch(),
             mac,
             firstVlan,
-            masterLogicalPortIds()[kEcmpWidth]);
+            masterLogicalInterfacePortIds()[kEcmpWidth]);
       }
     } // stop capture
 
@@ -178,7 +180,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
                     << static_cast<int>(ethFrame.header().etherType);
       }
       getHwSwitch()->sendPacketOutOfPortSync(
-          std::move(pkt), masterLogicalPortIds()[kEcmpWidth]);
+          std::move(pkt), masterLogicalInterfacePortIds()[kEcmpWidth]);
     }
     auto secondHashPortStats =
         getHwSwitchEnsemble()->getLatestPortStats(getEcmpPorts());

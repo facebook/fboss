@@ -30,9 +30,6 @@
 #include <iostream>
 #include <thread>
 
-// @lint-ignore CLANGTIDY
-DECLARE_bool(json);
-
 namespace facebook::fboss {
 
 std::pair<uint64_t, uint64_t> getOutPktsAndBytes(

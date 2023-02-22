@@ -24,10 +24,11 @@ namespace facebook::fboss {
 
 SaiWedge400CPlatform::SaiWedge400CPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiTajoPlatform(
           std::move(productInfo),
-          createWedge400CPlatformMapping(),
+          createWedge400CPlatformMapping(platformMappingStr),
           localMac) {}
 
 SaiWedge400CPlatform::SaiWedge400CPlatform(
@@ -94,34 +95,52 @@ SaiWedge400CPlatform::~SaiWedge400CPlatform() {}
 
 SaiWedge400CEbbLabPlatform::SaiWedge400CEbbLabPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiWedge400CPlatform(
           std::move(productInfo),
-          std::make_unique<Wedge400CEbbLabPlatformMapping>(),
+          platformMappingStr.empty()
+              ? std::make_unique<Wedge400CEbbLabPlatformMapping>()
+              : std::make_unique<Wedge400CEbbLabPlatformMapping>(
+                    platformMappingStr),
           localMac) {}
 
 std::unique_ptr<PlatformMapping>
-SaiWedge400CPlatform::createWedge400CPlatformMapping() {
+SaiWedge400CPlatform::createWedge400CPlatformMapping(
+    const std::string& platformMappingStr) {
   if (utility::isWedge400CPlatformRackTypeGrandTeton()) {
-    return std::make_unique<Wedge400CGrandTetonPlatformMapping>();
+    return platformMappingStr.empty()
+        ? std::make_unique<Wedge400CGrandTetonPlatformMapping>()
+        : std::make_unique<Wedge400CGrandTetonPlatformMapping>(
+              platformMappingStr);
   }
-  return std::make_unique<Wedge400CPlatformMapping>();
+  return platformMappingStr.empty()
+      ? std::make_unique<Wedge400CPlatformMapping>()
+      : std::make_unique<Wedge400CPlatformMapping>(platformMappingStr);
 }
 
 SaiWedge400CVoqPlatform::SaiWedge400CVoqPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiWedge400CPlatform(
           std::move(productInfo),
-          std::make_unique<Wedge400CVoqPlatformMapping>(),
+          platformMappingStr.empty()
+              ? std::make_unique<Wedge400CVoqPlatformMapping>()
+              : std::make_unique<Wedge400CVoqPlatformMapping>(
+                    platformMappingStr),
           localMac) {}
 
 SaiWedge400CFabricPlatform::SaiWedge400CFabricPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiWedge400CPlatform(
           std::move(productInfo),
-          std::make_unique<Wedge400CFabricPlatformMapping>(),
+          platformMappingStr.empty()
+              ? std::make_unique<Wedge400CFabricPlatformMapping>()
+              : std::make_unique<Wedge400CFabricPlatformMapping>(
+                    platformMappingStr),
           localMac) {}
 
 } // namespace facebook::fboss

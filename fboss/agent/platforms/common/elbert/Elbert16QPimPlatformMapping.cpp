@@ -47153,4 +47153,9 @@ constexpr auto kJsonPlatformMappingStr = R"(
 namespace facebook::fboss {
 Elbert16QPimPlatformMapping::Elbert16QPimPlatformMapping()
     : MultiPimPlatformMapping(kJsonPlatformMappingStr) {}
+
+Elbert16QPimPlatformMapping::Elbert16QPimPlatformMapping(
+    const std::string& platformMappingStr)
+    : MultiPimPlatformMapping(platformMappingStr) {}
+
 } // namespace facebook::fboss

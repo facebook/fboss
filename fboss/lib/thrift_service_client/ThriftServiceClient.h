@@ -29,11 +29,24 @@ auto constexpr kConnTimeout = 1000;
 auto constexpr kRecvTimeout = 45000;
 auto constexpr kSendTimeout = 5000;
 
+inline folly::SocketOptionMap getSocketOptionMap(
+    std::optional<uint8_t> tos = std::nullopt) {
+  if (tos.has_value()) {
+    folly::SocketOptionKey v6Opts = {IPPROTO_IPV6, IPV6_TCLASS};
+    folly::SocketOptionMap sockOptsMap;
+    sockOptsMap.insert({v6Opts, *tos});
+    return sockOptsMap;
+  } else {
+    return folly::emptySocketOptionMap;
+  }
+}
+
 template <typename ClientT>
 std::unique_ptr<apache::thrift::Client<ClientT>> createPlaintextClient(
     const folly::SocketAddress& dstAddr,
     const std::optional<folly::SocketAddress>& srcAddr = std::nullopt,
-    folly::EventBase* eb = nullptr) {
+    folly::EventBase* eb = nullptr,
+    std::optional<uint8_t> tos = std::nullopt) {
   folly::EventBase* socketEb =
       eb ? eb : folly::EventBaseManager::get()->getEventBase();
 
@@ -43,7 +56,7 @@ std::unique_ptr<apache::thrift::Client<ClientT>> createPlaintextClient(
       nullptr,
       dstAddr,
       kConnTimeout,
-      folly::emptySocketOptionMap,
+      getSocketOptionMap(tos),
       srcAddr ? *srcAddr : folly::AsyncSocketTransport::anyAddress());
   auto channel =
       apache::thrift::RocketClientChannel::newChannel(std::move(socket));
@@ -56,7 +69,8 @@ template <typename ClientT>
 std::unique_ptr<apache::thrift::Client<ClientT>> tryCreateEncryptedClient(
     const folly::SocketAddress& dstAddr,
     const std::optional<folly::SocketAddress>& srcAddr = std::nullopt,
-    folly::EventBase* eb = nullptr);
+    folly::EventBase* eb = nullptr,
+    std::optional<uint8_t> tos = std::nullopt);
 
 std::unique_ptr<apache::thrift::Client<facebook::fboss::FbossCtrl>>
 createWedgeAgentClient(

@@ -15,6 +15,8 @@ extern "C" {
 #include <bcm/port.h>
 }
 
+#include "fboss/agent/hw/bcm/tests/BcmUnitTestUtils.h"
+
 extern "C" {
 struct ibde_t;
 ibde_t* bde;

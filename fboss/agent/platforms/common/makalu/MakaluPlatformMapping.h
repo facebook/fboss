@@ -17,6 +17,7 @@ namespace fboss {
 class MakaluPlatformMapping : public PlatformMapping {
  public:
   MakaluPlatformMapping();
+  MakaluPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

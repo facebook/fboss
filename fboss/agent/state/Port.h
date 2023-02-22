@@ -29,7 +29,7 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-struct PortFields : public ThriftyFields<PortFields, state::PortFields> {
+struct PortFields {
   struct VlanInfo {
     explicit VlanInfo(bool emitTags) : tagged(emitTags) {}
     bool operator==(const VlanInfo& other) const {
@@ -52,24 +52,6 @@ struct PortFields : public ThriftyFields<PortFields, state::PortFields> {
     UP = 1,
   };
 
-  PortFields(PortID id, std::string name) : id(id), name(name) {}
-
-  bool operator==(const PortFields& other) const;
-
-  template <typename Fn>
-  void forEachChild(Fn /*fn*/) {}
-
-  static PortFields fromThrift(state::PortFields const& pf);
-  state::PortFields toThrift() const override;
-
-  // Port migration is complete
-  static PortFields fromFollyDynamicLegacy(folly::dynamic const& dyn) {
-    return fromFollyDynamic(dyn);
-  }
-  folly::dynamic toFollyDynamicLegacy() const {
-    return toFollyDynamic();
-  }
-
   struct MKASakKey {
     bool operator<(const MKASakKey& r) const {
       return std::tie(*sci.macAddress(), *sci.port(), associationNum) <
@@ -88,58 +70,6 @@ struct PortFields : public ThriftyFields<PortFields, state::PortFields> {
       const MKASakKey& sakKey,
       const mka::MKASak& sak);
   static std::pair<MKASakKey, mka::MKASak> rxSakFromThrift(state::RxSak rxSak);
-
-  const PortID id{0};
-  std::string name;
-  std::string description;
-  cfg::PortState adminState{cfg::PortState::DISABLED}; // is the port enabled
-  OperState operState{OperState::DOWN}; // is the port actually up
-  std::optional<phy::LinkFaultStatus> iPhyLinkFaultStatus;
-  phy::PortPrbsState asicPrbs = phy::PortPrbsState();
-  phy::PortPrbsState gbSystemPrbs = phy::PortPrbsState();
-  phy::PortPrbsState gbLinePrbs = phy::PortPrbsState();
-  VlanID ingressVlan{0};
-  cfg::PortSpeed speed{cfg::PortSpeed::DEFAULT};
-  cfg::PortPause pause;
-  std::optional<cfg::PortPfc> pfc;
-  std::optional<std::vector<PfcPriority>> pfcPriorities;
-  VlanMembership vlans;
-  // settings for ingress/egress sFlow sampling rate; we sample every 1:N'th
-  // packets randomly based on those settings. Zero means no sampling.
-  int64_t sFlowIngressRate{0};
-  int64_t sFlowEgressRate{0};
-  // specifies whether sFlow sampled packets should be forwarded to the CPU or
-  // to remote Mirror destinations
-  std::optional<cfg::SampleDestination> sampleDest;
-  QueueConfig queues;
-  std::optional<PortPgConfigs> pgConfigs;
-  cfg::PortLoopbackMode loopbackMode{cfg::PortLoopbackMode::NONE};
-  std::optional<std::string> ingressMirror;
-  std::optional<std::string> egressMirror;
-  std::optional<std::string> qosPolicy;
-  LLDPValidations expectedLLDPValues;
-  NeighborReachability expectedNeighborReachability;
-  std::vector<cfg::AclLookupClass> lookupClassesToDistrubuteTrafficOn;
-  cfg::PortProfileID profileID{cfg::PortProfileID::PROFILE_DEFAULT};
-  // Default value from switch_config.thrift
-  int32_t maxFrameSize{cfg::switch_config_constants::DEFAULT_PORT_MTU()};
-  // Currently we use PlatformPort to fetch such config when we are trying to
-  // program Hardware. This config is from PlatformMapping. Since we need to
-  // program all this config into Hardware, it's a good practice to use a
-  // switch state to drive HwSwitch programming.
-  phy::ProfileSideConfig profileConfig;
-  std::vector<phy::PinConfig> pinConfigs;
-  // Due to we also use SW Port to program phy ports, which have system and line
-  // profileConfig and pinConfigs, using these two new fields to represent the
-  // configs of line side if needed
-  std::optional<phy::ProfileSideConfig> lineProfileConfig;
-  std::optional<std::vector<phy::PinConfig>> linePinConfigs;
-  // Macsec configs
-  RxSaks rxSecureAssociationKeys;
-  std::optional<mka::MKASak> txSecureAssociationKey;
-  bool macsecDesired{false};
-  bool dropUnencrypted{false};
-  cfg::PortType portType = cfg::PortType::INTERFACE_PORT;
 };
 
 USE_THRIFT_COW(Port);
@@ -631,11 +561,6 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
 
   void setInterfaceIDs(const std::vector<int32_t>& interfaceIDs) {
     set<switch_state_tags::interfaceIDs>(interfaceIDs);
-  }
-
-  static std::shared_ptr<Port> fromFollyDynamic(const folly::dynamic& dyn) {
-    auto fields = PortFields::fromFollyDynamic(dyn);
-    return std::make_shared<Port>(fields.toThrift());
   }
 
   Port* modify(std::shared_ptr<SwitchState>* state);

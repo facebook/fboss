@@ -17,6 +17,7 @@ namespace fboss {
 class Fuji16QPimPlatformMapping : public MultiPimPlatformMapping {
  public:
   explicit Fuji16QPimPlatformMapping();
+  explicit Fuji16QPimPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

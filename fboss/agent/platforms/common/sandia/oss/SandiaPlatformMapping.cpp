@@ -15,8 +15,11 @@
 #include <folly/logging/xlog.h>
 
 namespace facebook::fboss {
-SandiaPlatformMapping::SandiaPlatformMapping() {
-  auto sandia16Q = std::make_unique<Sandia16QPimPlatformMapping>();
+SandiaPlatformMapping::SandiaPlatformMapping(
+    const std::string& platformMappingStr) {
+  auto sandia16Q = platformMappingStr.empty()
+      ? std::make_unique<Sandia16QPimPlatformMapping>()
+      : std::make_unique<Sandia16QPimPlatformMapping>(platformMappingStr);
   for (uint8_t pimID = 2; pimID < 10; pimID++) {
     this->merge(sandia16Q->getPimPlatformMapping(pimID));
   }

@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/hw/bcm/BcmLabelSwitchingUtils.h"
+#include "fboss/agent/hw/bcm/tests/BcmUnitTestUtils.h"
 
 // need to define bde in a cpp_unittest for linking with sdk library
 extern "C" {

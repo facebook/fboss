@@ -78,6 +78,18 @@ WRAP_GET_ATTR_FUNC(
     ingress_priority_group,
     SAI_OBJECT_TYPE_INGRESS_PRIORITY_GROUP,
     buffer);
+WRAP_GET_STATS_FUNC(
+    ingress_priority_group,
+    SAI_OBJECT_TYPE_INGRESS_PRIORITY_GROUP,
+    buffer);
+WRAP_GET_STATS_EXT_FUNC(
+    ingress_priority_group,
+    SAI_OBJECT_TYPE_INGRESS_PRIORITY_GROUP,
+    buffer);
+WRAP_CLEAR_STATS_FUNC(
+    ingress_priority_group,
+    SAI_OBJECT_TYPE_INGRESS_PRIORITY_GROUP,
+    buffer);
 
 sai_buffer_api_t* wrappedBufferApi() {
   static sai_buffer_api_t bufferWrappers;
@@ -103,6 +115,12 @@ sai_buffer_api_t* wrappedBufferApi() {
       &wrap_set_ingress_priority_group_attribute;
   bufferWrappers.get_ingress_priority_group_attribute =
       &wrap_get_ingress_priority_group_attribute;
+  bufferWrappers.get_ingress_priority_group_stats =
+      &wrap_get_ingress_priority_group_stats;
+  bufferWrappers.get_ingress_priority_group_stats_ext =
+      &wrap_get_ingress_priority_group_stats_ext;
+  bufferWrappers.clear_ingress_priority_group_stats =
+      &wrap_clear_ingress_priority_group_stats;
 
   return &bufferWrappers;
 }

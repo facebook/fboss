@@ -17,6 +17,7 @@ namespace fboss {
 class Wedge100PlatformMapping : public PlatformMapping {
  public:
   Wedge100PlatformMapping();
+  explicit Wedge100PlatformMapping(const std::string& platformMappingStr);
 
   void customizePlatformPortConfigOverrideFactor(
       std::optional<cfg::PlatformPortConfigOverrideFactor>& factor)

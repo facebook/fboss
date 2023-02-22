@@ -6,7 +6,8 @@ namespace facebook::fboss {
 
 std::unique_ptr<SaiPlatform> getLEBPlatform(
     std::unique_ptr<PlatformProductInfo> /*productInfo*/,
-    folly::MacAddress /* localMac */) {
+    folly::MacAddress /* localMac */,
+    const std::string& platformMappingStr) {
   return nullptr;
 }
 

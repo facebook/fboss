@@ -19,7 +19,8 @@ class SaiLassenPlatform : public SaiTajoPlatform {
  public:
   explicit SaiLassenPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac);
+      folly::MacAddress localMac,
+      const std::string& platformMappingStr);
   ~SaiLassenPlatform() override;
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;

@@ -3,6 +3,10 @@
 #include "fboss/agent/hw/test/PhyCapabilities.h"
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 
+extern "C" {
+#include <sai.h>
+}
+
 namespace facebook::fboss {
 
 bool rxSignalDetectSupportedInSdk() {

@@ -16,6 +16,7 @@
 
 #include <folly/logging/xlog.h>
 #include "fboss/qsfp_service/StatsPublisher.h"
+#include "fboss/qsfp_service/module/QsfpModule.h"
 
 using namespace facebook::fboss;
 using folly::MutableByteRange;
@@ -172,31 +173,17 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
           module_ + 1, {TransceiverI2CApi::ADDR_QSFP, 0, 1}, buf.data());
       XLOG(DBG3) << folly::sformat(
           "Transceiver {:d}  identifier: {:#x}", module_, buf[0]);
-      if ((buf[0] ==
-           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS)) ||
-          (buf[0] ==
-           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD))) {
-        return TransceiverManagementInterface::CMIS;
-      } else if (
-          (buf[0] ==
-           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS)) ||
-          (buf[0] ==
-           static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP28)) ||
-          (buf[0] ==
-           static_cast<uint8_t>(TransceiverModuleIdentifier::MINIPHOTON_OBO))) {
-        return TransceiverManagementInterface::SFF;
-      } else if (
-          buf[0] ==
-          static_cast<uint8_t>(TransceiverModuleIdentifier::SFP_PLUS)) {
-        return TransceiverManagementInterface::SFF8472;
-      } else if (
-          buf[0] !=
-          static_cast<uint8_t>(TransceiverModuleIdentifier::UNKNOWN)) {
+      TransceiverManagementInterface modInterfaceType =
+          QsfpModule::getTransceiverManagementInterface(buf[0], module_ + 1);
+
+      if (modInterfaceType == TransceiverManagementInterface::UNKNOWN) {
         XLOG(WARNING) << folly::sformat(
             "Transceiver {:d} has unknown non-zero identifier: {:#x} defaulting to SFF",
             module_,
             buf[0]);
         return TransceiverManagementInterface::SFF;
+      } else if (modInterfaceType != TransceiverManagementInterface::NONE) {
+        return modInterfaceType;
       }
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Transceiver " << module_

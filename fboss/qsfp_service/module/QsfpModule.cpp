@@ -844,6 +844,38 @@ MediaInterfaceCode QsfpModule::getModuleMediaInterface() {
   return MediaInterfaceCode::UNKNOWN;
 }
 
+TransceiverManagementInterface QsfpModule::getTransceiverManagementInterface(
+    const uint8_t moduleId,
+    const unsigned int oneBasedPort) {
+  if (moduleId ==
+          static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS) ||
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD)) {
+    return TransceiverManagementInterface::CMIS;
+  } else if (
+      moduleId ==
+          static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS) ||
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP) ||
+      moduleId ==
+          static_cast<uint8_t>(TransceiverModuleIdentifier::MINIPHOTON_OBO) ||
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP28)) {
+    return TransceiverManagementInterface::SFF;
+  } else if (
+      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::SFP_PLUS)) {
+    return TransceiverManagementInterface::SFF8472;
+  } else if (
+      moduleId != static_cast<uint8_t>(TransceiverModuleIdentifier::UNKNOWN)) {
+    XLOG(ERR) << fmt::format(
+        "QSFP {:d}: Unrecognized non zero module Id = {:d}",
+        oneBasedPort,
+        moduleId);
+    return TransceiverManagementInterface::UNKNOWN;
+  }
+
+  XLOG(ERR) << fmt::format(
+      "QSFP {:d}: Bad module Id = {:d}", oneBasedPort, moduleId);
+  return TransceiverManagementInterface::NONE;
+}
+
 void QsfpModule::programTransceiver(
     cfg::PortSpeed speed,
     bool needResetDataPath) {

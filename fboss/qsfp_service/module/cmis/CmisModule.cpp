@@ -789,7 +789,13 @@ bool CmisModule::getHostLaneSettings(
 }
 
 unsigned int CmisModule::numHostLanes() const {
-  auto application = static_cast<uint8_t>(getSmfMediaInterface());
+  auto mediaTypeEncoding = getMediaTypeEncoding();
+  uint8_t application = 0;
+  if (mediaTypeEncoding == MediaTypeEncodings::OPTICAL_SMF) {
+    application = static_cast<uint8_t>(getSmfMediaInterface());
+  } else if (mediaTypeEncoding == MediaTypeEncodings::PASSIVE_CU) {
+    application = static_cast<uint8_t>(PassiveCuMediaInterfaceCode::COPPER);
+  }
   auto capabilityIter = moduleCapabilities_.find(application);
   if (capabilityIter == moduleCapabilities_.end()) {
     return 4;
@@ -798,7 +804,13 @@ unsigned int CmisModule::numHostLanes() const {
 }
 
 unsigned int CmisModule::numMediaLanes() const {
-  auto application = static_cast<uint8_t>(getSmfMediaInterface());
+  auto mediaTypeEncoding = getMediaTypeEncoding();
+  uint8_t application = 0;
+  if (mediaTypeEncoding == MediaTypeEncodings::OPTICAL_SMF) {
+    application = static_cast<uint8_t>(getSmfMediaInterface());
+  } else if (mediaTypeEncoding == MediaTypeEncodings::PASSIVE_CU) {
+    application = static_cast<uint8_t>(PassiveCuMediaInterfaceCode::COPPER);
+  }
   auto capabilityIter = moduleCapabilities_.find(application);
   if (capabilityIter == moduleCapabilities_.end()) {
     return 4;
@@ -847,31 +859,45 @@ SMFMediaInterfaceCode CmisModule::getSmfMediaInterface() const {
   return (SMFMediaInterfaceCode)currentApplication;
 }
 
+MediaTypeEncodings CmisModule::getMediaTypeEncoding() const {
+  return static_cast<MediaTypeEncodings>(
+      getSettingsValue(CmisField::MEDIA_TYPE_ENCODINGS));
+}
+
 bool CmisModule::getMediaInterfaceId(
     std::vector<MediaInterfaceId>& mediaInterface) {
   assert(mediaInterface.size() == numMediaLanes());
-  MediaTypeEncodings encoding =
-      (MediaTypeEncodings)getSettingsValue(CmisField::MEDIA_TYPE_ENCODINGS);
-  if (encoding != MediaTypeEncodings::OPTICAL_SMF) {
-    return false;
-  }
-
-  // Currently setting the same media interface for all media lanes
-  auto smfMediaInterface = getSmfMediaInterface();
-  for (int lane = 0; lane < mediaInterface.size(); lane++) {
-    mediaInterface[lane].lane() = lane;
-    MediaInterfaceUnion media;
-    media.smfCode_ref() = smfMediaInterface;
-    if (auto it = mediaInterfaceMapping.find(smfMediaInterface);
-        it != mediaInterfaceMapping.end()) {
-      mediaInterface[lane].code() = it->second;
-    } else {
-      QSFP_LOG(ERR, this) << "Unable to find MediaInterfaceCode for "
-                          << apache::thrift::util::enumNameSafe(
-                                 smfMediaInterface);
-      mediaInterface[lane].code() = MediaInterfaceCode::UNKNOWN;
+  MediaTypeEncodings encoding = getMediaTypeEncoding();
+  if (encoding == MediaTypeEncodings::OPTICAL_SMF) {
+    // Currently setting the same media interface for all media lanes
+    auto smfMediaInterface = getSmfMediaInterface();
+    for (int lane = 0; lane < mediaInterface.size(); lane++) {
+      mediaInterface[lane].lane() = lane;
+      MediaInterfaceUnion media;
+      media.smfCode_ref() = smfMediaInterface;
+      if (auto it = mediaInterfaceMapping.find(smfMediaInterface);
+          it != mediaInterfaceMapping.end()) {
+        mediaInterface[lane].code() = it->second;
+      } else {
+        QSFP_LOG(ERR, this)
+            << "Unable to find MediaInterfaceCode for "
+            << apache::thrift::util::enumNameSafe(smfMediaInterface);
+        mediaInterface[lane].code() = MediaInterfaceCode::UNKNOWN;
+      }
+      mediaInterface[lane].media() = media;
     }
-    mediaInterface[lane].media() = media;
+  } else if (encoding == MediaTypeEncodings::PASSIVE_CU) {
+    for (int lane = 0; lane < mediaInterface.size(); lane++) {
+      mediaInterface[lane].lane() = lane;
+      MediaInterfaceUnion media;
+      media.passiveCuCode_ref() = PassiveCuMediaInterfaceCode::COPPER;
+      // FIXME: Remove CR8_400G hardcoding and derive this from number of
+      // lanes/host electrical interface instead
+      mediaInterface[lane].code() = MediaInterfaceCode::CR8_400G;
+      mediaInterface[lane].media() = media;
+    }
+  } else {
+    return false;
   }
 
   return true;
@@ -886,11 +912,18 @@ void CmisModule::getApplicationCapabilities() {
   getQsfpFieldAddress(
       CmisField::APPLICATION_ADVERTISING1, dataAddress, offset, length);
 
+  moduleCapabilities_.clear();
   for (uint8_t i = 0; i < 8; i++) {
     data = getQsfpValuePtr(dataAddress, offset + i * length, length);
 
     if (data[0] == 0xff) {
       break;
+    }
+
+    if (moduleCapabilities_.find(data[1]) != moduleCapabilities_.end()) {
+      // Capability for this application already exists. Prioritize the first
+      // one that was found
+      continue;
     }
 
     QSFP_LOG(DBG3, this) << folly::sformat(
@@ -1930,6 +1963,73 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
 }
 
 /*
+ * ensureTransceiverReady
+ *
+ * If the current power configuration state is not same as desired one then
+ * change it to that (by setting and resetting LP mode) otherwise return true
+ * when module is in ready state otherwise return false.
+ */
+bool CmisModule::ensureTransceiverReady() {
+  // If customization is not supported then the Power control bit can't be
+  // touched. Return true as nothing needs to be done here
+  if (!customizationSupported()) {
+    QSFP_LOG(DBG1, this)
+        << "ensureTransceiverReady: Customization not supported";
+    return true;
+  }
+
+  // Read the current power configuration values. Don't depend on refresh
+  // because that may be delayed
+  uint8_t currentModuleControl;
+  PowerControlState powerState;
+  readCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
+
+  if (currentModuleControl & POWER_CONTROL_MASK) {
+    powerState = PowerControlState::POWER_LPMODE;
+  } else {
+    powerState = PowerControlState::HIGH_POWER_OVERRIDE;
+  }
+
+  // If Optics current power configuration is High Power then the config is
+  // correct. We need to check if the Module's current status is READY then
+  // return true else return false as the optics state machine might be in
+  // transition and need more time to be ready
+  if (powerState == PowerControlState::HIGH_POWER_OVERRIDE) {
+    uint8_t moduleStatus;
+    readCmisField(CmisField::MODULE_STATE, &moduleStatus);
+    bool isReady =
+        ((CmisModuleState)((moduleStatus & MODULE_STATUS_MASK) >> MODULE_STATUS_BITSHIFT) ==
+         CmisModuleState::READY);
+    return isReady;
+  }
+
+  // If the optics current power configuration is Low Power then set the LP
+  // mode, wait, reset the LP mode and then return false since the module
+  // needs some time to converge its state machine
+
+  // LowPwr is on the 6 bit of ModuleControl.
+  currentModuleControl = currentModuleControl | POWER_CONTROL_MASK;
+
+  // first set to low power
+  writeCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
+
+  // Wait for 100ms before resetting the LP mode
+  /* sleep override */
+  usleep(kUsecBetweenPowerModeFlap);
+
+  // now enable target power class
+  currentModuleControl = currentModuleControl & ~POWER_CONTROL_MASK;
+
+  writeCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
+
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "ensureTransceiverReady: QSFP module control set to {:#x}",
+      currentModuleControl);
+
+  return false;
+}
+
+/*
  * configureModule
  *
  * Set the module serdes / Rx equalizer after module has been discovered. This
@@ -1937,6 +2037,11 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
  * the setting is specified in the qsfp config
  */
 void CmisModule::configureModule() {
+  if (getMediaTypeEncoding() == MediaTypeEncodings::PASSIVE_CU) {
+    // Nothing to configure for passive copper modules
+    return;
+  }
+
   auto appCode = getSmfMediaInterface();
 
   QSFP_LOG(INFO, this) << "configureModule for application "
@@ -1977,16 +2082,23 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() {
   // Go over all module capabilities and return the one with max speed
   auto maxSpeed = cfg::PortSpeed::DEFAULT;
   auto moduleMediaInterface = MediaInterfaceCode::UNKNOWN;
+  auto mediaTypeEncoding = getMediaTypeEncoding();
   for (auto moduleCapIter : moduleCapabilities_) {
-    auto smfCode = static_cast<SMFMediaInterfaceCode>(moduleCapIter.first);
-    if (mediaInterfaceToPortSpeedMapping.find(smfCode) !=
-            mediaInterfaceToPortSpeedMapping.end() &&
-        mediaInterfaceMapping.find(smfCode) != mediaInterfaceMapping.end()) {
-      auto speed = mediaInterfaceToPortSpeedMapping[smfCode];
-      if (speed > maxSpeed) {
-        maxSpeed = speed;
-        moduleMediaInterface = mediaInterfaceMapping[smfCode];
+    if (mediaTypeEncoding == MediaTypeEncodings::OPTICAL_SMF) {
+      auto smfCode = static_cast<SMFMediaInterfaceCode>(moduleCapIter.first);
+      if (mediaInterfaceToPortSpeedMapping.find(smfCode) !=
+              mediaInterfaceToPortSpeedMapping.end() &&
+          mediaInterfaceMapping.find(smfCode) != mediaInterfaceMapping.end()) {
+        auto speed = mediaInterfaceToPortSpeedMapping[smfCode];
+        if (speed > maxSpeed) {
+          maxSpeed = speed;
+          moduleMediaInterface = mediaInterfaceMapping[smfCode];
+        }
       }
+    } else if (mediaTypeEncoding == MediaTypeEncodings::PASSIVE_CU) {
+      // FIXME: Remove CR8_400G hardcoding and derive this from number of
+      // lanes/host electrical interface instead
+      moduleMediaInterface = MediaInterfaceCode::CR8_400G;
     }
   }
 

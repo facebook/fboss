@@ -14,6 +14,8 @@
 #include "fboss/agent/hw/test/HwSwitchEnsemble.h"
 #include "fboss/agent/hw/test/HwSwitchEnsembleFactory.h"
 
+#include "fboss/agent/benchmarks/AgentBenchmarks.h"
+
 #include <folly/Benchmark.h>
 #include <folly/IPAddress.h>
 #include <folly/logging/xlog.h>
@@ -42,22 +44,36 @@ RouteNextHopSet makeNextHops(std::vector<std::string> ipsAsStrings) {
  */
 BENCHMARK(HwStatsCollection) {
   folly::BenchmarkSuspender suspender;
-  auto ensemble = createAndInitHwEnsemble({HwSwitchEnsemble::LINKSCAN});
-  auto hwSwitch = ensemble->getHwSwitch();
-  std::vector<PortID> ports = ensemble->masterLogicalPortIds();
+  std::unique_ptr<AgentEnsemble> ensemble{};
   // maximum 48 master logical ports (taken from wedge400) to get
   // consistent performance results across platforms with different
   // number of ports but same ASIC, e.g. wedge400 and minipack
   int numPortsToCollectStats = 48;
-  ports.resize(std::min((int)ports.size(), numPortsToCollectStats));
-  auto config = utility::onePortPerInterfaceConfig(hwSwitch, ports);
   // route counters in hardware is currently limited to 255.
   // this is due to the fact that in some platforms, route class id
   // (8 bits) is overloaded to support counter id.
   int numRouteCounters = 255;
-  config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
-  ensemble->applyInitialConfig(config);
-  auto updater = ensemble->getRouteUpdater();
+
+  AgentEnsembleSwitchConfigFn initialConfigFn =
+      [numPortsToCollectStats, numRouteCounters](
+          HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
+        auto portsNew = ports;
+        portsNew.resize(std::min((int)ports.size(), numPortsToCollectStats));
+
+        auto config = utility::onePortPerInterfaceConfig(
+            hwSwitch, portsNew, cfg::PortLoopbackMode::MAC);
+        config.switchSettings()->maxRouteCounterIDs() = numRouteCounters;
+        return config;
+      };
+  ensemble = createAgentEnsemble(initialConfigFn);
+  ensemble->setupLinkStateToggler();
+  auto hwSwitch = ensemble->getHw();
+  ensemble->startAgent();
+
+  std::vector<PortID> ports = ensemble->masterLogicalPortIds();
+  ports.resize(std::min((int)ports.size(), numPortsToCollectStats));
+
+  auto updater = ensemble->getSw()->getRouteUpdater();
   for (auto i = 0; i < numRouteCounters; i++) {
     folly::CIDRNetwork nw{
         folly::IPAddress(folly::sformat("2401:db00:0021:{:x}::", i)), 64};

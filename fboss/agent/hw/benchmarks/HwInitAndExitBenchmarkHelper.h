@@ -18,7 +18,6 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 DECLARE_bool(setup_for_warmboot);
-DECLARE_bool(json);
 
 namespace facebook::fboss::utility {
 

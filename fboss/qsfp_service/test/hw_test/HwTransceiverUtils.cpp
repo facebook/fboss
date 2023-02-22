@@ -316,6 +316,7 @@ void HwTransceiverUtils::verifyDiagsCapability(
       return;
     case TransceiverManagementInterface::SFF8472:
     case TransceiverManagementInterface::NONE:
+    case TransceiverManagementInterface::UNKNOWN:
       EXPECT_FALSE(diagsCapability.has_value());
       return;
   }

@@ -18,6 +18,7 @@ namespace fboss {
 class Minipack16QPimPlatformMapping : public MultiPimPlatformMapping {
  public:
   explicit Minipack16QPimPlatformMapping(ExternalPhyVersion xphyVersion);
+  explicit Minipack16QPimPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

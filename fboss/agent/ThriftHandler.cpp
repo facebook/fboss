@@ -606,6 +606,14 @@ template <typename AddressT, typename NeighborThriftT>
 void addRemoteNeighbors(
     const std::shared_ptr<SwitchState> state,
     std::vector<NeighborThriftT>& nbrs) {
+  if (state->getSwitchSettings()->getSwitchType() != cfg::SwitchType::VOQ) {
+    return;
+  }
+
+  CHECK(state->getSwitchSettings()->getSwitchId().has_value());
+  for (auto& nbr : nbrs) {
+    nbr.switchId() = *state->getSwitchSettings()->getSwitchId();
+  }
   const auto& remoteRifs = state->getRemoteInterfaces();
   const auto& remoteSysPorts = state->getRemoteSystemPorts();
   for (const auto& idAndRif : std::as_const(*remoteRifs)) {
@@ -629,6 +637,37 @@ void addRemoteNeighbors(
       }
       nbrs.push_back(nbrThrift);
     }
+  }
+}
+template <typename AddressT, typename NeighborThriftT>
+void addRecylePortRifNeighbors(
+    const std::shared_ptr<SwitchState> state,
+    std::vector<NeighborThriftT>& nbrs) {
+  if (state->getSwitchSettings()->getSwitchType() != cfg::SwitchType::VOQ) {
+    return;
+  }
+
+  constexpr auto kRecylePortId = 1;
+  auto localRecycleRifId = InterfaceID(
+      *state->getSwitchSettings()->getSystemPortRange()->minimum() +
+      kRecylePortId);
+  const auto& localRecycleRif =
+      state->getInterfaces()->getInterface(localRecycleRifId);
+  const auto& nbrTable =
+      std::as_const(*localRecycleRif->getNeighborEntryTable<AddressT>());
+  for (const auto& ipAndEntry : nbrTable) {
+    const auto& entry = ipAndEntry.second;
+    NeighborThriftT nbrThrift;
+    nbrThrift.ip() = facebook::network::toBinaryAddress(entry->getIP());
+    nbrThrift.mac() = entry->getMac().toString();
+    nbrThrift.port() = kRecylePortId;
+    nbrThrift.vlanName() = "--";
+    nbrThrift.state() = "--";
+    nbrThrift.isLocal() = true;
+    nbrThrift.switchId() =
+        static_cast<int64_t>(*state->getSwitchSettings()->getSwitchId());
+
+    nbrs.push_back(nbrThrift);
   }
 }
 } // namespace
@@ -929,6 +968,7 @@ void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
       ndpTable.begin(),
       std::make_move_iterator(std::begin(entries)),
       std::make_move_iterator(std::end(entries)));
+  addRecylePortRifNeighbors<folly::IPAddressV6>(sw_->getState(), ndpTable);
   addRemoteNeighbors<folly::IPAddressV6>(sw_->getState(), ndpTable);
 }
 
@@ -941,6 +981,7 @@ void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
       arpTable.begin(),
       std::make_move_iterator(std::begin(entries)),
       std::make_move_iterator(std::end(entries)));
+  addRecylePortRifNeighbors<folly::IPAddressV4>(sw_->getState(), arpTable);
   addRemoteNeighbors<folly::IPAddressV4>(sw_->getState(), arpTable);
 }
 
@@ -2068,6 +2109,18 @@ void ThriftHandler::ensureConfigured(StringPiece function) const {
       "fully configured yet");
 }
 
+void ThriftHandler::ensureNPU(StringPiece function) const {
+  ensureConfigured(function);
+  if (isNpuSwitch()) {
+    return;
+  }
+
+  if (!function.empty()) {
+    XLOG(DBG1) << "failing thrift on non NPU Switch type: " << function;
+  }
+  throw FbossError(function, " is only supported on NPU switch type");
+}
+
 // If this is a premature client disconnect from a duplex connection, we need to
 // clean up state.  Failure to do so may allow the server's duplex clients to
 // use the destroyed context => segfaults.
@@ -2473,8 +2526,16 @@ void ThriftHandler::getBlockedNeighbors(
   }
 }
 
+bool ThriftHandler::isNpuSwitch() const {
+  return sw_->getState()->getSwitchSettings()->getSwitchType() ==
+      cfg::SwitchType::NPU;
+}
+
 void ThriftHandler::setNeighborsToBlock(
     std::unique_ptr<std::vector<cfg::Neighbor>> neighborsToBlock) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  ensureNPU(__func__);
   std::string neighborsToBlockStr;
   std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
 
@@ -2504,8 +2565,6 @@ void ThriftHandler::setNeighborsToBlock(
           folly::IPAddress(*neighborToBlock.ipAddress()));
     }
   }
-
-  auto log = LOG_THRIFT_CALL(DBG1, neighborsToBlockStr);
 
   sw_->updateStateBlocking(
       "Update blocked neighbors ",
@@ -2537,6 +2596,8 @@ void ThriftHandler::getMacAddrsToBlock(
 
 void ThriftHandler::setMacAddrsToBlock(
     std::unique_ptr<std::vector<cfg::MacAndVlan>> macAddrsToBlock) {
+  ensureConfigured(__func__);
+  ensureNPU(__func__);
   std::string macAddrsToBlockStr;
   std::vector<std::pair<VlanID, folly::MacAddress>> blockMacAddrs;
 
@@ -2725,6 +2786,8 @@ void ThriftHandler::getTeFlowTableDetails(
 
 void ThriftHandler::getFabricReachability(
     std::map<std::string, FabricEndpoint>& reachability) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   auto portId2FabricEndpoint = sw_->getHw()->getFabricReachability();
   auto state = sw_->getState();
   static MakaluPlatformMapping makalu;
@@ -2734,9 +2797,15 @@ void ThriftHandler::getFabricReachability(
   for (auto [portId, fabricEndpoint] : portId2FabricEndpoint) {
     auto portName = state->getPorts()->getPort(portId)->getName();
     if (*fabricEndpoint.isAttached()) {
-      if (fabricEndpoint.switchType() == cfg::SwitchType::FABRIC) {
+      // Some SAI implementations don't support setting non-0 switchID for
+      // Fabric switches. For such implementations, FBOSS sets switchID=0 for
+      // Fabric switches. Thus, ignore received switchID for Fabric switches on
+      // these implementations.
+      if (fabricEndpoint.switchType() == cfg::SwitchType::FABRIC &&
+          fabricEndpoint.switchId() == 0) {
         fabricEndpoint.switchId() = -1;
       }
+
       auto swId = *fabricEndpoint.switchId();
       auto node = state->getDsfNodes()->getDsfNodeIf(SwitchID(swId));
       // Pull platform mapping of remote end. Used to lookup remote
@@ -2796,11 +2865,15 @@ void ThriftHandler::getFabricReachability(
 }
 
 void ThriftHandler::getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   dsfNodes = sw_->getState()->getDsfNodes()->toThrift();
 }
 
 void ThriftHandler::getSystemPorts(
     std::map<int64_t, SystemPortThrift>& sysPorts) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
   auto state = sw_->getState();
   sysPorts = state->getSystemPorts()->toThrift();
   auto remoteSysPorts = state->getRemoteSystemPorts()->toThrift();

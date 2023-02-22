@@ -11959,4 +11959,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
 MakaluPlatformMapping::MakaluPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
+MakaluPlatformMapping::MakaluPlatformMapping(
+    const std::string& platformMappingStr)
+    : PlatformMapping(platformMappingStr) {}
+
 } // namespace facebook::fboss

@@ -384,36 +384,6 @@ std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> getQsfpClient(
 
 /*
  * This function returns the transceiver management interface
- * based on the module type
- */
-TransceiverManagementInterface getTransceiverManagementInterface(
-    const uint8_t moduleId,
-    const unsigned int oneBasedPort) {
-  if (moduleId ==
-          static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS) ||
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD)) {
-    return TransceiverManagementInterface::CMIS;
-  } else if (
-      moduleId ==
-          static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS) ||
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP) ||
-      moduleId ==
-          static_cast<uint8_t>(TransceiverModuleIdentifier::MINIPHOTON_OBO) ||
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP28)) {
-    return TransceiverManagementInterface::SFF;
-  } else if (
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::SFP_PLUS)) {
-    return TransceiverManagementInterface::SFF8472;
-  } else {
-    XLOG(ERR) << fmt::format(
-        "QSFP {:d}: Unrecognized module type = {:d}", oneBasedPort, moduleId);
-  }
-
-  return TransceiverManagementInterface::NONE;
-}
-
-/*
- * This function returns the transceiver management interface
  * by reading the register 0 directly from module
  */
 TransceiverManagementInterface getModuleType(
@@ -431,7 +401,7 @@ TransceiverManagementInterface getModuleType(
     }
   }
 
-  return getTransceiverManagementInterface(moduleId, port);
+  return QsfpModule::getTransceiverManagementInterface(moduleId, port);
 }
 
 /*
@@ -458,9 +428,11 @@ std::map<int32_t, TransceiverManagementInterface> getModuleTypeViaService(
   for (const auto& response : readResp) {
     const auto moduleId = *(response.second.data()->data());
     const TransceiverManagementInterface modType =
-        getTransceiverManagementInterface(moduleId, response.first + 1);
+        QsfpModule::getTransceiverManagementInterface(
+            moduleId, response.first + 1);
 
-    if (modType == TransceiverManagementInterface::NONE) {
+    if (modType == TransceiverManagementInterface::NONE ||
+        modType == TransceiverManagementInterface::UNKNOWN) {
       return std::map<int32_t, TransceiverManagementInterface>();
     } else {
       moduleTypes[response.first] = modType;
@@ -2046,11 +2018,18 @@ void printCmisDetailService(
         apache::thrift::util::enumNameSafe(*stateMachineState).c_str());
   }
   if (auto mediaInterfaceId = settings.mediaInterface()) {
-    printf(
-        "  Media Interface: %s\n",
-        apache::thrift::util::enumNameSafe(
-            (*mediaInterfaceId)[0].media()->get_smfCode())
-            .c_str());
+    std::string mediaInterface;
+    if ((*mediaInterfaceId)[0].media()->getType() ==
+        MediaInterfaceUnion::smfCode) {
+      mediaInterface = apache::thrift::util::enumNameSafe(
+          (*mediaInterfaceId)[0].media()->get_smfCode());
+    } else if (
+        (*mediaInterfaceId)[0].media()->getType() ==
+        MediaInterfaceUnion::passiveCuCode) {
+      mediaInterface = apache::thrift::util::enumNameSafe(
+          (*mediaInterfaceId)[0].media()->get_passiveCuCode());
+    }
+    printf("  Media Interface: %s\n", mediaInterface.c_str());
   }
   printf(
       "  Power Control: %s\n",

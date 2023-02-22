@@ -94,6 +94,8 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DLB:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::WARMBOOT:
+    case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
+    case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
       return true;
     // features only supported by B0 version, or any physical device
     // where used chip is always B0.
@@ -142,6 +144,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::P4_WARMBOOT:
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
+    case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
       return false;
   }
   return false;

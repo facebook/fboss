@@ -99,7 +99,7 @@ class ThriftTest : public ::testing::Test {
 };
 
 TEST_F(ThriftTest, getInterfaceDetail) {
-  ThriftHandler handler(sw_);
+  ThriftHandler handler(this->sw_);
 
   // Query the two interfaces configured by testStateA()
   InterfaceDetail info;
@@ -138,19 +138,49 @@ TEST_F(ThriftTest, getInterfaceDetail) {
   EXPECT_THROW(handler.getInterfaceDetail(info, 123), FbossError);
 }
 
-TEST_F(ThriftTest, listHwObjects) {
-  ThriftHandler handler(sw_);
+template <typename SwitchTypeT>
+class ThriftTestAllSwitchTypes : public ::testing::Test {
+ public:
+  static auto constexpr switchType = SwitchTypeT::switchType;
+  void SetUp() override {
+    auto config = testConfigA(SwitchTypeT::switchType);
+    handle_ = createTestHandle(&config);
+    sw_ = handle_->getSw();
+    sw_->initialConfigApplied(std::chrono::steady_clock::now());
+  }
+  bool isVoq() const {
+    return switchType == cfg::SwitchType::VOQ;
+  }
+  bool isFabric() const {
+    return switchType == cfg::SwitchType::FABRIC;
+  }
+  bool isNpu() const {
+    return switchType == cfg::SwitchType::NPU;
+  }
+  int interfaceIdOffset() const {
+    return isVoq()
+        ? *sw_->getState()->getSwitchSettings()->getSystemPortRange()->minimum()
+        : 0;
+  }
+  SwSwitch* sw_;
+  std::unique_ptr<HwTestHandle> handle_;
+};
+
+TYPED_TEST_SUITE(ThriftTestAllSwitchTypes, SwitchTypes);
+
+TYPED_TEST(ThriftTestAllSwitchTypes, listHwObjects) {
+  ThriftHandler handler(this->sw_);
   std::string out;
   std::vector<HwObjectType> in{HwObjectType::PORT};
-  EXPECT_HW_CALL(sw_, listObjects(in, testing::_)).Times(1);
+  EXPECT_HW_CALL(this->sw_, listObjects(in, testing::_)).Times(1);
   handler.listHwObjects(
       out, std::make_unique<std::vector<HwObjectType>>(in), false);
 }
 
-TEST_F(ThriftTest, getHwDebugDump) {
-  ThriftHandler handler(sw_);
+TYPED_TEST(ThriftTestAllSwitchTypes, getHwDebugDump) {
+  ThriftHandler handler(this->sw_);
   std::string out;
-  EXPECT_HW_CALL(sw_, dumpDebugState(testing::_)).Times(1);
+  EXPECT_HW_CALL(this->sw_, dumpDebugState(testing::_)).Times(1);
   // Mock getHwDebugDump doesn't write any thing so expect FbossError
   EXPECT_THROW(handler.getHwDebugDump(out), FbossError);
 }
@@ -199,12 +229,12 @@ TEST(ThriftEnum, assertPortSpeeds) {
   }
 }
 
-TEST_F(ThriftTest, LinkLocalRoutes) {
+TYPED_TEST(ThriftTestAllSwitchTypes, LinkLocalRoutes) {
   // Link local addr.
   auto ip = IPAddressV6("fe80::");
   // Find longest match to link local addr.
   auto longestMatchRoute = findLongestMatchRoute(
-      sw_->getRib(), RouterID(0), ip, this->sw_->getState());
+      this->sw_->getRib(), RouterID(0), ip, this->sw_->getState());
   // Verify that a route is found. Link local route should always
   // be present
   ASSERT_NE(nullptr, longestMatchRoute);
@@ -212,47 +242,46 @@ TEST_F(ThriftTest, LinkLocalRoutes) {
   ASSERT_EQ(longestMatchRoute->prefix().network(), ip);
 }
 
-TEST_F(ThriftTest, flushNonExistentNeighbor) {
-  ThriftHandler handler(sw_);
-  EXPECT_EQ(
-      handler.flushNeighborEntry(
-          std::make_unique<BinaryAddress>(
-              toBinaryAddress(IPAddress("100.100.100.1"))),
-          1),
-      0);
-  EXPECT_EQ(
-      handler.flushNeighborEntry(
-          std::make_unique<BinaryAddress>(
-              toBinaryAddress(IPAddress("100::100"))),
-          1),
-      0);
+TYPED_TEST(ThriftTestAllSwitchTypes, flushNonExistentNeighbor) {
+  ThriftHandler handler(this->sw_);
+  auto v4Addr = std::make_unique<BinaryAddress>(
+      toBinaryAddress(IPAddress("100.100.100.1")));
+  auto v6Addr =
+      std::make_unique<BinaryAddress>(toBinaryAddress(IPAddress("100::100")));
+  if (this->isNpu()) {
+    EXPECT_EQ(handler.flushNeighborEntry(std::move(v4Addr), 1), 0);
+    EXPECT_EQ(handler.flushNeighborEntry(std::move(v6Addr), 1), 0);
+  } else {
+    EXPECT_THROW(handler.flushNeighborEntry(std::move(v4Addr), 1), FbossError);
+    EXPECT_THROW(handler.flushNeighborEntry(std::move(v6Addr), 1), FbossError);
+  }
 }
 
-TEST_F(ThriftTest, setPortState) {
-  const PortID port1{1};
-  ThriftHandler handler(sw_);
-  handler.setPortState(port1, true);
-  sw_->linkStateChanged(port1, true);
-  waitForStateUpdates(sw_);
+TYPED_TEST(ThriftTestAllSwitchTypes, setPortState) {
+  const PortID port5{5};
+  ThriftHandler handler(this->sw_);
+  handler.setPortState(port5, true);
+  this->sw_->linkStateChanged(port5, true);
+  waitForStateUpdates(this->sw_);
 
-  auto port = sw_->getState()->getPorts()->getPortIf(port1);
+  auto port = this->sw_->getState()->getPorts()->getPortIf(port5);
   EXPECT_TRUE(port->isUp());
   EXPECT_TRUE(port->isEnabled());
 
-  sw_->linkStateChanged(port1, false);
-  handler.setPortState(port1, false);
-  waitForStateUpdates(sw_);
+  this->sw_->linkStateChanged(port5, false);
+  handler.setPortState(port5, false);
+  waitForStateUpdates(this->sw_);
 
-  port = sw_->getState()->getPorts()->getPortIf(port1);
+  port = this->sw_->getState()->getPorts()->getPortIf(port5);
   EXPECT_FALSE(port->isUp());
   EXPECT_FALSE(port->isEnabled());
 }
 
-TEST_F(ThriftTest, getAndSetNeighborsToBlock) {
-  ThriftHandler handler(sw_);
+TYPED_TEST(ThriftTestAllSwitchTypes, getAndSetNeighborsToBlock) {
+  ThriftHandler handler(this->sw_);
 
   auto blockListVerify =
-      [&handler](
+      [this, &handler](
           std::vector<std::pair<VlanID, folly::IPAddress>> neighborsToBlock) {
         auto cfgNeighborsToBlock =
             std::make_unique<std::vector<cfg::Neighbor>>();
@@ -264,18 +293,30 @@ TEST_F(ThriftTest, getAndSetNeighborsToBlock) {
           cfgNeighborsToBlock->emplace_back(neighbor);
         }
         auto expectedCfgNeighborsToBlock = *cfgNeighborsToBlock;
-        handler.setNeighborsToBlock(std::move(cfgNeighborsToBlock));
+        if (this->isNpu()) {
+          handler.setNeighborsToBlock(std::move(cfgNeighborsToBlock));
+        } else {
+          EXPECT_THROW(
+              handler.setNeighborsToBlock(std::move(cfgNeighborsToBlock)),
+              FbossError);
+        }
         waitForStateUpdates(handler.getSw());
 
         auto gotBlockedNeighbors = handler.getSw()
                                        ->getState()
                                        ->getSwitchSettings()
                                        ->getBlockNeighbors_DEPRECATED();
-        EXPECT_EQ(neighborsToBlock, gotBlockedNeighbors);
 
         std::vector<cfg::Neighbor> gotBlockedNeighborsViaThrift;
         handler.getBlockedNeighbors(gotBlockedNeighborsViaThrift);
-        EXPECT_EQ(gotBlockedNeighborsViaThrift, expectedCfgNeighborsToBlock);
+        if (this->isNpu()) {
+          EXPECT_EQ(neighborsToBlock, gotBlockedNeighbors);
+          EXPECT_EQ(gotBlockedNeighborsViaThrift, expectedCfgNeighborsToBlock);
+        } else {
+          std::vector<std::pair<VlanID, folly::IPAddress>> expectedBlockedNbrs;
+          EXPECT_EQ(expectedBlockedNbrs, gotBlockedNeighbors);
+          EXPECT_EQ(std::vector<cfg::Neighbor>(), gotBlockedNeighborsViaThrift);
+        }
       };
 
   // set blockneighbor1
@@ -290,27 +331,33 @@ TEST_F(ThriftTest, getAndSetNeighborsToBlock) {
   // set blockNeighbor2
   blockListVerify(
       {{VlanID(2000), folly::IPAddress("2401:db00:2110:3001::0004")}});
-
+  auto setNeighborsToBlock =
+      [this, &handler](std::unique_ptr<std::vector<cfg::Neighbor>> toBlock) {
+        if (this->isNpu()) {
+          handler.setNeighborsToBlock(std::move(toBlock));
+          waitForStateUpdates(this->sw_);
+        } else {
+          EXPECT_THROW(
+              handler.setNeighborsToBlock(std::move(toBlock)), FbossError);
+        }
+      };
   // set null list (clears block list)
   std::vector<cfg::Neighbor> blockedNeighbors;
-  handler.setNeighborsToBlock({});
-  waitForStateUpdates(sw_);
+  setNeighborsToBlock({});
   EXPECT_EQ(
       0,
-      sw_->getState()
+      this->sw_->getState()
           ->getSwitchSettings()
           ->getBlockNeighbors_DEPRECATED()
           .size());
   handler.getBlockedNeighbors(blockedNeighbors);
   EXPECT_TRUE(blockedNeighbors.empty());
-
   // set empty list (clears block list)
   auto neighborsToBlock = std::make_unique<std::vector<cfg::Neighbor>>();
-  handler.setNeighborsToBlock(std::move(neighborsToBlock));
-  waitForStateUpdates(sw_);
+  setNeighborsToBlock(std::move(neighborsToBlock));
   EXPECT_EQ(
       0,
-      sw_->getState()
+      this->sw_->getState()
           ->getSwitchSettings()
           ->getBlockNeighbors_DEPRECATED()
           .size());

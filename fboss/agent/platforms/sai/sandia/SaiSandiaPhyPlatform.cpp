@@ -86,7 +86,7 @@ SaiSandiaPhyPlatform::SaiSandiaPhyPlatform(
     int phyId)
     : SaiHwPlatform(
           std::move(productInfo),
-          std::make_unique<SandiaPlatformMapping>(),
+          std::make_unique<SandiaPlatformMapping>(""),
           localMac),
       pimId_(pimId),
       phyId_(phyId) {}

@@ -27,9 +27,6 @@
 #include <chrono>
 #include <iostream>
 
-// @lint-ignore CLANGTIDY
-DECLARE_bool(json);
-
 namespace facebook::fboss {
 
 void runBenchmark() {

@@ -104,6 +104,40 @@ void validateBufferPoolWatermarkCounters(
       globalSharedWatermarksIncrementing, updateStats));
 }
 
+void validateIngressPriorityGroupWatermarkCounters(
+    facebook::fboss::HwSwitchEnsemble* ensemble,
+    const int pri,
+    const std::vector<facebook::fboss::PortID>& portIds) {
+  auto ingressPriorityGroupWatermarksIncrementing =
+      [&](const auto& /*newStats*/) {
+        for (const auto& portId : portIds) {
+          const auto& portName = ensemble->getProgrammedState()
+                                     ->getPorts()
+                                     ->getPort(portId)
+                                     ->getName();
+          std::string pg =
+              ensemble->isSai() ? folly::sformat(".pg{}", pri) : "";
+          auto regex = folly::sformat(
+              "buffer_watermark_pg_(shared|headroom).{}{}.p100.60",
+              portName,
+              pg);
+          auto counters = facebook::fb303::fbData->getRegexCounters(regex);
+          CHECK_EQ(counters.size(), 2);
+          for (const auto& ctr : counters) {
+            XLOG(DBG0) << ctr.first << " : " << ctr.second;
+            if (!ctr.second) {
+              return false;
+            }
+          }
+        }
+        return true;
+      };
+  EXPECT_TRUE(ensemble->waitPortStatsCondition(
+      ingressPriorityGroupWatermarksIncrementing,
+      5,
+      std::chrono::milliseconds(1000)));
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -321,7 +355,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
   }
 
  protected:
-  void runTestWithDefaultPfcCfg(
+  void runTestWithCfg(
       const int trafficClass,
       const int pfcPriority,
       TrafficTestParams testParams = TrafficTestParams{},
@@ -537,18 +571,30 @@ TEST_P(HwTrafficPfcGenTest, verifyPfc) {
   // default to map dscp to priority = 0
   const int trafficClass = 0;
   const int pfcPriority = 0;
-  runTestWithDefaultPfcCfg(trafficClass, pfcPriority, GetParam());
+  runTestWithCfg(trafficClass, pfcPriority, GetParam());
 }
 
 TEST_F(HwTrafficPfcTest, verifyBufferPoolWatermarks) {
   // default to map dscp to priority = 0
   const int trafficClass = 0;
   const int pfcPriority = 0;
-  runTestWithDefaultPfcCfg(
+  runTestWithCfg(
       trafficClass,
       pfcPriority,
       TrafficTestParams{},
       validateBufferPoolWatermarkCounters);
+}
+
+TEST_F(HwTrafficPfcTest, verifyIngressPriorityGroupWatermarks) {
+  // default to map dscp to priority = 0
+  const int trafficClass = 0;
+  const int pfcPriority = 0;
+  runTestWithCfg(
+      trafficClass,
+      pfcPriority,
+      TrafficTestParams{
+          .buffer = PfcBufferParams{.scalingFactor = std::nullopt}},
+      validateIngressPriorityGroupWatermarkCounters);
 }
 
 // intent of this test is to send traffic so that it maps to
@@ -559,7 +605,7 @@ TEST_F(HwTrafficPfcTest, verifyPfcWithMapChanges_0) {
   const int trafficClass = 0;
   const int pfcPriority = 1;
   tc2PgOverride.insert(std::make_pair(0, 1));
-  runTestWithDefaultPfcCfg(trafficClass, pfcPriority);
+  runTestWithCfg(trafficClass, pfcPriority);
 }
 
 // intent of this test is to send traffic so that it maps to
@@ -570,7 +616,7 @@ TEST_F(HwTrafficPfcTest, verifyPfcWithMapChanges_1) {
   const int trafficClass = 7;
   const int pfcPriority = 0;
   tc2PgOverride.insert(std::make_pair(7, 0));
-  runTestWithDefaultPfcCfg(trafficClass, pfcPriority);
+  runTestWithCfg(trafficClass, pfcPriority);
 }
 
 // intent of this test is to setup watchdog for the PFC

@@ -9,6 +9,8 @@ namespace facebook::fboss {
 class Wedge400CEbbLabPlatformMapping : public PlatformMapping {
  public:
   Wedge400CEbbLabPlatformMapping();
+  explicit Wedge400CEbbLabPlatformMapping(
+      const std::string& platformMappingStr);
 
  private:
   Wedge400CEbbLabPlatformMapping(Wedge400CEbbLabPlatformMapping const&) =

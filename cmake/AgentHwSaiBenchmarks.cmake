@@ -254,8 +254,8 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
 
   target_link_libraries(sai_ecmp_shrink_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
-    sai_switch_ensemble
     hw_ecmp_shrink_speed
+    sai_agent_benchmarks_main
     sai_ecmp_utils
     sai_port_utils
     ${SAI_IMPL_ARG}
@@ -274,6 +274,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_ecmp_shrink_with_competing_route_updates_speed-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_agent_benchmarks_main
     hw_ecmp_shrink_with_competing_route_updates_speed
     sai_ecmp_utils
     sai_port_utils
@@ -293,6 +294,7 @@ function(BUILD_SAI_BENCHMARKS SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_rx_slow_path_rate-${SAI_IMPL_NAME}-${SAI_VER_SUFFIX}
     -Wl,--whole-archive
     sai_switch_ensemble
+    sai_agent_benchmarks_main
     hw_rx_slow_path_rate
     sai_copp_utils
     sai_packet_trap_helper

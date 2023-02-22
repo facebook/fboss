@@ -19,7 +19,7 @@ BcmTestFujiPlatform::BcmTestFujiPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo)
     : BcmTestTomahawk4Platform(
           std::move(productInfo),
-          std::make_unique<FujiPlatformMapping>()) {}
+          std::make_unique<FujiPlatformMapping>("")) {}
 
 std::unique_ptr<BcmTestPort> BcmTestFujiPlatform::createTestPort(PortID id) {
   return std::make_unique<BcmTestFujiPort>(id, this);

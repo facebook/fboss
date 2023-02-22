@@ -366,7 +366,7 @@ void FsdbPubSubManager::addStatePathSubscription(
       subscribePath,
       stateChangeCb,
       operStateCb,
-      true /*subscribeStat*/,
+      false /*subscribeStat*/,
       std::move(serverOptions));
 }
 
@@ -379,7 +379,7 @@ void FsdbPubSubManager::addStatePathSubscription(
       toExtendedOperPath(subscribePaths),
       stateChangeCb,
       operStateCb,
-      true /*subscribeStat*/,
+      false /*subscribeStat*/,
       std::move(serverOptions));
 }
 

@@ -297,7 +297,9 @@ SaiPortManager::SaiPortManager(
       removePortsAtExit_(platform_->getAsic()->isSupported(
           HwAsic::Feature::REMOVE_PORTS_FOR_COLDBOOT)),
       concurrentIndices_(concurrentIndices),
-      hwLaneListIsPmdLaneList_(true) {
+      hwLaneListIsPmdLaneList_(true),
+      tcToQueueMapAllowedOnPort_(!platform_->getAsic()->isSupported(
+          HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT)) {
 #if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
     defined(SAI_VERSION_9_0_EA_SIM_ODP)
@@ -353,7 +355,7 @@ void SaiPortManager::resetSamplePacket(SaiPortHandle* portHandle) {
 void SaiPortManager::releasePortPfcBuffers() {
   for (const auto& handle : handles_) {
     const auto& saiPortHandle = handle.second;
-    removePriorityGroupBufferProfile(saiPortHandle.get());
+    removeIngressPriorityGroupMappings(saiPortHandle.get());
   }
 }
 
@@ -559,17 +561,18 @@ void SaiPortManager::removePfc(const std::shared_ptr<Port>& swPort) {
 }
 
 void SaiPortManager::removePfcBuffers(const std::shared_ptr<Port>& swPort) {
-  removePriorityGroupBufferProfile(getPortHandle(swPort->getID()));
+  removeIngressPriorityGroupMappings(getPortHandle(swPort->getID()));
 }
 
-void SaiPortManager::removePriorityGroupBufferProfile(
+void SaiPortManager::removeIngressPriorityGroupMappings(
     SaiPortHandle* portHandle) {
   // Unset the bufferProfile applied per IngressPriorityGroup
-  for (const auto& pgEntries : portHandle->priorityGroupBufferProfiles) {
+  for (const auto& ipgIndexInfo : portHandle->configuredIngressPriorityGroups) {
+    const auto& ipgInfo = ipgIndexInfo.second;
     managerTable_->bufferManager().setIngressPriorityGroupBufferProfile(
-        pgEntries.first, std::nullptr_t());
+        ipgInfo.pgHandle->ingressPriorityGroup->adapterKey(), std::nullptr_t());
   }
-  portHandle->priorityGroupBufferProfiles.clear();
+  portHandle->configuredIngressPriorityGroups.clear();
 }
 
 cfg::PortType SaiPortManager::getPortType(PortID portId) const {
@@ -598,23 +601,12 @@ SaiPortManager::getIngressPriorityGroupSaiIds(
       ingressPriorityGroupAttribute{ingressPriorityGroupSaiIds};
   auto ingressPgIds = SaiApiTable::getInstance()->portApi().getAttribute(
       portId, ingressPriorityGroupAttribute);
-  std::vector<IngressPriorityGroupSaiId> ingressPgSaiId{numPgsPerPort};
+  std::vector<IngressPriorityGroupSaiId> ingressPgSaiIds{numPgsPerPort};
   for (int pgId = 0; pgId < numPgsPerPort; pgId++) {
-    // TODO: Return a vector indexed by IngressPriorityGroupAttribute::Index
-    ingressPgSaiId.at(pgId) =
+    ingressPgSaiIds.at(pgId) =
         static_cast<IngressPriorityGroupSaiId>(ingressPgIds.at(pgId));
   }
-  return ingressPgSaiId;
-}
-
-void SaiPortManager::applyPriorityGroupBufferProfile(
-    const std::shared_ptr<Port>& swPort,
-    std::shared_ptr<SaiBufferProfile> bufferProfile,
-    IngressPriorityGroupSaiId ingressPgSaiId) {
-  managerTable_->bufferManager().setIngressPriorityGroupBufferProfile(
-      ingressPgSaiId, bufferProfile);
-  SaiPortHandle* portHandle = getPortHandle(swPort->getID());
-  portHandle->priorityGroupBufferProfiles[ingressPgSaiId] = bufferProfile;
+  return ingressPgSaiIds;
 }
 
 void SaiPortManager::programPfcBuffers(const std::shared_ptr<Port>& swPort) {
@@ -623,18 +615,29 @@ void SaiPortManager::programPfcBuffers(const std::shared_ptr<Port>& swPort) {
     return;
   }
   managerTable_->bufferManager().createIngressBufferPool(swPort);
+  SaiPortHandle* portHandle = getPortHandle(swPort->getID());
   const auto& portPgCfgs = swPort->getPortPgConfigs();
   if (portPgCfgs) {
     const auto& ingressPgSaiIds = getIngressPriorityGroupSaiIds(swPort);
+    auto ingressPriorityGroupHandles =
+        managerTable_->bufferManager().loadIngressPriorityGroups(
+            ingressPgSaiIds);
     for (const auto& portPgCfg : *portPgCfgs) {
       // THRIFT_COPY
       auto portPgCfgThrift = portPgCfg->toThrift();
+      auto pgId = *portPgCfgThrift.id();
       auto bufferProfile =
           managerTable_->bufferManager().getOrCreateIngressProfile(
               portPgCfgThrift);
-      auto pgId = *portPgCfgThrift.id();
-      applyPriorityGroupBufferProfile(
-          swPort, bufferProfile, ingressPgSaiIds.at(pgId));
+      auto ingressPriorityGroupSaiId =
+          ingressPriorityGroupHandles[pgId]->ingressPriorityGroup->adapterKey();
+      managerTable_->bufferManager().setIngressPriorityGroupBufferProfile(
+          ingressPriorityGroupSaiId, bufferProfile);
+      // Keep track of ingressPriorityGroupHandle and bufferProfile per PG ID
+      portHandle
+          ->configuredIngressPriorityGroups[static_cast<IngressPriorityGroupID>(
+              pgId)] = SaiIngressPriorityGroupHandleAndProfile{
+          std::move(ingressPriorityGroupHandles[pgId]), bufferProfile};
     }
   }
 }
@@ -1193,6 +1196,8 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   managerTable_->queueManager().updateStats(
       handle->configuredQueues, curPortStats, updateWatermarks);
   managerTable_->macsecManager().updateStats(portId, curPortStats);
+  managerTable_->bufferManager().updateIngressPriorityGroupStats(
+      portId, *curPortStats.portName_(), updateWatermarks);
   portStats_[portId]->updateStats(curPortStats, now);
 }
 
@@ -1292,8 +1297,19 @@ void SaiPortManager::setQosMaps(
               SaiPortTraits::Attributes::QosDscpToTcMap{mapping});
           break;
         case SAI_QOS_MAP_TYPE_TC_TO_QUEUE:
-          port->setOptionalAttribute(
-              SaiPortTraits::Attributes::QosTcToQueueMap{mapping});
+          /*
+           * On certain platforms, applying TC to QUEUE mapping on front panel
+           * port will be applied on system port by the underlying SDK.
+           * It can applied in either of them - Front panel port or on system
+           * port. We decided to go with system port for two reasons 1) Remote
+           * system port on a local device also need to be applied with this TC
+           * to Queue Map 2) Cleaner approach to have the separation of applying
+           * TC to Queue map on all system ports in VOQ mode
+           */
+          if (tcToQueueMapAllowedOnPort_) {
+            port->setOptionalAttribute(
+                SaiPortTraits::Attributes::QosTcToQueueMap{mapping});
+          }
           break;
         case SAI_QOS_MAP_TYPE_TC_TO_PRIORITY_GROUP:
           port->setOptionalAttribute(

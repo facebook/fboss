@@ -22,7 +22,8 @@ class SaiWedge400CPlatform : public SaiTajoPlatform {
  public:
   SaiWedge400CPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac);
+      folly::MacAddress localMac,
+      const std::string& platformMappingStr);
   ~SaiWedge400CPlatform() override;
   std::string getHwConfig() override;
   HwAsic* getAsic() const override;
@@ -36,7 +37,8 @@ class SaiWedge400CPlatform : public SaiTajoPlatform {
       std::optional<int64_t> switchId,
       std::optional<cfg::Range64> systemPortRange) override;
 
-  std::unique_ptr<PlatformMapping> createWedge400CPlatformMapping();
+  std::unique_ptr<PlatformMapping> createWedge400CPlatformMapping(
+      const std::string& platformMappingStr);
 
  protected:
   SaiWedge400CPlatform(
@@ -61,21 +63,24 @@ class SaiWedge400CEbbLabPlatform : public SaiWedge400CPlatform {
  public:
   SaiWedge400CEbbLabPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac);
+      folly::MacAddress localMac,
+      const std::string& platformMappingStr);
 };
 
 class SaiWedge400CVoqPlatform : public SaiWedge400CPlatform {
  public:
   SaiWedge400CVoqPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac);
+      folly::MacAddress localMac,
+      const std::string& platformMappingStr);
 };
 
 class SaiWedge400CFabricPlatform : public SaiWedge400CPlatform {
  public:
   SaiWedge400CFabricPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac);
+      folly::MacAddress localMac,
+      const std::string& platformMappingStr);
 };
 
 } // namespace facebook::fboss

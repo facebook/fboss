@@ -728,7 +728,7 @@ TEST_F(PlatformMappingTest, VerifyMinipack2PortPhyPinConfigs) {
 }
 
 TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
-  auto mapping = std::make_unique<YampPlatformMapping>();
+  auto mapping = std::make_unique<YampPlatformMapping>("");
   cfg::PlatformPortConfigOverrideFactor factor;
   for (auto port : mapping->getPlatformPorts()) {
     factor.mediaInterfaceCode() = MediaInterfaceCode::CWDM4_100G;
@@ -766,7 +766,7 @@ TEST_F(PlatformMappingTest, VerifyYampPortProfileConfigOverride) {
 }
 
 TEST_F(PlatformMappingTest, VerifyYampPortXphyLinePinConfigOverride) {
-  auto mapping = std::make_unique<YampPlatformMapping>();
+  auto mapping = std::make_unique<YampPlatformMapping>("");
   cfg::PlatformPortConfigOverrideFactor factor;
 
   std::array<int, 6> YampPort100GSffXphyLinePinConfig = {0, -4, 23, -12, 0, 0};
@@ -820,7 +820,7 @@ TEST_F(PlatformMappingTest, VerifyYampPlatformMapping) {
   // 32 TH3 Blackhawk cores + 128 transceivers + 64 xphy
   setExpectation(128, 32, 64, 128, expectedProfiles);
 
-  auto mapping = std::make_unique<YampPlatformMapping>();
+  auto mapping = std::make_unique<YampPlatformMapping>("");
   verify(mapping.get());
 }
 

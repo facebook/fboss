@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "fboss/agent/hw/bcm/BcmMirror.h"
+#include "fboss/agent/state/Mirror.h"
 
 extern "C" {
 #include <bcm/field.h>

@@ -143,7 +143,8 @@ void Platform::init(
     switchId = *switchSettings.switchId();
     const auto& dsfNodesConfig = *config_->thrift.sw()->dsfNodes();
     const auto& dsfNodeConfig = dsfNodesConfig.find(*switchId);
-    if (dsfNodeConfig != dsfNodesConfig.end()) {
+    if (dsfNodeConfig != dsfNodesConfig.end() &&
+        (*switchSettings.switchType() == cfg::SwitchType::VOQ)) {
       systemPortRange = *dsfNodeConfig->second.systemPortRange();
     }
   }

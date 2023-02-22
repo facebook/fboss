@@ -19,7 +19,8 @@ class SaiBcmMontblancPlatform : public SaiBcmPlatform {
  public:
   explicit SaiBcmMontblancPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac);
+      folly::MacAddress localMac,
+      const std::string& platformMappingStr);
   ~SaiBcmMontblancPlatform() override;
   HwAsic* getAsic() const override;
   uint32_t numLanesPerCore() const override {
@@ -27,8 +28,7 @@ class SaiBcmMontblancPlatform : public SaiBcmPlatform {
   }
 
   uint32_t numCellsAvailable() const override {
-    // TODO: update this number
-    return 223662;
+    return 319960;
   }
 
   bool isSerdesApiSupported() const override {

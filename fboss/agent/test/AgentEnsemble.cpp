@@ -85,7 +85,6 @@ void AgentEnsemble::startAgent() {
     // agent ensemble is responsible to dispatch them to SwSwitch
     initializer->initAgent(this);
   }));
-  asyncInitThread_->detach();
   initializer->initializer()->waitForInitDone();
   // if cold booting, invoke link toggler
   if (getHw()->getBootType() != BootType::WARM_BOOT &&
@@ -129,7 +128,9 @@ void AgentEnsemble::writeConfig(
 
 AgentEnsemble::~AgentEnsemble() {
   auto* initializer = agentInitializer();
-  initializer->stopAgent(FLAGS_setup_for_warmboot);
+  initializer->stopAgent(false);
+  asyncInitThread_->join();
+  asyncInitThread_.reset();
 }
 
 void AgentEnsemble::applyNewConfig(
@@ -175,6 +176,12 @@ void AgentEnsemble::unprogramRoutes(
         });
     updater.program();
   }
+}
+
+void AgentEnsemble::gracefulExit() {
+  auto* initializer = agentInitializer();
+  // exit for warm boot
+  initializer->stopAgent(true);
 }
 
 std::shared_ptr<SwitchState> AgentEnsemble::applyNewState(

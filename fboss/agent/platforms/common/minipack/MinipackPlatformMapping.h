@@ -17,7 +17,9 @@ namespace fboss {
 
 class MinipackPlatformMapping : public PlatformMapping {
  public:
-  explicit MinipackPlatformMapping(ExternalPhyVersion xphyVersion);
+  explicit MinipackPlatformMapping(
+      ExternalPhyVersion xphyVersion,
+      const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator
