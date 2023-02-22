@@ -11,4 +11,5 @@ add_library(product_info
 target_link_libraries(product_info
   product_info_cpp2
   Folly::folly
+  fboss_error
 )
