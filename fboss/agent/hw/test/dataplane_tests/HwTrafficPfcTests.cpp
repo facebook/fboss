@@ -104,6 +104,40 @@ void validateBufferPoolWatermarkCounters(
       globalSharedWatermarksIncrementing, updateStats));
 }
 
+void validateIngressPriorityGroupWatermarkCounters(
+    facebook::fboss::HwSwitchEnsemble* ensemble,
+    const int pri,
+    const std::vector<facebook::fboss::PortID>& portIds) {
+  auto ingressPriorityGroupWatermarksIncrementing =
+      [&](const auto& /*newStats*/) {
+        for (const auto& portId : portIds) {
+          const auto& portName = ensemble->getProgrammedState()
+                                     ->getPorts()
+                                     ->getPort(portId)
+                                     ->getName();
+          std::string pg =
+              ensemble->isSai() ? folly::sformat(".pg{}", pri) : "";
+          auto regex = folly::sformat(
+              "buffer_watermark_pg_(shared|headroom).{}{}.p100.60",
+              portName,
+              pg);
+          auto counters = facebook::fb303::fbData->getRegexCounters(regex);
+          CHECK_EQ(counters.size(), 2);
+          for (const auto& ctr : counters) {
+            XLOG(DBG0) << ctr.first << " : " << ctr.second;
+            if (!ctr.second) {
+              return false;
+            }
+          }
+        }
+        return true;
+      };
+  EXPECT_TRUE(ensemble->waitPortStatsCondition(
+      ingressPriorityGroupWatermarksIncrementing,
+      5,
+      std::chrono::milliseconds(1000)));
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -549,6 +583,18 @@ TEST_F(HwTrafficPfcTest, verifyBufferPoolWatermarks) {
       pfcPriority,
       TrafficTestParams{},
       validateBufferPoolWatermarkCounters);
+}
+
+TEST_F(HwTrafficPfcTest, verifyIngressPriorityGroupWatermarks) {
+  // default to map dscp to priority = 0
+  const int trafficClass = 0;
+  const int pfcPriority = 0;
+  runTestWithDefaultPfcCfg(
+      trafficClass,
+      pfcPriority,
+      TrafficTestParams{
+          .buffer = PfcBufferParams{.scalingFactor = std::nullopt}},
+      validateIngressPriorityGroupWatermarkCounters);
 }
 
 // intent of this test is to send traffic so that it maps to
