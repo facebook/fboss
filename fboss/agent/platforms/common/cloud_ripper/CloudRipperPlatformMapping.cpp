@@ -28613,5 +28613,10 @@ namespace facebook {
 namespace fboss {
 CloudRipperPlatformMapping::CloudRipperPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
+
+CloudRipperPlatformMapping::CloudRipperPlatformMapping(
+    const std::string& platformMappingStr)
+    : PlatformMapping(platformMappingStr) {}
+
 } // namespace fboss
 } // namespace facebook

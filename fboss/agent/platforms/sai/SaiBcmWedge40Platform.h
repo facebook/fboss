@@ -18,7 +18,8 @@ class SaiBcmWedge40Platform : public SaiBcmPlatform {
  public:
   explicit SaiBcmWedge40Platform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac);
+      folly::MacAddress localMac,
+      const std::string& platformMappingStr);
   ~SaiBcmWedge40Platform() override;
   HwAsic* getAsic() const override;
   uint32_t numLanesPerCore() const override {

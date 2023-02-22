@@ -29839,5 +29839,9 @@ namespace fboss {
 MontblancPlatformMapping::MontblancPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
+MontblancPlatformMapping::MontblancPlatformMapping(
+    const std::string& platformMappingStr)
+    : PlatformMapping(platformMappingStr) {}
+
 } // namespace fboss
 } // namespace facebook

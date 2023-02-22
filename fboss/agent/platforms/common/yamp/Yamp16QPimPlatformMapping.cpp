@@ -115285,5 +115285,10 @@ namespace facebook {
 namespace fboss {
 Yamp16QPimPlatformMapping::Yamp16QPimPlatformMapping()
     : MultiPimPlatformMapping(kJsonPlatformMappingStr) {}
+
+Yamp16QPimPlatformMapping::Yamp16QPimPlatformMapping(
+    const std::string& platformMappingStr)
+    : MultiPimPlatformMapping(platformMappingStr) {}
+
 } // namespace fboss
 } // namespace facebook

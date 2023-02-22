@@ -22,5 +22,9 @@ namespace fboss {
 DarwinPlatformMapping::DarwinPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
+DarwinPlatformMapping::DarwinPlatformMapping(
+    const std::string& platformMappingStr)
+    : PlatformMapping(platformMappingStr) {}
+
 } // namespace fboss
 } // namespace facebook

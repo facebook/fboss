@@ -17,6 +17,7 @@ namespace fboss {
 class LassenPlatformMapping : public PlatformMapping {
  public:
   LassenPlatformMapping();
+  explicit LassenPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

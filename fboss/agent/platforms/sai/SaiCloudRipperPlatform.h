@@ -21,12 +21,12 @@ class SaiCloudRipperPlatform : public SaiTajoPlatform {
  public:
   explicit SaiCloudRipperPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac);
+      folly::MacAddress localMac,
+      const std::string& platformMappingStr);
   SaiCloudRipperPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       std::unique_ptr<CloudRipperVoqPlatformMapping> mapping,
       folly::MacAddress localMac);
-
   SaiCloudRipperPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       std::unique_ptr<CloudRipperFabricPlatformMapping> mapping,
@@ -50,14 +50,16 @@ class SaiCloudRipperVoqPlatform : public SaiCloudRipperPlatform {
  public:
   SaiCloudRipperVoqPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac);
+      folly::MacAddress localMac,
+      const std::string& platformMappingStr);
 };
 
 class SaiCloudRipperFabricPlatform : public SaiCloudRipperPlatform {
  public:
   SaiCloudRipperFabricPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac);
+      folly::MacAddress localMac,
+      const std::string& platformMappingStr);
 };
 
 } // namespace facebook::fboss

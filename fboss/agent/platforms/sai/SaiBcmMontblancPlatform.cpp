@@ -19,10 +19,13 @@ namespace facebook::fboss {
 
 SaiBcmMontblancPlatform::SaiBcmMontblancPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiBcmPlatform(
           std::move(productInfo),
-          std::make_unique<MontblancPlatformMapping>(),
+          platformMappingStr.empty()
+              ? std::make_unique<MontblancPlatformMapping>()
+              : std::make_unique<MontblancPlatformMapping>(platformMappingStr),
           localMac) {}
 
 void SaiBcmMontblancPlatform::setupAsic(

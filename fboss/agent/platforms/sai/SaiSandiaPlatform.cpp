@@ -18,10 +18,11 @@ namespace facebook::fboss {
 
 SaiSandiaPlatform::SaiSandiaPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiTajoPlatform(
           std::move(productInfo),
-          std::make_unique<SandiaPlatformMapping>(),
+          std::make_unique<SandiaPlatformMapping>(platformMappingStr),
           localMac) {}
 
 void SaiSandiaPlatform::setupAsic(

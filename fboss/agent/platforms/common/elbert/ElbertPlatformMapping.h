@@ -14,7 +14,7 @@
 namespace facebook::fboss {
 class ElbertPlatformMapping : public PlatformMapping {
  public:
-  ElbertPlatformMapping();
+  explicit ElbertPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

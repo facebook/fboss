@@ -9992,4 +9992,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
 KametPlatformMapping::KametPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
+KametPlatformMapping::KametPlatformMapping(
+    const std::string& platformMappingStr)
+    : PlatformMapping(platformMappingStr) {}
+
 } // namespace facebook::fboss

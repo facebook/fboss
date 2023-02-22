@@ -17,6 +17,7 @@ namespace fboss {
 class Yamp16QPimPlatformMapping : public MultiPimPlatformMapping {
  public:
   Yamp16QPimPlatformMapping();
+  explicit Yamp16QPimPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

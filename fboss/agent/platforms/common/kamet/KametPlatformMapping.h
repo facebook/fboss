@@ -17,6 +17,7 @@ namespace fboss {
 class KametPlatformMapping : public PlatformMapping {
  public:
   KametPlatformMapping();
+  explicit KametPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

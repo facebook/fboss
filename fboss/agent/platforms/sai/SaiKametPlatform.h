@@ -19,7 +19,8 @@ class SaiKametPlatform : public SaiBcmPlatform {
  public:
   SaiKametPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac);
+      folly::MacAddress localMac,
+      const std::string& platformMappingStr);
   ~SaiKametPlatform() override;
   HwAsic* getAsic() const override;
 

@@ -20,10 +20,11 @@ namespace facebook::fboss {
 
 SaiBcmWedge400Platform::SaiBcmWedge400Platform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiBcmPlatform(
           std::move(productInfo),
-          createWedge400PlatformMapping(),
+          createWedge400PlatformMapping(platformMappingStr),
           localMac) {}
 
 void SaiBcmWedge400Platform::setupAsic(
@@ -45,11 +46,17 @@ void SaiBcmWedge400Platform::initLEDs() {
 SaiBcmWedge400Platform::~SaiBcmWedge400Platform() {}
 
 std::unique_ptr<PlatformMapping>
-SaiBcmWedge400Platform::createWedge400PlatformMapping() {
+SaiBcmWedge400Platform::createWedge400PlatformMapping(
+    const std::string& platformMappingStr) {
   if (utility::isWedge400PlatformRackTypeGrandTeton()) {
-    return std::make_unique<Wedge400GrandTetonPlatformMapping>();
+    return platformMappingStr.empty()
+        ? std::make_unique<Wedge400GrandTetonPlatformMapping>()
+        : std::make_unique<Wedge400GrandTetonPlatformMapping>(
+              platformMappingStr);
   }
-  return std::make_unique<Wedge400PlatformMapping>();
+  return platformMappingStr.empty()
+      ? std::make_unique<Wedge400PlatformMapping>()
+      : std::make_unique<Wedge400PlatformMapping>(platformMappingStr);
 }
 
 } // namespace facebook::fboss

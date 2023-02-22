@@ -17,6 +17,7 @@ namespace fboss {
 class Sandia8DDPimPlatformMapping : public MultiPimPlatformMapping {
  public:
   Sandia8DDPimPlatformMapping();
+  explicit Sandia8DDPimPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

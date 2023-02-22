@@ -17,6 +17,7 @@ namespace fboss {
 class CloudRipperPlatformMapping : public PlatformMapping {
  public:
   CloudRipperPlatformMapping();
+  explicit CloudRipperPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

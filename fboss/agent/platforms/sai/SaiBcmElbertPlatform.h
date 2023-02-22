@@ -18,7 +18,8 @@ class SaiBcmElbertPlatform : public SaiBcmPlatform {
  public:
   explicit SaiBcmElbertPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
-      folly::MacAddress localMac);
+      folly::MacAddress localMac,
+      const std::string& platformMappingStr);
   ~SaiBcmElbertPlatform() override;
   HwAsic* getAsic() const override;
   uint32_t numLanesPerCore() const override {

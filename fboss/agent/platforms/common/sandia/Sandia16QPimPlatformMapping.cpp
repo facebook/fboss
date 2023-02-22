@@ -70595,5 +70595,10 @@ namespace facebook {
 namespace fboss {
 Sandia16QPimPlatformMapping::Sandia16QPimPlatformMapping()
     : MultiPimPlatformMapping(kJsonPlatformMappingStr) {}
+
+Sandia16QPimPlatformMapping::Sandia16QPimPlatformMapping(
+    const std::string& platformMappingStr)
+    : MultiPimPlatformMapping(platformMappingStr) {}
+
 } // namespace fboss
 } // namespace facebook

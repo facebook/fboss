@@ -19,10 +19,13 @@ namespace facebook::fboss {
 
 SaiBcmDarwinPlatform::SaiBcmDarwinPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
-    folly::MacAddress localMac)
+    folly::MacAddress localMac,
+    const std::string& platformMappingStr)
     : SaiBcmPlatform(
           std::move(productInfo),
-          std::make_unique<DarwinPlatformMapping>(),
+          platformMappingStr.empty()
+              ? std::make_unique<DarwinPlatformMapping>()
+              : std::make_unique<DarwinPlatformMapping>(platformMappingStr),
           localMac) {}
 
 void SaiBcmDarwinPlatform::setupAsic(

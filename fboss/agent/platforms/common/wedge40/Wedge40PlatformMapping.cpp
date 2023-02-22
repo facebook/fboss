@@ -8507,5 +8507,10 @@ namespace facebook {
 namespace fboss {
 Wedge40PlatformMapping::Wedge40PlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
+
+Wedge40PlatformMapping::Wedge40PlatformMapping(
+    const std::string& platformMappingStr)
+    : PlatformMapping(platformMappingStr) {}
+
 } // namespace fboss
 } // namespace facebook

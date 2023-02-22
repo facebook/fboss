@@ -16,7 +16,7 @@ namespace fboss {
 
 class YampPlatformMapping : public PlatformMapping {
  public:
-  YampPlatformMapping();
+  YampPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

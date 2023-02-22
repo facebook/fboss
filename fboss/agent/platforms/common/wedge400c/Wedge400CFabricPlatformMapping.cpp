@@ -9466,5 +9466,9 @@ namespace facebook {
 namespace fboss {
 Wedge400CFabricPlatformMapping::Wedge400CFabricPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
+
+Wedge400CFabricPlatformMapping::Wedge400CFabricPlatformMapping(
+    const std::string& platformMappingStr)
+    : PlatformMapping(platformMappingStr) {}
 } // namespace fboss
 } // namespace facebook
