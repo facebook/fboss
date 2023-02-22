@@ -141,6 +141,7 @@ enum TransceiverManagementInterface {
   CMIS = 1,
   NONE = 2,
   SFF8472 = 3,
+  UNKNOWN = 4,
 }
 
 enum FeatureState {
