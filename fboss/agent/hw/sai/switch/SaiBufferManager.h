@@ -67,6 +67,10 @@ class SaiBufferManager {
   void updateStats();
   void updateIngressBufferPoolStats();
   void updateEgressBufferPoolStats();
+  void updateIngressPriorityGroupStats(
+      const PortID& portId,
+      const std::string& portName,
+      bool updateWatermarks);
   void createIngressBufferPool(const std::shared_ptr<Port> port);
   uint64_t getDeviceWatermarkBytes() const {
     return deviceWatermarkBytes_;

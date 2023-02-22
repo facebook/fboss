@@ -1196,6 +1196,8 @@ void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {
   managerTable_->queueManager().updateStats(
       handle->configuredQueues, curPortStats, updateWatermarks);
   managerTable_->macsecManager().updateStats(portId, curPortStats);
+  managerTable_->bufferManager().updateIngressPriorityGroupStats(
+      portId, *curPortStats.portName_(), updateWatermarks);
   portStats_[portId]->updateStats(curPortStats, now);
 }
 
