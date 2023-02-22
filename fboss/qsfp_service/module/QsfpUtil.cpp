@@ -79,7 +79,8 @@ QsfpUtil::getModuleTypeViaService(const std::vector<unsigned int>& ports) {
   for (const auto& response : readResp) {
     const auto moduleId = *(response.second.data()->data());
     const TransceiverManagementInterface modType =
-        getTransceiverManagementInterface(moduleId, response.first + 1);
+        QsfpModule::getTransceiverManagementInterface(
+            moduleId, response.first + 1);
 
     moduleTypes[response.first] = modType;
   }
@@ -104,33 +105,7 @@ TransceiverManagementInterface QsfpUtil::getModuleType(unsigned int port) {
     }
   }
 
-  return getTransceiverManagementInterface(moduleId, port);
-}
-
-TransceiverManagementInterface QsfpUtil::getTransceiverManagementInterface(
-    const uint8_t moduleId,
-    const unsigned int oneBasedPort) {
-  if (moduleId ==
-          static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS_CMIS) ||
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_DD)) {
-    return TransceiverManagementInterface::CMIS;
-  } else if (
-      moduleId ==
-          static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP_PLUS) ||
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP) ||
-      moduleId ==
-          static_cast<uint8_t>(TransceiverModuleIdentifier::MINIPHOTON_OBO) ||
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::QSFP28)) {
-    return TransceiverManagementInterface::SFF;
-  } else if (
-      moduleId == static_cast<uint8_t>(TransceiverModuleIdentifier::SFP_PLUS)) {
-    return TransceiverManagementInterface::SFF8472;
-  } else {
-    XLOG(ERR) << fmt::format(
-        "QSFP {:d}: Unrecognized module type = {:d}", oneBasedPort, moduleId);
-  }
-
-  return TransceiverManagementInterface::NONE;
+  return QsfpModule::getTransceiverManagementInterface(moduleId, port);
 }
 
 std::vector<int32_t> QsfpUtil::zeroBasedPortIds(
