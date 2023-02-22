@@ -148,6 +148,18 @@ struct SaiIngressPriorityGroupTraits {
       Attributes::Index,
       std::optional<Attributes::BufferProfile>>;
   using AdapterHostKey = CreateAttributes;
+
+  /*
+   * XXX: As of now, get_ingress_priority_group_stats_ext() is unsupported
+   * for Broadcom SAI platforms and hence avoid reading the watermark stats
+   * as clearOnRead counters. This needs to be fixed up once the issue
+   * tracked in CS00012282384 is addressed.
+   */
+  static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {
+      // SAI_INGRESS_PRIORITY_GROUP_STAT_SHARED_WATERMARK_BYTES,
+      // SAI_INGRESS_PRIORITY_GROUP_STAT_XOFF_ROOM_WATERMARK_BYTES,
+  };
+  static constexpr std::array<sai_stat_id_t, 0> CounterIdsToRead = {};
 };
 
 SAI_ATTRIBUTE_NAME(IngressPriorityGroup, Port);
@@ -253,6 +265,25 @@ class BufferApi : public SaiApi<BufferApi> {
       IngressPriorityGroupSaiId key,
       const sai_attribute_t* attr) const {
     return api_->set_ingress_priority_group_attribute(key, attr);
+  }
+  sai_status_t _getStats(
+      IngressPriorityGroupSaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids,
+      sai_stats_mode_t mode,
+      uint64_t* counters) const {
+    return mode == SAI_STATS_MODE_READ
+        ? api_->get_ingress_priority_group_stats(
+              key, num_of_counters, counter_ids, counters)
+        : api_->get_ingress_priority_group_stats_ext(
+              key, num_of_counters, counter_ids, mode, counters);
+  }
+  sai_status_t _clearStats(
+      IngressPriorityGroupSaiId key,
+      uint32_t num_of_counters,
+      const sai_stat_id_t* counter_ids) const {
+    return api_->clear_ingress_priority_group_stats(
+        key, num_of_counters, counter_ids);
   }
 
   sai_buffer_api_t* api_;
