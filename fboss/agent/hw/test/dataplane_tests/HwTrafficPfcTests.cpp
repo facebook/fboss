@@ -355,7 +355,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
   }
 
  protected:
-  void runTestWithDefaultPfcCfg(
+  void runTestWithCfg(
       const int trafficClass,
       const int pfcPriority,
       TrafficTestParams testParams = TrafficTestParams{},
@@ -571,14 +571,14 @@ TEST_P(HwTrafficPfcGenTest, verifyPfc) {
   // default to map dscp to priority = 0
   const int trafficClass = 0;
   const int pfcPriority = 0;
-  runTestWithDefaultPfcCfg(trafficClass, pfcPriority, GetParam());
+  runTestWithCfg(trafficClass, pfcPriority, GetParam());
 }
 
 TEST_F(HwTrafficPfcTest, verifyBufferPoolWatermarks) {
   // default to map dscp to priority = 0
   const int trafficClass = 0;
   const int pfcPriority = 0;
-  runTestWithDefaultPfcCfg(
+  runTestWithCfg(
       trafficClass,
       pfcPriority,
       TrafficTestParams{},
@@ -589,7 +589,7 @@ TEST_F(HwTrafficPfcTest, verifyIngressPriorityGroupWatermarks) {
   // default to map dscp to priority = 0
   const int trafficClass = 0;
   const int pfcPriority = 0;
-  runTestWithDefaultPfcCfg(
+  runTestWithCfg(
       trafficClass,
       pfcPriority,
       TrafficTestParams{
@@ -605,7 +605,7 @@ TEST_F(HwTrafficPfcTest, verifyPfcWithMapChanges_0) {
   const int trafficClass = 0;
   const int pfcPriority = 1;
   tc2PgOverride.insert(std::make_pair(0, 1));
-  runTestWithDefaultPfcCfg(trafficClass, pfcPriority);
+  runTestWithCfg(trafficClass, pfcPriority);
 }
 
 // intent of this test is to send traffic so that it maps to
@@ -616,7 +616,7 @@ TEST_F(HwTrafficPfcTest, verifyPfcWithMapChanges_1) {
   const int trafficClass = 7;
   const int pfcPriority = 0;
   tc2PgOverride.insert(std::make_pair(7, 0));
-  runTestWithDefaultPfcCfg(trafficClass, pfcPriority);
+  runTestWithCfg(trafficClass, pfcPriority);
 }
 
 // intent of this test is to setup watchdog for the PFC
