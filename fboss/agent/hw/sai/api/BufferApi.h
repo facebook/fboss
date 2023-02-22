@@ -154,6 +154,14 @@ SAI_ATTRIBUTE_NAME(IngressPriorityGroup, Port);
 SAI_ATTRIBUTE_NAME(IngressPriorityGroup, Index);
 SAI_ATTRIBUTE_NAME(IngressPriorityGroup, BufferProfile);
 
+template <>
+struct IsSaiObjectOwnedByAdapter<SaiIngressPriorityGroupTraits>
+    : public std::true_type {};
+
+template <>
+struct SaiObjectHasStats<SaiIngressPriorityGroupTraits>
+    : public std::true_type {};
+
 class BufferApi : public SaiApi<BufferApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_BUFFER;

@@ -423,4 +423,24 @@ void SaiBufferManager::setIngressPriorityGroupBufferProfile(
   SaiApiTable::getInstance()->bufferApi().setAttribute(pgId, bufferProfileId);
 }
 
+SaiIngressPriorityGroupHandles SaiBufferManager::loadIngressPriorityGroups(
+    const std::vector<IngressPriorityGroupSaiId>& ingressPriorityGroupSaiIds) {
+  SaiIngressPriorityGroupHandles ingressPriorityGroupHandles;
+  auto& store = saiStore_->get<SaiIngressPriorityGroupTraits>();
+
+  for (auto ingressPriorityGroupSaiId : ingressPriorityGroupSaiIds) {
+    auto ingressPriorityGroupHandle =
+        std::make_unique<SaiIngressPriorityGroupHandle>();
+    ingressPriorityGroupHandle->ingressPriorityGroup =
+        store.loadObjectOwnedByAdapter(
+            SaiIngressPriorityGroupTraits::AdapterKey{
+                ingressPriorityGroupSaiId});
+    auto index = SaiApiTable::getInstance()->bufferApi().getAttribute(
+        ingressPriorityGroupSaiId,
+        SaiIngressPriorityGroupTraits::Attributes::Index{});
+    ingressPriorityGroupHandles[index] = std::move(ingressPriorityGroupHandle);
+  }
+  return ingressPriorityGroupHandles;
+}
+
 } // namespace facebook::fboss

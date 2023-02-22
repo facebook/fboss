@@ -31,10 +31,19 @@ class SaiStore;
 
 using SaiBufferPool = SaiObjectWithCounters<SaiBufferPoolTraits>;
 using SaiBufferProfile = SaiObject<SaiBufferProfileTraits>;
+using SaiIngressPriorityGroup =
+    SaiObjectWithCounters<SaiIngressPriorityGroupTraits>;
 
 struct SaiBufferPoolHandle {
   std::shared_ptr<SaiBufferPool> bufferPool;
 };
+
+struct SaiIngressPriorityGroupHandle {
+  std::shared_ptr<SaiIngressPriorityGroup> ingressPriorityGroup;
+};
+
+using SaiIngressPriorityGroupHandles =
+    folly::F14FastMap<int, std::unique_ptr<SaiIngressPriorityGroupHandle>>;
 
 class SaiBufferManager {
  public:
@@ -61,6 +70,8 @@ class SaiBufferManager {
   void setIngressPriorityGroupBufferProfile(
       IngressPriorityGroupSaiId pdId,
       std::shared_ptr<SaiBufferProfile> bufferProfile);
+  SaiIngressPriorityGroupHandles loadIngressPriorityGroups(
+      const std::vector<IngressPriorityGroupSaiId>& ingressPriorityGroupSaiIds);
 
  private:
   void publishDeviceWatermark(uint64_t peakBytes) const;
