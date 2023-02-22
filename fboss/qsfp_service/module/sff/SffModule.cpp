@@ -1231,8 +1231,8 @@ void SffModule::setPowerOverrideIfSupportedLocked(
 bool SffModule::remediateFlakyTransceiver() {
   QSFP_LOG(INFO, this) << "Performing potentially disruptive remediations";
 
-  ensureTxEnabled();
   resetLowPowerMode();
+  ensureTxEnabled();
   lastRemediateTime_ = std::time(nullptr);
   return true;
 }

@@ -1234,8 +1234,8 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiver) {
 
         MockSffModule* mockXcvr = static_cast<MockSffModule*>(xcvr_);
         ::testing::InSequence s;
-        EXPECT_CALL(*mockXcvr, ensureTxEnabled()).Times(1);
         EXPECT_CALL(*mockXcvr, resetLowPowerMode()).Times(1);
+        EXPECT_CALL(*mockXcvr, ensureTxEnabled()).Times(1);
       },
       [this]() { triggerRemediateEvents(); },
       [this]() {
@@ -1278,8 +1278,8 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiver) {
 
         MockSffModule* mockXcvr = static_cast<MockSffModule*>(xcvr_);
         ::testing::InSequence s;
-        EXPECT_CALL(*mockXcvr, ensureTxEnabled()).Times(0);
         EXPECT_CALL(*mockXcvr, resetLowPowerMode()).Times(0);
+        EXPECT_CALL(*mockXcvr, ensureTxEnabled()).Times(0);
       } /* preUpdate */,
       [this]() { triggerRemediateEvents(); },
       []() {} /* verify */,
@@ -1291,7 +1291,7 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiverFailed) {
   enableRemediationTesting();
   std::set<TransceiverStateMachineState> stateSet = {
       TransceiverStateMachineState::INACTIVE};
-  // If ensureTxEnabled() failed, state shouldn't change
+  // If resetLowPowerMode() failed, state shouldn't change
   verifyStateUnchanged(
       stateSet,
       [this]() {
@@ -1303,10 +1303,10 @@ TEST_F(TransceiverStateMachineTest, remediateSffTransceiverFailed) {
 
         MockSffModule* mockXcvr = static_cast<MockSffModule*>(xcvr_);
         ::testing::InSequence s;
-        EXPECT_CALL(*mockXcvr, ensureTxEnabled())
+        EXPECT_CALL(*mockXcvr, resetLowPowerMode())
             .Times(2)
             .WillOnce(ThrowFbossError());
-        EXPECT_CALL(*mockXcvr, resetLowPowerMode()).Times(1);
+        EXPECT_CALL(*mockXcvr, ensureTxEnabled()).Times(1);
       },
       [this]() { triggerRemediateEvents(); },
       [this]() {
