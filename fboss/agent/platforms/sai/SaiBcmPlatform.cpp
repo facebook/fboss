@@ -126,4 +126,74 @@ std::optional<sai_port_interface_type_t> SaiBcmPlatform::getInterfaceType(
 #endif
 }
 
+bool SaiBcmPlatform::needPortVcoChange(
+    cfg::PortSpeed oldSpeed,
+    phy::FecMode oldFec,
+    cfg::PortSpeed newSpeed,
+    phy::FecMode newFec) const {
+  return getPortVcoFrequency(oldSpeed, oldFec) !=
+      getPortVcoFrequency(newSpeed, newFec);
+}
+
+phy::VCOFrequency SaiBcmPlatform::getPortVcoFrequency(
+    cfg::PortSpeed speed,
+    phy::FecMode fec) const {
+  switch (speed) {
+    case cfg::PortSpeed::FOURHUNDREDG:
+      FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::TWOHUNDREDG:
+      return phy::VCOFrequency::VCO_26_5625GHZ;
+    case cfg::PortSpeed::HUNDREDG:
+      switch (fec) {
+        case phy::FecMode::RS544:
+          FOLLY_FALLTHROUGH;
+        case phy::FecMode::RS544_2N:
+          return phy::VCOFrequency::VCO_26_5625GHZ;
+        case phy::FecMode::NONE:
+          FOLLY_FALLTHROUGH;
+        case phy::FecMode::CL74:
+          FOLLY_FALLTHROUGH;
+        case phy::FecMode::CL91:
+          FOLLY_FALLTHROUGH;
+        case phy::FecMode::RS545:
+          FOLLY_FALLTHROUGH;
+        case phy::FecMode::RS528:
+          return phy::VCOFrequency::VCO_25_78125GHZ;
+      }
+    case cfg::PortSpeed::FIFTYG:
+      FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG:
+      FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::TWENTYFIVEG:
+      switch (fec) {
+        case phy::FecMode::RS544:
+          FOLLY_FALLTHROUGH;
+        case phy::FecMode::RS544_2N:
+          return phy::VCOFrequency::VCO_26_5625GHZ;
+        case phy::FecMode::NONE:
+          FOLLY_FALLTHROUGH;
+        case phy::FecMode::CL74:
+          FOLLY_FALLTHROUGH;
+        case phy::FecMode::CL91:
+          FOLLY_FALLTHROUGH;
+        case phy::FecMode::RS545:
+          FOLLY_FALLTHROUGH;
+        case phy::FecMode::RS528:
+          return phy::VCOFrequency::VCO_25_78125GHZ;
+      }
+    case cfg::PortSpeed::FORTYG:
+      FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::TWENTYG:
+      FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::XG:
+      return phy::VCOFrequency::VCO_20_625GHZ;
+    case cfg::PortSpeed::GIGE:
+      FOLLY_FALLTHROUGH;
+    case cfg::PortSpeed::EIGHTHUNDREDG:
+    case cfg::PortSpeed::DEFAULT:
+      return phy::VCOFrequency::UNKNOWN;
+  }
+  return phy::VCOFrequency::UNKNOWN;
+}
+
 } // namespace facebook::fboss
