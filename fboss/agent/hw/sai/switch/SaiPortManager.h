@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/sai/api/PortApi.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
+#include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQosMapManager.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
@@ -29,6 +30,7 @@
 namespace facebook::fboss {
 
 struct ConcurrentIndices;
+struct SaiIngressPriorityGroupHandleAndProfile;
 class SaiManagerTable;
 class SaiPlatform;
 class HwPortFb303Stats;
@@ -83,11 +85,13 @@ struct SaiPortHandle {
   std::shared_ptr<SaiSamplePacket> ingressSamplePacket;
   std::shared_ptr<SaiSamplePacket> egressSamplePacket;
   SaiQueueHandles queues;
+
   void resetQueues();
   SaiPortMirrorInfo mirrorInfo;
-  folly::
-      F14FastMap<IngressPriorityGroupSaiId, std::shared_ptr<SaiBufferProfile>>
-          priorityGroupBufferProfiles;
+  folly::F14FastMap<
+      IngressPriorityGroupID,
+      SaiIngressPriorityGroupHandleAndProfile>
+      configuredIngressPriorityGroups;
 };
 
 class SaiPortManager {
@@ -293,7 +297,7 @@ class SaiPortManager {
   void setPortType(PortID portId, cfg::PortType portType);
   void programPfcBuffers(const std::shared_ptr<Port>& swPort);
   void removePfcBuffers(const std::shared_ptr<Port>& swPort);
-  void removePriorityGroupBufferProfile(SaiPortHandle* portHandle);
+  void removeIngressPriorityGroupMappings(SaiPortHandle* portHandle);
   void applyPriorityGroupBufferProfile(
       const std::shared_ptr<Port>& swPort,
       std::shared_ptr<SaiBufferProfile> bufferProfile,

@@ -45,6 +45,11 @@ struct SaiIngressPriorityGroupHandle {
 using SaiIngressPriorityGroupHandles =
     folly::F14FastMap<int, std::unique_ptr<SaiIngressPriorityGroupHandle>>;
 
+struct SaiIngressPriorityGroupHandleAndProfile {
+  std::unique_ptr<SaiIngressPriorityGroupHandle> pgHandle;
+  std::shared_ptr<SaiBufferProfile> bufferProfile;
+};
+
 class SaiBufferManager {
  public:
   SaiBufferManager(

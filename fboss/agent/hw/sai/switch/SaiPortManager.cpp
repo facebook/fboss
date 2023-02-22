@@ -355,7 +355,7 @@ void SaiPortManager::resetSamplePacket(SaiPortHandle* portHandle) {
 void SaiPortManager::releasePortPfcBuffers() {
   for (const auto& handle : handles_) {
     const auto& saiPortHandle = handle.second;
-    removePriorityGroupBufferProfile(saiPortHandle.get());
+    removeIngressPriorityGroupMappings(saiPortHandle.get());
   }
 }
 
@@ -561,17 +561,18 @@ void SaiPortManager::removePfc(const std::shared_ptr<Port>& swPort) {
 }
 
 void SaiPortManager::removePfcBuffers(const std::shared_ptr<Port>& swPort) {
-  removePriorityGroupBufferProfile(getPortHandle(swPort->getID()));
+  removeIngressPriorityGroupMappings(getPortHandle(swPort->getID()));
 }
 
-void SaiPortManager::removePriorityGroupBufferProfile(
+void SaiPortManager::removeIngressPriorityGroupMappings(
     SaiPortHandle* portHandle) {
   // Unset the bufferProfile applied per IngressPriorityGroup
-  for (const auto& pgEntries : portHandle->priorityGroupBufferProfiles) {
+  for (const auto& ipgIndexInfo : portHandle->configuredIngressPriorityGroups) {
+    const auto& ipgInfo = ipgIndexInfo.second;
     managerTable_->bufferManager().setIngressPriorityGroupBufferProfile(
-        pgEntries.first, std::nullptr_t());
+        ipgInfo.pgHandle->ingressPriorityGroup->adapterKey(), std::nullptr_t());
   }
-  portHandle->priorityGroupBufferProfiles.clear();
+  portHandle->configuredIngressPriorityGroups.clear();
 }
 
 cfg::PortType SaiPortManager::getPortType(PortID portId) const {
@@ -600,23 +601,12 @@ SaiPortManager::getIngressPriorityGroupSaiIds(
       ingressPriorityGroupAttribute{ingressPriorityGroupSaiIds};
   auto ingressPgIds = SaiApiTable::getInstance()->portApi().getAttribute(
       portId, ingressPriorityGroupAttribute);
-  std::vector<IngressPriorityGroupSaiId> ingressPgSaiId{numPgsPerPort};
+  std::vector<IngressPriorityGroupSaiId> ingressPgSaiIds{numPgsPerPort};
   for (int pgId = 0; pgId < numPgsPerPort; pgId++) {
-    // TODO: Return a vector indexed by IngressPriorityGroupAttribute::Index
-    ingressPgSaiId.at(pgId) =
+    ingressPgSaiIds.at(pgId) =
         static_cast<IngressPriorityGroupSaiId>(ingressPgIds.at(pgId));
   }
-  return ingressPgSaiId;
-}
-
-void SaiPortManager::applyPriorityGroupBufferProfile(
-    const std::shared_ptr<Port>& swPort,
-    std::shared_ptr<SaiBufferProfile> bufferProfile,
-    IngressPriorityGroupSaiId ingressPgSaiId) {
-  managerTable_->bufferManager().setIngressPriorityGroupBufferProfile(
-      ingressPgSaiId, bufferProfile);
-  SaiPortHandle* portHandle = getPortHandle(swPort->getID());
-  portHandle->priorityGroupBufferProfiles[ingressPgSaiId] = bufferProfile;
+  return ingressPgSaiIds;
 }
 
 void SaiPortManager::programPfcBuffers(const std::shared_ptr<Port>& swPort) {
@@ -625,18 +615,29 @@ void SaiPortManager::programPfcBuffers(const std::shared_ptr<Port>& swPort) {
     return;
   }
   managerTable_->bufferManager().createIngressBufferPool(swPort);
+  SaiPortHandle* portHandle = getPortHandle(swPort->getID());
   const auto& portPgCfgs = swPort->getPortPgConfigs();
   if (portPgCfgs) {
     const auto& ingressPgSaiIds = getIngressPriorityGroupSaiIds(swPort);
+    auto ingressPriorityGroupHandles =
+        managerTable_->bufferManager().loadIngressPriorityGroups(
+            ingressPgSaiIds);
     for (const auto& portPgCfg : *portPgCfgs) {
       // THRIFT_COPY
       auto portPgCfgThrift = portPgCfg->toThrift();
+      auto pgId = *portPgCfgThrift.id();
       auto bufferProfile =
           managerTable_->bufferManager().getOrCreateIngressProfile(
               portPgCfgThrift);
-      auto pgId = *portPgCfgThrift.id();
-      applyPriorityGroupBufferProfile(
-          swPort, bufferProfile, ingressPgSaiIds.at(pgId));
+      auto ingressPriorityGroupSaiId =
+          ingressPriorityGroupHandles[pgId]->ingressPriorityGroup->adapterKey();
+      managerTable_->bufferManager().setIngressPriorityGroupBufferProfile(
+          ingressPriorityGroupSaiId, bufferProfile);
+      // Keep track of ingressPriorityGroupHandle and bufferProfile per PG ID
+      portHandle
+          ->configuredIngressPriorityGroups[static_cast<IngressPriorityGroupID>(
+              pgId)] = SaiIngressPriorityGroupHandleAndProfile{
+          std::move(ingressPriorityGroupHandles[pgId]), bufferProfile};
     }
   }
 }

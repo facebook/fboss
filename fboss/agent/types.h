@@ -91,6 +91,7 @@ FBOSS_STRONG_TYPE(uint16_t, XphyId);
 FBOSS_STRONG_TYPE(uint32_t, LaneID);
 FBOSS_STRONG_TYPE(int32_t, LabelID);
 FBOSS_STRONG_TYPE(int64_t, SystemPortID);
+FBOSS_STRONG_TYPE(uint16_t, IngressPriorityGroupID);
 
 /*
  * A unique ID identifying a node in our state tree.
