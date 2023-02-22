@@ -263,6 +263,11 @@ enum FieldMasks : uint8_t {
   PRBS_SYS_SUPPRT_MASK = 0x0f,
   PRBS_LINE_SUPPRT_MASK = 0xf0,
   TX_BIAS_MULTIPLIER_MASK = 0x18,
+  MODULE_STATUS_MASK = 0x0E,
+};
+
+enum FieldBitShift : uint8_t {
+  MODULE_STATUS_BITSHIFT = 1,
 };
 
 enum DeviceTechnologyCmis : uint8_t {

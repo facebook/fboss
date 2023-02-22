@@ -1963,6 +1963,73 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
 }
 
 /*
+ * ensureTransceiverReady
+ *
+ * If the current power configuration state is not same as desired one then
+ * change it to that (by setting and resetting LP mode) otherwise return true
+ * when module is in ready state otherwise return false.
+ */
+bool CmisModule::ensureTransceiverReady() {
+  // If customization is not supported then the Power control bit can't be
+  // touched. Return true as nothing needs to be done here
+  if (!customizationSupported()) {
+    QSFP_LOG(DBG1, this)
+        << "ensureTransceiverReady: Customization not supported";
+    return true;
+  }
+
+  // Read the current power configuration values. Don't depend on refresh
+  // because that may be delayed
+  uint8_t currentModuleControl;
+  PowerControlState powerState;
+  readCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
+
+  if (currentModuleControl & POWER_CONTROL_MASK) {
+    powerState = PowerControlState::POWER_LPMODE;
+  } else {
+    powerState = PowerControlState::HIGH_POWER_OVERRIDE;
+  }
+
+  // If Optics current power configuration is High Power then the config is
+  // correct. We need to check if the Module's current status is READY then
+  // return true else return false as the optics state machine might be in
+  // transition and need more time to be ready
+  if (powerState == PowerControlState::HIGH_POWER_OVERRIDE) {
+    uint8_t moduleStatus;
+    readCmisField(CmisField::MODULE_STATE, &moduleStatus);
+    bool isReady =
+        ((CmisModuleState)((moduleStatus & MODULE_STATUS_MASK) >> MODULE_STATUS_BITSHIFT) ==
+         CmisModuleState::READY);
+    return isReady;
+  }
+
+  // If the optics current power configuration is Low Power then set the LP
+  // mode, wait, reset the LP mode and then return false since the module
+  // needs some time to converge its state machine
+
+  // LowPwr is on the 6 bit of ModuleControl.
+  currentModuleControl = currentModuleControl | POWER_CONTROL_MASK;
+
+  // first set to low power
+  writeCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
+
+  // Wait for 100ms before resetting the LP mode
+  /* sleep override */
+  usleep(kUsecBetweenPowerModeFlap);
+
+  // now enable target power class
+  currentModuleControl = currentModuleControl & ~POWER_CONTROL_MASK;
+
+  writeCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
+
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "ensureTransceiverReady: QSFP module control set to {:#x}",
+      currentModuleControl);
+
+  return false;
+}
+
+/*
  * configureModule
  *
  * Set the module serdes / Rx equalizer after module has been discovered. This

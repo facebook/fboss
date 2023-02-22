@@ -136,6 +136,13 @@ class CmisModule : public QsfpModule {
    */
   void customizeTransceiverLocked(
       cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT) override;
+
+  /*
+   * If the current power state is not same as desired one then change it and
+   * return true when module is in ready state
+   */
+  bool ensureTransceiverReady();
+
   /*
    * Based on identifier, sets whether the upper memory of the module is flat or
    * paged.
