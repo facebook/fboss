@@ -135,8 +135,8 @@ class TeFlowTest : public ::testing::Test {
 
 TEST_F(TeFlowTest, SerDeserFlowEntry) {
   auto flowEntry = makeFlowEntry("100::");
-  auto serialized = flowEntry->toFollyDynamic();
-  auto entryBack = TeFlowEntry::fromFollyDynamic(serialized);
+  auto serialized = flowEntry->toThrift();
+  auto entryBack = std::make_shared<TeFlowEntry>(serialized);
   EXPECT_TRUE(*flowEntry == *entryBack);
 }
 

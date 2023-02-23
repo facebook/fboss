@@ -43,6 +43,9 @@
     "clientIdToAdminDistance": {
       "0": 20,
       "1": 1,
+      "2": 0,
+      "3": 0,
+      "700": 255,
       "786": 10
     },
     "sFlowCollectors": [
@@ -69,7 +72,7 @@
     "staticMplsRoutesWithNhops": [
       
     ],
-    "staticMplsoutesToNull": [
+    "staticMplsRoutesToNull": [
       
     ],
     "staticMplsRoutesToCPU": [
@@ -89,7 +92,17 @@
       "maxRouteCounterIDs": 0,
       "blockNeighbors": [
         
+      ],
+      "macAddrsToBlock": [
+        
+      ],
+      "switchType": 0,
+      "exactMatchTableConfigs": [
+        
       ]
+    },
+    "dsfNodes": {
+      
     }
   },
   "platform": {
@@ -104,6 +117,7 @@
           "l3_alpm_enable": "0x2",
           "l3_intf_vlan_split_egress": "0x1",
           "l3_mem_entries": "0x4000",
+          "macro_flow_hash_shuffle_random_seed": "34345645",
           "mdio_output_delay": "0xb",
           "mmu_lossless": "0x0",
           "num_ipv6_lpm_128b_entries": "0xc00",

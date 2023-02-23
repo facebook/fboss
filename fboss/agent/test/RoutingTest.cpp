@@ -333,7 +333,7 @@ TEST_F(RoutingFixture, SwitchToHostUnicast) {
   CounterCache counters(sw);
 
   // v4 packet destined to intf1 address from any address. Destination Linux
-  // Inteface is identified based on srcVlan.
+  // Interface is identified based on srcVlan.
   // NOTE: the srcVlan and destAddr belong to different address. But packet will
   // still be forwarded to host because dest is one of interface's address.
   {

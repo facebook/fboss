@@ -279,9 +279,9 @@ TEST(LoadBalancer, deserializationInverseOfSerlization) {
       mplsFields,
       udfGroupIds);
 
-  auto serializedLoadBalancer = loadBalancer.toFollyDynamic();
+  auto serializedLoadBalancer = loadBalancer.toThrift();
   auto deserializedLoadBalancerPtr =
-      LoadBalancer::fromFollyDynamic(serializedLoadBalancer);
+      std::make_shared<LoadBalancer>(serializedLoadBalancer);
 
   checkLoadBalancer(
       deserializedLoadBalancerPtr,

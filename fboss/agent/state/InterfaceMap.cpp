@@ -106,24 +106,6 @@ InterfaceMap* InterfaceMap::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
-folly::dynamic InterfaceMap::toFollyDynamic() const {
-  folly::dynamic intfs = folly::dynamic::array;
-  for (auto iter : std::as_const(*this)) {
-    const auto& intf = iter.second;
-    intfs.push_back(intf->toFollyDynamic());
-  }
-  return intfs;
-}
-
-std::shared_ptr<InterfaceMap> InterfaceMap::fromFollyDynamic(
-    const folly::dynamic& intfMapJson) {
-  auto intfMap = std::make_shared<InterfaceMap>();
-  for (const auto& intf : intfMapJson) {
-    intfMap->addInterface(Interface::fromFollyDynamic(intf));
-  }
-  return intfMap;
-}
-
 template class ThriftMapNode<InterfaceMap, InterfaceMapTraits>;
 
 } // namespace facebook::fboss

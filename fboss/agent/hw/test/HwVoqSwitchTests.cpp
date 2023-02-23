@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
+#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -115,6 +116,38 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     }
   }
 
+  int sendPacket(
+      const folly::IPAddressV6& dstIp,
+      std::optional<PortID> frontPanelPort) {
+    folly::IPAddressV6 kSrcIp("1::1");
+    const auto srcMac = utility::kLocalCpuMac();
+    const auto dstMac = utility::kLocalCpuMac();
+
+    auto txPacket = utility::makeUDPTxPacket(
+        getHwSwitch(),
+        std::nullopt, // vlanID
+        srcMac,
+        dstMac,
+        kSrcIp,
+        dstIp,
+        8000, // l4 src port
+        8001, // l4 dst port
+        0x24 << 2); // dscp
+    size_t txPacketSize = txPacket->buf()->length();
+
+    XLOG(DBG5) << "\n"
+               << folly::hexDump(
+                      txPacket->buf()->data(), txPacket->buf()->length());
+
+    if (frontPanelPort.has_value()) {
+      getHwSwitch()->sendPacketOutOfPortAsync(
+          std::move(txPacket), *frontPanelPort);
+    } else {
+      getHwSwitch()->sendPacketSwitchedAsync(std::move(txPacket));
+    }
+    return txPacketSize;
+  }
+
   void sendPacketHelper(bool isFrontPanel, bool checkAclCounter = true) {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
     const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
@@ -127,27 +160,6 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     };
 
     auto verify = [this, kPort, ecmpHelper, isFrontPanel, checkAclCounter]() {
-      folly::IPAddressV6 kSrcIp("1::1");
-      folly::IPAddressV6 kNeighborIp = ecmpHelper.ip(kPort);
-      const auto srcMac = utility::kLocalCpuMac();
-      const auto dstMac = utility::kLocalCpuMac();
-
-      auto txPacket = utility::makeUDPTxPacket(
-          getHwSwitch(),
-          std::nullopt, // vlanID
-          srcMac,
-          dstMac,
-          kSrcIp,
-          kNeighborIp,
-          8000, // l4 src port
-          8001, // l4 dst port
-          0x24 << 2); // dscp
-      size_t txPacketSize = txPacket->buf()->length();
-
-      XLOG(DBG3) << "\n"
-                 << folly::hexDump(
-                        txPacket->buf()->data(), txPacket->buf()->length());
-
       auto getPortOutPktsBytes = [kPort, this]() {
         return std::make_pair(
             getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_(),
@@ -188,14 +200,11 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
       auto [beforeQueueOutPkts, beforeQueueOutBytes] = getQueueOutPktsBytes();
       auto beforeVoQOutBytes = getVoQOutBytes();
       auto beforeAclPkts = getAclPackets();
-
+      std::optional<PortID> frontPanelPort;
       if (isFrontPanel) {
-        const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
-        getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
-            std::move(txPacket), port);
-      } else {
-        getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+        frontPanelPort = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
       }
+      auto txPacketSize = sendPacket(ecmpHelper.ip(kPort), frontPanelPort);
 
       WITH_RETRIES({
         auto afterVoQOutBytes = getVoQOutBytes();
@@ -310,6 +319,48 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, collectStats) {
 TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricReachability) {
   verifyAcrossWarmBoots(
       [] {}, [this]() { checkFabricReachability(getHwSwitch()); });
+}
+
+TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPort, ecmpHelper]() {
+    std::string out;
+    // TODO - replace with attribute set when available
+    // The following register set forces local traffic
+    // to also traverse the fabric ports. This exercises
+    // packet spray functionality on single box tests.
+    getHwSwitchEnsemble()->runDiagCommand(
+        "m IPS_FORCE_LOCAL_OR_FABRIC FORCE_FABRIC=1 \n", out);
+    addRemoveNeighbor(kPort, true /* add neighbor*/);
+  };
+
+  auto verify = [this, kPort, ecmpHelper]() {
+    auto beforePkts =
+        getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+    for (auto i = 0; i < 10000; ++i) {
+      sendPacket(
+          ecmpHelper.ip(kPort), ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
+    }
+    WITH_RETRIES({
+      auto afterPkts =
+          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+      XLOG(DBG2) << "Before pkts: " << beforePkts
+                 << " After pkts: " << afterPkts;
+      EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 10000);
+      auto nifBytes = getLatestPortStats(kPort.phyPortID()).get_outBytes_();
+      auto fabricPortStats = getLatestPortStats(masterLogicalFabricPortIds());
+      auto fabricBytes = 0;
+      for (const auto& idAndStats : fabricPortStats) {
+        fabricBytes += idAndStats.second.get_outBytes_();
+      }
+      XLOG(DBG2) << "NIF bytes: " << nifBytes
+                 << " Fabric bytes: " << fabricBytes;
+      EXPECT_EVENTUALLY_GE(fabricBytes, nifBytes);
+      EXPECT_TRUE(utility::isLoadBalanced(fabricPortStats, 15));
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {

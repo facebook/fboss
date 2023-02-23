@@ -23,8 +23,7 @@
 
 namespace facebook::fboss {
 
-struct LoadBalancerFields
-    : public ThriftyFields<LoadBalancerFields, state::LoadBalancerFields> {
+struct LoadBalancerFields {
   using IPv4Field = cfg::IPv4Field;
   using IPv4Fields = boost::container::flat_set<IPv4Field>;
 
@@ -38,31 +37,6 @@ struct LoadBalancerFields
   using MPLSFields = boost::container::flat_set<MPLSField>;
 
   using UdfGroupIds = std::vector<std::string>;
-
-  state::LoadBalancerFields toThrift() const override;
-  static LoadBalancerFields fromThrift(state::LoadBalancerFields const& fields);
-
-  LoadBalancerFields(
-      LoadBalancerID id,
-      cfg::HashingAlgorithm algorithm,
-      uint32_t seed,
-      IPv4Fields v4Fields,
-      IPv6Fields v6Fields,
-      TransportFields transportFields,
-      MPLSFields mplsFields = MPLSFields{},
-      UdfGroupIds udfGroupIds = UdfGroupIds{});
-
-  template <typename Fn>
-  void forEachChild(Fn /* unused */) {}
-
-  const LoadBalancerID id_;
-  cfg::HashingAlgorithm algorithm_;
-  uint32_t seed_;
-  IPv4Fields v4Fields_;
-  IPv6Fields v6Fields_;
-  TransportFields transportFields_;
-  MPLSFields mplsFields_;
-  UdfGroupIds udfGroupIds_;
 };
 
 USE_THRIFT_COW(LoadBalancer);
@@ -144,17 +118,6 @@ class LoadBalancer
   TransportFieldsRange getTransportFields() const;
   MPLSFieldsRange getMPLSFields() const;
   UdfGroupIds getUdfGroupIds() const;
-
-  static std::shared_ptr<LoadBalancer> fromFollyDynamicLegacy(
-      const folly::dynamic& json);
-  static std::shared_ptr<LoadBalancer> fromFollyDynamic(
-      const folly::dynamic& json) {
-    return fromFollyDynamicLegacy(json);
-  }
-  folly::dynamic toFollyDynamicLegacy() const;
-  folly::dynamic toFollyDynamic() const override {
-    return toFollyDynamicLegacy();
-  }
 
   static std::shared_ptr<LoadBalancer> fromThrift(
       const state::LoadBalancerFields& fields);

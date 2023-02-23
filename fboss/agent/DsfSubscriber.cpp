@@ -204,7 +204,6 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
           std::shared_ptr<InterfaceMap> newRifs;
           for (const auto& change : *operStateUnit.changes()) {
             if (change.path()->path() == getSystemPortsPath()) {
-              std::map<int64_t, SystemPortFields> fieldsMap;
               XLOG(DBG2) << " Got sys port update from : " << nodeName;
               newSysPorts = std::make_shared<SystemPortMap>();
               newSysPorts->fromThrift(

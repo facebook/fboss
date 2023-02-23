@@ -43,6 +43,9 @@
     "clientIdToAdminDistance": {
       "0": 20,
       "1": 1,
+      "2": 0,
+      "3": 0,
+      "700": 255,
       "786": 10
     },
     "sFlowCollectors": [
@@ -69,7 +72,7 @@
     "staticMplsRoutesWithNhops": [
       
     ],
-    "staticMplsoutesToNull": [
+    "staticMplsRoutesToNull": [
       
     ],
     "staticMplsRoutesToCPU": [
@@ -89,7 +92,17 @@
       "maxRouteCounterIDs": 0,
       "blockNeighbors": [
         
+      ],
+      "macAddrsToBlock": [
+        
+      ],
+      "switchType": 0,
+      "exactMatchTableConfigs": [
+        
       ]
+    },
+    "dsfNodes": {
+      
     }
   },
   "platform": {
@@ -232,9 +245,11 @@
           "dport_map_port_95": "128",
           "dpr_clock_frequency": "1000",
           "ipv6_lpm_128b_enable": "1",
+          "l2xmsg_shadow_hit_bits": "0",
           "l3_alpm_enable": "2",
           "l3_alpm_ipv6_128b_bkt_rsvd": "1",
           "load_firmware": "0x2",
+          "macro_flow_hash_shuffle_random_seed": "34345645",
           "mem_cache_enable": "0",
           "mmu_lossless": "0x0",
           "num_ipv6_lpm_128b_entries": "768",
@@ -893,6 +908,7 @@
           "sai_common_hash_crc": "0x1",
           "sai_disable_srcmacqedstmac_ctrl": "0x1",
           "sai_ifp_enable_on_cpu_tx": "0x1",
+          "sai_l2_cpu_fdb_event_suppress": "1",
           "sai_macro_flow_based_hash": "1",
           "sai_mmu_qgroups_default": "1",
           "sai_optimized_mmu": "0x1",
@@ -902,6 +918,7 @@
           "sai_pkt_rx_pkt_size": "16512",
           "sai_port_phy_time_sync_en": "1",
           "sai_stats_support_mask": "0x2",
+          "sai_tunnel_global_sip_mask_enable": "1",
           "sai_uncached_port_stats": "0x1",
           "sai_vfp_smac_drop_filter_disable": "1",
           "serdes_core_rx_polarity_flip_physical{100}": "0xA6",
