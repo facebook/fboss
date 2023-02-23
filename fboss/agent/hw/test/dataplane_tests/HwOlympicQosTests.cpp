@@ -65,8 +65,8 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
 
  private:
   void sendPacket(uint8_t dscp, bool frontPanel) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(initialConfig());
+    auto intfMac = utility::getFirstInterfaceMac(initialConfig());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
@@ -85,11 +85,10 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
     // ingressed on the port, and be properly queued.
     if (frontPanel) {
       auto outPort = helper_->ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
-      getHwSwitchEnsemble()->getHwSwitch()->sendPacketOutOfPortSync(
+      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
           std::move(txPacket), outPort);
     } else {
-      getHwSwitchEnsemble()->getHwSwitch()->sendPacketSwitchedSync(
-          std::move(txPacket));
+      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
     }
   }
 
