@@ -19,35 +19,12 @@
 
 namespace facebook::fboss {
 
-struct SystemPortFields
-    : public ThriftyFields<SystemPortFields, state::SystemPortFields> {
-  explicit SystemPortFields(SystemPortID id) {
-    auto& data = writableData();
-    *data.portId() = id;
-  }
-
-  bool operator==(const SystemPortFields& other) const {
-    return data() == other.data();
-  }
-
-  state::SystemPortFields toThrift() const override {
-    return data();
-  }
-
-  template <typename Fn>
-  void forEachChild(Fn /*fn*/) {}
-
-  static SystemPortFields fromThrift(
-      const state::SystemPortFields& systemPortThrift);
-};
-
 USE_THRIFT_COW(SystemPort);
 
 class SystemPort
     : public ThriftStructNode<SystemPort, state::SystemPortFields> {
  public:
   using Base = ThriftStructNode<SystemPort, state::SystemPortFields>;
-  using LegacyFields = SystemPortFields;
   explicit SystemPort(SystemPortID id) {
     set<common_if_tags::portId>(static_cast<int64_t>(id));
   }
@@ -110,26 +87,6 @@ class SystemPort
     } else {
       ref<common_if_tags::qosPolicy>().reset();
     }
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    auto fields = SystemPortFields::fromThrift(toThrift());
-    return fields.toFollyDynamic();
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    return toFollyDynamic();
-  }
-
-  static std::shared_ptr<SystemPort> fromFollyDynamic(
-      const folly::dynamic& dyn) {
-    auto fields = SystemPortFields::fromFollyDynamic(dyn);
-    return std::make_shared<SystemPort>(fields.toThrift());
-  }
-
-  static std::shared_ptr<SystemPort> fromFollyDynamicLegacy(
-      const folly::dynamic& dyn) {
-    return fromFollyDynamic(dyn);
   }
 
  private:

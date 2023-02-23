@@ -18,16 +18,16 @@ using namespace facebook::fboss;
 
 TEST(SystemPort, SerDeserSystemPort) {
   auto sysPort = makeSysPort("olympic");
-  auto serialized = sysPort->toFollyDynamic();
-  auto sysPortBack = SystemPort::fromFollyDynamic(serialized);
+  auto serialized = sysPort->toThrift();
+  auto sysPortBack = std::make_shared<SystemPort>(serialized);
 
   EXPECT_TRUE(*sysPort == *sysPortBack);
 }
 
 TEST(SystemPort, SerDeserSystemPortNoQos) {
   auto sysPort = makeSysPort(std::nullopt);
-  auto serialized = sysPort->toFollyDynamic();
-  auto sysPortBack = SystemPort::fromFollyDynamic(serialized);
+  auto serialized = sysPort->toThrift();
+  auto sysPortBack = std::make_shared<SystemPort>(serialized);
   EXPECT_TRUE(*sysPort == *sysPortBack);
 }
 
