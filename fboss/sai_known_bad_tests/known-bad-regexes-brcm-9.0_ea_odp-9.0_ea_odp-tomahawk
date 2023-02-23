@@ -136,3 +136,5 @@
 "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpThenStateUp"
 "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableCpu"
 "warm_boot.SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTableFrontPanel"
+"HwAqmTest.verifyEcnThreshold"
+"HwSflowMirrorTest.VerifySampledPacket"
