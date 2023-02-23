@@ -320,6 +320,48 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricReachability) {
       [] {}, [this]() { checkFabricReachability(getHwSwitch()); });
 }
 
+TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPort, ecmpHelper]() {
+    std::string out;
+    getHwSwitchEnsemble()->runDiagCommand("\n", out);
+    // TODO - replace with attribute set when available
+    // The following register set forces local traffic
+    // to also traverse the fabric ports. This exercises
+    // packet spray functionality on single box tests.
+    getHwSwitchEnsemble()->runDiagCommand(
+        "m IPS_FORCE_LOCAL_OR_FABRIC FORCE_FABRIC=1 \n", out);
+    addRemoveNeighbor(kPort, true /* add neighbor*/);
+  };
+
+  auto verify = [this, kPort, ecmpHelper]() {
+    auto beforePkts =
+        getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+    for (auto i = 0; i < 10000; ++i) {
+      sendPacket(
+          ecmpHelper.ip(kPort), ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
+    }
+    WITH_RETRIES({
+      auto afterPkts =
+          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+      XLOG(DBG2) << "Before pkts: " << beforePkts
+                 << " After pkts: " << afterPkts;
+      EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 10000);
+      auto nifBytes = getLatestPortStats(kPort.phyPortID()).get_outBytes_();
+      auto fabricPortStats = getLatestPortStats(masterLogicalFabricPortIds());
+      auto fabricBytes = 0;
+      for (const auto& idAndStats : fabricPortStats) {
+        fabricBytes += idAndStats.second.get_outBytes_();
+      }
+      XLOG(DBG2) << "NIF bytes: " << nifBytes
+                 << " Fabric bytes: " << fabricBytes;
+      EXPECT_EVENTUALLY_GE(fabricBytes, nifBytes);
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwVoqSwitchTest, addRemoveNeighbor) {
   auto setup = [this]() {
     const PortDescriptor kPort(
