@@ -5,12 +5,6 @@
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
-TeFlowEntryFields TeFlowEntryFields::fromThrift(
-    const state::TeFlowEntryFields& teFlowEntryThrift) {
-  TeFlowEntryFields teFlowEntry(*teFlowEntryThrift.flow());
-  teFlowEntry.writableData() = teFlowEntryThrift;
-  return teFlowEntry;
-}
 
 TeFlowEntry* TeFlowEntry::modify(std::shared_ptr<SwitchState>* state) {
   if (!isPublished()) {
