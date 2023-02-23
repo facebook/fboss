@@ -106,6 +106,8 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwPfcTest.*:-*Watchdog*
 # PFC traffic tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwTrafficPfc*:-*Watchdog*:*Zero*
+# Qos  tests
+# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwOlympicQosTests.VerifyDscpQueueMappingFrontPanel
 # All tests matching following filter are expected to PASS on Kamet
 # ./run_test.py sai --config kamet.agent.materialized_JSON --filter=HwFabricSwitchTest*
 
