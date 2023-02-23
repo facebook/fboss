@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/HwTestStatUtils.h"
+#include "fboss/agent/hw/test/LoadBalancerUtils.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -325,7 +326,6 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPort, ecmpHelper]() {
     std::string out;
-    getHwSwitchEnsemble()->runDiagCommand("\n", out);
     // TODO - replace with attribute set when available
     // The following register set forces local traffic
     // to also traverse the fabric ports. This exercises
@@ -357,6 +357,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
       XLOG(DBG2) << "NIF bytes: " << nifBytes
                  << " Fabric bytes: " << fabricBytes;
       EXPECT_EVENTUALLY_GE(fabricBytes, nifBytes);
+      EXPECT_TRUE(utility::isLoadBalanced(fabricPortStats, 15));
     });
   };
   verifyAcrossWarmBoots(setup, verify);
