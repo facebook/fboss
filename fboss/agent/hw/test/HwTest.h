@@ -91,6 +91,7 @@ class HwTest : public ::testing::Test,
       const std::set<cfg::PortType>& filter = {}) const;
 
   std::vector<PortID> masterLogicalInterfacePortIds() const;
+  std::vector<PortID> masterLogicalFabricPortIds() const;
 
   std::vector<PortID> getAllPortsInGroup(PortID portID) const;
 
