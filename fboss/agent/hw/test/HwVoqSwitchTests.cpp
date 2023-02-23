@@ -139,10 +139,10 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
                       txPacket->buf()->data(), txPacket->buf()->length());
 
     if (frontPanelPort.has_value()) {
-      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+      getHwSwitch()->sendPacketOutOfPortAsync(
           std::move(txPacket), *frontPanelPort);
     } else {
-      getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(txPacket));
+      getHwSwitch()->sendPacketSwitchedAsync(std::move(txPacket));
     }
     return txPacketSize;
   }
