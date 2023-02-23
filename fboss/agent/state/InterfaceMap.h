@@ -108,20 +108,6 @@ class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
   void addInterface(const std::shared_ptr<Interface>& interface);
   void updateInterface(const std::shared_ptr<Interface>& interface);
 
-  /*
-   * Serialize to a folly::dynamic object
-   */
-  folly::dynamic toFollyDynamic() const override;
-  /*
-   * Deserialize from a folly::dynamic object
-   */
-  static std::shared_ptr<InterfaceMap> fromFollyDynamic(
-      const folly::dynamic& intfMapJson);
-
-  static std::shared_ptr<InterfaceMap> fromJson(
-      const folly::fbstring& jsonStr) {
-    return fromFollyDynamic(folly::parseJson(jsonStr));
-  }
   InterfaceMap* modify(std::shared_ptr<SwitchState>* state);
 
  private:

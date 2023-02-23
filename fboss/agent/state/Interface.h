@@ -30,60 +30,6 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-struct InterfaceFields
-    : public ThriftyFields<InterfaceFields, state::InterfaceFields> {
-  using ThriftyFields::ThriftyFields;
-  using Addresses = std::map<folly::IPAddress, uint8_t>;
-  InterfaceFields(
-      InterfaceID id,
-      RouterID router,
-      std::optional<VlanID> vlan,
-      folly::StringPiece name,
-      folly::MacAddress mac,
-      int mtu,
-      bool isVirtual,
-      bool isStateSyncDisabled,
-      cfg::InterfaceType type = cfg::InterfaceType::VLAN) {
-    writableData().interfaceId() = id;
-    writableData().routerId() = router;
-    writableData().type() = type;
-    if (type == cfg::InterfaceType::VLAN) {
-      CHECK(vlan) << " Vlan ID must be set for interface types VLAN";
-    }
-    if (vlan) {
-      writableData().vlanId() = *vlan;
-    }
-    writableData().name() = name;
-    writableData().mac() = mac.u64NBO();
-    writableData().mtu() = mtu;
-    writableData().isVirtual() = isVirtual;
-    writableData().isStateSyncDisabled() = isStateSyncDisabled;
-  }
-
-  state::InterfaceFields toThrift() const override {
-    return data();
-  }
-  static InterfaceFields fromThrift(
-      state::InterfaceFields const& interfaceFields) {
-    return InterfaceFields(interfaceFields);
-  }
-  bool operator==(const InterfaceFields& other) const {
-    return data() == other.data();
-  }
-
-  /*
-   * Deserialize from a folly::dynamic object
-   */
-  static InterfaceFields fromFollyDynamic(const folly::dynamic& json);
-  /*
-   * Serialize to folly::dynamic
-   */
-  folly::dynamic toFollyDynamic() const;
-
-  template <typename Fn>
-  void forEachChild(Fn /*fn*/) {}
-};
-
 // both arp table and ndp table have same thrift type representation as map of
 // string to neighbor entry fields. define which of these two members of struct
 // resolves to which class.
@@ -291,24 +237,8 @@ class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
       InterfaceID intfID,
       const std::shared_ptr<SwitchState>& state);
 
-  static std::shared_ptr<Interface> fromFollyDynamicLegacy(
-      const folly::dynamic& json) {
-    auto fields = InterfaceFields::fromFollyDynamic(json);
-    return std::make_shared<Interface>(fields.toThrift());
-  }
-  folly::dynamic toFollyDynamicLegacy() const {
-    auto fields = InterfaceFields::fromThrift(this->toThrift());
-    return fields.toFollyDynamic();
-  }
   bool operator!=(const Interface& other) const {
     return !(*this == other);
-  }
-  static std::shared_ptr<Interface> fromFollyDynamic(
-      const folly::dynamic& json) {
-    return fromFollyDynamicLegacy(json);
-  }
-  folly::dynamic toFollyDynamic() const override {
-    return toFollyDynamicLegacy();
   }
 
   Addresses getAddressesCopy() const {

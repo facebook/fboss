@@ -30,9 +30,7 @@ using ::testing::Return;
 
 namespace {
 void validateSerialization(const InterfaceMap& node) {
-  auto nodeBack = InterfaceMap::fromFollyDynamic(node.toFollyDynamic());
-  EXPECT_EQ(node.toThrift(), nodeBack->toThrift());
-  nodeBack->fromThrift(node.toThrift());
+  auto nodeBack = std::make_shared<InterfaceMap>(node.toThrift());
   EXPECT_EQ(node.toThrift(), nodeBack->toThrift());
 }
 } // namespace

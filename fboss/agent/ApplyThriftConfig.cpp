@@ -863,7 +863,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
     auto intfs = isLocal(node) ? new_->getInterfaces()->modify(&new_)
                                : new_->getRemoteInterfaces()->modify(&new_);
     auto intf = intfs->getInterface(intfID)->clone();
-    InterfaceFields::Addresses addresses;
+    Interface::Addresses addresses;
     // THRIFT_COPY: evaluate if getting entire thrift table is needed.
     auto arpTable = intf->getArpTable()->toThrift();
     auto ndpTable = intf->getNdpTable()->toThrift();
