@@ -330,12 +330,12 @@ class ThriftConfigApplier {
   std::optional<std::string> getDefaultDataPlaneQosPolicyName() const;
   std::shared_ptr<QosPolicy> updateDataplaneDefaultQosPolicy();
   shared_ptr<QosPolicy> createQosPolicy(const cfg::QosPolicy& qosPolicy);
-  struct IntefaceIpInfo;
+  struct InterfaceIpInfo;
   template <typename NeighborResponseEntry, typename IPAddr>
   std::shared_ptr<NeighborResponseEntry> updateNeighborResponseEntry(
       const std::shared_ptr<NeighborResponseEntry>& orig,
       IPAddr ip,
-      IntefaceIpInfo addrInfo);
+      InterfaceIpInfo addrInfo);
   bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
   bool updateNbrResponseTablesFromAllIntfCfg(Vlan* vlan);
   bool updateDhcpOverrides(Vlan* vlan, const cfg::Vlan* config);
@@ -416,23 +416,23 @@ class ThriftConfigApplier {
   RouteUpdateWrapper* routeUpdater_{nullptr};
   AclNexthopHandler* aclNexthopHandler_{nullptr};
 
-  struct IntefaceIpInfo {
-    IntefaceIpInfo(uint8_t mask, MacAddress mac, InterfaceID intf)
+  struct InterfaceIpInfo {
+    InterfaceIpInfo(uint8_t mask, MacAddress mac, InterfaceID intf)
         : mask(mask), mac(mac), interfaceID(intf) {}
 
     uint8_t mask;
     MacAddress mac;
     InterfaceID interfaceID;
   };
-  struct IntefaceInfo {
+  struct InterfaceInfo {
     RouterID routerID{0};
     flat_set<InterfaceID> interfaces;
-    flat_map<IPAddress, IntefaceIpInfo> addresses;
+    flat_map<IPAddress, InterfaceIpInfo> addresses;
   };
 
   flat_map<PortID, Port::VlanMembership> portVlans_;
   flat_map<VlanID, Vlan::MemberPorts> vlanPorts_;
-  flat_map<VlanID, IntefaceInfo> vlanInterfaces_;
+  flat_map<VlanID, InterfaceInfo> vlanInterfaces_;
   flat_map<PortID, std::vector<int32_t>> port2InterfaceId_;
 };
 
@@ -1192,7 +1192,7 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
   for (auto iter : std::as_const(*intf->getAddresses())) {
     auto ipMask =
         std::make_pair(folly::IPAddress(iter.first), iter.second->cref());
-    IntefaceIpInfo info(ipMask.second, intf->getMac(), intf->getID());
+    InterfaceIpInfo info(ipMask.second, intf->getMac(), intf->getID());
     auto ret = entry.addresses.emplace(ipMask.first, info);
     if (ret.second) {
       continue;
@@ -1228,7 +1228,7 @@ void ThriftConfigApplier::updateVlanInterfaces(const Interface* intf) {
 
   // Also add the link-local IPv6 address
   IPAddressV6 linkLocalAddr(IPAddressV6::LINK_LOCAL, intf->getMac());
-  IntefaceIpInfo linkLocalInfo(64, intf->getMac(), intf->getID());
+  InterfaceIpInfo linkLocalInfo(64, intf->getMac(), intf->getID());
   entry.addresses.emplace(IPAddress(linkLocalAddr), linkLocalInfo);
 }
 
@@ -3062,7 +3062,7 @@ std::shared_ptr<NeighborResponseEntry>
 ThriftConfigApplier::updateNeighborResponseEntry(
     const std::shared_ptr<NeighborResponseEntry>& orig,
     IPAddr ip,
-    ThriftConfigApplier::IntefaceIpInfo addrInfo) {
+    ThriftConfigApplier::InterfaceIpInfo addrInfo) {
   if (orig && orig->getMac() == addrInfo.mac &&
       orig->getInterfaceID() == addrInfo.interfaceID) {
     return nullptr;
@@ -3100,14 +3100,14 @@ bool ThriftConfigApplier::updateNbrResponseTablesFromAllIntfCfg(Vlan* vlan) {
         auto newNode = updateNeighborResponseEntry(
             origNode,
             ip.asV4(),
-            ThriftConfigApplier::IntefaceIpInfo{mask, mac, intfID});
+            ThriftConfigApplier::InterfaceIpInfo{mask, mac, intfID});
         arpChanged |= updateMap(&arpTable, origNode, newNode);
       } else {
         auto origNode = origNdp->getEntry(ip.asV6());
         auto newNode = updateNeighborResponseEntry(
             origNode,
             ip.asV6(),
-            ThriftConfigApplier::IntefaceIpInfo{mask, mac, intfID});
+            ThriftConfigApplier::InterfaceIpInfo{mask, mac, intfID});
         ndpChanged |= updateMap(&ndpTable, origNode, newNode);
       }
     }
