@@ -46,6 +46,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_l2_model
+  fboss/cli/fboss2/commands/show/l2/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_lldp_model
   fboss/cli/fboss2/commands/show/lldp/model.thrift
   OPTIONS
@@ -233,6 +240,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
   fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h
   fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h
+  fboss/cli/fboss2/commands/show/l2/CmdShowL2.h
   fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h
   fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h
   fboss/cli/fboss2/commands/show/port/CmdShowPort.h
@@ -298,6 +306,7 @@ target_link_libraries(fboss2
   show_arp_model
   show_dsfnodes_model
   show_fabric_model
+  show_l2_model
   show_lldp_model
   show_ndp_model
   show_port_model

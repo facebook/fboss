@@ -45,6 +45,7 @@
 #include "fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h"
 #include "fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h"
+#include "fboss/cli/fboss2/commands/show/l2/CmdShowL2.h"
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h"
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h"
@@ -266,6 +267,12 @@ const CommandTree& kCommandTree() {
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_HW_OBJECT_LIST,
        "Show HW Objects",
        commandHandler<CmdShowHwObject>},
+
+      {"show",
+       "l2",
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+       "Show L2 Packet Information",
+       commandHandler<CmdShowL2>},
 
       {"clear",
        "arp",

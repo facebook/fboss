@@ -46,6 +46,7 @@
 #include "fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h"
 #include "fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h"
+#include "fboss/cli/fboss2/commands/show/l2/CmdShowL2.h"
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h"
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h"
@@ -248,6 +249,7 @@ CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::run();
 template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
 template void CmdHandler<CmdShowFabric, CmdShowFabricTraits>::run();
 template void CmdHandler<CmdShowDsfNodes, CmdShowDsfNodesTraits>::run();
+template void CmdHandler<CmdShowL2, CmdShowL2Traits>::run();
 template void CmdHandler<CmdShowLldp, CmdShowLldpTraits>::run();
 template void
 CmdHandler<CmdShowMacAddrToBlock, CmdShowMacAddrToBlockTraits>::run();
