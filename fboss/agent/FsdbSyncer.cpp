@@ -13,7 +13,7 @@
 namespace facebook::fboss {
 FsdbSyncer::FsdbSyncer(SwSwitch* sw)
     : sw_(sw),
-      fsdbPubSubMgr_(std::make_unique<fsdb::FsdbPubSubManager>("agent")) {
+      fsdbPubSubMgr_(std::make_shared<fsdb::FsdbPubSubManager>("agent")) {
   if (FLAGS_publish_state_to_fsdb) {
     fsdbPubSubMgr_->createStateDeltaPublisher(
         getAgentStatePath(), [this](auto oldState, auto newState) {

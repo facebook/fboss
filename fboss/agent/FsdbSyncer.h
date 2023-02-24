@@ -54,7 +54,7 @@ class FsdbSyncer : public StateObserver {
   void publishDeltas(std::vector<fsdb::OperDeltaUnit>&& deltas);
 
   SwSwitch* sw_;
-  std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
+  std::shared_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;
   std::atomic<bool> readyForStatePublishing_{false};
   std::atomic<bool> readyForStatPublishing_{false};
   FsdbStateDeltaConverter deltaConverter_;
