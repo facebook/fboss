@@ -23,68 +23,6 @@ constexpr auto kMediaInterface = "mediaInterface";
 constexpr auto kManagementInterface = "managementInterface";
 } // namespace
 
-state::TransceiverSpecFields TransceiverSpecFields::toThrift() const {
-  return data();
-}
-
-TransceiverSpecFields TransceiverSpecFields::fromThrift(
-    state::TransceiverSpecFields const& tcvrThrift) {
-  TransceiverSpecFields tcvrFields(TransceiverID(*tcvrThrift.id()));
-  tcvrFields.writableData() = tcvrThrift;
-  return tcvrFields;
-}
-
-folly::dynamic TransceiverSpecFields::toFollyDynamicLegacy() const {
-  folly::dynamic tcvr = folly::dynamic::object;
-  auto thriftData = data();
-  tcvr[kTransceiverID] = static_cast<uint32_t>(*thriftData.id());
-  if (auto cableLength = thriftData.cableLength()) {
-    tcvr[kCableLength] = *cableLength;
-  }
-  if (auto mediaInterface = thriftData.mediaInterface()) {
-    auto mediaInterfaceStr = apache::thrift::util::enumName(*mediaInterface);
-    if (mediaInterfaceStr == nullptr) {
-      throw FbossError(
-          "Invalid MediaInterface for TransceiverSpec:", *thriftData.id());
-    }
-    tcvr[kMediaInterface] = mediaInterfaceStr;
-  }
-  if (auto managementInterface = thriftData.managementInterface()) {
-    auto managementInterfaceStr =
-        apache::thrift::util::enumName(*managementInterface);
-    if (managementInterfaceStr == nullptr) {
-      throw FbossError(
-          "Invalid ManagementInterface for TransceiverSpec:", *thriftData.id());
-    }
-    tcvr[kManagementInterface] = managementInterfaceStr;
-  }
-  return tcvr;
-}
-
-TransceiverSpecFields TransceiverSpecFields::fromFollyDynamicLegacy(
-    const folly::dynamic& tcvrJson) {
-  TransceiverSpecFields tcvr(TransceiverID(tcvrJson[kTransceiverID].asInt()));
-  if (const auto& value = tcvrJson.find(kCableLength);
-      value != tcvrJson.items().end()) {
-    tcvr.writableData().cableLength() = value->second.asDouble();
-  }
-  if (const auto& value = tcvrJson.find(kMediaInterface);
-      value != tcvrJson.items().end()) {
-    MediaInterfaceCode interface;
-    apache::thrift::TEnumTraits<MediaInterfaceCode>::findValue(
-        value->second.asString().c_str(), &interface);
-    tcvr.writableData().mediaInterface() = interface;
-  }
-  if (const auto& value = tcvrJson.find(kManagementInterface);
-      value != tcvrJson.items().end()) {
-    TransceiverManagementInterface interface;
-    apache::thrift::TEnumTraits<TransceiverManagementInterface>::findValue(
-        value->second.asString().c_str(), &interface);
-    tcvr.writableData().managementInterface() = interface;
-  }
-  return tcvr;
-}
-
 TransceiverSpec::TransceiverSpec(TransceiverID id) {
   set<switch_state_tags::id>(id);
 }

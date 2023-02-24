@@ -180,9 +180,9 @@ shared_ptr<SwitchState> genCPUSwitchState() {
 TEST(ControlPlane, serialize) {
   auto controlPlane = generateControlPlane();
   // to folly dynamic
-  auto serialized = controlPlane->toFollyDynamic();
+  auto serialized = controlPlane->toThrift();
   // back to ControlPlane object
-  auto controlPlaneBack = ControlPlane::fromFollyDynamic(serialized);
+  auto controlPlaneBack = std::make_shared<ControlPlane>(serialized);
   EXPECT_TRUE(*controlPlane == *controlPlaneBack);
   validateNodeSerialization(*controlPlane);
 }
