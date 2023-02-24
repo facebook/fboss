@@ -184,6 +184,12 @@ DeltaValue<SwitchSettings> StateDelta::getSwitchSettingsDelta() const {
       old_->getSwitchSettings(), new_->getSwitchSettings());
 }
 
+DeltaValue<FlowletSwitchingConfig> StateDelta::getFlowletSwitchingConfigDelta()
+    const {
+  return DeltaValue<FlowletSwitchingConfig>(
+      old_->getFlowletSwitchingConfig(), new_->getFlowletSwitchingConfig());
+}
+
 thrift_cow::ThriftMapDelta<LabelForwardingInformationBase>
 StateDelta::getLabelForwardingInformationBaseDelta() const {
   return thrift_cow::ThriftMapDelta<LabelForwardingInformationBase>(

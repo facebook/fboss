@@ -20,6 +20,7 @@
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/DsfNodeMap.h"
+#include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/state/ForwardingInformationBaseDelta.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/InterfaceMap.h"
@@ -98,6 +99,7 @@ class StateDelta {
   thrift_cow::ThriftMapDelta<LabelForwardingInformationBase>
   getLabelForwardingInformationBaseDelta() const;
   DeltaValue<SwitchSettings> getSwitchSettingsDelta() const;
+  DeltaValue<FlowletSwitchingConfig> getFlowletSwitchingConfigDelta() const;
   thrift_cow::ThriftMapDelta<SystemPortMap> getSystemPortsDelta() const;
   thrift_cow::ThriftMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
   thrift_cow::ThriftMapDelta<TeFlowTable> getTeFlowEntriesDelta() const;
