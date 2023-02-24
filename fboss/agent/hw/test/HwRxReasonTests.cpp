@@ -17,10 +17,12 @@ namespace facebook::fboss {
 class HwRxReasonTests : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::oneL3IntfConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
-        getAsic()->desiredLoopbackMode());
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode(),
+        true /*interfaceHasSubnet*/);
+
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     // Remove DHCP from rxReason list
     auto rxReasonListWithoutDHCP = utility::getCoppRxReasonToQueues(getAsic());
