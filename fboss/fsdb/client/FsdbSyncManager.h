@@ -28,7 +28,7 @@ class FsdbSyncManager {
       const std::vector<std::string>& basePath,
       bool isStats,
       bool publishDeltas)
-      : pubSubMgr_(std::make_unique<fsdb::FsdbPubSubManager>(clientId)),
+      : pubSubMgr_(std::make_shared<fsdb::FsdbPubSubManager>(clientId)),
         basePath_(basePath),
         isStats_(isStats),
         publishDeltas_(publishDeltas),
@@ -185,7 +185,7 @@ class FsdbSyncManager {
     }
   }
 
-  std::unique_ptr<FsdbPubSubManager> pubSubMgr_;
+  std::shared_ptr<FsdbPubSubManager> pubSubMgr_;
   std::vector<std::string> basePath_;
   bool isStats_;
   bool publishDeltas_;
