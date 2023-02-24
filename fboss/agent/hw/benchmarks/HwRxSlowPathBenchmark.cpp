@@ -52,8 +52,6 @@ BENCHMARK(RxSlowPathBenchmark) {
       };
 
   auto ensemble = createAgentEnsemble(initialConfig);
-  ensemble->setupLinkStateToggler();
-  ensemble->startAgent();
 
   auto hwSwitch = ensemble->getHwSwitch();
   auto config = initialConfig(hwSwitch, ensemble->masterLogicalPortIds());

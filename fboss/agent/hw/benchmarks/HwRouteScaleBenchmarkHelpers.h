@@ -41,7 +41,6 @@ void routeAddDelBenchmarker(bool measureAdd) {
         return utility::onePortPerInterfaceConfig(hwSwitch, ports);
       };
   auto ensemble = createAgentEnsemble(initialConfigFn);
-  ensemble->startAgent();
   auto* sw = ensemble->getSw();
 
   auto routeGenerator = RouteScaleGeneratorT(sw->getState());

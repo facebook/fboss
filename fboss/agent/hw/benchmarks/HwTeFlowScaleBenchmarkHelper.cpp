@@ -55,7 +55,6 @@ void teFlowAddDelEntriesBenchmarkHelper(bool measureAdd) {
         AgentEnsemble::enableExactMatch(bcm);
       };
   auto ensemble = createAgentEnsemble(initialConfigFn, platformConfigFn);
-  ensemble->startAgent();
   auto ports = ensemble->masterLogicalPortIds();
   auto hwSwitch = ensemble->getHw();
   auto state = ensemble->getSw()->getState();

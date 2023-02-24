@@ -40,8 +40,6 @@ BENCHMARK(HwEcmpGroupShrinkWithCompetingRouteUpdates) {
         return utility::onePortPerInterfaceConfig(hwSwitch, ports);
       };
   ensemble = createAgentEnsemble(initialConfigFn);
-  ensemble->setupLinkStateToggler();
-  ensemble->startAgent();
   auto hwSwitch = ensemble->getHw();
   auto state = ensemble->getSw()->getState();
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(state);

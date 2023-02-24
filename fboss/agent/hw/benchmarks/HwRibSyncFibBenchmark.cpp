@@ -32,7 +32,6 @@ BENCHMARK(RibSyncFibBenchmark) {
       };
 
   auto ensemble = createAgentEnsemble(initialConfigFn);
-  ensemble->startAgent();
   auto state = ensemble->getSw()->getState();
   utility::THAlpmRouteScaleGenerator gen(state, 50000);
   const auto& routeChunks = gen.getThriftRoutes();

@@ -50,7 +50,6 @@ BENCHMARK(runTxSlowPathBenchmark) {
         return utility::onePortPerInterfaceConfig(hwSwitch, {ports[0]});
       };
   ensemble = createAgentEnsemble(initialConfigFn);
-  ensemble->startAgent();
   auto config =
       initialConfigFn(ensemble->getHw(), ensemble->masterLogicalPortIds());
 
