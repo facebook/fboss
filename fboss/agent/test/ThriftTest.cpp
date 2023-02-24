@@ -235,11 +235,15 @@ TYPED_TEST(ThriftTestAllSwitchTypes, LinkLocalRoutes) {
   // Find longest match to link local addr.
   auto longestMatchRoute = findLongestMatchRoute(
       this->sw_->getRib(), RouterID(0), ip, this->sw_->getState());
-  // Verify that a route is found. Link local route should always
-  // be present
-  ASSERT_NE(nullptr, longestMatchRoute);
-  // Verify that the route is to link local addr.
-  ASSERT_EQ(longestMatchRoute->prefix().network(), ip);
+  if (this->isFabric()) {
+    ASSERT_EQ(nullptr, longestMatchRoute);
+  } else {
+    // Verify that a route is found. Link local route should always
+    // be present
+    ASSERT_NE(nullptr, longestMatchRoute);
+    // Verify that the route is to link local addr.
+    ASSERT_EQ(longestMatchRoute->prefix().network(), ip);
+  }
 }
 
 TYPED_TEST(ThriftTestAllSwitchTypes, flushNonExistentNeighbor) {
@@ -378,6 +382,28 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getAndSetNeighborsToBlock) {
   EXPECT_TRUE(blockedNeighbors.empty());
 }
 
+TYPED_TEST(ThriftTestAllSwitchTypes, getDsfNodes) {
+  ThriftHandler handler(this->sw_);
+  std::map<int64_t, cfg::DsfNode> dsfNodes;
+  handler.getDsfNodes(dsfNodes);
+  auto expected = this->isNpu() ? 0 : 2;
+  EXPECT_EQ(dsfNodes.size(), expected);
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, getSysPorts) {
+  ThriftHandler handler(this->sw_);
+  std::map<int64_t, SystemPortThrift> sysPorts;
+  handler.getSystemPorts(sysPorts);
+  if (this->isVoq()) {
+    EXPECT_GT(sysPorts.size(), 1);
+    EXPECT_EQ(
+        sysPorts.size(),
+        this->sw_->getState()->getSystemPorts()->size() +
+            this->sw_->getState()->getRemoteSystemPorts()->size());
+  } else {
+    EXPECT_EQ(sysPorts.size(), 0);
+  }
+}
 TEST_F(ThriftTest, getAndSetMacAddrsToBlock) {
   ThriftHandler handler(sw_);
 
@@ -2311,34 +2337,4 @@ TEST_F(ThriftTeFlowTest, teFlowSyncUpdateHwProtection) {
         }
       },
       FbossTeUpdateError);
-}
-
-class ThriftVoqSwitchTest : public ::testing::Test {
- public:
-  void SetUp() override {
-    auto config = testConfigA(cfg::SwitchType::VOQ);
-    handle_ = createTestHandle(&config);
-    sw_ = handle_->getSw();
-    sw_->initialConfigApplied(std::chrono::steady_clock::now());
-  }
-  SwSwitch* sw_;
-  std::unique_ptr<HwTestHandle> handle_;
-};
-
-TEST_F(ThriftVoqSwitchTest, getDsfNodes) {
-  ThriftHandler handler(sw_);
-  std::map<int64_t, cfg::DsfNode> dsfNodes;
-  handler.getDsfNodes(dsfNodes);
-  EXPECT_EQ(dsfNodes.size(), 2);
-}
-
-TEST_F(ThriftVoqSwitchTest, getSysPorts) {
-  ThriftHandler handler(sw_);
-  std::map<int64_t, SystemPortThrift> sysPorts;
-  handler.getSystemPorts(sysPorts);
-  EXPECT_GT(sysPorts.size(), 1);
-  EXPECT_EQ(
-      sysPorts.size(),
-      sw_->getState()->getSystemPorts()->size() +
-          sw_->getState()->getRemoteSystemPorts()->size());
 }

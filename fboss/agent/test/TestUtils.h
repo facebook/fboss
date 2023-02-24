@@ -49,8 +49,10 @@ struct SwitchTypeT {
   static constexpr auto switchType = type;
 };
 
-using SwitchTypes = ::testing::
-    Types<SwitchTypeT<cfg::SwitchType::NPU>, SwitchTypeT<cfg::SwitchType::VOQ>>;
+using SwitchTypes = ::testing::Types<
+    SwitchTypeT<cfg::SwitchType::NPU>,
+    SwitchTypeT<cfg::SwitchType::VOQ>,
+    SwitchTypeT<cfg::SwitchType::FABRIC>>;
 
 /*
  * In the non unit test code state passed to apply*Config is the state
@@ -224,6 +226,10 @@ std::shared_ptr<SwitchState> bringAllPortsUp(
 std::shared_ptr<SwitchState> bringAllPortsDown(
     const std::shared_ptr<SwitchState>& in);
 
+/*
+ * Fabric switch test config
+ */
+cfg::SwitchConfig testConfigFabricSwitch();
 /*
  * The returned configuration object, if applied to a SwitchState with ports
  * 1-20, will yield the same SwitchState as that returned by testStateA().

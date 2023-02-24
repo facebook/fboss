@@ -19,31 +19,6 @@
 
 namespace facebook::fboss {
 
-struct BufferPoolCfgFields
-    : public ThriftyFields<BufferPoolCfgFields, state::BufferPoolFields> {
-  template <typename Fn>
-  void forEachChild(Fn) {}
-
-  state::BufferPoolFields toThrift() const override;
-  static BufferPoolCfgFields fromThrift(state::BufferPoolFields const&);
-
-  BufferPoolCfgFields() {}
-  BufferPoolCfgFields(std::string _id, int _sharedBytes, int _headroomBytes)
-      : id(_id), sharedBytes(_sharedBytes), headroomBytes(_headroomBytes) {}
-
-  // BufferPoolCfgFields migration is complete
-  static BufferPoolCfgFields fromFollyDynamicLegacy(folly::dynamic const& dyn) {
-    return fromFollyDynamic(dyn);
-  }
-  folly::dynamic toFollyDynamicLegacy() const {
-    return toFollyDynamic();
-  }
-
-  std::string id;
-  int sharedBytes;
-  int headroomBytes;
-};
-
 USE_THRIFT_COW(BufferPoolCfg)
 /*
  * BufferPoolCfg stores the buffer pool related properites as need by {port, PG}
@@ -52,7 +27,6 @@ class BufferPoolCfg
     : public ThriftStructNode<BufferPoolCfg, state::BufferPoolFields> {
  public:
   using BaseT = ThriftStructNode<BufferPoolCfg, state::BufferPoolFields>;
-  using LegacyFields = BufferPoolCfgFields;
 
   explicit BufferPoolCfg(const std::string& id) {
     set<switch_state_tags::id>(id);
@@ -80,28 +54,6 @@ class BufferPoolCfg
 
   void setSharedBytes(int sharedBytes) {
     set<switch_state_tags::sharedBytes>(sharedBytes);
-  }
-
-  // rely on previous dynamic formats
-  static std::shared_ptr<BufferPoolCfg> fromFollyDynamic(
-      folly::dynamic const& dyn) {
-    return fromFollyDynamicLegacy(dyn);
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    return toFollyDynamicLegacy();
-  }
-
-  static std::shared_ptr<BufferPoolCfg> fromFollyDynamicLegacy(
-      folly::dynamic const& dyn) {
-    auto bufferPoolCfg = std::make_shared<BufferPoolCfg>();
-    auto data = BufferPoolCfgFields::fromFollyDynamicLegacy(dyn).toThrift();
-    bufferPoolCfg->fromThrift(std::move(data));
-    return bufferPoolCfg;
-  }
-  folly::dynamic toFollyDynamicLegacy() const {
-    return BufferPoolCfgFields::fromThrift(this->toThrift())
-        .toFollyDynamicLegacy();
   }
 
  private:

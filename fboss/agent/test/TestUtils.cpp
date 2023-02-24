@@ -123,7 +123,33 @@ void addRecyclePortRif(const cfg::DsfNode& myNode, cfg::SwitchConfig& cfg) {
   cfg.interfaces()->push_back(recyclePortRif);
 }
 
+cfg::SwitchConfig testConfigFabricSwitch() {
+  static constexpr auto kPortCount = 20;
+  cfg::SwitchConfig cfg;
+  cfg.switchSettings()->switchType() = cfg::SwitchType::FABRIC;
+  cfg.switchSettings()->switchId() = 2;
+  cfg.ports()->resize(kPortCount);
+  for (int p = 0; p < kPortCount; ++p) {
+    cfg.ports()[p].logicalID() = p + 1;
+    cfg.ports()[p].name() = folly::to<string>("port", p + 1);
+    cfg.ports()[p].state() = cfg::PortState::ENABLED;
+    cfg.ports()[p].speed() = cfg::PortSpeed::HUNDREDG;
+    cfg.ports()[p].speed() = cfg::PortSpeed::TWENTYFIVEG;
+    cfg.ports()[p].profileID() =
+        cfg::PortProfileID::PROFILE_25G_1_NRZ_CL74_COPPER;
+    cfg.ports()[p].portType() = cfg::PortType::FABRIC_PORT;
+  }
+  auto myNode = makeDsfNodeCfg(2, cfg::DsfNodeType::FABRIC_NODE);
+  cfg.dsfNodes()->insert({*myNode.switchId(), myNode});
+  cfg::DsfNode inNode = makeDsfNodeCfg(1);
+  cfg.dsfNodes()->insert({*inNode.switchId(), inNode});
+  return cfg;
+}
+
 cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
+  if (switchType == cfg::SwitchType::FABRIC) {
+    return testConfigFabricSwitch();
+  }
   cfg::SwitchConfig cfg;
   cfg.switchSettings()->switchType() = switchType;
   static constexpr auto kPortCount = 20;
@@ -416,7 +442,14 @@ unique_ptr<HwTestHandle> createTestHandle(
   if (config) {
     for (const auto& port : *config->ports()) {
       auto id = *port.logicalID();
-      initialState->registerPort(PortID(id), folly::to<string>("port", id));
+      initialState->registerPort(
+          PortID(id), folly::to<string>("port", id), *port.portType());
+    }
+    initialState->getSwitchSettings()->setSwitchType(
+        *config->switchSettings()->switchType());
+    if (config->switchSettings()->switchId().has_value()) {
+      initialState->getSwitchSettings()->setSwitchId(
+          *config->switchSettings()->switchId());
     }
   }
 

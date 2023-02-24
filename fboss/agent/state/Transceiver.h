@@ -19,31 +19,6 @@
 
 namespace facebook::fboss {
 
-struct TransceiverSpecFields : public ThriftyFields<
-                                   TransceiverSpecFields,
-                                   state::TransceiverSpecFields> {
-  explicit TransceiverSpecFields(TransceiverID id) {
-    auto& data = writableData();
-    *data.id() = id;
-  }
-
-  bool operator==(const TransceiverSpecFields& other) const {
-    return data() == other.data();
-  }
-
-  template <typename Fn>
-  void forEachChild(Fn /*fn*/) {}
-
-  state::TransceiverSpecFields toThrift() const override;
-  static TransceiverSpecFields fromThrift(
-      state::TransceiverSpecFields const& tcvrThrift);
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
-  folly::dynamic toFollyDynamicLegacy() const;
-  static TransceiverSpecFields fromFollyDynamicLegacy(
-      const folly::dynamic& tcvrJson);
-};
-
 USE_THRIFT_COW(TransceiverSpec)
 /*
  * TransceiverSpec stores state about one of the Present TransceiverSpec entries
@@ -52,7 +27,6 @@ USE_THRIFT_COW(TransceiverSpec)
 class TransceiverSpec
     : public ThriftStructNode<TransceiverSpec, state::TransceiverSpecFields> {
  public:
-  using LegacyFields = TransceiverSpecFields;
   using Base = ThriftStructNode<TransceiverSpec, state::TransceiverSpecFields>;
   explicit TransceiverSpec(TransceiverID id);
   static std::shared_ptr<TransceiverSpec> createPresentTransceiver(
@@ -94,30 +68,6 @@ class TransceiverSpec
   void setManagementInterface(
       TransceiverManagementInterface managementInterface) {
     set<switch_state_tags::managementInterface>(managementInterface);
-  }
-
-  static std::shared_ptr<TransceiverSpec> fromFollyDynamic(
-      const folly::dynamic& dyn) {
-    auto fields = LegacyFields::fromFollyDynamic(dyn);
-    auto obj = fields.toThrift();
-    return std::make_shared<TransceiverSpec>(std::move(obj));
-  }
-
-  static std::shared_ptr<TransceiverSpec> fromFollyDynamicLegacy(
-      const folly::dynamic& dyn) {
-    auto fields = LegacyFields::fromFollyDynamicLegacy(dyn);
-    auto obj = fields.toThrift();
-    return std::make_shared<TransceiverSpec>(std::move(obj));
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    auto fields = LegacyFields::fromThrift(this->toThrift());
-    return fields.toFollyDynamic();
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    auto fields = LegacyFields::fromThrift(this->toThrift());
-    return fields.toFollyDynamicLegacy();
   }
 
  private:

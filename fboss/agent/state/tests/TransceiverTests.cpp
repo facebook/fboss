@@ -24,8 +24,8 @@ TEST(TransceiverSpec, SerializeTransceiver) {
   tcvr->setMediaInterface(MediaInterfaceCode::FR1_100G);
   tcvr->setManagementInterface(TransceiverManagementInterface::SFF);
 
-  auto serialized = tcvr->toFollyDynamic();
-  auto tcvrBack = TransceiverSpec::fromFollyDynamic(serialized);
+  auto serialized = tcvr->toThrift();
+  auto tcvrBack = std::make_shared<TransceiverSpec>(serialized);
 
   EXPECT_TRUE(*tcvr == *tcvrBack);
   validateNodeSerialization(*tcvr);

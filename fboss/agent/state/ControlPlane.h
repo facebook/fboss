@@ -24,84 +24,6 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-struct ControlPlaneFields
-    : public ThriftyFields<ControlPlaneFields, state::ControlPlaneFields> {
-  using RxReasonToQueue = std::vector<cfg::PacketRxReasonToQueue>;
-
-  ControlPlaneFields() : ControlPlaneFields(state::ControlPlaneFields{}) {}
-
-  explicit ControlPlaneFields(const state::ControlPlaneFields& fields) {
-    writableData() = fields;
-  }
-
-  template <typename Fn>
-  void forEachChild(Fn /*fn*/) {}
-
-  folly::dynamic toFollyDynamicLegacy() const;
-  static ControlPlaneFields fromFollyDynamicLegacy(const folly::dynamic& json);
-
-  state::ControlPlaneFields toThrift() const override;
-  static ControlPlaneFields fromThrift(state::ControlPlaneFields const& fields);
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
-
-  bool operator==(const ControlPlaneFields& other) const {
-    return data() == other.data();
-  }
-
-  QueueConfig queues() const {
-    QueueConfig queues;
-    for (auto queue : *data().queues()) {
-      queues.push_back(std::make_shared<PortQueue>(queue));
-    }
-    return queues;
-  }
-
-  void resetQueues() {
-    writableData().queues()->clear();
-  }
-
-  void setQueues(QueueConfig queues) {
-    resetQueues();
-    for (auto queue : queues) {
-      writableData().queues()->push_back(queue->toThrift());
-    }
-  }
-
-  RxReasonToQueue rxReasonToQueue() const {
-    RxReasonToQueue rxReasonToQueue;
-    for (auto entry : *data().rxReasonToQueue()) {
-      rxReasonToQueue.push_back(entry);
-    }
-    return rxReasonToQueue;
-  }
-
-  void resetRxReasonToQueue() {
-    writableData().rxReasonToQueue()->clear();
-  }
-  void setRxReasonToQueue(RxReasonToQueue rxReasonToQueue) {
-    resetRxReasonToQueue();
-    for (auto entry : rxReasonToQueue) {
-      writableData().rxReasonToQueue()->push_back(entry);
-    }
-  }
-
-  std::optional<std::string> qosPolicy() const {
-    if (auto policy = data().defaultQosPolicy()) {
-      return *policy;
-    }
-    return std::nullopt;
-  }
-
-  void setQosPolicy(std::optional<std::string> policy) {
-    if (!policy) {
-      writableData().defaultQosPolicy().reset();
-      return;
-    }
-    writableData().defaultQosPolicy() = *policy;
-  }
-};
-
 USE_THRIFT_COW(ControlPlane);
 
 /*
@@ -117,31 +39,9 @@ class ControlPlane
   using PacketRxReasonToQueue = BaseT::Fields::NamedMemberTypes::type_of<
       switch_state_tags::rxReasonToQueue>;
 
-  using RxReasonToQueue = ControlPlaneFields::RxReasonToQueue;
+  using RxReasonToQueue = std::vector<cfg::PacketRxReasonToQueue>;
 
   ControlPlane() {}
-
-  static std::shared_ptr<ControlPlane> fromFollyDynamicLegacy(
-      const folly::dynamic& json) {
-    const auto& fields = ControlPlaneFields::fromFollyDynamicLegacy(json);
-    return std::make_shared<ControlPlane>(fields.toThrift());
-  }
-
-  static std::shared_ptr<ControlPlane> fromFollyDynamic(
-      const folly::dynamic& json) {
-    const auto& fields = ControlPlaneFields::fromFollyDynamic(json);
-    return std::make_shared<ControlPlane>(fields.toThrift());
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    auto fields = ControlPlaneFields::fromThrift(toThrift());
-    return fields.toFollyDynamicLegacy();
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    auto fields = ControlPlaneFields::fromThrift(toThrift());
-    return fields.toFollyDynamic();
-  }
 
   const auto& getQueues() const {
     return cref<switch_state_tags::queues>();

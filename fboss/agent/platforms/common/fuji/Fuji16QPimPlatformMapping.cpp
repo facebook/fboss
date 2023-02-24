@@ -149,7 +149,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -1130,7 +1131,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -1633,7 +1635,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -2614,7 +2617,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -3117,7 +3121,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -4098,7 +4103,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -4601,7 +4607,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -5582,7 +5589,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -6085,7 +6093,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -7066,7 +7075,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -7569,7 +7579,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -8550,7 +8561,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -9053,7 +9065,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -10034,7 +10047,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -10537,7 +10551,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -11518,7 +11533,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -12021,7 +12037,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -13002,7 +13019,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -13505,7 +13523,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -14486,7 +14505,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -14989,7 +15009,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -15970,7 +15991,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -16473,7 +16495,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -17454,7 +17477,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -17957,7 +17981,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -18938,7 +18963,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -19441,7 +19467,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -20422,7 +20449,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -20925,7 +20953,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -21906,7 +21935,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -22409,7 +22439,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -23390,7 +23421,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -23893,7 +23925,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -24874,7 +24907,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -25377,7 +25411,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -26358,7 +26393,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -26861,7 +26897,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -27842,7 +27879,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -28345,7 +28383,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -29326,7 +29365,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -29829,7 +29869,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -30810,7 +30851,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -31313,7 +31355,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -32294,7 +32337,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -32797,7 +32841,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -33778,7 +33823,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -34281,7 +34327,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -35262,7 +35309,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -35765,7 +35813,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -36746,7 +36795,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -37249,7 +37299,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -38230,7 +38281,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -38733,7 +38785,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -39714,7 +39767,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -40217,7 +40271,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -41198,7 +41253,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -41701,7 +41757,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -42682,7 +42739,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -43185,7 +43243,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -44166,7 +44225,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -44669,7 +44729,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -45650,7 +45711,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -46153,7 +46215,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -47134,7 +47197,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -47637,7 +47701,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -48618,7 +48683,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -49121,7 +49187,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -50102,7 +50169,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -50605,7 +50673,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -51586,7 +51655,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -52089,7 +52159,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -53070,7 +53141,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -53573,7 +53645,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -54554,7 +54627,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -55057,7 +55131,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -56038,7 +56113,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -56541,7 +56617,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -57522,7 +57599,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -58025,7 +58103,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -59006,7 +59085,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -59509,7 +59589,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -60490,7 +60571,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -60993,7 +61075,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -61974,7 +62057,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -62477,7 +62561,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -63458,7 +63543,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -63961,7 +64047,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -64942,7 +65029,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -65445,7 +65533,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -66426,7 +66515,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -66929,7 +67019,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -67910,7 +68001,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -68413,7 +68505,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -69394,7 +69487,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -69897,7 +69991,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -70878,7 +70973,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -71381,7 +71477,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -72362,7 +72459,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -72865,7 +72963,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -73846,7 +73945,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -74349,7 +74449,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -75330,7 +75431,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -75833,7 +75935,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -76814,7 +76917,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -77317,7 +77421,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -78298,7 +78403,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -78801,7 +78907,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -79782,7 +79889,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -80285,7 +80393,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -81266,7 +81375,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -81769,7 +81879,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -82750,7 +82861,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -83253,7 +83365,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -84234,7 +84347,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -84737,7 +84851,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -85718,7 +85833,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -86221,7 +86337,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -87202,7 +87319,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -87705,7 +87823,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -88686,7 +88805,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -89189,7 +89309,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -90170,7 +90291,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -90673,7 +90795,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -91654,7 +91777,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -92157,7 +92281,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -93138,7 +93263,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -93641,7 +93767,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -94622,7 +94749,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 }
               }
             }
-          ]
+          ],
+          "portType": 0
         },
         "supportedProfiles": {
           "4": {
@@ -97340,8 +97468,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -12,
-              "pre2": 0,
+              "pre": -20,
+              "pre2": 4,
               "main": 140,
               "post": 0,
               "post2": 0,
@@ -97354,8 +97482,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -12,
-              "pre2": 0,
+              "pre": -20,
+              "pre2": 4,
               "main": 140,
               "post": 0,
               "post2": 0,
@@ -97368,8 +97496,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -12,
-              "pre2": 0,
+              "pre": -20,
+              "pre2": 4,
               "main": 140,
               "post": 0,
               "post2": 0,
@@ -97382,8 +97510,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -12,
-              "pre2": 0,
+              "pre": -20,
+              "pre2": 4,
               "main": 140,
               "post": 0,
               "post2": 0,
@@ -97396,8 +97524,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -12,
-              "pre2": 0,
+              "pre": -20,
+              "pre2": 4,
               "main": 140,
               "post": 0,
               "post2": 0,
@@ -97410,8 +97538,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -12,
-              "pre2": 0,
+              "pre": -20,
+              "pre2": 4,
               "main": 140,
               "post": 0,
               "post2": 0,
@@ -97424,8 +97552,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -12,
-              "pre2": 0,
+              "pre": -20,
+              "pre2": 4,
               "main": 140,
               "post": 0,
               "post2": 0,
@@ -97438,8 +97566,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -12,
-              "pre2": 0,
+              "pre": -20,
+              "pre2": 4,
               "main": 140,
               "post": 0,
               "post2": 0,

@@ -58,7 +58,10 @@ class PortMap : public ThriftMapNode<PortMap, PortMapTraits> {
    * to a single thread.
    */
 
-  void registerPort(PortID id, const std::string& name);
+  void registerPort(
+      PortID id,
+      const std::string& name,
+      cfg::PortType portType = cfg::PortType::INTERFACE_PORT);
 
   void addPort(const std::shared_ptr<Port>& port);
 

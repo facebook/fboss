@@ -19,8 +19,13 @@ PortMap::PortMap() {}
 
 PortMap::~PortMap() {}
 
-void PortMap::registerPort(PortID id, const std::string& name) {
-  addNode(std::make_shared<Port>(id, name));
+void PortMap::registerPort(
+    PortID id,
+    const std::string& name,
+    cfg::PortType portType) {
+  auto port = std::make_shared<Port>(id, name);
+  port->setPortType(portType);
+  addNode(std::move(port));
 }
 
 void PortMap::addPort(const std::shared_ptr<Port>& port) {

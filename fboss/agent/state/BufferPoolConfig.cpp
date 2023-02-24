@@ -18,25 +18,6 @@ constexpr auto kBufferPoolCfgName = "id";
 
 namespace facebook::fboss {
 
-state::BufferPoolFields BufferPoolCfgFields::toThrift() const {
-  state::BufferPoolFields bufferPool;
-
-  bufferPool.id() = id;
-  bufferPool.sharedBytes() = static_cast<int>(sharedBytes);
-  bufferPool.headroomBytes() = static_cast<int>(headroomBytes);
-  return bufferPool;
-}
-
-BufferPoolCfgFields BufferPoolCfgFields::fromThrift(
-    state::BufferPoolFields const& bufferPoolConfig) {
-  BufferPoolCfgFields bufferPool;
-  bufferPool.id = static_cast<std::string>(*bufferPoolConfig.id());
-
-  bufferPool.sharedBytes = *bufferPoolConfig.sharedBytes();
-  bufferPool.headroomBytes = *bufferPoolConfig.headroomBytes();
-  return bufferPool;
-}
-
 template class ThriftStructNode<BufferPoolCfg, state::BufferPoolFields>;
 
 } // namespace facebook::fboss

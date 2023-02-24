@@ -22,29 +22,6 @@ constexpr auto kHost = "host";
 
 namespace facebook::fboss {
 
-SflowCollectorFields SflowCollectorFields::fromThrift(
-    state::SflowCollectorFields const& sflowCollectorThrift) {
-  return SflowCollectorFields(
-      *sflowCollectorThrift.address()->host(),
-      *sflowCollectorThrift.address()->port());
-}
-
-folly::dynamic SflowCollectorFields::toFollyDynamicLegacy() const {
-  folly::dynamic collector = folly::dynamic::object;
-  collector[kIp] = *data().address()->host();
-  collector[kPort] = *data().address()->port();
-
-  return collector;
-}
-
-SflowCollectorFields SflowCollectorFields::fromFollyDynamicLegacy(
-    const folly::dynamic& collectorJson) {
-  std::string ip = collectorJson[kIp].asString();
-  uint16_t port = collectorJson[kPort].asInt();
-
-  return SflowCollectorFields(ip, port);
-}
-
 SflowCollector::SflowCollector(std::string ip, uint16_t port) {
   folly::SocketAddress socketAddr(ip, port);
   ref<switch_state_tags::id>() = folly::to<std::string>(
