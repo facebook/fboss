@@ -286,7 +286,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
         // Assert that ECT capable packets are not counted by port ECN
         // counter and on congestion encountered packets are counted.
         sendPkt(kDscp(), isEcn, true);
-        auto portStats = getLatestPortStats(masterLogicalPortIds()[0]);
+        auto portStats = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
         EXPECT_EQ(*portStats.outEcnCounter_(), 0);
       }
     };
@@ -294,7 +294,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       sendPkts(kDscp(), isEcn);
 
       auto countIncremented = [&](const auto& newStats) {
-        auto portStatsIter = newStats.find(masterLogicalPortIds()[0]);
+        auto portStatsIter = newStats.find(masterLogicalInterfacePortIds()[0]);
         auto increment = isEcn
             ? portStatsIter->second.get_outEcnCounter_()
             : portStatsIter->second.get_wredDroppedPackets_();
@@ -342,7 +342,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       auto queueId = queue2Id;
 
       auto countIncremented = [&](const auto& newStats) {
-        auto portStatsIter = newStats.find(masterLogicalPortIds()[0]);
+        auto portStatsIter = newStats.find(masterLogicalInterfacePortIds()[0]);
         auto queueWatermark = portStatsIter->second.get_queueWatermarkBytes_()
                                   .find(queueId)
                                   ->second;
@@ -358,9 +358,10 @@ class HwAqmTest : public HwLinkStateDependentTest {
       EXPECT_TRUE(
           getHwSwitchEnsemble()->waitPortStatsCondition(countIncremented));
 
-      auto watermarkBytes = getHwSwitchEnsemble()
-                                ->getLatestPortStats(masterLogicalPortIds()[0])
-                                .get_queueWatermarkBytes_();
+      auto watermarkBytes =
+          getHwSwitchEnsemble()
+              ->getLatestPortStats(masterLogicalInterfacePortIds()[0])
+              .get_queueWatermarkBytes_();
 
       // Queue0 watermark should be higher than queue2 since it drops less
       // packets.
@@ -505,7 +506,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       auto before = utility::sendPacketsWithQueueBuildup(
           sendPackets,
           getHwSwitchEnsemble(),
-          masterLogicalPortIds()[0],
+          masterLogicalInterfacePortIds()[0],
           numPacketsToSend);
 
       // For ECN all packets are sent out, for WRED, account for drops!
@@ -516,13 +517,13 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
       waitForExpectedThresholdTestStats(
           isEcn,
-          masterLogicalPortIds()[0],
+          masterLogicalInterfacePortIds()[0],
           kQueueId,
           kExpectedOutPackets,
           kDroppedPackets,
           before);
-      auto after =
-          getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
+      auto after = getHwSwitchEnsemble()->getLatestPortStats(
+          masterLogicalInterfacePortIds()[0]);
       auto deltaOutPackets = (*after.queueOutPackets_())[kQueueId] -
           (*before.queueOutPackets_())[kQueueId];
       /*
@@ -587,7 +588,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
   }
 
   void runPerQueueEcnMarkedStatsTest() {
-    const auto portId = masterLogicalPortIds()[0];
+    const auto portId = masterLogicalInterfacePortIds()[0];
     const int queueId = utility::kOlympicSilverQueueId;
 
     auto setup = [=]() {
@@ -679,8 +680,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
     auto verify = [=]() {
       // Using delta stats in this function, so get the stats before starting
-      auto beforeStats =
-          getHwSwitchEnsemble()->getLatestPortStats(masterLogicalPortIds()[0]);
+      auto beforeStats = getHwSwitchEnsemble()->getLatestPortStats(
+          masterLogicalInterfacePortIds()[0]);
 
       // Send traffic to all queues
       constexpr auto kNumPacketsToSend{1000};
@@ -692,7 +693,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       }
 
       auto wredDropCountIncremented = [&](const auto& newStats) {
-        auto portStatsIter = newStats.find(masterLogicalPortIds()[0]);
+        auto portStatsIter = newStats.find(masterLogicalInterfacePortIds()[0]);
         for (auto queueId : wredQueueIds) {
           auto wredDrops = portStatsIter->second.queueWredDroppedPackets_()
                                ->find(queueId)
