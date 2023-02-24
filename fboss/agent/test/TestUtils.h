@@ -225,6 +225,10 @@ std::shared_ptr<SwitchState> bringAllPortsDown(
     const std::shared_ptr<SwitchState>& in);
 
 /*
+ * Fabric switch test config
+ */
+cfg::SwitchConfig testConfigFabricSwitch();
+/*
  * The returned configuration object, if applied to a SwitchState with ports
  * 1-20, will yield the same SwitchState as that returned by testStateA().
  */
