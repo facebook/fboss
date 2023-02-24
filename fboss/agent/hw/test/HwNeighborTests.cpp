@@ -9,7 +9,20 @@
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestNeighborUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
+#include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
+
+/*
+ * Adding a new flag which can be used to setup ports in non-loopback
+ * mode. Some vendors have HwTests from OSS running in their environment
+ * against simulator. This new option will provide a control plane
+ * (from the test binary) to program forwarding plane (setup neighbors,
+ * bringup ports etc.) of simulator. Once the dataplane is programmed,
+ * network namespaces could be used to setup an environment to inject
+ * traffic to the simulator. This can be used for throughput test of
+ * ASIC simulator in the same env vendors use for regular HwTests.
+ */
+DEFINE_bool(disable_loopback, false, "Disable loopback on test ports");
 
 using namespace ::testing;
 
@@ -206,6 +219,76 @@ class HwNeighborTest : public HwLinkStateDependentTest {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_3};
 };
 
+class HwNeighborOnMultiplePortsTest : public HwLinkStateDependentTest {
+ protected:
+  cfg::SwitchConfig initialConfig() const override {
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode());
+  }
+
+  void oneNeighborPerPortSetup(const std::vector<PortID>& portIds) {
+    auto cfg = initialConfig();
+    if (FLAGS_disable_loopback) {
+      // Disable loopback on specific ports
+      for (auto portId : portIds) {
+        auto portCfg = utility::findCfgPortIf(cfg, portId);
+        if (portCfg != cfg.ports()->end()) {
+          portCfg->loopbackMode() = cfg::PortLoopbackMode::NONE;
+        }
+      }
+      applyNewConfig(cfg);
+    }
+
+    // Create adjacencies on all test ports
+    auto dstMac = utility::getFirstInterfaceMac(cfg);
+    for (int idx = 0; idx < portIds.size(); idx++) {
+      utility::EcmpSetupAnyNPorts6 ecmpHelper6(
+          getProgrammedState(),
+          utility::MacAddressGenerator().get(dstMac.u64NBO() + idx + 1));
+      applyNewState(ecmpHelper6.resolveNextHops(
+          getProgrammedState(), {PortDescriptor(portIds[idx])}));
+    }
+
+    // Dump the local interface config
+    XLOG(DBG0) << "Dumping port configurations:";
+    for (int idx = 0; idx < portIds.size(); idx++) {
+      auto mac = utility::getFirstInterfaceMac(getProgrammedState());
+      XLOG(DBG0) << "   Port " << portIds[idx]
+                 << ", IPv6: " << cfg.interfaces()[idx].ipAddresses()[1]
+                 << ", Intf MAC: " << mac;
+    }
+  }
+
+  InterfaceID getInterfaceId(const PortID& portId) const {
+    auto switchType =
+        getProgrammedState()->getSwitchSettings()->getSwitchType();
+    if (switchType == cfg::SwitchType::NPU) {
+      return InterfaceID(static_cast<int>((*getProgrammedState()
+                                                ->getPorts()
+                                                ->getPort(portId)
+                                                ->getVlans()
+                                                .begin())
+                                              .first));
+    } else if (switchType == cfg::SwitchType::VOQ) {
+      return InterfaceID((*getProgrammedState()
+                               ->getPorts()
+                               ->getPort(portId)
+                               ->getInterfaceIDs()
+                               ->begin())
+                             ->toThrift());
+    }
+    XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
+  }
+
+  bool isProgrammedToCPU(const PortID& portId, const folly::IPAddress& ip)
+      const {
+    auto intfId = getInterfaceId(portId);
+    return utility::nbrProgrammedToCpu(this->getHwSwitch(), intfId, ip);
+  }
+};
+
 TYPED_TEST_SUITE(HwNeighborTest, NeighborTypes);
 
 TYPED_TEST(HwNeighborTest, AddPendingEntry) {
@@ -330,6 +413,21 @@ TYPED_TEST(HwNeighborTest, LinkDownAndUpOnResolvedEntry) {
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwNeighborOnMultiplePortsTest, ResolveOnTwoPorts) {
+  auto setup = [&]() {
+    oneNeighborPerPortSetup(
+        {masterLogicalInterfacePortIds()[0],
+         masterLogicalInterfacePortIds()[1]});
+  };
+  auto verify = [&]() {
+    EXPECT_FALSE(isProgrammedToCPU(
+        masterLogicalInterfacePortIds()[0], folly::IPAddressV6("1::1")));
+    EXPECT_FALSE(isProgrammedToCPU(
+        masterLogicalInterfacePortIds()[1], folly::IPAddressV6("2::2")));
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
