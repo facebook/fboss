@@ -462,18 +462,20 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
     const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(txPacket), port);
 
-    auto [afterQueueOutPkts, afterQueueOutBytes] =
-        utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), kDefaultQueue);
+    WITH_RETRIES({
+      auto [afterQueueOutPkts, afterQueueOutBytes] =
+          utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), kDefaultQueue);
 
-    XLOG(DBG2) << "Stats:: beforeQueueOutPkts: " << beforeQueueOutPkts
-               << " beforeQueueOutBytes: " << beforeQueueOutBytes
-               << " txPacketSize: " << txPacketSize
-               << " afterQueueOutPkts: " << afterQueueOutPkts
-               << " afterQueueOutBytes: " << afterQueueOutBytes;
+      XLOG(DBG2) << "Stats:: beforeQueueOutPkts: " << beforeQueueOutPkts
+                 << " beforeQueueOutBytes: " << beforeQueueOutBytes
+                 << " txPacketSize: " << txPacketSize
+                 << " afterQueueOutPkts: " << afterQueueOutPkts
+                 << " afterQueueOutBytes: " << afterQueueOutBytes;
 
-    EXPECT_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
-    // CS00012267635: debug why queue counter is 362, when txPacketSize is 322
-    EXPECT_GE(afterQueueOutBytes, beforeQueueOutBytes);
+      EXPECT_EVENTUALLY_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
+      // CS00012267635: debug why queue counter is 362, when txPacketSize is 322
+      EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
+    });
 
     unRegisterPktReceivedCallback();
   };
