@@ -75,6 +75,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::ROUTE_COUNTERS:
     case HwAsic::Feature::MULTIPLE_ACL_TABLES:
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
+    case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
       return true;
     // VOQ vs NPU mode dependent features
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
