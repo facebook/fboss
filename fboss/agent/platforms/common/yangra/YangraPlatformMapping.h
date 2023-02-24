@@ -17,6 +17,7 @@ namespace fboss {
 class YangraPlatformMapping : public PlatformMapping {
  public:
   YangraPlatformMapping();
+  YangraPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator

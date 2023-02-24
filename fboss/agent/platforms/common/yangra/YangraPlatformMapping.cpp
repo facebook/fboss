@@ -412,4 +412,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
 YangraPlatformMapping::YangraPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
+YangraPlatformMapping::YangraPlatformMapping(
+    const std::string& platformMappingStr)
+    : PlatformMapping(platformMappingStr) {}
+
 } // namespace facebook::fboss
