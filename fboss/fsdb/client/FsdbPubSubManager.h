@@ -155,6 +155,14 @@ class FsdbPubSubManager {
     return path2Subscriber_.rlock()->size();
   }
 
+  FsdbDeltaPublisher* getDeltaPublisher(bool stats = false) {
+    return stats ? statDeltaPublisher_.get() : stateDeltaPublisher_.get();
+  }
+
+  FsdbStatePublisher* getPathPublisher(bool stats = false) {
+    return stats ? statPathPublisher_.get() : statePathPublisher_.get();
+  }
+
  private:
   // Publisher helpers
   template <typename PublisherT, typename PubUnitT>

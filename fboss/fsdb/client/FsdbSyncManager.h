@@ -28,13 +28,32 @@ class FsdbSyncManager {
       const std::vector<std::string>& basePath,
       bool isStats,
       bool publishDeltas)
-      : pubSubMgr_(std::make_shared<fsdb::FsdbPubSubManager>(clientId)),
+      : FsdbSyncManager(
+            std::make_shared<fsdb::FsdbPubSubManager>(clientId),
+            basePath,
+            isStats,
+            publishDeltas) {}
+
+  FsdbSyncManager(
+      const std::shared_ptr<fsdb::FsdbPubSubManager>& pubSubMr,
+      const std::vector<std::string>& basePath,
+      bool isStats,
+      bool publishDeltas)
+      : pubSubMgr_(pubSubMr),
         basePath_(basePath),
         isStats_(isStats),
         publishDeltas_(publishDeltas),
         storage_([this](const auto& oldState, const auto& newState) {
           processDelta(oldState, newState);
-        }) {}
+        }) {
+    CHECK(pubSubMr);
+    // make sure publisher is not already created for shared pubSubMgr
+    if (publishDeltas_) {
+      CHECK(!(pubSubMgr_->getDeltaPublisher(isStats)));
+    } else {
+      CHECK(!(pubSubMgr_->getPathPublisher(isStats)));
+    }
+  }
 
   ~FsdbSyncManager() {
     CHECK(!pubSubMgr_) << "Syncer not stopped";
