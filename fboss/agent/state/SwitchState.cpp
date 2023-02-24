@@ -322,8 +322,11 @@ std::shared_ptr<Port> SwitchState::getPort(PortID id) const {
   return getPorts()->getPort(id);
 }
 
-void SwitchState::registerPort(PortID id, const std::string& name) {
-  ref<switch_state_tags::portMap>()->registerPort(id, name);
+void SwitchState::registerPort(
+    PortID id,
+    const std::string& name,
+    cfg::PortType portType) {
+  ref<switch_state_tags::portMap>()->registerPort(id, name, portType);
 }
 
 void SwitchState::addPort(const std::shared_ptr<Port>& port) {

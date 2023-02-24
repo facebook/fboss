@@ -531,7 +531,10 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
    * state.
    */
 
-  void registerPort(PortID id, const std::string& name);
+  void registerPort(
+      PortID id,
+      const std::string& name,
+      cfg::PortType portType = cfg::PortType::INTERFACE_PORT);
   void addPort(const std::shared_ptr<Port>& port);
   void resetPorts(std::shared_ptr<PortMap> ports);
   void resetAggregatePorts(std::shared_ptr<AggregatePortMap> aggPorts);
