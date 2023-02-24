@@ -235,11 +235,15 @@ TYPED_TEST(ThriftTestAllSwitchTypes, LinkLocalRoutes) {
   // Find longest match to link local addr.
   auto longestMatchRoute = findLongestMatchRoute(
       this->sw_->getRib(), RouterID(0), ip, this->sw_->getState());
-  // Verify that a route is found. Link local route should always
-  // be present
-  ASSERT_NE(nullptr, longestMatchRoute);
-  // Verify that the route is to link local addr.
-  ASSERT_EQ(longestMatchRoute->prefix().network(), ip);
+  if (this->isFabric()) {
+    ASSERT_EQ(nullptr, longestMatchRoute);
+  } else {
+    // Verify that a route is found. Link local route should always
+    // be present
+    ASSERT_NE(nullptr, longestMatchRoute);
+    // Verify that the route is to link local addr.
+    ASSERT_EQ(longestMatchRoute->prefix().network(), ip);
+  }
 }
 
 TYPED_TEST(ThriftTestAllSwitchTypes, flushNonExistentNeighbor) {
