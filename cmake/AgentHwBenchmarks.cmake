@@ -36,7 +36,8 @@ target_link_libraries(hw_stats_collection_speed
   config_factory
   hw_packet_utils
   ecmp_helper
-  hw_benchmark_main
+  agent_ensemble
+  agent_benchmarks
   Folly::folly
   Folly::follybenchmark
 )
@@ -159,7 +160,8 @@ add_library(hw_rib_resolution_speed
 
 target_link_libraries(hw_rib_resolution_speed
   config_factory
-  hw_benchmark_main
+  agent_ensemble
+  agent_benchmarks
   Folly::folly
 )
 
@@ -169,7 +171,8 @@ add_library(hw_rib_sync_fib_speed
 
 target_link_libraries(hw_rib_sync_fib_speed
   config_factory
-  hw_benchmark_main
+  agent_ensemble
+  agent_benchmarks
   Folly::folly
 )
 
@@ -319,7 +322,8 @@ target_link_libraries(hw_anticipated_scale_route_add_speed
   config_factory
   hw_packet_utils
   ecmp_helper
-  hw_benchmark_main
+  agent_ensemble
+  agent_benchmarks
   function_call_time_reporter
   Folly::folly
 )
@@ -332,7 +336,8 @@ target_link_libraries(hw_anticipated_scale_route_del_speed
   config_factory
   hw_packet_utils
   ecmp_helper
-  hw_benchmark_main
+  agent_ensemble
+  agent_benchmarks
   function_call_time_reporter
   Folly::folly
 )
