@@ -27,35 +27,10 @@ namespace facebook::fboss {
 
 enum class MacEntryType : uint8_t { DYNAMIC_ENTRY, STATIC_ENTRY };
 
-struct MacEntryFields
-    : public ThriftyFields<MacEntryFields, state::MacEntryFields> {
-  MacEntryFields(
-      folly::MacAddress mac,
-      PortDescriptor portDescr,
-      std::optional<cfg::AclLookupClass> classID = std::nullopt,
-      MacEntryType type = MacEntryType::DYNAMIC_ENTRY)
-      : mac_(mac), portDescr_(portDescr), classID_(classID), type_(type) {}
-
-  template <typename Fn>
-  void forEachChild(Fn) {}
-
-  state::MacEntryFields toThrift() const override;
-  static MacEntryFields fromThrift(state::MacEntryFields const& ma);
-
-  folly::dynamic toFollyDynamicLegacy() const;
-  static MacEntryFields fromFollyDynamicLegacy(const folly::dynamic& json);
-
-  folly::MacAddress mac_;
-  PortDescriptor portDescr_;
-  std::optional<cfg::AclLookupClass> classID_{std::nullopt};
-  MacEntryType type_{MacEntryType::DYNAMIC_ENTRY};
-};
-
 USE_THRIFT_COW(MacEntry);
 
 class MacEntry : public ThriftStructNode<MacEntry, state::MacEntryFields> {
  public:
-  using LegacyFields = MacEntryFields;
   using Base = ThriftStructNode<MacEntry, state::MacEntryFields>;
   MacEntry(
       folly::MacAddress mac,
@@ -66,32 +41,6 @@ class MacEntry : public ThriftStructNode<MacEntry, state::MacEntryFields> {
     setPort(portDescr);
     setClassID(classID);
     setType(type);
-  }
-
-  static std::shared_ptr<MacEntry> fromFollyDynamicLegacy(
-      const folly::dynamic& json) {
-    auto macEntry = std::make_shared<MacEntry>();
-    const auto& fields = MacEntryFields::fromFollyDynamicLegacy(json);
-    macEntry->fromThrift(fields.toThrift());
-    return macEntry;
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    auto fields = MacEntryFields::fromThrift(toThrift());
-    return fields.toFollyDynamicLegacy();
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    auto fields = MacEntryFields::fromThrift(toThrift());
-    return fields.toFollyDynamic();
-  }
-
-  static std::shared_ptr<MacEntry> fromFollyDynamic(
-      const folly::dynamic& json) {
-    auto macEntry = std::make_shared<MacEntry>();
-    auto fields = MacEntryFields::fromFollyDynamic(json);
-    macEntry->fromThrift(fields.toThrift());
-    return macEntry;
   }
 
   bool operator!=(const MacEntry& other) const {

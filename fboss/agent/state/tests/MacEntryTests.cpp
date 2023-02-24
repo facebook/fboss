@@ -24,16 +24,14 @@ TEST(MacEntryTest, toFromFollyDynamic) {
       PortDescriptor(PortID(1)),
       std::optional<cfg::AclLookupClass>(
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0));
-  EXPECT_EQ(
-      *MacEntry::fromFollyDynamic(entryDynamic.toFollyDynamic()), entryDynamic);
+  EXPECT_EQ(MacEntry(entryDynamic.toThrift()), entryDynamic);
   MacEntry entryStatic(
       kTestMac,
       PortDescriptor(PortID(1)),
       std::optional<cfg::AclLookupClass>(
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
       MacEntryType::STATIC_ENTRY);
-  EXPECT_EQ(
-      *MacEntry::fromFollyDynamic(entryStatic.toFollyDynamic()), entryStatic);
+  EXPECT_EQ(MacEntry(entryStatic.toThrift()), entryStatic);
   validateNodeSerialization(entryStatic);
 }
 
@@ -51,26 +49,4 @@ TEST(MacEntryTest, Compare) {
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0),
       MacEntryType::STATIC_ENTRY);
   EXPECT_NE(entryStatic, entryDynamic);
-}
-
-TEST(MacEntryTest, fromJSONWithType) {
-  std::string jsonStrMissingEntryType = R"(
-  {
-      "mac": "01:02:03:04:05:06",
-      "portId": {
-            "portId": 1,
-            "portType": 0
-      }
-  })";
-
-  auto fields = MacEntryFields::fromJson(jsonStrMissingEntryType);
-  auto entry = std::make_shared<MacEntry>();
-  entry->fromThrift(fields.toThrift());
-  EXPECT_EQ(
-      *entry,
-      MacEntry(
-          kTestMac,
-          PortDescriptor(PortID(1)),
-          std::optional<cfg::AclLookupClass>(std::nullopt),
-          MacEntryType::DYNAMIC_ENTRY));
 }
