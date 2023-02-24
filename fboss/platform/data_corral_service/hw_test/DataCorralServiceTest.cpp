@@ -10,7 +10,6 @@
 
 #include <gtest/gtest.h>
 
-#include <folly/experimental/coro/BlockingWait.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
 #include "fboss/platform/data_corral_service/DataCorralServiceImpl.h"
@@ -34,7 +33,9 @@ class DataCorralServiceTest : public ::testing::Test {
  protected:
   DataCorralFruidReadResponse getFruid(bool uncached) {
     auto client = apache::thrift::makeTestClient(thriftHandler_);
-    return folly::coro::blockingWait(client->co_getFruid(uncached));
+    DataCorralFruidReadResponse resp;
+    client->sync_getFruid(resp, uncached);
+    return resp;
   }
   std::shared_ptr<DataCorralServiceThriftHandler> thriftHandler_;
 };

@@ -35,6 +35,7 @@ target_link_libraries(data_corral_service_lib
   platform_utils
   data_corral_service_cpp2
   Folly::folly
+  fb303::fb303
   FBThrift::thriftcpp2
 )
 
@@ -44,5 +45,15 @@ add_executable(data_corral_service
 
 target_link_libraries(data_corral_service
   data_corral_service_lib
-  fb303::fb303
+)
+
+add_executable(data_corral_service_hw_test
+  fboss/platform/data_corral_service/hw_test/Main.cpp
+  fboss/platform/data_corral_service/hw_test/DataCorralServiceTest.cpp
+)
+
+target_link_libraries(data_corral_service_hw_test
+  data_corral_service_lib
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
 )
