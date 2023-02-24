@@ -69,9 +69,9 @@ class HwAqmTest : public HwLinkStateDependentTest {
   static constexpr auto kDefaultTxPayloadBytes{7000};
 
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::oneL3IntfConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
+        masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       auto streamType =
@@ -87,9 +87,9 @@ class HwAqmTest : public HwLinkStateDependentTest {
   }
 
   cfg::SwitchConfig wredDropConfig() const {
-    auto cfg = utility::oneL3IntfConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
+        masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       auto streamType =
@@ -105,9 +105,9 @@ class HwAqmTest : public HwLinkStateDependentTest {
   }
 
   cfg::SwitchConfig configureQueue2WithWredThreshold() const {
-    auto cfg = utility::oneL3IntfConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
+        masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       auto streamType =
@@ -148,12 +148,12 @@ class HwAqmTest : public HwLinkStateDependentTest {
     return 5;
   }
 
-  template <typename ECMP_HELPER>
-  void disableTTLDecrements(const ECMP_HELPER& ecmpHelper) {
-    for (const auto& nextHop : ecmpHelper.getNextHops()) {
-      utility::disableTTLDecrements(
-          getHwSwitch(), ecmpHelper.getRouterId(), nextHop);
-    }
+  folly::IPAddressV6 kSrcIp() const {
+    return folly::IPAddressV6("2620:0:1cfe:face:b00c::3");
+  }
+
+  folly::IPAddressV6 kDestIp() const {
+    return folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
   }
 
   void sendPkt(
@@ -178,8 +178,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
         vlanId,
         srcMac,
         intfMac,
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
+        kSrcIp(),
+        kDestIp(),
         8000,
         8001,
         dscpVal,
@@ -253,6 +253,24 @@ class HwAqmTest : public HwLinkStateDependentTest {
     }
   }
 
+  void disableTTLDecrements(
+      const utility::EcmpSetupTargetedPorts6& ecmpHelper) {
+    utility::ttlDecrementHandlingForLoopbackTraffic(
+        getHwSwitch(),
+        ecmpHelper.getRouterId(),
+        ecmpHelper.nhop(PortDescriptor(masterLogicalInterfacePortIds()[0])));
+  }
+
+  void setupEcmpTraffic() {
+    utility::EcmpSetupTargetedPorts6 ecmpHelper{
+        getProgrammedState(), getIntfMac()};
+    const auto& portDesc = PortDescriptor(masterLogicalInterfacePortIds()[0]);
+    applyNewState(ecmpHelper.resolveNextHops(getProgrammedState(), {portDesc}));
+    RoutePrefixV6 route{kDestIp(), 128};
+    ecmpHelper.programRoutes(getRouteUpdater(), {portDesc}, {route});
+    disableTTLDecrements(ecmpHelper);
+  }
+
  protected:
   void runTest(bool isEcn) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
@@ -263,10 +281,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     }
     auto setup = [=]() {
       applyNewConfig(configureQueue2WithWredThreshold());
-      auto kEcmpWidthForTest = 1;
-      utility::EcmpSetupAnyNPorts6 ecmpHelper6{
-          getProgrammedState(), getIntfMac()};
-      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
+      setupEcmpTraffic();
       if (isEcn) {
         // Assert that ECT capable packets are not counted by port ECN
         // counter and on congestion encountered packets are counted.
@@ -274,7 +289,6 @@ class HwAqmTest : public HwLinkStateDependentTest {
         auto portStats = getLatestPortStats(masterLogicalPortIds()[0]);
         EXPECT_EQ(*portStats.outEcnCounter_(), 0);
       }
-      disableTTLDecrements(ecmpHelper6);
     };
     auto verify = [=]() {
       sendPkts(kDscp(), isEcn);
@@ -309,11 +323,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
     }
     auto setup = [=]() {
       applyNewConfig(wredDropConfig());
-      auto kEcmpWidthForTest = 1;
-      utility::EcmpSetupAnyNPorts6 ecmpHelper6{
-          getProgrammedState(), getIntfMac()};
-      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
-      disableTTLDecrements(ecmpHelper6);
+      setupEcmpTraffic();
     };
     auto verify = [=]() {
       // Send packets to queue0 and queue2 (both configured to the same weight).
@@ -593,11 +603,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       applyNewConfig(config);
 
       // Setup traffic loop
-      auto kEcmpWidthForTest = 1;
-      utility::EcmpSetupAnyNPorts6 ecmpHelper6{
-          getProgrammedState(), getIntfMac()};
-      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
-      disableTTLDecrements(ecmpHelper6);
+      setupEcmpTraffic();
 
       // Send traffic
       const int kNumPacketsToSend =
@@ -668,11 +674,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       auto config{initialConfig()};
       queueEcnWredThresholdSetup(false /* isEcn */, wredQueueIds, config);
       applyNewConfig(config);
-      auto kEcmpWidthForTest = 1;
-      utility::EcmpSetupAnyNPorts6 ecmpHelper6{
-          getProgrammedState(), getIntfMac()};
-      resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
-      disableTTLDecrements(ecmpHelper6);
+      setupEcmpTraffic();
     };
 
     auto verify = [=]() {
