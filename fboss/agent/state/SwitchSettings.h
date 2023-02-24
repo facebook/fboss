@@ -20,55 +20,6 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-struct SwitchSettingsFields
-    : public ThriftyFields<SwitchSettingsFields, state::SwitchSettingsFields> {
-  template <typename Fn>
-  void forEachChild(Fn /*fn*/) {}
-
-  folly::dynamic toFollyDynamicLegacy() const;
-  static SwitchSettingsFields fromFollyDynamicLegacy(
-      const folly::dynamic& json);
-
-  state::SwitchSettingsFields toThrift() const override;
-  static SwitchSettingsFields fromThrift(
-      state::SwitchSettingsFields const& fields);
-
-  bool operator==(const SwitchSettingsFields& other) const {
-    return std::tie(
-               l2LearningMode,
-               qcmEnable,
-               ptpTcEnable,
-               l2AgeTimerSeconds,
-               maxRouteCounterIDs,
-               blockNeighbors,
-               macAddrsToBlock,
-               exactMatchTableConfigs,
-               systemPortRange) ==
-        std::tie(
-               other.l2LearningMode,
-               other.qcmEnable,
-               other.ptpTcEnable,
-               other.l2AgeTimerSeconds,
-               other.maxRouteCounterIDs,
-               other.blockNeighbors,
-               other.macAddrsToBlock,
-               other.exactMatchTableConfigs,
-               other.systemPortRange);
-  }
-
-  cfg::L2LearningMode l2LearningMode = cfg::L2LearningMode::HARDWARE;
-  bool qcmEnable = false;
-  bool ptpTcEnable = false;
-  uint32_t l2AgeTimerSeconds{300};
-  uint32_t maxRouteCounterIDs{0};
-  std::vector<std::pair<VlanID, folly::IPAddress>> blockNeighbors;
-  std::vector<std::pair<VlanID, folly::MacAddress>> macAddrsToBlock;
-  cfg::SwitchType switchType = cfg::SwitchType::NPU;
-  std::optional<int64_t> switchId;
-  std::vector<cfg::ExactMatchTableConfig> exactMatchTableConfigs;
-  std::optional<cfg::Range64> systemPortRange;
-};
-
 USE_THRIFT_COW(SwitchSettings)
 /*
  * SwitchSettings stores state about path settings of traffic to userver CPU
@@ -78,27 +29,6 @@ class SwitchSettings
     : public ThriftStructNode<SwitchSettings, state::SwitchSettingsFields> {
  public:
   using BaseT = ThriftStructNode<SwitchSettings, state::SwitchSettingsFields>;
-  static std::shared_ptr<SwitchSettings> fromFollyDynamicLegacy(
-      const folly::dynamic& json) {
-    const auto& fields = SwitchSettingsFields::fromFollyDynamicLegacy(json);
-    return std::make_shared<SwitchSettings>(fields.toThrift());
-  }
-
-  static std::shared_ptr<SwitchSettings> fromFollyDynamic(
-      const folly::dynamic& json) {
-    const auto& fields = SwitchSettingsFields::fromFollyDynamic(json);
-    return std::make_shared<SwitchSettings>(fields.toThrift());
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    auto fields = SwitchSettingsFields::fromThrift(toThrift());
-    return fields.toFollyDynamicLegacy();
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    auto fields = SwitchSettingsFields::fromThrift(toThrift());
-    return fields.toFollyDynamic();
-  }
 
   cfg::L2LearningMode getL2LearningMode() const {
     return cref<switch_state_tags::l2LearningMode>()->toThrift();
