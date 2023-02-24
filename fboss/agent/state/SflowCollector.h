@@ -22,35 +22,6 @@
 
 namespace facebook::fboss {
 
-struct SflowCollectorFields
-    : public ThriftyFields<SflowCollectorFields, state::SflowCollectorFields> {
-  SflowCollectorFields(const std::string& ip, const uint16_t port) {
-    auto address = folly::SocketAddress(ip, port);
-    writableData().id() = folly::to<std::string>(
-        address.getFullyQualified(), ':', address.getPort());
-    state::SocketAddress socketAddr;
-    *socketAddr.host() = address.getFullyQualified();
-    *socketAddr.port() = port;
-    writableData().address() = socketAddr;
-  }
-
-  template <typename Fn>
-  void forEachChild(Fn) {}
-
-  state::SflowCollectorFields toThrift() const override {
-    return data();
-  }
-  static SflowCollectorFields fromThrift(
-      state::SflowCollectorFields const& sflowCollectorThrift);
-  folly::dynamic toFollyDynamicLegacy() const;
-  static SflowCollectorFields fromFollyDynamicLegacy(
-      const folly::dynamic& sflowCollectorJson);
-
-  bool operator==(const SflowCollectorFields& other) const {
-    return data() == other.data();
-  }
-};
-
 USE_THRIFT_COW(SflowCollector)
 
 /*
@@ -61,7 +32,6 @@ class SflowCollector
     : public ThriftStructNode<SflowCollector, state::SflowCollectorFields> {
  public:
   using Base = ThriftStructNode<SflowCollector, state::SflowCollectorFields>;
-  using LegacyFields = SflowCollectorFields;
   SflowCollector(std::string ip, uint16_t port);
 
   const std::string& getID() const {
@@ -74,30 +44,6 @@ class SflowCollector
     const auto& port =
         cref<switch_state_tags::address>()->cref<switch_state_tags::port>();
     return folly::SocketAddress(host->cref(), port->cref());
-  }
-
-  static std::shared_ptr<SflowCollector> fromFollyDynamic(
-      const folly::dynamic& dyn) {
-    auto fields = LegacyFields::fromFollyDynamic(dyn);
-    auto obj = fields.toThrift();
-    return std::make_shared<SflowCollector>(std::move(obj));
-  }
-
-  static std::shared_ptr<SflowCollector> fromFollyDynamicLegacy(
-      const folly::dynamic& dyn) {
-    auto fields = LegacyFields::fromFollyDynamicLegacy(dyn);
-    auto obj = fields.toThrift();
-    return std::make_shared<SflowCollector>(std::move(obj));
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    auto fields = LegacyFields::fromThrift(this->toThrift());
-    return fields.toFollyDynamic();
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    auto fields = LegacyFields::fromThrift(this->toThrift());
-    return fields.toFollyDynamicLegacy();
   }
 
  private:
