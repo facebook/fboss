@@ -36,8 +36,6 @@ void runBenchmark() {
       };
   auto ensemble = createAgentEnsemble(initialConfig);
 
-  ensemble->startAgent();
-
   utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;
   if (ensemble->getPlatform()->getMode() == PlatformMode::WEDGE) {
     routeChunks = utility::RouteDistributionGenerator(

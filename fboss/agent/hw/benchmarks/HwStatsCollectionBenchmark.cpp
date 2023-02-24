@@ -66,9 +66,7 @@ BENCHMARK(HwStatsCollection) {
         return config;
       };
   ensemble = createAgentEnsemble(initialConfigFn);
-  ensemble->setupLinkStateToggler();
   auto hwSwitch = ensemble->getHw();
-  ensemble->startAgent();
 
   std::vector<PortID> ports = ensemble->masterLogicalPortIds();
   ports.resize(std::min((int)ports.size(), numPortsToCollectStats));

@@ -37,9 +37,7 @@ BENCHMARK(HwEcmpGroupShrink) {
       };
   auto ensemble = createAgentEnsemble(initialConfigFn);
   auto hwSwitch = ensemble->getHw();
-  ensemble->setupLinkStateToggler();
   auto ports = ensemble->masterLogicalPortIds();
-  ensemble->startAgent();
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(ensemble->getSw()->getState());
   ensemble->applyNewState(
       ecmpHelper.resolveNextHops(ensemble->getSw()->getState(), kEcmpWidth));

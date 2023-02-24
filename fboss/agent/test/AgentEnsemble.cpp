@@ -233,7 +233,8 @@ void ensembleMain(int argc, char* argv[], PlatformInitFn initPlatform) {
 std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     AgentEnsembleSwitchConfigFn initialConfigFn,
     AgentEnsemblePlatformConfigFn platformConfigFn,
-    uint32_t featuresDesired) {
+    uint32_t featuresDesired,
+    bool startAgent) {
   auto ensemble = std::make_unique<AgentEnsemble>();
   ensemble->setupEnsemble(
       kArgc,
@@ -242,6 +243,12 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
       kPlatformInitFn,
       initialConfigFn,
       platformConfigFn);
+  if (featuresDesired & HwSwitch::FeaturesDesired::LINKSCAN_DESIRED) {
+    ensemble->setupLinkStateToggler();
+  }
+  if (startAgent) {
+    ensemble->startAgent();
+  }
   return ensemble;
 }
 

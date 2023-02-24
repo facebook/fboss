@@ -33,7 +33,6 @@ BENCHMARK(RibResolutionBenchmark) {
         return utility::onePortPerInterfaceConfig(hwSwitch, ports);
       };
   ensemble = createAgentEnsemble(initialConfigFn);
-  ensemble->startAgent();
   auto ports = ensemble->masterLogicalPortIds();
 
   utility::THAlpmRouteScaleGenerator gen(ensemble->getSw()->getState());

@@ -188,7 +188,6 @@ void initandExitBenchmarkHelper(
      */
     ScopedCallTimer timeIt;
     ensemble = createAgentEnsemble(initialConfig);
-    ensemble->startAgent();
   }
   suspender.rehire();
   auto routeChunks = getRoutes(ensemble.get());

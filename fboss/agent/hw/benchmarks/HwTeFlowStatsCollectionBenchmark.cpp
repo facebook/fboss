@@ -58,7 +58,6 @@ BENCHMARK(HwTeFlowStatsCollection) {
 
   folly::BenchmarkSuspender suspender;
   ensemble = createAgentEnsemble(initialConfigFn, platformConfigFn);
-  ensemble->startAgent();
   const auto& ports = ensemble->masterLogicalPortIds();
   auto hwSwitch = ensemble->getHw();
   auto ecmpHelper =
