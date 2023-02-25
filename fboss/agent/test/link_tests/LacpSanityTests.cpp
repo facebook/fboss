@@ -75,7 +75,8 @@ class LacpTest : public LinkTest {
     return {AggregatePortID(kBaseAggId), AggregatePortID(kBaseAggId + 1)};
   }
 
-  std::vector<AggregatePortFields::Subport> getSubPorts(AggregatePortID aggId) {
+  std::vector<LegacyAggregatePortFields::Subport> getSubPorts(
+      AggregatePortID aggId) {
     const auto& aggPort =
         sw()->getState()->getAggregatePorts()->getAggregatePort(aggId);
     EXPECT_NE(aggPort, nullptr);

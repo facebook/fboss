@@ -155,8 +155,8 @@ void BcmTrunk::program(
 }
 
 void BcmTrunk::programForwardingState(
-    AggregatePortFields::SubportToForwardingState oldState,
-    AggregatePortFields::SubportToForwardingState newState,
+    LegacyAggregatePortFields::SubportToForwardingState oldState,
+    LegacyAggregatePortFields::SubportToForwardingState newState,
     std::vector<PortID>& addedPorts,
     std::vector<PortID>& removedPorts) {
   PortID oldSubport, newSubport;

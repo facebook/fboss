@@ -27,9 +27,7 @@ namespace facebook::fboss {
 class RxPacket;
 class SwitchState;
 
-struct AggregatePortFields
-    : public ThriftyFields<AggregatePortFields, state::AggregatePortFields> {
-  using ThriftyFields::ThriftyFields;
+struct LegacyAggregatePortFields {
   /* The SDK exposes much finer controls over the egress state of trunk member
    * ports, both as compared to what we expose in SwSwitch and as compared to
    * the ingress trunk member port control. I don't see a need for these more
@@ -91,9 +89,6 @@ struct AggregatePortFields
       return portID < rhs.portID;
     }
 
-    folly::dynamic toFollyDynamic() const;
-    static Subport fromFollyDynamic(const folly::dynamic& json);
-
     state::Subport toThrift() const {
       state::Subport subport;
       subport.id() = portID;
@@ -121,51 +116,6 @@ struct AggregatePortFields
         cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER()};
   };
   using Subports = boost::container::flat_set<Subport>;
-
-  AggregatePortFields(
-      AggregatePortID id,
-      const std::string& name,
-      const std::string& description,
-      uint16_t systemPriority,
-      folly::MacAddress systemID,
-      uint8_t minLinkCount,
-      Subports&& ports,
-      SubportToForwardingState&& portStates,
-      SubportToPartnerState&& portPartnerStates);
-
-  AggregatePortFields(
-      AggregatePortID id,
-      const std::string& name,
-      const std::string& description,
-      uint16_t systemPriority,
-      folly::MacAddress systemID,
-      uint8_t minLinkCount,
-      Subports&& ports,
-      Forwarding fwd = Forwarding::DISABLED,
-      ParticipantInfo pState = ParticipantInfo::defaultParticipantInfo());
-
-  template <typename Fn>
-  void forEachChild(Fn /* unused */) {}
-
-  folly::dynamic toFollyDynamic() const;
-  static AggregatePortFields fromFollyDynamic(const folly::dynamic& json);
-  state::AggregatePortFields toThrift() const override {
-    return data();
-  }
-  static AggregatePortFields fromThrift(
-      state::AggregatePortFields const& aggregatePortFields) {
-    return AggregatePortFields(aggregatePortFields);
-  }
-  bool operator==(const AggregatePortFields& other) const {
-    return data() == other.data();
-  }
-
- private:
-  folly::dynamic portAndFwdStateToFollyDynamic(
-      const std::pair<PortID, Forwarding>& fwdState) const;
-
-  folly::dynamic portAndPartnerStateToFollyDynamic(
-      const std::pair<PortID, ParticipantInfo>& partnerState) const;
 };
 
 /*
@@ -174,16 +124,17 @@ struct AggregatePortFields
 class AggregatePort
     : public ThriftStructNode<AggregatePort, state::AggregatePortFields> {
  public:
-  using Subport = AggregatePortFields::Subport;
-  using SubportsDifferenceType = AggregatePortFields::Subports::difference_type;
+  using Subport = LegacyAggregatePortFields::Subport;
+  using SubportsDifferenceType =
+      LegacyAggregatePortFields::Subports::difference_type;
   using SubportsConstRange =
-      folly::Range<AggregatePortFields::Subports::const_iterator>;
-  using Forwarding = AggregatePortFields::Forwarding;
+      folly::Range<LegacyAggregatePortFields::Subports::const_iterator>;
+  using Forwarding = LegacyAggregatePortFields::Forwarding;
   using PartnerState = ParticipantInfo;
   using SubportAndForwardingStateConstRange = folly::Range<
-      AggregatePortFields::SubportToForwardingState::const_iterator>;
+      LegacyAggregatePortFields::SubportToForwardingState::const_iterator>;
   using SubportAndForwardingStateValueType =
-      AggregatePortFields::SubportToForwardingState::value_type;
+      LegacyAggregatePortFields::SubportToForwardingState::value_type;
   using ThriftType = state::AggregatePortFields;
   using Base = ThriftStructNode<AggregatePort, state::AggregatePortFields>;
   using Subports = boost::container::flat_set<Subport>;
@@ -202,7 +153,7 @@ class AggregatePort
       folly::MacAddress systemID,
       uint8_t minimumLinkCount,
       Subports&& ports,
-      AggregatePortFields::Forwarding fwd = Forwarding::DISABLED,
+      LegacyAggregatePortFields::Forwarding fwd = Forwarding::DISABLED,
       ParticipantInfo pState = ParticipantInfo::defaultParticipantInfo());
 
   AggregatePort(
@@ -235,22 +186,6 @@ class AggregatePort
         Subports(subports.begin(), subports.end()),
         Forwarding::DISABLED,
         ParticipantInfo::defaultParticipantInfo());
-  }
-
-  static std::shared_ptr<AggregatePort> fromFollyDynamic(
-      const folly::dynamic& json) {
-    const auto& fields = AggregatePortFields::fromFollyDynamic(json);
-    return std::make_shared<AggregatePort>(fields.toThrift());
-  }
-
-  static std::shared_ptr<AggregatePort> fromJson(
-      const folly::fbstring& jsonStr) {
-    return AggregatePort::fromFollyDynamic(folly::parseJson(jsonStr));
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    const auto& fields = AggregatePortFields::fromThrift(toThrift());
-    return fields.toFollyDynamic();
   }
 
   AggregatePortID getID() const {
@@ -371,8 +306,9 @@ class AggregatePort
 
   uint32_t forwardingSubportCount() const;
 
-  AggregatePortFields::SubportToForwardingState subportAndFwdState() const {
-    AggregatePortFields::SubportToForwardingState portToFwdState;
+  LegacyAggregatePortFields::SubportToForwardingState subportAndFwdState()
+      const {
+    LegacyAggregatePortFields::SubportToForwardingState portToFwdState;
 
     for (const auto& [key, val] :
          std::as_const(*cref<switch_state_tags::portToFwdState>())) {

@@ -729,11 +729,11 @@ TEST(AggregatePort, subPortSerializationInverseOfDeserialization) {
       cfg::LacpPortActivity::PASSIVE,
       cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER());
 
-  AggregatePortFields::SubportToForwardingState portStates;
-  portStates[PortID(1)] = AggregatePortFields::Forwarding::ENABLED;
-  auto serializedSubport = subport.toFollyDynamic();
+  LegacyAggregatePortFields::SubportToForwardingState portStates;
+  portStates[PortID(1)] = LegacyAggregatePortFields::Forwarding::ENABLED;
+  auto serializedSubport = subport.toThrift();
   auto deserializedSubport =
-      AggregatePort::Subport::fromFollyDynamic(serializedSubport);
+      AggregatePort::Subport::fromThrift(serializedSubport);
 
   EXPECT_TRUE(subport == deserializedSubport);
 }
@@ -763,8 +763,8 @@ TEST(AggregatePort, serializationInverseOfDeserialization) {
 
   validateThriftStructNodeSerialization(*aggPort);
 
-  auto serializedAggPort = aggPort->toFollyDynamic();
-  auto deserializedAggPort = AggregatePort::fromFollyDynamic(serializedAggPort);
+  auto serializedAggPort = aggPort->toThrift();
+  auto deserializedAggPort = std::make_shared<AggregatePort>(serializedAggPort);
 
   ASSERT_TRUE(deserializedAggPort);
   EXPECT_EQ(aggPort->getID(), deserializedAggPort->getID());
