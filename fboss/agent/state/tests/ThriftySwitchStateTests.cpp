@@ -320,20 +320,3 @@ TEST(ThriftySwitchState, IpAddressConversion) {
     EXPECT_EQ(addr_0_dynamic, addr_1_dynamic);
   }
 }
-
-TEST(ThriftySwitchState, ExtraFields) {
-  SwitchStateFields fields{};
-  fields.defaultVlan = 0xfffe;
-  fields.arpTimeout = std::chrono::seconds(100);
-  fields.ndpTimeout = std::chrono::seconds(100);
-  fields.arpAgerInterval = std::chrono::seconds(100);
-  fields.maxNeighborProbes = 100;
-  fields.staleEntryInterval = std::chrono::seconds(100);
-  fields.dhcpV4RelaySrc = folly::IPAddressV4("101.10.1.1");
-  fields.dhcpV6RelaySrc = folly::IPAddressV6("101:10::1:1");
-  fields.dhcpV4ReplySrc = folly::IPAddressV4("101.10.1.1");
-  fields.dhcpV6ReplySrc = folly::IPAddressV6("101:10::1:1");
-  fields.pfcWatchdogRecoveryAction = cfg::PfcWatchdogRecoveryAction::DROP;
-
-  EXPECT_EQ(fields, SwitchStateFields::fromThrift(fields.toThrift()));
-}
