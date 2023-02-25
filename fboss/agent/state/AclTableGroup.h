@@ -21,46 +21,6 @@
 
 namespace facebook::fboss {
 
-struct AclTableGroupFields
-    : public ThriftyFields<AclTableGroupFields, state::AclTableGroupFields> {
-  using ThriftyFields::ThriftyFields;
-  explicit AclTableGroupFields(cfg::AclStage stage) {
-    writableData().stage() = stage;
-  }
-  AclTableGroupFields(
-      cfg::AclStage stage,
-      const std::string& name,
-      std::shared_ptr<AclTableMap> aclTableMap) {
-    writableData().stage() = stage;
-    writableData().name() = name;
-    if (aclTableMap) {
-      writableData().aclTableMap() = aclTableMap->toThrift();
-    }
-    aclTableMap_ = aclTableMap;
-  }
-
-  template <typename Fn>
-  void forEachChild(Fn) {}
-
-  static AclTableGroupFields createDefaultAclTableGroupFieldsFromThrift(
-      std::map<std::string, state::AclEntryFields> const& thriftMap);
-  state::AclTableGroupFields toThrift() const override {
-    return data();
-  }
-  static AclTableGroupFields fromThrift(
-      state::AclTableGroupFields const& aclTableGroupFields) {
-    auto fields = AclTableGroupFields(aclTableGroupFields);
-    if (auto aclTableMap = aclTableGroupFields.aclTableMap()) {
-      fields.aclTableMap_ = std::make_shared<AclTableMap>(*aclTableMap);
-    }
-    return fields;
-  }
-  bool operator==(const AclTableGroupFields& other) const {
-    return data() == other.data();
-  }
-  std::shared_ptr<AclTableMap> aclTableMap_;
-};
-
 USE_THRIFT_COW(AclTableGroup);
 RESOLVE_STRUCT_MEMBER(
     AclTableGroup,
@@ -79,12 +39,7 @@ class AclTableGroup
   explicit AclTableGroup(cfg::AclStage stage);
 
   static std::shared_ptr<AclTableGroup> createDefaultAclTableGroupFromThrift(
-      std::map<std::string, state::AclEntryFields> const& thriftMap) {
-    auto fields =
-        AclTableGroupFields::createDefaultAclTableGroupFieldsFromThrift(
-            thriftMap);
-    return std::make_shared<AclTableGroup>(fields.toThrift());
-  }
+      std::map<std::string, state::AclEntryFields> const& thriftMap);
 
   static std::shared_ptr<AclMap> getDefaultAclTableGroup(
       state::AclTableGroupFields const& aclTableGroupFields) {
