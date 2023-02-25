@@ -1107,38 +1107,48 @@ bool SaiPortManager::fecStatsSupported(PortID portId) const {
   return false;
 }
 
+std::optional<FabricEndpoint> SaiPortManager::getFabricReachabilityForPort(
+    const PortID& portId,
+    const SaiPortHandle* portHandle) const {
+  if (getPortType(portId) != cfg::PortType::FABRIC_PORT) {
+    return std::nullopt;
+  }
+
+  FabricEndpoint endpoint;
+  auto saiPortId = portHandle->port->adapterKey();
+  endpoint.isAttached() = SaiApiTable::getInstance()->portApi().getAttribute(
+      saiPortId, SaiPortTraits::Attributes::FabricAttached{});
+  if (*endpoint.isAttached()) {
+    auto swId = SaiApiTable::getInstance()->portApi().getAttribute(
+        saiPortId, SaiPortTraits::Attributes::FabricAttachedSwitchId{});
+    auto swType = SaiApiTable::getInstance()->portApi().getAttribute(
+        saiPortId, SaiPortTraits::Attributes::FabricAttachedSwitchType{});
+    auto endpointPortId = SaiApiTable::getInstance()->portApi().getAttribute(
+        saiPortId, SaiPortTraits::Attributes::FabricAttachedPortIndex{});
+    endpoint.switchId() = swId;
+    endpoint.portId() = endpointPortId;
+    switch (swType) {
+      case SAI_SWITCH_TYPE_VOQ:
+        endpoint.switchType() = cfg::SwitchType::VOQ;
+        break;
+      case SAI_SWITCH_TYPE_FABRIC:
+        endpoint.switchType() = cfg::SwitchType::FABRIC;
+        break;
+      default:
+        XLOG(ERR) << " Unexpected switch type value: " << swType;
+        break;
+    }
+  }
+  return endpoint;
+}
+
 std::map<PortID, FabricEndpoint> SaiPortManager::getFabricReachability() const {
   std::map<PortID, FabricEndpoint> port2FabricEndpoint;
   for (const auto& portIdAndHandle : handles_) {
-    if (getPortType(portIdAndHandle.first) != cfg::PortType::FABRIC_PORT) {
-      continue;
+    if (auto endpoint = getFabricReachabilityForPort(
+            portIdAndHandle.first, portIdAndHandle.second.get())) {
+      port2FabricEndpoint.insert({PortID(portIdAndHandle.first), *endpoint});
     }
-    auto saiPortId = portIdAndHandle.second->port->adapterKey();
-    FabricEndpoint endpoint;
-    endpoint.isAttached() = SaiApiTable::getInstance()->portApi().getAttribute(
-        saiPortId, SaiPortTraits::Attributes::FabricAttached{});
-    if (*endpoint.isAttached()) {
-      auto swId = SaiApiTable::getInstance()->portApi().getAttribute(
-          saiPortId, SaiPortTraits::Attributes::FabricAttachedSwitchId{});
-      auto swType = SaiApiTable::getInstance()->portApi().getAttribute(
-          saiPortId, SaiPortTraits::Attributes::FabricAttachedSwitchType{});
-      auto portId = SaiApiTable::getInstance()->portApi().getAttribute(
-          saiPortId, SaiPortTraits::Attributes::FabricAttachedPortIndex{});
-      endpoint.switchId() = swId;
-      endpoint.portId() = portId;
-      switch (swType) {
-        case SAI_SWITCH_TYPE_VOQ:
-          endpoint.switchType() = cfg::SwitchType::VOQ;
-          break;
-        case SAI_SWITCH_TYPE_FABRIC:
-          endpoint.switchType() = cfg::SwitchType::FABRIC;
-          break;
-        default:
-          XLOG(ERR) << " Unexpected switch type value: " << swType;
-          break;
-      }
-    }
-    port2FabricEndpoint.insert({PortID(portIdAndHandle.first), endpoint});
   }
   return port2FabricEndpoint;
 }
