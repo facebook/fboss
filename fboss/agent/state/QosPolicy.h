@@ -22,10 +22,7 @@
 namespace facebook::fboss {
 
 template <typename QosAttrT>
-class TrafficClassToQosAttributeMap
-    : public ThriftyFields<
-          TrafficClassToQosAttributeMap<QosAttrT>,
-          state::TrafficClassToQosAttributeMap> {
+class TrafficClassToQosAttributeMap {
  public:
   TrafficClassToQosAttributeMap() {}
   explicit TrafficClassToQosAttributeMap(
@@ -60,7 +57,7 @@ class TrafficClassToQosAttributeMap
     return this->data().from()->empty() && this->data().to()->empty();
   }
 
-  state::TrafficClassToQosAttributeMap toThrift() const override {
+  state::TrafficClassToQosAttributeMap toThrift() const {
     return this->data();
   }
 
@@ -72,6 +69,16 @@ class TrafficClassToQosAttributeMap
   bool operator==(const TrafficClassToQosAttributeMap& other) const {
     return this->data() == other.data();
   }
+
+  const state::TrafficClassToQosAttributeMap& data() const {
+    return data_;
+  }
+
+ private:
+  state::TrafficClassToQosAttributeMap& writableData() {
+    return data_;
+  }
+  state::TrafficClassToQosAttributeMap data_{};
 };
 
 class ExpMap : public TrafficClassToQosAttributeMap<EXP> {
@@ -90,58 +97,11 @@ class DscpMap : public TrafficClassToQosAttributeMap<DSCP> {
       : TrafficClassToQosAttributeMap(map) {}
 };
 
-struct QosPolicyFields
-    : public ThriftyFields<QosPolicyFields, state::QosPolicyFields> {
-  QosPolicyFields(
-      const std::string& name,
-      DscpMap dscpMap,
-      ExpMap expMap,
-      std::map<int16_t, int16_t> trafficClassToQueueId) {
-    writableData().name() = name;
-    writableData().dscpMap() = dscpMap.data();
-    writableData().expMap() = expMap.data();
-    writableData().trafficClassToQueueId() = trafficClassToQueueId;
-  }
-
-  template <typename Fn>
-  void forEachChild(Fn) {}
-
-  template <typename EntryT>
-  const folly::dynamic thriftEntryToFolly(
-      state::TrafficClassToQosAttributeEntry entry) const;
-
-  template <typename EntryT>
-  const folly::dynamic thriftEntryListToFolly(
-      std::vector<state::TrafficClassToQosAttributeEntry> set) const;
-
-  template <typename EntryT>
-  static state::TrafficClassToQosAttributeEntry follyToThriftEntry(
-      folly::dynamic entry);
-
-  template <typename EntryT>
-  static std::vector<state::TrafficClassToQosAttributeEntry>
-  follyToThriftEntryList(folly::dynamic entry);
-
-  state::QosPolicyFields toThrift() const override {
-    return data();
-  }
-  static QosPolicyFields fromThrift(
-      state::QosPolicyFields const& qosPolicyFields);
-  folly::dynamic toFollyDynamicLegacy() const;
-  static QosPolicyFields fromFollyDynamicLegacy(
-      const folly::dynamic& qosPolicy);
-
-  bool operator==(const QosPolicyFields& other) const {
-    return data() == other.data();
-  }
-};
-
 USE_THRIFT_COW(QosPolicy)
 
 class QosPolicy : public ThriftStructNode<QosPolicy, state::QosPolicyFields> {
  public:
   using Base = ThriftStructNode<QosPolicy, state::QosPolicyFields>;
-  using LegacyFields = QosPolicyFields;
   QosPolicy(
       const std::string& name,
       DscpMap dscpMap,
@@ -210,28 +170,6 @@ class QosPolicy : public ThriftStructNode<QosPolicy, state::QosPolicyFields> {
   void setPfcPriorityToPgIdMap(
       const std::map<int16_t, int16_t>& pfcPriority2PgId) {
     set<switch_state_tags::pfcPriorityToPgId>(pfcPriority2PgId);
-  }
-
-  static std::shared_ptr<QosPolicy> fromFollyDynamic(
-      const folly::dynamic& dyn) {
-    auto fields = QosPolicyFields::fromFollyDynamic(dyn);
-    return std::make_shared<QosPolicy>(fields.toThrift());
-  }
-
-  static std::shared_ptr<QosPolicy> fromFollyDynamicLegacy(
-      const folly::dynamic& dyn) {
-    auto fields = QosPolicyFields::fromFollyDynamicLegacy(dyn);
-    return std::make_shared<QosPolicy>(fields.toThrift());
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    auto fields = QosPolicyFields::fromThrift(toThrift());
-    return fields.toFollyDynamic();
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    auto fields = QosPolicyFields::fromThrift(toThrift());
-    return fields.toFollyDynamicLegacy();
   }
 
  private:
