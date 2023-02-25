@@ -24,8 +24,8 @@ std::shared_ptr<IpTunnel> makeTunnel(const std::string& tunnelId = "tunnel0") {
 
 TEST(Tunnel, SerDeserTunnel) {
   auto tunn = makeTunnel();
-  auto serialized = tunn->toFollyDynamic();
-  auto tunnBack = IpTunnel::fromFollyDynamic(serialized);
+  auto serialized = tunn->toThrift();
+  auto tunnBack = std::make_shared<IpTunnel>(serialized);
   EXPECT_TRUE(*tunn == *tunnBack);
 }
 
