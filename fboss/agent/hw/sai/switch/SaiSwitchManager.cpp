@@ -45,6 +45,8 @@ namespace {
 using namespace facebook::fboss;
 sai_hash_algorithm_t toSaiHashAlgo(cfg::HashingAlgorithm algo) {
   switch (algo) {
+    case cfg::HashingAlgorithm::CRC:
+      return SAI_HASH_ALGORITHM_CRC;
     case cfg::HashingAlgorithm::CRC16_CCITT:
       return SAI_HASH_ALGORITHM_CRC_CCITT;
     case cfg::HashingAlgorithm::CRC32_LO:

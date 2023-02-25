@@ -697,6 +697,8 @@ void BcmRtag7Module::enableFlowLabelSelection() {
 int BcmRtag7Module::getBcmHashingAlgorithm(
     cfg::HashingAlgorithm algorithm) const {
   switch (algorithm) {
+    case cfg::HashingAlgorithm::CRC:
+      return BCM_HASH_FIELD_CONFIG_CRC16;
     case cfg::HashingAlgorithm::CRC16_CCITT:
       return BCM_HASH_FIELD_CONFIG_CRC16CCITT;
     case cfg::HashingAlgorithm::CRC32_LO:

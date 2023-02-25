@@ -1334,6 +1334,7 @@ enum HashingAlgorithm {
 
   CRC32_KOOPMAN_LO = 7,
   CRC32_KOOPMAN_HI = 8,
+  CRC = 9,
 }
 
 struct LoadBalancer {
