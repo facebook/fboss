@@ -27,42 +27,6 @@ namespace facebook::fboss {
 
 using BufferPoolCfgPtr = std::shared_ptr<BufferPoolCfg>;
 
-struct PortPgFields : public ThriftyFields<PortPgFields, state::PortPgFields> {
-  PortPgFields() {}
-  PortPgFields(
-      uint8_t _id,
-      std::optional<cfg::MMUScalingFactor> _scalingFactor,
-      std::optional<std::string> _name,
-      int _minLimitBytes,
-      std::optional<int> _headroomLimitBytes,
-      std::optional<int> _resumeOffsetBytes,
-      std::string _bufferPoolName,
-      std::optional<BufferPoolCfgPtr> _bufferPoolConfigPtr = std::nullopt)
-      : id(_id),
-        scalingFactor(_scalingFactor),
-        name(_name),
-        minLimitBytes(_minLimitBytes),
-        headroomLimitBytes(_headroomLimitBytes),
-        resumeOffsetBytes(_resumeOffsetBytes),
-        bufferPoolName(_bufferPoolName),
-        bufferPoolConfigPtr(_bufferPoolConfigPtr) {}
-
-  template <typename Fn>
-  void forEachChild(Fn) {}
-
-  state::PortPgFields toThrift() const override;
-  static PortPgFields fromThrift(state::PortPgFields const&);
-
-  uint8_t id{0};
-  std::optional<cfg::MMUScalingFactor> scalingFactor{std::nullopt};
-  std::optional<std::string> name{std::nullopt};
-  int minLimitBytes{0};
-  std::optional<int> headroomLimitBytes{std::nullopt};
-  std::optional<int> resumeOffsetBytes{std::nullopt};
-  std::string bufferPoolName;
-  std::optional<BufferPoolCfgPtr> bufferPoolConfigPtr;
-};
-
 USE_THRIFT_COW(PortPgConfig);
 RESOLVE_STRUCT_MEMBER(
     PortPgConfig,
