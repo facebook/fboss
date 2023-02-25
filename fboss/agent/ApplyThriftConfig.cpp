@@ -2881,40 +2881,40 @@ std::shared_ptr<AclEntry> ThriftConfigApplier::updateAcl(
 void ThriftConfigApplier::checkAcl(const cfg::AclEntry* config) const {
   // check l4 port
   if (auto l4SrcPort = config->l4SrcPort()) {
-    if (*l4SrcPort < 0 || *l4SrcPort > AclEntryFields::kMaxL4Port) {
+    if (*l4SrcPort < 0 || *l4SrcPort > AclEntry::kMaxL4Port) {
       throw FbossError(
           "L4 source port must be between 0 and ",
-          std::to_string(AclEntryFields::kMaxL4Port));
+          std::to_string(AclEntry::kMaxL4Port));
     }
   }
   if (auto l4DstPort = config->l4DstPort()) {
-    if (*l4DstPort < 0 || *l4DstPort > AclEntryFields::kMaxL4Port) {
+    if (*l4DstPort < 0 || *l4DstPort > AclEntry::kMaxL4Port) {
       throw FbossError(
           "L4 destination port must be between 0 and ",
-          std::to_string(AclEntryFields::kMaxL4Port));
+          std::to_string(AclEntry::kMaxL4Port));
     }
   }
   if (config->icmpCode() && !config->icmpType()) {
     throw FbossError("icmp type must be set when icmp code is set");
   }
   if (auto icmpType = config->icmpType()) {
-    if (*icmpType < 0 || *icmpType > AclEntryFields::kMaxIcmpType) {
+    if (*icmpType < 0 || *icmpType > AclEntry::kMaxIcmpType) {
       throw FbossError(
           "icmp type value must be between 0 and ",
-          std::to_string(AclEntryFields::kMaxIcmpType));
+          std::to_string(AclEntry::kMaxIcmpType));
     }
   }
   if (auto icmpCode = config->icmpCode()) {
-    if (*icmpCode < 0 || *icmpCode > AclEntryFields::kMaxIcmpCode) {
+    if (*icmpCode < 0 || *icmpCode > AclEntry::kMaxIcmpCode) {
       throw FbossError(
           "icmp type value must be between 0 and ",
-          std::to_string(AclEntryFields::kMaxIcmpCode));
+          std::to_string(AclEntry::kMaxIcmpCode));
     }
   }
   if (config->icmpType() &&
       (!config->proto() ||
-       !(*config->proto() == AclEntryFields::kProtoIcmp ||
-         *config->proto() == AclEntryFields::kProtoIcmpv6))) {
+       !(*config->proto() == AclEntry::kProtoIcmp ||
+         *config->proto() == AclEntry::kProtoIcmpv6))) {
     throw FbossError(
         "proto must be either icmp or icmpv6 ", "if icmp type is set");
   }

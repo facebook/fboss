@@ -218,7 +218,7 @@ void checkSwHwAclMatch(
 
   if (swAcl->getIcmpType()) {
     if (swAcl->getProto()) {
-      if (swAcl->getProto().value() == AclEntryFields::kProtoIcmp) {
+      if (swAcl->getProto().value() == AclEntry::kProtoIcmp) {
         auto aclFieldIcmpV4TypeGot =
             SaiApiTable::getInstance()->aclApi().getAttribute(
                 aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV4Type());
@@ -238,7 +238,7 @@ void checkSwHwAclMatch(
           EXPECT_EQ(icmpV4CodeDataGot, swAcl->getIcmpCode().value());
           EXPECT_EQ(icmpV4CodeMaskGot, SaiAclTableManager::kIcmpCodeMask);
         }
-      } else if (swAcl->getProto().value() == AclEntryFields::kProtoIcmpv6) {
+      } else if (swAcl->getProto().value() == AclEntry::kProtoIcmpv6) {
         auto aclFieldIcmpV6TypeGot =
             SaiApiTable::getInstance()->aclApi().getAttribute(
                 aclEntryId, SaiAclEntryTraits::Attributes::FieldIcmpV6Type());
