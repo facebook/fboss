@@ -186,8 +186,8 @@ TEST(PortQueue, serialization) {
       generateDefaultPortQueue()};
 
   for (const auto* pqObject : queues) {
-    auto serialized = pqObject->toFollyDynamic();
-    auto deserialized = PortQueue::fromFollyDynamic(serialized);
+    auto serialized = pqObject->toThrift();
+    auto deserialized = std::make_shared<PortQueue>(serialized);
     EXPECT_EQ(*pqObject, *deserialized);
   }
 }
