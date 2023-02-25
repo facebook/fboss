@@ -37,3 +37,20 @@ endfunction()
 if (BUILD_SAI_FAKE_LINK_TEST)
   BUILD_SAI_LINK_TEST("fake" fake_sai)
 endif()
+
+# If libsai_impl is provided, build link test linking with it
+find_library(SAI_IMPL sai_impl)
+message(STATUS "SAI_IMPL: ${SAI_IMPL}")
+
+if (SAI_BRCM_IMPL)
+  find_path(SAI_EXPERIMENTAL_INCLUDE_DIR NAMES saiswitchextensions.h)
+  include_directories(${SAI_EXPERIMENTAL_INCLUDE_DIR})
+  message(STATUS, "SAI_EXPERIMENTAL_INCLUDE_DIR: ${SAI_EXPERIMENTAL_INCLUDE_DIR}")
+endif()
+
+if(SAI_IMPL)
+  BUILD_SAI_LINK_TEST("sai_impl" ${SAI_IMPL})
+  install(
+    TARGETS
+    sai_link_test-sai_impl-${SAI_VER_SUFFIX})
+endif()
