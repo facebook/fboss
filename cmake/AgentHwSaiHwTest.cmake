@@ -153,6 +153,7 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/hw/sai/hw_test/HwTestAqmUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestCoppUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestEcmpUtils.cpp
+    fboss/agent/hw/sai/hw_test/HwFabricUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestNeighborUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestMirrorUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestMplsUtils.cpp
