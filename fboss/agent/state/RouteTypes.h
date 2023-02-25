@@ -30,8 +30,7 @@ RouteForwardAction str2ForwardAction(const std::string& action);
  * Route prefix
  */
 template <typename AddrT>
-struct RoutePrefix
-    : public ThriftyFields<RoutePrefix<AddrT>, state::RoutePrefix> {
+struct RoutePrefix {
   RoutePrefix() {}
 
   RoutePrefix(AddrT addr, uint8_t u8) {
@@ -66,7 +65,7 @@ struct RoutePrefix
     return folly::CIDRNetwork{networkVal.mask(maskVal), maskVal};
   }
 
-  state::RoutePrefix toThrift() const override;
+  state::RoutePrefix toThrift() const;
   static RoutePrefix fromThrift(const state::RoutePrefix& prefix);
 
   /*
@@ -106,6 +105,16 @@ struct RoutePrefix
   inline uint8_t mask() const {
     return *(this->data()).mask();
   }
+
+  const state::RoutePrefix& data() const {
+    return data_;
+  }
+
+ private:
+  state::RoutePrefix& writableData() {
+    return data_;
+  }
+  state::RoutePrefix data_;
 };
 
 template <>
@@ -118,7 +127,7 @@ struct is_fboss_key_object_type<RoutePrefix<folly::IPAddressV6>> {
   static constexpr bool value = true;
 };
 
-struct Label : public ThriftyFields<Label, state::Label> {
+struct Label {
   Label() : Label(Label::getLabelThrift(0)) {}
   /* implicit */ Label(LabelID labelVal)
       : Label(Label::getLabelThrift(labelVal)) {}
@@ -139,10 +148,8 @@ struct Label : public ThriftyFields<Label, state::Label> {
     return value();
   }
 
-  state::Label toThrift() const override {
-    state::Label thriftLabel{};
-    thriftLabel.value() = label();
-    return thriftLabel;
+  state::Label toThrift() const {
+    return data();
   }
 
   static Label fromThrift(const state::Label& thriftLabel) {
@@ -186,6 +193,16 @@ struct Label : public ThriftyFields<Label, state::Label> {
     thriftLabel.value() = label;
     return thriftLabel;
   }
+
+  state::Label& writableData() {
+    return data_;
+  }
+
+  const state::Label& data() const {
+    return data_;
+  }
+
+  state::Label data_;
 };
 
 template <>
