@@ -101,8 +101,8 @@ TEST(NeighborResponseEntry, serialize) {
       MacAddress("01:01:01:01:01:01"),
       InterfaceID(0));
 
-  auto serialized = entry->toFollyDynamic();
-  auto entryBack = ArpResponseEntry::fromFollyDynamic(serialized);
+  auto serialized = entry->toThrift();
+  auto entryBack = std::make_shared<ArpResponseEntry>(serialized);
 
   EXPECT_TRUE(*entry == *entryBack);
 }

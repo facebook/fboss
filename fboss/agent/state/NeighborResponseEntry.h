@@ -18,43 +18,6 @@
 
 namespace facebook::fboss {
 
-template <typename IPADDR>
-struct NeighborResponseEntryFields : public ThriftyFields<
-                                         NeighborResponseEntryFields<IPADDR>,
-                                         state::NeighborResponseEntryFields> {
-  using AddressType = IPADDR;
-  static constexpr auto kMac = "mac";
-  static constexpr auto kNeighborResponseIntf = "interfaceId";
-
-  NeighborResponseEntryFields(
-      AddressType ipAddress,
-      folly::MacAddress mac,
-      InterfaceID interfaceID)
-      : ipAddress(ipAddress), mac(mac), interfaceID(interfaceID) {}
-
-  NeighborResponseEntryFields(folly::MacAddress mac, InterfaceID interfaceID)
-      : mac(mac), interfaceID(interfaceID) {}
-
-  state::NeighborResponseEntryFields toThrift() const override;
-  static NeighborResponseEntryFields fromThrift(
-      state::NeighborResponseEntryFields const& entryTh);
-
-  folly::dynamic toFollyDynamicLegacy() const;
-  static NeighborResponseEntryFields fromFollyDynamicLegacy(
-      const folly::dynamic& entry);
-
-  template <typename Fn>
-  void forEachChild(Fn /*fn*/) {}
-
-  bool operator==(const NeighborResponseEntryFields& other) const {
-    return mac == other.mac && interfaceID == other.interfaceID;
-  }
-
-  AddressType ipAddress;
-  folly::MacAddress mac;
-  InterfaceID interfaceID{0};
-};
-
 template <typename IPADDR, typename SUBCLASS>
 class NeighborResponseEntry
     : public ThriftStructNode<SUBCLASS, state::NeighborResponseEntryFields> {
@@ -102,19 +65,6 @@ class NeighborResponseEntry
     this->template set<switch_state_tags::interfaceId>(interface);
   }
 
-  folly::dynamic toFollyDynamic() const override {
-    return toFollyDynamicLegacy();
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const;
-
-  static std::shared_ptr<SUBCLASS> fromFollyDynamicLegacy(
-      const folly::dynamic& dyn);
-
-  static std::shared_ptr<SUBCLASS> fromFollyDynamic(const folly::dynamic& dyn) {
-    return fromFollyDynamicLegacy(dyn);
-  }
-
  private:
   using Parent = ThriftStructNode<SUBCLASS, state::NeighborResponseEntryFields>;
   using Parent::Parent;
@@ -122,4 +72,3 @@ class NeighborResponseEntry
 };
 
 } // namespace facebook::fboss
-#include "fboss/agent/state/NeighborResponseEntry-defs.h"
