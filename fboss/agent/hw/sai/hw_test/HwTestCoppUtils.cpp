@@ -100,10 +100,8 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
   }
 
   if (hwAsic->isSupported(HwAsic::Feature::SAI_SAMPLEPACKET_TRAP)) {
-#if !defined(SAI_VERSION_5_1_0_3_ODP)
     rxReasonToQueues.push_back(ControlPlane::makeRxReasonToQueueEntry(
         cfg::PacketRxReason::SAMPLEPACKET, kCoppLowPriQueueId));
-#endif
   }
 
   return rxReasonToQueues;
