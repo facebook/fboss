@@ -19,43 +19,6 @@
 
 namespace facebook::fboss {
 
-struct ForwardingInformationBaseContainerFields
-    : public ThriftyFields<
-          ForwardingInformationBaseContainerFields,
-          state::FibContainerFields> {
-  explicit ForwardingInformationBaseContainerFields(RouterID vrf);
-
-  template <typename Fn>
-  void forEachChild(Fn fn) {
-    fn(fibV4.get());
-    fn(fibV6.get());
-  }
-
-  state::FibContainerFields toThrift() const override;
-  static ForwardingInformationBaseContainerFields fromThrift(
-      state::FibContainerFields const& fields);
-
-  bool operator==(const ForwardingInformationBaseContainerFields& other) const {
-    ForwardingInformationBaseV4 emptyV4{};
-    ForwardingInformationBaseV6 emptyV6{};
-    auto fibV4Ptr = fibV4.get() ? fibV4.get() : &emptyV4;
-    auto fibV6Ptr = fibV6.get() ? fibV6.get() : &emptyV6;
-    auto otherFibV4Ptr = other.fibV4.get() ? other.fibV4.get() : &emptyV4;
-    auto otherFibV6Ptr = other.fibV6.get() ? other.fibV6.get() : &emptyV6;
-    return (vrf == other.vrf) &&
-        (fibV4Ptr->toThrift() == otherFibV4Ptr->toThrift()) &&
-        (fibV6Ptr->toThrift() == otherFibV6Ptr->toThrift());
-  }
-
-  bool operator!=(const ForwardingInformationBaseContainerFields& other) const {
-    return !(*this == other);
-  }
-
-  RouterID vrf{0};
-  std::shared_ptr<ForwardingInformationBaseV4> fibV4{nullptr};
-  std::shared_ptr<ForwardingInformationBaseV6> fibV6{nullptr};
-};
-
 USE_THRIFT_COW(ForwardingInformationBaseContainer)
 RESOLVE_STRUCT_MEMBER(
     ForwardingInformationBaseContainer,
@@ -71,7 +34,6 @@ class ForwardingInformationBaseContainer
           ForwardingInformationBaseContainer,
           state::FibContainerFields> {
  public:
-  using LegacyFields = ForwardingInformationBaseContainerFields;
   using Base = ThriftStructNode<
       ForwardingInformationBaseContainer,
       state::FibContainerFields>;
