@@ -10,6 +10,7 @@
 #include "fboss/agent/state/AclTable.h"
 #include <folly/Conv.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <memory>
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/StateUtils.h"
@@ -31,16 +32,18 @@ constexpr auto kAclTable1 = "AclTable1";
 
 namespace facebook::fboss {
 
-AclTableFields AclTableFields::createDefaultAclTableFieldsFromThrift(
-    std::map<std::string, state::AclEntryFields> const& thriftMap) {
-  std::shared_ptr<AclMap> aclMap = std::make_shared<AclMap>(thriftMap);
-  AclTableFields aclTable(kAclTablePriority, kAclTable1, aclMap);
-  return aclTable;
-}
-
 AclTable::AclTable(int priority, const std::string& name) {
   set<switch_state_tags::priority>(priority);
   set<switch_state_tags::id>(name);
+}
+
+std::shared_ptr<AclTable> AclTable::createDefaultAclTableFromThrift(
+    std::map<std::string, state::AclEntryFields> const& thriftMap) {
+  state::AclTableFields data{};
+  data.priority() = kAclTablePriority;
+  data.id() = kAclTable1;
+  data.aclMap() = thriftMap;
+  return std::make_shared<AclTable>(data);
 }
 
 template class ThriftStructNode<AclTable, state::AclTableFields>;
