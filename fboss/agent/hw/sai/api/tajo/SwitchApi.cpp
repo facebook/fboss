@@ -52,6 +52,11 @@ SaiSwitchTraits::Attributes::AttributeRestartIssuWrapper::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeForceTrafficOverFabricWrapper::operator()() {
+  return std::nullopt;
+}
+
 void SwitchApi::registerParityErrorSwitchEventCallback(
     SwitchSaiId /*id*/,
     void* /*switch_event_cb*/) const {}
