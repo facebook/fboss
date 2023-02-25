@@ -326,12 +326,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPort, ecmpHelper]() {
     std::string out;
-    // TODO - replace with attribute set when available
-    // The following register set forces local traffic
-    // to also traverse the fabric ports. This exercises
-    // packet spray functionality on single box tests.
-    getHwSwitchEnsemble()->runDiagCommand(
-        "m IPS_FORCE_LOCAL_OR_FABRIC FORCE_FABRIC=1 \n", out);
+    setForceTrafficOverFabric(getHwSwitch(), true);
     addRemoveNeighbor(kPort, true /* add neighbor*/);
   };
 
