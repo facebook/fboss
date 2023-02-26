@@ -109,6 +109,7 @@ add_library(core
   fboss/agent/DHCPv4Handler.cpp
   fboss/agent/DHCPv6Handler.cpp
   fboss/agent/DsfSubscriber.cpp
+  fboss/agent/FabricReachabilityManager.cpp
   fboss/agent/EncapIndexAllocator.cpp
   fboss/agent/FibHelpers.cpp
   fboss/agent/FsdbSyncer.cpp
