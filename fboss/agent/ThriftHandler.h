@@ -426,6 +426,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
  private:
   void ensureNPU(folly::StringPiece function) const;
+  void ensureNotFabric(folly::StringPiece function) const;
   struct ThreadLocalListener {
     EventBase* eventBase;
     std::unordered_map<
@@ -466,6 +467,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
     callback->exception(error);
   }
   bool isNpuSwitch() const;
+  bool isFabricSwitch() const;
+  bool isVoqSwitch() const;
+  bool isSwitchType(cfg::SwitchType switchType) const;
 
   /*
    * A pointer to the SwSwitch.  We don't own this.
