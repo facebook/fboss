@@ -82,7 +82,14 @@ void initSwSwitchWithFlags(SwSwitch* sw, SwitchFlags flags) {
 unique_ptr<SwSwitch> createMockSw(
     const shared_ptr<SwitchState>& state,
     SwitchFlags flags) {
-  auto platform = createMockPlatform();
+  std::unique_ptr<MockPlatform> platform;
+  if (state) {
+    const auto& switchSettings = state->getSwitchSettings();
+    platform = createMockPlatform(
+        switchSettings->getSwitchType(), switchSettings->getSwitchId());
+  } else {
+    platform = createMockPlatform();
+  }
   return setupMockSwitchWithoutHW(std::move(platform), state, flags);
 }
 
@@ -243,9 +250,11 @@ cfg::SwitchConfig testConfigAImpl(bool isMhnic, cfg::SwitchType switchType) {
         cfg.interfaces()[i].name() = folly::sformat("fboss{}", intfId);
         cfg.interfaces()[i].mac() = "00:02:00:00:00:55";
         cfg.interfaces()[i].mtu() = 9000;
-        cfg.interfaces()[i].ipAddresses()->resize(1);
+        cfg.interfaces()[i].ipAddresses()->resize(2);
         cfg.interfaces()[i].ipAddresses()[0] = folly::sformat(
-            "2401:db00:2110:30{}::1/64", *cfg.ports()[i].logicalID());
+            "2401:db00:2110:30{:02d}::1/64", *cfg.ports()[i].logicalID());
+        cfg.interfaces()[i].ipAddresses()[1] =
+            folly::sformat("10.0.{}.1/24", *cfg.ports()[i].logicalID());
       }
       cfg::Port recyclePort;
       recyclePort.logicalID() = 1;
