@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/agent/hw/test/HwFabricUtils.h"
+#include "fboss/agent/hw/test/HwTestFabricUtils.h"
 #include "fboss/agent/HwSwitch.h"
 
 #include <gtest/gtest.h>
