@@ -123,17 +123,6 @@ class RouteNextHopEntry
 
   std::string str() const;
 
-  /*
-   * Serialize to folly::dynamic
-   */
-  folly::dynamic toFollyDynamicLegacy() const;
-
-  /*
-   * Deserialize from folly::dynamic
-   */
-  static RouteNextHopEntry fromFollyDynamicLegacy(
-      const folly::dynamic& entryJson);
-
   static std::shared_ptr<RouteNextHopEntry> fromFollyDynamic(
       const folly::dynamic& entryJson) {
     auto legacyFields = LegacyRouteNextHopEntry::fromFollyDynamic(entryJson);

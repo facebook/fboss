@@ -64,9 +64,6 @@ struct LegacyRouteNextHopsMulti : public ThriftyFields<
       const state::RouteNextHopsMulti& m) {
     return LegacyRouteNextHopsMulti(m);
   }
-
-  static std::shared_ptr<const RouteNextHopsMulti> fromFollyDynamicLegacy(
-      folly::dynamic const& dyn);
 };
 
 /**
@@ -89,12 +86,6 @@ class RouteNextHopsMulti
  public:
   using Base = thrift_cow::ThriftStructNode<state::RouteNextHopsMulti>;
   using Base::Base;
-
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
-
-  folly::dynamic toFollyDynamicLegacy() const;
-  static RouteNextHopsMulti fromFollyDynamicLegacy(const folly::dynamic& json);
 
   static std::shared_ptr<RouteNextHopsMulti> fromFollyDynamic(
       const folly::dynamic& json);

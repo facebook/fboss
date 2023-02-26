@@ -68,16 +68,6 @@ struct RoutePrefix {
   state::RoutePrefix toThrift() const;
   static RoutePrefix fromThrift(const state::RoutePrefix& prefix);
 
-  /*
-   * Serialize to folly::dynamic
-   */
-  folly::dynamic toFollyDynamicLegacy() const;
-
-  /*
-   * Deserialize from folly::dynamic
-   */
-  static RoutePrefix fromFollyDynamicLegacy(const folly::dynamic& prefixJson);
-
   static RoutePrefix fromString(std::string str);
 
   bool operator<(const RoutePrefix&) const;
@@ -155,17 +145,6 @@ struct Label {
   static Label fromThrift(const state::Label& thriftLabel) {
     return *thriftLabel.value();
   }
-
-  /*
-   * Serialize to folly::dynamic
-   */
-  folly::dynamic toFollyDynamicLegacy() const;
-
-  /*
-   * Deserialize from folly::dynamic
-   */
-
-  static Label fromFollyDynamicLegacy(const folly::dynamic& prefixJson);
 
   static Label fromString(std::string str) {
     return Label(getLabelThrift(folly::to<uint32_t>(str)));
