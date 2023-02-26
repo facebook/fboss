@@ -136,18 +136,6 @@ Label Label::fromFollyDynamicLegacy(const folly::dynamic& prefixJson) {
       getLabelThrift(static_cast<uint32_t>(prefixJson[kLabel].asInt())));
 }
 
-folly::dynamic Label::migrateToThrifty(folly::dynamic const& dyn) {
-  folly::dynamic newDyn = folly::dynamic::object;
-  newDyn["value"] = dyn[kLabel].asInt();
-  return newDyn;
-}
-
-void Label::migrateFromThrifty(folly::dynamic& dyn) {
-  auto label = dyn["value"].asInt();
-  dyn.erase("value");
-  dyn[kLabel] = label;
-}
-
 template struct RoutePrefix<folly::IPAddress>;
 template struct RoutePrefix<folly::IPAddressV4>;
 template struct RoutePrefix<folly::IPAddressV6>;

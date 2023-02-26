@@ -156,9 +156,6 @@ struct Label {
     return *thriftLabel.value();
   }
 
-  static folly::dynamic migrateToThrifty(folly::dynamic const& dyn);
-  static void migrateFromThrifty(folly::dynamic& dyn);
-
   /*
    * Serialize to folly::dynamic
    */
