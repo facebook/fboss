@@ -55,6 +55,10 @@ class Sff8472Module : public QsfpModule {
 
   void customizeTransceiverLocked(cfg::PortSpeed) override {}
 
+  virtual bool ensureTransceiverReadyLocked() override {
+    return true;
+  }
+
   const uint8_t* getQsfpValuePtr(int, int, int) const override {
     return nullptr;
   }

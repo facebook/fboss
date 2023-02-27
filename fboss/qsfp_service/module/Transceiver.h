@@ -103,6 +103,11 @@ class Transceiver {
       bool needResetDataPath) = 0;
 
   /*
+   * Check if the Transceiver is in ready state for further programming
+   */
+  virtual bool readyTransceiver() = 0;
+
+  /*
    * Set speed specific settings for the transceiver
    */
   virtual void customizeTransceiver(cfg::PortSpeed speed) = 0;

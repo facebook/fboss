@@ -937,6 +937,52 @@ void QsfpModule::programTransceiver(
   }
 }
 
+/*
+ * readyTransceiver
+ *
+ * Runs a function in the i2c controller's event base thread to check if the
+ * module's power control configuration is same as the desired one. If it is
+ * same then return true or false based on whether module is in ready state or
+ * not. If the power controll config value is not same as desired one then
+ * configure it correctly and return false
+ */
+bool QsfpModule::readyTransceiver() {
+  // Always use i2cEvb to program transceivers if there's an i2cEvb
+  auto powerStateCheckFn = [this]() -> bool {
+    lock_guard<std::mutex> g(qsfpModuleMutex_);
+    if (present_) {
+      if (!cacheIsValid()) {
+        QSFP_LOG(DBG1, this) << folly::sformat(
+            "Transceiver {:s} - Cache is not valid, so cannot check the transceiver state",
+            getNameString());
+        return false;
+      }
+      // Check the transceiver power configuration state and then return
+      // accordingly. This function's implementation is dependent on optics
+      // type (Cmis, Sff etc)
+      return ensureTransceiverReadyLocked();
+    } else {
+      // If module is not present then don't block state machine transition
+      // and return true
+      return true;
+    }
+  };
+
+  auto i2cEvb = qsfpImpl_->getI2cEventBase();
+  if (!i2cEvb) {
+    // Certain platforms cannot execute multiple I2C transactions in parallel
+    // and therefore don't have an I2C evb thread. For them, call the function
+    // directly from current thread
+    return powerStateCheckFn();
+  } else {
+    // Call the function in I2c controller's event base thread
+    return via(i2cEvb)
+        .thenValue(
+            [powerStateCheckFn](auto&&) mutable { return powerStateCheckFn(); })
+        .get();
+  }
+}
+
 void QsfpModule::publishSnapshots() {
   auto snapshotsLocked = snapshots_.wlock();
   snapshotsLocked->publishAllSnapshots();

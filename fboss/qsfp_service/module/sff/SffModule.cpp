@@ -1411,19 +1411,19 @@ void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
 }
 
 /*
- * ensureTransceiverReady
+ * ensureTransceiverReadyLocked
  *
  * If the current power configuration state (either of: LP mode, Power
  * override, High Power override) is not same as desired one then change it to
  * that (by configuring power mode register) otherwise return true when module
  * is in ready state otherwise return false.
  */
-bool SffModule::ensureTransceiverReady() {
+bool SffModule::ensureTransceiverReadyLocked() {
   // If customization is not supported then the Power control bit can't be
   // touched. Return true as nothing needs to be done here
   if (!customizationSupported()) {
     QSFP_LOG(DBG1, this)
-        << "ensureTransceiverReady: Customization not supported";
+        << "ensureTransceiverReadyLocked: Customization not supported";
     return true;
   }
 

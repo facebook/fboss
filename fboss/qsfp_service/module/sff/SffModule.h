@@ -99,7 +99,7 @@ class SffModule : public QsfpModule {
    * If the current power state is not same as desired one then change it and
    * return true when module is in ready state
    */
-  bool ensureTransceiverReady();
+  virtual bool ensureTransceiverReadyLocked() override;
 
   /*
    * This function returns a pointer to the value in the static cached
