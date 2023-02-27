@@ -855,6 +855,11 @@ struct PortNeighbor {
   2: string remotePort;
 }
 
+enum PortDrainState {
+  UNDRAINED = 0,
+  DRAINED = 1,
+}
+
 /**
  * Configuration for a single logical port
  */
@@ -1007,6 +1012,11 @@ struct Port {
    * includes information on remote system and ports
    */
   28: list<PortNeighbor> expectedNeighborReachability = [];
+
+  /*
+   * Represents if this port is drained in DSF
+   */
+  29: PortDrainState drainState = PortDrainState.UNDRAINED;
 }
 
 enum LacpPortRate {
