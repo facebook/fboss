@@ -112,7 +112,6 @@ add_library(core
   fboss/agent/FabricReachabilityManager.cpp
   fboss/agent/EncapIndexAllocator.cpp
   fboss/agent/FibHelpers.cpp
-  fboss/agent/FsdbSyncer.cpp
   fboss/agent/HwSwitch.cpp
   fboss/agent/IPHeaderV4.cpp
   fboss/agent/IPv4Handler.cpp
