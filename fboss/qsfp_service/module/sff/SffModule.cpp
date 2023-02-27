@@ -1411,6 +1411,99 @@ void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
 }
 
 /*
+ * ensureTransceiverReady
+ *
+ * If the current power configuration state (either of: LP mode, Power
+ * override, High Power override) is not same as desired one then change it to
+ * that (by configuring power mode register) otherwise return true when module
+ * is in ready state otherwise return false.
+ */
+bool SffModule::ensureTransceiverReady() {
+  // If customization is not supported then the Power control bit can't be
+  // touched. Return true as nothing needs to be done here
+  if (!customizationSupported()) {
+    QSFP_LOG(DBG1, this)
+        << "ensureTransceiverReady: Customization not supported";
+    return true;
+  }
+
+  int offset;
+  int length;
+  int dataAddress;
+
+  getQsfpFieldAddress(
+      SffField::ETHERNET_COMPLIANCE, dataAddress, offset, length);
+  const uint8_t* ether = getQsfpValuePtr(dataAddress, offset, length);
+
+  getQsfpFieldAddress(
+      SffField::EXTENDED_IDENTIFIER, dataAddress, offset, length);
+  const uint8_t* extId = getQsfpValuePtr(dataAddress, offset, length);
+
+  auto desiredSetting = PowerControlState::POWER_OVERRIDE;
+
+  // For 40G SR4 the desired power setting is LP mode. For other modules if the
+  // Power Class is defined then use that value for high power override
+  // otherwise just do power override
+  if (*ether == EthernetCompliance::SR4_40GBASE) {
+    desiredSetting = PowerControlState::POWER_LPMODE;
+  } else {
+    uint8_t highPowerLevel = (*extId & EXT_ID_HI_POWER_MASK);
+    if (highPowerLevel > 0) {
+      desiredSetting = PowerControlState::HIGH_POWER_OVERRIDE;
+    }
+  }
+
+  // Find the current power control value
+  uint8_t powerCtrl;
+  PowerControlState currPowerControl;
+  readSffField(SffField::POWER_CONTROL, &powerCtrl);
+  switch (static_cast<PowerControl>(
+      powerCtrl & uint8_t(PowerControl::POWER_CONTROL_MASK))) {
+    case PowerControl::POWER_SET_BY_HW:
+      currPowerControl = PowerControlState::POWER_SET_BY_HW;
+      break;
+    case PowerControl::HIGH_POWER_OVERRIDE:
+      currPowerControl = PowerControlState::HIGH_POWER_OVERRIDE;
+      break;
+    case PowerControl::POWER_OVERRIDE:
+      currPowerControl = PowerControlState::POWER_OVERRIDE;
+      break;
+    default:
+      currPowerControl = PowerControlState::POWER_LPMODE;
+      break;
+  }
+
+  // If the current power control value is same as desired power value then
+  // check if the module is in ready state then return true, otherwise return
+  // false as the module is in transition and needs more time to be ready for
+  // any other configuration
+  if (currPowerControl == desiredSetting) {
+    // Check if the data is ready
+    std::array<uint8_t, 2> status = {{0, 0}};
+    readSffField(SffField::STATUS, status.data());
+
+    return (!(status[1] & DATA_NOT_READY_MASK));
+  }
+
+  // Set the SFF power value register as either of: LP Mode, Power override,
+  // High Power Override
+  uint8_t power = uint8_t(PowerControl::POWER_OVERRIDE);
+  if (desiredSetting == PowerControlState::HIGH_POWER_OVERRIDE) {
+    power = uint8_t(PowerControl::HIGH_POWER_OVERRIDE);
+  } else if (desiredSetting == PowerControlState::POWER_LPMODE) {
+    power = uint8_t(PowerControl::POWER_LPMODE);
+  }
+
+  // enable target power class and return false as the optics need some time to
+  // come back to ready state
+  writeSffField(SffField::POWER_CONTROL, &power);
+  QSFP_LOG(INFO, this) << "QSFP set to power setting "
+                       << apache::thrift::util::enumNameSafe(desiredSetting)
+                       << " (" << power << ")";
+  return false;
+}
+
+/*
  * verifyEepromChecksums
  *
  * This function verifies the module's eeprom register checksum in various

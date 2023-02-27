@@ -181,6 +181,10 @@ enum HalfByteMasks : uint8_t {
   LOWER_BITS_MASK = 0x0f,
 };
 
+enum FieldMasks : uint8_t {
+  DATA_NOT_READY_MASK = 0x01,
+};
+
 class SffFieldInfo : public QsfpFieldInfo<SffField, SffPages> {
  public:
   // Conversion routines used for both SFP and QSFP:
