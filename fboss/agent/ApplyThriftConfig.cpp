@@ -1920,6 +1920,15 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       << ", pinConfigs: " << (pinConfigsUnchanged ? "UNCHANGED" : "CHANGED")
       << ", with matcher:" << matcher.toString();
 
+  // Port drain is applicable to only fabric ports.
+  if (*portConf->drainState() == cfg::PortDrainState::DRAINED &&
+      orig->getPortType() != cfg::PortType::FABRIC_PORT) {
+    throw FbossError(
+        "Port ",
+        orig->getID(),
+        " cannot be drained as it's NOT a DSF fabric port");
+  }
+
   // Ensure portConf has actually changed, before applying
   if (*portConf->state() == orig->getAdminState() &&
       VlanID(*portConf->ingressVlan()) == orig->getIngressVlan() &&
@@ -1940,7 +1949,8 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
           orig->getExpectedNeighborValues()->toThrift() &&
       *portConf->maxFrameSize() == orig->getMaxFrameSize() &&
       lookupClassesUnchanged && profileConfigUnchanged && pinConfigsUnchanged &&
-      *portConf->portType() == orig->getPortType()) {
+      *portConf->portType() == orig->getPortType() &&
+      *portConf->drainState() == orig->getPortDrainState()) {
     return nullptr;
   }
 
@@ -1979,6 +1989,7 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   newPort->setInterfaceIDs(port2InterfaceId_[orig->getID()]);
   newPort->setExpectedNeighborReachability(
       *portConf->expectedNeighborReachability());
+  newPort->setPortDrainState(*portConf->drainState());
   return newPort;
 }
 
