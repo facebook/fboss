@@ -267,6 +267,9 @@ SaiQueueManager::supportedNonWatermarkCounterIdsRead(int queueType) const {
   if (queueType == SAI_QUEUE_TYPE_MULTICAST_VOQ ||
       queueType == SAI_QUEUE_TYPE_UNICAST_VOQ) {
     return voqNonWatermarkCounterIdsRead(queueType);
+  } else if (queueType == SAI_QUEUE_TYPE_FABRIC_TX) {
+    static const std::vector<sai_stat_id_t> kFabricQueueNonWatermarksStats;
+    return kFabricQueueNonWatermarksStats;
   }
   return egressQueueNonWatermarkCounterIdsRead(queueType);
 }
@@ -329,6 +332,18 @@ SaiQueueManager::egressQueueNonWatermarkCounterIdsRead(int queueType) const {
   return extendedCounterIds;
 }
 
+const std::vector<sai_stat_id_t>&
+SaiQueueManager::supportedWatermarkCounterIdsReadAndClear(int queueType) const {
+  if (queueType == SAI_QUEUE_TYPE_FABRIC_TX) {
+    static const std::vector<sai_stat_id_t> kFabricQueueWatermarksStats;
+    return kFabricQueueWatermarksStats;
+  }
+  static const std::vector<sai_stat_id_t> kWatermarkStats{
+      SaiQueueTraits::WatermarkCounterIdsToReadAndClear.begin(),
+      SaiQueueTraits::WatermarkCounterIdsToReadAndClear.end()};
+  return kWatermarkStats;
+}
+
 void SaiQueueManager::updateStats(
     const std::vector<SaiQueueHandle*>& queueHandles,
     HwPortStats& hwPortStats,
@@ -337,9 +352,6 @@ void SaiQueueManager::updateStats(
   static std::vector<sai_stat_id_t> nonWatermarkStatsReadAndClear(
       SaiQueueTraits::NonWatermarkCounterIdsToReadAndClear.begin(),
       SaiQueueTraits::NonWatermarkCounterIdsToReadAndClear.end());
-  static std::vector<sai_stat_id_t> watermarkStatsReadAndClear(
-      SaiQueueTraits::WatermarkCounterIdsToReadAndClear.begin(),
-      SaiQueueTraits::WatermarkCounterIdsToReadAndClear.end());
   for (auto queueHandle : queueHandles) {
     /*
      * The WRED_DROPPED_PACKETS counter is needed only for non-CPU
@@ -371,7 +383,8 @@ void SaiQueueManager::updateStats(
         nonWatermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
     if (updateWatermarks) {
       queueHandle->queue->updateStats(
-          watermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
+          supportedWatermarkCounterIdsReadAndClear(queueType),
+          SAI_STATS_MODE_READ_AND_CLEAR);
     }
     const auto& counters = queueHandle->queue->getStats();
     auto queueId = SaiApiTable::getInstance()->queueApi().getAttribute(

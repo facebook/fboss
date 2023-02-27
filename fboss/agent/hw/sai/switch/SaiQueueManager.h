@@ -80,6 +80,9 @@ class SaiQueueManager {
 
   const std::vector<sai_stat_id_t>& voqNonWatermarkCounterIdsRead(
       int queueType) const;
+
+  const std::vector<sai_stat_id_t>& supportedWatermarkCounterIdsReadAndClear(
+      int queueType) const;
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
