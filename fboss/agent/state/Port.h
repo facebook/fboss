@@ -155,6 +155,13 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::portType>(portType);
   }
 
+  cfg::PortDrainState getPortDrainState() const {
+    return cref<switch_state_tags::drainState>()->cref();
+  }
+  void setPortDrainState(cfg::PortDrainState drainState) {
+    set<switch_state_tags::drainState>(drainState);
+  }
+
   void setAdminState(cfg::PortState adminState) {
     set<switch_state_tags::portState>(enumToName(adminState));
   }

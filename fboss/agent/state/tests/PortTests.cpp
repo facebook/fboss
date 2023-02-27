@@ -963,3 +963,20 @@ TEST(Port, verifyNeighborReachability) {
         nbrIter->cref<switch_config_tags::remotePort>()->toThrift(), "portA");
   }
 }
+
+TEST(Port, portDrainState) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = testConfigA();
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+
+  for (auto port : *stateV1->getPorts()) {
+    EXPECT_EQ(port.second->getPortDrainState(), cfg::PortDrainState::UNDRAINED);
+    auto newPort = port.second->clone();
+    newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
+    auto newerPort = std::make_shared<Port>(newPort->toThrift());
+    EXPECT_EQ(newerPort->getPortDrainState(), cfg::PortDrainState::DRAINED);
+  }
+}
