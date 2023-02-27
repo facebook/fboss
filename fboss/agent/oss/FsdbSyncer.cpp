@@ -12,6 +12,9 @@
 
 namespace facebook::fboss {
 
+// oss definition
+class AgentFsdbSyncManager {};
+
 std::vector<std::string> FsdbSyncer::getAgentStatePath() {
   return {"agent"};
 }
