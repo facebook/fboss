@@ -279,7 +279,7 @@ cfg::SwitchConfig genPortVlanCfg(
   cfg::SwitchConfig config;
   auto asic = hwSwitch->getPlatform()->getAsic();
   config.switchSettings()->switchType() = asic->getSwitchType();
-  if (asic->getSwitchId()) {
+  if (asic->getSwitchId().has_value()) {
     config.switchSettings()->switchId() = *asic->getSwitchId();
     config.dsfNodes()->insert(
         {*asic->getSwitchId(), dsfNodeConfig(*asic, *asic->getSwitchId())});

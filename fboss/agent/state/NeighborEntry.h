@@ -25,10 +25,9 @@ using folly::MacAddress;
 // TODO: remove this in favor of state::NeighborState in switch_state.thrift
 enum class NeighborState { UNVERIFIED, PENDING, REACHABLE };
 
+// TODO: retire  NeighborEntryFields and use state::NeighborEntryFields direcly
 template <typename IPADDR>
-struct NeighborEntryFields : public ThriftyFields<
-                                 NeighborEntryFields<IPADDR>,
-                                 state::NeighborEntryFields> {
+struct NeighborEntryFields {
   typedef IPADDR AddressType;
 
   NeighborEntryFields(
@@ -68,10 +67,7 @@ struct NeighborEntryFields : public ThriftyFields<
     CHECK(pending == NeighborState::PENDING);
   }
 
-  template <typename Fn>
-  void forEachChild(Fn /*fn*/) {}
-
-  state::NeighborEntryFields toThrift() const override {
+  state::NeighborEntryFields toThrift() const {
     state::NeighborEntryFields entryTh;
     entryTh.ipaddress() = ip.str();
     entryTh.mac() = mac.toString();
@@ -110,17 +106,6 @@ struct NeighborEntryFields : public ThriftyFields<
     }
   }
 
-  /*
-   * Serialize to folly::dynamic
-   */
-  folly::dynamic toFollyDynamicLegacy() const;
-
-  /*
-   * Deserialize from folly::dynamic
-   */
-  static NeighborEntryFields fromFollyDynamicLegacy(
-      const folly::dynamic& entryJson);
-
   AddressType ip;
   folly::MacAddress mac;
   PortDescriptor port;
@@ -153,26 +138,6 @@ class NeighborEntry
       NeighborState pending,
       std::optional<int64_t> encapIndex = std::nullopt,
       bool isLocal = true);
-
-  static std::shared_ptr<SUBCLASS> fromFollyDynamicLegacy(
-      const folly::dynamic& json) {
-    auto fields = NeighborEntryFields<IPADDR>::fromFollyDynamicLegacy(json);
-    return std::make_shared<SUBCLASS>(fields.toThrift());
-  }
-
-  static std::shared_ptr<SUBCLASS> fromFollyDynamic(
-      const folly::dynamic& json) {
-    return fromFollyDynamicLegacy(json);
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    auto fields = NeighborEntryFields<IPADDR>::fromThrift(this->toThrift());
-    return fields.toFollyDynamicLegacy();
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    return toFollyDynamicLegacy();
-  }
 
   void setIP(AddressType ip) {
     this->template set<switch_state_tags::ipaddress>(ip.str());

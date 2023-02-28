@@ -131,6 +131,7 @@ class HwAsic {
     TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT,
     SAI_CONFIGURE_SIX_TAP,
     UDF_HASH_FIELD_QUERY,
+    SAI_SAMPLEPACKET_TRAP,
   };
 
   enum class AsicMode {

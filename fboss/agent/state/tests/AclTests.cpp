@@ -456,8 +456,8 @@ TEST(Acl, SerializeAclEntry) {
   action.setSendToQueue(make_pair(queueAction, false));
   entry->setAclAction(action);
 
-  auto serialized = entry->toFollyDynamic();
-  auto entryBack = AclEntry::fromFollyDynamic(serialized);
+  auto serialized = entry->toThrift();
+  auto entryBack = std::make_shared<AclEntry>(serialized);
   validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
@@ -479,8 +479,8 @@ TEST(Acl, SerializeAclEntry) {
   action.setSendToQueue(make_pair(queueAction, true));
   EXPECT_EQ(action.getSendToQueue().value().second, true);
   entry->setAclAction(action);
-  serialized = entry->toFollyDynamic();
-  entryBack = AclEntry::fromFollyDynamic(serialized);
+  serialized = entry->toThrift();
+  entryBack = std::make_shared<AclEntry>(serialized);
   validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
@@ -553,8 +553,8 @@ TEST(Acl, SerializeRedirectToNextHop) {
   auto verifyEntries = [](AclEntry& entry,
                           std::vector<std::string>& nexthops,
                           MatchAction::NextHopSet& nhset) {
-    auto serialized = entry.toFollyDynamic();
-    auto entryBack = AclEntry::fromFollyDynamic(serialized);
+    auto serialized = entry.toThrift();
+    auto entryBack = std::make_shared<AclEntry>(serialized);
     EXPECT_TRUE(entry == *entryBack);
     validateThriftStructNodeSerialization(entry);
     const auto& aclAction = entryBack->getAclAction();
@@ -619,8 +619,8 @@ TEST(Acl, SerializePacketCounter) {
   action.setTrafficCounter(counter);
   entry->setAclAction(action);
 
-  auto serialized = entry->toFollyDynamic();
-  auto entryBack = AclEntry::fromFollyDynamic(serialized);
+  auto serialized = entry->toThrift();
+  auto entryBack = std::make_shared<AclEntry>(serialized);
   validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
@@ -654,8 +654,8 @@ TEST(Acl, SerializePacketCounter) {
   action.setSetDscp(setDscpMatchAction);
   entry->setAclAction(action);
 
-  serialized = entry->toFollyDynamic();
-  entryBack = AclEntry::fromFollyDynamic(serialized);
+  serialized = entry->toThrift();
+  entryBack = std::make_shared<AclEntry>(serialized);
   validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
@@ -673,8 +673,8 @@ TEST(Acl, SerializePacketCounter) {
   action.setTrafficCounter(counter);
   entry->setAclAction(action);
 
-  serialized = entry->toFollyDynamic();
-  entryBack = AclEntry::fromFollyDynamic(serialized);
+  serialized = entry->toThrift();
+  entryBack = std::make_shared<AclEntry>(serialized);
   validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
@@ -738,8 +738,8 @@ TEST(Acl, TtlSerialization) {
   action.setTrafficCounter(counter);
   entry->setAclAction(action);
 
-  auto serialized = entry->toFollyDynamic();
-  auto entryBack = AclEntry::fromFollyDynamic(serialized);
+  auto serialized = entry->toThrift();
+  auto entryBack = std::make_shared<AclEntry>(serialized);
   validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
@@ -767,8 +767,8 @@ TEST(Acl, PacketLookupResultSerialization) {
   action.setTrafficCounter(counter);
   entry->setAclAction(action);
 
-  auto serialized = entry->toFollyDynamic();
-  auto entryBack = AclEntry::fromFollyDynamic(serialized);
+  auto serialized = entry->toThrift();
+  auto entryBack = std::make_shared<AclEntry>(serialized);
   validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
@@ -787,8 +787,8 @@ TEST(Acl, VlanIDSerialization) {
   action.setTrafficCounter(counter);
   entry->setAclAction(action);
 
-  auto serialized = entry->toFollyDynamic();
-  auto entryBack = AclEntry::fromFollyDynamic(serialized);
+  auto serialized = entry->toThrift();
+  auto entryBack = std::make_shared<AclEntry>(serialized);
   validateNodeSerialization(*entry);
 
   EXPECT_TRUE(*entry == *entryBack);
@@ -876,8 +876,8 @@ TEST(Acl, LookupClassSerialization) {
   entryL2->setLookupClassL2(lookupClassL2);
   entryL2->setAclAction(action);
 
-  auto serialized = entryL2->toFollyDynamic();
-  auto entryBackL2 = AclEntry::fromFollyDynamic(serialized);
+  auto serialized = entryL2->toThrift();
+  auto entryBackL2 = std::make_shared<AclEntry>(serialized);
   validateNodeSerialization(*entryL2);
 
   EXPECT_TRUE(*entryL2 == *entryBackL2);
@@ -890,8 +890,8 @@ TEST(Acl, LookupClassSerialization) {
   entryNeighbor->setLookupClassNeighbor(lookupClassNeighbor);
   entryNeighbor->setAclAction(action);
 
-  serialized = entryNeighbor->toFollyDynamic();
-  auto entryBackNeighbor = AclEntry::fromFollyDynamic(serialized);
+  serialized = entryNeighbor->toThrift();
+  auto entryBackNeighbor = std::make_shared<AclEntry>(serialized);
   validateNodeSerialization(*entryNeighbor);
 
   EXPECT_TRUE(*entryNeighbor == *entryBackNeighbor);
@@ -905,8 +905,8 @@ TEST(Acl, LookupClassSerialization) {
   entryRoute->setLookupClassRoute(lookupClassRoute);
   entryRoute->setAclAction(action);
 
-  serialized = entryRoute->toFollyDynamic();
-  auto entryBackRoute = AclEntry::fromFollyDynamic(serialized);
+  serialized = entryRoute->toThrift();
+  auto entryBackRoute = std::make_shared<AclEntry>(serialized);
   validateNodeSerialization(*entryRoute);
 
   EXPECT_TRUE(*entryRoute == *entryBackRoute);

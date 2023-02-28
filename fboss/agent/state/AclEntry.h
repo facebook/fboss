@@ -83,73 +83,6 @@ class AclTtl {
   uint16_t mask_;
 };
 
-struct AclEntryFields
-    : public ThriftyFields<AclEntryFields, state::AclEntryFields> {
-  static const uint8_t kProtoIcmp = 1;
-  static const uint8_t kProtoIcmpv6 = 58;
-  static const uint8_t kMaxIcmpType = 0xFF;
-  static const uint8_t kMaxIcmpCode = 0xFF;
-  static const uint16_t kMaxL4Port = 65535;
-
-  explicit AclEntryFields(int priority, const std::string& name)
-      : priority(priority), name(name) {}
-
-  template <typename Fn>
-  void forEachChild(Fn) {}
-
-  state::AclEntryFields toThrift() const override;
-  static AclEntryFields fromThrift(state::AclEntryFields const& ma);
-
-  folly::dynamic toFollyDynamicLegacy() const;
-  static AclEntryFields fromFollyDynamicLegacy(const folly::dynamic& json);
-
-  bool operator==(const AclEntryFields& acl) const {
-    return priority == acl.priority && name == acl.name &&
-        actionType == acl.actionType && aclAction == acl.aclAction &&
-        srcIp == acl.srcIp && dstIp == acl.dstIp && proto == acl.proto &&
-        tcpFlagsBitMap == acl.tcpFlagsBitMap && srcPort == acl.srcPort &&
-        dstPort == acl.dstPort && ipFrag == acl.ipFrag &&
-        icmpType == acl.icmpType && icmpCode == acl.icmpCode &&
-        dscp == acl.dscp && dstMac == acl.dstMac && ipType == acl.ipType &&
-        ttl == acl.ttl && l4SrcPort == acl.l4SrcPort &&
-        l4DstPort == acl.l4DstPort && lookupClassL2 == acl.lookupClassL2 &&
-        lookupClassNeighbor == acl.lookupClassNeighbor &&
-        lookupClassRoute == acl.lookupClassRoute &&
-        packetLookupResult == acl.packetLookupResult &&
-        etherType == acl.etherType && vlanID == acl.vlanID &&
-        enabled == acl.enabled;
-  }
-
-  static void checkFollyDynamic(const folly::dynamic& json);
-  int priority{0};
-  std::string name{nullptr};
-  folly::CIDRNetwork srcIp{std::make_pair(folly::IPAddress(), 0)};
-  folly::CIDRNetwork dstIp{std::make_pair(folly::IPAddress(), 0)};
-  std::optional<uint8_t> proto{std::nullopt};
-  std::optional<uint8_t> tcpFlagsBitMap{std::nullopt};
-  std::optional<uint16_t> srcPort{std::nullopt};
-  std::optional<uint16_t> dstPort{std::nullopt};
-  std::optional<cfg::IpFragMatch> ipFrag{std::nullopt};
-  std::optional<uint8_t> icmpType{std::nullopt};
-  std::optional<uint8_t> icmpCode{std::nullopt};
-  std::optional<uint8_t> dscp{std::nullopt};
-  std::optional<cfg::IpType> ipType{std::nullopt};
-  std::optional<AclTtl> ttl{std::nullopt};
-  std::optional<folly::MacAddress> dstMac{std::nullopt};
-  std::optional<uint16_t> l4SrcPort{std::nullopt};
-  std::optional<uint16_t> l4DstPort{std::nullopt};
-  std::optional<cfg::AclLookupClass> lookupClassL2{std::nullopt};
-  std::optional<cfg::AclLookupClass> lookupClass{std::nullopt};
-  std::optional<cfg::AclLookupClass> lookupClassNeighbor{std::nullopt};
-  std::optional<cfg::AclLookupClass> lookupClassRoute{std::nullopt};
-  std::optional<cfg::PacketLookupResultType> packetLookupResult{std::nullopt};
-  std::optional<uint32_t> vlanID{std::nullopt};
-  std::optional<cfg::EtherType> etherType{std::nullopt};
-  cfg::AclActionType actionType{cfg::AclActionType::PERMIT};
-  std::optional<MatchAction> aclAction{std::nullopt};
-  std::optional<bool> enabled{std::nullopt};
-};
-
 USE_THRIFT_COW(AclEntry);
 
 /*
@@ -159,7 +92,12 @@ USE_THRIFT_COW(AclEntry);
 class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
  public:
   using BaseT = ThriftStructNode<AclEntry, state::AclEntryFields>;
-  using LegacyFields = AclEntryFields;
+  static const uint8_t kProtoIcmp = 1;
+  static const uint8_t kProtoIcmpv6 = 58;
+  static const uint8_t kMaxIcmpType = 0xFF;
+  static const uint8_t kMaxIcmpCode = 0xFF;
+  static const uint16_t kMaxL4Port = 65535;
+
   explicit AclEntry(int priority, const std::string& name);
   explicit AclEntry(int priority, std::string&& name);
 
@@ -437,6 +375,13 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
     set<switch_state_tags::vlanID>(vlanID);
   }
 
+  static std::shared_ptr<AclEntry> fromFollyDynamic(
+      const folly::dynamic& /*dyn*/) {
+    // for PrioAclMap
+    XLOG(FATAL) << "folly dynamic method not supported for acl entry";
+    return nullptr;
+  }
+
   bool hasMatcher() const {
     // at least one qualifier must be specified
     return getSrcIp().first || getDstIp().first || getProto() ||
@@ -450,27 +395,6 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
   std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;
 
   AclEntry* modify(std::shared_ptr<SwitchState>* state);
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    auto fields = AclEntryFields::fromThrift(toThrift());
-    return fields.toFollyDynamicLegacy();
-  }
-
-  static std::shared_ptr<AclEntry> fromFollyDynamicLegacy(
-      const folly::dynamic& dyn) {
-    auto fields = AclEntryFields::fromFollyDynamicLegacy(dyn);
-    return std::make_shared<AclEntry>(fields.toThrift());
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    auto fields = AclEntryFields::fromThrift(toThrift());
-    return fields.toFollyDynamic();
-  }
-
-  static std::shared_ptr<AclEntry> fromFollyDynamic(const folly::dynamic& dyn) {
-    auto fields = AclEntryFields::fromFollyDynamic(dyn);
-    return std::make_shared<AclEntry>(fields.toThrift());
-  }
 
  private:
   // Inherit the constructors required for clone()

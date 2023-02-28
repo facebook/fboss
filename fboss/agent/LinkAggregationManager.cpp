@@ -170,7 +170,7 @@ void LinkAggregationManager::aggregatePortAdded(
     // Warm boot LACP restore - restore state machines if member was in
     // fwding enabled state. Otherwise, perform normal LACP start.
     if (aggPort->getForwardingState(subport.portID) ==
-        AggregatePortFields::Forwarding::ENABLED) {
+        LegacyAggregatePortFields::Forwarding::ENABLED) {
       const auto pstate = aggPort->getPartnerState(subport.portID);
       XLOG(DBG2) << "Port [" << subport.portID
                  << "] Restoring Lacp state machine with partner state "

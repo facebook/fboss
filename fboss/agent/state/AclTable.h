@@ -21,47 +21,6 @@
 
 namespace facebook::fboss {
 
-struct AclTableFields
-    : public ThriftyFields<AclTableFields, state::AclTableFields> {
-  using ThriftyFields::ThriftyFields;
-  explicit AclTableFields(int priority, const std::string& name) {
-    writableData().id() = name;
-    writableData().priority() = priority;
-  }
-  AclTableFields(
-      int priority,
-      const std::string& name,
-      std::shared_ptr<AclMap> aclMap) {
-    writableData().id() = name;
-    writableData().priority() = priority;
-    writableData().aclMap() = aclMap->toThrift();
-    aclMap_ = aclMap;
-  }
-
-  template <typename Fn>
-  void forEachChild(Fn) {}
-
-  static AclTableFields createDefaultAclTableFieldsFromThrift(
-      std::map<std::string, state::AclEntryFields> const& thriftMap);
-
-  state::AclTableFields toThrift() const override {
-    return data();
-  }
-  static AclTableFields fromThrift(
-      state::AclTableFields const& aclTableFields) {
-    AclTableFields fields = AclTableFields(aclTableFields);
-    if (auto aclMap = aclTableFields.aclMap()) {
-      fields.aclMap_ = std::make_shared<AclMap>(*aclMap);
-    }
-    return fields;
-  }
-  bool operator==(const AclTableFields& other) const {
-    return data() == other.data();
-  }
-
-  std::shared_ptr<AclMap> aclMap_;
-};
-
 USE_THRIFT_COW(AclTable);
 RESOLVE_STRUCT_MEMBER(AclTable, switch_state_tags::aclMap, AclMap)
 
@@ -75,11 +34,7 @@ class AclTable : public ThriftStructNode<AclTable, state::AclTableFields> {
   explicit AclTable(int priority, const std::string& name);
 
   static std::shared_ptr<AclTable> createDefaultAclTableFromThrift(
-      std::map<std::string, state::AclEntryFields> const& thriftMap) {
-    auto fields =
-        AclTableFields::createDefaultAclTableFieldsFromThrift(thriftMap);
-    return std::make_shared<AclTable>(fields.toThrift());
-  }
+      std::map<std::string, state::AclEntryFields> const& thriftMap);
 
   static std::shared_ptr<AclMap> getDefaultAclTable(
       state::AclTableFields const& aclTableFields) {

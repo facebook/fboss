@@ -141,7 +141,7 @@ class CmisModule : public QsfpModule {
    * If the current power state is not same as desired one then change it and
    * return true when module is in ready state
    */
-  bool ensureTransceiverReady();
+  virtual bool ensureTransceiverReadyLocked() override;
 
   /*
    * Based on identifier, sets whether the upper memory of the module is flat or

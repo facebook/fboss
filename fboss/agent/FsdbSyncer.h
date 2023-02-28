@@ -12,6 +12,8 @@
 
 namespace facebook::fboss {
 class SwSwitch;
+class AgentFsdbSyncManager;
+
 namespace fsdb {
 class FsdbPubSubManager;
 }
@@ -58,6 +60,7 @@ class FsdbSyncer : public StateObserver {
   std::atomic<bool> readyForStatePublishing_{false};
   std::atomic<bool> readyForStatPublishing_{false};
   FsdbStateDeltaConverter deltaConverter_;
+  std::unique_ptr<AgentFsdbSyncManager> agentFsdbSyncManager_;
 };
 
 } // namespace facebook::fboss

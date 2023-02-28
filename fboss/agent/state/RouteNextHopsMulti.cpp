@@ -24,28 +24,6 @@ namespace facebook::fboss {
 // RouteNextHop Class
 //
 
-folly::dynamic RouteNextHopsMulti::toFollyDynamicLegacy() const {
-  // Store the clientid->RouteNextHopEntry map as a dynamic::object
-  folly::dynamic obj = folly::dynamic::object();
-  auto mapRef = map();
-  for (auto const& row : *mapRef) {
-    int clientid = static_cast<int>(row.first);
-    const auto& nhe = *row.second;
-    obj[folly::to<std::string>(clientid)] = nhe.toFollyDynamicLegacy();
-  }
-  return obj;
-}
-
-std::shared_ptr<const RouteNextHopsMulti>
-LegacyRouteNextHopsMulti::fromFollyDynamicLegacy(const folly::dynamic& json) {
-  RouteNextHopsMulti nh;
-  for (const auto& pair : json.items()) {
-    auto entry = RouteNextHopEntry::fromFollyDynamicLegacy(pair.second);
-    nh.update(ClientID(pair.first.asInt()), entry);
-  }
-  return std::make_shared<const RouteNextHopsMulti>(nh.toThrift());
-}
-
 std::vector<ClientAndNextHops> RouteNextHopsMulti::toThriftLegacy() const {
   std::vector<ClientAndNextHops> list;
   auto mapRef = map();

@@ -59,6 +59,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::WARMBOOT:
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
+    case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
       return true;
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:

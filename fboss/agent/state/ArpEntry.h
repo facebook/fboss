@@ -27,7 +27,6 @@ USE_THRIFT_COW(ArpEntry);
 class ArpEntry : public NeighborEntry<folly::IPAddressV4, ArpEntry> {
  public:
   using Base = NeighborEntry<folly::IPAddressV4, ArpEntry>;
-  using LegacyFields = NeighborEntryFields<folly::IPAddressV4>;
   using Base::Base;
 };
 

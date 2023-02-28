@@ -96,6 +96,12 @@ class SffModule : public QsfpModule {
   void customizeTransceiverLocked(cfg::PortSpeed speed) override;
 
   /*
+   * If the current power state is not same as desired one then change it and
+   * return true when module is in ready state
+   */
+  virtual bool ensureTransceiverReadyLocked() override;
+
+  /*
    * This function returns a pointer to the value in the static cached
    * data after checking the length fits. The thread needs to have the lock
    * before calling this function.

@@ -37,43 +37,6 @@ bool RouteFields<AddrT>::operator==(const RouteFields& rf) const {
 }
 
 template <typename AddrT>
-folly::dynamic RouteFields<AddrT>::toFollyDynamicLegacy() const {
-  folly::dynamic routeFields = folly::dynamic::object;
-  routeFields[kPrefix] = prefix().toFollyDynamicLegacy();
-  routeFields[kNextHopsMulti] = nexthopsmulti().toFollyDynamicLegacy();
-  routeFields[kFwdInfo] = fwd().toFollyDynamicLegacy();
-  routeFields[kFlags] = flags();
-  if (auto _classID = classID()) {
-    routeFields[kClassID] = static_cast<int>(_classID.value());
-  }
-
-  return routeFields;
-}
-
-template <typename AddrT>
-RouteFields<AddrT> RouteFields<AddrT>::fromFollyDynamicLegacy(
-    const folly::dynamic& routeJson) {
-  Prefix prefix = Prefix::fromFollyDynamicLegacy(routeJson[kPrefix]);
-  RouteFields<AddrT> rt(prefix);
-  auto nexthopsmulti = LegacyRouteNextHopsMulti::fromFollyDynamicLegacy(
-      routeJson[kNextHopsMulti]);
-  auto fwd = RouteNextHopEntry::fromFollyDynamicLegacy(routeJson[kFwdInfo]);
-  uint32_t flags = routeJson[kFlags].asInt();
-  std::optional<cfg::AclLookupClass> classID{};
-  if (routeJson.find(kClassID) != routeJson.items().end()) {
-    classID = cfg::AclLookupClass(routeJson[kClassID].asInt());
-  }
-  // THRIFT_COPY
-  rt.writableData() = getRouteFields(
-      prefix,
-      RouteNextHopsMulti(nexthopsmulti->toThrift()),
-      fwd,
-      flags,
-      classID);
-  return rt;
-}
-
-template <typename AddrT>
 RouteDetails RouteFields<AddrT>::toRouteDetails(
     bool normalizedNhopWeights) const {
   RouteDetails rd;
@@ -194,13 +157,6 @@ template struct RouteFields<LabelID>;
 template <typename AddrT>
 bool Route<AddrT>::isSame(const Route<AddrT>* rt) const {
   return *this == *rt;
-}
-
-template <typename AddrT>
-std::shared_ptr<Route<AddrT>> Route<AddrT>::fromFollyDynamicLegacy(
-    const folly::dynamic& routeJson) {
-  auto fields = RouteFields<AddrT>::fromFollyDynamicLegacy(routeJson);
-  return std::make_shared<Route<AddrT>>(fields.toThrift());
 }
 
 template <typename AddrT>

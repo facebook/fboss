@@ -47,9 +47,6 @@ class LabelForwardingInformationBase
   std::shared_ptr<LabelForwardingEntry> getLabelForwardingEntryIf(
       Label topLabel) const;
 
-  static std::shared_ptr<LabelForwardingInformationBase> fromFollyDynamicLegacy(
-      const folly::dynamic& json);
-
   std::shared_ptr<LabelForwardingEntry> cloneLabelEntry(
       std::shared_ptr<LabelForwardingEntry> entry);
 
@@ -83,8 +80,6 @@ class LabelForwardingInformationBase
   }
 
   // For backward compatibility with old format
-  static folly::dynamic toFollyDynamicOldFormat(
-      std::shared_ptr<LabelForwardingEntry> entry);
   static std::shared_ptr<LabelForwardingEntry> labelEntryFromFollyDynamic(
       folly::dynamic entry);
 

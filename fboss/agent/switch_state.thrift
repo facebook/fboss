@@ -134,6 +134,7 @@ struct PortFields {
   //     to this port.
   41: list<i32> interfaceIDs;
   42: list<switch_config.PortNeighbor> expectedNeighborReachability;
+  43: switch_config.PortDrainState drainState = switch_config.PortDrainState.UNDRAINED;
 }
 
 typedef common.SystemPortThrift SystemPortFields

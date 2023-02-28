@@ -6,11 +6,11 @@
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/IndusAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
-#include "fboss/agent/hw/test/HwFabricUtils.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTest.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
+#include "fboss/agent/hw/test/HwTestFabricUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketSnooper.h"
 #include "fboss/agent/hw/test/HwTestPacketTrapEntry.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
@@ -326,12 +326,7 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPort, ecmpHelper]() {
     std::string out;
-    // TODO - replace with attribute set when available
-    // The following register set forces local traffic
-    // to also traverse the fabric ports. This exercises
-    // packet spray functionality on single box tests.
-    getHwSwitchEnsemble()->runDiagCommand(
-        "m IPS_FORCE_LOCAL_OR_FABRIC FORCE_FABRIC=1 \n", out);
+    setForceTrafficOverFabric(getHwSwitch(), true);
     addRemoveNeighbor(kPort, true /* add neighbor*/);
   };
 
@@ -462,18 +457,20 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
     const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
     getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(txPacket), port);
 
-    auto [afterQueueOutPkts, afterQueueOutBytes] =
-        utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), kDefaultQueue);
+    WITH_RETRIES({
+      auto [afterQueueOutPkts, afterQueueOutBytes] =
+          utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), kDefaultQueue);
 
-    XLOG(DBG2) << "Stats:: beforeQueueOutPkts: " << beforeQueueOutPkts
-               << " beforeQueueOutBytes: " << beforeQueueOutBytes
-               << " txPacketSize: " << txPacketSize
-               << " afterQueueOutPkts: " << afterQueueOutPkts
-               << " afterQueueOutBytes: " << afterQueueOutBytes;
+      XLOG(DBG2) << "Stats:: beforeQueueOutPkts: " << beforeQueueOutPkts
+                 << " beforeQueueOutBytes: " << beforeQueueOutBytes
+                 << " txPacketSize: " << txPacketSize
+                 << " afterQueueOutPkts: " << afterQueueOutPkts
+                 << " afterQueueOutBytes: " << afterQueueOutBytes;
 
-    EXPECT_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
-    // CS00012267635: debug why queue counter is 362, when txPacketSize is 322
-    EXPECT_GE(afterQueueOutBytes, beforeQueueOutBytes);
+      EXPECT_EVENTUALLY_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
+      // CS00012267635: debug why queue counter is 362, when txPacketSize is 322
+      EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
+    });
 
     unRegisterPktReceivedCallback();
   };

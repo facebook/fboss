@@ -756,6 +756,45 @@ TEST(Port, portFabricType) {
   }
 }
 
+TEST(Port, portDrainInterfacePort) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  cfg::SwitchConfig config;
+
+  config.ports()->resize(1);
+  preparedMockPortConfig(
+      config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+  config.ports()[0].portType<cfg::PortType>() = cfg::PortType::INTERFACE_PORT;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  auto port = stateV1->getPort(PortID(1));
+  EXPECT_EQ(port->getPortDrainState(), cfg::PortDrainState::UNDRAINED);
+
+  config.ports()[0].drainState<cfg::PortDrainState>() =
+      cfg::PortDrainState::DRAINED;
+  EXPECT_THROW(
+      publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+}
+
+TEST(Port, portDrainFabricPort) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  cfg::SwitchConfig config;
+
+  config.ports()->resize(1);
+  preparedMockPortConfig(
+      config.ports()[0], 1, "port1", cfg::PortState::DISABLED);
+  config.ports()[0].portType<cfg::PortType>() = cfg::PortType::FABRIC_PORT;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  auto port = stateV1->getPort(PortID(1));
+  EXPECT_EQ(port->getPortDrainState(), cfg::PortDrainState::UNDRAINED);
+
+  config.ports()[0].drainState<cfg::PortDrainState>() =
+      cfg::PortDrainState::DRAINED;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  port = stateV2->getPort(PortID(1));
+  EXPECT_EQ(port->getPortDrainState(), cfg::PortDrainState::DRAINED);
+}
+
 TEST(Port, portFabricTypeApplyConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
@@ -961,5 +1000,22 @@ TEST(Port, verifyNeighborReachability) {
         "RemoteA");
     EXPECT_EQ(
         nbrIter->cref<switch_config_tags::remotePort>()->toThrift(), "portA");
+  }
+}
+
+TEST(Port, portDrainState) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = testConfigA();
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+
+  for (auto port : *stateV1->getPorts()) {
+    EXPECT_EQ(port.second->getPortDrainState(), cfg::PortDrainState::UNDRAINED);
+    auto newPort = port.second->clone();
+    newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
+    auto newerPort = std::make_shared<Port>(newPort->toThrift());
+    EXPECT_EQ(newerPort->getPortDrainState(), cfg::PortDrainState::DRAINED);
   }
 }

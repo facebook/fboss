@@ -146,9 +146,9 @@ TEST(Route, serializeRouteNextHopsMulti) {
   nhm1.update(
       CLIENT_E, RouteNextHopEntry(RouteForwardAction::TO_CPU, DISTANCE));
 
-  auto serialized = nhm1.toFollyDynamicLegacy();
+  auto serialized = nhm1.toThrift();
 
-  auto nhm2 = LegacyRouteNextHopsMulti::fromFollyDynamicLegacy(serialized);
+  auto nhm2 = std::make_shared<RouteNextHopsMulti>(serialized);
 
   EXPECT_TRUE(nhm1 == *nhm2);
 }

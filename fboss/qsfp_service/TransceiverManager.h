@@ -276,6 +276,8 @@ class TransceiverManager {
 
   void programTransceiver(TransceiverID id, bool needResetDataPath);
 
+  bool readyTransceiver(TransceiverID id);
+
   bool areAllPortsDown(TransceiverID id) const noexcept;
 
   bool tryRemediateTransceiver(TransceiverID id);

@@ -21,34 +21,6 @@ constexpr auto kVrf{"vrf"};
 
 namespace facebook::fboss {
 
-ForwardingInformationBaseContainerFields::
-    ForwardingInformationBaseContainerFields(RouterID vrf)
-    : vrf(vrf) {
-  fibV4 = std::make_shared<ForwardingInformationBaseV4>();
-  fibV6 = std::make_shared<ForwardingInformationBaseV6>();
-}
-
-state::FibContainerFields ForwardingInformationBaseContainerFields::toThrift()
-    const {
-  state::FibContainerFields fields{};
-  fields.vrf() = vrf;
-  fields.fibV4() = fibV4->toThrift();
-  fields.fibV6() = fibV6->toThrift();
-  return fields;
-}
-
-ForwardingInformationBaseContainerFields
-ForwardingInformationBaseContainerFields::fromThrift(
-    state::FibContainerFields const& fields) {
-  auto vrf = static_cast<RouterID>(*fields.vrf());
-  auto fibContainer = ForwardingInformationBaseContainerFields(vrf);
-  fibContainer.fibV4 =
-      std::make_shared<ForwardingInformationBaseV4>(*fields.fibV4());
-  fibContainer.fibV6 =
-      std::make_shared<ForwardingInformationBaseV6>(*fields.fibV6());
-  return fibContainer;
-}
-
 ForwardingInformationBaseContainer::ForwardingInformationBaseContainer(
     RouterID vrf) {
   set<switch_state_tags::vrf>(vrf);

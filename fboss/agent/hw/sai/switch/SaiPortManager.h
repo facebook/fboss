@@ -307,6 +307,9 @@ class SaiPortManager {
   void changePortByRecreate(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  std::optional<FabricEndpoint> getFabricReachabilityForPort(
+      const PortID& portId,
+      const SaiPortHandle* portHandle) const;
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

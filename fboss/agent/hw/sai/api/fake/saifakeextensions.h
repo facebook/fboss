@@ -39,6 +39,7 @@ typedef enum _sai_switch_extensions_attr_t {
   SAI_SWITCH_ATTR_EXT_FAKE_HW_ECC_ERROR_INITIATE,
   SAI_SWITCH_ATTR_ISSU_CUSTOM_DLL_PATH,
   SAI_SWITCH_ATTR_EXT_RESTART_ISSU,
+  SAI_SWITCH_ATTR_FORCE_TRAFFIC_OVER_FABRIC,
 } sai_switch_extensions_attr_t;
 
 typedef enum _sai_tam_event_extensions_attr_t {

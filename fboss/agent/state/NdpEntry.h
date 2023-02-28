@@ -26,7 +26,6 @@ USE_THRIFT_COW(NdpEntry);
 class NdpEntry : public NeighborEntry<folly::IPAddressV6, NdpEntry> {
  public:
   using Base = NeighborEntry<folly::IPAddressV6, NdpEntry>;
-  using LegacyFields = NeighborEntryFields<folly::IPAddressV6>;
   using Base::Base;
 };
 

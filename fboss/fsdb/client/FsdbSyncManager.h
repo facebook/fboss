@@ -57,7 +57,7 @@ class FsdbSyncManager {
 
   ~FsdbSyncManager() {
     CHECK(!pubSubMgr_) << "Syncer not stopped";
-    CHECK(!readyForPublishing_);
+    CHECK(!readyForPublishing_.load());
   }
 
   // Starts publishing to fsdb. This method should only be called once all state
@@ -90,8 +90,10 @@ class FsdbSyncManager {
   }
 
   void stop() {
-    storage_.getEventBase()->runInEventBaseThreadAndWait(
-        [this]() { pubSubMgr_.reset(); });
+    storage_.getEventBase()->runInEventBaseThreadAndWait([this]() {
+      readyForPublishing_.store(false);
+      stopInternal();
+    });
   }
 
   //  update internal storage of SyncManager which will then automatically be
@@ -115,7 +117,7 @@ class FsdbSyncManager {
       const std::shared_ptr<CowState>& oldState,
       const std::shared_ptr<CowState>& newState) {
     // TODO: hold lock here to sync with stop()?
-    if (readyForPublishing_) {
+    if (readyForPublishing_.load()) {
       if (publishDeltas_) {
         publishDelta(oldState, newState);
       } else {
@@ -127,15 +129,14 @@ class FsdbSyncManager {
   void publisherStateChanged(
       FsdbStreamClient::State /* oldState */,
       FsdbStreamClient::State newState) {
-    readyForPublishing_ = newState == FsdbStreamClient::State::CONNECTED;
     if (newState == FsdbStreamClient::State::CONNECTED) {
       storage_.getEventBase()->runInEventBaseThreadAndWait([this]() {
         doInitialSync();
-        readyForPublishing_ = true;
+        readyForPublishing_.store(true);
       });
     } else {
       // TODO: sync b/w here and processDelta?
-      readyForPublishing_ = false;
+      readyForPublishing_.store(false);
     }
   }
 
@@ -202,6 +203,23 @@ class FsdbSyncManager {
     } else {
       pubSubMgr_->publishState(std::forward<T>(state));
     }
+  }
+
+  void stopInternal() {
+    if (isStats_ && FLAGS_publish_stats_to_fsdb) {
+      if (publishDeltas_) {
+        pubSubMgr_->removeStatDeltaPublisher();
+      } else {
+        pubSubMgr_->removeStatPathPublisher();
+      }
+    } else if (!isStats_ && FLAGS_publish_state_to_fsdb) {
+      if (publishDeltas_) {
+        pubSubMgr_->removeStateDeltaPublisher();
+      } else {
+        pubSubMgr_->removeStatePathPublisher();
+      }
+    }
+    pubSubMgr_.reset();
   }
 
   std::shared_ptr<FsdbPubSubManager> pubSubMgr_;

@@ -1963,18 +1963,18 @@ void CmisModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
 }
 
 /*
- * ensureTransceiverReady
+ * ensureTransceiverReadyLocked
  *
  * If the current power configuration state is not same as desired one then
  * change it to that (by setting and resetting LP mode) otherwise return true
  * when module is in ready state otherwise return false.
  */
-bool CmisModule::ensureTransceiverReady() {
+bool CmisModule::ensureTransceiverReadyLocked() {
   // If customization is not supported then the Power control bit can't be
   // touched. Return true as nothing needs to be done here
   if (!customizationSupported()) {
     QSFP_LOG(DBG1, this)
-        << "ensureTransceiverReady: Customization not supported";
+        << "ensureTransceiverReadyLocked: Customization not supported";
     return true;
   }
 
@@ -2023,7 +2023,7 @@ bool CmisModule::ensureTransceiverReady() {
   writeCmisField(CmisField::MODULE_CONTROL, &currentModuleControl);
 
   QSFP_LOG(INFO, this) << folly::sformat(
-      "ensureTransceiverReady: QSFP module control set to {:#x}",
+      "ensureTransceiverReadyLocked: QSFP module control set to {:#x}",
       currentModuleControl);
 
   return false;

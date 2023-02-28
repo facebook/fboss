@@ -710,6 +710,25 @@ void TransceiverManager::programTransceiver(
              << " resetting data path";
 }
 
+/*
+ * readyTransceiver
+ *
+ * Calls the module type specific function to check their power control
+ * configuration and if needed, corrects it. Returns if the module is in ready
+ * state to proceed further with programming.
+ */
+bool TransceiverManager::readyTransceiver(TransceiverID id) {
+  auto lockedTransceivers = transceivers_.rlock();
+  auto tcvrIt = lockedTransceivers->find(id);
+  if (tcvrIt == lockedTransceivers->end()) {
+    XLOG(DBG2) << "Skip Ready Checking Transceiver=" << id
+               << ". Transeciver is not present";
+    return true;
+  }
+
+  return tcvrIt->second->readyTransceiver();
+}
+
 bool TransceiverManager::tryRemediateTransceiver(TransceiverID id) {
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);

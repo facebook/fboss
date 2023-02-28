@@ -644,7 +644,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       std::nullopt};
   if (addedAclEntry->getIcmpType()) {
     if (addedAclEntry->getProto()) {
-      if (addedAclEntry->getProto().value() == AclEntryFields::kProtoIcmp) {
+      if (addedAclEntry->getProto().value() == AclEntry::kProtoIcmp) {
         fieldIcmpV4Type = SaiAclEntryTraits::Attributes::FieldIcmpV4Type{
             AclEntryFieldU8(std::make_pair(
                 addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};
@@ -653,8 +653,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
               AclEntryFieldU8(std::make_pair(
                   addedAclEntry->getIcmpCode().value(), kIcmpCodeMask))};
         }
-      } else if (
-          addedAclEntry->getProto().value() == AclEntryFields::kProtoIcmpv6) {
+      } else if (addedAclEntry->getProto().value() == AclEntry::kProtoIcmpv6) {
         fieldIcmpV6Type = SaiAclEntryTraits::Attributes::FieldIcmpV6Type{
             AclEntryFieldU8(std::make_pair(
                 addedAclEntry->getIcmpType().value(), kIcmpTypeMask))};

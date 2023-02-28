@@ -416,6 +416,11 @@ struct SaiSwitchTraits {
     };
     using RestartIssu =
         SaiExtensionAttribute<bool, AttributeRestartIssuWrapper>;
+    struct AttributeForceTrafficOverFabricWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ForceTrafficOverFabric =
+        SaiExtensionAttribute<bool, AttributeForceTrafficOverFabricWrapper>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -548,6 +553,7 @@ SAI_ATTRIBUTE_NAME(Switch, EcmpMemberCount)
 #endif
 SAI_ATTRIBUTE_NAME(Switch, DllPath)
 SAI_ATTRIBUTE_NAME(Switch, RestartIssu)
+SAI_ATTRIBUTE_NAME(Switch, ForceTrafficOverFabric)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:

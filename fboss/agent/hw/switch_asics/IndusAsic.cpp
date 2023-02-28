@@ -129,6 +129,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_AM_LOCK_STATUS:
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
+    case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
       return false;
   }
   return false;

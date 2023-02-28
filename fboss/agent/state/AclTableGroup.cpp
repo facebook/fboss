@@ -27,18 +27,19 @@ constexpr auto kAclTableGroupName = "ingress-ACL-Table-Group";
 
 namespace facebook::fboss {
 
-AclTableGroupFields
-AclTableGroupFields::createDefaultAclTableGroupFieldsFromThrift(
-    std::map<std::string, state::AclEntryFields> const& thriftMap) {
-  auto aclTableMap = AclTableMap::createDefaultAclTableMapFromThrift(thriftMap);
-  AclTableGroupFields aclTableGroup(
-      cfg::AclStage::INGRESS, kAclTableGroupName, aclTableMap);
-
-  return aclTableGroup;
-}
-
 AclTableGroup::AclTableGroup(cfg::AclStage stage) {
   set<switch_state_tags::stage>(stage);
+}
+
+std::shared_ptr<AclTableGroup>
+AclTableGroup::createDefaultAclTableGroupFromThrift(
+    const std::map<std::string, state::AclEntryFields>& aclMap) {
+  auto aclTableMap = AclTableMap::createDefaultAclTableMapFromThrift(aclMap);
+  state::AclTableGroupFields data{};
+  data.stage() = cfg::AclStage::INGRESS;
+  data.name() = kAclTableGroupName;
+  data.aclTableMap() = aclTableMap->toThrift();
+  return std::make_shared<AclTableGroup>(data);
 }
 
 template class ThriftStructNode<AclTableGroup, state::AclTableGroupFields>;

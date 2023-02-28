@@ -587,9 +587,9 @@ if (NOT SAI_ONLY)
       fboss/agent/DHCPv4Handler.cpp
       fboss/agent/DHCPv6Handler.cpp
       fboss/agent/DsfSubscriber.cpp
+      fboss/agent/FabricReachabilityManager.cpp
       fboss/agent/EncapIndexAllocator.cpp
       fboss/agent/FibHelpers.cpp
-      fboss/agent/FsdbSyncer.cpp
       fboss/agent/InterfaceStats.cpp
       fboss/agent/L2Entry.cpp
       fboss/agent/hw/BufferStatsLogger.cpp

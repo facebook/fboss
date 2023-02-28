@@ -24,69 +24,6 @@
 
 namespace facebook::fboss {
 
-struct PortQueueFields
-    : public ThriftyFields<PortQueueFields, state::PortQueueFields> {
-  using AQMMap = boost::container::
-      flat_map<cfg::QueueCongestionBehavior, cfg::ActiveQueueManagement>;
-
-  template <typename Fn>
-  void forEachChild(Fn) {}
-
-  state::PortQueueFields toThrift() const override;
-  static PortQueueFields fromThrift(state::PortQueueFields const&);
-
-  bool operator==(const PortQueueFields& queue) const;
-
-  PortQueueFields() {}
-
-  PortQueueFields(
-      uint8_t _id,
-      cfg::QueueScheduling _scheduling,
-      cfg::StreamType _streamType,
-      int _weight,
-      std::optional<int> _reservedBytes,
-      std::optional<cfg::MMUScalingFactor> _scalingFactor,
-      std::optional<std::string> _name,
-      std::optional<int> _sharedBytes,
-      AQMMap _aqms,
-      std::optional<cfg::PortQueueRate> _portQueueRate,
-      std::optional<int> _bandwidthBurstMinKbits,
-      std::optional<int> _bandwidthBurstMaxKbits,
-      std::optional<TrafficClass> _trafficClass,
-      std::optional<std::set<PfcPriority>> _pfcPriorities)
-      : id(_id),
-        scheduling(_scheduling),
-        streamType(_streamType),
-        weight(_weight),
-        reservedBytes(_reservedBytes),
-        scalingFactor(_scalingFactor),
-        name(_name),
-        sharedBytes(_sharedBytes),
-        aqms(_aqms),
-        portQueueRate(_portQueueRate),
-        bandwidthBurstMinKbits(_bandwidthBurstMinKbits),
-        bandwidthBurstMaxKbits(_bandwidthBurstMaxKbits),
-        trafficClass(_trafficClass),
-        pfcPriorities(_pfcPriorities) {}
-
-  uint8_t id{0};
-  cfg::QueueScheduling scheduling{cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN};
-  cfg::StreamType streamType{cfg::StreamType::UNICAST};
-  int weight{1};
-  std::optional<int> reservedBytes{std::nullopt};
-  std::optional<cfg::MMUScalingFactor> scalingFactor{std::nullopt};
-  std::optional<std::string> name{std::nullopt};
-  std::optional<int> sharedBytes{std::nullopt};
-  // Using map to avoid manually sorting aqm list from thrift api
-  AQMMap aqms;
-  std::optional<cfg::PortQueueRate> portQueueRate{std::nullopt};
-
-  std::optional<int> bandwidthBurstMinKbits;
-  std::optional<int> bandwidthBurstMaxKbits;
-  std::optional<TrafficClass> trafficClass;
-  std::optional<std::set<PfcPriority>> pfcPriorities;
-};
-
 USE_THRIFT_COW(PortQueue)
 
 // TODO: add resolver for thrift list and a mechanism for thrift struct node to
@@ -103,7 +40,8 @@ struct thrift_cow::ThriftStructResolver<state::PortQueueFields> {
 class PortQueue : public thrift_cow::ThriftStructNode<state::PortQueueFields> {
  public:
   using Base = thrift_cow::ThriftStructNode<state::PortQueueFields>;
-  using AQMMap = PortQueueFields::AQMMap;
+  using AQMMap = boost::container::
+      flat_map<cfg::QueueCongestionBehavior, cfg::ActiveQueueManagement>;
   using AqmsType = typename Base::Fields::TypeFor<switch_state_tags::aqms>;
   using PortQueueRateType =
       typename Base::Fields::TypeFor<switch_state_tags::portQueueRate>;
@@ -275,26 +213,6 @@ class PortQueue : public thrift_cow::ThriftStructNode<state::PortQueueFields> {
     } else {
       ref<switch_state_tags::pfcPriorities>().reset();
     }
-  }
-
-  static std::shared_ptr<PortQueue> fromFollyDynamic(
-      const folly::dynamic& dyn) {
-    auto fields = PortQueueFields::fromFollyDynamic(dyn);
-    return std::make_shared<PortQueue>(fields.toThrift());
-  }
-
-  static std::shared_ptr<PortQueue> fromFollyDynamicLegacy(
-      const folly::dynamic& dyn) {
-    return fromFollyDynamic(dyn);
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    auto fields = PortQueueFields::fromThrift(toThrift());
-    return fields.toFollyDynamic();
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    return toFollyDynamic();
   }
 
   bool isAqmsSame(const PortQueue* other) const;

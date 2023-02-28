@@ -3,11 +3,7 @@
 #include "fboss/agent/state/IpTunnel.h"
 
 namespace facebook::fboss {
-IpTunnelFields IpTunnelFields::fromThrift(
-    const state::IpTunnelFields& ipTunnelThrift) {
-  IpTunnelFields ipTunnel(*ipTunnelThrift.ipTunnelId());
-  ipTunnel.writableData() = ipTunnelThrift;
-  return ipTunnel;
-}
+
+template class ThriftStructNode<IpTunnel, state::IpTunnelFields>;
 
 } // namespace facebook::fboss

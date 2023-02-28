@@ -194,6 +194,11 @@ bool isAnyInterfacePortInLoopbackMode(
 PortID getPortID(
     SystemPortID sysPortId,
     const std::shared_ptr<SwitchState>& state);
+
+SystemPortID getSystemPortID(
+    const PortID& portId,
+    const std::shared_ptr<SwitchState>& state);
+
 std::vector<PortID> getPortsForInterface(
     InterfaceID intf,
     const std::shared_ptr<SwitchState>& state);

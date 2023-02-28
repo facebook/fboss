@@ -69,6 +69,7 @@ class SaiQueueManager {
       HwSysPortStats& stats,
       bool updateWatermarks);
   void getStats(SaiQueueHandles& queueHandles, HwPortStats& hwPortStats);
+  void clearStats(const std::vector<SaiQueueHandle*>& queueHandles);
   QueueConfig getQueueSettings(const SaiQueueHandles& queueHandles) const;
 
  private:
@@ -79,6 +80,9 @@ class SaiQueueManager {
       int queueType) const;
 
   const std::vector<sai_stat_id_t>& voqNonWatermarkCounterIdsRead(
+      int queueType) const;
+
+  const std::vector<sai_stat_id_t>& supportedWatermarkCounterIdsReadAndClear(
       int queueType) const;
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

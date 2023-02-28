@@ -36,25 +36,13 @@ LabelForwardingInformationBase::getLabelForwardingEntryIf(
 }
 
 // Save entries in old format till code to parse new format is in prod
-std::shared_ptr<LabelForwardingInformationBase>
-LabelForwardingInformationBase::fromFollyDynamicLegacy(
-    const folly::dynamic& json) {
-  auto labelFib = std::make_shared<LabelForwardingInformationBase>();
-  if (json.isNull()) {
-    return labelFib;
-  }
-  for (const auto& entry : json[kEntries]) {
-    labelFib->addNode(labelEntryFromFollyDynamic(entry));
-  }
-  return labelFib;
-}
 
 std::shared_ptr<LabelForwardingEntry>
 LabelForwardingInformationBase::labelEntryFromFollyDynamic(
     folly::dynamic entry) {
   std::shared_ptr<LabelForwardingEntry> labelEntry;
   if (entry.find(kIncomingLabel) != entry.items().end()) {
-    labelEntry = fromFollyDynamicOldFormat(entry);
+    XLOG(FATAL) << "unsupported dynamic format";
   } else {
     labelEntry = LabelForwardingEntry::fromFollyDynamic(entry);
   }
@@ -62,31 +50,6 @@ LabelForwardingInformationBase::labelEntryFromFollyDynamic(
     noRibToRibEntryConvertor(labelEntry);
   }
   return labelEntry;
-}
-
-std::shared_ptr<LabelForwardingEntry>
-LabelForwardingInformationBase::fromFollyDynamicOldFormat(folly::dynamic json) {
-  auto topLabel = static_cast<MplsLabel>(json[kIncomingLabel].asInt());
-  auto entry = std::make_shared<LabelForwardingEntry>(
-      LabelForwardingEntry::makeThrift(topLabel));
-  auto labelNextHopsByClient = LegacyRouteNextHopsMulti::fromFollyDynamicLegacy(
-      json[kLabelNextHopsByClient]);
-  for (const auto& clientEntry : *labelNextHopsByClient) {
-    entry->update(clientEntry.first, *clientEntry.second);
-  }
-  entry->setResolved(
-      LabelNextHopEntry::fromFollyDynamicLegacy(json[kLabelNextHop]));
-  return entry;
-}
-
-folly::dynamic LabelForwardingInformationBase::toFollyDynamicOldFormat(
-    std::shared_ptr<LabelForwardingEntry> entry) {
-  folly::dynamic json = folly::dynamic::object;
-  json[kIncomingLabel] = static_cast<int>(entry->getID());
-  json[kLabelNextHop] = entry->getForwardInfo().toFollyDynamicLegacy();
-  json[kLabelNextHopsByClient] =
-      entry->getEntryForClients().toFollyDynamicLegacy();
-  return json;
 }
 
 // when rib is enabled, the client entries are stored as received

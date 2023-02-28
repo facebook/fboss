@@ -792,6 +792,7 @@ void ThriftHandler::addUnicastRoutesInVrf(
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
   auto log = LOG_THRIFT_CALL(DBG1, clientName);
   ensureConfigured(__func__);
+  ensureNotFabric(__func__);
   updateUnicastRoutesImpl(vrf, client, routes, "addUnicastRoutesInVrf", false);
 }
 
@@ -817,6 +818,7 @@ void ThriftHandler::deleteUnicastRoutesInVrf(
   auto clientName = apache::thrift::util::enumNameSafe(ClientID(client));
   auto log = LOG_THRIFT_CALL(DBG1, clientName);
   ensureConfigured(__func__);
+  ensureNotFabric(__func__);
 
   auto updater = sw_->getRouteUpdater();
   auto routerID = RouterID(vrf);
@@ -2116,9 +2118,19 @@ void ThriftHandler::ensureNPU(StringPiece function) const {
   }
 
   if (!function.empty()) {
-    XLOG(DBG1) << "failing thrift on non NPU Switch type: " << function;
+    XLOG(DBG1) << function << " only supported on NPU Switch type: ";
   }
   throw FbossError(function, " is only supported on NPU switch type");
+}
+
+void ThriftHandler::ensureNotFabric(StringPiece function) const {
+  ensureConfigured(function);
+  if (isFabricSwitch()) {
+    if (!function.empty()) {
+      XLOG(DBG1) << function << " not supported on Fabric Switch type: ";
+    }
+    throw FbossError(function, " not supported on Fabric switch type");
+  }
 }
 
 // If this is a premature client disconnect from a duplex connection, we need to
@@ -2526,9 +2538,20 @@ void ThriftHandler::getBlockedNeighbors(
   }
 }
 
+bool ThriftHandler::isSwitchType(cfg::SwitchType switchType) const {
+  return sw_->getState()->getSwitchSettings()->getSwitchType() == switchType;
+}
+
+bool ThriftHandler::isFabricSwitch() const {
+  return isSwitchType(cfg::SwitchType::FABRIC);
+}
+
+bool ThriftHandler::isVoqSwitch() const {
+  return isSwitchType(cfg::SwitchType::VOQ);
+}
+
 bool ThriftHandler::isNpuSwitch() const {
-  return sw_->getState()->getSwitchSettings()->getSwitchType() ==
-      cfg::SwitchType::NPU;
+  return isSwitchType(cfg::SwitchType::NPU);
 }
 
 void ThriftHandler::setNeighborsToBlock(

@@ -103,15 +103,6 @@ struct RouteFields
   template <typename Fn>
   void forEachChild(Fn /*fn*/) {}
   bool operator==(const RouteFields& rf) const;
-  /*
-   * Serialize to folly::dynamic
-   */
-  folly::dynamic toFollyDynamicLegacy() const;
-
-  /*
-   * Deserialize from folly::dynamic
-   */
-  static RouteFields fromFollyDynamicLegacy(const folly::dynamic& routeJson);
 
   RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const;
   bool isHostRoute() const {
@@ -336,24 +327,10 @@ class Route : public ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>> {
     return fields.toThrift();
   }
 
-  static std::shared_ptr<Route<AddrT>> fromFollyDynamicLegacy(
-      const folly::dynamic& json);
-
   static std::shared_ptr<Route<AddrT>> fromFollyDynamic(
       const folly::dynamic& json);
 
-  // THRIFT_COPY
-  folly::dynamic toFollyDynamicLegacy() const {
-    RouteFields<AddrT> fields{this->toThrift()};
-    return fields.toFollyDynamicLegacy();
-  }
-
   folly::dynamic toFollyDynamic() const override;
-
-  static std::shared_ptr<Route<AddrT>> fromJson(
-      const folly::fbstring& jsonStr) {
-    return fromFollyDynamicLegacy(folly::parseJson(jsonStr));
-  }
 
   // THRIFT_COPY
   RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const {

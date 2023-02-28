@@ -12,29 +12,11 @@
 
 namespace facebook::fboss {
 
-struct IpTunnelFields
-    : public ThriftyFields<IpTunnelFields, state::IpTunnelFields> {
-  // TODO(yijunli): BetterThriftyFields?
-  explicit IpTunnelFields(std::string id) {
-    auto& data = writableData();
-    *data.ipTunnelId() = id;
-  }
-
-  template <typename Fn>
-  void forEachChild(Fn /*fn*/) {}
-
-  state::IpTunnelFields toThrift() const override {
-    return data();
-  }
-  static IpTunnelFields fromThrift(const state::IpTunnelFields& ipTunnelThrift);
-};
-
 USE_THRIFT_COW(IpTunnel);
 
 class IpTunnel : public ThriftStructNode<IpTunnel, state::IpTunnelFields> {
  public:
   using Base = ThriftStructNode<IpTunnel, state::IpTunnelFields>;
-  using LegacyFields = IpTunnelFields;
   explicit IpTunnel(const std::string& id) {
     set<switch_state_tags::ipTunnelId>(id);
   }
@@ -107,25 +89,6 @@ class IpTunnel : public ThriftStructNode<IpTunnel, state::IpTunnelFields> {
   }
   void setSrcIPMask(folly::IPAddress ip) {
     set<switch_state_tags::srcIpMask>(ip.str());
-  }
-
-  folly::dynamic toFollyDynamic() const override {
-    auto fields = IpTunnelFields::fromThrift(toThrift());
-    return fields.toFollyDynamic();
-  }
-
-  folly::dynamic toFollyDynamicLegacy() const {
-    return toFollyDynamic();
-  }
-
-  static std::shared_ptr<IpTunnel> fromFollyDynamic(const folly::dynamic& dyn) {
-    auto fields = IpTunnelFields::fromFollyDynamic(dyn);
-    return std::make_shared<IpTunnel>(fields.toThrift());
-  }
-
-  static std::shared_ptr<IpTunnel> fromFollyDynamicLegacy(
-      const folly::dynamic& dyn) {
-    return fromFollyDynamic(dyn);
   }
 
   template <typename Tag>
