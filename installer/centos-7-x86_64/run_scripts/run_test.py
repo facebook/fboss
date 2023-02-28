@@ -46,6 +46,7 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwLoopBackTest.*
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwL4PortBlackHolingTest.*
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwJumboFramesTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwRxReasonTests.*
 # Route programming tests
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwRouteTest/0.*:-*Mpls*
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwRouteTest/1.*:-*Mpls*
