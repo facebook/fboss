@@ -69,6 +69,7 @@ class SaiQueueManager {
       HwSysPortStats& stats,
       bool updateWatermarks);
   void getStats(SaiQueueHandles& queueHandles, HwPortStats& hwPortStats);
+  void clearStats(const std::vector<SaiQueueHandle*>& queueHandles);
   QueueConfig getQueueSettings(const SaiQueueHandles& queueHandles) const;
 
  private:

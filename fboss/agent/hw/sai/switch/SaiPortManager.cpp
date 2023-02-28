@@ -1257,9 +1257,7 @@ void SaiPortManager::clearStats(PortID port) {
         statsToClear.end());
   }
   portHandle->port->clearStats(statsToClear);
-  for (auto& queueAndHandle : portHandle->queues) {
-    queueAndHandle.second->queue->clearStats();
-  }
+  managerTable_->queueManager().clearStats(portHandle->configuredQueues);
 }
 
 const HwPortFb303Stats* SaiPortManager::getLastPortStat(PortID port) const {
