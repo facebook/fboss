@@ -51,6 +51,9 @@ void fillHwQueueStats(
       case SAI_QUEUE_STAT_WATERMARK_BYTES:
         hwPortStats.queueWatermarkBytes_()[queueId] = value;
         break;
+      case SAI_QUEUE_STAT_WATERMARK_LEVEL:
+        // TODO
+        break;
       case SAI_QUEUE_STAT_WRED_DROPPED_PACKETS:
         hwPortStats.queueWredDroppedPackets_()[queueId] = value;
         break;
@@ -335,7 +338,9 @@ SaiQueueManager::egressQueueNonWatermarkCounterIdsRead(int queueType) const {
 const std::vector<sai_stat_id_t>&
 SaiQueueManager::supportedWatermarkCounterIdsReadAndClear(int queueType) const {
   if (queueType == SAI_QUEUE_TYPE_FABRIC_TX) {
-    static const std::vector<sai_stat_id_t> kFabricQueueWatermarksStats;
+    static const std::vector<sai_stat_id_t> kFabricQueueWatermarksStats{
+        SaiQueueTraits::WatermarkLevelCounterIdsToReadAndClear.begin(),
+        SaiQueueTraits::WatermarkLevelCounterIdsToReadAndClear.end()};
     return kFabricQueueWatermarksStats;
   }
   static const std::vector<sai_stat_id_t> kWatermarkStats{
