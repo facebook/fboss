@@ -349,6 +349,32 @@ TEST(ThriftStructNodeTests, ThriftStructNodeModify) {
   ASSERT_FALSE(node->template isSet<k::optionalString>());
   ThriftStructNode<TestStruct>::modify(&node, "optionalString");
   ASSERT_TRUE(node->template isSet<k::optionalString>());
+
+  node = std::make_shared<ThriftStructNode<TestStruct>>(data);
+  node->publish();
+  auto& inLineBool = ThriftStructNode<TestStruct>::modify<k::inlineBool>(&node);
+  EXPECT_FALSE(node->isPublished());
+  inLineBool->set(false);
+
+  auto& optionalStruct1 =
+      ThriftStructNode<TestStruct>::modify<k::optionalStruct>(&node);
+  EXPECT_FALSE(optionalStruct1->isPublished());
+  optionalStruct1->fromThrift(buildPortRange(1, 10));
+
+  node->publish();
+  EXPECT_TRUE(node->isPublished());
+
+  auto obj1 = node->toThrift();
+  EXPECT_FALSE(*obj1.inlineBool());
+  EXPECT_TRUE(obj1.optionalStruct().has_value());
+  EXPECT_EQ(obj1.optionalStruct().value(), buildPortRange(1, 10));
+
+  auto& optionalStruct2 = node->modify<k::optionalStruct>(&node);
+  optionalStruct2.reset();
+  node->publish();
+
+  auto obj2 = node->toThrift();
+  EXPECT_FALSE(obj2.optionalStruct().has_value());
 }
 
 TEST(ThriftStructNodeTests, ThriftStructNodeRemove) {

@@ -475,7 +475,7 @@ class ThriftStructNode
   }
 
   template <typename Name>
-  void modify() {
+  auto& modify() {
     DCHECK(!this->isPublished());
 
     auto& child = this->template ref<Name>();
@@ -489,6 +489,15 @@ class ThriftStructNode
     } else {
       this->template constructMember<Name>();
     }
+    return this->template ref<Name>();
+  }
+
+  template <typename Name>
+  static auto& modify(std::shared_ptr<Self>* node) {
+    auto newNode = ((*node)->isPublished()) ? (*node)->clone() : *node;
+    auto& name = newNode->template modify<Name>();
+    node->swap(newNode);
+    return name;
   }
 
   void modify(const std::string& token) {
