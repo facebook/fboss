@@ -249,6 +249,95 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
+  void
+  rxPacketToCpuHelper(uint16_t l4SrcPort, uint16_t l4DstPort, uint8_t queueId) {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+    auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+
+    auto verify = [this, ecmpHelper, kPort, l4SrcPort, l4DstPort, queueId]() {
+      // TODO(skhare)
+      // Send to only one IPv6 address for ease of debugging.
+      // Once SAI implementation bugs are fixed, send to ALL interface
+      // addresses.
+      auto ipAddrs = *(this->initialConfig().interfaces()[0].ipAddresses());
+      auto ipv6Addr =
+          std::find_if(ipAddrs.begin(), ipAddrs.end(), [](const auto& ipAddr) {
+            auto ip = folly::IPAddress::createNetwork(ipAddr, -1, false).first;
+            return ip.isV6();
+          });
+
+      auto dstIp = folly::IPAddress::createNetwork(*ipv6Addr, -1, false).first;
+      folly::IPAddressV6 kSrcIp("1::1");
+      const auto srcMac = folly::MacAddress("00:00:01:02:03:04");
+      const auto dstMac = utility::kLocalCpuMac();
+
+      auto createTxPacket =
+          [this, srcMac, dstMac, kSrcIp, dstIp, l4SrcPort, l4DstPort]() {
+            return utility::makeUDPTxPacket(
+                getHwSwitch(),
+                std::nullopt, // vlanID
+                srcMac,
+                dstMac,
+                kSrcIp,
+                dstIp,
+                l4SrcPort,
+                l4DstPort);
+          };
+
+      auto pktReceiveHandler = [createTxPacket](RxPacket* rxPacket) {
+        XLOG(DBG3) << "RX Packet Dump::"
+                   << folly::hexDump(
+                          rxPacket->buf()->data(), rxPacket->buf()->length());
+
+        auto txPacket = createTxPacket();
+        XLOG(DBG2) << "TX Packet Length: " << txPacket->buf()->length()
+                   << " RX Packet Length: " << rxPacket->buf()->length();
+        EXPECT_EQ(txPacket->buf()->length(), rxPacket->buf()->length());
+        EXPECT_EQ(
+            0,
+            memcmp(
+                txPacket->buf()->data(),
+                rxPacket->buf()->data(),
+                rxPacket->buf()->length()));
+      };
+
+      registerPktReceivedCallback(pktReceiveHandler);
+
+      auto [beforeQueueOutPkts, beforeQueueOutBytes] =
+          utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), queueId);
+
+      auto txPacket = createTxPacket();
+      size_t txPacketSize = txPacket->buf()->length();
+      XLOG(DBG3) << "TX Packet Dump::"
+                 << folly::hexDump(
+                        txPacket->buf()->data(), txPacket->buf()->length());
+
+      const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
+      getHwSwitchEnsemble()->ensureSendPacketOutOfPort(
+          std::move(txPacket), port);
+
+      WITH_RETRIES({
+        auto [afterQueueOutPkts, afterQueueOutBytes] =
+            utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), queueId);
+
+        XLOG(DBG2) << "Stats:: beforeQueueOutPkts: " << beforeQueueOutPkts
+                   << " beforeQueueOutBytes: " << beforeQueueOutBytes
+                   << " txPacketSize: " << txPacketSize
+                   << " afterQueueOutPkts: " << afterQueueOutPkts
+                   << " afterQueueOutBytes: " << afterQueueOutBytes;
+
+        EXPECT_EVENTUALLY_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
+        // CS00012267635: debug why queue counter is 362, when txPacketSize is
+        // 322
+        EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
+      });
+
+      unRegisterPktReceivedCallback();
+    };
+
+    verifyAcrossWarmBoots([] {}, verify);
+  }
+
   void packetReceived(RxPacket* pkt) noexcept override {
     auto receivedCallback = pktReceivedCallback_.lock();
     if (*receivedCallback) {
@@ -394,88 +483,10 @@ TEST_F(HwVoqSwitchTest, trapPktsOnPort) {
   };
   verifyAcrossWarmBoots([] {}, verify);
 }
+
 TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
-  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
-  auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
-
-  auto verify = [this, ecmpHelper, kPort]() {
-    // TODO(skhare)
-    // Send to only one IPv6 address for ease of debugging.
-    // Once SAI implementation bugs are fixed, send to ALL interface addresses.
-    auto ipAddrs = *(this->initialConfig().interfaces()[0].ipAddresses());
-    auto ipv6Addr =
-        std::find_if(ipAddrs.begin(), ipAddrs.end(), [](const auto& ipAddr) {
-          auto ip = folly::IPAddress::createNetwork(ipAddr, -1, false).first;
-          return ip.isV6();
-        });
-
-    auto dstIp = folly::IPAddress::createNetwork(*ipv6Addr, -1, false).first;
-    folly::IPAddressV6 kSrcIp("1::1");
-    const auto srcMac = folly::MacAddress("00:00:01:02:03:04");
-    const auto dstMac = utility::kLocalCpuMac();
-
-    auto createTxPacket = [this, srcMac, dstMac, kSrcIp, dstIp]() {
-      return utility::makeUDPTxPacket(
-          getHwSwitch(),
-          std::nullopt, // vlanID
-          srcMac,
-          dstMac,
-          kSrcIp,
-          dstIp,
-          8000, // l4 src port
-          8001); // l4 dst port
-    };
-
-    auto pktReceiveHandler = [createTxPacket](RxPacket* rxPacket) {
-      XLOG(DBG3) << "RX Packet Dump::"
-                 << folly::hexDump(
-                        rxPacket->buf()->data(), rxPacket->buf()->length());
-
-      auto txPacket = createTxPacket();
-      XLOG(DBG2) << "TX Packet Length: " << txPacket->buf()->length()
-                 << " RX Packet Length: " << rxPacket->buf()->length();
-      EXPECT_EQ(txPacket->buf()->length(), rxPacket->buf()->length());
-      EXPECT_EQ(
-          0,
-          memcmp(
-              txPacket->buf()->data(),
-              rxPacket->buf()->data(),
-              rxPacket->buf()->length()));
-    };
-
-    registerPktReceivedCallback(pktReceiveHandler);
-
-    auto [beforeQueueOutPkts, beforeQueueOutBytes] =
-        utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), kDefaultQueue);
-
-    auto txPacket = createTxPacket();
-    size_t txPacketSize = txPacket->buf()->length();
-    XLOG(DBG3) << "TX Packet Dump::"
-               << folly::hexDump(
-                      txPacket->buf()->data(), txPacket->buf()->length());
-
-    const PortID port = ecmpHelper.ecmpPortDescriptorAt(1).phyPortID();
-    getHwSwitchEnsemble()->ensureSendPacketOutOfPort(std::move(txPacket), port);
-
-    WITH_RETRIES({
-      auto [afterQueueOutPkts, afterQueueOutBytes] =
-          utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), kDefaultQueue);
-
-      XLOG(DBG2) << "Stats:: beforeQueueOutPkts: " << beforeQueueOutPkts
-                 << " beforeQueueOutBytes: " << beforeQueueOutBytes
-                 << " txPacketSize: " << txPacketSize
-                 << " afterQueueOutPkts: " << afterQueueOutPkts
-                 << " afterQueueOutBytes: " << afterQueueOutBytes;
-
-      EXPECT_EVENTUALLY_EQ(afterQueueOutPkts - 1, beforeQueueOutPkts);
-      // CS00012267635: debug why queue counter is 362, when txPacketSize is 322
-      EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
-    });
-
-    unRegisterPktReceivedCallback();
-  };
-
-  verifyAcrossWarmBoots([] {}, verify);
+  rxPacketToCpuHelper(
+      utility::kNonSpecialPort1, utility::kNonSpecialPort2, kDefaultQueue);
 }
 
 TEST_F(HwVoqSwitchTest, AclQualifiers) {
