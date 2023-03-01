@@ -55,6 +55,9 @@ class HwTransceiverUtils {
   static void verifyCopper200gProfile(
       const TransceiverInfo& transceiver,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
+  static void verifyCopper53gProfile(
+      const TransceiverInfo& transceiver,
+      const std::vector<MediaInterfaceId>& mediaInterfaces);
 
   static void verifyDataPathEnabled(const TransceiverInfo& transceiver);
 };
