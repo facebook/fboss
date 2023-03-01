@@ -58,6 +58,12 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         rxReasonToQueueMappings = {
             std::pair(
                 cfg::PacketRxReason::CPU_IS_NHOP, utility::kCoppMidPriQueueId),
+            std::pair(
+                cfg::PacketRxReason::BGP,
+                utility::getCoppHighPriQueueId(this->getAsic())),
+            std::pair(
+                cfg::PacketRxReason::BGPV6,
+                utility::getCoppHighPriQueueId(this->getAsic())),
         };
     for (auto rxEntry : rxReasonToQueueMappings) {
       auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
@@ -264,7 +270,7 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
 
       auto createTxPacket =
           [this, srcMac, dstMac, kSrcIp, dstIp, l4SrcPort, l4DstPort]() {
-            return utility::makeUDPTxPacket(
+            return utility::makeTCPTxPacket(
                 getHwSwitch(),
                 std::nullopt, // vlanID
                 srcMac,
@@ -321,6 +327,14 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         // CS00012267635: debug why queue counter is 362, when txPacketSize is
         // 322
         EXPECT_EVENTUALLY_GE(afterQueueOutBytes, beforeQueueOutBytes);
+
+        for (auto i = 0; i < utility::getCoppHighPriQueueId(this->getAsic());
+             i++) {
+          auto [outPkts, outBytes] =
+              utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), i);
+          XLOG(DBG2) << "QueueID: " << i << " outPkts: " << outPkts
+                     << " outBytes: " << outBytes;
+        }
       });
 
       unRegisterPktReceivedCallback();
@@ -480,6 +494,13 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
       utility::kNonSpecialPort1,
       utility::kNonSpecialPort2,
       utility::kCoppMidPriQueueId);
+}
+
+TEST_F(HwVoqSwitchTest, rxPacketToCpuBgpDstPort) {
+  rxPacketToCpuHelper(
+      utility::kNonSpecialPort1,
+      utility::kBgpPort,
+      utility::getCoppHighPriQueueId(this->getAsic()));
 }
 
 TEST_F(HwVoqSwitchTest, AclQualifiers) {
