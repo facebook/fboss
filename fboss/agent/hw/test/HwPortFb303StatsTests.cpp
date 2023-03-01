@@ -132,7 +132,8 @@ HwPortStats getInitedStats() {
       0, // timestamp
       "test", // portName
       macsecStats,
-      24 // inLabelMissDiscards_
+      24, // inLabelMissDiscards_
+      {{1, 25}, {2, 75}}, // queueWatermarkLevel
   };
 }
 
@@ -207,7 +208,8 @@ void updateStats(HwPortFb303Stats& portStats) {
   *empty.queueOutDiscardPackets_() = *empty.queueOutDiscardBytes_() =
       *empty.queueOutBytes_() = *empty.queueOutPackets_() =
           *empty.queueWatermarkBytes_() = *empty.queueEcnMarkedPackets_() =
-              *empty.queueWredDroppedPackets_() = {{1, 0}, {2, 0}};
+              *empty.queueWredDroppedPackets_() =
+                  *empty.queueWatermarkLevel_() = {{1, 0}, {2, 0}};
   portStats.updateStats(empty, now);
   portStats.updateStats(getInitedStats(), now);
 }
