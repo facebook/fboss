@@ -121,7 +121,9 @@ class HwCoppTest : public HwLinkStateDependentTest {
 
     if (outOfPort) {
       getHwSwitch()->sendPacketOutOfPortSync(
-          std::move(pkt), PortID(masterLogicalPortIds()[0]));
+          std::move(pkt),
+          masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]);
+
     } else {
       getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
     }
@@ -134,8 +136,9 @@ class HwCoppTest : public HwLinkStateDependentTest {
       int l4DstPort,
       uint8_t ttl,
       bool outOfPort) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+
     // arbit
     const auto srcIp =
         folly::IPAddress(dstIpAddress.isV4() ? "1.1.1.2" : "1::10");
@@ -171,8 +174,9 @@ class HwCoppTest : public HwLinkStateDependentTest {
       facebook::fboss::ETHERTYPE etherType,
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeEthTxPacket(
           getHwSwitch(),
@@ -190,8 +194,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const folly::IPAddress& dstIpAddress,
       ARP_OPER arpType,
       bool outOfPort) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeARPTxPacket(
@@ -214,8 +218,9 @@ class HwCoppTest : public HwLinkStateDependentTest {
       ICMPv6Type type,
       bool outOfPort,
       bool selfSolicit) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     for (int i = 0; i < numPktsToSend; i++) {
@@ -241,8 +246,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
 
   void
   sendDHCPv6Pkts(int numPktsToSend, DHCPv6Type type, int ttl, bool outOfPort) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     for (int i = 0; i < numPktsToSend; i++) {
