@@ -136,6 +136,8 @@ void PlatformProductInfo::initMode() {
         modelName.find("Makalu") == 0 ||
         modelName.find("S9710-76D-BB12") == 0) {
       mode_ = PlatformMode::MAKALU;
+    } else if (modelName.find("Yangra") == 0) {
+      mode_ = PlatformMode::YANGRA;
     } else if (
         modelName.find("Kamet") == 0 || modelName.find("S9705-48D-4B4") == 0) {
       mode_ = PlatformMode::KAMET;
@@ -174,6 +176,8 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::SANDIA;
     } else if (FLAGS_mode == "makalu") {
       mode_ = PlatformMode::MAKALU;
+    } else if (FLAGS_mode == "yangra") {
+      mode_ = PlatformMode::YANGRA;
     } else if (FLAGS_mode == "kamet") {
       mode_ = PlatformMode::KAMET;
     } else if (FLAGS_mode == "wedge400c") {
