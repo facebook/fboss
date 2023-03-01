@@ -19,6 +19,7 @@
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
 #include "fboss/agent/hw/bcm/BcmRxPacket.h"
 #include "fboss/agent/hw/bcm/types.h"
+#include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
@@ -42,6 +43,7 @@ extern "C" {
 
 DECLARE_bool(flexports);
 DECLARE_bool(force_init_fp);
+DECLARE_bool(flowletSwitchingEnable);
 
 namespace facebook::fboss {
 
@@ -721,7 +723,7 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<RouteT>& route);
   template <typename RouteT>
   void processRemovedRoute(
-      const RouterID id,
+      const RouterID& id,
       const std::shared_ptr<RouteT>& route);
   void processRemovedRoutes(const StateDelta& delta);
   void processAddedChangedRoutes(
@@ -807,7 +809,29 @@ class BcmSwitch : public BcmSwitchIf {
 
   void processSwitchSettingsChanged(const StateDelta& delta);
 
+  void processFlowletSwitchingConfigChanges(const StateDelta& delta);
+
   void processMacTableChanges(const StateDelta& delta);
+
+  void processDynamicEgressLoadExponentChanged(
+      const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
+
+  void processDynamicQueueExponentChanged(
+      const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
+
+  void processDynamicQueueMinThresholdBytesChanged(
+      const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
+
+  void processDynamicQueueMaxThresholdBytesChanged(
+      const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
+
+  void processDynamicSampleRateChanged(
+      const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
 
   /*
    * linkStateChangedHwNotLocked is in the call chain started by link scan

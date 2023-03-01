@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/bcm/BcmTrunk.h"
 #include "fboss/agent/hw/bcm/PortAndEgressIdsMap.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
@@ -22,6 +23,14 @@ extern "C" {
 DECLARE_uint32(ecmp_width);
 
 namespace facebook::fboss {
+
+struct BcmFlowletConfig {
+  uint16_t flowletTableSize;
+  uint16_t inactivityIntervalUsecs;
+  uint16_t portScalingFactor;
+  uint16_t portLoadWeight;
+  uint16_t portQueueWeight;
+};
 
 class BcmEgressManager {
  public:
@@ -98,6 +107,13 @@ class BcmEgressManager {
     resolvedEgresses_.erase(egressId);
   }
 
+  void processFlowletSwitchingConfigChanged(
+      const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching);
+
+  BcmFlowletConfig getBcmFlowletConfig() const {
+    return bcmFlowletConfig_;
+  }
+
  private:
   /*
    * Called both while holding and not holding the hw lock.
@@ -121,6 +137,9 @@ class BcmEgressManager {
       T* intfArray, // array of egresses in the ecmp group
       void* userData); // egresses we intend to remove from the ecmp group
   void setPort2EgressIdsInternal(std::shared_ptr<PortAndEgressIdsMap> newMap);
+
+  // Bcm flowlet config for ecmp egress programming
+  BcmFlowletConfig bcmFlowletConfig_{};
 
   const BcmSwitchIf* hw_;
   /*

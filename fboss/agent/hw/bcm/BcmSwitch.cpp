@@ -1131,6 +1131,135 @@ void BcmSwitch::processSwitchSettingsChanged(const StateDelta& delta) {
   }
 }
 
+void BcmSwitch::processDynamicEgressLoadExponentChanged(
+    const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+    const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching) {
+  uint16_t oldDynamicEgressLoadExponent = 0;
+  uint16_t newDynamicEgressLoadExponent = 0;
+  if (oldFlowletSwitching) {
+    oldDynamicEgressLoadExponent =
+        oldFlowletSwitching->getDynamicEgressLoadExponent();
+  }
+  if (newFlowletSwitching) {
+    newDynamicEgressLoadExponent =
+        newFlowletSwitching->getDynamicEgressLoadExponent();
+  }
+  if (oldDynamicEgressLoadExponent != newDynamicEgressLoadExponent) {
+    auto rv = bcm_switch_control_set(
+        unit_,
+        bcmSwitchEcmpDynamicEgressBytesExponent,
+        newDynamicEgressLoadExponent);
+    bcmCheckError(rv, "Failed to set bcmSwitchEcmpDynamicEgressBytesExponent");
+  }
+}
+
+void BcmSwitch::processDynamicQueueExponentChanged(
+    const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+    const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching) {
+  uint16_t oldDynamicQueueExponent = 0;
+  uint16_t newDynamicQueueExponent = 0;
+  if (oldFlowletSwitching) {
+    oldDynamicQueueExponent = oldFlowletSwitching->getDynamicQueueExponent();
+  }
+  if (newFlowletSwitching) {
+    newDynamicQueueExponent = newFlowletSwitching->getDynamicQueueExponent();
+  }
+  if (oldDynamicQueueExponent != newDynamicQueueExponent) {
+    auto rv = bcm_switch_control_set(
+        unit_,
+        bcmSwitchEcmpDynamicQueuedBytesExponent,
+        newDynamicQueueExponent);
+    bcmCheckError(rv, "Failed to set bcmSwitchEcmpDynamicQueuedBytesExponent");
+  }
+}
+
+void BcmSwitch::processDynamicQueueMinThresholdBytesChanged(
+    const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+    const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching) {
+  uint32_t oldDynamicQueueMinThresholdBytes = 0;
+  uint32_t newDynamicQueueMinThresholdBytes = 0;
+  if (oldFlowletSwitching) {
+    oldDynamicQueueMinThresholdBytes =
+        oldFlowletSwitching->getDynamicQueueMinThresholdBytes();
+  }
+  if (newFlowletSwitching) {
+    newDynamicQueueMinThresholdBytes =
+        newFlowletSwitching->getDynamicQueueMinThresholdBytes();
+  }
+  if (oldDynamicQueueMinThresholdBytes != newDynamicQueueMinThresholdBytes) {
+    auto rv = bcm_switch_control_set(
+        unit_,
+        bcmSwitchEcmpDynamicQueuedBytesMinThreshold,
+        newDynamicQueueMinThresholdBytes);
+    bcmCheckError(
+        rv, "Failed to set bcmSwitchEcmpDynamicQueuedBytesMinThreshold");
+  }
+}
+
+void BcmSwitch::processDynamicQueueMaxThresholdBytesChanged(
+    const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+    const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching) {
+  uint32_t oldDynamicQueueMaxThresholdBytes = 0;
+  uint32_t newDynamicQueueMaxThresholdBytes = 0;
+  if (oldFlowletSwitching) {
+    oldDynamicQueueMaxThresholdBytes =
+        oldFlowletSwitching->getDynamicQueueMaxThresholdBytes();
+  }
+  if (newFlowletSwitching) {
+    newDynamicQueueMaxThresholdBytes =
+        newFlowletSwitching->getDynamicQueueMaxThresholdBytes();
+  }
+  if (oldDynamicQueueMaxThresholdBytes != newDynamicQueueMaxThresholdBytes) {
+    auto rv = bcm_switch_control_set(
+        unit_,
+        bcmSwitchEcmpDynamicQueuedBytesMaxThreshold,
+        newDynamicQueueMaxThresholdBytes);
+    bcmCheckError(
+        rv, "Failed to set bcmSwitchEcmpDynamicQueuedBytesMaxThreshold");
+  }
+}
+
+void BcmSwitch::processDynamicSampleRateChanged(
+    const std::shared_ptr<FlowletSwitchingConfig>& oldFlowletSwitching,
+    const std::shared_ptr<FlowletSwitchingConfig>& newFlowletSwitching) {
+  uint32_t oldDynamicSampleRate = 0;
+  uint32_t newDynamicSampleRate = 62500;
+  if (oldFlowletSwitching) {
+    oldDynamicSampleRate = oldFlowletSwitching->getDynamicSampleRate();
+  }
+  if (newFlowletSwitching) {
+    newDynamicSampleRate = newFlowletSwitching->getDynamicSampleRate();
+  }
+  if (oldDynamicSampleRate != newDynamicSampleRate) {
+    auto rv = bcm_switch_control_set(
+        unit_, bcmSwitchEcmpDynamicSampleRate, newDynamicSampleRate);
+    bcmCheckError(rv, "Failed to set bcmSwitchEcmpDynamicSampleRate");
+  }
+}
+
+void BcmSwitch::processFlowletSwitchingConfigChanges(const StateDelta& delta) {
+  const auto flowletSwitchingDelta = delta.getFlowletSwitchingConfigDelta();
+  const auto& oldFlowletSwitching = flowletSwitchingDelta.getOld();
+  const auto& newFlowletSwitching = flowletSwitchingDelta.getNew();
+  // process change in the flowlet switching config
+  if (!oldFlowletSwitching && !newFlowletSwitching) {
+    XLOG(DBG4) << "Flowlet switching config is null";
+    return;
+  }
+
+  XLOG(DBG2) << "Flowlet switching config enabled";
+  processDynamicEgressLoadExponentChanged(
+      oldFlowletSwitching, newFlowletSwitching);
+  processDynamicQueueExponentChanged(oldFlowletSwitching, newFlowletSwitching);
+  processDynamicQueueMinThresholdBytesChanged(
+      oldFlowletSwitching, newFlowletSwitching);
+  processDynamicQueueMaxThresholdBytesChanged(
+      oldFlowletSwitching, newFlowletSwitching);
+  processDynamicSampleRateChanged(oldFlowletSwitching, newFlowletSwitching);
+
+  egressManager_->processFlowletSwitchingConfigChanged(newFlowletSwitching);
+}
+
 void BcmSwitch::processMacTableChanges(const StateDelta& stateDelta) {
   for (const auto& vlanDelta : stateDelta.getVlansDelta()) {
     auto vlanId = vlanDelta.getOld() ? vlanDelta.getOld()->getID()
@@ -1206,6 +1335,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
   processMacTableChanges(delta);
 
   processUdfAdd(delta);
+
+  processFlowletSwitchingConfigChanges(delta);
 
   processLoadBalancerChanges(delta);
 
@@ -2454,7 +2585,7 @@ void BcmSwitch::processAddedRoute(
 
 template <typename RouteT>
 void BcmSwitch::processRemovedRoute(
-    const RouterID id,
+    const RouterID& id,
     const shared_ptr<RouteT>& route) {
   XLOG(DBG3) << "removing route entry @ vrf " << id << " " << route->str();
   if (!route->isResolved()) {

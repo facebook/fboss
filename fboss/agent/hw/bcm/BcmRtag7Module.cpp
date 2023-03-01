@@ -25,6 +25,8 @@ extern "C" {
 
 namespace {
 const bool kEnable = true;
+static constexpr int kBcmECMPHashSet0Offset = 0x5;
+static constexpr int kBcmEcmpDynamicHashOffset = 0x5;
 } // namespace
 
 namespace facebook::fboss {
@@ -338,6 +340,15 @@ void BcmRtag7Module::enableRtag7(LoadBalancerID loadBalancerID) {
     case LoadBalancerID::ECMP:
       rv = setUnitControl(bcmSwitchHashControl, BCM_HASH_CONTROL_ECMP_ENHANCE);
       bcmCheckError(rv, "failed to enable RTAG7 for ECMP");
+      if (FLAGS_flowletSwitchingEnable) {
+        XLOG(DBG2) << "RTAG7 Programming for flowlet switching config: ";
+        rv =
+            setUnitControl(bcmSwitchECMPHashSet0Offset, kBcmECMPHashSet0Offset);
+        bcmCheckError(rv, "failed to set enhanced hash bits selection");
+        rv = setUnitControl(
+            bcmSwitchEcmpDynamicHashOffset, kBcmEcmpDynamicHashOffset);
+        bcmCheckError(rv, "failed to set ECMP-DLB hashout selection");
+      }
       break;
     case LoadBalancerID::AGGREGATE_PORT:
       // RTAG7 for trunks is enabled via bcm_trunk_info_t.psc for unicast

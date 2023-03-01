@@ -28,6 +28,11 @@ DEFINE_int32(
     60,
     "Update watermark stats interval in seconds");
 
+DEFINE_bool(
+    flowletSwitchingEnable,
+    false,
+    "Flag to turn on flowlet switching for DLB");
+
 namespace facebook::fboss {
 
 std::string HwSwitch::getDebugDump() const {

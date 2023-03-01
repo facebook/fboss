@@ -179,6 +179,22 @@ void BcmEgress::program(
     if (id_ != INVALID) {
       flags |= BCM_L3_REPLACE | BCM_L3_WITH_ID;
     }
+    if (FLAGS_flowletSwitchingEnable) {
+      auto bcmFlowletConfig = hw_->getEgressManager()->getBcmFlowletConfig();
+      if (bcmFlowletConfig.portScalingFactor) {
+        eObj.dynamic_scaling_factor = bcmFlowletConfig.portScalingFactor;
+      }
+      if (bcmFlowletConfig.portLoadWeight) {
+        eObj.dynamic_load_weight = bcmFlowletConfig.portLoadWeight;
+      }
+      if (bcmFlowletConfig.portQueueWeight) {
+        eObj.dynamic_queue_size_weight = bcmFlowletConfig.portQueueWeight;
+      }
+      XLOG(DBG2) << "Programmed PortScalingFactor="
+                 << eObj.dynamic_scaling_factor
+                 << " PortLoadWeight=" << eObj.dynamic_load_weight
+                 << " PortQueueWeight=" << eObj.dynamic_queue_size_weight;
+    }
     if (!alreadyExists(eObj)) {
       /*
        *  Only program the HW if a identical egress object does not
@@ -342,8 +358,20 @@ void BcmEcmpEgress::program() {
                << " for " << numPaths << " paths"
                << ((obj.flags & BCM_L3_REPLACE) ? " replace" : " noreplace")
                << ((obj.flags & BCM_L3_WITH_ID) ? " with id" : " without id")
-               << ", native ucmp " << (ucmpEnabled_ ? "enabled" : "disabled");
+               << ", native ucmp " << (ucmpEnabled_ ? "enabled" : "disabled")
+               << ", flowlet switching "
+               << (FLAGS_flowletSwitchingEnable ? "enabled" : "disabled");
     int ret = 0;
+
+    if (FLAGS_flowletSwitchingEnable) {
+      auto bcmFlowletConfig = hw_->getEgressManager()->getBcmFlowletConfig();
+      obj.dynamic_mode = BCM_L3_ECMP_DYNAMIC_MODE_NORMAL;
+      obj.dynamic_age = bcmFlowletConfig.inactivityIntervalUsecs;
+      obj.dynamic_size = bcmFlowletConfig.flowletTableSize;
+      XLOG(DBG2) << "Programmed FlowletTableSize=" << obj.dynamic_size
+                 << " InactivityIntervalUsecs=" << obj.dynamic_age;
+    }
+
     if (useHsdk_) {
       if (ucmpEnabled_) {
         obj.ecmp_group_flags = BCM_L3_ECMP_MEMBER_WEIGHTED;

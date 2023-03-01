@@ -263,5 +263,4 @@ void BcmPortTable::initPortGroupFromConfig(
   }
   bcmPortGroups_.push_back(std::move(group));
 }
-
 } // namespace facebook::fboss
