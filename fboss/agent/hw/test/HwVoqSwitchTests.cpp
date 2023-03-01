@@ -56,7 +56,9 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
     std::vector<cfg::PacketRxReasonToQueue> rxReasonToQueues;
     std::vector<std::pair<cfg::PacketRxReason, uint16_t>>
         rxReasonToQueueMappings = {
-            std::pair(cfg::PacketRxReason::CPU_IS_NHOP, kDefaultQueue)};
+            std::pair(
+                cfg::PacketRxReason::CPU_IS_NHOP, utility::kCoppMidPriQueueId),
+        };
     for (auto rxEntry : rxReasonToQueueMappings) {
       auto rxReasonToQueue = cfg::PacketRxReasonToQueue();
       rxReasonToQueue.rxReason() = rxEntry.first;
@@ -475,7 +477,9 @@ TEST_F(HwVoqSwitchTest, trapPktsOnPort) {
 
 TEST_F(HwVoqSwitchTest, rxPacketToCpu) {
   rxPacketToCpuHelper(
-      utility::kNonSpecialPort1, utility::kNonSpecialPort2, kDefaultQueue);
+      utility::kNonSpecialPort1,
+      utility::kNonSpecialPort2,
+      utility::kCoppMidPriQueueId);
 }
 
 TEST_F(HwVoqSwitchTest, AclQualifiers) {
