@@ -317,7 +317,8 @@ class HwVoqSwitchTest : public HwLinkStateDependentTest {
         auto [afterQueueOutPkts, afterQueueOutBytes] =
             utility::getCpuQueueOutPacketsAndBytes(getHwSwitch(), queueId);
 
-        XLOG(DBG2) << "Stats:: beforeQueueOutPkts: " << beforeQueueOutPkts
+        XLOG(DBG2) << "Stats:: queueId: " << static_cast<int>(queueId)
+                   << " beforeQueueOutPkts: " << beforeQueueOutPkts
                    << " beforeQueueOutBytes: " << beforeQueueOutBytes
                    << " txPacketSize: " << txPacketSize
                    << " afterQueueOutPkts: " << afterQueueOutPkts

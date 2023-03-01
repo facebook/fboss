@@ -116,6 +116,9 @@ class HwCoppTest : public HwLinkStateDependentTest {
   }
 
   void sendPkt(std::unique_ptr<TxPacket> pkt, bool outOfPort) {
+    XLOG(DBG2) << "Packet Dump::"
+               << folly::hexDump(pkt->buf()->data(), pkt->buf()->length());
+
     if (outOfPort) {
       getHwSwitch()->sendPacketOutOfPortSync(
           std::move(pkt), PortID(masterLogicalPortIds()[0]));
@@ -149,6 +152,11 @@ class HwCoppTest : public HwLinkStateDependentTest {
           l4DstPort,
           0 /* dscp */,
           ttl);
+
+      XLOG(DBG2) << "UDP packet Dump::"
+                 << folly::hexDump(
+                        txPacket->buf()->data(), txPacket->buf()->length());
+
       sendPkt(std::move(txPacket), outOfPort);
     }
   }
