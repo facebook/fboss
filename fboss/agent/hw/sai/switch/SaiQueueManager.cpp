@@ -52,7 +52,7 @@ void fillHwQueueStats(
         hwPortStats.queueWatermarkBytes_()[queueId] = value;
         break;
       case SAI_QUEUE_STAT_WATERMARK_LEVEL:
-        // TODO
+        hwPortStats.queueWatermarkLevel_()[queueId] = value;
         break;
       case SAI_QUEUE_STAT_WRED_DROPPED_PACKETS:
         hwPortStats.queueWredDroppedPackets_()[queueId] = value;
