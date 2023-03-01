@@ -31,7 +31,7 @@
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
-
+#include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
@@ -257,6 +257,7 @@ template void CmdHandler<CmdShowMacDetails, CmdShowMacDetailsTraits>::run();
 template void CmdHandler<CmdShowNdp, CmdShowNdpTraits>::run();
 template void CmdHandler<CmdShowPort, CmdShowPortTraits>::run();
 template void CmdHandler<CmdShowPortQueue, CmdShowPortQueueTraits>::run();
+template void CmdHandler<CmdShowHost, CmdShowHostTraits>::run();
 template void CmdHandler<CmdShowHwObject, CmdShowHwObjectTraits>::run();
 template void CmdHandler<CmdShowInterface, CmdShowInterfaceTraits>::run();
 template void
