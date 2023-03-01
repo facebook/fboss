@@ -2739,6 +2739,9 @@ void CmisModule::resetDataPath() {
 
 void CmisModule::resetDataPathWithFunc(
     std::optional<std::function<void()>> afterDataPathDeinitFunc) {
+  if (flatMem_) {
+    return;
+  }
   // First deactivate all the lanes
   uint8_t dataPathDeInit = 0xff;
   writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
