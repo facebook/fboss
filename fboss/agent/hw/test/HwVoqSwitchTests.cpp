@@ -503,6 +503,13 @@ TEST_F(HwVoqSwitchTest, rxPacketToCpuBgpDstPort) {
       utility::getCoppHighPriQueueId(this->getAsic()));
 }
 
+TEST_F(HwVoqSwitchTest, rxPacketToCpuBgpSrcPort) {
+  rxPacketToCpuHelper(
+      utility::kBgpPort,
+      utility::kNonSpecialPort1,
+      utility::getCoppHighPriQueueId(this->getAsic()));
+}
+
 TEST_F(HwVoqSwitchTest, AclQualifiers) {
   auto setup = [=]() {
     auto newCfg = initialConfig();
