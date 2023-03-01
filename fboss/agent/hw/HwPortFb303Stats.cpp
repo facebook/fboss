@@ -186,8 +186,14 @@ void HwPortFb303Stats::updateStats(
           *curPortStats.queueEcnMarkedPackets_());
     }
   }
+  CHECK(
+      curPortStats.queueWatermarkBytes_()->empty() ||
+      curPortStats.queueWatermarkLevel_()->empty())
+      << "Expect only one of queue watermark bytes, level to be populated";
   if (curPortStats.queueWatermarkBytes_()->size()) {
     updateQueueWatermarkStats(*curPortStats.queueWatermarkBytes_());
+  } else if (curPortStats.queueWatermarkLevel_()->size()) {
+    updateQueueWatermarkStats(*curPortStats.queueWatermarkLevel_());
   }
   // Macsec stats
   if (curPortStats.macsecStats()) {
