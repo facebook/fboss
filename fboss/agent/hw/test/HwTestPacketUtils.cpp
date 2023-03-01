@@ -724,7 +724,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeARPTxPacket(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeNeighborSolicitation(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     const folly::IPAddressV6& srcIp,
     const folly::IPAddressV6& neighborIp) {
@@ -768,7 +768,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeNeighborSolicitation(
 
 std::unique_ptr<facebook::fboss::TxPacket> makeNeighborAdvertisement(
     const HwSwitch* hw,
-    VlanID vlan,
+    std::optional<VlanID> vlan,
     folly::MacAddress srcMac,
     folly::MacAddress dstMac,
     const folly::IPAddressV6& srcIp,
