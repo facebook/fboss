@@ -1693,15 +1693,27 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
   auto vlans = portVlans_[orig->getID()];
 
   std::vector<cfg::PortQueue> cfgPortQueues;
-  if (auto portQueueConfigName = portConf->portQueueConfigName()) {
-    auto it = cfg_->portQueueConfigs()->find(*portQueueConfigName);
-    if (it == cfg_->portQueueConfigs()->end()) {
-      throw FbossError(
-          "Port queue config name: ",
-          *portQueueConfigName,
-          " does not exist in PortQueueConfig map");
+  if (portConf->portType() == cfg::PortType::FABRIC_PORT) {
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::FABRIC_TX_QUEUES)) {
+      // TODO - move this to fab port configs
+      cfg::PortQueue fabQueue;
+      fabQueue.id() = 0;
+      fabQueue.name() = "fabric_q0";
+      fabQueue.streamType() = cfg::StreamType::FABRIC_TX;
+      fabQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+      cfgPortQueues.push_back(fabQueue);
     }
-    cfgPortQueues = it->second;
+  } else {
+    if (auto portQueueConfigName = portConf->portQueueConfigName()) {
+      auto it = cfg_->portQueueConfigs()->find(*portQueueConfigName);
+      if (it == cfg_->portQueueConfigs()->end()) {
+        throw FbossError(
+            "Port queue config name: ",
+            *portQueueConfigName,
+            " does not exist in PortQueueConfig map");
+      }
+      cfgPortQueues = it->second;
+    }
   }
 
   const auto& oldIngressMirror = orig->getIngressMirror();
