@@ -48,6 +48,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   MacAddress kDstMac() const {
     return getPlatform()->getLocalMac();
   }
+
   void sendUdpPkt(
       uint8_t dscpVal,
       const folly::IPAddressV6& dst,
@@ -87,9 +88,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   bool
   gotExpectedWatermark(PortID port, int queueId, bool expectZero, int retries) {
     do {
-      auto queueWaterMarks = *getHwSwitchEnsemble()
-                                  ->getLatestPortStats(port)
-                                  .queueWatermarkBytes_();
+      auto queueWaterMarks = getQueueWatermarks(port);
       auto portName =
           getProgrammedState()->getPorts()->getPort(port)->getName();
       XLOG(DBG0) << "Port: " << portName << " queueId: " << queueId
@@ -125,8 +124,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   bool gotExpectedDeviceWatermark(bool expectZero, int retries) {
     XLOG(DBG0) << "Expect zero watermark: " << std::boolalpha << expectZero;
     do {
-      getHwSwitchEnsemble()->getLatestPortStats(
-          masterLogicalInterfacePortIds()[0]);
+      getQueueWatermarks(masterLogicalInterfacePortIds()[0]);
       auto deviceWatermarkBytes =
           getHwSwitchEnsemble()->getHwSwitch()->getDeviceWatermarkBytes();
       XLOG(DBG0) << "Device watermark bytes: " << deviceWatermarkBytes;
@@ -158,6 +156,24 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   }
   folly::IPAddressV6 kDestIp2() const {
     return folly::IPAddressV6("2620:0:1cfe:face:b00c::5");
+  }
+
+  // isVoq applies only to VoQ systems and will be used to collect
+  // VoQ stats for VoQ switches.
+  const std::map<int16_t, int64_t> getQueueWatermarks(
+      const PortID& portId,
+      bool isVoq = false) {
+    if (getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ &&
+        isVoq) {
+      auto sysPortId = getSystemPortID(portId, getProgrammedState());
+      return *getHwSwitchEnsemble()
+                  ->getLatestSysPortStats(sysPortId)
+                  .queueWatermarkBytes_();
+    } else {
+      return *getHwSwitchEnsemble()
+                  ->getLatestPortStats(portId)
+                  .queueWatermarkBytes_();
+    }
   }
 
   /*
@@ -318,9 +334,7 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
 
     // Now we are at line rate on port, get queue watermark
     auto queueWaterMarks =
-        *getHwSwitchEnsemble()
-             ->getLatestPortStats(masterLogicalInterfacePortIds()[0])
-             .queueWatermarkBytes_();
+        getQueueWatermarks(masterLogicalInterfacePortIds()[0]);
     // Get device watermark
     auto deviceWaterMark =
         getHwSwitchEnsemble()->getHwSwitch()->getDeviceWatermarkBytes();
@@ -330,6 +344,12 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
                << ", Queue" << utility::kOlympicGoldQueueId << " watermark: "
                << queueWaterMarks.at(utility::kOlympicGoldQueueId)
                << ", Device watermark: " << deviceWaterMark;
+
+    // Make sure that queue watermark is non zero
+    EXPECT_GT(
+        queueWaterMarks.at(utility::kOlympicSilverQueueId) +
+            queueWaterMarks.at(utility::kOlympicGoldQueueId),
+        0);
 
     // Make sure that device watermark is > highest queue watermark
     EXPECT_GT(
@@ -369,9 +389,7 @@ TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
     auto txPacketLen = kTxPacketPayloadLen + EthHdr::SIZE + IPv6Hdr::size() +
         UDPHeader::size();
     // Clear any watermark stats
-    (void)getHwSwitchEnsemble()
-        ->getLatestPortStats(masterLogicalInterfacePortIds()[0])
-        .queueWatermarkBytes_();
+    getQueueWatermarks(masterLogicalInterfacePortIds()[0]);
 
     auto sendPackets = [=](PortID port, int numPacketsToSend) {
       sendUdpPkts(
@@ -388,9 +406,8 @@ TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
         masterLogicalInterfacePortIds()[0],
         kNumberOfPacketsToSend);
 
-    auto portStats = getHwSwitchEnsemble()->getLatestPortStats(
-        masterLogicalInterfacePortIds()[0]);
-    auto queueWaterMarks = *portStats.queueWatermarkBytes_();
+    auto queueWaterMarks =
+        getQueueWatermarks(masterLogicalInterfacePortIds()[0]);
     auto expectedWatermarkBytes =
         utility::getEffectiveBytesPerPacket(getHwSwitch(), txPacketLen) *
         kNumberOfPacketsToSend;
