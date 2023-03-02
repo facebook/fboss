@@ -739,7 +739,6 @@ if (NOT SAI_ONLY)
       fboss/agent/oss/DsfSubscriber.cpp
       fboss/agent/oss/AggregatePortStats.cpp
       fboss/agent/oss/FbossInit.cpp
-      fboss/agent/oss/FsdbStateDeltaConverter.cpp
       fboss/agent/oss/FsdbSyncer.cpp
       fboss/agent/oss/Main.cpp
       fboss/agent/oss/PacketLogger.cpp

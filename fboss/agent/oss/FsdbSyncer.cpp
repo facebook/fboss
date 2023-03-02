@@ -49,12 +49,6 @@ void FsdbSyncer::cfgUpdated(
 
 void FsdbSyncer::statsUpdated(const AgentStats& /*stats*/) {}
 
-void FsdbSyncer::publishDeltas(std::vector<fsdb::OperDeltaUnit>&& /*deltas*/) {}
-
-void FsdbSyncer::fsdbStatePublisherStateChanged(
-    fsdb::FsdbStreamClient::State /*oldState*/,
-    fsdb::FsdbStreamClient::State /*newState*/) {}
-
 void FsdbSyncer::fsdbStatPublisherStateChanged(
     fsdb::FsdbStreamClient::State /*oldState*/,
     fsdb::FsdbStreamClient::State /*newState*/) {}
