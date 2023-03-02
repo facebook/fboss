@@ -159,7 +159,10 @@ void addDscpAclEntryWithCounter(
 }
 
 // Utility to add ICP Marking ACL table to a multi acl table group
-void addDscpAclTable(cfg::SwitchConfig* config, int16_t priority) {
+void addDscpAclTable(
+    cfg::SwitchConfig* config,
+    int16_t priority,
+    bool addTtlQualifier) {
   std::vector<cfg::AclTableQualifier> qualifiers = {
       cfg::AclTableQualifier::L4_SRC_PORT,
       cfg::AclTableQualifier::L4_DST_PORT,
@@ -169,9 +172,9 @@ void addDscpAclTable(cfg::SwitchConfig* config, int16_t priority) {
       cfg::AclTableQualifier::ICMPV6_TYPE,
       cfg::AclTableQualifier::ICMPV6_CODE,
       cfg::AclTableQualifier::DSCP};
-#if defined(TAJO_SDK_VERSION_1_58_0) || defined(TAJO_SDK_VERSION_1_60_0)
-  qualifiers.push_back(cfg::AclTableQualifier::TTL);
-#endif
+  if (addTtlQualifier) {
+    qualifiers.push_back(cfg::AclTableQualifier::TTL);
+  }
   utility::addAclTable(
       config,
       getDscpAclTableName(),

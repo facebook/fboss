@@ -114,7 +114,10 @@ void deleteTtlCounters(cfg::SwitchConfig* config);
 void addQueuePerHostAclEntry(
     cfg::SwitchConfig* config,
     const std::string& aclTableName);
-void addQueuePerHostAclTables(cfg::SwitchConfig* config, int16_t priority);
+void addQueuePerHostAclTables(
+    cfg::SwitchConfig* config,
+    int16_t priority,
+    bool addTtlQualifier);
 void deleteQueuePerHostMatchers(cfg::SwitchConfig* config);
 
 } // namespace facebook::fboss::utility
