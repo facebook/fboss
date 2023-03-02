@@ -24,6 +24,9 @@ static constexpr auto kGlobalSharedBytes{20000};
 static constexpr auto kGlobalHeadroomBytes{4771136};
 static constexpr auto kPgLimitBytes{2200};
 static constexpr auto kPgHeadroomBytes{293624};
+static constexpr auto kLosslessTrafficClass{2};
+static constexpr auto kLosslessPriority{2};
+static const std::vector<int> kLosslessPgIds{2, 3};
 
 struct PfcBufferParams {
   int globalShared = kGlobalSharedBytes;
@@ -274,7 +277,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
       std::optional<cfg::MMUScalingFactor> scalingFactor) {
     std::vector<cfg::PortPgConfig> portPgConfigs;
     // create 2 pgs
-    for (auto pgId = 0; pgId < 2; ++pgId) {
+    for (auto pgId : kLosslessPgIds) {
       cfg::PortPgConfig pgConfig;
       pgConfig.id() = pgId;
       pgConfig.bufferPoolName() = "bufferNew";
@@ -502,16 +505,18 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     EXPECT_TRUE(countersHit);
   }
 
-  void validateRxPfcCounterIncrement(const PortID& port) {
+  void validateRxPfcCounterIncrement(
+      const PortID& port,
+      const int pfcPriority) {
     int retries = 2;
     int rxPfcCtrOld = 0;
     std::tie(std::ignore, rxPfcCtrOld, std::ignore) =
-        getTxRxXonPfcCounters(port, 0);
+        getTxRxXonPfcCounters(port, pfcPriority);
     while (retries--) {
       int rxPfcCtrNew = 0;
       std::this_thread::sleep_for(std::chrono::seconds(1));
       std::tie(std::ignore, rxPfcCtrNew, std::ignore) =
-          getTxRxXonPfcCounters(port, 0);
+          getTxRxXonPfcCounters(port, pfcPriority);
       if (rxPfcCtrNew > rxPfcCtrOld) {
         return;
       }
@@ -568,16 +573,14 @@ INSTANTIATE_TEST_SUITE_P(
     });
 
 TEST_P(HwTrafficPfcGenTest, verifyPfc) {
-  // default to map dscp to priority = 0
-  const int trafficClass = 0;
-  const int pfcPriority = 0;
+  const int trafficClass = kLosslessTrafficClass;
+  const int pfcPriority = kLosslessPriority;
   runTestWithCfg(trafficClass, pfcPriority, GetParam());
 }
 
 TEST_F(HwTrafficPfcTest, verifyBufferPoolWatermarks) {
-  // default to map dscp to priority = 0
-  const int trafficClass = 0;
-  const int pfcPriority = 0;
+  const int trafficClass = kLosslessTrafficClass;
+  const int pfcPriority = kLosslessPriority;
   runTestWithCfg(
       trafficClass,
       pfcPriority,
@@ -586,9 +589,8 @@ TEST_F(HwTrafficPfcTest, verifyBufferPoolWatermarks) {
 }
 
 TEST_F(HwTrafficPfcTest, verifyIngressPriorityGroupWatermarks) {
-  // default to map dscp to priority = 0
-  const int trafficClass = 0;
-  const int pfcPriority = 0;
+  const int trafficClass = kLosslessTrafficClass;
+  const int pfcPriority = kLosslessPriority;
   runTestWithCfg(
       trafficClass,
       pfcPriority,
@@ -598,24 +600,24 @@ TEST_F(HwTrafficPfcTest, verifyIngressPriorityGroupWatermarks) {
 }
 
 // intent of this test is to send traffic so that it maps to
-// tc 0, now map tc 0 to PG 1. Mapping from PG to pfc priority
-// is 1:1, which means PG 1 is mapped to pfc priority 1.
+// tc 2, now map tc 2 to PG 3. Mapping from PG to pfc priority
+// is 1:1, which means PG 3 is mapped to pfc priority 3.
 // Generate traffic to fire off PFC with smaller shared buffer
 TEST_F(HwTrafficPfcTest, verifyPfcWithMapChanges_0) {
-  const int trafficClass = 0;
-  const int pfcPriority = 1;
-  tc2PgOverride.insert(std::make_pair(0, 1));
+  const int trafficClass = kLosslessTrafficClass;
+  const int pfcPriority = 3;
+  tc2PgOverride.insert(std::make_pair(trafficClass, pfcPriority));
   runTestWithCfg(trafficClass, pfcPriority);
 }
 
 // intent of this test is to send traffic so that it maps to
-// tc 7. Now we map tc 7 -> PG 0. Mapping from PG to pfc
-// priority is 1:1, which means PG 0 is mapped to pfc priority 0.
+// tc 7. Now we map tc 7 -> PG 2. Mapping from PG to pfc
+// priority is 1:1, which means PG 2 is mapped to pfc priority 2.
 // Generate traffic to fire off PFC with smaller shared buffer
 TEST_F(HwTrafficPfcTest, verifyPfcWithMapChanges_1) {
   const int trafficClass = 7;
-  const int pfcPriority = 0;
-  tc2PgOverride.insert(std::make_pair(7, 0));
+  const int pfcPriority = kLosslessPriority;
+  tc2PgOverride.insert(std::make_pair(trafficClass, pfcPriority));
   runTestWithCfg(trafficClass, pfcPriority);
 }
 
@@ -630,8 +632,9 @@ TEST_F(HwTrafficPfcTest, PfcWatchdog) {
   };
   auto verify = [&]() {
     validatePfcWatchdogCountersReset(masterLogicalInterfacePortIds()[0]);
-    pumpTraffic(0 /* traffic class */);
-    validateRxPfcCounterIncrement(masterLogicalInterfacePortIds()[0]);
+    pumpTraffic(kLosslessTrafficClass);
+    validateRxPfcCounterIncrement(
+        masterLogicalInterfacePortIds()[0], kLosslessPriority);
     validatePfcWatchdogCounters(masterLogicalInterfacePortIds()[0]);
   };
   // warmboot support to be added in next step
@@ -648,7 +651,7 @@ TEST_F(HwTrafficPfcTest, PfcWatchdogReset) {
   auto setup = [&]() {
     setupConfigAndEcmpTraffic();
     setupWatchdog(true /* enable watchdog */);
-    pumpTraffic(0 /* traffic class */);
+    pumpTraffic(kLosslessTrafficClass);
     // lets wait for the watchdog counters to be populated
     validatePfcWatchdogCounters(masterLogicalInterfacePortIds()[0]);
     // reset watchdog
@@ -662,7 +665,8 @@ TEST_F(HwTrafficPfcTest, PfcWatchdogReset) {
 
   auto verify = [&]() {
     // ensure that RX PFC continues to increment
-    validateRxPfcCounterIncrement(masterLogicalInterfacePortIds()[0]);
+    validateRxPfcCounterIncrement(
+        masterLogicalInterfacePortIds()[0], kLosslessPriority);
     // validate that pfc watchdog counters do not increment anymore
     validatePfcWatchdogCountersReset(masterLogicalInterfacePortIds()[0]);
   };
