@@ -31,7 +31,9 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::onePortPerInterfaceConfig(
-        getHwSwitch(), masterLogicalPortIds());
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode());
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       auto streamType =
           *(getPlatform()
@@ -91,7 +93,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   }
 
   bool gotExpectedWatermark(
-      PortID port,
+      const PortID& port,
       int queueId,
       bool expectZero,
       int retries,
@@ -106,12 +108,17 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       auto watermarkAsExpected = (expectZero && !queueWaterMarks[queueId]) ||
           (!expectZero && queueWaterMarks[queueId]);
       if (watermarkAsExpected) {
+        XLOG(DBG0) << "Port: " << portName << " queueId: " << queueId
+                   << " got expected watermarks of "
+                   << queueWaterMarks[queueId];
         return true;
       }
       XLOG(DBG0) << " Retry ...";
       sleep(1);
     } while (--retries > 0);
-    XLOG(DBG2) << " Did not get expected watermark value";
+    auto expectation = expectZero ? "zero" : "non-zero";
+    XLOG(DBG2) << " Did not get expected " << expectation
+               << " watermark value!";
     return false;
   }
 
@@ -243,10 +250,20 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     auto verify = [this, queueId, isVoq]() {
       auto dscpsForQueue = utility::kOlympicQueueToDscp().find(queueId)->second;
       for (auto portAndIp : getPort2DstIp()) {
-        auto portName = getProgrammedState()
-                            ->getPorts()
-                            ->getPort(portAndIp.first)
-                            ->getName();
+        std::string portName;
+        if (!isVoq) {
+          portName = getProgrammedState()
+                         ->getPorts()
+                         ->getPort(portAndIp.first)
+                         ->getName();
+        } else {
+          auto systemPortId =
+              getSystemPortID(portAndIp.first, getProgrammedState());
+          portName = getProgrammedState()
+                         ->getSystemPorts()
+                         ->getSystemPort(systemPortId)
+                         ->getPortName();
+        }
 
         auto fb303BufferWatermarkUcastNonZero = [&]() {
           auto counters = fb303::fbData->getRegexCounters({folly::sformat(
@@ -271,7 +288,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
         // Assert non zero watermark
         assertWatermark(
             portAndIp.first, queueId, false /*expectZero*/, 2, isVoq);
-        // Wait for watermarks in fb303
+        // Wait for watermarks in fb303.
         EXPECT_TRUE(getHwSwitchEnsemble()->waitStatsCondition(
             fb303BufferWatermarkUcastNonZero, [] {}));
         // Assert zero watermark
