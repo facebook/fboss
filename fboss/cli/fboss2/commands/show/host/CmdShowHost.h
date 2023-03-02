@@ -76,9 +76,9 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
       } else {
         hostDetails.hostName() = ndpEntryHostName;
       }
-      if (portInfoEntries.contains(ndpEntryPort)) {
-        const auto& ndpEntryPortInfo =
-            portInfoEntries.find(ndpEntryPort)->second;
+      if (auto ndpEntryPortInfoEntry = portInfoEntries.find(ndpEntryPort);
+          ndpEntryPortInfoEntry != portInfoEntries.end()) {
+        const auto& ndpEntryPortInfo = ndpEntryPortInfoEntry->second;
         hostDetails.portName() = ndpEntryPortInfo.get_name();
         hostDetails.speed() = getSpeedGbps(ndpEntryPortInfo.get_speedMbps());
         hostDetails.fecMode() = ndpEntryPortInfo.get_fecMode();
@@ -93,9 +93,9 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
       } else {
         continue;
       }
-      if (portStatusEntries.contains(ndpEntryPort)) {
-        const auto& ndpEntryPortStatus =
-            portStatusEntries.find(ndpEntryPort)->second;
+      if (auto ndpEntryPortStatusEntry = portStatusEntries.find(ndpEntryPort);
+          ndpEntryPortStatusEntry != portStatusEntries.end()) {
+        const auto& ndpEntryPortStatus = ndpEntryPortStatusEntry->second;
         hostDetails.adminState() =
             (ndpEntryPortStatus.get_enabled()) ? "Enabled" : "Disabled";
         hostDetails.linkState() = (ndpEntryPortStatus.get_up()) ? "Up" : "Down";
