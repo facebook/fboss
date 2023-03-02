@@ -45,7 +45,7 @@ add_fbthrift_cpp_library(
     json
 )
 
-add_fb_thrift_cpp_library(
+add_fbthrift_cpp_library(
   show_host_model
   fboss/cli/fboss2/commands/show/host/model.thrift
   OPTIONS
