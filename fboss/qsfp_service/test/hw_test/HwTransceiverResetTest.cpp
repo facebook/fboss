@@ -55,22 +55,23 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
   wedgeManager->getTransceiversInfo(
       transceivers, getExpectedLegacyTransceiverIds());
   for (auto idAndTransceiver : transceivers) {
-    if (*idAndTransceiver.second.present()) {
+    auto& tcvrState =
+        apache::thrift::can_throw(*idAndTransceiver.second.tcvrState());
+    if (*tcvrState.present()) {
       XLOG(INFO) << "Transceiver:" << idAndTransceiver.first
                  << " before hard reset, power control="
                  << apache::thrift::util::enumNameSafe(
-                        *idAndTransceiver.second.settings()->powerControl());
-      auto transmitterTech =
-          *idAndTransceiver.second.cable().value_or({}).transmitterTech();
+                        *tcvrState.settings()->powerControl());
+      auto transmitterTech = *tcvrState.cable().value_or({}).transmitterTech();
       if (transmitterTech == TransmitterTechnology::COPPER) {
         EXPECT_TRUE(
-            *idAndTransceiver.second.settings()->powerControl() ==
+            *tcvrState.settings()->powerControl() ==
             PowerControlState::POWER_SET_BY_HW);
       } else {
         EXPECT_TRUE(
-            *idAndTransceiver.second.settings()->powerControl() ==
+            *tcvrState.settings()->powerControl() ==
                 PowerControlState::POWER_OVERRIDE ||
-            *idAndTransceiver.second.settings()->powerControl() ==
+            *tcvrState.settings()->powerControl() ==
                 PowerControlState::HIGH_POWER_OVERRIDE);
       }
     }
@@ -83,7 +84,9 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
       transceiversAfterReset, getExpectedLegacyTransceiverIds());
   // Assert that we can detect all transceivers again
   for (auto idAndTransceiver : transceivers) {
-    if (*idAndTransceiver.second.present()) {
+    auto& tcvrState =
+        apache::thrift::can_throw(*idAndTransceiver.second.tcvrState());
+    if (*tcvrState.present()) {
       XLOG(DBG2) << "Checking that transceiver : " << idAndTransceiver.first
                  << " was detected after reset";
       auto titr = transceiversAfterReset.find(idAndTransceiver.first);
@@ -93,12 +96,12 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
       XLOG(INFO) << "Transceiver:" << idAndTransceiver.first
                  << " before hard reset, power control="
                  << apache::thrift::util::enumNameSafe(
-                        *idAndTransceiver.second.settings()->powerControl())
+                        *tcvrState.settings()->powerControl())
                  << ", after hard reset, power control="
                  << apache::thrift::util::enumNameSafe(
                         *titr->second.settings()->powerControl());
       EXPECT_EQ(
-          *idAndTransceiver.second.settings()->powerControl(),
+          *tcvrState.settings()->powerControl(),
           *titr->second.settings()->powerControl());
     }
   }
@@ -117,12 +120,13 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
     EXPECT_EVENTUALLY_GT(transceivers.size(), 0);
 
     for (auto idAndTransceiver : transceivers) {
-      if (*idAndTransceiver.second.present()) {
-        auto mgmtInterface =
-            idAndTransceiver.second.transceiverManagementInterface();
+      auto& tcvrState =
+          apache::thrift::can_throw(*idAndTransceiver.second.tcvrState());
+      if (*tcvrState.present()) {
+        auto mgmtInterface = tcvrState.transceiverManagementInterface();
         CHECK(mgmtInterface);
         if (mgmtInterface == TransceiverManagementInterface::CMIS) {
-          auto state = idAndTransceiver.second.status()->cmisModuleState();
+          auto state = tcvrState.status()->cmisModuleState();
           CHECK(state);
           EXPECT_EVENTUALLY_EQ(state, CmisModuleState::READY)
               << "Cmis module not ready on tcvr " << idAndTransceiver.first;
@@ -149,9 +153,10 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
   // Validate that cmisStateChanged is 0 before running the test
   // TODO: also add check for SFF modules' PowerControl field
   for (auto idAndTransceiver : transceivers) {
-    if (*idAndTransceiver.second.present()) {
-      auto mgmtInterface =
-          idAndTransceiver.second.transceiverManagementInterface();
+    auto& tcvrState =
+        apache::thrift::can_throw(*idAndTransceiver.second.tcvrState());
+    if (*tcvrState.present()) {
+      auto mgmtInterface = tcvrState.transceiverManagementInterface();
       CHECK(mgmtInterface);
       if (*mgmtInterface == TransceiverManagementInterface::SFF ||
           *mgmtInterface == TransceiverManagementInterface::SFF8472) {
@@ -181,7 +186,9 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
   // Check that CMIS modules have cmisStateChanged flag set after reset
   // TODO: also add check for SFF modules' PowerControl field
   for (auto idAndTransceiver : transceivers) {
-    if (*idAndTransceiver.second.present()) {
+    auto& tcvrState =
+        apache::thrift::can_throw(*idAndTransceiver.second.tcvrState());
+    if (*tcvrState.present()) {
       auto titr = transceiversAfterReset.find(idAndTransceiver.first);
       EXPECT_TRUE(titr != transceiversAfterReset.end());
       auto mgmtInterface = titr->second.transceiverManagementInterface();
