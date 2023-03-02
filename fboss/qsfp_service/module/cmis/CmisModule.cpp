@@ -698,14 +698,16 @@ TransceiverSettings CmisModule::getTransceiverSettingsInfo() {
       std::vector<MediaLaneSettings>(numMediaLanes());
   settings.hostLaneSettings() = std::vector<HostLaneSettings>(numHostLanes());
 
-  if (!getMediaLaneSettings(*(settings.mediaLaneSettings()))) {
-    settings.mediaLaneSettings()->clear();
-    settings.mediaLaneSettings().reset();
-  }
+  if (!flatMem_) {
+    if (!getMediaLaneSettings(*(settings.mediaLaneSettings()))) {
+      settings.mediaLaneSettings()->clear();
+      settings.mediaLaneSettings().reset();
+    }
 
-  if (!getHostLaneSettings(*(settings.hostLaneSettings()))) {
-    settings.hostLaneSettings()->clear();
-    settings.hostLaneSettings().reset();
+    if (!getHostLaneSettings(*(settings.hostLaneSettings()))) {
+      settings.hostLaneSettings()->clear();
+      settings.hostLaneSettings().reset();
+    }
   }
 
   settings.mediaInterface() = std::vector<MediaInterfaceId>(numMediaLanes());

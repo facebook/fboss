@@ -39,8 +39,11 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
       // TODO: Nothing to verify for sff8472 modules
       continue;
     } else if (mgmtInterface == TransceiverManagementInterface::CMIS) {
-      moduleFactor.applicationCode() =
-          *mediaIntefaces[0].media()->smfCode_ref();
+      auto& cable = apache::thrift::can_throw(*tcvrState.cable());
+      if (cable.transmitterTech() != TransmitterTechnology::COPPER) {
+        moduleFactor.applicationCode() =
+            *mediaIntefaces[0].media()->smfCode_ref();
+      }
     } else {
       EXPECT_TRUE(mgmtInterface == TransceiverManagementInterface::SFF);
     }
