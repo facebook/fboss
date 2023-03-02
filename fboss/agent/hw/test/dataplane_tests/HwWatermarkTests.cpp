@@ -350,7 +350,7 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
         minPktsForLineRate / 2);
     sendUdpPkts(
         utility::kOlympicQueueToDscp().at(utility::kOlympicGoldQueueId).front(),
-        kDestIp2(),
+        kDestIp1(),
         minPktsForLineRate / 2);
     getHwSwitchEnsemble()->waitForLineRateOnPort(
         masterLogicalInterfacePortIds()[0]);
@@ -360,24 +360,36 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
       return;
     }
 
-    // Now we are at line rate on port, get queue watermark
-    auto queueWaterMarks =
-        getQueueWatermarks(masterLogicalInterfacePortIds()[0]);
-    // Get device watermark
+    std::map<int16_t, int64_t> queueWaterMarks;
+    auto queueWatermarkNonZero = [&]() {
+      if (queueWaterMarks.at(utility::kOlympicSilverQueueId) ||
+          queueWaterMarks.at(utility::kOlympicGoldQueueId)) {
+        return true;
+      }
+      return false;
+    };
+    auto updatePortOrSysportStats = [&]() {
+      queueWaterMarks = getQueueWatermarks(
+          masterLogicalInterfacePortIds()[0], false /*isOqueue*/);
+    };
+
+    // Now we are at line rate on port, make sure that queue
+    // watermark is non-zero!
+    EXPECT_TRUE(getHwSwitchEnsemble()->waitStatsCondition(
+        queueWatermarkNonZero,
+        updatePortOrSysportStats,
+        10,
+        std::chrono::milliseconds(500)));
+
+    // Get device watermark now, so that it is > highest queue watermark!
     auto deviceWaterMark =
         getHwSwitchEnsemble()->getHwSwitch()->getDeviceWatermarkBytes();
-    XLOG(DBG0) << "For port: " << masterLogicalInterfacePortIds()[0] << " Queue"
-               << utility::kOlympicSilverQueueId << " watermark: "
+    XLOG(DBG2) << "For port: " << masterLogicalInterfacePortIds()[0]
+               << ", Queue" << utility::kOlympicSilverQueueId << " watermark: "
                << queueWaterMarks.at(utility::kOlympicSilverQueueId)
                << ", Queue" << utility::kOlympicGoldQueueId << " watermark: "
                << queueWaterMarks.at(utility::kOlympicGoldQueueId)
                << ", Device watermark: " << deviceWaterMark;
-
-    // Make sure that queue watermark is non zero
-    EXPECT_GT(
-        queueWaterMarks.at(utility::kOlympicSilverQueueId) +
-            queueWaterMarks.at(utility::kOlympicGoldQueueId),
-        0);
 
     // Make sure that device watermark is > highest queue watermark
     EXPECT_GT(
