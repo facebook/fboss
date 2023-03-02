@@ -121,30 +121,38 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       bool expectZero,
       int retries,
       bool isVoq) {
-    do {
-      auto queueWaterMarks = getQueueWatermarks(port, isVoq);
-      auto portName =
-          getProgrammedState()->getPorts()->getPort(port)->getName();
-      XLOG(DBG0) << "Port: " << portName << " queueId: " << queueId
+    std::map<int16_t, int64_t> queueWaterMarks;
+    auto portName = getProgrammedState()->getPorts()->getPort(port)->getName();
+    auto queueTypeStr = isVoq ? " voq queueId: " : " queueId: ";
+    auto watermarkStatsCheck = [&]() {
+      XLOG(DBG2) << "Port: " << portName << queueTypeStr << queueId
                  << " Watermark: " << queueWaterMarks[queueId];
-
-      auto watermarkAsExpected = (expectZero && !queueWaterMarks[queueId]) ||
-          (!expectZero && queueWaterMarks[queueId]);
-      if (watermarkAsExpected) {
-        XLOG(DBG0) << "Port: " << portName << " queueId: " << queueId
-                   << " got expected watermarks of "
-                   << queueWaterMarks[queueId];
-        // Check fb303
-        checkFb303BufferWatermarkUcast(port, queueId, isVoq);
+      if ((expectZero && !queueWaterMarks[queueId]) ||
+          (!expectZero && queueWaterMarks[queueId])) {
         return true;
       }
-      XLOG(DBG0) << " Retry ...";
-      sleep(1);
-    } while (--retries > 0);
-    auto expectation = expectZero ? "zero" : "non-zero";
-    XLOG(DBG2) << " Did not get expected " << expectation
-               << " watermark value!";
-    return false;
+      return false;
+    };
+
+    auto updatePortOrSysportStats = [&]() {
+      queueWaterMarks = getQueueWatermarks(port, isVoq);
+    };
+    auto statsConditionMet = getHwSwitchEnsemble()->waitStatsCondition(
+        watermarkStatsCheck,
+        updatePortOrSysportStats,
+        retries,
+        std::chrono::milliseconds(1000));
+    if (!statsConditionMet) {
+      auto expectation = expectZero ? "zero" : "non-zero";
+      XLOG(DBG2) << " Did not get expected " << expectation
+                 << " watermark value!";
+    } else {
+      XLOG(DBG2) << "Port: " << portName << queueTypeStr << queueId
+                 << " got expected watermarks of " << queueWaterMarks[queueId];
+    }
+    // Check fb303
+    checkFb303BufferWatermarkUcast(port, queueId, isVoq);
+    return statsConditionMet;
   }
 
   uint64_t getMinDeviceWatermarkValue() {
