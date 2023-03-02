@@ -29,10 +29,11 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
   // Validate settings in QSFP config
   for (const auto& tcvr : transceivers) {
     auto transceiver = tcvr.second;
-    auto mgmtInterface = apache::thrift::can_throw(
-        *transceiver.transceiverManagementInterface());
+    auto& tcvrState = *transceiver.tcvrState();
+    auto mgmtInterface =
+        apache::thrift::can_throw(*tcvrState.transceiverManagementInterface());
     cfg::TransceiverConfigOverrideFactor moduleFactor;
-    auto settings = apache::thrift::can_throw(*transceiver.settings());
+    auto settings = apache::thrift::can_throw(*tcvrState.settings());
     auto mediaIntefaces = apache::thrift::can_throw(*settings.mediaInterface());
     if (mgmtInterface == TransceiverManagementInterface::SFF8472) {
       // TODO: Nothing to verify for sff8472 modules
@@ -57,7 +58,7 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
             for (const auto& setting : hostSettings) {
               XLOG(DBG2) << folly::sformat(
                   "Module : {:d}, Settings in the configuration : {:d}, {:d}, {:d}, Settings programmed in the module : {:d}, {:d}, {:d}",
-                  *transceiver.port(),
+                  *tcvrState.port(),
                   *(*rxEqSetting).preCursor(),
                   *(*rxEqSetting).postCursor(),
                   *(*rxEqSetting).mainAmplitude(),
@@ -75,7 +76,7 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
             for (const auto& setting : hostSettings) {
               XLOG(DBG2) << folly::sformat(
                   "Module : {:d}, Preemphasis in the configuration : {:d}, Preemphasis programmed in the module : {:d}",
-                  *transceiver.port(),
+                  *tcvrState.port(),
                   *rxPreemphasis,
                   apache::thrift::can_throw(*setting.rxOutputEmphasis()));
               EXPECT_TRUE(
@@ -88,7 +89,7 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
             for (const auto& setting : hostSettings) {
               XLOG(DBG2) << folly::sformat(
                   "Module : {:d}, TxEqualization in the configuration : {:d}, TxEqualization programmed in the module : {:d}",
-                  *transceiver.port(),
+                  *tcvrState.port(),
                   *txEqualization,
                   apache::thrift::can_throw(*setting.txInputEqualization()));
               EXPECT_TRUE(
@@ -101,7 +102,7 @@ TEST_F(HwTransceiverConfigTest, moduleConfigVerification) {
             for (const auto& setting : hostSettings) {
               XLOG(DBG2) << folly::sformat(
                   "Module : {:d}, RxAmplitude in the configuration : {:d}, RxAmplitude programmed in the module : {:d}",
-                  *transceiver.port(),
+                  *tcvrState.port(),
                   *rxAmplitude,
                   apache::thrift::can_throw(*setting.rxOutputAmplitude()));
               EXPECT_TRUE(
