@@ -80,15 +80,24 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     }
   }
 
-  void
-  assertWatermark(PortID port, int queueId, bool expectZero, int retries = 1) {
-    EXPECT_TRUE(gotExpectedWatermark(port, queueId, expectZero, retries));
+  void assertWatermark(
+      PortID port,
+      int queueId,
+      bool expectZero,
+      int retries = 1,
+      bool isVoq = false) {
+    EXPECT_TRUE(
+        gotExpectedWatermark(port, queueId, expectZero, retries, isVoq));
   }
 
-  bool
-  gotExpectedWatermark(PortID port, int queueId, bool expectZero, int retries) {
+  bool gotExpectedWatermark(
+      PortID port,
+      int queueId,
+      bool expectZero,
+      int retries,
+      bool isVoq) {
     do {
-      auto queueWaterMarks = getQueueWatermarks(port);
+      auto queueWaterMarks = getQueueWatermarks(port, isVoq);
       auto portName =
           getProgrammedState()->getPorts()->getPort(port)->getName();
       XLOG(DBG0) << "Port: " << portName << " queueId: " << queueId
@@ -225,13 +234,13 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   void assertDeviceWatermark(bool expectZero, int retries = 1) {
     EXPECT_TRUE(gotExpectedDeviceWatermark(expectZero, retries));
   }
-  void runTest(int queueId) {
+  void runTest(int queueId, bool isVoq = false) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
       return;
     }
 
     auto setup = [this]() { programRoutes(); };
-    auto verify = [this, queueId]() {
+    auto verify = [this, queueId, isVoq]() {
       auto dscpsForQueue = utility::kOlympicQueueToDscp().find(queueId)->second;
       for (auto portAndIp : getPort2DstIp()) {
         auto portName = getProgrammedState()
@@ -255,16 +264,19 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
         };
 
         // Assert zero watermark
-        assertWatermark(portAndIp.first, queueId, true /*expectZero*/, 2);
+        assertWatermark(
+            portAndIp.first, queueId, true /*expectZero*/, 2, isVoq);
         // Send traffic
         sendUdpPkts(dscpsForQueue[0], portAndIp.second);
         // Assert non zero watermark
-        assertWatermark(portAndIp.first, queueId, false /*expectZero*/, 2);
+        assertWatermark(
+            portAndIp.first, queueId, false /*expectZero*/, 2, isVoq);
         // Wait for watermarks in fb303
         EXPECT_TRUE(getHwSwitchEnsemble()->waitStatsCondition(
             fb303BufferWatermarkUcastNonZero, [] {}));
         // Assert zero watermark
-        assertWatermark(portAndIp.first, queueId, true /*expectZero*/, 5);
+        assertWatermark(
+            portAndIp.first, queueId, true /*expectZero*/, 5, isVoq);
       }
     };
     verifyAcrossWarmBoots(setup, verify);
