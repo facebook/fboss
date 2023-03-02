@@ -63,10 +63,18 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectPresence) {
                  << apache::thrift::util::enumNameSafe(
                         *tcvrState.settings()->powerControl());
       auto transmitterTech = *tcvrState.cable().value_or({}).transmitterTech();
+      auto mgmtInterface = apache::thrift::can_throw(
+          *tcvrState.transceiverManagementInterface());
       if (transmitterTech == TransmitterTechnology::COPPER) {
-        EXPECT_TRUE(
-            *tcvrState.settings()->powerControl() ==
-            PowerControlState::POWER_SET_BY_HW);
+        if (mgmtInterface == TransceiverManagementInterface::CMIS) {
+          EXPECT_TRUE(
+              *tcvrState.settings()->powerControl() ==
+              PowerControlState::HIGH_POWER_OVERRIDE);
+        } else {
+          EXPECT_TRUE(
+              *tcvrState.settings()->powerControl() ==
+              PowerControlState::POWER_SET_BY_HW);
+        }
       } else {
         EXPECT_TRUE(
             *tcvrState.settings()->powerControl() ==
@@ -191,7 +199,11 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
     if (*tcvrState.present()) {
       auto titr = transceiversAfterReset.find(idAndTransceiver.first);
       EXPECT_TRUE(titr != transceiversAfterReset.end());
-      auto mgmtInterface = titr->second.transceiverManagementInterface();
+      auto& tcvrStateAfterReset =
+          apache::thrift::can_throw(*titr->second.tcvrState());
+      auto mgmtInterface = tcvrStateAfterReset.transceiverManagementInterface();
+      auto transmitterTech =
+          *tcvrStateAfterReset.cable().value_or({}).transmitterTech();
       CHECK(mgmtInterface);
       if (*mgmtInterface == TransceiverManagementInterface::SFF ||
           *mgmtInterface == TransceiverManagementInterface::SFF8472) {
@@ -199,7 +211,9 @@ TEST_F(HwTransceiverResetTest, resetTranscieverAndDetectStateChanged) {
         auto status = moduleStatuses[idAndTransceiver.first];
         auto stateChanged = status.cmisStateChanged();
         CHECK(stateChanged);
-        EXPECT_TRUE(*stateChanged)
+        // Copper cables don't set the state changed flag
+        EXPECT_TRUE(
+            *stateChanged == (transmitterTech != TransmitterTechnology::COPPER))
             << " Failed comparison for transceiver " << idAndTransceiver.first;
       } else {
         throw FbossError(
