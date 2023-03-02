@@ -17,8 +17,9 @@
 
 using namespace facebook::fboss;
 
-constexpr int kStartTtl = 2;
+constexpr int kStartTtl = 3;
 const folly::IPAddressV6 kIPv6Dst = folly::IPAddressV6("2::1"); // arbit
+const auto kSrcMac = folly::MacAddress{"00:00:00:00:01:03"}; // arbit
 
 class PtpTests : public LinkTest {
  public:
@@ -39,15 +40,13 @@ class PtpTests : public LinkTest {
     }
     auto vlanId = *vlan;
     const auto dstMac = sw()->getPlatform()->getLocalMac();
-    const auto srcMac = folly::MacAddress{"00:00:00:00:01:03"}; // arbit
-
     auto intf = sw()->getState()->getInterfaces()->getInterfaceInVlan(vlanId);
 
     auto srcIp = folly::IPAddressV6("1::1"); // arbit
     auto txPacket = utility::makePTPTxPacket(
         sw()->getHw(),
         vlanId,
-        srcMac,
+        kSrcMac,
         dstMac,
         srcIp,
         kIPv6Dst,
@@ -96,6 +95,8 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
       getVlanOwningCabledPorts(), PTPMessageType::PTP_DELAY_REQUEST);
 
   bool validated = false;
+  auto localMac = sw()->getPlatform()->getLocalMac();
+
   while (true) {
     auto pktBufOpt = snooper.waitForPacket(10 /* seconds */);
     ASSERT_TRUE(pktBufOpt.has_value());
@@ -116,12 +117,21 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
     pktCursor.reset(&pktBuf);
     auto hopLimit = utility::getIpHopLimit(pktCursor);
 
+    pktCursor.reset(&pktBuf);
+    EthHdr ethHdr(pktCursor);
+    auto srcMac = ethHdr.getSrcMac();
+    auto dstMac = ethHdr.getDstMac();
+
     if (hopLimit == kStartTtl) {
       // this is the original pkt, and has no timestamp on it
       EXPECT_EQ(correctionField, 0);
       XLOG(DBG2)
           << "PTP packet found with CorrectionField (CF) set to 0 with hop limit : "
           << kStartTtl;
+
+      // Original packet should have the same src and dst mac as we sent out
+      EXPECT_EQ(srcMac, kSrcMac);
+      EXPECT_EQ(dstMac, localMac);
     } else {
       EXPECT_GT(correctionField, 0);
       // nano secs is first 48-bits, last 16 bits is subnano secs (remove it)
@@ -129,9 +139,16 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
       XLOG(DBG2) << "PTP packet found with CorrectionField (CF) set "
                  << std::hex << cfInNsecs << ", ttl: " << hopLimit;
       // CF for first pkt is ~800nsecs for BCM and ~1.7 msecs for Tajo
-      EXPECT_LT(cfInNsecs, 2000);
+      // Also account for loopback multiple times
+      EXPECT_LT(cfInNsecs, 2000 * (kStartTtl - hopLimit));
+
+      // Both src and mac address should be local mac
+      EXPECT_EQ(srcMac, localMac);
+      EXPECT_EQ(dstMac, localMac);
       validated = true;
-      break;
+      if (hopLimit == 1) {
+        break;
+      }
     }
   }
 
