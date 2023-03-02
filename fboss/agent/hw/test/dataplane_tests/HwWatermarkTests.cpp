@@ -240,18 +240,6 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       sendUdpPkt(dscpVal, dstIp, payloadSize, port);
     }
   }
-  void programRoutes() {
-    for (auto portAndIp : getPort2DstIp()) {
-      auto portDesc = PortDescriptor(portAndIp.first);
-      utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState()};
-      applyNewState(
-          ecmpHelper6.resolveNextHops(getProgrammedState(), {portDesc}));
-      ecmpHelper6.programRoutes(
-          getRouteUpdater(),
-          {portDesc},
-          {Route<folly::IPAddressV6>::Prefix{portAndIp.second, 128}});
-    }
-  }
 
   void disableTTLDecrements(
       const utility::EcmpSetupTargetedPorts6& ecmpHelper,
@@ -261,9 +249,13 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
         getHwSwitch(), ecmpHelper.getRouterId(), nextHop);
   }
 
-  void _setup(bool disableTtlDecrement = false) {
+  void _setup(bool needTrafficLoop = false) {
     auto intfMac = utility::getFirstInterfaceMac(initialConfig());
-    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState(), intfMac};
+    std::optional<folly::MacAddress> macAddr{};
+    if (needTrafficLoop) {
+      macAddr = intfMac;
+    }
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState(), macAddr};
     for (auto portAndIp : getPort2DstIp()) {
       auto portDesc = PortDescriptor(portAndIp.first);
       applyNewState(
@@ -272,7 +264,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
           getRouteUpdater(),
           {portDesc},
           {Route<folly::IPAddressV6>::Prefix{portAndIp.second, 128}});
-      if (disableTtlDecrement) {
+      if (needTrafficLoop) {
         disableTTLDecrements(ecmpHelper6, portDesc);
       }
     }
@@ -286,7 +278,10 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       return;
     }
 
-    auto setup = [this]() { programRoutes(); };
+    auto setup = [this]() {
+      // Just need the routes / adjacencies installed, no loop desired!
+      _setup(false /*needTrafficLoop*/);
+    };
     auto verify = [this, queueId]() {
       auto dscpsForQueue = utility::kOlympicQueueToDscp().find(queueId)->second;
       for (auto portAndIp : getPort2DstIp()) {
