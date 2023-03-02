@@ -253,21 +253,28 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
     }
   }
 
-  void disableTTLDecrements() {
-    auto intfMac = utility::getFirstInterfaceMac(initialConfig());
-    const utility::EcmpSetupTargetedPorts6 ecmpHelper6{
-        getProgrammedState(), intfMac};
+  void disableTTLDecrements(
+      const utility::EcmpSetupTargetedPorts6& ecmpHelper,
+      const PortDescriptor& portDesc) {
+    const auto& nextHop = ecmpHelper.nhop(portDesc);
     utility::ttlDecrementHandlingForLoopbackTraffic(
-        getHwSwitch(), ecmpHelper6.getRouterId(), ecmpHelper6.getNextHops()[0]);
+        getHwSwitch(), ecmpHelper.getRouterId(), nextHop);
   }
 
   void _setup(bool disableTtlDecrement = false) {
     auto intfMac = utility::getFirstInterfaceMac(initialConfig());
-    auto kEcmpWidthForTest = 1;
-    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), intfMac};
-    resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
-    if (disableTtlDecrement) {
-      disableTTLDecrements();
+    utility::EcmpSetupTargetedPorts6 ecmpHelper6{getProgrammedState(), intfMac};
+    for (auto portAndIp : getPort2DstIp()) {
+      auto portDesc = PortDescriptor(portAndIp.first);
+      applyNewState(
+          ecmpHelper6.resolveNextHops(getProgrammedState(), {portDesc}));
+      ecmpHelper6.programRoutes(
+          getRouteUpdater(),
+          {portDesc},
+          {Route<folly::IPAddressV6>::Prefix{portAndIp.second, 128}});
+      if (disableTtlDecrement) {
+        disableTTLDecrements(ecmpHelper6, portDesc);
+      }
     }
   }
 
