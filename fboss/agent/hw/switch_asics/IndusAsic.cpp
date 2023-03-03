@@ -71,6 +71,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
+    case HwAsic::Feature::RESOURCE_USAGE_STATS:
       return true;
 
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
@@ -113,7 +114,6 @@ bool IndusAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
     // TODO - get the features working on Indus ASIC
     case HwAsic::Feature::DEBUG_COUNTER:
-    case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::FABRIC_PORT_MTU:
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
