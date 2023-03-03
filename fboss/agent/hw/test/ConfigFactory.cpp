@@ -268,6 +268,15 @@ void securePortsInConfig(
   }
 }
 
+std::vector<cfg::PortQueue> getFabTxQueueConfig() {
+  cfg::PortQueue fabQueue;
+  fabQueue.id() = 0;
+  fabQueue.name() = "fabric_q0";
+  fabQueue.streamType() = cfg::StreamType::FABRIC_TX;
+  fabQueue.scheduling() = cfg::QueueScheduling::INTERNAL;
+  return {fabQueue};
+}
+
 cfg::SwitchConfig genPortVlanCfg(
     const HwSwitch* hwSwitch,
     const std::vector<PortID>& ports,
@@ -300,6 +309,8 @@ cfg::SwitchConfig genPortVlanCfg(
     config.ports()->push_back(
         createDefaultPortConfig(hwSwitch->getPlatform(), portID, profileID));
   }
+  auto const kFabricTxQueueConfig = "FabricTxQueueConfig";
+  config.portQueueConfigs()[kFabricTxQueueConfig] = getFabTxQueueConfig();
 
   // Secure all ports in `ports` vector in the config
   securePortsInConfig(hwSwitch->getPlatform(), config, ports);
@@ -317,6 +328,11 @@ cfg::SwitchConfig genPortVlanCfg(
           : 0;
       portCfg->state() = enableFabricPorts ? cfg::PortState::ENABLED
                                            : cfg::PortState::DISABLED;
+
+      if (hwSwitch->getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::FABRIC_TX_QUEUES)) {
+        portCfg->portQueueConfigName() = kFabricTxQueueConfig;
+      }
     } else {
       portCfg->state() = cfg::PortState::ENABLED;
       portCfg->ingressVlan() = port2vlan.find(portID)->second;
