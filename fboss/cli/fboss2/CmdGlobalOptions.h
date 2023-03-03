@@ -413,6 +413,7 @@ class CmdGlobalOptions {
   int getMkaThriftPort() const {
     return mkaThriftPort_;
   }
+
   int getCoopThriftPort() const {
     return coopThriftPort_;
   }
@@ -423,6 +424,10 @@ class CmdGlobalOptions {
 
   int getSensorServiceThriftPort() const {
     return sensorServiceThriftPort_;
+  }
+
+  int getTeAgentThriftPort() const {
+    return teAgentThriftPort_;
   }
 
   int getDataCorralServiceThriftPort() const {
@@ -513,6 +518,7 @@ class CmdGlobalOptions {
   int bmcHttpPort_{8443};
   int rackmonThriftPort_{5973};
   int sensorServiceThriftPort_{5970};
+  int teAgentThriftPort_{2022};
   int dataCorralServiceThriftPort_{5971};
   int vipInjectorThriftPort_{3333};
   std::string color_{"yes"};
