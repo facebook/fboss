@@ -146,6 +146,68 @@ class BcmMmuTests : public BcmTest {
     applyNewConfig(cfg_);
   }
 
+  // we are looking to generate 35 ports.
+  // Explicitly Mark other ports in DISABLED state as we
+  // have. So 18 uplinks, 17 downlinks, rest all DISABLED
+  // There are 16 pipes and 8 pipes map to each ITM
+  // Downlink ports are on PIM {2,3} and pipe {0..7}
+  // Uplink ports are on PIM {8,9} and pipe {8..15}
+  // We pick 2 extra ports from PIM7 pipe {10,14} to get 18 uplinks
+  // We pick 1 extra port from PIM7 pipe 15 to get 17 downlinks
+  void setupPortsForGrandTeton(
+      cfg::SwitchConfig& cfg,
+      std::vector<PortID>& uplinkPorts,
+      std::vector<PortID>& downlinkPorts) {
+    std::set<int> downlinkPIMs = {2, 3};
+    std::set<int> uplinkPIMs = {8, 9};
+    int uplinkCount = 0;
+    int downlinkCount = 0;
+
+    // create map of pipe <-> ports
+    for (const auto& mp : masterLogicalPortIds()) {
+      auto bcmPort = getHwSwitch()->getPortTable()->getBcmPort(mp);
+      auto pim =
+          getHwSwitch()->getPlatform()->getPlatformMapping()->getPimID(mp);
+      auto pipe = bcmPort->getPipe();
+      if (downlinkPIMs.find(pim) != downlinkPIMs.end()) {
+        downlinkPorts.emplace_back(static_cast<PortID>(mp));
+        downlinkCount++;
+      } else if (pim == 7 && (pipe == 15)) {
+        // 1 extra downlink port from PIM7. This is for Be2FE RTSW<->RSW
+        // connection. This makes it 17 downlinks(16+1)
+        downlinkPorts.emplace_back(static_cast<PortID>(mp));
+        downlinkCount++;
+      } else if (uplinkPIMs.find(pim) != uplinkPIMs.end()) {
+        uplinkPorts.emplace_back(static_cast<PortID>(mp));
+        uplinkCount++;
+      } else if (pim == 7 && (pipe == 10 || pipe == 14)) {
+        // In addition to 1 extra link for Be2FE connection from PIM7,
+        // we use 2 extra uplink ports to make it 18 uplinks(16+2).
+        uplinkPorts.emplace_back(static_cast<PortID>(mp));
+        uplinkCount++;
+      } else {
+        // Disable rest of the ports
+        auto portCfg = utility::findCfgPort(cfg, mp);
+        portCfg->state() = cfg::PortState::DISABLED;
+      }
+    }
+
+    XLOG(INFO) << "downlink count: " << downlinkCount
+               << " uplink count: " << uplinkCount;
+  }
+
+  void setupGrandTetonConfig() {
+    std::vector<PortID> uplinkPorts, downlinkPorts;
+    cfg_ = initialConfig();
+    setupPortsForGrandTeton(cfg_, uplinkPorts, downlinkPorts);
+    utility::addUplinkDownlinkPfcConfig(
+        cfg_, getHwSwitch(), uplinkPorts, downlinkPorts);
+    // add cpu queues
+    addCpuQueues(cfg_);
+    // apply new config
+    applyNewConfig(cfg_);
+  }
+
  private:
   cfg::SwitchConfig cfg_;
 };
@@ -282,6 +344,30 @@ TEST_F(BcmMmuTests, ZionExMmuConfigMax) {
     EXPECT_GE(
         bcmPort->getIngressSharedBytes(pgId),
         utility::kGlobalSharedBufferCells(getHwSwitch()) * mmuBytesPerCell);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// intent of this test is to mimic GrandTeton port map
+// and ensure that production MMU cfg can be applied correctly
+// to fboss/SDK
+TEST_F(BcmMmuTests, GrandTetonMmuConfigMax) {
+  auto setup = [&]() { setupGrandTetonConfig(); };
+  auto verify = [&]() {
+    // validate that shared bytes is as expected or more on the
+    // given platform
+    // get first port in the list
+    if (getAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_FAKE) {
+      auto bcmPort =
+          getHwSwitch()->getPortTable()->getBcmPort(masterLogicalPortIds()[0]);
+      // get first pg
+      auto pgId = utility::kLosslessPgs(getHwSwitch())[0];
+      const int mmuBytesPerCell = getPlatform()->getMMUCellBytes();
+
+      EXPECT_GE(
+          bcmPort->getIngressSharedBytes(pgId),
+          utility::kGlobalSharedBufferCells(getHwSwitch()) * mmuBytesPerCell);
+    }
   };
   verifyAcrossWarmBoots(setup, verify);
 }

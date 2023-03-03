@@ -98,7 +98,10 @@ void modifyCfgForPfcTests(
     std::string toReplace("LOSSY");
     std::size_t pos = yamlCfg.find(toReplace);
     if (pos != std::string::npos) {
-      yamlCfg.replace(pos, toReplace.length(), "LOSSY_AND_LOSSLESS");
+      yamlCfg.replace(
+          pos,
+          toReplace.length(),
+          "LOSSY_AND_LOSSLESS\n      SKIP_BUFFER_RESERVATION: 1");
     }
   } else {
     cfg["mmu_lossless"] = "0x2";

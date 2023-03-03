@@ -20,10 +20,21 @@ std::vector<int> kLosslessPgs(const HwSwitch* hwSwitch) {
   auto mode = hwSwitch->getPlatform()->getMode();
   switch (mode) {
     case PlatformMode::FUJI:
-      return {6};
+      return {2};
     default:
       //  this is for fake bcm
       return {6, 7};
+  }
+}
+
+std::vector<int> kLossyPgs(const HwSwitch* hwSwitch) {
+  auto mode = hwSwitch->getPlatform()->getMode();
+  switch (mode) {
+    case PlatformMode::FUJI:
+      return {0, 6, 7};
+    default:
+      //  this is for fake bcm
+      return {};
   }
 }
 
@@ -40,6 +51,7 @@ int kGlobalSharedBufferCells(const HwSwitch* hwSwitch) {
       return 117436;
     // Using default value for FUJI till Buffer tuning value is finalized.
     case PlatformMode::FUJI:
+      return 203834;
     default:
       //  this is for fake bcm
       return 115196;
@@ -117,6 +129,19 @@ void enablePfcMapsConfig(cfg::SwitchConfig& cfg) {
   }
 }
 
+void createPortPgConfig(
+    const int& pgId,
+    const int mmuCellBytes,
+    cfg::PortPgConfig& pgConfig) {
+  CHECK_LE(pgId, cfg::switch_config_constants::PORT_PG_VALUE_MAX());
+  pgConfig.id() = pgId;
+  pgConfig.bufferPoolName() = "bufferNew";
+  // provide atleast 1 cell worth of minLimit
+  pgConfig.minLimitBytes() = kPgMinLimitCells() * mmuCellBytes;
+  pgConfig.scalingFactor() = cfg::MMUScalingFactor::ONE;
+  pgConfig.resumeOffsetBytes() = kPgResumeLimitCells() * mmuCellBytes;
+}
+
 void enablePgConfigConfig(
     cfg::SwitchConfig& cfg,
     const int mmuCellBytes,
@@ -127,17 +152,16 @@ void enablePgConfigConfig(
   for (const auto& [pgProfileName, useUplinkProfile] : pgProfileMap) {
     for (const auto& pgId : kLosslessPgs(hwSwitch)) {
       cfg::PortPgConfig pgConfig;
-      CHECK_LE(pgId, cfg::switch_config_constants::PORT_PG_VALUE_MAX());
-      pgConfig.id() = pgId;
-      pgConfig.bufferPoolName() = "bufferNew";
-      // provide atleast 1 cell worth of minLimit
-      pgConfig.minLimitBytes() = kPgMinLimitCells() * mmuCellBytes;
+      createPortPgConfig(pgId, mmuCellBytes, pgConfig);
       pgConfig.headroomLimitBytes() =
           (useUplinkProfile ? kUplinkPgHeadroomLimitCells(hwSwitch)
                             : kDownlinkPgHeadroomLimitCells(hwSwitch)) *
           mmuCellBytes;
-      pgConfig.scalingFactor() = cfg::MMUScalingFactor::ONE;
-      pgConfig.resumeOffsetBytes() = kPgResumeLimitCells() * mmuCellBytes;
+      portPgConfigs.emplace_back(pgConfig);
+    }
+    for (const auto& pgId : kLossyPgs(hwSwitch)) {
+      cfg::PortPgConfig pgConfig;
+      createPortPgConfig(pgId, mmuCellBytes, pgConfig);
       portPgConfigs.emplace_back(pgConfig);
     }
     portPgConfigMap.insert({pgProfileName, portPgConfigs});
