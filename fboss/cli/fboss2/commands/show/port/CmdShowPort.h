@@ -139,10 +139,6 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         std::to_string(static_cast<int>(operState)));
   }
 
-  std::string getSpeedGbps(int64_t speedMbps) {
-    return std::to_string(speedMbps / 1000) + "G";
-  }
-
   std::string getTransceiverStr(
       std::map<int32_t, facebook::fboss::TransceiverInfo>& transceiverEntries,
       int32_t transceiverId) {
@@ -175,7 +171,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         portDetails.name() = portInfo.get_name();
         portDetails.adminState() = getAdminStateStr(portInfo.get_adminState());
         portDetails.linkState() = operState;
-        portDetails.speed() = getSpeedGbps(portInfo.get_speedMbps());
+        portDetails.speed() = utils::getSpeedGbps(portInfo.get_speedMbps());
         portDetails.profileId() = portInfo.get_profileID();
         if (auto hwLogicalPortId = portInfo.hwLogicalPortId()) {
           portDetails.hwLogicalPortId() = *hwLogicalPortId;

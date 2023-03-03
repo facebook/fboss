@@ -60,21 +60,21 @@ TEST_F(CmdShowL2TestFixture, queryClient) {
   EXPECT_EQ(entries[0].get_port(), 45);
   EXPECT_EQ(entries[0].get_vlanID(), 1024);
   EXPECT_EQ(entries[0].get_trunk(), "-");
-  EXPECT_EQ(entries[0].get_type(), "VALIDATED");
+  EXPECT_EQ(entries[0].get_type(), "Validated");
   EXPECT_EQ(entries[0].get_classID(), "-");
 
   EXPECT_EQ(entries[1].get_mac(), "2e:dd:e9:88:b3:db");
   EXPECT_EQ(entries[1].get_port(), 36);
   EXPECT_EQ(entries[1].get_vlanID(), 3476);
   EXPECT_EQ(entries[1].get_trunk(), "1");
-  EXPECT_EQ(entries[1].get_type(), "VALIDATED");
+  EXPECT_EQ(entries[1].get_type(), "Validated");
   EXPECT_EQ(entries[1].get_classID(), "-");
 
   EXPECT_EQ(entries[2].get_mac(), "96:8e:d3:dd:0e:a2");
   EXPECT_EQ(entries[2].get_port(), 12);
   EXPECT_EQ(entries[2].get_vlanID(), 8649);
   EXPECT_EQ(entries[2].get_trunk(), "-");
-  EXPECT_EQ(entries[2].get_type(), "PENDING");
+  EXPECT_EQ(entries[2].get_type(), "Pending");
   EXPECT_EQ(entries[2].get_classID(), "1");
 }
 
@@ -89,9 +89,9 @@ TEST_F(CmdShowL2TestFixture, printOutput) {
   std::string expectOutput =
       " MAC Address        Port  Trunk  VLAN  Type       Class ID \n"
       "------------------------------------------------------------------\n"
-      " 02:90:fb:64:78:d2  45    -      1024  VALIDATED  -        \n"
-      " 2e:dd:e9:88:b3:db  36    1      3476  VALIDATED  -        \n"
-      " 96:8e:d3:dd:0e:a2  12    -      8649  PENDING    1        \n\n";
+      " 02:90:fb:64:78:d2  45    -      1024  Validated  -        \n"
+      " 2e:dd:e9:88:b3:db  36    1      3476  Validated  -        \n"
+      " 96:8e:d3:dd:0e:a2  12    -      8649  Pending    1        \n\n";
   EXPECT_EQ(output, expectOutput);
 }
 

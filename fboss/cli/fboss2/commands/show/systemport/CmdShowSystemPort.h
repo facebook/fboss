@@ -86,10 +86,6 @@ class CmdShowSystemPort
     return (adminState ? "Enabled" : "Disabled");
   }
 
-  std::string getSpeedGbps(int64_t speedMbps) {
-    return std::to_string(speedMbps / 1000) + "G";
-  }
-
   RetType createModel(
       std::map<int64_t, facebook::fboss::SystemPortThrift> systemPortEntries,
       const ObjectArgType& queriedSystemPorts) {
@@ -108,7 +104,7 @@ class CmdShowSystemPort
         systemPortDetails.adminState() =
             getAdminStateStr(systemPortInfo.get_enabled());
         systemPortDetails.speed() =
-            getSpeedGbps(systemPortInfo.get_speedMbps());
+            utils::getSpeedGbps(systemPortInfo.get_speedMbps());
         systemPortDetails.numVoqs() = systemPortInfo.get_numVoqs();
         systemPortDetails.qosPolicy() =
             (systemPortInfo.get_qosPolicy() ? *systemPortInfo.get_qosPolicy()

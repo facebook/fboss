@@ -63,7 +63,7 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
           : folly::to<std::string>(*entry.remoteSwitchId());
       table.addRow({
           *entry.localPort(),
-          removeFbDomains(*entry.remoteSwitchName()),
+          utils::removeFbDomains(*entry.remoteSwitchName()),
           remoteSwitchId,
           *entry.remotePortName(),
           folly::to<std::string>(*entry.remotePortId()),
@@ -71,14 +71,6 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
     }
 
     out << table << std::endl;
-  }
-
-  const std::string removeFbDomains(const std::string& hostname) {
-    // Simple helper function to remove FQDN
-    std::string host_copy = hostname;
-    const RE2 fb_domains(".facebook.com$|.tfbnw.net$");
-    RE2::Replace(&host_copy, fb_domains, "");
-    return host_copy;
   }
 
   RetType createModel(std::map<std::string, FabricEndpoint> fabricEntries) {

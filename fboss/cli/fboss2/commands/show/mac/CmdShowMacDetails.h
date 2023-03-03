@@ -40,17 +40,6 @@ class CmdShowMacDetails
     return createModel(entries, portEntries, aggPortentries);
   }
 
-  std::string getl2EntryTypeStr(L2EntryType l2EntryType) {
-    switch (l2EntryType) {
-      case L2EntryType::L2_ENTRY_TYPE_PENDING:
-        return "Pending";
-      case L2EntryType::L2_ENTRY_TYPE_VALIDATED:
-        return "Validated";
-      default:
-        return "Unknown";
-    }
-  }
-
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     constexpr auto fmtString = "{:<24}{:<19}{:<14}{:<19}{:<14}\n";
     out << fmt::format(
@@ -80,7 +69,8 @@ class CmdShowMacDetails
       l2Details.mac() = entry.get_mac();
       l2Details.port() = entry.get_port();
       l2Details.vlanID() = entry.get_vlanID();
-      l2Details.l2EntryType() = getl2EntryTypeStr(entry.get_l2EntryType());
+      l2Details.l2EntryType() =
+          utils::getl2EntryTypeStr(entry.get_l2EntryType());
       auto trunkPtr = entry.get_trunk();
       if (trunkPtr != nullptr) {
         l2Details.trunk() = *trunkPtr;

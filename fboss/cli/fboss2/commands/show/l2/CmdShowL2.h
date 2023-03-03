@@ -52,7 +52,7 @@ class CmdShowL2 : public CmdHandler<CmdShowL2, CmdShowL2Traits> {
       } else {
         l2Details.trunk() = "-";
       }
-      l2Details.type() = getTypeStr(entry.get_l2EntryType());
+      l2Details.type() = utils::getl2EntryTypeStr(entry.get_l2EntryType());
       if (auto classID = entry.get_classID()) {
         l2Details.classID() = folly::to<std::string>(*classID);
       } else {
@@ -77,18 +77,6 @@ class CmdShowL2 : public CmdHandler<CmdShowL2, CmdShowL2Traits> {
            folly::to<std::string>(l2Entry.get_classID())});
     }
     out << table << std::endl;
-  }
-
-  std::string getTypeStr(L2EntryType type) {
-    switch (type) {
-      case L2EntryType::L2_ENTRY_TYPE_PENDING:
-        return "PENDING";
-      case L2EntryType::L2_ENTRY_TYPE_VALIDATED:
-        return "VALIDATED";
-    }
-
-    throw std::runtime_error(
-        "Unsupported L2EntryType: " + std::to_string(static_cast<int>(type)));
   }
 };
 

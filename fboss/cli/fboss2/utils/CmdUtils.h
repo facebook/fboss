@@ -421,6 +421,9 @@ std::vector<int32_t> getPortIDList(
 std::string getUserInfo();
 std::string getAddrStr(network::thrift::BinaryAddress addr);
 std::string getAdminDistanceStr(AdminDistance adminDistance);
+const std::string removeFbDomains(const std::string& host);
+std::string getSpeedGbps(int64_t speedMbps);
+std::string getl2EntryTypeStr(L2EntryType l2EntryType);
 void setLogLevel(std::string logLevelStr);
 
 void logUsage(const CmdLogInfo& cmdLogInfo);

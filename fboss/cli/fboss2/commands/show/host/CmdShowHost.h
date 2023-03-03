@@ -70,7 +70,7 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
         hostDetails.queueID() = "Olympic";
       }
       std::string ndpEntryHostName =
-          removeFbDomains(NetworkUtil::getHostByAddr(ndpEntryAddr));
+          utils::removeFbDomains(NetworkUtil::getHostByAddr(ndpEntryAddr));
       if (ndpEntryHostName.empty()) {
         hostDetails.hostName() = ndpEntryAddr;
       } else {
@@ -80,7 +80,8 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
           ndpEntryPortInfoEntry != portInfoEntries.end()) {
         const auto& ndpEntryPortInfo = ndpEntryPortInfoEntry->second;
         hostDetails.portName() = ndpEntryPortInfo.get_name();
-        hostDetails.speed() = getSpeedGbps(ndpEntryPortInfo.get_speedMbps());
+        hostDetails.speed() =
+            utils::getSpeedGbps(ndpEntryPortInfo.get_speedMbps());
         hostDetails.fecMode() = ndpEntryPortInfo.get_fecMode();
         hostDetails.inErrors() =
             ndpEntryPortInfo.get_input().get_errors().get_errors();
@@ -145,17 +146,6 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
            folly::to<std::string>(hostEntry.get_outDiscards())});
     }
     out << table << std::endl;
-  }
-
-  const std::string removeFbDomains(const std::string& hostname) {
-    std::string host_copy = hostname;
-    const RE2 fb_domains(".facebook.com$|.tfbnw.net$");
-    RE2::Replace(&host_copy, fb_domains, "");
-    return host_copy;
-  }
-
-  const std::string getSpeedGbps(int64_t speedMbps) {
-    return std::to_string(speedMbps / 1000) + "G";
   }
 };
 

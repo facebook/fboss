@@ -242,6 +242,28 @@ std::string getAdminDistanceStr(AdminDistance adminDistance) {
       std::to_string(static_cast<int>(adminDistance)));
 }
 
+const std::string removeFbDomains(const std::string& host) {
+  std::string hostCopy = host;
+  const RE2 fbDomains(".facebook.com$|.tfbnw.net$");
+  RE2::Replace(&hostCopy, fbDomains, "");
+  return hostCopy;
+}
+
+std::string getSpeedGbps(int64_t speedMbps) {
+  return std::to_string(speedMbps / 1000) + "G";
+}
+
+std::string getl2EntryTypeStr(L2EntryType l2EntryType) {
+  switch (l2EntryType) {
+    case L2EntryType::L2_ENTRY_TYPE_PENDING:
+      return "Pending";
+    case L2EntryType::L2_ENTRY_TYPE_VALIDATED:
+      return "Validated";
+    default:
+      return "Unknown";
+  }
+}
+
 bool comparePortName(
     const std::basic_string<char>& nameA,
     const std::basic_string<char>& nameB) {
