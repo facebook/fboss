@@ -787,6 +787,36 @@ TEST_F(TransceiverStateMachineTest, programXphyFailed) {
       });
 }
 
+TEST_F(TransceiverStateMachineTest, readyTransceiver) {
+  auto allStates = getAllStates();
+  // Both IPHY_PORTS_PROGRAMMED and XPHY_PORTS_PROGRAMMED
+  // can accept PREPARE_TRANSCEIVER event
+  verifyStateMachine(
+      {TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED,
+       TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED},
+      TransceiverStateMachineEvent::PREPARE_TRANSCEIVER,
+      TransceiverStateMachineState::TRANSCEIVER_READY /* expected state */,
+      allStates,
+      [this]() {},
+      [this]() {
+        const auto& stateMachine =
+            transceiverManager_->getStateMachineForTesting(id_);
+        // Now isTransceiverProgrammed should be true
+        EXPECT_TRUE(stateMachine.get_attribute(isIphyProgrammed));
+        EXPECT_FALSE(stateMachine.get_attribute(isTransceiverProgrammed));
+        EXPECT_TRUE(stateMachine.get_attribute(needMarkLastDownTime));
+        EXPECT_FALSE(stateMachine.get_attribute(needResetDataPath));
+      },
+      TransceiverType::MOCK_CMIS);
+  // Other states should not change even though we try to process the event
+  verifyStateUnchanged(
+      TransceiverStateMachineEvent::PREPARE_TRANSCEIVER,
+      allStates,
+      []() {} /* preUpdate */,
+      []() {} /* verify */,
+      TransceiverType::MOCK_CMIS);
+}
+
 TEST_F(TransceiverStateMachineTest, programTransceiver) {
   auto allStates = getAllStates();
   // TRANSCEIVER_READY state can accept PROGRAM_TRANSCEIVER event
