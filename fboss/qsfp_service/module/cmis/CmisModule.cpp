@@ -1760,10 +1760,8 @@ void CmisModule::setApplicationCodeLocked(cfg::PortSpeed speed) {
       auto hostLanes = capabilityIter->second.hostLaneCount;
 
       for (int channel = 0; channel < hostLanes; channel++) {
-        // For now we don't have complicated lane assignment. Either using first
-        // four lanes for 100G/200G or all eight lanes for 400G.
-        uint8_t laneApSelCode = (channel < hostLanes) ? newApSelCode : 0;
-        writeCmisField(laneToAppSelField[channel], &laneApSelCode);
+        // Assign ApSel code to each lane
+        writeCmisField(laneToAppSelField[channel], &newApSelCode);
       }
       uint8_t applySet0 = (hostLanes == 8) ? 0xff : 0x0f;
 
