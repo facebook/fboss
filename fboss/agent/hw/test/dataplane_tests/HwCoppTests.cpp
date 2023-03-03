@@ -70,11 +70,10 @@ class HwCoppTest : public HwLinkStateDependentTest {
     if (isTrunk) {
       return getTrunkInitialConfig();
     }
-    auto cfg = utility::onePortPerInterfaceConfig(
+    auto cfg = utility::oneL3IntfConfig(
         getHwSwitch(),
-        masterLogicalPortIds(),
-        getAsic()->desiredLoopbackMode(),
-        true /*interfaceHasSubnet*/);
+        masterLogicalPortIds()[0],
+        getAsic()->desiredLoopbackMode());
     utility::addOlympicQosMaps(cfg);
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     utility::addCpuQueueConfig(cfg, getAsic());
@@ -333,8 +332,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = utility::firstVlanID(getProgrammedState());
-    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
     utility::sendTcpPkts(
         getHwSwitch(),
         numPktsToSend,
@@ -343,7 +342,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
         dstIpAddress,
         l4SrcPort,
         l4DstPort,
-        masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0],
+        masterLogicalPortIds()[0],
         trafficClass,
         payload);
   }
