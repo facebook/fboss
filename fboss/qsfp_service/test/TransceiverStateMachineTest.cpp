@@ -57,6 +57,7 @@ class MockSff8472Module : public Sff8472Module {
   MOCK_METHOD0(resetDataPath, void());
   MOCK_METHOD1(updateQsfpData, void(bool));
   MOCK_METHOD1(updateCachedTransceiverInfoLocked, void(ModuleStatus));
+  MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
 };
 
 /*
@@ -98,6 +99,7 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD1(updateQsfpData, void(bool));
   MOCK_METHOD1(updateCachedTransceiverInfoLocked, void(ModuleStatus));
   MOCK_CONST_METHOD0(ensureOutOfReset, void());
+  MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
 };
 
 /*
@@ -258,6 +260,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         // Use updateStateBlocking() to skip PhyManager check
         transceiverManager_->updateStateBlocking(
             id_, TransceiverStateMachineEvent::PROGRAM_XPHY);
+        break;
+      case TransceiverStateMachineState::TRANSCEIVER_READY:
         break;
       case TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED:
         programIphyAndXcvr();

@@ -582,6 +582,7 @@ enum TransceiverStateMachineState {
   ACTIVE = 6,
   INACTIVE = 7,
   UPGRADING = 8,
+  TRANSCEIVER_READY = 9,
 }
 
 enum TransceiverStateMachineEvent {
