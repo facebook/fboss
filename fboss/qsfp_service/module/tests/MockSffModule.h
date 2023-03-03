@@ -38,6 +38,8 @@ class MockSffModule : public SffModule {
       : SffModule(transceiverManager, std::move(qsfpImpl)) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
+    ON_CALL(*this, ensureTransceiverReadyLocked())
+        .WillByDefault(testing::Return(true));
   }
   MOCK_METHOD1(setPowerOverrideIfSupportedLocked, void(PowerControlState));
   MOCK_METHOD1(updateQsfpData, void(bool));

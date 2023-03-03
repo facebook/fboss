@@ -29,9 +29,12 @@ class MockCmisModule : public CmisModule {
       // on read register
       return (++moduleStateChangedReadTimes_) == 1;
     });
+    ON_CALL(*this, ensureTransceiverReadyLocked())
+        .WillByDefault(testing::Return(true));
   }
 
   MOCK_METHOD0(getModuleStateChanged, bool());
+  MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
 
  private:
   uint8_t moduleStateChangedReadTimes_{0};

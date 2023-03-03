@@ -42,6 +42,8 @@ class MockSff8472Module : public Sff8472Module {
       : Sff8472Module(transceiverManager, std::move(qsfpImpl)) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
+    ON_CALL(*this, ensureTransceiverReadyLocked())
+        .WillByDefault(testing::Return(true));
   }
 
   MockSff8472TransceiverImpl* getTransceiverImpl() {
@@ -83,6 +85,8 @@ class MockCmisModule : public CmisModule {
       : CmisModule(transceiverManager, std::move(qsfpImpl)) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
+    ON_CALL(*this, ensureTransceiverReadyLocked())
+        .WillByDefault(testing::Return(true));
   }
 
   MockCmisTransceiverImpl* getTransceiverImpl() {
