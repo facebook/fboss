@@ -30,6 +30,9 @@ class PortStoreTest : public SaiStoreTest {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
           std::nullopt, std::nullopt,
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+          std::nullopt, // Port Fabric Isolate
+#endif
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, // Ingress Mirror Session
@@ -191,6 +194,23 @@ TEST_F(PortStoreTest, portSetMtu) {
       portId, SaiPortTraits::Attributes::Mtu{});
   EXPECT_EQ(apiMtu, kMtu);
 }
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+TEST_F(PortStoreTest, portFabricIsolate) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+  EXPECT_EQ(GET_OPT_ATTR(Port, FabricIsolate, portObj.attributes()), false);
+  auto newAttrs = makeAttrs(0, 25000);
+  constexpr bool kFabricIsolate{true};
+  std::get<std::optional<SaiPortTraits::Attributes::Mtu>>(newAttrs) =
+      kFabricIsolate;
+  portObj.setAttributes(newAttrs);
+  EXPECT_EQ(
+      GET_OPT_ATTR(Port, FabricIsolate, portObj.attributes()), kFabricIsolate);
+  auto apiFabricIsolate = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::FabricIsolate{});
+  EXPECT_EQ(apiFabricIsolate, kFabricIsolate);
+}
+#endif
 
 TEST_F(PortStoreTest, portSetQoSMaps) {
   auto portId = createPort(0);

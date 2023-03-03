@@ -36,6 +36,9 @@ class PortApiTest : public ::testing::Test {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
           std::nullopt, std::nullopt,
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+          std::nullopt, // Port Fabric Isolate
+#endif
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, // Ingress Mirror Session
@@ -320,6 +323,12 @@ TEST_F(PortApiTest, setGetOptionalAttributes) {
   auto gotInterFrameGap =
       portApi->getAttribute(portId, SaiPortTraits::Attributes::InterFrameGap{});
   EXPECT_EQ(interFrameGap, gotInterFrameGap);
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+  // Port Fabric Isolate
+  SaiPortTraits::Attributes::FabricIsolate fabricIsolate_attr(true);
+  portApi->setAttribute(portId, fabricIsolate_attr);
+  EXPECT_EQ(portApi->getAttribute(portId, fabricIsolate_attr), true);
 #endif
 }
 

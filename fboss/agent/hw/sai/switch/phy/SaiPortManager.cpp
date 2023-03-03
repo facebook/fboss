@@ -248,6 +248,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
         useExtendedFec, extendedFecMode,
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+        std::nullopt, // Port Fabric Isolate
+#endif
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
         std::nullopt, std::nullopt, std::nullopt, intfType, std::nullopt,
         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,

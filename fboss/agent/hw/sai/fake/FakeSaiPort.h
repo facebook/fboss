@@ -33,6 +33,7 @@ struct FakePort {
   bool useExtendedFec{false};
   sai_port_fec_mode_extended_t extendedFecMode{SAI_PORT_FEC_MODE_EXTENDED_NONE};
 #endif
+  bool fabricIsolate{false};
   sai_port_internal_loopback_mode_t internalLoopbackMode{
       SAI_PORT_INTERNAL_LOOPBACK_MODE_NONE};
   sai_port_flow_control_mode_t globalFlowControlMode{

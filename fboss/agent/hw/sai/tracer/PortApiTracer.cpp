@@ -54,6 +54,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap {
       SAI_ATTR_MAP(Port, PortLoopbackMode), SAI_ATTR_MAP(Port, UseExtendedFec),
       SAI_ATTR_MAP(Port, ExtendedFecMode),
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+      SAI_ATTR_MAP(Port, FabricIsolate),
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
       SAI_ATTR_MAP(Port, RxSignalDetect), SAI_ATTR_MAP(Port, RxLockStatus),
       SAI_ATTR_MAP(Port, FecAlignmentLock), SAI_ATTR_MAP(Port, PcsRxLinkStatus),

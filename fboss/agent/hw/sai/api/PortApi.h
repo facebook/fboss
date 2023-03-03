@@ -67,6 +67,10 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_INTERNAL_LOOPBACK_MODE,
         sai_int32_t,
         SaiIntDefault<sai_int32_t>>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+    using FabricIsolate =
+        SaiAttribute<EnumType, SAI_PORT_ATTR_FABRIC_ISOLATE, bool>;
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     using PortLoopbackMode = SaiAttribute<
         EnumType,
@@ -304,6 +308,9 @@ struct SaiPortTraits {
       std::optional<Attributes::UseExtendedFec>,
       std::optional<Attributes::ExtendedFecMode>,
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+      std::optional<Attributes::FabricIsolate>,
+#endif
       std::optional<Attributes::InternalLoopbackMode>,
       std::optional<Attributes::MediaType>,
       std::optional<Attributes::GlobalFlowControlMode>,
@@ -381,6 +388,9 @@ SAI_ATTRIBUTE_NAME(Port, InternalLoopbackMode)
 SAI_ATTRIBUTE_NAME(Port, PortLoopbackMode)
 SAI_ATTRIBUTE_NAME(Port, UseExtendedFec)
 SAI_ATTRIBUTE_NAME(Port, ExtendedFecMode)
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+SAI_ATTRIBUTE_NAME(Port, FabricIsolate)
 #endif
 SAI_ATTRIBUTE_NAME(Port, MediaType)
 SAI_ATTRIBUTE_NAME(Port, GlobalFlowControlMode)

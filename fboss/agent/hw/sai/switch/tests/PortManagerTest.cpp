@@ -40,7 +40,8 @@ class PortManagerTest : public ManagerTestBase {
       const SaiPortHandle* handle,
       bool enabled,
       sai_uint32_t mtu = 9412,
-      bool ptpTcEnable = false) {
+      bool ptpTcEnable = false,
+      bool isDrained = false) {
     // Check SaiPortApi perspective
     auto& portApi = saiApiTable->portApi();
     auto saiId = handle->port->adapterKey();
@@ -50,6 +51,9 @@ class PortManagerTest : public ManagerTestBase {
     SaiPortTraits::Attributes::FecMode fecMode;
     SaiPortTraits::Attributes::InternalLoopbackMode ilbMode;
     SaiPortTraits::Attributes::Mtu mtuAttribute;
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+    SaiPortTraits::Attributes::FabricIsolate fabricIsolateAttribute;
+#endif
     auto gotAdminState = portApi.getAttribute(saiId, adminStateAttribute);
     EXPECT_EQ(enabled, gotAdminState);
     auto gotLanes = portApi.getAttribute(saiId, hwLaneListAttribute);
@@ -73,6 +77,10 @@ class PortManagerTest : public ManagerTestBase {
     EXPECT_NE(gotPtpMode, SAI_PORT_PTP_MODE_TWO_STEP_TIMESTAMP);
     EXPECT_EQ(
         ptpTcEnable, (gotPtpMode == SAI_PORT_PTP_MODE_SINGLE_STEP_TIMESTAMP));
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+    auto gotDrainState = portApi.getAttribute(saiId, fabricIsolateAttribute);
+    EXPECT_EQ(gotDrainState, isDrained);
+#endif
   }
 
   void checkPortSerdes(SaiPortSerdes* serdes, PortSaiId portId) {
@@ -107,6 +115,9 @@ class PortManagerTest : public ManagerTestBase {
       lanes, speed, adminState, std::nullopt,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
           std::nullopt, std::nullopt,
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+          std::nullopt, // Port Fabric Isolate
 #endif
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
           std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
@@ -242,6 +253,15 @@ TEST_F(PortManagerTest, changePortAdminState) {
   saiManagerTable->portManager().changePort(swPort, swPort);
   auto handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
   checkPort(swPort->getID(), handle, false);
+}
+
+TEST_F(PortManagerTest, changePortDrainState) {
+  std::shared_ptr<Port> swPort = makePort(p0);
+  saiManagerTable->portManager().addPort(swPort);
+  swPort->setPortDrainState(cfg::PortDrainState::DRAINED);
+  saiManagerTable->portManager().changePort(swPort, swPort);
+  auto handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
+  checkPort(swPort->getID(), handle, true, 9412, false, true);
 }
 
 TEST_F(PortManagerTest, changePortMtu) {

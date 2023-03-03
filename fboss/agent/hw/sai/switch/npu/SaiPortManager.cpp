@@ -326,6 +326,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     bool /* lineSide */) const {
   bool adminState =
       swPort->getAdminState() == cfg::PortState::ENABLED ? true : false;
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+  bool isDrained = swPort->getPortDrainState() == cfg::PortDrainState::DRAINED
+      ? true
+      : false;
+#endif
   auto portID = swPort->getID();
   auto platformPort = platform_->getPort(portID);
   auto speed = swPort->getSpeed();
@@ -418,6 +423,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
         std::nullopt, std::nullopt,
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+        isDrained,
+#endif
+
         internalLoopbackMode, mediaType, globalFlowControlMode, vlanId,
         swPort->getMaxFrameSize(), std::nullopt, std::nullopt, std::nullopt,
         interfaceType, std::nullopt,
