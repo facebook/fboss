@@ -61,6 +61,7 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwAclStatTest.*
 # Counter Tests
 # ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwInDiscardsCounterTest.*
+# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwResourceStatsTest.aclStats
 #
 # All tests matching the following filters pass on w400C in fabric mode
 # ./run_test.py sai --config wedge400c_fabric.agent.materialized_JSON --filter=HwFabricSwitchTest.*
@@ -76,6 +77,7 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwL4PortBlackHolingTest.*
 # Counter tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwInPauseDiscardsCounterTest.*
+# ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwResourceStatsTest.l3Stats
 # ECMP Tests
 # ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwEcmpTest.*:-*Ucmp*
 # Load Balancer Tests
