@@ -152,6 +152,7 @@ BOOST_MSM_EUML_EVENT(REMOVE_TRANSCEIVER)
 // Remediate transceiver will reset back to XPHY_PORTS_PROGRAMMED so that we'll
 // trigger a `PROGRAM_TRANSCEIVER` later
 BOOST_MSM_EUML_EVENT(REMEDIATE_TRANSCEIVER)
+BOOST_MSM_EUML_EVENT(PREPARE_TRANSCEIVER)
 
 // Module State Machine Actions
 template <class State>
@@ -265,6 +266,34 @@ bool operator()(
     // We have retry mechanism to handle failure. No crash here
     XLOG(WARN) << "[Transceiver:" << tcvrID
                << "] programExternalPhyPorts failed:"
+               << folly::exceptionStr(ex);
+    return false;
+  }
+}
+};
+
+BOOST_MSM_EUML_ACTION(readyTransceiver) {
+template <class Event, class Fsm, class Source, class Target>
+bool operator()(
+    const Event& /* ev */,
+    Fsm& fsm,
+    Source& /* src */,
+    Target& /* trg */) {
+  auto tcvrID = fsm.get_attribute(transceiverID);
+  try {
+    bool ready = fsm.get_attribute(transceiverMgrPtr)->readyTransceiver(tcvrID);
+    if (!ready) {
+      XLOG(WARN) << "[Transceiver:" << tcvrID
+                 << "] readyTransceiver returned False";
+    } else {
+      XLOG(INFO) << "[Transceiver:" << tcvrID
+                 << "] readyTransceiver returned True";
+    }
+    return ready;
+  } catch (const std::exception& ex) {
+    // We have retry mechanism to handle failure. No crash here
+    XLOG(WARN) << "[Transceiver:" << tcvrID
+               << "] readyTransceiver failed with abort:"
                << folly::exceptionStr(ex);
     return false;
   }

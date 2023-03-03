@@ -42,6 +42,9 @@ void TransceiverStateMachineUpdate::applyUpdate(
     case TransceiverStateMachineEvent::PROGRAM_XPHY:
       curState.process_event(PROGRAM_XPHY);
       break;
+    case TransceiverStateMachineEvent::PREPARE_TRANSCEIVER:
+      curState.process_event(PREPARE_TRANSCEIVER);
+      break;
     case TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER:
       curState.process_event(PROGRAM_TRANSCEIVER);
       break;
