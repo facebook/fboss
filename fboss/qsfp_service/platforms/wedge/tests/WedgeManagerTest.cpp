@@ -345,12 +345,21 @@ TEST_F(
         oneTcvrTo4X25G);
     // First state machine refresh to trigger PROGRAM_IPHY
     transceiverManager_->refreshStateMachines();
-    // Second state machine refresh to trigger PROGRAM_TRANSCEIVER
+
+    // Making mgmt read throw will make readyTransceiver return true so it
+    // can transition to transceiver_ready on refresh()
+    transceiverManager_->setReadException(
+        true /* throwReadExceptionForMgmtInterface */,
+        false /* throwReadExceptionForDomQuery */);
+    // Second state machine refresh to trigger PREPARE_TRANSCEIVER
+    transceiverManager_->refreshStateMachines();
+
+    // Third state machine refresh to trigger PROGRAM_TRANSCEIVER
     transceiverManager_->refreshStateMachines();
     // Override port status
     transceiverManager_->setOverrideAgentPortStatusForTesting(
         isPortUp /* up */, true /* enabled */, false /* clearOnly */);
-    // Thrid state machine refresh to trigger PORT_UP or ALL_PORTS_DOWN
+    // Fourth state machine refresh to trigger PORT_UP or ALL_PORTS_DOWN
     transceiverManager_->refreshStateMachines();
     auto expectedState = isPortUp ? TransceiverStateMachineState::ACTIVE
                                   : TransceiverStateMachineState::INACTIVE;
@@ -376,9 +385,8 @@ TEST_F(
     // If some port is up, the state machine will stay ACTIVE; otherwise, the
     // WedgeManager::updateTransceiverMap() will remove the old QsfpModule,
     // and the refreshStateMachines() will trigger PROGRAM_IPHY again
-    expectedState = isPortUp
-        ? TransceiverStateMachineState::ACTIVE
-        : TransceiverStateMachineState::IPHY_PORTS_PROGRAMMED;
+    expectedState = isPortUp ? TransceiverStateMachineState::ACTIVE
+                             : TransceiverStateMachineState::INACTIVE;
     EXPECT_EQ(curState, expectedState)
         << "Transceiver=0 state doesn't match state expected="
         << apache::thrift::util::enumNameSafe(expectedState)

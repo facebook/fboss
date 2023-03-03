@@ -392,8 +392,9 @@ BOOST_MSM_EUML_TRANSITION_TABLE((
     DISCOVERED             + PROGRAM_IPHY           [programIphyPorts]         / logStateChanged == IPHY_PORTS_PROGRAMMED,
     IPHY_PORTS_PROGRAMMED  + PROGRAM_XPHY           [programXphyPorts]         / logStateChanged == XPHY_PORTS_PROGRAMMED,
     // For non-xphy platform, we will program tcvr after programming iphy ports
-    IPHY_PORTS_PROGRAMMED  + PROGRAM_TRANSCEIVER    [programTransceiver]       / logStateChanged == TRANSCEIVER_PROGRAMMED,
-    XPHY_PORTS_PROGRAMMED  + PROGRAM_TRANSCEIVER    [programTransceiver]       / logStateChanged == TRANSCEIVER_PROGRAMMED,
+    IPHY_PORTS_PROGRAMMED + PREPARE_TRANSCEIVER     [readyTransceiver]         / logStateChanged == TRANSCEIVER_READY,
+    XPHY_PORTS_PROGRAMMED + PREPARE_TRANSCEIVER     [readyTransceiver]         / logStateChanged == TRANSCEIVER_READY,
+    TRANSCEIVER_READY     + PROGRAM_TRANSCEIVER     [programTransceiver]       / logStateChanged == TRANSCEIVER_PROGRAMMED,
     // Only trigger port status events after TRANSCEIVER_PROGRAMMED
     TRANSCEIVER_PROGRAMMED + PORT_UP                                           / logStateChanged == ACTIVE,
     TRANSCEIVER_PROGRAMMED + ALL_PORTS_DOWN                                    / logStateChanged == INACTIVE,
