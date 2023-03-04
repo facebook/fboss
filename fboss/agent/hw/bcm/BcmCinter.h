@@ -290,6 +290,8 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
       int* ethertype_array) override;
   int bcm_l3_egress_ecmp_member_status_set(int unit, bcm_if_t intf, int status)
       override;
+  int bcm_l3_egress_ecmp_member_status_get(int unit, bcm_if_t intf, int* status)
+      override;
   int bcm_switch_control_port_set(
       int unit,
       bcm_port_t port,

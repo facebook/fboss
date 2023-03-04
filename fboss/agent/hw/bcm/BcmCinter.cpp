@@ -2973,6 +2973,17 @@ int BcmCinter::bcm_l3_egress_ecmp_member_status_set(
   return 0;
 }
 
+int BcmCinter::bcm_l3_egress_ecmp_member_status_get(
+    int unit,
+    bcm_if_t intf,
+    int* status) {
+  writeCintLines(wrapFunc(to<string>(
+      "bcm_l3_egress_ecmp_member_status_get(",
+      makeParamStr(unit, intf, *status),
+      ")")));
+  return 0;
+}
+
 int BcmCinter::bcm_l3_ecmp_create(
     int unit,
     uint32 options,

@@ -835,6 +835,11 @@ int __real_bcm_l3_egress_ecmp_member_status_set(
     bcm_if_t intf,
     int status);
 
+int __real_bcm_l3_egress_ecmp_member_status_get(
+    int unit,
+    bcm_if_t intf,
+    int* status);
+
 int __real_bcm_port_untagged_vlan_set(
     int unit,
     bcm_port_t port,
@@ -3871,6 +3876,13 @@ int __wrap_bcm_l3_egress_ecmp_member_status_set(
     bcm_if_t intf,
     int status) {
   CALL_WRAPPERS_RV(bcm_l3_egress_ecmp_member_status_set(unit, intf, status));
+}
+
+int __wrap_bcm_l3_egress_ecmp_member_status_get(
+    int unit,
+    bcm_if_t intf,
+    int* status) {
+  CALL_WRAPPERS_RV(bcm_l3_egress_ecmp_member_status_get(unit, intf, status));
 }
 
 int __wrap_bcm_l2_addr_get(
