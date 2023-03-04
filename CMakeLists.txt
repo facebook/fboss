@@ -231,6 +231,13 @@ add_fbthrift_cpp_library(
     reflection
 )
 add_fbthrift_cpp_library(
+  fboss_common_cpp2
+  fboss/lib/if/fboss_common.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   switch_config_cpp2
   fboss/agent/switch_config.thrift
   OPTIONS
@@ -238,6 +245,7 @@ add_fbthrift_cpp_library(
     reflection
   DEPENDS
     common_cpp2
+    fboss_common_cpp2
     mpls_cpp2
 )
 add_fbthrift_cpp_library(
