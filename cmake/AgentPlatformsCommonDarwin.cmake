@@ -4,7 +4,7 @@
 # cmake/FooBar.cmake
 
 add_library(darwin_platform_mapping
-  fboss/agent/platforms/common/darwin/oss/DarwinPlatformMapping.cpp
+  fboss/agent/platforms/common/darwin/DarwinPlatformMapping.cpp
 )
 
 target_link_libraries(darwin_platform_mapping
