@@ -13,10 +13,25 @@ void checkFabricReachability(const HwSwitch* hw) {
     if (!*endpoint.isAttached()) {
       continue;
     }
+
+    int expectedPortId = -1;
+    int expectedSwitchId = -1;
+
+    if (endpoint.expectedPortId().has_value()) {
+      expectedPortId = *endpoint.expectedPortId();
+    }
+    if (endpoint.expectedSwitchId().has_value()) {
+      expectedSwitchId = *endpoint.expectedSwitchId();
+    }
+
     XLOG(DBG2) << " On port: " << port
-               << " got switch id: " << *endpoint.switchId();
-    EXPECT_EQ(*endpoint.switchId(), *hw->getSwitchId());
+               << " got switch id: " << *endpoint.switchId()
+               << " expected switch id: " << expectedSwitchId
+               << " expected port id: " << expectedPortId
+               << "port id: " << *endpoint.portId();
+    EXPECT_EQ(*endpoint.switchId(), expectedSwitchId);
     EXPECT_EQ(*endpoint.switchType(), hw->getSwitchType());
+    EXPECT_EQ(*endpoint.portId(), expectedPortId);
   }
 }
 } // namespace facebook::fboss

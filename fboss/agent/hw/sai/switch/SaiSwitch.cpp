@@ -1479,7 +1479,7 @@ std::map<PortID, FabricEndpoint> SaiSwitch::getFabricReachability() const {
 
 std::map<PortID, FabricEndpoint> SaiSwitch::getFabricReachabilityLocked()
     const {
-  return managerTable_->portManager().getFabricReachability();
+  return fabricReachabilityManager_->getReachabilityInfo();
 }
 
 void SaiSwitch::fetchL2Table(std::vector<L2EntryThrift>* l2Table) const {
