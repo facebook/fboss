@@ -732,6 +732,40 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
       cookie);
 }
 
+state::RouteTableFields RibRouteTables::RouteTable ::toThrift() const {
+  // TODO: implement this
+  return state::RouteTableFields{};
+}
+
+RibRouteTables::RouteTable RibRouteTables::RouteTable::fromThrift(
+    const state::RouteTableFields&) {
+  // TODO: implement this
+  return RouteTable();
+}
+
+std::map<int32_t, state::RouteTableFields> RibRouteTables::toThrift() const {
+  // TODO: implement this
+  return {};
+}
+
+RibRouteTables RibRouteTables::fromThrift(
+    const std::map<int32_t, state::RouteTableFields>&) {
+  // TODO: implement this
+  return {};
+}
+
+std::map<int32_t, state::RouteTableFields> RoutingInformationBase::toThrift()
+    const {
+  // TODO: implement this
+  return {};
+}
+
+std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
+    const std::map<int32_t, state::RouteTableFields>&) {
+  // TODO: implement this
+  return nullptr;
+}
+
 template std::shared_ptr<Route<folly::IPAddressV4>>
 RibRouteTables::longestMatch(const folly::IPAddressV4& address, RouterID vrf)
     const;

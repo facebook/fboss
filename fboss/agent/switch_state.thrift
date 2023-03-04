@@ -562,7 +562,14 @@ struct SwitchState {
   501: map<i32, InterfaceFields> remoteInterfaceMap;
 }
 
+struct RouteTableFields {
+  1: map<string, RouteFields> v4NetworkToRoute;
+  2: map<string, RouteFields> v6NetworkToRoute;
+  3: map<i32, LabelForwardingEntryFields> labelToRoute;
+}
+
 struct WarmbootState {
   1: SwitchState swSwitchState;
+  2: map<i32, RouteTableFields> routeTables;
 // TODO: Extend for hwSwitchState
 }

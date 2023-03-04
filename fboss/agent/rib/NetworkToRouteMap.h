@@ -22,6 +22,17 @@
 namespace facebook::fboss {
 
 template <typename AddressT>
+struct NetworkToRouteMapThriftType {
+  using KeyType = std::
+      conditional_t<std::is_same_v<AddressT, LabelID>, int32_t, std::string>;
+  using ValueType = std::conditional_t<
+      std::is_same_v<AddressT, LabelID>,
+      state::LabelForwardingEntryFields,
+      state::RouteFields>;
+  using type = std::map<KeyType, ValueType>;
+};
+
+template <typename AddressT>
 class NetworkToRouteMap
     : public std::conditional_t<
           std::is_same_v<LabelID, AddressT>,
@@ -45,6 +56,7 @@ class NetworkToRouteMap
       std::unordered_map<LabelID, std::shared_ptr<Route<LabelID>>>::iterator,
       typename facebook::network::
           RadixTree<AddressT, std::shared_ptr<Route<AddressT>>>::Iterator>;
+  using ThriftType = typename NetworkToRouteMapThriftType<AddressT>::type;
 
   folly::dynamic toFollyDynamic() const {
     return toFollyDynamic([](const std::shared_ptr<RouteT>&) { return true; });
@@ -101,6 +113,15 @@ class NetworkToRouteMap
   }
   void publishAll() {
     forAll([](auto& ritr) { ritr.value()->publish(); });
+  }
+
+  ThriftType toThrift() const {
+    // TODO: implement this
+    return ThriftType{};
+  }
+  static NetworkToRouteMap<AddressT> fromThrift(const ThriftType&) {
+    // TODO: implement this
+    return NetworkToRouteMap<AddressT>();
   }
 };
 

@@ -112,6 +112,10 @@ class RibRouteTables {
       const AddressT& address,
       RouterID vrf) const;
 
+  std::map<int32_t, state::RouteTableFields> toThrift() const;
+  static RibRouteTables fromThrift(
+      const std::map<int32_t, state::RouteTableFields>&);
+
  private:
   template <typename Filter>
   folly::dynamic toFollyDynamicImpl(const Filter& filter) const;
@@ -137,6 +141,8 @@ class RibRouteTables {
       auto it = v6NetworkToRoute.longestMatch(addr, addr.bitCount());
       return it == v6NetworkToRoute.end() ? nullptr : it->value();
     }
+    state::RouteTableFields toThrift() const;
+    static RouteTable fromThrift(const state::RouteTableFields&);
   };
 
   void updateFib(
@@ -311,6 +317,10 @@ class RoutingInformationBase {
       RouterID vrf) const {
     return ribTables_.longestMatch(address, vrf);
   }
+
+  std::map<int32_t, state::RouteTableFields> toThrift() const;
+  static std::unique_ptr<RoutingInformationBase> fromThrift(
+      const std::map<int32_t, state::RouteTableFields>&);
 
  private:
   void ensureRunning() const;
