@@ -1800,7 +1800,14 @@ HwInitResult SaiSwitch::initLocked(
       adapterKeys2AdapterHostKeysJson = std::make_unique<folly::dynamic>(
           switchStateJson[kHwSwitch][kAdapterKey2AdapterHostKey]);
     }
-    if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
+    const auto& routeTables = *(switchStateThrift->routeTables());
+    if (!routeTables.empty()) {
+      ret.rib = RoutingInformationBase::fromThrift(
+          routeTables,
+          ret.switchState->getFibs(),
+          ret.switchState->getLabelForwardingInformationBase());
+
+    } else if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
       ret.rib = RoutingInformationBase::fromFollyDynamic(
           switchStateJson[kRib],
           ret.switchState->getFibs(),

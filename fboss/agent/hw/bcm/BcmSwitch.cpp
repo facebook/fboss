@@ -953,7 +953,13 @@ HwInitResult BcmSwitch::initImpl(
   if (warmBoot) {
     ret.switchState = warmBootCache_->getDumpedSwSwitchState().clone();
     getPlatform()->preWarmbootStateApplied();
-    if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
+    const auto& routeTables = *(switchStateThrift->routeTables());
+    if (!routeTables.empty()) {
+      ret.rib = RoutingInformationBase::fromThrift(
+          routeTables,
+          ret.switchState->getFibs(),
+          ret.switchState->getLabelForwardingInformationBase());
+    } else if (switchStateJson.find(kRib) != switchStateJson.items().end()) {
       ret.rib = RoutingInformationBase::fromFollyDynamic(
           switchStateJson[kRib],
           ret.switchState->getFibs(),

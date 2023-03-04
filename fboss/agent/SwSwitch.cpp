@@ -391,13 +391,14 @@ void SwSwitch::setFibSyncTimeForClient(ClientID clientId) {
 std::tuple<folly::dynamic, state::WarmbootState> SwSwitch::gracefulExitState()
     const {
   folly::dynamic follySwitchState = folly::dynamic::object;
+  state::WarmbootState thriftSwitchState;
   if (rib_) {
     // For RIB we employ a optmization to serialize only unresolved routes
     // and recover others from FIB
+    thriftSwitchState.routeTables() = rib_->warmBootState();
+    // TODO(pshaikh): delete rib's folly dynamic
     follySwitchState[kRib] = rib_->unresolvedRoutesFollyDynamic();
   }
-  // Only dump swSwitchState in thrift
-  state::WarmbootState thriftSwitchState;
   *thriftSwitchState.swSwitchState() = getAppliedState()->toThrift();
   return std::make_tuple(follySwitchState, thriftSwitchState);
 }
