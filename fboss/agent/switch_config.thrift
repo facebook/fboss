@@ -11,6 +11,7 @@ namespace php fboss_switch_config
 
 include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/mpls.thrift"
+include "fboss/lib/if/fboss_common.thrift"
 
 typedef i64 (cpp.type = "uint64_t") u64
 
@@ -1567,6 +1568,7 @@ struct DsfNode {
   5: optional Range64 systemPortRange;
   6: optional string nodeMac;
   7: AsicType asicType;
+  8: fboss_common.PlatformType platformType;
 }
 
 /**
