@@ -151,6 +151,7 @@ class RibRouteTables {
       void* cookie);
   template <typename RibUpdateFn>
   void updateRib(RouterID vrf, const RibUpdateFn& updateRib);
+
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
    * event FBOSS has to operate in a routing architecture with numerous VRFs,
@@ -160,6 +161,11 @@ class RibRouteTables {
    */
   using RouterIDToRouteTable = boost::container::flat_map<RouterID, RouteTable>;
   using SynchronizedRouteTables = folly::Synchronized<RouterIDToRouteTable>;
+
+  void importFibs(
+      const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
+      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
 
   RouterIDToRouteTable constructRouteTables(
       const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,

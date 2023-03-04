@@ -595,41 +595,7 @@ RibRouteTables RibRouteTables::fromFollyDynamic(
   }
 
   if (fibs) {
-    auto importRoutes = [](const auto& fib, auto* addrToRoute) {
-      for (const auto& iter : std::as_const(*fib)) {
-        const auto& route = iter.second;
-        auto [itr, inserted] = addrToRoute->insert(route->prefix(), route);
-        if (!inserted) {
-          // If RIB already had a route, replace it with FIB route so we
-          // share the same objects. The only case where this can occur is
-          // when we WB from old style RIB ser (all routes ser) to FIB assisted
-          // ser/deser
-          itr->value() = route;
-        }
-        DCHECK_EQ(
-            addrToRoute
-                ->exactMatch(route->prefix().network(), route->prefix().mask())
-                ->value(),
-            route);
-      }
-    };
-    for (const auto& iter : std::as_const(*fibs)) {
-      const auto& fib = iter.second;
-      auto& routeTables = (*lockedRouteTables)[fib->getID()];
-      importRoutes(fib->getFibV6(), &routeTables.v6NetworkToRoute);
-      importRoutes(fib->getFibV4(), &routeTables.v4NetworkToRoute);
-      auto mplsTable = &routeTables.labelToRoute;
-      if (FLAGS_mpls_rib && labelFib) {
-        for (const auto& iter : std::as_const(*labelFib)) {
-          const auto& route = iter.second;
-          auto [itr, inserted] = mplsTable->insert(route->prefix(), route);
-          if (!inserted) {
-            itr->second = route;
-          }
-          DCHECK_EQ(mplsTable->find(route->getID())->second, route);
-        }
-      }
-    }
+    rib.importFibs(lockedRouteTables, fibs, labelFib);
   }
   return rib;
 }
@@ -782,6 +748,47 @@ std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
   auto rib = std::make_unique<RoutingInformationBase>();
   rib->ribTables_ = RibRouteTables::fromThrift(obj);
   return rib;
+}
+
+void RibRouteTables::importFibs(
+    const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
+    const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+    const std::shared_ptr<LabelForwardingInformationBase>& labelFib) {
+  auto importRoutes = [](const auto& fib, auto* addrToRoute) {
+    for (const auto& iter : std::as_const(*fib)) {
+      const auto& route = iter.second;
+      auto [itr, inserted] = addrToRoute->insert(route->prefix(), route);
+      if (!inserted) {
+        // If RIB already had a route, replace it with FIB route so we
+        // share the same objects. The only case where this can occur is
+        // when we WB from old style RIB ser (all routes ser) to FIB assisted
+        // ser/deser
+        itr->value() = route;
+      }
+      DCHECK_EQ(
+          addrToRoute
+              ->exactMatch(route->prefix().network(), route->prefix().mask())
+              ->value(),
+          route);
+    }
+  };
+  for (const auto& iter : std::as_const(*fibs)) {
+    const auto& fib = iter.second;
+    auto& routeTables = (*lockedRouteTables)[fib->getID()];
+    importRoutes(fib->getFibV6(), &routeTables.v6NetworkToRoute);
+    importRoutes(fib->getFibV4(), &routeTables.v4NetworkToRoute);
+    auto mplsTable = &routeTables.labelToRoute;
+    if (FLAGS_mpls_rib && labelFib) {
+      for (const auto& entry : std::as_const(*labelFib)) {
+        const auto& route = entry.second;
+        auto [itr, inserted] = mplsTable->insert(route->prefix(), route);
+        if (!inserted) {
+          itr->second = route;
+        }
+        DCHECK_EQ(mplsTable->find(route->getID())->second, route);
+      }
+    }
+  }
 }
 
 template std::shared_ptr<Route<folly::IPAddressV4>>
