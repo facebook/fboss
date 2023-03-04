@@ -201,7 +201,7 @@ TEST_F(PortStoreTest, portFabricIsolate) {
   EXPECT_EQ(GET_OPT_ATTR(Port, FabricIsolate, portObj.attributes()), false);
   auto newAttrs = makeAttrs(0, 25000);
   constexpr bool kFabricIsolate{true};
-  std::get<std::optional<SaiPortTraits::Attributes::Mtu>>(newAttrs) =
+  std::get<std::optional<SaiPortTraits::Attributes::FabricIsolate>>(newAttrs) =
       kFabricIsolate;
   portObj.setAttributes(newAttrs);
   EXPECT_EQ(
