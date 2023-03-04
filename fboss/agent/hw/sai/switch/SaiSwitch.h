@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/FabricReachabilityManager.h"
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/L2Entry.h"
 #include "fboss/agent/hw/HwSwitchStats.h"
@@ -509,6 +510,7 @@ class SaiSwitch : public HwSwitch {
   cfg::SwitchType switchType_{cfg::SwitchType::NPU};
 
   std::map<PortID, phy::PhyInfo> lastPhyInfos_;
+  std::unique_ptr<FabricReachabilityManager> fabricReachabilityManager_;
 };
 
 } // namespace facebook::fboss

@@ -18,6 +18,7 @@ class FabricReachabilityManager {
  public:
   explicit FabricReachabilityManager() {}
   void stateUpdated(const StateDelta& stateDelta);
+  std::map<PortID, FabricEndpoint> getReachabilityInfo();
   std::map<PortID, FabricEndpoint> processReachabilityInfo(
       const std::map<PortID, FabricEndpoint>& hwReachability);
   FabricEndpoint processReachabilityInfoForPort(

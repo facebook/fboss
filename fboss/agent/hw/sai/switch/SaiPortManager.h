@@ -217,6 +217,8 @@ class SaiPortManager {
   void loadPortQueuesForChangedPort(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  std::optional<FabricEndpoint> getFabricReachabilityForPort(
+      const PortID& portId) const;
   cfg::PortType getPortType(PortID portId) const;
 
  private:

@@ -36,6 +36,13 @@ void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
       std::lock_guard<std::mutex> locked(saiSwitchMutex_);
       managerTable_->portManager().updateStats(
           portsIter->second, updateWatermarks);
+      auto endpointOpt =
+          managerTable_->portManager().getFabricReachabilityForPort(
+              portsIter->second);
+      if (endpointOpt.has_value()) {
+        fabricReachabilityManager_->processReachabilityInfoForPort(
+            portsIter->second, *endpointOpt);
+      }
     }
     ++portsIter;
   }

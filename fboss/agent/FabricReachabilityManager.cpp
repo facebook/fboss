@@ -110,9 +110,10 @@ FabricEndpoint FabricReachabilityManager::processReachabilityInfoForPort(
     const FabricEndpoint& hwEndpoint) {
   FabricEndpoint endpoint = hwEndpoint;
   // check if we have info on this endopint in our db, if not just return as it
-  // is
+  // evaluate the endpoint only if we have expected reachability for it or
+  // if its attached
   const auto& iter = expectedNeighborReachability_.find(portId);
-  if (iter != expectedNeighborReachability_.end()) {
+  if (*endpoint.isAttached() && iter != expectedNeighborReachability_.end()) {
     for (const auto& nbr : iter->second) {
       auto neighborSystem = *nbr.remoteSystem();
       auto neighborPortName = *nbr.remotePort();
@@ -158,6 +159,13 @@ FabricReachabilityManager::processReachabilityInfo(
     processReachabilityInfoForPort(
         hwReachabilityEntry.first, hwReachabilityEntry.second);
   }
+  return actualNeighborReachability_;
+}
+
+std::map<PortID, FabricEndpoint>
+FabricReachabilityManager::getReachabilityInfo() {
+  // use the hw reachability + expected eachability info to derive if there is a
+  // match or not, get from the cached version
   return actualNeighborReachability_;
 }
 

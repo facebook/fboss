@@ -22,6 +22,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -1151,6 +1152,16 @@ std::map<PortID, FabricEndpoint> SaiPortManager::getFabricReachability() const {
     }
   }
   return port2FabricEndpoint;
+}
+
+std::optional<FabricEndpoint> SaiPortManager::getFabricReachabilityForPort(
+    const PortID& portId) const {
+  std::optional<FabricEndpoint> endpoint = std::nullopt;
+  auto handlesItr = handles_.find(portId);
+  if (handlesItr != handles_.end()) {
+    endpoint = getFabricReachabilityForPort(portId, handlesItr->second.get());
+  }
+  return endpoint;
 }
 
 void SaiPortManager::updateStats(PortID portId, bool updateWatermarks) {

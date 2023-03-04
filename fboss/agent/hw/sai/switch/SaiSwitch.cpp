@@ -214,7 +214,9 @@ PortSaiId SaiSwitch::getCPUPortSaiId() const {
 SaiSwitch::SaiSwitch(SaiPlatform* platform, uint32_t featuresDesired)
     : HwSwitch(featuresDesired),
       platform_(platform),
-      saiStore_(std::make_unique<SaiStore>()) {
+      saiStore_(std::make_unique<SaiStore>()),
+      fabricReachabilityManager_(
+          std::make_unique<FabricReachabilityManager>()) {
   utilCreateDir(platform_->getVolatileStateDir());
   utilCreateDir(platform_->getPersistentStateDir());
 }
@@ -594,6 +596,12 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
         &SaiVlanManager::changeVlan,
         &SaiVlanManager::addVlan,
         &SaiVlanManager::removeVlan);
+  }
+
+  {
+    // this is specific for fabric/voq switches for now
+    [[maybe_unused]] const auto& lock = lockPolicy.lock();
+    fabricReachabilityManager_->stateUpdated(delta);
   }
 
   // LAGs
@@ -1468,6 +1476,7 @@ std::map<PortID, FabricEndpoint> SaiSwitch::getFabricReachability() const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return getFabricReachabilityLocked();
 }
+
 std::map<PortID, FabricEndpoint> SaiSwitch::getFabricReachabilityLocked()
     const {
   return managerTable_->portManager().getFabricReachability();
