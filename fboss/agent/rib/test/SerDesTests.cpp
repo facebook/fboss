@@ -115,6 +115,12 @@ TEST_F(RibSerializationTest, serializeOnlyUnresolvedRoutes) {
       curState->getLabelForwardingInformationBase());
 
   EXPECT_TRUE(ribEqual(rib, *deserializedRib));
+
+  auto deserializedRibThrift = RoutingInformationBase::fromThrift(
+      rib.warmBootState(),
+      curState->getFibs(),
+      curState->getLabelForwardingInformationBase());
+  EXPECT_EQ(rib.toThrift(), deserializedRibThrift->toThrift());
 }
 
 TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
@@ -123,12 +129,27 @@ TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
       std::make_shared<ForwardingInformationBaseMap>(),
       std::make_shared<LabelForwardingInformationBase>());
 
+  auto deserializedRibEmptyFibThrift = RoutingInformationBase::fromThrift(
+      rib.warmBootState(),
+      std::make_shared<ForwardingInformationBaseMap>(),
+      std::make_shared<LabelForwardingInformationBase>());
+
   auto deserializedRibNoFib = RoutingInformationBase::fromFollyDynamic(
       rib.unresolvedRoutesFollyDynamic(), nullptr, nullptr);
 
+  auto deserializedRibNoFibThrift =
+      RoutingInformationBase::fromThrift(rib.warmBootState(), nullptr, nullptr);
+
   EXPECT_FALSE(ribEqual(rib, *deserializedRibEmptyFib));
+  EXPECT_FALSE(ribEqual(rib, *deserializedRibEmptyFibThrift));
+
   EXPECT_FALSE(ribEqual(rib, *deserializedRibNoFib));
+  EXPECT_FALSE(ribEqual(rib, *deserializedRibNoFibThrift));
+
   EXPECT_TRUE(ribEqual(*deserializedRibEmptyFib, *deserializedRibNoFib));
+  EXPECT_TRUE(
+      ribEqual(*deserializedRibEmptyFibThrift, *deserializedRibNoFibThrift));
+
   EXPECT_EQ(2, deserializedRibEmptyFib->getRouteTableDetails(kRid0).size());
   EXPECT_EQ(1, deserializedRibEmptyFib->getMplsRouteTableDetails().size());
 
@@ -139,4 +160,13 @@ TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
   EXPECT_TRUE(ribEqual(rib, *deserializedRibWithFib));
   EXPECT_EQ(8, deserializedRibWithFib->getRouteTableDetails(kRid0).size());
   EXPECT_EQ(2, deserializedRibWithFib->getMplsRouteTableDetails().size());
+
+  auto deserializedRibWithFibThrift = RoutingInformationBase::fromThrift(
+      rib.warmBootState(),
+      curState->getFibs(),
+      curState->getLabelForwardingInformationBase());
+  EXPECT_TRUE(ribEqual(rib, *deserializedRibWithFibThrift));
+  EXPECT_EQ(
+      8, deserializedRibWithFibThrift->getRouteTableDetails(kRid0).size());
+  EXPECT_EQ(2, deserializedRibWithFibThrift->getMplsRouteTableDetails().size());
 }

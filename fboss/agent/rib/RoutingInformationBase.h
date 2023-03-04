@@ -102,6 +102,11 @@ class RibRouteTables {
       const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
       const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
 
+  static RibRouteTables fromThrift(
+      const std::map<int32_t, state::RouteTableFields>& ribThrift,
+      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
+
   void ensureVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;
   std::vector<RouteDetails> getRouteTableDetails(RouterID rid) const;
@@ -115,6 +120,7 @@ class RibRouteTables {
   std::map<int32_t, state::RouteTableFields> toThrift() const;
   static RibRouteTables fromThrift(
       const std::map<int32_t, state::RouteTableFields>&);
+  std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
  private:
   template <typename Filter>
@@ -143,6 +149,7 @@ class RibRouteTables {
     }
     state::RouteTableFields toThrift() const;
     static RouteTable fromThrift(const state::RouteTableFields&);
+    state::RouteTableFields warmBootState() const;
   };
 
   void updateFib(
@@ -298,6 +305,11 @@ class RoutingInformationBase {
       const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
       const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
 
+  static std::unique_ptr<RoutingInformationBase> fromThrift(
+      const std::map<int32_t, state::RouteTableFields>& ribJson,
+      const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+      const std::shared_ptr<LabelForwardingInformationBase>& labelFib);
+
   void ensureVrf(RouterID rid) {
     ribTables_.ensureVrf(rid);
   }
@@ -327,6 +339,7 @@ class RoutingInformationBase {
   std::map<int32_t, state::RouteTableFields> toThrift() const;
   static std::unique_ptr<RoutingInformationBase> fromThrift(
       const std::map<int32_t, state::RouteTableFields>&);
+  std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
  private:
   void ensureRunning() const;

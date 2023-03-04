@@ -138,6 +138,13 @@ class NetworkToRouteMap
     return obj;
   }
 
+  ThriftType warmBootState() const {
+    // warm boot cares only for unresolved routes, resolved routes come from
+    // fibs.
+    return toFilteredThrift(
+        [](const auto& route) { return !route->isResolved(); });
+  }
+
   static NetworkToRouteMap<AddressT> fromThrift(const ThriftType& routes) {
     NetworkToRouteMap<AddressT> networkToRouteMap;
     for (auto& obj : routes) {

@@ -600,6 +600,25 @@ RibRouteTables RibRouteTables::fromFollyDynamic(
   return rib;
 }
 
+RibRouteTables RibRouteTables::fromThrift(
+    const std::map<int32_t, state::RouteTableFields>& ribThrift,
+    const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+    const std::shared_ptr<LabelForwardingInformationBase>& labelFib) {
+  RibRouteTables rib;
+  auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
+
+  for (const auto& [rid, table] : ribThrift) {
+    RouteTable rtable = RouteTable::fromThrift(table);
+    auto vrf = RouterID(rid);
+    lockedRouteTables->emplace(vrf, std::move(rtable));
+  }
+
+  if (fibs) {
+    rib.importFibs(lockedRouteTables, fibs, labelFib);
+  }
+  return rib;
+}
+
 std::unique_ptr<RoutingInformationBase>
 RoutingInformationBase::fromFollyDynamic(
     const folly::dynamic& ribJson,
@@ -607,6 +626,15 @@ RoutingInformationBase::fromFollyDynamic(
     const std::shared_ptr<LabelForwardingInformationBase>& labelFib) {
   auto rib = std::make_unique<RoutingInformationBase>();
   rib->ribTables_ = RibRouteTables::fromFollyDynamic(ribJson, fibs, labelFib);
+  return rib;
+}
+
+std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
+    const std::map<int32_t, state::RouteTableFields>& ribThrift,
+    const std::shared_ptr<ForwardingInformationBaseMap>& fibs,
+    const std::shared_ptr<LabelForwardingInformationBase>& labelFib) {
+  auto rib = std::make_unique<RoutingInformationBase>();
+  rib->ribTables_ = RibRouteTables::fromThrift(ribThrift, fibs, labelFib);
   return rib;
 }
 
@@ -706,6 +734,14 @@ state::RouteTableFields RibRouteTables::RouteTable ::toThrift() const {
   return obj;
 }
 
+state::RouteTableFields RibRouteTables::RouteTable::warmBootState() const {
+  state::RouteTableFields obj{};
+  obj.v4NetworkToRoute() = v4NetworkToRoute.warmBootState();
+  obj.v6NetworkToRoute() = v6NetworkToRoute.warmBootState();
+  obj.labelToRoute() = labelToRoute.warmBootState();
+  return obj;
+}
+
 RibRouteTables::RouteTable RibRouteTables::RouteTable::fromThrift(
     const state::RouteTableFields& obj) {
   RouteTable routeTable;
@@ -722,6 +758,16 @@ std::map<int32_t, state::RouteTableFields> RibRouteTables::toThrift() const {
   auto routeTables = synchronizedRouteTables_.rlock();
   for (const auto& [rid, routeTable] : *routeTables) {
     obj.emplace(rid, routeTable.toThrift());
+  }
+  return obj;
+}
+
+std::map<int32_t, state::RouteTableFields> RibRouteTables::warmBootState()
+    const {
+  std::map<int32_t, state::RouteTableFields> obj{};
+  const auto& routeTables = *synchronizedRouteTables_.rlock();
+  for (const auto& [rid, routeTable] : routeTables) {
+    obj.emplace(rid, routeTable.warmBootState());
   }
   return obj;
 }
@@ -789,6 +835,11 @@ void RibRouteTables::importFibs(
       }
     }
   }
+}
+
+std::map<int32_t, state::RouteTableFields>
+RoutingInformationBase::warmBootState() const {
+  return ribTables_.warmBootState();
 }
 
 template std::shared_ptr<Route<folly::IPAddressV4>>
