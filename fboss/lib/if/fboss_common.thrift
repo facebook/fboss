@@ -1,9 +1,9 @@
 namespace cpp2 facebook.fboss
-namespace go neteng.fboss.common
-namespace php fboss
-namespace py neteng.fboss.common
+namespace go neteng.fboss.fboss_common
+namespace php fboss_common
+namespace py neteng.fboss.fboss_common
 namespace py3 neteng.fboss
-namespace py.asyncio neteng.fboss.asyncio.common
+namespace py.asyncio neteng.fboss.asyncio.fboss_common
 
 enum PlatformType {
   PLATFORM_WEDGE = 1,
