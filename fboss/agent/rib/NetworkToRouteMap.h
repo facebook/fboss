@@ -57,6 +57,8 @@ class NetworkToRouteMap
       typename facebook::network::
           RadixTree<AddressT, std::shared_ptr<Route<AddressT>>>::Iterator>;
   using ThriftType = typename NetworkToRouteMapThriftType<AddressT>::type;
+  using RouteFilter =
+      std::function<bool(const std::shared_ptr<Route<AddressT>>&)>;
 
   folly::dynamic toFollyDynamic() const {
     return toFollyDynamic([](const std::shared_ptr<RouteT>&) { return true; });
@@ -116,16 +118,26 @@ class NetworkToRouteMap
   }
 
   ThriftType toThrift() const {
+    return toFilteredThrift([](const auto&) { return true; });
+  }
+
+  ThriftType toFilteredThrift(RouteFilter&& filter) const {
     auto obj = ThriftType{};
     for (const auto& routeNode : *this) {
+      std::shared_ptr<Route<AddressT>> route{};
       if constexpr (std::is_same_v<LabelID, AddressT>) {
-        obj.emplace(routeNode.second->getID(), routeNode.second->toThrift());
+        route = routeNode.second;
       } else {
-        obj.emplace(routeNode.value()->getID(), routeNode.value()->toThrift());
+        route = routeNode.value();
       }
+      if (!filter(route)) {
+        continue;
+      }
+      obj.emplace(route->getID(), route->toThrift());
     }
     return obj;
   }
+
   static NetworkToRouteMap<AddressT> fromThrift(const ThriftType& routes) {
     NetworkToRouteMap<AddressT> networkToRouteMap;
     for (auto& obj : routes) {
