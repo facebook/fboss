@@ -587,6 +587,11 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_LINK_TRAINING_ENABLE:
       port.linkTrainingEnable = attr->value.booldata;
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+    case SAI_PORT_ATTR_FABRIC_ISOLATE:
+      port.fabricIsolate = attr->value.booldata;
+      break;
+#endif
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -848,6 +853,11 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_FABRIC_ATTACHED_PORT_INDEX:
         attr->value.u32 = 0;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
+      case SAI_PORT_ATTR_FABRIC_ISOLATE:
+        attr->value.booldata = port.fabricIsolate;
+        break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
