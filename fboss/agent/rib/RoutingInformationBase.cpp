@@ -733,37 +733,55 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
 }
 
 state::RouteTableFields RibRouteTables::RouteTable ::toThrift() const {
-  // TODO: implement this
-  return state::RouteTableFields{};
+  state::RouteTableFields obj{};
+  obj.v4NetworkToRoute() = v4NetworkToRoute.toThrift();
+  obj.v6NetworkToRoute() = v6NetworkToRoute.toThrift();
+  obj.labelToRoute() = labelToRoute.toThrift();
+  return obj;
 }
 
 RibRouteTables::RouteTable RibRouteTables::RouteTable::fromThrift(
-    const state::RouteTableFields&) {
-  // TODO: implement this
-  return RouteTable();
+    const state::RouteTableFields& obj) {
+  RouteTable routeTable;
+  routeTable.v4NetworkToRoute =
+      IPv4NetworkToRouteMap::fromThrift(*obj.v4NetworkToRoute());
+  routeTable.v6NetworkToRoute =
+      IPv6NetworkToRouteMap::fromThrift(*obj.v6NetworkToRoute());
+  routeTable.labelToRoute = LabelToRouteMap::fromThrift(*obj.labelToRoute());
+  return routeTable;
 }
 
 std::map<int32_t, state::RouteTableFields> RibRouteTables::toThrift() const {
-  // TODO: implement this
-  return {};
+  std::map<int32_t, state::RouteTableFields> obj{};
+  auto routeTables = synchronizedRouteTables_.rlock();
+  for (const auto& [rid, routeTable] : *routeTables) {
+    obj.emplace(rid, routeTable.toThrift());
+  }
+  return obj;
 }
 
 RibRouteTables RibRouteTables::fromThrift(
-    const std::map<int32_t, state::RouteTableFields>&) {
-  // TODO: implement this
-  return {};
+    const std::map<int32_t, state::RouteTableFields>& obj) {
+  RibRouteTables ribRouteTables;
+  auto routeTables = ribRouteTables.synchronizedRouteTables_.wlock();
+  for (const auto& [rid, routeTableFields] : obj) {
+    // @lint-ignore CLANGTIDY
+    routeTables->emplace(
+        RouterID(rid),
+        RibRouteTables::RouteTable::fromThrift(routeTableFields));
+  }
+  return ribRouteTables;
 }
 
 std::map<int32_t, state::RouteTableFields> RoutingInformationBase::toThrift()
     const {
-  // TODO: implement this
-  return {};
+  return ribTables_.toThrift();
 }
-
 std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
-    const std::map<int32_t, state::RouteTableFields>&) {
-  // TODO: implement this
-  return nullptr;
+    const std::map<int32_t, state::RouteTableFields>& obj) {
+  auto rib = std::make_unique<RoutingInformationBase>();
+  rib->ribTables_ = RibRouteTables::fromThrift(obj);
+  return rib;
 }
 
 template std::shared_ptr<Route<folly::IPAddressV4>>

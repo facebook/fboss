@@ -82,7 +82,8 @@ cfg::SwitchConfig interfaceAndStaticRoutesWithNextHopsConfig() {
 bool ribEqual(
     const RoutingInformationBase& l,
     const RoutingInformationBase& r) {
-  return l.getRouteTableDetails(kRid0) == r.getRouteTableDetails(kRid0);
+  return l.getRouteTableDetails(kRid0) == r.getRouteTableDetails(kRid0) &&
+      (l.toThrift() == r.toThrift());
 }
 
 class RibSerializationTest : public ::testing::Test {

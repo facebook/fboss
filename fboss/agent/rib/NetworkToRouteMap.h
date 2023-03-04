@@ -116,12 +116,24 @@ class NetworkToRouteMap
   }
 
   ThriftType toThrift() const {
-    // TODO: implement this
-    return ThriftType{};
+    auto obj = ThriftType{};
+    for (const auto& routeNode : *this) {
+      if constexpr (std::is_same_v<LabelID, AddressT>) {
+        obj.emplace(routeNode.second->getID(), routeNode.second->toThrift());
+      } else {
+        obj.emplace(routeNode.value()->getID(), routeNode.value()->toThrift());
+      }
+    }
+    return obj;
   }
-  static NetworkToRouteMap<AddressT> fromThrift(const ThriftType&) {
-    // TODO: implement this
-    return NetworkToRouteMap<AddressT>();
+  static NetworkToRouteMap<AddressT> fromThrift(const ThriftType& routes) {
+    NetworkToRouteMap<AddressT> networkToRouteMap;
+    for (auto& obj : routes) {
+      auto route = std::make_shared<Route<AddressT>>(obj.second);
+      auto key = route->prefix();
+      networkToRouteMap.insert(key, route);
+    }
+    return networkToRouteMap;
   }
 };
 

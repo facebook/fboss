@@ -174,6 +174,8 @@ TEST_F(V4LpmTest, IncreasingLPMSequence) {
     addRoute(rib, makeDropUnicastRoute({addressWithCurrentMask, mask}));
     CHECK_LPM(longestMatch(address), addressWithCurrentMask, mask);
   }
+  auto ribBack = RoutingInformationBase::fromThrift(rib.toThrift());
+  EXPECT_EQ(ribBack->toThrift(), rib.toThrift());
 }
 
 TEST_F(V6LpmTest, IncreasingLPMSequence) {
@@ -183,6 +185,8 @@ TEST_F(V6LpmTest, IncreasingLPMSequence) {
     addRoute(rib, makeDropUnicastRoute({addressWithCurrentMask, mask}));
     CHECK_LPM(longestMatch(address), addressWithCurrentMask, mask);
   }
+  auto ribBack = RoutingInformationBase::fromThrift(rib.toThrift());
+  EXPECT_EQ(ribBack->toThrift(), rib.toThrift());
 }
 
 TEST_F(V4LpmTest, DecreasingLPMSequence) {
@@ -192,6 +196,8 @@ TEST_F(V4LpmTest, DecreasingLPMSequence) {
     addRoute(rib, makeDropUnicastRoute({addressWithCurrentMask, mask}));
     CHECK_LPM(longestMatch(address), address, address.bitCount());
   }
+  auto ribBack = RoutingInformationBase::fromThrift(rib.toThrift());
+  EXPECT_EQ(ribBack->toThrift(), rib.toThrift());
 }
 
 TEST_F(V6LpmTest, DecreasingLPMSequence) {
@@ -201,4 +207,6 @@ TEST_F(V6LpmTest, DecreasingLPMSequence) {
     addRoute(rib, makeDropUnicastRoute({addressWithCurrentMask, mask}));
     CHECK_LPM(longestMatch(address), address, address.bitCount());
   }
+  auto ribBack = RoutingInformationBase::fromThrift(rib.toThrift());
+  EXPECT_EQ(ribBack->toThrift(), rib.toThrift());
 }
