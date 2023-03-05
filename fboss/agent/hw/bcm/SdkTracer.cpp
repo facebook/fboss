@@ -1449,6 +1449,19 @@ int __real_bcm_l3_egress_ecmp_create(
     int intf_count,
     bcm_if_t* intf_array);
 
+void __real_bcm_l3_ecmp_dlb_port_quality_attr_t_init(
+    bcm_l3_ecmp_dlb_port_quality_attr_t* quality_attr);
+
+int __real_bcm_l3_ecmp_dlb_port_quality_attr_set(
+    int unit,
+    bcm_port_t port,
+    bcm_l3_ecmp_dlb_port_quality_attr_t* quality_attr);
+
+int __real_bcm_l3_ecmp_dlb_port_quality_attr_get(
+    int unit,
+    bcm_port_t port,
+    bcm_l3_ecmp_dlb_port_quality_attr_t* quality_attr);
+
 int __real_bcm_attach_max(int* max_units);
 
 int __real_bcm_l3_egress_ecmp_add(
@@ -3672,6 +3685,27 @@ int __wrap_bcm_l3_egress_ecmp_create(
     bcm_if_t* intf_array) {
   CALL_WRAPPERS_RV(
       bcm_l3_egress_ecmp_create(unit, ecmp, intf_count, intf_array));
+}
+
+void __wrap_bcm_l3_ecmp_dlb_port_quality_attr_t_init(
+    bcm_l3_ecmp_dlb_port_quality_attr_t* quality_attr) {
+  CALL_WRAPPERS_NO_RV(bcm_l3_ecmp_dlb_port_quality_attr_t_init(quality_attr));
+}
+
+int __wrap_bcm_l3_ecmp_dlb_port_quality_attr_set(
+    int unit,
+    bcm_port_t port,
+    bcm_l3_ecmp_dlb_port_quality_attr_t* quality_attr) {
+  CALL_WRAPPERS_RV(
+      bcm_l3_ecmp_dlb_port_quality_attr_set(unit, port, quality_attr));
+}
+
+int __wrap_bcm_l3_ecmp_dlb_port_quality_attr_get(
+    int unit,
+    bcm_port_t port,
+    bcm_l3_ecmp_dlb_port_quality_attr_t* quality_attr) {
+  CALL_WRAPPERS_RV(
+      bcm_l3_ecmp_dlb_port_quality_attr_get(unit, port, quality_attr));
 }
 
 int __wrap_bcm_attach(int unit, char* type, char* subtype, int remunit) {

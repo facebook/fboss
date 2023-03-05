@@ -952,6 +952,19 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
     return 0;
   }
 
+  void bcm_l3_ecmp_dlb_port_quality_attr_t_init(
+      bcm_l3_ecmp_dlb_port_quality_attr_t* /*quality_attr*/) override {}
+
+  int bcm_l3_ecmp_dlb_port_quality_attr_set(
+      int /*unit*/,
+      bcm_port_t /*port*/,
+      bcm_l3_ecmp_dlb_port_quality_attr_t* /*quality_attr*/) override;
+
+  int bcm_l3_ecmp_dlb_port_quality_attr_get(
+      int /*unit*/,
+      bcm_port_t /*port*/,
+      bcm_l3_ecmp_dlb_port_quality_attr_t* /*quality_attr*/) override;
+
   int bcm_l3_enable_set(int unit, int enable) override;
 
   int bcm_rx_queue_max_get(int /*unit*/, bcm_cos_queue_t* /*cosq*/) override {
@@ -2033,6 +2046,9 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
   std::vector<std::string> cintForEcmpMembersArray(
       const bcm_l3_ecmp_member_t* members,
       int member_count);
+
+  std::vector<std::string> cintForDlbPortQualityAttr(
+      bcm_l3_ecmp_dlb_port_quality_attr_t quality_attr);
 
   std::vector<std::string> cintForPathsArray(
       const bcm_if_t* paths,
