@@ -473,7 +473,7 @@ class QsfpModule : public Transceiver {
    * Returns whether customization is supported at all. Basically
    * checks if something is plugged in and checks if copper.
    */
-  bool customizationSupported() const;
+  virtual bool customizationSupported() const;
 
   /*
    * Whether enough time has passed that we should refresh our data.

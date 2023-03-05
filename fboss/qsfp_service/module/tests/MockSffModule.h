@@ -58,6 +58,7 @@ class MockSffModule : public SffModule {
   MOCK_METHOD0(ensureTxEnabled, void());
   MOCK_METHOD0(resetLowPowerMode, void());
   MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
+  MOCK_CONST_METHOD0(customizationSupported, bool());
 
   // Provide way to call parent
   void actualSetCdrIfSupported(

@@ -70,6 +70,7 @@ TEST_F(QsfpModuleTest, setRateSelect) {
   ON_CALL(*qsfp_, setRateSelectIfSupported(_, _, _))
       .WillByDefault(
           Invoke(qsfp_, &MockSffModule::actualSetRateSelectIfSupported));
+  ON_CALL(*qsfp_, customizationSupported()).WillByDefault(Return(true));
   EXPECT_CALL(*qsfp_, setPowerOverrideIfSupportedLocked(_)).Times(AtLeast(1));
   EXPECT_CALL(*qsfp_, setCdrIfSupported(_, _, _)).Times(AtLeast(1));
 
@@ -131,6 +132,7 @@ TEST_F(QsfpModuleTest, retrieveRateSelectSetting) {
 TEST_F(QsfpModuleTest, setCdr) {
   ON_CALL(*qsfp_, setCdrIfSupported(_, _, _))
       .WillByDefault(Invoke(qsfp_, &MockSffModule::actualSetCdrIfSupported));
+  ON_CALL(*qsfp_, customizationSupported()).WillByDefault(Return(true));
 
   EXPECT_CALL(*qsfp_, setPowerOverrideIfSupportedLocked(_)).Times(AtLeast(1));
   EXPECT_CALL(*qsfp_, setRateSelectIfSupported(_, _, _)).Times(AtLeast(1));
@@ -172,6 +174,8 @@ TEST_F(QsfpModuleTest, setCdr) {
 
 TEST_F(QsfpModuleTest, portsChangedAllDown25G) {
   ON_CALL(*qsfp_, getTransceiverInfo()).WillByDefault(Return(qsfp_->fakeInfo_));
+  ON_CALL(*qsfp_, customizationSupported()).WillByDefault(Return(true));
+
   // should customize w/ 25G
   EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::TWENTYFIVEG, _, _))
       .Times(1);
@@ -188,6 +192,8 @@ TEST_F(QsfpModuleTest, portsChangedAllDown25G) {
 
 TEST_F(QsfpModuleTest, portsChanged50G) {
   ON_CALL(*qsfp_, getTransceiverInfo()).WillByDefault(Return(qsfp_->fakeInfo_));
+  ON_CALL(*qsfp_, customizationSupported()).WillByDefault(Return(true));
+
   // should customize w/ 50G
   EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::FIFTYG, _, _)).Times(1);
 
@@ -203,6 +209,8 @@ TEST_F(QsfpModuleTest, portsChanged50G) {
 TEST_F(QsfpModuleTest, portsChangedOnePortPerModule) {
   setupQsfp();
   ON_CALL(*qsfp_, getTransceiverInfo()).WillByDefault(Return(qsfp_->fakeInfo_));
+  ON_CALL(*qsfp_, customizationSupported()).WillByDefault(Return(true));
+
   EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::HUNDREDG, _, _))
       .Times(1);
 

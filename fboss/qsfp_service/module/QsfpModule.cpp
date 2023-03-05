@@ -312,10 +312,10 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
 }
 
 bool QsfpModule::customizationSupported() const {
-  // TODO: there may be a better way of determining this rather than
-  // looking at transmitter tech.
+  // Customization is allowed on present Optical modules only. We should skip
+  // other types
   auto tech = getQsfpTransmitterTechnology();
-  return present_ && tech != TransmitterTechnology::COPPER;
+  return present_ && tech == TransmitterTechnology::OPTICAL;
 }
 
 bool QsfpModule::shouldRefresh(time_t cooldown) const {
