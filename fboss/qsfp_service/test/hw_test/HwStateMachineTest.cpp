@@ -365,7 +365,7 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
     wedgeMgr->setOverrideAgentPortStatusForTesting(
         false /* up */, true /* enabled */);
     // Make sure all enabled transceiver should go through:
-    // XPHY_PORTS_PROGRAMMED -> TRANSCEIVER_PROGRAMMED
+    // XPHY_PORTS_PROGRAMMED -> TRANSCEIVER_READY -> TRANSCEIVER_PROGRAMMED
     std::unordered_map<TransceiverID, std::queue<TransceiverStateMachineState>>
         expectedStates;
     for (auto id : getPresentTransceivers()) {
@@ -377,6 +377,8 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
         }
         tcvrExpectedStates.push(
             TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED);
+        tcvrExpectedStates.push(
+            TransceiverStateMachineState::TRANSCEIVER_READY);
         tcvrExpectedStates.push(
             TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
       }
@@ -408,7 +410,7 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
       bool hasXphy = (wedgeMgr->getPhyManager() != nullptr);
       // All tcvrs should go through no matter present or absent
       // IPHY_PORTS_PROGRAMMED -> XPHY_PORTS_PROGRAMMED ->
-      // TRANSCEIVER_PROGRAMMED
+      // -> TRANSCEIVER_READY -> TRANSCEIVER_PROGRAMMED
       auto prepareExpectedStates = [hasXphy]() {
         std::queue<TransceiverStateMachineState> tcvrExpectedStates;
         tcvrExpectedStates.push(
@@ -417,6 +419,8 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
           tcvrExpectedStates.push(
               TransceiverStateMachineState::XPHY_PORTS_PROGRAMMED);
         }
+        tcvrExpectedStates.push(
+            TransceiverStateMachineState::TRANSCEIVER_READY);
         tcvrExpectedStates.push(
             TransceiverStateMachineState::TRANSCEIVER_PROGRAMMED);
         return tcvrExpectedStates;
