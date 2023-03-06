@@ -68,8 +68,11 @@ struct SaiPortTraits {
         sai_int32_t,
         SaiIntDefault<sai_int32_t>>;
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
-    using FabricIsolate =
-        SaiAttribute<EnumType, SAI_PORT_ATTR_FABRIC_ISOLATE, bool>;
+    using FabricIsolate = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_FABRIC_ISOLATE,
+        bool,
+        SaiBoolDefaultFalse>;
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     using PortLoopbackMode = SaiAttribute<
