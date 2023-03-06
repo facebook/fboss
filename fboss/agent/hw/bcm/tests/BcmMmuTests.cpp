@@ -42,6 +42,7 @@ class BcmMmuTests : public BcmTest {
   void SetUp() override {
     FLAGS_mmu_lossless_mode = true;
     FLAGS_qgroup_guarantee_enable = true;
+    FLAGS_skip_buffer_reservation = true;
     BcmTest::SetUp();
   }
 

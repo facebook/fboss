@@ -52,6 +52,7 @@ DEFINE_bool(
     false,
     "Enable setting of unicast and multicast queue guaranteed buffer sizes");
 DEFINE_bool(enable_exact_match, false, "enable init of exact match table");
+DEFINE_bool(skip_buffer_reservation, false, "Enable skip reservation");
 
 using namespace std::chrono_literals;
 

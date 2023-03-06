@@ -93,15 +93,24 @@ std::unique_ptr<AgentConfig> loadCfgFromLocalFile(
 void modifyCfgForPfcTests(
     BcmTestPlatform* bcmTestPlatform,
     std::string& yamlCfg,
-    BcmConfig::ConfigMap& cfg) {
+    BcmConfig::ConfigMap& cfg,
+    bool skipBufferReservation) {
   if (bcmTestPlatform->usesYamlConfig()) {
     std::string toReplace("LOSSY");
     std::size_t pos = yamlCfg.find(toReplace);
     if (pos != std::string::npos) {
-      yamlCfg.replace(
-          pos,
-          toReplace.length(),
-          "LOSSY_AND_LOSSLESS\n      SKIP_BUFFER_RESERVATION: 1");
+      // for TH4 we skip buffer reservation in prod
+      // but it doesn't seem to work for pfc tests which
+      // play around with other variables. For unblocking
+      // skip it for now
+      if (skipBufferReservation) {
+        yamlCfg.replace(
+            pos,
+            toReplace.length(),
+            "LOSSY_AND_LOSSLESS\n      SKIP_BUFFER_RESERVATION: 1");
+      } else {
+        yamlCfg.replace(pos, toReplace.length(), "LOSSY_AND_LOSSLESS");
+      }
     }
   } else {
     cfg["mmu_lossless"] = "0x2";
@@ -236,18 +245,32 @@ void BcmSwitchEnsemble::init(
   // Unfortunately we can't use ASIC for querying this capabilities, since
   // ASIC construction requires inputs from AgentConfig (switchType) during
   // construction.
-  std::unordered_set<PlatformMode> th3AndTh4BcmPlatforms = {
+  std::unordered_set<PlatformMode> th3BcmPlatforms = {
       PlatformMode::MINIPACK,
       PlatformMode::YAMP,
       PlatformMode::WEDGE400,
-      PlatformMode::DARWIN,
-      PlatformMode::FUJI,
-      PlatformMode::ELBERT};
+      PlatformMode::DARWIN};
+  std::unordered_set<PlatformMode> th4BcmPlatforms = {
+      PlatformMode::FUJI, PlatformMode::ELBERT};
+  bool th3Platform = false;
+  bool th4Platform = false;
+  if (th3BcmPlatforms.find(platformMode) != th3BcmPlatforms.end()) {
+    th3Platform = true;
+  } else if (th4BcmPlatforms.find(platformMode) != th4BcmPlatforms.end()) {
+    th4Platform = true;
+  }
+
   // when in lossless mode on support platforms, use a different BCM knob
-  if (FLAGS_mmu_lossless_mode &&
-      th3AndTh4BcmPlatforms.find(platformMode) != th3AndTh4BcmPlatforms.end()) {
-    XLOG(DBG2) << "Modify the bcm cfg as mmu_lossless mode is enabled";
-    modifyCfgForPfcTests(bcmTestPlatform, yamlCfg, cfg);
+  if (FLAGS_mmu_lossless_mode && (th3Platform || th4Platform)) {
+    bool skipBufferReservation = false;
+    if (FLAGS_skip_buffer_reservation && th4Platform) {
+      // onlt skip for TH4 for now
+      skipBufferReservation = true;
+    }
+    XLOG(DBG2)
+        << "Modify the bcm cfg as mmu_lossless mode is enabled and skip buffer reservation is: "
+        << skipBufferReservation;
+    modifyCfgForPfcTests(bcmTestPlatform, yamlCfg, cfg, skipBufferReservation);
   }
   if (FLAGS_enable_exact_match) {
     XLOG(DBG2) << "Modify bcm cfg as enable_exact_match is enabled";

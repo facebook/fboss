@@ -30,6 +30,7 @@ DECLARE_bool(mmu_lossless_mode);
 DECLARE_bool(qgroup_guarantee_enable);
 DECLARE_bool(enable_exact_match);
 DECLARE_bool(flowletSwitchingEnable);
+DECLARE_bool(skip_buffer_reservation);
 
 namespace folly {
 class FunctionScheduler;
