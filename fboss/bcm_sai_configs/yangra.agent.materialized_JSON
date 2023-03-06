@@ -328,6 +328,7 @@
           "tm_port_header_type_out_240.BCM8885X": "ETH",
           "tm_port_header_type_in_1.BCM8885X": "ETH",
           "tm_port_header_type_out_1.BCM8885X": "ETH",
+          "ucode_port_1.BCM8885X": "RCY.21:core_0.1",
           "ucode_port_2.BCM8885X": "CGE32:core_1.2",
           "ucode_port_3.BCM8885X": "CGE34:core_1.3",
           "lane_to_serdes_map_nif_lane128": "rx135:tx132",
