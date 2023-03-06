@@ -248,6 +248,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h
   fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h
   fboss/cli/fboss2/commands/show/host/CmdShowHost.h
+  fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h
   fboss/cli/fboss2/commands/show/l2/CmdShowL2.h
   fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h
   fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h
