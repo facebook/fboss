@@ -877,19 +877,6 @@ class BcmSdkInterface {
       bcm_if_t* intf_array,
       int* intf_count) = 0;
 
-  virtual void bcm_l3_ecmp_dlb_port_quality_attr_t_init(
-      bcm_l3_ecmp_dlb_port_quality_attr_t* quality_attr) = 0;
-
-  virtual int bcm_l3_ecmp_dlb_port_quality_attr_set(
-      int unit,
-      bcm_port_t port,
-      bcm_l3_ecmp_dlb_port_quality_attr_t* quality_attr) = 0;
-
-  virtual int bcm_l3_ecmp_dlb_port_quality_attr_get(
-      int unit,
-      bcm_port_t port,
-      bcm_l3_ecmp_dlb_port_quality_attr_t* quality_attr) = 0;
-
   virtual int bcm_l3_enable_set(int unit, int enable) = 0;
 
   virtual int bcm_field_entry_install(int unit, bcm_field_entry_t entry) = 0;
