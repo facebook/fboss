@@ -47,26 +47,37 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
     return createModel(entries);
   }
 
+  inline std::string formattoString(int64_t value) {
+    return value == -1 ? "--" : folly::to<std::string>(value);
+  }
+
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     Table table;
     table.setHeader({
         "Local Port",
-        "Peer switch",
-        "Peer switchId",
+        "Peer Switch",
+        "Peer SwitchId",
+        "Expected Peer SwitchId",
         "Peer Port",
         "Peer PortId",
+        "Expected Peer PortId",
     });
 
     for (auto const& entry : model.get_fabricEntries()) {
-      std::string remoteSwitchId = *entry.remoteSwitchId() == -1
-          ? "--"
-          : folly::to<std::string>(*entry.remoteSwitchId());
+      std::string remoteSwitchId = formattoString(*entry.remoteSwitchId());
+      std::string expectedRemoteSwitchId =
+          formattoString(*entry.expectedRemoteSwitchId());
+      std::string expectedRemotePortId =
+          formattoString(*entry.expectedRemotePortId());
+
       table.addRow({
           *entry.localPort(),
           utils::removeFbDomains(*entry.remoteSwitchName()),
           remoteSwitchId,
+          expectedRemoteSwitchId,
           *entry.remotePortName(),
           folly::to<std::string>(*entry.remotePortId()),
+          expectedRemotePortId,
       });
     }
 
@@ -89,6 +100,12 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
           endpoint.portName() ? *endpoint.portName() : kUnavail;
       fabricDetails.remoteSwitchName() =
           endpoint.switchName() ? *endpoint.switchName() : kUnavail;
+      fabricDetails.expectedRemoteSwitchId() =
+          endpoint.expectedSwitchId().has_value() ? *endpoint.expectedSwitchId()
+                                                  : -1;
+      fabricDetails.expectedRemotePortId() =
+          endpoint.expectedPortId().has_value() ? *endpoint.expectedPortId()
+                                                : -1;
       model.fabricEntries()->push_back(fabricDetails);
     }
 
