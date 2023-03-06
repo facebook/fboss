@@ -15,6 +15,41 @@ namespace {
 constexpr auto kJsonPlatformMappingStr = R"(
 {
   "ports": {
+    "1": {
+        "mapping": {
+          "id": 1,
+          "name": "rcy1/1/1",
+          "controllingPort": 1,
+          "pins": [
+            {
+              "a": {
+                "chip": "rcy1",
+                "lane": 0
+              }
+            }
+          ],
+          "portType": 3,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 1
+        },
+        "supportedProfiles": {
+          "11": {
+              "subsumedPorts": [
+
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "rcy1",
+                      "lane": 0
+                    }
+                  }
+                ]
+              }
+          }
+        }
+    },
     "2": {
         "mapping": {
           "id": 2,
@@ -380,6 +415,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
       "name": "eth1/18",
       "type": 3,
       "physicalID": 17
+    },
+    {
+      "name": "rcy1",
+      "type": 1,
+      "physicalID": 55
     }
   ],
   "platformSettings": {
@@ -400,6 +440,22 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "medium": 1,
           "interfaceMode": 12,
           "interfaceType": 12
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 11
+      },
+      "profile": {
+        "speed": 10000,
+        "iphy": {
+          "numLanes": 1,
+          "modulation": 1,
+          "fec": 1,
+          "medium": 1,
+          "interfaceMode": 10,
+          "interfaceType": 10
         }
       }
     }
