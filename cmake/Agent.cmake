@@ -287,3 +287,13 @@ add_library(sflow_shim_utils
 target_link_libraries(sflow_shim_utils
   Folly::folly
 )
+
+
+add_library(fsdb_helper
+  fboss/agent/oss/FsdbHelper.cpp
+)
+
+target_link_libraries(fsdb_helper
+  fsdb_oper_cpp2
+  state
+)
