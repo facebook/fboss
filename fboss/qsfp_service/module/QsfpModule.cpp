@@ -106,7 +106,7 @@ QsfpModule::~QsfpModule() {
   // The transceiver has been removed
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   getTransceiverManager()->updateStateBlocking(
-      getID(), TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
+      getID(), TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER);
 }
 
 void QsfpModule::getQsfpValue(
@@ -442,11 +442,12 @@ void QsfpModule::refreshLocked() {
   if (detectionStatus.statusChanged && detectionStatus.present) {
     // A new transceiver has been detected
     getTransceiverManager()->updateStateBlocking(
-        getID(), TransceiverStateMachineEvent::DETECT_TRANSCEIVER);
+        getID(),
+        TransceiverStateMachineEvent::TCVR_EV_EVENT_DETECT_TRANSCEIVER);
   } else if (detectionStatus.statusChanged && !detectionStatus.present) {
     // The transceiver has been removed
     getTransceiverManager()->updateStateBlocking(
-        getID(), TransceiverStateMachineEvent::REMOVE_TRANSCEIVER);
+        getID(), TransceiverStateMachineEvent::TCVR_EV_REMOVE_TRANSCEIVER);
   }
 
   ModuleStatus moduleStatus;
@@ -462,7 +463,7 @@ void QsfpModule::refreshLocked() {
     if (present_) {
       // Data has been read for the new optics
       getTransceiverManager()->updateStateBlocking(
-          getID(), TransceiverStateMachineEvent::READ_EEPROM);
+          getID(), TransceiverStateMachineEvent::TCVR_EV_READ_EEPROM);
       // Issue an allPages=false update to pick up the new qsfp data after we
       // trigger READ_EEPROM event. Some Transceiver might pick up all the diag
       // capabilities and we can use this to make sure the current QsfpData has

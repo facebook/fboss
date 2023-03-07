@@ -584,27 +584,3 @@ enum TransceiverStateMachineState {
   UPGRADING = 8,
   TRANSCEIVER_READY = 9,
 }
-
-enum TransceiverStateMachineEvent {
-  DETECT_TRANSCEIVER = 0,
-  RESET_TRANSCEIVER = 1,
-  REMOVE_TRANSCEIVER = 2,
-  READ_EEPROM = 3,
-  ALL_PORTS_DOWN = 4,
-  PORT_UP = 5,
-  // NOTE: Such event is never invoked in our code yet
-  TRIGGER_UPGRADE = 6,
-  // NOTE: Such event is never invoked in our code yet
-  FORCED_UPGRADE = 7,
-  AGENT_SYNC_TIMEOUT = 8,
-  BRINGUP_DONE = 9,
-  REMEDIATE_DONE = 10,
-  // The following events are only used in the new state machine
-  PROGRAM_IPHY = 11,
-  PROGRAM_XPHY = 12,
-  PROGRAM_TRANSCEIVER = 13,
-  RESET_TO_DISCOVERED = 14,
-  RESET_TO_NOT_PRESENT = 15,
-  REMEDIATE_TRANSCEIVER = 16,
-  PREPARE_TRANSCEIVER = 17,
-}

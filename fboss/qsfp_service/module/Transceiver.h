@@ -21,6 +21,29 @@
 namespace facebook {
 namespace fboss {
 
+enum TransceiverStateMachineEvent {
+  TCVR_EV_EVENT_DETECT_TRANSCEIVER = 0,
+  TCVR_EV_RESET_TRANSCEIVER = 1,
+  TCVR_EV_REMOVE_TRANSCEIVER = 2,
+  TCVR_EV_READ_EEPROM = 3,
+  TCVR_EV_ALL_PORTS_DOWN = 4,
+  TCVR_EV_PORT_UP = 5,
+  // NOTE: Such event is never invoked in our code yet
+  TCVR_EV_TRIGGER_UPGRADE = 6,
+  // NOTE: Such event is never invoked in our code yet
+  TCVR_EV_FORCED_UPGRADE = 7,
+  TCVR_EV_AGENT_SYNC_TIMEOUT = 8,
+  TCVR_EV_BRINGUP_DONE = 9,
+  TCVR_EV_REMEDIATE_DONE = 10,
+  TCVR_EV_PROGRAM_IPHY = 11,
+  TCVR_EV_PROGRAM_XPHY = 12,
+  TCVR_EV_PROGRAM_TRANSCEIVER = 13,
+  TCVR_EV_RESET_TO_DISCOVERED = 14,
+  TCVR_EV_RESET_TO_NOT_PRESENT = 15,
+  TCVR_EV_REMEDIATE_TRANSCEIVER = 16,
+  TCVR_EV_PREPARE_TRANSCEIVER = 17,
+};
+
 /* Virtual class to handle the different transceivers our equipment is likely
  * to support.  This supports, for now, QSFP and SFP.
  */

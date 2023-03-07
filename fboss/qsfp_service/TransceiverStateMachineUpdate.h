@@ -38,6 +38,7 @@ class TransceiverStateMachineUpdate {
   std::string getName() const {
     return name_;
   }
+  static std::string getEventName(TransceiverStateMachineEvent event);
 
   virtual void applyUpdate(state_machine<TransceiverStateMachine>& curState);
 

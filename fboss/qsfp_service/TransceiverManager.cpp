@@ -511,14 +511,14 @@ std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
     auto tcvrID = stateMachine.first;
     if (needProgramIphy) {
       if (auto result = updateStateBlockingWithoutWait(
-              tcvrID, TransceiverStateMachineEvent::PROGRAM_IPHY)) {
+              tcvrID, TransceiverStateMachineEvent::TCVR_EV_PROGRAM_IPHY)) {
         programmedTcvrs.push_back(tcvrID);
         ++numProgramIphy;
         results.push_back(result);
       }
     } else if (needProgramXphy && phyManager_ != nullptr) {
       if (auto result = updateStateBlockingWithoutWait(
-              tcvrID, TransceiverStateMachineEvent::PROGRAM_XPHY)) {
+              tcvrID, TransceiverStateMachineEvent::TCVR_EV_PROGRAM_XPHY)) {
         programmedTcvrs.push_back(tcvrID);
         ++numProgramXphy;
         results.push_back(result);
@@ -529,13 +529,13 @@ std::vector<TransceiverID> TransceiverManager::triggerProgrammingEvents() {
 
       if (moduleStateReady) {
         result = updateStateBlockingWithoutWait(
-            tcvrID, TransceiverStateMachineEvent::PROGRAM_TRANSCEIVER);
+            tcvrID, TransceiverStateMachineEvent::TCVR_EV_PROGRAM_TRANSCEIVER);
         if (result) {
           ++numProgramTcvr;
         }
       } else {
         result = updateStateBlockingWithoutWait(
-            tcvrID, TransceiverStateMachineEvent::PREPARE_TRANSCEIVER);
+            tcvrID, TransceiverStateMachineEvent::TCVR_EV_PREPARE_TRANSCEIVER);
         if (result) {
           ++numPrepareTcvr;
         }
@@ -807,10 +807,12 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
         }
         if (isTcvrPresent) {
           ++numResetToDiscovered;
-          event.emplace(TransceiverStateMachineEvent::RESET_TO_DISCOVERED);
+          event.emplace(
+              TransceiverStateMachineEvent::TCVR_EV_RESET_TO_DISCOVERED);
         } else {
           ++numResetToNotPresent;
-          event.emplace(TransceiverStateMachineEvent::RESET_TO_NOT_PRESENT);
+          event.emplace(
+              TransceiverStateMachineEvent::TCVR_EV_RESET_TO_NOT_PRESENT);
         }
       };
 
@@ -880,8 +882,8 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
       // finished programming
       if (!event && ((!statusChangedPorts.empty()) || isTcvrJustProgrammed)) {
         event.emplace(
-            anyPortUp ? TransceiverStateMachineEvent::PORT_UP
-                      : TransceiverStateMachineEvent::ALL_PORTS_DOWN);
+            anyPortUp ? TransceiverStateMachineEvent::TCVR_EV_PORT_UP
+                      : TransceiverStateMachineEvent::TCVR_EV_ALL_PORTS_DOWN);
         ++numPortStatusChanged;
       }
 
@@ -971,8 +973,9 @@ void TransceiverManager::updateTransceiverActiveState(
       // Make sure we update active state for a transceiver which just
       // finished programming
       if ((!statusChangedPorts.empty()) || isTcvrJustProgrammed) {
-        auto event = anyPortUp ? TransceiverStateMachineEvent::PORT_UP
-                               : TransceiverStateMachineEvent::ALL_PORTS_DOWN;
+        auto event = anyPortUp
+            ? TransceiverStateMachineEvent::TCVR_EV_PORT_UP
+            : TransceiverStateMachineEvent::TCVR_EV_ALL_PORTS_DOWN;
         ++numPortStatusChanged;
         if (auto result = updateStateBlockingWithoutWait(tcvrID, event)) {
           results.push_back(result);
@@ -1113,13 +1116,15 @@ void TransceiverManager::triggerAgentConfigChangeEvent() {
     auto tcvrID = stateMachine.first;
     if (presentTransceivers.find(tcvrID) != presentTransceivers.end()) {
       if (auto result = updateStateBlockingWithoutWait(
-              tcvrID, TransceiverStateMachineEvent::RESET_TO_DISCOVERED)) {
+              tcvrID,
+              TransceiverStateMachineEvent::TCVR_EV_RESET_TO_DISCOVERED)) {
         ++numResetToDiscovered;
         results.push_back(result);
       }
     } else {
       if (auto result = updateStateBlockingWithoutWait(
-              tcvrID, TransceiverStateMachineEvent::RESET_TO_NOT_PRESENT)) {
+              tcvrID,
+              TransceiverStateMachineEvent::TCVR_EV_RESET_TO_NOT_PRESENT)) {
         ++numResetToNotPresent;
         results.push_back(result);
       }
@@ -1308,7 +1313,8 @@ void TransceiverManager::triggerRemediateEvents(
       continue;
     }
     if (auto result = updateStateBlockingWithoutWait(
-            tcvrID, TransceiverStateMachineEvent::REMEDIATE_TRANSCEIVER)) {
+            tcvrID,
+            TransceiverStateMachineEvent::TCVR_EV_REMEDIATE_TRANSCEIVER)) {
       results.push_back(result);
     }
   }
