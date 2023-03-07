@@ -42,5 +42,5 @@ fsdb::OperDelta computeOperDelta(
 }
 
 std::vector<std::string> fsdbAgentDataSwitchStateRootPath();
-
+std::vector<std::string> switchStateRootPath();
 } // namespace facebook::fboss

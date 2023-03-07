@@ -8,4 +8,7 @@ std::vector<std::string> fsdbAgentDataSwitchStateRootPath() {
   return {};
 }
 
+std::vector<std::string> switchStateRootPath() {
+  return {};
+}
 } // namespace facebook::fboss
