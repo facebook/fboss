@@ -574,7 +574,7 @@ if (NOT SAI_ONLY)
       fboss/agent/hw/switch_asics/TomahawkAsic.cpp
       fboss/agent/hw/switch_asics/Trident2Asic.cpp
       fboss/agent/hw/switch_asics/IndusAsic.cpp
-      fboss/agent/hw/switch_asics/BeasAsic.cpp
+      fboss/agent/hw/switch_asics/RamonAsic.cpp
       fboss/agent/hw/switch_asics/BroadcomXgsAsic.cpp
   )
 

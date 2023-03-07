@@ -10,7 +10,7 @@
 
 #include "fboss/agent/platforms/sai/SaiKametPlatform.h"
 
-#include "fboss/agent/hw/switch_asics/BeasAsic.h"
+#include "fboss/agent/hw/switch_asics/RamonAsic.h"
 #include "fboss/agent/platforms/common/kamet/KametPlatformMapping.h"
 
 #include <cstdio>
@@ -32,7 +32,7 @@ void SaiKametPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
     std::optional<cfg::Range64> systemPortRange) {
-  asic_ = std::make_unique<BeasAsic>(switchType, switchId, systemPortRange);
+  asic_ = std::make_unique<RamonAsic>(switchType, switchId, systemPortRange);
 }
 
 HwAsic* SaiKametPlatform::getAsic() const {

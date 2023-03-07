@@ -6,9 +6,9 @@
 
 namespace facebook::fboss {
 
-class BeasAsic : public BroadcomAsic {
+class RamonAsic : public BroadcomAsic {
  public:
-  BeasAsic(
+  RamonAsic(
       cfg::SwitchType type,
       std::optional<int64_t> id,
       std::optional<cfg::Range64> systemPortRange)

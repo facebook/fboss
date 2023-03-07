@@ -13,7 +13,7 @@
 
 namespace facebook::fboss {
 
-class BeasAsic;
+class RamonAsic;
 
 class SaiKametPlatform : public SaiBcmPlatform {
  public:
@@ -61,7 +61,7 @@ class SaiKametPlatform : public SaiBcmPlatform {
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
       std::optional<cfg::Range64> systemPortRange) override;
-  std::unique_ptr<BeasAsic> asic_;
+  std::unique_ptr<RamonAsic> asic_;
 };
 
 } // namespace facebook::fboss
