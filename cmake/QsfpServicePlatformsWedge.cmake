@@ -22,7 +22,7 @@ target_link_libraries(qsfp_platforms_wedge
   galaxy_platform_mapping
   wedge100_platform_mapping
   wedge40_platform_mapping
-  kamet_platform_mapping
+  meru400bfu_platform_mapping
   meru400biu_platform_mapping
   platform_base
   qsfp_config

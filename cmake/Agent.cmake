@@ -221,7 +221,7 @@ target_link_libraries(handler
   log_thrift_call
   Folly::folly
   wedge400c_platform_mapping
-  kamet_platform_mapping
+  meru400bfu_platform_mapping
   meru400biu_platform_mapping
   meru400bia_platform_mapping
 )

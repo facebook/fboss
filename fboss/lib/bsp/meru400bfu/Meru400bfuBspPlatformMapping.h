@@ -6,9 +6,9 @@
 
 namespace facebook::fboss {
 
-class KametBspPlatformMapping : public BspPlatformMapping {
+class Meru400bfuBspPlatformMapping : public BspPlatformMapping {
  public:
-  KametBspPlatformMapping();
+  Meru400bfuBspPlatformMapping();
 };
 
 } // namespace facebook::fboss

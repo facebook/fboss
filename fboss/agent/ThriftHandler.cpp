@@ -29,7 +29,7 @@
 #include "fboss/agent/capture/PktCaptureManager.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/platforms/common/kamet/KametPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CFabricPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CVoqPlatformMapping.h"
@@ -2813,7 +2813,7 @@ void ThriftHandler::getFabricReachability(
   auto portId2FabricEndpoint = sw_->getHw()->getFabricReachability();
   auto state = sw_->getState();
   static Meru400biuPlatformMapping meru400biu;
-  static KametPlatformMapping kamet;
+  static Meru400bfuPlatformMapping meru400bfu;
   static Wedge400CVoqPlatformMapping w400cVoq;
   static Wedge400CFabricPlatformMapping w400cFabric;
   for (auto [portId, fabricEndpoint] : portId2FabricEndpoint) {
@@ -2874,7 +2874,7 @@ void ThriftHandler::getFabricReachability(
             remotePortOffset = 256;
             break;
           case cfg::AsicType::ASIC_TYPE_RAMON:
-            platformMapping = &kamet;
+            platformMapping = &meru400bfu;
             break;
         }
         fabricEndpoint.portId() = *fabricEndpoint.portId() + remotePortOffset;

@@ -8,10 +8,10 @@
  *
  */
 
-#include "fboss/agent/platforms/sai/SaiKametPlatform.h"
+#include "fboss/agent/platforms/sai/SaiMeru400bfuPlatform.h"
 
 namespace facebook::fboss {
 
-void SaiKametPlatform::initLEDs() {}
+void SaiMeru400bfuPlatform::initLEDs() {}
 
 } // namespace facebook::fboss

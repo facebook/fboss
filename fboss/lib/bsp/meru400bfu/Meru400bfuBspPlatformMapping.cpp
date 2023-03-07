@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/lib/bsp/kamet/KametBspPlatformMapping.h"
+#include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/BspPlatformMapping.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 
@@ -8,7 +8,7 @@ using namespace facebook::fboss;
 
 namespace {
 // TODO: Move this mapping generation to cfgr
-static BspPlatformMappingThrift buildKametPlatformMapping() {
+static BspPlatformMappingThrift buildMeru400bfuPlatformMapping() {
   BspPlatformMappingThrift mapping;
   BspPimMapping pimMapping;
   pimMapping.pimID() = 1;
@@ -65,8 +65,8 @@ namespace facebook {
 namespace fboss {
 
 // TODO: Use pre generated bsp platform mapping from cfgr
-KametBspPlatformMapping::KametBspPlatformMapping()
-    : BspPlatformMapping(buildKametPlatformMapping()) {}
+Meru400bfuBspPlatformMapping::Meru400bfuBspPlatformMapping()
+    : BspPlatformMapping(buildMeru400bfuPlatformMapping()) {}
 
 } // namespace fboss
 } // namespace facebook

@@ -139,8 +139,9 @@ void PlatformProductInfo::initMode() {
     } else if (modelName.find("Meru400bia") == 0) {
       mode_ = PlatformMode::MERU400BIA;
     } else if (
-        modelName.find("Kamet") == 0 || modelName.find("S9705-48D-4B4") == 0) {
-      mode_ = PlatformMode::KAMET;
+        modelName.find("Meru400bfu") == 0 ||
+        modelName.find("S9705-48D-4B4") == 0) {
+      mode_ = PlatformMode::MERU400BFU;
     } else if (
         modelName.find("Montblanc") == 0 || modelName.find("MONTBLANC") == 0) {
       mode_ = PlatformMode::MONTBLANC;
@@ -178,8 +179,8 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::MERU400BIU;
     } else if (FLAGS_mode == "meru400bia") {
       mode_ = PlatformMode::MERU400BIA;
-    } else if (FLAGS_mode == "kamet") {
-      mode_ = PlatformMode::KAMET;
+    } else if (FLAGS_mode == "meru400bfu") {
+      mode_ = PlatformMode::MERU400BFU;
     } else if (FLAGS_mode == "wedge400c") {
       mode_ = PlatformMode::WEDGE400C;
     } else if (FLAGS_mode == "wedge400c_voq") {

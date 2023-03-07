@@ -2,7 +2,7 @@
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
-    "mode": "kamet",
+    "mode": "meru400bfu",
     "skip_transceiver_programming": "true"
   },
   "sw": {

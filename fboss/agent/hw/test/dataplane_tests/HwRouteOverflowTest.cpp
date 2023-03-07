@@ -91,8 +91,8 @@ TEST_F(HwOverflowTest, overflowRoutes) {
     case PlatformMode::MERU400BIA:
       // No overflow test for MERU400BIA yet
       break;
-    case PlatformMode::KAMET:
-      // No overflow test for KAMET yet
+    case PlatformMode::MERU400BFU:
+      // No overflow test for MERU400BFU yet
       break;
     case PlatformMode::MONTBLANC:
       break;

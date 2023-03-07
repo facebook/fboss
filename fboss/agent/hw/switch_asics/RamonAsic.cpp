@@ -41,7 +41,7 @@ std::set<cfg::StreamType> RamonAsic::getQueueStreamTypes(
 int RamonAsic::getDefaultNumPortQueues(
     cfg::StreamType /* streamType */,
     bool cpu) const {
-  // On kamet we use a single fabric queue for all
+  // On meru400bfu we use a single fabric queue for all
   // traffic
   return cpu ? 0 : 1;
 }

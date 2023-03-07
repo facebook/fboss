@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/platforms/common/kamet/KametPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 
 namespace facebook::fboss {
 namespace {
@@ -9985,14 +9985,14 @@ constexpr auto kJsonPlatformMappingStr = R"(
  * TODO(skhare) Once configerator platform mapping support is complete, remove
  * this programmatic generation logic.
  *
- * KametPlatformMapping::KametPlatformMapping()
+ * Meru400bfuPlatformMapping::Meru400bfuPlatformMapping()
  *    : PlatformMapping(buildMapping()) {}
  */
 
-KametPlatformMapping::KametPlatformMapping()
+Meru400bfuPlatformMapping::Meru400bfuPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
-KametPlatformMapping::KametPlatformMapping(
+Meru400bfuPlatformMapping::Meru400bfuPlatformMapping(
     const std::string& platformMappingStr)
     : PlatformMapping(platformMappingStr) {}
 

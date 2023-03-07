@@ -8,37 +8,37 @@
  *
  */
 
-#include "fboss/agent/platforms/sai/SaiKametPlatform.h"
+#include "fboss/agent/platforms/sai/SaiMeru400bfuPlatform.h"
 
 #include "fboss/agent/hw/switch_asics/RamonAsic.h"
-#include "fboss/agent/platforms/common/kamet/KametPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 
 #include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
 
-SaiKametPlatform::SaiKametPlatform(
+SaiMeru400bfuPlatform::SaiMeru400bfuPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     folly::MacAddress localMac,
     const std::string& platformMappingStr)
     : SaiBcmPlatform(
           std::move(productInfo),
           platformMappingStr.empty()
-              ? std::make_unique<KametPlatformMapping>()
-              : std::make_unique<KametPlatformMapping>(platformMappingStr),
+              ? std::make_unique<Meru400bfuPlatformMapping>()
+              : std::make_unique<Meru400bfuPlatformMapping>(platformMappingStr),
           localMac) {}
 
-void SaiKametPlatform::setupAsic(
+void SaiMeru400bfuPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
     std::optional<cfg::Range64> systemPortRange) {
   asic_ = std::make_unique<RamonAsic>(switchType, switchId, systemPortRange);
 }
 
-HwAsic* SaiKametPlatform::getAsic() const {
+HwAsic* SaiMeru400bfuPlatform::getAsic() const {
   return asic_.get();
 }
 
-SaiKametPlatform::~SaiKametPlatform() {}
+SaiMeru400bfuPlatform::~SaiMeru400bfuPlatform() {}
 
 } // namespace facebook::fboss

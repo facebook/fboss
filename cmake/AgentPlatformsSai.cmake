@@ -36,7 +36,7 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiMeru400biuPlatform.cpp
   fboss/agent/platforms/sai/SaiMeru400biaPlatform.cpp
   fboss/agent/platforms/sai/SaiMeru400biaPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiKametPlatform.cpp
+  fboss/agent/platforms/sai/SaiMeru400bfuPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMontblancPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.cpp
 
@@ -60,8 +60,8 @@ add_library(sai_platform
   fboss/agent/platforms/sai/oss/SaiMeru400biuPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru400biuPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiMeru400biaPlatform.cpp
-  fboss/agent/platforms/sai/oss/SaiKametPlatform.cpp
-  fboss/agent/platforms/sai/oss/SaiKametPlatformPort.cpp
+  fboss/agent/platforms/sai/oss/SaiMeru400bfuPlatform.cpp
+  fboss/agent/platforms/sai/oss/SaiMeru400bfuPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiSandiaPlatformPort.cpp
 )
 
@@ -93,7 +93,7 @@ target_link_libraries(sai_platform
   bcm_yaml_config
   cloud_ripper_platform_mapping
   meru400biu_platform_mapping
-  kamet_platform_mapping
+  meru400bfu_platform_mapping
   montblanc_platform_mapping
 )
 

@@ -971,7 +971,7 @@ if (NOT SAI_ONLY)
       wedge400c_platform_mapping
       wedge100_platform_mapping
       galaxy_platform_mapping
-      kamet_platform_mapping
+      meru400bfu_platform_mapping
       meru400biu_platform_mapping
       meru400bia_platform_mapping
       qsfp_cpp2

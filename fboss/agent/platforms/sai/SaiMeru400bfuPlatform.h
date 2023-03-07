@@ -15,13 +15,13 @@ namespace facebook::fboss {
 
 class RamonAsic;
 
-class SaiKametPlatform : public SaiBcmPlatform {
+class SaiMeru400bfuPlatform : public SaiBcmPlatform {
  public:
-  SaiKametPlatform(
+  SaiMeru400bfuPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac,
       const std::string& platformMappingStr);
-  ~SaiKametPlatform() override;
+  ~SaiMeru400bfuPlatform() override;
   HwAsic* getAsic() const override;
 
   uint32_t numLanesPerCore() const override {
