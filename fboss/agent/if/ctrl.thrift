@@ -628,6 +628,8 @@ struct FabricEndpoint {
   6: switch_config.SwitchType switchType;
   7: optional i64 expectedSwitchId;
   8: optional i32 expectedPortId;
+  9: optional string expectedPortName;
+  10: optional string expectedSwitchName;
 }
 
 service FbossCtrl extends phy.FbossCommonPhyCtrl {
