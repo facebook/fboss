@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/lib/bsp/makalu/MakaluBspPlatformMapping.h"
+#include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/BspPlatformMapping.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 
@@ -8,7 +8,7 @@ using namespace facebook::fboss;
 
 namespace {
 // TODO: Move this mapping generation to cfgr
-static BspPlatformMappingThrift buildMakaluPlatformMapping() {
+static BspPlatformMappingThrift buildMeru400biuPlatformMapping() {
   BspPlatformMappingThrift mapping;
   BspPimMapping pimMapping;
   pimMapping.pimID() = 1;
@@ -106,8 +106,8 @@ namespace facebook {
 namespace fboss {
 
 // TODO: Use pre generated bsp platform mapping from cfgr
-MakaluBspPlatformMapping::MakaluBspPlatformMapping()
-    : BspPlatformMapping(buildMakaluPlatformMapping()) {}
+Meru400biuBspPlatformMapping::Meru400biuBspPlatformMapping()
+    : BspPlatformMapping(buildMeru400biuPlatformMapping()) {}
 
 } // namespace fboss
 } // namespace facebook

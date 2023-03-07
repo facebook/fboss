@@ -2,7 +2,7 @@
 
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include "fboss/lib/bsp/kamet/KametBspPlatformMapping.h"
-#include "fboss/lib/bsp/makalu/MakaluBspPlatformMapping.h"
+#include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 
 namespace facebook {
 namespace fboss {
@@ -14,12 +14,13 @@ std::shared_ptr<KametSystemContainer> KametSystemContainer::getInstance() {
   return _kametSystemContainer.try_get();
 }
 
-using MakaluSystemContainer =
-    BspGenericSystemContainer<MakaluBspPlatformMapping>;
-folly::Singleton<MakaluSystemContainer> _makaluSystemContainer;
+using Meru400biuSystemContainer =
+    BspGenericSystemContainer<Meru400biuBspPlatformMapping>;
+folly::Singleton<Meru400biuSystemContainer> _meru400biuSystemContainer;
 template <>
-std::shared_ptr<MakaluSystemContainer> MakaluSystemContainer::getInstance() {
-  return _makaluSystemContainer.try_get();
+std::shared_ptr<Meru400biuSystemContainer>
+Meru400biuSystemContainer::getInstance() {
+  return _meru400biuSystemContainer.try_get();
 }
 
 } // namespace fboss

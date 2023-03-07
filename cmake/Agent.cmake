@@ -222,7 +222,7 @@ target_link_libraries(handler
   Folly::folly
   wedge400c_platform_mapping
   kamet_platform_mapping
-  makalu_platform_mapping
+  meru400biu_platform_mapping
   meru400bia_platform_mapping
 )
 

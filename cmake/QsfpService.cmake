@@ -55,11 +55,11 @@ target_link_libraries(kamet_bsp
   bsp_platform_mapping_cpp2
 )
 
-add_library(makalu_bsp
-  fboss/lib/bsp/makalu/MakaluBspPlatformMapping.cpp
+add_library(meru400biu_bsp
+  fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.cpp
 )
 
-target_link_libraries(makalu_bsp
+target_link_libraries(meru400biu_bsp
   bsp_platform_mapping_cpp2
 )
 
@@ -86,7 +86,7 @@ target_link_libraries(qsfp_bsp_core
   i2c_controller_stats_cpp2
   Folly::folly
   kamet_bsp
-  makalu_bsp
+  meru400biu_bsp
   device_mdio
   fpga_device
   phy_management_base

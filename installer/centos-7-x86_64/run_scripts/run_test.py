@@ -66,54 +66,54 @@ from argparse import ArgumentParser
 # All tests matching the following filters pass on w400C in fabric mode
 # ./run_test.py sai --config wedge400c_fabric.agent.materialized_JSON --filter=HwFabricSwitchTest.*
 
-# All tests matching following filters are expected to PASS on Makalu
+# All tests matching following filters are expected to PASS on Meru400biu
 # Basic VOQ switch tests
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwVoqSwitchTest*
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwVoqSwitchWithFabriPortsTest.*
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwVoqSwitchWithMultipleDsfNodesTest.*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwVoqSwitchTest*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwVoqSwitchWithFabriPortsTest.*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwVoqSwitchWithMultipleDsfNodesTest.*
 # Basic forwarding tests
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwJumboFramesTest.*
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoopBackTest.*
-# ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwL4PortBlackHolingTest.*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwJumboFramesTest.*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwLoopBackTest.*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON  --filter=HwL4PortBlackHolingTest.*
 # Counter tests
-# ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwInPauseDiscardsCounterTest.*
-# ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwResourceStatsTest.l3Stats
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON  --filter=HwInPauseDiscardsCounterTest.*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON  --filter=HwResourceStatsTest.l3Stats
 # ECMP Tests
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwEcmpTest.*:-*Ucmp*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwEcmpTest.*:-*Ucmp*
 # Load Balancer Tests
 # UCMP support lacking in DNX
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV4.*:-*Ucmp*
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwLoadBalancerTestV6.*:-*Ucmp*
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwHashConsistencyTest.*:-*EcmpExpand*:*MemberOrder*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwLoadBalancerTestV4.*:-*Ucmp*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwLoadBalancerTestV6.*:-*Ucmp*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwHashConsistencyTest.*:-*EcmpExpand*:*MemberOrder*
 # LB Tests with ROCE traffic
-# ./run_test.py sai --config makalu.agent.materialized_JSON  --filter=HwLoadBalancerNegativeTestV6RoCE.*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON  --filter=HwLoadBalancerNegativeTestV6RoCE.*
 # Route programming tests
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwAlpmStressTest.*
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=SaiNextHopGroupTest.*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAlpmStressTest.*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=SaiNextHopGroupTest.*
 # Neighbor programming tests
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwNeighborTest/0.*:-*LookupClass
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwNeighborTest/2.*:-*LookupClass
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwNeighborTest/0.*:-*LookupClass
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwNeighborTest/2.*:-*LookupClass
 # V4 routes
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwRouteTest/0.*:-*Mpls*:*ClassId*:*ClassID*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwRouteTest/0.*:-*Mpls*:*ClassId*:*ClassID*
 # V6 routes
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwRouteTest/1.*:-*Mpls*:*ClassId*:*ClassID*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwRouteTest/1.*:-*Mpls*:*ClassId*:*ClassID*
 # ACLs
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwAclPriorityTest.*:-*AclsChanged*
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwAclCounterTest.*
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=SaiAclTableRecreateTests.*
-# ./run_test.py sai --config makalu.agent.materialized_JSON
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclPriorityTest.*:-*AclsChanged*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclCounterTest.*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=SaiAclTableRecreateTests.*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON
 # --filter=HwAclStatTest.*:-*AclStatCreate:*AclStatCreateShared:*AclStatCreateMultiple:*AclStatMultipleActions:*AclStatDeleteShared*:*AclStatDeleteSharedPostWarmBoot:*AclStatRename*:*AclStatModify:*AclStatShuffle:*StatNumberOfCounters:*AclStatChangeCounterType
 # Packet send test
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwPacketSendTest.PortTxEnableTest
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwPacketSendTest.PortTxEnableTest
 # PFC tests
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwPfcTest.*:-*Watchdog*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwPfcTest.*:-*Watchdog*
 # PFC traffic tests
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwTrafficPfc*:-*Watchdog*:*Zero*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwTrafficPfc*:-*Watchdog*:*Zero*
 # Qos  tests
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwOlympicQosTests.VerifyDscpQueueMappingFrontPanel
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwOlympicQosTests.VerifyDscpQueueMappingFrontPanel
 # CoPP
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwRxReasonTests.*
-# ./run_test.py sai --config makalu.agent.materialized_JSON --filter=HwCoppTest/0.Ipv6LinkLocalMcastToMidPriQ:HwCoppTest/0.Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ:HwCoppTest/0.L3MTUErrorToLowPriQ:HwCoppTest/0.UnresolvedRoutesToLowPriQueue
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwRxReasonTests.*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwCoppTest/0.Ipv6LinkLocalMcastToMidPriQ:HwCoppTest/0.Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ:HwCoppTest/0.L3MTUErrorToLowPriQ:HwCoppTest/0.UnresolvedRoutesToLowPriQueue
 # All tests matching following filter are expected to PASS on Kamet
 # ./run_test.py sai --config kamet.agent.materialized_JSON --filter=HwFabricSwitchTest*
 

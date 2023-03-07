@@ -133,9 +133,9 @@ void PlatformProductInfo::initMode() {
         modelName.find("8508-F-SYS-HV") == 0) {
       mode_ = PlatformMode::SANDIA;
     } else if (
-        modelName.find("Makalu") == 0 ||
+        modelName.find("Meru400biu") == 0 ||
         modelName.find("S9710-76D-BB12") == 0) {
-      mode_ = PlatformMode::MAKALU;
+      mode_ = PlatformMode::MERU400BIU;
     } else if (modelName.find("Meru400bia") == 0) {
       mode_ = PlatformMode::MERU400BIA;
     } else if (
@@ -174,8 +174,8 @@ void PlatformProductInfo::initMode() {
       mode_ = PlatformMode::LASSEN;
     } else if (FLAGS_mode == "sandia") {
       mode_ = PlatformMode::SANDIA;
-    } else if (FLAGS_mode == "makalu") {
-      mode_ = PlatformMode::MAKALU;
+    } else if (FLAGS_mode == "meru400biu") {
+      mode_ = PlatformMode::MERU400BIU;
     } else if (FLAGS_mode == "meru400bia") {
       mode_ = PlatformMode::MERU400BIA;
     } else if (FLAGS_mode == "kamet") {

@@ -7,9 +7,9 @@
 namespace facebook {
 namespace fboss {
 
-class MakaluBspPlatformMapping : public BspPlatformMapping {
+class Meru400biuBspPlatformMapping : public BspPlatformMapping {
  public:
-  MakaluBspPlatformMapping();
+  Meru400biuBspPlatformMapping();
 };
 
 } // namespace fboss

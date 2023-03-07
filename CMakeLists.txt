@@ -972,7 +972,7 @@ if (NOT SAI_ONLY)
       wedge100_platform_mapping
       galaxy_platform_mapping
       kamet_platform_mapping
-      makalu_platform_mapping
+      meru400biu_platform_mapping
       meru400bia_platform_mapping
       qsfp_cpp2
       qsfp_service_client

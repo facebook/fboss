@@ -2,7 +2,7 @@
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
-    "mode": "makalu",
+    "mode": "meru400biu",
     "skip_transceiver_programming": "true"
   },
   "sw": {

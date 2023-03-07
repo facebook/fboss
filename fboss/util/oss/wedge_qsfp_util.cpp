@@ -4,7 +4,7 @@
 #include "fboss/lib/bsp/BspIOBus.h"
 #include "fboss/lib/bsp/BspTransceiverApi.h"
 #include "fboss/lib/bsp/kamet/KametBspPlatformMapping.h"
-#include "fboss/lib/bsp/makalu/MakaluBspPlatformMapping.h"
+#include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/lib/usb/GalaxyI2CBus.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
@@ -35,9 +35,9 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
               .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
-    } else if (FLAGS_platform == "makalu") {
+    } else if (FLAGS_platform == "meru400biu") {
       auto systemContainer =
-          BspGenericSystemContainer<MakaluBspPlatformMapping>::getInstance()
+          BspGenericSystemContainer<Meru400biuBspPlatformMapping>::getInstance()
               .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
@@ -57,9 +57,9 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
         BspGenericSystemContainer<KametBspPlatformMapping>::getInstance().get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
-  } else if (mode == PlatformMode::MAKALU) {
+  } else if (mode == PlatformMode::MERU400BIU) {
     auto systemContainer =
-        BspGenericSystemContainer<MakaluBspPlatformMapping>::getInstance()
+        BspGenericSystemContainer<Meru400biuBspPlatformMapping>::getInstance()
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
@@ -85,8 +85,8 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
     // Fpga object
     if (FLAGS_platform == "kamet") {
       mode = PlatformMode::KAMET;
-    } else if (FLAGS_platform == "makalu") {
-      mode = PlatformMode::MAKALU;
+    } else if (FLAGS_platform == "meru400biu") {
+      mode = PlatformMode::MERU400BIU;
     }
   } else {
     // If the platform is not provided by the user then use current hardware's
@@ -103,9 +103,9 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
         BspGenericSystemContainer<KametBspPlatformMapping>::getInstance().get();
     return std::make_pair(
         std::make_unique<BspTransceiverApi>(systemContainer), 0);
-  } else if (mode == PlatformMode::MAKALU) {
+  } else if (mode == PlatformMode::MERU400BIU) {
     auto systemContainer =
-        BspGenericSystemContainer<MakaluBspPlatformMapping>::getInstance()
+        BspGenericSystemContainer<Meru400biuBspPlatformMapping>::getInstance()
             .get();
     return std::make_pair(
         std::make_unique<BspTransceiverApi>(systemContainer), 0);

@@ -155,7 +155,7 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformMode::FUJI:
     case PlatformMode::ELBERT:
     case PlatformMode::DARWIN:
-    case PlatformMode::MAKALU:
+    case PlatformMode::MERU400BIU:
     case PlatformMode::MERU400BIA:
     case PlatformMode::KAMET:
     case PlatformMode::MONTBLANC:
@@ -377,7 +377,7 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
     case PlatformMode::FUJI:
     case PlatformMode::ELBERT:
     case PlatformMode::DARWIN:
-    case PlatformMode::MAKALU:
+    case PlatformMode::MERU400BIU:
     case PlatformMode::MERU400BIA:
     case PlatformMode::KAMET:
     case PlatformMode::MONTBLANC:
@@ -414,7 +414,7 @@ std::string& DiagCmdServer::cleanUpOutput(
     case PlatformMode::FUJI:
     case PlatformMode::ELBERT:
     case PlatformMode::DARWIN:
-    case PlatformMode::MAKALU:
+    case PlatformMode::MERU400BIU:
     case PlatformMode::MERU400BIA:
     case PlatformMode::KAMET:
     case PlatformMode::MONTBLANC:

@@ -14,15 +14,16 @@
 namespace facebook {
 namespace fboss {
 
-class MakaluPlatformMapping : public PlatformMapping {
+class Meru400biuPlatformMapping : public PlatformMapping {
  public:
-  MakaluPlatformMapping();
-  MakaluPlatformMapping(const std::string& platformMappingStr);
+  Meru400biuPlatformMapping();
+  Meru400biuPlatformMapping(const std::string& platformMappingStr);
 
  private:
   // Forbidden copy constructor and assignment operator
-  MakaluPlatformMapping(MakaluPlatformMapping const&) = delete;
-  MakaluPlatformMapping& operator=(MakaluPlatformMapping const&) = delete;
+  Meru400biuPlatformMapping(Meru400biuPlatformMapping const&) = delete;
+  Meru400biuPlatformMapping& operator=(Meru400biuPlatformMapping const&) =
+      delete;
 };
 } // namespace fboss
 } // namespace facebook

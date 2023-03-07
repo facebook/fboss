@@ -29,8 +29,8 @@
 #include "fboss/agent/platforms/sai/SaiCloudRipperPlatform.h"
 #include "fboss/agent/platforms/sai/SaiKametPlatform.h"
 #include "fboss/agent/platforms/sai/SaiLassenPlatform.h"
-#include "fboss/agent/platforms/sai/SaiMakaluPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMeru400biaPlatform.h"
+#include "fboss/agent/platforms/sai/SaiMeru400biuPlatform.h"
 #include "fboss/agent/platforms/sai/SaiSandiaPlatform.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
 
@@ -103,8 +103,8 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
   } else if (productInfo->getMode() == PlatformMode::ELBERT) {
     return std::make_unique<SaiBcmElbertPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
-  } else if (productInfo->getMode() == PlatformMode::MAKALU) {
-    return std::make_unique<SaiMakaluPlatform>(
+  } else if (productInfo->getMode() == PlatformMode::MERU400BIU) {
+    return std::make_unique<SaiMeru400biuPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getMode() == PlatformMode::MERU400BIA) {
     return std::make_unique<SaiMeru400biaPlatform>(

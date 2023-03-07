@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/platforms/common/makalu/MakaluPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
 
 namespace facebook::fboss {
 namespace {
@@ -13023,10 +13023,10 @@ constexpr auto kJsonPlatformMappingStr = R"(
 
 } // namespace
 
-MakaluPlatformMapping::MakaluPlatformMapping()
+Meru400biuPlatformMapping::Meru400biuPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
-MakaluPlatformMapping::MakaluPlatformMapping(
+Meru400biuPlatformMapping::Meru400biuPlatformMapping(
     const std::string& platformMappingStr)
     : PlatformMapping(platformMappingStr) {}
 

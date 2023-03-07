@@ -89,7 +89,7 @@ std::vector<PortID> HwTest::getAllPortsInGroup(PortID portID) const {
 }
 
 bool HwTest::hideFabricPorts() const {
-  // Due to the speedup in test run time (6m->21s on makalu)
+  // Due to the speedup in test run time (6m->21s on meru400biu)
   // we want to skip over fabric ports in a overwhelming
   // majority of test cases. Make this the default HwTest mode
   return true;

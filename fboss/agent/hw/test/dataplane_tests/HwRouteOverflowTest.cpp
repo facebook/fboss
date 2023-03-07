@@ -85,8 +85,8 @@ TEST_F(HwOverflowTest, overflowRoutes) {
     case PlatformMode::ELBERT:
       // No overflow test for TH4 yet
       break;
-    case PlatformMode::MAKALU:
-      // No overflow test for MAKALU yet
+    case PlatformMode::MERU400BIU:
+      // No overflow test for MERU400BIU yet
       break;
     case PlatformMode::MERU400BIA:
       // No overflow test for MERU400BIA yet

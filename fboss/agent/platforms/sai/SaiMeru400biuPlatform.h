@@ -15,13 +15,13 @@ namespace facebook::fboss {
 
 class Jericho2Asic;
 
-class SaiMakaluPlatform : public SaiBcmPlatform {
+class SaiMeru400biuPlatform : public SaiBcmPlatform {
  public:
-  explicit SaiMakaluPlatform(
+  explicit SaiMeru400biuPlatform(
       std::unique_ptr<PlatformProductInfo> productInfo,
       folly::MacAddress localMac,
       const std::string& platformMappingStr);
-  ~SaiMakaluPlatform() override;
+  ~SaiMeru400biuPlatform() override;
   HwAsic* getAsic() const override;
 
   uint32_t numLanesPerCore() const override {
