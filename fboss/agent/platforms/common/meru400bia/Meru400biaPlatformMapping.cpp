@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
 
 namespace facebook::fboss {
 namespace {
@@ -465,10 +465,10 @@ constexpr auto kJsonPlatformMappingStr = R"(
 
 } // namespace
 
-YangraPlatformMapping::YangraPlatformMapping()
+Meru400biaPlatformMapping::Meru400biaPlatformMapping()
     : PlatformMapping(kJsonPlatformMappingStr) {}
 
-YangraPlatformMapping::YangraPlatformMapping(
+Meru400biaPlatformMapping::Meru400biaPlatformMapping(
     const std::string& platformMappingStr)
     : PlatformMapping(platformMappingStr) {}
 

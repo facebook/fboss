@@ -2,7 +2,7 @@
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
-    "mode": "yangra",
+    "mode": "meru400bia",
     "skip_transceiver_programming": "true",
     "logging": "fboss=DBG5"
   },

@@ -8,10 +8,18 @@
  *
  */
 
-#include "fboss/agent/platforms/sai/SaiYangraPlatform.h"
+#include "fboss/agent/platforms/sai/SaiMeru400biaPlatformPort.h"
 
 namespace facebook::fboss {
 
-void SaiYangraPlatform::initLEDs() {}
+void SaiMeru400biaPlatformPort::linkStatusChanged(
+    bool /* up */,
+    bool /* adminUp */) {}
+
+void SaiMeru400biaPlatformPort::externalState(PortLedExternalState /* lfs */) {}
+
+uint32_t SaiMeru400biaPlatformPort::getCurrentLedState() const {
+  return static_cast<uint32_t>(currentLedState_);
+}
 
 } // namespace facebook::fboss

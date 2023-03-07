@@ -8,43 +8,43 @@
  *
  */
 
-#include "fboss/agent/platforms/sai/SaiYangraPlatform.h"
+#include "fboss/agent/platforms/sai/SaiMeru400biaPlatform.h"
 
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
-#include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
 
 #include <cstdio>
 #include <cstring>
 namespace facebook::fboss {
 
-SaiYangraPlatform::SaiYangraPlatform(
+SaiMeru400biaPlatform::SaiMeru400biaPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     folly::MacAddress localMac,
     const std::string& platformMappingStr)
     : SaiBcmPlatform(
           std::move(productInfo),
           platformMappingStr.empty()
-              ? std::make_unique<YangraPlatformMapping>()
-              : std::make_unique<YangraPlatformMapping>(platformMappingStr),
+              ? std::make_unique<Meru400biaPlatformMapping>()
+              : std::make_unique<Meru400biaPlatformMapping>(platformMappingStr),
           localMac) {}
 
-void SaiYangraPlatform::setupAsic(
+void SaiMeru400biaPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
     std::optional<cfg::Range64> systemPortRange) {
   asic_ = std::make_unique<Jericho2Asic>(switchType, switchId, systemPortRange);
 }
 
-HwAsic* SaiYangraPlatform::getAsic() const {
+HwAsic* SaiMeru400biaPlatform::getAsic() const {
   return asic_.get();
 }
 
 std::vector<sai_system_port_config_t>
-SaiYangraPlatform::getInternalSystemPortConfig() const {
+SaiMeru400biaPlatform::getInternalSystemPortConfig() const {
   CHECK(asic_) << " Asic must be set before getting sys port info";
   CHECK(asic_->getSwitchId()) << " Switch Id must be set before sys port info";
   return {{0, static_cast<uint32_t>(*asic_->getSwitchId()), 0, 0, 10000, 8}};
 }
-SaiYangraPlatform::~SaiYangraPlatform() {}
+SaiMeru400biaPlatform::~SaiMeru400biaPlatform() {}
 
 } // namespace facebook::fboss

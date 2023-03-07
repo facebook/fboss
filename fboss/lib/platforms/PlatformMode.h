@@ -36,7 +36,7 @@ enum class PlatformMode : char {
   LASSEN,
   SANDIA,
   MAKALU,
-  YANGRA,
+  MERU400BIA,
   KAMET,
   WEDGE400C_VOQ,
   WEDGE400C_FABRIC,
@@ -83,8 +83,8 @@ inline std::string toString(PlatformMode mode) {
       return "SANDIA";
     case PlatformMode::MAKALU:
       return "MAKALU";
-    case PlatformMode::YANGRA:
-      return "YANGRA";
+    case PlatformMode::MERU400BIA:
+      return "MERU400BIA";
     case PlatformMode::KAMET:
       return "KAMET";
     case PlatformMode::WEDGE400C_VOQ:

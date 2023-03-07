@@ -2866,8 +2866,8 @@ void ThriftHandler::getFabricReachability(
           case cfg::AsicType::ASIC_TYPE_JERICHO2:
             /*
              * TODO: Introduce platform mode and use it create platofrm mapping
-             * instead of the ASIC. Certain platforms like Yangra/Makalu will
-             * use the same ASIC but different platform
+             * instead of the ASIC. Certain platforms like Meru400bia/Makalu
+             * will use the same ASIC but different platform
              */
             platformMapping = &makalu;
             remotePortOffset = 256;

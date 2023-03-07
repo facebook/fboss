@@ -83,7 +83,7 @@ class SetupFboss:
             self.src_bde_full_path = os.path.join(
                 *[os.environ["FBOSS_DATA"], SetupFboss.J2CP, SetupFboss.BDE_CONF]
             )
-            PLATFORM = "YANGRA"
+            PLATFORM = "MERU400BIA"
             self.src_bcm_conf_full_path = os.path.join(
                 SetupFboss.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
             )

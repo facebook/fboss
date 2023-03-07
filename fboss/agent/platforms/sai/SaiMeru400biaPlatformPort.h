@@ -14,9 +14,9 @@
 
 namespace facebook::fboss {
 
-class SaiYangraPlatformPort : public SaiBcmPlatformPort {
+class SaiMeru400biaPlatformPort : public SaiBcmPlatformPort {
  public:
-  SaiYangraPlatformPort(PortID id, SaiPlatform* platform)
+  SaiMeru400biaPlatformPort(PortID id, SaiPlatform* platform)
       : SaiBcmPlatformPort(id, platform) {}
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;
@@ -25,7 +25,7 @@ class SaiYangraPlatformPort : public SaiBcmPlatformPort {
   uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
       const override {
     if (getPortType() != cfg::PortType::RECYCLE_PORT) {
-      // Lanes on Yangra platform are 0 indexed
+      // Lanes on Meru400bia platform are 0 indexed
       return SaiBcmPlatformPort::getPhysicalLaneId(chipId, logicalLane) - 1;
     }
     // Recycle port lanes are 1 indexed

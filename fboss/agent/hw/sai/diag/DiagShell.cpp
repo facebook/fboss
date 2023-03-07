@@ -156,7 +156,7 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformMode::ELBERT:
     case PlatformMode::DARWIN:
     case PlatformMode::MAKALU:
-    case PlatformMode::YANGRA:
+    case PlatformMode::MERU400BIA:
     case PlatformMode::KAMET:
     case PlatformMode::MONTBLANC:
       return std::make_unique<SaiRepl>(hw_->getSaiSwitchId());
@@ -378,7 +378,7 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
     case PlatformMode::ELBERT:
     case PlatformMode::DARWIN:
     case PlatformMode::MAKALU:
-    case PlatformMode::YANGRA:
+    case PlatformMode::MERU400BIA:
     case PlatformMode::KAMET:
     case PlatformMode::MONTBLANC:
       return UUID + "\n";
@@ -415,7 +415,7 @@ std::string& DiagCmdServer::cleanUpOutput(
     case PlatformMode::ELBERT:
     case PlatformMode::DARWIN:
     case PlatformMode::MAKALU:
-    case PlatformMode::YANGRA:
+    case PlatformMode::MERU400BIA:
     case PlatformMode::KAMET:
     case PlatformMode::MONTBLANC:
       // Clean up the back of the string

@@ -51,7 +51,7 @@ target_link_libraries(bcm_test_platforms
   elbert_platform_mapping
   darwin_platform_mapping
   makalu_platform_mapping
-  yangra_platform_mapping
+  meru400bia_platform_mapping
   kamet_platform_mapping
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}

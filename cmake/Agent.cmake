@@ -223,7 +223,7 @@ target_link_libraries(handler
   wedge400c_platform_mapping
   kamet_platform_mapping
   makalu_platform_mapping
-  yangra_platform_mapping
+  meru400bia_platform_mapping
 )
 
 target_link_libraries(fboss_types
