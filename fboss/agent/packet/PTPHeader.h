@@ -10,6 +10,7 @@
 #pragma once
 
 #include <folly/io/Cursor.h>
+#include <cstdint>
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/packet/HdrParseError.h"
 #include "fboss/agent/types.h"
@@ -56,6 +57,9 @@ struct PTPHeader {
 
   explicit PTPHeader(folly::io::Cursor* cursor);
   uint64_t getCorrectionField();
+  PTPMessageType getPtpType();
+  PTPVersion getPtpVersion();
+  uint16_t getPtpMessageLength();
 
   uint8_t ptpType_{static_cast<uint8_t>(
       PTPMessageType::PTP_UNKNOWN)}; // messageType: upper 4 bits only

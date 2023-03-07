@@ -52,6 +52,17 @@ uint64_t PTPHeader::getCorrectionField() {
   return ptpCorrectionField_;
 }
 
+PTPMessageType PTPHeader::getPtpType() {
+  return static_cast<PTPMessageType>(ptpType_);
+}
+
+PTPVersion PTPHeader::getPtpVersion() {
+  return static_cast<PTPVersion>(ptpVersion_);
+}
+uint16_t PTPHeader::getPtpMessageLength() {
+  return ptpMessageLength_;
+}
+
 void PTPHeader::write(folly::io::RWPrivateCursor* cursor) const {
   if (ptpType_ == static_cast<uint8_t>(PTPMessageType::PTP_DELAY_REQUEST)) {
     int hdrLength = PTP_DELAY_REQUEST_MSG_SIZE;

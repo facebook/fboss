@@ -15,9 +15,9 @@ TEST(PTPHdrTest, constructor) {
 
   PTPHeader ptpHdr(ptpType, ptpVersion, 0x1234);
 
-  EXPECT_EQ(ptpType, ptpHdr.ptpType_);
-  EXPECT_EQ(ptpVersion, ptpHdr.ptpVersion_);
-  EXPECT_EQ(0x1234, ptpHdr.ptpCorrectionField_);
+  EXPECT_EQ(static_cast<PTPMessageType>(ptpType), ptpHdr.getPtpType());
+  EXPECT_EQ(static_cast<PTPVersion>(ptpVersion), ptpHdr.getPtpVersion());
+  EXPECT_EQ(0x1234, ptpHdr.getCorrectionField());
 }
 
 TEST(PTPHdrTest, readPacket) {
@@ -32,10 +32,10 @@ TEST(PTPHdrTest, readPacket) {
   Cursor cursor(pkt->buf());
   PTPHeader ptpHdr(&cursor);
 
-  EXPECT_EQ(ptpHdr.ptpType_, 0x01);
-  EXPECT_EQ(ptpHdr.ptpVersion_, 0x01);
-  EXPECT_EQ(ptpHdr.ptpCorrectionField_, 0x12345678);
-  EXPECT_EQ(ptpHdr.ptpMessageLength_, 0x2c);
+  EXPECT_EQ(ptpHdr.getPtpType(), static_cast<PTPMessageType>(0x01));
+  EXPECT_EQ(ptpHdr.getPtpVersion(), static_cast<PTPVersion>(0x01));
+  EXPECT_EQ(ptpHdr.getCorrectionField(), 0x12345678);
+  EXPECT_EQ(ptpHdr.getPtpMessageLength(), 0x2c);
 }
 
 TEST(PTPHdrTest, readPacketWrongPtpType) {
@@ -65,8 +65,8 @@ TEST(PTPHdrTest, writePacket) {
   PTPHeader ptpHdr1(&receiver);
   ;
 
-  EXPECT_EQ(ptpHdr.ptpType_, ptpHdr1.ptpType_);
-  EXPECT_EQ(ptpHdr.ptpVersion_, ptpHdr1.ptpVersion_);
-  EXPECT_EQ(ptpHdr.ptpCorrectionField_, ptpHdr1.ptpCorrectionField_);
-  EXPECT_EQ(PTP_DELAY_REQUEST_MSG_SIZE, ptpHdr1.ptpMessageLength_);
+  EXPECT_EQ(ptpHdr.getPtpType(), ptpHdr1.getPtpType());
+  EXPECT_EQ(ptpHdr.getPtpVersion(), ptpHdr1.getPtpVersion());
+  EXPECT_EQ(ptpHdr.getCorrectionField(), ptpHdr1.getCorrectionField());
+  EXPECT_EQ(PTP_DELAY_REQUEST_MSG_SIZE, ptpHdr1.getPtpMessageLength());
 }
