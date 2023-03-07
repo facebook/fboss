@@ -14,7 +14,7 @@
 
 namespace facebook::fboss {
 
-class IndusAsic;
+class Jericho2Asic;
 
 class SaiYangraPlatform : public SaiBcmPlatform {
  public:
@@ -64,7 +64,7 @@ class SaiYangraPlatform : public SaiBcmPlatform {
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
       std::optional<cfg::Range64> systemPortRange) override;
-  std::unique_ptr<IndusAsic> asic_;
+  std::unique_ptr<Jericho2Asic> asic_;
 };
 
 } // namespace facebook::fboss

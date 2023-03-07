@@ -15,7 +15,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/switch_asics/IndusAsic.h"
+#include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
@@ -369,7 +369,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       auto agentCfg = config();
       CHECK(agentCfg) << " agent config must be set ";
       uint32_t systemCores = 0;
-      const IndusAsic indus(cfg::SwitchType::VOQ, 0, std::nullopt);
+      const Jericho2Asic indus(cfg::SwitchType::VOQ, 0, std::nullopt);
       const EbroAsic ebro(cfg::SwitchType::VOQ, 0, std::nullopt);
       for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
         if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {

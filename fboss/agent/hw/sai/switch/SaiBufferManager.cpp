@@ -20,7 +20,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/hw/switch_asics/IndusAsic.h"
+#include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
@@ -126,7 +126,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_JERICHO2: {
       /*
        * XXX: TODO: Need to check if there is a way to compute the
-       * buffers available for use in Indus without using the
+       * buffers available for use in Jericho2 without using the
        * egress buffer attribute.
        */
       auto saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());

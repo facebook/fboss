@@ -152,7 +152,7 @@ class HwTrafficPfcTest : public HwLinkStateDependentTest {
     /*
      * Makes this flag available so that it can be used in early
      * stages of init to setup common buffer pool for specific
-     * asics like Indus.
+     * asics like Jericho2.
      */
     FLAGS_ingress_egress_buffer_pool_size =
         kGlobalSharedBytes + kGlobalHeadroomBytes;
@@ -538,7 +538,7 @@ class HwTrafficPfcGenTest
     /*
      * Makes this flag available so that it can be used in early
      * stages of init to setup common buffer pool for specific
-     * asics like Indus.
+     * asics like Jericho2.
      */
     FLAGS_ingress_egress_buffer_pool_size =
         testParams.buffer.globalShared + testParams.buffer.globalHeadroom;

@@ -16,7 +16,7 @@ add_library(switch_asics
   fboss/agent/hw/switch_asics/Trident2Asic.cpp
   fboss/agent/hw/switch_asics/CredoPhyAsic.cpp
   fboss/agent/hw/switch_asics/MarvelPhyAsic.cpp
-  fboss/agent/hw/switch_asics/IndusAsic.cpp
+  fboss/agent/hw/switch_asics/Jericho2Asic.cpp
   fboss/agent/hw/switch_asics/RamonAsic.cpp
   fboss/agent/hw/switch_asics/BroadcomXgsAsic.cpp
 )

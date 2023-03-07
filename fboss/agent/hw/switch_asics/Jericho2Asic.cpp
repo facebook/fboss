@@ -1,11 +1,11 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/hw/switch_asics/IndusAsic.h"
+#include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
 namespace facebook::fboss {
 
-bool IndusAsic::isSupported(Feature feature) const {
+bool Jericho2Asic::isSupported(Feature feature) const {
   switch (feature) {
     case HwAsic::Feature::SPAN:
     case HwAsic::Feature::ERSPANv4:
@@ -112,7 +112,7 @@ bool IndusAsic::isSupported(Feature feature) const {
     // associate RIFs directly with ports. Hence no bridge port
     // is created (or supported for now).
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
-    // TODO - get the features working on Indus ASIC
+    // TODO - get the features working on Jericho2 ASIC
     case HwAsic::Feature::DEBUG_COUNTER:
     case HwAsic::Feature::FABRIC_PORT_MTU:
     case HwAsic::Feature::EXTENDED_FEC:
@@ -135,7 +135,7 @@ bool IndusAsic::isSupported(Feature feature) const {
   return false;
 }
 
-std::set<cfg::StreamType> IndusAsic::getQueueStreamTypes(
+std::set<cfg::StreamType> Jericho2Asic::getQueueStreamTypes(
     cfg::PortType portType) const {
   switch (portType) {
     case cfg::PortType::CPU_PORT:
@@ -147,10 +147,10 @@ std::set<cfg::StreamType> IndusAsic::getQueueStreamTypes(
       return {cfg::StreamType::FABRIC_TX};
   }
   throw FbossError(
-      "Indus ASIC does not support:",
+      "Jericho2 ASIC does not support:",
       apache::thrift::util::enumNameSafe(portType));
 }
-int IndusAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
+int Jericho2Asic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
     const {
   switch (streamType) {
     case cfg::StreamType::UNICAST:
@@ -172,14 +172,14 @@ int IndusAsic::getDefaultNumPortQueues(cfg::StreamType streamType, bool cpu)
       "Unexpected, stream: ", streamType, " cpu: ", cpu, "combination");
 }
 
-cfg::Range64 IndusAsic::getReservedEncapIndexRange() const {
+cfg::Range64 Jericho2Asic::getReservedEncapIndexRange() const {
   // Reserved range worked out with vendor. These ids
   // are reserved in SAI-SDK implementation for use
   // by NOS
   return makeRange(0x200000, 0x300000);
 }
 
-HwAsic::RecyclePortInfo IndusAsic::getRecyclePortInfo() const {
+HwAsic::RecyclePortInfo Jericho2Asic::getRecyclePortInfo() const {
   return {
       .coreId = 0,
       .corePortIndex = 1,

@@ -2839,7 +2839,7 @@ void ThriftHandler::getFabricReachability(
       const PlatformMapping* platformMapping{nullptr};
       if (node) {
         fabricEndpoint.switchName() = node->getName();
-        // Indus ASIC fabric port numbers are offset by 256
+        // Jericho2 ASIC fabric port numbers are offset by 256
         int remotePortOffset{0};
         switch (node->getAsicType()) {
           case cfg::AsicType::ASIC_TYPE_FAKE:

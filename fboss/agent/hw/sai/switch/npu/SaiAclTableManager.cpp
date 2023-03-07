@@ -84,7 +84,7 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
   } else {
     bool isTajo = platform_->getAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
-    bool isIndus = platform_->getAsic()->getAsicType() ==
+    bool isJericho2 = platform_->getAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_JERICHO2;
 
     std::vector<sai_int32_t> actionTypeList{
@@ -94,7 +94,7 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
         SAI_ACL_ACTION_TYPE_SET_DSCP,
         SAI_ACL_ACTION_TYPE_MIRROR_INGRESS};
 
-    if (!(isTajo || isIndus)) {
+    if (!(isTajo || isJericho2)) {
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_MIRROR_EGRESS);
     }
     return actionTypeList;

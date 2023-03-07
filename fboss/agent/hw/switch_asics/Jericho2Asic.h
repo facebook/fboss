@@ -6,9 +6,9 @@
 
 namespace facebook::fboss {
 
-class IndusAsic : public BroadcomAsic {
+class Jericho2Asic : public BroadcomAsic {
  public:
-  IndusAsic(
+  Jericho2Asic(
       cfg::SwitchType type,
       std::optional<int64_t> id,
       std::optional<cfg::Range64> systemPortRange)

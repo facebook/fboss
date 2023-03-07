@@ -10,7 +10,7 @@
 
 #include "fboss/agent/platforms/sai/SaiYangraPlatform.h"
 
-#include "fboss/agent/hw/switch_asics/IndusAsic.h"
+#include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
 
 #include <cstdio>
@@ -32,7 +32,7 @@ void SaiYangraPlatform::setupAsic(
     cfg::SwitchType switchType,
     std::optional<int64_t> switchId,
     std::optional<cfg::Range64> systemPortRange) {
-  asic_ = std::make_unique<IndusAsic>(switchType, switchId, systemPortRange);
+  asic_ = std::make_unique<Jericho2Asic>(switchType, switchId, systemPortRange);
 }
 
 HwAsic* SaiYangraPlatform::getAsic() const {
