@@ -108,6 +108,7 @@
 "HwPortBandwidthTest/HwPortBandwidthParamTest.VerifyPortRateTraffic/2"
 "HwAqmTest.verifyPerQueueEcnMarkedStats"
 "HwLoadBalancerTestV6RoCE.*"
+"HwFlowletSwitchingTest.*"
 "HwTrafficPfcTest.*"
 "HwPfcTest.*"
 "HwProdInvariantsMmuLosslessTest.*"

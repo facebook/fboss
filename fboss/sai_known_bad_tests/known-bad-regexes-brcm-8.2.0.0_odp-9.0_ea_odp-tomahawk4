@@ -74,6 +74,7 @@
 "HwPortBandwidthTest/HwPortBandwidthParamTest.VerifyPortRateTraffic/2"
 "HwAqmTest.verifyPerQueueEcnMarkedStats"
 "HwLoadBalancerTestV6RoCE.*"
+"HwFlowletSwitchingTest.*"
 "warm_boot.HwEcmpTrunkTest.TrunkL2ResolveNhopThenLinkAndLACPDownThenUpBeforeReinit"
 "HwHashTrunk4x2PolarizationTests.FullHalfxFullHalf"
 "HwHashTrunk8x2PolarizationTests.FullHalfxFullHalf"

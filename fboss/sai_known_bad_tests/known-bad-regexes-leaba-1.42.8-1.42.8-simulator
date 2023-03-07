@@ -100,6 +100,7 @@
 "HwAclStatTest.AclStatDeleteSharedPostWarmBoot$"
 "HwLoadBalancerTestV6RoCE.*$"
 "HwAclCounterTest.*Sport.*$"
+"HwFlowletSwitchingTest.*$"
 "HwVoqSwitchTest.*"
 "HwVoqSwitchWithFabricPortsTest.*"
 "HwVoqSwitchWithMultipleDsfNodesTest.*"
@@ -203,3 +204,4 @@
 "HwWideEcmpTest.*$"
 "SaiQPHRollbackTest.*$"
 "SaiRouteRollbackTest.*$"
+"HwFlowletSwitchingTest.*$"
