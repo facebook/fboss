@@ -84,8 +84,8 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
   } else {
     bool isTajo = platform_->getAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
-    bool isIndus =
-        platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_INDUS;
+    bool isIndus = platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_JERICHO2;
 
     std::vector<sai_int32_t> actionTypeList{
         SAI_ACL_ACTION_TYPE_PACKET_ACTION,

@@ -15,7 +15,7 @@ class IndusAsic : public BroadcomAsic {
       : BroadcomAsic(type, id, systemPortRange, {cfg::SwitchType::VOQ}) {}
   bool isSupported(Feature) const override;
   cfg::AsicType getAsicType() const override {
-    return cfg::AsicType::ASIC_TYPE_INDUS;
+    return cfg::AsicType::ASIC_TYPE_JERICHO2;
   }
   phy::DataPlanePhyChipType getDataPlanePhyChipType() const override {
     return phy::DataPlanePhyChipType::IPHY;

@@ -2863,7 +2863,7 @@ void ThriftHandler::getFabricReachability(
                         << static_cast<int>(*fabricEndpoint.switchType());
             }
             break;
-          case cfg::AsicType::ASIC_TYPE_INDUS:
+          case cfg::AsicType::ASIC_TYPE_JERICHO2:
             /*
              * TODO: Introduce platform mode and use it create platofrm mapping
              * instead of the ASIC. Certain platforms like Yangra/Makalu will

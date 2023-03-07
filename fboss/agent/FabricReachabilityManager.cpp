@@ -92,7 +92,7 @@ static PlatformMapping* FOLLY_NULLABLE getPlatformMappingForDsfNode(
         return &w400cFabric;
       }
       break;
-    case cfg::AsicType::ASIC_TYPE_INDUS:
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
       *remotePortOffset = 256;
       return &makalu;
       break;

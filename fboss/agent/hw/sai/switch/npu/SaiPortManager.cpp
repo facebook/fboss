@@ -52,11 +52,12 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
       };
       return counterIds;
     }
-    if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_INDUS) {
+    if (platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_JERICHO2) {
       /*
-       * TODO(skhare) INDUS ASIC supports only a small set of stats today.
-       * Remove this check once INDUS ASIC supports querying all (most) of the
-       * port stats.
+       * TODO(skhare) JERICHO2 ASIC supports only a small set of stats today.
+       * Remove this check once JERICHO2 ASIC supports querying all (most) of
+       * the port stats.
        */
       counterIds = std::vector<sai_stat_id_t>{
           SAI_PORT_STAT_IF_IN_OCTETS,

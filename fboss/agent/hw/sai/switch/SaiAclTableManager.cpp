@@ -1160,7 +1160,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
   bool isTrident2 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TRIDENT2;
   bool isIndus =
-      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_INDUS;
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2;
 
   if (isTajo) {
     std::set<cfg::AclTableQualifier> tajoQualifiers = {

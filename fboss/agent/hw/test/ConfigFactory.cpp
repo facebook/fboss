@@ -102,7 +102,7 @@ cfg::DsfNode dsfNodeConfig(const HwAsic& myAsic, int64_t otherSwitchId) {
       systemPortRange = range;
     }
     switch (fromAsic.getAsicType()) {
-      case cfg::AsicType::ASIC_TYPE_INDUS:
+      case cfg::AsicType::ASIC_TYPE_JERICHO2:
         return std::make_unique<IndusAsic>(
             fromAsic.getSwitchType(), switchId, systemPortRange);
       case cfg::AsicType::ASIC_TYPE_RAMON:

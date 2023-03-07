@@ -376,7 +376,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
           continue;
         }
         switch (*dsfNode.asicType()) {
-          case cfg::AsicType::ASIC_TYPE_INDUS:
+          case cfg::AsicType::ASIC_TYPE_JERICHO2:
             systemCores += indus.getNumCores();
             break;
           case cfg::AsicType::ASIC_TYPE_EBRO:

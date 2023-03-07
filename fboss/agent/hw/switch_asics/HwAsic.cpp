@@ -96,7 +96,7 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
       return std::make_unique<MarvelPhyAsic>(
           switchType, switchId, systemPortRange);
-    case cfg::AsicType::ASIC_TYPE_INDUS:
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
       return std::make_unique<IndusAsic>(switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_RAMON:
       return std::make_unique<RamonAsic>(switchType, switchId, systemPortRange);
