@@ -132,7 +132,7 @@ utility::RouteDistributionGenerator::ThriftRouteChunks getRoutes(
       asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
       asicType == cfg::AsicType::ASIC_TYPE_GARONNE ||
       asicType == cfg::AsicType::ASIC_TYPE_INDUS ||
-      asicType == cfg::AsicType::ASIC_TYPE_BEAS) {
+      asicType == cfg::AsicType::ASIC_TYPE_RAMON) {
     return utility::HgridUuRouteScaleGenerator(swSwitch->getState())
         .getThriftRoutes();
   } else if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK) {

@@ -38,7 +38,7 @@ class FabricReachabilityManagerTest : public ::testing::Test {
   std::shared_ptr<DsfNode> makeDsfNode(int64_t switchId, std::string name) {
     auto dsfNode = std::make_shared<DsfNode>(SwitchID(switchId));
     auto cfgDsfNode = makeDsfNodeCfg(switchId, name);
-    cfgDsfNode.asicType() = cfg::AsicType::ASIC_TYPE_BEAS;
+    cfgDsfNode.asicType() = cfg::AsicType::ASIC_TYPE_RAMON;
     dsfNode->fromThrift(cfgDsfNode);
     return dsfNode;
   }

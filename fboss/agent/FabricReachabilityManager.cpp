@@ -96,7 +96,7 @@ static PlatformMapping* FOLLY_NULLABLE getPlatformMappingForDsfNode(
       *remotePortOffset = 256;
       return &makalu;
       break;
-    case cfg::AsicType::ASIC_TYPE_BEAS:
+    case cfg::AsicType::ASIC_TYPE_RAMON:
       return &kamet;
       break;
     default:

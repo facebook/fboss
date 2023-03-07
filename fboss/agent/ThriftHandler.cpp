@@ -2872,7 +2872,7 @@ void ThriftHandler::getFabricReachability(
             platformMapping = &makalu;
             remotePortOffset = 256;
             break;
-          case cfg::AsicType::ASIC_TYPE_BEAS:
+          case cfg::AsicType::ASIC_TYPE_RAMON:
             platformMapping = &kamet;
             break;
         }

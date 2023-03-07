@@ -98,7 +98,7 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
           switchType, switchId, systemPortRange);
     case cfg::AsicType::ASIC_TYPE_INDUS:
       return std::make_unique<IndusAsic>(switchType, switchId, systemPortRange);
-    case cfg::AsicType::ASIC_TYPE_BEAS:
+    case cfg::AsicType::ASIC_TYPE_RAMON:
       return std::make_unique<BeasAsic>(switchType, switchId, systemPortRange);
   };
   throw FbossError("Unexcepted asic type: ", asicType);
