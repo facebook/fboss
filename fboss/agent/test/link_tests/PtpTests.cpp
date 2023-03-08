@@ -132,6 +132,13 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
       }
       hopTotal += hopLimit;
 
+      // nano secs is first 48-bits, last 16 bits is subnano secs (remove it)
+      uint64_t cfInNsecs = (correctionField >> 16) & 0x0000ffffffffffff;
+      XLOG(DBG2) << "PTP packet found on port " << portDescriptor.phyPortID()
+                 << " with hop limit : " << hopLimit
+                 << " and CorrectionField (CF) set to " << std::hex
+                 << cfInNsecs;
+
       pktCursor.reset(&pktBuf);
       EthHdr ethHdr(pktCursor);
       auto srcMac = ethHdr.getSrcMac();
@@ -140,19 +147,12 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
       if (hopLimit == kStartTtl) {
         // this is the original pkt, and has no timestamp on it
         EXPECT_EQ(correctionField, 0);
-        XLOG(DBG2)
-            << "PTP packet found with CorrectionField (CF) set to 0 with hop limit : "
-            << kStartTtl;
 
         // Original packet should have the same src and dst mac as we sent out
         EXPECT_EQ(srcMac, kSrcMac);
         EXPECT_EQ(dstMac, localMac);
       } else {
         EXPECT_GT(correctionField, 0);
-        // nano secs is first 48-bits, last 16 bits is subnano secs (remove it)
-        uint64_t cfInNsecs = (correctionField >> 16) & 0x0000ffffffffffff;
-        XLOG(DBG2) << "PTP packet found with CorrectionField (CF) set "
-                   << std::hex << cfInNsecs << ", ttl: " << hopLimit;
         // CF for first pkt is ~800nsecs for BCM and ~1.7 msecs for Tajo
         // Also account for loopback multiple times
         EXPECT_LT(cfInNsecs, 2000 * (kStartTtl - hopLimit));
