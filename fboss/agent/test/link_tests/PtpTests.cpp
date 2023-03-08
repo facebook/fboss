@@ -77,6 +77,7 @@ class PtpTests : public LinkTest {
 // }
 TEST_F(PtpTests, verifyPtpTcDelayRequest) {
   auto ecmpPorts = getVlanOwningCabledPorts();
+  auto localMac = sw()->getPlatform()->getLocalMac();
   // create ACL to trap any packets to CPU coming with given dst IP
   // Ideally we should have used the l4port (PTP_UDP_EVENT_PORT), but
   // SAI doesn't support this qualifier yet
@@ -85,74 +86,81 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
   HwAgentTestPacketSnooper snooper(sw()->getPacketObservers());
   programDefaultRoute(ecmpPorts, sw()->getPlatform()->getLocalMac());
   auto ptpType = PTPMessageType::PTP_DELAY_REQUEST;
-  auto ptpPkt = createPtpPkt(ptpType);
 
-  // Send out PTP packet
-  sw()->getHw()->sendPacketOutOfPortSync(
-      std::move(ptpPkt), (*ecmpPorts.begin()).phyPortID());
+  for (const auto& portDescriptor : ecmpPorts) {
+    XLOG(DBG2) << "Validating PTP packet fields on Port "
+               << portDescriptor.phyPortID();
 
-  bool validated = false;
-  auto localMac = sw()->getPlatform()->getLocalMac();
+    // Send out PTP packet
+    auto ptpPkt = createPtpPkt(ptpType);
+    sw()->getHw()->sendPacketOutOfPortSync(
+        std::move(ptpPkt), (*ecmpPorts.begin()).phyPortID());
 
-  while (true) {
-    auto pktBufOpt = snooper.waitForPacket(10 /* seconds */);
-    ASSERT_TRUE(pktBufOpt.has_value());
+    // Hop total should be equal to (kStartTtl + 1) * kStartTtl / 2
+    // In edge cases packets can come out-of-order. Wait for hopTotal to reach
+    // the expected total number of hops before moving to next port.
+    int hopTotal = 0;
+    while (hopTotal != (kStartTtl + 1) * kStartTtl / 2) {
+      auto pktBufOpt = snooper.waitForPacket(10 /* seconds */);
+      ASSERT_TRUE(pktBufOpt.has_value());
 
-    auto pktBuf = *pktBufOpt.value().get();
-    folly::io::Cursor pktCursor(&pktBuf);
-    if (!utility::isPtpEventPacket(pktCursor)) {
-      // if we continue to encounter non ptp packets
-      // and hit threshold of kMaxPktLimit, abort the test
-      // as something is wrong
-      continue;
-    }
+      auto pktBuf = *pktBufOpt.value().get();
+      folly::io::Cursor pktCursor(&pktBuf);
+      if (!utility::isPtpEventPacket(pktCursor)) {
+        // if we continue to encounter non ptp packets
+        // and hit threshold of kMaxPktLimit, abort the test
+        // as something is wrong
+        continue;
+      }
 
-    XLOG(DBG2) << "PTP event packet found";
-    PTPHeader ptpHdr(&pktCursor);
-    auto correctionField = ptpHdr.getCorrectionField();
-    // Verify PTP fields unchanged.
-    EXPECT_EQ(ptpType, ptpHdr.getPtpType());
-    EXPECT_EQ(PTPVersion::PTP_V2, ptpHdr.getPtpVersion());
-    EXPECT_EQ(PTP_DELAY_REQUEST_MSG_SIZE, ptpHdr.getPtpMessageLength());
+      XLOG(DBG2) << "PTP event packet found";
+      PTPHeader ptpHdr(&pktCursor);
+      auto correctionField = ptpHdr.getCorrectionField();
+      // Verify PTP fields unchanged.
+      EXPECT_EQ(ptpType, ptpHdr.getPtpType());
+      EXPECT_EQ(PTPVersion::PTP_V2, ptpHdr.getPtpVersion());
+      EXPECT_EQ(PTP_DELAY_REQUEST_MSG_SIZE, ptpHdr.getPtpMessageLength());
 
-    pktCursor.reset(&pktBuf);
-    auto hopLimit = utility::getIpHopLimit(pktCursor);
+      pktCursor.reset(&pktBuf);
+      auto hopLimit = utility::getIpHopLimit(pktCursor);
 
-    pktCursor.reset(&pktBuf);
-    EthHdr ethHdr(pktCursor);
-    auto srcMac = ethHdr.getSrcMac();
-    auto dstMac = ethHdr.getDstMac();
+      // On leaba devices, the trap we installed precedes drops for TTL=0.
+      // Therefore, we would still receive PTP packets here.
+      if (hopLimit == 0) {
+        XLOG(DBG2) << "Skipping checks on loopped back packets where TTL=0";
+        continue;
+      }
+      hopTotal += hopLimit;
 
-    if (hopLimit == kStartTtl) {
-      // this is the original pkt, and has no timestamp on it
-      EXPECT_EQ(correctionField, 0);
-      XLOG(DBG2)
-          << "PTP packet found with CorrectionField (CF) set to 0 with hop limit : "
-          << kStartTtl;
+      pktCursor.reset(&pktBuf);
+      EthHdr ethHdr(pktCursor);
+      auto srcMac = ethHdr.getSrcMac();
+      auto dstMac = ethHdr.getDstMac();
 
-      // Original packet should have the same src and dst mac as we sent out
-      EXPECT_EQ(srcMac, kSrcMac);
-      EXPECT_EQ(dstMac, localMac);
-    } else {
-      EXPECT_GT(correctionField, 0);
-      // nano secs is first 48-bits, last 16 bits is subnano secs (remove it)
-      uint64_t cfInNsecs = (correctionField >> 16) & 0x0000ffffffffffff;
-      XLOG(DBG2) << "PTP packet found with CorrectionField (CF) set "
-                 << std::hex << cfInNsecs << ", ttl: " << hopLimit;
-      // CF for first pkt is ~800nsecs for BCM and ~1.7 msecs for Tajo
-      // Also account for loopback multiple times
-      EXPECT_LT(cfInNsecs, 2000 * (kStartTtl - hopLimit));
+      if (hopLimit == kStartTtl) {
+        // this is the original pkt, and has no timestamp on it
+        EXPECT_EQ(correctionField, 0);
+        XLOG(DBG2)
+            << "PTP packet found with CorrectionField (CF) set to 0 with hop limit : "
+            << kStartTtl;
 
-      // Both src and mac address should be local mac
-      EXPECT_EQ(srcMac, localMac);
-      EXPECT_EQ(dstMac, localMac);
+        // Original packet should have the same src and dst mac as we sent out
+        EXPECT_EQ(srcMac, kSrcMac);
+        EXPECT_EQ(dstMac, localMac);
+      } else {
+        EXPECT_GT(correctionField, 0);
+        // nano secs is first 48-bits, last 16 bits is subnano secs (remove it)
+        uint64_t cfInNsecs = (correctionField >> 16) & 0x0000ffffffffffff;
+        XLOG(DBG2) << "PTP packet found with CorrectionField (CF) set "
+                   << std::hex << cfInNsecs << ", ttl: " << hopLimit;
+        // CF for first pkt is ~800nsecs for BCM and ~1.7 msecs for Tajo
+        // Also account for loopback multiple times
+        EXPECT_LT(cfInNsecs, 2000 * (kStartTtl - hopLimit));
 
-      validated = true;
-      if (hopLimit == 1) {
-        break;
+        // Both src and mac address should be local mac
+        EXPECT_EQ(srcMac, localMac);
+        EXPECT_EQ(dstMac, localMac);
       }
     }
   }
-
-  EXPECT_TRUE(validated);
 }
