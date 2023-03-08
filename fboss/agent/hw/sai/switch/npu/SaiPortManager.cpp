@@ -21,11 +21,6 @@ DEFINE_bool(
     "Use interface type in platform mapping to derive the medium "
     "instead of deriving it from the medium field");
 
-DEFINE_bool(
-    sai_configure_six_tap,
-    false,
-    "Flag to indicate whether to program six tap attributes in sai");
-
 namespace facebook::fboss {
 
 namespace {

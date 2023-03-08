@@ -37,6 +37,11 @@
 
 #include <fmt/ranges.h>
 
+DEFINE_bool(
+    sai_configure_six_tap,
+    false,
+    "Flag to indicate whether to program six tap attributes in sai");
+
 using namespace std::chrono;
 
 namespace facebook::fboss {

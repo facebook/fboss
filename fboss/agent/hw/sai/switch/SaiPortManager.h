@@ -27,6 +27,8 @@
 #include "folly/container/F14Map.h"
 #include "folly/container/F14Set.h"
 
+DECLARE_bool(sai_configure_six_tap);
+
 namespace facebook::fboss {
 
 struct ConcurrentIndices;
