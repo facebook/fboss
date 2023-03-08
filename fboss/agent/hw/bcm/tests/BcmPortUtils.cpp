@@ -261,4 +261,9 @@ void verifyFec(
   auto bcmPort = bcmSwitch->getPortTable()->getBcmPort(portID);
   EXPECT_EQ(*expectedProfileConfig.fec(), bcmPort->getFECMode());
 }
+
+void enableSixtapProgramming() {
+  // Flag only needed for Sai
+  return;
+};
 } // namespace facebook::fboss::utility

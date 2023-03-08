@@ -370,4 +370,9 @@ void verifyFec(
   // Verify the getPortFecMode function
   EXPECT_EQ(saiSwitch->getPortFECMode(portID), *expectedProfileConfig.fec());
 }
+
+void enableSixtapProgramming() {
+  FLAGS_sai_configure_six_tap = true;
+};
+
 } // namespace facebook::fboss::utility

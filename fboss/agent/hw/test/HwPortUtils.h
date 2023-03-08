@@ -109,6 +109,8 @@ void verifyFec(
     Platform* platform,
     const phy::ProfileSideConfig& expectedProfileConfig);
 
+void enableSixtapProgramming();
+
 cfg::PortSpeed getSpeed(cfg::PortProfileID profile);
 TransmitterTechnology getMediaType(cfg::PortProfileID profile);
 
