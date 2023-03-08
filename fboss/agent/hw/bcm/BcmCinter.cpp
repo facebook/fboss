@@ -2962,6 +2962,33 @@ int BcmCinter::bcm_l3_egress_ecmp_ethertype_set(
   return 0;
 }
 
+int BcmCinter::bcm_l3_egress_ecmp_ethertype_get(
+    int unit,
+    uint32* flags,
+    int ethertype_max,
+    int* ethertype_array,
+    int* ethertype_count) {
+  std::vector<string> argValues;
+  string arrayVarName = getNextEthertypeVar();
+  for (int i = 0; i < *ethertype_count; ++i) {
+    argValues.push_back(to<string>(ethertype_array[i]));
+  }
+  string argVarArray = to<string>(
+      "int ", arrayVarName, "[] =", " {", join(", ", argValues), "}");
+  vector<string> cint = {argVarArray};
+
+  auto cintForFn = wrapFunc(to<string>(
+      "bcm_l3_egress_ecmp_ethertype_get(",
+      makeParamStr(unit, *flags, ethertype_max, arrayVarName, *ethertype_count),
+      ")"));
+  cint.insert(
+      cint.end(),
+      make_move_iterator(cintForFn.begin()),
+      make_move_iterator(cintForFn.end()));
+  writeCintLines(std::move(cint));
+  return 0;
+}
+
 int BcmCinter::bcm_l3_egress_ecmp_member_status_set(
     int unit,
     bcm_if_t intf,

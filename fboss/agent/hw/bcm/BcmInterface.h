@@ -162,6 +162,13 @@ class BcmInterface {
       int ethertype_count,
       int* ethertype_array) = 0;
 
+  virtual int bcm_l3_egress_ecmp_ethertype_get(
+      int unit,
+      uint32* flags,
+      int ethertype_max,
+      int* ethertype_array,
+      int* ethertype_count) = 0;
+
   virtual int
   bcm_l3_egress_ecmp_member_status_set(int unit, bcm_if_t intf, int status) = 0;
 
