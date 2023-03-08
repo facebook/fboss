@@ -108,7 +108,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
-    // On indus ASIC we don't create any vlans but rather
+    // On Jericho2 ASIC we don't create any vlans but rather
     // associate RIFs directly with ports. Hence no bridge port
     // is created (or supported for now).
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
