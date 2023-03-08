@@ -233,6 +233,8 @@ void verifyTxSettting(
     EXPECT_EQ(programmedTx.main(), expectedTx->main());
     EXPECT_EQ(programmedTx.post(), expectedTx->post());
     EXPECT_EQ(programmedTx.pre2(), expectedTx->pre2());
+    EXPECT_EQ(programmedTx.post2(), expectedTx->post2());
+    EXPECT_EQ(programmedTx.post3(), expectedTx->post3());
     EXPECT_EQ(programmedTx.driveCurrent(), expectedTx->driveCurrent());
   }
 }

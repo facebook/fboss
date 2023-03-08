@@ -194,8 +194,10 @@ void verifyTxSettting(
   }
 
   auto numExpectedTxLanes = 0;
+  std::vector<phy::TxSettings> txSettings;
   for (const auto& pinConfig : expectedPinConfigs) {
     if (auto tx = pinConfig.tx()) {
+      txSettings.push_back(*tx);
       ++numExpectedTxLanes;
     }
   }
@@ -222,10 +224,47 @@ void verifyTxSettting(
       serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirMain{});
   auto post = portApi.getAttribute(
       serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost1{});
+  std::vector<sai_uint32_t> pre2;
+  std::vector<sai_uint32_t> post2;
+  std::vector<sai_uint32_t> post3;
 
   EXPECT_EQ(pre, GET_OPT_ATTR(PortSerdes, TxFirPre1, expectedTx));
   EXPECT_EQ(main, GET_OPT_ATTR(PortSerdes, TxFirMain, expectedTx));
   EXPECT_EQ(post, GET_OPT_ATTR(PortSerdes, TxFirPost1, expectedTx));
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  if (saiPlatform->getAsic()->isSupported(
+          HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
+    pre2 = portApi.getAttribute(
+        serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPre2{});
+    post2 = portApi.getAttribute(
+        serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost2{});
+    post3 = portApi.getAttribute(
+        serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost3{});
+
+    EXPECT_EQ(pre2, GET_OPT_ATTR(PortSerdes, TxFirPre2, expectedTx));
+    EXPECT_EQ(post2, GET_OPT_ATTR(PortSerdes, TxFirPost2, expectedTx));
+    EXPECT_EQ(post3, GET_OPT_ATTR(PortSerdes, TxFirPost3, expectedTx));
+  }
+#endif
+
+  // Also verify sixtap attributes against expected pin config
+  EXPECT_EQ(pre.size(), txSettings.size());
+  for (int i = 0; i < txSettings.size(); ++i) {
+    auto expectedTxFromPin = txSettings[i];
+    EXPECT_EQ(pre[i], expectedTxFromPin.pre());
+    EXPECT_EQ(main[i], expectedTxFromPin.main());
+    EXPECT_EQ(post[i], expectedTxFromPin.post());
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+    if (saiPlatform->getAsic()->isSupported(
+            HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
+      EXPECT_EQ(pre2[i], expectedTxFromPin.pre2());
+      EXPECT_EQ(post2[i], expectedTxFromPin.post2());
+      EXPECT_EQ(post3[i], expectedTxFromPin.post3());
+    }
+#endif
+  }
+
   if (auto expectedDriveCurrent =
           std::get<std::optional<SaiPortSerdesTraits::Attributes::IDriver>>(
               expectedTx)) {

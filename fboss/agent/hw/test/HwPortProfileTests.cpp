@@ -189,6 +189,7 @@ class HwPortProfileTest : public HwTest {
 #endif
       return;
     }
+    utility::enableSixtapProgramming();
     auto setup = [=]() {
       auto config = initialConfig(availablePorts);
       for (auto port : {availablePorts[0], availablePorts[1]}) {
