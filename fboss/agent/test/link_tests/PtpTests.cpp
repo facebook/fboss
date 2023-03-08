@@ -23,14 +23,8 @@ const auto kSrcMac = folly::MacAddress{"00:00:00:00:01:03"}; // arbit
 
 class PtpTests : public LinkTest {
  public:
-  void createPtpTraffic(
-      const boost::container::flat_set<PortDescriptor>& ecmpPorts,
-      PTPMessageType ptpPkt) {
-    XLOG(DBG2) << "Create PTP traffic";
-    programDefaultRoute(ecmpPorts, sw()->getPlatform()->getLocalMac());
-    // pick the first port from the list
-    auto outputPort = *ecmpPorts.begin();
-
+  std::unique_ptr<facebook::fboss::TxPacket> createPtpPkt(
+      PTPMessageType ptpType) {
     // note: we are not creating flood here, but want routing
     // of packets so that TTL goes down from 255 -> 0
     auto vlan = utility::firstVlanID(sw()->getState());
@@ -43,7 +37,7 @@ class PtpTests : public LinkTest {
     auto intf = sw()->getState()->getInterfaces()->getInterfaceInVlan(vlanId);
 
     auto srcIp = folly::IPAddressV6("1::1"); // arbit
-    auto txPacket = utility::makePTPTxPacket(
+    return utility::makePTPTxPacket(
         sw()->getHw(),
         vlanId,
         kSrcMac,
@@ -52,9 +46,7 @@ class PtpTests : public LinkTest {
         kIPv6Dst,
         0 /* dscp */,
         kStartTtl,
-        ptpPkt);
-    sw()->getHw()->sendPacketOutOfPortSync(
-        std::move(txPacket), outputPort.phyPortID());
+        ptpType);
   }
 
  protected:
@@ -91,8 +83,13 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
   folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
   auto entry = HwTestPacketTrapEntry(sw()->getHw(), dstPrefix);
   HwAgentTestPacketSnooper snooper(sw()->getPacketObservers());
-  createPtpTraffic(
-      getVlanOwningCabledPorts(), PTPMessageType::PTP_DELAY_REQUEST);
+  programDefaultRoute(ecmpPorts, sw()->getPlatform()->getLocalMac());
+  auto ptpType = PTPMessageType::PTP_DELAY_REQUEST;
+  auto ptpPkt = createPtpPkt(ptpType);
+
+  // Send out PTP packet
+  sw()->getHw()->sendPacketOutOfPortSync(
+      std::move(ptpPkt), (*ecmpPorts.begin()).phyPortID());
 
   bool validated = false;
   auto localMac = sw()->getPlatform()->getLocalMac();
@@ -113,6 +110,10 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
     XLOG(DBG2) << "PTP event packet found";
     PTPHeader ptpHdr(&pktCursor);
     auto correctionField = ptpHdr.getCorrectionField();
+    // Verify PTP fields unchanged.
+    EXPECT_EQ(ptpType, ptpHdr.getPtpType());
+    EXPECT_EQ(PTPVersion::PTP_V2, ptpHdr.getPtpVersion());
+    EXPECT_EQ(PTP_DELAY_REQUEST_MSG_SIZE, ptpHdr.getPtpMessageLength());
 
     pktCursor.reset(&pktBuf);
     auto hopLimit = utility::getIpHopLimit(pktCursor);
@@ -145,6 +146,7 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
       // Both src and mac address should be local mac
       EXPECT_EQ(srcMac, localMac);
       EXPECT_EQ(dstMac, localMac);
+
       validated = true;
       if (hopLimit == 1) {
         break;
