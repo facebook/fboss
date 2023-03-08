@@ -479,6 +479,10 @@ class CmdGlobalOptions {
     fsdbThriftPort_ = port;
   }
 
+  void setTeAgentThriftPort(int port) {
+    teAgentThriftPort_ = port;
+  }
+
   void setFilterInput(std::string& filter) {
     filter_ = filter;
   }
