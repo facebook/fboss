@@ -17,7 +17,9 @@
 namespace {
 
 constexpr uint32_t kDefaultTxnWaitMillis = 10000;
-
+constexpr uint32_t kFacebookFpgaSlpcParityReg = 0x80;
+constexpr uint32_t kFacebookFpgaSlpcParityMask = 0xFFFF0000;
+constexpr uint32_t kFacebookFpgaSlpcParityBitshift = 16;
 } // namespace
 
 namespace facebook::fboss {
@@ -91,12 +93,14 @@ void FbFpgaMdio::waitUntilDone(uint32_t millis, MdioCommand command) {
     auto status = readReg<MdioStatus>();
     if (status.done) {
       if (status.err) {
+        printSlpcError();
         throwErr("Mdio transaction error");
       }
       return;
     }
     usleep(10);
   }
+  printSlpcError();
   throwErr("Mdio transaction timed out");
 }
 
@@ -156,5 +160,13 @@ void FbFpgaMdio::writeReg(Register value) {
   XLOG(DBG5) << value;
   uint32_t offset = Register::addr::value + baseAddr_;
   io_->write(offset, value.reg);
+}
+
+void FbFpgaMdio::printSlpcError() {
+  uint32_t offset = baseAddr_ + kFacebookFpgaSlpcParityReg;
+  uint32_t slpcErr = (io_->read(offset) & kFacebookFpgaSlpcParityMask) >>
+      kFacebookFpgaSlpcParityBitshift;
+  XLOG(ERR) << fmt::format(
+      "For {}, SLPC parity error: {:d}", io_->getName(), slpcErr);
 }
 } // namespace facebook::fboss

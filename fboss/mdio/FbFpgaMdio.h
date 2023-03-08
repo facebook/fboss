@@ -50,6 +50,7 @@ class FbFpgaMdio : public Mdio {
  private:
   void clearStatus();
   void waitUntilDone(uint32_t millis, MdioCommand command);
+  void printSlpcError();
 
   template <typename Register>
   Register readReg();
