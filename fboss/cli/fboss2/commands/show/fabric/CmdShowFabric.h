@@ -47,37 +47,45 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
     return createModel(entries);
   }
 
-  inline std::string formattoString(int64_t value) {
-    return value == -1 ? "--" : folly::to<std::string>(value);
+  inline void udpateNametoIdString(std::string& name, int64_t value) {
+    auto idToString =
+        value == -1 ? "(-)" : folly::to<std::string>("(", value, ")");
+    name += idToString;
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
     Table table;
     table.setHeader({
         "Local Port",
-        "Peer Switch",
-        "Peer SwitchId",
-        "Expected Peer SwitchId",
-        "Peer Port",
-        "Peer PortId",
-        "Expected Peer PortId",
+        "Peer Switch (Id)",
+        "Exp Peer Switch (Id)",
+        "Peer Port (Id)",
+        "Exp Peer Port (Id)",
     });
 
     for (auto const& entry : model.get_fabricEntries()) {
-      std::string remoteSwitchId = formattoString(*entry.remoteSwitchId());
-      std::string expectedRemoteSwitchId =
-          formattoString(*entry.expectedRemoteSwitchId());
-      std::string expectedRemotePortId =
-          formattoString(*entry.expectedRemotePortId());
+      std::string remoteSwitchNameId =
+          utils::removeFbDomains(*entry.remoteSwitchName());
+      udpateNametoIdString(remoteSwitchNameId, *entry.remoteSwitchId());
+
+      std::string expectedRemoteSwitchNameId =
+          utils::removeFbDomains(*entry.expectedRemoteSwitchName());
+      udpateNametoIdString(
+          expectedRemoteSwitchNameId, *entry.expectedRemoteSwitchId());
+
+      std::string remotePortNameId = *entry.remotePortName();
+      udpateNametoIdString(remotePortNameId, *entry.remotePortId());
+
+      std::string expectedRemotePortNameId = *entry.expectedRemotePortName();
+      udpateNametoIdString(
+          expectedRemotePortNameId, *entry.expectedRemotePortId());
 
       table.addRow({
           *entry.localPort(),
-          utils::removeFbDomains(*entry.remoteSwitchName()),
-          remoteSwitchId,
-          expectedRemoteSwitchId,
-          *entry.remotePortName(),
-          folly::to<std::string>(*entry.remotePortId()),
-          expectedRemotePortId,
+          remoteSwitchNameId,
+          expectedRemoteSwitchNameId,
+          remotePortNameId,
+          expectedRemotePortNameId,
       });
     }
 
@@ -106,6 +114,13 @@ class CmdShowFabric : public CmdHandler<CmdShowFabric, CmdShowFabricTraits> {
       fabricDetails.expectedRemotePortId() =
           endpoint.expectedPortId().has_value() ? *endpoint.expectedPortId()
                                                 : -1;
+      fabricDetails.expectedRemotePortName() =
+          endpoint.expectedPortName().has_value() ? *endpoint.expectedPortName()
+                                                  : kUnavail;
+      fabricDetails.expectedRemoteSwitchName() =
+          endpoint.expectedSwitchName().has_value()
+          ? *endpoint.expectedSwitchName()
+          : kUnavail;
       model.fabricEntries()->push_back(fabricDetails);
     }
 
