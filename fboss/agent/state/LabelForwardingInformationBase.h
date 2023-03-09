@@ -32,11 +32,12 @@ class LabelForwardingInformationBase
     : public ThriftMapNode<
           LabelForwardingInformationBase,
           LabelForwardingInformationBaseTraits> {
+ public:
   using Base = ThriftMapNode<
       LabelForwardingInformationBase,
       LabelForwardingInformationBaseTraits>;
+  using Base::modify;
 
- public:
   LabelForwardingInformationBase();
 
   virtual ~LabelForwardingInformationBase() override;

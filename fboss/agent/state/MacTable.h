@@ -40,6 +40,7 @@ using MacTableTraits = ThriftMapNodeTraits<
 class MacTable : public ThriftMapNode<MacTable, MacTableTraits> {
  public:
   using Base = ThriftMapNode<MacTable, MacTableTraits>;
+  using Base::modify;
   MacTable();
   ~MacTable() override;
 

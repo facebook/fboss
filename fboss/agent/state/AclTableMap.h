@@ -36,6 +36,7 @@ using AclTableMapTraits = ThriftMapNodeTraits<
 class AclTableMap : public ThriftMapNode<AclTableMap, AclTableMapTraits> {
  public:
   using BaseT = ThriftMapNode<AclTableMap, AclTableMapTraits>;
+  using BaseT::modify;
 
   AclTableMap();
   ~AclTableMap() override;

@@ -92,6 +92,7 @@ USE_THRIFT_COW(AclEntry);
 class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
  public:
   using BaseT = ThriftStructNode<AclEntry, state::AclEntryFields>;
+  using BaseT::modify;
   static const uint8_t kProtoIcmp = 1;
   static const uint8_t kProtoIcmpv6 = 58;
   static const uint8_t kMaxIcmpType = 0xFF;

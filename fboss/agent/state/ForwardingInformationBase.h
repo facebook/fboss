@@ -54,6 +54,7 @@ class ForwardingInformationBase
   using Base = ThriftMapNode<
       ForwardingInformationBase<AddressT>,
       ForwardingInformationBaseTraits<AddressT>>;
+  using Base::modify;
 
   std::shared_ptr<Route<AddressT>> exactMatch(
       const RoutePrefix<AddressT>& prefix) const;

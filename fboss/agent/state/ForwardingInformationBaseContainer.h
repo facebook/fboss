@@ -37,6 +37,7 @@ class ForwardingInformationBaseContainer
   using Base = ThriftStructNode<
       ForwardingInformationBaseContainer,
       state::FibContainerFields>;
+  using Base::modify;
   explicit ForwardingInformationBaseContainer(RouterID vrf);
   ~ForwardingInformationBaseContainer() override;
 

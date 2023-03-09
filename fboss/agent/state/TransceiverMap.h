@@ -42,6 +42,7 @@ class TransceiverMap
     : public ThriftMapNode<TransceiverMap, TransceiverMapTraits> {
  public:
   using Base = ThriftMapNode<TransceiverMap, TransceiverMapTraits>;
+  using Base::modify;
   using LegacyTraits = TransceiverMapLegacyTraits;
   TransceiverMap();
   virtual ~TransceiverMap() override;

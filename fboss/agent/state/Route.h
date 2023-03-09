@@ -293,6 +293,7 @@ class Route : public ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>> {
   using Action = RouteForwardAction;
   using Addr = AddrT;
   using LegacyFields = RouteFields<AddrT>;
+  using RouteBase::modify;
 
   // Constructor for a route
   explicit Route(const Prefix& prefix) {

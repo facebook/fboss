@@ -28,6 +28,8 @@ using DsfNodeMapTraits = ThriftMapNodeTraits<
 class DsfNodeMap : public ThriftMapNode<DsfNodeMap, DsfNodeMapTraits> {
  public:
   using BaseT = ThriftMapNode<DsfNodeMap, DsfNodeMapTraits>;
+  using BaseT::modify;
+
   DsfNodeMap() {}
   virtual ~DsfNodeMap() {}
 

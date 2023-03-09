@@ -64,7 +64,7 @@ class NeighborTable
  public:
   typedef IPADDR AddressType;
   typedef ENTRY Entry;
-
+  using ThriftMapNode<SUBCLASS, NbrTableTraits<SUBCLASS, ENTRY>>::modify;
   NeighborTable();
 
   const std::shared_ptr<Entry> getEntry(AddressType ip) const {

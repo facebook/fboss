@@ -137,6 +137,7 @@ class AggregatePort
       LegacyAggregatePortFields::SubportToForwardingState::value_type;
   using ThriftType = state::AggregatePortFields;
   using Base = ThriftStructNode<AggregatePort, state::AggregatePortFields>;
+  using Base::modify;
   using Subports = boost::container::flat_set<Subport>;
 
   using SubportToForwardingState =

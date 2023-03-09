@@ -27,6 +27,7 @@ using MirrorMapTraits = ThriftMapNodeTraits<
 class MirrorMap : public ThriftMapNode<MirrorMap, MirrorMapTraits> {
  public:
   using BaseT = ThriftMapNode<MirrorMap, MirrorMapTraits>;
+  using BaseT::modify;
   MirrorMap() {}
   virtual ~MirrorMap() {}
 

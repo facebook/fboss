@@ -178,6 +178,7 @@ RESOLVE_STRUCT_MEMBER(
 class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
  public:
   using BaseT = ThriftStructNode<SwitchState, state::SwitchState>;
+  using BaseT::modify;
   /*
    * Create a new, empty state.
    */
