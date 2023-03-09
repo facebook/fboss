@@ -382,7 +382,7 @@ class SaiTestRunner(TestRunner):
         return ""
 
     def _get_test_binary_name(self):
-        return args.sai_bin if args.sai_bin else "sai_test-sai_impl-1.10.2"
+        return args.sai_bin if args.sai_bin else "sai_test-sai_impl-1.11.0"
 
     def _get_sdk_logging_flags(self, sdk_logging_dir, test_prefix, test_to_run):
         return [
