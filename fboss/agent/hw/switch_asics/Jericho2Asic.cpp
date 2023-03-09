@@ -72,6 +72,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
+    case HwAsic::Feature::PORT_FABRIC_ISOLATE:
       return true;
 
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:

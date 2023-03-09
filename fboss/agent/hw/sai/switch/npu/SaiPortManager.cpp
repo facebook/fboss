@@ -322,11 +322,19 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     bool /* lineSide */) const {
   bool adminState =
       swPort->getAdminState() == cfg::PortState::ENABLED ? true : false;
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
-  bool isDrained = swPort->getPortDrainState() == cfg::PortDrainState::DRAINED
-      ? true
-      : false;
+  std::optional<bool> isDrained = std::nullopt;
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::PORT_FABRIC_ISOLATE)) {
+    isDrained = swPort->getPortDrainState() == cfg::PortDrainState::DRAINED;
+    if ((isDrained == true) &&
+        swPort->getPortType() != cfg::PortType::FABRIC_PORT) {
+      throw FbossError(
+          "Cannot isolate/drain a non-fabric port ", swPort->getID());
+    }
+  }
 #endif
+
   auto portID = swPort->getID();
   auto platformPort = platform_->getPort(portID);
   auto speed = swPort->getSpeed();

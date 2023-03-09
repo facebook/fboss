@@ -132,6 +132,7 @@ class HwAsic {
     SAI_CONFIGURE_SIX_TAP,
     UDF_HASH_FIELD_QUERY,
     SAI_SAMPLEPACKET_TRAP,
+    PORT_FABRIC_ISOLATE,
   };
 
   enum class AsicMode {
