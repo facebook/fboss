@@ -493,7 +493,7 @@ class ThriftStructNode
   }
 
   template <typename Name>
-  static auto& modify(std::shared_ptr<Self>* node) {
+  static auto& modify(std::shared_ptr<Derived>* node) {
     auto newNode = ((*node)->isPublished()) ? (*node)->clone() : *node;
     auto& name = newNode->template modify<Name>();
     node->swap(newNode);
@@ -508,7 +508,7 @@ class ThriftStructNode
         });
   }
 
-  static void modify(std::shared_ptr<Self>* node, std::string token) {
+  static void modify(std::shared_ptr<Derived>* node, std::string token) {
     auto newNode = ((*node)->isPublished()) ? (*node)->clone() : *node;
     newNode->modify(token);
     node->swap(newNode);
@@ -518,7 +518,7 @@ class ThriftStructNode
    * Visitors by string path
    */
   static ThriftTraverseResult
-  modifyPath(std::shared_ptr<Self>* root, PathIter begin, PathIter end) {
+  modifyPath(std::shared_ptr<Derived>* root, PathIter begin, PathIter end) {
     // first clone root if needed
     auto newRoot = ((*root)->isPublished()) ? (*root)->clone() : *root;
 
@@ -544,7 +544,7 @@ class ThriftStructNode
   }
 
   static ThriftTraverseResult
-  removePath(std::shared_ptr<Self>* root, PathIter begin, PathIter end) {
+  removePath(std::shared_ptr<Derived>* root, PathIter begin, PathIter end) {
     if (begin == end) {
       return ThriftTraverseResult::OK;
     }

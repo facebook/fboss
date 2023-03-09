@@ -26,11 +26,11 @@ inline std::optional<StorageError> parseTraverseResult(
 
 } // namespace detail
 
-template <typename Root>
-class CowStorage : public Storage<Root, CowStorage<Root>> {
+template <typename Root, typename Node = thrift_cow::ThriftStructNode<Root>>
+class CowStorage : public Storage<Root, CowStorage<Root, Node>> {
  public:
-  using Base = Storage<Root, CowStorage<Root>>;
-  using StorageImpl = thrift_cow::ThriftStructNode<Root>;
+  using Base = Storage<Root, CowStorage<Root, Node>>;
+  using StorageImpl = Node;
   using Self = CowStorage<Root>;
   using PathIter = typename Base::PathIter;
   using ExtPathIter = typename Base::ExtPathIter;
