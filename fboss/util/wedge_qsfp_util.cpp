@@ -340,7 +340,9 @@ struct ModulePartInfo_s modulePartInfo[] = {
   // Intel 200G module info
   {{'S','P','T','S','M','P','3','C','L','C','K','8',0x20,0x20,0x20,0x20}, 48},
   // Intel 200G module info
-  {{'S','P','T','S','M','P','3','C','L','C','K','9',0x20,0x20,0x20,0x20}, 48}
+  {{'S','P','T','S','M','P','3','C','L','C','K','9',0x20,0x20,0x20,0x20}, 48},
+  // Intel 400G module info
+  {{'S','P','T','S','H','P','3','C','L','C','K','S',0x20,0x20,0x20,0x20}, 48}
 };
 // clang-format on
 constexpr uint8_t kNumModuleInfo =
