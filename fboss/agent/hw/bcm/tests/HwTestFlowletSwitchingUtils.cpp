@@ -22,6 +22,23 @@ const RouterID kRid(0);
 
 namespace facebook::fboss::utility {
 
+void verifyEgressEcmpEthertype(const BcmSwitch* bcmSwitch) {
+  uint32 flags = 0;
+  int ethertype_max = 2;
+  int ethertype_count = 0;
+  int ethertype_array[2] = {0, 0};
+  bcm_l3_egress_ecmp_ethertype_get(
+      bcmSwitch->getUnit(),
+      &flags,
+      ethertype_max,
+      ethertype_array,
+      &ethertype_count);
+  CHECK_EQ(flags, BCM_L3_ECMP_DYNAMIC_ETHERTYPE_ELIGIBLE);
+  CHECK_EQ(ethertype_count, 2);
+  CHECK_EQ(ethertype_array[0], 0x0800);
+  CHECK_EQ(ethertype_array[1], 0x86DD);
+}
+
 bool validateFlowletSwitchingEnabled(
     const facebook::fboss::HwSwitch* hw,
     const cfg::FlowletSwitchingConfig& flowletCfg) {
@@ -42,6 +59,7 @@ bool validateFlowletSwitchingEnabled(
       *flowletCfg.dynamicQueueMaxThresholdBytes());
   utility::assertSwitchControl(
       bcmSwitchEcmpDynamicSampleRate, *flowletCfg.dynamicSampleRate());
+  verifyEgressEcmpEthertype(bcmSwitch);
   return true;
 }
 
@@ -60,6 +78,14 @@ bool verifyEcmpForFlowletSwitching(
   CHECK_EQ(existing.dynamic_mode, BCM_L3_ECMP_DYNAMIC_MODE_NORMAL);
   CHECK_EQ(existing.dynamic_age, *flowletCfg.inactivityIntervalUsecs());
   CHECK_EQ(existing.dynamic_size, *flowletCfg.flowletTableSize());
+
+  auto ecmp_members = getEcmpGroupInHw(bcmSwitch, ecmp, pathsInHwCount);
+  for (const auto& ecmp_member : ecmp_members) {
+    int status = -1;
+    bcm_l3_egress_ecmp_member_status_get(
+        bcmSwitch->getUnit(), ecmp_member, &status);
+    CHECK_GE(status, BCM_L3_ECMP_DYNAMIC_MEMBER_HW);
+  }
   return true;
 }
 } // namespace facebook::fboss::utility

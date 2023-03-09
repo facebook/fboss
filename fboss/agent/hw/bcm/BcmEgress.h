@@ -221,6 +221,9 @@ class BcmEcmpEgress : public BcmEgressBase {
   void createWideEcmpEntry(int numPaths);
   static std::string egressId2WeightToString(
       const EgressId2Weight& egressId2Weight);
+  static void setEgressEcmpMemberStatus(
+      const BcmSwitchIf* hw,
+      const EgressId2Weight& egressId2Weight);
 
  private:
   void program();
