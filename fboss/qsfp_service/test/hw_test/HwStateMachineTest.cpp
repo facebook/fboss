@@ -31,6 +31,10 @@ class HwStateMachineTest : public HwTest {
     getHwQsfpEnsemble()->getWedgeManager()->getTransceiversInfo(
         presentTcvrs, std::make_unique<std::vector<int32_t>>());
 
+    auto agentConfig = getHwQsfpEnsemble()->getWedgeManager()->getAgentConfig();
+    auto cabledTransceivers = utility::legacyTransceiverIds(
+        utility::getCabledPortTranceivers(*agentConfig, getHwQsfpEnsemble()));
+
     // Get all transceivers from platform mapping
     const auto& chips = getHwQsfpEnsemble()->getPlatformMapping()->getChips();
     for (const auto& chip : chips) {
@@ -40,7 +44,11 @@ class HwStateMachineTest : public HwTest {
       auto id = *chip.second.physicalID();
       if (auto tcvrIt = presentTcvrs.find(id);
           tcvrIt != presentTcvrs.end() && *tcvrIt->second.present()) {
-        presentTransceivers_.push_back(TransceiverID(id));
+        if (std::find(
+                cabledTransceivers.begin(), cabledTransceivers.end(), id) !=
+            cabledTransceivers.end()) {
+          presentTransceivers_.push_back(TransceiverID(id));
+        }
       } else {
         absentTransceivers_.push_back(TransceiverID(id));
       }
