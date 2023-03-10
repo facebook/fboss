@@ -93,6 +93,15 @@ class Jericho2Asic : public BroadcomAsic {
   uint32_t getNumMemoryBuffers() const override {
     return 2;
   }
+  int getBufferDynThreshFromScalingFactor(
+      cfg::MMUScalingFactor scalingFactor) const override {
+    switch (scalingFactor) {
+      case cfg::MMUScalingFactor::ONE_32768:
+        return -15;
+      default:
+        return BroadcomAsic::getBufferDynThreshFromScalingFactor(scalingFactor);
+    }
+  }
 };
 
 } // namespace facebook::fboss

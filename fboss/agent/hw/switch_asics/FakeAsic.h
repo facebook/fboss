@@ -167,6 +167,11 @@ class FakeAsic : public HwAsic {
         return 1;
       case cfg::MMUScalingFactor::FOUR:
         return 2;
+      case cfg::MMUScalingFactor::ONE_32768:
+        // Unsupported
+        throw FbossError(
+            "Unsupported scaling factor : ",
+            apache::thrift::util::enumNameSafe(scalingFactor));
     }
     CHECK(0) << "Should never get here";
     return -1;
