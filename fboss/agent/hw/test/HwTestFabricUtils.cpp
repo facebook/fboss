@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/test/HwTestFabricUtils.h"
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/hw/test/ConfigFactory.h"
 
 #include <gtest/gtest.h>
 
@@ -32,6 +33,27 @@ void checkFabricReachability(const HwSwitch* hw) {
     EXPECT_EQ(*endpoint.switchId(), expectedSwitchId);
     EXPECT_EQ(*endpoint.switchType(), hw->getSwitchType());
     EXPECT_EQ(*endpoint.portId(), expectedPortId);
+  }
+}
+
+void populatePortExpectedNeighbors(
+    const std::vector<PortID>& ports,
+    cfg::SwitchConfig& cfg) {
+  const auto& dsfNode = cfg.dsfNodes()->begin()->second;
+  for (const auto& portID : ports) {
+    auto portCfg = utility::findCfgPort(cfg, portID);
+    cfg::PortNeighbor nbr;
+    if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
+      // this is for neighbor reachability test. Since
+      // ports are in loopback, expect itself to be the neighbor
+      // hence put remotePort to be the same as itself
+      // expect port name to exist for the fabric ports
+      if (portCfg->name().has_value()) {
+        nbr.remotePort() = *portCfg->name();
+      }
+      nbr.remoteSystem() = *dsfNode.name();
+      portCfg->expectedNeighborReachability() = {nbr};
+    }
   }
 }
 } // namespace facebook::fboss
