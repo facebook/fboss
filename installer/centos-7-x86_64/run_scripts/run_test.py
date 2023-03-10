@@ -6,6 +6,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from argparse import ArgumentParser
 
 # Helper to run HwTests
@@ -127,6 +128,8 @@ OPT_ARG_OSS = "--oss"
 OPT_ARG_NO_OSS = "--no-oss"
 OPT_ARG_MGT_IF = "--mgmt-if"
 OPT_ARG_SAI_BIN = "--sai-bin"
+OPT_ARG_FRUID_PATH = "--fruid-path"
+OPT_ARG_SIMULATOR = "--simulator"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 WARMBOOT_CHECK_FILE = "/dev/shm/fboss/warm_boot/can_warm_boot_0"
@@ -165,6 +168,7 @@ class TestRunner(abc.ABC):
             "--config",
             conf_file,
             "--gtest_filter=" + test_to_run,
+            "--fruid_filepath=" + args.fruid_path,
         ]
 
         return run_cmd + flags if flags else run_cmd
@@ -252,6 +256,22 @@ class TestRunner(abc.ABC):
 
         return self._parse_list_test_output(output)
 
+    def _restart_bcmsim(self, asic):
+        try:
+            subprocess.Popen(
+                # avoid warmboot, so as to run test with coldboot init, warmboot shut down
+                # as a workaround for intermittent unclean exit issue in OSS environment
+                ["rm", "-f", "/dev/shm/fboss/warm_boot/can_warm_boot_0"]
+            )
+            subprocess.Popen(
+                # command to start th4 bcmsim service
+                ["./runner.sh", "restart", "python3", "brcmsim.py", "-a", asic, "-s"]
+            )
+            time.sleep(60)
+            print("Restarted bcmsim service")
+        except subprocess.CalledProcessError:
+            print("Failed to restart bcmsim service")
+
     def _run_test(
         self, conf_file, test_to_run, setup_warmboot, warmrun, sdk_logging_dir
     ):
@@ -304,6 +324,13 @@ class TestRunner(abc.ABC):
                 )
 
             os.makedirs(args.sdk_logging)
+        if args.simulator:
+            self.ENV_VAR["SOC_TARGET_SERVER"] = "127.0.0.1"
+            self.ENV_VAR["BCM_SIM_PATH"] = "1"
+            self.ENV_VAR["SOC_BOOT_FLAGS"] = "4325376"
+            self.ENV_VAR["SAI_BOOT_FLAGS"] = "4325376"
+            self.ENV_VAR["SOC_TARGET_PORT"] = "22222"
+            self.ENV_VAR["SOC_TARGET_COUNT"] = "1"
 
         # Determine if tests need to be run with warmboot mode too
         warmboot = False
@@ -321,6 +348,8 @@ class TestRunner(abc.ABC):
         for test_to_run in tests_to_run:
             # Run the test for coldboot verification
             print("########## Running test: " + test_to_run, flush=True)
+            if args.simulator:
+                self._restart_bcmsim(args.simulator)
             test_output = self._run_test(
                 conf_file, test_to_run, warmboot, False, args.sdk_logging
             )
@@ -469,6 +498,24 @@ if __name__ == "__main__":
         help="No OSS build",
     )
     ap.set_defaults(oss=True)
+
+    ap.add_argument(
+        OPT_ARG_FRUID_PATH,
+        type=str,
+        default="/var/facebook/fboss/fruid.json",
+        help=(
+            "Specify file for storing the fruid data. "
+            "Default is /var/facebook/fboss/fruid.json"
+        ),
+    )
+    ap.add_argument(
+        OPT_ARG_SIMULATOR,
+        type=str,
+        help=(
+            "Specify what asic simulator to use if configured. "
+            "Default is None, meaning physical asic is used"
+        ),
+    )
 
     # Add subparsers for different test types
     subparsers = ap.add_subparsers()
