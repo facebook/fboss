@@ -378,22 +378,7 @@ class HwVoqSwitchWithFabricPortsTest : public HwVoqSwitchTest {
         utility::kBaseVlanId,
         true /*enable fabric ports*/
     );
-    const auto& dsfNode = cfg.dsfNodes()->begin()->second;
-    for (auto& portID : masterLogicalPortIds()) {
-      auto portCfg = utility::findCfgPort(cfg, portID);
-      cfg::PortNeighbor nbr;
-      if (portCfg->portType() == cfg::PortType::FABRIC_PORT) {
-        // this is for neighbor reachability test. Since
-        // ports are in loopback, expect itself to be the neighbor
-        // hence put remotePort to be the same as itself
-        // expect port name to exist for the fabric ports
-        if (portCfg->name().has_value()) {
-          nbr.remotePort() = *portCfg->name();
-        }
-        nbr.remoteSystem() = *dsfNode.name();
-        portCfg->expectedNeighborReachability() = {nbr};
-      }
-    }
+    populatePortExpectedNeighbors(masterLogicalPortIds(), cfg);
     return cfg;
   }
 
