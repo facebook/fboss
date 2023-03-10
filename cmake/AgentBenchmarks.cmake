@@ -12,18 +12,6 @@ target_link_libraries(agent_benchmarks
   Folly::folly
 )
 
-
-add_library(bcm_agent_benchmarks_main
-  fboss/agent/benchmarks/AgentBenchmarksMain.cpp
-  fboss/agent/benchmarks/bcm/AgentBenchmarksMain.cpp
-)
-
-target_link_libraries(bcm_agent_benchmarks_main
-  agent_benchmarks
-  Folly::folly
-  platform
-)
-
 add_library(sai_agent_benchmarks_main
   fboss/agent/benchmarks/AgentBenchmarksMain.cpp
   fboss/agent/benchmarks/sai/AgentBenchmarksMain.cpp
