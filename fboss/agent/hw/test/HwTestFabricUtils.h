@@ -11,4 +11,5 @@ void checkFabricReachability(const HwSwitch* hw);
 void populatePortExpectedNeighbors(
     const std::vector<PortID>& ports,
     cfg::SwitchConfig& cfg);
+void checkPortFabricReachability(const HwSwitch* hw, PortID portId);
 } // namespace facebook::fboss

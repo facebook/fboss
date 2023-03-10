@@ -56,4 +56,16 @@ void populatePortExpectedNeighbors(
     }
   }
 }
+
+void checkPortFabricReachability(const HwSwitch* hw, PortID portId) {
+  auto reachability = hw->getFabricReachability();
+  auto itr = reachability.find(portId);
+  ASSERT_TRUE(itr != reachability.end());
+  auto endpoint = itr->second;
+  EXPECT_TRUE(*endpoint.isAttached());
+  XLOG(DBG2) << " On port: " << portId
+             << " got switch id: " << *endpoint.switchId();
+  EXPECT_EQ(*endpoint.switchId(), *hw->getSwitchId());
+  EXPECT_EQ(*endpoint.switchType(), hw->getSwitchType());
+}
 } // namespace facebook::fboss
