@@ -569,10 +569,6 @@ foreach(cmakeFile ${cmakeFiles})
   endif()
 endforeach(cmakeFile)
 
-if (NOT SAI_ONLY)
-  install(TARGETS bcm_test)
-endif()
-
 install(TARGETS fake_sai)
 
 install(
