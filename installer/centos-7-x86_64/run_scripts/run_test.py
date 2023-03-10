@@ -105,7 +105,7 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON
 # --filter=HwAclStatTest.*:-*AclStatCreate:*AclStatCreateShared:*AclStatCreateMultiple:*AclStatMultipleActions:*AclStatDeleteShared*:*AclStatDeleteSharedPostWarmBoot:*AclStatRename*:*AclStatModify:*AclStatShuffle:*StatNumberOfCounters:*AclStatChangeCounterType
 # ACLs + QoS Map tests
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwDscpQueueMappingTest.*:-*VerifyAclAndQosMapCpu
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwDscpQueueMappingTest.*
 # Packet send test
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwPacketSendTest.PortTxEnableTest
 # PFC tests
