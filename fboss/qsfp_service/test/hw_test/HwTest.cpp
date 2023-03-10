@@ -11,6 +11,7 @@
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/phy/PhyManager.h"
@@ -77,6 +78,8 @@ void HwTest::TearDown() {
       ensemble_->getWedgeManager()->getStateMachineThreadHeartbeatMissedCount(),
       0);
   ensemble_.reset();
+  // We expect that any coldboot flag set during the test should be cleared
+  EXPECT_FALSE(checkFileExists(TransceiverManager::forceColdBootFileName()));
 }
 
 bool HwTest::didWarmBoot() const {
