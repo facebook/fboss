@@ -12,7 +12,7 @@ namespace facebook::fboss {
 class HwFabricSwitchTest : public HwLinkStateDependentTest {
  public:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerInterfaceConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode(),
@@ -21,6 +21,8 @@ class HwFabricSwitchTest : public HwLinkStateDependentTest {
         utility::kBaseVlanId,
         true /*enable fabric ports*/
     );
+    populatePortExpectedNeighbors(masterLogicalPortIds(), cfg);
+    return cfg;
   }
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
@@ -56,8 +58,13 @@ TEST_F(HwFabricSwitchTest, collectStats) {
 }
 
 TEST_F(HwFabricSwitchTest, checkFabricReachability) {
-  verifyAcrossWarmBoots(
-      [] {}, [this]() { checkFabricReachability(getHwSwitch()); });
+  auto verify = [this]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    SwitchStats dummy;
+    getHwSwitch()->updateStats(&dummy);
+    checkFabricReachability(getHwSwitch());
+  };
+  verifyAcrossWarmBoots([] {}, verify);
 }
 
 } // namespace facebook::fboss
