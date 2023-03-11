@@ -10,16 +10,6 @@ if (WITH_ASAN)
   message(STATUS "Building WITH_ASAN")
 endif()
 
-option(SAI_ONLY "Build SAI binaries only" OFF)
-if ($ENV{SAI_ONLY})
-  message(STATUS "ENV SAI_ONLY is set")
-  set (SAI_ONLY ON)
-endif()
-
-if (SAI_ONLY)
-  message(STATUS "Building SAI binaries only")
-endif()
-
 option(BENCHMARK_INSTALL "Installation of benchmark test binaries" OFF)
 if ($ENV{BENCHMARK_INSTALL})
   message(STATUS "ENV BENCHMARK_INSTALL is set")
