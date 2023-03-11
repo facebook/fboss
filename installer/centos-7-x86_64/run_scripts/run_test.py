@@ -249,6 +249,7 @@ class TestRunner(abc.ABC):
             else filter
         )
         filter = "--gtest_filter=" + filter
+        filter = filter.replace(".*", "*")
         output = subprocess.check_output(
             [self._get_test_binary_name(), "--gtest_list_tests", filter]
         )
