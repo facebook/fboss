@@ -108,6 +108,7 @@ from argparse import ArgumentParser
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwDscpQueueMappingTest.*
 # Packet send test
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwPacketSendTest.PortTxEnableTest
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwSendPacketToQueueTest.*
 # PFC tests
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwPfcTest.*:-*Watchdog*
 # PFC traffic tests

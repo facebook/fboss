@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/lib/CommonUtils.h"
 
 #include <folly/IPAddress.h>
 
@@ -25,9 +26,9 @@ namespace facebook::fboss {
 class HwSendPacketToQueueTest : public HwLinkStateDependentTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::oneL3IntfConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
+        masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
     return cfg;
   }
@@ -52,7 +53,8 @@ void HwSendPacketToQueueTest::checkSendPacket(
   };
 
   auto verify = [=]() {
-    const PortID port = PortID(masterLogicalPortIds()[0]);
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
+    auto port = ecmpHelper6.nhop(0).portDesc.phyPortID();
     const uint8_t queueID = ucQueue ? *ucQueue : kDefaultQueue;
 
     auto beforeOutPkts =
@@ -81,18 +83,20 @@ void HwSendPacketToQueueTest::checkSendPacket(
       getHwSwitchEnsemble()->ensureSendPacketSwitched(std::move(pkt));
     }
 
-    auto afterOutPkts =
-        getLatestPortStats(port).get_queueOutPackets_().at(queueID);
+    WITH_RETRIES({
+      auto afterOutPkts =
+          getLatestPortStats(port).get_queueOutPackets_().at(queueID);
 
-    /*
-     * Once the packet egresses out of the asic, the packet will be looped back
-     * with dmac as neighbor mac. This will certainly fail the my mac check.
-     * Some asic vendors drop the packet right away in the pipeline whereas some
-     * drop later in the pipeline after MMU once the packet is queueed. This
-     * will cause the queue counters to increment more than once. Always check
-     * if atleast 1 packet is received.
-     */
-    EXPECT_GE(afterOutPkts - beforeOutPkts, 1);
+      /*
+       * Once the packet egresses out of the asic, the packet will be looped
+       * back with dmac as neighbor mac. This will certainly fail the my mac
+       * check. Some asic vendors drop the packet right away in the pipeline
+       * whereas some drop later in the pipeline after MMU once the packet is
+       * queueed. This will cause the queue counters to increment more than
+       * once. Always check if atleast 1 packet is received.
+       */
+      EXPECT_EVENTUALLY_GE(afterOutPkts - beforeOutPkts, 1);
+    });
   };
 
   verifyAcrossWarmBoots(setup, verify);
