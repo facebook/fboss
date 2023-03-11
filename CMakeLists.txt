@@ -411,7 +411,7 @@ add_fbthrift_cpp_library(
     fb303_cpp2
 )
 add_fbthrift_cpp_library(
-  bcm_config_cpp2
+    bcm_config_cpp2
   fboss/agent/hw/bcm/bcm_config.thrift
   OPTIONS
     json
@@ -423,10 +423,6 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     reflection
-)
-add_fbthrift_cpp_library(
-  packettrace_cpp2
-  fboss/agent/hw/bcm/packettrace.thrift
 )
 add_fbthrift_cpp_library(
   mka_structs_cpp2
