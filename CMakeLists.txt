@@ -557,16 +557,8 @@ enable_testing()
 # Build all cmake files under cmake/*cmake
 file(GLOB cmakeFiles ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
 foreach(cmakeFile ${cmakeFiles})
-  if(SAI_ONLY AND ${cmakeFile} MATCHES "Bcm")
-    message(status " Skipping OpenNSA BCM binaries")
-  # Skip building LinkTest, enable this for non SAI_ONLY build
-  # once the compilation issues with LinkTest are fixed
-  elseif(NOT SAI_ONLY AND ${cmakeFile} MATCHES "BcmLinkTest")
-    message(status " Skipping BCM LinkTest binaries")
-  else()
-    message(status " INCLUDE ${cmakeFile}")
-    INCLUDE(${cmakeFile})
-  endif()
+  message(status " INCLUDE ${cmakeFile}")
+  INCLUDE(${cmakeFile})
 endforeach(cmakeFile)
 
 install(TARGETS fake_sai)
