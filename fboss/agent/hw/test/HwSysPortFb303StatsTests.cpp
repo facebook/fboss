@@ -32,6 +32,7 @@ HwSysPortStats getInitedStats() {
       {{1, 1}, {2, 1}}, // queueOutDiscardBytes
       {{1, 2}, {2, 2}}, // queueOutBytes
       {{1, 0}, {2, 10}}, // queueWatermarkBytes
+      {{1, 3}, {2, 3}}, // queueWredDroppedPackets
       0, // timestamp
       "test", // portName
   };
