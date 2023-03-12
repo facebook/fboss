@@ -176,6 +176,7 @@ facebook::fboss::PortStatus fillInPortStatus(
   *status.up() = port.isUp();
   *status.speedMbps() = static_cast<int>(port.getSpeed());
   *status.profileID() = apache::thrift::util::enumName(port.getProfileID());
+  *status.drained() = port.isDrained();
 
   try {
     status.transceiverIdx() =

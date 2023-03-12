@@ -400,6 +400,7 @@ struct PortStatus {
   4: optional TransceiverIdxThrift transceiverIdx;
   5: i64 speedMbps; // TODO: i32 (someone is optimistic about port speeds)
   6: string profileID;
+  7: bool drained;
 }
 
 enum CaptureDirection {
@@ -875,6 +876,13 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * state after, for example, restart.
    */
   void setPortState(1: i32 portId, 2: bool enable) throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
+   * Set drain state for a port
+   */
+  void setPortDrainState(1: i32 portId, 2: bool drain) throws (
     1: fboss.FbossBaseError error,
   );
 
