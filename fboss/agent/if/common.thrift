@@ -76,15 +76,3 @@ union NamedRouteDestination {
   // traffic redirection policy name
   2: string policyName;
 }
-
-struct SystemPortThrift {
-  1: i64 portId;
-  2: i64 switchId;
-  3: string portName; // switchId::portName
-  4: i64 coreIndex;
-  5: i64 corePortIndex;
-  6: i64 speedMbps;
-  7: i64 numVoqs;
-  9: bool enabled;
-  10: optional string qosPolicy;
-}

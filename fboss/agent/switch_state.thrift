@@ -137,7 +137,7 @@ struct PortFields {
   43: switch_config.PortDrainState drainState = switch_config.PortDrainState.UNDRAINED;
 }
 
-typedef common.SystemPortThrift SystemPortFields
+typedef ctrl.SystemPortThrift SystemPortFields
 
 struct TransceiverSpecFields {
   1: required i16 id;

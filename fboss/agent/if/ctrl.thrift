@@ -348,6 +348,18 @@ struct PortInfoThrift {
   23: optional i32 hwLogicalPortId;
 }
 
+struct SystemPortThrift {
+  1: i64 portId;
+  2: i64 switchId;
+  3: string portName; // switchId::portName
+  4: i64 coreIndex;
+  5: i64 corePortIndex;
+  6: i64 speedMbps;
+  7: i64 numVoqs;
+  9: bool enabled;
+  10: optional string qosPolicy;
+}
+
 struct PortHardwareDetails {
   1: switch_config.PortProfileID profile;
   2: phy.PortProfileConfig profileConfig;
@@ -1256,7 +1268,7 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   map<i64, switch_config.DsfNode> getDsfNodes() throws (
     1: fboss.FbossBaseError error,
   );
-  map<i64, common.SystemPortThrift> getSystemPorts() throws (
+  map<i64, SystemPortThrift> getSystemPorts() throws (
     1: fboss.FbossBaseError error,
   );
 }
