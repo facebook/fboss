@@ -342,12 +342,8 @@ SaiQueueManager::egressQueueNonWatermarkCounterIdsRead(int queueType) const {
         SaiQueueTraits::NonWatermarkWredCounterIdsToRead.begin(),
         SaiQueueTraits::NonWatermarkWredCounterIdsToRead.end());
 
-    if (platform_->getAsic()->getAsicVendor() ==
-        HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
-      /*
-       * Per-queue ECN counters are supported on TAJO with SDK
-       * version 1.42.4 onwards.
-       */
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::QUEUE_ECN_COUNTER)) {
+      // Supported on TAJO only with SDK version 1.42.4 onwards.
 #if !defined(TAJO_SDK_VERSION_1_42_1)
       extendedCounterIds.insert(
           extendedCounterIds.end(),
