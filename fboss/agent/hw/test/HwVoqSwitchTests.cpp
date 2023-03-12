@@ -421,6 +421,27 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricReachability) {
   verifyAcrossWarmBoots([] {}, verify);
 }
 
+TEST_F(HwVoqSwitchWithFabricPortsTest, fabricIsolate) {
+  auto setup = [=]() { applyNewConfig(initialConfig()); };
+
+  auto verify = [=]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    SwitchStats dummy;
+    getHwSwitch()->updateStats(&dummy);
+    auto fabricPortId =
+        PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
+    checkPortFabricReachability(getHwSwitch(), fabricPortId);
+    auto newState = getProgrammedState();
+    auto port = newState->getPorts()->getPort(fabricPortId);
+    auto newPort = port->modify(&newState);
+    newPort->setPortDrainState(cfg::PortDrainState::UNDRAINED);
+    applyNewState(newState);
+    getHwSwitch()->updateStats(&dummy);
+    checkPortFabricReachability(getHwSwitch(), fabricPortId);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
