@@ -1471,6 +1471,39 @@ void ThriftHandler::setPortState(int32_t portNum, bool enable) {
   sw_->updateStateBlocking("set port state", updateFn);
 }
 
+void ThriftHandler::setPortDrainState(int32_t portNum, bool drain) {
+  auto log = LOG_THRIFT_CALL(DBG1, portNum, drain);
+  ensureConfigured(__func__);
+  PortID portId = PortID(portNum);
+  const auto port = sw_->getState()->getPorts()->getPortIf(portId);
+  if (!port) {
+    throw FbossError("no such port ", portNum);
+  }
+
+  if (port->getPortType() != cfg::PortType::FABRIC_PORT) {
+    throw FbossError("Cannot drain/undrain non-fabric port ", portNum);
+  }
+
+  cfg::PortDrainState newPortDrainState =
+      drain ? cfg::PortDrainState::DRAINED : cfg::PortDrainState::UNDRAINED;
+
+  auto updateFn =
+      [portId, newPortDrainState, drain](
+          const shared_ptr<SwitchState>& state) -> shared_ptr<SwitchState> {
+    const auto oldPort = state->getPorts()->getPortIf(portId);
+    if (oldPort->getPortDrainState() == newPortDrainState) {
+      XLOG(DBG2) << "setPortDrainState: port already in state "
+                 << (drain ? "DRAINED" : "UNDRAINED");
+      return nullptr;
+    }
+    shared_ptr<SwitchState> newState{state};
+    auto newPort = oldPort->modify(&newState);
+    newPort->setPortDrainState(newPortDrainState);
+    return newState;
+  };
+  sw_->updateStateBlocking("set port drain state", updateFn);
+}
+
 void ThriftHandler::setPortLoopbackMode(
     int32_t portNum,
     PortLoopbackMode mode) {
