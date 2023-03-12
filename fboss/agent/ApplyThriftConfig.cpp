@@ -1021,7 +1021,7 @@ std::shared_ptr<UdfConfig> ThriftConfigApplier::updateUdfConfig(bool* changed) {
     if (origUdfConfig->isUdfConfigPopulated()) {
       *changed = true;
     }
-    return nullptr;
+    return newUdfConfig;
   }
 
   // new cfg exists
@@ -1034,7 +1034,7 @@ std::shared_ptr<UdfConfig> ThriftConfigApplier::updateUdfConfig(bool* changed) {
     return newUdfConfig;
   }
 
-  return nullptr;
+  return newUdfConfig;
 }
 
 std::shared_ptr<DsfNodeMap> ThriftConfigApplier::updateDsfNodes() {

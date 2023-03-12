@@ -35,6 +35,8 @@ using VlanMapTraits =
 class VlanMap : public ThriftMapNode<VlanMap, VlanMapTraits> {
  public:
   using Base = ThriftMapNode<VlanMap, VlanMapTraits>;
+  using Base::modify;
+
   VlanMap();
   ~VlanMap() override;
 

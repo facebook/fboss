@@ -81,6 +81,9 @@ void fillHwQueueStats(
       case SAI_QUEUE_STAT_WATERMARK_BYTES:
         hwSysPortStats.queueWatermarkBytes_()[queueId] = value;
         break;
+      case SAI_QUEUE_STAT_WRED_DROPPED_PACKETS:
+        hwSysPortStats.queueWredDroppedPackets_()[queueId] = value;
+        break;
       default:
         throw FbossError("Got unexpected queue counter id: ", counterId);
     }
@@ -266,10 +269,12 @@ SaiQueueHandles SaiQueueManager::loadQueues(
 }
 
 const std::vector<sai_stat_id_t>&
-SaiQueueManager::supportedNonWatermarkCounterIdsRead(int queueType) const {
+SaiQueueManager::supportedNonWatermarkCounterIdsRead(
+    int queueType,
+    SaiQueueHandle* queueHandle) const {
   if (queueType == SAI_QUEUE_TYPE_MULTICAST_VOQ ||
       queueType == SAI_QUEUE_TYPE_UNICAST_VOQ) {
-    return voqNonWatermarkCounterIdsRead(queueType);
+    return voqNonWatermarkCounterIdsRead(queueType, queueHandle);
   } else if (queueType == SAI_QUEUE_TYPE_FABRIC_TX) {
     static const std::vector<sai_stat_id_t> kFabricQueueNonWatermarksStats;
     return kFabricQueueNonWatermarksStats;
@@ -278,10 +283,30 @@ SaiQueueManager::supportedNonWatermarkCounterIdsRead(int queueType) const {
 }
 
 const std::vector<sai_stat_id_t>&
-SaiQueueManager::voqNonWatermarkCounterIdsRead(int /*queueType*/) const {
+SaiQueueManager::voqNonWatermarkCounterIdsRead(
+    int /*queueType*/,
+    SaiQueueHandle* queueHandle) const {
+  assert(queueHandle);
   static std::vector<sai_stat_id_t> baseCounterIds(
       SaiQueueTraits::VoqNonWatermarkCounterIdsToRead.begin(),
       SaiQueueTraits::VoqNonWatermarkCounterIdsToRead.end());
+  static std::vector<sai_stat_id_t> basePlusWredCounterIds;
+  if (!basePlusWredCounterIds.size()) {
+    basePlusWredCounterIds.resize(
+        baseCounterIds.size() + SaiQueueTraits::WredCounterIdsToRead.size());
+    std::set_union(
+        baseCounterIds.begin(),
+        baseCounterIds.end(),
+        SaiQueueTraits::WredCounterIdsToRead.begin(),
+        SaiQueueTraits::WredCounterIdsToRead.end(),
+        basePlusWredCounterIds.begin());
+  }
+
+  if (queueHandle && queueHandle->wredProfile &&
+      GET_OPT_ATTR(
+          Wred, GreenMaxThreshold, queueHandle->wredProfile->attributes())) {
+    return basePlusWredCounterIds;
+  }
   return baseCounterIds;
 }
 
@@ -317,12 +342,8 @@ SaiQueueManager::egressQueueNonWatermarkCounterIdsRead(int queueType) const {
         SaiQueueTraits::NonWatermarkWredCounterIdsToRead.begin(),
         SaiQueueTraits::NonWatermarkWredCounterIdsToRead.end());
 
-    if (platform_->getAsic()->getAsicVendor() ==
-        HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
-      /*
-       * Per-queue ECN counters are supported on TAJO with SDK
-       * version 1.42.4 onwards.
-       */
+    if (platform_->getAsic()->isSupported(HwAsic::Feature::QUEUE_ECN_COUNTER)) {
+      // Supported on TAJO only with SDK version 1.42.4 onwards.
 #if !defined(TAJO_SDK_VERSION_1_42_1)
       extendedCounterIds.insert(
           extendedCounterIds.end(),
@@ -368,7 +389,8 @@ void SaiQueueManager::updateStats(
         queueHandle->queue->adapterKey(), SaiQueueTraits::Attributes::Type{});
 
     queueHandle->queue->updateStats(
-        supportedNonWatermarkCounterIdsRead(queueType), SAI_STATS_MODE_READ);
+        supportedNonWatermarkCounterIdsRead(queueType, queueHandle),
+        SAI_STATS_MODE_READ);
     queueHandle->queue->updateStats(
         nonWatermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
     if (updateWatermarks) {
@@ -389,7 +411,7 @@ void SaiQueueManager::clearStats(
     auto& queue = queueHandle->queue;
     auto queueType = GET_ATTR(Queue, Type, queue->attributes());
     std::vector<sai_stat_id_t> toClear =
-        supportedNonWatermarkCounterIdsRead(queueType);
+        supportedNonWatermarkCounterIdsRead(queueType, queueHandle);
     auto watermarkCounters =
         supportedWatermarkCounterIdsReadAndClear(queueType);
     toClear.insert(
@@ -422,7 +444,8 @@ void SaiQueueManager::updateStats(
   for (auto queueHandle : queueHandles) {
     auto queueType = GET_ATTR(Queue, Type, queueHandle->queue->attributes());
     queueHandle->queue->updateStats(
-        supportedNonWatermarkCounterIdsRead(queueType), SAI_STATS_MODE_READ);
+        supportedNonWatermarkCounterIdsRead(queueType, queueHandle),
+        SAI_STATS_MODE_READ);
     queueHandle->queue->updateStats(
         nonWatermarkStatsReadAndClear, SAI_STATS_MODE_READ_AND_CLEAR);
     if (updateWatermarks) {

@@ -18,6 +18,7 @@ class TeFlowEntry
     : public ThriftStructNode<TeFlowEntry, state::TeFlowEntryFields> {
  public:
   using Base = ThriftStructNode<TeFlowEntry, state::TeFlowEntryFields>;
+  using Base::modify;
   explicit TeFlowEntry(TeFlow flowId) {
     set<switch_state_tags::flow>(flowId);
   }

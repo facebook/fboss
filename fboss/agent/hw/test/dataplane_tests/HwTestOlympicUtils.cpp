@@ -197,7 +197,10 @@ void addOlympicQueueConfig(
 
   config->portQueueConfigs()["queue_config"] = portQueues;
   for (auto& port : *config->ports()) {
-    port.portQueueConfigName() = "queue_config";
+    if (*port.portType() == cfg::PortType::INTERFACE_PORT) {
+      // Apply queue configs on INTERFACE_PORTS only
+      port.portQueueConfigName() = "queue_config";
+    }
   }
 }
 

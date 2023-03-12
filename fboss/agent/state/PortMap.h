@@ -35,6 +35,7 @@ using PortMapTraits =
 class PortMap : public ThriftMapNode<PortMap, PortMapTraits> {
  public:
   using Base = ThriftMapNode<PortMap, PortMapTraits>;
+  using Base::modify;
 
   PortMap();
   ~PortMap() override;

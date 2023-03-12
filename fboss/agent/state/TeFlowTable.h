@@ -37,6 +37,8 @@ using TeFlowTableThriftTraits = ThriftMapNodeTraits<
 class TeFlowTable : public ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits> {
  public:
   using Base = ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits>;
+  using Base::modify;
+
   TeFlowTable();
   ~TeFlowTable() override;
 

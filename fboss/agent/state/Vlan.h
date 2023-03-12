@@ -56,6 +56,7 @@ RESOLVE_STRUCT_MEMBER(Vlan, switch_state_tags::macTable, MacTable)
 class Vlan : public ThriftStructNode<Vlan, state::VlanFields> {
  public:
   using Base = ThriftStructNode<Vlan, state::VlanFields>;
+  using Base::modify;
   using MemberPorts = std::map<int16_t, bool>;
 
   Vlan(VlanID id, std::string name);

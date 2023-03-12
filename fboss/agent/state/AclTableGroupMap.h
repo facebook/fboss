@@ -39,6 +39,7 @@ class AclTableGroupMap
     : public ThriftMapNode<AclTableGroupMap, AclTableGroupMapTraits> {
  public:
   using BaseT = ThriftMapNode<AclTableGroupMap, AclTableGroupMapTraits>;
+  using BaseT::modify;
 
   AclTableGroupMap();
   virtual ~AclTableGroupMap() override;

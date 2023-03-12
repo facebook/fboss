@@ -43,6 +43,7 @@ RESOLVE_STRUCT_MEMBER(Interface, switch_state_tags::ndpTable, NdpTable)
 class Interface : public ThriftStructNode<Interface, state::InterfaceFields> {
  public:
   using Base = ThriftStructNode<Interface, state::InterfaceFields>;
+  using Base::modify;
   using AddressesType = Base::Fields::TypeFor<switch_state_tags::addresses>;
   using Addresses = std::map<folly::IPAddress, uint8_t>;
   Interface(

@@ -29,6 +29,7 @@ class SwitchSettings
     : public ThriftStructNode<SwitchSettings, state::SwitchSettingsFields> {
  public:
   using BaseT = ThriftStructNode<SwitchSettings, state::SwitchSettingsFields>;
+  using BaseT::modify;
 
   cfg::L2LearningMode getL2LearningMode() const {
     return cref<switch_state_tags::l2LearningMode>()->toThrift();

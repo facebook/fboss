@@ -80,6 +80,7 @@ USE_THRIFT_COW(Port);
 class Port : public ThriftStructNode<Port, state::PortFields> {
  public:
   using BaseT = ThriftStructNode<Port, state::PortFields>;
+  using BaseT::modify;
   using LegacyFields = PortFields;
   using VlanInfo = PortFields::VlanInfo;
   using VlanMembership = PortFields::VlanMembership;

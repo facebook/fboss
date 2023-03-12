@@ -29,6 +29,8 @@ class UdfPacketMatcherMap
     : public ThriftMapNode<UdfPacketMatcherMap, UdfPacketMatcherMapTraits> {
  public:
   using BaseT = ThriftMapNode<UdfPacketMatcherMap, UdfPacketMatcherMapTraits>;
+  using BaseT::modify;
+
   UdfPacketMatcherMap() {}
   virtual ~UdfPacketMatcherMap() {}
 

@@ -145,9 +145,11 @@ class MultiNodeLacpTest : public MultiNodeTest {
   void waitForAggPortStatus(AggregatePortID aggId, bool portStatus) const {
     auto aggPortUp = [&](const std::shared_ptr<SwitchState>& state) {
       const auto& aggPorts = state->getAggregatePorts();
-      if (aggPorts && aggPorts->getAggregatePort(aggId) &&
-          aggPorts->getAggregatePort(aggId)->isUp() == portStatus) {
-        return true;
+      if (aggPorts) {
+        const auto aggPort = aggPorts->getAggregatePort(aggId);
+        if (aggPort && aggPort->isUp() == portStatus) {
+          return true;
+        }
       }
       return false;
     };
@@ -238,6 +240,12 @@ class MultiNodeLacpTest : public MultiNodeTest {
   }
 
   void verifyInitialState() {
+    // In a cold boot ports can flap initially. Wait for ports to
+    // stabilize state
+    if (platform()->getHwSwitch()->getBootType() != BootType::WARM_BOOT) {
+      sleep(60);
+    }
+
     // Wait for AggPort
     for (const auto& aggId : getAggPorts()) {
       waitForAggPortStatus(aggId, true);

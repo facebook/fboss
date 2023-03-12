@@ -44,6 +44,7 @@ class ForwardingInformationBaseMap : public ThriftMapNode<
   using BaseT = ThriftMapNode<
       ForwardingInformationBaseMap,
       ForwardingInformationBaseMapTraits>;
+  using BaseT::modify;
   ForwardingInformationBaseMap();
   ~ForwardingInformationBaseMap() override;
 

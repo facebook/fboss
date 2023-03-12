@@ -259,6 +259,10 @@ TEST_F(PortManagerTest, changePortDrainState) {
   std::shared_ptr<Port> swPort = makePort(p0);
   saiManagerTable->portManager().addPort(swPort);
   swPort->setPortDrainState(cfg::PortDrainState::DRAINED);
+  EXPECT_THROW(
+      saiManagerTable->portManager().changePort(swPort, swPort), FbossError);
+  swPort->setPortType(cfg::PortType::FABRIC_PORT);
+  swPort->setPortDrainState(cfg::PortDrainState::DRAINED);
   saiManagerTable->portManager().changePort(swPort, swPort);
   auto handle = saiManagerTable->portManager().getPortHandle(swPort->getID());
   checkPort(swPort->getID(), handle, true, 9412, false, true);

@@ -276,7 +276,7 @@ TEST(Udf, applyConfig) {
   config.udfConfig().reset();
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   ASSERT_NE(nullptr, stateV3);
-  EXPECT_EQ(stateV3->getUdfConfig(), nullptr);
+  EXPECT_EQ(stateV3->getUdfConfig()->toThrift(), cfg::UdfConfig());
 }
 
 TEST(Udf, validateMissingPacketMatcherConfig) {
@@ -392,7 +392,7 @@ TEST(Udf, removeUdfConfigStateDelta) {
   config.udfConfig().reset();
   auto stateV3 = publishAndApplyConfig(stateV2, &config, platform.get());
   ASSERT_NE(nullptr, stateV3);
-  EXPECT_EQ(stateV3->getUdfConfig(), nullptr);
+  EXPECT_EQ(stateV3->getUdfConfig()->toThrift(), cfg::UdfConfig());
 
   StateDelta delta(stateV2, stateV3);
   std::set<std::string> foundRemovedUdfGroup;

@@ -36,6 +36,7 @@ using QosPolicyMapTraits = ThriftMapNodeTraits<
 class QosPolicyMap : public ThriftMapNode<QosPolicyMap, QosPolicyMapTraits> {
  public:
   using BaseT = ThriftMapNode<QosPolicyMap, QosPolicyMapTraits>;
+  using BaseT::modify;
   QosPolicyMap();
   ~QosPolicyMap() override;
 

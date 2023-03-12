@@ -66,7 +66,7 @@ class FlowletSwitchingConfig : public ThriftStructNode<
         dynamicQueueMinThresholdBytes);
   }
 
-  uint16_t getDynamicQueueMinThresholdBytes() const {
+  uint32_t getDynamicQueueMinThresholdBytes() const {
     return get<switch_config_tags::dynamicQueueMinThresholdBytes>()->cref();
   }
 
@@ -76,7 +76,7 @@ class FlowletSwitchingConfig : public ThriftStructNode<
         dynamicQueueMaxThresholdBytes);
   }
 
-  uint16_t getDynamicQueueMaxThresholdBytes() const {
+  uint32_t getDynamicQueueMaxThresholdBytes() const {
     return get<switch_config_tags::dynamicQueueMaxThresholdBytes>()->cref();
   }
 
@@ -84,7 +84,7 @@ class FlowletSwitchingConfig : public ThriftStructNode<
     set<switch_config_tags::dynamicSampleRate>(dynamicSampleRate);
   }
 
-  uint16_t getDynamicSampleRate() const {
+  uint32_t getDynamicSampleRate() const {
     return get<switch_config_tags::dynamicSampleRate>()->cref();
   }
 

@@ -92,6 +92,11 @@ class MultiNodeLoadBalancerTest : public MultiNodeTest {
     return getNeighbors<folly::IPAddressV4>();
   }
   void verifyReachability() const {
+    // In a cold boot ports can flap initially. Wait for ports to
+    // stabilize state
+    if (platform()->getHwSwitch()->getBootType() != BootType::WARM_BOOT) {
+      sleep(60);
+    }
     for (auto dstIp : getNeighbors()) {
       std::string pingCmd = "ping -c 5 ";
       std::string resultStr;

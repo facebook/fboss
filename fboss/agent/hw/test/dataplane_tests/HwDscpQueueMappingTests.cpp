@@ -33,26 +33,8 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
-  std::shared_ptr<SwitchState> addNeighbor(
-      const std::shared_ptr<SwitchState>& inState) {
-    auto outState{inState->clone()};
-
-    auto neighborTable =
-        outState->getVlans()->getVlan(kVlanID)->getNdpTable()->modify(
-            kVlanID, &outState);
-
-    neighborTable->addEntry(
-        kDstIP(),
-        kMacAddress(),
-        PortDescriptor(masterLogicalPortIds()[0]),
-        kIntfID);
-
-    return outState;
-  }
-
   void setupHelper() {
     resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
-    applyNewState(addNeighbor(getProgrammedState()));
   }
 
   void verifyDscpQueueMappingHelper(bool frontPanel) {
@@ -74,15 +56,17 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
     };
 
     auto verify = [this, frontPanel]() {
-      auto beforeQueueOutPkts = getLatestPortStats(masterLogicalPortIds()[0])
-                                    .get_queueOutPackets_()
-                                    .at(kQueueId());
+      auto beforeQueueOutPkts =
+          getLatestPortStats(masterLogicalInterfacePortIds()[0])
+              .get_queueOutPackets_()
+              .at(kQueueId());
 
       sendPacket(frontPanel);
 
-      auto afterQueueOutPkts = getLatestPortStats(masterLogicalPortIds()[0])
-                                   .get_queueOutPackets_()
-                                   .at(kQueueId());
+      auto afterQueueOutPkts =
+          getLatestPortStats(masterLogicalInterfacePortIds()[0])
+              .get_queueOutPackets_()
+              .at(kQueueId());
 
       /*
        * Packet from CPU / looped back from front panel port (with pipeline
@@ -124,17 +108,19 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
     };
 
     auto verify = [this, frontPanel]() {
-      auto beforeQueueOutPkts = getLatestPortStats(masterLogicalPortIds()[0])
-                                    .get_queueOutPackets_()
-                                    .at(kQueueId());
+      auto beforeQueueOutPkts =
+          getLatestPortStats(masterLogicalInterfacePortIds()[0])
+              .get_queueOutPackets_()
+              .at(kQueueId());
       auto beforeAclInOutPkts = utility::getAclInOutPackets(
           getHwSwitch(), getProgrammedState(), "acl0", kCounterName());
 
       sendPacket(frontPanel, 255 /* ttl, > 127 to match ACL */);
 
-      auto afterQueueOutPkts = getLatestPortStats(masterLogicalPortIds()[0])
-                                   .get_queueOutPackets_()
-                                   .at(kQueueId());
+      auto afterQueueOutPkts =
+          getLatestPortStats(masterLogicalInterfacePortIds()[0])
+              .get_queueOutPackets_()
+              .at(kQueueId());
       auto afterAclInOutPkts = utility::getAclInOutPackets(
           getHwSwitch(), getProgrammedState(), "acl0", kCounterName());
 
@@ -174,11 +160,12 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
     };
 
     auto verify = [this, frontPanel]() {
-      auto beforeQueueOutPktsAcl = getLatestPortStats(masterLogicalPortIds()[0])
-                                       .get_queueOutPackets_()
-                                       .at(kQueueIdAcl());
+      auto beforeQueueOutPktsAcl =
+          getLatestPortStats(masterLogicalInterfacePortIds()[0])
+              .get_queueOutPackets_()
+              .at(kQueueIdAcl());
       auto beforeQueueOutPktsQosMap =
-          getLatestPortStats(masterLogicalPortIds()[0])
+          getLatestPortStats(masterLogicalInterfacePortIds()[0])
               .get_queueOutPackets_()
               .at(kQueueIdQosMap());
       auto beforeAclInOutPkts = utility::getAclInOutPackets(
@@ -186,11 +173,12 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
 
       sendPacket(frontPanel);
 
-      auto afterQueueOutPktsAcl = getLatestPortStats(masterLogicalPortIds()[0])
-                                      .get_queueOutPackets_()
-                                      .at(kQueueIdAcl());
+      auto afterQueueOutPktsAcl =
+          getLatestPortStats(masterLogicalInterfacePortIds()[0])
+              .get_queueOutPackets_()
+              .at(kQueueIdAcl());
       auto afterQueueOutPktsQosMap =
-          getLatestPortStats(masterLogicalPortIds()[0])
+          getLatestPortStats(masterLogicalInterfacePortIds()[0])
               .get_queueOutPackets_()
               .at(kQueueIdQosMap());
 
@@ -218,8 +206,8 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
 
  private:
   void sendPacket(bool frontPanel, uint8_t ttl = 64) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getHwSwitch(),
@@ -250,7 +238,7 @@ class HwDscpQueueMappingTest : public HwLinkStateDependentTest {
   }
 
   folly::IPAddressV6 kDstIP() {
-    return folly::IPAddressV6("1::10");
+    return helper_->ip(0);
   }
 
   folly::MacAddress kMacAddress() {

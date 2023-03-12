@@ -39,6 +39,7 @@ using SystemPortMapTraits = ThriftMapNodeTraits<
 class SystemPortMap : public ThriftMapNode<SystemPortMap, SystemPortMapTraits> {
  public:
   using Base = ThriftMapNode<SystemPortMap, SystemPortMapTraits>;
+  using Base::modify;
   SystemPortMap();
   ~SystemPortMap() override;
 

@@ -74,13 +74,15 @@ class SaiQueueManager {
 
  private:
   const std::vector<sai_stat_id_t>& supportedNonWatermarkCounterIdsRead(
-      int queueType) const;
+      int queueType,
+      SaiQueueHandle* queueHandle) const;
 
   const std::vector<sai_stat_id_t>& egressQueueNonWatermarkCounterIdsRead(
       int queueType) const;
 
   const std::vector<sai_stat_id_t>& voqNonWatermarkCounterIdsRead(
-      int queueType) const;
+      int queueType,
+      SaiQueueHandle* queueHandle) const;
 
   const std::vector<sai_stat_id_t>& supportedWatermarkCounterIdsReadAndClear(
       int queueType) const;

@@ -72,6 +72,8 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
+    case HwAsic::Feature::PORT_FABRIC_ISOLATE:
+    case HwAsic::Feature::QUEUE_ECN_COUNTER:
       return true;
 
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
@@ -108,7 +110,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_FREQUENCY_PPM:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     case HwAsic::Feature::SAI_FIRMWARE_PATH:
-    // On indus ASIC we don't create any vlans but rather
+    // On Jericho2 ASIC we don't create any vlans but rather
     // associate RIFs directly with ports. Hence no bridge port
     // is created (or supported for now).
     case HwAsic::Feature::BRIDGE_PORT_8021Q:

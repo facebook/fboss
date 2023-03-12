@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
+#include "fboss/agent/FabricReachabilityManager.h"
 #include "fboss/agent/hw/HwResourceStatsPublisher.h"
 #include "fboss/agent/hw/sai/switch/ConcurrentIndices.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"

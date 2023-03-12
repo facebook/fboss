@@ -35,6 +35,7 @@ using AclMapTraits =
 class AclMap : public ThriftMapNode<AclMap, AclMapTraits> {
  public:
   using Base = ThriftMapNode<AclMap, AclMapTraits>;
+  using Base::modify;
 
   AclMap();
   ~AclMap() override;

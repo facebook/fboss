@@ -40,6 +40,7 @@ class AggregatePortMap
     : public ThriftMapNode<AggregatePortMap, AggregatePortMapTraits> {
  public:
   using Base = ThriftMapNode<AggregatePortMap, AggregatePortMapTraits>;
+  using Base::modify;
   using ThriftType = std::map<int16_t, state::AggregatePortFields>;
 
   AggregatePortMap();

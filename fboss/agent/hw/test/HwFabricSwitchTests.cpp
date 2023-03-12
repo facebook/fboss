@@ -12,7 +12,7 @@ namespace facebook::fboss {
 class HwFabricSwitchTest : public HwLinkStateDependentTest {
  public:
   cfg::SwitchConfig initialConfig() const override {
-    return utility::onePortPerInterfaceConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode(),
@@ -21,6 +21,8 @@ class HwFabricSwitchTest : public HwLinkStateDependentTest {
         utility::kBaseVlanId,
         true /*enable fabric ports*/
     );
+    populatePortExpectedNeighbors(masterLogicalPortIds(), cfg);
+    return cfg;
   }
   void SetUp() override {
     HwLinkStateDependentTest::SetUp();
@@ -56,8 +58,34 @@ TEST_F(HwFabricSwitchTest, collectStats) {
 }
 
 TEST_F(HwFabricSwitchTest, checkFabricReachability) {
-  verifyAcrossWarmBoots(
-      [] {}, [this]() { checkFabricReachability(getHwSwitch()); });
+  auto verify = [this]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    SwitchStats dummy;
+    getHwSwitch()->updateStats(&dummy);
+    checkFabricReachability(getHwSwitch());
+  };
+  verifyAcrossWarmBoots([] {}, verify);
+}
+
+TEST_F(HwFabricSwitchTest, fabricIsolate) {
+  auto setup = [=]() { applyNewConfig(initialConfig()); };
+
+  auto verify = [=]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    SwitchStats dummy;
+    getHwSwitch()->updateStats(&dummy);
+    auto fabricPortId =
+        PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
+    checkPortFabricReachability(getHwSwitch(), fabricPortId);
+    auto newState = getProgrammedState();
+    auto port = newState->getPorts()->getPort(fabricPortId);
+    auto newPort = port->modify(&newState);
+    newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
+    applyNewState(newState);
+    getHwSwitch()->updateStats(&dummy);
+    checkPortFabricReachability(getHwSwitch(), fabricPortId);
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

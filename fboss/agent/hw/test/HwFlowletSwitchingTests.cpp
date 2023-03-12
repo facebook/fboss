@@ -52,9 +52,9 @@ class HwFlowletSwitchingTest : public HwLinkStateDependentTest {
     flowletCfg.flowletTableSize() = 1024;
     flowletCfg.dynamicEgressLoadExponent() = 3;
     flowletCfg.dynamicQueueExponent() = 3;
-    flowletCfg.dynamicQueueMinThresholdBytes() = 0x5D44;
-    flowletCfg.dynamicQueueMaxThresholdBytes() = 0xFE00;
-    flowletCfg.dynamicSampleRate() = 62500;
+    flowletCfg.dynamicQueueMinThresholdBytes() = 100000;
+    flowletCfg.dynamicQueueMaxThresholdBytes() = 200000;
+    flowletCfg.dynamicSampleRate() = 100000;
     flowletCfg.portScalingFactor() = 400;
     flowletCfg.portLoadWeight() = 50;
     flowletCfg.portQueueWeight() = 40;
@@ -102,8 +102,8 @@ TEST_F(HwFlowletSwitchingTest, VerifyFlowletSwitchingEnable) {
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[0]));
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[1]));
     this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[2]));
-    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[3]));
     this->addRoute(kAddr1, 64);
+    this->resolveNextHop(PortDescriptor(masterLogicalPortIds()[3]));
   };
 
   auto verify = [&]() {

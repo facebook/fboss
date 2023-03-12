@@ -16,6 +16,7 @@ bool RamonAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
+    case HwAsic::Feature::PORT_FABRIC_ISOLATE:
       return true;
     default:
       return false;

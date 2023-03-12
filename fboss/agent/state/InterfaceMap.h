@@ -36,10 +36,11 @@ using InterfaceMapTraits = ThriftMapNodeTraits<
  * A container for the set of INTERFACEs.
  */
 class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
+ public:
   using ThriftType = InterfaceMapThriftType;
   using Base = ThriftMapNode<InterfaceMap, InterfaceMapTraits>;
+  using Base::modify;
 
- public:
   InterfaceMap();
   ~InterfaceMap() override;
 
