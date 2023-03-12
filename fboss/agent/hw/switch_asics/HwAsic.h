@@ -133,6 +133,7 @@ class HwAsic {
     UDF_HASH_FIELD_QUERY,
     SAI_SAMPLEPACKET_TRAP,
     PORT_FABRIC_ISOLATE,
+    QUEUE_ECN_COUNTER,
   };
 
   enum class AsicMode {
