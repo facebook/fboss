@@ -450,6 +450,13 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getSysPorts) {
   }
 }
 
+TYPED_TEST(ThriftTestAllSwitchTypes, getSysPortStats) {
+  ThriftHandler handler(this->sw_);
+  std::map<std::string, HwSysPortStats> sysPortStats;
+  EXPECT_HW_CALL(this->sw_, getSysPortStats()).Times(1);
+  handler.getSysPortStats(sysPortStats);
+}
+
 std::unique_ptr<UnicastRoute> makeUnicastRoute(
     std::string prefixStr,
     std::string nxtHop,
