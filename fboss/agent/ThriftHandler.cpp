@@ -27,6 +27,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/capture/PktCapture.h"
 #include "fboss/agent/capture/PktCaptureManager.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
@@ -2938,6 +2939,13 @@ void ThriftHandler::getSystemPorts(
   sysPorts = state->getSystemPorts()->toThrift();
   auto remoteSysPorts = state->getRemoteSystemPorts()->toThrift();
   sysPorts.merge(remoteSysPorts);
+}
+
+void ThriftHandler::getSysPortStats(
+    std::map<std::string, HwSysPortStats>& hwSysPortStats) {
+  auto log = LOG_THRIFT_CALL(DBG1);
+  ensureConfigured(__func__);
+  hwSysPortStats = sw_->getHw()->getSysPortStats();
 }
 
 } // namespace facebook::fboss
