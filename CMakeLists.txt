@@ -380,6 +380,16 @@ add_fbthrift_cpp_library(
     reflection
 )
 add_fbthrift_cpp_library(
+  hardware_stats_cpp2
+  fboss/agent/hw/hardware_stats.thrift
+  OPTIONS
+    json
+    visitation
+    reflection
+  DEPENDS
+    mka_structs_cpp2
+)
+add_fbthrift_cpp_library(
   ctrl_cpp2
   fboss/agent/if/ctrl.thrift
   SERVICES
@@ -395,6 +405,7 @@ add_fbthrift_cpp_library(
     network_address_cpp2
     optic_cpp2
     platform_config_cpp2
+    hardware_stats_cpp2
     product_info_cpp2
     transceiver_cpp2
     common_cpp2
@@ -430,16 +441,6 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     reflection
-)
-add_fbthrift_cpp_library(
-  hardware_stats_cpp2
-  fboss/agent/hw/hardware_stats.thrift
-  OPTIONS
-    json
-    visitation
-    reflection
-  DEPENDS
-    mka_structs_cpp2
 )
 add_fbthrift_cpp_library(
   agent_stats_cpp2
