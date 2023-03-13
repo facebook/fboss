@@ -8,6 +8,7 @@ import subprocess
 import sys
 import time
 from argparse import ArgumentParser
+from datetime import datetime
 
 # Helper to run HwTests
 #
@@ -250,7 +251,12 @@ class TestRunner(abc.ABC):
             else filter
         )
         filter = "--gtest_filter=" + filter
+        # --gtest_filter matches based on wildcard, while our bad test list is
+        # using regular expression. So, probperly convert regular expressions
+        # like HwRouteTest/[01].StaticIp2MplsRoutes, HwLoadBalancerTestV[46].Ucmp.*
         filter = filter.replace(".*", "*")
+        filter = filter.replace("[46]", "?")
+        filter = filter.replace("[01]", "?")
         output = subprocess.check_output(
             [self._get_test_binary_name(), "--gtest_list_tests", filter]
         )
@@ -272,9 +278,9 @@ class TestRunner(abc.ABC):
                 ["./runner.sh", "restart", "python3", "brcmsim.py", "-a", asic, "-s"]
             )
             time.sleep(60)
-            print("Restarted bcmsim service")
+            print("Restarted bcmsim service", flush=True)
         except subprocess.CalledProcessError:
-            print("Failed to restart bcmsim service")
+            print("Failed to restart bcmsim service", flush=True)
 
     def _run_test(
         self, conf_file, test_to_run, setup_warmboot, warmrun, sdk_logging_dir
@@ -289,7 +295,8 @@ class TestRunner(abc.ABC):
 
         try:
             print(
-                f"Running command {self._get_test_run_cmd(conf_file, test_to_run, flags)}"
+                f"Running command {self._get_test_run_cmd(conf_file, test_to_run, flags)}",
+                flush=True,
             )
 
             run_test_output = subprocess.check_output(
@@ -302,8 +309,13 @@ class TestRunner(abc.ABC):
             run_test_result = self._add_test_prefix_to_gtest_result(
                 run_test_output, test_prefix
             )
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as e:
             # Test timed out, mark it as TIMEOUT
+            print("Test timeout!", flush=True)
+            output = e.output.decode("utf-8") if e.output else None
+            print(f"Test output {output}", flush=True)
+            stderr = e.stderr.decode("utf-8") if e.stderr else None
+            print(f"Test error {stderr}", flush=True)
             run_test_result = (
                 "[  TIMEOUT ] "
                 + test_prefix
@@ -312,8 +324,13 @@ class TestRunner(abc.ABC):
                 + str(self.TESTRUN_TIMEOUT * 1000)
                 + " ms)"
             ).encode("utf-8")
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
             # Test aborted, mark it as FAILED
+            print(f"Test aborted with return code {e.returncode}!", flush=True)
+            output = e.output.decode("utf-8") if e.output else None
+            print(f"Test output {output}", flush=True)
+            stderr = e.stderr.decode("utf-8") if e.stderr else None
+            print(f"Test error {stderr}", flush=True)
             run_test_result = (
                 "[   FAILED ] " + test_prefix + test_to_run + " (0 ms)"
             ).encode("utf-8")
@@ -349,13 +366,19 @@ class TestRunner(abc.ABC):
             return []
 
         test_outputs = []
-        for test_to_run in tests_to_run:
+        num_tests = len(tests_to_run)
+        for idx, test_to_run in enumerate(tests_to_run):
             # Run the test for coldboot verification
             print("########## Running test: " + test_to_run, flush=True)
             if args.simulator:
                 self._restart_bcmsim(args.simulator)
             test_output = self._run_test(
                 conf_file, test_to_run, warmboot, False, args.sdk_logging
+            )
+            output = test_output.decode("utf-8")
+            print(
+                f"########## Coldboot test results ({idx+1}/{num_tests}): {output}",
+                flush=True,
             )
             test_outputs.append(test_output)
 
@@ -367,6 +390,11 @@ class TestRunner(abc.ABC):
                 )
                 test_output = self._run_test(
                     conf_file, test_to_run, False, True, args.sdk_logging
+                )
+                output = test_output.decode("utf-8")
+                print(
+                    f"########## Warmboot test results ({idx+1}/{num_tests}): {output}",
+                    flush=True,
                 )
                 test_outputs.append(test_output)
 
@@ -393,7 +421,14 @@ class TestRunner(abc.ABC):
 
         # Check if tests need to be run or only listed
         if args.list_tests is False:
+            start_time = datetime.now()
             output = self._run_tests(tests_to_run, args)
+            end_time = datetime.now()
+            delta_time = end_time - start_time
+            print(
+                f"Running all tests took {delta_time} between {start_time} and {end_time}",
+                flush=True,
+            )
             self._print_output_summary(output)
 
 
