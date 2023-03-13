@@ -63,6 +63,14 @@ target_link_libraries(meru400biu_bsp
   bsp_platform_mapping_cpp2
 )
 
+add_library(montblanc_bsp
+  fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.cpp
+)
+
+target_link_libraries(montblanc_bsp
+  bsp_platform_mapping_cpp2
+)
+
 add_library(qsfp_bsp_core
   fboss/lib/bsp/BspGenericSystemContainer.cpp
   fboss/lib/bsp/BspIOBus.cpp
@@ -87,6 +95,7 @@ target_link_libraries(qsfp_bsp_core
   Folly::folly
   meru400bfu_bsp
   meru400biu_bsp
+  montblanc_bsp
   device_mdio
   fpga_device
   phy_management_base
