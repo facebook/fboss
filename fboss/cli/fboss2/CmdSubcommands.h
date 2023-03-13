@@ -14,7 +14,6 @@
 #include <vector>
 
 #include "fboss/cli/fboss2/CmdList.h"
-#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 
