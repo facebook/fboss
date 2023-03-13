@@ -43,11 +43,17 @@ class CmdShowSystemPort
       const HostInfo& hostInfo,
       const ObjectArgType& queriedSystemPorts) {
     std::map<int64_t, facebook::fboss::SystemPortThrift> systemportEntries;
+    std::map<std::string, facebook::fboss::HwSysPortStats> systemportEntryStats;
     auto client =
         utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
     client->sync_getSystemPorts(systemportEntries);
+    auto opt = CmdGlobalOptions::getInstance();
+    if (opt->isDetailed()) {
+      client->sync_getSysPortStats(systemportEntryStats);
+    }
 
-    return createModel(systemportEntries, queriedSystemPorts.data());
+    return createModel(
+        systemportEntries, queriedSystemPorts.data(), systemportEntryStats);
   }
 
   std::unordered_map<std::string, std::vector<std::string>>
@@ -56,30 +62,93 @@ class CmdShowSystemPort
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    Table table;
-    table.setHeader(
-        {"ID",
-         "Name",
-         "AdminState",
-         "Speed",
-         "NumVoqs",
-         "QosPolicy",
-         "CoreIndex",
-         "CorePortIndex"});
+    std::vector<std::string> detailedOutput;
+    auto opt = CmdGlobalOptions::getInstance();
 
-    for (auto const& systemportInfo : model.get_sysPortEntries()) {
-      table.addRow(
-          {folly::to<std::string>(systemportInfo.get_id()),
-           systemportInfo.get_name(),
-           systemportInfo.get_adminState(),
-           systemportInfo.get_speed(),
-           folly::to<std::string>(systemportInfo.get_numVoqs()),
-           systemportInfo.get_qosPolicy(),
-           folly::to<std::string>(systemportInfo.get_coreIndex()),
-           folly::to<std::string>(systemportInfo.get_corePortIndex())});
+    if (opt->isDetailed()) {
+      for (auto const& systemportInfo : model.get_sysPortEntries()) {
+        detailedOutput.emplace_back("");
+        detailedOutput.emplace_back(
+            fmt::format("Name:         \t\t {}", systemportInfo.get_name()));
+        detailedOutput.emplace_back(fmt::format(
+            "ID:           \t\t {}",
+            folly::to<std::string>(systemportInfo.get_id())));
+        detailedOutput.emplace_back(fmt::format(
+            "Admin State:  \t\t {}", systemportInfo.get_adminState()));
+        detailedOutput.emplace_back(
+            fmt::format("Speed:        \t\t {}", systemportInfo.get_speed()));
+        detailedOutput.emplace_back(fmt::format(
+            "QosPolicy:    \t\t {}", systemportInfo.get_qosPolicy()));
+        detailedOutput.emplace_back(fmt::format(
+            "CoreIndex:    \t\t {}",
+            folly::to<std::string>(systemportInfo.get_coreIndex())));
+        detailedOutput.emplace_back(fmt::format(
+            "CorePortIndex:\t\t {}",
+            folly::to<std::string>(systemportInfo.get_corePortIndex())));
+        detailedOutput.emplace_back(fmt::format(
+            "Voqs:         \t\t {}",
+            folly::to<std::string>(systemportInfo.get_numVoqs())));
+
+        int voqIndex = 0;
+        int totalVoqCount = systemportInfo.get_numVoqs();
+        const auto& sysPortHwStats = systemportInfo.get_hwPortStats();
+
+        const auto& discardBytesMap = sysPortHwStats.get_egressDiscardBytes();
+        const auto& outBytesMap = sysPortHwStats.get_egressOutBytes();
+        const auto& watermarkBytesMap =
+            sysPortHwStats.get_egressWatermarkBytes();
+
+        detailedOutput.emplace_back(fmt::format("    Queue Discard (Bytes)"));
+        for (voqIndex = 0; voqIndex < totalVoqCount; ++voqIndex) {
+          auto iter = discardBytesMap.find(voqIndex);
+          if (iter != discardBytesMap.end()) {
+            detailedOutput.emplace_back(
+                fmt::format("\tVoq {} \t\t {}", voqIndex, iter->second));
+          }
+        }
+        detailedOutput.emplace_back(fmt::format("    Queue Egress (Bytes)"));
+        for (voqIndex = 0; voqIndex < totalVoqCount; ++voqIndex) {
+          auto iter = outBytesMap.find(voqIndex);
+          if (iter != outBytesMap.end()) {
+            detailedOutput.emplace_back(
+                fmt::format("\tVoq {}\t\t {}", voqIndex, iter->second));
+          }
+        }
+        detailedOutput.emplace_back(fmt::format("    Queue Watermark (Bytes)"));
+        for (voqIndex = 0; voqIndex < totalVoqCount; ++voqIndex) {
+          auto iter = watermarkBytesMap.find(voqIndex);
+          if (iter != watermarkBytesMap.end()) {
+            detailedOutput.emplace_back(
+                fmt::format("\tVoq {}\t\t {}", voqIndex, iter->second));
+          }
+        }
+      }
+      out << folly::join("\n", detailedOutput) << std::endl;
+    } else {
+      Table table;
+      table.setHeader(
+          {"ID",
+           "Name",
+           "AdminState",
+           "Speed",
+           "NumVoqs",
+           "QosPolicy",
+           "CoreIndex",
+           "CorePortIndex"});
+
+      for (auto const& systemportInfo : model.get_sysPortEntries()) {
+        table.addRow(
+            {folly::to<std::string>(systemportInfo.get_id()),
+             systemportInfo.get_name(),
+             systemportInfo.get_adminState(),
+             systemportInfo.get_speed(),
+             folly::to<std::string>(systemportInfo.get_numVoqs()),
+             systemportInfo.get_qosPolicy(),
+             folly::to<std::string>(systemportInfo.get_coreIndex()),
+             folly::to<std::string>(systemportInfo.get_corePortIndex())});
+      }
+      out << table << std::endl;
     }
-
-    out << table << std::endl;
   }
 
   std::string getAdminStateStr(bool adminState) {
@@ -88,7 +157,9 @@ class CmdShowSystemPort
 
   RetType createModel(
       std::map<int64_t, facebook::fboss::SystemPortThrift> systemPortEntries,
-      const ObjectArgType& queriedSystemPorts) {
+      const ObjectArgType& queriedSystemPorts,
+      std::map<std::string, facebook::fboss::HwSysPortStats>&
+          systemportHwStats) {
     RetType model;
     std::unordered_set<std::string> queriedSet(
         queriedSystemPorts.begin(), queriedSystemPorts.end());
@@ -111,6 +182,21 @@ class CmdShowSystemPort
                                             : " -- ");
         systemPortDetails.coreIndex() = systemPortInfo.get_coreIndex();
         systemPortDetails.corePortIndex() = systemPortInfo.get_corePortIndex();
+
+        const auto& iter = systemportHwStats.find(systemPortName);
+        // see if we have any detailed hw stats
+        if (iter != systemportHwStats.end()) {
+          auto systemHwStatsEntry = iter->second;
+          cli::SystemPortHwStatsEntry portStats;
+
+          // copy the maps inside the port entry
+          portStats.egressDiscardBytes() =
+              systemHwStatsEntry.get_queueOutDiscardBytes_();
+          portStats.egressOutBytes() = systemHwStatsEntry.get_queueOutBytes_();
+          portStats.egressWatermarkBytes() =
+              systemHwStatsEntry.get_queueWatermarkBytes_();
+          systemPortDetails.hwPortStats() = portStats;
+        }
         model.sysPortEntries()->push_back(systemPortDetails);
       }
     }
