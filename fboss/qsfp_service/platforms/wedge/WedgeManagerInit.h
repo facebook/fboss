@@ -45,5 +45,7 @@ std::unique_ptr<WedgeManager> createMeru400bfuWedgeManager();
 
 std::unique_ptr<WedgeManager> createMeru400biuWedgeManager();
 
+std::unique_ptr<WedgeManager> createMontblancWedgeManager();
+
 } // namespace fboss
 } // namespace facebook
