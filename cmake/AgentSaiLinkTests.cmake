@@ -36,6 +36,9 @@ endfunction()
 
 if (BUILD_SAI_FAKE_LINK_TEST)
   BUILD_SAI_LINK_TEST("fake" fake_sai)
+  install(
+  TARGETS
+  sai_link_test-fake-${SAI_VER_SUFFIX})
 endif()
 
 # If libsai_impl is provided, build link test linking with it

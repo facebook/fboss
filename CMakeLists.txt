@@ -547,19 +547,3 @@ foreach(cmakeFile ${cmakeFiles})
   message(status " INCLUDE ${cmakeFile}")
   INCLUDE(${cmakeFile})
 endforeach(cmakeFile)
-
-install(TARGETS fake_sai)
-
-install(
-  TARGETS
-  sai_test-fake-${SAI_VER_SUFFIX})
-
-install(
-  TARGETS
-  sai_replayer-fake-${SAI_VER_SUFFIX})
-
-if (BUILD_SAI_FAKE_LINK_TEST)
-install(
-  TARGETS
-  sai_link_test-fake-${SAI_VER_SUFFIX})
-endif()

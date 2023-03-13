@@ -30,6 +30,9 @@ function(BUILD_SAI_REPLAYER SAI_IMPL_NAME SAI_IMPL_ARG)
 endfunction()
 
 BUILD_SAI_REPLAYER("fake" fake_sai)
+install(
+  TARGETS
+  sai_replayer-fake-${SAI_VER_SUFFIX})
 
 # If libsai_impl is provided, build sai replayer linking with it
 find_library(SAI_IMPL sai_impl)
