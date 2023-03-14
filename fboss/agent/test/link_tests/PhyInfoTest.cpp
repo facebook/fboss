@@ -316,6 +316,8 @@ std::optional<phy::PhyInfo> getXphyInfo(PortID portID) {
 TEST_F(LinkTest, iPhyInfoTest) {
   auto cabledPorts = getCabledPorts();
   std::map<PortID, const phy::PhyInfo> phyInfoBefore;
+  auto startTime = std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now().time_since_epoch());
   // Make sure the stats thread had a chance to update the iphy data before
   // starting the test
   WITH_RETRIES_N_TIMED(
@@ -324,12 +326,15 @@ TEST_F(LinkTest, iPhyInfoTest) {
         for (const auto& port : cabledPorts) {
           auto phyIt = phyInfoBefore.find(port);
           ASSERT_EVENTUALLY_NE(phyIt, phyInfoBefore.end());
-          EXPECT_EVENTUALLY_NE(phyIt->second.timeCollected(), 0);
+          EXPECT_EVENTUALLY_GT(
+              phyIt->second.timeCollected(), startTime.count());
           EXPECT_EVENTUALLY_TRUE(phyIt->second.linkState().value_or({}));
-          EXPECT_EVENTUALLY_NE(
-              phyIt->second.state().value_or({}).timeCollected(), 0);
-          EXPECT_EVENTUALLY_NE(
-              phyIt->second.stats().value_or({}).timeCollected(), 0);
+          EXPECT_EVENTUALLY_GT(
+              phyIt->second.state().value_or({}).timeCollected(),
+              startTime.count());
+          EXPECT_EVENTUALLY_GT(
+              phyIt->second.stats().value_or({}).timeCollected(),
+              startTime.count());
           EXPECT_EVENTUALLY_TRUE(
               phyIt->second.state().value_or({}).linkState().value_or({}));
         }
