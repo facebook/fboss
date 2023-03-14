@@ -74,6 +74,7 @@
 #include "fboss/agent/state/StateUpdateHelpers.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/qsfp_service/lib/QsfpCache.h"
 
 #include <fb303/ServiceData.h>
@@ -196,6 +197,8 @@ namespace facebook::fboss {
 SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
     : hw_(platform->getHwSwitch()),
       platform_(std::move(platform)),
+      platformProductInfo_(
+          std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath)),
       pktObservers_(new PacketObservers()),
       arp_(new ArpHandler(this)),
       ipv4_(new IPv4Handler(this)),
@@ -224,6 +227,12 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
   // don't exist already.
   utilCreateDir(platform_->getVolatileStateDir());
   utilCreateDir(platform_->getPersistentStateDir());
+  try {
+    platformProductInfo_->initialize();
+  } catch (const std::exception& ex) {
+    // Expected when fruid file is not of a switch (eg: on devservers)
+    XLOG(INFO) << "Couldn't initialize platform mapping " << ex.what();
+  }
 }
 
 SwSwitch::~SwSwitch() {
