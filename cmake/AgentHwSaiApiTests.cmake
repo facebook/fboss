@@ -3,6 +3,7 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+if(BUILD_SAI_FAKE)
 add_executable(api_test
     fboss/agent/test/oss/Main.cpp
     fboss/agent/hw/sai/api/tests/AclApiTest.cpp
@@ -55,3 +56,4 @@ set_target_properties(api_test PROPERTIES COMPILE_FLAGS
 )
 
 gtest_discover_tests(api_test)
+endif()

@@ -204,10 +204,12 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
 
 endfunction()
 
+if(BUILD_SAI_FAKE)
 BUILD_SAI_TEST("fake" fake_sai)
 install(
   TARGETS
   sai_test-fake-${SAI_VER_SUFFIX})
+endif()
 
 # If libsai_impl is provided, build sai tests linking with it
 find_library(SAI_IMPL sai_impl)
