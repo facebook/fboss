@@ -61,6 +61,7 @@ cli::ShowMirrorModel createExpectedMirrorModel() {
 
 class CmdShowMirrorTestFixture : public CmdHandlerTestBase {
  public:
+  CmdShowMirrorTraits::ObjectArgType queriedMirrors;
   std::string mockMirrorMap;
   std::map<int32_t, PortInfoThrift> mockPortInfoEntries;
   cli::ShowMirrorModel expectedModel;
@@ -83,7 +84,7 @@ TEST_F(CmdShowMirrorTestFixture, queryClient) {
       .WillOnce(Invoke([&](auto& entries) { entries = mockPortInfoEntries; }));
 
   auto cmd = CmdShowMirror();
-  auto model = cmd.queryClient(localhost());
+  auto model = cmd.queryClient(localhost(), queriedMirrors);
   EXPECT_THRIFT_EQ(model, expectedModel);
 }
 

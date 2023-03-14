@@ -312,6 +312,16 @@ class HwObjectList : public BaseObjectArgType<HwObjectType> {
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_HW_OBJECT_LIST;
 };
 
+class MirrorList : public BaseObjectArgType<std::string> {
+ public:
+  /* implicit */ MirrorList() : BaseObjectArgType() {}
+  /* implicit */ MirrorList(std::vector<std::string> v)
+      : BaseObjectArgType(v) {}
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MIRROR_LIST;
+};
+
 // Called after CLI11 is initlized but before parsing, for any final
 // initialization steps
 void postAppInit(int argc, char* argv[], CLI::App& app);
