@@ -23,10 +23,17 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 
+#include "fboss/lib/CommonUtils.h"
+
 #include <folly/IPAddress.h>
 #include <optional>
 
 namespace {
+struct AqmTestStats {
+  uint64_t wredDroppedPackets;
+  uint64_t outEcnCounter;
+};
+
 /*
  * Ensure that the number of dropped packets is as expected. Allow for
  * an error to account for more / less drops while its worked out.
@@ -272,6 +279,74 @@ class HwAqmTest : public HwLinkStateDependentTest {
   }
 
  protected:
+  /*
+   * ECN/WRED traffic is always sent on specific queues, identified by queueId.
+   * However, AQM stats are collected either from queue or from port depending
+   * on test requirement, specified using useQueueStatsForAqm.
+   */
+  AqmTestStats populateAqmTestStats(
+      const HwPortStats& portStats,
+      const uint8_t queueId,
+      bool useQueueStatsForAqm) {
+    AqmTestStats stats{};
+    if (useQueueStatsForAqm) {
+      if (getPlatform()->getAsic()->isSupported(
+              HwAsic::Feature::QUEUE_ECN_COUNTER)) {
+        stats.outEcnCounter =
+            portStats.get_queueEcnMarkedPackets_().find(queueId)->second;
+      }
+      stats.wredDroppedPackets =
+          portStats.get_queueWredDroppedPackets_().find(queueId)->second;
+    } else {
+      stats.outEcnCounter = portStats.get_outEcnCounter_();
+      stats.wredDroppedPackets = portStats.get_wredDroppedPackets_();
+    }
+    XLOG(DBG0) << "Queue " << static_cast<int>(queueId) << " watermark: "
+               << portStats.get_queueWatermarkBytes_().find(queueId)->second
+               << ", WRED drops: " << stats.wredDroppedPackets
+               << ", ECN marked: " << stats.outEcnCounter;
+    return stats;
+  }
+
+  // For VoQ, all stats are collected per queue.
+  AqmTestStats populateAqmTestStats(
+      const HwSysPortStats& portStats,
+      const uint8_t& queueId) {
+    AqmTestStats stats{};
+    stats.wredDroppedPackets =
+        portStats.get_queueWredDroppedPackets_().find(queueId)->second;
+    XLOG(DBG0) << "VoQ " << queueId << " watermark: "
+               << portStats.get_queueWatermarkBytes_().find(queueId)->second
+               << " WRED drops: " << stats.wredDroppedPackets;
+    return stats;
+  }
+
+  /*
+   * Collect stats which are needed for AQM tests. AQM specific stats
+   * collected are as below:
+   * WRED: Per queue available for all platforms, per port available for
+   *       non-voq systems,
+   * ECN : Per egress queue available for VoQ and TAJO platforms, per
+   *       port available for non-voq systems.
+   */
+  AqmTestStats getAqmTestStats(
+      const bool isEcn,
+      const PortID& portId,
+      const uint8_t& queueId,
+      const bool useQueueStatsForAqm) {
+    if (!isEcn &&
+        (getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ)) {
+      auto sysPortId = getSystemPortID(portId, getProgrammedState());
+      return populateAqmTestStats(
+          getHwSwitchEnsemble()->getLatestSysPortStats(sysPortId), queueId);
+    } else {
+      return populateAqmTestStats(
+          getHwSwitchEnsemble()->getLatestPortStats(portId),
+          queueId,
+          useQueueStatsForAqm);
+    }
+  }
+
   void runTest(bool isEcn) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
 #if defined(GTEST_SKIP)
@@ -279,36 +354,44 @@ class HwAqmTest : public HwLinkStateDependentTest {
 #endif
       return;
     }
-    auto setup = [=]() {
+
+    // For VoQ switch, AQM stats are collected from queue!
+    auto useQueueStatsForAqm =
+        getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ;
+    auto statsIncremented = [](const AqmTestStats& aqmStats, bool isEcn) {
+      auto increment =
+          isEcn ? aqmStats.outEcnCounter : aqmStats.wredDroppedPackets;
+      return increment > 0;
+    };
+
+    auto setup = [&]() {
       applyNewConfig(configureQueue2WithWredThreshold());
       setupEcmpTraffic();
       if (isEcn) {
-        // Assert that ECT capable packets are not counted by port ECN
-        // counter and on congestion encountered packets are counted.
         sendPkt(kDscp(), isEcn, true);
-        auto portStats = getLatestPortStats(masterLogicalInterfacePortIds()[0]);
-        EXPECT_EQ(*portStats.outEcnCounter_(), 0);
+        auto aqmStats = getAqmTestStats(
+            isEcn,
+            masterLogicalInterfacePortIds()[0],
+            utility::kOlympicSilverQueueId,
+            useQueueStatsForAqm);
+        // Assert that ECT capable packets are not counted by port ECN
+        // counter when there is no congestion!
+        EXPECT_FALSE(statsIncremented(aqmStats, isEcn));
       }
     };
-    auto verify = [=]() {
+
+    auto verify = [&]() {
       sendPkts(kDscp(), isEcn);
-
-      auto countIncremented = [&](const auto& newStats) {
-        auto portStatsIter = newStats.find(masterLogicalInterfacePortIds()[0]);
-        auto increment = isEcn
-            ? portStatsIter->second.get_outEcnCounter_()
-            : portStatsIter->second.get_wredDroppedPackets_();
-        XLOG(DBG0) << (isEcn ? " ECN " : "WRED ") << " counter: " << increment;
-        XLOG(DBG0)
-            << "Queue watermark : "
-            << portStatsIter->second.get_queueWatermarkBytes_().find(2)->second;
-        return increment > 0;
-      };
-
       // There can be delay before stats are synced.
       // So, add retries to avoid flakiness.
-      EXPECT_TRUE(getHwSwitchEnsemble()->waitPortStatsCondition(
-          countIncremented, 20, std::chrono::milliseconds(200)));
+      WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+        auto aqmStats = getAqmTestStats(
+            isEcn,
+            masterLogicalInterfacePortIds()[0],
+            utility::kOlympicSilverQueueId,
+            useQueueStatsForAqm);
+        EXPECT_EVENTUALLY_TRUE(statsIncremented(aqmStats, isEcn));
+      });
     };
 
     verifyAcrossWarmBoots(setup, verify);

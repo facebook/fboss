@@ -59,8 +59,8 @@ class StateDelta {
   StateDelta() {}
   StateDelta(
       std::shared_ptr<SwitchState> oldState,
-      std::shared_ptr<SwitchState> newState)
-      : old_(oldState), new_(newState) {}
+      std::shared_ptr<SwitchState> newState);
+  StateDelta(std::shared_ptr<SwitchState> oldState, fsdb::OperDelta operDelta);
   virtual ~StateDelta();
 
   const std::shared_ptr<SwitchState>& oldState() const {
@@ -108,6 +108,8 @@ class StateDelta {
   InterfaceMapDelta getRemoteIntfsDelta() const;
   thrift_cow::ThriftMapDelta<DsfNodeMap> getDsfNodesDelta() const;
 
+  const fsdb::OperDelta& getOperDelta();
+
  private:
   // Forbidden copy constructor and assignment operator
   StateDelta(StateDelta const&) = delete;
@@ -115,6 +117,7 @@ class StateDelta {
 
   std::shared_ptr<SwitchState> old_;
   std::shared_ptr<SwitchState> new_;
+  std::optional<fsdb::OperDelta> operDelta_;
 };
 
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta);

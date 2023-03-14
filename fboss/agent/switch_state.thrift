@@ -36,33 +36,6 @@ struct PortPgFields {
   8: optional BufferPoolFields bufferPoolConfig;
 }
 
-// Port queueing configuration
-struct PortQueueFields {
-  1: i16 id = 0;
-  2: i32 weight = 1;
-  3: optional i32 reserved;
-  // TODO: replace with switch_config.MMUScalingFactor?
-  4: optional string scalingFactor;
-  // TODO: replace with switch_config.QueueScheduling?
-  5: string scheduling = "WEIGHTED_ROUND_ROBIN";
-  // TODO: replace with switch_config.StreamType?
-  6: string streamType = "UNICAST";
-  7: optional list<switch_config.ActiveQueueManagement> aqms;
-  8: optional string name;
-  /*
-  * Refer PortQueueRate which is a generalized version and allows configuring
-  * pps as well as kbps.
-  */
-  10: optional i32 packetsPerSec_DEPRECATED;
-  11: optional i32 sharedBytes;
-  12: optional switch_config.PortQueueRate portQueueRate;
-
-  13: optional i32 bandwidthBurstMinKbits;
-  14: optional i32 bandwidthBurstMaxKbits;
-  15: optional i16 trafficClass;
-  16: optional list<i16> pfcPriorities;
-}
-
 struct MKASakKey {
   1: mka_structs.MKASci sci;
   2: i32 associationNum;
@@ -91,7 +64,7 @@ struct PortFields {
   12: map<string, VlanInfo> vlanMemberShips;
   13: i32 sFlowIngressRate;
   14: i32 sFlowEgressRate;
-  15: list<PortQueueFields> queues;
+  15: list<ctrl.PortQueueFields> queues;
   16: string portLoopbackMode = "NONE";
   17: optional string ingressMirror;
   18: optional string egressMirror;
@@ -292,7 +265,7 @@ struct MirrorFields {
 }
 
 struct ControlPlaneFields {
-  1: list<PortQueueFields> queues;
+  1: list<ctrl.PortQueueFields> queues;
   2: list<switch_config.PacketRxReasonToQueue> rxReasonToQueue;
   3: optional string defaultQosPolicy;
 }
@@ -518,6 +491,10 @@ struct QcmCfgFields {
   16: map<i32, set<i32>> port2QosQueueIds;
 }
 
+// String encoding NpuId list for indexing multi npu tables.
+// eg: "Id:1,2,3" indicates a table applicable to NpuIds 1, 2 and 3
+typedef string NpuList
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
@@ -560,6 +537,37 @@ struct SwitchState {
   // Remote objects
   500: map<i64, SystemPortFields> remoteSystemPortMap;
   501: map<i32, InterfaceFields> remoteInterfaceMap;
+
+  // Multi NPU table definitions
+  100: map<NpuList, map<i16, PortFields>> portMaps;
+  101: map<NpuList, map<i16, VlanFields>> vlanMaps;
+  102: map<NpuList, map<string, AclEntryFields>> aclMaps;
+  103: map<NpuList, map<i16, TransceiverSpecFields>> transceiverMaps;
+  104: map<NpuList, map<string, BufferPoolFields>> bufferPoolCfgMaps;
+  105: map<NpuList, map<string, MirrorFields>> mirrorMaps;
+  106: map<NpuList, ControlPlaneFields> controlPlaneMap;
+  107: map<NpuList, SwitchSettingsFields> switchSettingsMap;
+  108: map<NpuList, map<i64, SystemPortFields>> systemPortMaps;
+  109: map<NpuList, map<i16, FibContainerFields>> fibsMap;
+  110: map<NpuList, map<i32, LabelForwardingEntryFields>> labelFibMap;
+  111: map<NpuList, map<string, QosPolicyFields>> qosPolicyMaps;
+  112: map<NpuList, map<string, SflowCollectorFields>> sflowCollectorMaps;
+  113: map<NpuList, map<string, IpTunnelFields>> ipTunnelMaps;
+  114: map<NpuList, map<string, TeFlowEntryFields>> teFlowTables;
+  115: map<NpuList, map<i16, AggregatePortFields>> aggregatePortMaps;
+  116: map<
+    NpuList,
+    map<switch_config.LoadBalancerID, LoadBalancerFields>
+  > loadBalancerMaps;
+  117: map<
+    NpuList,
+    map<switch_config.AclStage, AclTableGroupFields>
+  > aclTableGroupMaps;
+  118: map<NpuList, map<i32, InterfaceFields>> interfaceMaps;
+  119: map<NpuList, map<i64, switch_config.DsfNode>> dsfNodesMap;
+  // Remote object maps
+  600: map<NpuList, map<i64, SystemPortFields>> remoteSystemPortMaps;
+  601: map<NpuList, map<i32, InterfaceFields>> remoteInterfaceMaps;
 } (thriftpath.root)
 
 struct RouteTableFields {

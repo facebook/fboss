@@ -294,7 +294,7 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
   }
   void resetPortQueues(QueueConfig& queues) {
     // TODO(zecheng): change type to ThriftListNode
-    std::vector<state::PortQueueFields> queuesThrift{};
+    std::vector<PortQueueFields> queuesThrift{};
     for (auto queue : queues) {
       queuesThrift.push_back(queue->toThrift());
     }
@@ -304,7 +304,7 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
   bool hasValidPortQueues() const {
     constexpr auto kDefaultProbability = 100;
     for (const auto& portQueue : *getPortQueues()) {
-      const auto& aqms = portQueue->get<switch_state_tags::aqms>();
+      const auto& aqms = portQueue->get<ctrl_if_tags::aqms>();
       if (!aqms) {
         continue;
       }

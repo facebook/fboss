@@ -47,6 +47,7 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_PHY_CHIP_TYPE,
   OBJECT_ARG_TYPE_FSDB_CLIENT_ID,
   OBJECT_ARG_TYPE_ID_SYSTEM_PORT_LIST,
+  OBJECT_ARG_TYPE_ID_MIRROR_LIST,
 };
 
 template <typename T>

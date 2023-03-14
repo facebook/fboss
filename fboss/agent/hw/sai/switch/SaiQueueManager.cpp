@@ -179,15 +179,51 @@ SaiQueueManager::SaiQueueManager(
     const SaiPlatform* platform)
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
-void SaiQueueManager::changeQueue(
+void SaiQueueManager::changeQueueEcnWred(
     SaiQueueHandle* queueHandle,
     const PortQueue& newPortQueue) {
-  CHECK(queueHandle);
+  auto qType = SaiApiTable::getInstance()->queueApi().getAttribute(
+      queueHandle->queue->adapterKey(), SaiQueueTraits::Attributes::Type{});
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::VOQ) &&
+      (SAI_QUEUE_TYPE_UNICAST_VOQ != qType) &&
+      (SAI_QUEUE_TYPE_MULTICAST_VOQ != qType)) {
+    // VOQ switches support WRED/ECN configs on voqs only
+    return;
+  }
+  auto newWredProfile =
+      managerTable_->wredManager().getOrCreateProfile(newPortQueue);
+  if (newWredProfile != queueHandle->wredProfile) {
+    queueHandle->queue->setOptionalAttribute(
+        SaiQueueTraits::Attributes::WredProfileId(
+            newWredProfile ? newWredProfile->adapterKey()
+                           : SAI_NULL_OBJECT_ID));
+    queueHandle->wredProfile = newWredProfile;
+  }
+}
+
+void SaiQueueManager::changeQueueBufferProfile(
+    SaiQueueHandle* queueHandle,
+    const PortQueue& newPortQueue) {
+  auto newBufferProfile =
+      managerTable_->bufferManager().getOrCreateProfile(newPortQueue);
+  if (newBufferProfile != queueHandle->bufferProfile) {
+    queueHandle->queue->setOptionalAttribute(
+        SaiQueueTraits::Attributes::BufferProfileId(
+            newBufferProfile ? newBufferProfile->adapterKey()
+                             : SAI_NULL_OBJECT_ID));
+    queueHandle->bufferProfile = newBufferProfile;
+  }
+}
+
+void SaiQueueManager::changeQueueScheduler(
+    SaiQueueHandle* queueHandle,
+    const PortQueue& newPortQueue) {
   std::shared_ptr<SaiScheduler> newScheduler;
   if (newPortQueue.getScheduling() != cfg::QueueScheduling::INTERNAL) {
     newScheduler =
         managerTable_->schedulerManager().createScheduler(newPortQueue);
   }
+
   if (newScheduler != queueHandle->scheduler) {
     queueHandle->queue->setOptionalAttribute(
         SaiQueueTraits::Attributes::SchedulerProfileId(
@@ -198,31 +234,22 @@ void SaiQueueManager::changeQueue(
     // before we have updated the SAI reference.
     queueHandle->scheduler = newScheduler;
   }
+}
+
+void SaiQueueManager::changeQueue(
+    SaiQueueHandle* queueHandle,
+    const PortQueue& newPortQueue) {
+  CHECK(queueHandle);
+  auto queueType = GET_ATTR(Queue, Type, queueHandle->queue->attributes());
+  changeQueueScheduler(queueHandle, newPortQueue);
   if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_ECN_WRED)) {
-    auto newWredProfile =
-        managerTable_->wredManager().getOrCreateProfile(newPortQueue);
-    if (newWredProfile != queueHandle->wredProfile) {
-      queueHandle->queue->setOptionalAttribute(
-          SaiQueueTraits::Attributes::WredProfileId(
-              newWredProfile ? newWredProfile->adapterKey()
-                             : SAI_NULL_OBJECT_ID));
-      queueHandle->wredProfile = newWredProfile;
-    }
+    changeQueueEcnWred(queueHandle, newPortQueue);
   }
-  if ((platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL)) &&
-      (SAI_QUEUE_TYPE_FABRIC_TX !=
-       SaiApiTable::getInstance()->queueApi().getAttribute(
-           queueHandle->queue->adapterKey(),
-           SaiQueueTraits::Attributes::Type{}))) {
-    auto newBufferProfile =
-        managerTable_->bufferManager().getOrCreateProfile(newPortQueue);
-    if (newBufferProfile != queueHandle->bufferProfile) {
-      queueHandle->queue->setOptionalAttribute(
-          SaiQueueTraits::Attributes::BufferProfileId(
-              newBufferProfile ? newBufferProfile->adapterKey()
-                               : SAI_NULL_OBJECT_ID));
-      queueHandle->bufferProfile = newBufferProfile;
-    }
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL) &&
+      (queueType != SAI_QUEUE_TYPE_UNICAST_VOQ) &&
+      (queueType != SAI_QUEUE_TYPE_MULTICAST_VOQ) &&
+      (queueType != SAI_QUEUE_TYPE_FABRIC_TX)) {
+    changeQueueBufferProfile(queueHandle, newPortQueue);
   }
 }
 

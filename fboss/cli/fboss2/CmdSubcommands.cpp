@@ -168,6 +168,9 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
             "parts: rdsw001.n001.z004.snc1 (switch name), eth(module name)"
             "1(module number), 5(port number), 3(subport number)\n");
         break;
+      case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MIRROR_LIST:
+        subCmd->add_option("mirrors", args, "Mirror(s)");
+        break;
       case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
       case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
         break;

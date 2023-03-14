@@ -6,6 +6,8 @@
 #include "fboss/fsdb/common/Utils.h"
 #include "fboss/thrift_cow/visitors/DeltaVisitor.h"
 
+#include <sstream>
+
 namespace facebook::fboss {
 
 template <typename Node>
@@ -43,4 +45,6 @@ fsdb::OperDelta computeOperDelta(
 
 std::vector<std::string> fsdbAgentDataSwitchStateRootPath();
 std::vector<std::string> switchStateRootPath();
+
+std::string getOperPath(const std::vector<std::string>& tokens);
 } // namespace facebook::fboss

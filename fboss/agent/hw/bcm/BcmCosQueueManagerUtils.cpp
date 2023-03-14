@@ -100,7 +100,7 @@ constexpr int kDefaultTH4PortQueueSharedBytes = 0;
 constexpr int32_t kDefaultTH4AqmThreshold = 13631418;
 const auto kDefaultTH4PortQueueAqm = makeDefauleAqmMap(kDefaultTH4AqmThreshold);
 
-state::PortQueueFields getPortQueueFields(
+PortQueueFields getPortQueueFields(
     uint8_t id,
     cfg::QueueScheduling scheduling,
     cfg::StreamType streamType,
@@ -115,7 +115,7 @@ state::PortQueueFields getPortQueueFields(
     std::optional<int> bandwidthBurstMaxKbits,
     std::optional<TrafficClass> trafficClass,
     std::optional<std::set<PfcPriority>> pfcPriorities) {
-  state::PortQueueFields queue;
+  PortQueueFields queue;
   *queue.id() = id;
   *queue.weight() = weight;
   if (reservedBytes) {

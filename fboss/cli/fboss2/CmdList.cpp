@@ -231,7 +231,7 @@ const CommandTree& kCommandTree() {
 
       {"show",
        "mirror",
-       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MIRROR_LIST,
        "Show mirror",
        commandHandler<CmdShowMirror>},
 

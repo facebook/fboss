@@ -13,6 +13,7 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/mirror/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 
@@ -24,8 +25,8 @@ using utils::Table;
 
 struct CmdShowMirrorTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
-  using ObjectArgType = std::monostate;
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MIRROR_LIST;
+  using ObjectArgType = utils::MirrorList;
   using RetType = cli::ShowMirrorModel;
 };
 
@@ -34,14 +35,16 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
   using ObjectArgType = CmdShowMirrorTraits::ObjectArgType;
   using RetType = CmdShowMirrorTraits::RetType;
 
-  RetType queryClient(const HostInfo& hostInfo) {
+  RetType queryClient(
+      const HostInfo& hostInfo,
+      const ObjectArgType& queriedMirrors) {
     std::string mirrorMap;
     std::map<int32_t, PortInfoThrift> portInfoEntries;
     auto client =
         utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
     client->sync_getCurrentStateJSON(mirrorMap, "mirrorMap");
     client->sync_getAllPortInfo(portInfoEntries);
-    return createModel(mirrorMap, portInfoEntries);
+    return createModel(mirrorMap, portInfoEntries, queriedMirrors);
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
@@ -154,12 +157,19 @@ class CmdShowMirror : public CmdHandler<CmdShowMirror, CmdShowMirrorTraits> {
 
   RetType createModel(
       const std::string& mirrorMap,
-      const std::map<int32_t, PortInfoThrift>& portInfoEntries) {
+      const std::map<int32_t, PortInfoThrift>& portInfoEntries,
+      const ObjectArgType& queriedMirrors) {
     RetType model;
+    std::unordered_set<std::string> queriedSet(
+        queriedMirrors.begin(), queriedMirrors.end());
     folly::dynamic mirrorMapEntries = folly::parseJson(mirrorMap);
     for (const auto& mirrorMapEntryItem : mirrorMapEntries.items()) {
       cli::ShowMirrorModelEntry mirrorDetails;
       const auto& mirrorMapEntry = mirrorMapEntryItem.second;
+      auto mirrorName = mirrorMapEntry["name"].asString();
+      if (queriedSet.size() > 0 && queriedSet.count(mirrorName) == 0) {
+        continue;
+      }
       mirrorDetails.mirror() = mirrorMapEntry["name"].asString();
       mirrorDetails.status() =
           (mirrorMapEntry["isResolved"].asBool()) ? "Active" : "Configured";

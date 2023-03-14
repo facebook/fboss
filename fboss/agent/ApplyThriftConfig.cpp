@@ -1236,6 +1236,7 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     const std::shared_ptr<PortMap>& ports,
     std::optional<int64_t> switchIdOpt,
     std::optional<cfg::Range64> systemPortRange) {
+  const auto kNumVoqs = 8;
   auto sysPorts = std::make_shared<SystemPortMap>();
   if (*cfg_->switchSettings()->switchType() != cfg::SwitchType::VOQ) {
     return sysPorts;
@@ -1243,6 +1244,19 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
   CHECK(switchIdOpt.has_value());
   auto switchId = *switchIdOpt;
   auto nodeName = *cfg_->dsfNodes()->find(switchId)->second.name();
+
+  QueueConfig systemPortQueues;
+  if (cfg_->defaultPortQueues()->size()) {
+    systemPortQueues = updatePortQueues(
+        QueueConfig(),
+        *cfg_->defaultPortQueues(),
+        kNumVoqs,
+        cfg::StreamType::UNICAST);
+    for (auto portQueue : systemPortQueues) {
+      portQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
+    }
+  }
+
   std::set<cfg::PortType> kCreateSysPortsFor = {
       cfg::PortType::INTERFACE_PORT, cfg::PortType::RECYCLE_PORT};
   for (const auto& port : std::as_const(*ports)) {
@@ -1259,9 +1273,10 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
     sysPort->setCoreIndex(*platformPort->getAttachedCoreId());
     sysPort->setCorePortIndex(*platformPort->getCorePortIndex());
     sysPort->setSpeedMbps(static_cast<int>(port.second->getSpeed()));
-    sysPort->setNumVoqs(8);
+    sysPort->setNumVoqs(kNumVoqs);
     sysPort->setEnabled(port.second->isEnabled());
     sysPort->setQosPolicy(port.second->getQosPolicy());
+    sysPort->resetPortQueues(systemPortQueues);
     sysPorts->addSystemPort(std::move(sysPort));
   }
 

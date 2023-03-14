@@ -12,6 +12,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
@@ -30,39 +31,38 @@ USE_THRIFT_COW(PortQueue)
 // pick that resolver for member list.
 
 template <>
-struct thrift_cow::ThriftStructResolver<state::PortQueueFields> {
+struct thrift_cow::ThriftStructResolver<PortQueueFields> {
   using type = PortQueue;
 };
 
 /*
  * PortQueue defines the behaviour of the per port queues
  */
-class PortQueue : public thrift_cow::ThriftStructNode<state::PortQueueFields> {
+class PortQueue : public thrift_cow::ThriftStructNode<PortQueueFields> {
  public:
-  using Base = thrift_cow::ThriftStructNode<state::PortQueueFields>;
+  using Base = thrift_cow::ThriftStructNode<PortQueueFields>;
   using AQMMap = boost::container::
       flat_map<cfg::QueueCongestionBehavior, cfg::ActiveQueueManagement>;
-  using AqmsType = typename Base::Fields::TypeFor<switch_state_tags::aqms>;
+  using AqmsType = typename Base::Fields::TypeFor<ctrl_if_tags::aqms>;
   using PortQueueRateType =
-      typename Base::Fields::TypeFor<switch_state_tags::portQueueRate>;
+      typename Base::Fields::TypeFor<ctrl_if_tags::portQueueRate>;
 
   explicit PortQueue(uint8_t id) {
-    set<switch_state_tags::id>(id);
+    set<ctrl_if_tags::id>(id);
   }
 
   std::string toString() const;
 
   uint8_t getID() const {
-    return cref<switch_state_tags::id>()->cref();
+    return cref<ctrl_if_tags::id>()->cref();
   }
 
   void setScheduling(cfg::QueueScheduling scheduling) {
-    set<switch_state_tags::scheduling>(
-        apache::thrift::util::enumName(scheduling));
+    set<ctrl_if_tags::scheduling>(apache::thrift::util::enumName(scheduling));
     switch (scheduling) {
       case cfg::QueueScheduling::STRICT_PRIORITY:
       case cfg::QueueScheduling::INTERNAL:
-        set<switch_state_tags::weight>(0);
+        set<ctrl_if_tags::weight>(0);
         break;
       case cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN:
       case cfg::QueueScheduling::DEFICIT_ROUND_ROBIN:
@@ -71,38 +71,38 @@ class PortQueue : public thrift_cow::ThriftStructNode<state::PortQueueFields> {
   }
 
   cfg::QueueScheduling getScheduling() const {
-    const auto& name = cref<switch_state_tags::scheduling>()->cref();
+    const auto& name = cref<ctrl_if_tags::scheduling>()->cref();
     return apache::thrift::util::enumValueOrThrow<cfg::QueueScheduling>(name);
   }
 
   void setStreamType(cfg::StreamType type) {
-    set<switch_state_tags::streamType>(apache::thrift::util::enumName(type));
+    set<ctrl_if_tags::streamType>(apache::thrift::util::enumName(type));
   }
 
   cfg::StreamType getStreamType() const {
-    const auto& name = cref<switch_state_tags::streamType>()->cref();
+    const auto& name = cref<ctrl_if_tags::streamType>()->cref();
     return apache::thrift::util::enumValueOrThrow<cfg::StreamType>(name);
   }
 
   int getWeight() const {
-    return cref<switch_state_tags::weight>()->cref();
+    return cref<ctrl_if_tags::weight>()->cref();
   }
 
   void setWeight(int weight) {
     if (getScheduling() != cfg::QueueScheduling::STRICT_PRIORITY) {
-      set<switch_state_tags::weight>(weight);
+      set<ctrl_if_tags::weight>(weight);
     }
   }
 
   std::optional<int> getReservedBytes() const {
-    if (const auto& reserved = cref<switch_state_tags::reserved>()) {
+    if (const auto& reserved = cref<ctrl_if_tags::reserved>()) {
       return std::optional<int>(reserved->cref());
     }
     return std::nullopt;
   }
 
   void setReservedBytes(int reservedBytes) {
-    set<switch_state_tags::reserved>(reservedBytes);
+    set<ctrl_if_tags::reserved>(reservedBytes);
   }
 
   std::optional<cfg::MMUScalingFactor> getScalingFactor() const {
@@ -119,25 +119,25 @@ class PortQueue : public thrift_cow::ThriftStructNode<state::PortQueueFields> {
   }
 
   const auto& getAqms() const {
-    return cref<switch_state_tags::aqms>();
+    return cref<ctrl_if_tags::aqms>();
   }
 
   void resetAqms(std::vector<cfg::ActiveQueueManagement> aqms) {
     if (!aqms.empty()) {
-      set<switch_state_tags::aqms>(std::move(aqms));
+      set<ctrl_if_tags::aqms>(std::move(aqms));
     } else {
-      ref<switch_state_tags::aqms>().reset();
+      ref<ctrl_if_tags::aqms>().reset();
     }
   }
 
   std::optional<std::string> getName() const {
-    if (const auto& name = cref<switch_state_tags::name>()) {
+    if (const auto& name = cref<ctrl_if_tags::name>()) {
       return name->cref();
     }
     return std::nullopt;
   }
   void setName(const std::string& name) {
-    set<switch_state_tags::name>(name);
+    set<ctrl_if_tags::name>(name);
   }
   std::optional<int> getSharedBytes() const {
     if (const auto& sharedBytes = cref<switch_state_tags::sharedBytes>()) {
@@ -150,35 +150,35 @@ class PortQueue : public thrift_cow::ThriftStructNode<state::PortQueueFields> {
   }
 
   const auto& getPortQueueRate() const {
-    return cref<switch_state_tags::portQueueRate>();
+    return cref<ctrl_if_tags::portQueueRate>();
   }
 
   void setPortQueueRate(cfg::PortQueueRate portQueueRate) {
-    set<switch_state_tags::portQueueRate>(std::move(portQueueRate));
+    set<ctrl_if_tags::portQueueRate>(std::move(portQueueRate));
   }
 
   std::optional<int> getBandwidthBurstMinKbits() const {
     if (const auto& bandwidthBurstMinKbits =
-            cref<switch_state_tags::bandwidthBurstMinKbits>()) {
+            cref<ctrl_if_tags::bandwidthBurstMinKbits>()) {
       return bandwidthBurstMinKbits->cref();
     }
     return std::nullopt;
   }
 
   void setBandwidthBurstMinKbits(int bandwidthBurstMinKbits) {
-    set<switch_state_tags::bandwidthBurstMinKbits>(bandwidthBurstMinKbits);
+    set<ctrl_if_tags::bandwidthBurstMinKbits>(bandwidthBurstMinKbits);
   }
 
   std::optional<int> getBandwidthBurstMaxKbits() const {
     if (const auto& bandwidthBurstMaxKbits =
-            cref<switch_state_tags::bandwidthBurstMaxKbits>()) {
+            cref<ctrl_if_tags::bandwidthBurstMaxKbits>()) {
       return bandwidthBurstMaxKbits->cref();
     }
     return std::nullopt;
   }
 
   void setBandwidthBurstMaxKbits(int bandwidthBurstMaxKbits) {
-    set<switch_state_tags::bandwidthBurstMinKbits>(bandwidthBurstMaxKbits);
+    set<ctrl_if_tags::bandwidthBurstMinKbits>(bandwidthBurstMaxKbits);
   }
 
   std::optional<TrafficClass> getTrafficClass() const {
@@ -221,8 +221,8 @@ class PortQueue : public thrift_cow::ThriftStructNode<state::PortQueueFields> {
     if (!other) {
       return false;
     }
-    const auto thisRate = get<switch_state_tags::portQueueRate>();
-    const auto thatRate = other->get<switch_state_tags::portQueueRate>();
+    const auto thisRate = get<ctrl_if_tags::portQueueRate>();
+    const auto thatRate = other->get<ctrl_if_tags::portQueueRate>();
     if (thisRate == nullptr && thatRate == nullptr) {
       return true;
     } else if (thisRate == nullptr) {

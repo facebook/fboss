@@ -48,7 +48,7 @@ class ControlPlane
     return cref<switch_state_tags::queues>();
   }
   void resetQueues(QueueConfig& queues) {
-    std::vector<state::PortQueueFields> queuesThrift{};
+    std::vector<PortQueueFields> queuesThrift{};
     for (auto queue : queues) {
       queuesThrift.push_back(queue->toThrift());
     }
