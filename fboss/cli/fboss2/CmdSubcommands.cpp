@@ -156,7 +156,7 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
       }
       case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_HW_OBJECT_LIST: {
         subCmd->add_option(
-            "hw_object_type", args, "Hardware (HW) object type(s)\n");
+            "hw_object_type", args, "Hardware (HW) object type(s)");
         break;
       }
       case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_SYSTEM_PORT_LIST:
