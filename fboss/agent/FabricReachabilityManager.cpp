@@ -19,23 +19,34 @@ using facebook::fboss::DeltaFunctions::forEachRemoved;
 
 namespace facebook::fboss {
 
-void FabricReachabilityManager::addPort(const std::shared_ptr<Port> swPort) {
-  expectedNeighborReachability_.emplace(
-      swPort->getID(), swPort->getExpectedNeighborValues()->toThrift());
+void FabricReachabilityManager::addPort(const std::shared_ptr<Port>& swPort) {
+  FabricEndpoint expectedEndpoint;
+  const auto& neighborReachabilityList =
+      swPort->getExpectedNeighborValues()->toThrift();
+  if (neighborReachabilityList.size()) {
+    // pick the first one, as we will only have 1 for now
+    const auto& nbr = neighborReachabilityList.front();
+    expectedEndpoint.expectedSwitchName() = *nbr.remoteSystem();
+    expectedEndpoint.expectedPortName() = *nbr.remotePort();
+  }
+  actualNeighborReachability_[swPort->getID()] = expectedEndpoint;
 }
 
-void FabricReachabilityManager::removePort(const std::shared_ptr<Port> swPort) {
-  expectedNeighborReachability_.erase(swPort->getID());
+void FabricReachabilityManager::removePort(
+    const std::shared_ptr<Port>& swPort) {
+  actualNeighborReachability_.erase(swPort->getID());
 }
 
 void FabricReachabilityManager::addDsfNode(
-    const std::shared_ptr<DsfNode> dsfNode) {
-  dsfNodes_.emplace(dsfNode->getName(), dsfNode);
+    const std::shared_ptr<DsfNode>& dsfNode) {
+  dsfNameToNodesMap_[dsfNode->getName()] = dsfNode;
+  dsfSwitchIdToNodesMap_[dsfNode->getSwitchId()] = dsfNode;
 }
 
 void FabricReachabilityManager::removeDsfNode(
-    const std::shared_ptr<DsfNode> dsfNode) {
-  dsfNodes_.erase(dsfNode->getName());
+    const std::shared_ptr<DsfNode>& dsfNode) {
+  dsfNameToNodesMap_.erase(dsfNode->getName());
+  dsfSwitchIdToNodesMap_.erase(dsfNode->getSwitchId());
 }
 
 void FabricReachabilityManager::updatePorts(const StateDelta& delta) {
@@ -73,7 +84,7 @@ void FabricReachabilityManager::stateUpdated(const StateDelta& delta) {
 
 static PlatformMapping* FOLLY_NULLABLE getPlatformMappingForDsfNode(
     const cfg::AsicType asicType,
-    const cfg::SwitchType switchType,
+    const bool isSwitchTypeVoq,
     int* remotePortOffset) {
   static Meru400biuPlatformMapping meru400biu;
   static Meru400bfuPlatformMapping meru400bfu;
@@ -83,10 +94,7 @@ static PlatformMapping* FOLLY_NULLABLE getPlatformMappingForDsfNode(
   *remotePortOffset = 0;
   switch (asicType) {
     case cfg::AsicType::ASIC_TYPE_EBRO:
-      CHECK(
-          (switchType == cfg::SwitchType::VOQ) ||
-          (switchType == cfg::SwitchType::FABRIC));
-      if (switchType == cfg::SwitchType::VOQ) {
+      if (isSwitchTypeVoq) {
         return &w400cVoq;
       } else {
         return &w400cFabric;
@@ -105,49 +113,120 @@ static PlatformMapping* FOLLY_NULLABLE getPlatformMappingForDsfNode(
   return nullptr;
 }
 
+void FabricReachabilityManager::updateExpectedPortId(
+    FabricEndpoint& endpoint,
+    const cfg::AsicType asicType,
+    const cfg::DsfNodeType dsfNodeType) {
+  int remotePortOffset = 0;
+
+  CHECK(
+      (dsfNodeType == cfg::DsfNodeType::FABRIC_NODE) ||
+      (dsfNodeType == cfg::DsfNodeType::INTERFACE_NODE));
+
+  bool isSwitchTypeVoq =
+      dsfNodeType == cfg::DsfNodeType::INTERFACE_NODE ? true : false;
+  const auto platformMapping = getPlatformMappingForDsfNode(
+      asicType, isSwitchTypeVoq, &remotePortOffset);
+  if (!platformMapping) {
+    // no reachability info
+    XLOG(ERR) << "Unable to find platform mapping for neighboring port: "
+              << *endpoint.portId();
+    return;
+  }
+
+  if (endpoint.expectedPortName().has_value()) {
+    // throw an exception if port name not found
+    endpoint.expectedPortId() =
+        platformMapping->getPortID(*endpoint.expectedPortName());
+  }
+}
+
+void FabricReachabilityManager::updatePortName(
+    FabricEndpoint& endpoint,
+    const cfg::AsicType asicType) {
+  int remotePortOffset = 0;
+  bool isSwitchTypeVoq =
+      (*endpoint.switchType() == cfg::SwitchType::VOQ) ? true : false;
+  const auto platformMapping = getPlatformMappingForDsfNode(
+      asicType, isSwitchTypeVoq, &remotePortOffset);
+  if (!platformMapping) {
+    // no reachability info
+    XLOG(ERR) << "Unable to find platform mapping for neighboring port: "
+              << *endpoint.portId();
+    return;
+  }
+
+  endpoint.portId() = *endpoint.portId() + remotePortOffset;
+  const auto& platformPorts = platformMapping->getPlatformPorts();
+  auto pitr = platformPorts.find(*endpoint.portId());
+  if (pitr != platformPorts.end()) {
+    // as per the hw info obtained
+    endpoint.portName() = *pitr->second.mapping()->name();
+  }
+}
+
+void FabricReachabilityManager::updateExpectedFabricEndpointInfo(
+    FabricEndpoint& resEndpoint,
+    const FabricEndpoint& expectedEndpoint) {
+  if (expectedEndpoint.expectedPortName().has_value()) {
+    resEndpoint.expectedPortName() = *expectedEndpoint.expectedPortName();
+  }
+  // update expectedSwitchName/Id
+  if (expectedEndpoint.expectedSwitchName().has_value()) {
+    resEndpoint.expectedSwitchName() = *expectedEndpoint.expectedSwitchName();
+    auto dsfNodeIter =
+        dsfNameToNodesMap_.find(*resEndpoint.expectedSwitchName());
+    // get expected neighbor info based on cfg
+    if (dsfNodeIter == dsfNameToNodesMap_.end()) {
+      XLOG(WARNING)
+          << "Unable to find the expected endpoint switchname in the dsf map "
+          << *resEndpoint.expectedSwitchName();
+      return;
+    }
+    resEndpoint.expectedSwitchId() = dsfNodeIter->second->getSwitchId();
+    // get asic type is from dsfnode based on expected neighbor
+    updateExpectedPortId(
+        resEndpoint,
+        dsfNodeIter->second->getAsicType(),
+        dsfNodeIter->second->getType());
+  }
+}
+
+void FabricReachabilityManager::updateHwFabricEndpointInfo(
+    FabricEndpoint& resEndpoint) {
+  // no update is possible if endpoint is not attached
+  if (*resEndpoint.isAttached()) {
+    // get neighbor info based on HW, better exist in cfg
+    auto dsfSwitchIdToNodeIter =
+        dsfSwitchIdToNodesMap_.find(*resEndpoint.switchId());
+    if (dsfSwitchIdToNodeIter == dsfSwitchIdToNodesMap_.end()) {
+      XLOG(WARNING)
+          << "Unable to find the endpoint id as from HW in the dsf map: "
+          << *resEndpoint.switchId();
+      return;
+    }
+    resEndpoint.switchName() = dsfSwitchIdToNodeIter->second->getName();
+    // get asic type from dsfNode based on switchId from HW
+    updatePortName(resEndpoint, dsfSwitchIdToNodeIter->second->getAsicType());
+  }
+}
+
 FabricEndpoint FabricReachabilityManager::processReachabilityInfoForPort(
     const PortID& portId,
     const FabricEndpoint& hwEndpoint) {
-  FabricEndpoint endpoint = hwEndpoint;
+  FabricEndpoint resEndpoint = hwEndpoint;
   // check if we have info on this endopint in our db, if not just return as it
   // evaluate the endpoint only if we have expected reachability for it or
-  // if its attached
-  const auto& iter = expectedNeighborReachability_.find(portId);
-  if (*endpoint.isAttached() && iter != expectedNeighborReachability_.end()) {
-    for (const auto& nbr : iter->second) {
-      auto neighborSystem = *nbr.remoteSystem();
-      auto neighborPortName = *nbr.remotePort();
-      auto dsfNodeIter = dsfNodes_.find(neighborSystem);
-      CHECK(dsfNodeIter != dsfNodes_.end());
-
-      int remotePortOffset = 0;
-      const auto platformMapping = getPlatformMappingForDsfNode(
-          dsfNodeIter->second->getAsicType(),
-          *endpoint.switchType(),
-          &remotePortOffset);
-
-      if (!platformMapping) {
-        // no reachability info
-        XLOG(ERR) << "Unable to find platform mapping for neighboring port: "
-                  << *endpoint.portId();
-        continue;
-      }
-
-      PortID neighborPortId = platformMapping->getPortID(neighborPortName);
-      neighborPortId -= remotePortOffset;
-
-      endpoint.expectedSwitchId() = dsfNodeIter->second->getSwitchId();
-      endpoint.expectedPortId() = neighborPortId;
-      endpoint.switchName() = neighborSystem;
-      endpoint.portName() = neighborPortName;
-      // for now its one fabric endpoint only
-      break;
-    }
+  const auto& iter = actualNeighborReachability_.find(portId);
+  if (iter != actualNeighborReachability_.end()) {
+    const auto& expectedEndpoint = iter->second;
+    updateExpectedFabricEndpointInfo(resEndpoint, expectedEndpoint);
+    updateHwFabricEndpointInfo(resEndpoint);
   }
 
   // update the cache
-  actualNeighborReachability_[portId] = endpoint;
-  return endpoint;
+  actualNeighborReachability_[portId] = resEndpoint;
+  return resEndpoint;
 }
 
 std::map<PortID, FabricEndpoint>

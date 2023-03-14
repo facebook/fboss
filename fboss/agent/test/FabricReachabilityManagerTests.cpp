@@ -39,6 +39,7 @@ class FabricReachabilityManagerTest : public ::testing::Test {
     auto dsfNode = std::make_shared<DsfNode>(SwitchID(switchId));
     auto cfgDsfNode = makeDsfNodeCfg(switchId, name);
     cfgDsfNode.asicType() = cfg::AsicType::ASIC_TYPE_RAMON;
+    cfgDsfNode.type() = cfg::DsfNodeType::FABRIC_NODE;
     dsfNode->fromThrift(cfgDsfNode);
     return dsfNode;
   }
@@ -62,12 +63,13 @@ class FabricReachabilityManagerTest : public ::testing::Test {
 TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
   std::shared_ptr<Port> swPort = makePort(1);
   cfg::PortNeighbor nbr;
-  nbr.remotePort() = "fab1/2/3";
+  nbr.remotePort() = "fab1/2/4";
   nbr.remoteSystem() = "fdswA";
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;
 
+  endpoint.portId() = 79; // known from platforom mapping for kamet
   endpoint.switchId() = 10;
   endpoint.isAttached() = true;
 
@@ -87,7 +89,86 @@ TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
     EXPECT_NE(neighbor.expectedPortId(), 0);
     EXPECT_EQ(neighbor.expectedSwitchId(), 10);
     EXPECT_EQ(neighbor.switchId(), 10);
+    EXPECT_EQ(neighbor.expectedSwitchName(), "fdswA");
+    EXPECT_EQ(neighbor.expectedPortName(), "fab1/2/4");
     EXPECT_TRUE(*neighbor.isAttached());
+    EXPECT_EQ(*neighbor.expectedPortId(), *neighbor.portId());
+    EXPECT_EQ(neighbor.expectedPortName(), neighbor.portName());
   }
 }
+
+TEST_F(FabricReachabilityManagerTest, validateUnattachedEndpoint) {
+  std::shared_ptr<Port> swPort = makePort(1);
+  cfg::PortNeighbor nbr;
+  nbr.remotePort() = "fab1/2/4";
+  nbr.remoteSystem() = "fdswA";
+
+  std::map<PortID, FabricEndpoint> hwReachabilityMap;
+  FabricEndpoint endpoint;
+
+  // dont set anything in the endpoint
+  endpoint.isAttached() = false;
+
+  hwReachabilityMap.emplace(swPort->getID(), endpoint);
+  swPort->setExpectedNeighborReachability({nbr});
+  auto dsfNode = makeDsfNode(10, "fdswA");
+
+  fabricReachabilityManager_->addPort(swPort);
+  fabricReachabilityManager_->addDsfNode(dsfNode);
+
+  const auto expectedReachabilityMap =
+      fabricReachabilityManager_->processReachabilityInfo(hwReachabilityMap);
+  EXPECT_EQ(expectedReachabilityMap.size(), 1);
+
+  // when unattached, we can't get get expectedPortId
+  for (const auto& expectedReachability : expectedReachabilityMap) {
+    const auto& neighbor = expectedReachability.second;
+    EXPECT_EQ(neighbor.expectedSwitchId(), 10);
+    EXPECT_EQ(*neighbor.expectedSwitchName(), "fdswA");
+    EXPECT_EQ(*neighbor.expectedPortName(), "fab1/2/4");
+    EXPECT_TRUE(neighbor.expectedPortId().has_value());
+
+    EXPECT_FALSE(neighbor.portName().has_value());
+    EXPECT_FALSE(neighbor.switchName().has_value());
+    EXPECT_FALSE(*neighbor.isAttached());
+  }
+}
+
+TEST_F(FabricReachabilityManagerTest, validateUnexpectedNeighbors) {
+  std::shared_ptr<Port> swPort = makePort(1);
+  cfg::PortNeighbor nbr;
+  nbr.remotePort() = "fab1/2/3";
+  nbr.remoteSystem() = "fdswA";
+
+  std::map<PortID, FabricEndpoint> hwReachabilityMap;
+  FabricEndpoint endpoint;
+
+  endpoint.switchId() = 10;
+  endpoint.isAttached() = true;
+  endpoint.portId() = 79;
+
+  hwReachabilityMap.emplace(swPort->getID(), endpoint);
+  swPort->setExpectedNeighborReachability({nbr});
+  auto dsfNode = makeDsfNode(10, "fdswB");
+
+  fabricReachabilityManager_->addPort(swPort);
+  fabricReachabilityManager_->addDsfNode(dsfNode);
+  fabricReachabilityManager_->addDsfNode(makeDsfNode(20, "fdswA"));
+
+  const auto expectedReachabilityMap =
+      fabricReachabilityManager_->processReachabilityInfo(hwReachabilityMap);
+
+  for (const auto& expectedReachability : expectedReachabilityMap) {
+    const auto& neighbor = expectedReachability.second;
+    EXPECT_EQ(expectedReachabilityMap.size(), 1);
+    EXPECT_NE(*neighbor.expectedSwitchId(), *neighbor.switchId());
+    EXPECT_EQ(neighbor.expectedPortName(), "fab1/2/3");
+    EXPECT_NE(neighbor.expectedSwitchName(), neighbor.switchName());
+    EXPECT_NE(neighbor.expectedPortName(), neighbor.portName());
+    EXPECT_TRUE(neighbor.expectedPortId().has_value());
+    // portId = 79 results in fab1/2/4
+    EXPECT_EQ(neighbor.portName(), "fab1/2/4");
+  }
+}
+
 } // namespace facebook::fboss
