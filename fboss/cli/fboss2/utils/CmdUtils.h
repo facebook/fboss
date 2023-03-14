@@ -9,112 +9,24 @@
  */
 #pragma once
 
-#include <CLI/CLI.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/regex.hpp>
 #include <folly/IPAddress.h>
 #include <folly/String.h>
 #include <folly/gen/Base.h>
-#include <folly/stop_watch.h>
 #include <re2/re2.h>
 #include <string>
 #include <variant>
 
-#include <fboss/lib/phy/gen-cpp2/phy_types.h>
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_types.h"
+#include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
 #include "fboss/cli/fboss2/utils/PrbsUtils.h"
+#include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
 namespace facebook::fboss::utils {
-
-struct CmdLogInfo {
-  std::string CmdName;
-  std::string Duration;
-  std::string Arguments;
-  std::string UserInfo;
-  std::string ExitStatus;
-};
-
-enum class ObjectArgTypeId : uint8_t {
-  OBJECT_ARG_TYPE_ID_UNINITIALIZE = 0,
-  OBJECT_ARG_TYPE_ID_NONE,
-  OBJECT_ARG_TYPE_ID_COMMUNITY_LIST,
-  OBJECT_ARG_TYPE_ID_IP_LIST, // IPv4 and/or IPv6
-  OBJECT_ARG_TYPE_ID_IPV6_LIST,
-  OBJECT_ARG_TYPE_ID_PORT_LIST,
-  OBJECT_ARG_TYPE_ID_MESSAGE,
-  OBJECT_ARG_TYPE_ID_PEERID_LIST, // BGP peer id
-  OBJECT_ARG_TYPE_ID_VIP_INJECTOR_ID,
-  OBJECT_ARG_TYPE_ID_AREA_LIST,
-  OBJECT_ARG_TYPE_ID_NODE_LIST,
-  OBJECT_ARG_TYPE_ID_HW_OBJECT_LIST,
-  OBJECT_ARG_TYPE_DEBUG_LEVEL,
-  OBJECT_ARG_TYPE_PRBS_COMPONENT,
-  OBJECT_ARG_TYPE_PRBS_STATE,
-  OBJECT_ARG_TYPE_PORT_STATE,
-  OBJECT_ARG_TYPE_FSDB_PATH,
-  OBJECT_ARG_TYPE_AS_SEQUENCE,
-  OBJECT_ARG_TYPE_LOCAL_PREFERENCE,
-  OBJECT_ARG_TYPE_PHY_CHIP_TYPE,
-  OBJECT_ARG_TYPE_FSDB_CLIENT_ID,
-  OBJECT_ARG_TYPE_ID_SYSTEM_PORT_LIST,
-};
-
-template <typename T>
-class BaseObjectArgType {
- public:
-  BaseObjectArgType() {}
-  /* implicit */ BaseObjectArgType(std::vector<std::string> v) : data_(v) {}
-  using iterator = typename std::vector<std::string>::iterator;
-  using const_iterator = typename std::vector<std::string>::const_iterator;
-  using size_type = typename std::vector<std::string>::size_type;
-
-  const std::vector<T> data() const {
-    return data_;
-  }
-
-  std::string& operator[](int index) {
-    return data_[index];
-  }
-
-  const std::string& operator[](int index) const {
-    return data_[index];
-  }
-  iterator begin() {
-    return data_.begin();
-  }
-  iterator end() {
-    return data_.end();
-  }
-  const_iterator begin() const {
-    return data_.begin();
-  }
-  const_iterator end() const {
-    return data_.end();
-  }
-
-  size_type size() const {
-    return data_.size();
-  }
-
-  bool empty() const {
-    return data_.empty();
-  }
-
-  std::vector<T> data_;
-  const static ObjectArgTypeId id =
-      ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE;
-};
-
-class NoneArgType : public BaseObjectArgType<std::string> {
- public:
-  /* implicit */ NoneArgType(std::vector<std::string> v)
-      : BaseObjectArgType(v) {}
-
-  const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
-};
 
 class CommunityList : public BaseObjectArgType<std::string> {
  public:
@@ -404,76 +316,20 @@ class HwObjectList : public BaseObjectArgType<HwObjectType> {
 // initialization steps
 void postAppInit(int argc, char* argv[], CLI::App& app);
 
-const folly::IPAddress getIPFromHost(const std::string& hostname);
-const std::string getOobNameFromHost(const std::string& host);
-std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName);
-std::vector<std::string> getHostsFromFile(const std::string& filename);
 long getEpochFromDuration(const int64_t& duration);
 timeval splitFractionalSecondsFromTimer(const long& timer);
 const std::string parseTimeToTimeStamp(const long& timeToParse);
 
 const std::string getPrettyElapsedTime(const int64_t& start_time);
-const std::string getDurationStr(folly::stop_watch<>& watch);
 const std::string formatBandwidth(const float bandwidthBytesPerSecond);
 std::vector<int32_t> getPortIDList(
     const std::vector<std::string>& ifList,
     std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries);
-std::string getUserInfo();
 std::string getAddrStr(network::thrift::BinaryAddress addr);
 std::string getAdminDistanceStr(AdminDistance adminDistance);
 const std::string removeFbDomains(const std::string& host);
 std::string getSpeedGbps(int64_t speedMbps);
 std::string getl2EntryTypeStr(L2EntryType l2EntryType);
-void setLogLevel(std::string logLevelStr);
-
-void logUsage(const CmdLogInfo& cmdLogInfo);
-
-template <typename T, size_t N, size_t... Indices>
-auto arrayToTupleImpl(
-    const std::array<T, N>& v,
-    std::index_sequence<Indices...>) {
-  return std::make_tuple(v[Indices]...);
-}
-
-// convert the first N elements of an array to a tuple
-template <size_t N, size_t M, typename T>
-auto arrayToTuple(const std::array<T, M>& v) {
-  static_assert(N <= M);
-  return arrayToTupleImpl(v, std::make_index_sequence<N>());
-}
-
-// returns tuple(value) if TargetT == std::monostate, otherwise empty tuple()
-template <typename TargetT, typename T>
-auto tupleValueIfNotMonostate(const T& value) {
-  // backward compatibility
-  if constexpr (std::is_same_v<TargetT, std::monostate>) {
-    return std::make_tuple();
-  }
-  // NoneArgType indicates OBJECT_ARG_TYPE_ID_NONE
-  else if constexpr (std::is_same_v<TargetT, NoneArgType>) {
-    return std::make_tuple();
-  } else {
-    return std::make_tuple(value);
-  }
-}
-
-template <typename UnfilteredTypes, typename Tuple, std::size_t... Indices>
-auto filterTupleMonostatesImpl(Tuple tup, std::index_sequence<Indices...>) {
-  return std::tuple_cat(
-      tupleValueIfNotMonostate<std::tuple_element_t<Indices, UnfilteredTypes>>(
-          std::get<Indices>(tup))...);
-}
-
-// Filter out all std::monostates from a tuple. the passed UnfilteredTypes
-// will indicate which indices need to be removed
-template <typename UnfilteredTypes, typename Tuple, std::size_t... Indices>
-auto filterTupleMonostates(Tuple tup) {
-  static_assert(
-      std::tuple_size_v<UnfilteredTypes> == std::tuple_size_v<Tuple>,
-      "Passed tuple must be the same size as passed type");
-  return filterTupleMonostatesImpl<UnfilteredTypes>(
-      tup, std::make_index_sequence<std::tuple_size_v<UnfilteredTypes>>());
-}
 
 /**
  * Whether the first port name is smaller than or equal to the second port

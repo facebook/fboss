@@ -29,8 +29,19 @@ int cliMain(int argc, char* argv[]) {
 
   app.require_subcommand();
 
+  /*
+   * initialize available global options for CLI
+   */
   CmdGlobalOptions::getInstance()->init(app);
-  CmdSubcommands::getInstance()->init(app);
+
+  /*
+   * initialize/build CLI command token trees
+   *
+   * NOTE: kCommandTree/kAdditionalCommandTree/kSpecialCommands will be linked
+   * from elsewhere to make `CmdSubcommands` an independent lib.
+   */
+  CmdSubcommands::getInstance()->init(
+      app, kCommandTree(), kAdditionalCommandTree(), kSpecialCommands());
 
   utils::postAppInit(argc, argv, app);
 

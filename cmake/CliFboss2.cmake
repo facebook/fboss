@@ -67,6 +67,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_mirror_model
+  fboss/cli/fboss2/commands/show/mirror/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_ndp_model
   fboss/cli/fboss2/commands/show/ndp/model.thrift
   OPTIONS
@@ -259,6 +266,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h
   fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h
   fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h
+  fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
   fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h
@@ -288,11 +296,11 @@ add_executable(fboss2
   fboss/cli/fboss2/utils/FilterOp.h
   fboss/cli/fboss2/utils/AggregateOp.h
   fboss/cli/fboss2/utils/AggregateUtils.h
+  fboss/cli/fboss2/utils/CmdCommonUtils.h
   fboss/cli/fboss2/utils/FilterUtils.h
   fboss/cli/fboss2/utils/PrbsUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdClientUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdUtils.cpp
-  fboss/cli/fboss2/utils/oss/CLIParserUtils.cpp
   fboss/cli/fboss2/options/OutputFormat.h
   fboss/cli/fboss2/options/SSLPolicy.h
 )
@@ -318,6 +326,7 @@ target_link_libraries(fboss2
   show_host_model
   show_l2_model
   show_lldp_model
+  show_mirror_model
   show_ndp_model
   show_port_model
   show_transceiver_model

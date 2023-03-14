@@ -3,6 +3,7 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+if(BUILD_SAI_FAKE)
 add_library(fake_sai
     fboss/agent/hw/sai/fake/FakeSai.cpp
     fboss/agent/hw/sai/fake/FakeSaiAcl.cpp
@@ -51,3 +52,6 @@ set_target_properties(fake_sai PROPERTIES COMPILE_FLAGS
   -DSAI_VER_MINOR=${SAI_VER_MINOR} \
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
+
+install(TARGETS fake_sai)
+endif()

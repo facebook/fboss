@@ -50,6 +50,7 @@
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h"
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h"
+#include "fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h"
 #include "fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
@@ -61,7 +62,6 @@
 #include "fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h"
 #include "fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "folly/futures/Future.h"
@@ -254,6 +254,7 @@ template void CmdHandler<CmdShowLldp, CmdShowLldpTraits>::run();
 template void
 CmdHandler<CmdShowMacAddrToBlock, CmdShowMacAddrToBlockTraits>::run();
 template void CmdHandler<CmdShowMacDetails, CmdShowMacDetailsTraits>::run();
+template void CmdHandler<CmdShowMirror, CmdShowMirrorTraits>::run();
 template void CmdHandler<CmdShowNdp, CmdShowNdpTraits>::run();
 template void CmdHandler<CmdShowPort, CmdShowPortTraits>::run();
 template void CmdHandler<CmdShowPortQueue, CmdShowPortQueueTraits>::run();

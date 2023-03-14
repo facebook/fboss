@@ -3,6 +3,7 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
+if(BUILD_SAI_FAKE)
 add_executable(store_test
     fboss/agent/test/oss/Main.cpp
     fboss/agent/hw/sai/store/tests/AclTableGroupStoreTest.cpp
@@ -48,3 +49,4 @@ set_target_properties(store_test PROPERTIES COMPILE_FLAGS
 )
 
 gtest_discover_tests(store_test)
+endif()

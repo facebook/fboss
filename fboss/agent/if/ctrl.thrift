@@ -15,6 +15,7 @@ include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/agent/platform_config.thrift"
 include "fboss/lib/phy/phy.thrift"
+include "fboss/agent/hw/hardware_stats.thrift"
 
 typedef binary (cpp2.type = "::folly::fbstring") fbbinary
 typedef string (cpp2.type = "::folly::fbstring") fbstring
@@ -400,6 +401,7 @@ struct PortStatus {
   4: optional TransceiverIdxThrift transceiverIdx;
   5: i64 speedMbps; // TODO: i32 (someone is optimistic about port speeds)
   6: string profileID;
+  7: bool drained;
 }
 
 enum CaptureDirection {
@@ -879,6 +881,13 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   );
 
   /*
+   * Set drain state for a port
+   */
+  void setPortDrainState(1: i32 portId, 2: bool drain) throws (
+    1: fboss.FbossBaseError error,
+  );
+
+  /*
    * Set loopback mode for a port. Primarily used by tests
    */
   void setPortLoopbackMode(1: i32 portId, 2: PortLoopbackMode mode) throws (
@@ -956,6 +965,9 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
     1: fboss.FbossBaseError error,
   );
   map<i32, PortInfoThrift> getAllPortStats() throws (
+    1: fboss.FbossBaseError error,
+  );
+  map<string, hardware_stats.HwSysPortStats> getSysPortStats() throws (
     1: fboss.FbossBaseError error,
   );
 

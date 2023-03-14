@@ -14,6 +14,7 @@
 #include <cstdint>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/gen-cpp2/model_types.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
 namespace facebook::fboss {
 

@@ -197,6 +197,10 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     return getAdminState() == cfg::PortState::ENABLED;
   }
 
+  bool isDrained() const {
+    return getPortDrainState() == cfg::PortDrainState::DRAINED;
+  }
+
   bool isUp() const {
     return cref<switch_state_tags::portOperState>()->cref();
   }

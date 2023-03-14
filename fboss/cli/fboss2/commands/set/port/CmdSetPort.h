@@ -4,6 +4,7 @@
 
 #include <folly/String.h>
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 

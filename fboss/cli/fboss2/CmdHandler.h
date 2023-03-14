@@ -9,16 +9,10 @@
  */
 #pragma once
 
-#include <CLI/CLI.hpp>
-
-#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
-
 #include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
-#include "fboss/cli/fboss2/gen-cpp2/cli_types.h"
 #include "fboss/cli/fboss2/utils/AggregateUtils.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
-#include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
 #include "fboss/cli/fboss2/utils/FilterUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 

@@ -37,6 +37,7 @@ struct BspTransceiverMapping {
   1: i32 tcvrId;
   2: BspTransceiverAccessControllerInfo accessControl;
   3: BspTransceiverIOControllerInfo io;
+  4: list<i32> ledId;
 }
 
 struct BspTransceiverAccessControllerInfo {

@@ -9,11 +9,6 @@
  */
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
-#include <thrift/lib/cpp2/async/HeaderClientChannel.h>
-#include "fboss/cli/fboss2/CmdGlobalOptions.h"
-
-#include <string>
-
 namespace facebook::fboss::utils {
 
 template <>

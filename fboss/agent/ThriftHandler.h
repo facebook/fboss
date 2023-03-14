@@ -180,6 +180,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::map<int32_t, PortStatus>& status,
       std::unique_ptr<std::vector<int32_t>> ports) override;
   void setPortState(int32_t portId, bool enable) override;
+  void setPortDrainState(int32_t portId, bool drain) override;
   void setPortLoopbackMode(int32_t portId, PortLoopbackMode mode) override;
   void getAllPortLoopbackMode(
       std::map<int32_t, PortLoopbackMode>& port2LbMode) override;
@@ -284,6 +285,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::map<std::string, FabricEndpoint>& reachability) override;
   void getDsfNodes(std::map<int64_t, cfg::DsfNode>& dsfNodes) override;
   void getSystemPorts(std::map<int64_t, SystemPortThrift>& sysPorts) override;
+  void getSysPortStats(
+      std::map<std::string, HwSysPortStats>& hwSysPortStats) override;
   /*
    * Event handler for when a connection is destroyed.  When there is an ongoing
    * duplex connection, there may be other threads that depend on the connection

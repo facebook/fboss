@@ -2,12 +2,11 @@
 
 #pragma once
 
-#include <fboss/cli/fboss2/utils/CmdUtils.h>
 #include "fboss/cli/fboss2/CmdHandler.h"
-
-#include <re2/re2.h>
 #include "fboss/cli/fboss2/commands/show/agent/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/commands/show/agent/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 

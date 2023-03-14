@@ -9,11 +9,9 @@
  */
 
 #include "fboss/cli/fboss2/CmdSubcommands.h"
-#include <fboss/cli/fboss2/utils/CmdUtils.h>
 #include "fboss/cli/fboss2/CmdArgsLists.h"
-#include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
-#include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
 
 #include <folly/Singleton.h>
 #include <stdexcept>
@@ -158,7 +156,7 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
       }
       case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_HW_OBJECT_LIST: {
         subCmd->add_option(
-            "hw_object_type", args, "Hardware (HW) object type(s)\n");
+            "hw_object_type", args, "Hardware (HW) object type(s)");
         break;
       }
       case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_SYSTEM_PORT_LIST:
@@ -214,14 +212,18 @@ void CmdSubcommands::initCommandTree(
   }
 }
 
-void CmdSubcommands::init(CLI::App& app) {
+void CmdSubcommands::init(
+    CLI::App& app,
+    const CommandTree& cmdTree,
+    const CommandTree& additionalCmdTree,
+    const std::vector<Command>& specialCmds) {
   for (const auto& [verb, helpMsg] : kSupportedVerbs()) {
     app.add_subcommand(verb, helpMsg);
   }
 
-  initCommandTree(app, kCommandTree());
-  initCommandTree(app, kAdditionalCommandTree());
-  for (const auto& cmd : kSpecialCommands()) {
+  initCommandTree(app, cmdTree);
+  initCommandTree(app, additionalCmdTree);
+  for (const auto& cmd : specialCmds) {
     addCommand(app, cmd, 0);
   }
 }

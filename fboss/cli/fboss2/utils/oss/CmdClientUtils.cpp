@@ -10,6 +10,7 @@
 
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
 namespace facebook::fboss::utils {

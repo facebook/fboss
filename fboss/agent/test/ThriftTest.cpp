@@ -284,6 +284,48 @@ TYPED_TEST(ThriftTestAllSwitchTypes, setPortState) {
   EXPECT_FALSE(port->isEnabled());
 }
 
+TYPED_TEST(ThriftTestAllSwitchTypes, setPortDrainState) {
+  const PortID port5{5};
+  auto port = this->sw_->getState()->getPorts()->getPortIf(port5);
+  EXPECT_FALSE(port->isDrained());
+
+  ThriftHandler handler(this->sw_);
+  if (this->isFabric()) {
+    handler.setPortDrainState(port5, true);
+    waitForStateUpdates(this->sw_);
+    port = this->sw_->getState()->getPorts()->getPortIf(port5);
+    EXPECT_TRUE(port->isDrained());
+
+    handler.setPortDrainState(port5, false);
+    waitForStateUpdates(this->sw_);
+    port = this->sw_->getState()->getPorts()->getPortIf(port5);
+    EXPECT_FALSE(port->isDrained());
+  } else {
+    EXPECT_THROW(handler.setPortDrainState(port5, true), FbossError);
+    EXPECT_THROW(handler.setPortDrainState(port5, false), FbossError);
+  }
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, getPortStatus) {
+  const PortID port5{5};
+  auto port = this->sw_->getState()->getPorts()->getPortIf(port5);
+  ThriftHandler handler(this->sw_);
+
+  std::map<int32_t, PortStatus> statusMap;
+  std::vector<int> ports{5};
+  handler.getPortStatus(statusMap, std::make_unique<std::vector<int>>(ports));
+  auto portStatus = statusMap.find(5);
+  EXPECT_FALSE(*portStatus->second.drained());
+
+  if (this->isFabric()) {
+    handler.setPortDrainState(port5, true);
+    waitForStateUpdates(this->sw_);
+    handler.getPortStatus(statusMap, std::make_unique<std::vector<int>>(ports));
+    portStatus = statusMap.find(5);
+    EXPECT_TRUE(*portStatus->second.drained());
+  }
+}
+
 TYPED_TEST(ThriftTestAllSwitchTypes, getAndSetNeighborsToBlock) {
   ThriftHandler handler(this->sw_);
 
@@ -406,6 +448,13 @@ TYPED_TEST(ThriftTestAllSwitchTypes, getSysPorts) {
   } else {
     EXPECT_EQ(sysPorts.size(), 0);
   }
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, getSysPortStats) {
+  ThriftHandler handler(this->sw_);
+  std::map<std::string, HwSysPortStats> sysPortStats;
+  EXPECT_HW_CALL(this->sw_, getSysPortStats()).Times(1);
+  handler.getSysPortStats(sysPortStats);
 }
 
 std::unique_ptr<UnicastRoute> makeUnicastRoute(

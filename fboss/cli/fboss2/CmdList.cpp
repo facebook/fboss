@@ -50,6 +50,7 @@
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h"
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h"
+#include "fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h"
 #include "fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
@@ -75,7 +76,7 @@ const CommandTree& kCommandTree() {
 
       {"show",
        "agent",
-       "Show agent state",
+       "Show Agent state",
        {{"ssl",
          utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
          "Show Agent SSL information",
@@ -110,7 +111,7 @@ const CommandTree& kCommandTree() {
       {"show",
        "lldp",
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
-       "Show LLDPinformation",
+       "Show LLDP information",
        commandHandler<CmdShowLldp>},
 
       {"show",
@@ -123,7 +124,7 @@ const CommandTree& kCommandTree() {
       {"show",
        "port",
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
-       "Show Port queue information",
+       "Show Port information",
        commandHandler<CmdShowPort>,
        getValidFilterHandler<CmdShowPort>,
        {
@@ -205,7 +206,7 @@ const CommandTree& kCommandTree() {
       {"show",
        "route",
        utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
-       "Show route information",
+       "Show Route information",
        commandHandler<CmdShowRoute>,
        {{"details",
          utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST,
@@ -218,22 +219,28 @@ const CommandTree& kCommandTree() {
 
       {"show",
        "mac",
-       "Show mac information",
+       "Show MAC information",
        {{"blocked",
          utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
-         "Show details of blocked Mac addresses ",
+         "Show details of blocked MAC addresses",
          commandHandler<CmdShowMacAddrToBlock>},
         {"details",
          utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
-         "Show details of the Mac(L2) table ",
+         "Show details of the MAC(L2) table",
          commandHandler<CmdShowMacDetails>}}},
 
       {"show",
+       "mirror",
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+       "Show mirror",
+       commandHandler<CmdShowMirror>},
+
+      {"show",
        "mpls",
-       "Show mpls information",
+       "Show MPLS information",
        {{"route",
          utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
-         "Show details of mpls routes",
+         "Show details of MPLS routes",
          commandHandler<CmdShowMplsRoute>}}},
 
       {

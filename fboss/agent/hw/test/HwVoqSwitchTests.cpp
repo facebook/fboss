@@ -421,11 +421,84 @@ TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricReachability) {
   verifyAcrossWarmBoots([] {}, verify);
 }
 
+TEST_F(HwVoqSwitchWithFabricPortsTest, fabricIsolate) {
+  auto setup = [=]() { applyNewConfig(initialConfig()); };
+
+  auto verify = [=]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    SwitchStats dummy;
+    getHwSwitch()->updateStats(&dummy);
+    auto fabricPortId =
+        PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
+    checkPortFabricReachability(getHwSwitch(), fabricPortId);
+    auto newState = getProgrammedState();
+    auto port = newState->getPorts()->getPort(fabricPortId);
+    auto newPort = port->modify(&newState);
+    newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
+    applyNewState(newState);
+    getHwSwitch()->updateStats(&dummy);
+    checkPortFabricReachability(getHwSwitch(), fabricPortId);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSprayWithIsolate) {
+  utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
+  const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
+  auto setup = [this, kPort, ecmpHelper]() {
+    setForceTrafficOverFabric(getHwSwitch(), true);
+    addRemoveNeighbor(kPort, true /* add neighbor*/);
+  };
+
+  auto verify = [this, kPort, ecmpHelper]() {
+    auto beforePkts =
+        getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+
+    // Drain a fabric port
+    auto fabricPortId =
+        PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
+    auto newState = getProgrammedState();
+    auto port = newState->getPorts()->getPort(fabricPortId);
+    auto newPort = port->modify(&newState);
+    newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
+    applyNewState(newState);
+
+    // Send 10K packets and spray on fabric ports
+    for (auto i = 0; i < 10000; ++i) {
+      sendPacket(
+          ecmpHelper.ip(kPort), ecmpHelper.ecmpPortDescriptorAt(1).phyPortID());
+    }
+    WITH_RETRIES({
+      auto afterPkts =
+          getLatestPortStats(kPort.phyPortID()).get_outUnicastPkts_();
+      XLOG(DBG2) << "Before pkts: " << beforePkts
+                 << " After pkts: " << afterPkts;
+      EXPECT_EVENTUALLY_GE(afterPkts, beforePkts + 10000);
+      auto nifBytes = getLatestPortStats(kPort.phyPortID()).get_outBytes_();
+      auto fabricPortStats = getLatestPortStats(masterLogicalFabricPortIds());
+      auto fabricBytes = 0;
+      for (const auto& idAndStats : fabricPortStats) {
+        fabricBytes += idAndStats.second.get_outBytes_();
+      }
+      XLOG(DBG2) << "NIF bytes: " << nifBytes
+                 << " Fabric bytes: " << fabricBytes;
+      EXPECT_EVENTUALLY_GE(fabricBytes, nifBytes);
+      // Confirm load balance fails as the drained fabric port
+      // should see close to 0 packets. We may see some control packtes.
+      EXPECT_FALSE(utility::isLoadBalanced(fabricPortStats, 15));
+
+      // Confirm traffic is load balanced across all UNDRAINED fabric ports
+      fabricPortStats.erase(fabricPortId);
+      EXPECT_TRUE(utility::isLoadBalanced(fabricPortStats, 15));
+    });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 TEST_F(HwVoqSwitchWithFabricPortsTest, checkFabricPortSpray) {
   utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState());
   const auto kPort = ecmpHelper.ecmpPortDescriptorAt(0);
   auto setup = [this, kPort, ecmpHelper]() {
-    std::string out;
     setForceTrafficOverFabric(getHwSwitch(), true);
     addRemoveNeighbor(kPort, true /* add neighbor*/);
   };

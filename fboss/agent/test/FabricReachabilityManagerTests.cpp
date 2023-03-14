@@ -39,6 +39,7 @@ class FabricReachabilityManagerTest : public ::testing::Test {
     auto dsfNode = std::make_shared<DsfNode>(SwitchID(switchId));
     auto cfgDsfNode = makeDsfNodeCfg(switchId, name);
     cfgDsfNode.asicType() = cfg::AsicType::ASIC_TYPE_RAMON;
+    cfgDsfNode.type() = cfg::DsfNodeType::FABRIC_NODE;
     dsfNode->fromThrift(cfgDsfNode);
     return dsfNode;
   }
@@ -54,29 +55,45 @@ class FabricReachabilityManagerTest : public ::testing::Test {
     return swPort;
   }
 
+  std::vector<cfg::PortNeighbor> createPortNeighbor(
+      std::string portName,
+      std::string switchName) {
+    cfg::PortNeighbor nbr;
+    nbr.remotePort() = portName;
+    nbr.remoteSystem() = switchName;
+    return {nbr};
+  }
+
  protected:
   std::unique_ptr<HwTestHandle> handle_;
   std::unique_ptr<FabricReachabilityManager> fabricReachabilityManager_;
 };
 
 TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+
+  // create port with neighbor reachability
   std::shared_ptr<Port> swPort = makePort(1);
-  cfg::PortNeighbor nbr;
-  nbr.remotePort() = "fab1/2/3";
-  nbr.remoteSystem() = "fdswA";
+  swPort->setExpectedNeighborReachability(
+      createPortNeighbor("fab1/2/4", "fdswA"));
+  newState->getPorts()->addPort(swPort);
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;
-
+  endpoint.portId() = 79; // known from platforom mapping for kamet
   endpoint.switchId() = 10;
   endpoint.isAttached() = true;
 
   hwReachabilityMap.emplace(swPort->getID(), endpoint);
-  swPort->setExpectedNeighborReachability({nbr});
-  auto dsfNode = makeDsfNode(10, "fdswA");
 
-  fabricReachabilityManager_->addPort(swPort);
-  fabricReachabilityManager_->addDsfNode(dsfNode);
+  auto dsfNode = makeDsfNode(10, "fdswA");
+  auto dsfNodeMap = std::make_shared<DsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode);
+  newState->resetDsfNodes(dsfNodeMap);
+
+  StateDelta delta(oldState, newState);
+  fabricReachabilityManager_->stateUpdated(delta);
 
   const auto expectedReachabilityMap =
       fabricReachabilityManager_->processReachabilityInfo(hwReachabilityMap);
@@ -87,7 +104,100 @@ TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
     EXPECT_NE(neighbor.expectedPortId(), 0);
     EXPECT_EQ(neighbor.expectedSwitchId(), 10);
     EXPECT_EQ(neighbor.switchId(), 10);
+    EXPECT_EQ(neighbor.expectedSwitchName(), "fdswA");
+    EXPECT_EQ(neighbor.expectedPortName(), "fab1/2/4");
     EXPECT_TRUE(*neighbor.isAttached());
+    EXPECT_EQ(*neighbor.expectedPortId(), *neighbor.portId());
+    EXPECT_EQ(neighbor.expectedPortName(), neighbor.portName());
   }
 }
+
+TEST_F(FabricReachabilityManagerTest, validateUnattachedEndpoint) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+
+  // create port with neighbor reachability
+  std::shared_ptr<Port> swPort = makePort(1);
+  swPort->setExpectedNeighborReachability(
+      createPortNeighbor("fab1/2/4", "fdswA"));
+  newState->getPorts()->addPort(swPort);
+
+  auto dsfNode = makeDsfNode(10, "fdswA");
+  auto dsfNodeMap = std::make_shared<DsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode);
+  newState->resetDsfNodes(dsfNodeMap);
+
+  std::map<PortID, FabricEndpoint> hwReachabilityMap;
+  FabricEndpoint endpoint;
+  // dont set anything in the endpoint
+  endpoint.isAttached() = false;
+  hwReachabilityMap.emplace(swPort->getID(), endpoint);
+
+  // update
+  StateDelta delta(oldState, newState);
+  fabricReachabilityManager_->stateUpdated(delta);
+
+  const auto expectedReachabilityMap =
+      fabricReachabilityManager_->processReachabilityInfo(hwReachabilityMap);
+  EXPECT_EQ(expectedReachabilityMap.size(), 1);
+
+  // when unattached, we can't get get expectedPortId
+  for (const auto& expectedReachability : expectedReachabilityMap) {
+    const auto& neighbor = expectedReachability.second;
+    EXPECT_EQ(neighbor.expectedSwitchId(), 10);
+    EXPECT_EQ(*neighbor.expectedSwitchName(), "fdswA");
+    EXPECT_EQ(*neighbor.expectedPortName(), "fab1/2/4");
+    EXPECT_TRUE(neighbor.expectedPortId().has_value());
+
+    EXPECT_FALSE(neighbor.portName().has_value());
+    EXPECT_FALSE(neighbor.switchName().has_value());
+    EXPECT_FALSE(*neighbor.isAttached());
+  }
+}
+
+TEST_F(FabricReachabilityManagerTest, validateUnexpectedNeighbors) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+
+  // create port with neighbor reachability
+  std::shared_ptr<Port> swPort = makePort(1);
+  swPort->setExpectedNeighborReachability(
+      createPortNeighbor("fab1/2/3", "fdswA"));
+  newState->getPorts()->addPort(swPort);
+
+  std::map<PortID, FabricEndpoint> hwReachabilityMap;
+  FabricEndpoint endpoint;
+  endpoint.switchId() = 10;
+  endpoint.isAttached() = true;
+  endpoint.portId() = 79;
+  hwReachabilityMap.emplace(swPort->getID(), endpoint);
+
+  auto dsfNode1 = makeDsfNode(10, "fdswB");
+  auto dsfNode2 = makeDsfNode(20, "fdswA");
+
+  auto dsfNodeMap = std::make_shared<DsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode1);
+  dsfNodeMap->addDsfNode(dsfNode2);
+  newState->resetDsfNodes(dsfNodeMap);
+
+  // update
+  StateDelta delta(oldState, newState);
+  fabricReachabilityManager_->stateUpdated(delta);
+
+  const auto expectedReachabilityMap =
+      fabricReachabilityManager_->processReachabilityInfo(hwReachabilityMap);
+
+  for (const auto& expectedReachability : expectedReachabilityMap) {
+    const auto& neighbor = expectedReachability.second;
+    EXPECT_EQ(expectedReachabilityMap.size(), 1);
+    EXPECT_NE(*neighbor.expectedSwitchId(), *neighbor.switchId());
+    EXPECT_EQ(neighbor.expectedPortName(), "fab1/2/3");
+    EXPECT_NE(neighbor.expectedSwitchName(), neighbor.switchName());
+    EXPECT_NE(neighbor.expectedPortName(), neighbor.portName());
+    EXPECT_TRUE(neighbor.expectedPortId().has_value());
+    // portId = 79 results in fab1/2/4
+    EXPECT_EQ(neighbor.portName(), "fab1/2/4");
+  }
+}
+
 } // namespace facebook::fboss
