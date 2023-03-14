@@ -20,6 +20,12 @@ if (BENCHMARK_INSTALL)
   message(STATUS "Configured to install benchmark binaries")
 endif()
 
+option(BUILD_SAI_FAKE "Build sai binaries for fake_sai" OFF)
+if ($ENV{BUILD_SAI_FAKE})
+  message(STATUS "ENV BUILD_SAI_FAKE is set")
+  set (BUILD_SAI_FAKE ON)
+endif()
+
 option(BUILD_SAI_FAKE_BENCHMARKS "Build benchmarks binaries for fake_sai" OFF)
 if ($ENV{BUILD_SAI_FAKE_BENCHMARKS})
   message(STATUS "ENV BUILD_SAI_FAKE_BENCHMARKS is set")
