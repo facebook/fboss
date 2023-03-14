@@ -35,6 +35,13 @@ bool createOnlyAttributesChanged(
       GET_ATTR(SystemPort, ConfigInfo, newAttrs);
 }
 } // namespace
+
+void SaiSystemPortHandle::resetQueues() {
+  for (auto& cfgAndQueue : queues) {
+    cfgAndQueue.second->resetQueue();
+  }
+}
+
 SaiSystemPortManager::SaiSystemPortManager(
     SaiStore* saiStore,
     SaiManagerTable* managerTable,
@@ -98,7 +105,76 @@ SystemPortSaiId SaiSystemPortManager::addSystemPort(
       {saiSystemPort->adapterKey(), swSystemPort->getID()});
   concurrentIndices_->sysPortSaiIds.insert(
       {swSystemPort->getID(), saiSystemPort->adapterKey()});
+  configureQueues(swSystemPort, swSystemPort->getPortQueues()->impl());
   return saiSystemPort->adapterKey();
+}
+
+SaiQueueHandle* FOLLY_NULLABLE SaiSystemPortManager::getQueueHandle(
+    SystemPortID swId,
+    const SaiQueueConfig& saiQueueConfig) const {
+  auto portHandle = getSystemPortHandleImpl(swId);
+  if (!portHandle) {
+    XLOG(FATAL) << "Invalid null SaiPortHandle for " << swId;
+  }
+  auto itr = portHandle->queues.find(saiQueueConfig);
+  if (itr == portHandle->queues.end()) {
+    return nullptr;
+  }
+  if (!itr->second.get()) {
+    throw FbossError("Invalid null SaiQueueHandle for ", swId);
+  }
+  return itr->second.get();
+}
+
+void SaiSystemPortManager::configureQueues(
+    const std::shared_ptr<SystemPort>& systemPort,
+    const QueueConfig& newQueueConfig) {
+  auto swId = systemPort->getID();
+  auto pitr = portStats_.find(swId);
+  for (const auto& newPortQueue : std::as_const(newQueueConfig)) {
+    SaiQueueConfig saiQueueConfig =
+        std::make_pair(newPortQueue->getID(), newPortQueue->getStreamType());
+    auto queueHandle = getQueueHandle(swId, saiQueueConfig);
+    DCHECK(queueHandle);
+    managerTable_->queueManager().changeQueue(queueHandle, *newPortQueue);
+
+    auto queueName = newPortQueue->getName()
+        ? *newPortQueue->getName()
+        : folly::to<std::string>("queue", newPortQueue->getID());
+    if (pitr != portStats_.end()) {
+      pitr->second->queueChanged(newPortQueue->getID(), queueName);
+    }
+    // TODO: Add configuredQueues to handle and optimize stats collection
+    // to use only configured queues. Here, will need to update configured
+    // queues based on the newQueueConfig.
+  }
+}
+
+void SaiSystemPortManager::changeQueue(
+    const std::shared_ptr<SystemPort>& systemPort,
+    const QueueConfig& oldQueueConfig,
+    const QueueConfig& newQueueConfig) {
+  configureQueues(systemPort, newQueueConfig);
+  auto swId = systemPort->getID();
+  auto systemPortHandle = getSystemPortHandleImpl(swId);
+  if (!systemPortHandle) {
+    throw FbossError("Attempted to change non-existent system port!");
+  }
+  auto pitr = portStats_.find(swId);
+  for (const auto& oldPortQueue : std::as_const(oldQueueConfig)) {
+    auto portQueueIter = std::find_if(
+        newQueueConfig.begin(),
+        newQueueConfig.end(),
+        [&](const std::shared_ptr<PortQueue> portQueue) {
+          return portQueue->getID() == oldPortQueue->getID();
+        });
+    // Queue Remove
+    if (portQueueIter == newQueueConfig.end()) {
+      if (pitr != portStats_.end()) {
+        pitr->second->queueRemoved(oldPortQueue->getID());
+      }
+    }
+  }
 }
 
 void SaiSystemPortManager::changeSystemPort(
@@ -136,6 +212,10 @@ void SaiSystemPortManager::changeSystemPort(
     // Note that we don't need to worry about numVoqs changing
     // since that's a create only attribute, which upon change
     // would cause a remove + add sys port sequence
+    changeQueue(
+        newSystemPort,
+        oldSystemPort->getPortQueues()->impl(),
+        newSystemPort->getPortQueues()->impl());
   }
 }
 
@@ -152,6 +232,7 @@ void SaiSystemPortManager::setupVoqStats(
     for (auto i = 0; i < swSystemPort->getNumVoqs(); ++i) {
       // TODO pull name from qos config
       auto queueName = folly::to<std::string>("queue", i);
+      // TODO: This should be limited to configured queues
       pitr->second->queueChanged(i, queueName);
     }
   }
@@ -194,9 +275,16 @@ void SaiSystemPortManager::removeSystemPort(
   }
   concurrentIndices_->sysPortSaiIds.erase(swId);
   concurrentIndices_->sysPortIds.erase(itr->second->systemPort->adapterKey());
+  itr->second->resetQueues();
   handles_.erase(itr);
   portStats_.erase(swId);
   XLOG(DBG2) << "removed system port: " << swId;
+}
+
+void SaiSystemPortManager::resetQueues() {
+  for (auto& idAndHandle : handles_) {
+    idAndHandle.second->resetQueues();
+  }
 }
 
 // private const getter for use by const and non-const getters

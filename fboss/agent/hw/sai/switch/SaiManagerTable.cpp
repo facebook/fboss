@@ -157,6 +157,7 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // dependency with mirror and can be removed.
   mirrorManager_.reset();
   macsecManager_.reset();
+  systemPortManager_->resetQueues();
   // Reset the qos maps on system port before ports are
   // removed from the system.
   systemPortManager_->resetQosMaps();
