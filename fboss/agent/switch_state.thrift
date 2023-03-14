@@ -491,6 +491,10 @@ struct QcmCfgFields {
   16: map<i32, set<i32>> port2QosQueueIds;
 }
 
+// String encoding NpuId list for indexing multi npu tables.
+// eg: "Id:1,2,3" indicates a table applicable to NpuIds 1, 2 and 3
+typedef string NpuList
+
 struct SwitchState {
   1: map<i16, PortFields> portMap;
   2: map<i16, VlanFields> vlanMap;
@@ -533,6 +537,37 @@ struct SwitchState {
   // Remote objects
   500: map<i64, SystemPortFields> remoteSystemPortMap;
   501: map<i32, InterfaceFields> remoteInterfaceMap;
+
+  // Multi NPU table definitions
+  100: map<NpuList, map<i16, PortFields>> portMaps;
+  101: map<NpuList, map<i16, VlanFields>> vlanMaps;
+  102: map<NpuList, map<string, AclEntryFields>> aclMaps;
+  103: map<NpuList, map<i16, TransceiverSpecFields>> transceiverMaps;
+  104: map<NpuList, map<string, BufferPoolFields>> bufferPoolCfgMaps;
+  105: map<NpuList, map<string, MirrorFields>> mirrorMaps;
+  106: map<NpuList, ControlPlaneFields> controlPlaneMap;
+  107: map<NpuList, SwitchSettingsFields> switchSettingsMap;
+  108: map<NpuList, map<i64, SystemPortFields>> systemPortMaps;
+  109: map<NpuList, map<i16, FibContainerFields>> fibsMap;
+  110: map<NpuList, map<i32, LabelForwardingEntryFields>> labelFibMap;
+  111: map<NpuList, map<string, QosPolicyFields>> qosPolicyMaps;
+  112: map<NpuList, map<string, SflowCollectorFields>> sflowCollectorMaps;
+  113: map<NpuList, map<string, IpTunnelFields>> ipTunnelMaps;
+  114: map<NpuList, map<string, TeFlowEntryFields>> teFlowTables;
+  115: map<NpuList, map<i16, AggregatePortFields>> aggregatePortMaps;
+  116: map<
+    NpuList,
+    map<switch_config.LoadBalancerID, LoadBalancerFields>
+  > loadBalancerMaps;
+  117: map<
+    NpuList,
+    map<switch_config.AclStage, AclTableGroupFields>
+  > aclTableGroupMaps;
+  118: map<NpuList, map<i32, InterfaceFields>> interfaceMaps;
+  119: map<NpuList, map<i64, switch_config.DsfNode>> dsfNodesMap;
+  // Remote object maps
+  600: map<NpuList, map<i64, SystemPortFields>> remoteSystemPortMaps;
+  601: map<NpuList, map<i32, InterfaceFields>> remoteInterfaceMaps;
 } (thriftpath.root)
 
 struct RouteTableFields {
