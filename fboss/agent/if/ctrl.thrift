@@ -386,6 +386,7 @@ struct SystemPortThrift {
   7: i64 numVoqs;
   9: bool enabled;
   10: optional string qosPolicy;
+  11: list<PortQueueFields> queues;
 }
 
 struct PortHardwareDetails {
