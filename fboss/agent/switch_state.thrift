@@ -36,33 +36,6 @@ struct PortPgFields {
   8: optional BufferPoolFields bufferPoolConfig;
 }
 
-// Port queueing configuration
-struct PortQueueFields {
-  1: i16 id = 0;
-  2: i32 weight = 1;
-  3: optional i32 reserved;
-  // TODO: replace with switch_config.MMUScalingFactor?
-  4: optional string scalingFactor;
-  // TODO: replace with switch_config.QueueScheduling?
-  5: string scheduling = "WEIGHTED_ROUND_ROBIN";
-  // TODO: replace with switch_config.StreamType?
-  6: string streamType = "UNICAST";
-  7: optional list<switch_config.ActiveQueueManagement> aqms;
-  8: optional string name;
-  /*
-  * Refer PortQueueRate which is a generalized version and allows configuring
-  * pps as well as kbps.
-  */
-  10: optional i32 packetsPerSec_DEPRECATED;
-  11: optional i32 sharedBytes;
-  12: optional switch_config.PortQueueRate portQueueRate;
-
-  13: optional i32 bandwidthBurstMinKbits;
-  14: optional i32 bandwidthBurstMaxKbits;
-  15: optional i16 trafficClass;
-  16: optional list<i16> pfcPriorities;
-}
-
 struct MKASakKey {
   1: mka_structs.MKASci sci;
   2: i32 associationNum;
@@ -91,7 +64,7 @@ struct PortFields {
   12: map<string, VlanInfo> vlanMemberShips;
   13: i32 sFlowIngressRate;
   14: i32 sFlowEgressRate;
-  15: list<PortQueueFields> queues;
+  15: list<ctrl.PortQueueFields> queues;
   16: string portLoopbackMode = "NONE";
   17: optional string ingressMirror;
   18: optional string egressMirror;
@@ -292,7 +265,7 @@ struct MirrorFields {
 }
 
 struct ControlPlaneFields {
-  1: list<PortQueueFields> queues;
+  1: list<ctrl.PortQueueFields> queues;
   2: list<switch_config.PacketRxReasonToQueue> rxReasonToQueue;
   3: optional string defaultQosPolicy;
 }

@@ -349,6 +349,33 @@ struct PortInfoThrift {
   23: optional i32 hwLogicalPortId;
 }
 
+// Port queueing configuration
+struct PortQueueFields {
+  1: i16 id = 0;
+  2: i32 weight = 1;
+  3: optional i32 reserved;
+  // TODO: replace with switch_config.MMUScalingFactor?
+  4: optional string scalingFactor;
+  // TODO: replace with switch_config.QueueScheduling?
+  5: string scheduling = "WEIGHTED_ROUND_ROBIN";
+  // TODO: replace with switch_config.StreamType?
+  6: string streamType = "UNICAST";
+  7: optional list<switch_config.ActiveQueueManagement> aqms;
+  8: optional string name;
+  /*
+  * Refer PortQueueRate which is a generalized version and allows configuring
+  * pps as well as kbps.
+  */
+  10: optional i32 packetsPerSec_DEPRECATED;
+  11: optional i32 sharedBytes;
+  12: optional switch_config.PortQueueRate portQueueRate;
+
+  13: optional i32 bandwidthBurstMinKbits;
+  14: optional i32 bandwidthBurstMaxKbits;
+  15: optional i16 trafficClass;
+  16: optional list<i16> pfcPriorities;
+}
+
 struct SystemPortThrift {
   1: i64 portId;
   2: i64 switchId;
