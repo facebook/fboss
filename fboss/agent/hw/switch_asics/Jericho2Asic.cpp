@@ -74,6 +74,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
     case HwAsic::Feature::QUEUE_ECN_COUNTER:
+    case HwAsic::Feature::SAI_ECN_WRED:
       return true;
 
     case HwAsic::Feature::UDF_HASH_FIELD_QUERY:
@@ -120,7 +121,6 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EXTENDED_FEC:
     case HwAsic::Feature::SAI_RX_REASON_COUNTER:
     case HwAsic::Feature::SAI_MPLS_INSEGMENT:
-    case HwAsic::Feature::SAI_ECN_WRED: // CS00012266807, CS00012266838
     case HwAsic::Feature::XPHY_PORT_STATE_TOGGLE:
     case HwAsic::Feature::SAI_PORT_GET_PMD_LANES:
     case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
