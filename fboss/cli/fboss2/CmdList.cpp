@@ -272,7 +272,7 @@ const CommandTree& kCommandTree() {
 
       {"show",
        "host",
-       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST,
        "Show Host Information",
        commandHandler<CmdShowHost>},
 
