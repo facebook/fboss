@@ -50,6 +50,7 @@
 #include "fboss/cli/fboss2/commands/show/lldp/CmdShowLldp.h"
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h"
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h"
+#include "fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h"
 #include "fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
@@ -227,6 +228,12 @@ const CommandTree& kCommandTree() {
          utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
          "Show details of the Mac(L2) table ",
          commandHandler<CmdShowMacDetails>}}},
+
+      {"show",
+       "mirror",
+       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE,
+       "Show mirror",
+       commandHandler<CmdShowMirror>},
 
       {"show",
        "mpls",

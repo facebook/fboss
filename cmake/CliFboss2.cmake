@@ -67,6 +67,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_mirror_model
+  fboss/cli/fboss2/commands/show/mirror/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_ndp_model
   fboss/cli/fboss2/commands/show/ndp/model.thrift
   OPTIONS
@@ -259,6 +266,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h
   fboss/cli/fboss2/commands/show/mac/CmdShowMacAddrToBlock.h
   fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h
+  fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
   fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h
@@ -318,6 +326,7 @@ target_link_libraries(fboss2
   show_host_model
   show_l2_model
   show_lldp_model
+  show_mirror_model
   show_ndp_model
   show_port_model
   show_transceiver_model
