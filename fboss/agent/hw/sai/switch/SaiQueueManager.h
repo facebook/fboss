@@ -56,6 +56,15 @@ class SaiQueueManager {
       const SaiPlatform* platform);
   SaiQueueHandles loadQueues(const std::vector<QueueSaiId>& queueSaiIds);
   void changeQueue(SaiQueueHandle* queueHandle, const PortQueue& newPortQueue);
+  void changeQueueBufferProfile(
+      SaiQueueHandle* queueHandle,
+      const PortQueue& newPortQueue);
+  void changeQueueEcnWred(
+      SaiQueueHandle* queueHandle,
+      const PortQueue& newPortQueue);
+  void changeQueueScheduler(
+      SaiQueueHandle* queueHandle,
+      const PortQueue& newPortQueue);
   void ensurePortQueueConfig(
       PortSaiId portSaiId,
       const SaiQueueHandles& queueHandles,
