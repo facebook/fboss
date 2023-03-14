@@ -182,6 +182,14 @@ SaiQueueManager::SaiQueueManager(
 void SaiQueueManager::changeQueueEcnWred(
     SaiQueueHandle* queueHandle,
     const PortQueue& newPortQueue) {
+  auto qType = SaiApiTable::getInstance()->queueApi().getAttribute(
+      queueHandle->queue->adapterKey(), SaiQueueTraits::Attributes::Type{});
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::VOQ) &&
+      (SAI_QUEUE_TYPE_UNICAST_VOQ != qType) &&
+      (SAI_QUEUE_TYPE_MULTICAST_VOQ != qType)) {
+    // VOQ switches support WRED/ECN configs on voqs only
+    return;
+  }
   auto newWredProfile =
       managerTable_->wredManager().getOrCreateProfile(newPortQueue);
   if (newWredProfile != queueHandle->wredProfile) {
