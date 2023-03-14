@@ -34,9 +34,16 @@
 
 #include <folly/dynamic.h>
 
+#include "fboss/agent/FsdbHelper.h"
+
 using std::shared_ptr;
 
 namespace facebook::fboss {
+
+StateDelta::StateDelta(
+    std::shared_ptr<SwitchState> oldState,
+    std::shared_ptr<SwitchState> newState)
+    : old_(oldState), new_(newState) {}
 
 StateDelta::~StateDelta() {}
 
@@ -224,6 +231,13 @@ thrift_cow::ThriftMapDelta<TeFlowTable> StateDelta::getTeFlowEntriesDelta()
     const {
   return thrift_cow::ThriftMapDelta<TeFlowTable>(
       old_->getTeFlowTable().get(), new_->getTeFlowTable().get());
+}
+
+const fsdb::OperDelta& StateDelta::getOperDelta() {
+  if (!operDelta_.has_value()) {
+    operDelta_.emplace(computeOperDelta(old_, new_, switchStateRootPath()));
+  }
+  return operDelta_.value();
 }
 
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta) {
