@@ -3,7 +3,7 @@
 #pragma once
 
 #include <folly/IPAddress.h>
-#include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
 
 namespace facebook::fboss {
 

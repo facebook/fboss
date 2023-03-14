@@ -10,10 +10,12 @@
 
 #pragma once
 
+#include <folly/String.h>
 #include <memory>
 #include <variant>
 #include <vector>
-#include "fboss/cli/fboss2/utils/CmdUtils.h"
+
+#include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
 
 namespace facebook::fboss {
 
