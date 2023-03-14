@@ -34,8 +34,16 @@ class CmdSubcommands {
       const std::vector<Command>& specialCmds);
 
  private:
-  CLI::App* addCommand(CLI::App& app, const Command& cmd, int depth);
-  void addCommandBranch(CLI::App& app, const Command& cmd, int depth = 0);
+  CLI::App* addCommand(
+      CLI::App& app,
+      const Command& cmd,
+      std::string& fullCmd,
+      int depth);
+  void addCommandBranch(
+      CLI::App& app,
+      const Command& cmd,
+      std::string& fullCmd,
+      int depth = 0);
   void initCommandTree(CLI::App& app, const CommandTree& cmdTree);
 };
 

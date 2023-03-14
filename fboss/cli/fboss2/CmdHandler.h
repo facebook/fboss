@@ -76,6 +76,7 @@ struct BaseCommandTraits {
   using ObjectArgType = std::monostate;
   static constexpr bool ALLOW_FILTERING = false;
   static constexpr bool ALLOW_AGGREGATION = false;
+  std::vector<utils::LocalOption> LocalOptions = {};
 };
 
 template <typename CmdTypeT, typename CmdTypeTraits>

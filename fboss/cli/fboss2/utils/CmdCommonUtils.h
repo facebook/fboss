@@ -16,6 +16,11 @@
 
 namespace facebook::fboss::utils {
 
+struct LocalOption {
+  std::string name;
+  std::string helpMsg;
+};
+
 struct CmdLogInfo {
   std::string CmdName;
   std::string Duration;
