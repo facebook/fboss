@@ -24,14 +24,14 @@ class FabricReachabilityManager {
   FabricEndpoint processReachabilityInfoForPort(
       const PortID& portId,
       const FabricEndpoint& hwReachability);
-  void addPort(const std::shared_ptr<Port>& swPort);
-  void removePort(const std::shared_ptr<Port>& swPort);
-  void addDsfNode(const std::shared_ptr<DsfNode>& dsfNode);
-  void removeDsfNode(const std::shared_ptr<DsfNode>& dsfNode);
 
  private:
   void updatePorts(const StateDelta& delta);
   void updateDsfNodes(const StateDelta& delta);
+  void addPort(const std::shared_ptr<Port>& swPort);
+  void removePort(const std::shared_ptr<Port>& swPort);
+  void addDsfNode(const std::shared_ptr<DsfNode>& dsfNode);
+  void removeDsfNode(const std::shared_ptr<DsfNode>& dsfNode);
 
   void updateExpectedPortId(
       FabricEndpoint& endpoint,

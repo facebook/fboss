@@ -55,30 +55,45 @@ class FabricReachabilityManagerTest : public ::testing::Test {
     return swPort;
   }
 
+  std::vector<cfg::PortNeighbor> createPortNeighbor(
+      std::string portName,
+      std::string switchName) {
+    cfg::PortNeighbor nbr;
+    nbr.remotePort() = portName;
+    nbr.remoteSystem() = switchName;
+    return {nbr};
+  }
+
  protected:
   std::unique_ptr<HwTestHandle> handle_;
   std::unique_ptr<FabricReachabilityManager> fabricReachabilityManager_;
 };
 
 TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+
+  // create port with neighbor reachability
   std::shared_ptr<Port> swPort = makePort(1);
-  cfg::PortNeighbor nbr;
-  nbr.remotePort() = "fab1/2/4";
-  nbr.remoteSystem() = "fdswA";
+  swPort->setExpectedNeighborReachability(
+      createPortNeighbor("fab1/2/4", "fdswA"));
+  newState->getPorts()->addPort(swPort);
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;
-
   endpoint.portId() = 79; // known from platforom mapping for kamet
   endpoint.switchId() = 10;
   endpoint.isAttached() = true;
 
   hwReachabilityMap.emplace(swPort->getID(), endpoint);
-  swPort->setExpectedNeighborReachability({nbr});
-  auto dsfNode = makeDsfNode(10, "fdswA");
 
-  fabricReachabilityManager_->addPort(swPort);
-  fabricReachabilityManager_->addDsfNode(dsfNode);
+  auto dsfNode = makeDsfNode(10, "fdswA");
+  auto dsfNodeMap = std::make_shared<DsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode);
+  newState->resetDsfNodes(dsfNodeMap);
+
+  StateDelta delta(oldState, newState);
+  fabricReachabilityManager_->stateUpdated(delta);
 
   const auto expectedReachabilityMap =
       fabricReachabilityManager_->processReachabilityInfo(hwReachabilityMap);
@@ -98,23 +113,29 @@ TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
 }
 
 TEST_F(FabricReachabilityManagerTest, validateUnattachedEndpoint) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+
+  // create port with neighbor reachability
   std::shared_ptr<Port> swPort = makePort(1);
-  cfg::PortNeighbor nbr;
-  nbr.remotePort() = "fab1/2/4";
-  nbr.remoteSystem() = "fdswA";
+  swPort->setExpectedNeighborReachability(
+      createPortNeighbor("fab1/2/4", "fdswA"));
+  newState->getPorts()->addPort(swPort);
+
+  auto dsfNode = makeDsfNode(10, "fdswA");
+  auto dsfNodeMap = std::make_shared<DsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode);
+  newState->resetDsfNodes(dsfNodeMap);
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;
-
   // dont set anything in the endpoint
   endpoint.isAttached() = false;
-
   hwReachabilityMap.emplace(swPort->getID(), endpoint);
-  swPort->setExpectedNeighborReachability({nbr});
-  auto dsfNode = makeDsfNode(10, "fdswA");
 
-  fabricReachabilityManager_->addPort(swPort);
-  fabricReachabilityManager_->addDsfNode(dsfNode);
+  // update
+  StateDelta delta(oldState, newState);
+  fabricReachabilityManager_->stateUpdated(delta);
 
   const auto expectedReachabilityMap =
       fabricReachabilityManager_->processReachabilityInfo(hwReachabilityMap);
@@ -135,25 +156,33 @@ TEST_F(FabricReachabilityManagerTest, validateUnattachedEndpoint) {
 }
 
 TEST_F(FabricReachabilityManagerTest, validateUnexpectedNeighbors) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+
+  // create port with neighbor reachability
   std::shared_ptr<Port> swPort = makePort(1);
-  cfg::PortNeighbor nbr;
-  nbr.remotePort() = "fab1/2/3";
-  nbr.remoteSystem() = "fdswA";
+  swPort->setExpectedNeighborReachability(
+      createPortNeighbor("fab1/2/3", "fdswA"));
+  newState->getPorts()->addPort(swPort);
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;
-
   endpoint.switchId() = 10;
   endpoint.isAttached() = true;
   endpoint.portId() = 79;
-
   hwReachabilityMap.emplace(swPort->getID(), endpoint);
-  swPort->setExpectedNeighborReachability({nbr});
-  auto dsfNode = makeDsfNode(10, "fdswB");
 
-  fabricReachabilityManager_->addPort(swPort);
-  fabricReachabilityManager_->addDsfNode(dsfNode);
-  fabricReachabilityManager_->addDsfNode(makeDsfNode(20, "fdswA"));
+  auto dsfNode1 = makeDsfNode(10, "fdswB");
+  auto dsfNode2 = makeDsfNode(20, "fdswA");
+
+  auto dsfNodeMap = std::make_shared<DsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode1);
+  dsfNodeMap->addDsfNode(dsfNode2);
+  newState->resetDsfNodes(dsfNodeMap);
+
+  // update
+  StateDelta delta(oldState, newState);
+  fabricReachabilityManager_->stateUpdated(delta);
 
   const auto expectedReachabilityMap =
       fabricReachabilityManager_->processReachabilityInfo(hwReachabilityMap);
