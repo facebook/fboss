@@ -17,6 +17,11 @@
 
 #include "fboss/agent/FbossError.h"
 
+DEFINE_string(
+    platform_mapping_override_path,
+    "",
+    "The path to the Platform Mapping JSON file");
+
 namespace {
 constexpr auto kFbossPortNameRegex = "eth(\\d+)/(\\d+)/(\\d+)";
 const re2::RE2 portNameRegex(kFbossPortNameRegex);

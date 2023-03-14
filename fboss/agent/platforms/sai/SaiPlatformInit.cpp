@@ -34,11 +34,6 @@
 #include "fboss/agent/platforms/sai/SaiSandiaPlatform.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
 
-DEFINE_string(
-    platform_mapping_override_path,
-    "",
-    "The path to the Platform Mapping JSON file");
-
 namespace facebook::fboss {
 
 std::unique_ptr<SaiPlatform> chooseSaiPlatform(
