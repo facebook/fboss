@@ -10,7 +10,6 @@
 
 #include "fboss/cli/fboss2/CmdSubcommands.h"
 #include "fboss/cli/fboss2/CmdArgsLists.h"
-#include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
 #include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
 
@@ -213,14 +212,18 @@ void CmdSubcommands::initCommandTree(
   }
 }
 
-void CmdSubcommands::init(CLI::App& app) {
+void CmdSubcommands::init(
+    CLI::App& app,
+    const CommandTree& cmdTree,
+    const CommandTree& additionalCmdTree,
+    const std::vector<Command>& specialCmds) {
   for (const auto& [verb, helpMsg] : kSupportedVerbs()) {
     app.add_subcommand(verb, helpMsg);
   }
 
-  initCommandTree(app, kCommandTree());
-  initCommandTree(app, kAdditionalCommandTree());
-  for (const auto& cmd : kSpecialCommands()) {
+  initCommandTree(app, cmdTree);
+  initCommandTree(app, additionalCmdTree);
+  for (const auto& cmd : specialCmds) {
     addCommand(app, cmd, 0);
   }
 }

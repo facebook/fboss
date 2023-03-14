@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "fboss/cli/fboss2/CmdList.h"
+#include "fboss/cli/fboss2/CmdList.h" // @manual=:cmd-list-header
 
 namespace facebook::fboss {
 
@@ -27,7 +27,11 @@ class CmdSubcommands {
   // Static function for getting the CmdSubcommands folly::Singleton
   static std::shared_ptr<CmdSubcommands> getInstance();
 
-  void init(CLI::App& app);
+  void init(
+      CLI::App& app,
+      const CommandTree& cmdTree,
+      const CommandTree& additionalCmdTree,
+      const std::vector<Command>& specialCmds);
 
  private:
   CLI::App* addCommand(CLI::App& app, const Command& cmd, int depth);
