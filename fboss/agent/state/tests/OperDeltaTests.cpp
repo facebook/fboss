@@ -52,3 +52,20 @@ TEST(OperDeltaTests, OperDeltaCompute) {
   // 1 mirror
   EXPECT_EQ(delta2.getOperDelta().changes()->size(), 1);
 }
+
+TEST(OperDeltaTests, OperDeltaProcess) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  auto config = testConfigA();
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+
+  auto operDelta = computeOperDelta(stateV0, stateV1, switchStateRootPath());
+
+  auto delta = StateDelta(stateV0, operDelta);
+  auto stateV2 = delta.newState();
+  EXPECT_EQ(stateV2->toThrift(), stateV1->toThrift());
+  EXPECT_EQ(stateV0->getGeneration(), 0);
+  EXPECT_EQ(stateV1->getGeneration(), 1);
+  EXPECT_EQ(stateV2->getGeneration(), 1);
+}
