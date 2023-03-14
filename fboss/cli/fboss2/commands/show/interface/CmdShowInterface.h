@@ -11,6 +11,7 @@
 #pragma once
 
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
 #include <folly/executors/IOThreadPoolExecutor.h>
 
