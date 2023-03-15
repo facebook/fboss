@@ -316,7 +316,7 @@ TEST_F(ModbusDeviceTest, DeviceStatus) {
   EXPECT_EQ(j["crc_fails"], 0);
   EXPECT_EQ(j["misc_fails"], 0);
   EXPECT_EQ(j["timeouts"], 0);
-  EXPECT_EQ(j["mode"], "active");
+  EXPECT_EQ(j["mode"], "ACTIVE");
   EXPECT_EQ(j["baudrate"], 19200);
 }
 
@@ -452,7 +452,7 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   EXPECT_EQ(j["crcErrors"], 0);
   EXPECT_EQ(j["timeouts"], 0);
   EXPECT_EQ(j["miscErrors"], 0);
-  EXPECT_EQ(j["mode"], "active");
+  EXPECT_EQ(j["mode"], "ACTIVE");
   EXPECT_NEAR(j["now"], std::time(0), 10);
   EXPECT_TRUE(j["registers"].is_array() && j["registers"].size() == 1);
   EXPECT_EQ(j["registers"][0]["regAddress"], 0);
@@ -502,7 +502,7 @@ TEST_F(ModbusDeviceTest, MonitorRawData) {
   EXPECT_EQ(data["crc_fails"], 0);
   EXPECT_EQ(data["timeouts"], 0);
   EXPECT_EQ(data["misc_fails"], 0);
-  EXPECT_EQ(data["mode"], "active");
+  EXPECT_EQ(data["mode"], "ACTIVE");
   EXPECT_NEAR(data["now"], std::time(0), 10);
   EXPECT_TRUE(data["ranges"].is_array() && data["ranges"].size() == 1);
   EXPECT_EQ(data["ranges"][0]["begin"], 0);
@@ -518,7 +518,7 @@ TEST_F(ModbusDeviceTest, MonitorRawData) {
   EXPECT_EQ(data2["crc_fails"], 0);
   EXPECT_EQ(data2["timeouts"], 0);
   EXPECT_EQ(data2["misc_fails"], 0);
-  EXPECT_EQ(data2["mode"], "active");
+  EXPECT_EQ(data2["mode"], "ACTIVE");
   EXPECT_NEAR(data2["now"], std::time(0), 10);
   EXPECT_TRUE(data2["ranges"].is_array() && data2["ranges"].size() == 1);
   EXPECT_EQ(data2["ranges"][0]["begin"], 0);

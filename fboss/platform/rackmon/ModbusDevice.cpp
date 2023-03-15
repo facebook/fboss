@@ -329,8 +329,8 @@ void ModbusSpecialHandler::handle(ModbusDevice& dev) {
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
     ModbusDeviceMode,
-    {{ModbusDeviceMode::ACTIVE, "active"},
-     {ModbusDeviceMode::DORMANT, "dormant"}})
+    {{ModbusDeviceMode::ACTIVE, "ACTIVE"},
+     {ModbusDeviceMode::DORMANT, "DORMANT"}})
 
 // Legacy JSON format.
 void to_json(json& j, const ModbusDeviceInfo& m) {
