@@ -305,11 +305,13 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   std::chrono::seconds getArpAgerInterval() const {
+    auto arpAgeSwSettings = getSwitchSettings()->getArpAgerInterval();
+    if (arpAgeSwSettings.has_value()) {
+      return arpAgeSwSettings.value();
+    }
     return std::chrono::seconds(
         cref<switch_state_tags::arpAgerInterval>()->toThrift());
   }
-
-  void setArpAgerInterval(std::chrono::seconds interval);
 
   uint32_t getMaxNeighborProbes() const {
     return cref<switch_state_tags::maxNeighborProbes>()->toThrift();
@@ -317,11 +319,13 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void setMaxNeighborProbes(uint32_t maxNeighborProbes);
 
   std::chrono::seconds getStaleEntryInterval() const {
+    auto staleEntrySwSettings = getSwitchSettings()->getStaleEntryInterval();
+    if (staleEntrySwSettings.has_value()) {
+      return staleEntrySwSettings.value();
+    }
     return std::chrono::seconds(
         cref<switch_state_tags::staleEntryInterval>()->toThrift());
   }
-
-  void setStaleEntryInterval(std::chrono::seconds interval);
 
   // dhcp relay packet IP overrides
 

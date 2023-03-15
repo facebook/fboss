@@ -658,12 +658,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
-  std::chrono::seconds arpAgerInterval(*cfg_->arpAgerInterval());
-  if (orig_->getArpAgerInterval() != arpAgerInterval) {
-    new_->setArpAgerInterval(arpAgerInterval);
-    changed = true;
-  }
-
   uint32_t maxNeighborProbes(*cfg_->maxNeighborProbes());
   if (orig_->getMaxNeighborProbes() != maxNeighborProbes) {
     new_->setMaxNeighborProbes(maxNeighborProbes);
@@ -703,12 +697,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
       : IPAddressV6("::");
   if (oldDhcpV6ReplySrc != newDhcpV6ReplySrc) {
     new_->setDhcpV6ReplySrc(newDhcpV6ReplySrc);
-    changed = true;
-  }
-
-  std::chrono::seconds staleEntryInterval(*cfg_->staleEntryInterval());
-  if (orig_->getStaleEntryInterval() != staleEntryInterval) {
-    new_->setStaleEntryInterval(staleEntryInterval);
     changed = true;
   }
 
@@ -3658,6 +3646,18 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     // TODO: add ndpTimeout field to SwitchConfig. For now use the same
     // timeout for both ARP and NDP
     newSwitchSettings->setNdpTimeout(arpTimeout);
+    switchSettingsChange = true;
+  }
+
+  std::chrono::seconds staleEntryInterval(*cfg_->staleEntryInterval());
+  if (orig_->getStaleEntryInterval() != staleEntryInterval) {
+    newSwitchSettings->setStaleEntryInterval(staleEntryInterval);
+    switchSettingsChange = true;
+  }
+
+  std::chrono::seconds arpAgerInterval(*cfg_->arpAgerInterval());
+  if (orig_->getArpAgerInterval() != arpAgerInterval) {
+    newSwitchSettings->setArpAgerInterval(arpAgerInterval);
     switchSettingsChange = true;
   }
 

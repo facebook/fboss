@@ -150,16 +150,8 @@ void SwitchState::addVlan(const std::shared_ptr<Vlan>& vlan) {
   ref<switch_state_tags::vlanMap>()->addVlan(vlan);
 }
 
-void SwitchState::setArpAgerInterval(seconds interval) {
-  set<switch_state_tags::arpAgerInterval>(interval.count());
-}
-
 void SwitchState::setMaxNeighborProbes(uint32_t maxNeighborProbes) {
   set<switch_state_tags::maxNeighborProbes>(maxNeighborProbes);
-}
-
-void SwitchState::setStaleEntryInterval(seconds interval) {
-  set<switch_state_tags::staleEntryInterval>(interval.count());
 }
 
 void SwitchState::addIntf(const std::shared_ptr<Interface>& intf) {
@@ -521,6 +513,20 @@ state::SwitchState SwitchState::toThrift() const {
     data.ndpTimeout() = data.switchSettings()->ndpTimeout().value();
   } else {
     data.switchSettings()->ndpTimeout() = data.ndpTimeout().value();
+  }
+  // Write arpAgerInterval to switchSettings and old fields for transition
+  if (data.switchSettings()->arpAgerInterval().has_value()) {
+    data.arpAgerInterval() = data.switchSettings()->arpAgerInterval().value();
+  } else {
+    data.switchSettings()->arpAgerInterval() = data.arpAgerInterval().value();
+  }
+  // Write staleEntryInterval to switchSettings and old fields for transition
+  if (data.switchSettings()->staleEntryInterval().has_value()) {
+    data.staleEntryInterval() =
+        data.switchSettings()->staleEntryInterval().value();
+  } else {
+    data.switchSettings()->staleEntryInterval() =
+        data.staleEntryInterval().value();
   }
   return data;
 }

@@ -97,10 +97,10 @@ unique_ptr<HwTestHandle> setupTestHandle(
         if (arpTimeout.count() > 0) {
           auto switchSettings = make_shared<SwitchSettings>();
           switchSettings->setArpTimeout(arpTimeout);
+          switchSettings->setStaleEntryInterval(staleTimeout);
           inState->resetSwitchSettings(switchSettings);
         }
         inState->setMaxNeighborProbes(maxProbes);
-        inState->setStaleEntryInterval(staleTimeout);
         inState->publish();
         return inState;
       });

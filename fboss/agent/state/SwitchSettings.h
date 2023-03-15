@@ -226,6 +226,39 @@ class SwitchSettings
     }
   }
 
+  std::optional<std::chrono::seconds> getArpAgerInterval() const {
+    if (auto arpAgerInterval = cref<switch_state_tags::arpAgerInterval>()) {
+      return std::chrono::seconds(arpAgerInterval->toThrift());
+    }
+    return std::nullopt;
+  }
+
+  void setArpAgerInterval(std::optional<std::chrono::seconds> arpAgerInterval) {
+    if (!arpAgerInterval) {
+      ref<switch_state_tags::arpAgerInterval>().reset();
+    } else {
+      set<switch_state_tags::arpAgerInterval>(arpAgerInterval.value().count());
+    }
+  }
+
+  std::optional<std::chrono::seconds> getStaleEntryInterval() const {
+    if (auto staleEntryInterval =
+            cref<switch_state_tags::staleEntryInterval>()) {
+      return std::chrono::seconds(staleEntryInterval->toThrift());
+    }
+    return std::nullopt;
+  }
+
+  void setStaleEntryInterval(
+      std::optional<std::chrono::seconds> staleEntryInterval) {
+    if (!staleEntryInterval) {
+      ref<switch_state_tags::staleEntryInterval>().reset();
+    } else {
+      set<switch_state_tags::staleEntryInterval>(
+          staleEntryInterval.value().count());
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:
