@@ -15,7 +15,7 @@
 namespace rackmonsvc {
 
 ModbusDeviceType typeFromString(const std::string& str) {
-  if (str == "orv2_psu") {
+  if (str == "ORV2_PSU") {
     return ModbusDeviceType::ORV2_PSU;
   }
   throw std::runtime_error("Unknown PSU: " + str);
@@ -24,7 +24,7 @@ ModbusDeviceType typeFromString(const std::string& str) {
 std::string typeToString(ModbusDeviceType type) {
   switch (type) {
     case ModbusDeviceType::ORV2_PSU:
-      return "orv2_psu";
+      return "ORV2_PSU";
     default:
       break;
   }
