@@ -58,8 +58,6 @@ class Rackmon {
 
   // Probe an interface for the presence of the address.
   bool probe(Modbus& interface, uint8_t addr);
-  // Probe all interfaces for the presence of the address.
-  bool probe(uint8_t addr);
 
   // --------- Private Methods --------
 

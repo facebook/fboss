@@ -21,6 +21,7 @@ ModbusDevice::ModbusDevice(
   info_.defaultBaudrate = registerMap.defaultBaudrate;
   info_.baudrate = info_.defaultBaudrate;
   info_.deviceType = registerMap.name;
+  info_.parity = registerMap.parity;
 
   for (auto& it : registerMap.registerDescriptors) {
     info_.registerList.emplace_back(it.second);
@@ -75,7 +76,7 @@ void ModbusDevice::command(Msg& req, Msg& resp, ModbusTime timeout) {
   int numRetries = exclusiveMode_ ? 1 : numCommandRetries_;
   for (int retries = 0; retries < numRetries; retries++) {
     try {
-      interface_.command(req, resp, info_.baudrate, timeout);
+      interface_.command(req, resp, info_.baudrate, timeout, info_.parity);
       info_.numConsecutiveFailures = 0;
       info_.lastActive = std::time(nullptr);
       break;

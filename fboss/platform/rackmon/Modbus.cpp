@@ -12,7 +12,8 @@ void Modbus::command(
     Msg& req,
     Msg& resp,
     uint32_t baudrate,
-    ModbusTime timeout) {
+    ModbusTime timeout,
+    Parity parity) {
   std::unique_lock lck(deviceMutex_);
   if (!deviceValid_) {
     throw std::runtime_error("Uninitialized");
@@ -27,6 +28,7 @@ void Modbus::command(
   }
   req.encode();
   device_->setBaudrate(baudrate);
+  device_->setParity(parity);
   if (debug_) {
     logInfo << devicePath_ << " TX: " << req << std::endl;
   }

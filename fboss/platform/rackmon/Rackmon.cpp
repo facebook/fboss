@@ -79,7 +79,8 @@ bool Rackmon::probe(Modbus& interface, uint8_t addr) {
   try {
     ReadHoldingRegistersReq req(addr, rmap.probeRegister, v.size());
     ReadHoldingRegistersResp resp(addr, v);
-    interface.command(req, resp, rmap.defaultBaudrate, kProbeTimeout);
+    interface.command(
+        req, resp, rmap.defaultBaudrate, kProbeTimeout, rmap.parity);
     std::unique_lock lock(devicesMutex_);
     devices_[addr] = std::make_unique<ModbusDevice>(interface, addr, rmap);
     logInfo << std::hex << std::setw(2) << std::setfill('0') << "Found "
@@ -88,15 +89,6 @@ bool Rackmon::probe(Modbus& interface, uint8_t addr) {
   } catch (std::exception& e) {
     return false;
   }
-}
-
-bool Rackmon::probe(uint8_t addr) {
-  // We do not support the same address
-  // on multiple interfaces.
-  return std::any_of(
-      interfaces_.begin(), interfaces_.end(), [this, addr](auto& iface) {
-        return probe(*iface, addr);
-      });
 }
 
 std::vector<uint8_t> Rackmon::inspectDormant() {
@@ -167,13 +159,16 @@ ModbusDevice& Rackmon::getModbusDevice(uint8_t addr) {
 
 void Rackmon::fullScan() {
   logInfo << "Starting scan of all devices" << std::endl;
-  for (auto& addr : allPossibleDevAddrs_) {
-    if (isDeviceKnown(addr)) {
-      continue;
-    }
-    for (int i = 0; i < kScanNumRetry; i++) {
-      if (probe(addr)) {
-        break;
+
+  for (auto& modbus : interfaces_) {
+    for (auto& addr : allPossibleDevAddrs_) {
+      if (isDeviceKnown(addr)) {
+        continue;
+      }
+      for (int i = 0; i < kScanNumRetry; i++) {
+        if (probe(*modbus, addr)) {
+          break;
+        }
       }
     }
   }
@@ -189,7 +184,9 @@ void Rackmon::scan() {
 
   // Probe for the address only if we already dont know it.
   if (!isDeviceKnown(*nextDeviceToProbe_)) {
-    probe(*nextDeviceToProbe_);
+    for (auto& modbus : interfaces_) {
+      probe(*modbus, *nextDeviceToProbe_);
+    }
     lastScanTime_ = std::time(nullptr);
   }
 

@@ -64,6 +64,7 @@ struct ModbusDeviceInfo {
   uint32_t deviceErrors = 0;
   time_t lastActive = 0;
   uint32_t numConsecutiveFailures = 0;
+  Parity parity = Parity::EVEN;
 };
 void to_json(nlohmann::json& j, const ModbusDeviceInfo& m);
 

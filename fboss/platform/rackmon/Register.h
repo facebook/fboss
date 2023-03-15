@@ -7,6 +7,7 @@
 #include <utility>
 #include <variant>
 #include <vector>
+#include "UARTDevice.h"
 
 namespace rackmon {
 
@@ -252,6 +253,7 @@ struct RegisterMap {
   uint16_t probeRegister;
   uint32_t defaultBaudrate;
   uint32_t preferredBaudrate;
+  Parity parity;
   BaudrateConfig baudConfig{};
   std::vector<SpecialHandlerInfo> specialHandlers;
   std::map<uint16_t, RegisterDescriptor> registerDescriptors;
