@@ -175,11 +175,11 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
 NLOHMANN_JSON_SERIALIZE_ENUM(
     RegisterValueType,
     {
-        {RegisterValueType::HEX, "hex"},
-        {RegisterValueType::STRING, "string"},
-        {RegisterValueType::INTEGER, "integer"},
-        {RegisterValueType::FLOAT, "float"},
-        {RegisterValueType::FLAGS, "flags"},
+        {RegisterValueType::HEX, "RAW"},
+        {RegisterValueType::STRING, "STRING"},
+        {RegisterValueType::INTEGER, "INTEGER"},
+        {RegisterValueType::FLOAT, "FLOAT"},
+        {RegisterValueType::FLAGS, "FLAGS"},
     })
 
 void from_json(const json& j, RegisterDescriptor& i) {

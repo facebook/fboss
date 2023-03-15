@@ -52,7 +52,7 @@ TEST(RegisterDescriptorTest, JSONConversionString) {
   nlohmann::json desc = nlohmann::json::parse(R"({
     "begin": 0,
     "length": 8,
-    "format": "string",
+    "format": "STRING",
     "name": "MFG_MODEL"
   })");
   RegisterDescriptor d = desc;
@@ -68,7 +68,7 @@ TEST(RegisterDescriptorTest, JSONConversionDecimalKeep) {
   nlohmann::json desc = nlohmann::json::parse(R"({
     "begin": 156,
     "length": 1,
-    "format": "integer",
+    "format": "INTEGER",
     "keep": 10,
     "name": "Set fan speed"
   })");
@@ -85,7 +85,7 @@ TEST(RegisterDescriptorTest, JSONConversionFixed) {
   nlohmann::json desc = nlohmann::json::parse(R"({
     "begin": 127,
     "length": 1,
-    "format": "float",
+    "format": "FLOAT",
     "precision": 6,
     "name": "Input VAC"
   })");
@@ -103,7 +103,7 @@ TEST(RegisterDescriptorTest, JSONConversionFixedMissingPrec) {
   nlohmann::json desc = nlohmann::json::parse(R"({
     "begin": 127,
     "length": 1,
-    "format": "float",
+    "format": "FLOAT",
     "name": "Input VAC"
   })");
   RegisterDescriptor d;
@@ -116,7 +116,7 @@ TEST(RegisterDescriptorTest, JSONConversionTableChangesOnly) {
     "length": 1,
     "keep": 10,
     "changes_only": true,
-    "format": "flags",
+    "format": "FLAGS",
     "name": "Battery Status register",
     "flags": [
       [2, "End of Life"],
@@ -144,7 +144,7 @@ TEST(RegisterDescriptorTest, JSONConversionTableMissing) {
     "length": 1,
     "keep": 10,
     "changes_only": true,
-    "format": "flags",
+    "format": "FLAGS",
     "name": "Battery Status register"
   })");
   RegisterDescriptor d;

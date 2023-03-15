@@ -120,7 +120,7 @@ class RackmonTest : public ::testing::Test {
           {
             "begin": 0,
             "length": 8,
-            "format": "string",
+            "format": "STRING",
             "name": "MFG_MODEL"
           }
         ]
@@ -173,7 +173,7 @@ TEST_F(RackmonTest, BasicLoad) {
         {
           "begin": 0,
           "length": 8,
-          "format": "string",
+          "format": "STRING",
           "name": "MFG_MODEL"
         }
       ]

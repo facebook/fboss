@@ -18,7 +18,7 @@ TEST(RegisterValueTest, Hex) {
   EXPECT_TRUE(j.contains("type") && j["type"].is_string());
   EXPECT_TRUE(j.contains("time") && j["time"].is_number_integer());
   EXPECT_TRUE(j.contains("value") && j["value"].is_array());
-  EXPECT_EQ(std::string(j["type"]), "hex");
+  EXPECT_EQ(std::string(j["type"]), "RAW");
   EXPECT_EQ(j["time"], 0);
   EXPECT_EQ(j["value"].size(), 4);
   EXPECT_EQ(std::vector<uint8_t>(j["value"]), exp);
@@ -40,7 +40,7 @@ TEST(RegisterValueTest, STRING) {
   EXPECT_TRUE(j.contains("type") && j["type"].is_string());
   EXPECT_TRUE(j.contains("time") && j["time"].is_number_integer());
   EXPECT_TRUE(j.contains("value") && j["value"].is_string());
-  EXPECT_EQ(std::string(j["type"]), "string");
+  EXPECT_EQ(std::string(j["type"]), "STRING");
   EXPECT_EQ(j["time"], 0x12345678);
   EXPECT_EQ(j["value"], "700-014671-0000 ");
 }
@@ -57,7 +57,7 @@ TEST(RegisterValueTest, INTEGER) {
   EXPECT_TRUE(j.contains("type") && j["type"].is_string());
   EXPECT_TRUE(j.contains("time") && j["time"].is_number_integer());
   EXPECT_TRUE(j.contains("value") && j["value"].is_number_integer());
-  EXPECT_EQ(std::string(j["type"]), "integer");
+  EXPECT_EQ(std::string(j["type"]), "INTEGER");
   EXPECT_EQ(j["time"], 0x12345678);
   EXPECT_TRUE(j["value"].is_number_integer());
   EXPECT_EQ(j["value"], 0x12345678);
@@ -85,7 +85,7 @@ TEST(RegisterValueTest, FLOAT) {
   EXPECT_TRUE(j.contains("type") && j["type"].is_string());
   EXPECT_TRUE(j.contains("time") && j["time"].is_number_integer());
   EXPECT_TRUE(j.contains("value") && j["value"].is_number_float());
-  EXPECT_EQ(std::string(j["type"]), "float");
+  EXPECT_EQ(std::string(j["type"]), "FLOAT");
   EXPECT_EQ(j["time"], 0x12345678);
   EXPECT_NEAR(j["value"], 12.623, 0.001);
 }
@@ -115,7 +115,7 @@ TEST(RegisterValueTest, FLAGS) {
   EXPECT_TRUE(j.contains("type") && j["type"].is_string());
   EXPECT_TRUE(j.contains("time") && j["time"].is_number_integer());
   EXPECT_TRUE(j.contains("value") && j["value"].is_array());
-  EXPECT_EQ(std::string(j["type"]), "flags");
+  EXPECT_EQ(std::string(j["type"]), "FLAGS");
   EXPECT_EQ(j["time"], 0x12345678);
   EXPECT_EQ(j["value"].size(), 2);
   EXPECT_TRUE(j["value"][0].is_array());

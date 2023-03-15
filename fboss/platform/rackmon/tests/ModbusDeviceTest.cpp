@@ -50,7 +50,7 @@ class ModbusDeviceTest : public ::testing::Test {
         "begin": 0,
         "length": 2,
         "keep": 2,
-        "format": "string",
+        "format": "STRING",
         "name": "MFG_MODEL"
       }
     ]
@@ -462,10 +462,10 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
       j["registers"][0]["readings"].size() == 2);
   EXPECT_NEAR(j["registers"][0]["readings"][0]["time"], std::time(0), 10);
   EXPECT_EQ(j["registers"][0]["readings"][0]["value"], "cdef");
-  EXPECT_EQ(j["registers"][0]["readings"][0]["type"], "string");
+  EXPECT_EQ(j["registers"][0]["readings"][0]["type"], "STRING");
   EXPECT_NEAR(j["registers"][0]["readings"][1]["time"], std::time(0), 10);
   EXPECT_EQ(j["registers"][0]["readings"][1]["value"], "bcde");
-  EXPECT_EQ(j["registers"][0]["readings"][1]["type"], "string");
+  EXPECT_EQ(j["registers"][0]["readings"][1]["type"], "STRING");
 
   ModbusDeviceValueData data4 = dev.getValueData({}, true);
   EXPECT_EQ(data4.registerList[0].history.size(), 1);
@@ -601,7 +601,7 @@ TEST(ModbusSpecialHandler, BasicHandlingStringValuePeriodic) {
     "period": 10,
     "action": "write",
     "info": {
-      "interpret": "string",
+      "interpret": "STRING",
       "value": "0123"
     }
   })"_json;
@@ -659,7 +659,7 @@ TEST(ModbusSpecialHandler, BasicHandlingIntegerOneShot) {
     "period": -1,
     "action": "write",
     "info": {
-      "interpret": "integer",
+      "interpret": "INTEGER",
       "shell": "echo 12345678"
     }
   })"_json;
@@ -697,7 +697,7 @@ static nlohmann::json getBaudrateRegmap() {
         "begin": 0,
         "length": 2,
         "keep": 2,
-        "format": "string",
+        "format": "STRING",
         "name": "MFG_MODEL"
       }
     ]

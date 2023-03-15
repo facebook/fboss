@@ -155,8 +155,8 @@ TEST(RegisterStoreTest, DataRetrievalConversions) {
   EXPECT_TRUE(j["readings"][1].contains("type"));
   EXPECT_TRUE(j["readings"][0].contains("value"));
   EXPECT_TRUE(j["readings"][1].contains("value"));
-  EXPECT_EQ(std::string(j["readings"][0]["type"]), "string");
-  EXPECT_EQ(std::string(j["readings"][1]["type"]), "string");
+  EXPECT_EQ(std::string(j["readings"][0]["type"]), "STRING");
+  EXPECT_EQ(std::string(j["readings"][1]["type"]), "STRING");
   EXPECT_EQ(std::string(j["readings"][0]["value"]), "0123");
   EXPECT_EQ(std::string(j["readings"][1]["value"]), "1234");
 
