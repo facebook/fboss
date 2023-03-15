@@ -372,12 +372,14 @@ TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
   EXPECT_EQ(switchSettingsV0->getNdpTimeout(), std::nullopt);
   EXPECT_EQ(switchSettingsV0->getArpAgerInterval(), std::nullopt);
   EXPECT_EQ(switchSettingsV0->getStaleEntryInterval(), std::nullopt);
+  EXPECT_EQ(switchSettingsV0->getMaxNeighborProbes(), std::nullopt);
 
   // Check whether value is updated
   cfg::SwitchConfig config = testConfigA();
   config.arpTimeoutSeconds() = 300;
   config.arpAgerInterval() = 200;
   config.staleEntryInterval() = 200;
+  config.maxNeighborProbes() = 100;
 
   auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
   EXPECT_NE(nullptr, stateV1);
@@ -389,14 +391,17 @@ TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
   EXPECT_EQ(switchSettingsV1->getArpAgerInterval(), std::chrono::seconds(200));
   EXPECT_EQ(
       switchSettingsV1->getStaleEntryInterval(), std::chrono::seconds(200));
+  EXPECT_EQ(switchSettingsV1->getMaxNeighborProbes(), 100);
 
   const auto& thriftState0 = stateV1->toThrift();
   EXPECT_EQ(thriftState0.arpTimeout(), 300);
   EXPECT_EQ(thriftState0.ndpTimeout(), 300);
   EXPECT_EQ(thriftState0.arpAgerInterval(), 200);
   EXPECT_EQ(thriftState0.staleEntryInterval(), 200);
+  EXPECT_EQ(thriftState0.maxNeighborProbes(), 100);
   EXPECT_EQ(thriftState0.switchSettings()->arpTimeout(), 300);
   EXPECT_EQ(thriftState0.switchSettings()->ndpTimeout(), 300);
   EXPECT_EQ(thriftState0.switchSettings()->arpAgerInterval(), 200);
   EXPECT_EQ(thriftState0.switchSettings()->staleEntryInterval(), 200);
+  EXPECT_EQ(thriftState0.switchSettings()->maxNeighborProbes(), 100);
 }

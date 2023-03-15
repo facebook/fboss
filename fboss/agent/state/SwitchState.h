@@ -314,9 +314,12 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   uint32_t getMaxNeighborProbes() const {
+    auto maxNeighborProbes = getSwitchSettings()->getMaxNeighborProbes();
+    if (maxNeighborProbes.has_value()) {
+      return maxNeighborProbes.value();
+    }
     return cref<switch_state_tags::maxNeighborProbes>()->toThrift();
   }
-  void setMaxNeighborProbes(uint32_t maxNeighborProbes);
 
   std::chrono::seconds getStaleEntryInterval() const {
     auto staleEntrySwSettings = getSwitchSettings()->getStaleEntryInterval();

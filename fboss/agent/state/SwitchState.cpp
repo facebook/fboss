@@ -150,10 +150,6 @@ void SwitchState::addVlan(const std::shared_ptr<Vlan>& vlan) {
   ref<switch_state_tags::vlanMap>()->addVlan(vlan);
 }
 
-void SwitchState::setMaxNeighborProbes(uint32_t maxNeighborProbes) {
-  set<switch_state_tags::maxNeighborProbes>(maxNeighborProbes);
-}
-
 void SwitchState::addIntf(const std::shared_ptr<Interface>& intf) {
   if (cref<switch_state_tags::interfaceMap>()->isPublished()) {
     // For ease-of-use, automatically clone the InterfaceMap if we are still
@@ -527,6 +523,14 @@ state::SwitchState SwitchState::toThrift() const {
   } else {
     data.switchSettings()->staleEntryInterval() =
         data.staleEntryInterval().value();
+  }
+  // Write maxNeighborProbes to switchSettings and old fields for transition
+  if (data.switchSettings()->maxNeighborProbes().has_value()) {
+    data.maxNeighborProbes() =
+        data.switchSettings()->maxNeighborProbes().value();
+  } else {
+    data.switchSettings()->maxNeighborProbes() =
+        data.maxNeighborProbes().value();
   }
   return data;
 }

@@ -259,6 +259,20 @@ class SwitchSettings
     }
   }
 
+  std::optional<int32_t> getMaxNeighborProbes() const {
+    if (auto maxNeighborProbes = cref<switch_state_tags::maxNeighborProbes>()) {
+      return maxNeighborProbes->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setMaxNeighborProbes(std::optional<int32_t> maxNeighborProbes) {
+    if (!maxNeighborProbes) {
+      ref<switch_state_tags::maxNeighborProbes>().reset();
+    } else {
+      set<switch_state_tags::maxNeighborProbes>(maxNeighborProbes.value());
+    }
+  }
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:

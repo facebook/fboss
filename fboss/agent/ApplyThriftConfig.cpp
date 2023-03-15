@@ -658,12 +658,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
-  uint32_t maxNeighborProbes(*cfg_->maxNeighborProbes());
-  if (orig_->getMaxNeighborProbes() != maxNeighborProbes) {
-    new_->setMaxNeighborProbes(maxNeighborProbes);
-    changed = true;
-  }
-
   auto oldDhcpV4RelaySrc = orig_->getDhcpV4RelaySrc();
   auto newDhcpV4RelaySrc = cfg_->dhcpRelaySrcOverrideV4()
       ? IPAddressV4(*cfg_->dhcpRelaySrcOverrideV4())
@@ -3658,6 +3652,12 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
   std::chrono::seconds arpAgerInterval(*cfg_->arpAgerInterval());
   if (orig_->getArpAgerInterval() != arpAgerInterval) {
     newSwitchSettings->setArpAgerInterval(arpAgerInterval);
+    switchSettingsChange = true;
+  }
+
+  uint32_t maxNeighborProbes(*cfg_->maxNeighborProbes());
+  if (orig_->getMaxNeighborProbes() != maxNeighborProbes) {
+    newSwitchSettings->setMaxNeighborProbes(maxNeighborProbes);
     switchSettingsChange = true;
   }
 
