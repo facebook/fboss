@@ -7,7 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include <CLI/CLI.hpp>
+#include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
 
 namespace facebook::fboss::utils {
 

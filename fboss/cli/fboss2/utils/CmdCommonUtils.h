@@ -163,9 +163,13 @@ std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName);
 std::vector<std::string> getHostsFromFile(const std::string& filename);
 
 // Common util method
-void setLogLevel(std::string logLevelStr);
+long getEpochFromDuration(const int64_t& duration);
 const std::string getDurationStr(folly::stop_watch<>& watch);
+const std::string getPrettyElapsedTime(const int64_t& start_time);
+
 std::string getUserInfo();
+
+void setLogLevel(const std::string& logLevelStr);
 void logUsage(const CmdLogInfo& cmdLogInfo);
 
 } // namespace facebook::fboss::utils
