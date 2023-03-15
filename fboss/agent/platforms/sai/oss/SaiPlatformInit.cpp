@@ -11,8 +11,4 @@ std::unique_ptr<SaiPlatform> getLEBPlatform(
   return nullptr;
 }
 
-bool isLEB() {
-  return false;
-}
-
 } // namespace facebook::fboss

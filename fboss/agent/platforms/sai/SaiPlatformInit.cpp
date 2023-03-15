@@ -65,10 +65,6 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
     return std::make_unique<SaiBcmYampPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getMode() == PlatformMode::WEDGE400C) {
-    if (isLEB()) {
-      return getLEBPlatform(
-          std::move(productInfo), localMac, platformMappingStr);
-    }
     return std::make_unique<SaiWedge400CPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getMode() == PlatformMode::WEDGE400C_VOQ) {
