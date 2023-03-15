@@ -3,6 +3,7 @@
 
 #include <nlohmann/json.hpp>
 #include <map>
+#include <mutex>
 #include <optional>
 #include <utility>
 #include <variant>
@@ -96,16 +97,48 @@ struct RegisterValue {
 };
 void to_json(nlohmann::json& j, const RegisterValue& m);
 
-// Container of a instance of a register at a given point in time.
-struct Register {
-  // Reference to the register descriptor.
-  const RegisterDescriptor& desc;
+// Container of the register value/timestamp of a specific sampling.
+struct RegisterReading {
   // Timestamp when the register was read.
   uint32_t timestamp = 0;
-  // Actual value of the register/register-range
+  // Value of the register when read.
   std::vector<uint16_t> value;
+  explicit RegisterReading(uint16_t size) : value(size_t(size)) {}
+};
 
-  explicit Register(const RegisterDescriptor& d) : desc(d), value(d.length) {}
+// Container of a instance of a register at a given point in time.
+struct Register {
+ private:
+  // In order to provide atomic updates of the registers without holding
+  // a lock for up to 100s of milli-seconds, every register now has active
+  // and inactive contents. We update the inactive content lock-less
+  // and using a lock swapActive() which flips isFirstActive and
+  // updateReferences() so the timestamp/value pair now point to the new
+  // values without copies.
+  std::pair<RegisterReading, RegisterReading> value_;
+  bool isFirstActive = true;
+  // Update references after changes to isFirstActive
+  void updateReferences();
+
+ public:
+  // Reference to the register descriptor.
+  const RegisterDescriptor& desc;
+
+  // These point to the current active value/timestamp pair.
+  uint32_t& timestamp;
+  std::vector<uint16_t>& value;
+
+  explicit Register(const RegisterDescriptor& d);
+  Register(const Register& other);
+  Register(Register&& other) noexcept;
+
+  RegisterReading& getActive() {
+    return isFirstActive ? value_.first : value_.second;
+  }
+  RegisterReading& getInactive() {
+    return isFirstActive ? value_.second : value_.first;
+  }
+  void swapActive();
 
   // equals operator works only on valid register reads. Register
   // with a zero timestamp is considered as invalid.
@@ -116,6 +149,18 @@ struct Register {
   bool operator!=(const Register& other) const {
     return timestamp == 0 || other.timestamp == 0 || value != other.value;
   }
+
+  void operator=(const Register& other) {
+    value_ = other.value_;
+    isFirstActive = other.isFirstActive;
+    updateReferences();
+  }
+  void operator=(Register&& other) {
+    value_ = std::move(other.value_);
+    isFirstActive = other.isFirstActive;
+    updateReferences();
+  }
+
   // Returns true if the register contents is valid.
   operator bool() const {
     return timestamp != 0;
@@ -152,39 +197,35 @@ struct RegisterStore {
   // write.
   std::vector<Register> history_;
   int32_t idx_ = 0;
+  mutable std::recursive_mutex historyMutex_{};
+  // Allows for us to disable individual registers if the device
+  // does not support it.
   bool enabled_ = true;
 
  public:
-  explicit RegisterStore(const RegisterDescriptor& desc)
-      : desc_(desc),
-        regAddr_(desc.begin),
-        history_(desc.keep, Register(desc)) {}
+  explicit RegisterStore(const RegisterDescriptor& desc);
+  RegisterStore(const RegisterStore& other);
 
-  bool isEnabled() {
-    return enabled_;
-  }
-  void disable() {
-    enabled_ = false;
-  }
-  void enable() {
-    enabled_ = true;
-  }
+  // API to get and set enable status.
+  bool isEnabled();
+  void disable();
+  void enable();
+
+  // Request to start loading new value into register
+  std::vector<uint16_t>& beginReloadRegister();
+
+  // Request to commit the loaded register
+  void endReloadRegister();
 
   // Returns a reference to the last written value (Back of the list)
-  Register& back() {
-    return idx_ == 0 ? history_.back() : history_[idx_ - 1];
-  }
-  const Register& back() const {
-    return idx_ == 0 ? history_.back() : history_[idx_ - 1];
-  }
+  Register& back();
+  const Register& back() const;
+
   // Returns the front (Next to write) reference
-  Register& front() {
-    return history_[idx_];
-  }
+  Register& front();
+
   // Advances the front.
-  void operator++() {
-    idx_ = (idx_ + 1) % history_.size();
-  }
+  void operator++();
 
   // register address accessor
   uint16_t regAddr() const {

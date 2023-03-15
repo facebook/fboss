@@ -125,11 +125,113 @@ RegisterValue::RegisterValue(const std::vector<uint16_t>& reg)
   makeHex(reg);
 }
 
+Register::Register(const RegisterDescriptor& d)
+    : value_{d.length, d.length},
+      desc(d),
+      timestamp(value_.first.timestamp),
+      value(value_.first.value) {}
+
+Register::Register(const Register& other)
+    : value_(other.value_),
+      isFirstActive(other.isFirstActive),
+      desc(other.desc),
+      timestamp(
+          other.isFirstActive ? value_.first.timestamp
+                              : value_.second.timestamp),
+      value(other.isFirstActive ? value_.first.value : value_.second.value) {}
+
+Register::Register(Register&& other) noexcept
+    : value_(std::move(other.value_)),
+      isFirstActive(other.isFirstActive),
+      desc(other.desc),
+      timestamp(
+          other.isFirstActive ? value_.first.timestamp
+                              : value_.second.timestamp),
+      value(other.isFirstActive ? value_.first.value : value_.second.value) {}
+
+void Register::updateReferences() {
+  RegisterReading& active = getActive();
+  value = active.value;
+  timestamp = active.timestamp;
+}
+
+void Register::swapActive() {
+  isFirstActive = !isFirstActive;
+  updateReferences();
+}
+
 Register::operator RegisterValue() const {
   return RegisterValue(value, desc, timestamp);
 }
 
+RegisterStore::RegisterStore(const RegisterDescriptor& desc)
+    : desc_(desc), regAddr_(desc.begin), history_(desc.keep, Register(desc)) {}
+
+RegisterStore::RegisterStore(const RegisterStore& other)
+    : desc_(other.desc_), regAddr_(other.regAddr_) {
+  std::unique_lock lk(other.historyMutex_);
+  history_ = other.history_;
+  enabled_ = other.enabled_;
+  idx_ = other.idx_;
+}
+
+bool RegisterStore::isEnabled() {
+  std::unique_lock lk(historyMutex_);
+  return enabled_;
+}
+
+void RegisterStore::enable() {
+  std::unique_lock lk(historyMutex_);
+  enabled_ = true;
+}
+
+void RegisterStore::disable() {
+  std::unique_lock lk(historyMutex_);
+  enabled_ = false;
+}
+
+std::vector<uint16_t>& RegisterStore::beginReloadRegister() {
+  std::unique_lock lk(historyMutex_);
+  return front().getInactive().value;
+}
+
+void RegisterStore::endReloadRegister() {
+  std::unique_lock lk(historyMutex_);
+  front().getInactive().timestamp = std::time(nullptr);
+  // Update the front and bump indexs.
+  front().swapActive();
+  // If we care about changes only and the values
+  // look the same, then ignore it.
+  if (desc_.storeChangesOnly && front() == back()) {
+    // Keep old value. Discard new value.
+    front().swapActive();
+    return;
+  }
+  ++(*this);
+}
+
+Register& RegisterStore::back() {
+  std::unique_lock lk(historyMutex_);
+  return idx_ == 0 ? history_.back() : history_[idx_ - 1];
+}
+
+const Register& RegisterStore::back() const {
+  std::unique_lock lk(historyMutex_);
+  return idx_ == 0 ? history_.back() : history_[idx_ - 1];
+}
+
+Register& RegisterStore::front() {
+  std::unique_lock lk(historyMutex_);
+  return history_[idx_];
+}
+
+void RegisterStore::operator++() {
+  std::unique_lock lk(historyMutex_);
+  idx_ = (idx_ + 1) % history_.size();
+}
+
 RegisterStore::operator RegisterStoreValue() const {
+  std::unique_lock lk(historyMutex_);
   RegisterStoreValue ret(regAddr_, desc_.name);
   for (const auto& reg : history_) {
     if (reg) {
@@ -256,6 +358,7 @@ void to_json(json& j, const RegisterStoreValue& m) {
 }
 
 void to_json(json& j, const RegisterStore& m) {
+  std::unique_lock lk(m.historyMutex_);
   j["begin"] = m.regAddr_;
   j["readings"] = {};
   for (const auto& reg : m.history_) {

@@ -146,11 +146,42 @@ void ModbusDevice::setBaudrate(uint32_t baud) {
   }
 }
 
+bool ModbusDevice::reloadRegister(RegisterStore& registerStore) {
+  if (!registerStore.isEnabled()) {
+    return false;
+  }
+  uint16_t registerOffset = registerStore.regAddr();
+  try {
+    std::vector<uint16_t>& value = registerStore.beginReloadRegister();
+    readHoldingRegisters(registerOffset, value);
+    registerStore.endReloadRegister();
+  } catch (ModbusError& e) {
+    logInfo << "DEV:0x" << std::hex << int(info_.deviceAddress) << " ReadReg 0x"
+            << std::hex << registerOffset << ' ' << registerStore.name()
+            << " caught: " << e.what() << std::endl;
+    if (e.errorCode == ModbusErrorCode::ILLEGAL_DATA_ADDRESS) {
+      logInfo << "DEV:0x" << std::hex << int(info_.deviceAddress)
+              << " ReadReg 0x" << std::hex << registerOffset << ' '
+              << registerStore.name()
+              << " unsupported. Disabled from monitoring" << std::endl;
+      registerStore.disable();
+    } else {
+      logInfo << "DEV:0x" << std::hex << int(info_.deviceAddress)
+              << " ReadReg 0x" << std::hex << registerOffset << ' '
+              << registerStore.name() << " caught: " << e.what() << std::endl;
+    }
+  } catch (std::exception& e) {
+    logInfo << "DEV:0x" << std::hex << int(info_.deviceAddress) << " ReadReg 0x"
+            << std::hex << registerOffset << ' ' << registerStore.name()
+            << " caught: " << e.what() << std::endl;
+  }
+  return true;
+}
+
 void ModbusDevice::reloadRegisters() {
   setPreferredBaudrate();
   // If the number of consecutive failures has exceeded
   // a threshold, mark the device as dormant.
-  uint32_t timestamp = std::time(nullptr);
   for (auto& specialHandler : specialHandlers_) {
     // Break early, if we are entering exclusive mode
     if (exclusiveMode_) {
@@ -158,57 +189,19 @@ void ModbusDevice::reloadRegisters() {
     }
     specialHandler.handle(*this);
   }
-  std::unique_lock lk(registerListMutex_);
   for (auto& registerStore : info_.registerList) {
-    uint16_t registerOffset = registerStore.regAddr();
-    auto& nextRegister = registerStore.front();
     // Break early, if we are entering exclusive mode
     if (exclusiveMode_) {
       break;
     }
-    if (!registerStore.isEnabled()) {
-      continue;
+    if (reloadRegister(registerStore)) {
+      // Release thread to allow for higher priority tasks to execute.
+      std::this_thread::yield();
     }
-    try {
-      readHoldingRegisters(registerOffset, nextRegister.value);
-      nextRegister.timestamp = timestamp;
-      // If we dont care about changes or if we do
-      // and we notice that the value is different
-      // from the previous, increment store to
-      // point to the next.
-      if (!nextRegister.desc.storeChangesOnly ||
-          nextRegister != registerStore.back()) {
-        ++registerStore;
-      }
-    } catch (ModbusError& e) {
-      logInfo << "DEV:0x" << std::hex << int(info_.deviceAddress)
-              << " ReadReg 0x" << std::hex << registerOffset << ' '
-              << registerStore.name() << " caught: " << e.what() << std::endl;
-      if (e.errorCode == ModbusErrorCode::ILLEGAL_DATA_ADDRESS) {
-        logInfo << "DEV:0x" << std::hex << int(info_.deviceAddress)
-                << " ReadReg 0x" << std::hex << registerOffset << ' '
-                << registerStore.name()
-                << " unsupported. Disabled from monitoring" << std::endl;
-        registerStore.disable();
-      } else {
-        logInfo << "DEV:0x" << std::hex << int(info_.deviceAddress)
-                << " ReadReg 0x" << std::hex << registerOffset << ' '
-                << registerStore.name() << " caught: " << e.what() << std::endl;
-      }
-      continue;
-    } catch (std::exception& e) {
-      logInfo << "DEV:0x" << std::hex << int(info_.deviceAddress)
-              << " ReadReg 0x" << std::hex << registerOffset << ' '
-              << registerStore.name() << " caught: " << e.what() << std::endl;
-      continue;
-    }
-    // Release thread to allow for higher priority tasks to execute.
-    std::this_thread::yield();
   }
 }
 
 void ModbusDevice::setActive() {
-  std::unique_lock lk(registerListMutex_);
   // Enable any disabled registers. Assumption is
   // that the device might be unplugged and replugged
   // with a newer version. Thus, prepare for the
@@ -222,20 +215,17 @@ void ModbusDevice::setActive() {
 }
 
 ModbusDeviceRawData ModbusDevice::getRawData() {
-  std::unique_lock lk(registerListMutex_);
   // Makes a deep copy.
   return info_;
 }
 
 ModbusDeviceInfo ModbusDevice::getInfo() {
-  std::unique_lock lk(registerListMutex_);
   return info_;
 }
 
 ModbusDeviceValueData ModbusDevice::getValueData(
     const ModbusRegisterFilter& filter,
     bool latestValueOnly) const {
-  std::unique_lock lk(registerListMutex_);
   ModbusDeviceValueData data;
   data.ModbusDeviceInfo::operator=(info_);
   auto shouldPickRegister = [&filter](const RegisterStore& reg) {

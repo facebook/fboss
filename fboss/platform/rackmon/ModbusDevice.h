@@ -85,7 +85,6 @@ class ModbusDevice {
   Modbus& interface_;
   int numCommandRetries_;
   ModbusDeviceRawData info_;
-  mutable std::mutex registerListMutex_{};
   std::vector<ModbusSpecialHandler> specialHandlers_{};
   const BaudrateConfig& baudConfig_;
   bool setBaudEnabled_ = true;
@@ -100,6 +99,8 @@ class ModbusDevice {
   void setPreferredBaudrate() {
     setBaudrate(info_.preferredBaudrate);
   }
+
+  bool reloadRegister(RegisterStore& registerStore);
 
  public:
   ModbusDevice(
