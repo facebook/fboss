@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <CLI/CLI.hpp>
 #include <folly/IPAddress.h>
 #include <folly/stop_watch.h>
 #include <string>
@@ -155,6 +156,10 @@ auto filterTupleMonostates(Tuple tup) {
   return filterTupleMonostatesImpl<UnfilteredTypes>(
       tup, std::make_index_sequence<std::tuple_size_v<UnfilteredTypes>>());
 }
+
+// Called after CLI11 is initlized but before parsing, for any final
+// initialization steps
+void postAppInit(int argc, char* argv[], CLI::App& app);
 
 // API to retrieve host related information
 const folly::IPAddress getIPFromHost(const std::string& hostname);
