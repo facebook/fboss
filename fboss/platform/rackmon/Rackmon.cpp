@@ -149,6 +149,22 @@ bool Rackmon::isDeviceKnown(uint8_t addr) {
   return devices_.find(addr) != devices_.end();
 }
 
+ModbusDevice& Rackmon::getModbusDevice(uint8_t addr) {
+  std::stringstream err;
+  auto it = devices_.find(addr);
+  if (it == devices_.end()) {
+    err << "No device found at 0x" << std::hex << +addr
+        << " during probe sequence";
+    throw std::out_of_range(err.str());
+  }
+  auto& d = *it->second;
+  if (!d.isActive()) {
+    err << "Device 0x" << std::hex << +addr << " is not active";
+    throw std::runtime_error(err.str());
+  }
+  return d;
+}
+
 void Rackmon::fullScan() {
   logInfo << "Starting scan of all devices" << std::endl;
   for (auto& addr : allPossibleDevAddrs_) {
@@ -223,10 +239,8 @@ void Rackmon::rawCmd(Request& req, Response& resp, ModbusTime timeout) {
   uint8_t addr = req.addr;
   RACKMON_PROFILE_SCOPE(raw_cmd, "rawcmd::" + std::to_string(int(req.addr)));
   std::shared_lock lock(devicesMutex_);
-  if (!devices_.at(addr)->isActive()) {
-    throw std::exception();
-  }
-  devices_.at(addr)->command(req, resp, timeout);
+
+  getModbusDevice(addr).command(req, resp, timeout);
   // Add back the CRC removed by validate.
   resp.len += 2;
 }
@@ -239,11 +253,9 @@ void Rackmon::readHoldingRegisters(
   RACKMON_PROFILE_SCOPE(
       raw_cmd, "readRegs::" + std::to_string(int(deviceAddress)));
   std::shared_lock lock(devicesMutex_);
-  if (!devices_.at(deviceAddress)->isActive()) {
-    throw std::exception();
-  }
-  devices_.at(deviceAddress)
-      ->readHoldingRegisters(registerOffset, registerContents, timeout);
+
+  getModbusDevice(deviceAddress)
+      .readHoldingRegisters(registerOffset, registerContents, timeout);
 }
 
 void Rackmon::writeSingleRegister(
@@ -254,11 +266,9 @@ void Rackmon::writeSingleRegister(
   RACKMON_PROFILE_SCOPE(
       raw_cmd, "writeReg::" + std::to_string(int(deviceAddress)));
   std::shared_lock lock(devicesMutex_);
-  if (!devices_.at(deviceAddress)->isActive()) {
-    throw std::exception();
-  }
-  devices_.at(deviceAddress)
-      ->writeSingleRegister(registerOffset, value, timeout);
+
+  getModbusDevice(deviceAddress)
+      .writeSingleRegister(registerOffset, value, timeout);
 }
 
 void Rackmon::writeMultipleRegisters(
@@ -269,11 +279,9 @@ void Rackmon::writeMultipleRegisters(
   RACKMON_PROFILE_SCOPE(
       raw_cmd, "writeRegs::" + std::to_string(int(deviceAddress)));
   std::shared_lock lock(devicesMutex_);
-  if (!devices_.at(deviceAddress)->isActive()) {
-    throw std::exception();
-  }
-  devices_.at(deviceAddress)
-      ->writeMultipleRegisters(registerOffset, values, timeout);
+
+  getModbusDevice(deviceAddress)
+      .writeMultipleRegisters(registerOffset, values, timeout);
 }
 
 void Rackmon::readFileRecord(
@@ -283,10 +291,7 @@ void Rackmon::readFileRecord(
   RACKMON_PROFILE_SCOPE(
       raw_cmd, "ReadFile::" + std::to_string(int(deviceAddress)));
   std::shared_lock lock(devicesMutex_);
-  if (!devices_.at(deviceAddress)->isActive()) {
-    throw std::exception();
-  }
-  devices_.at(deviceAddress)->readFileRecord(records, timeout);
+  getModbusDevice(deviceAddress).readFileRecord(records, timeout);
 }
 
 std::vector<ModbusDeviceInfo> Rackmon::listDevices() const {

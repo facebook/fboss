@@ -74,6 +74,8 @@ class Rackmon {
 
   bool isDeviceKnown(uint8_t);
 
+  ModbusDevice& getModbusDevice(uint8_t addr);
+
   // Monitor loop. Blocks forever as long as req_stop is true.
   void monitor();
 
