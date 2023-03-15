@@ -88,8 +88,10 @@ shared_ptr<SwitchState> testState() {
 
 shared_ptr<SwitchState> testStateNAT() {
   auto state = testState();
-  state->setDhcpV4RelaySrc(kDhcpV4RelaySrc);
-  state->setDhcpV4ReplySrc(kDhcpV4ReplySrc);
+  auto switchSettings = std::make_shared<SwitchSettings>();
+  switchSettings->setDhcpV4RelaySrc(kDhcpV4RelaySrc);
+  switchSettings->setDhcpV4ReplySrc(kDhcpV4ReplySrc);
+  state->resetSwitchSettings(switchSettings);
   return state;
 }
 

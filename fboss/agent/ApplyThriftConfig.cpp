@@ -658,42 +658,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
-  auto oldDhcpV4RelaySrc = orig_->getDhcpV4RelaySrc();
-  auto newDhcpV4RelaySrc = cfg_->dhcpRelaySrcOverrideV4()
-      ? IPAddressV4(*cfg_->dhcpRelaySrcOverrideV4())
-      : IPAddressV4();
-  if (oldDhcpV4RelaySrc != newDhcpV4RelaySrc) {
-    new_->setDhcpV4RelaySrc(newDhcpV4RelaySrc);
-    changed = true;
-  }
-
-  auto oldDhcpV6RelaySrc = orig_->getDhcpV6RelaySrc();
-  auto newDhcpV6RelaySrc = cfg_->dhcpRelaySrcOverrideV6()
-      ? IPAddressV6(*cfg_->dhcpRelaySrcOverrideV6())
-      : IPAddressV6("::");
-  if (oldDhcpV6RelaySrc != newDhcpV6RelaySrc) {
-    new_->setDhcpV6RelaySrc(newDhcpV6RelaySrc);
-    changed = true;
-  }
-
-  auto oldDhcpV4ReplySrc = orig_->getDhcpV4ReplySrc();
-  auto newDhcpV4ReplySrc = cfg_->dhcpReplySrcOverrideV4()
-      ? IPAddressV4(*cfg_->dhcpReplySrcOverrideV4())
-      : IPAddressV4();
-  if (oldDhcpV4ReplySrc != newDhcpV4ReplySrc) {
-    new_->setDhcpV4ReplySrc(newDhcpV4ReplySrc);
-    changed = true;
-  }
-
-  auto oldDhcpV6ReplySrc = orig_->getDhcpV6ReplySrc();
-  auto newDhcpV6ReplySrc = cfg_->dhcpReplySrcOverrideV6()
-      ? IPAddressV6(*cfg_->dhcpReplySrcOverrideV6())
-      : IPAddressV6("::");
-  if (oldDhcpV6ReplySrc != newDhcpV6ReplySrc) {
-    new_->setDhcpV6ReplySrc(newDhcpV6ReplySrc);
-    changed = true;
-  }
-
   // Add sFlow collectors
   {
     auto newCollectors = updateSflowCollectors();
@@ -3658,6 +3622,42 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
   uint32_t maxNeighborProbes(*cfg_->maxNeighborProbes());
   if (orig_->getMaxNeighborProbes() != maxNeighborProbes) {
     newSwitchSettings->setMaxNeighborProbes(maxNeighborProbes);
+    switchSettingsChange = true;
+  }
+
+  auto oldDhcpV4RelaySrc = orig_->getDhcpV4RelaySrc();
+  auto newDhcpV4RelaySrc = cfg_->dhcpRelaySrcOverrideV4()
+      ? IPAddressV4(*cfg_->dhcpRelaySrcOverrideV4())
+      : IPAddressV4();
+  if (oldDhcpV4RelaySrc != newDhcpV4RelaySrc) {
+    newSwitchSettings->setDhcpV4RelaySrc(newDhcpV4RelaySrc);
+    switchSettingsChange = true;
+  }
+
+  auto oldDhcpV6RelaySrc = orig_->getDhcpV6RelaySrc();
+  auto newDhcpV6RelaySrc = cfg_->dhcpRelaySrcOverrideV6()
+      ? IPAddressV6(*cfg_->dhcpRelaySrcOverrideV6())
+      : IPAddressV6("::");
+  if (oldDhcpV6RelaySrc != newDhcpV6RelaySrc) {
+    newSwitchSettings->setDhcpV6RelaySrc(newDhcpV6RelaySrc);
+    switchSettingsChange = true;
+  }
+
+  auto oldDhcpV4ReplySrc = orig_->getDhcpV4ReplySrc();
+  auto newDhcpV4ReplySrc = cfg_->dhcpReplySrcOverrideV4()
+      ? IPAddressV4(*cfg_->dhcpReplySrcOverrideV4())
+      : IPAddressV4();
+  if (oldDhcpV4ReplySrc != newDhcpV4ReplySrc) {
+    newSwitchSettings->setDhcpV4ReplySrc(newDhcpV4ReplySrc);
+    switchSettingsChange = true;
+  }
+
+  auto oldDhcpV6ReplySrc = orig_->getDhcpV6ReplySrc();
+  auto newDhcpV6ReplySrc = cfg_->dhcpReplySrcOverrideV6()
+      ? IPAddressV6(*cfg_->dhcpReplySrcOverrideV6())
+      : IPAddressV6("::");
+  if (oldDhcpV6ReplySrc != newDhcpV6ReplySrc) {
+    newSwitchSettings->setDhcpV6ReplySrc(newDhcpV6ReplySrc);
     switchSettingsChange = true;
   }
 

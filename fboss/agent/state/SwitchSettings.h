@@ -273,6 +273,71 @@ class SwitchSettings
       set<switch_state_tags::maxNeighborProbes>(maxNeighborProbes.value());
     }
   }
+
+  std::optional<folly::IPAddressV4> getDhcpV4RelaySrc() const {
+    if (auto dhcpV4RelaySrc = cref<switch_state_tags::dhcpV4RelaySrc>()) {
+      return network::toIPAddress(dhcpV4RelaySrc->toThrift()).asV4();
+    }
+    return std::nullopt;
+  }
+
+  void setDhcpV4RelaySrc(std::optional<folly::IPAddressV4> dhcpV4RelaySrc) {
+    if (!dhcpV4RelaySrc) {
+      ref<switch_state_tags::dhcpV4RelaySrc>().reset();
+    } else {
+      set<switch_state_tags::dhcpV4RelaySrc>(
+          network::toBinaryAddress(*dhcpV4RelaySrc));
+    }
+  }
+
+  std::optional<folly::IPAddressV6> getDhcpV6RelaySrc() const {
+    if (auto dhcpV6RelaySrc = cref<switch_state_tags::dhcpV6RelaySrc>()) {
+      return network::toIPAddress(dhcpV6RelaySrc->toThrift()).asV6();
+    }
+    return std::nullopt;
+  }
+
+  void setDhcpV6RelaySrc(std::optional<folly::IPAddressV6> dhcpV6RelaySrc) {
+    if (!dhcpV6RelaySrc) {
+      ref<switch_state_tags::dhcpV6RelaySrc>().reset();
+    } else {
+      set<switch_state_tags::dhcpV6RelaySrc>(
+          network::toBinaryAddress(*dhcpV6RelaySrc));
+    }
+  }
+
+  std::optional<folly::IPAddressV4> getDhcpV4ReplySrc() const {
+    if (auto dhcpV4ReplySrc = cref<switch_state_tags::dhcpV4ReplySrc>()) {
+      return network::toIPAddress(dhcpV4ReplySrc->toThrift()).asV4();
+    }
+    return std::nullopt;
+  }
+
+  void setDhcpV4ReplySrc(std::optional<folly::IPAddressV4> dhcpV4ReplySrc) {
+    if (!dhcpV4ReplySrc) {
+      ref<switch_state_tags::dhcpV4ReplySrc>().reset();
+    } else {
+      set<switch_state_tags::dhcpV4ReplySrc>(
+          network::toBinaryAddress(*dhcpV4ReplySrc));
+    }
+  }
+
+  std::optional<folly::IPAddressV6> getDhcpV6ReplySrc() const {
+    if (auto dhcpV6ReplySrc = cref<switch_state_tags::dhcpV6ReplySrc>()) {
+      return network::toIPAddress(dhcpV6ReplySrc->toThrift()).asV6();
+    }
+    return std::nullopt;
+  }
+
+  void setDhcpV6ReplySrc(std::optional<folly::IPAddressV6> dhcpV6ReplySrc) {
+    if (!dhcpV6ReplySrc) {
+      ref<switch_state_tags::dhcpV6ReplySrc>().reset();
+    } else {
+      set<switch_state_tags::dhcpV6ReplySrc>(
+          network::toBinaryAddress(*dhcpV6ReplySrc));
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:

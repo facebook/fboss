@@ -405,3 +405,64 @@ TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
   EXPECT_EQ(thriftState0.switchSettings()->staleEntryInterval(), 200);
   EXPECT_EQ(thriftState0.switchSettings()->maxNeighborProbes(), 100);
 }
+
+TEST(SwitchSettingsTest, applyDhcpConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  const folly::IPAddressV6 kDhcpV6RelaySrc("100::1");
+  const folly::IPAddressV6 kDhcpV6ReplySrc("101::1");
+  const folly::IPAddressV4 kDhcpV4RelaySrc("100.0.0.1");
+  const folly::IPAddressV4 kDhcpV4ReplySrc("101.0.0.1");
+
+  // Check default value
+  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV0);
+  EXPECT_EQ(switchSettingsV0->getDhcpV4RelaySrc(), std::nullopt);
+  EXPECT_EQ(switchSettingsV0->getDhcpV6RelaySrc(), std::nullopt);
+  EXPECT_EQ(switchSettingsV0->getDhcpV4ReplySrc(), std::nullopt);
+  EXPECT_EQ(switchSettingsV0->getDhcpV6ReplySrc(), std::nullopt);
+
+  // Check whether value is updated
+  cfg::SwitchConfig config = testConfigA();
+  config.dhcpRelaySrcOverrideV4() = "100.0.0.1";
+  config.dhcpReplySrcOverrideV4() = "101.0.0.1";
+  config.dhcpRelaySrcOverrideV6() = "100::1";
+  config.dhcpReplySrcOverrideV6() = "101::1";
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_EQ(switchSettingsV1->getDhcpV4RelaySrc(), kDhcpV4RelaySrc);
+  EXPECT_EQ(switchSettingsV1->getDhcpV6RelaySrc(), kDhcpV6RelaySrc);
+  EXPECT_EQ(switchSettingsV1->getDhcpV4ReplySrc(), kDhcpV4ReplySrc);
+  EXPECT_EQ(switchSettingsV1->getDhcpV6ReplySrc(), kDhcpV6ReplySrc);
+
+  const auto& thriftState0 = stateV1->toThrift();
+  EXPECT_EQ(
+      thriftState0.dhcpV4RelaySrc(),
+      facebook::network::toBinaryAddress(kDhcpV4RelaySrc));
+  EXPECT_EQ(
+      thriftState0.dhcpV6RelaySrc(),
+      facebook::network::toBinaryAddress(kDhcpV6RelaySrc));
+  EXPECT_EQ(
+      thriftState0.dhcpV4ReplySrc(),
+      facebook::network::toBinaryAddress(kDhcpV4ReplySrc));
+  EXPECT_EQ(
+      thriftState0.dhcpV6ReplySrc(),
+      facebook::network::toBinaryAddress(kDhcpV6ReplySrc));
+  EXPECT_EQ(
+      thriftState0.switchSettings()->dhcpV4RelaySrc(),
+      facebook::network::toBinaryAddress(kDhcpV4RelaySrc));
+  EXPECT_EQ(
+      thriftState0.switchSettings()->dhcpV6RelaySrc(),
+      facebook::network::toBinaryAddress(kDhcpV6RelaySrc));
+  EXPECT_EQ(
+      thriftState0.switchSettings()->dhcpV4ReplySrc(),
+      facebook::network::toBinaryAddress(kDhcpV4ReplySrc));
+  EXPECT_EQ(
+      thriftState0.switchSettings()->dhcpV6ReplySrc(),
+      facebook::network::toBinaryAddress(kDhcpV6ReplySrc));
+}
