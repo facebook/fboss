@@ -332,8 +332,18 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
     {{ModbusDeviceMode::ACTIVE, "ACTIVE"},
      {ModbusDeviceMode::DORMANT, "DORMANT"}})
 
-// Legacy JSON format.
 void to_json(json& j, const ModbusDeviceInfo& m) {
+  j["devAddress"] = m.deviceAddress;
+  j["deviceType"] = m.deviceType;
+  j["crcErrors"] = m.crcErrors;
+  j["timeouts"] = m.timeouts;
+  j["miscErrors"] = m.miscErrors;
+  j["baudrate"] = m.baudrate;
+  j["mode"] = m.mode;
+}
+
+// Legacy JSON format.
+void to_json(json& j, const ModbusDeviceRawData& m) {
   j["addr"] = m.deviceAddress;
   j["crc_fails"] = m.crcErrors;
   j["timeouts"] = m.timeouts;
@@ -341,27 +351,15 @@ void to_json(json& j, const ModbusDeviceInfo& m) {
   j["mode"] = m.mode;
   j["baudrate"] = m.baudrate;
   j["deviceType"] = m.deviceType;
-}
-
-// Legacy JSON format.
-void to_json(json& j, const ModbusDeviceRawData& m) {
-  const ModbusDeviceInfo& s = m;
-  to_json(j, s);
   j["now"] = std::time(nullptr);
   j["ranges"] = m.registerList;
 }
 
 // v2.0 JSON Format.
 void to_json(json& j, const ModbusDeviceValueData& m) {
-  j["deviceAddress"] = m.deviceAddress;
-  j["deviceType"] = m.deviceType;
-  j["crcErrors"] = m.crcErrors;
-  j["timeouts"] = m.timeouts;
-  j["miscErrors"] = m.miscErrors;
-  j["baudrate"] = m.baudrate;
-  j["mode"] = m.mode;
-  j["now"] = std::time(0);
-  j["registers"] = m.registerList;
+  const ModbusDeviceInfo& devInfo = m;
+  j["devInfo"] = devInfo;
+  j["regList"] = m.registerList;
 }
 
 } // namespace rackmon
