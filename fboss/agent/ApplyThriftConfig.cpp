@@ -664,16 +664,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     changed = true;
   }
 
-  std::chrono::seconds arpTimeout(*cfg_->arpTimeoutSeconds());
-  if (orig_->getArpTimeout() != arpTimeout) {
-    new_->setArpTimeout(arpTimeout);
-
-    // TODO(aeckert): add ndpTimeout field to SwitchConfig. For now use the same
-    // timeout for both ARP and NDP
-    new_->setNdpTimeout(arpTimeout);
-    changed = true;
-  }
-
   uint32_t maxNeighborProbes(*cfg_->maxNeighborProbes());
   if (orig_->getMaxNeighborProbes() != maxNeighborProbes) {
     new_->setMaxNeighborProbes(maxNeighborProbes);
@@ -3658,6 +3648,16 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
   VlanID defaultVlan(*cfg_->defaultVlan());
   if (orig_->getDefaultVlan() != defaultVlan) {
     newSwitchSettings->setDefaultVlan(defaultVlan);
+    switchSettingsChange = true;
+  }
+
+  std::chrono::seconds arpTimeout(*cfg_->arpTimeoutSeconds());
+  if (orig_->getArpTimeout() != arpTimeout) {
+    newSwitchSettings->setArpTimeout(arpTimeout);
+
+    // TODO: add ndpTimeout field to SwitchConfig. For now use the same
+    // timeout for both ARP and NDP
+    newSwitchSettings->setNdpTimeout(arpTimeout);
     switchSettingsChange = true;
   }
 

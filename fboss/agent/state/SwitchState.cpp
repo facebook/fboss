@@ -150,14 +150,6 @@ void SwitchState::addVlan(const std::shared_ptr<Vlan>& vlan) {
   ref<switch_state_tags::vlanMap>()->addVlan(vlan);
 }
 
-void SwitchState::setArpTimeout(seconds timeout) {
-  set<switch_state_tags::arpTimeout>(timeout.count());
-}
-
-void SwitchState::setNdpTimeout(seconds timeout) {
-  set<switch_state_tags::ndpTimeout>(timeout.count());
-}
-
 void SwitchState::setArpAgerInterval(seconds interval) {
   set<switch_state_tags::arpAgerInterval>(interval.count());
 }
@@ -517,6 +509,18 @@ state::SwitchState SwitchState::toThrift() const {
     data.defaultVlan() = data.switchSettings()->defaultVlan().value();
   } else {
     data.switchSettings()->defaultVlan() = data.defaultVlan().value();
+  }
+  // Write arpTimeout to switchSettings and old fields for transition
+  if (data.switchSettings()->arpTimeout().has_value()) {
+    data.arpTimeout() = data.switchSettings()->arpTimeout().value();
+  } else {
+    data.switchSettings()->arpTimeout() = data.arpTimeout().value();
+  }
+  // Write ndpTimeout to switchSettings and old fields for transition
+  if (data.switchSettings()->ndpTimeout().has_value()) {
+    data.ndpTimeout() = data.switchSettings()->ndpTimeout().value();
+  } else {
+    data.switchSettings()->ndpTimeout() = data.ndpTimeout().value();
   }
   return data;
 }

@@ -360,3 +360,32 @@ TEST(SwitchSettingsTest, applyDefaultVlanConfig) {
   EXPECT_EQ(thriftState0.defaultVlan(), 1);
   EXPECT_EQ(thriftState0.switchSettings()->defaultVlan(), 1);
 }
+
+TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  // Check default value
+  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV0);
+  EXPECT_EQ(switchSettingsV0->getArpTimeout(), std::nullopt);
+  EXPECT_EQ(switchSettingsV0->getNdpTimeout(), std::nullopt);
+
+  // Check whether value is updated
+  cfg::SwitchConfig config = testConfigA();
+  config.arpTimeoutSeconds() = 300;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_EQ(switchSettingsV1->getArpTimeout(), std::chrono::seconds(300));
+  EXPECT_EQ(switchSettingsV1->getNdpTimeout(), std::chrono::seconds(300));
+
+  const auto& thriftState0 = stateV1->toThrift();
+  EXPECT_EQ(thriftState0.arpTimeout(), 300);
+  EXPECT_EQ(thriftState0.ndpTimeout(), 300);
+  EXPECT_EQ(thriftState0.switchSettings()->arpTimeout(), 300);
+  EXPECT_EQ(thriftState0.switchSettings()->ndpTimeout(), 300);
+}

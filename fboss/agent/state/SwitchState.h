@@ -252,6 +252,10 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   std::chrono::seconds getArpTimeout() const {
+    auto arpTimeoutSwSettings = getSwitchSettings()->getArpTimeout();
+    if (arpTimeoutSwSettings.has_value()) {
+      return arpTimeoutSwSettings.value();
+    }
     auto arpTimeout = cref<switch_state_tags::arpTimeout>()->toThrift();
     return std::chrono::seconds(arpTimeout);
   }
@@ -291,14 +295,14 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     return cref<switch_state_tags::bufferPoolCfgMap>();
   }
 
-  void setArpTimeout(std::chrono::seconds timeout);
-
   std::chrono::seconds getNdpTimeout() const {
+    auto ndpTimeoutSwSettings = getSwitchSettings()->getNdpTimeout();
+    if (ndpTimeoutSwSettings.has_value()) {
+      return ndpTimeoutSwSettings.value();
+    }
     return std::chrono::seconds(
         cref<switch_state_tags::ndpTimeout>()->toThrift());
   }
-
-  void setNdpTimeout(std::chrono::seconds timeout);
 
   std::chrono::seconds getArpAgerInterval() const {
     return std::chrono::seconds(

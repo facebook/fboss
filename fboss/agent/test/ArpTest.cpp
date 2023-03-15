@@ -95,7 +95,9 @@ unique_ptr<HwTestHandle> setupTestHandle(
       " set timers", [arpTimeout, maxProbes, staleTimeout](auto inState) {
         inState = inState->clone();
         if (arpTimeout.count() > 0) {
-          inState->setArpTimeout(arpTimeout);
+          auto switchSettings = make_shared<SwitchSettings>();
+          switchSettings->setArpTimeout(arpTimeout);
+          inState->resetSwitchSettings(switchSettings);
         }
         inState->setMaxNeighborProbes(maxProbes);
         inState->setStaleEntryInterval(staleTimeout);

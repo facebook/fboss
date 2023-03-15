@@ -196,6 +196,36 @@ class SwitchSettings
     }
   }
 
+  std::optional<std::chrono::seconds> getArpTimeout() const {
+    if (auto arpTimeout = cref<switch_state_tags::arpTimeout>()) {
+      return std::chrono::seconds(arpTimeout->toThrift());
+    }
+    return std::nullopt;
+  }
+
+  void setArpTimeout(std::optional<std::chrono::seconds> arpTimeout) {
+    if (!arpTimeout) {
+      ref<switch_state_tags::arpTimeout>().reset();
+    } else {
+      set<switch_state_tags::arpTimeout>(arpTimeout.value().count());
+    }
+  }
+
+  std::optional<std::chrono::seconds> getNdpTimeout() const {
+    if (auto ndpTimeout = cref<switch_state_tags::ndpTimeout>()) {
+      return std::chrono::seconds(ndpTimeout->toThrift());
+    }
+    return std::nullopt;
+  }
+
+  void setNdpTimeout(std::optional<std::chrono::seconds> ndpTimeout) {
+    if (!ndpTimeout) {
+      ref<switch_state_tags::ndpTimeout>().reset();
+    } else {
+      set<switch_state_tags::ndpTimeout>(ndpTimeout.value().count());
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:
