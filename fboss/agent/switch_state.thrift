@@ -304,7 +304,6 @@ struct SwitchSettingsFields {
   19: optional Address.BinaryAddress dhcpV6RelaySrc;
   20: optional Address.BinaryAddress dhcpV4ReplySrc;
   21: optional Address.BinaryAddress dhcpV6ReplySrc;
-  22: optional switch_config.PfcWatchdogRecoveryAction pfcWatchdogRecoveryAction;
   23: optional QcmCfgFields qcmCfg;
   24: optional QosPolicyFields defaultDataPlaneQosPolicy;
   25: optional switch_config.UdfConfig udfConfig;
