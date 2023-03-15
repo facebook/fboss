@@ -181,6 +181,21 @@ class SwitchSettings
     }
   }
 
+  std::optional<int64_t> getDefaultVlan() const {
+    if (auto defaultVlan = cref<switch_state_tags::defaultVlan>()) {
+      return defaultVlan->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setDefaultVlan(std::optional<int64_t> defaultVlan) {
+    if (!defaultVlan) {
+      ref<switch_state_tags::defaultVlan>().reset();
+    } else {
+      set<switch_state_tags::defaultVlan>(*defaultVlan);
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:

@@ -150,10 +150,6 @@ void SwitchState::addVlan(const std::shared_ptr<Vlan>& vlan) {
   ref<switch_state_tags::vlanMap>()->addVlan(vlan);
 }
 
-void SwitchState::setDefaultVlan(const VlanID& id) {
-  set<switch_state_tags::defaultVlan>(id);
-}
-
 void SwitchState::setArpTimeout(seconds timeout) {
   set<switch_state_tags::arpTimeout>(timeout.count());
 }
@@ -481,6 +477,10 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
 }
 
 VlanID SwitchState::getDefaultVlan() const {
+  auto defaultVlan = getSwitchSettings()->getDefaultVlan();
+  if (defaultVlan.has_value()) {
+    return VlanID(defaultVlan.value());
+  }
   return VlanID(cref<switch_state_tags::defaultVlan>()->toThrift());
 }
 
@@ -511,6 +511,12 @@ state::SwitchState SwitchState::toThrift() const {
       }
       aclTableGroupMap->clear();
     }
+  }
+  // Write defaultVlan to switchSettings and old fields for transition
+  if (data.switchSettings()->defaultVlan().has_value()) {
+    data.defaultVlan() = data.switchSettings()->defaultVlan().value();
+  } else {
+    data.switchSettings()->defaultVlan() = data.defaultVlan().value();
   }
   return data;
 }

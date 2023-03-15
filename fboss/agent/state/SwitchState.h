@@ -228,7 +228,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   VlanID getDefaultVlan() const;
-  void setDefaultVlan(const VlanID& id);
 
   const std::shared_ptr<QosPolicy> getDefaultDataPlaneQosPolicy() const {
     return cref<switch_state_tags::defaultDataPlaneQosPolicy>();

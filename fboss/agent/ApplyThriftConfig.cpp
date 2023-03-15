@@ -623,8 +623,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     if (newVlans->getVlanIf(dfltVlan) == nullptr) {
       throw FbossError("Default VLAN ", dfltVlan, " does not exist");
     }
-    new_->setDefaultVlan(dfltVlan);
-    changed = true;
   }
 
   // Make sure all interfaces refer to valid VLANs.
@@ -3655,6 +3653,12 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
       newSwitchSettings->setSystemPortRange(*myNode.systemPortRange());
       switchSettingsChange = true;
     }
+  }
+
+  VlanID defaultVlan(*cfg_->defaultVlan());
+  if (orig_->getDefaultVlan() != defaultVlan) {
+    newSwitchSettings->setDefaultVlan(defaultVlan);
+    switchSettingsChange = true;
   }
 
   return switchSettingsChange ? newSwitchSettings : nullptr;

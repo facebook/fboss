@@ -335,3 +335,28 @@ TEST(SwitchSettingsTest, applyExactMatchTableConfig) {
   EXPECT_EQ(
       stateV3->getSwitchSettings()->getExactMatchTableConfig()->size(), 0);
 }
+
+TEST(SwitchSettingsTest, applyDefaultVlanConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  // Check default value
+  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV0);
+  EXPECT_EQ(switchSettingsV0->getDefaultVlan(), std::nullopt);
+
+  // Check whether value is updated
+  cfg::SwitchConfig config = testConfigA();
+  config.defaultVlan() = 1;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_EQ(switchSettingsV1->getDefaultVlan(), 1);
+
+  const auto& thriftState0 = stateV1->toThrift();
+  EXPECT_EQ(thriftState0.defaultVlan(), 1);
+  EXPECT_EQ(thriftState0.switchSettings()->defaultVlan(), 1);
+}
