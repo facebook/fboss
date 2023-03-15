@@ -26,17 +26,19 @@ using utils::Table;
 
 struct CmdShowHostTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
-  // TODO: Add argument taking PortList
-  using ObjectArgType = std::monostate;
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
+  using ObjectArgType = utils::PortList;
   using RetType = cli::ShowHostModel;
 };
 
 class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
  public:
+  using ObjectArgType = CmdShowHostTraits::ObjectArgType;
   using RetType = CmdShowHostTraits::RetType;
 
-  RetType queryClient(const HostInfo& hostInfo) {
+  RetType queryClient(
+      const HostInfo& hostInfo,
+      const ObjectArgType& queriedPorts) {
     std::vector<int32_t> ports;
     std::vector<NdpEntryThrift> ndpEntries;
     std::map<int32_t, PortInfoThrift> portInfoEntries;
@@ -46,13 +48,15 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
     agentClient->sync_getNdpTable(ndpEntries);
     agentClient->sync_getAllPortInfo(portInfoEntries);
     agentClient->sync_getPortStatus(portStatusEntries, ports);
-    return createModel(ndpEntries, portInfoEntries, portStatusEntries);
+    return createModel(
+        ndpEntries, portInfoEntries, portStatusEntries, queriedPorts);
   }
 
   RetType createModel(
       const std::vector<NdpEntryThrift>& ndpEntries,
       const std::map<int32_t, PortInfoThrift>& portInfoEntries,
-      const std::map<int32_t, PortStatus>& portStatusEntries) {
+      const std::map<int32_t, PortStatus>& portStatusEntries,
+      const ObjectArgType& queriedPorts) {
     RetType model;
     for (const auto& ndpEntry : ndpEntries) {
       cli::ShowHostModelEntry hostDetails;
@@ -61,6 +65,8 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
       if (boost::algorithm::starts_with(ndpEntryAddr, "fe80:")) {
         continue;
       }
+      std::unordered_set<std::string> queriedSet(
+          queriedPorts.begin(), queriedPorts.end());
       int32_t ndpEntryPort = ndpEntry.get_port();
       hostDetails.portID() = ndpEntryPort;
       int32_t ndpEntryClassID = ndpEntry.get_classID();
@@ -79,7 +85,11 @@ class CmdShowHost : public CmdHandler<CmdShowHost, CmdShowHostTraits> {
       if (auto ndpEntryPortInfoEntry = portInfoEntries.find(ndpEntryPort);
           ndpEntryPortInfoEntry != portInfoEntries.end()) {
         const auto& ndpEntryPortInfo = ndpEntryPortInfoEntry->second;
-        hostDetails.portName() = ndpEntryPortInfo.get_name();
+        auto ndpEntryPortName = ndpEntryPortInfo.get_name();
+        if (queriedSet.size() > 0 && queriedSet.count(ndpEntryPortName) == 0) {
+          continue;
+        }
+        hostDetails.portName() = ndpEntryPortName;
         hostDetails.speed() =
             utils::getSpeedGbps(ndpEntryPortInfo.get_speedMbps());
         hostDetails.fecMode() = ndpEntryPortInfo.get_fecMode();

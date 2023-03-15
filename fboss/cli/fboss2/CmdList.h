@@ -36,12 +36,14 @@ struct Command {
       const utils::ObjectArgTypeId argType,
       const std::string& help,
       const CommandHandlerFn& handler,
-      const std::vector<Command>& subcommands = {})
+      const std::vector<Command>& subcommands = {},
+      const std::vector<utils::LocalOption>& localOptions = {})
       : name{name},
         argType{argType},
         help{help},
         handler{handler},
-        subcommands{subcommands} {}
+        subcommands{subcommands},
+        localOptions{localOptions} {}
 
   // Some commands don't have handlers and only have more subcommands
   Command(
@@ -59,13 +61,15 @@ struct Command {
       const std::string& help,
       const CommandHandlerFn& handler,
       const GetValidFilterFn& validFilterGetter,
-      const std::vector<Command>& subcommands = {})
+      const std::vector<Command>& subcommands = {},
+      const std::vector<utils::LocalOption>& localOptions = {})
       : name{name},
         argType{argType},
         help{help},
         handler{handler},
         validFilterHandler{validFilterGetter},
-        subcommands{subcommands} {}
+        subcommands{subcommands},
+        localOptions{localOptions} {}
 
   const std::string name;
   const utils::ObjectArgTypeId argType;
@@ -73,6 +77,7 @@ struct Command {
   const std::optional<CommandHandlerFn> handler;
   const std::optional<GetValidFilterFn> validFilterHandler;
   const std::vector<Command> subcommands;
+  const std::vector<utils::LocalOption> localOptions;
 };
 
 struct RootCommand : public Command {
@@ -82,8 +87,10 @@ struct RootCommand : public Command {
       const utils::ObjectArgTypeId argType,
       const std::string& help,
       const CommandHandlerFn& handler,
-      const std::vector<Command>& subcommands = {})
-      : Command(object, argType, help, handler, subcommands), verb{verb} {}
+      const std::vector<Command>& subcommands = {},
+      const std::vector<utils::LocalOption>& localOptions = {})
+      : Command(object, argType, help, handler, subcommands, localOptions),
+        verb{verb} {}
 
   RootCommand(
       const std::string& verb,
@@ -92,8 +99,16 @@ struct RootCommand : public Command {
       const std::string& help,
       const CommandHandlerFn& handler,
       const GetValidFilterFn& validFilterGetter,
-      const std::vector<Command>& subcommands = {})
-      : Command(object, argType, help, handler, validFilterGetter, subcommands),
+      const std::vector<Command>& subcommands = {},
+      const std::vector<utils::LocalOption>& localOptions = {})
+      : Command(
+            object,
+            argType,
+            help,
+            handler,
+            validFilterGetter,
+            subcommands,
+            localOptions),
         verb{verb} {}
 
   RootCommand(

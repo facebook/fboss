@@ -64,6 +64,7 @@ struct ModbusDeviceInfo {
   uint32_t deviceErrors = 0;
   time_t lastActive = 0;
   uint32_t numConsecutiveFailures = 0;
+  Parity parity = Parity::EVEN;
 };
 void to_json(nlohmann::json& j, const ModbusDeviceInfo& m);
 
@@ -84,7 +85,6 @@ class ModbusDevice {
   Modbus& interface_;
   int numCommandRetries_;
   ModbusDeviceRawData info_;
-  mutable std::mutex registerListMutex_{};
   std::vector<ModbusSpecialHandler> specialHandlers_{};
   const BaudrateConfig& baudConfig_;
   bool setBaudEnabled_ = true;
@@ -99,6 +99,8 @@ class ModbusDevice {
   void setPreferredBaudrate() {
     setBaudrate(info_.preferredBaudrate);
   }
+
+  bool reloadRegister(RegisterStore& registerStore);
 
  public:
   ModbusDevice(

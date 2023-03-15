@@ -128,6 +128,7 @@ cli::ShowHostModel createSortedHostModel() {
 
 class CmdShowHostTestFixture : public CmdHandlerTestBase {
  public:
+  CmdShowHostTraits::ObjectArgType queriedPorts;
   std::vector<NdpEntryThrift> mockNdpEntries;
   std::map<int32_t, PortInfoThrift> mockPortInfoEntries;
   std::map<int32_t, PortStatus> mockPortStatusEntries;
@@ -144,7 +145,7 @@ class CmdShowHostTestFixture : public CmdHandlerTestBase {
 
 TEST_F(CmdShowHostTestFixture, sortModel) {
   auto model = CmdShowHost().createModel(
-      mockNdpEntries, mockPortInfoEntries, mockPortStatusEntries);
+      mockNdpEntries, mockPortInfoEntries, mockPortStatusEntries, queriedPorts);
 
   EXPECT_THRIFT_EQ(model, expectedModel);
 }
@@ -160,7 +161,7 @@ TEST_F(CmdShowHostTestFixture, queryClient) {
           [&](auto& entries, auto) { entries = mockPortStatusEntries; }));
 
   auto cmd = CmdShowHost();
-  auto model = cmd.queryClient(localhost());
+  auto model = cmd.queryClient(localhost(), queriedPorts);
 
   EXPECT_THRIFT_EQ(model, expectedModel);
 }

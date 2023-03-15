@@ -65,8 +65,8 @@ int Device::waitRead(int timeoutMs) {
   FD_ZERO(&fdset);
   FD_SET(deviceFd_, &fdset);
   if (timeoutMs > 0) {
-    timeout.tv_sec = 0;
-    timeout.tv_usec = timeoutMs * 1000;
+    timeout.tv_sec = timeoutMs / 1000;
+    timeout.tv_usec = (timeoutMs % 1000) * 1000;
     timeoutPtr = &timeout;
   }
   int rc = select(deviceFd_ + 1, &fdset, nullptr, nullptr, timeoutPtr);
@@ -77,7 +77,8 @@ int Device::waitRead(int timeoutMs) {
   if (rc == 0) {
     return 0;
   }
-  return timeoutMs > 0 ? timeout.tv_usec / 1000 : -1;
+  return timeoutMs > 0 ? (timeout.tv_sec * 1000) + (timeout.tv_usec / 1000)
+                       : -1;
 }
 
 size_t Device::read(uint8_t* buf, size_t exactLen, int timeoutMs) {

@@ -1,5 +1,5 @@
 {
-    "name": "orv2_psu",
+    "name": "ORV2_PSU",
     "address_range": [
         160,
         191
@@ -23,7 +23,7 @@
         "period": 3600,
         "action": "write",
         "info": {
-          "interpret": "integer",
+          "interpret": "INTEGER",
           "shell": "date +%s"
         }
       }
@@ -32,43 +32,43 @@
         {
             "begin": 0,
             "length": 8,
-            "format": "string",
+            "format": "STRING",
             "name": "PSU MFR MODEL"
         },
         {
             "begin": 16,
             "length": 8,
-            "format": "string",
+            "format": "STRING",
             "name": "PSU MFR DATE"
         },
         {
             "begin": 32,
             "length": 8,
-            "format": "string",
+            "format": "STRING",
             "name": "PSU FB Part #"
         },
         {
             "begin": 48,
             "length": 4,
-            "format": "string",
+            "format": "STRING",
             "name": "PSU HW Revision"
         },
         {
             "begin": 56,
             "length": 4,
-            "format": "string",
+            "format": "STRING",
             "name": "PSU FW Revision"
         },
         {
             "begin": 64,
             "length": 16,
-            "format": "string",
+            "format": "STRING",
             "name": "PSU MFR Serial #"
         },
         {
             "begin": 96,
             "length": 4,
-            "format": "string",
+            "format": "STRING",
             "name": "PSU Workorder #"
         },
         {
@@ -76,7 +76,7 @@
             "length": 1,
             "keep": 10,
             "changes_only": true,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [13, "Forced Backup"],
                 [11, "Power Fail signal"],
@@ -99,7 +99,7 @@
             "length": 1,
             "keep": 10,
             "changes_only": true,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [15, "Unknown Error"],
                 [14, "Bad Size"],
@@ -121,7 +121,7 @@
             "length": 1,
             "keep": 10,
             "changes_only": true,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [15, "Capacity Mode"],
                 [14, "Charger Mode"],
@@ -139,7 +139,7 @@
             "length": 1,
             "keep": 10,
             "changes_only": true,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [15, "Over Charged Alarm"],
                 [14, "Terminated Charge Alarm"],
@@ -158,7 +158,7 @@
             "begin": 109,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Cell Voltage 1 (0x80 of the BBU)"
         },
@@ -166,7 +166,7 @@
             "begin": 110,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Cell Voltage 2 (0x81 of the BBU)"
         },
@@ -174,7 +174,7 @@
             "begin": 111,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Cell Voltage 3 (0x82 of the BBU)"
         },
@@ -182,7 +182,7 @@
             "begin": 112,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Cell Voltage 4 (0x83 of the BBU)"
         },
@@ -190,7 +190,7 @@
             "begin": 113,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Cell Voltage 5 (0x84 of the BBU)"
         },
@@ -198,7 +198,7 @@
             "begin": 114,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Cell Voltage 6 (0x85 of the BBU)"
         },
@@ -206,7 +206,7 @@
             "begin": 115,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Cell Voltage 7 (0x86 of the BBU)"
         },
@@ -214,7 +214,7 @@
             "begin": 116,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Cell Voltage 8 (0x87 of the BBU)"
         },
@@ -222,7 +222,7 @@
             "begin": 117,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Cell Voltage 9 (0x88 of the BBU)"
         },
@@ -230,7 +230,7 @@
             "begin": 118,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Cell Voltage 10 (0x89 of the BBU)"
         },
@@ -238,7 +238,7 @@
             "begin": 119,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Cell Voltage 11 (0x8A of the BBU)"
         },
@@ -246,7 +246,7 @@
             "begin": 120,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Cell Voltage 12 (0x8B of the BBU)"
         },
@@ -254,7 +254,7 @@
             "begin": 121,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Cell Voltage 13 (0x8C of the BBU)"
         },
@@ -262,7 +262,7 @@
             "begin": 122,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Temp 1 (0x90 of the BBU)"
         },
@@ -270,7 +270,7 @@
             "begin": 123,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Temp 2 (0x91 of the BBU)"
         },
@@ -278,7 +278,7 @@
             "begin": 124,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Temp 3 (0x92 of the BBU)"
         },
@@ -286,7 +286,7 @@
             "begin": 125,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Temp 4 (0x93 of the BBU)"
         },
@@ -294,7 +294,7 @@
             "begin": 126,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Relative State of Charge (0x0D of the BBU)"
         },
@@ -302,7 +302,7 @@
             "begin": 127,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Absolute State of Charge (0x0E of the BBU)"
         },
@@ -310,7 +310,7 @@
             "begin": 128,
             "length": 1,
             "keep": 10,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 6,
             "name": "PSU Input VAC"
         },
@@ -318,7 +318,7 @@
             "begin": 129,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Battery Voltage (0x09 of the BBU)"
         },
@@ -326,7 +326,7 @@
             "begin": 130,
             "length": 1,
             "keep": 10,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 10,
             "name": "PSU Input Current AC"
         },
@@ -334,7 +334,7 @@
             "begin": 131,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Battery Current (0x0A of the BBU)"
         },
@@ -342,7 +342,7 @@
             "begin": 132,
             "length": 1,
             "keep": 10,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 9,
             "name": "Battery Voltage (Detected by PSU)"
         },
@@ -350,14 +350,14 @@
             "begin": 133,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Average Current (0x0B of the BBU)"
         },
         {
             "begin": 134,
             "length": 1,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 8,
             "name": "Battery Current Output"
         },
@@ -365,14 +365,14 @@
             "begin": 135,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Remaining Capacity (0x0F of the BBU)"
         },
         {
             "begin": 136,
             "length": 1,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 12,
             "name": "Battery Current Input"
         },
@@ -380,7 +380,7 @@
             "begin": 137,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Full Charge Capacity (0x10 of the BBU)"
         },
@@ -388,7 +388,7 @@
             "begin": 138,
             "length": 1,
             "keep": 10,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 11,
             "name": "PSU Output Voltage"
         },
@@ -396,7 +396,7 @@
             "begin": 139,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Run Time To Empty (0x11 of the BBU)"
         },
@@ -404,7 +404,7 @@
             "begin": 140,
             "length": 1,
             "keep": 10,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 6,
             "name": "PSU Output Current"
         },
@@ -412,28 +412,28 @@
             "begin": 141,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Average Time To Empty (0x12 of the BBU)"
         },
         {
             "begin": 142,
             "length": 1,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 9,
             "name": "PSU IT Load Voltage Output"
         },
         {
             "begin": 143,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Charging Current (0x14 of the BBU)"
         },
         {
             "begin": 144,
             "length": 1,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 12,
             "name": "PSU IT Load Current Output"
         },
@@ -441,14 +441,14 @@
             "begin": 145,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Charging Voltage (0x15 of the BBU)"
         },
         {
             "begin": 146,
             "length": 1,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 6,
             "name": "PSU Bulk Cap Voltage"
         },
@@ -456,7 +456,7 @@
             "begin": 147,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Cycle Count (0x17 of the BBU)"
         },
@@ -464,14 +464,14 @@
             "begin": 148,
             "length": 1,
             "keep": 10,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 3,
             "name": "PSU Input Power"
         },
         {
             "begin": 149,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Design Capacity (0x18 of the BBU)"
         },
@@ -479,35 +479,35 @@
             "begin": 150,
             "length": 1,
             "keep": 10,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 3,
             "name": "PSU Output Power"
         },
         {
             "begin": 151,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Design Voltage (0x19 of the BBU)"
         },
         {
             "begin": 152,
             "length": 1,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 0,
             "name": "PSU RPM Fan 0"
         },
         {
             "begin": 153,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU At Rate (0x04 of the BBU)"
         },
         {
             "begin": 154,
             "length": 1,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 0,
             "name": "PSU RPM Fan 1"
         },
@@ -515,7 +515,7 @@
             "begin": 155,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU At Rate Time to Full (0x05 of the BBU)"
         },
@@ -523,7 +523,7 @@
             "begin": 156,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU At Rate Time to Empty (0x06 of the BBU)"
         },
@@ -531,62 +531,62 @@
             "begin": 157,
             "length": 1,
             "keep": 10,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU At Rate OK (0x07 of the BBU)"
         },
         {
             "begin": 158,
             "length": 1,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 7,
             "name": "PSU Temp 0 (inlet)"
         },
         {
             "begin": 159,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Temp (0x08 of the BBU)"
         },
         {
             "begin": 160,
             "length": 1,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 7,
             "name": "PSU Temp 1 (outlet)"
         },
         {
             "begin": 161,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Max Error (0x0C of the BBU)"
         },
         {
             "begin": 163,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "name": "Communication Baud Rate"
         },
         {
             "begin": 164,
             "length": 1,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 12,
             "name": "Charging Constant Current Level Override"
         },
         {
             "begin": 165,
             "length": 1,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 12,
             "name": "Computed Charging Constant Current Level"
         },
         {
             "begin": 208,
             "length": 1,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [7, "Communication"],
                 [6, "Fan"],
@@ -602,7 +602,7 @@
         {
             "begin": 209,
             "length": 1,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [11, "LLC enabled"],
                 [10, "Input relay on"],
@@ -618,7 +618,7 @@
         {
             "begin": 210,
             "length": 1,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [10, "Oring fail"],
                 [9, "Secondary DSP fail"],
@@ -633,7 +633,7 @@
         {
             "begin": 211,
             "length": 1,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [8, "CF Failure"],
                 [4, "OPP"],
@@ -647,7 +647,7 @@
         {
             "begin": 212,
             "length": 1,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [8, "Aux alarm"],
                 [2, "OCP"],
@@ -659,7 +659,7 @@
         {
             "begin": 213,
             "length": 1,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [6, "CHARGER_SCKT"],
                 [5, "CHARGER_HW_OVP"],
@@ -673,7 +673,7 @@
         {
             "begin": 215,
             "length": 1,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [15, "PFC FET 2 temp alarm"],
                 [14, "PFC FET 1 temp alarm"],
@@ -695,7 +695,7 @@
         {
             "begin": 216,
             "length": 1,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [0, "Fan Tacho Fail"]
             ],
@@ -704,7 +704,7 @@
         {
             "begin": 217,
             "length": 1,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [11, "BBU not_insert"],
                 [14, "BBU protection"],
@@ -724,53 +724,53 @@
         {
             "begin": 262,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Specification Info (0x1A of BBU)"
         },
         {
             "begin": 263,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Manufacturer Date (0x1B of BBU)"
         },
         {
             "begin": 264,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Serial Number (0x1C of BBU)"
         },
         {
             "begin": 265,
             "length": 2,
-            "format": "string",
+            "format": "STRING",
             "name": "BBU Device Chemistry (0x22 of BBU)"
         },
         {
             "begin": 267,
             "length": 2,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "BBU Manufacturer Data (0x23 of BBU)"
         },
         {
             "begin": 269,
             "length": 8,
-            "format": "string",
+            "format": "STRING",
             "name": "BBU Manufacturer Name (0x20 of BBU)"
         },
         {
             "begin": 277,
             "length": 8,
-            "format": "string",
+            "format": "STRING",
             "name": "BBU Device Name (0x21 of BBU)"
         },
         {
             "begin": 285,
             "length": 4,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [63, "Charge timeout"],
                 [61, "BMS Failure"],
@@ -816,20 +816,20 @@
         {
             "begin": 289,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "endian": "L",
             "name": "Battery Test Result (0x31 of the BBU)"
         },
         {
             "begin": 290,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "name": "Fan RPM Override"
         },
         {
             "begin": 291,
             "length": 1,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [12, "Variable Charger CC Mode Override"],
                 [5, "Forced discharge"],
@@ -841,7 +841,7 @@
         {
             "begin": 292,
             "length": 1,
-            "format": "flags",
+            "format": "FLAGS",
             "flags": [
                 [7, "RED LED"],
                 [6, "AMBER LED"],
@@ -853,64 +853,64 @@
         {
             "begin": 293,
             "length": 1,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 0,
             "name": "PSU Input Frequency AC"
         },
         {
             "begin": 294,
             "length": 1,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 9,
             "name": "PSU Power Factor"
         },
         {
             "begin": 295,
             "length": 1,
-            "format": "float",
+            "format": "FLOAT",
             "precision": 9,
             "name": "PSU iTHD"
         },
         {
             "begin": 296,
             "length": 2,
-            "format": "integer",
+            "format": "INTEGER",
             "name": "PSU CC Charge Failure Timeout"
         },
         {
             "begin": 298,
             "length": 2,
-            "format": "integer",
+            "format": "INTEGER",
             "name": "Time Stamping For Blackbox And SOH Test"
         },
         {
             "begin": 300,
             "length": 2,
-            "format": "integer",
+            "format": "INTEGER",
             "name": "Variable Charger Override Timeout"
         },
         {
             "begin": 302,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "name": "Configurable BBU Backup Time (90s-1200s)"
         },
         {
             "begin": 303,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "name": "Configurable PLS Timing (1s-300s)"
         },
         {
             "begin": 304,
             "length": 1,
-            "format": "integer",
+            "format": "INTEGER",
             "name": "Forced Discharge Timeout"
         },
         {
             "begin": 305,
             "length": 2,
-            "format": "integer",
+            "format": "INTEGER",
             "name": "SOH Timestamp"
         }
     ]

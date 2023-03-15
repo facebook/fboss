@@ -42,14 +42,14 @@ TEST(RegisterMapTest, JSONCoversion) {
       {
         "begin": 0,
         "length": 8,
-        "format": "string",
+        "format": "STRING",
         "name": "MFG_MODEL"
       },
       {
           "begin": 127,
           "length": 1,
           "keep": 10,
-          "format": "float",
+          "format": "FLOAT",
           "precision": 6,
           "name": "BBU Absolute State of Charge"
       }
@@ -100,7 +100,7 @@ TEST(RegisterMapTest, JSONCoversionBaudrate) {
       {
         "begin": 0,
         "length": 8,
-        "format": "string",
+        "format": "STRING",
         "name": "MFG_MODEL"
       }
     ]
@@ -137,7 +137,7 @@ TEST(RegisterMapTest, JSONCoversionSpecial) {
         "period": 3600,
         "action": "write",
         "info": {
-          "interpret": "integer",
+          "interpret": "INTEGER",
           "shell": "date +%s"
         }
       }
@@ -146,14 +146,14 @@ TEST(RegisterMapTest, JSONCoversionSpecial) {
       {
         "begin": 0,
         "length": 8,
-        "format": "string",
+        "format": "STRING",
         "name": "MFG_MODEL"
       },
       {
           "begin": 127,
           "length": 1,
           "keep": 10,
-          "format": "float",
+          "format": "FLOAT",
           "precision": 6,
           "name": "BBU Absolute State of Charge"
       }
@@ -200,7 +200,7 @@ class RegisterMapDatabaseTest : public ::testing::Test {
           {
             "begin": 0,
             "length": 8,
-            "format": "string",
+            "format": "STRING",
             "name": "MFG_MODEL"
           }
         ]
@@ -215,7 +215,7 @@ class RegisterMapDatabaseTest : public ::testing::Test {
           {
             "begin": 0,
             "length": 8,
-            "format": "string",
+            "format": "STRING",
             "name": "MFG_MODEL"
           }
         ]

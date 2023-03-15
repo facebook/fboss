@@ -7,17 +7,24 @@
 
 namespace rackmon {
 
+enum class Parity {
+  EVEN,
+  ODD,
+  NONE,
+};
+
 class UARTDevice : public Device {
   int baudrate_ = -1;
+  Parity parity_ = Parity::EVEN;
 
  protected:
-  virtual void setAttribute(bool readEnable, int baudrate);
+  virtual void setAttribute(bool readEnable, int baudrate, Parity parity);
 
   void readEnable() {
-    setAttribute(true, baudrate_);
+    setAttribute(true, baudrate_, parity_);
   }
   void readDisable() {
-    setAttribute(false, baudrate_);
+    setAttribute(false, baudrate_, parity_);
   }
 
  public:
@@ -32,7 +39,18 @@ class UARTDevice : public Device {
       return;
     }
     baudrate_ = baudrate;
-    setAttribute(true, baudrate);
+    setAttribute(true, baudrate, parity_);
+  }
+
+  Parity getParity() const {
+    return parity_;
+  }
+  void setParity(Parity parity) {
+    if (parity == parity_) {
+      return;
+    }
+    parity_ = parity;
+    setAttribute(true, baudrate_, parity);
   }
 
   void open() override;

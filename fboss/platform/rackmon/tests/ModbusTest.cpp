@@ -19,7 +19,7 @@ class MockUARTDevice : public UARTDevice {
   MOCK_METHOD1(waitRead, int(int));
   MOCK_METHOD0(waitWrite, void());
   MOCK_METHOD3(read, size_t(uint8_t*, size_t, int));
-  MOCK_METHOD2(setAttribute, void(bool, int));
+  MOCK_METHOD3(setAttribute, void(bool, int, Parity));
 };
 
 class MockModbus : public Modbus {
@@ -102,7 +102,7 @@ class ModbusTest : public ::testing::Test {
     EXPECT_CALL(*ptr, open()).Times(1);
     // Expect setAttribute to be called since the baud calling is different.
     if (baud != 19200)
-      EXPECT_CALL(*ptr, setAttribute(true, baud)).Times(1);
+      EXPECT_CALL(*ptr, setAttribute(true, baud, _)).Times(1);
     // This is tricky one, we want to check if write() was called with our bytes
     // including the CRC tail.
     EXPECT_CALL(

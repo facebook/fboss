@@ -21,8 +21,12 @@ class FakeModbus : public Modbus {
  public:
   FakeModbus(uint8_t e, uint8_t mina, uint8_t maxa, uint32_t b)
       : Modbus(), exp_addr(e), min_addr(mina), max_addr(maxa), baud(b) {}
-  void command(Msg& req, Msg& resp, uint32_t b, ModbusTime /* unused */)
-      override {
+  void command(
+      Msg& req,
+      Msg& resp,
+      uint32_t b,
+      ModbusTime /* unused */,
+      Parity /* unused */) override {
     encoder.encode(req);
     EXPECT_GE(req.addr, min_addr);
     EXPECT_LE(req.addr, max_addr);
@@ -64,15 +68,19 @@ class Mock3Modbus : public Modbus {
  public:
   Mock3Modbus(uint8_t e, uint8_t mina, uint8_t maxa, uint32_t b)
       : Modbus(), fake_(e, mina, maxa, b) {
-    ON_CALL(*this, command(_, _, _, _))
-        .WillByDefault(
-            Invoke([this](Msg& req, Msg& resp, uint32_t b, ModbusTime timeout) {
-              return fake_.command(req, resp, b, timeout);
-            }));
+    ON_CALL(*this, command(_, _, _, _, _))
+        .WillByDefault(Invoke([this](
+                                  Msg& req,
+                                  Msg& resp,
+                                  uint32_t b,
+                                  ModbusTime timeout,
+                                  Parity parity) {
+          return fake_.command(req, resp, b, timeout, parity);
+        }));
   }
   MOCK_METHOD0(isPresent, bool());
   MOCK_METHOD1(initialize, void(const nlohmann::json& j));
-  MOCK_METHOD4(command, void(Msg&, Msg&, uint32_t, ModbusTime));
+  MOCK_METHOD5(command, void(Msg&, Msg&, uint32_t, ModbusTime, Parity));
 
   FakeModbus fake_;
 };
@@ -120,7 +128,7 @@ class RackmonTest : public ::testing::Test {
           {
             "begin": 0,
             "length": 8,
-            "format": "string",
+            "format": "STRING",
             "name": "MFG_MODEL"
           }
         ]
@@ -155,7 +163,7 @@ class RackmonTest : public ::testing::Test {
       EXPECT_CALL(*ptr, isPresent())
           .Times(AtLeast(3))
           .WillRepeatedly(Return(true));
-      EXPECT_CALL(*ptr, command(_, _, _, _)).Times(AtLeast(num_cmd_calls));
+      EXPECT_CALL(*ptr, command(_, _, _, _, _)).Times(AtLeast(num_cmd_calls));
     }
     std::unique_ptr<Modbus> ptr2 = std::move(ptr);
     return ptr2;
@@ -173,7 +181,7 @@ TEST_F(RackmonTest, BasicLoad) {
         {
           "begin": 0,
           "length": 8,
-          "format": "string",
+          "format": "STRING",
           "name": "MFG_MODEL"
         }
       ]
@@ -354,9 +362,9 @@ TEST_F(RackmonTest, DormantRecovery) {
         std::make_unique<Mock3Modbus>(161, 160, 162, 19200);
     EXPECT_CALL(*ptr, initialize(exp)).Times(1);
     EXPECT_CALL(*ptr, isPresent()).WillRepeatedly(Return(true));
-    EXPECT_CALL(*ptr, command(_, _, _, _))
+    EXPECT_CALL(*ptr, command(_, _, _, _, _))
         .WillRepeatedly(
-            Invoke([&commandTimeout](Msg&, Msg&, uint32_t, ModbusTime) {
+            Invoke([&commandTimeout](Msg&, Msg&, uint32_t, ModbusTime, Parity) {
               if (commandTimeout) {
                 throw TimeoutException();
               }

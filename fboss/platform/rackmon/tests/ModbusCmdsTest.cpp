@@ -283,14 +283,14 @@ TEST(ModbusErrorTest, StringConversion) {
       return std::string(err.what());
     }
   };
-  ASSERT_EQ(errorMsg(1), "Modbus Error: ILLEGAL_FUNCTION(1)");
-  ASSERT_EQ(errorMsg(2), "Modbus Error: ILLEGAL_DATA_ADDRESS(2)");
-  ASSERT_EQ(errorMsg(3), "Modbus Error: ILLEGAL_DATA_VALUE(3)");
-  ASSERT_EQ(errorMsg(4), "Modbus Error: SLAVE_DEVICE_FAILURE(4)");
-  ASSERT_EQ(errorMsg(5), "Modbus Error: ACKNOWLEDGE(5)");
-  ASSERT_EQ(errorMsg(6), "Modbus Error: SLAVE_DEVICE_BUSY(6)");
-  ASSERT_EQ(errorMsg(7), "Modbus Error: NEGATIVE_ACKNOWLEDGE(7)");
-  ASSERT_EQ(errorMsg(8), "Modbus Error: MEMORY_PARITY_ERROR(8)");
-  ASSERT_EQ(errorMsg(9), "Modbus Error: UNDEFINED_MODBUS_ERROR(9)");
-  ASSERT_EQ(errorMsg(0), "Modbus Error: UNDEFINED_MODBUS_ERROR(0)");
+  ASSERT_EQ(errorMsg(1), "Modbus Error: ERR_ILLEGAL_FUNCTION(1)");
+  ASSERT_EQ(errorMsg(2), "Modbus Error: ERR_ILLEGAL_DATA_ADDRESS(2)");
+  ASSERT_EQ(errorMsg(3), "Modbus Error: ERR_ILLEGAL_DATA_VALUE(3)");
+  ASSERT_EQ(errorMsg(4), "Modbus Error: ERR_SLAVE_DEVICE_FAILURE(4)");
+  ASSERT_EQ(errorMsg(5), "Modbus Error: ERR_ACKNOWLEDGE(5)");
+  ASSERT_EQ(errorMsg(6), "Modbus Error: ERR_SLAVE_DEVICE_BUSY(6)");
+  ASSERT_EQ(errorMsg(7), "Modbus Error: ERR_NEGATIVE_ACKNOWLEDGE(7)");
+  ASSERT_EQ(errorMsg(8), "Modbus Error: ERR_MEMORY_PARITY_ERROR(8)");
+  ASSERT_EQ(errorMsg(9), "Modbus Error: ERR_UNDEFINED_MODBUS_ERROR(9)");
+  ASSERT_EQ(errorMsg(0), "Modbus Error: ERR_UNDEFINED_MODBUS_ERROR(0)");
 }

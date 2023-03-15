@@ -93,7 +93,7 @@ void RegisterValue::makeFlags(
     uint16_t regIdx = reg.size() - (pos / 16) - 1;
     uint16_t regBit = pos % 16;
     bool bitVal = (reg[regIdx] & (1 << regBit)) != 0;
-    flagsValue.push_back(std::make_tuple(bitVal, name, pos));
+    flagsValue.push_back({bitVal, name, pos});
   }
 }
 
@@ -125,11 +125,113 @@ RegisterValue::RegisterValue(const std::vector<uint16_t>& reg)
   makeHex(reg);
 }
 
+Register::Register(const RegisterDescriptor& d)
+    : value_{d.length, d.length},
+      desc(d),
+      timestamp(value_.first.timestamp),
+      value(value_.first.value) {}
+
+Register::Register(const Register& other)
+    : value_(other.value_),
+      isFirstActive(other.isFirstActive),
+      desc(other.desc),
+      timestamp(
+          other.isFirstActive ? value_.first.timestamp
+                              : value_.second.timestamp),
+      value(other.isFirstActive ? value_.first.value : value_.second.value) {}
+
+Register::Register(Register&& other) noexcept
+    : value_(std::move(other.value_)),
+      isFirstActive(other.isFirstActive),
+      desc(other.desc),
+      timestamp(
+          other.isFirstActive ? value_.first.timestamp
+                              : value_.second.timestamp),
+      value(other.isFirstActive ? value_.first.value : value_.second.value) {}
+
+void Register::updateReferences() {
+  RegisterReading& active = getActive();
+  value = active.value;
+  timestamp = active.timestamp;
+}
+
+void Register::swapActive() {
+  isFirstActive = !isFirstActive;
+  updateReferences();
+}
+
 Register::operator RegisterValue() const {
   return RegisterValue(value, desc, timestamp);
 }
 
+RegisterStore::RegisterStore(const RegisterDescriptor& desc)
+    : desc_(desc), regAddr_(desc.begin), history_(desc.keep, Register(desc)) {}
+
+RegisterStore::RegisterStore(const RegisterStore& other)
+    : desc_(other.desc_), regAddr_(other.regAddr_) {
+  std::unique_lock lk(other.historyMutex_);
+  history_ = other.history_;
+  enabled_ = other.enabled_;
+  idx_ = other.idx_;
+}
+
+bool RegisterStore::isEnabled() {
+  std::unique_lock lk(historyMutex_);
+  return enabled_;
+}
+
+void RegisterStore::enable() {
+  std::unique_lock lk(historyMutex_);
+  enabled_ = true;
+}
+
+void RegisterStore::disable() {
+  std::unique_lock lk(historyMutex_);
+  enabled_ = false;
+}
+
+std::vector<uint16_t>& RegisterStore::beginReloadRegister() {
+  std::unique_lock lk(historyMutex_);
+  return front().getInactive().value;
+}
+
+void RegisterStore::endReloadRegister() {
+  std::unique_lock lk(historyMutex_);
+  front().getInactive().timestamp = std::time(nullptr);
+  // Update the front and bump indexs.
+  front().swapActive();
+  // If we care about changes only and the values
+  // look the same, then ignore it.
+  if (desc_.storeChangesOnly && front() == back()) {
+    // Keep old value. Discard new value.
+    front().swapActive();
+    return;
+  }
+  ++(*this);
+}
+
+Register& RegisterStore::back() {
+  std::unique_lock lk(historyMutex_);
+  return idx_ == 0 ? history_.back() : history_[idx_ - 1];
+}
+
+const Register& RegisterStore::back() const {
+  std::unique_lock lk(historyMutex_);
+  return idx_ == 0 ? history_.back() : history_[idx_ - 1];
+}
+
+Register& RegisterStore::front() {
+  std::unique_lock lk(historyMutex_);
+  return history_[idx_];
+}
+
+void RegisterStore::operator++() {
+  std::unique_lock lk(historyMutex_);
+  idx_ = (idx_ + 1) % history_.size();
+}
+
 RegisterStore::operator RegisterStoreValue() const {
+  std::unique_lock lk(historyMutex_);
   RegisterStoreValue ret(regAddr_, desc_.name);
   for (const auto& reg : history_) {
     if (reg) {
@@ -175,12 +277,16 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
 NLOHMANN_JSON_SERIALIZE_ENUM(
     RegisterValueType,
     {
-        {RegisterValueType::HEX, "hex"},
-        {RegisterValueType::STRING, "string"},
-        {RegisterValueType::INTEGER, "integer"},
-        {RegisterValueType::FLOAT, "float"},
-        {RegisterValueType::FLAGS, "flags"},
+        {RegisterValueType::HEX, "RAW"},
+        {RegisterValueType::STRING, "STRING"},
+        {RegisterValueType::INTEGER, "INTEGER"},
+        {RegisterValueType::FLOAT, "FLOAT"},
+        {RegisterValueType::FLAGS, "FLAGS"},
     })
+
+NLOHMANN_JSON_SERIALIZE_ENUM(
+    Parity,
+    {{Parity::EVEN, "EVEN"}, {Parity::ODD, "ODD"}, {Parity::NONE, "NONE"}})
 
 void from_json(const json& j, RegisterDescriptor& i) {
   j.at("begin").get_to(i.begin);
@@ -217,10 +323,23 @@ void to_json(json& j, const RegisterDescriptor& i) {
   }
 }
 
+void to_json(json& j, const FlagType& m) {
+  j["name"] = m.name;
+  j["value"] = m.value;
+  j["bitOffset"] = m.bitOffset;
+}
+
 void to_json(json& j, const RegisterValue& m) {
+  static const std::unordered_map<RegisterValueType, std::string> keyMap = {
+      {RegisterValueType::INTEGER, "intValue"},
+      {RegisterValueType::STRING, "strValue"},
+      {RegisterValueType::FLOAT, "floatValue"},
+      {RegisterValueType::FLAGS, "flagsValue"},
+      {RegisterValueType::HEX, "rawValue"}};
   j["type"] = m.type;
-  j["time"] = m.timestamp;
-  std::visit([&j](auto&& v) { j["value"] = v; }, m.value);
+  j["timestamp"] = m.timestamp;
+  auto sub = keyMap.at(m.type);
+  std::visit([&j, &sub](auto&& v) { j["value"][sub] = v; }, m.value);
 }
 
 void to_json(json& j, const Register& m) {
@@ -235,10 +354,11 @@ void to_json(json& j, const Register& m) {
 void to_json(json& j, const RegisterStoreValue& m) {
   j["regAddress"] = m.regAddr;
   j["name"] = m.name;
-  j["readings"] = m.history;
+  j["history"] = m.history;
 }
 
 void to_json(json& j, const RegisterStore& m) {
+  std::unique_lock lk(m.historyMutex_);
   j["begin"] = m.regAddr_;
   j["readings"] = {};
   for (const auto& reg : m.history_) {
@@ -286,6 +406,7 @@ void from_json(const json& j, RegisterMap& m) {
   j.at("address_range").get_to(m.applicableAddresses);
   j.at("probe_register").get_to(m.probeRegister);
   j.at("name").get_to(m.name);
+  m.parity = j.value("parity", Parity::EVEN);
   j.at("preferred_baudrate").get_to(m.preferredBaudrate);
   j.at("default_baudrate").get_to(m.defaultBaudrate);
   std::vector<RegisterDescriptor> tmp;

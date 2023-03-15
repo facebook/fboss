@@ -40,7 +40,7 @@ const std::unordered_map<int, speed_t> kSpeedMap = {
 
 void UARTDevice::open() {
   Device::open();
-  setAttribute(true, baudrate_);
+  setAttribute(true, baudrate_, parity_);
 }
 
 void AspeedRS485Device::open() {
@@ -57,20 +57,39 @@ void AspeedRS485Device::open() {
   ioctl(TIOCSRS485, &rs485Conf);
 }
 
-void UARTDevice::setAttribute(bool readEnable, int baudrate) {
+void UARTDevice::setAttribute(bool readEnable, int baudrate, Parity parity) {
   struct termios tio {};
   cfsetspeed(&tio, kSpeedMap.at(baudrate));
-  tio.c_cflag |= PARENB;
+  switch (parity) {
+    case Parity::EVEN:
+      tio.c_cflag |= PARENB;
+      tio.c_cflag &= ~PARODD;
+      tio.c_iflag |= INPCK;
+      break;
+    case Parity::ODD:
+      tio.c_cflag |= PARENB;
+      tio.c_cflag |= PARODD;
+      tio.c_iflag |= INPCK;
+      break;
+    case Parity::NONE:
+      tio.c_cflag &= ~PARENB;
+      tio.c_iflag &= ~INPCK;
+      break;
+    default:
+      logInfo << "Invalid parity value" << std::endl;
+      break;
+  }
   tio.c_cflag |= CLOCAL;
   tio.c_cflag |= CS8;
   if (readEnable) {
     tio.c_cflag |= CREAD;
   }
-  tio.c_iflag |= INPCK;
   tio.c_cc[VMIN] = 1;
   tio.c_cc[VTIME] = 0;
 
-  if (tcsetattr(deviceFd_, TCSANOW, &tio)) {
+  // Use TCSAFLUSH to force all data to be flushed.
+  // We should only be doing this in between reads and writes anyways.
+  if (tcsetattr(deviceFd_, TCSAFLUSH, &tio)) {
     throw std::runtime_error("Setting attribute failed");
   }
 }

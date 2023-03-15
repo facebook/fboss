@@ -64,7 +64,8 @@ class Modbus {
       Msg& req,
       Msg& resp,
       uint32_t baudrate = 0,
-      ModbusTime timeout = ModbusTime::zero());
+      ModbusTime timeout = ModbusTime::zero(),
+      Parity parity = Parity::EVEN);
 
   virtual bool isPresent() {
     return deviceValid_.load();

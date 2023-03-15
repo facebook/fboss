@@ -10,6 +10,7 @@
 
 #include "fboss/cli/fboss2/CmdSubcommands.h"
 #include "fboss/cli/fboss2/CmdArgsLists.h"
+#include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
 #include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
 
@@ -43,11 +44,28 @@ std::shared_ptr<CmdSubcommands> CmdSubcommands::getInstance() {
 
 namespace facebook::fboss {
 
-CLI::App*
-CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
+CLI::App* CmdSubcommands::addCommand(
+    CLI::App& app,
+    const Command& cmd,
+    std::string& fullCmd,
+    int depth) {
+  if (fullCmd.empty()) {
+    fullCmd += cmd.name;
+  } else {
+    fullCmd += fmt::format("_{}", cmd.name);
+  }
   auto* subCmd = app.add_subcommand(cmd.name, cmd.help);
   if (auto& handler = cmd.handler) {
     subCmd->callback(*handler);
+
+    auto& localOptionMap =
+        CmdLocalOptions::getInstance()->getLocalOptionMap(fullCmd);
+    for (const auto& localOption : cmd.localOptions) {
+      subCmd->add_option(
+          localOption.name,
+          localOptionMap[localOption.name],
+          localOption.helpMsg);
+    }
 
     auto& args = CmdArgsLists::getInstance()->refAt(depth);
     switch (cmd.argType) {
@@ -184,19 +202,21 @@ CmdSubcommands::addCommand(CLI::App& app, const Command& cmd, int depth) {
 void CmdSubcommands::addCommandBranch(
     CLI::App& app,
     const Command& cmd,
+    std::string& fullCmd,
     int depth) {
   // Command should not already exists since we only traverse the tree once
   if (utils::getSubcommandIf(app, cmd.name)) {
     // TODO explore moving this check to a compile time check
     std::runtime_error("Command already exists, command tree must be invalid");
   }
-  auto* subCmd = addCommand(app, cmd, depth);
+  auto* subCmd = addCommand(app, cmd, fullCmd, depth);
   if (cmd.handler) {
     // Do not increase depth for pass through commands that don't have arguments
     depth++;
   }
   for (const auto& child : cmd.subcommands) {
-    addCommandBranch(*subCmd, child, depth);
+    std::string newFullCmd = fullCmd;
+    addCommandBranch(*subCmd, child, newFullCmd, depth);
   }
 }
 
@@ -204,14 +224,14 @@ void CmdSubcommands::initCommandTree(
     CLI::App& app,
     const CommandTree& cmdTree) {
   for (const auto& cmd : cmdTree) {
-    auto& verb = cmd.verb;
+    auto verb = cmd.verb;
     auto* verbCmd = utils::getSubcommandIf(app, verb);
     // TODO explore moving this check to a compile time check
     if (!verbCmd) {
       throw std::runtime_error("Unsupported verb " + verb);
     }
 
-    addCommandBranch(*verbCmd, cmd);
+    addCommandBranch(*verbCmd, cmd, verb);
   }
 }
 
@@ -227,7 +247,8 @@ void CmdSubcommands::init(
   initCommandTree(app, cmdTree);
   initCommandTree(app, additionalCmdTree);
   for (const auto& cmd : specialCmds) {
-    addCommand(app, cmd, 0);
+    std::string fullCmd;
+    addCommand(app, cmd, fullCmd, 0);
   }
 }
 

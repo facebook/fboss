@@ -229,16 +229,14 @@ add_library(hw_switch_test
   fboss/agent/hw/test/HwPtpTcTests.cpp
   fboss/agent/hw/test/HwTeFlowTestUtils.cpp
   fboss/agent/hw/test/HwTeFlowTests.cpp
-  # TODO: Compile takes too long. Commenting until addressing it
-  # fboss/agent/hw/test/HwHashPolarizationTestUtils.cpp
-  # fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTomahawk.cpp
-  # fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTrident2.cpp
-  # fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk.cpp
-  # fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk3.cpp
-  # fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk4.cpp
-  # fboss/agent/hw/test/HwTestFullHashedPacketsForTrident2.cpp
-  # fboss/agent/hw/test/dataplane_tests/HwHashPolarizationTests.cpp
-
+  fboss/agent/hw/test/HwHashPolarizationTestUtils.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTomahawk.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForSaiTrident2.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk3.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTomahawk4.cpp
+  fboss/agent/hw/test/HwTestFullHashedPacketsForTrident2.cpp
+  fboss/agent/hw/test/dataplane_tests/HwHashPolarizationTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwAclCounterTests.cpp
   fboss/agent/hw/test/dataplane_tests/HwConfigSetupTest.cpp
   fboss/agent/hw/test/dataplane_tests/HwConfigVerifyQosTests.cpp

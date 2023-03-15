@@ -16,12 +16,14 @@ TEST(RegisterValueTest, Hex) {
   nlohmann::json j = val;
   EXPECT_TRUE(j.is_object());
   EXPECT_TRUE(j.contains("type") && j["type"].is_string());
-  EXPECT_TRUE(j.contains("time") && j["time"].is_number_integer());
-  EXPECT_TRUE(j.contains("value") && j["value"].is_array());
-  EXPECT_EQ(std::string(j["type"]), "hex");
-  EXPECT_EQ(j["time"], 0);
-  EXPECT_EQ(j["value"].size(), 4);
-  EXPECT_EQ(std::vector<uint8_t>(j["value"]), exp);
+  EXPECT_TRUE(j.contains("timestamp") && j["timestamp"].is_number_integer());
+  EXPECT_TRUE(
+      j.contains("value") && j["value"].contains("rawValue") &&
+      j["value"]["rawValue"].is_array());
+  EXPECT_EQ(std::string(j["type"]), "RAW");
+  EXPECT_EQ(j["timestamp"], 0);
+  EXPECT_EQ(j["value"]["rawValue"].size(), 4);
+  EXPECT_EQ(std::vector<uint8_t>(j["value"]["rawValue"]), exp);
 }
 
 TEST(RegisterValueTest, STRING) {
@@ -38,11 +40,13 @@ TEST(RegisterValueTest, STRING) {
   nlohmann::json j = val;
   EXPECT_TRUE(j.is_object());
   EXPECT_TRUE(j.contains("type") && j["type"].is_string());
-  EXPECT_TRUE(j.contains("time") && j["time"].is_number_integer());
-  EXPECT_TRUE(j.contains("value") && j["value"].is_string());
-  EXPECT_EQ(std::string(j["type"]), "string");
-  EXPECT_EQ(j["time"], 0x12345678);
-  EXPECT_EQ(j["value"], "700-014671-0000 ");
+  EXPECT_TRUE(j.contains("timestamp") && j["timestamp"].is_number_integer());
+  EXPECT_TRUE(
+      j.contains("value") && j["value"].contains("strValue") &&
+      j["value"]["strValue"].is_string());
+  EXPECT_EQ(std::string(j["type"]), "STRING");
+  EXPECT_EQ(j["timestamp"], 0x12345678);
+  EXPECT_EQ(j["value"]["strValue"], "700-014671-0000 ");
 }
 
 TEST(RegisterValueTest, INTEGER) {
@@ -55,12 +59,13 @@ TEST(RegisterValueTest, INTEGER) {
   nlohmann::json j = val;
   EXPECT_TRUE(j.is_object());
   EXPECT_TRUE(j.contains("type") && j["type"].is_string());
-  EXPECT_TRUE(j.contains("time") && j["time"].is_number_integer());
-  EXPECT_TRUE(j.contains("value") && j["value"].is_number_integer());
-  EXPECT_EQ(std::string(j["type"]), "integer");
-  EXPECT_EQ(j["time"], 0x12345678);
-  EXPECT_TRUE(j["value"].is_number_integer());
-  EXPECT_EQ(j["value"], 0x12345678);
+  EXPECT_TRUE(j.contains("timestamp") && j["timestamp"].is_number_integer());
+  EXPECT_TRUE(
+      j.contains("value") && j["value"].contains("intValue") &&
+      j["value"]["intValue"].is_number_integer());
+  EXPECT_EQ(std::string(j["type"]), "INTEGER");
+  EXPECT_EQ(j["timestamp"], 0x12345678);
+  EXPECT_EQ(j["value"]["intValue"], 0x12345678);
 }
 
 TEST(RegisterValueTest, LITTLE_INTEGER) {
@@ -83,11 +88,13 @@ TEST(RegisterValueTest, FLOAT) {
   nlohmann::json j = val;
   EXPECT_TRUE(j.is_object());
   EXPECT_TRUE(j.contains("type") && j["type"].is_string());
-  EXPECT_TRUE(j.contains("time") && j["time"].is_number_integer());
-  EXPECT_TRUE(j.contains("value") && j["value"].is_number_float());
-  EXPECT_EQ(std::string(j["type"]), "float");
-  EXPECT_EQ(j["time"], 0x12345678);
-  EXPECT_NEAR(j["value"], 12.623, 0.001);
+  EXPECT_TRUE(j.contains("timestamp") && j["timestamp"].is_number_integer());
+  EXPECT_TRUE(
+      j.contains("value") && j["value"].contains("floatValue") &&
+      j["value"]["floatValue"].is_number_float());
+  EXPECT_EQ(std::string(j["type"]), "FLOAT");
+  EXPECT_EQ(j["timestamp"], 0x12345678);
+  EXPECT_NEAR(j["value"]["floatValue"], 12.623, 0.001);
 }
 
 TEST(RegisterValueTest, FLAGS) {
@@ -113,23 +120,25 @@ TEST(RegisterValueTest, FLAGS) {
   nlohmann::json j = val3;
   EXPECT_TRUE(j.is_object());
   EXPECT_TRUE(j.contains("type") && j["type"].is_string());
-  EXPECT_TRUE(j.contains("time") && j["time"].is_number_integer());
-  EXPECT_TRUE(j.contains("value") && j["value"].is_array());
-  EXPECT_EQ(std::string(j["type"]), "flags");
-  EXPECT_EQ(j["time"], 0x12345678);
-  EXPECT_EQ(j["value"].size(), 2);
-  EXPECT_TRUE(j["value"][0].is_array());
-  EXPECT_TRUE(j["value"][1].is_array());
-  EXPECT_EQ(j["value"][0].size(), 3);
-  EXPECT_EQ(j["value"][1].size(), 3);
-  EXPECT_TRUE(j["value"][0][0].is_boolean());
-  EXPECT_TRUE(j["value"][1][0].is_boolean());
-  EXPECT_TRUE(j["value"][0][1].is_string());
-  EXPECT_TRUE(j["value"][1][1].is_string());
-  EXPECT_FALSE(j["value"][0][0]);
-  EXPECT_TRUE(j["value"][1][0]);
-  EXPECT_EQ(std::string(j["value"][0][1]), "HELLO");
-  EXPECT_EQ(std::string(j["value"][1][1]), "WORLD");
+  EXPECT_TRUE(j.contains("timestamp") && j["timestamp"].is_number_integer());
+  EXPECT_TRUE(
+      j.contains("value") && j["value"].contains("flagsValue") &&
+      j["value"]["flagsValue"].is_array());
+  EXPECT_EQ(std::string(j["type"]), "FLAGS");
+  EXPECT_EQ(j["timestamp"], 0x12345678);
+  EXPECT_EQ(j["value"]["flagsValue"].size(), 2);
+  for (int i = 0; i < 2; i++) {
+    EXPECT_TRUE(j["value"]["flagsValue"][i].contains("name"));
+    EXPECT_TRUE(j["value"]["flagsValue"][i].contains("value"));
+    EXPECT_TRUE(j["value"]["flagsValue"][i].contains("bitOffset"));
+    EXPECT_TRUE(j["value"]["flagsValue"][i]["name"].is_string());
+    EXPECT_TRUE(j["value"]["flagsValue"][i]["value"].is_boolean());
+    EXPECT_TRUE(j["value"]["flagsValue"][i]["bitOffset"].is_number_integer());
+  }
+  EXPECT_FALSE(j["value"]["flagsValue"][0]["value"]);
+  EXPECT_TRUE(j["value"]["flagsValue"][1]["value"]);
+  EXPECT_EQ(std::string(j["value"]["flagsValue"][0]["name"]), "HELLO");
+  EXPECT_EQ(std::string(j["value"]["flagsValue"][1]["name"]), "WORLD");
 }
 
 TEST(RegisterValueTest, LargeFlags) {
