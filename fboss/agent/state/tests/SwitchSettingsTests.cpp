@@ -335,3 +335,134 @@ TEST(SwitchSettingsTest, applyExactMatchTableConfig) {
   EXPECT_EQ(
       stateV3->getSwitchSettings()->getExactMatchTableConfig()->size(), 0);
 }
+
+TEST(SwitchSettingsTest, applyDefaultVlanConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  // Check default value
+  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV0);
+  EXPECT_EQ(switchSettingsV0->getDefaultVlan(), std::nullopt);
+
+  // Check whether value is updated
+  cfg::SwitchConfig config = testConfigA();
+  config.defaultVlan() = 1;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_EQ(switchSettingsV1->getDefaultVlan(), 1);
+
+  const auto& thriftState0 = stateV1->toThrift();
+  EXPECT_EQ(thriftState0.defaultVlan(), 1);
+  EXPECT_EQ(thriftState0.switchSettings()->defaultVlan(), 1);
+}
+
+TEST(SwitchSettingsTest, applyArpNdpTimeoutConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  // Check default value
+  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV0);
+  EXPECT_EQ(switchSettingsV0->getArpTimeout(), std::nullopt);
+  EXPECT_EQ(switchSettingsV0->getNdpTimeout(), std::nullopt);
+  EXPECT_EQ(switchSettingsV0->getArpAgerInterval(), std::nullopt);
+  EXPECT_EQ(switchSettingsV0->getStaleEntryInterval(), std::nullopt);
+  EXPECT_EQ(switchSettingsV0->getMaxNeighborProbes(), std::nullopt);
+
+  // Check whether value is updated
+  cfg::SwitchConfig config = testConfigA();
+  config.arpTimeoutSeconds() = 300;
+  config.arpAgerInterval() = 200;
+  config.staleEntryInterval() = 200;
+  config.maxNeighborProbes() = 100;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_EQ(switchSettingsV1->getArpTimeout(), std::chrono::seconds(300));
+  EXPECT_EQ(switchSettingsV1->getNdpTimeout(), std::chrono::seconds(300));
+  EXPECT_EQ(switchSettingsV1->getArpAgerInterval(), std::chrono::seconds(200));
+  EXPECT_EQ(
+      switchSettingsV1->getStaleEntryInterval(), std::chrono::seconds(200));
+  EXPECT_EQ(switchSettingsV1->getMaxNeighborProbes(), 100);
+
+  const auto& thriftState0 = stateV1->toThrift();
+  EXPECT_EQ(thriftState0.arpTimeout(), 300);
+  EXPECT_EQ(thriftState0.ndpTimeout(), 300);
+  EXPECT_EQ(thriftState0.arpAgerInterval(), 200);
+  EXPECT_EQ(thriftState0.staleEntryInterval(), 200);
+  EXPECT_EQ(thriftState0.maxNeighborProbes(), 100);
+  EXPECT_EQ(thriftState0.switchSettings()->arpTimeout(), 300);
+  EXPECT_EQ(thriftState0.switchSettings()->ndpTimeout(), 300);
+  EXPECT_EQ(thriftState0.switchSettings()->arpAgerInterval(), 200);
+  EXPECT_EQ(thriftState0.switchSettings()->staleEntryInterval(), 200);
+  EXPECT_EQ(thriftState0.switchSettings()->maxNeighborProbes(), 100);
+}
+
+TEST(SwitchSettingsTest, applyDhcpConfig) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  const folly::IPAddressV6 kDhcpV6RelaySrc("100::1");
+  const folly::IPAddressV6 kDhcpV6ReplySrc("101::1");
+  const folly::IPAddressV4 kDhcpV4RelaySrc("100.0.0.1");
+  const folly::IPAddressV4 kDhcpV4ReplySrc("101.0.0.1");
+
+  // Check default value
+  auto switchSettingsV0 = stateV0->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV0);
+  EXPECT_EQ(switchSettingsV0->getDhcpV4RelaySrc(), std::nullopt);
+  EXPECT_EQ(switchSettingsV0->getDhcpV6RelaySrc(), std::nullopt);
+  EXPECT_EQ(switchSettingsV0->getDhcpV4ReplySrc(), std::nullopt);
+  EXPECT_EQ(switchSettingsV0->getDhcpV6ReplySrc(), std::nullopt);
+
+  // Check whether value is updated
+  cfg::SwitchConfig config = testConfigA();
+  config.dhcpRelaySrcOverrideV4() = "100.0.0.1";
+  config.dhcpReplySrcOverrideV4() = "101.0.0.1";
+  config.dhcpRelaySrcOverrideV6() = "100::1";
+  config.dhcpReplySrcOverrideV6() = "101::1";
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_EQ(switchSettingsV1->getDhcpV4RelaySrc(), kDhcpV4RelaySrc);
+  EXPECT_EQ(switchSettingsV1->getDhcpV6RelaySrc(), kDhcpV6RelaySrc);
+  EXPECT_EQ(switchSettingsV1->getDhcpV4ReplySrc(), kDhcpV4ReplySrc);
+  EXPECT_EQ(switchSettingsV1->getDhcpV6ReplySrc(), kDhcpV6ReplySrc);
+
+  const auto& thriftState0 = stateV1->toThrift();
+  EXPECT_EQ(
+      thriftState0.dhcpV4RelaySrc(),
+      facebook::network::toBinaryAddress(kDhcpV4RelaySrc));
+  EXPECT_EQ(
+      thriftState0.dhcpV6RelaySrc(),
+      facebook::network::toBinaryAddress(kDhcpV6RelaySrc));
+  EXPECT_EQ(
+      thriftState0.dhcpV4ReplySrc(),
+      facebook::network::toBinaryAddress(kDhcpV4ReplySrc));
+  EXPECT_EQ(
+      thriftState0.dhcpV6ReplySrc(),
+      facebook::network::toBinaryAddress(kDhcpV6ReplySrc));
+  EXPECT_EQ(
+      thriftState0.switchSettings()->dhcpV4RelaySrc(),
+      facebook::network::toBinaryAddress(kDhcpV4RelaySrc));
+  EXPECT_EQ(
+      thriftState0.switchSettings()->dhcpV6RelaySrc(),
+      facebook::network::toBinaryAddress(kDhcpV6RelaySrc));
+  EXPECT_EQ(
+      thriftState0.switchSettings()->dhcpV4ReplySrc(),
+      facebook::network::toBinaryAddress(kDhcpV4ReplySrc));
+  EXPECT_EQ(
+      thriftState0.switchSettings()->dhcpV6ReplySrc(),
+      facebook::network::toBinaryAddress(kDhcpV6ReplySrc));
+}

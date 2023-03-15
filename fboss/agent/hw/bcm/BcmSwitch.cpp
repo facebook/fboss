@@ -641,14 +641,15 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
         "L2 Learning mode is neither SOFTWARE, nor HARDWARE, flags: ", flags);
   }
 
-  auto switchSettings = make_shared<SwitchSettings>();
-  switchSettings->setL2LearningMode(l2LearningMode);
-  bootState->resetSwitchSettings(switchSettings);
-
   bcm_vlan_t defaultVlan;
   auto rv = bcm_vlan_default_get(getUnit(), &defaultVlan);
   bcmCheckError(rv, "Unable to get default VLAN");
-  bootState->setDefaultVlan(VlanID(defaultVlan));
+
+  auto switchSettings = make_shared<SwitchSettings>();
+  switchSettings->setL2LearningMode(l2LearningMode);
+  switchSettings->setDefaultVlan(VlanID(defaultVlan));
+  bootState->resetSwitchSettings(switchSettings);
+
   // get cpu queue settings
   auto cpu = make_shared<ControlPlane>();
   auto cpuQueues = controlPlane_->getMulticastQueueSettings();

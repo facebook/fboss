@@ -294,6 +294,21 @@ struct SwitchSettingsFields {
   9: optional i64 switchId;
   10: list<switch_config.ExactMatchTableConfig> exactMatchTableConfigs;
   11: optional switch_config.Range64 systemPortRange;
+  12: optional i16 defaultVlan;
+  13: optional i64 arpTimeout;
+  14: optional i64 ndpTimeout;
+  15: optional i32 arpAgerInterval;
+  16: optional i32 maxNeighborProbes;
+  17: optional i64 staleEntryInterval;
+  18: optional Address.BinaryAddress dhcpV4RelaySrc;
+  19: optional Address.BinaryAddress dhcpV6RelaySrc;
+  20: optional Address.BinaryAddress dhcpV4ReplySrc;
+  21: optional Address.BinaryAddress dhcpV6ReplySrc;
+  22: optional switch_config.PfcWatchdogRecoveryAction pfcWatchdogRecoveryAction;
+  23: optional QcmCfgFields qcmCfg;
+  24: optional QosPolicyFields defaultDataPlaneQosPolicy;
+  25: optional switch_config.UdfConfig udfConfig;
+  26: optional switch_config.FlowletSwitchingConfig flowletSwitchingConfig;
 }
 
 struct RoutePrefix {

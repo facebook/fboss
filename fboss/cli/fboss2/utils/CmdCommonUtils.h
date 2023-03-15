@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <CLI/CLI.hpp>
 #include <folly/IPAddress.h>
 #include <folly/stop_watch.h>
 #include <string>
@@ -156,6 +157,10 @@ auto filterTupleMonostates(Tuple tup) {
       tup, std::make_index_sequence<std::tuple_size_v<UnfilteredTypes>>());
 }
 
+// Called after CLI11 is initlized but before parsing, for any final
+// initialization steps
+void postAppInit(int argc, char* argv[], CLI::App& app);
+
 // API to retrieve host related information
 const folly::IPAddress getIPFromHost(const std::string& hostname);
 const std::string getOobNameFromHost(const std::string& host);
@@ -163,9 +168,13 @@ std::vector<std::string> getHostsInSmcTier(const std::string& parentTierName);
 std::vector<std::string> getHostsFromFile(const std::string& filename);
 
 // Common util method
-void setLogLevel(std::string logLevelStr);
+long getEpochFromDuration(const int64_t& duration);
 const std::string getDurationStr(folly::stop_watch<>& watch);
+const std::string getPrettyElapsedTime(const int64_t& start_time);
+
 std::string getUserInfo();
+
+void setLogLevel(const std::string& logLevelStr);
 void logUsage(const CmdLogInfo& cmdLogInfo);
 
 } // namespace facebook::fboss::utils

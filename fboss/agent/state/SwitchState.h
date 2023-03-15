@@ -228,7 +228,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   VlanID getDefaultVlan() const;
-  void setDefaultVlan(const VlanID& id);
 
   const std::shared_ptr<QosPolicy> getDefaultDataPlaneQosPolicy() const {
     return cref<switch_state_tags::defaultDataPlaneQosPolicy>();
@@ -253,6 +252,10 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   std::chrono::seconds getArpTimeout() const {
+    auto arpTimeoutSwSettings = getSwitchSettings()->getArpTimeout();
+    if (arpTimeoutSwSettings.has_value()) {
+      return arpTimeoutSwSettings.value();
+    }
     auto arpTimeout = cref<switch_state_tags::arpTimeout>()->toThrift();
     return std::chrono::seconds(arpTimeout);
   }
@@ -292,74 +295,81 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     return cref<switch_state_tags::bufferPoolCfgMap>();
   }
 
-  void setArpTimeout(std::chrono::seconds timeout);
-
   std::chrono::seconds getNdpTimeout() const {
+    auto ndpTimeoutSwSettings = getSwitchSettings()->getNdpTimeout();
+    if (ndpTimeoutSwSettings.has_value()) {
+      return ndpTimeoutSwSettings.value();
+    }
     return std::chrono::seconds(
         cref<switch_state_tags::ndpTimeout>()->toThrift());
   }
 
-  void setNdpTimeout(std::chrono::seconds timeout);
-
   std::chrono::seconds getArpAgerInterval() const {
+    auto arpAgeSwSettings = getSwitchSettings()->getArpAgerInterval();
+    if (arpAgeSwSettings.has_value()) {
+      return arpAgeSwSettings.value();
+    }
     return std::chrono::seconds(
         cref<switch_state_tags::arpAgerInterval>()->toThrift());
   }
 
-  void setArpAgerInterval(std::chrono::seconds interval);
-
   uint32_t getMaxNeighborProbes() const {
+    auto maxNeighborProbes = getSwitchSettings()->getMaxNeighborProbes();
+    if (maxNeighborProbes.has_value()) {
+      return maxNeighborProbes.value();
+    }
     return cref<switch_state_tags::maxNeighborProbes>()->toThrift();
   }
-  void setMaxNeighborProbes(uint32_t maxNeighborProbes);
 
   std::chrono::seconds getStaleEntryInterval() const {
+    auto staleEntrySwSettings = getSwitchSettings()->getStaleEntryInterval();
+    if (staleEntrySwSettings.has_value()) {
+      return staleEntrySwSettings.value();
+    }
     return std::chrono::seconds(
         cref<switch_state_tags::staleEntryInterval>()->toThrift());
   }
 
-  void setStaleEntryInterval(std::chrono::seconds interval);
-
   // dhcp relay packet IP overrides
 
   folly::IPAddressV4 getDhcpV4RelaySrc() const {
+    auto dhcpV4RelaySrc = getSwitchSettings()->getDhcpV4RelaySrc();
+    if (dhcpV4RelaySrc.has_value()) {
+      return dhcpV4RelaySrc.value();
+    }
     return network::toIPAddress(
                cref<switch_state_tags::dhcpV4RelaySrc>()->toThrift())
         .asV4();
   }
-  void setDhcpV4RelaySrc(folly::IPAddressV4 v4RelaySrc) {
-    set<switch_state_tags::dhcpV4RelaySrc>(
-        network::toBinaryAddress(v4RelaySrc));
-  }
 
   folly::IPAddressV6 getDhcpV6RelaySrc() const {
+    auto dhcpV6RelaySrc = getSwitchSettings()->getDhcpV6RelaySrc();
+    if (dhcpV6RelaySrc.has_value()) {
+      return dhcpV6RelaySrc.value();
+    }
     return network::toIPAddress(
                cref<switch_state_tags::dhcpV6RelaySrc>()->toThrift())
         .asV6();
   }
-  void setDhcpV6RelaySrc(folly::IPAddressV6 v6RelaySrc) {
-    set<switch_state_tags::dhcpV6RelaySrc>(
-        network::toBinaryAddress(v6RelaySrc));
-  }
 
   folly::IPAddressV4 getDhcpV4ReplySrc() const {
+    auto dhcpV4ReplySrc = getSwitchSettings()->getDhcpV4ReplySrc();
+    if (dhcpV4ReplySrc.has_value()) {
+      return dhcpV4ReplySrc.value();
+    }
     return network::toIPAddress(
                cref<switch_state_tags::dhcpV4ReplySrc>()->toThrift())
         .asV4();
   }
-  void setDhcpV4ReplySrc(folly::IPAddressV4 v4ReplySrc) {
-    set<switch_state_tags::dhcpV4ReplySrc>(
-        network::toBinaryAddress(v4ReplySrc));
-  }
 
   folly::IPAddressV6 getDhcpV6ReplySrc() const {
+    auto dhcpV6ReplySrc = getSwitchSettings()->getDhcpV6ReplySrc();
+    if (dhcpV6ReplySrc.has_value()) {
+      return dhcpV6ReplySrc.value();
+    }
     return network::toIPAddress(
                cref<switch_state_tags::dhcpV6ReplySrc>()->toThrift())
         .asV6();
-  }
-  void setDhcpV6ReplySrc(folly::IPAddressV6 v6ReplySrc) {
-    set<switch_state_tags::dhcpV6ReplySrc>(
-        network::toBinaryAddress(v6ReplySrc));
   }
 
   // THRIFT_COPY

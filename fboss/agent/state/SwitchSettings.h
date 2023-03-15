@@ -181,6 +181,163 @@ class SwitchSettings
     }
   }
 
+  std::optional<int64_t> getDefaultVlan() const {
+    if (auto defaultVlan = cref<switch_state_tags::defaultVlan>()) {
+      return defaultVlan->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setDefaultVlan(std::optional<int64_t> defaultVlan) {
+    if (!defaultVlan) {
+      ref<switch_state_tags::defaultVlan>().reset();
+    } else {
+      set<switch_state_tags::defaultVlan>(*defaultVlan);
+    }
+  }
+
+  std::optional<std::chrono::seconds> getArpTimeout() const {
+    if (auto arpTimeout = cref<switch_state_tags::arpTimeout>()) {
+      return std::chrono::seconds(arpTimeout->toThrift());
+    }
+    return std::nullopt;
+  }
+
+  void setArpTimeout(std::optional<std::chrono::seconds> arpTimeout) {
+    if (!arpTimeout) {
+      ref<switch_state_tags::arpTimeout>().reset();
+    } else {
+      set<switch_state_tags::arpTimeout>(arpTimeout.value().count());
+    }
+  }
+
+  std::optional<std::chrono::seconds> getNdpTimeout() const {
+    if (auto ndpTimeout = cref<switch_state_tags::ndpTimeout>()) {
+      return std::chrono::seconds(ndpTimeout->toThrift());
+    }
+    return std::nullopt;
+  }
+
+  void setNdpTimeout(std::optional<std::chrono::seconds> ndpTimeout) {
+    if (!ndpTimeout) {
+      ref<switch_state_tags::ndpTimeout>().reset();
+    } else {
+      set<switch_state_tags::ndpTimeout>(ndpTimeout.value().count());
+    }
+  }
+
+  std::optional<std::chrono::seconds> getArpAgerInterval() const {
+    if (auto arpAgerInterval = cref<switch_state_tags::arpAgerInterval>()) {
+      return std::chrono::seconds(arpAgerInterval->toThrift());
+    }
+    return std::nullopt;
+  }
+
+  void setArpAgerInterval(std::optional<std::chrono::seconds> arpAgerInterval) {
+    if (!arpAgerInterval) {
+      ref<switch_state_tags::arpAgerInterval>().reset();
+    } else {
+      set<switch_state_tags::arpAgerInterval>(arpAgerInterval.value().count());
+    }
+  }
+
+  std::optional<std::chrono::seconds> getStaleEntryInterval() const {
+    if (auto staleEntryInterval =
+            cref<switch_state_tags::staleEntryInterval>()) {
+      return std::chrono::seconds(staleEntryInterval->toThrift());
+    }
+    return std::nullopt;
+  }
+
+  void setStaleEntryInterval(
+      std::optional<std::chrono::seconds> staleEntryInterval) {
+    if (!staleEntryInterval) {
+      ref<switch_state_tags::staleEntryInterval>().reset();
+    } else {
+      set<switch_state_tags::staleEntryInterval>(
+          staleEntryInterval.value().count());
+    }
+  }
+
+  std::optional<int32_t> getMaxNeighborProbes() const {
+    if (auto maxNeighborProbes = cref<switch_state_tags::maxNeighborProbes>()) {
+      return maxNeighborProbes->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setMaxNeighborProbes(std::optional<int32_t> maxNeighborProbes) {
+    if (!maxNeighborProbes) {
+      ref<switch_state_tags::maxNeighborProbes>().reset();
+    } else {
+      set<switch_state_tags::maxNeighborProbes>(maxNeighborProbes.value());
+    }
+  }
+
+  std::optional<folly::IPAddressV4> getDhcpV4RelaySrc() const {
+    if (auto dhcpV4RelaySrc = cref<switch_state_tags::dhcpV4RelaySrc>()) {
+      return network::toIPAddress(dhcpV4RelaySrc->toThrift()).asV4();
+    }
+    return std::nullopt;
+  }
+
+  void setDhcpV4RelaySrc(std::optional<folly::IPAddressV4> dhcpV4RelaySrc) {
+    if (!dhcpV4RelaySrc) {
+      ref<switch_state_tags::dhcpV4RelaySrc>().reset();
+    } else {
+      set<switch_state_tags::dhcpV4RelaySrc>(
+          network::toBinaryAddress(*dhcpV4RelaySrc));
+    }
+  }
+
+  std::optional<folly::IPAddressV6> getDhcpV6RelaySrc() const {
+    if (auto dhcpV6RelaySrc = cref<switch_state_tags::dhcpV6RelaySrc>()) {
+      return network::toIPAddress(dhcpV6RelaySrc->toThrift()).asV6();
+    }
+    return std::nullopt;
+  }
+
+  void setDhcpV6RelaySrc(std::optional<folly::IPAddressV6> dhcpV6RelaySrc) {
+    if (!dhcpV6RelaySrc) {
+      ref<switch_state_tags::dhcpV6RelaySrc>().reset();
+    } else {
+      set<switch_state_tags::dhcpV6RelaySrc>(
+          network::toBinaryAddress(*dhcpV6RelaySrc));
+    }
+  }
+
+  std::optional<folly::IPAddressV4> getDhcpV4ReplySrc() const {
+    if (auto dhcpV4ReplySrc = cref<switch_state_tags::dhcpV4ReplySrc>()) {
+      return network::toIPAddress(dhcpV4ReplySrc->toThrift()).asV4();
+    }
+    return std::nullopt;
+  }
+
+  void setDhcpV4ReplySrc(std::optional<folly::IPAddressV4> dhcpV4ReplySrc) {
+    if (!dhcpV4ReplySrc) {
+      ref<switch_state_tags::dhcpV4ReplySrc>().reset();
+    } else {
+      set<switch_state_tags::dhcpV4ReplySrc>(
+          network::toBinaryAddress(*dhcpV4ReplySrc));
+    }
+  }
+
+  std::optional<folly::IPAddressV6> getDhcpV6ReplySrc() const {
+    if (auto dhcpV6ReplySrc = cref<switch_state_tags::dhcpV6ReplySrc>()) {
+      return network::toIPAddress(dhcpV6ReplySrc->toThrift()).asV6();
+    }
+    return std::nullopt;
+  }
+
+  void setDhcpV6ReplySrc(std::optional<folly::IPAddressV6> dhcpV6ReplySrc) {
+    if (!dhcpV6ReplySrc) {
+      ref<switch_state_tags::dhcpV6ReplySrc>().reset();
+    } else {
+      set<switch_state_tags::dhcpV6ReplySrc>(
+          network::toBinaryAddress(*dhcpV6ReplySrc));
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:

@@ -108,8 +108,10 @@ unique_ptr<HwTestHandle> setupTestHandle() {
 
 shared_ptr<SwitchState> testStateNAT() {
   auto state = testState();
-  state->setDhcpV6RelaySrc(kDhcpV6RelaySrc);
-  state->setDhcpV6ReplySrc(kDhcpV6ReplySrc);
+  auto switchSettings = std::make_shared<SwitchSettings>();
+  switchSettings->setDhcpV6RelaySrc(kDhcpV6RelaySrc);
+  switchSettings->setDhcpV6ReplySrc(kDhcpV6ReplySrc);
+  state->resetSwitchSettings(switchSettings);
   return state;
 }
 
