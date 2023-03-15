@@ -457,14 +457,14 @@ TEST_F(ModbusDeviceTest, MonitorDataValue) {
   EXPECT_EQ(j["regList"][0]["regAddress"], 0);
   EXPECT_EQ(j["regList"][0]["name"], "MFG_MODEL");
   EXPECT_TRUE(
-      j["regList"][0]["readings"].is_array() &&
-      j["regList"][0]["readings"].size() == 2);
-  EXPECT_NEAR(j["regList"][0]["readings"][0]["time"], std::time(0), 10);
-  EXPECT_EQ(j["regList"][0]["readings"][0]["value"], "cdef");
-  EXPECT_EQ(j["regList"][0]["readings"][0]["type"], "STRING");
-  EXPECT_NEAR(j["regList"][0]["readings"][1]["time"], std::time(0), 10);
-  EXPECT_EQ(j["regList"][0]["readings"][1]["value"], "bcde");
-  EXPECT_EQ(j["regList"][0]["readings"][1]["type"], "STRING");
+      j["regList"][0]["history"].is_array() &&
+      j["regList"][0]["history"].size() == 2);
+  EXPECT_NEAR(j["regList"][0]["history"][0]["timestamp"], std::time(0), 10);
+  EXPECT_EQ(j["regList"][0]["history"][0]["value"]["strValue"], "cdef");
+  EXPECT_EQ(j["regList"][0]["history"][0]["type"], "STRING");
+  EXPECT_NEAR(j["regList"][0]["history"][1]["timestamp"], std::time(0), 10);
+  EXPECT_EQ(j["regList"][0]["history"][1]["value"]["strValue"], "bcde");
+  EXPECT_EQ(j["regList"][0]["history"][1]["type"], "STRING");
 
   ModbusDeviceValueData data4 = dev.getValueData({}, true);
   EXPECT_EQ(data4.registerList[0].history.size(), 1);

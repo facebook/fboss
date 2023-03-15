@@ -218,9 +218,16 @@ void to_json(json& j, const RegisterDescriptor& i) {
 }
 
 void to_json(json& j, const RegisterValue& m) {
+  static const std::unordered_map<RegisterValueType, std::string> keyMap = {
+      {RegisterValueType::INTEGER, "intValue"},
+      {RegisterValueType::STRING, "strValue"},
+      {RegisterValueType::FLOAT, "floatValue"},
+      {RegisterValueType::FLAGS, "flagsValue"},
+      {RegisterValueType::HEX, "rawValue"}};
   j["type"] = m.type;
-  j["time"] = m.timestamp;
-  std::visit([&j](auto&& v) { j["value"] = v; }, m.value);
+  j["timestamp"] = m.timestamp;
+  auto sub = keyMap.at(m.type);
+  std::visit([&j, &sub](auto&& v) { j["value"][sub] = v; }, m.value);
 }
 
 void to_json(json& j, const Register& m) {
@@ -235,7 +242,7 @@ void to_json(json& j, const Register& m) {
 void to_json(json& j, const RegisterStoreValue& m) {
   j["regAddress"] = m.regAddr;
   j["name"] = m.name;
-  j["readings"] = m.history;
+  j["history"] = m.history;
 }
 
 void to_json(json& j, const RegisterStore& m) {
