@@ -54,8 +54,17 @@ struct RegisterDescriptor {
   FlagsDescType flags{};
 };
 
+struct FlagType {
+  bool value;
+  std::string name;
+  uint8_t bitOffset;
+  bool operator==(const FlagType& other) const {
+    return value == other.value && name == other.name &&
+        bitOffset == other.bitOffset;
+  }
+};
+
 struct RegisterValue {
-  using FlagType = std::tuple<bool, std::string, uint8_t>;
   using FlagsType = std::vector<FlagType>;
   using ValueType = std::
       variant<int32_t, float, std::string, std::vector<uint8_t>, FlagsType>;

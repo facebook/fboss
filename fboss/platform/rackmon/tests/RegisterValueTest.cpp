@@ -127,18 +127,18 @@ TEST(RegisterValueTest, FLAGS) {
   EXPECT_EQ(std::string(j["type"]), "FLAGS");
   EXPECT_EQ(j["timestamp"], 0x12345678);
   EXPECT_EQ(j["value"]["flagsValue"].size(), 2);
-  EXPECT_TRUE(j["value"]["flagsValue"][0].is_array());
-  EXPECT_TRUE(j["value"]["flagsValue"][1].is_array());
-  EXPECT_EQ(j["value"]["flagsValue"][0].size(), 3);
-  EXPECT_EQ(j["value"]["flagsValue"][1].size(), 3);
-  EXPECT_TRUE(j["value"]["flagsValue"][0][0].is_boolean());
-  EXPECT_TRUE(j["value"]["flagsValue"][1][0].is_boolean());
-  EXPECT_TRUE(j["value"]["flagsValue"][0][1].is_string());
-  EXPECT_TRUE(j["value"]["flagsValue"][1][1].is_string());
-  EXPECT_FALSE(j["value"]["flagsValue"][0][0]);
-  EXPECT_TRUE(j["value"]["flagsValue"][1][0]);
-  EXPECT_EQ(std::string(j["value"]["flagsValue"][0][1]), "HELLO");
-  EXPECT_EQ(std::string(j["value"]["flagsValue"][1][1]), "WORLD");
+  for (int i = 0; i < 2; i++) {
+    EXPECT_TRUE(j["value"]["flagsValue"][i].contains("name"));
+    EXPECT_TRUE(j["value"]["flagsValue"][i].contains("value"));
+    EXPECT_TRUE(j["value"]["flagsValue"][i].contains("bitOffset"));
+    EXPECT_TRUE(j["value"]["flagsValue"][i]["name"].is_string());
+    EXPECT_TRUE(j["value"]["flagsValue"][i]["value"].is_boolean());
+    EXPECT_TRUE(j["value"]["flagsValue"][i]["bitOffset"].is_number_integer());
+  }
+  EXPECT_FALSE(j["value"]["flagsValue"][0]["value"]);
+  EXPECT_TRUE(j["value"]["flagsValue"][1]["value"]);
+  EXPECT_EQ(std::string(j["value"]["flagsValue"][0]["name"]), "HELLO");
+  EXPECT_EQ(std::string(j["value"]["flagsValue"][1]["name"]), "WORLD");
 }
 
 TEST(RegisterValueTest, LargeFlags) {
