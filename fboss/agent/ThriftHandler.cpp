@@ -30,10 +30,6 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
-#include "fboss/agent/platforms/common/wedge400c/Wedge400CFabricPlatformMapping.h"
-#include "fboss/agent/platforms/common/wedge400c/Wedge400CVoqPlatformMapping.h"
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/state/AclMap.h"
@@ -2844,83 +2840,12 @@ void ThriftHandler::getFabricReachability(
     std::map<std::string, FabricEndpoint>& reachability) {
   auto log = LOG_THRIFT_CALL(DBG1);
   ensureConfigured(__func__);
+  // get cached data as stored in the fabric manager
   auto portId2FabricEndpoint = sw_->getHw()->getFabricReachability();
   auto state = sw_->getState();
-  static Meru400biuPlatformMapping meru400biu;
-  static Meru400bfuPlatformMapping meru400bfu;
-  static Wedge400CVoqPlatformMapping w400cVoq;
-  static Wedge400CFabricPlatformMapping w400cFabric;
+
   for (auto [portId, fabricEndpoint] : portId2FabricEndpoint) {
     auto portName = state->getPorts()->getPort(portId)->getName();
-    if (*fabricEndpoint.isAttached()) {
-      // Some SAI implementations don't support setting non-0 switchID for
-      // Fabric switches. For such implementations, FBOSS sets switchID=0 for
-      // Fabric switches. Thus, ignore received switchID for Fabric switches on
-      // these implementations.
-      if (fabricEndpoint.switchType() == cfg::SwitchType::FABRIC &&
-          fabricEndpoint.switchId() == 0) {
-        fabricEndpoint.switchId() = -1;
-      }
-
-      auto swId = *fabricEndpoint.switchId();
-      auto node = state->getDsfNodes()->getDsfNodeIf(SwitchID(swId));
-      // Pull platform mapping of remote end. Used to lookup remote
-      // port id to name.
-      // NOTE: that this assumes a 1:1 mapping b/w {ASIC, switch} type
-      // to platform. This is true in our DSF deployments. However, if
-      // it changes, we will need to embed platform type info in
-      // DSFNode config as well.
-      const PlatformMapping* platformMapping{nullptr};
-      if (node) {
-        fabricEndpoint.switchName() = node->getName();
-        // Jericho2 ASIC fabric port numbers are offset by 256
-        int remotePortOffset{0};
-        switch (node->getAsicType()) {
-          case cfg::AsicType::ASIC_TYPE_FAKE:
-          case cfg::AsicType::ASIC_TYPE_MOCK:
-          case cfg::AsicType::ASIC_TYPE_TRIDENT2:
-          case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
-          case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
-          case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
-          case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-          case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
-          case cfg::AsicType::ASIC_TYPE_GARONNE:
-          case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
-            break;
-          case cfg::AsicType::ASIC_TYPE_EBRO:
-            if (fabricEndpoint.switchType() == cfg::SwitchType::VOQ) {
-              platformMapping = &w400cVoq;
-            } else if (fabricEndpoint.switchType() == cfg::SwitchType::FABRIC) {
-              platformMapping = &w400cFabric;
-            } else {
-              XLOG(ERR) << " Unexpected w400C switch type : "
-                        << static_cast<int>(*fabricEndpoint.switchType());
-            }
-            break;
-          case cfg::AsicType::ASIC_TYPE_JERICHO2:
-            /*
-             * TODO: Introduce platform mode and use it create platofrm mapping
-             * instead of the ASIC. Certain platforms like
-             * Meru400bia/Meru400biu will use the same ASIC but different
-             * platform
-             */
-            platformMapping = &meru400biu;
-            remotePortOffset = 256;
-            break;
-          case cfg::AsicType::ASIC_TYPE_RAMON:
-            platformMapping = &meru400bfu;
-            break;
-        }
-        fabricEndpoint.portId() = *fabricEndpoint.portId() + remotePortOffset;
-        if (platformMapping) {
-          const auto& platPorts = platformMapping->getPlatformPorts();
-          auto pitr = platPorts.find(*fabricEndpoint.portId());
-          if (pitr != platPorts.end()) {
-            fabricEndpoint.portName() = *pitr->second.mapping()->name();
-          }
-        }
-      }
-    }
     reachability.insert({portName, fabricEndpoint});
   }
 }
