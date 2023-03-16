@@ -20,6 +20,8 @@
 namespace facebook::fboss {
 
 struct CmdShowRouteSummaryTraits : public BaseCommandTraits {
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ParentCmd = CmdShowRoute;
   using ObjectArgType = utils::NoneArgType;
   using RetType = cli::ShowRouteSummaryModel;

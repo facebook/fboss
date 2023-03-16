@@ -11,6 +11,8 @@
 namespace facebook::fboss {
 
 struct CmdShowAgentSslTraits : public BaseCommandTraits {
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = utils::NoneArgType;
   using RetType = cli::ShowAgentSslModel;
 };

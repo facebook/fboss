@@ -9,6 +9,8 @@
 namespace facebook::fboss {
 
 struct CmdSetPortTraits : public BaseCommandTraits {
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = utils::PortList;
   using RetType = std::string;
 };

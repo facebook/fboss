@@ -19,6 +19,8 @@ struct CmdShowPortQueueTraits : public BaseCommandTraits {
   using ParentCmd = CmdShowPort;
   // This command will inherit port list from its parent (ShowPort)
   // NoneArgType indicates that there is no args input
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = utils::NoneArgType;
   using RetType = std::map<int32_t, facebook::fboss::PortInfoThrift>;
 };

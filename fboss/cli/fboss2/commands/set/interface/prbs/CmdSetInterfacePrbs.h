@@ -16,6 +16,8 @@
 namespace facebook::fboss {
 
 struct CmdSetInterfacePrbsTraits : public BaseCommandTraits {
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT;
   using ParentCmd = CmdSetInterface;
   using ObjectArgType = utils::PrbsComponent;
   using RetType = std::string;

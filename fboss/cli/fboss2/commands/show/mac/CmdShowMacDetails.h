@@ -18,6 +18,8 @@
 namespace facebook::fboss {
 
 struct CmdShowMacDetailsTraits : public BaseCommandTraits {
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = utils::NoneArgType;
   using RetType = cli::ShowMacDetailsModel;
   static constexpr bool ALLOW_FILTERING = true;
