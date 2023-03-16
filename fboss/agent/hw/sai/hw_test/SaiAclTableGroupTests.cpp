@@ -63,6 +63,14 @@ class SaiAclTableGroupTest : public HwTest {
     return multipleAclTableSupport;
   }
 
+  void addDefaultAclTable(cfg::SwitchConfig& cfg) {
+    /* Create default ACL table similar to whats being done in Agent today */
+    std::vector<cfg::AclTableQualifier> qualifiers = {};
+    std::vector<cfg::AclTableActionType> actions = {};
+    utility::addAclTable(
+        &cfg, kDefaultAclTable(), 0 /* priority */, actions, qualifiers);
+  }
+
   void addAclTable1(cfg::SwitchConfig& cfg) {
     std::vector<cfg::AclTableQualifier> qualifiers = {
         cfg::AclTableQualifier::DSCP};
@@ -88,9 +96,11 @@ class SaiAclTableGroupTest : public HwTest {
         {cfg::AclTableQualifier::TTL});
   }
 
-  void addAclTable1Entry1(cfg::SwitchConfig& cfg) {
+  void addAclTable1Entry1(
+      cfg::SwitchConfig& cfg,
+      const std::string& aclTableName) {
     auto* acl1 = utility::addAcl(
-        &cfg, kAclTable1Entry1(), cfg::AclActionType::DENY, kAclTable1());
+        &cfg, kAclTable1Entry1(), cfg::AclActionType::DENY, aclTableName);
     acl1->dscp() = 0x20;
   }
 
@@ -102,27 +112,30 @@ class SaiAclTableGroupTest : public HwTest {
     acl2->ttl() = ttl;
   }
 
+  void verifyAclTableHelper(
+      const std::string& aclTableName,
+      const std::string& aclName,
+      int numEntries) {
+    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), aclTableName));
+    EXPECT_EQ(
+        utility::getAclTableNumAclEntries(getHwSwitch(), aclTableName),
+        numEntries);
+    utility::checkSwHwAclMatch(
+        getHwSwitch(),
+        getProgrammedState(),
+        aclName,
+        kAclStage(),
+        aclTableName);
+  }
+
   void verifyMultipleTableWithEntriesHelper() {
     ASSERT_TRUE(isAclTableGroupEnabled(getHwSwitch(), SAI_ACL_STAGE_INGRESS));
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kAclTable1()));
-    EXPECT_EQ(
-        utility::getAclTableNumAclEntries(getHwSwitch(), kAclTable1()), 1);
-    utility::checkSwHwAclMatch(
-        getHwSwitch(),
-        getProgrammedState(),
-        kAclTable1Entry1(),
-        kAclStage(),
-        kAclTable1());
+    verifyAclTableHelper(kAclTable1(), kAclTable1Entry1(), 1);
+    verifyAclTableHelper(kAclTable2(), kAclTable2Entry1(), 1);
+  }
 
-    ASSERT_TRUE(utility::isAclTableEnabled(getHwSwitch(), kAclTable2()));
-    EXPECT_EQ(
-        utility::getAclTableNumAclEntries(getHwSwitch(), kAclTable2()), 1);
-    utility::checkSwHwAclMatch(
-        getHwSwitch(),
-        getProgrammedState(),
-        kAclTable2Entry1(),
-        kAclStage(),
-        kAclTable2());
+  std::string kDefaultAclTable() const {
+    return "AclTable1";
   }
 
   std::string kAclTable1() const {
@@ -281,7 +294,7 @@ TEST_F(SaiAclTableGroupTest, MultipleTablesWithEntries) {
 
     utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
     addAclTable1(newCfg);
-    addAclTable1Entry1(newCfg);
+    addAclTable1Entry1(newCfg, kAclTable1());
     addAclTable2(newCfg);
     addAclTable2Entry1(newCfg);
 
@@ -304,7 +317,7 @@ TEST_F(SaiAclTableGroupTest, AddTablesThenEntries) {
     addAclTable2(newCfg);
     applyNewConfig(newCfg);
 
-    addAclTable1Entry1(newCfg);
+    addAclTable1Entry1(newCfg, kAclTable1());
     addAclTable2Entry1(newCfg);
     applyNewConfig(newCfg);
   };
@@ -322,7 +335,7 @@ TEST_F(SaiAclTableGroupTest, RemoveAclTable) {
 
     utility::addAclTableGroup(&newCfg, kAclStage(), "Ingress Table Group");
     addAclTable1(newCfg);
-    addAclTable1Entry1(newCfg);
+    addAclTable1Entry1(newCfg, kAclTable1());
     addAclTable2(newCfg);
     applyNewConfig(newCfg);
 
@@ -504,5 +517,31 @@ TEST_F(SaiAclTableGroupTest, DeleteSecondTableAfterWarmboot) {
 
   verifyAcrossWarmBoots(
       setup, []() {}, setupPostWarmboot, verifyPostWarmboot);
+}
+
+TEST_F(SaiAclTableGroupTest, TestAclTableGroupRoundtrip) {
+  ASSERT_TRUE(isSupported());
+  /*
+   * Create ACL table group in the same format as the current agent config.
+   * This will allow us to test warmboot roundtrip tests from and to prod
+   * while running HWemtpytest inbetween
+   */
+
+  auto setup = [this]() {
+    auto newCfg = initialConfig();
+
+    utility::addAclTableGroup(&newCfg, kAclStage(), "ingress-ACL-Table-Group");
+    addDefaultAclTable(newCfg);
+    applyNewConfig(newCfg);
+
+    addAclTable1Entry1(newCfg, kDefaultAclTable());
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    verifyAclTableHelper(kDefaultAclTable(), kAclTable1Entry1(), 1);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 } // namespace facebook::fboss
