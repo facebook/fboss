@@ -35,7 +35,7 @@ class FsdbService;
 class FsdbStreamClient {
  public:
   enum class State : uint16_t { DISCONNECTED, CONNECTED, CANCELLED };
-  enum class Priority : uint8_t { NORMAL, PRIORITY, CRITICAL };
+  enum class Priority : uint8_t { NORMAL, CRITICAL };
 
   struct ServerOptions {
     ServerOptions(const std::string& dstIp, uint16_t dstPort)
