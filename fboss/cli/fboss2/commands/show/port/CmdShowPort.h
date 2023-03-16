@@ -27,6 +27,8 @@ namespace facebook::fboss {
 using utils::Table;
 
 struct CmdShowPortTraits : public BaseCommandTraits {
+  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
   using ObjectArgType = utils::PortList;
   using RetType = cli::ShowPortModel;
   static constexpr bool ALLOW_FILTERING = true;
