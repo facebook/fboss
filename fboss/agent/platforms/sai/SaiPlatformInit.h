@@ -34,6 +34,5 @@ std::unique_ptr<SaiPlatform> getLEBPlatform(
     std::unique_ptr<PlatformProductInfo> productInfo,
     folly::MacAddress localMac,
     const std::string& platformMappingStr);
-bool isLEB();
 
 } // namespace facebook::fboss
