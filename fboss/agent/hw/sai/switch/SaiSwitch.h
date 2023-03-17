@@ -461,6 +461,8 @@ class SaiSwitch : public HwSwitch {
       PortID portID,
       phy::DataPlanePhyChipType chipType) const;
 
+  void checkAndSetSdkDowngradeVersion() const;
+
   /*
    * SaiSwitch must support a few varieties of concurrent access:
    * 1. state updates on the SwSwitch update thread calling stateChanged

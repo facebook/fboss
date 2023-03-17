@@ -1,5 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include "common/files/FileUtil.h"
+
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include "fboss/agent/hw/sai/api/TamApi.h"
@@ -7,6 +9,11 @@
 extern "C" {
 #include <experimental/sai_attr_ext.h>
 }
+
+DEFINE_string(
+    wb_downgrade_target_sdk_version_file,
+    "/var/facebook/fboss/wb_downgrade_target_sdk_version.json",
+    "The SDK version to warm boot downgrade to.");
 
 namespace {
 std::string eventName(sai_switch_event_type_t type) {
@@ -116,5 +123,45 @@ void SaiSwitch::parityErrorSwitchEventCallback(
     const void* /*buffer*/,
     uint32_t /*event_type*/) {
   // noop;
+}
+
+void SaiSwitch::checkAndSetSdkDowngradeVersion() const {
+  if (!files::FileUtil::fileExists(
+          FLAGS_wb_downgrade_target_sdk_version_file)) {
+    return;
+  }
+
+  std::string fileData;
+  folly::readFile(FLAGS_wb_downgrade_target_sdk_version_file.c_str(), fileData);
+  if (fileData.empty()) {
+    throw FbossError(
+        "Could not read contents of file ",
+        FLAGS_wb_downgrade_target_sdk_version_file);
+  }
+  auto versionInfoData = folly::parseJson(fileData);
+  if (!versionInfoData.isObject()) {
+    throw FbossError(
+        "Downgrade version info read from ",
+        FLAGS_wb_downgrade_target_sdk_version_file,
+        " not an object");
+  }
+  const auto& it = versionInfoData.items().begin();
+  std::string sdkKey = it->first.asString();
+  if (sdkKey.compare("sdkVersion")) {
+    throw FbossError(
+        "Expected key 'sdkVersion' not found in ",
+        FLAGS_wb_downgrade_target_sdk_version_file);
+  }
+  auto downgradeVersion = it->second.asString();
+
+  std::vector<int8_t> targetVersion;
+  std::copy(
+      downgradeVersion.c_str(),
+      downgradeVersion.c_str() + downgradeVersion.size() + 1,
+      std::back_inserter(targetVersion));
+  SaiApiTable::getInstance()->switchApi().setAttribute(
+      switchId_,
+      SaiSwitchTraits::Attributes::WarmBootTargetVersion{targetVersion});
+  XLOG(DBG2) << "Downgrade SDK version set as " << downgradeVersion;
 }
 } // namespace facebook::fboss

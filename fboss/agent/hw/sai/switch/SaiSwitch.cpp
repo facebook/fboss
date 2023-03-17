@@ -1512,6 +1512,9 @@ void SaiSwitch::gracefulExitLocked(
         switchId_, restartIssu);
 #endif
   }
+#if defined(TAJO_SDK_VERSION_1_42_8)
+  checkAndSetSdkDowngradeVersion();
+#endif
   follySwitchState[kHwSwitch] = toFollyDynamicLocked(lock);
   platform_->getWarmBootHelper()->storeWarmBootState(
       follySwitchState, thriftSwitchState);
