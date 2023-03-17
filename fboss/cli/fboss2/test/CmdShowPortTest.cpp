@@ -35,6 +35,11 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   TransceiverIdxThrift tcvr1;
   tcvr1.transceiverId() = 0;
   portEntry1.transceiverIdx() = tcvr1;
+  PfcConfig pfcCfg;
+  pfcCfg.tx() = true;
+  pfcCfg.rx() = true;
+  pfcCfg.watchdog() = true;
+  portEntry1.pfc() = pfcCfg;
 
   PortInfoThrift portEntry2;
   portEntry2.portId() = 2;
@@ -47,6 +52,7 @@ std::map<int32_t, PortInfoThrift> createPortEntries() {
   TransceiverIdxThrift tcvr2;
   tcvr2.transceiverId() = 1;
   portEntry2.transceiverIdx() = tcvr2;
+  portEntry2.rxPause() = true;
 
   PortInfoThrift portEntry3;
   portEntry3.portId() = 3;
@@ -170,6 +176,9 @@ cli::ShowPortModel createPortModel() {
   entry1.profileId() = "PROFILE_100G_4_NRZ_CL91_COPPER";
   entry1.tcvrID() = 0;
   entry1.tcvrPresent() = "Present";
+  entry1.numUnicastQueues() = 0;
+  // when pfc exists, pause shouldn't
+  entry1.pfc() = "TX RX WD";
 
   entry2.id() = 2;
   entry2.hwLogicalPortId() = 2;
@@ -180,6 +189,8 @@ cli::ShowPortModel createPortModel() {
   entry2.profileId() = "PROFILE_25G_1_NRZ_CL74_COPPER";
   entry2.tcvrID() = 1;
   entry2.tcvrPresent() = "Present";
+  entry2.numUnicastQueues() = 0;
+  entry2.pause() = "RX";
 
   entry3.id() = 3;
   entry3.hwLogicalPortId() = 3;
@@ -190,6 +201,8 @@ cli::ShowPortModel createPortModel() {
   entry3.profileId() = "PROFILE_100G_4_NRZ_CL91_COPPER";
   entry3.tcvrID() = 2;
   entry3.tcvrPresent() = "Absent";
+  entry3.numUnicastQueues() = 0;
+  entry3.pause() = "";
 
   entry4.id() = 8;
   entry4.hwLogicalPortId() = 8;
@@ -200,6 +213,8 @@ cli::ShowPortModel createPortModel() {
   entry4.profileId() = "PROFILE_100G_4_NRZ_NOFEC_COPPER";
   entry4.tcvrID() = 3;
   entry4.tcvrPresent() = "Absent";
+  entry4.numUnicastQueues() = 0;
+  entry4.pause() = "";
 
   entry5.id() = 7;
   entry5.hwLogicalPortId() = 7;
@@ -210,6 +225,8 @@ cli::ShowPortModel createPortModel() {
   entry5.profileId() = "PROFILE_100G_4_NRZ_CL91_OPTICAL";
   entry5.tcvrID() = 4;
   entry5.tcvrPresent() = "Present";
+  entry5.numUnicastQueues() = 0;
+  entry5.pause() = "";
 
   entry6.id() = 9;
   entry6.hwLogicalPortId() = 9;
@@ -220,6 +237,8 @@ cli::ShowPortModel createPortModel() {
   entry6.profileId() = "PROFILE_100G_4_NRZ_CL91_OPTICAL";
   entry6.tcvrID() = 5;
   entry6.tcvrPresent() = "Present";
+  entry6.numUnicastQueues() = 0;
+  entry6.pause() = "";
 
   // sorted by name
   model.portEntries() = {entry6, entry1, entry2, entry3, entry5, entry4};
@@ -231,6 +250,7 @@ class CmdShowPortTestFixture : public CmdHandlerTestBase {
   CmdShowPortTraits::ObjectArgType queriedEntries;
   std::map<int32_t, facebook::fboss::PortInfoThrift> mockPortEntries;
   std::map<int32_t, facebook::fboss::TransceiverInfo> mockTransceiverEntries;
+  std::map<std::string, facebook::fboss::HwPortStats> mockPortStats;
   cli::ShowPortModel normalizedModel;
 
   void SetUp() override {
@@ -243,7 +263,7 @@ class CmdShowPortTestFixture : public CmdHandlerTestBase {
 
 TEST_F(CmdShowPortTestFixture, sortByName) {
   auto model = CmdShowPort().createModel(
-      mockPortEntries, mockTransceiverEntries, queriedEntries);
+      mockPortEntries, mockTransceiverEntries, queriedEntries, mockPortStats);
 
   EXPECT_THRIFT_EQ(model, normalizedModel);
 }
@@ -253,7 +273,10 @@ TEST_F(CmdShowPortTestFixture, invalidPortName) {
 
   try {
     CmdShowPort().createModel(
-        invalidPortEntries, mockTransceiverEntries, queriedEntries);
+        invalidPortEntries,
+        mockTransceiverEntries,
+        queriedEntries,
+        mockPortStats);
     FAIL();
   } catch (const std::invalid_argument& expected) {
     ASSERT_STREQ(

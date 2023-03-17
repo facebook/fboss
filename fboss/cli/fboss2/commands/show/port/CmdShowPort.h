@@ -45,11 +45,18 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       const ObjectArgType& queriedPorts) {
     std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
     std::map<int32_t, facebook::fboss::TransceiverInfo> transceiverEntries;
+    std::map<std::string, facebook::fboss::HwPortStats> portStats;
+
     std::vector<int32_t> requiredTransceiverEntries;
 
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
     client->sync_getAllPortInfo(portEntries);
+
+    auto opt = CmdGlobalOptions::getInstance();
+    if (opt->isDetailed()) {
+      client->sync_getHwPortStats(portStats);
+    }
 
     try {
       auto qsfpService =
@@ -62,7 +69,8 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       std::cerr << "Cannot connect to qsfp_service\n";
     }
 
-    return createModel(portEntries, transceiverEntries, queriedPorts.data());
+    return createModel(
+        portEntries, transceiverEntries, queriedPorts.data(), portStats);
   }
 
   std::unordered_map<std::string, std::vector<std::string>>
@@ -72,36 +80,153 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
   }
 
   void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    Table table;
-    table.setHeader(
-        {"ID",
-         "Name",
-         "AdminState",
-         "LinkState",
-         "Transceiver",
-         "TcvrID",
-         "Speed",
-         "ProfileID",
-         "HwLogicalPortId"});
+    std::vector<std::string> detailedOutput;
+    auto opt = CmdGlobalOptions::getInstance();
 
-    for (auto const& portInfo : model.get_portEntries()) {
-      std::string hwLogicalPortId;
-      if (auto portId = portInfo.hwLogicalPortId()) {
-        hwLogicalPortId = folly::to<std::string>(*portId);
+    if (opt->isDetailed()) {
+      for (auto const& portInfo : model.get_portEntries()) {
+        std::string hwLogicalPortId;
+        if (auto portId = portInfo.hwLogicalPortId()) {
+          hwLogicalPortId = folly::to<std::string>(*portId);
+        }
+
+        const auto& portHwStats = portInfo.get_hwPortStats();
+        detailedOutput.emplace_back("");
+        detailedOutput.emplace_back(
+            fmt::format("Name:           \t\t {}", portInfo.get_name()));
+        detailedOutput.emplace_back(fmt::format(
+            "ID:             \t\t {}",
+            folly::to<std::string>(portInfo.get_id())));
+        detailedOutput.emplace_back(
+            fmt::format("Admin State:    \t\t {}", portInfo.get_adminState()));
+        detailedOutput.emplace_back(
+            fmt::format("Speed:          \t\t {}", portInfo.get_speed()));
+        detailedOutput.emplace_back(
+            fmt::format("LinkState:      \t\t {}", portInfo.get_linkState()));
+        detailedOutput.emplace_back(fmt::format(
+            "TcvrID:         \t\t {}",
+            folly::to<std::string>(portInfo.get_tcvrID())));
+        detailedOutput.emplace_back(
+            fmt::format("Transceiver:    \t\t {}", portInfo.get_tcvrPresent()));
+        detailedOutput.emplace_back(
+            fmt::format("ProfileID:      \t\t {}", portInfo.get_profileId()));
+        detailedOutput.emplace_back(
+            fmt::format("ProfileID:      \t\t {}", hwLogicalPortId));
+        if (portInfo.get_pause()) {
+          detailedOutput.emplace_back(
+              fmt::format("Pause:          \t\t {}", *portInfo.get_pause()));
+        } else if (portInfo.get_pfc()) {
+          detailedOutput.emplace_back(
+              fmt::format("PFC:            \t\t {}", *portInfo.get_pfc()));
+        }
+        detailedOutput.emplace_back(fmt::format(
+            "Unicast queues: \t\t {}",
+            folly::to<std::string>(portInfo.get_numUnicastQueues())));
+        detailedOutput.emplace_back(fmt::format(
+            "    Ingress (bytes)               \t\t {}",
+            portHwStats.get_ingressBytes()));
+        detailedOutput.emplace_back(fmt::format(
+            "    Egress (bytes)                \t\t {}",
+            portHwStats.get_egressBytes()));
+        for (const auto& queueBytes : portHwStats.get_queueOutBytes()) {
+          detailedOutput.emplace_back(fmt::format(
+              "\tQueue {}                      \t\t {}",
+              queueBytes.first,
+              queueBytes.second));
+        }
+        detailedOutput.emplace_back(fmt::format(
+            "    Received Unicast (pkts)       \t\t {}",
+            portHwStats.get_inUnicastPkts()));
+        detailedOutput.emplace_back(fmt::format(
+            "    In Errors (pkts)              \t\t {}",
+            portHwStats.get_inErrorPkts()));
+        detailedOutput.emplace_back(fmt::format(
+            "    In Discards (pkts)            \t\t {}",
+            portHwStats.get_inDiscardPkts()));
+        detailedOutput.emplace_back(fmt::format(
+            "    Out Discards (pkts)           \t\t {}",
+            portHwStats.get_outDiscardPkts()));
+        detailedOutput.emplace_back(fmt::format(
+            "    Out Congestion Discards (pkts)\t\t {}",
+            portHwStats.get_outCongestionDiscardPkts()));
+        for (const auto& queueDiscardBytes :
+             portHwStats.get_queueOutDiscardBytes()) {
+          detailedOutput.emplace_back(fmt::format(
+              "\tQueue {}                      \t\t {}",
+              queueDiscardBytes.first,
+              queueDiscardBytes.second));
+        }
+        if (portHwStats.get_outPfcPackets()) {
+          detailedOutput.emplace_back(fmt::format(
+              "    PFC Output (pkts)             \t\t {}",
+              *portHwStats.get_outPfcPackets()));
+          if (portHwStats.get_outPfcPriorityPackets()) {
+            for (const auto& pfcPriortyCounter :
+                 *portHwStats.get_outPfcPriorityPackets()) {
+              detailedOutput.emplace_back(fmt::format(
+                  "\tPriority {}                 \t\t {}",
+                  pfcPriortyCounter.first,
+                  pfcPriortyCounter.second));
+            }
+          }
+        }
+        if (portHwStats.get_inPfcPackets()) {
+          detailedOutput.emplace_back(fmt::format(
+              "    PFC Input (pkts)              \t\t {}",
+              *portHwStats.get_inPfcPackets()));
+          if (portHwStats.get_inPfcPriorityPackets()) {
+            for (const auto& pfcPriortyCounter :
+                 *portHwStats.get_inPfcPriorityPackets()) {
+              detailedOutput.emplace_back(fmt::format(
+                  "\tPriority {}                 \t\t {}",
+                  pfcPriortyCounter.first,
+                  pfcPriortyCounter.second));
+            }
+          }
+        }
+        if (portHwStats.get_outPausePackets()) {
+          detailedOutput.emplace_back(fmt::format(
+              "    Pause Output (pkts)           \t\t {}",
+              *portHwStats.get_outPausePackets()));
+        }
+        if (portHwStats.get_inPausePackets()) {
+          detailedOutput.emplace_back(fmt::format(
+              "    Pause Input (pkts)            \t\t {}",
+              *portHwStats.get_inPausePackets()));
+        }
       }
-      table.addRow(
-          {folly::to<std::string>(portInfo.get_id()),
-           portInfo.get_name(),
-           portInfo.get_adminState(),
-           getStyledLinkState(portInfo.get_linkState()),
-           portInfo.get_tcvrPresent(),
-           folly::to<std::string>(portInfo.get_tcvrID()),
-           portInfo.get_speed(),
-           portInfo.get_profileId(),
-           hwLogicalPortId});
-    }
+      out << folly::join("\n", detailedOutput) << std::endl;
+    } else {
+      Table table;
+      table.setHeader(
+          {"ID",
+           "Name",
+           "AdminState",
+           "LinkState",
+           "Transceiver",
+           "TcvrID",
+           "Speed",
+           "ProfileID",
+           "HwLogicalPortId"});
 
-    out << table << std::endl;
+      for (auto const& portInfo : model.get_portEntries()) {
+        std::string hwLogicalPortId;
+        if (auto portId = portInfo.hwLogicalPortId()) {
+          hwLogicalPortId = folly::to<std::string>(*portId);
+        }
+        table.addRow(
+            {folly::to<std::string>(portInfo.get_id()),
+             portInfo.get_name(),
+             portInfo.get_adminState(),
+             getStyledLinkState(portInfo.get_linkState()),
+             portInfo.get_tcvrPresent(),
+             folly::to<std::string>(portInfo.get_tcvrID()),
+             portInfo.get_speed(),
+             portInfo.get_profileId(),
+             hwLogicalPortId});
+      }
+      out << table << std::endl;
+    }
   }
 
   std::string getAdminStateStr(PortAdminState adminState) {
@@ -155,7 +280,8 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
   RetType createModel(
       std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries,
       std::map<int32_t, facebook::fboss::TransceiverInfo> transceiverEntries,
-      const ObjectArgType& queriedPorts) {
+      const ObjectArgType& queriedPorts,
+      std::map<std::string, facebook::fboss::HwPortStats> portStats) {
     RetType model;
     std::unordered_set<std::string> queriedSet(
         queriedPorts.begin(), queriedPorts.end());
@@ -182,6 +308,57 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
           portDetails.tcvrID() = transceiverId;
           portDetails.tcvrPresent() =
               getTransceiverStr(transceiverEntries, transceiverId);
+        }
+        if (auto pfc = portInfo.get_pfc()) {
+          std::string pfcString = "";
+          if (*pfc->tx()) {
+            pfcString = "TX ";
+          }
+          if (*pfc->rx()) {
+            pfcString += "RX ";
+          }
+          if (*pfc->watchdog()) {
+            pfcString += "WD";
+          }
+          portDetails.pfc() = pfcString;
+        } else {
+          std::string pauseString = "";
+          if (portInfo.get_txPause()) {
+            pauseString = "TX ";
+          }
+          if (portInfo.get_rxPause()) {
+            pauseString += "RX";
+          }
+          portDetails.pause() = pauseString;
+        }
+        portDetails.numUnicastQueues() = portInfo.get_portQueues().size();
+
+        const auto& iter = portStats.find(portName);
+        if (iter != portStats.end()) {
+          auto portHwStatsEntry = iter->second;
+          cli::PortHwStatsEntry cliPortStats;
+          cliPortStats.inUnicastPkts() = portHwStatsEntry.get_inUnicastPkts_();
+          cliPortStats.inDiscardPkts() = portHwStatsEntry.get_inDiscards_();
+          cliPortStats.inErrorPkts() = portHwStatsEntry.get_inErrors_();
+          cliPortStats.outDiscardPkts() = portHwStatsEntry.get_outDiscards_();
+          cliPortStats.outCongestionDiscardPkts() =
+              portHwStatsEntry.get_outCongestionDiscardPkts_();
+          cliPortStats.queueOutDiscardBytes() =
+              portHwStatsEntry.get_queueOutDiscardBytes_();
+          cliPortStats.queueOutBytes() = portHwStatsEntry.get_queueOutBytes_();
+          if (auto pfc = portInfo.get_pfc()) {
+            cliPortStats.outPfcPriorityPackets() =
+                portHwStatsEntry.get_outPfc_();
+            cliPortStats.inPfcPriorityPackets() = portHwStatsEntry.get_inPfc_();
+            cliPortStats.outPfcPackets() = portHwStatsEntry.get_outPfcCtrl_();
+            cliPortStats.inPfcPackets() = portHwStatsEntry.get_inPfcCtrl_();
+          } else {
+            cliPortStats.outPausePackets() = portHwStatsEntry.get_outPause_();
+            cliPortStats.inPausePackets() = portHwStatsEntry.get_inPause_();
+          }
+          cliPortStats.ingressBytes() = portHwStatsEntry.get_inBytes_();
+          cliPortStats.egressBytes() = portHwStatsEntry.get_outBytes_();
+          portDetails.hwPortStats() = cliPortStats;
         }
         model.portEntries()->push_back(portDetails);
       }
