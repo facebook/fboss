@@ -355,6 +355,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       return;
     }
 
+    constexpr auto kQueueId{utility::kOlympicEcn1QueueId};
     // For VoQ switch, AQM stats are collected from queue!
     auto useQueueStatsForAqm =
         getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ;
@@ -372,7 +373,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
         auto aqmStats = getAqmTestStats(
             isEcn,
             masterLogicalInterfacePortIds()[0],
-            utility::kOlympicSilverQueueId,
+            kQueueId,
             useQueueStatsForAqm);
         // Assert that ECT capable packets are not counted by port ECN
         // counter when there is no congestion!
@@ -381,14 +382,17 @@ class HwAqmTest : public HwLinkStateDependentTest {
     };
 
     auto verify = [&]() {
-      sendPkts(kDscp(), isEcn);
+      const int kNumPacketsToSend =
+          getHwSwitchEnsemble()->getMinPktsForLineRate(
+              masterLogicalInterfacePortIds()[0]);
+      sendPkts(kDscp(), isEcn, kNumPacketsToSend);
       // There can be delay before stats are synced.
       // So, add retries to avoid flakiness.
       WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
         auto aqmStats = getAqmTestStats(
             isEcn,
             masterLogicalInterfacePortIds()[0],
-            utility::kOlympicSilverQueueId,
+            kQueueId,
             useQueueStatsForAqm);
         EXPECT_EVENTUALLY_TRUE(statsIncremented(aqmStats, isEcn));
       });
