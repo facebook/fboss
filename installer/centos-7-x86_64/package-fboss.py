@@ -113,21 +113,24 @@ class PackageFboss:
             print(f"Copying {full_file_name} to {full_config_name}")
             shutil.copytree(full_file_name, full_config_name)
 
-    # TODO Future work planned
-    # - All tests should consume /etc/coop/agent.conf where sw config block could
-    #   be empty
-    # - fboss/bcm_configs/* to be replaced with fboss/agent_configs/* where for each
-    #   config under agent_config has sw config block empty
-    # - package-fboss.py, and helper scripts would need to be modified to work with
-    #   agent_configs
     def _copy_configs(self, tmp_dir_name):
-        bcm_configs_path = os.path.join(
-            self._get_git_root(__file__), "fboss/bcm_configs"
+        bcm_sai_configs_path = os.path.join(
+            self._get_git_root(__file__), "fboss/bcm_sai_configs"
         )
-        print(f"Copying {bcm_configs_path} to {tmp_dir_name}")
+        print(f"Copying {bcm_sai_configs_path} to {tmp_dir_name}")
         shutil.copytree(
-            "fboss/bcm_configs",
-            os.path.join(tmp_dir_name, PackageFboss.DATA, "bcm_configs"),
+            "fboss/bcm_sai_configs",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "bcm_sai_configs"),
+        )
+
+    def _copy_known_bad_tests(self, tmp_dir_name):
+        known_bad_tests_path = os.path.join(
+            self._get_git_root(__file__), "fboss/sai_known_bad_tests"
+        )
+        print(f"Copying {known_bad_tests_path} to {tmp_dir_name}")
+        shutil.copytree(
+            "fboss/sai_known_bad_tests",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "sai_known_bad_tests"),
         )
 
     def _copy_kos(self, tmp_dir_name):
@@ -170,6 +173,7 @@ class PackageFboss:
         self._copy_run_scripts(tmp_dir_name)
         self._copy_run_configs(tmp_dir_name)
         self._copy_configs(tmp_dir_name)
+        self._copy_known_bad_tests(tmp_dir_name)
         self._copy_kos(tmp_dir_name)
 
     def _setup_for_rpmbuild(self):
