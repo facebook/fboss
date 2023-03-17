@@ -140,7 +140,6 @@
 "HwTrafficPfcTest.*"
 "HwPfcTest.*"
 "HwProdInvariantsMmuLosslessTest.*"
-"HwAqmTest.verifyEcnThreshold"
 "SaiAclTableGroupTest.AddTwoTablesDeleteAddFirst"
 "SaiAclTableGroupTest.AddTwoTablesDeleteAddSecond"
 "SaiAclTableGroupTest.DeleteFirstTableAfterWarmboot"

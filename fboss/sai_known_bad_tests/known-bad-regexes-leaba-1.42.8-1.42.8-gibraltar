@@ -101,6 +101,7 @@
 "HwLoadBalancerTestV6RoCE.*$"
 "HwAclCounterTest.*Sport.*$"
 "HwFlowletSwitchingTest.*$"
+"HwVoqSwitchWithFabricPortsTest.fabricIsolate$"
 "HwVoqSwitchTest.*"
 "HwVoqSwitchWithFabricPortsTest.*"
 "HwVoqSwitchWithMultipleDsfNodesTest.*"
