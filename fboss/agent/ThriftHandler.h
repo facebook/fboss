@@ -287,6 +287,7 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getSystemPorts(std::map<int64_t, SystemPortThrift>& sysPorts) override;
   void getSysPortStats(
       std::map<std::string, HwSysPortStats>& hwSysPortStats) override;
+  void getHwPortStats(std::map<std::string, HwPortStats>& hwPortStats) override;
   /*
    * Event handler for when a connection is destroyed.  When there is an ongoing
    * duplex connection, there may be other threads that depend on the connection
