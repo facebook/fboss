@@ -92,4 +92,9 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeForceTrafficOverFabricWrapper::operator()() {
   return SAI_SWITCH_ATTR_FORCE_TRAFFIC_OVER_FABRIC;
 }
+
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeWarmBootTargetVersionWrapper::operator()() {
+  return SAI_SWITCH_ATTR_EXT_WARM_BOOT_TARGET_VERSION;
+}
 } // namespace facebook::fboss

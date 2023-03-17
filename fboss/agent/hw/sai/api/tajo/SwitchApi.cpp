@@ -57,6 +57,15 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
+    AttributeWarmBootTargetVersionWrapper::operator()() {
+#if defined(TAJO_SDK_VERSION_1_42_8)
+  return SAI_SWITCH_ATTR_EXT_WARM_BOOT_TARGET_VERSION;
+#else
+  return std::nullopt;
+#endif
+}
+
 void SwitchApi::registerParityErrorSwitchEventCallback(
     SwitchSaiId /*id*/,
     void* /*switch_event_cb*/) const {}
