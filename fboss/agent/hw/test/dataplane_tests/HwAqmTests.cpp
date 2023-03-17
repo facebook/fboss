@@ -284,7 +284,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
    * However, AQM stats are collected either from queue or from port depending
    * on test requirement, specified using useQueueStatsForAqm.
    */
-  AqmTestStats populateAqmTestStats(
+  AqmTestStats extractAqmTestStats(
       const HwPortStats& portStats,
       const uint8_t queueId,
       bool useQueueStatsForAqm) {
@@ -301,50 +301,70 @@ class HwAqmTest : public HwLinkStateDependentTest {
       stats.outEcnCounter = portStats.get_outEcnCounter_();
       stats.wredDroppedPackets = portStats.get_wredDroppedPackets_();
     }
-    XLOG(DBG0) << "Queue " << static_cast<int>(queueId) << " watermark: "
-               << portStats.get_queueWatermarkBytes_().find(queueId)->second
-               << ", WRED drops: " << stats.wredDroppedPackets
-               << ", ECN marked: " << stats.outEcnCounter;
     return stats;
   }
 
   // For VoQ, all stats are collected per queue.
-  AqmTestStats populateAqmTestStats(
+  AqmTestStats extractAqmTestStats(
       const HwSysPortStats& portStats,
       const uint8_t& queueId) {
     AqmTestStats stats{};
     stats.wredDroppedPackets =
         portStats.get_queueWredDroppedPackets_().find(queueId)->second;
-    XLOG(DBG0) << "VoQ " << queueId << " watermark: "
-               << portStats.get_queueWatermarkBytes_().find(queueId)->second
-               << " WRED drops: " << stats.wredDroppedPackets;
     return stats;
+  }
+
+  template <typename StatsT>
+  uint64_t extractQueueWatermarkStats(
+      const StatsT& stats,
+      const uint8_t& queueId) {
+    return stats.get_queueWatermarkBytes_().find(queueId)->second;
   }
 
   /*
    * Collect stats which are needed for AQM tests. AQM specific stats
    * collected are as below:
    * WRED: Per queue available for all platforms, per port available for
-   *       non-voq systems,
+   *       non-voq switches,
    * ECN : Per egress queue available for VoQ and TAJO platforms, per
-   *       port available for non-voq systems.
+   *       port available for non-voq switches.
+   *
+   * For non-voq switches, egress queue watermarks is a good indication
+   * of peak queue usage, which can tell us if ECN marking / WRED should
+   * have happened, however, for VoQ switches, queue watermarks are needed
+   * from VoQs instead.
    */
   AqmTestStats getAqmTestStats(
       const bool isEcn,
       const PortID& portId,
       const uint8_t& queueId,
       const bool useQueueStatsForAqm) {
-    if (!isEcn &&
-        (getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ)) {
+    AqmTestStats stats{};
+    uint64_t queueWatermark{};
+    if (getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ) {
+      // Gets watermarks + WRED drops in case of non-ECN traffic and
+      // watermarks for ECN traffic for VoQ switches.
       auto sysPortId = getSystemPortID(portId, getProgrammedState());
-      return populateAqmTestStats(
-          getHwSwitchEnsemble()->getLatestSysPortStats(sysPortId), queueId);
-    } else {
-      return populateAqmTestStats(
-          getHwSwitchEnsemble()->getLatestPortStats(portId),
-          queueId,
-          useQueueStatsForAqm);
+      auto sysPortStats =
+          getHwSwitchEnsemble()->getLatestSysPortStats(sysPortId);
+      stats = extractAqmTestStats(sysPortStats, queueId);
+      queueWatermark = extractQueueWatermarkStats(sysPortStats, queueId);
     }
+    if (isEcn ||
+        getPlatform()->getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
+      // Get ECNs marked packet stats for VoQ/non-voq switches and
+      // watermarks for non-voq switches.
+      auto portStats = getHwSwitchEnsemble()->getLatestPortStats(portId);
+      stats = extractAqmTestStats(portStats, queueId, useQueueStatsForAqm);
+      if (getPlatform()->getAsic()->getSwitchType() != cfg::SwitchType::VOQ) {
+        queueWatermark = extractQueueWatermarkStats(portStats, queueId);
+      }
+    }
+    XLOG(DBG0) << "Queue " << static_cast<int>(queueId)
+               << ", watermark: " << queueWatermark
+               << ", WRED drops: " << stats.wredDroppedPackets
+               << ", ECN marked: " << stats.outEcnCounter;
+    return stats;
   }
 
   void runTest(bool isEcn) {
@@ -386,9 +406,13 @@ class HwAqmTest : public HwLinkStateDependentTest {
           getHwSwitchEnsemble()->getMinPktsForLineRate(
               masterLogicalInterfacePortIds()[0]);
       sendPkts(kDscp(), isEcn, kNumPacketsToSend);
-      // There can be delay before stats are synced.
-      // So, add retries to avoid flakiness.
-      WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+      /*
+       * Need traffic loop to build up for ECN/WRED to show up for some
+       * platforms. However, we cannot expect traffic to reach line rate
+       * in WRED config cases. There can also be a delay before stats are
+       * synced. So, add enough retries to avoid flakiness.
+       */
+      WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(1000), {
         auto aqmStats = getAqmTestStats(
             isEcn,
             masterLogicalInterfacePortIds()[0],
