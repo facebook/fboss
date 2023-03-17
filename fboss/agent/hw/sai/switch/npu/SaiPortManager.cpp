@@ -397,7 +397,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   std::optional<SaiPortTraits::Attributes::FecMode> fecMode;
   if (platform_->getAsic()->isSupported(HwAsic::Feature::FEC)) {
-    auto enableFec = (speed >= cfg::PortSpeed::HUNDREDG) ||
+    auto enableFec = (speed >= cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG) ||
         !platformPort->shouldDisableFEC();
     if (!enableFec) {
       fecMode = SAI_PORT_FEC_MODE_NONE;
