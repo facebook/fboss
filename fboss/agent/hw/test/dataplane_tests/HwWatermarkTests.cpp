@@ -273,14 +273,21 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
   void assertDeviceWatermark(bool expectZero, int retries = 1) {
     EXPECT_TRUE(gotExpectedDeviceWatermark(expectZero, retries));
   }
+
+  void stopTraffic(const PortID& portId) {
+    // Toggle the link to break traffic loop
+    bringDownPort(portId);
+    bringUpPort(portId);
+  }
+
   void runTest(int queueId) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
       return;
     }
 
     auto setup = [this]() {
-      // Just need the routes / adjacencies installed, no loop desired!
-      _setup(false /*needTrafficLoop*/);
+      // Needs a traffic loop to accommodate some ASICs like Jericho
+      _setup(true /*needTrafficLoop*/);
     };
     auto verify = [this, queueId]() {
       auto dscpsForQueue = utility::kOlympicQueueToDscp().find(queueId)->second;
@@ -291,6 +298,8 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
         sendUdpPkts(dscpsForQueue[0], portAndIp.second);
         // Assert non zero watermark
         assertWatermark(portAndIp.first, queueId, false /*expectZero*/, 5);
+        // Stop traffic
+        stopTraffic(portAndIp.first);
         // Assert zero watermark
         assertWatermark(portAndIp.first, queueId, true /*expectZero*/, 5);
       }
