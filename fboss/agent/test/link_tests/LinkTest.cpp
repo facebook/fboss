@@ -268,7 +268,9 @@ void LinkTest::createL3DataplaneFlood(
 bool LinkTest::lldpNeighborsOnAllCabledPorts() const {
   auto lldpDb = sw()->getLldpMgr()->getDB();
   for (const auto& port : getCabledPorts()) {
-    if (!lldpDb->getNeighbors(port).size()) {
+    auto portType = platform()->getPlatformPort(port)->getPortType();
+    if (portType == cfg::PortType::INTERFACE_PORT &&
+        !lldpDb->getNeighbors(port).size()) {
       XLOG(DBG2) << " No lldp neighbors on : " << getPortName(port);
       return false;
     }
