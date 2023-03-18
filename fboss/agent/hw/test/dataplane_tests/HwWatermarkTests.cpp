@@ -23,6 +23,8 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
+#include "fboss/lib/CommonUtils.h"
+
 #include <folly/IPAddress.h>
 
 namespace facebook::fboss {
@@ -369,26 +371,34 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
       return;
     }
 
-    std::map<int16_t, int64_t> queueWaterMarks;
-    auto queueWatermarkNonZero = [&]() {
-      if (queueWaterMarks.at(utility::kOlympicSilverQueueId) ||
-          queueWaterMarks.at(utility::kOlympicGoldQueueId)) {
-        return true;
-      }
-      return false;
-    };
-    auto updatePortOrSysportStats = [&]() {
-      queueWaterMarks = getQueueWatermarks(
-          masterLogicalInterfacePortIds()[0], false /*isOqueue*/);
-    };
+    auto queueWatermarkNonZero =
+        [](std::map<int16_t, int64_t>& queueWaterMarks) {
+          if (queueWaterMarks.at(utility::kOlympicSilverQueueId) ||
+              queueWaterMarks.at(utility::kOlympicGoldQueueId)) {
+            return true;
+          }
+          return false;
+        };
 
-    // Now we are at line rate on port, make sure that queue
-    // watermark is non-zero!
-    EXPECT_TRUE(getHwSwitchEnsemble()->waitStatsCondition(
-        queueWatermarkNonZero,
-        updatePortOrSysportStats,
-        10,
-        std::chrono::milliseconds(500)));
+    /*
+     * Now we are at line rate on port, make sure that queue watermark
+     * is non-zero! As of now, the assumption is as below:
+     *
+     * 1. VoQ switches has device watermarks being reported from ingress
+     *    buffers, hence compare it with VoQ watermarks
+     * 2. Non-voq switches just has egress queue watermarks which is from
+     *    the same buffer as the device watermark is reported.
+     *
+     * In case of new platforms, make sure that the assumption holds.
+     */
+    std::map<int16_t, int64_t> queueWaterMarks;
+    WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+      queueWaterMarks = getQueueWatermarks(
+          masterLogicalInterfacePortIds()[0],
+          getPlatform()->getAsic()->getSwitchType() ==
+              cfg::SwitchType::VOQ /*isVoq*/);
+      EXPECT_EVENTUALLY_TRUE(queueWatermarkNonZero(queueWaterMarks));
+    });
 
     // Get device watermark now, so that it is > highest queue watermark!
     auto deviceWaterMark =
