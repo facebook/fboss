@@ -323,7 +323,7 @@ void SaiBufferManager::updateIngressPriorityGroupStats(
     auto maxPgHeadroomBytes =
         counters[SAI_INGRESS_PRIORITY_GROUP_STAT_XOFF_ROOM_WATERMARK_BYTES];
     publishPgWatermarks(
-        portName, ipgInfo.first, maxPgSharedBytes, maxPgHeadroomBytes);
+        portName, ipgInfo.first, maxPgHeadroomBytes, maxPgSharedBytes);
   }
 }
 
