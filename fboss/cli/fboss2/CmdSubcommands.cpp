@@ -29,6 +29,7 @@ const std::map<std::string, std::string>& kSupportedVerbs() {
       {"set", "Set object"},
       {"bounce", "Disable/Enable object"},
       {"stream", "Continuously stream"},
+      {"start", "Start event"},
   };
 
   return supportedVerbs;

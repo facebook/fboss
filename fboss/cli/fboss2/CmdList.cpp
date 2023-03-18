@@ -62,6 +62,7 @@
 #include "fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h"
 #include "fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
+#include "fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h"
 
 namespace facebook::fboss {
 
@@ -352,6 +353,13 @@ const CommandTree& kCommandTree() {
          "Set Port state",
          commandHandler<CmdSetPortState>,
          argTypeHandler<CmdSetPortStateTraits>}}},
+
+      {"start",
+       "pcap",
+       "Start Packet Capture",
+       commandHandler<CmdStartPcap>,
+       argTypeHandler<CmdStartPcapTraits>,
+       localOptionsHandler<CmdStartPcapTraits>},
   };
   return root;
 }
