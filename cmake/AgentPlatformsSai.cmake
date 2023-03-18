@@ -93,6 +93,7 @@ target_link_libraries(sai_platform
   bcm_yaml_config
   cloud_ripper_platform_mapping
   meru400biu_platform_mapping
+  meru400bia_platform_mapping
   meru400bfu_platform_mapping
   montblanc_platform_mapping
 )
