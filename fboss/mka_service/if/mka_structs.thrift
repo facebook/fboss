@@ -3,6 +3,7 @@ namespace py neteng.fboss.mka.mka_structs
 namespace py3 neteng.fboss.mka
 namespace py.asyncio neteng.fboss.asyncio.mka_structs
 namespace go neteng.fboss.mka.mka_structs
+namespace php fboss
 
 enum MKAErrorResponseCode {
   INVALID_CKN = 0,
