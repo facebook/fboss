@@ -274,6 +274,15 @@ bool LinkTest::checkReachabilityOnAllCabledPorts() const {
       XLOG(DBG2) << " No lldp neighbors on : " << getPortName(port);
       return false;
     }
+    if (portType == cfg::PortType::FABRIC_PORT) {
+      auto fabricReachabilityEntries = sw()->getHw()->getFabricReachability();
+      auto fabricPortEndPoint = fabricReachabilityEntries.find(port);
+      if (fabricPortEndPoint == fabricReachabilityEntries.end() ||
+          !*fabricPortEndPoint->second.isAttached()) {
+        XLOG(DBG2) << " No fabric end points on : " << getPortName(port);
+        return false;
+      }
+    }
   }
   return true;
 }
