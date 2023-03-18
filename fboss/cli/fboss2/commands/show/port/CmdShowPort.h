@@ -346,7 +346,7 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
           cliPortStats.queueOutDiscardBytes() =
               portHwStatsEntry.get_queueOutDiscardBytes_();
           cliPortStats.queueOutBytes() = portHwStatsEntry.get_queueOutBytes_();
-          if (auto pfc = portInfo.get_pfc()) {
+          if (portInfo.get_pfc()) {
             cliPortStats.outPfcPriorityPackets() =
                 portHwStatsEntry.get_outPfc_();
             cliPortStats.inPfcPriorityPackets() = portHwStatsEntry.get_inPfc_();
