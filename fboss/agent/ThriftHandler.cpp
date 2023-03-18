@@ -371,6 +371,9 @@ void getPortInfoHelper(
   }
 
   fillPortStats(portInfo, portInfo.portQueues()->size());
+  *portInfo.isDrained() =
+      (port->getPortDrainState() ==
+       facebook::fboss::cfg::PortDrainState::DRAINED);
 }
 
 LacpPortRateThrift fromLacpPortRate(facebook::fboss::cfg::LacpPortRate rate) {

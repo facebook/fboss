@@ -347,6 +347,7 @@ struct PortInfoThrift {
   21: optional PortHardwareDetails hw;
   22: optional TransceiverIdxThrift transceiverIdx;
   23: optional i32 hwLogicalPortId;
+  24: bool isDrained;
 }
 
 // Port queueing configuration
