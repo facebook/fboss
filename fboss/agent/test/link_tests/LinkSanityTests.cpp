@@ -58,7 +58,7 @@ TEST_F(LinkTest, trafficRxTx) {
   auto verify = [this]() {
     WITH_RETRIES({
       sw()->getLldpMgr()->sendLldpOnAllPorts();
-      EXPECT_EVENTUALLY_TRUE(lldpNeighborsOnAllCabledPorts());
+      EXPECT_EVENTUALLY_TRUE(checkReachabilityOnAllCabledPorts());
     });
   };
 

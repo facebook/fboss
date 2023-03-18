@@ -265,7 +265,7 @@ void LinkTest::createL3DataplaneFlood(
   XLOG(DBG2) << "Created L3 Data Plane Flood";
 }
 
-bool LinkTest::lldpNeighborsOnAllCabledPorts() const {
+bool LinkTest::checkReachabilityOnAllCabledPorts() const {
   auto lldpDb = sw()->getLldpMgr()->getDB();
   for (const auto& port : getCabledPorts()) {
     auto portType = platform()->getPlatformPort(port)->getPortType();
@@ -380,7 +380,7 @@ void LinkTest::waitForLldpOnCabledPorts(
     uint32_t retries,
     std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
   WITH_RETRIES_N_TIMED(retries, msBetweenRetry, {
-    ASSERT_EVENTUALLY_TRUE(lldpNeighborsOnAllCabledPorts());
+    ASSERT_EVENTUALLY_TRUE(checkReachabilityOnAllCabledPorts());
   });
 }
 

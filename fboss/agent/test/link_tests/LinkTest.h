@@ -48,7 +48,7 @@ class LinkTest : public AgentTest {
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::duration_cast<std::chrono::milliseconds>(
               std::chrono::seconds(10))) const;
-  bool lldpNeighborsOnAllCabledPorts() const;
+  bool checkReachabilityOnAllCabledPorts() const;
   /*
    * Get pairs of ports connected to each other
    */
@@ -111,9 +111,9 @@ class LinkTest : public AgentTest {
   void TearDown() override;
 
  public:
-  bool checkLldpOnAllCabledPorts() {
+  bool sendAndCheckReachabilityOnAllCabledPorts() {
     sw()->getLldpMgr()->sendLldpOnAllPorts();
-    return lldpNeighborsOnAllCabledPorts();
+    return checkReachabilityOnAllCabledPorts();
   }
 
  private:

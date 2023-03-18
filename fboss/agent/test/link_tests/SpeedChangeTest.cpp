@@ -127,7 +127,8 @@ TEST_F(SpeedChangeTest, secondarySpeed) {
      * 3. Assert no in discards
      */
     EXPECT_NO_THROW(waitForAllCabledPorts(true));
-    checkWithRetry([this]() { return checkLldpOnAllCabledPorts(); });
+    checkWithRetry(
+        [this]() { return sendAndCheckReachabilityOnAllCabledPorts(); });
     // Assert no traffic loss and no ecmp shrink. If ports flap
     // these conditions will not be true
     assertNoInDiscards();
