@@ -63,6 +63,7 @@
 #include "fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h"
+#include "fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h"
 
 namespace facebook::fboss {
 
@@ -360,6 +361,13 @@ const CommandTree& kCommandTree() {
        commandHandler<CmdStartPcap>,
        argTypeHandler<CmdStartPcapTraits>,
        localOptionsHandler<CmdStartPcapTraits>},
+
+      {"stop",
+       "pcap",
+       "Stop Packet Capture",
+       commandHandler<CmdStopPcap>,
+       argTypeHandler<CmdStopPcapTraits>,
+       localOptionsHandler<CmdStopPcapTraits>},
   };
   return root;
 }

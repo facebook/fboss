@@ -85,6 +85,7 @@
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h"
+#include "fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h"
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -169,6 +170,7 @@ template void
 CmdHandler<CmdSetInterfacePrbsState, CmdSetInterfacePrbsStateTraits>::run();
 template void CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits>::run();
 template void CmdHandler<CmdStartPcap, CmdStartPcapTraits>::run();
+template void CmdHandler<CmdStopPcap, CmdStopPcapTraits>::run();
 
 template const ValidFilterMapType
 CmdHandler<CmdShowArp, CmdShowArpTraits>::getValidFilters();

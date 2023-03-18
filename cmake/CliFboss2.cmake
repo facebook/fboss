@@ -287,6 +287,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
+  fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
   fboss/cli/fboss2/CmdSubcommands.cpp
   fboss/cli/fboss2/Main.cpp
   fboss/cli/fboss2/oss/CmdGlobalOptions.cpp
