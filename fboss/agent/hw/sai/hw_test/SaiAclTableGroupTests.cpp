@@ -77,7 +77,7 @@ class SaiAclTableGroupTest : public HwTest {
         cfg::AclTableQualifier::DSCP};
     std::vector<cfg::AclTableActionType> actions = {
         cfg::AclTableActionType::PACKET_ACTION};
-#if defined(TAJO_SDK_VERSION_1_58_0) || defined(TAJO_SDK_VERSION_1_60_0)
+#if defined(TAJO_SDK_VERSION_1_58_0) || defined(TAJO_SDK_VERSION_1_62_0)
     qualifiers.push_back(cfg::AclTableQualifier::TTL);
     actions.push_back(cfg::AclTableActionType::COUNTER);
 #endif

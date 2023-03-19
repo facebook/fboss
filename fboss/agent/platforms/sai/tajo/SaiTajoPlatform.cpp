@@ -19,7 +19,7 @@ namespace facebook::fboss {
 const std::unordered_map<std::string, std::string>
 SaiTajoPlatform::getSaiProfileVendorExtensionValues() const {
   if (getAsic()->isSupported(HwAsic::Feature::P4_WARMBOOT)) {
-#if defined(TAJO_SDK_VERSION_1_60_0)
+#if defined(TAJO_SDK_VERSION_1_62_0)
     return std::unordered_map<std::string, std::string>{
         std::make_pair(SAI_KEY_EXT_DEVICE_ISSU_CAPABLE, "1")};
 #endif
