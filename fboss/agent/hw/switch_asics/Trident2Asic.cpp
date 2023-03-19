@@ -6,7 +6,6 @@ namespace facebook::fboss {
 
 bool Trident2Asic::isSupported(Feature feature) const {
   switch (feature) {
-    case HwAsic::Feature::HOSTTABLE_FOR_HOSTROUTES:
     case HwAsic::Feature::SPAN:
     case HwAsic::Feature::ERSPANv4:
     case HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION:

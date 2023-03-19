@@ -15,7 +15,6 @@ class HwAsic {
       std::unordered_set<cfg::SwitchType> supportedModes = {
           cfg::SwitchType::NPU});
   enum class Feature {
-    HOSTTABLE_FOR_HOSTROUTES,
     SPAN,
     ERSPANv4,
     ERSPANv6,
