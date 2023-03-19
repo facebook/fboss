@@ -143,6 +143,12 @@ RESOLVE_STRUCT_MEMBER(
     switch_state_tags::flowletSwitchingConfig,
     FlowletSwitchingConfig);
 
+/* multi npu maps */
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::mirrorMaps,
+    MultiMirrorMap);
+
 /*
  * SwitchState stores the current switch configuration.
  *

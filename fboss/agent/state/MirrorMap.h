@@ -26,6 +26,7 @@ using MirrorMapTraits = ThriftMapNodeTraits<
 
 class MirrorMap : public ThriftMapNode<MirrorMap, MirrorMapTraits> {
  public:
+  using Traits = MirrorMapTraits;
   using BaseT = ThriftMapNode<MirrorMap, MirrorMapTraits>;
   using BaseT::modify;
   MirrorMap() {}
@@ -48,6 +49,34 @@ class MirrorMap : public ThriftMapNode<MirrorMap, MirrorMapTraits> {
     }
     return map;
   }
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
+  friend class CloneAllocator;
+};
+
+using MultiMirrorMapTypeClass = apache::thrift::type_class::
+    map<apache::thrift::type_class::string, MirrorMapTypeClass>;
+using MultiMirrorMapThriftType = std::map<std::string, MirrorMapThriftType>;
+
+class MultiMirrorMap;
+
+using MultiMirrorMapTraits = ThriftMultiMapNodeTraits<
+    MultiMirrorMap,
+    MultiMirrorMapTypeClass,
+    MultiMirrorMapThriftType,
+    MirrorMap>;
+
+class MultiMirrorMap
+    : public ThriftMapNode<MultiMirrorMap, MultiMirrorMapTraits> {
+ public:
+  using Traits = MultiMirrorMapTraits;
+  using BaseT = ThriftMapNode<MultiMirrorMap, MultiMirrorMapTraits>;
+  using BaseT::modify;
+
+  MultiMirrorMap() {}
+  virtual ~MultiMirrorMap() {}
 
  private:
   // Inherit the constructors required for clone()

@@ -302,6 +302,31 @@ struct ThriftMapNodeTraits {
 };
 
 template <
+    typename MULTIMAP,
+    typename MultiMapTypeClass,
+    typename MultiMapThrift,
+    typename MAP>
+struct ThriftMultiMapNodeTraits {
+  using TC = MultiMapTypeClass;
+  using Type = MultiMapThrift;
+  using KeyType = typename Type::key_type;
+  using KeyCompare = std::less<KeyType>;
+
+  // for map
+  template <typename...>
+  struct ValueTraits {
+    using default_type = thrift_cow::ThriftMapNode<thrift_cow::ThriftMapTraits<
+        typename MAP::Traits::TC,
+        typename MAP::Traits::Type>>;
+    using map_type = MAP;
+    using type = std::shared_ptr<map_type>;
+    using isChild = std::true_type;
+  };
+  template <typename... T>
+  using ConvertToNodeTraits = ValueTraits<T...>;
+};
+
+template <
     typename MAP,
     typename Traits,
     typename Resolver = thrift_cow::TypeIdentity<MAP>>
