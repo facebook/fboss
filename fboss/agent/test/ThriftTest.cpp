@@ -2311,6 +2311,10 @@ TEST_F(ThriftTeFlowTest, syncTeFlows) {
     EXPECT_NE(tableEntry, nullptr);
   }
 
+  TeFlow flow;
+  flow.dstPrefix() = ipPrefix("100::1", 64);
+  flow.srcPort() = 100;
+  auto teflowEntryBeforeSync = teFlowTable->getTeFlowIf(flow);
   auto syncPrefixes = {"100::1", "101::1", "104::1"};
   auto syncFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   for (const auto& prefix : syncPrefixes) {
@@ -2337,6 +2341,38 @@ TEST_F(ThriftTeFlowTest, syncTeFlows) {
     auto tableEntry = teFlowTable->getTeFlowIf(flow);
     EXPECT_EQ(tableEntry, nullptr);
   }
+  // Ensure that pointer to entries and contents are same
+  auto teflowEntryAfterSync = teFlowTable->getTeFlowIf(flow);
+  EXPECT_EQ(teflowEntryBeforeSync, teflowEntryAfterSync);
+  EXPECT_EQ(*teflowEntryBeforeSync, *teflowEntryAfterSync);
+  // Sync with no change in entries and verify table is same
+  auto syncFlowEntries2 = std::make_unique<std::vector<FlowEntry>>();
+  for (const auto& prefix : syncPrefixes) {
+    auto flowEntry = makeFlow(prefix);
+    syncFlowEntries2->emplace_back(flowEntry);
+  }
+  handler.syncTeFlows(std::move(syncFlowEntries2));
+  state = sw_->getState();
+  auto teFlowTableAfterSync = state->getTeFlowTable();
+  // Ensure teflow table pointers and contents are same
+  EXPECT_EQ(teFlowTable, teFlowTableAfterSync);
+  EXPECT_EQ(*teFlowTable, *teFlowTableAfterSync);
+  // Update an entry and check the pointer and content changed
+  flow.dstPrefix() = ipPrefix("104::1", 64);
+  flow.srcPort() = 100;
+  teflowEntryBeforeSync = teFlowTable->getTeFlowIf(flow);
+  auto updateEntries = std::make_unique<std::vector<FlowEntry>>();
+  auto flowEntry1 = makeFlow("100::1");
+  auto flowEntry2 = makeFlow("104::1", kNhopAddrA, "counter1", "fboss1");
+  updateEntries->emplace_back(flowEntry1);
+  updateEntries->emplace_back(flowEntry2);
+  handler.syncTeFlows(std::move(updateEntries));
+  state = sw_->getState();
+  teFlowTable = state->getTeFlowTable();
+  teflowEntryAfterSync = teFlowTable->getTeFlowIf(flow);
+  // Ensure that pointer to entries and contents are different
+  EXPECT_NE(teflowEntryBeforeSync, teflowEntryAfterSync);
+  EXPECT_NE(*teflowEntryBeforeSync, *teflowEntryAfterSync);
   // sync flows with no entries
   auto nullFlowEntries = std::make_unique<std::vector<FlowEntry>>();
   handler.syncTeFlows(std::move(nullFlowEntries));

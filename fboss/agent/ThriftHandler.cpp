@@ -669,6 +669,44 @@ void addRecylePortRifNeighbors(
     nbrs.push_back(nbrThrift);
   }
 }
+
+int getDstIpPrefixLength(const std::shared_ptr<SwitchState>& state) {
+  auto exactMatchTableConfigs =
+      state->getSwitchSettings()->getExactMatchTableConfig()->toThrift();
+  std::string teFlowTableName(cfg::switch_config_constants::TeFlowTableName());
+  auto dstIpPrefixLength = 0;
+  for (const auto& tableConfig : exactMatchTableConfigs) {
+    if ((tableConfig.name() == teFlowTableName) &&
+        tableConfig.dstPrefixLength().has_value()) {
+      dstIpPrefixLength = tableConfig.dstPrefixLength().value();
+    }
+  }
+  if (!dstIpPrefixLength) {
+    throw FbossError("Invalid dstIpPrefixLength configuration");
+  }
+  return dstIpPrefixLength;
+}
+
+void validateFlowEntry(
+    const FlowEntry& flowEntry,
+    const int& dstIpPrefixLength) {
+  if (!flowEntry.flow()->dstPrefix().has_value() ||
+      !flowEntry.flow()->srcPort().has_value()) {
+    throw FbossError("Invalid dstPrefix or srcPort in TeFlow entry");
+  }
+
+  auto prefix = flowEntry.flow()->dstPrefix().value();
+  if (*prefix.prefixLength() != dstIpPrefixLength) {
+    std::string flowString{};
+    folly::IPAddress ipaddr = toIPAddress(*prefix.ip());
+    flowString.append(fmt::format(
+        "dstPrefix:{}/{},srcPort:{}",
+        ipaddr.str(),
+        *prefix.prefixLength(),
+        flowEntry.flow()->srcPort().value()));
+    throw FbossError("Invalid prefix length in TeFlow entry: ", flowString);
+  }
+}
 } // namespace
 
 namespace facebook::fboss {
@@ -2748,39 +2786,10 @@ void ThriftHandler::addTeFlows(
 void ThriftHandler::addTeFlowsImpl(
     std::shared_ptr<SwitchState>* state,
     const std::vector<FlowEntry>& teFlowEntries) const {
-  auto exactMatchTableConfigs =
-      (*state)->getSwitchSettings()->getExactMatchTableConfig()->toThrift();
-  std::string teFlowTableName(cfg::switch_config_constants::TeFlowTableName());
-  auto dstIpPrefixLength = 0;
-  for (const auto& tableConfig : exactMatchTableConfigs) {
-    if ((tableConfig.name() == teFlowTableName) &&
-        tableConfig.dstPrefixLength().has_value()) {
-      dstIpPrefixLength = tableConfig.dstPrefixLength().value();
-    }
-  }
-  if (!dstIpPrefixLength) {
-    throw FbossError("Invalid dstIpPrefixLength configuration");
-  }
-
+  auto dstIpPrefixLength = getDstIpPrefixLength(*state);
   auto teFlowTable = (*state)->getTeFlowTable().get()->modify(state);
   for (const auto& teFlowEntry : teFlowEntries) {
-    if (!teFlowEntry.flow()->dstPrefix().has_value() ||
-        !teFlowEntry.flow()->srcPort().has_value()) {
-      throw FbossError("Invalid dstPrefix or srcPort in TeFlow entry");
-    }
-
-    auto prefix = teFlowEntry.flow()->dstPrefix().value();
-    if (*prefix.prefixLength() != dstIpPrefixLength) {
-      std::string flowString{};
-      folly::IPAddress ipaddr = network::toIPAddress(*prefix.ip());
-      flowString.append(fmt::format(
-          "dstPrefix:{}/{},srcPort:{}",
-          ipaddr.str(),
-          *prefix.prefixLength(),
-          teFlowEntry.flow()->srcPort().value()));
-      throw FbossError("Invalid prefix length in TeFlow entry: ", flowString);
-    }
-
+    validateFlowEntry(teFlowEntry, dstIpPrefixLength);
     teFlowTable = teFlowTable->addTeFlowEntry(state, teFlowEntry);
   }
 }
@@ -2810,11 +2819,43 @@ void ThriftHandler::syncTeFlows(
   auto numFlows = teFlowEntries->size();
   auto oldNumFlows = sw_->getState()->getTeFlowTable()->size();
   auto updateFn = [=, teFlows = std::move(*teFlowEntries)](
-                      const std::shared_ptr<SwitchState>& state) {
+                      const std::shared_ptr<SwitchState>& state)
+      -> shared_ptr<SwitchState> {
     auto newState = state->clone();
-    auto teFlowTable = std::make_shared<TeFlowTable>();
-    newState->resetTeFlowTable(teFlowTable);
-    addTeFlowsImpl(&newState, teFlows);
+    auto newTeFlowTable = std::make_shared<TeFlowTable>();
+    newState->resetTeFlowTable(newTeFlowTable);
+    auto teFlowTable = state->getTeFlowTable();
+    auto dstIpPrefixLength = getDstIpPrefixLength(state);
+    bool tableChanged = false;
+
+    for (const auto& flowEntry : teFlows) {
+      validateFlowEntry(flowEntry, dstIpPrefixLength);
+      TeFlow flow = *flowEntry.flow();
+      auto oldFlowEntry = teFlowTable->getTeFlowIf(flow);
+      // new entry add it
+      if (!oldFlowEntry) {
+        newTeFlowTable->addTeFlowEntry(&newState, flowEntry);
+        tableChanged = true;
+      } else {
+        newTeFlowTable->addTeFlowEntry(&newState, flowEntry);
+        auto newFlowEntry = newTeFlowTable->getTeFlowIf(flow);
+        // if entries are same remove the new entry and
+        // add the old entry to the new table
+        if (*oldFlowEntry == *newFlowEntry) {
+          newTeFlowTable->removeNode(newFlowEntry->getID());
+          newTeFlowTable->addNode(oldFlowEntry);
+        } else {
+          tableChanged = true;
+        }
+      }
+    }
+
+    if (numFlows != oldNumFlows) {
+      tableChanged = true;
+    }
+    if (!tableChanged) {
+      return nullptr;
+    }
     if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
       throw FbossError("Invalid TE flows");
     }
