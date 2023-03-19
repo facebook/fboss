@@ -106,6 +106,7 @@ from datetime import datetime
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON
 # --filter=HwAclStatTest.*:-*AclStatCreate:*AclStatCreateShared:*AclStatCreateMultiple:*AclStatMultipleActions:*AclStatDeleteShared*:*AclStatDeleteSharedPostWarmBoot:*AclStatRename*:*AclStatModify:*AclStatShuffle:*StatNumberOfCounters:*AclStatChangeCounterType
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=SaiAclTableGroupTest.*:-*AddTwo*:*AddSecond*:*DeleteFirstTableAfterWarmboot:*DeleteSecondTableAfterWarmboot
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclMatchActionsTest.*
 # ACLs + QoS Map tests
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwDscpQueueMappingTest.*
 # Packet send test
