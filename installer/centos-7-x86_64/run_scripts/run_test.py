@@ -119,6 +119,7 @@ from datetime import datetime
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwWatermarkTest.*:-*Accuracy
 # Qos  tests
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwOlympicQosTests.*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=Hw2QueueToOlympicQoSTest.*
 # CoPP
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwRxReasonTests.*
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwCoppTest/0.Ipv6LinkLocalMcastToMidPriQ:HwCoppTest/0.Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ:HwCoppTest/0.L3MTUErrorToLowPriQ:HwCoppTest/0.UnresolvedRoutesToLowPriQueue
