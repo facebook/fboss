@@ -141,6 +141,13 @@ class SwSwitch : public HwSwitch::Callback {
     return platform_.get();
   }
 
+  const PlatformMapping* getPlatformMapping() const {
+    return platformMapping_.get();
+  }
+  PlatformMapping* getPlatformMapping() {
+    return platformMapping_.get();
+  }
+
   TunManager* getTunManager() {
     return tunMgr_.get();
   }
@@ -1011,6 +1018,7 @@ class SwSwitch : public HwSwitch::Callback {
   std::unique_ptr<FsdbSyncer> fsdbSyncer_;
   std::unique_ptr<TeFlowNexthopHandler> teFlowNextHopHandler_;
   std::unique_ptr<DsfSubscriber> dsfSubscriber_;
+  std::unique_ptr<PlatformMapping> platformMapping_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
