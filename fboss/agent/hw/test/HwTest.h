@@ -58,6 +58,7 @@ class HwTest : public ::testing::Test,
     return const_cast<HwTest*>(this)->getPlatform();
   }
   const HwAsic* getAsic() const;
+  cfg::AsicType getAsicType() const;
   bool isSupported(HwAsic::Feature feature) const;
 
   void packetReceived(RxPacket* /*pkt*/) noexcept override {}

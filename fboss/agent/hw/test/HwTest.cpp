@@ -62,6 +62,10 @@ const HwAsic* HwTest::getAsic() const {
   return getPlatform()->getAsic();
 }
 
+cfg::AsicType HwTest::getAsicType() const {
+  return getAsic()->getAsicType();
+}
+
 bool HwTest::isSupported(HwAsic::Feature feature) const {
   return getAsic()->isSupported(feature);
 }
