@@ -108,8 +108,10 @@ class HwAclQualifierTest : public HwTest {
   };
 
   void configureAllHwQualifiers(cfg::AclEntry* acl, bool enable) {
-    configureQualifier(acl->srcPort(), enable, masterLogicalPortIds()[0]);
-    configureQualifier(acl->dstPort(), enable, masterLogicalPortIds()[1]);
+    configureQualifier(
+        acl->srcPort(), enable, masterLogicalInterfacePortIds()[0]);
+    configureQualifier(
+        acl->dstPort(), enable, masterLogicalInterfacePortIds()[1]);
   }
 
   void configureAllL2QualifiersHelper(cfg::AclEntry* acl) {
@@ -208,7 +210,8 @@ class HwAclQualifierTest : public HwTest {
 
  protected:
   cfg::SwitchConfig initialConfig() const {
-    return utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
   }
 };
 
