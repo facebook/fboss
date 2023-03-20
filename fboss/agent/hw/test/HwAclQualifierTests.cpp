@@ -20,6 +20,12 @@ namespace {
 
 using namespace facebook::fboss;
 
+enum class QualifierType : uint8_t {
+  LOOKUPCLASS_L2,
+  LOOKUPCLASS_NEIGHBOR,
+  LOOKUPCLASS_ROUTE,
+};
+
 template <typename T, typename U>
 void configureQualifier(
     apache::thrift::optional_field_ref<T&> ref,
@@ -101,12 +107,6 @@ namespace facebook::fboss {
 
 class HwAclQualifierTest : public HwTest {
  public:
-  enum class LookupClassType : uint8_t {
-    LOOKUPCLASS_L2,
-    LOOKUPCLASS_NEIGHBOR,
-    LOOKUPCLASS_ROUTE,
-  };
-
   void configureAllHwQualifiers(cfg::AclEntry* acl, bool enable) {
     configureQualifier(
         acl->srcPort(), enable, masterLogicalInterfacePortIds()[0]);
@@ -161,7 +161,7 @@ class HwAclQualifierTest : public HwTest {
     return "acl0";
   }
 
-  void aclSetupHelper(bool isIpV4, LookupClassType lookupClassType) {
+  void aclSetupHelper(bool isIpV4, QualifierType lookupClassType) {
     auto newCfg = initialConfig();
     auto* acl = utility::addAcl(&newCfg, kAclName(), cfg::AclActionType::DENY);
 
@@ -172,7 +172,7 @@ class HwAclQualifierTest : public HwTest {
     }
 
     switch (lookupClassType) {
-      case LookupClassType::LOOKUPCLASS_L2:
+      case QualifierType::LOOKUPCLASS_L2:
         if (getPlatform()->getAsic()->getAsicType() !=
             cfg::AsicType::ASIC_TYPE_TRIDENT2) {
           configureQualifier(
@@ -181,14 +181,14 @@ class HwAclQualifierTest : public HwTest {
               cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_1);
         }
         break;
-      case LookupClassType::LOOKUPCLASS_NEIGHBOR:
+      case QualifierType::LOOKUPCLASS_NEIGHBOR:
         configureQualifier(
             acl->lookupClassNeighbor(),
             true,
             isIpV4 ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4
                    : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6);
         break;
-      case LookupClassType::LOOKUPCLASS_ROUTE:
+      case QualifierType::LOOKUPCLASS_ROUTE:
         configureQualifier(
             acl->lookupClassRoute(),
             true,
@@ -431,8 +431,7 @@ TEST_F(HwAclQualifierTest, AclIp6Qualifiers) {
 
 TEST_F(HwAclQualifierTest, AclIp4LookupClassL2) {
   auto setup = [=]() {
-    aclSetupHelper(
-        true /* isIpV4 */, HwAclQualifierTest::LookupClassType::LOOKUPCLASS_L2);
+    aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_L2);
   };
 
   auto verify = [=]() { aclVerifyHelper(); };
@@ -442,9 +441,7 @@ TEST_F(HwAclQualifierTest, AclIp4LookupClassL2) {
 
 TEST_F(HwAclQualifierTest, AclIp4LookupClassNeighbor) {
   auto setup = [=]() {
-    aclSetupHelper(
-        true /* isIpV4 */,
-        HwAclQualifierTest::LookupClassType::LOOKUPCLASS_NEIGHBOR);
+    aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
   };
 
   auto verify = [=]() { aclVerifyHelper(); };
@@ -454,9 +451,7 @@ TEST_F(HwAclQualifierTest, AclIp4LookupClassNeighbor) {
 
 TEST_F(HwAclQualifierTest, AclIp4LookupClassRoute) {
   auto setup = [=]() {
-    aclSetupHelper(
-        true /* isIpV4 */,
-        HwAclQualifierTest::LookupClassType::LOOKUPCLASS_ROUTE);
+    aclSetupHelper(true /* isIpV4 */, QualifierType::LOOKUPCLASS_ROUTE);
   };
 
   auto verify = [=]() { aclVerifyHelper(); };
@@ -466,9 +461,7 @@ TEST_F(HwAclQualifierTest, AclIp4LookupClassRoute) {
 
 TEST_F(HwAclQualifierTest, AclIp6LookupClassL2) {
   auto setup = [=]() {
-    aclSetupHelper(
-        false /* isIpV6 */,
-        HwAclQualifierTest::LookupClassType::LOOKUPCLASS_L2);
+    aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_L2);
   };
 
   auto verify = [=]() { aclVerifyHelper(); };
@@ -478,9 +471,7 @@ TEST_F(HwAclQualifierTest, AclIp6LookupClassL2) {
 
 TEST_F(HwAclQualifierTest, AclIp6LookupClassNeighbor) {
   auto setup = [=]() {
-    aclSetupHelper(
-        false /* isIpV6 */,
-        HwAclQualifierTest::LookupClassType::LOOKUPCLASS_NEIGHBOR);
+    aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_NEIGHBOR);
   };
 
   auto verify = [=]() { aclVerifyHelper(); };
@@ -490,9 +481,7 @@ TEST_F(HwAclQualifierTest, AclIp6LookupClassNeighbor) {
 
 TEST_F(HwAclQualifierTest, AclIp6LookupClassRoute) {
   auto setup = [=]() {
-    aclSetupHelper(
-        false /* isIpV6 */,
-        HwAclQualifierTest::LookupClassType::LOOKUPCLASS_ROUTE);
+    aclSetupHelper(false /* isIpV6 */, QualifierType::LOOKUPCLASS_ROUTE);
   };
 
   auto verify = [=]() { aclVerifyHelper(); };
