@@ -308,6 +308,7 @@ struct SwitchSettingsFields {
   24: optional QosPolicyFields defaultDataPlaneQosPolicy;
   25: optional switch_config.UdfConfig udfConfig;
   26: optional switch_config.FlowletSwitchingConfig flowletSwitchingConfig;
+  27: map<i64, switch_config.SwitchType> switchIdToSwitchType;
 }
 
 struct RoutePrefix {
