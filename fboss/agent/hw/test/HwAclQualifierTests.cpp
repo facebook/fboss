@@ -41,7 +41,8 @@ void configureQualifier(
 void configureAllIpQualifiers(
     cfg::AclEntry* acl,
     bool enable,
-    cfg::IpType ipType) {
+    cfg::IpType ipType,
+    cfg::AsicType /*asicType*/) {
   cfg::Ttl ttl;
   std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
 
@@ -79,7 +80,10 @@ void configureAllIpQualifiers(
   configureQualifier(acl->ttl(), enable, ttl);
 }
 
-void configureAllTcpQualifiers(cfg::AclEntry* acl, bool enable) {
+void configureAllTcpQualifiers(
+    cfg::AclEntry* acl,
+    bool enable,
+    cfg::AsicType /*asicType*/) {
   configureQualifier(acl->l4SrcPort(), enable, 10);
   configureQualifier(acl->l4DstPort(), enable, 20);
   configureQualifier(acl->proto(), enable, 6);
@@ -89,7 +93,8 @@ void configureAllTcpQualifiers(cfg::AclEntry* acl, bool enable) {
 void configureAllIcmpQualifiers(
     cfg::AclEntry* acl,
     bool enable,
-    cfg::IpType ipType) {
+    cfg::IpType ipType,
+    cfg::AsicType /*asicType*/) {
   if (ipType == cfg::IpType::IP6) {
     configureQualifier(acl->proto(), enable, 58); // Icmp v6
     configureQualifier(acl->icmpType(), enable, 1); // Destination unreachable
@@ -221,8 +226,8 @@ TEST_F(HwAclQualifierTest, AclIp4TcpQualifiers) {
     auto* acl1 = utility::addAcl(&newCfg, "ip4_tcp", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
     configureAllL2QualifiersHelper(acl1);
-    configureAllIpQualifiers(acl1, true, cfg::IpType::IP4);
-    configureAllTcpQualifiers(acl1, true);
+    configureAllIpQualifiers(acl1, true, cfg::IpType::IP4, getAsicType());
+    configureAllTcpQualifiers(acl1, true, getAsicType());
     applyNewConfig(newCfg);
   };
 
@@ -241,8 +246,8 @@ TEST_F(HwAclQualifierTest, AclIp6TcpQualifiers) {
     auto* acl1 = utility::addAcl(&newCfg, "ip6_tcp", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
     configureAllL2QualifiersHelper(acl1);
-    configureAllIpQualifiers(acl1, true, cfg::IpType::IP6);
-    configureAllTcpQualifiers(acl1, true);
+    configureAllIpQualifiers(acl1, true, cfg::IpType::IP6, getAsicType());
+    configureAllTcpQualifiers(acl1, true, getAsicType());
     applyNewConfig(newCfg);
   };
 
@@ -261,7 +266,7 @@ TEST_F(HwAclQualifierTest, AclIcmp4Qualifiers) {
     auto* acl1 = utility::addAcl(&newCfg, "icmp4", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
     configureAllL2QualifiersHelper(acl1);
-    configureAllIcmpQualifiers(acl1, true, cfg::IpType::IP4);
+    configureAllIcmpQualifiers(acl1, true, cfg::IpType::IP4, getAsicType());
     applyNewConfig(newCfg);
   };
 
@@ -280,7 +285,7 @@ TEST_F(HwAclQualifierTest, AclIcmp6Qualifiers) {
     auto* acl1 = utility::addAcl(&newCfg, "icmp6", cfg::AclActionType::DENY);
     configureAllHwQualifiers(acl1, true);
     configureAllL2QualifiersHelper(acl1);
-    configureAllIcmpQualifiers(acl1, true, cfg::IpType::IP6);
+    configureAllIcmpQualifiers(acl1, true, cfg::IpType::IP6, getAsicType());
     applyNewConfig(newCfg);
   };
 
@@ -322,15 +327,15 @@ TEST_F(HwAclQualifierTest, AclModifyQualifier) {
     // icmp6
     configureAllHwQualifiers(acl, true);
     configureAllL2QualifiersHelper(acl);
-    configureAllIcmpQualifiers(acl, true, cfg::IpType::IP6);
+    configureAllIcmpQualifiers(acl, true, cfg::IpType::IP6, getAsicType());
     applyNewConfig(newCfg);
     // ip6 tcp
-    configureAllIcmpQualifiers(acl, false, cfg::IpType::IP6);
-    configureAllIpQualifiers(acl, true, cfg::IpType::IP6);
+    configureAllIcmpQualifiers(acl, false, cfg::IpType::IP6, getAsicType());
+    configureAllIpQualifiers(acl, true, cfg::IpType::IP6, getAsicType());
     applyNewConfig(newCfg);
     // imcp6
-    configureAllIpQualifiers(acl, false, cfg::IpType::IP6);
-    configureAllIcmpQualifiers(acl, true, cfg::IpType::IP6);
+    configureAllIpQualifiers(acl, false, cfg::IpType::IP6, getAsicType());
+    configureAllIcmpQualifiers(acl, true, cfg::IpType::IP6, getAsicType());
     applyNewConfig(newCfg);
   };
 
