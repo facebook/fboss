@@ -46,41 +46,6 @@ void addPermitIpAcl(
   cfg.acls()->push_back(acl);
 }
 
-void addCpuPolicingDstLocalAcl(
-    bool isV6,
-    cfg::SwitchConfig& cfg,
-    const std::string& aclName) {
-  auto acl = cfg::AclEntry();
-  acl.name() = aclName;
-  acl.actionType() = cfg::AclActionType::PERMIT;
-  acl.lookupClassNeighbor() = isV6
-      ? cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP6
-      : cfg::AclLookupClass::DST_CLASS_L3_LOCAL_IP4;
-  acl.dscp() = 48;
-  cfg.acls()->push_back(acl);
-}
-
-void addCpuPolicingDstLocalMatchAction(
-    cfg::SwitchConfig& cfg,
-    const std::string& aclName) {
-  auto matchAction = cfg::MatchToAction();
-
-  matchAction.matcher() = aclName;
-  cfg::QueueMatchAction queueMatchAction;
-  queueMatchAction.queueId() = 7;
-
-  matchAction.action()->sendToQueue() = queueMatchAction;
-  matchAction.action()->toCpuAction() = cfg::ToCpuAction::TRAP;
-  if (!cfg.cpuTrafficPolicy()) {
-    cfg.cpuTrafficPolicy() = cfg::CPUTrafficPolicyConfig();
-  }
-  if (!cfg.cpuTrafficPolicy()->trafficPolicy()) {
-    cfg.cpuTrafficPolicy()->trafficPolicy() = cfg::TrafficPolicyConfig();
-  }
-  cfg.cpuTrafficPolicy()->trafficPolicy()->matchToAction()->push_back(
-      matchAction);
-}
-
 } // unnamed namespace
 
 namespace facebook::fboss {
@@ -161,31 +126,21 @@ TEST_F(HwAclPriorityTest, AclNameChange) {
 }
 
 TEST_F(HwAclPriorityTest, AclsChanged) {
-  auto setup = [this]() {
+  const folly::IPAddress kIp("2400::1");
+  auto setup = [this, kIp]() {
     auto config = initialConfig();
-    addCpuPolicingDstLocalAcl(
-        true, config, "cpuPolicing-high-NetworkControl-dstLocalIp6");
-    addCpuPolicingDstLocalAcl(
-        false, config, "cpuPolicing-high-NetworkControl-dstLocalIp4");
+    addDenyPortAcl(config, "acl0");
+    // Get Acls from COPP policy
     setDefaultCpuTrafficPolicyConfig(config, getPlatform()->getAsic());
-    addCpuPolicingDstLocalMatchAction(
-        config, "cpuPolicing-high-NetworkControl-dstLocalIp6");
-    addCpuPolicingDstLocalMatchAction(
-        config, "cpuPolicing-high-NetworkControl-dstLocalIp4");
+    addPermitIpAcl(config, "acl1", kIp);
     applyNewConfig(config);
   };
 
-  auto setupPostWb = [=]() {
+  auto setupPostWb = [this, kIp]() {
     auto config = initialConfig();
-    addCpuPolicingDstLocalAcl(
-        true, config, "cpuPolicing-high-NetworkControl-dstLocalIp6");
-    addCpuPolicingDstLocalAcl(
-        false, config, "cpuPolicing-high-NetworkControl-dstLocalIp4");
-    addCpuPolicingDstLocalMatchAction(
-        config, "cpuPolicing-high-NetworkControl-dstLocalIp6");
-    addCpuPolicingDstLocalMatchAction(
-        config, "cpuPolicing-high-NetworkControl-dstLocalIp4");
-
+    // Drop COPP acls
+    addDenyPortAcl(config, "acl0");
+    addPermitIpAcl(config, "acl1", kIp);
     applyNewConfig(config);
   };
 

@@ -100,7 +100,7 @@ from datetime import datetime
 # V6 routes
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwRouteTest/1.*:-*Mpls*:*ClassId*:*ClassID*
 # ACLs
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclPriorityTest.*:-*AclsChanged*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclPriorityTest.*
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclCounterTest.*
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=SaiAclTableRecreateTests.*
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON
