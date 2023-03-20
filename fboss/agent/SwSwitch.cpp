@@ -241,6 +241,13 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
   }
 }
 
+SwSwitch::SwSwitch(
+    std::unique_ptr<Platform> platform,
+    std::unique_ptr<PlatformMapping> platformMapping)
+    : SwSwitch(std::move(platform)) {
+  platformMapping_ = std::move(platformMapping);
+}
+
 SwSwitch::~SwSwitch() {
   if (getSwitchRunState() < SwitchRunState::EXITING) {
     // If we didn't already stop (say via gracefulExit call), begin

@@ -47,7 +47,7 @@ MockPlatform::MockPlatform(
     std::unique_ptr<MockHwSwitch> hw)
     : Platform(
           std::move(productInfo),
-          std::make_unique<Wedge100PlatformMapping>(),
+          std::make_unique<MockPlatformMapping>(),
           getMockLocalMac()),
       tmpDir_("fboss_mock_state"),
       hw_(std::move(hw)) {

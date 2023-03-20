@@ -128,6 +128,13 @@ class SwSwitch : public HwSwitch::Callback {
       folly::ThreadLocalPtr<SwitchStats, SwSwitch>::Accessor;
 
   explicit SwSwitch(std::unique_ptr<Platform> platform);
+  /*
+   * Needed for mock platforms that do cannot initialize platform mapping
+   * based on fruid file
+   */
+  SwSwitch(
+      std::unique_ptr<Platform> platform,
+      std::unique_ptr<PlatformMapping> platformMapping);
   ~SwSwitch() override;
 
   HwSwitch* getHw() const {

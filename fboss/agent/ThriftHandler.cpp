@@ -1312,7 +1312,7 @@ void ThriftHandler::getSupportedPrbsPolynomials(
   if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
-  auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(*portName);
+  auto portID = sw_->getPlatformMapping()->getPortID(*portName);
   prbsCapabilities = sw_->getPortPrbsPolynomials(portID);
 }
 
@@ -1324,7 +1324,7 @@ void ThriftHandler::getInterfacePrbsState(
   if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
-  auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(*portName);
+  auto portID = sw_->getPlatformMapping()->getPortID(*portName);
   prbsState = sw_->getPortPrbsState(portID);
 }
 
@@ -1335,7 +1335,7 @@ void ThriftHandler::clearInterfacePrbsStats(
   if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
-  auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(*portName);
+  auto portID = sw_->getPlatformMapping()->getPortID(*portName);
   clearPortPrbsStats(portID, component);
 }
 
@@ -1347,7 +1347,7 @@ void ThriftHandler::getInterfacePrbsStats(
   if (component != phy::PortComponent::ASIC) {
     throw FbossError("Unsupported component");
   }
-  auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(*portName);
+  auto portID = sw_->getPlatformMapping()->getPortID(*portName);
   getPortPrbsStats(response, portID, component);
 }
 
@@ -1363,7 +1363,7 @@ void ThriftHandler::setInterfacePrbs(
       !state->checkerEnabled().has_value()) {
     throw FbossError("Neither generator or checker specified for PRBS setting");
   }
-  auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(*portName);
+  auto portID = sw_->getPlatformMapping()->getPortID(*portName);
   bool enabled = (state->generatorEnabled().has_value() &&
                   state->generatorEnabled().value()) ||
       (state->checkerEnabled().has_value() && state->checkerEnabled().value());
@@ -1592,7 +1592,7 @@ void ThriftHandler::programInternalPhyPorts(
 
   // Check whether the transceiver has valid id
   std::optional<phy::DataPlanePhyChip> tcvrChip;
-  for (const auto& chip : sw_->getPlatform()->getDataPlanePhyChips()) {
+  for (const auto& chip : sw_->getPlatformMapping()->getChips()) {
     if (*chip.second.type() == phy::DataPlanePhyChipType::TRANSCEIVER &&
         *chip.second.physicalID() == id) {
       tcvrChip = chip.second;
@@ -1609,7 +1609,7 @@ void ThriftHandler::programInternalPhyPorts(
   const auto tcvr =
       sw_->getState()->getTransceivers()->getTransceiverIf(tcvrID);
   const auto& platformPorts = utility::getPlatformPortsByChip(
-      sw_->getPlatform()->getPlatformPorts(), *tcvrChip);
+      sw_->getPlatformMapping()->getPlatformPorts(), *tcvrChip);
   // Check whether the current Transceiver in the SwitchState matches the
   // input TransceiverInfo
   if (!tcvr && !newTransceiver) {
@@ -1631,14 +1631,13 @@ void ThriftHandler::programInternalPhyPorts(
         newTransceiverMap->addTransceiver(newTransceiver);
       }
 
-      auto platform = sw_->getPlatform();
       // Now we also need to update the port profile config and pin configs
       // using the newTransceiver
       std::optional<cfg::PlatformPortConfigOverrideFactor> factor;
       if (newTransceiver != nullptr) {
         factor = newTransceiver->toPlatformPortConfigOverrideFactor();
       }
-      platform->getPlatformMapping()->customizePlatformPortConfigOverrideFactor(
+      sw_->getPlatformMapping()->customizePlatformPortConfigOverrideFactor(
           factor);
       for (const auto& platformPort : platformPorts) {
         const auto oldPort =
@@ -1648,7 +1647,8 @@ void ThriftHandler::programInternalPhyPorts(
         }
         PlatformPortProfileConfigMatcher matcher{
             oldPort->getProfileID(), oldPort->getID(), factor};
-        auto portProfileCfg = platform->getPortProfileConfig(matcher);
+        auto portProfileCfg =
+            sw_->getPlatformMapping()->getPortProfileConfig(matcher);
         if (!portProfileCfg) {
           throw FbossError(
               "No port profile config found with matcher:", matcher.toString());
@@ -1664,7 +1664,7 @@ void ThriftHandler::programInternalPhyPorts(
         }
         auto newProfileConfigRef = portProfileCfg->iphy();
         const auto& newPinConfigs =
-            platform->getPlatformMapping()->getPortIphyPinConfigs(matcher);
+            sw_->getPlatformMapping()->getPortIphyPinConfigs(matcher);
 
         auto newPort = oldPort->modify(&newState);
         newPort->setProfileConfig(*newProfileConfigRef);
@@ -2578,7 +2578,7 @@ void ThriftHandler::getHwDebugDump(std::string& out) {
 }
 
 void ThriftHandler::getPlatformMapping(cfg::PlatformMapping& ret) {
-  ret = sw_->getPlatform()->getPlatformMapping()->toThrift();
+  ret = sw_->getPlatformMapping()->toThrift();
 }
 
 void ThriftHandler::listHwObjects(
@@ -2737,7 +2737,7 @@ void ThriftHandler::publishLinkSnapshots(
     std::unique_ptr<std::vector<std::string>> portNames) {
   auto log = LOG_THRIFT_CALL(DBG1);
   for (const auto& portName : *portNames) {
-    auto portID = sw_->getPlatform()->getPlatformMapping()->getPortID(portName);
+    auto portID = sw_->getPlatformMapping()->getPortID(portName);
     sw_->publishPhyInfoSnapshots(portID);
   }
 }
@@ -2748,14 +2748,12 @@ void ThriftHandler::getInterfacePhyInfo(
   auto log = LOG_THRIFT_CALL(DBG1);
   std::vector<PortID> portIDs;
   for (const auto& portName : *portNames) {
-    portIDs.push_back(
-        sw_->getPlatform()->getPlatformMapping()->getPortID(portName));
+    portIDs.push_back(sw_->getPlatformMapping()->getPortID(portName));
   }
   auto portPhyInfo = sw_->getIPhyInfo(portIDs);
   for (const auto& portName : *portNames) {
     phyInfos[portName] =
-        portPhyInfo[sw_->getPlatform()->getPlatformMapping()->getPortID(
-            portName)];
+        portPhyInfo[sw_->getPlatformMapping()->getPortID(portName)];
   }
 }
 

@@ -405,7 +405,9 @@ std::unique_ptr<SwSwitch> setupMockSwitchWithoutHW(
   // Since we are just applying a initial state and to created
   // switch, set initial config to empty.
   platform->setConfig(createEmptyAgentConfig());
-  auto sw = make_unique<SwSwitch>(std::move(platform));
+  auto platformMapping = std::make_unique<MockPlatformMapping>();
+  auto sw =
+      make_unique<SwSwitch>(std::move(platform), std::move(platformMapping));
   HwInitResult ret;
   ret.switchState = state ? state : make_shared<SwitchState>();
   ret.bootType = BootType::COLD_BOOT;
