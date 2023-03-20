@@ -26,9 +26,9 @@ namespace facebook::fboss {
 class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
  private:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::oneL3IntfConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
+        masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode());
     if (isSupported(HwAsic::Feature::L3_QOS)) {
       auto streamType =
@@ -44,6 +44,10 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
   }
   MacAddress dstMac() const {
     return utility::getFirstInterfaceMac(getProgrammedState());
+  }
+  PortID outPort() const {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
+    return ecmpHelper6.nhop(0).portDesc.phyPortID();
   }
 
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
@@ -127,8 +131,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
       const std::vector<int>& queueIds,
       const std::map<int, std::vector<uint8_t>>& queueToDscp) {
     // Higher speed ports need more packets to reach line rate
-    auto pktsToSend =
-        getHwSwitchEnsemble()->getMinPktsForLineRate(masterLogicalPortIds()[0]);
+    auto pktsToSend = getHwSwitchEnsemble()->getMinPktsForLineRate(outPort());
     for (const auto& queueId : queueIds) {
       sendUdpPkts(queueToDscp.at(queueId).front(), pktsToSend);
     }
@@ -139,10 +142,8 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
       const std::vector<int>& queueIds) {
     auto kEcmpWidthForTest = 1;
     resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
-    for (const auto& nextHop : ecmpHelper6.getNextHops()) {
-      utility::disableTTLDecrements(
-          getHwSwitch(), ecmpHelper6.getRouterId(), nextHop);
-    }
+    utility::ttlDecrementHandlingForLoopbackTraffic(
+        getHwSwitch(), ecmpHelper6.getRouterId(), ecmpHelper6.nhop(0));
   }
 
   void verifyWRRAndSP(const std::vector<int>& queueIds, int trafficQueueId) {
@@ -164,7 +165,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
 
   void _verifyDscpQueueMappingHelper(
       const std::map<int, std::vector<uint8_t>>& queueToDscp) {
-    auto portId = masterLogicalPortIds()[0];
+    auto portId = outPort();
     auto portStatsBefore = getLatestPortStats(portId);
     for (const auto& q2dscps : queueToDscp) {
       for (auto dscp : q2dscps.second) {
@@ -203,7 +204,7 @@ bool HwOlympicQosSchedulerTest::verifyWRRHelper(
    * queue with max weight (or better precesion).
    */
   const double kVariance = 0.10; // i.e. + or -10%
-  auto portId = masterLogicalPortIds()[0];
+  auto portId = outPort();
   getHwSwitchEnsemble()->waitForLineRateOnPort(portId);
   auto retries = 5;
   while (retries--) {
@@ -262,7 +263,7 @@ bool HwOlympicQosSchedulerTest::verifyWRRHelper(
 // Only trafficQueueId should have traffic
 bool HwOlympicQosSchedulerTest::verifySPHelper(int trafficQueueId) {
   XLOG(DBG0) << "trafficQueueId: " << trafficQueueId;
-  auto portId = masterLogicalPortIds()[0];
+  auto portId = outPort();
   getHwSwitchEnsemble()->waitForLineRateOnPort(portId);
   auto retries = 5;
   while (retries--) {
