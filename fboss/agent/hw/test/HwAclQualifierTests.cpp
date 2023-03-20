@@ -115,8 +115,11 @@ class HwAclQualifierTest : public HwTest {
   void configureAllHwQualifiers(cfg::AclEntry* acl, bool enable) {
     configureQualifier(
         acl->srcPort(), enable, masterLogicalInterfacePortIds()[0]);
-    configureQualifier(
-        acl->dstPort(), enable, masterLogicalInterfacePortIds()[1]);
+    if (getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO2) {
+      // No out port support on J2. Out port not used in prod
+      configureQualifier(
+          acl->dstPort(), enable, masterLogicalInterfacePortIds()[1]);
+    }
   }
 
   void configureAllL2QualifiersHelper(cfg::AclEntry* acl) {
@@ -129,7 +132,9 @@ class HwAclQualifierTest : public HwTest {
      * implement queues on trident2.
      */
     if (getPlatform()->getAsic()->getAsicType() !=
-        cfg::AsicType::ASIC_TYPE_TRIDENT2) {
+            cfg::AsicType::ASIC_TYPE_TRIDENT2 &&
+        // L2 switching only on NPU type switch
+        getHwSwitch()->getSwitchType() == cfg::SwitchType::NPU) {
       configureQualifier(
           acl->lookupClassL2(),
           true,
