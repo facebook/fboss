@@ -441,15 +441,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   bool changed = false;
 
   {
-    bool qcmChanged = false;
-    auto newQcmConfig = updateQcmCfg(&qcmChanged);
-    if (qcmChanged) {
-      new_->resetQcmCfg(newQcmConfig);
-      changed = true;
-    }
-  }
-
-  {
     auto newControlPlane = updateControlPlane();
     if (newControlPlane) {
       new_->resetControlPlane(std::move(newControlPlane));
@@ -3659,6 +3650,15 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
   if (oldDhcpV6ReplySrc != newDhcpV6ReplySrc) {
     newSwitchSettings->setDhcpV6ReplySrc(newDhcpV6ReplySrc);
     switchSettingsChange = true;
+  }
+
+  {
+    bool qcmChanged = false;
+    auto newQcmConfig = updateQcmCfg(&qcmChanged);
+    if (qcmChanged) {
+      newSwitchSettings->setQcmCfg(newQcmConfig);
+      switchSettingsChange = true;
+    }
   }
 
   return switchSettingsChange ? newSwitchSettings : nullptr;

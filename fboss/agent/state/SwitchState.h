@@ -294,6 +294,9 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   const std::shared_ptr<QcmCfg> getQcmCfg() const {
+    if (auto qcmCfg = getSwitchSettings()->getQcmCfg()) {
+      return qcmCfg;
+    }
     return cref<switch_state_tags::qcmCfg>();
   }
 
@@ -481,7 +484,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetForwardingInformationBases(
       std::shared_ptr<ForwardingInformationBaseMap> fibs);
   void resetSwitchSettings(std::shared_ptr<SwitchSettings> switchSettings);
-  void resetQcmCfg(std::shared_ptr<QcmCfg> qcmCfg);
   void resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs);
   void addTransceiver(const std::shared_ptr<TransceiverSpec>& transceiver);
   void resetTransceivers(std::shared_ptr<TransceiverMap> transceivers);

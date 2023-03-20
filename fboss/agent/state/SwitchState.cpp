@@ -225,10 +225,6 @@ void SwitchState::resetSwitchSettings(
   ref<switch_state_tags::switchSettings>() = switchSettings;
 }
 
-void SwitchState::resetQcmCfg(std::shared_ptr<QcmCfg> qcmCfg) {
-  ref<switch_state_tags::qcmCfg>() = qcmCfg;
-}
-
 void SwitchState::resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs) {
   ref<switch_state_tags::bufferPoolCfgMap>() = cfgs;
 }
@@ -552,6 +548,12 @@ state::SwitchState SwitchState::toThrift() const {
     data.dhcpV6ReplySrc() = data.switchSettings()->dhcpV6ReplySrc().value();
   } else {
     data.switchSettings()->dhcpV6ReplySrc() = data.dhcpV6ReplySrc().value();
+  }
+  // Write QcmCfg to switchSettings and old fields for transition
+  if (data.switchSettings()->qcmCfg().has_value()) {
+    data.qcmCfg() = data.switchSettings()->qcmCfg().value();
+  } else if (data.qcmCfg().has_value()) {
+    data.switchSettings()->qcmCfg() = data.qcmCfg().value();
   }
   return data;
 }

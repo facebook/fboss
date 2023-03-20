@@ -14,6 +14,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
+#include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/Thrifty.h"
 
 namespace facebook::fboss {
@@ -21,6 +22,8 @@ namespace facebook::fboss {
 class SwitchState;
 
 USE_THRIFT_COW(SwitchSettings)
+RESOLVE_STRUCT_MEMBER(SwitchSettings, switch_state_tags::qcmCfg, QcmCfg)
+
 /*
  * SwitchSettings stores state about path settings of traffic to userver CPU
  * on the switch.
@@ -336,6 +339,14 @@ class SwitchSettings
       set<switch_state_tags::dhcpV6ReplySrc>(
           network::toBinaryAddress(*dhcpV6ReplySrc));
     }
+  }
+
+  std::shared_ptr<QcmCfg> getQcmCfg() const {
+    return cref<switch_state_tags::qcmCfg>();
+  }
+
+  void setQcmCfg(std::shared_ptr<QcmCfg> qcmCfg) {
+    ref<switch_state_tags::qcmCfg>() = qcmCfg;
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
