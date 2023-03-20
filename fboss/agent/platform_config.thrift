@@ -27,6 +27,9 @@ union ChipConfig {
 struct PlatformConfig {
   1: ChipConfig chip;
   3: optional map<PlatformAttributes, string> platformSettings;
+  4: map<i16, i64> switchIndexToSwitchId;
+  5: map<i16, ChipConfig> switchIndexToChipConfigs;
+  6: map<i16, map<PlatformAttributes, string>> switchIndexToPlatformSettings;
 }
 
 struct PlatformPortEntry {
