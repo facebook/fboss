@@ -313,10 +313,6 @@ void SwitchState::resetDsfNodes(std::shared_ptr<DsfNodeMap> dsfNodes) {
   ref<switch_state_tags::dsfNodes>() = dsfNodes;
 }
 
-void SwitchState::resetUdfConfig(std::shared_ptr<UdfConfig> udfConfig) {
-  ref<switch_state_tags::udfConfig>() = udfConfig;
-}
-
 std::shared_ptr<const AclTableMap> SwitchState::getAclTablesForStage(
     cfg::AclStage aclStage) const {
   if (getAclTableGroups() &&
@@ -562,6 +558,12 @@ state::SwitchState SwitchState::toThrift() const {
   } else if (data.defaultDataPlaneQosPolicy().has_value()) {
     data.switchSettings()->defaultDataPlaneQosPolicy() =
         data.defaultDataPlaneQosPolicy().value();
+  }
+  // Write udfConfig to switchSettings and old fields for transition
+  if (data.switchSettings()->udfConfig().has_value()) {
+    data.udfConfig() = data.switchSettings()->udfConfig().value();
+  } else if (data.udfConfig().is_set()) {
+    data.switchSettings()->udfConfig() = data.udfConfig().value();
   }
   return data;
 }

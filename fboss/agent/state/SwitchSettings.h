@@ -17,6 +17,7 @@
 #include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/Thrifty.h"
+#include "fboss/agent/state/UdfConfig.h"
 
 namespace facebook::fboss {
 
@@ -28,6 +29,7 @@ RESOLVE_STRUCT_MEMBER(
     SwitchSettings,
     switch_state_tags::defaultDataPlaneQosPolicy,
     QosPolicy)
+RESOLVE_STRUCT_MEMBER(SwitchSettings, switch_state_tags::udfConfig, UdfConfig)
 
 /*
  * SwitchSettings stores state about path settings of traffic to userver CPU
@@ -360,6 +362,14 @@ class SwitchSettings
 
   void setDefaultDataPlaneQosPolicy(std::shared_ptr<QosPolicy> qosPolicy) {
     ref<switch_state_tags::defaultDataPlaneQosPolicy>() = qosPolicy;
+  }
+
+  const std::shared_ptr<UdfConfig>& getUdfConfig() const {
+    return cref<switch_state_tags::udfConfig>();
+  }
+
+  void setUdfConfig(std::shared_ptr<UdfConfig> udfConfig) {
+    ref<switch_state_tags::udfConfig>() = udfConfig;
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);

@@ -425,6 +425,9 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
   const std::shared_ptr<UdfConfig>& getUdfConfig() const {
+    if (getSwitchSettings()->getUdfConfig()) {
+      return getSwitchSettings()->getUdfConfig();
+    }
     return cref<switch_state_tags::udfConfig>();
   }
 
@@ -494,7 +497,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetDsfNodes(std::shared_ptr<DsfNodeMap> dsfNodes);
   std::shared_ptr<AclTableGroupMap>& getAclTablesForStage(
       const folly::dynamic& swJson);
-  void resetUdfConfig(std::shared_ptr<UdfConfig> udf);
   void resetFlowletSwitchingConfig(
       std::shared_ptr<FlowletSwitchingConfig> flowletSwitchingConfig);
 

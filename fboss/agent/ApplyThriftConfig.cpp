@@ -693,15 +693,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   {
-    bool udfCfgChanged = false;
-    auto newUdfCfg = updateUdfConfig(&udfCfgChanged);
-    if (udfCfgChanged) {
-      new_->resetUdfConfig(std::move(newUdfCfg));
-      changed = true;
-    }
-  }
-
-  {
     bool flowletSwitchingChanged = false;
     auto newFlowletSwitchingConfig =
         updateFlowletSwitchingConfig(&flowletSwitchingChanged);
@@ -3656,6 +3647,15 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     auto newDefaultQosPolicy = updateDataplaneDefaultQosPolicy();
     if (new_->getDefaultDataPlaneQosPolicy() != newDefaultQosPolicy) {
       newSwitchSettings->setDefaultDataPlaneQosPolicy(newDefaultQosPolicy);
+      switchSettingsChange = true;
+    }
+  }
+
+  {
+    bool udfCfgChanged = false;
+    auto newUdfCfg = updateUdfConfig(&udfCfgChanged);
+    if (udfCfgChanged) {
+      newSwitchSettings->setUdfConfig(std::move(newUdfCfg));
       switchSettingsChange = true;
     }
   }

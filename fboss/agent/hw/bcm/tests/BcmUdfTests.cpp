@@ -34,7 +34,10 @@ class BcmUdfTest : public BcmTest {
 
     auto state = getProgrammedState();
     state->modify(&state);
-    state->resetUdfConfig(udfConfigState);
+    auto switchSettings = state->getSwitchSettings();
+    switchSettings = switchSettings->clone();
+    switchSettings->setUdfConfig(udfConfigState);
+    state->resetSwitchSettings(switchSettings);
     return state;
   }
 };
