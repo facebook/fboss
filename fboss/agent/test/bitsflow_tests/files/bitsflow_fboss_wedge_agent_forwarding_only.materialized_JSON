@@ -104,10 +104,25 @@
         }
       ],
       "metadata": ""
+    },
+    {
+      "action": "FbossCtrl.getLldpNeighbors",
+      "entries": [
+        {
+          "identity": {
+            "id_type": "SERVICE_IDENTITY",
+            "id_data": "neteng_network_health"
+          },
+          "expiration_time": 0,
+          "state": 0,
+          "auto_renew": false
+        }
+      ],
+      "metadata": ""
     }
   ],
   "point_of_contact": {
     "id_type": "ONCALL",
-    "id_data": "fboss_dev"
+    "id_data": "fboss_agent"
   }
 }
