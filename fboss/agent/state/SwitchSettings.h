@@ -15,6 +15,7 @@
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/QcmConfig.h"
+#include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/Thrifty.h"
 
 namespace facebook::fboss {
@@ -23,6 +24,10 @@ class SwitchState;
 
 USE_THRIFT_COW(SwitchSettings)
 RESOLVE_STRUCT_MEMBER(SwitchSettings, switch_state_tags::qcmCfg, QcmCfg)
+RESOLVE_STRUCT_MEMBER(
+    SwitchSettings,
+    switch_state_tags::defaultDataPlaneQosPolicy,
+    QosPolicy)
 
 /*
  * SwitchSettings stores state about path settings of traffic to userver CPU
@@ -347,6 +352,14 @@ class SwitchSettings
 
   void setQcmCfg(std::shared_ptr<QcmCfg> qcmCfg) {
     ref<switch_state_tags::qcmCfg>() = qcmCfg;
+  }
+
+  const std::shared_ptr<QosPolicy> getDefaultDataPlaneQosPolicy() const {
+    return cref<switch_state_tags::defaultDataPlaneQosPolicy>();
+  }
+
+  void setDefaultDataPlaneQosPolicy(std::shared_ptr<QosPolicy> qosPolicy) {
+    ref<switch_state_tags::defaultDataPlaneQosPolicy>() = qosPolicy;
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);

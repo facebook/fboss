@@ -555,6 +555,14 @@ state::SwitchState SwitchState::toThrift() const {
   } else if (data.qcmCfg().has_value()) {
     data.switchSettings()->qcmCfg() = data.qcmCfg().value();
   }
+  // Write defaultQosPolicy to switchSettings and old fields for transition
+  if (data.switchSettings()->defaultDataPlaneQosPolicy().has_value()) {
+    data.defaultDataPlaneQosPolicy() =
+        data.switchSettings()->defaultDataPlaneQosPolicy().value();
+  } else if (data.defaultDataPlaneQosPolicy().has_value()) {
+    data.switchSettings()->defaultDataPlaneQosPolicy() =
+        data.defaultDataPlaneQosPolicy().value();
+  }
   return data;
 }
 

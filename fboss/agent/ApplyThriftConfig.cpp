@@ -536,15 +536,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     }
   }
 
-  // reset the default qos policy
-  {
-    auto newDefaultQosPolicy = updateDataplaneDefaultQosPolicy();
-    if (new_->getDefaultDataPlaneQosPolicy() != newDefaultQosPolicy) {
-      new_->setDefaultDataPlaneQosPolicy(newDefaultQosPolicy);
-      changed = true;
-    }
-  }
-
   {
     auto newIntfs = updateInterfaces();
     if (newIntfs) {
@@ -3657,6 +3648,14 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     auto newQcmConfig = updateQcmCfg(&qcmChanged);
     if (qcmChanged) {
       newSwitchSettings->setQcmCfg(newQcmConfig);
+      switchSettingsChange = true;
+    }
+  }
+
+  {
+    auto newDefaultQosPolicy = updateDataplaneDefaultQosPolicy();
+    if (new_->getDefaultDataPlaneQosPolicy() != newDefaultQosPolicy) {
+      newSwitchSettings->setDefaultDataPlaneQosPolicy(newDefaultQosPolicy);
       switchSettingsChange = true;
     }
   }

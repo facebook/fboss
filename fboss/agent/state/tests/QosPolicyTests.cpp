@@ -504,6 +504,8 @@ TEST(QosPolicy, DefaultQosPolicy) {
   checkQosPolicy(policy, state->getQosPolicy("qosPolicy"));
   // default policy is not set
   EXPECT_EQ(state->getDefaultDataPlaneQosPolicy(), nullptr);
+  EXPECT_EQ(
+      state->getSwitchSettings()->getDefaultDataPlaneQosPolicy(), nullptr);
 
   // set default policy
   cfg::TrafficPolicyConfig defaultQosPolicy;
@@ -512,7 +514,16 @@ TEST(QosPolicy, DefaultQosPolicy) {
   state = publishAndApplyConfig(state, &config, platform.get());
 
   EXPECT_NE(state->getDefaultDataPlaneQosPolicy(), nullptr);
+  EXPECT_NE(
+      state->getSwitchSettings()->getDefaultDataPlaneQosPolicy(), nullptr);
   checkQosPolicy(policy, state->getDefaultDataPlaneQosPolicy());
+  EXPECT_EQ(
+      state->getDefaultDataPlaneQosPolicy(),
+      state->getSwitchSettings()->getDefaultDataPlaneQosPolicy());
+  const auto& stateThrift = state->toThrift();
+  EXPECT_EQ(
+      stateThrift.defaultDataPlaneQosPolicy(),
+      stateThrift.switchSettings()->defaultDataPlaneQosPolicy());
   EXPECT_EQ(state->getQosPolicy("qosPolicy"), nullptr);
 }
 

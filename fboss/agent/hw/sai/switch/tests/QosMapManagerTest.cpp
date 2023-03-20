@@ -71,7 +71,10 @@ class QosMapManagerTest : public ManagerTestBase {
       std::shared_ptr<SwitchState> in = std::make_shared<SwitchState>()) {
     in->publish();
     auto newState = in->clone();
-    newState->setDefaultDataPlaneQosPolicy(policy);
+    auto switchSettings = newState->getSwitchSettings();
+    switchSettings = switchSettings->clone();
+    switchSettings->setDefaultDataPlaneQosPolicy(policy);
+    newState->resetSwitchSettings(switchSettings);
     return newState;
   }
 };
@@ -219,7 +222,10 @@ TEST_F(QosMapManagerTest, changAddsPortQos) {
   auto qosPolicies = std::make_shared<QosPolicyMap>();
   qosPolicies->addNode(makeQosPolicy("qos", testQosPolicy));
   newState->resetQosPolicies(qosPolicies);
-  newState->setDefaultDataPlaneQosPolicy(nullptr);
+  auto switchSettings = newState->getSwitchSettings();
+  switchSettings = switchSettings->clone();
+  switchSettings->setDefaultDataPlaneQosPolicy(nullptr);
+  newState->resetSwitchSettings(switchSettings);
   newPort->setQosPolicy("qos");
   EXPECT_FALSE(saiPlatform->getHwSwitch()->isValidStateUpdate(
       StateDelta(oldState, newState)));
