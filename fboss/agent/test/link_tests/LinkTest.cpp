@@ -143,9 +143,9 @@ std::map<int32_t, TransceiverInfo> LinkTest::waitForTransceiverInfo(
 // If the expectedLLDPValues in the switch config has an entry, we expect
 // that port to take part in the test
 void LinkTest::initializeCabledPorts() {
-  const auto& platformPorts =
-      sw()->getPlatform()->getPlatformMapping()->getPlatformPorts();
-  const auto& chips = sw()->getPlatform()->getPlatformMapping()->getChips();
+  const auto& platformPorts = sw()->getPlatformMapping()->getPlatformPorts();
+
+  const auto& chips = sw()->getPlatformMapping()->getChips();
   for (const auto& port : *sw()->getConfig().ports()) {
     if (!(*port.expectedLLDPValues()).empty()) {
       auto portID = *port.logicalID();
