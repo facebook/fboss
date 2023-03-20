@@ -107,6 +107,8 @@ from datetime import datetime
 # Most failures in HwAclStatTest are due to stats on DNX configuring both byte
 # and pkt counters simultaneously
 # --filter=HwAclStatTest.*:-*AclStatCreate:*AclStatCreateShared:*AclStatCreateMultiple:*AclStatMultipleActions:*AclStatDeleteShared*:*AclStatDeleteSharedPostWarmBoot:*AclStatRename*:*AclStatModify:*AclStatShuffle:*StatNumberOfCounters:*AclStatChangeCounterType
+# Failing tests are those that use QPH ACL table, which we don't use or support
+# yet on Meru
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=SaiAclTableGroupTest.*:-*AddTwo*:*AddSecond*:*DeleteFirstTableAfterWarmboot:*DeleteSecondTableAfterWarmboot
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclMatchActionsTest.*
 # We only support ipv6 qualifiers (minus classID) on Meru
