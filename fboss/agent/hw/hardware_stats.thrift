@@ -218,3 +218,9 @@ struct HwRxReasonStats {
 struct HwBufferPoolStats {
   1: i64 deviceWatermarkBytes;
 }
+
+struct CpuPortStats {
+  1: map<i32, i64> queueInPackets_;
+  2: map<i32, i64> queueDiscardPackets_;
+  3: map<i32, string> queueToName_;
+}
