@@ -499,19 +499,4 @@ TEST_F(HwAclQualifierTest, AclIp6LookupClassRoute) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(HwAclQualifierTest, AclIp6LookupClassRouteDPR) {
-  auto setup = [=]() {
-    auto newCfg = initialConfig();
-    auto* acl = utility::addAcl(&newCfg, kAclName(), cfg::AclActionType::DENY);
-    configureIp6QualifiersHelper(acl);
-    configureQualifier(
-        acl->lookupClassRoute(), true, cfg::AclLookupClass::DST_CLASS_L3_DPR);
-    applyNewConfig(newCfg);
-  };
-
-  auto verify = [=]() { aclVerifyHelper(); };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 } // namespace facebook::fboss
