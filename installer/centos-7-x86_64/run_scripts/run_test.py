@@ -104,9 +104,14 @@ from datetime import datetime
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclCounterTest.*
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=SaiAclTableRecreateTests.*
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON
+# Most failures in HwAclStatTest are due to stats on DNX configuring both byte
+# and pkt counters simultaneously
 # --filter=HwAclStatTest.*:-*AclStatCreate:*AclStatCreateShared:*AclStatCreateMultiple:*AclStatMultipleActions:*AclStatDeleteShared*:*AclStatDeleteSharedPostWarmBoot:*AclStatRename*:*AclStatModify:*AclStatShuffle:*StatNumberOfCounters:*AclStatChangeCounterType
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=SaiAclTableGroupTest.*:-*AddTwo*:*AddSecond*:*DeleteFirstTableAfterWarmboot:*DeleteSecondTableAfterWarmboot
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclMatchActionsTest.*
+# We only support ipv6 qualifiers (minus classID) on Meru
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclQualifierTest.*:-*Ip4*:*Tcp*:*Icmp*:*AclModifyQualifier*:*VlanID*:*LookupClass*
+
 # ACLs + QoS Map tests
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwDscpQueueMappingTest.*
 # Packet send test
