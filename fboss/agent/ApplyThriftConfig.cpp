@@ -693,16 +693,6 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   {
-    bool flowletSwitchingChanged = false;
-    auto newFlowletSwitchingConfig =
-        updateFlowletSwitchingConfig(&flowletSwitchingChanged);
-    if (flowletSwitchingChanged) {
-      new_->resetFlowletSwitchingConfig(std::move(newFlowletSwitchingConfig));
-      changed = true;
-    }
-  }
-
-  {
     auto switchType = *cfg_->switchSettings()->switchType();
 
     // VOQ/Fabric switches require that the packets are not tagged with any
@@ -3656,6 +3646,17 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     auto newUdfCfg = updateUdfConfig(&udfCfgChanged);
     if (udfCfgChanged) {
       newSwitchSettings->setUdfConfig(std::move(newUdfCfg));
+      switchSettingsChange = true;
+    }
+  }
+
+  {
+    bool flowletSwitchingChanged = false;
+    auto newFlowletSwitchingConfig =
+        updateFlowletSwitchingConfig(&flowletSwitchingChanged);
+    if (flowletSwitchingChanged) {
+      newSwitchSettings->setFlowletSwitchingConfig(
+          std::move(newFlowletSwitchingConfig));
       switchSettingsChange = true;
     }
   }

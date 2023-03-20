@@ -433,6 +433,9 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   const std::shared_ptr<FlowletSwitchingConfig>& getFlowletSwitchingConfig()
       const {
+    if (getSwitchSettings()->getFlowletSwitchingConfig()) {
+      return getSwitchSettings()->getFlowletSwitchingConfig();
+    }
     return cref<switch_state_tags::flowletSwitchingConfig>();
   }
 
@@ -497,8 +500,6 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetDsfNodes(std::shared_ptr<DsfNodeMap> dsfNodes);
   std::shared_ptr<AclTableGroupMap>& getAclTablesForStage(
       const folly::dynamic& swJson);
-  void resetFlowletSwitchingConfig(
-      std::shared_ptr<FlowletSwitchingConfig> flowletSwitchingConfig);
 
   void resetRemoteSystemPorts(std::shared_ptr<SystemPortMap> systemPorts);
   void resetRemoteIntfs(std::shared_ptr<InterfaceMap> intfs);

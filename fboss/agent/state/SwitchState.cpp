@@ -229,11 +229,6 @@ void SwitchState::resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs) {
   ref<switch_state_tags::bufferPoolCfgMap>() = cfgs;
 }
 
-void SwitchState::resetFlowletSwitchingConfig(
-    std::shared_ptr<FlowletSwitchingConfig> flowletSwitchingConfig) {
-  ref<switch_state_tags::flowletSwitchingConfig>() = flowletSwitchingConfig;
-}
-
 const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {
   return cref<switch_state_tags::loadBalancerMap>();
 }
@@ -564,6 +559,15 @@ state::SwitchState SwitchState::toThrift() const {
     data.udfConfig() = data.switchSettings()->udfConfig().value();
   } else if (data.udfConfig().is_set()) {
     data.switchSettings()->udfConfig() = data.udfConfig().value();
+  }
+  // Write flowletSwitchingConfig to switchSettings and old fields for
+  // transition
+  if (data.switchSettings()->flowletSwitchingConfig().has_value()) {
+    data.flowletSwitchingConfig() =
+        data.switchSettings()->flowletSwitchingConfig().value();
+  } else if (data.flowletSwitchingConfig().has_value()) {
+    data.switchSettings()->flowletSwitchingConfig() =
+        data.flowletSwitchingConfig().value();
   }
   return data;
 }

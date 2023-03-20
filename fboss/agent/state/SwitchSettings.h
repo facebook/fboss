@@ -13,6 +13,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/QosPolicyMap.h"
@@ -30,6 +31,10 @@ RESOLVE_STRUCT_MEMBER(
     switch_state_tags::defaultDataPlaneQosPolicy,
     QosPolicy)
 RESOLVE_STRUCT_MEMBER(SwitchSettings, switch_state_tags::udfConfig, UdfConfig)
+RESOLVE_STRUCT_MEMBER(
+    SwitchSettings,
+    switch_state_tags::flowletSwitchingConfig,
+    FlowletSwitchingConfig)
 
 /*
  * SwitchSettings stores state about path settings of traffic to userver CPU
@@ -370,6 +375,16 @@ class SwitchSettings
 
   void setUdfConfig(std::shared_ptr<UdfConfig> udfConfig) {
     ref<switch_state_tags::udfConfig>() = udfConfig;
+  }
+
+  const std::shared_ptr<FlowletSwitchingConfig>& getFlowletSwitchingConfig()
+      const {
+    return cref<switch_state_tags::flowletSwitchingConfig>();
+  }
+
+  void setFlowletSwitchingConfig(
+      std::shared_ptr<FlowletSwitchingConfig> flowletConfig) {
+    ref<switch_state_tags::flowletSwitchingConfig>() = flowletConfig;
   }
 
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);

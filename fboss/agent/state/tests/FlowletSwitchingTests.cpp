@@ -28,7 +28,9 @@ TEST(FlowletSwitching, addUpdate) {
   flowletSwitchingConfig->fromThrift(flowletCfg);
 
   // update the state with flowletCfg
-  state->resetFlowletSwitchingConfig(flowletSwitchingConfig);
+  auto switchSettings = std::make_shared<SwitchSettings>();
+  switchSettings->setFlowletSwitchingConfig(flowletSwitchingConfig);
+  state->resetSwitchSettings(switchSettings);
   auto flowletCfg1 = state->getFlowletSwitchingConfig();
   EXPECT_TRUE(flowletCfg1);
   EXPECT_FALSE(flowletCfg1->isPublished());
@@ -49,7 +51,9 @@ TEST(FlowletSwitching, addUpdate) {
   flowletCfg.portQueueWeight() = 40;
 
   flowletSwitchingConfig->fromThrift(flowletCfg);
-  state->resetFlowletSwitchingConfig(flowletSwitchingConfig);
+  switchSettings = std::make_shared<SwitchSettings>();
+  switchSettings->setFlowletSwitchingConfig(flowletSwitchingConfig);
+  state->resetSwitchSettings(switchSettings);
   auto flowletCfg2 = state->getFlowletSwitchingConfig();
   EXPECT_TRUE(flowletCfg2);
   EXPECT_FALSE(flowletCfg2->isPublished());
@@ -72,7 +76,9 @@ TEST(FlowletSwitching, publish) {
 
   // convert to state
   flowletSwitchingConfig->fromThrift(flowletCfg);
-  state->resetFlowletSwitchingConfig(flowletSwitchingConfig);
+  auto switchSettings = std::make_shared<SwitchSettings>();
+  switchSettings->setFlowletSwitchingConfig(flowletSwitchingConfig);
+  state->resetSwitchSettings(switchSettings);
   // update the state with flowletCfg
   state->publish();
   EXPECT_TRUE(state->getFlowletSwitchingConfig()->isPublished());
@@ -98,7 +104,9 @@ TEST(FlowletSwitching, serDeserSwitchState) {
   // convert to state
   flowletSwitchingConfig->fromThrift(flowletCfg);
   // update the state with flowletCfg
-  state->resetFlowletSwitchingConfig(flowletSwitchingConfig);
+  auto switchSettings = std::make_shared<SwitchSettings>();
+  switchSettings->setFlowletSwitchingConfig(flowletSwitchingConfig);
+  state->resetSwitchSettings(switchSettings);
 
   auto serialized = state->toThrift();
   auto stateBack = SwitchState::fromThrift(serialized);
@@ -158,6 +166,16 @@ TEST(FlowletSwitching, applyConfig) {
   EXPECT_EQ(flowletCfg2->getPortScalingFactor(), 400);
   EXPECT_EQ(flowletCfg2->getPortLoadWeight(), 50);
   EXPECT_EQ(flowletCfg2->getPortQueueWeight(), 40);
+
+  // Ensure that the global and switchSettings field are set for
+  // backward/forward compatibility
+  EXPECT_EQ(
+      stateV2->getFlowletSwitchingConfig(),
+      stateV2->getSwitchSettings()->getFlowletSwitchingConfig());
+  const auto& stateThrift = stateV2->toThrift();
+  EXPECT_EQ(
+      stateThrift.flowletSwitchingConfig(),
+      *(stateThrift.switchSettings()->flowletSwitchingConfig()));
 
   // undo flowlet switching cfg
   config.flowletSwitchingConfig().reset();
