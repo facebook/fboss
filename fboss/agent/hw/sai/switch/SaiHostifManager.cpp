@@ -279,11 +279,32 @@ void SaiHostifManager::processRxReasonToQueueDelta(
               newRxReasonEntry->template cref<switch_config_tags::rxReason>()
                   ->cref();
         });
+
     /*
-     * Lower index must have higher priority.
+     * In the FBOSS config, rxReasonToQueue are ordered implicitly. The highest
+     * priority trap is listed first.
+     *
+     * On some SAI implementations, lower value of priority means lower
+     * priority. For such implementations, compute priority so that lower index
+     * has higher priority.
+     *
+     * On some other SAI implementations, lower value of priority means higher
+     * priority. For such implementations, compute prioroity so that lower
+     * index has lower priority.
+     *
+     * SAI spec does not define whether  lower value of priority should mean
+     * lower priority or higher priority.
      */
-    auto priority = newRxReasonToQueue->size() - index;
+    uint16_t priority;
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::TRAP_PRIORITY_LOWER_VAL_IS_LOWER_PRI)) {
+      priority = newRxReasonToQueue->size() - index;
+    } else {
+      priority = index + 1;
+    }
+
     CHECK_GT(priority, 0);
+
     if (oldRxReasonEntryIter != oldRxReasonToQueue->cend()) {
       /*
        * If old reason exists and does not match the index, priority of the trap
