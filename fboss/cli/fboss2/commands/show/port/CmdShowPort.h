@@ -129,10 +129,19 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
             "    Egress (bytes)                \t\t {}",
             portHwStats.get_egressBytes()));
         for (const auto& queueBytes : portHwStats.get_queueOutBytes()) {
-          detailedOutput.emplace_back(fmt::format(
-              "\tQueue {}                      \t\t {}",
-              queueBytes.first,
-              queueBytes.second));
+          const auto iter = portInfo.get_queueIdToName().find(queueBytes.first);
+          std::string queueName = "";
+          if (iter != portInfo.get_queueIdToName().end()) {
+            queueName = folly::to<std::string>("(", iter->second, ")");
+          }
+          // print either if the queue is valid or queue has non zero traffic
+          if (queueBytes.second || !queueName.empty()) {
+            detailedOutput.emplace_back(fmt::format(
+                "\tQueue {} {:12}    \t\t {}",
+                queueBytes.first,
+                queueName,
+                queueBytes.second));
+          }
         }
         detailedOutput.emplace_back(fmt::format(
             "    Received Unicast (pkts)       \t\t {}",
@@ -151,10 +160,20 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
             portHwStats.get_outCongestionDiscardPkts()));
         for (const auto& queueDiscardBytes :
              portHwStats.get_queueOutDiscardBytes()) {
-          detailedOutput.emplace_back(fmt::format(
-              "\tQueue {}                      \t\t {}",
-              queueDiscardBytes.first,
-              queueDiscardBytes.second));
+          const auto iter =
+              portInfo.get_queueIdToName().find(queueDiscardBytes.first);
+          std::string queueName = "";
+          if (iter != portInfo.get_queueIdToName().end()) {
+            queueName = folly::to<std::string>("(", iter->second, ")");
+          }
+          // print either if the queue is valid or queue has non zero traffic
+          if (queueDiscardBytes.second || !queueName.empty()) {
+            detailedOutput.emplace_back(fmt::format(
+                "\tQueue {} {:12}    \t\t {}",
+                queueDiscardBytes.first,
+                queueName,
+                queueDiscardBytes.second));
+          }
         }
         if (portHwStats.get_outPfcPackets()) {
           detailedOutput.emplace_back(fmt::format(
@@ -332,6 +351,12 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
           portDetails.pause() = pauseString;
         }
         portDetails.numUnicastQueues() = portInfo.get_portQueues().size();
+        for (const auto& queue : portInfo.get_portQueues()) {
+          if (!queue.get_name().empty()) {
+            portDetails.queueIdToName()->insert(
+                {queue.get_id(), queue.get_name()});
+          }
+        }
 
         const auto& iter = portStats.find(portName);
         if (iter != portStats.end()) {
