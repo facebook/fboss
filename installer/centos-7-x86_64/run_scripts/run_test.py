@@ -130,7 +130,7 @@ from datetime import datetime
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwOlympicQosSchedulerTest.VerifyWRRAndICP
 # CoPP
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwRxReasonTests.*
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwCoppTest/0.Ipv6LinkLocalMcastToMidPriQ:HwCoppTest/0.Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ:HwCoppTest/0.L3MTUErrorToLowPriQ:HwCoppTest/0.UnresolvedRoutesToLowPriQueue
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwCoppTest/0.LocalDstIpBgpPortToHighPriQ:HwCoppTest/0.LocalDstIpNonBgpPortToMidPriQ:HwCoppTest/0.Ipv6LinkLocalMcastToMidPriQ:HwCoppTest/0.Ipv6LinkLocalMcastTxFromCpu:HwCoppTest/0.SlowProtocolsMacToHighPriQ:HwCoppTest/0.Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ:HwCoppTest/0.L3MTUErrorToLowPriQ:HwCoppTest/0.ArpRequestAndReplyToHighPriQ:HwCoppTest/0.NdpSolicitationToHighPriQ:HwCoppTest/0.UnresolvedRoutesToLowPriQueue:HwCoppTest/0.JumboFramesToQueues:HwCoppTest/0.Ttl1PacketToLowPriQ:HwCoppTest/0.DhcpPacketToMidPriQ:HwCoppTest/0.DHCPv6AdvertiseToMidPriQ
 # All tests matching following filter are expected to PASS on Meru400bfu
 # ./run_test.py sai --config meru400bfu.agent.materialized_JSON --filter=HwFabricSwitchTest*
 
