@@ -38,9 +38,9 @@ target_link_libraries(platform_mapping_utils
   sandia_platform_mapping
   wedge400c_ebb_lab_platform_mapping
   cloud_ripper_platform_mapping
-  makalu_platform_mapping
-  kamet_platform_mapping
+  meru400biu_platform_mapping
+  meru400bfu_platform_mapping
   montblanc_platform_mapping
-  yangra_platform_mapping
+  meru400bia_platform_mapping
   ${RE2}
 )

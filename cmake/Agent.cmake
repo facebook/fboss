@@ -198,6 +198,7 @@ target_link_libraries(core
   ${NETLINK3}
   ${NETLINKROUTE3}
   thread_heartbeat
+  platform_mapping_utils
 )
 
 add_library(error
