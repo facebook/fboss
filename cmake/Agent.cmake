@@ -294,7 +294,7 @@ target_link_libraries(fsdb_helper
   state
 )
 
-add_library(fsdb_helper
+add_library(npu_matcher
   fboss/agent/NpuMatcher.cpp
 )
 
