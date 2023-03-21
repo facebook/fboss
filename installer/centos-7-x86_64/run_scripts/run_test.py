@@ -103,12 +103,10 @@ from datetime import datetime
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclPriorityTest.*
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclCounterTest.*
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=SaiAclTableRecreateTests.*
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON
 # Most failures in HwAclStatTest are due to stats on DNX configuring both byte
 # and pkt counters simultaneously
-# --filter=HwAclStatTest.*:-*AclStatCreate:*AclStatCreateShared:*AclStatCreateMultiple:*AclStatMultipleActions:*AclStatDeleteShared*:*AclStatDeleteSharedPostWarmBoot:*AclStatRename*:*AclStatModify:*AclStatShuffle:*StatNumberOfCounters:*AclStatChangeCounterType
-# Failing tests are those that use QPH ACL table, which we don't use or support
-# yet on Meru
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclStatTest.*:-*AclStatCreate:*AclStatCreateShared:*AclStatCreateMultiple:*AclStatMultipleActions:*AclStatDeleteShared*:*AclStatDeleteSharedPostWarmBoot:*AclStatRename*:*AclStatModify:*AclStatShuffle:*StatNumberOfCounters:*AclStatChangeCounterType
+# Failing tests are those that use QPH ACL table, which we don't use or support yet on Meru
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=SaiAclTableGroupTest.*:-*AddTwo*:*AddSecond*:*DeleteFirstTableAfterWarmboot:*DeleteSecondTableAfterWarmboot
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclMatchActionsTest.*
 # We only support ipv6 qualifiers (minus classID) on Meru
@@ -128,6 +126,8 @@ from datetime import datetime
 # Qos  tests
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwOlympicQosTests.*
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=Hw2QueueToOlympicQoSTest.*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwOlympicQosSchedulerTest.VerifyWRRAndNC
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwOlympicQosSchedulerTest.VerifyWRRAndICP
 # CoPP
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwRxReasonTests.*
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwCoppTest/0.Ipv6LinkLocalMcastToMidPriQ:HwCoppTest/0.Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ:HwCoppTest/0.L3MTUErrorToLowPriQ:HwCoppTest/0.UnresolvedRoutesToLowPriQueue
