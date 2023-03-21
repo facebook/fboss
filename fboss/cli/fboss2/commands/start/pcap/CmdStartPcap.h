@@ -89,6 +89,10 @@ class CmdStartPcap : public CmdHandler<CmdStartPcap, CmdStartPcapTraits> {
         return "Rx only";
       case CaptureDirection::CAPTURE_TX_RX:
         return "both Tx and Rx";
+      default:
+        throw std::runtime_error(
+            "Unsupported direction value : " +
+            std::to_string(static_cast<int>(directionVal)));
     }
   }
 };
