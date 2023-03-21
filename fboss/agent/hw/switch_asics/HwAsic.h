@@ -134,6 +134,7 @@ class HwAsic {
     PORT_FABRIC_ISOLATE,
     QUEUE_ECN_COUNTER,
     TRAP_PRIORITY_LOWER_VAL_IS_LOWER_PRI,
+    CPU_TX_VIA_RECYCLE_PORT,
   };
 
   enum class AsicMode {
