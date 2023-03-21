@@ -73,6 +73,7 @@ void pumpRoCETraffic(
     folly::MacAddress dstMac,
     std::optional<VlanID> vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic,
+    int roceDestPort = kUdfL4DstPort, /* RoCE fixed dst port */
     int hopLimit = 255,
     std::optional<folly::MacAddress> srcMacAddr = std::nullopt);
 

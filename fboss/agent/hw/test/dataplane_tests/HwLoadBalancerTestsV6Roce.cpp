@@ -56,11 +56,39 @@ class HwLoadBalancerNegativeTestV6RoCE
   }
 };
 
+// This test verifies that with UDF configuration, traffic not matching UDF port
+// is not load balanced.
+class HwLoadBalancerNegativeProtocolMatchTestV6RoCE
+    : public HwLoadBalancerTest<
+          utility::HwIpV6RoCEEcmpDestPortDataPlaneTestUtil> {
+  std::unique_ptr<utility::HwIpV6RoCEEcmpDestPortDataPlaneTestUtil>
+  getECMPHelper() override {
+    return std::make_unique<utility::HwIpV6RoCEEcmpDestPortDataPlaneTestUtil>(
+        getHwSwitchEnsemble(), RouterID(0));
+  }
+
+ private:
+  cfg::SwitchConfig initialConfig() const override {
+    auto cfg = utility::onePortPerInterfaceConfig(
+        getHwSwitch(),
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode());
+    cfg::UdfConfig udfCfg = utility::addUdfConfig();
+    cfg.udfConfig() = udfCfg;
+    return cfg;
+  }
+};
+
 RUN_HW_LOAD_BALANCER_TEST_FRONT_PANEL(HwLoadBalancerTestV6RoCE, Ecmp, FullUdf)
 
 RUN_HW_LOAD_BALANCER_NEGATIVE_TEST_FRONT_PANEL(
     HwLoadBalancerNegativeTestV6RoCE,
     Ecmp,
     Full)
+
+RUN_HW_LOAD_BALANCER_NEGATIVE_TEST_FRONT_PANEL(
+    HwLoadBalancerNegativeProtocolMatchTestV6RoCE,
+    Ecmp,
+    FullUdf)
 
 } // namespace facebook::fboss

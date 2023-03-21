@@ -196,6 +196,7 @@ void pumpRoCETraffic(
     folly::MacAddress dstMac,
     std::optional<VlanID> vlan,
     std::optional<PortID> frontPanelPortToLoopTraffic,
+    int destPort,
     int hopLimit,
     std::optional<folly::MacAddress> srcMacAddr) {
   folly::MacAddress srcMac(
@@ -230,7 +231,7 @@ void pumpRoCETraffic(
         srcIp, /* fixed */
         dstIp, /* fixed */
         kRandomUdfL4SrcPort, /* arbit src port, fixed */
-        kUdfL4DstPort, /* RoCE fixed dst port */
+        destPort,
         0,
         hopLimit,
         rocePayload);

@@ -101,6 +101,20 @@ class HwIpRoCEEcmpDataPlaneTestUtil : public HwIpEcmpDataPlaneTestUtil<AddrT> {
 };
 
 template <typename AddrT>
+class HwIpRoCEEcmpDestPortDataPlaneTestUtil
+    : public HwIpEcmpDataPlaneTestUtil<AddrT> {
+ public:
+  using BaseT = HwIpEcmpDataPlaneTestUtil<AddrT>;
+
+  HwIpRoCEEcmpDestPortDataPlaneTestUtil(
+      HwSwitchEnsemble* ensemble,
+      RouterID vrf);
+
+  /* pump IP traffic */
+  void pumpTrafficThroughPort(std::optional<PortID> port) override;
+};
+
+template <typename AddrT>
 class HwMplsEcmpDataPlaneTestUtil
     : public HwEcmpDataPlaneTestUtil<MplsEcmpSetupAnyNPorts<AddrT>> {
  public:
@@ -131,6 +145,8 @@ using HwMplsV6EcmpDataPlaneTestUtil =
     HwMplsEcmpDataPlaneTestUtil<folly::IPAddressV6>;
 using HwIpV6RoCEEcmpDataPlaneTestUtil =
     HwIpRoCEEcmpDataPlaneTestUtil<folly::IPAddressV6>;
+using HwIpV6RoCEEcmpDestPortDataPlaneTestUtil =
+    HwIpRoCEEcmpDestPortDataPlaneTestUtil<folly::IPAddressV6>;
 using HwIpV4RoCEEcmpDataPlaneTestUtil =
     HwIpRoCEEcmpDataPlaneTestUtil<folly::IPAddressV4>;
 
