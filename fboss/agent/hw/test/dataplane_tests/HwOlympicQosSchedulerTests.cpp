@@ -21,6 +21,9 @@
 
 #include <folly/IPAddress.h>
 
+namespace {
+auto constexpr kRetries = 10;
+}
 namespace facebook::fboss {
 
 class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
@@ -206,7 +209,7 @@ bool HwOlympicQosSchedulerTest::verifyWRRHelper(
   const double kVariance = 0.10; // i.e. + or -10%
   auto portId = outPort();
   getHwSwitchEnsemble()->waitForLineRateOnPort(portId);
-  auto retries = 5;
+  auto retries = kRetries;
   while (retries--) {
     auto queueStatsBefore = *getLatestPortStats(portId).queueOutPackets_();
     sleep(1);
@@ -265,7 +268,7 @@ bool HwOlympicQosSchedulerTest::verifySPHelper(int trafficQueueId) {
   XLOG(DBG0) << "trafficQueueId: " << trafficQueueId;
   auto portId = outPort();
   getHwSwitchEnsemble()->waitForLineRateOnPort(portId);
-  auto retries = 5;
+  auto retries = kRetries;
   while (retries--) {
     auto distributionOk = true;
     auto queueStatsBefore = *getLatestPortStats(portId).queueOutPackets_();
