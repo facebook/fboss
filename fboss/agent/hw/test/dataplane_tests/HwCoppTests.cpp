@@ -70,10 +70,11 @@ class HwCoppTest : public HwLinkStateDependentTest {
     if (isTrunk) {
       return getTrunkInitialConfig();
     }
-    auto cfg = utility::oneL3IntfConfig(
+    auto cfg = utility::onePortPerInterfaceConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
-        getAsic()->desiredLoopbackMode());
+        masterLogicalPortIds(),
+        getAsic()->desiredLoopbackMode(),
+        true /*interfaceHasSubnet*/);
     utility::addOlympicQosMaps(cfg);
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     utility::addCpuQueueConfig(cfg, getAsic());
@@ -120,7 +121,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
 
     if (outOfPort) {
       getHwSwitch()->sendPacketOutOfPortSync(
-          std::move(pkt), PortID(masterLogicalPortIds()[0]));
+          std::move(pkt),
+          masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0]);
     } else {
       getHwSwitch()->sendPacketSwitchedSync(std::move(pkt));
     }
@@ -133,8 +135,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
       int l4DstPort,
       uint8_t ttl,
       bool outOfPort) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     // arbit
     const auto srcIp =
         folly::IPAddress(dstIpAddress.isV4() ? "1.1.1.2" : "1::10");
@@ -170,8 +172,9 @@ class HwCoppTest : public HwLinkStateDependentTest {
       facebook::fboss::ETHERTYPE etherType,
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
+
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeEthTxPacket(
           getHwSwitch(),
@@ -189,8 +192,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const folly::IPAddress& dstIpAddress,
       ARP_OPER arpType,
       bool outOfPort) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeARPTxPacket(
@@ -213,8 +216,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
       ICMPv6Type type,
       bool outOfPort,
       bool selfSolicit) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     for (int i = 0; i < numPktsToSend; i++) {
@@ -240,8 +243,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
 
   void
   sendDHCPv6Pkts(int numPktsToSend, DHCPv6Type type, int ttl, bool outOfPort) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64NBO() + 1);
 
     for (int i = 0; i < numPktsToSend; i++) {
@@ -332,8 +335,8 @@ class HwCoppTest : public HwLinkStateDependentTest {
       const std::optional<folly::MacAddress>& dstMac = std::nullopt,
       uint8_t trafficClass = 0,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
-    auto vlanId = VlanID(*initialConfig().vlanPorts()[0].vlanID());
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    auto vlanId = utility::firstVlanID(getProgrammedState());
+    auto intfMac = utility::getFirstInterfaceMac(getProgrammedState());
     utility::sendTcpPkts(
         getHwSwitch(),
         numPktsToSend,
@@ -342,7 +345,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
         dstIpAddress,
         l4SrcPort,
         l4DstPort,
-        masterLogicalPortIds()[0],
+        masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0],
         trafficClass,
         payload);
   }
@@ -879,16 +882,15 @@ TYPED_TEST(HwCoppTest, LocalDstIpBgpPortToHighPriQ) {
     // Make sure all dstip(=interfaces local ips) + BGP port packets send to
     // cpu high priority queue
     enum SRC_DST { SRC, DST };
-    for (const auto& configIntf :
-         folly::copy(*(this->initialConfig()).interfaces())) {
-      for (const auto& ipAddress : *configIntf.ipAddresses()) {
-        for (int dir = 0; dir <= DST; dir++) {
-          this->sendPktAndVerifyCpuQueue(
-              utility::getCoppHighPriQueueId(this->getAsic()),
-              folly::IPAddress::createNetwork(ipAddress, -1, false).first,
-              dir == SRC ? utility::kBgpPort : utility::kNonSpecialPort1,
-              dir == DST ? utility::kBgpPort : utility::kNonSpecialPort1);
-        }
+    for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
+      for (int dir = 0; dir <= DST; dir++) {
+        XLOG(DBG2) << "Send Pkt to: " << ipAddress
+                   << " dir: " << (dir == DST ? " DST" : " SRC");
+        this->sendPktAndVerifyCpuQueue(
+            utility::getCoppHighPriQueueId(this->getAsic()),
+            folly::IPAddress::createNetwork(ipAddress, -1, false).first,
+            dir == SRC ? utility::kBgpPort : utility::kNonSpecialPort1,
+            dir == DST ? utility::kBgpPort : utility::kNonSpecialPort1);
       }
     }
   };
@@ -900,23 +902,20 @@ TYPED_TEST(HwCoppTest, LocalDstIpNonBgpPortToMidPriQ) {
   auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
-    for (const auto& configIntf :
-         folly::copy(*(this->initialConfig()).interfaces())) {
-      for (const auto& ipAddress : *configIntf.ipAddresses()) {
-        this->sendPktAndVerifyCpuQueue(
-            utility::kCoppMidPriQueueId,
-            folly::IPAddress::createNetwork(ipAddress, -1, false).first,
-            utility::kNonSpecialPort1,
-            utility::kNonSpecialPort2);
+    for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
+      this->sendPktAndVerifyCpuQueue(
+          utility::kCoppMidPriQueueId,
+          folly::IPAddress::createNetwork(ipAddress, -1, false).first,
+          utility::kNonSpecialPort1,
+          utility::kNonSpecialPort2);
 
-        // Also high-pri queue should always be 0
-        EXPECT_EQ(
-            0,
-            this->getQueueOutPacketsWithRetry(
-                utility::getCoppHighPriQueueId(this->getAsic()),
-                kGetQueueOutPktsRetryTimes,
-                0));
-      }
+      // Also high-pri queue should always be 0
+      EXPECT_EQ(
+          0,
+          this->getQueueOutPacketsWithRetry(
+              utility::getCoppHighPriQueueId(this->getAsic()),
+              kGetQueueOutPktsRetryTimes,
+              0));
     }
   };
 
@@ -1039,29 +1038,26 @@ TYPED_TEST(HwCoppTest, DstIpNetworkControlDscpToHighPriQ) {
   auto setup = [=]() { this->setup(); };
 
   auto verify = [=]() {
-    for (const auto& configIntf :
-         folly::copy(*(this->initialConfig()).interfaces())) {
-      for (const auto& ipAddress : *configIntf.ipAddresses()) {
-        this->sendPktAndVerifyCpuQueue(
-            utility::getCoppHighPriQueueId(this->getAsic()),
-            folly::IPAddress::createNetwork(ipAddress, -1, false).first,
-            utility::kNonSpecialPort1,
-            utility::kNonSpecialPort2,
-            std::nullopt,
-            kNetworkControlDscp);
-      }
-      // Non local dst ip with kNetworkControlDscp should not hit high pri queue
-      // (since it won't even trap to cpu)
+    for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
       this->sendPktAndVerifyCpuQueue(
           utility::getCoppHighPriQueueId(this->getAsic()),
-          folly::IPAddress("2::2"),
+          folly::IPAddress::createNetwork(ipAddress, -1, false).first,
           utility::kNonSpecialPort1,
           utility::kNonSpecialPort2,
           std::nullopt,
-          kNetworkControlDscp,
-          1, /*num pkts to send*/
-          0 /*expected delta*/);
+          kNetworkControlDscp);
     }
+    // Non local dst ip with kNetworkControlDscp should not hit high pri queue
+    // (since it won't even trap to cpu)
+    this->sendPktAndVerifyCpuQueue(
+        utility::getCoppHighPriQueueId(this->getAsic()),
+        folly::IPAddress("2::2"),
+        utility::kNonSpecialPort1,
+        utility::kNonSpecialPort2,
+        std::nullopt,
+        kNetworkControlDscp,
+        1, /*num pkts to send*/
+        0 /*expected delta*/);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
@@ -1247,32 +1243,29 @@ TYPED_TEST(HwCoppTest, JumboFramesToQueues) {
 
   auto verify = [=]() {
     std::vector<uint8_t> jumboPayload(7000, 0xff);
-    for (const auto& configIntf :
-         folly::copy(*(this->initialConfig()).interfaces())) {
-      for (const auto& ipAddress : *configIntf.ipAddresses()) {
-        // High pri queue
-        this->sendPktAndVerifyCpuQueue(
-            utility::getCoppHighPriQueueId(this->getAsic()),
-            folly::IPAddress::createNetwork(ipAddress, -1, false).first,
-            utility::kBgpPort,
-            utility::kNonSpecialPort2,
-            std::nullopt, /*mac*/
-            0, /* traffic class*/
-            1, /* pkts to send*/
-            1, /* expected delta*/
-            jumboPayload);
-        // Mid pri queue
-        this->sendPktAndVerifyCpuQueue(
-            utility::kCoppMidPriQueueId,
-            folly::IPAddress::createNetwork(ipAddress, -1, false).first,
-            utility::kNonSpecialPort1,
-            utility::kNonSpecialPort2,
-            std::nullopt, /*mac*/
-            0, /* traffic class*/
-            1, /* pkts to send*/
-            1, /* expected delta*/
-            jumboPayload);
-      }
+    for (const auto& ipAddress : this->getIpAddrsToSendPktsTo()) {
+      // High pri queue
+      this->sendPktAndVerifyCpuQueue(
+          utility::getCoppHighPriQueueId(this->getAsic()),
+          folly::IPAddress::createNetwork(ipAddress, -1, false).first,
+          utility::kBgpPort,
+          utility::kNonSpecialPort2,
+          std::nullopt, /*mac*/
+          0, /* traffic class*/
+          1, /* pkts to send*/
+          1, /* expected delta*/
+          jumboPayload);
+      // Mid pri queue
+      this->sendPktAndVerifyCpuQueue(
+          utility::kCoppMidPriQueueId,
+          folly::IPAddress::createNetwork(ipAddress, -1, false).first,
+          utility::kNonSpecialPort1,
+          utility::kNonSpecialPort2,
+          std::nullopt, /*mac*/
+          0, /* traffic class*/
+          1, /* pkts to send*/
+          1, /* expected delta*/
+          jumboPayload);
     }
     this->sendPktAndVerifyCpuQueue(
         utility::kCoppLowPriQueueId,
