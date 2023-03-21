@@ -571,9 +571,28 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
           SaiAclEntryTraits::Attributes::FieldSrcPort{AclEntryFieldSaiObjectIdT(
               std::make_pair(portHandle->port->adapterKey(), kMaskDontCare))};
     } else {
+      PortSaiId portSaiId;
+
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT)) {
+        /*
+         * For ASICs that implement CPU tx using recycle port, on tx:
+         *  - FBOSS injects pkt from CPU.
+         *  - SAI impl sends pkt to recycle port with pipeline bypass.
+         *  - Packet is injected into pipeline with srcPort = recycle port.
+         *
+         *  Thus, if we want to program an ACL to trap such packets to CPU, we
+         *  need to use recycle port as the src port qualifier as the packet is
+         *  now "originating" from recycle port.
+         */
+        CHECK(managerTable_->switchManager().getCpuRecyclePort().has_value());
+        portSaiId = managerTable_->switchManager().getCpuRecyclePort().value();
+      } else {
+        portSaiId = managerTable_->switchManager().getCpuPort();
+      }
+
       fieldSrcPort = SaiAclEntryTraits::Attributes::FieldSrcPort{
-          AclEntryFieldSaiObjectIdT(std::make_pair(
-              managerTable_->switchManager().getCpuPort(), kMaskDontCare))};
+          AclEntryFieldSaiObjectIdT(std::make_pair(portSaiId, kMaskDontCare))};
     }
   }
 
