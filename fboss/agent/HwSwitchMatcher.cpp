@@ -12,7 +12,7 @@ HwSwitchMatcher::HwSwitchMatcher(const std::string& matcherString)
     : matcherString_(matcherString) {
   // matcherString is "id=1,2,3,4"
   // or "id=" followed by list of digits separated by comma
-  if (!matcherString.starts_with("id=")) {
+  if (matcherString.rfind("id=", 0) != 0) {
     throw FbossError("HwSwitchMatcher: invalid matcher string");
   }
 
