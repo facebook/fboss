@@ -488,6 +488,26 @@ class HwCoppTest : public HwLinkStateDependentTest {
     return folly::IPAddress::createNetwork(ipAddress, -1, true).first;
   }
 
+  // With onePortPerInterfaceConfig, we have a large (~200) number of
+  // interfaces. Thus, if we send packet for every interface, the test takes
+  // really long (5+ mins) to complete), and does not really offer additional
+  // coverage. Thus, pick one IPv4 and IPv6 address and test.
+  std::vector<std::string> getIpAddrsToSendPktsTo() const {
+    auto ipAddrs = *(this->initialConfig().interfaces()[0].ipAddresses());
+    auto ipv4Addr =
+        std::find_if(ipAddrs.begin(), ipAddrs.end(), [](const auto& ipAddr) {
+          auto ip = folly::IPAddress::createNetwork(ipAddr, -1, false).first;
+          return ip.isV4();
+        });
+    auto ipv6Addr =
+        std::find_if(ipAddrs.begin(), ipAddrs.end(), [](const auto& ipAddr) {
+          auto ip = folly::IPAddress::createNetwork(ipAddr, -1, false).first;
+          return ip.isV6();
+        });
+
+    return std::vector<std::string>{*ipv4Addr, *ipv6Addr};
+  }
+
  private:
   HwSwitchEnsemble::Features featuresDesired() const override {
     return {HwSwitchEnsemble::LINKSCAN, HwSwitchEnsemble::PACKET_RX};
