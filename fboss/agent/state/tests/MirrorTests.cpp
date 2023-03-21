@@ -569,6 +569,7 @@ TEST_F(MirrorTest, ToAndFromThrift) {
       MirrorTest::dscp));
   publishWithStateUpdate();
   auto span = state_->getMirrors()->getMirrorIf("span");
+  *span;
   auto unresolved = state_->getMirrors()->getMirrorIf("unresolved");
   auto with_dscp = state_->getMirrors()->getMirrorIf("with_dscp");
   auto resolved = state_->getMirrors()->getMirrorIf("resolved");
@@ -580,9 +581,11 @@ TEST_F(MirrorTest, ToAndFromThrift) {
       folly::MacAddress("2:2:2:2:2:2")));
   auto withTunnelType = state_->getMirrors()->getMirrorIf("with_tunnel_type");
   auto reconstructedState = SwitchState::fromThrift(state_->toThrift());
+
   EXPECT_EQ(
       *(reconstructedState->getMirrors()->getMirrorIf("span")),
       *(state_->getMirrors()->getMirrorIf("span")));
+
   EXPECT_EQ(
       *(reconstructedState->getMirrors()->getMirrorIf("unresolved")),
       *(state_->getMirrors()->getMirrorIf("unresolved")));

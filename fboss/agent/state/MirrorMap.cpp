@@ -1,7 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/state/MirrorMap.h"
-#include <utility>
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -38,6 +37,27 @@ std::shared_ptr<const MirrorMap> MultiMirrorMap::getMirrorMapIf(
     return nullptr;
   }
   return iter->second;
+}
+
+void MultiMirrorMap::addMirrorMap(
+    const HwSwitchMatcher& matcher,
+    std::shared_ptr<MirrorMap> mirrorMap) {
+  CHECK(mirrorMap);
+  insert(matcher.matcherString(), std::move(mirrorMap));
+}
+
+void MultiMirrorMap::changeMirrorMap(
+    const HwSwitchMatcher& matcher,
+    std::shared_ptr<MirrorMap> mirrorMap) {
+  CHECK(mirrorMap);
+  ref(matcher.matcherString()) = mirrorMap;
+}
+
+void MultiMirrorMap::removeMirrorMap(const HwSwitchMatcher& matcher) {
+  if (!getMirrorMapIf(matcher)) {
+    return;
+  }
+  remove(matcher.matcherString());
 }
 
 template class ThriftMapNode<MirrorMap, MirrorMapTraits>;

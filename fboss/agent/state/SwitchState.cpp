@@ -37,6 +37,7 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 
+#include "fboss/agent/NpuMatcher.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "folly/IPAddress.h"
 #include "folly/IPAddressV4.h"
@@ -105,6 +106,8 @@ SwitchState::SwitchState() {
 
   set<switch_state_tags::aclTableGroupMap>(
       std::map<cfg::AclStage, state::AclTableGroupFields>{});
+  // default mirror map (for single npu) system
+  resetMirrors(std::make_shared<MirrorMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -234,11 +237,19 @@ const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {
 }
 
 void SwitchState::resetMirrors(std::shared_ptr<MirrorMap> mirrors) {
-  ref<switch_state_tags::mirrorMap>() = mirrors;
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcher();
+  auto mirrorMaps = cref<switch_state_tags::mirrorMaps>()->clone();
+  if (!mirrorMaps->getMirrorMapIf(matcher)) {
+    mirrorMaps->addMirrorMap(matcher, mirrors);
+  } else {
+    mirrorMaps->changeMirrorMap(matcher, mirrors);
+  }
+  ref<switch_state_tags::mirrorMaps>() = mirrorMaps;
 }
 
 const std::shared_ptr<MirrorMap>& SwitchState::getMirrors() const {
-  return cref<switch_state_tags::mirrorMap>();
+  return cref<switch_state_tags::mirrorMaps>()->cref(
+      HwSwitchMatcher::defaultHwSwitchMatcher().matcherString());
 }
 
 const std::shared_ptr<ForwardingInformationBaseMap>& SwitchState::getFibs()
@@ -440,6 +451,13 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       state->ref<switch_state_tags::aclTableGroupMap>()->clear();
     }
   }
+  /* forward compatibility */
+  if (!state->cref<switch_state_tags::mirrorMap>()->empty()) {
+    auto mirrors = state->cref<switch_state_tags::mirrorMap>();
+    state->resetMirrors(mirrors);
+    state->set<switch_state_tags::mirrorMap>(
+        std::map<std::string, state::MirrorFields>());
+  }
   return state;
 }
 
@@ -568,6 +586,13 @@ state::SwitchState SwitchState::toThrift() const {
   } else if (data.flowletSwitchingConfig().has_value()) {
     data.switchSettings()->flowletSwitchingConfig() =
         data.flowletSwitchingConfig().value();
+  }
+  /* backward compatibility */
+  if (!cref<switch_state_tags::mirrorMaps>()->empty()) {
+    if (auto mirrors = cref<switch_state_tags::mirrorMaps>()->getMirrorMapIf(
+            HwSwitchMatcher::defaultHwSwitchMatcher())) {
+      data.mirrorMap() = mirrors->toThrift();
+    }
   }
   return data;
 }

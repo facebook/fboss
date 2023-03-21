@@ -26,6 +26,7 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/Route.h"
 
+#include "fboss/agent/NpuMatcher.h"
 #include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
@@ -185,8 +186,13 @@ DeltaValue<ControlPlane> StateDelta::getControlPlaneDelta() const {
 }
 
 thrift_cow::ThriftMapDelta<MirrorMap> StateDelta::getMirrorsDelta() const {
+  auto oldMirrors = old_->cref<switch_state_tags::mirrorMaps>()->getMirrorMapIf(
+      HwSwitchMatcher::defaultHwSwitchMatcher());
+  auto newMirrors = new_->cref<switch_state_tags::mirrorMaps>()->getMirrorMapIf(
+      HwSwitchMatcher::defaultHwSwitchMatcher());
+
   return thrift_cow::ThriftMapDelta<MirrorMap>(
-      old_->getMirrors().get(), new_->getMirrors().get());
+      oldMirrors.get(), newMirrors.get());
 }
 
 thrift_cow::ThriftMapDelta<TransceiverMap> StateDelta::getTransceiversDelta()
