@@ -294,8 +294,8 @@ target_link_libraries(fsdb_helper
   state
 )
 
-add_library(npu_matcher
-  fboss/agent/NpuMatcher.cpp
+add_library(hwswitch_matcher
+  fboss/agent/HwSwitchMatcher.cpp
 )
 
 target_link_libraries(hwswitch_matcher
