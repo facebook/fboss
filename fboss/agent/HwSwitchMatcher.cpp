@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "fboss/agent/NpuMatcher.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 
 #include "fboss/agent/FbossError.h"
 

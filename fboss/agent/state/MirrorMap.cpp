@@ -5,7 +5,7 @@
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include "fboss/agent/NpuMatcher.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 
 namespace facebook::fboss {
 

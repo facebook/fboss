@@ -37,7 +37,7 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 
-#include "fboss/agent/NpuMatcher.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "folly/IPAddress.h"
 #include "folly/IPAddressV4.h"

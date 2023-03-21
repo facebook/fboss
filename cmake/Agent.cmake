@@ -298,7 +298,7 @@ add_library(npu_matcher
   fboss/agent/NpuMatcher.cpp
 )
 
-target_link_libraries(npu_matcher
+target_link_libraries(hwswitch_matcher
   fboss_error
   fboss_types
 )
