@@ -68,7 +68,18 @@ TEST_F(HwFabricSwitchTest, checkFabricReachability) {
 }
 
 TEST_F(HwFabricSwitchTest, fabricIsolate) {
-  auto setup = [=]() { applyNewConfig(initialConfig()); };
+  auto setup = [=]() {
+    auto newCfg = initialConfig();
+    auto fabricPortId =
+        PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
+    for (auto& portCfg : *newCfg.ports()) {
+      if (PortID(*portCfg.logicalID()) == fabricPortId) {
+        *portCfg.drainState() = cfg::PortDrainState::DRAINED;
+        break;
+      }
+    }
+    applyNewConfig(newCfg);
+  };
 
   auto verify = [=]() {
     EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
@@ -76,12 +87,6 @@ TEST_F(HwFabricSwitchTest, fabricIsolate) {
     getHwSwitch()->updateStats(&dummy);
     auto fabricPortId =
         PortID(masterLogicalPortIds({cfg::PortType::FABRIC_PORT})[0]);
-    checkPortFabricReachability(getHwSwitch(), fabricPortId);
-    auto newState = getProgrammedState();
-    auto port = newState->getPorts()->getPort(fabricPortId);
-    auto newPort = port->modify(&newState);
-    newPort->setPortDrainState(cfg::PortDrainState::DRAINED);
-    applyNewState(newState);
     getHwSwitch()->updateStats(&dummy);
     checkPortFabricReachability(getHwSwitch(), fabricPortId);
   };
