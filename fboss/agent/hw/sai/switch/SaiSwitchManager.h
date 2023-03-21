@@ -72,8 +72,11 @@ class SaiSwitchManager {
   sai_object_id_t getDefaultVlanAdapterKey() const;
 
   PortSaiId getCpuPort() const;
+  std::optional<PortSaiId> getCpuRecyclePort() const;
 
   void initCpuPort();
+  void setCpuRecyclePort(PortSaiId portSaiId);
+
   void setPtpTcEnabled(bool ptpEnable);
   std::optional<bool> getPtpTcEnabled();
 
@@ -105,6 +108,7 @@ class SaiSwitchManager {
   const SaiPlatform* platform_;
   std::unique_ptr<SaiSwitchObj> switch_;
   std::optional<PortSaiId> cpuPort_;
+  std::optional<PortSaiId> cpuRecyclePort_;
   std::shared_ptr<SaiHash> ecmpV4Hash_;
   std::shared_ptr<SaiHash> ecmpV6Hash_;
   std::shared_ptr<SaiHash> lagV4Hash_;

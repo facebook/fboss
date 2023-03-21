@@ -133,6 +133,14 @@ PortSaiId SaiSwitchManager::getCpuPort() const {
   throw FbossError("getCpuPort not supported on Phy");
 }
 
+void SaiSwitchManager::setCpuRecyclePort(PortSaiId portSaiId) {
+  cpuRecyclePort_ = portSaiId;
+}
+
+std::optional<PortSaiId> SaiSwitchManager::getCpuRecyclePort() const {
+  return cpuRecyclePort_;
+}
+
 SwitchSaiId SaiSwitchManager::getSwitchSaiId() const {
   if (!switch_) {
     throw FbossError("failed to get switch id: switch not initialized");
