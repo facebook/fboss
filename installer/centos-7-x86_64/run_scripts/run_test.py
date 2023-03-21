@@ -120,7 +120,7 @@ from datetime import datetime
 # PFC tests
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwPfcTest.*:-*Watchdog*
 # PFC traffic tests
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwTrafficPfc*:-*Watchdog*:*Zero*
+# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwTrafficPfc*:-*Watchdog*:*Zero*:*IngressPriorityGroup*
 # Watermark tests
 # ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwWatermarkTest.*:-*Accuracy
 # Qos  tests
