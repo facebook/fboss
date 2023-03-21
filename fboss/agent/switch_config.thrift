@@ -619,7 +619,7 @@ enum MMUScalingFactor {
   ONE_HALF = 8,
   TWO = 9,
   FOUR = 10,
-  ONE_32768 = 11,
+  ONE_32768TH = 11,
 }
 
 // This determines how packets are scheduled on a per queue basis

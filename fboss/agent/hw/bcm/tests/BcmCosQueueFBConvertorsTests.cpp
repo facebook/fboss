@@ -53,7 +53,7 @@ using namespace facebook::fboss::utility;
 TEST(CosQueueBcmConvertors, cfgAlphaToFromBcm) {
   for (auto cfgAlphaAndName : cfg::_MMUScalingFactor_VALUES_TO_NAMES) {
     auto cfgAlpha = cfgAlphaAndName.first;
-    if (cfgAlpha == cfg::MMUScalingFactor::ONE_32768) {
+    if (cfgAlpha == cfg::MMUScalingFactor::ONE_32768TH) {
       // Unsupported on XGS
       continue;
     }

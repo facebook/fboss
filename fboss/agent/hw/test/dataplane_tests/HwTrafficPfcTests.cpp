@@ -579,7 +579,7 @@ TEST_P(HwTrafficPfcGenTest, verifyPfc) {
   if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
     // Keep low scaling factor so that headroom usage
     // is attempted for this ASIC.
-    trafficParams.buffer.scalingFactor = cfg::MMUScalingFactor::ONE_32768;
+    trafficParams.buffer.scalingFactor = cfg::MMUScalingFactor::ONE_32768TH;
   }
   runTestWithCfg(trafficClass, pfcPriority, trafficParams);
 }

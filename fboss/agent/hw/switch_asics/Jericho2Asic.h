@@ -96,7 +96,7 @@ class Jericho2Asic : public BroadcomAsic {
   int getBufferDynThreshFromScalingFactor(
       cfg::MMUScalingFactor scalingFactor) const override {
     switch (scalingFactor) {
-      case cfg::MMUScalingFactor::ONE_32768:
+      case cfg::MMUScalingFactor::ONE_32768TH:
         return -15;
       default:
         return BroadcomAsic::getBufferDynThreshFromScalingFactor(scalingFactor);
