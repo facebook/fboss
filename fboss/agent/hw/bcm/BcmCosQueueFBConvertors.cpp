@@ -188,6 +188,8 @@ BcmSchedulingAndWeight cfgSchedulingAndWeightToBcm(
     weight = BCM_COSQ_WEIGHT_STRICT; // 0
   } else if (pair.first == cfg::QueueScheduling::WEIGHTED_ROUND_ROBIN) {
     weight = pair.second;
+  } else if (pair.first == cfg::QueueScheduling::DEFICIT_ROUND_ROBIN) {
+    weight = pair.second;
   } else {
     throw FbossError("Unsupported cosQ scheduling mode: ", pair.first);
   }
