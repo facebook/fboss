@@ -132,6 +132,7 @@ bool Jericho2Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PCS_RX_LINK_STATUS:
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
     case HwAsic::Feature::SAI_SAMPLEPACKET_TRAP:
+    case HwAsic::Feature::TRAP_PRIORITY_LOWER_VAL_IS_LOWER_PRI:
       return false;
   }
   return false;

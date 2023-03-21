@@ -133,6 +133,7 @@ class HwAsic {
     SAI_SAMPLEPACKET_TRAP,
     PORT_FABRIC_ISOLATE,
     QUEUE_ECN_COUNTER,
+    TRAP_PRIORITY_LOWER_VAL_IS_LOWER_PRI,
   };
 
   enum class AsicMode {
