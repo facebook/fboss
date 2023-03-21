@@ -68,6 +68,8 @@ using MultiMirrorMapTraits = ThriftMultiMapNodeTraits<
     MultiMirrorMapThriftType,
     MirrorMap>;
 
+class HwSwitchMatcher;
+
 class MultiMirrorMap
     : public ThriftMapNode<MultiMirrorMap, MultiMirrorMapTraits> {
  public:
@@ -77,6 +79,9 @@ class MultiMirrorMap
 
   MultiMirrorMap() {}
   virtual ~MultiMirrorMap() {}
+
+  std::shared_ptr<const MirrorMap> getMirrorMapIf(
+      const HwSwitchMatcher& matcher) const;
 
  private:
   // Inherit the constructors required for clone()

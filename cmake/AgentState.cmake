@@ -106,6 +106,7 @@ target_link_libraries(state
   fboss_cpp2
   fsdb_helper
   label_forwarding_action
+  npu_matcher
   nodebase
   state_utils
   radix_tree

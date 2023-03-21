@@ -293,3 +293,12 @@ target_link_libraries(fsdb_helper
   fsdb_oper_cpp2
   state
 )
+
+add_library(fsdb_helper
+  fboss/agent/NpuMatcher.cpp
+)
+
+target_link_libraries(npu_matcher
+  fboss_error
+  fboss_types
+)
