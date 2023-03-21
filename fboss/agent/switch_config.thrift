@@ -1796,4 +1796,5 @@ struct SwitchConfig {
   48: map<i64, DsfNode> dsfNodes = {};
   49: optional UdfConfig udfConfig;
   50: optional FlowletSwitchingConfig flowletSwitchingConfig;
+  51: list<PortQueue> defaultVoqConfig = [];
 }

@@ -1143,15 +1143,12 @@ shared_ptr<SystemPortMap> ThriftConfigApplier::updateSystemPorts(
   auto nodeName = *cfg_->dsfNodes()->find(switchId)->second.name();
 
   QueueConfig systemPortQueues;
-  if (cfg_->defaultPortQueues()->size()) {
+  if (cfg_->defaultVoqConfig()->size()) {
     systemPortQueues = updatePortQueues(
         QueueConfig(),
-        *cfg_->defaultPortQueues(),
+        *cfg_->defaultVoqConfig(),
         kNumVoqs,
         cfg::StreamType::UNICAST);
-    for (auto portQueue : systemPortQueues) {
-      portQueue->setScheduling(cfg::QueueScheduling::INTERNAL);
-    }
   }
 
   std::set<cfg::PortType> kCreateSysPortsFor = {
