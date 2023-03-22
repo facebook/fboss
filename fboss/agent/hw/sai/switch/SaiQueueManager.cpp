@@ -330,8 +330,7 @@ SaiQueueManager::voqNonWatermarkCounterIdsRead(
   }
 
   if (queueHandle && queueHandle->wredProfile &&
-      GET_OPT_ATTR(
-          Wred, GreenMaxThreshold, queueHandle->wredProfile->attributes())) {
+      GET_ATTR(Wred, GreenEnable, queueHandle->wredProfile->attributes())) {
     return basePlusWredCounterIds;
   }
   return baseCounterIds;
