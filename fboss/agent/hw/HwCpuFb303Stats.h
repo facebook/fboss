@@ -47,6 +47,7 @@ class HwCpuFb303Stats {
 
   static std::array<folly::StringPiece, 2> kQueueStatKeys();
   int64_t getCounterLastIncrement(folly::StringPiece statKey) const;
+  CpuPortStats getCpuPortStats() const;
 
  private:
   void setupStats();

@@ -59,6 +59,9 @@ class SimSwitch : public HwSwitch {
   std::map<std::string, HwSysPortStats> getSysPortStats() const override {
     return {};
   }
+  CpuPortStats getCpuPortStats() const override {
+    return {};
+  }
 
   void fetchL2Table(std::vector<L2EntryThrift>* /*l2Table*/) const override {
     return;

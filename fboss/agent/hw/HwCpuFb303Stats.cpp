@@ -100,4 +100,24 @@ void HwCpuFb303Stats::updateStats(
   }
 }
 
+CpuPortStats HwCpuFb303Stats::getCpuPortStats() const {
+  CpuPortStats cpuPortStats;
+  int64_t ingressPackets = 0;
+  int64_t discardPackets = 0;
+
+  cpuPortStats.queueToName_()->insert(
+      queueId2Name_.begin(), queueId2Name_.end());
+  for (const auto& queueIdAndName : queueId2Name_) {
+    ingressPackets = getCounterLastIncrement(
+        statName(kInPkts(), queueIdAndName.first, queueIdAndName.second));
+    cpuPortStats.queueInPackets_()->emplace(
+        queueIdAndName.first, ingressPackets);
+
+    discardPackets = getCounterLastIncrement(statName(
+        kInDroppedPkts(), queueIdAndName.first, queueIdAndName.second));
+    cpuPortStats.queueDiscardPackets_()->emplace(
+        queueIdAndName.first, discardPackets);
+  }
+  return cpuPortStats;
+}
 } // namespace facebook::fboss

@@ -193,3 +193,25 @@ TEST(HwCpuFb303Stats, queueNameChangeResetsValue) {
     }
   }
 }
+
+TEST(HwCpuFb303Stats, getCpuStats) {
+  HwCpuFb303Stats cpuStats(kQueue2Name);
+  updateStats(cpuStats);
+
+  const auto cpuPortStats = cpuStats.getCpuPortStats();
+  EXPECT_EQ(cpuPortStats.queueToName_()->size(), 2);
+  EXPECT_EQ(cpuPortStats.queueInPackets_()->size(), 2);
+  EXPECT_EQ(cpuPortStats.queueDiscardPackets_()->size(), 2);
+
+  for (const auto& queueIdAndName : *cpuPortStats.queueToName_()) {
+    const auto& iter1 =
+        cpuPortStats.queueDiscardPackets_()->find(queueIdAndName.first);
+    EXPECT_TRUE(iter1 != cpuPortStats.queueDiscardPackets_()->end());
+    EXPECT_EQ(iter1->second, 2);
+
+    const auto& iter2 =
+        cpuPortStats.queueInPackets_()->find(queueIdAndName.first);
+    EXPECT_TRUE(iter2 != cpuPortStats.queueInPackets_()->end());
+    EXPECT_EQ(iter2->second, 1);
+  }
+}
