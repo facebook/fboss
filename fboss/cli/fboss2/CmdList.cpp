@@ -29,6 +29,7 @@
 #include "fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
+#include "fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.h"
 #include "fboss/cli/fboss2/commands/show/dsfnodes/CmdShowDsfNodes.h"
 #include "fboss/cli/fboss2/commands/show/fabric/CmdShowFabric.h"
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
@@ -256,6 +257,13 @@ const CommandTree& kCommandTree() {
                argTypeHandler<CmdShowSdkDumpTraits>},
           },
       },
+
+      {"show",
+       "cpuport",
+       "Show cpu port information",
+       commandHandler<CmdShowCpuPort>,
+       validFilterHandler<CmdShowCpuPort>,
+       argTypeHandler<CmdShowCpuPortTraits>},
 
       {"show",
        "systemport",
