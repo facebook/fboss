@@ -69,9 +69,6 @@ class StateDelta {
   const std::shared_ptr<SwitchState>& newState() const {
     return new_;
   }
-  bool operator==(const StateDelta& other) const {
-    return other.oldState() == old_ && other.newState() == new_;
-  }
 
   thrift_cow::ThriftMapDelta<PortMap> getPortsDelta() const;
   VlanMapDelta getVlansDelta() const;

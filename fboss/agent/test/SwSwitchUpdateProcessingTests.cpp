@@ -199,7 +199,11 @@ TEST_P(
   };
   // Next update should be a non protected update since we will schedule it such
   StateDelta expectedDelta(origState, newerState);
-  EXPECT_HW_CALL(sw, stateChanged(Eq(testing::ByRef(expectedDelta))));
+  auto isEqual = [&expectedDelta](const auto& delta) {
+    return delta.newState() == expectedDelta.newState() &&
+        delta.oldState() == expectedDelta.oldState();
+  };
+  EXPECT_HW_CALL(sw, stateChanged(testing::Truly(isEqual)));
   sw->updateState("Accept update", stateUpdateFn2);
   waitForStateUpdates(sw);
 }
