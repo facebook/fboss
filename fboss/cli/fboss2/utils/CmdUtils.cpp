@@ -247,4 +247,39 @@ bool compareSystemPortName(
 
   return stoi(subportNumStrA) < stoi(subportNumStrB);
 }
+
+std::optional<std::string> getMyHostname(const std::string& hostname) {
+  if (hostname != "localhost") {
+    return utils::removeFbDomains(hostname);
+  }
+
+  char actualHostname[HOST_NAME_MAX];
+  if (gethostname(actualHostname, HOST_NAME_MAX) != 0) {
+    return std::nullopt;
+  }
+
+  return utils::removeFbDomains(std::string(actualHostname));
+}
+
+std::string getSSHCmdPrefix(const std::string& hostname) {
+  return hostname == "localhost"
+      ? ""
+      : folly::to<std::string>("ssh -o LogLevel=error netops@", hostname, " ");
+}
+
+std::string runCmd(const std::string& cmd) {
+  std::array<char, 1024> buffer;
+  std::string result;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(
+      popen(cmd.c_str(), "r"), pclose);
+  if (!pipe) {
+    throw std::runtime_error("popen() failed!");
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    result += buffer.data();
+  }
+
+  return result;
+}
+
 } // namespace facebook::fboss::utils

@@ -366,4 +366,10 @@ bool comparePortName(
 bool compareSystemPortName(
     const std::basic_string<char>& nameA,
     const std::basic_string<char>& nameB);
+
+std::optional<std::string> getMyHostname(const std::string& hostname);
+
+std::string getSSHCmdPrefix(const std::string& hostname);
+std::string runCmd(const std::string& cmd);
+
 } // namespace facebook::fboss::utils
