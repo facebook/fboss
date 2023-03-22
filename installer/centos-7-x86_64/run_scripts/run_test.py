@@ -2,10 +2,12 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import abc
+import csv
 import os
 import re
 import subprocess
 import sys
+import tempfile
 import time
 from argparse import ArgumentParser
 from datetime import datetime
@@ -428,6 +430,23 @@ class TestRunner(abc.ABC):
         print("Summary:")
         for test_result in test_summary_count:
             print("  ", test_result, ":", test_summary_count[test_result])
+
+        self._write_results_to_csv(test_summaries)
+
+    def _write_results_to_csv(self, output):
+        output_csv = tempfile.NamedTemporaryFile(
+            prefix="hwtest_results_", suffix=".csv"
+        ).name
+
+        with open(output_csv, "w") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Test Name", "Result"])
+            for line in output:
+                test_result = line.split("]")[0].strip("[ ")
+                test_name = line.split("]")[1].split("(")[0].strip()
+                writer.writerow([test_name, test_result])
+
+        print(f"\nTest output stored at: {output_csv}")
 
     def run_test(self, args):
         if args.filter_file:
