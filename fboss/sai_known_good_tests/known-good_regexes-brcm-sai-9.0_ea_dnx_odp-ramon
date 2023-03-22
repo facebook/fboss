@@ -1,0 +1,2 @@
+# All tests matching following filter are expected to PASS on Meru400bfu
+HwFabricSwitchTest*:-*fabricIsolate*
