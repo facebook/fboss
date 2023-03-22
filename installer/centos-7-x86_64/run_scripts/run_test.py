@@ -38,37 +38,6 @@ from datetime import datetime
 # Running non-OSS:
 #  ./run_test.py sai --config fuji.agent.materialized_JSON --filter HwVlanTest.VlanApplyConfig --sdk_logging /root/skhare/sai_replayer_logs --no-oss --sai-bin /root/skhare/sai_test-brcm-7.2.0.0_odp --mgmt-if eth0
 #
-# All tests matching the following filters pass on w400C in VOQ mode
-# VOQ tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchTest.*:-*sendPacketCpu*:*trapPktsOnPort*:*AclQualifier*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchWithMultipleDsfNodesTest.*
-# ECMP Tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwEcmpTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=SaiNextHopGroupTest.*
-# Basic forwarding tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwLoopBackTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwL4PortBlackHolingTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwJumboFramesTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwRxReasonTests.*
-# Route programming tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwRouteTest/0.*:-*Mpls*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwRouteTest/1.*:-*Mpls*
-# Neighbor programming tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwNeighborTest/0.*:-*LookupClass
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwNeighborTest/2.*:-*LookupClass
-# ACL tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwAclCounterTest.*:-*Sport*:*BumpOn*Cpu*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=SaiAclTableRecreateTests.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwAclPriorityTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwAclMatchActionsTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwAclStatTest.*
-# Counter Tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwInDiscardsCounterTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwResourceStatsTest.aclStats
-#
-# All tests matching the following filters pass on w400C in fabric mode
-# ./run_test.py sai --config wedge400c_fabric.agent.materialized_JSON --filter=HwFabricSwitchTest.*
 
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"

@@ -1,0 +1,28 @@
+# All tests matching the following filters pass on w400C in VOQ mode
+# VOQ tests
+HwVoqSwitchTest.*:-*sendPacketCpu*:*trapPktsOnPort*:*AclQualifier*
+HwVoqSwitchWithFabricPortsTest.*
+HwVoqSwitchWithMultipleDsfNodesTest.*
+# ECMP Tests
+HwEcmpTest.*
+SaiNextHopGroupTest.*
+# Basic forwarding tests
+HwLoopBackTest.*
+HwL4PortBlackHolingTest.*
+HwJumboFramesTest.*
+HwRxReasonTests.*
+# Route programming tests
+HwRouteTest/0.*:-*Mpls*
+HwRouteTest/1.*:-*Mpls*
+# Neighbor programming tests
+HwNeighborTest/0.*:-*LookupClass
+HwNeighborTest/2.*:-*LookupClass
+# ACL tests
+HwAclCounterTest.*:-*Sport*:*BumpOn*Cpu*
+SaiAclTableRecreateTests.*
+HwAclPriorityTest.*
+HwAclMatchActionsTest.*
+HwAclStatTest.*
+# Counter Tests
+HwInDiscardsCounterTest.*
+HwResourceStatsTest.aclStats
