@@ -69,8 +69,6 @@ from datetime import datetime
 #
 # All tests matching the following filters pass on w400C in fabric mode
 # ./run_test.py sai --config wedge400c_fabric.agent.materialized_JSON --filter=HwFabricSwitchTest.*
-# All tests matching following filter are expected to PASS on Meru400bfu
-# ./run_test.py sai --config meru400bfu.agent.materialized_JSON --filter=HwFabricSwitchTest*
 
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"
