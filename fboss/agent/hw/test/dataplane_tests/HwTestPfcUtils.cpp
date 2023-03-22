@@ -46,6 +46,7 @@ int kGlobalSharedBufferCells(const HwSwitch* hwSwitch) {
   auto mode = hwSwitch->getPlatform()->getMode();
   switch (mode) {
     case PlatformMode::WEDGE400:
+    case PlatformMode::WEDGE400_GRANDTETON:
     case PlatformMode::MINIPACK:
     case PlatformMode::YAMP:
       return 117436;

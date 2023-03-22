@@ -302,7 +302,9 @@ void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
       expectedVal = GalaxyLedUtils::getExpectedLEDState(up, up);
     } break;
     case PlatformMode::WEDGE400:
-    case PlatformMode::WEDGE400C: {
+    case PlatformMode::WEDGE400_GRANDTETON:
+    case PlatformMode::WEDGE400C:
+    case PlatformMode::WEDGE400C_GRANDTETON: {
       expectedVal = static_cast<uint32_t>(Wedge400LedUtils::getLedState(
           platform->getLaneCount(platformPort->getCurrentProfile()), up, up));
     } break;

@@ -51,6 +51,7 @@ TEST_F(HwOverflowTest, overflowRoutes) {
                         .getThriftRoutes();
       break;
     case PlatformMode::WEDGE400:
+    case PlatformMode::WEDGE400_GRANDTETON:
     case PlatformMode::MINIPACK:
     case PlatformMode::YAMP:
     case PlatformMode::DARWIN:
@@ -74,6 +75,7 @@ TEST_F(HwOverflowTest, overflowRoutes) {
     case PlatformMode::WEDGE400C_SIM:
     case PlatformMode::WEDGE400C_VOQ:
     case PlatformMode::WEDGE400C_FABRIC:
+    case PlatformMode::WEDGE400C_GRANDTETON:
     case PlatformMode::CLOUDRIPPER:
     case PlatformMode::CLOUDRIPPER_VOQ:
     case PlatformMode::CLOUDRIPPER_FABRIC:

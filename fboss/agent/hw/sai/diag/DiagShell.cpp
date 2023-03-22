@@ -152,6 +152,7 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformMode::MINIPACK:
     case PlatformMode::YAMP:
     case PlatformMode::WEDGE400:
+    case PlatformMode::WEDGE400_GRANDTETON:
     case PlatformMode::FUJI:
     case PlatformMode::ELBERT:
     case PlatformMode::DARWIN:
@@ -164,6 +165,7 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case PlatformMode::WEDGE400C_SIM:
     case PlatformMode::WEDGE400C_VOQ:
     case PlatformMode::WEDGE400C_FABRIC:
+    case PlatformMode::WEDGE400C_GRANDTETON:
     case PlatformMode::CLOUDRIPPER:
     case PlatformMode::CLOUDRIPPER_VOQ:
     case PlatformMode::CLOUDRIPPER_FABRIC:
@@ -374,6 +376,7 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
     case PlatformMode::MINIPACK:
     case PlatformMode::YAMP:
     case PlatformMode::WEDGE400:
+    case PlatformMode::WEDGE400_GRANDTETON:
     case PlatformMode::FUJI:
     case PlatformMode::ELBERT:
     case PlatformMode::DARWIN:
@@ -386,6 +389,7 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
     case PlatformMode::WEDGE400C_SIM:
     case PlatformMode::WEDGE400C_VOQ:
     case PlatformMode::WEDGE400C_FABRIC:
+    case PlatformMode::WEDGE400C_GRANDTETON:
     case PlatformMode::CLOUDRIPPER:
     case PlatformMode::CLOUDRIPPER_VOQ:
     case PlatformMode::CLOUDRIPPER_FABRIC:
@@ -411,6 +415,7 @@ std::string& DiagCmdServer::cleanUpOutput(
     case PlatformMode::MINIPACK:
     case PlatformMode::YAMP:
     case PlatformMode::WEDGE400:
+    case PlatformMode::WEDGE400_GRANDTETON:
     case PlatformMode::FUJI:
     case PlatformMode::ELBERT:
     case PlatformMode::DARWIN:
@@ -438,6 +443,7 @@ std::string& DiagCmdServer::cleanUpOutput(
     case PlatformMode::WEDGE400C_SIM:
     case PlatformMode::WEDGE400C_VOQ:
     case PlatformMode::WEDGE400C_FABRIC:
+    case PlatformMode::WEDGE400C_GRANDTETON:
     case PlatformMode::LASSEN:
     case PlatformMode::SANDIA:
       return output;

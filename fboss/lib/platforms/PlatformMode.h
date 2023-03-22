@@ -29,6 +29,7 @@ enum class PlatformMode : char {
   WEDGE400C,
   WEDGE400C_SIM,
   WEDGE400,
+  WEDGE400_GRANDTETON,
   FUJI,
   ELBERT,
   CLOUDRIPPER,
@@ -40,6 +41,7 @@ enum class PlatformMode : char {
   MERU400BFU,
   WEDGE400C_VOQ,
   WEDGE400C_FABRIC,
+  WEDGE400C_GRANDTETON,
   CLOUDRIPPER_VOQ,
   CLOUDRIPPER_FABRIC,
   MONTBLANC,
@@ -69,6 +71,8 @@ inline std::string toString(PlatformMode mode) {
       return "WEDGE400C_SIM";
     case PlatformMode::WEDGE400:
       return "WEDGE400";
+    case PlatformMode::WEDGE400_GRANDTETON:
+      return "WEDGE400_GRANDTETON";
     case PlatformMode::FUJI:
       return "FUJI";
     case PlatformMode::ELBERT:
@@ -91,6 +95,8 @@ inline std::string toString(PlatformMode mode) {
       return "WEDGE400C_VOQ";
     case PlatformMode::WEDGE400C_FABRIC:
       return "WEDGE400C_FABRIC";
+    case PlatformMode::WEDGE400C_GRANDTETON:
+      return "WEDGE400C_GRANDTETON";
     case PlatformMode::CLOUDRIPPER_VOQ:
       return "CLOUDRIPPER_VOQ";
     case PlatformMode::CLOUDRIPPER_FABRIC:

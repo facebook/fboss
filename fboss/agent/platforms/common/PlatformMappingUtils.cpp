@@ -81,7 +81,9 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformMode mode) {
     case PlatformMode::ELBERT:
       return std::make_unique<ElbertPlatformMapping>(platformMappingStr);
     case PlatformMode::WEDGE400:
-      if (utility::isWedge400PlatformRackTypeGrandTeton()) {
+    case PlatformMode::WEDGE400_GRANDTETON:
+      if (mode == PlatformMode::WEDGE400_GRANDTETON ||
+          utility::isWedge400PlatformRackTypeGrandTeton()) {
         return platformMappingStr.empty()
             ? std::make_unique<Wedge400GrandTetonPlatformMapping>()
             : std::make_unique<Wedge400GrandTetonPlatformMapping>(
@@ -92,7 +94,9 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformMode mode) {
             : std::make_unique<Wedge400PlatformMapping>(platformMappingStr);
       }
     case PlatformMode::WEDGE400C:
-      if (utility::isWedge400CPlatformRackTypeGrandTeton()) {
+    case PlatformMode::WEDGE400C_GRANDTETON:
+      if (mode == PlatformMode::WEDGE400C_GRANDTETON ||
+          utility::isWedge400CPlatformRackTypeGrandTeton()) {
         return platformMappingStr.empty()
             ? std::make_unique<Wedge400CGrandTetonPlatformMapping>()
             : std::make_unique<Wedge400CGrandTetonPlatformMapping>(
