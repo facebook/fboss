@@ -131,32 +131,6 @@ class BuildHelper:
             .split()[0]
         )
 
-    def _download_opennsa(self):
-        # getdeps uses urlretrieve to download, but opennsa remote server blocks it.
-        # We have raised this with the vendor.
-        # Till this is resolved, workaround by downloading opennsa by wget and using it.
-        subprocess.run(
-            [
-                "wget",
-                "-P",
-                self._output_path,
-                "https://docs.broadcom.com/docs-and-downloads/csg/opennsa-6.5.22.tgz",
-            ]
-        )
-
-    def _edit_opennsa_manifest(self):
-        with open(self._opennsa_manifest_path, "r", encoding="utf-8") as f:
-            data = f.readlines()
-
-        url_to_search = "url = https://docs.broadcom.com/docs-and-downloads/csg/opennsa-6.5.22.tgz\n"
-        if url_to_search not in data:
-            return
-
-        index = data.index(url_to_search)
-        data[index] = "url = http://localhost:8000/opennsa-6.5.22.tgz\n"
-
-        with open(self._opennsa_manifest_path, "w", encoding="utf-8") as f:
-            f.writelines(data)
 
     def _edit_sai_manifest(self):
         manifest_str = (
@@ -222,8 +196,6 @@ class BuildHelper:
         self._cleanup()
         self._copy_input_files()
         self._create_archive()
-        self._download_opennsa()
-        self._edit_opennsa_manifest()
         self._edit_sai_manifest()
         self._edit_sai_impl_manifest()
         self._edit_fboss_manifest()

@@ -165,13 +165,6 @@ find_library(NLOHMANN_JSON nlohmann-json)
 find_path(NLOHMANN_JSON_INCLUDE_DIRS NAMES nlohmann/json.hpp)
 include_directories(${NLOHMANN_JSON_INCLUDE_DIRS})
 
-find_library(OPENNSA libopennsa.a opennsa)
-find_path(OPENNSA_INCLUDE_DIR NAMES bcm/tx.h)
-include_directories(${OPENNSA_INCLUDE_DIR})
-
-message(STATUS "Found OPENNSA: ${OPENNSA}")
-message(STATUS "Found OPENNSA_INCLUDE_DIR: ${OPENNSA_INCLUDE_DIR}")
-
 find_package(Python3 COMPONENTS Interpreter Development)
 include_directories(${Python3_INCLUDE_DIR})
 
