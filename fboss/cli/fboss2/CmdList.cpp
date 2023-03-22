@@ -19,6 +19,7 @@
 #include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
+#include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
 #include "fboss/cli/fboss2/commands/help/CmdHelp.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
@@ -376,6 +377,13 @@ const CommandTree& kCommandTree() {
        commandHandler<CmdStopPcap>,
        argTypeHandler<CmdStopPcapTraits>,
        localOptionsHandler<CmdStopPcapTraits>},
+
+      {"get",
+       "pcap",
+       "Show Packet Capture",
+       commandHandler<CmdGetPcap>,
+       argTypeHandler<CmdGetPcapTraits>,
+       localOptionsHandler<CmdGetPcapTraits>},
   };
   return root;
 }

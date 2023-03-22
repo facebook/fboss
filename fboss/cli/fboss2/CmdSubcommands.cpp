@@ -31,6 +31,7 @@ const std::map<std::string, std::string>& kSupportedVerbs() {
       {"stream", "Continuously stream"},
       {"start", "Start event"},
       {"stop", "Stop event"},
+      {"get", "Get object"},
   };
 
   return supportedVerbs;

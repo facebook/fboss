@@ -17,6 +17,7 @@
 #include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
+#include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
 #include "fboss/cli/fboss2/commands/help/CmdHelp.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
@@ -101,6 +102,7 @@ namespace facebook::fboss {
 
 // Avoid template linker error
 // https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+template void CmdHandler<CmdGetPcap, CmdGetPcapTraits>::run();
 template void CmdHandler<CmdShowAcl, CmdShowAclTraits>::run();
 template void CmdHandler<CmdShowAgentSsl, CmdShowAgentSslTraits>::run();
 template void
