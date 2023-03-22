@@ -40,6 +40,7 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
   MOCK_METHOD(void, startPktCapture, (std::unique_ptr<CaptureInfo>));
   MOCK_METHOD(void, stopPktCapture, (std::unique_ptr<std::string>));
   MOCK_METHOD(void, getAllPortInfo, (PortInfoMap));
+  MOCK_METHOD(void, getCpuPortStats, (facebook::fboss::CpuPortStats&));
   MOCK_METHOD(void, getPortStatus, (PortStatusMap, Ports));
   MOCK_METHOD(void, listHwObjects, (Out, HwObjects, bool));
   MOCK_METHOD(SSLType, getSSLPolicy, ());
