@@ -136,6 +136,7 @@ from datetime import datetime
 
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"
+OPT_ARG_FILTER_FILE = "--filter_file"
 OPT_ARG_LIST_TESTS = "--list_tests"
 OPT_ARG_CONFIG_FILE = "--config"
 OPT_ARG_SDK_LOGGING = "--sdk_logging"
@@ -243,7 +244,7 @@ class TestRunner(abc.ABC):
             test_summary.append(line)
         return test_summary
 
-    def _get_tests_to_run(self, args):
+    def _get_tests_to_run(self, regex):
         # GTEST filter syntax is -
         #   --gtest_filter=<include_regexes>-<exclude_regexes>
         #   in case of multiple regexes, each one should be separated by ':'
@@ -255,7 +256,7 @@ class TestRunner(abc.ABC):
         # Also, multiple '-' is allowed but all regexes following the first '-'
         # are part of exclude list. This means following code would still work
         # as expected even if user provides an exclude list in the args.filter.
-        filter = (args.filter + ":") if (args.filter is not None) else ""
+        filter = (regex + ":") if (regex is not None) else ""
         known_bad_tests_regex = self._get_known_bad_test_regex()
         filter = (
             (filter + "-" + known_bad_tests_regex)
@@ -429,7 +430,17 @@ class TestRunner(abc.ABC):
             print("  ", test_result, ":", test_summary_count[test_result])
 
     def run_test(self, args):
-        tests_to_run = self._get_tests_to_run(args)
+        if args.filter_file:
+            with open(args.filter_file) as file:
+                regexes = [
+                    line.strip() for line in file if not line.strip().startswith("#")
+                ]
+        elif args.filter:
+            regexes = [args.filter]
+
+        tests_to_run = []
+        for regex in regexes:
+            tests_to_run.extend(self._get_tests_to_run(regex))
 
         # Check if tests need to be run or only listed
         if args.list_tests is False:
@@ -494,6 +505,15 @@ if __name__ == "__main__":
             "only run tests that match the filter e.g. "
             + OPT_ARG_FILTER
             + "=*Route*V6*"
+        ),
+    )
+    ap.add_argument(
+        OPT_ARG_FILTER_FILE,
+        type=str,
+        help=(
+            "only run tests that match the filters in filter file e.g. "
+            + OPT_ARG_FILTER_FILE
+            + "=/fboss.git/sai_known_good_tests//known-good_regexes-brcm-sai-9.0_ea_dnx_odp-jericho2"
         ),
     )
     ap.add_argument(
@@ -589,6 +609,11 @@ if __name__ == "__main__":
                 "FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'"
             )
             sys.exit(0)
+
+    if args.filter and args.filter_file:
+        raise ValueError(
+            f"Only one of the {OPT_ARG_FILTER} or {OPT_ARG_FILTER_FILE} can be specified at any time"
+        )
 
     try:
         func = args.func
