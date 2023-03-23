@@ -106,8 +106,10 @@ SwitchState::SwitchState() {
 
   set<switch_state_tags::aclTableGroupMap>(
       std::map<cfg::AclStage, state::AclTableGroupFields>{});
-  // default mirror map (for single npu) system
+  // default multi-map (for single npu) system
   resetMirrors(std::make_shared<MirrorMap>());
+  resetForwardingInformationBases(
+      std::make_shared<ForwardingInformationBaseMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -254,7 +256,8 @@ const std::shared_ptr<MirrorMap>& SwitchState::getMirrors() const {
 
 const std::shared_ptr<ForwardingInformationBaseMap>& SwitchState::getFibs()
     const {
-  return cref<switch_state_tags::fibs>();
+  return cref<switch_state_tags::fibsMap>()->cref(
+      HwSwitchMatcher::defaultHwSwitchMatcher().matcherString());
 }
 
 void SwitchState::resetLabelForwardingInformationBase(
@@ -264,7 +267,14 @@ void SwitchState::resetLabelForwardingInformationBase(
 
 void SwitchState::resetForwardingInformationBases(
     std::shared_ptr<ForwardingInformationBaseMap> fibs) {
-  ref<switch_state_tags::fibs>() = fibs;
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcher();
+  auto fibsMap = cref<switch_state_tags::fibsMap>()->clone();
+  if (!fibsMap->getForwardingInformationBaseMapIf(matcher)) {
+    fibsMap->addForwardingInformationBaseMap(matcher, fibs);
+  } else {
+    fibsMap->changeForwardingInformationBaseMap(matcher, fibs);
+  }
+  ref<switch_state_tags::fibsMap>() = fibsMap;
 }
 
 void SwitchState::addTransceiver(
@@ -458,6 +468,12 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     state->set<switch_state_tags::mirrorMap>(
         std::map<std::string, state::MirrorFields>());
   }
+  if (!state->cref<switch_state_tags::fibs>()->empty()) {
+    auto fibs = state->cref<switch_state_tags::fibs>();
+    state->resetForwardingInformationBases(fibs);
+    state->set<switch_state_tags::fibs>(
+        std::map<int16_t, state::FibContainerFields>());
+  }
   return state;
 }
 
@@ -592,6 +608,13 @@ state::SwitchState SwitchState::toThrift() const {
     if (auto mirrors = cref<switch_state_tags::mirrorMaps>()->getMirrorMapIf(
             HwSwitchMatcher::defaultHwSwitchMatcher())) {
       data.mirrorMap() = mirrors->toThrift();
+    }
+  }
+  if (!cref<switch_state_tags::fibsMap>()->empty()) {
+    if (auto fibs = cref<switch_state_tags::fibsMap>()
+                        ->getForwardingInformationBaseMapIf(
+                            HwSwitchMatcher::defaultHwSwitchMatcher())) {
+      data.fibs() = fibs->toThrift();
     }
   }
   return data;

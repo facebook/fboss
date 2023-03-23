@@ -903,4 +903,39 @@ void preparedMockPortConfig(
   portCfg.profileID() = cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_COPPER;
 }
 
+state::RouteFields makeTestDropRouteFields(const std::string& prefix, bool v6) {
+  if (v6) {
+    return Route<folly::IPAddressV6>::makeThrift(
+        makePrefixV6(prefix),
+        ClientID::BGPD,
+        RouteNextHopEntry(state::RouteNextHopEntry{}));
+  }
+  return Route<folly::IPAddressV4>::makeThrift(
+      makePrefixV4(prefix),
+      ClientID::BGPD,
+      RouteNextHopEntry(state::RouteNextHopEntry{}));
+}
+
+std::map<std::string, state::RouteFields> makeFib(
+    const std::set<std::string>& prefixes,
+    bool v6) {
+  std::map<std::string, state::RouteFields> fib{};
+  for (const auto& prefix : prefixes) {
+    fib.emplace(prefix, makeTestDropRouteFields(prefix, v6));
+  }
+  return fib;
+}
+
+state::FibContainerFields makeFibContainerFields(
+    int vrf,
+    const std::set<std::string>& v4Prefixes,
+    const std::set<std::string>& v6Prefixes) {
+  state::FibContainerFields fields{};
+
+  fields.vrf() = vrf;
+  fields.fibV4() = makeFib(v4Prefixes, false);
+  fields.fibV4() = makeFib(v6Prefixes, true);
+
+  return fields;
+}
 } // namespace facebook::fboss

@@ -146,6 +146,10 @@ RESOLVE_STRUCT_MEMBER(
 /* multi npu maps */
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
+    switch_state_tags::fibsMap,
+    MultiForwardingInformationBaseMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
     switch_state_tags::mirrorMaps,
     MultiMirrorMap);
 

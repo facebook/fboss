@@ -543,4 +543,15 @@ void validateThriftMapMapSerialization(const NodeMap& nodeMap) {
   auto nodeMapBack = std::make_shared<NodeMap>(nodeMap.toThrift());
   EXPECT_TRUE(nodeMap.toThrift() == nodeMapBack->toThrift());
 }
+
+state::RouteFields makeTestDropRouteFields(const std::string& prefix, bool v6);
+
+std::map<std::string, state::RouteFields> makeFib(
+    const std::set<std::string>& prefixes,
+    bool v6);
+
+state::FibContainerFields makeFibContainerFields(
+    int vrf,
+    const std::set<std::string>& v4Prefixes,
+    const std::set<std::string>& v6Prefixes);
 } // namespace facebook::fboss

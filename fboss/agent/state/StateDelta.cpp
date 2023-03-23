@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/state/StateDelta.h"
 
+#include "ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AclTableGroup.h"
@@ -202,8 +203,14 @@ thrift_cow::ThriftMapDelta<TransceiverMap> StateDelta::getTransceiversDelta()
 }
 
 ForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
-  return ForwardingInformationBaseMapDelta(
-      old_->getFibs().get(), new_->getFibs().get());
+  auto oldFibs = old_->cref<switch_state_tags::fibsMap>()
+                     ->getForwardingInformationBaseMapIf(
+                         HwSwitchMatcher::defaultHwSwitchMatcher());
+  auto newFibs = new_->cref<switch_state_tags::fibsMap>()
+                     ->getForwardingInformationBaseMapIf(
+                         HwSwitchMatcher::defaultHwSwitchMatcher());
+
+  return ForwardingInformationBaseMapDelta(oldFibs.get(), newFibs.get());
 }
 
 DeltaValue<SwitchSettings> StateDelta::getSwitchSettingsDelta() const {

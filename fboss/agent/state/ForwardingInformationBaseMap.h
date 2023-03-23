@@ -41,6 +41,7 @@ class ForwardingInformationBaseMap : public ThriftMapNode<
                                          ForwardingInformationBaseMap,
                                          ForwardingInformationBaseMapTraits> {
  public:
+  using Traits = ForwardingInformationBaseMapTraits;
   using BaseT = ThriftMapNode<
       ForwardingInformationBaseMap,
       ForwardingInformationBaseMapTraits>;
@@ -60,6 +61,54 @@ class ForwardingInformationBaseMap : public ThriftMapNode<
 
   void updateForwardingInformationBaseContainer(
       const std::shared_ptr<ForwardingInformationBaseContainer>& fibContainer);
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
+  friend class CloneAllocator;
+};
+
+using MultiForwardingInformationBaseMapTypeClass = apache::thrift::type_class::
+    map<apache::thrift::type_class::string, ForwardingInformationBaseMapClass>;
+using MultiForwardingInformationBaseMapThriftType =
+    std::map<std::string, ForwardingInformationBaseMapThriftType>;
+
+class MultiForwardingInformationBaseMap;
+
+using MultiForwardingInformationBaseMapTraits = ThriftMultiMapNodeTraits<
+    MultiForwardingInformationBaseMap,
+    MultiForwardingInformationBaseMapTypeClass,
+    MultiForwardingInformationBaseMapThriftType,
+    ForwardingInformationBaseMap>;
+
+class HwSwitchMatcher;
+
+class MultiForwardingInformationBaseMap
+    : public ThriftMapNode<
+          MultiForwardingInformationBaseMap,
+          MultiForwardingInformationBaseMapTraits> {
+ public:
+  using Traits = MultiForwardingInformationBaseMapTraits;
+  using BaseT = ThriftMapNode<
+      MultiForwardingInformationBaseMap,
+      MultiForwardingInformationBaseMapTraits>;
+  using BaseT::modify;
+
+  MultiForwardingInformationBaseMap() {}
+  virtual ~MultiForwardingInformationBaseMap() {}
+
+  std::shared_ptr<const ForwardingInformationBaseMap>
+  getForwardingInformationBaseMapIf(const HwSwitchMatcher& matcher) const;
+
+  void addForwardingInformationBaseMap(
+      const HwSwitchMatcher& matcher,
+      std::shared_ptr<ForwardingInformationBaseMap> mirrorMap);
+
+  void changeForwardingInformationBaseMap(
+      const HwSwitchMatcher& matcher,
+      std::shared_ptr<ForwardingInformationBaseMap> mirrorMap);
+
+  void removeForwardingInformationBaseMap(const HwSwitchMatcher& matcher);
 
  private:
   // Inherit the constructors required for clone()

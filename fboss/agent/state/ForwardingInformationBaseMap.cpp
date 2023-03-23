@@ -12,6 +12,8 @@
 
 #include "fboss/agent/state/SwitchState.h"
 
+#include "fboss/agent/HwSwitchMatcher.h"
+
 namespace facebook::fboss {
 
 ForwardingInformationBaseMap::ForwardingInformationBaseMap() {}
@@ -72,6 +74,38 @@ void ForwardingInformationBaseMap::updateForwardingInformationBaseContainer(
   } else {
     addNode(fibContainer);
   }
+}
+
+std::shared_ptr<const ForwardingInformationBaseMap>
+MultiForwardingInformationBaseMap::getForwardingInformationBaseMapIf(
+    const HwSwitchMatcher& matcher) const {
+  auto iter = std::as_const(*this).find(matcher.matcherString());
+  if (iter == cend()) {
+    return nullptr;
+  }
+  return iter->second;
+}
+
+void MultiForwardingInformationBaseMap::addForwardingInformationBaseMap(
+    const HwSwitchMatcher& matcher,
+    std::shared_ptr<ForwardingInformationBaseMap> fibMap) {
+  CHECK(fibMap);
+  insert(matcher.matcherString(), std::move(fibMap));
+}
+
+void MultiForwardingInformationBaseMap::changeForwardingInformationBaseMap(
+    const HwSwitchMatcher& matcher,
+    std::shared_ptr<ForwardingInformationBaseMap> fibMap) {
+  CHECK(fibMap);
+  ref(matcher.matcherString()) = fibMap;
+}
+
+void MultiForwardingInformationBaseMap::removeForwardingInformationBaseMap(
+    const HwSwitchMatcher& matcher) {
+  if (!getForwardingInformationBaseMapIf(matcher)) {
+    return;
+  }
+  remove(matcher.matcherString());
 }
 
 template class ThriftMapNode<

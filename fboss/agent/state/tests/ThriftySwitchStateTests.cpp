@@ -320,3 +320,29 @@ TEST(ThriftySwitchState, IpAddressConversion) {
     EXPECT_EQ(addr_0_dynamic, addr_1_dynamic);
   }
 }
+
+TEST(ThriftySwitchState, MultiMaps) {
+  state::SwitchState stateThrift0{};
+
+  stateThrift0.fibs()->emplace(
+      0,
+      makeFibContainerFields(
+          0,
+          {"1.1.1.1/24", "2.1.1.1/24", "3.1.1.1/24"},
+          {"1::1/64", "2::1/64", "3::1/64"}));
+
+  stateThrift0.fibs()->emplace(
+      1,
+      makeFibContainerFields(
+          1,
+          {"10.1.1.1/24", "20.1.1.1/24", "30.1.1.1/24"},
+          {"10::1/64", "20::1/64", "30::1/64"}));
+
+  auto state = SwitchState::fromThrift(stateThrift0);
+  auto stateThrift1 = state->toThrift();
+
+  // backward compatibility
+  EXPECT_EQ(*stateThrift0.fibs(), *stateThrift1.fibs());
+  // forward compatibility
+  EXPECT_EQ(*stateThrift0.fibs(), stateThrift1.fibsMap()->at("id=0"));
+}
