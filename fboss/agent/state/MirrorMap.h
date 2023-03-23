@@ -80,19 +80,6 @@ class MultiMirrorMap
   MultiMirrorMap() {}
   virtual ~MultiMirrorMap() {}
 
-  std::shared_ptr<const MirrorMap> getMirrorMapIf(
-      const HwSwitchMatcher& matcher) const;
-
-  void addMirrorMap(
-      const HwSwitchMatcher& matcher,
-      std::shared_ptr<MirrorMap> mirrorMap);
-
-  void changeMirrorMap(
-      const HwSwitchMatcher& matcher,
-      std::shared_ptr<MirrorMap> mirrorMap);
-
-  void removeMirrorMap(const HwSwitchMatcher& matcher);
-
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;

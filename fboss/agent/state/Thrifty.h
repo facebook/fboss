@@ -341,6 +341,10 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
 
   void addNode(std::shared_ptr<Node> node) {
     auto key = node->getID();
+    addNode(key, node);
+  }
+
+  void addNode(const KeyType& key, std::shared_ptr<Node> node) {
     auto ret = this->insert(key, std::move(node));
     if (!ret.second) {
       throw FbossError("node ", key, " already exists");
@@ -353,10 +357,14 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
 
   void updateNode(std::shared_ptr<Node> node) {
     auto id = node->getID();
-    this->ref(id) = std::move(node);
+    updateNode(id, node);
   }
 
-  std::shared_ptr<Node> removeNode(KeyType key) {
+  void updateNode(const KeyType& key, std::shared_ptr<Node> node) {
+    this->ref(key) = std::move(node);
+  }
+
+  std::shared_ptr<Node> removeNode(const KeyType& key) {
     auto node = removeNodeIf(key);
     if (!node) {
       throw FbossError("node ", key, " does not exist");

@@ -239,25 +239,25 @@ const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {
 }
 
 void SwitchState::resetMirrors(std::shared_ptr<MirrorMap> mirrors) {
-  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcher();
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
   auto mirrorMaps = cref<switch_state_tags::mirrorMaps>()->clone();
-  if (!mirrorMaps->getMirrorMapIf(matcher)) {
-    mirrorMaps->addMirrorMap(matcher, mirrors);
+  if (!mirrorMaps->getNodeIf(matcher)) {
+    mirrorMaps->addNode(matcher, mirrors);
   } else {
-    mirrorMaps->changeMirrorMap(matcher, mirrors);
+    mirrorMaps->updateNode(matcher, mirrors);
   }
   ref<switch_state_tags::mirrorMaps>() = mirrorMaps;
 }
 
 const std::shared_ptr<MirrorMap>& SwitchState::getMirrors() const {
   return cref<switch_state_tags::mirrorMaps>()->cref(
-      HwSwitchMatcher::defaultHwSwitchMatcher().matcherString());
+      HwSwitchMatcher::defaultHwSwitchMatcherKey());
 }
 
 const std::shared_ptr<ForwardingInformationBaseMap>& SwitchState::getFibs()
     const {
   return cref<switch_state_tags::fibsMap>()->cref(
-      HwSwitchMatcher::defaultHwSwitchMatcher().matcherString());
+      HwSwitchMatcher::defaultHwSwitchMatcherKey());
 }
 
 void SwitchState::resetLabelForwardingInformationBase(
@@ -267,12 +267,12 @@ void SwitchState::resetLabelForwardingInformationBase(
 
 void SwitchState::resetForwardingInformationBases(
     std::shared_ptr<ForwardingInformationBaseMap> fibs) {
-  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcher();
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
   auto fibsMap = cref<switch_state_tags::fibsMap>()->clone();
-  if (!fibsMap->getForwardingInformationBaseMapIf(matcher)) {
-    fibsMap->addForwardingInformationBaseMap(matcher, fibs);
+  if (!fibsMap->getNodeIf(matcher)) {
+    fibsMap->addNode(matcher, fibs);
   } else {
-    fibsMap->changeForwardingInformationBaseMap(matcher, fibs);
+    fibsMap->updateNode(matcher, fibs);
   }
   ref<switch_state_tags::fibsMap>() = fibsMap;
 }
@@ -605,15 +605,14 @@ state::SwitchState SwitchState::toThrift() const {
   }
   /* backward compatibility */
   if (!cref<switch_state_tags::mirrorMaps>()->empty()) {
-    if (auto mirrors = cref<switch_state_tags::mirrorMaps>()->getMirrorMapIf(
-            HwSwitchMatcher::defaultHwSwitchMatcher())) {
+    auto key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+    if (auto mirrors = cref<switch_state_tags::mirrorMaps>()->getNodeIf(key)) {
       data.mirrorMap() = mirrors->toThrift();
     }
   }
   if (!cref<switch_state_tags::fibsMap>()->empty()) {
-    if (auto fibs = cref<switch_state_tags::fibsMap>()
-                        ->getForwardingInformationBaseMapIf(
-                            HwSwitchMatcher::defaultHwSwitchMatcher())) {
+    auto key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+    if (auto fibs = cref<switch_state_tags::fibsMap>()->getNodeIf(key)) {
       data.fibs() = fibs->toThrift();
     }
   }

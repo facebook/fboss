@@ -49,4 +49,9 @@ HwSwitchMatcher HwSwitchMatcher::defaultHwSwitchMatcher() {
   return kDefaultHwSwitchMatcher;
 }
 
+const std::string& HwSwitchMatcher::defaultHwSwitchMatcherKey() {
+  static std::string kDefaultHwSwitchMatcherKey{"id=0"};
+  return kDefaultHwSwitchMatcherKey;
+}
+
 } // namespace facebook::fboss

@@ -187,10 +187,9 @@ DeltaValue<ControlPlane> StateDelta::getControlPlaneDelta() const {
 }
 
 thrift_cow::ThriftMapDelta<MirrorMap> StateDelta::getMirrorsDelta() const {
-  auto oldMirrors = old_->cref<switch_state_tags::mirrorMaps>()->getMirrorMapIf(
-      HwSwitchMatcher::defaultHwSwitchMatcher());
-  auto newMirrors = new_->cref<switch_state_tags::mirrorMaps>()->getMirrorMapIf(
-      HwSwitchMatcher::defaultHwSwitchMatcher());
+  const auto& key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  auto oldMirrors = old_->cref<switch_state_tags::mirrorMaps>()->getNodeIf(key);
+  auto newMirrors = new_->cref<switch_state_tags::mirrorMaps>()->getNodeIf(key);
 
   return thrift_cow::ThriftMapDelta<MirrorMap>(
       oldMirrors.get(), newMirrors.get());
@@ -203,12 +202,9 @@ thrift_cow::ThriftMapDelta<TransceiverMap> StateDelta::getTransceiversDelta()
 }
 
 ForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
-  auto oldFibs = old_->cref<switch_state_tags::fibsMap>()
-                     ->getForwardingInformationBaseMapIf(
-                         HwSwitchMatcher::defaultHwSwitchMatcher());
-  auto newFibs = new_->cref<switch_state_tags::fibsMap>()
-                     ->getForwardingInformationBaseMapIf(
-                         HwSwitchMatcher::defaultHwSwitchMatcher());
+  const auto& key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  auto oldFibs = old_->cref<switch_state_tags::fibsMap>()->getNodeIf(key);
+  auto newFibs = new_->cref<switch_state_tags::fibsMap>()->getNodeIf(key);
 
   return ForwardingInformationBaseMapDelta(oldFibs.get(), newFibs.get());
 }

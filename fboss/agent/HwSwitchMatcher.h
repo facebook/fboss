@@ -10,7 +10,7 @@ class HwSwitchMatcher {
  public:
   explicit HwSwitchMatcher(const std::string& matcherString);
   explicit HwSwitchMatcher(const std::set<SwitchID>& switchIds);
-  HwSwitchMatcher() : HwSwitchMatcher("id=0") {}
+  HwSwitchMatcher() : HwSwitchMatcher(defaultHwSwitchMatcherKey()) {}
 
   const std::set<SwitchID> npus() const {
     return switchIds_;
@@ -25,6 +25,8 @@ class HwSwitchMatcher {
   }
 
   static HwSwitchMatcher defaultHwSwitchMatcher();
+
+  static const std::string& defaultHwSwitchMatcherKey();
 
  private:
   std::string matcherString_;

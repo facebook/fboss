@@ -97,19 +97,6 @@ class MultiForwardingInformationBaseMap
   MultiForwardingInformationBaseMap() {}
   virtual ~MultiForwardingInformationBaseMap() {}
 
-  std::shared_ptr<const ForwardingInformationBaseMap>
-  getForwardingInformationBaseMapIf(const HwSwitchMatcher& matcher) const;
-
-  void addForwardingInformationBaseMap(
-      const HwSwitchMatcher& matcher,
-      std::shared_ptr<ForwardingInformationBaseMap> mirrorMap);
-
-  void changeForwardingInformationBaseMap(
-      const HwSwitchMatcher& matcher,
-      std::shared_ptr<ForwardingInformationBaseMap> mirrorMap);
-
-  void removeForwardingInformationBaseMap(const HwSwitchMatcher& matcher);
-
  private:
   // Inherit the constructors required for clone()
   using BaseT::BaseT;
