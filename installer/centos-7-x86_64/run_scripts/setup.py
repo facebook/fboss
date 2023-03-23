@@ -25,10 +25,6 @@ class SetupFboss:
     BDE_CONF = "bde.conf"
     BDE_CONF_FULL_PATH = os.path.join("/etc/modprobe.d", BDE_CONF)
 
-    BCM_CONF = "bcm.conf"
-    BCM_CONF_DIR_PATH = "/etc/coop"
-    BCM_CONF_FULL_PATH = os.path.join(BCM_CONF_DIR_PATH, BCM_CONF)
-
     USER_BDE = "linux-user-bde"
     KERNEL_BDE = "linux-kernel-bde"
     USER_BDE_KO = USER_BDE + ".ko"
@@ -44,7 +40,6 @@ class SetupFboss:
     SRC_USER_BDE_KO_FULL_PATH = os.path.join(os.environ["FBOSS_KMODS"], USER_BDE_KO)
     SRC_KERNEL_BDE_KO_FULL_PATH = os.path.join(os.environ["FBOSS_KMODS"], KERNEL_BDE_KO)
 
-    BCM_CONFIG_DIR = os.path.join(os.environ["FBOSS_DATA"], "bcm_configs")
     TH = "th"
     TH3 = "th3"
     J2CP = "j2cp"
@@ -59,10 +54,6 @@ class SetupFboss:
             self.src_bde_full_path = os.path.join(
                 *[os.environ["FBOSS_DATA"], SetupFboss.TH, SetupFboss.BDE_CONF]
             )
-            PLATFORM = "WEDGE100S+RSW"
-            self.src_bcm_conf_full_path = os.path.join(
-                SetupFboss.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
-            )
 
         elif [x for x in output if "Broadcom" in x and "b980" in x]:
             self.src_fruid_full_path = os.path.join(
@@ -70,10 +61,6 @@ class SetupFboss:
             )
             self.src_bde_full_path = os.path.join(
                 *[os.environ["FBOSS_DATA"], SetupFboss.TH3, SetupFboss.BDE_CONF]
-            )
-            PLATFORM = "MINIPACK+FSW"
-            self.src_bcm_conf_full_path = os.path.join(
-                SetupFboss.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
             )
 
         elif [x for x in output if "Broadcom" in x and "8850" in x]:
@@ -83,17 +70,10 @@ class SetupFboss:
             self.src_bde_full_path = os.path.join(
                 *[os.environ["FBOSS_DATA"], SetupFboss.J2CP, SetupFboss.BDE_CONF]
             )
-            PLATFORM = "MERU400BIA"
-            self.src_bcm_conf_full_path = os.path.join(
-                SetupFboss.BCM_CONFIG_DIR, PLATFORM + "-bcm.conf"
-            )
 
     def _cleanup_old_setup(self):
         if os.path.exists(SetupFboss.FRUID_FULL_PATH):
             os.remove(SetupFboss.FRUID_FULL_PATH)
-
-        if os.path.exists(SetupFboss.BCM_CONF_FULL_PATH):
-            os.remove(SetupFboss.BCM_CONF_FULL_PATH)
 
         if os.path.exists(SetupFboss.BDE_CONF_FULL_PATH):
             os.remove(SetupFboss.BDE_CONF_FULL_PATH)
@@ -113,12 +93,6 @@ class SetupFboss:
                 os.makedirs(SetupFboss.FRUID_DIR_PATH)
 
             shutil.copy(self.src_fruid_full_path, SetupFboss.FRUID_FULL_PATH)
-
-        if not os.path.exists(SetupFboss.BCM_CONF_FULL_PATH):
-            if not os.path.exists(SetupFboss.BCM_CONF_DIR_PATH):
-                os.mkdir(SetupFboss.BCM_CONF_DIR_PATH)
-
-            shutil.copy(self.src_bcm_conf_full_path, SetupFboss.BCM_CONF_FULL_PATH)
 
         if not os.path.exists(SetupFboss.BDE_CONF_FULL_PATH):
             shutil.copy(self.src_bde_full_path, SetupFboss.BDE_CONF_FULL_PATH)
