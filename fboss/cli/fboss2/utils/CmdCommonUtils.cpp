@@ -7,7 +7,9 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+
 #include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
+#include "common/time/TimeUtil.h"
 
 #include <folly/String.h>
 #include <folly/gen/Base.h>
@@ -92,6 +94,27 @@ void setLogLevel(const std::string& logLevelStr) {
   XLOG(DBG1) << "Setting loglevel to " << logLevelStr;
 }
 
+// Converts a readable representation of a link-bandwidth value
+//
+// bandwidthBytesPerSecond: must be positive number in bytes per second
+const std::string formatBandwidth(const float bandwidthBytesPerSecond) {
+  if (bandwidthBytesPerSecond < 1.0f) {
+    return "Not set";
+  }
+  const std::string suffixes[] = {"", "K", "M"};
+  // Represent the bandwidth in bits per second
+  // Use long and floor to ensure that we have integer to start with
+  long bandwidthBitsPerSecond = floor(bandwidthBytesPerSecond) * 8;
+  for (const auto& suffix : suffixes) {
+    if (bandwidthBitsPerSecond < 1000) {
+      return folly::to<std::string>(bandwidthBitsPerSecond) + suffix + "bps";
+    }
+    // we don't round up
+    bandwidthBitsPerSecond /= 1000;
+  }
+  return folly::to<std::string>(bandwidthBitsPerSecond) + "Gbps";
+}
+
 // Get an starting epoch based on a period of time (duration).
 // We achieve this by substracting the period of time to the
 // current epoch from system_clock::now()
@@ -149,6 +172,37 @@ const std::string getPrettyElapsedTime(const int64_t& start_time) {
   pretty_output += std::to_string(leftover) + "s";
 
   return pretty_output;
+}
+
+// Separates fractional seconds from time to parse
+// Eg: timer = 6475 | Return: {seconds = 6, fractional_seconds = 475}
+timeval splitFractionalSecondsFromTimer(const long& timer) {
+  struct timeval tv;
+  tv.tv_sec = timer / 1000; // get total amount of seconds
+  tv.tv_usec = (timer % 1000); // get fractional seconds
+
+  tv.tv_usec = lrint(tv.tv_usec); // round fs to nearest decimal
+  return tv;
+}
+
+const std::string parseTimeToTimeStamp(const long& timeToParse) {
+  constexpr std::string_view kTimeFormat = "%Y-%m-%d %H:%M:%S %Z";
+  const auto splitTime = utils::splitFractionalSecondsFromTimer(timeToParse);
+  std::string formattedTime; // Timestamp storage
+  stringFormatTimestamp(splitTime.tv_sec, kTimeFormat.data(), &formattedTime);
+
+  // stringFormatTimestamp returns a formatted time like the following:
+  //      2021-10-27 00:00:06 PDT
+  //
+  // In order to add the fractional seconds, we find the last space before the
+  // timestamp's timezone and concatenate the fractional seconds.
+  //      2021-10-27 00:00:06 PDT -> 2021-10-27 00:00:06.475 PDT
+  int index = formattedTime.find_last_of(' ');
+  return fmt::format(
+      "{}.{} {}",
+      formattedTime.substr(0, index), // Date and time
+      splitTime.tv_usec, // fractional seconds
+      formattedTime.substr(index + 1)); // timezone
 }
 
 std::string getUserInfo() {

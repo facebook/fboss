@@ -28,27 +28,6 @@ using folly::IPAddressV6;
 
 namespace facebook::fboss::utils {
 
-// Converts a readable representation of a link-bandwidth value
-//
-// bandwidthBytesPerSecond: must be positive number in bytes per second
-const std::string formatBandwidth(const float bandwidthBytesPerSecond) {
-  if (bandwidthBytesPerSecond < 1.0f) {
-    return "Not set";
-  }
-  const std::string suffixes[] = {"", "K", "M"};
-  // Represent the bandwidth in bits per second
-  // Use long and floor to ensure that we have integer to start with
-  long bandwidthBitsPerSecond = floor(bandwidthBytesPerSecond) * 8;
-  for (const auto& suffix : suffixes) {
-    if (bandwidthBitsPerSecond < 1000) {
-      return folly::to<std::string>(bandwidthBitsPerSecond) + suffix + "bps";
-    }
-    // we don't round up
-    bandwidthBitsPerSecond /= 1000;
-  }
-  return folly::to<std::string>(bandwidthBitsPerSecond) + "Gbps";
-}
-
 /* Takes a list of "friendly" interface names and returns a list of portID
    integers.  This is an operation that is frequently needed so making this
    available as a helper function

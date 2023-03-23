@@ -326,10 +326,6 @@ class MirrorList : public BaseObjectArgType<std::string> {
 // initialization steps
 void postAppInit(int argc, char* argv[], CLI::App& app);
 
-timeval splitFractionalSecondsFromTimer(const long& timer);
-const std::string parseTimeToTimeStamp(const long& timeToParse);
-
-const std::string formatBandwidth(const float bandwidthBytesPerSecond);
 std::vector<int32_t> getPortIDList(
     const std::vector<std::string>& ifList,
     std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries);
