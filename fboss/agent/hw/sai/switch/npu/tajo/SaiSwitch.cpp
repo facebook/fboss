@@ -1,10 +1,10 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "common/files/FileUtil.h"
-
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
 #include "fboss/agent/hw/sai/api/TamApi.h"
+
+#include "fboss/lib/CommonFileUtils.h"
 
 extern "C" {
 #include <experimental/sai_attr_ext.h>
@@ -126,8 +126,7 @@ void SaiSwitch::parityErrorSwitchEventCallback(
 }
 
 void SaiSwitch::checkAndSetSdkDowngradeVersion() const {
-  if (!files::FileUtil::fileExists(
-          FLAGS_wb_downgrade_target_sdk_version_file)) {
+  if (!checkFileExists(FLAGS_wb_downgrade_target_sdk_version_file)) {
     return;
   }
 
