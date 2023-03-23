@@ -339,9 +339,9 @@ class TestRunner(abc.ABC):
         self._write_results_to_csv(test_summaries)
 
     def _write_results_to_csv(self, output):
-        output_csv = tempfile.NamedTemporaryFile(
-            prefix="hwtest_results_", suffix=".csv"
-        ).name
+        output_csv = (
+            f"hwtest_results_{datetime.now().strftime('%Y_%b_%d-%I_%M_%S_%p')}.csv"
+        )
 
         with open(output_csv, "w") as f:
             writer = csv.writer(f)
