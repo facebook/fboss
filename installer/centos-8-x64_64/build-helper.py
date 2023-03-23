@@ -131,7 +131,6 @@ class BuildHelper:
             .split()[0]
         )
 
-
     def _edit_sai_manifest(self):
         manifest_str = (
             "[manifest]\n"
