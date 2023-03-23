@@ -89,15 +89,17 @@ void validateBufferPoolWatermarkCounters(
     const int /* pri */,
     const std::vector<facebook::fboss::PortID>& /* portIds */) {
   auto globalSharedWatermarksIncrementing = [&]() {
-    auto counters = facebook::fb303::fbData->getRegexCounters(
-        {"buffer_watermark_global_shared.*.p100.60"});
+    // Native implementation reports per ITM watermark!
+    std::string itmInfo = ensemble->isSai() ? "" : ".itm0";
+    auto counters = facebook::fb303::fbData->getRegexCounters({folly::sformat(
+        "buffer_watermark_global_(shared|headroom){}.*.p100.60", itmInfo)});
     for (const auto& ctr : counters) {
-      if (ctr.second) {
-        XLOG(DBG0) << ctr.first << " : " << ctr.second;
-        return true;
+      XLOG(DBG0) << ctr.first << " : " << ctr.second;
+      if (!ctr.second) {
+        return false;
       }
     }
-    return false;
+    return true;
   };
   auto updateStats = [&]() {
     facebook::fboss::SwitchStats dummy;
@@ -587,10 +589,15 @@ TEST_P(HwTrafficPfcGenTest, verifyPfc) {
 TEST_F(HwTrafficPfcTest, verifyBufferPoolWatermarks) {
   const int trafficClass = kLosslessTrafficClass;
   const int pfcPriority = kLosslessPriority;
+  cfg::MMUScalingFactor scalingFactor =
+      getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2
+      ? cfg::MMUScalingFactor::ONE_32768TH
+      : cfg::MMUScalingFactor::ONE_64TH;
   runTestWithCfg(
       trafficClass,
       pfcPriority,
-      TrafficTestParams{},
+      TrafficTestParams{
+          .buffer = PfcBufferParams{.scalingFactor = scalingFactor}},
       validateBufferPoolWatermarkCounters);
 }
 
