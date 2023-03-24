@@ -26,10 +26,10 @@
  *   XFER_STATUS_RESPONSE has previously indicated that the read is complete.
  */
 #include "fboss/lib/usb/CP2112.h"
+#include <glog/logging.h>
+#include <sstream>
 #include "fboss/lib/BmcRestClient.h"
 #include "fboss/lib/usb/UsbError.h"
-
-#include <glog/logging.h>
 
 #include <folly/ScopeGuard.h>
 #include <folly/lang/Bits.h>
@@ -83,34 +83,18 @@ void vlogHex(
     return;
   }
 
-  const size_t kLineLength = 55; // The length of 1 line worth of output
-  const size_t hexLen =
-      (label.size() + 1 + kLineLength * (1 + (length / 16)) + 1);
-  char hexBuf[hexLen];
-
+  std::stringstream log;
   size_t idx = 0;
-  memcpy(hexBuf, label.begin(), label.size());
-  hexBuf[label.size()] = '\n';
-  size_t bufIdx = label.size() + 1;
+  log << label << '\n';
   while (idx < length) {
-    int ret = snprintf(hexBuf + bufIdx, hexLen - bufIdx, "%04zx:", idx);
-    bufIdx += ret;
+    log << fmt::format("{:04x}:", idx);
 
     for (unsigned int n = 0; n < 16 && idx < length; ++n, ++idx) {
-      ret = snprintf(
-          hexBuf + bufIdx,
-          hexLen - bufIdx,
-          "%s%02x",
-          n == 8 ? "  " : " ",
-          buf[idx]);
-      bufIdx += ret;
+      log << fmt::format("{:s}{:02x}", n == 8 ? "  " : " ", buf[idx]);
     }
-    hexBuf[bufIdx] = '\n';
-    ++bufIdx;
+    log << '\n';
   }
-  CHECK_LE(bufIdx, hexLen);
-  hexBuf[bufIdx] = '\0';
-  VLOG(vlogLevel) << hexBuf;
+  VLOG(vlogLevel) << log.str();
 }
 
 } // namespace
