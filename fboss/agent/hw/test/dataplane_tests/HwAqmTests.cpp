@@ -29,6 +29,7 @@
 #include <optional>
 
 namespace {
+constexpr uint8_t kECT1{1}; // ECN capable transport(1), ECT(1)
 constexpr uint8_t kECT0{2}; // ECN capable transport(0), ECT(0)
 constexpr uint8_t kNotECT{0}; // Not ECN-Capable Transport, Not-ECT
 
@@ -962,8 +963,12 @@ class HwAqmTest : public HwLinkStateDependentTest {
   }
 };
 
-TEST_F(HwAqmTest, verifyEcn) {
+TEST_F(HwAqmTest, verifyEct0) {
   runTest(kECT0);
+}
+
+TEST_F(HwAqmTest, verifyEct1) {
+  runTest(kECT1);
 }
 
 TEST_F(HwAqmTest, verifyWred) {
