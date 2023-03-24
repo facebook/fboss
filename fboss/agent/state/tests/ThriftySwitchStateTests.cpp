@@ -346,3 +346,9 @@ TEST(ThriftySwitchState, MultiMaps) {
   // forward compatibility
   EXPECT_EQ(*stateThrift0.fibs(), stateThrift1.fibsMap()->at("id=0"));
 }
+
+TEST(ThriftySwitchState, EmptyMultiMap) {
+  auto state = SwitchState::fromThrift(state::SwitchState{});
+  EXPECT_THROW(state->getMirrors(), std::exception);
+  EXPECT_THROW(state->getFibs(), std::exception);
+}
