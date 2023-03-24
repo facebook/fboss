@@ -15,10 +15,12 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
 
 using namespace ::testing;
 namespace facebook::fboss {
 
+using namespace facebook::neteng::fboss::bgp::thrift;
 extern std::vector<facebook::fboss::ArpEntryThrift> createArpEntries();
 
 class MockFbossCtrlAgent : public FbossCtrlSvIf {
@@ -80,5 +82,10 @@ class MockFbossQsfpService : public QsfpServiceSvIf {
   MOCK_METHOD2(
       getTransceiverInfo,
       void(transceiverEntries, std::unique_ptr<std::vector<int32_t>>));
+};
+
+class MockFbossBgpService : public TBgpServiceSvIf {
+ public:
+  MOCK_METHOD(void, getRunningConfig, (std::string&));
 };
 } // namespace facebook::fboss
