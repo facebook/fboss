@@ -18,6 +18,7 @@ class CmdHandlerTestBase : public ::testing::Test {
   void SetUp() override {
     mockedAgent_ = std::make_shared<MockFbossCtrlAgent>();
     mockedQsfpService_ = std::make_shared<MockFbossQsfpService>();
+    mockedBgpService_ = std::make_shared<MockFbossBgpService>();
     localHost_ = std::make_unique<HostInfo>(
         "test.host", "test-oob.host", folly::IPAddressV6("::1"));
   }
@@ -38,6 +39,14 @@ class CmdHandlerTestBase : public ::testing::Test {
         mockedQsfpServer_->getAddress().getPort());
   }
 
+  void setupMockedBgpServer() {
+    mockedBgpServer_ =
+        std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
+            mockedBgpService_);
+    CmdGlobalOptions::getInstance()->setBgpThriftPort(
+        mockedBgpServer_->getAddress().getPort());
+  }
+
   void TearDown() override {
     // stop agent servers
     mockedAgentServer_.reset();
@@ -51,6 +60,10 @@ class CmdHandlerTestBase : public ::testing::Test {
     return *mockedQsfpService_;
   }
 
+  auto& getBgpService() {
+    return *mockedBgpService_;
+  }
+
   const auto& localhost() {
     return *localHost_;
   }
@@ -59,11 +72,14 @@ class CmdHandlerTestBase : public ::testing::Test {
       mockedAgentServer_;
   std::unique_ptr<apache::thrift::ScopedServerInterfaceThread>
       mockedQsfpServer_;
+  std::unique_ptr<apache::thrift::ScopedServerInterfaceThread> mockedBgpServer_;
 
  private:
   std::shared_ptr<MockFbossCtrlAgent> mockedAgent_;
 
   std::shared_ptr<MockFbossQsfpService> mockedQsfpService_;
+
+  std::shared_ptr<MockFbossBgpService> mockedBgpService_;
 
   std::unique_ptr<HostInfo> localHost_;
 };
