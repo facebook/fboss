@@ -462,18 +462,25 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     }
   }
   /* forward compatibility */
-  if (!state->cref<switch_state_tags::mirrorMap>()->empty()) {
-    auto mirrors = state->cref<switch_state_tags::mirrorMap>();
+  auto& mirrors = state->cref<switch_state_tags::mirrorMap>();
+  auto& multiMirrors = state->cref<switch_state_tags::mirrorMaps>();
+  if (multiMirrors->empty() || state->getMirrors()->empty()) {
+    // keep map for default npu
     state->resetMirrors(mirrors);
+    // clear legacy mirror map
     state->set<switch_state_tags::mirrorMap>(
         std::map<std::string, state::MirrorFields>());
   }
-  if (!state->cref<switch_state_tags::fibs>()->empty()) {
-    auto fibs = state->cref<switch_state_tags::fibs>();
+  auto& fibs = state->cref<switch_state_tags::fibs>();
+  auto& multiFibs = state->cref<switch_state_tags::fibsMap>();
+  if (multiFibs->empty() || state->getFibs()->empty()) {
+    // keep fib for default npu
     state->resetForwardingInformationBases(fibs);
+    // clear legacy fibs
     state->set<switch_state_tags::fibs>(
         std::map<int16_t, state::FibContainerFields>());
   }
+
   return state;
 }
 
