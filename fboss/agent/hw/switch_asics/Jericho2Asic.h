@@ -86,7 +86,7 @@ class Jericho2Asic : public BroadcomAsic {
     return 2;
   }
   bool scalingFactorBasedDynamicThresholdSupported() const override {
-    return false;
+    return true;
   }
   cfg::Range64 getReservedEncapIndexRange() const override;
   HwAsic::RecyclePortInfo getRecyclePortInfo() const override;
