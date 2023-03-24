@@ -659,6 +659,9 @@ void CP2112::processReadResponse(MutableByteRange buf, milliseconds timeout) {
     VLOG(5) << "SMBus read response: status=" << (int)status
             << ", length=" << (int)length;
 
+    if (bytesRead + length > buf.size() || length + 3 > usbBuf.size()) {
+      throw UsbError("Read would cause overrun");
+    }
     std::copy(
         usbBuf.begin() + 3,
         usbBuf.begin() + 3 + length,
