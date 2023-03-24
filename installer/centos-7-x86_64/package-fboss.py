@@ -115,12 +115,12 @@ class PackageFboss:
 
     def _copy_configs(self, tmp_dir_name):
         bcm_sai_configs_path = os.path.join(
-            self._get_git_root(__file__), "fboss/bcm_sai_configs"
+            self._get_git_root(__file__), "fboss/oss/hw_test_configs"
         )
         print(f"Copying {bcm_sai_configs_path} to {tmp_dir_name}")
         shutil.copytree(
-            "fboss/bcm_sai_configs",
-            os.path.join(tmp_dir_name, PackageFboss.DATA, "bcm_sai_configs"),
+            "fboss/oss/hw_test_configs",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_test_configs"),
         )
 
     def _copy_known_bad_tests(self, tmp_dir_name):

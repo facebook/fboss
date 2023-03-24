@@ -42,7 +42,7 @@ cd $HOME/fboss.git
 rm -rf $scratch_dir # remove existing build dir if any
 rm -rf build/deps/github_hashes/facebook
 rm -rf build/deps/github_hashes/facebookincubator
-tar -xvf fboss/stable_commits/latest_stable_hashes.tar.gz
+tar -xvf fboss/oss/stable_commits/latest_stable_hashes.tar.gz
 ```
 
 ## Make changes to FBOSS source code
