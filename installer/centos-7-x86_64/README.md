@@ -198,7 +198,7 @@ cd fboss.git
 
 ```
 cd fboss.git
-/opt/rh/rh-python36/root/bin/python3.6 installer/centos-7-x86_64/package-fboss.py
+/opt/rh/rh-python36/root/bin/python3.6 fboss/oss/scripts/package-fboss.py
 ```
 
 This creates a package directory with prefix **```/tmp/fboss_bins```** and copies all
@@ -220,7 +220,7 @@ However, it would be orders of magnitude slower than packaging to a directory.
 ```
 cd fboss.git
 export QA_RPATHS=$[ 0x0001|0x0002|0x0004|0x0008|0x0010|0x0020 ]
-/opt/rh/rh-python36/root/bin/python3.6 installer/centos-7-x86_64/package-fboss.py --rpm
+/opt/rh/rh-python36/root/bin/python3.6 fboss/oss/scripts/package-fboss.py --rpm
 ```
 
 The built RPM would be copied here
@@ -505,10 +505,10 @@ package, modifying only the packaging script is enough.
 Make the changes as shown below and build the package (see [Section 1.6](#package))
 
 ```
-diff --git a/installer/centos-7-x86_64/package-fboss.py b/installer/centos-7-x86_64/package-fboss.py
+diff --git a/fboss/oss/scripts/package-fboss.py b/fboss/oss/scripts/package-fboss.py
 index e12b43f..ba5ff87 100755
---- a/installer/centos-7-x86_64/package-fboss.py
-+++ b/installer/centos-7-x86_64/package-fboss.py
+--- a/fboss/oss/scripts/package-fboss.py
++++ b/fboss/oss/scripts/package-fboss.py
 @@ -25,7 +25,7 @@ class BuildRpm:
      DEVTOOLS_LIBRARY_PATH = "/opt/rh/devtoolset-8/root/usr/lib64"
 
