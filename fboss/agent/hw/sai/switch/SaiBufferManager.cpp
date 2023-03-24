@@ -383,10 +383,11 @@ SaiBufferManager::ingressProfileCreateAttrs(
   SaiBufferProfileTraits::Attributes::ReservedBytes reservedBytes =
       *config.minLimitBytes();
   SaiBufferProfileTraits::Attributes::ThresholdMode mode{
-      SAI_BUFFER_PROFILE_THRESHOLD_MODE_STATIC};
+      SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC};
   SaiBufferProfileTraits::Attributes::SharedDynamicThreshold dynThresh{0};
-  if (config.scalingFactor()) {
-    mode = SAI_BUFFER_PROFILE_THRESHOLD_MODE_DYNAMIC;
+  if (config.scalingFactor() &&
+      platform_->getAsic()->scalingFactorBasedDynamicThresholdSupported()) {
+    // If scalingFactor is specified, configure the same!
     dynThresh = platform_->getAsic()->getBufferDynThreshFromScalingFactor(
         nameToEnum<cfg::MMUScalingFactor>(*config.scalingFactor()));
   }
