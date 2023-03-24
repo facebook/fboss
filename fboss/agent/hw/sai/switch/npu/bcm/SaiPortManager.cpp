@@ -100,11 +100,6 @@ void SaiPortManager::changePortByRecreate(
           *(newPort->getProfileConfig().fec()))) {
     // To change to a different VCO, we need to remove all the ports in the
     // Port Macro and re-create the removed ports with the new speed.
-    auto portHandle = getPortHandle(newPort->getID());
-    // disable port
-    SaiPortTraits::Attributes::AdminState adminDisable{false};
-    SaiApiTable::getInstance()->portApi().setAttribute(
-        portHandle->port->adapterKey(), adminDisable);
     removePort(oldPort);
     pendingNewPorts_[newPort->getID()] = newPort;
     bool allPortsInGroupRemoved = true;
