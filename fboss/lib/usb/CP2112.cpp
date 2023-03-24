@@ -602,7 +602,7 @@ void CP2112::processReadResponse(MutableByteRange buf, milliseconds timeout) {
 
   // The device has finished reading data from the I2C bus.
   // Now we just have to read it over USB.
-  uint8_t usbBuf[64];
+  std::array<uint8_t, 64> usbBuf;
   uint16_t bytesRead{0};
   bool sendRead = true;
   while (true) {
@@ -611,7 +611,8 @@ void CP2112::processReadResponse(MutableByteRange buf, milliseconds timeout) {
     if (sendRead) {
       usbBuf[0] = ReportID::READ_FORCE_SEND;
       usbBuf[1] = 1;
-      intrOut("read force send", usbBuf, sizeof(usbBuf), milliseconds(5));
+      intrOut(
+          "read force send", usbBuf.data(), sizeof(usbBuf), milliseconds(5));
       sendRead = false;
     }
 
@@ -625,7 +626,7 @@ void CP2112::processReadResponse(MutableByteRange buf, milliseconds timeout) {
     // avoid this case, though.  I haven't seen the device get stuck waiting on
     // READ_FORCE_SEND yet with the current logic.)
     try {
-      intrIn(usbBuf, sizeof(usbBuf), milliseconds(10));
+      intrIn(usbBuf.data(), sizeof(usbBuf), milliseconds(10));
     } catch (const LibusbError& ex) {
       VLOG(1) << "timed out waiting on READ_RESPONSE, sending READ_FORCE_SEND";
       // If we timed out, send a READ_FORCE_SEND and keep trying.
@@ -658,7 +659,10 @@ void CP2112::processReadResponse(MutableByteRange buf, milliseconds timeout) {
     VLOG(5) << "SMBus read response: status=" << (int)status
             << ", length=" << (int)length;
 
-    memcpy(buf.begin() + bytesRead, usbBuf + 3, length);
+    std::copy(
+        usbBuf.begin() + 3,
+        usbBuf.begin() + 3 + length,
+        buf.begin() + bytesRead);
     bytesRead += length;
 
     if (status == 0 || status == 2) {
