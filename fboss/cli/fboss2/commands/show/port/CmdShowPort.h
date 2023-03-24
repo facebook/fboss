@@ -10,7 +10,9 @@
 
 #pragma once
 
+#include <folly/json.h>
 #include <thrift/lib/cpp/transport/TTransportException.h>
+#include "configerator/structs/neteng/fboss/bgp/gen-cpp2/bgp_config_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_visitation.h"
@@ -18,6 +20,8 @@
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
+#include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 
 #include <unistd.h>
 #include <algorithm>
@@ -25,6 +29,7 @@
 namespace facebook::fboss {
 
 using utils::Table;
+using namespace facebook::neteng::fboss::bgp::thrift;
 
 struct CmdShowPortTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
@@ -48,6 +53,8 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     std::map<std::string, facebook::fboss::HwPortStats> portStats;
 
     std::vector<int32_t> requiredTransceiverEntries;
+    std::vector<std::string> bgpDrainedInterfaces;
+    std::string bgpConfigStr;
 
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
@@ -69,8 +76,24 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       std::cerr << "Cannot connect to qsfp_service\n";
     }
 
+    try {
+      auto bgpClient = utils::createClient<TBgpServiceAsyncClient>(hostInfo);
+      bgpClient->sync_getRunningConfig(bgpConfigStr);
+    } catch (apache::thrift::transport::TTransportException& e) {
+      std::cerr << "Cannot connect to bgp_service\n";
+    }
+
+    bgp::thrift::BgpConfig bgpConfig;
+    apache::thrift::SimpleJSONSerializer serializer;
+    serializer.deserialize(bgpConfigStr, bgpConfig);
+    bgpDrainedInterfaces = *bgpConfig.drained_interfaces();
+
     return createModel(
-        portEntries, transceiverEntries, queriedPorts.data(), portStats);
+        portEntries,
+        transceiverEntries,
+        queriedPorts.data(),
+        portStats,
+        bgpDrainedInterfaces);
   }
 
   std::unordered_map<std::string, std::vector<std::string>>
@@ -300,7 +323,8 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
       std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries,
       std::map<int32_t, facebook::fboss::TransceiverInfo> transceiverEntries,
       const ObjectArgType& queriedPorts,
-      std::map<std::string, facebook::fboss::HwPortStats> portStats) {
+      std::map<std::string, facebook::fboss::HwPortStats> portStats,
+      const std::vector<std::string>& drainedInterfaces) {
     RetType model;
     std::unordered_set<std::string> queriedSet(
         queriedPorts.begin(), queriedPorts.end());
@@ -308,7 +332,6 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
     for (const auto& entry : portEntries) {
       auto portInfo = entry.second;
       auto portName = portInfo.get_name();
-
       auto operState = getOperStateStr(portInfo.get_operState());
 
       if (queriedPorts.size() == 0 || queriedSet.count(portName)) {
@@ -321,6 +344,11 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         portDetails.profileId() = portInfo.get_profileID();
         if (auto hwLogicalPortId = portInfo.hwLogicalPortId()) {
           portDetails.hwLogicalPortId() = *hwLogicalPortId;
+        }
+        if (std::find(
+                drainedInterfaces.begin(), drainedInterfaces.end(), portName) !=
+            drainedInterfaces.end()) {
+          // TBD set port drained state
         }
         if (auto tcvrId = portInfo.transceiverIdx()) {
           const auto transceiverId = tcvrId->get_transceiverId();

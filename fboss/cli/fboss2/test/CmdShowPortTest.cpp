@@ -245,6 +245,22 @@ cli::ShowPortModel createPortModel() {
   return model;
 }
 
+std::vector<std::string> createDrainedInterfaces() {
+  std::vector<std::string> drainedInterfaces;
+  // To be populated in next diff
+  return drainedInterfaces;
+}
+
+std::string createMockedBgpConfig() {
+  std::string bgpConfigStr;
+  bgp::thrift::BgpConfig bgpConfig;
+  std::vector<std::string> drainedInterfaces;
+  // To be populated in next diff
+  bgpConfig.drained_interfaces() = std::move(drainedInterfaces);
+  apache::thrift::SimpleJSONSerializer::serialize(bgpConfig, &bgpConfigStr);
+  return bgpConfigStr;
+}
+
 class CmdShowPortTestFixture : public CmdHandlerTestBase {
  public:
   CmdShowPortTraits::ObjectArgType queriedEntries;
@@ -252,18 +268,26 @@ class CmdShowPortTestFixture : public CmdHandlerTestBase {
   std::map<int32_t, facebook::fboss::TransceiverInfo> mockTransceiverEntries;
   std::map<std::string, facebook::fboss::HwPortStats> mockPortStats;
   cli::ShowPortModel normalizedModel;
+  std::vector<std::string> mockDrainedInterfaces;
+  std::string mockBgpRunningConfig;
 
   void SetUp() override {
     CmdHandlerTestBase::SetUp();
     mockPortEntries = createPortEntries();
     mockTransceiverEntries = createTransceiverEntries();
     normalizedModel = createPortModel();
+    mockDrainedInterfaces = createDrainedInterfaces();
+    mockBgpRunningConfig = createMockedBgpConfig();
   }
 };
 
 TEST_F(CmdShowPortTestFixture, sortByName) {
   auto model = CmdShowPort().createModel(
-      mockPortEntries, mockTransceiverEntries, queriedEntries, mockPortStats);
+      mockPortEntries,
+      mockTransceiverEntries,
+      queriedEntries,
+      mockPortStats,
+      mockDrainedInterfaces);
 
   EXPECT_THRIFT_EQ(model, normalizedModel);
 }
@@ -276,7 +300,8 @@ TEST_F(CmdShowPortTestFixture, invalidPortName) {
         invalidPortEntries,
         mockTransceiverEntries,
         queriedEntries,
-        mockPortStats);
+        mockPortStats,
+        mockDrainedInterfaces);
     FAIL();
   } catch (const std::invalid_argument& expected) {
     ASSERT_STREQ(
@@ -288,12 +313,17 @@ TEST_F(CmdShowPortTestFixture, invalidPortName) {
 
 TEST_F(CmdShowPortTestFixture, queryClient) {
   setupMockedAgentServer();
+  setupMockedBgpServer();
   EXPECT_CALL(getMockAgent(), getAllPortInfo(_))
       .WillOnce(Invoke([&](auto& entries) { entries = mockPortEntries; }));
 
   EXPECT_CALL(getQsfpService(), getTransceiverInfo(_, _))
       .WillOnce(Invoke(
           [&](auto& entries, auto) { entries = mockTransceiverEntries; }));
+
+  EXPECT_CALL(getBgpService(), getRunningConfig(_))
+      .WillOnce(Invoke(
+          [&](auto& bgpConfigStr) { bgpConfigStr = mockBgpRunningConfig; }));
 
   auto cmd = CmdShowPort();
   CmdShowPortTraits::ObjectArgType queriedEntries;
