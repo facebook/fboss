@@ -249,7 +249,8 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
            "TcvrID",
            "Speed",
            "ProfileID",
-           "HwLogicalPortId"});
+           "HwLogicalPortId",
+           "Drained"});
 
       for (auto const& portInfo : model.get_portEntries()) {
         std::string hwLogicalPortId;
@@ -265,7 +266,8 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
              folly::to<std::string>(portInfo.get_tcvrID()),
              portInfo.get_speed(),
              portInfo.get_profileId(),
-             hwLogicalPortId});
+             hwLogicalPortId,
+             portInfo.get_isDrained()});
       }
       out << table << std::endl;
     }
@@ -345,10 +347,13 @@ class CmdShowPort : public CmdHandler<CmdShowPort, CmdShowPortTraits> {
         if (auto hwLogicalPortId = portInfo.hwLogicalPortId()) {
           portDetails.hwLogicalPortId() = *hwLogicalPortId;
         }
-        if (std::find(
-                drainedInterfaces.begin(), drainedInterfaces.end(), portName) !=
-            drainedInterfaces.end()) {
-          // TBD set port drained state
+        portDetails.isDrained() = "No";
+        if ((std::find(
+                 drainedInterfaces.begin(),
+                 drainedInterfaces.end(),
+                 portName) != drainedInterfaces.end()) ||
+            portInfo.get_isDrained()) {
+          portDetails.isDrained() = "Yes";
         }
         if (auto tcvrId = portInfo.transceiverIdx()) {
           const auto transceiverId = tcvrId->get_transceiverId();
