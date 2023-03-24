@@ -50,6 +50,8 @@ target_link_libraries(fan_service
   fb303::fb303
 )
 
+install(TARGETS fan_service)
+
 add_executable(fan_service_sw_test
   fboss/platform/fan_service/tests/BspTests.cpp
   fboss/platform/fan_service/tests/ServiceConfigTests.cpp
@@ -62,6 +64,8 @@ target_link_libraries(fan_service_sw_test
   ${LIBGMOCK_LIBRARIES}
 )
 
+install(TARGETS fan_service_sw_test)
+
 add_executable(fan_service_hw_test
   fboss/platform/fan_service/hw_test/FanServiceTest.cpp
 )
@@ -72,3 +76,5 @@ target_link_libraries(fan_service_hw_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+install(TARGETS fan_service_hw_test)

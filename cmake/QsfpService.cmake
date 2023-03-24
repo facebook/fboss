@@ -162,3 +162,5 @@ target_link_libraries(qsfp_service
     qsfp_core
     qsfp_handler
 )
+
+install(TARGETS qsfp_service)

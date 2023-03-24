@@ -54,3 +54,5 @@ target_link_libraries(qsfp_hw_test
   fb303::fb303
   hw_test_main
 )
+
+install(TARGETS qsfp_hw_test)

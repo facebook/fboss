@@ -16,3 +16,5 @@ target_link_libraries(fw_util
   platform_utils
   common_file_utils
 )
+
+install(TARGETS fw_util)

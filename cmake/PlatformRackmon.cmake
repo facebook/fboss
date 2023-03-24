@@ -57,6 +57,8 @@ target_link_libraries(rackmon
   fb303::fb303
 )
 
+install(TARGETS rackmon)
+
 add_executable(rackmon_test
   fboss/platform/rackmon/tests/DeviceTest.cpp
   fboss/platform/rackmon/tests/TempDir.h
@@ -88,3 +90,5 @@ target_include_directories(rackmon_test PRIVATE
 )
 
 target_compile_definitions(rackmon_test PRIVATE __TEST__=1)
+
+install(TARGETS rackmon_test)

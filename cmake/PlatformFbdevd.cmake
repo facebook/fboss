@@ -60,3 +60,5 @@ target_link_libraries(fbdevd
   fbdevd_lib
   fb303::fb303
 )
+
+install(TARGETS fbdevd)

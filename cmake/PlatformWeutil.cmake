@@ -22,3 +22,5 @@ add_executable(weutil
 target_link_libraries(weutil
   weutil_lib
 )
+
+install(TARGETS weutil)

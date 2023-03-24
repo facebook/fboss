@@ -54,6 +54,8 @@ target_link_libraries(sensor_service
   fb303::fb303
 )
 
+install(TARGETS sensor_service)
+
 add_executable(sensor_service_hw_test
   fboss/platform/sensor_service/hw_test/Main.cpp
   fboss/platform/sensor_service/hw_test/SensorsTest.cpp
@@ -64,6 +66,8 @@ target_link_libraries(sensor_service_hw_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+install(TARGETS sensor_service_hw_test)
 
 add_executable(sensor_service_impl_test
   fboss/platform/sensor_service/test/SensorServiceImplTest.cpp
@@ -76,3 +80,5 @@ target_link_libraries(sensor_service_impl_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )
+
+install(TARGETS sensor_service_impl_test)

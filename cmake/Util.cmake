@@ -22,3 +22,5 @@ target_link_libraries(wedge_qsfp_util
   transceiver_manager
   qsfp_platforms_wedge
 )
+
+install(TARGETS wedge_qsfp_util)
