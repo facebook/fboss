@@ -134,14 +134,9 @@ class PackageFboss:
         )
 
     def _copy_kos(self, tmp_dir_name):
+        ko_path = ""
         if self.ko_path:
             ko_path = self.ko_path
-        else:
-            # If kernel modules are built (e.g. by build-bcm-ko.sh), copy those
-            opennsa_base_dir = self._get_install_dir_for("OpenNSA")
-            ko_path = os.path.join(
-                opennsa_base_dir, "src/gpl-modules/build/linux-x86-smp_generic_64-2_6"
-            )
         if os.path.exists(ko_path):
             linux_user_bde_path = os.path.join(ko_path, "linux-user-bde.ko")
             linux_kernel_bde_path = os.path.join(ko_path, "linux-kernel-bde.ko")
