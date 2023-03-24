@@ -28,12 +28,16 @@ def parse_args():
             + "=/opt/app"
         ),
     )
+    parser.add_argument(
+        "--compress", help="Compress the FBOSS Binaries", action="store_true"
+    )
     return parser.parse_args()
 
 
 class PackageFboss:
     FBOSS_BINS = "fboss_bins-1"
     FBOSS_BINS_SPEC = FBOSS_BINS + ".spec"
+    FBOSS_BIN_TAR = "fboss_bins.tar.gz"
 
     HOME_DIR_ABS = os.path.expanduser("~")
 
@@ -210,12 +214,20 @@ class PackageFboss:
         self._prepare_for_build()
         self._build_rpm_helper()
 
+    def _compress_binaries(self):
+        print(f"Compressing FBOSS Binaries...")
+        tar_path = os.path.join(args.scratch_path, PackageFboss.FBOSS_BIN_TAR)
+        subprocess.run(["tar", "-cvzf", tar_path, self.tmp_dir_name])
+        print(f"Compressed to {tar_path}")
+
     def run(self, args):
         if args.rpm:
             print(f"Building RPM...")
             self._build_rpm()
         else:
             self._copy_binaries(self.tmp_dir_name)
+            if args.compress:
+                self._compress_binaries()
 
 
 if __name__ == "__main__":
