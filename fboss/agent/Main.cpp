@@ -310,11 +310,7 @@ void AgentInitializer::stopServices() {
   // stop Thrift server: stop all worker threads and
   // stop accepting new connections
   XLOG(DBG2) << "Stopping thrift server";
-  if (FLAGS_disable_duplex) {
-    server_->stop();
-  } else {
-    server_->stopListening();
-  }
+  server_->stop();
   XLOG(DBG2) << "Stopped thrift server";
   initializer_->stopFunctionScheduler();
   XLOG(DBG2) << "Stopped stats FunctionScheduler";
