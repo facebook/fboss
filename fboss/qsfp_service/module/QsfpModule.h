@@ -199,8 +199,9 @@ class QsfpModule : public Transceiver {
     return snapshots_.copy();
   }
 
-  void programTransceiver(cfg::PortSpeed speed, bool needResetDataPath)
-      override;
+  void programTransceiver(
+      ProgramTransceiverState& programTcvrState,
+      bool needResetDataPath) override;
 
   bool readyTransceiver() override;
 

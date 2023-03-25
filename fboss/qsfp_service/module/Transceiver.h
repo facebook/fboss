@@ -44,6 +44,25 @@ enum TransceiverStateMachineEvent {
   TCVR_EV_PREPARE_TRANSCEIVER = 17,
 };
 
+struct TransceiverPortState {
+  std::string portName;
+  uint8_t startHostLane;
+  cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT;
+
+  bool operator==(const TransceiverPortState& other) const {
+    return speed == other.speed && portName == other.portName &&
+        startHostLane == other.startHostLane;
+  }
+};
+
+struct ProgramTransceiverState {
+  std::map<std::string, TransceiverPortState> ports;
+
+  bool operator==(const ProgramTransceiverState& other) const {
+    return ports == other.ports;
+  }
+};
+
 /* Virtual class to handle the different transceivers our equipment is likely
  * to support.  This supports, for now, QSFP and SFP.
  */
@@ -122,7 +141,7 @@ class Transceiver {
    * once we switch to use the new state machine.
    */
   virtual void programTransceiver(
-      cfg::PortSpeed speed,
+      ProgramTransceiverState& programTcvrState,
       bool needResetDataPath) = 0;
 
   /*

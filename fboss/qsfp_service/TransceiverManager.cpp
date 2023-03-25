@@ -683,38 +683,37 @@ void TransceiverManager::programTransceiver(
     return;
   }
 
-  // We don't support single transceiver for different speed software ports
-  // And we use the unified speed of software ports to program transceiver
-  std::optional<cfg::PortProfileID> unifiedProfile;
+  ProgramTransceiverState programTcvrState;
   for (const auto& portToPortInfo : programmedPortToPortInfo) {
     auto portProfile = portToPortInfo.second.profile;
-    if (!unifiedProfile) {
-      unifiedProfile = portProfile;
-    } else if (*unifiedProfile != portProfile) {
+    auto portName = getPortNameByPortId(portToPortInfo.first);
+    if (!portName.has_value()) {
       throw FbossError(
-          "Multiple profiles found for member ports of Transceiver=",
-          id,
-          ", profiles=[",
-          apache::thrift::util::enumNameSafe(*unifiedProfile),
-          ", ",
-          apache::thrift::util::enumNameSafe(portProfile),
-          "]");
+          "Can't find a portName for portId ", portToPortInfo.first);
     }
+    // TODO: Use Platform Mapping to get start lane and remove hardcoding of 0
+    uint8_t tcvrStartLane = 0;
+    if (tcvrStartLane > 8) {
+      throw FbossError(
+          "Invalid start lane of ",
+          tcvrStartLane,
+          " for portId ",
+          portToPortInfo.first);
+    }
+    auto profileCfgOpt = platformMapping_->getPortProfileConfig(
+        PlatformPortProfileConfigMatcher(portProfile));
+    if (!profileCfgOpt) {
+      throw FbossError(
+          "Can't find profile config for profileID=",
+          apache::thrift::util::enumNameSafe(portProfile));
+    }
+    const auto speed = *profileCfgOpt->speed();
+    TransceiverPortState portState;
+    portState.portName = *portName;
+    portState.startHostLane = tcvrStartLane;
+    portState.speed = speed;
+    programTcvrState.ports.emplace(*portName, portState);
   }
-  // This should never happen
-  if (!unifiedProfile) {
-    throw FbossError(
-        "Can't find unified profile for member ports of Transceiver=", id);
-  }
-  const auto profileID = *unifiedProfile;
-  auto profileCfgOpt = platformMapping_->getPortProfileConfig(
-      PlatformPortProfileConfigMatcher(profileID));
-  if (!profileCfgOpt) {
-    throw FbossError(
-        "Can't find profile config for profileID=",
-        apache::thrift::util::enumNameSafe(profileID));
-  }
-  const auto speed = *profileCfgOpt->speed();
 
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);
@@ -723,9 +722,9 @@ void TransceiverManager::programTransceiver(
                << ". Transeciver is not present";
     return;
   }
-  tcvrIt->second->programTransceiver(speed, needResetDataPath);
+
+  tcvrIt->second->programTransceiver(programTcvrState, needResetDataPath);
   XLOG(INFO) << "Programmed Transceiver for Transceiver=" << id
-             << " with speed=" << apache::thrift::util::enumNameSafe(speed)
              << (needResetDataPath ? " with" : " without")
              << " resetting data path";
 }

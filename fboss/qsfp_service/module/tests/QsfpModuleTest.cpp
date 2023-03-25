@@ -222,14 +222,19 @@ TEST_F(QsfpModuleTest, portsChangedOnePortPerModule) {
 }
 
 TEST_F(QsfpModuleTest, portsChangedSpeedMismatch) {
-  EXPECT_ANY_THROW(
-      triggerPortsChanged(
-          {{kTcvrID,
-            {
-                {PortID(1), cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER},
-                {PortID(3),
-                 cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
-            }}}););
+  ON_CALL(*qsfp_, getTransceiverInfo()).WillByDefault(Return(qsfp_->fakeInfo_));
+  ON_CALL(*qsfp_, customizationSupported()).WillByDefault(Return(true));
+
+  // should customize w/ first speed i.e 50G
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::FIFTYG, _, _)).Times(1);
+
+  // We only store enabled ports
+  triggerPortsChanged(
+      {{kTcvrID,
+        {
+            {PortID(1), cfg::PortProfileID::PROFILE_50G_2_NRZ_CL74_COPPER},
+            {PortID(3), cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL},
+        }}});
 }
 
 TEST_F(QsfpModuleTest, skipCustomizingForRefresh) {

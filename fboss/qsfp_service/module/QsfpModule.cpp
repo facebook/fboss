@@ -878,10 +878,10 @@ TransceiverManagementInterface QsfpModule::getTransceiverManagementInterface(
 }
 
 void QsfpModule::programTransceiver(
-    cfg::PortSpeed speed,
+    ProgramTransceiverState& programTcvrState,
     bool needResetDataPath) {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
-  auto programTcvrFunc = [this, speed, needResetDataPath]() {
+  auto programTcvrFunc = [this, &programTcvrState, needResetDataPath]() {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
     if (present_) {
       if (!cacheIsValid()) {
@@ -890,6 +890,9 @@ void QsfpModule::programTransceiver(
             getNameString(),
             " - Cache is not valid, so cannot program the transceiver");
       }
+      // For now use the speed from the first port itself. This will be changed
+      // to look at specific port's speed soon
+      auto speed = programTcvrState.ports.begin()->second.speed;
       // Make sure customize xcvr first so that we can set the application code
       // correctly and then call configureModule() later to program serdes like
       // Rx equalizer setting based on QSFP config
