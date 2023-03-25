@@ -16,6 +16,7 @@ facebook::fboss::PlatformInitFn initPlatform{nullptr};
 
 DEFINE_bool(setup_for_warmboot, false, "Set up test for warmboot");
 DEFINE_bool(run_forever, false, "run the test forever");
+DEFINE_bool(run_forever_on_failure, false, "run the test forever on failure");
 
 DECLARE_string(config);
 
@@ -40,7 +41,8 @@ void AgentTest::setupAgent() {
 }
 
 void AgentTest::TearDown() {
-  if (FLAGS_run_forever) {
+  if (FLAGS_run_forever ||
+      (::testing::Test::HasFailure() && FLAGS_run_forever_on_failure)) {
     runForever();
   }
   AgentInitializer::stopAgent(FLAGS_setup_for_warmboot);
