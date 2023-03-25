@@ -36,6 +36,8 @@ class MockCmisModule : public CmisModule {
   MOCK_METHOD0(getModuleStateChanged, bool());
   MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
 
+  using CmisModule::getApplicationField;
+
  private:
   uint8_t moduleStateChangedReadTimes_{0};
 };
@@ -204,6 +206,19 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   auto sysPrbsCapability = *(*diagsCap).prbsSystemCapabilities();
   tests.verifyPrbsPolynomials(expectedPolynomials, linePrbsCapability);
   tests.verifyPrbsPolynomials(expectedPolynomials, sysPrbsCapability);
+
+  for (auto unsupportedApplication :
+       {SMFMediaInterfaceCode::LR4_10_400G, SMFMediaInterfaceCode::FR4_400G}) {
+    EXPECT_EQ(
+        xcvr->getApplicationField(static_cast<uint8_t>(unsupportedApplication)),
+        std::nullopt);
+  }
+  for (auto supportedApplication :
+       {SMFMediaInterfaceCode::FR4_200G, SMFMediaInterfaceCode::CWDM4_100G}) {
+    EXPECT_NE(
+        xcvr->getApplicationField(static_cast<uint8_t>(supportedApplication)),
+        std::nullopt);
+  }
 }
 
 TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
@@ -299,6 +314,19 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
 
   tests.verifyPrbsPolynomials(expectedLinePolynomials, linePrbsCapability);
   tests.verifyPrbsPolynomials(expectedSysPolynomials, sysPrbsCapability);
+
+  for (auto unsupportedApplication :
+       {SMFMediaInterfaceCode::CWDM4_100G, SMFMediaInterfaceCode::FR4_400G}) {
+    EXPECT_EQ(
+        xcvr->getApplicationField(static_cast<uint8_t>(unsupportedApplication)),
+        std::nullopt);
+  }
+  for (auto supportedApplication :
+       {SMFMediaInterfaceCode::LR4_10_400G, SMFMediaInterfaceCode::FR4_200G}) {
+    EXPECT_NE(
+        xcvr->getApplicationField(static_cast<uint8_t>(supportedApplication)),
+        std::nullopt);
+  }
 }
 
 TEST_F(CmisTest, flatMemTransceiverInfoTest) {
@@ -372,5 +400,20 @@ TEST_F(CmisTest, cmis400GCr8TransceiverInfoTest) {
 
   auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
   EXPECT_FALSE(diagsCap.has_value());
+
+  for (auto unsupportedApplication :
+       {SMFMediaInterfaceCode::CWDM4_100G,
+        SMFMediaInterfaceCode::FR4_200G,
+        SMFMediaInterfaceCode::FR4_400G,
+        SMFMediaInterfaceCode::LR4_10_400G}) {
+    EXPECT_EQ(
+        xcvr->getApplicationField(static_cast<uint8_t>(unsupportedApplication)),
+        std::nullopt);
+  }
+  for (auto supportedApplication : {PassiveCuMediaInterfaceCode::COPPER}) {
+    EXPECT_NE(
+        xcvr->getApplicationField(static_cast<uint8_t>(supportedApplication)),
+        std::nullopt);
+  }
 }
 } // namespace facebook::fboss

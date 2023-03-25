@@ -333,6 +333,13 @@ class CmisModule : public QsfpModule {
 
   void resetDataPath() override;
 
+  /*
+   * Returns the ApplicationAdvertisingField corresponding to the application or
+   * nullopt if it doesn't exist
+   */
+  std::optional<ApplicationAdvertisingField> getApplicationField(
+      uint8_t application) const;
+
  private:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
@@ -392,9 +399,9 @@ class CmisModule : public QsfpModule {
   virtual bool getModuleStateChanged();
 
   /*
-   * ApplicationCode to ApplicationCodeSel mapping.
+   * Application advertising fields.
    */
-  std::map<uint8_t, ApplicationAdvertisingField> moduleCapabilities_;
+  std::vector<ApplicationAdvertisingField> moduleCapabilities_;
 
   /*
    * Gets the module media interface. This is the intended media interface
