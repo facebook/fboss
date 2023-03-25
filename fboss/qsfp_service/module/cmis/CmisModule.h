@@ -42,6 +42,7 @@ class CmisModule : public QsfpModule {
     uint8_t moduleMediaInterface;
     int hostLaneCount;
     int mediaLaneCount;
+    std::unordered_set<int> hostStartLanes;
   };
 
   /*

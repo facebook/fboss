@@ -939,6 +939,11 @@ void CmisModule::getApplicationCapabilities() {
         (data[2] & FieldMasks::UPPER_FOUR_BITS_MASK) >> 4;
     applicationAdvertisingField.mediaLaneCount =
         data[2] & FieldMasks::LOWER_FOUR_BITS_MASK;
+    for (int lane = 0; lane < 8; lane++) {
+      if (data[3] & (1 << lane)) {
+        applicationAdvertisingField.hostStartLanes.insert(lane);
+      }
+    }
 
     moduleCapabilities_.push_back(applicationAdvertisingField);
   }
