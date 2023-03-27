@@ -92,7 +92,3 @@ extern "C" void sal_reboot(void) {
 extern "C" void sal_shell(void) {
   BcmFacebookAPI::printf("%s", "shell access is not supported");
 }
-
-extern "C" void pci_print_all() {
-  XLOG(DBG2) << "pci_print_all() called";
-}
