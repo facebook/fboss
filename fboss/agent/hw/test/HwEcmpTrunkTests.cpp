@@ -212,6 +212,9 @@ TEST_F(
   };
 
   auto setupPostWarmboot = [=]() {
+    // neighbor gets removed due to  link toggle
+    applyNewState(ecmpHelper_->unresolveNextHops(
+        getProgrammedState(), {PortDescriptor(kAggId)}));
     // bring up the member link
     bringUpPort(PortID(getTrunkMemberPorts()[0]));
     // ECMP should stay shrunk
@@ -298,6 +301,10 @@ TEST_F(HwEcmpTrunkTest, TrunkL2ResolveNhopThenLinkDownThenUpThenStateUp) {
   };
 
   auto setupPostWarmboot = [=]() {
+    // neighbor gets removed due to  link toggle
+    applyNewState(ecmpHelper_->unresolveNextHops(
+        getProgrammedState(), {PortDescriptor(kAggId)}));
+
     // LACP reacts to link down notification at end of warm boot init
     auto state = disableTrunkPort(
         getProgrammedState(), kAggId, PortID(getTrunkMemberPorts()[0]));
