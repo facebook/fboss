@@ -326,9 +326,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
   std::optional<bool> isDrained = std::nullopt;
   if (platform_->getAsic()->isSupported(HwAsic::Feature::PORT_FABRIC_ISOLATE)) {
-    isDrained = swPort->getPortDrainState() == cfg::PortDrainState::DRAINED;
-    if ((isDrained == true) &&
-        swPort->getPortType() != cfg::PortType::FABRIC_PORT) {
+    if (swPort->getPortType() == cfg::PortType::FABRIC_PORT) {
+      isDrained = swPort->getPortDrainState() == cfg::PortDrainState::DRAINED;
+    } else if (swPort->getPortDrainState() == cfg::PortDrainState::DRAINED) {
       throw FbossError(
           "Cannot isolate/drain a non-fabric port ", swPort->getID());
     }
