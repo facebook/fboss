@@ -28,6 +28,8 @@ class ProdInvariantTest : public ProdAgentTests {
   void setupAgentTestEcmp(const std::vector<PortDescriptor>& ecmpPorts);
   std::map<PortID, HwPortStats> getLatestPortStats(
       const std::vector<PortID>& ports);
+
+  bool useProdConfig_ = false;
 };
 
 int ProdInvariantTestMain(int argc, char** argv, PlatformInitFn initPlatformFn);

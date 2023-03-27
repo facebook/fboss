@@ -42,12 +42,14 @@ void ProdInvariantTest::setupAgentTestEcmp(
     ports.insert(ecmpPort);
   });
 
+  // When prod config is used, uplink's subnetIp should be used as the nextHop
+  // IP. Therefore, no offset should be added in the IP address.
+  utility::EcmpSetupTargetedPorts6 ecmp6(
+      sw()->getState(), /* forProdConfig */ useProdConfig_);
   sw()->updateStateBlocking("Resolve nhops", [&](auto state) {
-    utility::EcmpSetupTargetedPorts6 ecmp6(state);
     return ecmp6.resolveNextHops(state, ports);
   });
 
-  utility::EcmpSetupTargetedPorts6 ecmp6(sw()->getState());
   ecmp6.programRoutes(
       std::make_unique<SwSwitchRouteUpdateWrapper>(sw()->getRouteUpdater()),
       ports);
@@ -102,6 +104,7 @@ cfg::SwitchConfig ProdInvariantTest::initialConfig() {
     cfg = utility::createProdRswConfig(platform()->getHwSwitch(), ports);
     return cfg;
   } else {
+    useProdConfig_ = true;
     return getConfigFromFlag();
   }
 }
