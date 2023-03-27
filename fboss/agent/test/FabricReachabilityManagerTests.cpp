@@ -35,10 +35,13 @@ class FabricReachabilityManagerTest : public ::testing::Test {
     return dsfNodeCfg;
   }
 
-  std::shared_ptr<DsfNode> makeDsfNode(int64_t switchId, std::string name) {
+  std::shared_ptr<DsfNode> makeDsfNode(
+      int64_t switchId,
+      std::string name,
+      cfg::AsicType asicType = cfg::AsicType::ASIC_TYPE_RAMON) {
     auto dsfNode = std::make_shared<DsfNode>(SwitchID(switchId));
     auto cfgDsfNode = makeDsfNodeCfg(switchId, name);
-    cfgDsfNode.asicType() = cfg::AsicType::ASIC_TYPE_RAMON;
+    cfgDsfNode.asicType() = asicType;
     cfgDsfNode.type() = cfg::DsfNodeType::FABRIC_NODE;
     dsfNode->fromThrift(cfgDsfNode);
     return dsfNode;
@@ -69,25 +72,25 @@ class FabricReachabilityManagerTest : public ::testing::Test {
   std::unique_ptr<FabricReachabilityManager> fabricReachabilityManager_;
 };
 
-TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
+TEST_F(FabricReachabilityManagerTest, validateRemoteOffset) {
   auto oldState = std::make_shared<SwitchState>();
   auto newState = std::make_shared<SwitchState>();
 
   // create port with neighbor reachability
   std::shared_ptr<Port> swPort = makePort(1);
   swPort->setExpectedNeighborReachability(
-      createPortNeighbor("fab1/2/4", "fdswA"));
+      createPortNeighbor("fab1/9/2", "rdswA"));
   newState->getPorts()->addPort(swPort);
 
   std::map<PortID, FabricEndpoint> hwReachabilityMap;
   FabricEndpoint endpoint;
-  endpoint.portId() = 79; // known from platforom mapping for kamet
+  endpoint.portId() =
+      160; // known from platforom mapping for Meru400biuPlatformMapping
   endpoint.switchId() = 10;
   endpoint.isAttached() = true;
-
   hwReachabilityMap.emplace(swPort->getID(), endpoint);
 
-  auto dsfNode = makeDsfNode(10, "fdswA");
+  auto dsfNode = makeDsfNode(10, "rdswA", cfg::AsicType::ASIC_TYPE_JERICHO2);
   auto dsfNodeMap = std::make_shared<DsfNodeMap>();
   dsfNodeMap->addNode(dsfNode);
   newState->resetDsfNodes(dsfNodeMap);
@@ -101,7 +104,47 @@ TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
 
   for (const auto& expectedReachability : expectedReachabilityMap) {
     const auto& neighbor = expectedReachability.second;
-    EXPECT_NE(neighbor.expectedPortId(), 0);
+    // remote offset for jericho2 is 256
+    EXPECT_EQ(neighbor.expectedPortId(), 160 + 256);
+    EXPECT_EQ(neighbor.expectedPortName(), "fab1/9/2");
+    EXPECT_EQ(*neighbor.expectedPortId(), *neighbor.portId());
+    EXPECT_EQ(neighbor.expectedPortName(), neighbor.portName());
+  }
+}
+
+TEST_F(FabricReachabilityManagerTest, validateProcessReachabilityInfo) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto newState = std::make_shared<SwitchState>();
+
+  // create port with neighbor reachability
+  std::shared_ptr<Port> swPort = makePort(1);
+  swPort->setExpectedNeighborReachability(
+      createPortNeighbor("fab1/2/4", "fdswA"));
+  newState->getPorts()->addPort(swPort);
+
+  std::map<PortID, FabricEndpoint> hwReachabilityMap;
+  FabricEndpoint endpoint;
+  endpoint.portId() = 79; // known from platforom mapping for ramon
+  endpoint.switchId() = 10;
+  endpoint.isAttached() = true;
+
+  hwReachabilityMap.emplace(swPort->getID(), endpoint);
+
+  auto dsfNode = makeDsfNode(10, "fdswA", cfg::AsicType::ASIC_TYPE_RAMON);
+  auto dsfNodeMap = std::make_shared<DsfNodeMap>();
+  dsfNodeMap->addNode(dsfNode);
+  newState->resetDsfNodes(dsfNodeMap);
+
+  StateDelta delta(oldState, newState);
+  fabricReachabilityManager_->stateUpdated(delta);
+
+  const auto expectedReachabilityMap =
+      fabricReachabilityManager_->processReachabilityInfo(hwReachabilityMap);
+  EXPECT_EQ(expectedReachabilityMap.size(), 1);
+
+  for (const auto& expectedReachability : expectedReachabilityMap) {
+    const auto& neighbor = expectedReachability.second;
+    EXPECT_EQ(neighbor.expectedPortId(), 79);
     EXPECT_EQ(neighbor.expectedSwitchId(), 10);
     EXPECT_EQ(neighbor.switchId(), 10);
     EXPECT_EQ(neighbor.expectedSwitchName(), "fdswA");
