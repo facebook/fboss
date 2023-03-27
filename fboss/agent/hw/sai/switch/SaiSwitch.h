@@ -464,6 +464,10 @@ class SaiSwitch : public HwSwitch {
 
   void checkAndSetSdkDowngradeVersion() const;
 
+  template <typename LockPolicyT>
+  std::shared_ptr<SwitchState> stateChangedLegacy(
+      const StateDelta& delta,
+      const LockPolicyT& lockPolicy);
   /*
    * SaiSwitch must support a few varieties of concurrent access:
    * 1. state updates on the SwSwitch update thread calling stateChanged
