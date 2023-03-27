@@ -53,7 +53,8 @@ class Sff8472Module : public QsfpModule {
     return 1;
   }
 
-  void customizeTransceiverLocked(cfg::PortSpeed) override {}
+  void customizeTransceiverLocked(
+      TransceiverPortState& /* portState */) override {}
 
   virtual bool ensureTransceiverReadyLocked() override {
     return true;

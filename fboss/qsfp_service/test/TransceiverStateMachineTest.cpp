@@ -51,7 +51,7 @@ class MockSff8472Module : public Sff8472Module {
   }
 
   MOCK_METHOD0(configureModule, void());
-  MOCK_METHOD1(customizeTransceiverLocked, void(cfg::PortSpeed));
+  MOCK_METHOD1(customizeTransceiverLocked, void(TransceiverPortState&));
 
   MOCK_METHOD1(
       ensureRxOutputSquelchEnabled,
@@ -94,7 +94,7 @@ class MockCmisModule : public CmisModule {
   }
 
   MOCK_METHOD0(configureModule, void());
-  MOCK_METHOD1(customizeTransceiverLocked, void(cfg::PortSpeed));
+  MOCK_METHOD1(customizeTransceiverLocked, void(TransceiverPortState&));
 
   MOCK_METHOD1(
       ensureRxOutputSquelchEnabled,
@@ -124,7 +124,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     MOCK_SFF,
     MOCK_SFF8472,
   };
-
+  std::string kPortName = "eth1/1/1";
   QsfpModule* overrideTransceiver(
       TransceiverType type = TransceiverType::CMIS) {
     // Set port status to DOWN so that we can remove the transceiver correctly
@@ -480,7 +480,8 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
       ::testing::Sequence& s) {
     int callTimes = isProgrammed ? 1 : 0;
     MockCmisModule* mockXcvr = static_cast<MockCmisModule*>(xcvr_);
-    EXPECT_CALL(*mockXcvr, customizeTransceiverLocked(cfg::PortSpeed::HUNDREDG))
+    TransceiverPortState state{kPortName, 0, cfg::PortSpeed::HUNDREDG};
+    EXPECT_CALL(*mockXcvr, customizeTransceiverLocked(state))
         .Times(callTimes)
         .InSequence(s);
     EXPECT_CALL(*mockXcvr, updateQsfpData(true)).Times(callTimes).InSequence(s);
@@ -859,8 +860,8 @@ TEST_F(TransceiverStateMachineTest, programTransceiverFailed) {
 
         // Mock throw exception on one of the functions in
         // QsfpModule::programTransceiver()
-        EXPECT_CALL(
-            *mockXcvr, customizeTransceiverLocked(cfg::PortSpeed::HUNDREDG))
+        TransceiverPortState state{kPortName, 0, cfg::PortSpeed::HUNDREDG};
+        EXPECT_CALL(*mockXcvr, customizeTransceiverLocked(state))
             .Times(2)
             .WillOnce(ThrowFbossError());
         EXPECT_CALL(*mockXcvr, configureModule()).Times(1);

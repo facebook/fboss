@@ -1386,7 +1386,15 @@ void SffModule::overwriteChannelControlSettings() {
   }
 }
 
-void SffModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
+void SffModule::customizeTransceiverLocked(TransceiverPortState& portState) {
+  auto& portName = portState.portName;
+  auto speed = portState.speed;
+  auto startHostLane = portState.startHostLane;
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "customizeTransceiverLocked: PortName {}, Speed {}, StartHostLane {}",
+      portName,
+      apache::thrift::util::enumNameSafe(speed),
+      startHostLane);
   /*
    * This must be called with a lock held on qsfpModuleMutex_
    */

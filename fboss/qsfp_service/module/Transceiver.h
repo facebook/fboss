@@ -152,7 +152,7 @@ class Transceiver {
   /*
    * Set speed specific settings for the transceiver
    */
-  virtual void customizeTransceiver(cfg::PortSpeed speed) = 0;
+  virtual void customizeTransceiver(TransceiverPortState& portState) = 0;
 
   /*
    * Perform raw register read on a specific transceiver

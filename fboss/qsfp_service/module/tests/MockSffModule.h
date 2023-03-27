@@ -87,10 +87,10 @@ class MockSffModule : public SffModule {
     flatMem_ = false;
   }
 
-  void customizeTransceiver(cfg::PortSpeed speed) override {
+  void customizeTransceiver(TransceiverPortState& portState) override {
     dirty_ = false;
     present_ = true;
-    SffModule::customizeTransceiver(speed);
+    SffModule::customizeTransceiver(portState);
   }
 
   TransceiverSettings getTransceiverSettingsInfo() override {

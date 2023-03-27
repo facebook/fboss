@@ -657,14 +657,22 @@ bool QsfpModule::shouldRemediateLocked() {
   return remediationEnabled && remediationCooled;
 }
 
-void QsfpModule::customizeTransceiver(cfg::PortSpeed speed) {
+void QsfpModule::customizeTransceiver(TransceiverPortState& portState) {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   if (present_) {
-    customizeTransceiverLocked(speed);
+    customizeTransceiverLocked(portState);
   }
 }
 
-void QsfpModule::customizeTransceiverLocked(cfg::PortSpeed speed) {
+void QsfpModule::customizeTransceiverLocked(TransceiverPortState& portState) {
+  auto& portName = portState.portName;
+  auto speed = portState.speed;
+  auto startHostLane = portState.startHostLane;
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "customizeTransceiverLocked: PortName {}, Speed {}, StartHostLane {}",
+      portName,
+      apache::thrift::util::enumNameSafe(speed),
+      startHostLane);
   /*
    * This must be called with a lock held on qsfpModuleMutex_
    */
@@ -890,13 +898,12 @@ void QsfpModule::programTransceiver(
             getNameString(),
             " - Cache is not valid, so cannot program the transceiver");
       }
-      // For now use the speed from the first port itself. This will be changed
-      // to look at specific port's speed soon
-      auto speed = programTcvrState.ports.begin()->second.speed;
       // Make sure customize xcvr first so that we can set the application code
       // correctly and then call configureModule() later to program serdes like
       // Rx equalizer setting based on QSFP config
-      customizeTransceiverLocked(speed);
+      auto firstPort = programTcvrState.ports.begin();
+      auto portSpeed = firstPort->second.speed;
+      customizeTransceiverLocked(firstPort->second);
       // updateQsfpData so that we can make sure the new application code in
       // cache or the new host settings ges updated before calling
       // configureModule()
@@ -912,7 +919,7 @@ void QsfpModule::programTransceiver(
       // Skip doing this for 200G-FR4 modules configured in 2x50G mode. For this
       // mode, we need all 4 lanes to operate independently
       if (getModuleMediaInterface() != MediaInterfaceCode::FR4_200G ||
-          speed != cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG) {
+          portSpeed != cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG) {
         if (auto hostLaneSettings = settings.hostLaneSettings()) {
           ensureRxOutputSquelchEnabled(*hostLaneSettings);
         }

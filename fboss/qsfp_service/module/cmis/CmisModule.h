@@ -131,12 +131,8 @@ class CmisModule : public QsfpModule {
   /*
    * Perform transceiver customization
    * This must be called with a lock held on qsfpModuleMutex_
-   *
-   * Default speed is set to DEFAULT - this will prevent any speed specific
-   * settings from being applied
    */
-  void customizeTransceiverLocked(
-      cfg::PortSpeed speed = cfg::PortSpeed::DEFAULT) override;
+  void customizeTransceiverLocked(TransceiverPortState& portState) override;
 
   /*
    * If the current power state is not same as desired one then change it and

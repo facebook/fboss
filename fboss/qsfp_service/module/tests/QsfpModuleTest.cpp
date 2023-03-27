@@ -15,12 +15,19 @@
 
 #include <gmock/gmock.h>
 
+namespace {
+std::string kPortName = "eth1/1/1";
+}
+
 namespace facebook::fboss {
 
 using namespace ::testing;
 
 class QsfpModuleTest : public TransceiverManagerTestHelper {
  public:
+  TransceiverPortState fortyGState{kPortName, 0, cfg::PortSpeed::FORTYG};
+  TransceiverPortState hundredGState{kPortName, 0, cfg::PortSpeed::HUNDREDG};
+
   void SetUp() override {
     TransceiverManagerTestHelper::SetUp();
     setupQsfp();
@@ -80,33 +87,35 @@ TEST_F(QsfpModuleTest, setRateSelect) {
     InSequence a;
     // Unsupported
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(0);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
+    TransceiverPortState fortyGState{kPortName, 0, cfg::PortSpeed::FORTYG};
+    TransceiverPortState hundredGState{kPortName, 0, cfg::PortSpeed::HUNDREDG};
+    qsfp_->customizeTransceiver(fortyGState);
+    qsfp_->customizeTransceiver(hundredGState);
 
     // Using V1
     qsfp_->setRateSelect(
         RateSelectState::EXTENDED_RATE_SELECT_V1,
         RateSelectSetting::FROM_6_6GB_AND_ABOVE);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
+    qsfp_->customizeTransceiver(fortyGState);
 
     qsfp_->setRateSelect(
         RateSelectState::EXTENDED_RATE_SELECT_V2,
         RateSelectSetting::LESS_THAN_12GB);
     // 40G + LESS_THAN_12GB -> no change
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
+    qsfp_->customizeTransceiver(fortyGState);
     // 100G + LESS_THAN_12GB -> needs change
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(2);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
+    qsfp_->customizeTransceiver(hundredGState);
 
     qsfp_->setRateSelect(
         RateSelectState::EXTENDED_RATE_SELECT_V2,
         RateSelectSetting::FROM_24GB_to_26GB);
     // 40G + FROM_24GB_to_26GB -> needs change
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(2);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
+    qsfp_->customizeTransceiver(fortyGState);
     // 100G + FROM_24GB_to_26GB -> no change
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(0);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
+    qsfp_->customizeTransceiver(hundredGState);
   }
 }
 
@@ -143,32 +152,32 @@ TEST_F(QsfpModuleTest, setCdr) {
     InSequence a;
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(0);
     // Unsupported
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
+    qsfp_->customizeTransceiver(fortyGState);
+    qsfp_->customizeTransceiver(hundredGState);
 
     qsfp_->setCdrState(FeatureState::DISABLED, FeatureState::DISABLED);
     // Disabled + 40G
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG);
+    qsfp_->customizeTransceiver(fortyGState);
     // Disabled + 100G
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(1);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG); // CHECK
+    qsfp_->customizeTransceiver(hundredGState); // CHECK
 
     qsfp_->setCdrState(FeatureState::ENABLED, FeatureState::ENABLED);
     // Enabled + 40G
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(1);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG); // CHECK
+    qsfp_->customizeTransceiver(fortyGState); // CHECK
     // Enabled + 100G
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(0);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG); // CHECK
+    qsfp_->customizeTransceiver(hundredGState); // CHECK
 
     // One of rx an tx enabled with the other disabled
     qsfp_->setCdrState(FeatureState::DISABLED, FeatureState::ENABLED);
     // 40G
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(1);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::FORTYG); // CHECK
+    qsfp_->customizeTransceiver(fortyGState); // CHECK
     // 100G
     EXPECT_CALL(*transImpl_, writeTransceiver(_, _)).Times(1);
-    qsfp_->customizeTransceiver(cfg::PortSpeed::HUNDREDG);
+    qsfp_->customizeTransceiver(hundredGState);
   }
 }
 

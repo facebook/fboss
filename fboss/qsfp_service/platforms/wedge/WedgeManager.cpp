@@ -318,7 +318,11 @@ void WedgeManager::customizeTransceiver(int32_t idx, cfg::PortSpeed speed) {
   if (auto it = lockedTransceivers->find(TransceiverID(idx));
       it != lockedTransceivers->end()) {
     try {
-      it->second->customizeTransceiver(speed);
+      auto portName = getPortName(TransceiverID(idx));
+      // This API uses transceiverID so we don't know which port to program.
+      // Just program the first port
+      TransceiverPortState state{portName, 0, speed};
+      it->second->customizeTransceiver(state);
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Transceiver " << idx
                 << ": Error calling customizeTransceiver(): " << ex.what();
