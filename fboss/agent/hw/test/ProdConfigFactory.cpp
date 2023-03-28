@@ -117,6 +117,7 @@ uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch) {
     case PM::GALAXY_LC:
     case PM::GALAXY_FC:
     case PM::DARWIN:
+    case PM::MONTBLANC:
       return 4;
     default:
       throw FbossError(
@@ -147,6 +148,9 @@ cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch) {
     case PlatformMode::FUJI:
     case PlatformMode::ELBERT:
       portSpeed = cfg::PortSpeed::TWOHUNDREDG;
+      break;
+    case PlatformMode::MONTBLANC:
+      portSpeed = cfg::PortSpeed::FOURHUNDREDG;
       break;
     default:
       /* do nothing */
