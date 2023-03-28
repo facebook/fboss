@@ -83,6 +83,11 @@ class HwMacLearningTest : public HwLinkStateDependentTest {
     l2LearningObserver_.startObserving(getHwSwitchEnsemble());
   }
 
+  void TearDown() override {
+    l2LearningObserver_.stopObserving();
+    HwLinkStateDependentTest::TearDown();
+  }
+
   cfg::SwitchConfig initialConfig() const override {
     return utility::oneL3IntfTwoPortConfig(
         getHwSwitch(),
