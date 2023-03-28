@@ -15,4 +15,10 @@
 namespace facebook::fboss {
 
 void BcmSwitch::printDiagCmd(const std::string& /*cmd*/) const {}
+
+std::shared_ptr<SwitchState> BcmSwitch::stateChangedWithOperDeltaLocked(
+    const StateDelta& legacyDelta,
+    const std::lock_guard<std::mutex>& lock) {
+  return stateChangedLocked(legacyDelta, lock);
+}
 } // namespace facebook::fboss

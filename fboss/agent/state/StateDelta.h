@@ -45,6 +45,9 @@
 
 #include "fboss/thrift_cow/nodes/Types.h"
 
+DECLARE_bool(enable_state_oper_delta);
+DECLARE_bool(verify_apply_oper_delta);
+
 namespace facebook::fboss {
 
 class SwitchState;
@@ -105,7 +108,7 @@ class StateDelta {
   InterfaceMapDelta getRemoteIntfsDelta() const;
   thrift_cow::ThriftMapDelta<DsfNodeMap> getDsfNodesDelta() const;
 
-  const fsdb::OperDelta& getOperDelta();
+  const fsdb::OperDelta& getOperDelta() const;
 
  private:
   // Forbidden copy constructor and assignment operator
@@ -114,7 +117,8 @@ class StateDelta {
 
   std::shared_ptr<SwitchState> old_;
   std::shared_ptr<SwitchState> new_;
-  std::optional<fsdb::OperDelta> operDelta_;
+  // on-demand populate oper delta and keep it cached
+  mutable std::optional<fsdb::OperDelta> operDelta_;
 };
 
 std::ostream& operator<<(std::ostream& out, const StateDelta& stateDelta);

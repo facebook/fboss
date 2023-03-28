@@ -40,6 +40,16 @@
 
 using std::shared_ptr;
 
+DEFINE_bool(
+    enable_state_oper_delta,
+    false,
+    "Generate and process oper delta for state delta processing");
+
+DEFINE_bool(
+    verify_apply_oper_delta,
+    false,
+    "Make sure oper delta apply is correct, this is expensive operation to be used only in tests");
+
 namespace facebook::fboss {
 
 StateDelta::StateDelta(
@@ -256,7 +266,7 @@ thrift_cow::ThriftMapDelta<TeFlowTable> StateDelta::getTeFlowEntriesDelta()
       old_->getTeFlowTable().get(), new_->getTeFlowTable().get());
 }
 
-const fsdb::OperDelta& StateDelta::getOperDelta() {
+const fsdb::OperDelta& StateDelta::getOperDelta() const {
   if (!operDelta_.has_value()) {
     operDelta_.emplace(computeOperDelta(old_, new_, switchStateRootPath()));
   }
