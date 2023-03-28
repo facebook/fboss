@@ -27,7 +27,7 @@ bool kValidateMonitorNextHopsFor(
     const char* /*flagname*/,
     const std::string& value) {
   std::vector<std::string> clientsStr;
-  folly::split(",", value, clientsStr);
+  folly::split(',', value, clientsStr);
   using apache::thrift::util::tryParseEnum;
 
   std::set<ClientID> clients;

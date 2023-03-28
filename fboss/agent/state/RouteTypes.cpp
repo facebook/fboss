@@ -72,7 +72,7 @@ template <typename AddrT>
 RoutePrefix<AddrT> RoutePrefix<AddrT>::fromString(std::string str) {
   std::vector<std::string> vec;
 
-  folly::split("/", str, vec);
+  folly::split('/', str, vec);
   CHECK_EQ(2, vec.size());
   auto prefix = RoutePrefix{AddrT(vec.at(0)), folly::to<uint8_t>(vec.at(1))};
   return prefix;

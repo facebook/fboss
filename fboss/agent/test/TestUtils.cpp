@@ -781,7 +781,7 @@ RouteNextHopSet makeResolvedNextHops(
 
 RoutePrefixV4 makePrefixV4(std::string str) {
   std::vector<std::string> vec;
-  folly::split("/", str, vec);
+  folly::split('/', str, vec);
   EXPECT_EQ(2, vec.size());
   auto prefix =
       RoutePrefixV4{IPAddressV4(vec.at(0)), folly::to<uint8_t>(vec.at(1))};
@@ -790,7 +790,7 @@ RoutePrefixV4 makePrefixV4(std::string str) {
 
 RoutePrefixV6 makePrefixV6(std::string str) {
   std::vector<std::string> vec;
-  folly::split("/", str, vec);
+  folly::split('/', str, vec);
   EXPECT_EQ(2, vec.size());
   auto prefix =
       RoutePrefixV6{IPAddressV6(vec.at(0)), folly::to<uint8_t>(vec.at(1))};

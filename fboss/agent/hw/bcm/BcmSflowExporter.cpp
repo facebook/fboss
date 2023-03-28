@@ -37,7 +37,7 @@ std::optional<folly::IPAddress> getLocalIPv6FromWhoAmI() {
 
   while (std::getline(infile, line)) {
     std::vector<std::string> kv;
-    folly::split("=", line, kv);
+    folly::split('=', line, kv);
     if (kv.size() != 2) {
       continue;
     }

@@ -478,7 +478,7 @@ std::unique_ptr<UnicastRoute> makeUnicastRoute(
     std::optional<RouteCounterID> counterID = std::nullopt,
     std::optional<cfg::AclLookupClass> classID = std::nullopt) {
   std::vector<std::string> vec;
-  folly::split("/", prefixStr, vec);
+  folly::split('/', prefixStr, vec);
   EXPECT_EQ(2, vec.size());
   auto nr = std::make_unique<UnicastRoute>();
   *nr->dest()->ip() = toBinaryAddress(IPAddress(vec.at(0)));

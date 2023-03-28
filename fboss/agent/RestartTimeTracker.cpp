@@ -53,7 +53,7 @@ std::optional<TimePoint> processStartTime(int pid) {
   }
 
   std::vector<folly::StringPiece> tokens;
-  folly::split(" ", statContents, tokens);
+  folly::split(' ', statContents, tokens);
 
   if (tokens.size() <= kStatStartupTimeIndex) {
     // Unexpected output of /proc/<pid>/stat

@@ -90,7 +90,7 @@ CmdGlobalOptions::UnionList CmdGlobalOptions::getFilters(
     for (std::string termStr : interVec) {
       const auto& trimmedTermStr = folly::trimWhitespace(termStr);
       std::vector<std::string> filterTermVector;
-      folly::split(" ", trimmedTermStr, filterTermVector);
+      folly::split(' ', trimmedTermStr, filterTermVector);
       if (filterTermVector.size() != 3) {
         std::cerr << "Each filter term must be of the form <key op value>. "
                   << std::endl;
