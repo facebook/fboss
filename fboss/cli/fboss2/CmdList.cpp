@@ -293,7 +293,7 @@ const CommandTree& kCommandTree() {
 
       {"show",
        "l2",
-       "Show L2 Packet Information",
+       "Show L2 Table",
        commandHandler<CmdShowL2>,
        argTypeHandler<CmdShowL2Traits>},
 

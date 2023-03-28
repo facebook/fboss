@@ -10,9 +10,7 @@
 
 #pragma once
 
-#include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/commands/show/l2/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
@@ -25,7 +23,7 @@ struct CmdShowL2Traits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
-  using RetType = cli::ShowL2Model;
+  using RetType = std::string;
 };
 
 class CmdShowL2 : public CmdHandler<CmdShowL2, CmdShowL2Traits> {
@@ -33,51 +31,11 @@ class CmdShowL2 : public CmdHandler<CmdShowL2, CmdShowL2Traits> {
   using RetType = CmdShowL2Traits::RetType;
 
   RetType queryClient(const HostInfo& hostInfo) {
-    std::vector<facebook::fboss::L2EntryThrift> entries;
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    client->sync_getL2Table(entries);
-    return createModel(entries);
+    return "Please run \"show mac details\" for L2 entries.";
   }
 
-  RetType createModel(
-      const std::vector<facebook::fboss::L2EntryThrift>& l2Entries) {
-    RetType model;
-    for (const auto& entry : l2Entries) {
-      cli::ShowL2ModelEntry l2Details;
-      l2Details.mac() = entry.get_mac();
-      l2Details.port() = entry.get_port();
-      l2Details.vlanID() = entry.get_vlanID();
-      if (auto trunk = entry.get_trunk()) {
-        l2Details.trunk() = folly::to<std::string>(*trunk);
-      } else {
-        l2Details.trunk() = "-";
-      }
-      l2Details.type() = utils::getl2EntryTypeStr(entry.get_l2EntryType());
-      if (auto classID = entry.get_classID()) {
-        l2Details.classID() = folly::to<std::string>(*classID);
-      } else {
-        l2Details.classID() = "-";
-      }
-      model.l2Entries()->push_back(l2Details);
-    }
-    return model;
-  }
-
-  void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    Table table;
-    table.setHeader(
-        {"MAC Address", "Port", "Trunk", "VLAN", "Type", "Class ID"});
-    for (const auto& l2Entry : model.get_l2Entries()) {
-      table.addRow(
-          {l2Entry.get_mac(),
-           folly::to<std::string>(l2Entry.get_port()),
-           folly::to<std::string>(l2Entry.get_trunk()),
-           folly::to<std::string>(l2Entry.get_vlanID()),
-           l2Entry.get_type(),
-           folly::to<std::string>(l2Entry.get_classID())});
-    }
-    out << table << std::endl;
+  void printOutput(const RetType& message, std::ostream& out = std::cout) {
+    out << message << std::endl;
   }
 };
 

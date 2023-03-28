@@ -53,13 +53,6 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
-  show_l2_model
-  fboss/cli/fboss2/commands/show/l2/model.thrift
-  OPTIONS
-    json
-)
-
-add_fbthrift_cpp_library(
   show_lldp_model
   fboss/cli/fboss2/commands/show/lldp/model.thrift
   OPTIONS
@@ -339,7 +332,6 @@ target_link_libraries(fboss2
   show_dsfnodes_model
   show_fabric_model
   show_host_model
-  show_l2_model
   show_lldp_model
   show_mirror_model
   show_ndp_model
