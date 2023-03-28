@@ -10,11 +10,10 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
-#include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 #include "thrift/lib/cpp2/protocol/Serializer.h"
 
-#include <folly/Singleton.h>
 #include <folly/logging/xlog.h>
 #include <cstring>
 #include <future>

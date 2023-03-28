@@ -10,10 +10,7 @@
 
 #pragma once
 
-#include <memory>
-#include <variant>
-#include <vector>
-#include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 
 namespace facebook::fboss {
 

@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "common/time/TimeUtil.h"
 
 #include <folly/String.h>
@@ -151,9 +151,9 @@ const std::string getPrettyElapsedTime(const int64_t& start_time) {
 
   time_t elapsed_convert = std::chrono::system_clock::to_time_t(elapsed_time);
 
-  int days = 0, hours = 0, minutes = 0;
+  int64_t days = 0, hours = 0, minutes = 0;
 
-  days = elapsed_convert / 86400;
+  days = int64_t(elapsed_convert / 86400);
 
   int64_t leftover = elapsed_convert % 86400;
 

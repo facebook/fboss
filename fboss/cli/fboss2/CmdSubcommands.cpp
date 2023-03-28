@@ -12,7 +12,7 @@
 #include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/CmdLocalOptions.h"
 #include "fboss/cli/fboss2/utils/CLIParserUtils.h"
-#include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 
 #include <folly/Singleton.h>
 #include <stdexcept>

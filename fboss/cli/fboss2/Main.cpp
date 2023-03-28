@@ -11,7 +11,7 @@
 #include <CLI/CLI.hpp>
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
-#include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 
 #include <folly/init/Init.h>
 #include <folly/logging/Init.h>

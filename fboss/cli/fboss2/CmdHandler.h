@@ -12,14 +12,13 @@
 #include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/CmdSubcommands.h"
 #include "fboss/cli/fboss2/utils/AggregateUtils.h"
-#include "fboss/cli/fboss2/utils/CmdCommonUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/FilterUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 
 #include <fmt/color.h>
 #include <fmt/format.h>
 #include <folly/logging/xlog.h>
-#include <variant>
 
 namespace facebook::fboss {
 
