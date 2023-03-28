@@ -1373,6 +1373,11 @@ enum L2LearningMode {
   SOFTWARE = 1,
 }
 
+enum SwitchDrainState {
+  UNDRAINED = 0,
+  DRAINED = 1,
+}
+
 /*
  * Used for QCM. Weight factors used to compute interest
  * function to evaluate flows which  are source of congestion
@@ -1487,6 +1492,7 @@ struct SwitchSettings {
   9: optional i64 switchId;
   10: list<ExactMatchTableConfig> exactMatchTableConfigs = [];
   11: map<i64, SwitchType> switchIdToSwitchType = {0: SwitchType.NPU};
+  12: SwitchDrainState switchDrainState = SwitchDrainState.UNDRAINED;
 }
 
 // Global buffer pool shared by {port, pgs}
