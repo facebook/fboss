@@ -48,6 +48,35 @@ TEST(SwitchSettingsTest, applyL2LearningConfig) {
   EXPECT_EQ(300, switchSettingsV1->getL2AgeTimerSeconds());
 }
 
+TEST(SwitchSettingsTest, applySwitchDrainState) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  cfg::SwitchConfig config;
+  *config.switchSettings()->switchDrainState() = cfg::SwitchDrainState::DRAINED;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+
+  auto switchSettingsV1 = stateV1->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_FALSE(switchSettingsV1->isPublished());
+  EXPECT_EQ(
+      cfg::SwitchDrainState::DRAINED, switchSettingsV1->getSwitchDrainState());
+
+  *config.switchSettings()->switchDrainState() =
+      cfg::SwitchDrainState::UNDRAINED;
+
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  EXPECT_NE(nullptr, stateV2);
+
+  auto switchSettingsV2 = stateV2->getSwitchSettings();
+  ASSERT_NE(nullptr, switchSettingsV2);
+  EXPECT_FALSE(switchSettingsV2->isPublished());
+  EXPECT_EQ(
+      cfg::SwitchDrainState::UNDRAINED,
+      switchSettingsV2->getSwitchDrainState());
+}
+
 TEST(SwitchSettingsTest, applyQcmConfig) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
