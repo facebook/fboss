@@ -21,14 +21,20 @@ class CmdHelp {
         auto& verb = cmd.verb;
         auto& verbHelp = cmd.help;
         auto subcommands = cmd.subcommands;
-        const auto& optional = cmd.validFilterHandler;
+        const auto& validFilterOptional = cmd.validFilterHandler;
         ValidFilterMapType validFilterMap = {};
-        if (optional.has_value()) {
-          const auto& validFilterMapFn = std::move(*optional);
+        if (validFilterOptional.has_value()) {
+          const auto& validFilterMapFn = std::move(*validFilterOptional);
           validFilterMap = validFilterMapFn();
         }
+        std::vector<utils::LocalOption> localOptions;
+        const auto& localOptionsOptional = cmd.localOptionsHandler;
+        if (localOptionsOptional.has_value()) {
+          const auto& localOptionsFn = std::move(*localOptionsOptional);
+          localOptions = localOptionsFn();
+        }
         RevHelpForObj& revHelp = root[objectName];
-        HelpInfo helpInfo{verb, verbHelp, validFilterMap};
+        HelpInfo helpInfo{verb, verbHelp, validFilterMap, localOptions};
         // even if there are no subcommands,
         // the entry for (verb, verbHelp) must exist!
         if (subcommands.size() == 0) {
@@ -64,8 +70,15 @@ class CmdHelp {
       size_t level,
       std::ostream& out) {
     for (const auto& cmd : subCmds) {
+      std::vector<utils::LocalOption> localOptions;
+      const auto& localOptionsOptional = cmd.localOptionsHandler;
+      if (localOptionsOptional.has_value()) {
+        const auto& localOptionsFn = std::move(*localOptionsOptional);
+        localOptions = localOptionsFn();
+      }
       out << std::string(level - 1, '\t') << "    |---" << cmd.name << ":\t"
           << cmd.help << std::endl;
+      out << getLocalOptionInfo(localOptions, level + 1);
       printSubCommandTree(cmd.subcommands, level + 1, out);
     }
   }
@@ -75,6 +88,7 @@ class CmdHelp {
     for (const auto& [helpInfo, subCmds] : helpTreeMapForObj) {
       out << helpInfo.verb << " " << helpArg << ":\t" << helpInfo.helpMsg
           << std::endl;
+      out << getLocalOptionInfo(helpInfo.localOptions, 1);
       printSubCommandTree(subCmds, 1, out);
       std::cout << std::endl;
     }
@@ -94,7 +108,6 @@ class CmdHelp {
         std::cout << ", ";
       }
     }
-    std::cout << "]" << std::endl;
   }
 
   void printFilterInfo(const std::string& helpArg) {
@@ -104,6 +117,25 @@ class CmdHelp {
         printFilterInfoHelper(helpInfo.validFilterMap);
       }
     }
+    std::cout << "]" << std::endl;
+  }
+
+  std::string getLocalOptionInfo(
+      const std::vector<utils::LocalOption>& localOptions,
+      size_t level) {
+    if (localOptions.size() == 0) {
+      return "";
+    }
+    std::string localOptionInfo;
+    for (const auto& localOption : localOptions) {
+      std::string currentLocalOptionInfo = fmt::format(
+          "{}    {}:\t{}\n",
+          std::string(level - 1, '\t'),
+          localOption.name,
+          localOption.helpMsg);
+      localOptionInfo += currentLocalOptionInfo;
+    }
+    return localOptionInfo;
   }
 };
 
