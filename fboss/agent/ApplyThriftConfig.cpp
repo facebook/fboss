@@ -3522,6 +3522,13 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings() {
     switchSettingsChange = true;
   }
 
+  if (origSwitchSettings->getSwitchDrainState() !=
+      *cfg_->switchSettings()->switchDrainState()) {
+    newSwitchSettings->setSwitchDrainState(
+        *cfg_->switchSettings()->switchDrainState());
+    switchSettingsChange = true;
+  }
+
   auto originalExactMatchTableConfig =
       origSwitchSettings->getExactMatchTableConfig();
   // THRIFT_COPY

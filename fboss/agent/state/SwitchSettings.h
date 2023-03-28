@@ -173,6 +173,14 @@ class SwitchSettings
     }
   }
 
+  cfg::SwitchDrainState getSwitchDrainState() const {
+    return cref<switch_state_tags::switchDrainState>()->toThrift();
+  }
+
+  void setSwitchDrainState(cfg::SwitchDrainState switchDrainState) {
+    set<switch_state_tags::switchDrainState>(switchDrainState);
+  }
+
   auto getExactMatchTableConfig() const {
     return safe_cref<switch_state_tags::exactMatchTableConfigs>();
   }
