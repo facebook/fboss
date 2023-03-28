@@ -427,6 +427,12 @@ struct SaiSwitchTraits {
     using WarmBootTargetVersion = SaiExtensionAttribute<
         std::vector<sai_int8_t>,
         AttributeWarmBootTargetVersionWrapper>;
+
+    struct AttributeSwitchIsolateWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using SwitchIsolate =
+        SaiExtensionAttribute<bool, AttributeSwitchIsolateWrapper>;
   };
   using AdapterKey = SwitchSaiId;
   using AdapterHostKey = std::monostate;
@@ -473,7 +479,8 @@ struct SaiSwitchTraits {
 #endif
       ,
       std::optional<Attributes::DllPath>,
-      std::optional<Attributes::RestartIssu>>;
+      std::optional<Attributes::RestartIssu>,
+      std::optional<Attributes::SwitchIsolate>>;
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)
@@ -561,6 +568,7 @@ SAI_ATTRIBUTE_NAME(Switch, DllPath)
 SAI_ATTRIBUTE_NAME(Switch, RestartIssu)
 SAI_ATTRIBUTE_NAME(Switch, ForceTrafficOverFabric)
 SAI_ATTRIBUTE_NAME(Switch, WarmBootTargetVersion)
+SAI_ATTRIBUTE_NAME(Switch, SwitchIsolate)
 
 class SwitchApi : public SaiApi<SwitchApi> {
  public:

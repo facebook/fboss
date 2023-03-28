@@ -97,4 +97,10 @@ std::optional<sai_attr_id_t> SaiSwitchTraits::Attributes::
     AttributeWarmBootTargetVersionWrapper::operator()() {
   return SAI_SWITCH_ATTR_EXT_WARM_BOOT_TARGET_VERSION;
 }
+
+std::optional<sai_attr_id_t>
+SaiSwitchTraits::Attributes::AttributeSwitchIsolateWrapper::operator()() {
+  return SAI_SWITCH_ATTR_SWITCH_ISOLATE;
+}
+
 } // namespace facebook::fboss
