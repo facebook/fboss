@@ -261,6 +261,9 @@ void SwSwitch::stop(bool revertToMinAlpmState) {
   setSwitchRunState(SwitchRunState::EXITING);
 
   XLOG(DBG2) << "Stopping SwSwitch...";
+  // Stop DSF subscriber to let us unsubscribe gracefully before stoppping
+  // packet TX/RX functionality
+  dsfSubscriber_.reset();
 
   // First tell the hw to stop sending us events by unregistering the callback
   // After this we should no longer receive packets or link state changed events
