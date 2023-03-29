@@ -93,4 +93,21 @@ TEST_F(HwFabricSwitchTest, fabricIsolate) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(HwFabricSwitchTest, fabricSwitchIsolate) {
+  auto setup = [=]() {
+    auto newCfg = initialConfig();
+    *newCfg.switchSettings()->switchDrainState() =
+        cfg::SwitchDrainState::DRAINED;
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {
+    EXPECT_GT(getProgrammedState()->getPorts()->size(), 0);
+    SwitchStats dummy;
+    getHwSwitch()->updateStats(&dummy);
+    checkFabricReachability(getHwSwitch());
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
