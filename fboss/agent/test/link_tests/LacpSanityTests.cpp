@@ -20,7 +20,7 @@ DECLARE_string(config);
 
 namespace {
 constexpr int kMaxRetries{60};
-constexpr int kMaxPortsPerAggPort{4};
+constexpr int kMaxPortsPerAggPort{2};
 constexpr int kBaseAggId{500};
 } // unnamed namespace
 
