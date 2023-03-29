@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/DsfSubscriber.h"
+#include <fb303/ServiceData.h>
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/DsfNode.h"
@@ -134,8 +135,10 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
   const auto& newSwitchSettings = stateDelta.newState()->getSwitchSettings();
   if (newSwitchSettings->getSwitchType() == cfg::SwitchType::VOQ) {
     if (!fsdbPubSubMgr_) {
-      fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>(
-          folly::sformat("{}:agent", getLocalHostname()));
+      fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>(folly::sformat(
+          "{}:agent:{}",
+          getLocalHostname(),
+          fb303::ServiceData::get()->getAliveSince().count()));
     }
   } else {
     fsdbPubSubMgr_.reset();
