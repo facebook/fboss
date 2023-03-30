@@ -37,7 +37,6 @@ class PackageFboss:
     LIB = "lib"
     LIB64 = "lib64"
     DATA = "share"
-    MODULES = "lib/modules"
 
     GETDEPS = "build/fbcode_builder/getdeps.py"
 
@@ -61,7 +60,6 @@ class PackageFboss:
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.BIN))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.LIB))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.LIB64))
-        os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.MODULES))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.DATA))
 
     def _get_install_dir_for(self, name):
