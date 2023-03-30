@@ -98,18 +98,18 @@ class PackageFboss:
     # TODO Future work planned
     # - All tests should consume /etc/coop/agent.conf where sw config block could
     #   be empty
-    # - fboss/bcm_configs/* to be replaced with fboss/agent_configs/* where for each
+    # - fboss/bcm_sai_configs/* to be replaced with fboss/agent_configs/* where for each
     #   config under agent_config has sw config block empty
     # - package-fboss.py, and helper scripts would need to be modified to work with
     #   agent_configs
     def _copy_configs(self, tmp_dir_name):
-        bcm_configs_path = os.path.join(
-            self._get_git_root(__file__), "fboss/bcm_configs"
+        bcm_sai_configs_path = os.path.join(
+            self._get_git_root(__file__), "fboss/bcm_sai_configs"
         )
-        print(f"Copying {bcm_configs_path} to {tmp_dir_name}")
+        print(f"Copying {bcm_sai_configs_path} to {tmp_dir_name}")
         shutil.copytree(
-            "fboss/bcm_configs",
-            os.path.join(tmp_dir_name, PackageFboss.DATA, "bcm_configs"),
+            "fboss/bcm_sai_configs",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "bcm_sai_configs"),
         )
 
     def _copy_binaries(self, tmp_dir_name):
