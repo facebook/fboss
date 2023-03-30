@@ -23,6 +23,19 @@ class HwAsic;
 
 namespace facebook::fboss::utility {
 
+enum class OlympicQueueType {
+  SILVER,
+  GOLD,
+  ECN1,
+  BRONZE,
+  ICP,
+  NC,
+};
+
+enum class AllSPOlympicQueueType { NCNF, BRONZE, SILVER, GOLD, ICP, NC };
+
+enum class NetworkAIQueueType { MONITORING, RDMA, NC };
+
 /* Olympic QoS queues */
 constexpr int kOlympicSilverQueueId = 0;
 constexpr int kOlympicGoldQueueId = 1;
