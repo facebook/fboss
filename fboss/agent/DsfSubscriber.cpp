@@ -199,10 +199,12 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
     //  dstIP = inband IP of that DSF node
     //  dstPort = FSDB port
     //  srcIP = self inband IP
+    //  priority = CRITICAL
     auto serverOptions = fsdb::FsdbStreamClient::ServerOptions(
         getLoopbackIp(node),
         FLAGS_fsdbPort,
-        (*selfDsfNode->getLoopbackIpsSorted().begin()).first.str());
+        (*selfDsfNode->getLoopbackIpsSorted().begin()).first.str(),
+        fsdb::FsdbStreamClient::Priority::CRITICAL);
 
     return serverOptions;
   };
