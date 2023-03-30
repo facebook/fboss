@@ -182,6 +182,11 @@ enum NeighborState {
   Reachable = 2,
 }
 
+enum NeighborEntryType {
+  DYNAMIC_ENTRY = 0,
+  STATIC_ENTRY = 1,
+}
+
 struct NeighborEntryFields {
   1: string ipaddress;
   2: string mac = "ff:ff:ff:ff:ff:ff";
@@ -191,6 +196,7 @@ struct NeighborEntryFields {
   6: optional switch_config.AclLookupClass classID;
   7: optional i64 encapIndex;
   8: bool isLocal = true;
+  9: NeighborEntryType type = NeighborEntryType.DYNAMIC_ENTRY;
 }
 
 typedef map<string, NeighborEntryFields> NeighborEntries
