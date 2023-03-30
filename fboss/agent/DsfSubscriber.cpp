@@ -71,11 +71,27 @@ void DsfSubscriber::scheduleUpdate(
           // Local neighbor entry on one DSF node is remote neighbor entry on
           // every other DSF node. Thus, for neighbor entry received from other
           // DSF nodes, set isLocal = False before programming it.
-          for (const auto& arpEntry : *clonedNode->getArpTable()) {
-            arpEntry.second->setIsLocal(false);
+          // Also, link local only has significance for Servers directly
+          // connected to Interface Node. Thus, skip programming remote link
+          // local neighbors.
+          auto arpEntryIter = (*clonedNode->getArpTable()).begin();
+          while (arpEntryIter != (*clonedNode->getArpTable()).end()) {
+            if (arpEntryIter->second->getIP().isLinkLocal()) {
+              arpEntryIter = (*clonedNode->getArpTable()).erase(arpEntryIter);
+            } else {
+              arpEntryIter->second->setIsLocal(false);
+              ++arpEntryIter;
+            }
           }
-          for (const auto& ndpEntry : *clonedNode->getNdpTable()) {
-            ndpEntry.second->setIsLocal(false);
+
+          auto ndpEntryIter = (*clonedNode->getNdpTable()).begin();
+          while (ndpEntryIter != (*clonedNode->getNdpTable()).end()) {
+            if (ndpEntryIter->second->getIP().isLinkLocal()) {
+              ndpEntryIter = (*clonedNode->getNdpTable()).erase(ndpEntryIter);
+            } else {
+              ndpEntryIter->second->setIsLocal(false);
+              ++ndpEntryIter;
+            }
           }
 
           return clonedNode;
