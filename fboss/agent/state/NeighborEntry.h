@@ -127,6 +127,7 @@ class NeighborEntry
       folly::MacAddress mac,
       PortDescriptor port,
       InterfaceID intfID,
+      state::NeighborEntryType type,
       NeighborState state = NeighborState::REACHABLE,
       std::optional<cfg::AclLookupClass> classID = std::nullopt,
       std::optional<int64_t> encapIndex = std::nullopt,
@@ -135,6 +136,7 @@ class NeighborEntry
   NeighborEntry(
       AddressType ip,
       InterfaceID interfaceID,
+      state::NeighborEntryType type,
       NeighborState pending,
       std::optional<int64_t> encapIndex = std::nullopt,
       bool isLocal = true);
@@ -242,6 +244,15 @@ class NeighborEntry
   void setIsLocal(bool isLocal) {
     this->template set<switch_state_tags::isLocal>(isLocal);
   }
+
+  state::NeighborEntryType getType() const {
+    return static_cast<state::NeighborEntryType>(
+        this->template get<switch_state_tags::type>()->cref());
+  }
+  void setType(state::NeighborEntryType type) {
+    this->template set<switch_state_tags::type>(type);
+  }
+
   std::string str() const;
 
  private:

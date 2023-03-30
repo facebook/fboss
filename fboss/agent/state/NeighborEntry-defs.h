@@ -35,6 +35,7 @@ NeighborEntry<IPADDR, SUBCLASS>::NeighborEntry(
     folly::MacAddress mac,
     PortDescriptor port,
     InterfaceID intfID,
+    state::NeighborEntryType type,
     NeighborState state,
     std::optional<cfg::AclLookupClass> classID,
     std::optional<int64_t> encapIndex,
@@ -43,6 +44,7 @@ NeighborEntry<IPADDR, SUBCLASS>::NeighborEntry(
   this->setMAC(mac);
   this->setPort(port);
   this->setIntfID(intfID);
+  this->setType(type);
   this->setState(state);
   this->setClassID(classID);
   this->setEncapIndex(encapIndex);
@@ -53,6 +55,7 @@ template <typename IPADDR, typename SUBCLASS>
 NeighborEntry<IPADDR, SUBCLASS>::NeighborEntry(
     AddressType ip,
     InterfaceID interfaceID,
+    state::NeighborEntryType type,
     NeighborState pending,
     std::optional<int64_t> encapIndex,
     bool isLocal) {
@@ -60,6 +63,7 @@ NeighborEntry<IPADDR, SUBCLASS>::NeighborEntry(
 
   this->setIP(ip);
   this->setIntfID(interfaceID);
+  this->setType(type);
   this->setState(pending);
   this->setEncapIndex(encapIndex);
   this->setIsLocal(isLocal);
@@ -86,7 +90,8 @@ std::string NeighborEntry<IPADDR, SUBCLASS>::str() const {
      << " IP: " << getIP().str() << " classID: " << classIDStr << " "
      << " Encap index: " << encapStr
      << " isLocal: " << (getIsLocal() ? "Y" : "N")
-     << " Port: " << getPort().str() << " NeighborState: " << neighborStateStr;
+     << " Port: " << getPort().str() << " NeighborState: " << neighborStateStr
+     << " type: " << apache::thrift::util::enumNameSafe(getType());
 
   return os.str();
 }

@@ -386,6 +386,7 @@ std::shared_ptr<ArpEntry> ManagerTestBase::makePendingArpEntry(
   return std::make_shared<ArpEntry>(
       testRemoteHost.ip.asV4(),
       getIntfID(id, intfType),
+      state::NeighborEntryType::DYNAMIC_ENTRY,
       NeighborState::PENDING);
 }
 
@@ -400,7 +401,8 @@ std::shared_ptr<ArpEntry> ManagerTestBase::makeArpEntry(
       testRemoteHost.ip.asV4(),
       testRemoteHost.mac,
       PortDescriptor(PortID(testRemoteHost.port.id)),
-      InterfaceID(getIntfID(id, intfType)));
+      InterfaceID(getIntfID(id, intfType)),
+      state::NeighborEntryType::DYNAMIC_ENTRY);
   if (metadata) {
     arpEntry->setClassID(static_cast<cfg::AclLookupClass>(metadata.value()));
   }
@@ -441,7 +443,9 @@ std::shared_ptr<ArpEntry> ManagerTestBase::makeArpEntry(
       ip,
       mac,
       PortDescriptor(PortID(sysPort.getID())),
-      InterfaceID(static_cast<int>(sysPort.getID())));
+      InterfaceID(static_cast<int>(sysPort.getID())),
+      state::NeighborEntryType::DYNAMIC_ENTRY);
+
   arpEntry->setEncapIndex(static_cast<int64_t>(encapIndex.value()));
   arpEntry->setIsLocal(false);
   return arpEntry;
