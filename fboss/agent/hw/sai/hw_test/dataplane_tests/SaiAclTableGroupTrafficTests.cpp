@@ -424,7 +424,8 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
     auto [beforeDscpAclPkts, beforeTtlAclPkts] = pktCounterHelper();
     sendAllPacketshelper<AddrT>(dstIP, frontPanel, 0);
     auto [intermediateDscpAclPkts, intermediateTtlAclPkts] = pktCounterHelper();
-    sendAllPacketshelper<AddrT>(dstIP, frontPanel, utility::kIcpDscp());
+    sendAllPacketshelper<AddrT>(
+        dstIP, frontPanel, utility::kIcpDscp(getAsic()));
     auto [afterDscpAclPkts, afterTtlAclPkts] = pktCounterHelper();
 
     XLOG(DBG2) << "TestType: " << testType;
@@ -501,8 +502,9 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
 
       if (isSupported()) {
         auto newCfg{initialConfig()};
-        utility::addOlympicQosMaps(newCfg);
-        utility::addDscpAclTable(&newCfg, 1 /*priority*/, addTtlQualifier);
+        utility::addOlympicQosMaps(newCfg, getAsic());
+        utility::addDscpAclTable(
+            &newCfg, 1 /*priority*/, addTtlQualifier, getAsic());
         utility::addTtlAclTable(&newCfg, 2);
         applyNewConfig(newCfg);
       }

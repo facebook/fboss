@@ -75,7 +75,7 @@ class HwCoppTest : public HwLinkStateDependentTest {
         masterLogicalPortIds(),
         getAsic()->desiredLoopbackMode(),
         true /*interfaceHasSubnet*/);
-    utility::addOlympicQosMaps(cfg);
+    utility::addOlympicQosMaps(cfg, getAsic());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     utility::addCpuQueueConfig(cfg, getAsic());
     return cfg;

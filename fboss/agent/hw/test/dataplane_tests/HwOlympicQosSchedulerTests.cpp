@@ -41,7 +41,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
                 .begin());
       utility::addOlympicQueueConfig(
           &cfg, streamType, getPlatform()->getAsic());
-      utility::addOlympicQosMaps(cfg);
+      utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
     return cfg;
   }
@@ -159,7 +159,8 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
     auto setup = [=]() { _setup(ecmpHelper6, queueIds); };
 
     auto verify = [=]() {
-      sendUdpPktsForAllQueues(queueIds, utility::kOlympicQueueToDscp());
+      sendUdpPktsForAllQueues(
+          queueIds, utility::kOlympicQueueToDscp(getAsic()));
       EXPECT_TRUE(verifySPHelper(trafficQueueId));
     };
 
@@ -299,11 +300,14 @@ void HwOlympicQosSchedulerTest::verifyWRR() {
 
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=]() { _setup(ecmpHelper6, utility::kOlympicWRRQueueIds()); };
+  auto setup = [=]() {
+    _setup(ecmpHelper6, utility::kOlympicWRRQueueIds(getAsic()));
+  };
 
   auto verify = [=]() {
     sendUdpPktsForAllQueues(
-        utility::kOlympicWRRQueueIds(), utility::kOlympicQueueToDscp());
+        utility::kOlympicWRRQueueIds(getAsic()),
+        utility::kOlympicQueueToDscp(getAsic()));
     EXPECT_TRUE(verifyWRRHelper(
         utility::getMaxWeightWRRQueue(utility::kOlympicWRRQueueToWeight()),
         utility::kOlympicWRRQueueToWeight()));
@@ -319,11 +323,14 @@ void HwOlympicQosSchedulerTest::verifySP() {
 
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=]() { _setup(ecmpHelper6, utility::kOlympicSPQueueIds()); };
+  auto setup = [=]() {
+    _setup(ecmpHelper6, utility::kOlympicSPQueueIds(getAsic()));
+  };
 
   auto verify = [=]() {
     sendUdpPktsForAllQueues(
-        utility::kOlympicSPQueueIds(), utility::kOlympicQueueToDscp());
+        utility::kOlympicSPQueueIds(getAsic()),
+        utility::kOlympicQueueToDscp(getAsic()));
     EXPECT_TRUE(verifySPHelper(
         // SP queue with highest queueId
         // should starve other SP queues
@@ -336,14 +343,14 @@ void HwOlympicQosSchedulerTest::verifySP() {
 
 void HwOlympicQosSchedulerTest::verifyWRRAndICP() {
   verifyWRRAndSP(
-      utility::kOlympicWRRAndICPQueueIds(),
+      utility::kOlympicWRRAndICPQueueIds(getAsic()),
       utility::kOlympicICPQueueId); // SP should starve WRR queues
                                     // altogether
 }
 
 void HwOlympicQosSchedulerTest::verifyWRRAndNC() {
   verifyWRRAndSP(
-      utility::kOlympicWRRAndNCQueueIds(),
+      utility::kOlympicWRRAndNCQueueIds(getAsic()),
       utility::kOlympicNCQueueId); // SP should starve WRR queues altogether
 }
 
@@ -360,7 +367,7 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
   };
 
   auto verify = [=]() {
-    _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp());
+    _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp(getAsic()));
   };
 
   auto setupPostWarmboot = [=]() {
@@ -369,13 +376,13 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
                             ->getAsic()
                             ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                             .begin());
-    utility::addOlympicAllSPQueueConfig(&newCfg, streamType);
-    utility::addOlympicAllSPQosMaps(newCfg);
+    utility::addOlympicAllSPQueueConfig(&newCfg, streamType, getAsic());
+    utility::addOlympicAllSPQosMaps(newCfg, getAsic());
     applyNewConfig(newCfg);
   };
 
   auto verifyPostWarmboot = [=]() {
-    _verifyDscpQueueMappingHelper(utility::kOlympicAllSPQueueToDscp());
+    _verifyDscpQueueMappingHelper(utility::kOlympicAllSPQueueToDscp(getAsic()));
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -388,7 +395,9 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
 
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
-  auto setup = [=]() { _setup(ecmpHelper6, utility::kOlympicWRRQueueIds()); };
+  auto setup = [=]() {
+    _setup(ecmpHelper6, utility::kOlympicWRRQueueIds(getAsic()));
+  };
 
   auto verify = [=]() {};
 
@@ -398,14 +407,15 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPTraffic() {
                             ->getAsic()
                             ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
                             .begin());
-    utility::addOlympicAllSPQueueConfig(&newCfg, streamType);
-    utility::addOlympicAllSPQosMaps(newCfg);
+    utility::addOlympicAllSPQueueConfig(&newCfg, streamType, getAsic());
+    utility::addOlympicAllSPQosMaps(newCfg, getAsic());
     applyNewConfig(newCfg);
   };
 
   auto verifyPostWarmboot = [=]() {
     sendUdpPktsForAllQueues(
-        utility::kOlympicAllSPQueueIds(), utility::kOlympicAllSPQueueToDscp());
+        utility::kOlympicAllSPQueueIds(getAsic()),
+        utility::kOlympicAllSPQueueToDscp(getAsic()));
     EXPECT_TRUE(verifySPHelper(
         // SP queue with highest queueId
         // should starve other SP queues

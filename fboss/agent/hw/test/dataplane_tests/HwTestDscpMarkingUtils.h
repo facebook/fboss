@@ -15,6 +15,9 @@
 /*
  * This utility is to provide utils for tests using DSCP Marking tests.
  */
+namespace facebook::fboss {
+class HwAsic;
+}
 
 namespace facebook::fboss::utility {
 
@@ -25,17 +28,19 @@ std::string getDscpAclTableName();
 std::string kDscpCounterAclName();
 std::string kCounterName();
 std::string getIngressAclTableGroupName();
-uint8_t kIcpDscp();
+uint8_t kIcpDscp(const HwAsic* hwAsic);
 
-void addDscpMarkingAcls(cfg::SwitchConfig* config);
-void addDscpCounterAcl(cfg::SwitchConfig* config);
-void addDscpMarkingAclTable(cfg::SwitchConfig* config);
+void addDscpMarkingAcls(cfg::SwitchConfig* config, const HwAsic* hwAsic);
+void addDscpCounterAcl(cfg::SwitchConfig* config, const HwAsic* hwAsic);
+void addDscpMarkingAclTable(cfg::SwitchConfig* config, const HwAsic* hwAsic);
 void addDscpAclEntryWithCounter(
     cfg::SwitchConfig* config,
-    const std::string& aclTableName);
+    const std::string& aclTableName,
+    const HwAsic* hwAsic);
 void addDscpAclTable(
     cfg::SwitchConfig* config,
     int16_t priority,
-    bool addTtlQualifier);
+    bool addTtlQualifier,
+    const HwAsic* hwAsic);
 void delDscpMatchers(cfg::SwitchConfig* config);
 } // namespace facebook::fboss::utility

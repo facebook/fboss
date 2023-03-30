@@ -92,7 +92,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
                 .begin());
       utility::addOlympicQueueConfig(
           &cfg, streamType, getPlatform()->getAsic());
-      utility::addOlympicQosMaps(cfg);
+      utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
     return cfg;
   }
@@ -110,7 +110,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
                 .begin());
       utility::addQueueWredDropConfig(
           &cfg, streamType, getPlatform()->getAsic());
-      utility::addOlympicQosMaps(cfg);
+      utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
     return cfg;
   }
@@ -128,7 +128,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
                 .begin());
       utility::addOlympicQueueConfig(
           &cfg, streamType, getPlatform()->getAsic(), true /*add wred*/);
-      utility::addOlympicQosMaps(cfg);
+      utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
     return cfg;
   }
@@ -146,7 +146,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
                 .begin());
       utility::addOlympicQueueConfig(
           &cfg, streamType, getPlatform()->getAsic());
-      utility::addOlympicQosMaps(cfg);
+      utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
     return cfg;
   }
@@ -613,7 +613,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       auto sendPackets = [=](PortID /* port */, int numPacketsToSend) {
         // Single port config, traffic gets forwarded out of the same!
         sendPkts(
-            utility::kOlympicQueueToDscp().at(kQueueId).front(),
+            utility::kOlympicQueueToDscp(getAsic()).at(kQueueId).front(),
             ecnVal,
             numPacketsToSend,
             kPayloadLength);
@@ -722,7 +722,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       const int kNumPacketsToSend =
           getHwSwitchEnsemble()->getMinPktsForLineRate(portId);
       sendPkts(
-          utility::kOlympicQueueToDscp().at(queueId).front(),
+          utility::kOlympicQueueToDscp(getAsic()).at(queueId).front(),
           true,
           kNumPacketsToSend);
     };
@@ -799,7 +799,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       constexpr auto kNumPacketsToSend{1000};
       for (auto queueId : wredQueueIds) {
         sendPkts(
-            utility::kOlympicQueueToDscp().at(queueId).front(),
+            utility::kOlympicQueueToDscp(getAsic()).at(queueId).front(),
             false,
             kNumPacketsToSend);
       }
@@ -899,7 +899,7 @@ class HwAqmTest : public HwLinkStateDependentTest {
       // Send 12K packets to each port
       for (auto const& port : ports) {
         sendPkts(
-            utility::kOlympicQueueToDscp().at(0).front(),
+            utility::kOlympicQueueToDscp(getAsic()).at(0).front(),
             ecnVal,
             numPacketsToSend,
             kPayloadLength,

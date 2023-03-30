@@ -37,7 +37,7 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
                 .begin());
       utility::addOlympicQueueConfig(
           &cfg, streamType, getPlatform()->getAsic());
-      utility::addOlympicQosMaps(cfg);
+      utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
 
     return cfg;
@@ -111,8 +111,8 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
     return 0;
   }
 
-  uint8_t kQueueId0Dscp() const {
-    return utility::kOlympicQueueToDscp().at(kQueueId0()).front();
+  uint8_t kQueueId0Dscp(const HwAsic* hwAsic) const {
+    return utility::kOlympicQueueToDscp(hwAsic).at(kQueueId0()).front();
   }
 
   uint32_t kMinPps() const {
@@ -127,8 +127,8 @@ class HwPortBandwidthTest : public HwLinkStateDependentTest {
     return 1;
   }
 
-  uint8_t kQueueId1Dscp() const {
-    return utility::kOlympicQueueToDscp().at(kQueueId1()).front();
+  uint8_t kQueueId1Dscp(const HwAsic* hwAsic) const {
+    return utility::kOlympicQueueToDscp(hwAsic).at(kQueueId1()).front();
   }
 
   uint32_t kMinKbps() const {
@@ -336,7 +336,7 @@ void HwPortBandwidthTest::verifyQueueShaper() {
     constexpr auto kWaitTimeForSpecificRate{30};
     auto pktsToSend =
         getHwSwitchEnsemble()->getMinPktsForLineRate(masterLogicalPortIds()[0]);
-    sendUdpPkts(kQueueId0Dscp(), pktsToSend, kPayloadLength);
+    sendUdpPkts(kQueueId0Dscp(getAsic()), pktsToSend, kPayloadLength);
     EXPECT_NO_THROW(getHwSwitchEnsemble()->waitForSpecificRateOnPort(
         masterLogicalPortIds()[0],
         kMhnicPerHostBandwidthKbps * 1000, // BW in bps
@@ -361,7 +361,7 @@ void HwPortBandwidthTest::verifyPortRateTraffic(cfg::PortSpeed portSpeed) {
 
     auto pktsToSend =
         getHwSwitchEnsemble()->getMinPktsForLineRate(masterLogicalPortIds()[0]);
-    sendUdpPkts(kQueueId0Dscp(), pktsToSend);
+    sendUdpPkts(kQueueId0Dscp(getAsic()), pktsToSend);
   };
 
   auto verify = [&]() {
@@ -382,7 +382,8 @@ TEST_F(HwPortBandwidthTest, VerifyPps) {
         .at(kQueueId0());
   };
 
-  verifyRate("pps", kQueueId0Dscp(), kMaxPpsValues().front(), getPackets);
+  verifyRate(
+      "pps", kQueueId0Dscp(getAsic()), kMaxPpsValues().front(), getPackets);
 }
 
 TEST_F(HwPortBandwidthTest, VerifyKbps) {
@@ -393,7 +394,8 @@ TEST_F(HwPortBandwidthTest, VerifyKbps) {
     return (outBytes * 8) / 1000;
   };
 
-  verifyRate("kbps", kQueueId1Dscp(), kMaxKbpsValues().front(), getKbits);
+  verifyRate(
+      "kbps", kQueueId1Dscp(getAsic()), kMaxKbpsValues().front(), getKbits);
 }
 
 TEST_F(HwPortBandwidthTest, VerifyPpsDynamicChanges) {
@@ -406,7 +408,7 @@ TEST_F(HwPortBandwidthTest, VerifyPpsDynamicChanges) {
         .at(kQueueId0());
   };
 
-  verifyRateDynamicChanges("pps", kQueueId0Dscp(), getPackets);
+  verifyRateDynamicChanges("pps", kQueueId0Dscp(getAsic()), getPackets);
 }
 
 TEST_F(HwPortBandwidthTest, VerifyKbpsDynamicChanges) {
@@ -417,7 +419,7 @@ TEST_F(HwPortBandwidthTest, VerifyKbpsDynamicChanges) {
     return (outBytes * 8) / 1000;
   };
 
-  verifyRateDynamicChanges("kbps", kQueueId1Dscp(), getKbits);
+  verifyRateDynamicChanges("kbps", kQueueId1Dscp(getAsic()), getKbits);
 }
 
 TEST_F(HwPortBandwidthTest, VerifyQueueShaper) {

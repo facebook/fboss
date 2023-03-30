@@ -42,21 +42,21 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
 
       auto newCfg{initialConfig()};
-      utility::addOlympicQosMaps(newCfg);
+      utility::addOlympicQosMaps(newCfg, getAsic());
       applyNewConfig(newCfg);
     };
 
     auto verify = [=]() {
       auto portId = helper_->ecmpPortDescriptorAt(0).phyPortID();
       auto portStatsBefore = getLatestPortStats(portId);
-      for (const auto& q2dscps : utility::kOlympicQueueToDscp()) {
+      for (const auto& q2dscps : utility::kOlympicQueueToDscp(getAsic())) {
         for (auto dscp : q2dscps.second) {
           sendPacket(dscp, frontPanel);
         }
       }
       EXPECT_TRUE(utility::verifyQueueMappings(
           portStatsBefore,
-          utility::kOlympicQueueToDscp(),
+          utility::kOlympicQueueToDscp(getAsic()),
           getHwSwitchEnsemble(),
           portId));
     };

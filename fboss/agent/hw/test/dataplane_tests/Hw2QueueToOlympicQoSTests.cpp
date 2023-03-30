@@ -122,12 +122,13 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
                 .begin());
       utility::addOlympicQueueConfig(
           &newCfg, streamType, getPlatform()->getAsic());
-      utility::addOlympicQosMaps(newCfg);
+      utility::addOlympicQosMaps(newCfg, getPlatform()->getAsic());
       applyNewConfig(newCfg);
     };
 
     auto verifyPostWarmboot = [=]() {
-      _verifyDscpQueueMappingHelper(utility::kOlympicQueueToDscp(), frontPanel);
+      _verifyDscpQueueMappingHelper(
+          utility::kOlympicQueueToDscp(getPlatform()->getAsic()), frontPanel);
     };
 
     verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);

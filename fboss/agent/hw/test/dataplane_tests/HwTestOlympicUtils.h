@@ -95,7 +95,8 @@ constexpr int kNetworkAIHighestQueueId = kNetworkAINCQueueId;
 
 void addNetworkAIQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType);
+    cfg::StreamType streamType,
+    const HwAsic* hwAsic);
 
 void addOlympicQueueConfig(
     cfg::SwitchConfig* config,
@@ -107,17 +108,18 @@ void addQueueWredDropConfig(
     cfg::StreamType streamType,
     const HwAsic* asic);
 
-void addOlympicQosMaps(cfg::SwitchConfig& cfg);
+void addOlympicQosMaps(cfg::SwitchConfig& cfg, const HwAsic* hwAsic);
 
 std::string getOlympicCounterNameForDscp(uint8_t dscp);
 
-const std::map<int, std::vector<uint8_t>>& kOlympicQueueToDscp();
+const std::map<int, std::vector<uint8_t>> kOlympicQueueToDscp(
+    const HwAsic* hwAsic);
 const std::map<int, uint8_t>& kOlympicWRRQueueToWeight();
 
-const std::vector<int>& kOlympicWRRQueueIds();
-const std::vector<int>& kOlympicSPQueueIds();
-const std::vector<int>& kOlympicWRRAndICPQueueIds();
-const std::vector<int>& kOlympicWRRAndNCQueueIds();
+const std::vector<int> kOlympicWRRQueueIds(const HwAsic* hwAsic);
+const std::vector<int> kOlympicSPQueueIds(const HwAsic* hwAsic);
+const std::vector<int> kOlympicWRRAndICPQueueIds(const HwAsic* hwAsic);
+const std::vector<int> kOlympicWRRAndNCQueueIds(const HwAsic* hwAsic);
 
 bool isOlympicWRRQueueId(int queueId);
 
@@ -125,11 +127,13 @@ int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight);
 
 void addOlympicAllSPQueueConfig(
     cfg::SwitchConfig* config,
-    cfg::StreamType streamType);
-void addOlympicAllSPQosMaps(cfg::SwitchConfig& cfg);
+    cfg::StreamType streamType,
+    const HwAsic* asic);
+void addOlympicAllSPQosMaps(cfg::SwitchConfig& cfg, const HwAsic* asic);
 
-const std::map<int, std::vector<uint8_t>>& kOlympicAllSPQueueToDscp();
-const std::vector<int>& kOlympicAllSPQueueIds();
+const std::map<int, std::vector<uint8_t>> kOlympicAllSPQueueToDscp(
+    const HwAsic* hwAsic);
+const std::vector<int> kOlympicAllSPQueueIds(const HwAsic* hwAsic);
 cfg::ActiveQueueManagement kGetOlympicEcnConfig(
     int minLength = 41600,
     int maxLength = 41600);

@@ -44,7 +44,7 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
                 .begin());
       utility::addOlympicQueueConfig(
           &cfg, streamType, getPlatform()->getAsic());
-      utility::addOlympicQosMaps(cfg);
+      utility::addOlympicQosMaps(cfg, getPlatform()->getAsic());
     }
     return cfg;
   }
@@ -292,7 +292,8 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
       _setup(true /*needTrafficLoop*/);
     };
     auto verify = [this, queueId]() {
-      auto dscpsForQueue = utility::kOlympicQueueToDscp().find(queueId)->second;
+      auto dscpsForQueue =
+          utility::kOlympicQueueToDscp(getAsic()).find(queueId)->second;
       for (auto portAndIp : getPort2DstIp()) {
         // Assert zero watermark
         assertWatermark(portAndIp.first, queueId, true /*expectZero*/, 2);
@@ -354,13 +355,15 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
         masterLogicalInterfacePortIds()[0]);
     // Sending traffic on 2 queues
     sendUdpPkts(
-        utility::kOlympicQueueToDscp()
+        utility::kOlympicQueueToDscp(getAsic())
             .at(utility::kOlympicSilverQueueId)
             .front(),
         kDestIp1(),
         minPktsForLineRate / 2);
     sendUdpPkts(
-        utility::kOlympicQueueToDscp().at(utility::kOlympicGoldQueueId).front(),
+        utility::kOlympicQueueToDscp(getAsic())
+            .at(utility::kOlympicGoldQueueId)
+            .front(),
         kDestIp1(),
         minPktsForLineRate / 2);
     getHwSwitchEnsemble()->waitForLineRateOnPort(
@@ -452,7 +455,7 @@ TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
 
     auto sendPackets = [=](PortID port, int numPacketsToSend) {
       sendUdpPkts(
-          utility::kOlympicQueueToDscp().at(kQueueId).front(),
+          utility::kOlympicQueueToDscp(getAsic()).at(kQueueId).front(),
           kDestIp1(),
           numPacketsToSend,
           kTxPacketPayloadLen,

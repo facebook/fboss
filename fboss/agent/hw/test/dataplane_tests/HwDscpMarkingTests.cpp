@@ -66,9 +66,9 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
 
       auto newCfg{initialConfig()};
-      utility::addOlympicQosMaps(newCfg);
-      utility::addDscpCounterAcl(&newCfg);
-      utility::addDscpMarkingAcls(&newCfg);
+      utility::addOlympicQosMaps(newCfg, getAsic());
+      utility::addDscpCounterAcl(&newCfg, getAsic());
+      utility::addDscpMarkingAcls(&newCfg, getAsic());
 
       applyNewConfig(newCfg);
     };
@@ -110,17 +110,17 @@ class HwDscpMarkingTest : public HwLinkStateDependentTest {
 
       EXPECT_TRUE(utility::verifyQueueMappings(
           portStatsBefore,
-          {{utility::kOlympicICPQueueId, {utility::kIcpDscp()}}},
+          {{utility::kOlympicICPQueueId, {utility::kIcpDscp(getAsic())}}},
           getHwSwitchEnsemble(),
           portId));
 
       sendAllPackets(
-          utility::kIcpDscp(),
+          utility::kIcpDscp(getAsic()),
           frontPanel,
           IP_PROTO::IP_PROTO_UDP,
           utility::kUdpPorts());
       sendAllPackets(
-          utility::kIcpDscp(),
+          utility::kIcpDscp(getAsic()),
           frontPanel,
           IP_PROTO::IP_PROTO_TCP,
           utility::kTcpPorts());

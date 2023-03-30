@@ -37,7 +37,7 @@ void addOlympicQosToConfig(
     cfg::SwitchConfig& config,
     const HwSwitch* hwSwitch) {
   auto hwAsic = hwSwitch->getPlatform()->getAsic();
-  addOlympicQosMaps(config);
+  addOlympicQosMaps(config, hwAsic);
   auto streamType =
       *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   addOlympicQueueConfig(&config, streamType, hwAsic);
@@ -48,11 +48,11 @@ void addNetworkAIQosToConfig(
     const HwSwitch* hwSwitch) {
   auto hwAsic = hwSwitch->getPlatform()->getAsic();
   // network AI qos map is the same as olympic
-  addOlympicQosMaps(config);
+  addOlympicQosMaps(config, hwAsic);
   auto streamType =
       *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   // queue configuration is different
-  addNetworkAIQueueConfig(&config, streamType);
+  addNetworkAIQueueConfig(&config, streamType, hwAsic);
 }
 
 /*
@@ -329,7 +329,7 @@ cfg::SwitchConfig createProdRswMhnicConfig(
     // Thus, putting DSCP Marking ACLs before queue-per-host ACLs would cause
     // noisy neighbor problem for traffic between ports connected to the same
     // switch.
-    utility::addDscpMarkingAcls(&config);
+    utility::addDscpMarkingAcls(&config, hwAsic);
   }
   if (hwAsic->isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
     addLoadBalancerToConfig(config, hwSwitch, LBHash::FULL_HASH);

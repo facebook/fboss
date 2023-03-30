@@ -186,7 +186,7 @@ class SaiAclTableGroupTest : public HwTest {
          cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE});
 
     utility::addQueuePerHostAclEntry(newCfg, kQphDscpTable());
-    utility::addDscpAclEntryWithCounter(newCfg, kQphDscpTable());
+    utility::addDscpAclEntryWithCounter(newCfg, kQphDscpTable(), getAsic());
   }
 
   void addTwoAclTables(cfg::SwitchConfig* newCfg) {
