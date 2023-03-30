@@ -1,18 +1,42 @@
 # Workflows
 
-## Workflow: Building latest FBOSS
+## Workflow: Building latest FBOSS for first time
 
 Follow steps in:
  - Building FBOSS OSS on Containers (but skip the step to pin to latest stable commit hashes)
 
-## Workflow: Building latest stable FBOSS
+## Workflow: Building latest stable FBOSS for first time
 
 Follow steps in:
  - Building FBOSS OSS on Containers (including the step to pin to latest stable commit hashes)
 
+## Workflow: Building latest FBOSS after successful FBOSS OSS build
+
+From container running on VM -
+
+```
+ cd /var/FBOSS/fboss.git
+ # Remove the stable commit hash pinning if it was done earlier
+ rm -rf build/deps/github_hashes/facebook
+ rm -rf build/deps/github_hashes/facebookincubator
+
+ git stash # This is to save the build-helper changes
+ git pull
+ git stash pop # This is to restore the build-helper changes 
+
+ # Optionally ping to latest stable commit hashes
+ tar -xvf fboss/oss/stable_commits/latest_stable_hashes.tar.gz
+
+ # Build FBOSS
+ ./build/fbcode_builder/getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss
+```
+
 ## Workflow: Iterate on FBOSS changes
 
+From container running on VM -
+
 For the incremental FBOSS OSS build for FBOSS changes –
+ - First build FBOSS OSS without any code changes by following any of the previous workflows
  - Make the FBOSS code changes in “<scratch_path>/repos/github.com-facebook-fboss.git/”
  - Then, cd “<scratch_path>/build/fboss/” and 
  - Execute “./run_cmake.py --install”
@@ -20,6 +44,8 @@ For the incremental FBOSS OSS build for FBOSS changes –
 ## Workflow: Iterate on SAI lib changes 
 
 ### SAI lib libsai.a changes not involving SAI header changes
+
+From container running on VM -
 
  - Build libsai.a incrementally as per instructions from ASIC vendor
  - cd <scratch_path>/installed/sai_impl->/
@@ -29,6 +55,8 @@ For the incremental FBOSS OSS build for FBOSS changes –
 
 
 ### SAI lib libsai.a changes involving SAI header changes
+
+From container running on VM -
 
  - Build libsai.a incrementally as per instructions from ASIC vendor
  - rm -rf /var/FBOSS/built-sai
@@ -44,6 +72,8 @@ For the incremental FBOSS OSS build for FBOSS changes –
 
 ## Workflow: Iterate on FBOSS changes for "--cmake-target" option
 
+From container running on VM -
+
  - Make the FBOSS code changes in “<scratch_path>/repos/github.com-facebook-fboss.git/”
  - Then, rebuild FBOSS OSS using --cmake-target option -
 ```
@@ -55,6 +85,8 @@ For the incremental FBOSS OSS build for FBOSS changes –
 
 ### SAI lib libsai.a changes not involving SAI header changes (FBOSS OSS built using "--cmake-target" option)
 
+From container running on VM -
+
  - Build libsai.a incrementally as per instructions from ASIC vendor
  - cd <scratch_path>/installed/sai_impl->/
  - Replace libsai_impl.a with the newly built libsai.a
@@ -65,6 +97,8 @@ For the incremental FBOSS OSS build for FBOSS changes –
 ```
 
 ### SAI lib libsai.a changes involving SAI header changes (FBOSS OSS built using "--cmake-target" option)
+
+From container running on VM -
 
  - Build libsai.a incrementally as per instructions from ASIC vendor
  - rm -rf /var/FBOSS/built-sai
