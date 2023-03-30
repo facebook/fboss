@@ -108,7 +108,7 @@ time ./build/fbcode_builder/getdeps.py build --allow-system-packages --scratch-p
 
 Instead of building all FBOSS OSS binaries, a specific binary can be built using "--cmake-target" option.
 
-For building the SAI HW test binary only, the following command can be used - 
+For building the SAI HW test binary only, the following command can be used -
 
 ```
 time ./build/fbcode_builder/getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss --cmake-target sai_test-sai_impl-1.11.0

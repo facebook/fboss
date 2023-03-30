@@ -30,7 +30,7 @@ cd /var/FBOSS/fboss.git
 From the host VM of the container, copy over the FBOSS package directory or tarball to the switch -
 
 ```
-scp -r /opt/app/FBOSS_DIR/tmp_bld_dir/fboss_bins-<pkg-id> root@$switchName:/opt/ # directory copy
+scp -r /opt/app/FBOSS_DIR/tmp_bld_dir/fboss_bins-<$pkg-id> root@$switchName:/opt/ # directory copy
 scp -r /opt/app/FBOSS_DIR/tmp_bld_dir/fboss_bins.tar.gz root@$switchName:/opt/ # tarball copy
 ```
 
@@ -44,7 +44,7 @@ tar -xzvf fboss_bins.tar.gz
 On the switch, point /opt/fboss to the new package before using
 
 ```
-ln -s  /opt/fboss_bins-<pkg-id> /opt/fboss
+ln -s  /opt/fboss_bins-<$pkg-id> /opt/fboss
 ```
 
 ## Checking dependencies
@@ -70,23 +70,22 @@ cd /opt/fboss
 source ./bin/setup_fboss_env
 ```
 
-Run setup script to populate fruid.json and other config files
+Run setup script to populate fruid.json and other config files (this step may not succeed on all platforms)
 
 ```
 ./bin/setup.py
 ```
 
-Running single HW test using HW test binary - 
+Running single HW test using HW test binary -
 
 ```
-./bin/sai_test-sai_impl-1.11.0 --config ./share/bcm_sai_configs/meru400bfu.agent.materialized_JSON --gtest_filter=HwFabricSwitchTest.init
+./bin/sai_test-sai_impl-1.11.0 --config ./share/hw_test_configs/meru400biu.agent.materialized_JSON --gtest_filter=HwVoqSwitchWithFabricPortsTest.init
 ```
 
 Running multiple tests using test runner -
 
-FBOSS tests can be launched by executing the test runner script. The script automatically selects and runs tests relevant to the BCM Wedge platform with optional filters.
+FBOSS tests can be launched by executing the test runner script. The script automatically selects and runs tests relevant to the optional filters. Also, the test runner can be run using various options - known good tests, known bad tests, include and exclude regexes, etc... These are documented in run_test.py. After running all the tests, results will also be generated in a csv file.
 
 ```
-./bin/run_test.py sai --sai-bin sai_test-sai_impl-1.11.0 --config ./share/bcm_sai_configs/meru400bfu.agent.materialized_JSON --gtest_filter=HwFabricSwitchTest.*
+./bin/run_test.py sai --sai-bin sai_test-sai_impl-1.11.0 --config ./share/hw_test_configs/meru400biu.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.*
 ```
-
