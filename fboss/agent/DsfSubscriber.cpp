@@ -59,6 +59,16 @@ void DsfSubscriber::scheduleUpdate(
         bool changed{false};
         auto out = in->clone();
 
+        auto skipProgramming = [&](const auto& nbrEntryIter) -> bool {
+          // Local neighbor entry on one DSF node is remote neighbor entry on
+          // every other DSF node. Thus, for neighbor entry received from other
+          // DSF nodes, set isLocal = False before programming it.
+          // Also, link local only has significance for Servers directly
+          // connected to Interface Node. Thus, skip programming remote link
+          // local neighbors.
+          return nbrEntryIter->second->getIP().isLinkLocal();
+        };
+
         auto makeRemoteSysPort = [&](const auto& node) { return node; };
         auto makeRemoteRif = [&](const auto& node) {
           auto clonedNode = node->clone();
@@ -68,15 +78,9 @@ void DsfSubscriber::scheduleUpdate(
             clonedNode->setNdpTable(node->getNdpTable()->toThrift());
           }
 
-          // Local neighbor entry on one DSF node is remote neighbor entry on
-          // every other DSF node. Thus, for neighbor entry received from other
-          // DSF nodes, set isLocal = False before programming it.
-          // Also, link local only has significance for Servers directly
-          // connected to Interface Node. Thus, skip programming remote link
-          // local neighbors.
           auto arpEntryIter = (*clonedNode->getArpTable()).begin();
           while (arpEntryIter != (*clonedNode->getArpTable()).end()) {
-            if (arpEntryIter->second->getIP().isLinkLocal()) {
+            if (skipProgramming(arpEntryIter)) {
               arpEntryIter = (*clonedNode->getArpTable()).erase(arpEntryIter);
             } else {
               arpEntryIter->second->setIsLocal(false);
@@ -86,7 +90,7 @@ void DsfSubscriber::scheduleUpdate(
 
           auto ndpEntryIter = (*clonedNode->getNdpTable()).begin();
           while (ndpEntryIter != (*clonedNode->getNdpTable()).end()) {
-            if (ndpEntryIter->second->getIP().isLinkLocal()) {
+            if (skipProgramming(ndpEntryIter)) {
               ndpEntryIter = (*clonedNode->getNdpTable()).erase(ndpEntryIter);
             } else {
               ndpEntryIter->second->setIsLocal(false);
