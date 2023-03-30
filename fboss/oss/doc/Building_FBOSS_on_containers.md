@@ -114,4 +114,4 @@ For building the SAI HW test binary only, the following command can be used -
 time ./build/fbcode_builder/getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss --cmake-target sai_test-sai_impl-1.11.0
 ```
 
-NOTE: If "--cmake-target" option is used, then the binary will not be installed and hence will be available only in <scratch_patch>/build/fboss/ directory.
+NOTE: If "--cmake-target" option is used, then the binary will not be installed and hence will be available only in <scratch_patch>/build/fboss/ directory. Due to this, package-fboss.py script (explained in "Packaging and running FBOSS" doc) can't be used if "--cmake-target" option is used. This option can be used when FBOSS OSS was already built, packaged and copied to switch and after this, only a specific binary needs to be recompiled and replaced.
