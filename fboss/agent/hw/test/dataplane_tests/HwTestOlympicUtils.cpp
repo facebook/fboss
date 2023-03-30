@@ -8,10 +8,77 @@
  *
  */
 #include "fboss/agent/hw/test/dataplane_tests/HwTestOlympicUtils.h"
+#include "fboss/agent/FbossError.h"
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 namespace facebook::fboss::utility {
+
+int getOlympicQueueId(const HwAsic* hwAsic, OlympicQueueType queueType) {
+  bool queueLowerValHighPri = hwAsic->isSupported(
+      HwAsic::Feature::QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI);
+  switch (queueType) {
+    case OlympicQueueType::SILVER:
+      return queueLowerValHighPri ? kOlympicSilverQueueId2
+                                  : kOlympicSilverQueueId;
+    case OlympicQueueType::GOLD:
+      return queueLowerValHighPri ? kOlympicGoldQueueId2 : kOlympicGoldQueueId;
+    case OlympicQueueType::ECN1:
+      return queueLowerValHighPri ? kOlympicEcn1QueueId2 : kOlympicEcn1QueueId;
+    case OlympicQueueType::BRONZE:
+      return queueLowerValHighPri ? kOlympicBronzeQueueId2
+                                  : kOlympicBronzeQueueId;
+    case OlympicQueueType::ICP:
+      return queueLowerValHighPri ? kOlympicICPQueueId2 : kOlympicICPQueueId;
+    case OlympicQueueType::NC:
+      return queueLowerValHighPri ? kOlympicNCQueueId2 : kOlympicNCQueueId;
+  }
+  throw FbossError("Invalid olympic queue type ", queueType);
+}
+
+int getOlympicAllSPQueueId(
+    const HwAsic* hwAsic,
+    AllSPOlympicQueueType queueType) {
+  bool queueLowerValHighPri = hwAsic->isSupported(
+      HwAsic::Feature::QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI);
+  switch (queueType) {
+    case AllSPOlympicQueueType::NCNF:
+      return queueLowerValHighPri ? kOlympicAllSPNCNFQueueId2
+                                  : kOlympicAllSPNCNFQueueId;
+    case AllSPOlympicQueueType::BRONZE:
+      return queueLowerValHighPri ? kOlympicAllSPBronzeQueueId2
+                                  : kOlympicAllSPBronzeQueueId;
+    case AllSPOlympicQueueType::SILVER:
+      return queueLowerValHighPri ? kOlympicAllSPSilverQueueId2
+                                  : kOlympicAllSPSilverQueueId;
+    case AllSPOlympicQueueType::GOLD:
+      return queueLowerValHighPri ? kOlympicAllSPGoldQueueId2
+                                  : kOlympicAllSPGoldQueueId;
+    case AllSPOlympicQueueType::ICP:
+      return queueLowerValHighPri ? kOlympicAllSPICPQueueId2
+                                  : kOlympicAllSPICPQueueId;
+    case AllSPOlympicQueueType::NC:
+      return queueLowerValHighPri ? kOlympicAllSPNCQueueId2
+                                  : kOlympicAllSPNCQueueId;
+  }
+  throw FbossError("Invalid all SP olympic queue type ", queueType);
+}
+
+int getNetworkAIQueueId(const HwAsic* hwAsic, NetworkAIQueueType queueType) {
+  bool queueLowerValHighPri = hwAsic->isSupported(
+      HwAsic::Feature::QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI);
+  switch (queueType) {
+    case NetworkAIQueueType::MONITORING:
+      return queueLowerValHighPri ? kNetworkAIMonitoringQueueId2
+                                  : kNetworkAIMonitoringQueueId;
+    case NetworkAIQueueType::RDMA:
+      return queueLowerValHighPri ? kNetworkAIRdmaQueueId2
+                                  : kNetworkAIRdmaQueueId;
+    case NetworkAIQueueType::NC:
+      return queueLowerValHighPri ? kNetworkAINCQueueId2 : kNetworkAINCQueueId;
+  }
+  throw FbossError("Invalid all network AI queue type ", queueType);
+}
 
 cfg::ActiveQueueManagement kGetOlympicEcnConfig(int minLength, int maxLength) {
   cfg::ActiveQueueManagement ecnAQM;

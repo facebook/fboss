@@ -91,6 +91,8 @@ constexpr int kNetworkAIMonitoringQueueId2 = 7;
 constexpr int kNetworkAIRdmaQueueId2 = 2;
 constexpr int kNetworkAINCQueueId2 = 1;
 
+constexpr int kNetworkAIHighestQueueId = kNetworkAINCQueueId;
+
 void addNetworkAIQueueConfig(
     cfg::SwitchConfig* config,
     cfg::StreamType streamType);
@@ -156,5 +158,11 @@ void addQueueBurstSizeConfig(
     const int queueId,
     const uint32_t minKbits,
     const uint32_t maxKbits);
+
+int getOlympicQueueId(const HwAsic* hwAsic, OlympicQueueType queueType);
+
+int getOlympicSPQueueId(const HwAsic* hwAsic, AllSPOlympicQueueType queueType);
+
+int getNetworkAIQueueId(const HwAsic* hwAsic, NetworkAIQueueType queueType);
 
 } // namespace facebook::fboss::utility
