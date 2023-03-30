@@ -16,7 +16,6 @@ OPT_ARG_SCRATCH_PATH = "--scratch-path"
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--rpm", help="Builds RPM", action="store_true")
 
     parser.add_argument("--ko-path", type=str, help="Path to build kernel modules")
     parser.add_argument(
@@ -32,13 +31,7 @@ def parse_args():
 
 
 class PackageFboss:
-    FBOSS_BINS = "fboss_bins-1"
-    FBOSS_BINS_SPEC = FBOSS_BINS + ".spec"
-
-    HOME_DIR_ABS = os.path.expanduser("~")
-
     SCRIPT_DIR_ABS = os.path.dirname(os.path.realpath(__file__))
-    RPM_SPEC_ABS = os.path.join(SCRIPT_DIR_ABS, FBOSS_BINS_SPEC)
 
     BIN = "bin"
     LIB = "lib"
@@ -69,15 +62,6 @@ class PackageFboss:
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.LIB64))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.MODULES))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.DATA))
-
-        self.rpm_dir_abs = os.path.join(PackageFboss.HOME_DIR_ABS, "rpmbuild")
-        self.rpm_src_dir_abs = os.path.join(self.rpm_dir_abs, "SOURCES")
-        self.rpm_spec_dir_abs = os.path.join(self.rpm_dir_abs, "SPECS")
-
-        self.rpm_src_fboss_dir_abs = os.path.join(
-            self.rpm_src_dir_abs, PackageFboss.FBOSS_BINS
-        )
-        self.rpm_src_fboss_tar_abs = self.rpm_src_fboss_dir_abs + ".tar.gz"
 
     def _get_install_dir_for(self, name):
         get_install_dir_cmd = [PackageFboss.GETDEPS, "show-inst-dir", name]
@@ -172,51 +156,8 @@ class PackageFboss:
         self._copy_configs(tmp_dir_name)
         self._copy_kos(tmp_dir_name)
 
-    def _setup_for_rpmbuild(self):
-        print(f"Setup for rpmbuild...")
-        if os.path.exists(self.rpm_dir_abs):
-            shutil.rmtree(self.rpm_dir_abs)
-        os.makedirs(self.rpm_dir_abs)
-        subprocess.run("rpmdev-setuptree")
-        os.makedirs(self.rpm_src_fboss_dir_abs)
-
-    def _prepare_for_build(self):
-        print(f"Preparing for build...")
-        with tarfile.open(self.rpm_src_fboss_tar_abs, "w:gz") as tar:
-            tar.add(
-                self.rpm_src_fboss_dir_abs,
-                arcname=os.path.basename(self.rpm_src_fboss_dir_abs),
-            )
-
-        # package .tar.gz, so this can be removed
-        shutil.rmtree(self.rpm_src_fboss_dir_abs)
-
-        # TODO use rpmdev-newspec $FBOSS_BINS to create spec and edit it.
-        # For now, copy pre-created SPEC file.
-        shutil.copy(PackageFboss.RPM_SPEC_ABS, self.rpm_spec_dir_abs)
-
-    def _build_rpm_helper(self):
-        print(f"Building rpm...")
-        env = dict(os.environ)
-        env["LD_LIBRARY_PATH"] = PackageFboss.DEVTOOLS_LIBRARY_PATH
-        subprocess.run(
-            ["rpmbuild", "-ba", PackageFboss.FBOSS_BINS_SPEC],
-            cwd=self.rpm_spec_dir_abs,
-            env=env,
-        )
-
-    def _build_rpm(self):
-        self._setup_for_rpmbuild()
-        self._copy_binaries(self.rpm_src_fboss_dir_abs)
-        self._prepare_for_build()
-        self._build_rpm_helper()
-
     def run(self, args):
-        if args.rpm:
-            print(f"Building RPM...")
-            self._build_rpm()
-        else:
-            self._copy_binaries(self.tmp_dir_name)
+        self._copy_binaries(self.tmp_dir_name)
 
 
 if __name__ == "__main__":
