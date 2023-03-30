@@ -36,9 +36,7 @@ constexpr uint32_t kOlympicGoldWeight = 80;
 constexpr uint32_t kOlympicEcn1Weight = 8;
 constexpr uint32_t kOlympicBronzeWeight = 5;
 
-constexpr int kOlympicDefaultQueueId = kOlympicSilverQueueId;
 constexpr int kOlympicHighestSPQueueId = kOlympicNCQueueId;
-constexpr int kOlympicHighestQueueId = kOlympicNCQueueId;
 
 /* Olympic ALL SP QoS queues */
 constexpr int kOlympicAllSPNCNFQueueId = 0;
@@ -48,9 +46,7 @@ constexpr int kOlympicAllSPGoldQueueId = 3;
 constexpr int kOlympicAllSPICPQueueId = 6;
 constexpr int kOlympicAllSPNCQueueId = 7;
 
-constexpr int kOlympicAllSPDefaultQueueId = kOlympicAllSPSilverQueueId;
 constexpr int kOlympicAllSPHighestSPQueueId = kOlympicAllSPNCQueueId;
-constexpr int kOlympicAllSPHighestQueueId = kOlympicAllSPNCQueueId;
 
 /* Queue config params */
 constexpr int kQueueConfigBurstSizeMinKb = 1;
