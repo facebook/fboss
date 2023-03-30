@@ -120,6 +120,16 @@ class PackageFboss:
             os.path.join(tmp_dir_name, PackageFboss.DATA, "sai_known_bad_tests"),
         )
 
+    def _copy_known_good_tests(self, tmp_dir_name):
+        known_good_tests_path = os.path.join(
+            self._get_git_root(__file__), "fboss/oss/sai_known_good_tests"
+        )
+        print(f"Copying {known_good_tests_path} to {tmp_dir_name}")
+        shutil.copytree(
+            "fboss/oss/sai_known_good_tests",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "sai_known_good_tests"),
+        )
+
     def _copy_binaries(self, tmp_dir_name):
         print(f"Copying binaries...")
 
@@ -143,6 +153,7 @@ class PackageFboss:
         self._copy_run_configs(tmp_dir_name)
         self._copy_configs(tmp_dir_name)
         self._copy_known_bad_tests(tmp_dir_name)
+        self._copy_known_good_tests(tmp_dir_name)
 
     def run(self, args):
         self._copy_binaries(self.tmp_dir_name)
