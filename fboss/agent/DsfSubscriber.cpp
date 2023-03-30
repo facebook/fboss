@@ -69,13 +69,14 @@ void DsfSubscriber::scheduleUpdate(
           return nbrEntryIter->second->getIP().isLinkLocal();
         };
 
-        auto makeRemoteSysPort = [&](const auto& node) { return node; };
-        auto makeRemoteRif = [&](const auto& node) {
-          auto clonedNode = node->clone();
+        auto makeRemoteSysPort = [&](const auto& /*oldNode*/,
+                                     const auto& newNode) { return newNode; };
+        auto makeRemoteRif = [&](const auto& /*oldNode*/, const auto& newNode) {
+          auto clonedNode = newNode->clone();
 
-          if (node->isPublished()) {
-            clonedNode->setArpTable(node->getArpTable()->toThrift());
-            clonedNode->setNdpTable(node->getNdpTable()->toThrift());
+          if (newNode->isPublished()) {
+            clonedNode->setArpTable(newNode->getArpTable()->toThrift());
+            clonedNode->setNdpTable(newNode->getNdpTable()->toThrift());
           }
 
           auto arpEntryIter = (*clonedNode->getArpTable()).begin();
@@ -111,13 +112,14 @@ void DsfSubscriber::scheduleUpdate(
                       // map from deserialized FSDB
                       // subscriptions. So can't just rely on
                       // pointer comparison here.
-                      auto clonedNode = makeRemote(newNode);
+                      auto clonedNode = makeRemote(oldNode, newNode);
                       mapToUpdate->updateNode(clonedNode);
                       changed = true;
                     }
                   },
                   [&](const auto& newNode) {
-                    auto clonedNode = makeRemote(newNode);
+                    auto clonedNode = makeRemote(
+                        std::decay_t<decltype(newNode)>{nullptr}, newNode);
                     mapToUpdate->addNode(clonedNode);
                     changed = true;
                   },
