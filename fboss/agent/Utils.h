@@ -23,6 +23,7 @@
 #include <folly/Range.h>
 #include <folly/lang/Bits.h>
 #include <folly/logging/xlog.h>
+#include "fboss/agent/state/NdpEntry.h"
 
 #include <thrift/lib/cpp2/protocol/BinaryProtocol.h>
 
@@ -262,5 +263,15 @@ bool readThriftFromBinaryFile(
   }
   return false;
 }
+/*
+ * Helper function to get neighbor entry for specified IP.
+ *
+ * for VLAN based interface, look up the neighbor table for VLAN.
+ * for Port based interface, look up the neighbor table for interface.
+ */
+std::shared_ptr<NdpEntry> getNeighborEntryForIP(
+    const std::shared_ptr<SwitchState>& state,
+    const std::shared_ptr<Interface>& intf,
+    const folly::IPAddressV6& ipAddr);
 
 } // namespace facebook::fboss

@@ -418,4 +418,30 @@ void enableExactMatch(std::string& yamlCfg) {
     }
   }
 }
+
+std::shared_ptr<NdpEntry> getNeighborEntryForIP(
+    const std::shared_ptr<SwitchState>& state,
+    const std::shared_ptr<Interface>& intf,
+    const folly::IPAddressV6& ipAddr) {
+  std::shared_ptr<NdpEntry> entry{nullptr};
+
+  switch (intf->getType()) {
+    case cfg::InterfaceType::VLAN: {
+      auto vlanID = intf->getVlanID();
+      auto vlan = state->getVlans()->getVlanIf(vlanID);
+      if (vlan) {
+        entry = vlan->getNdpTable()->getEntryIf(ipAddr);
+      }
+      break;
+    }
+    case cfg::InterfaceType::SYSTEM_PORT: {
+      const auto& nbrTable = intf->getNdpTable();
+      entry = nbrTable->getEntryIf(ipAddr);
+      break;
+    }
+  }
+
+  return entry;
+}
+
 } // namespace facebook::fboss
