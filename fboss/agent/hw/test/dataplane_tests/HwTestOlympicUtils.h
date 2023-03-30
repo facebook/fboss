@@ -44,6 +44,13 @@ constexpr int kOlympicBronzeQueueId = 4;
 constexpr int kOlympicICPQueueId = 6;
 constexpr int kOlympicNCQueueId = 7;
 
+constexpr int kOlympicSilverQueueId2 = 7;
+constexpr int kOlympicGoldQueueId2 = 6;
+constexpr int kOlympicEcn1QueueId2 = 5;
+constexpr int kOlympicBronzeQueueId2 = 3;
+constexpr int kOlympicICPQueueId2 = 2;
+constexpr int kOlympicNCQueueId2 = 1;
+
 constexpr uint32_t kOlympicSilverWeight = 15;
 constexpr uint32_t kOlympicGoldWeight = 80;
 constexpr uint32_t kOlympicEcn1Weight = 8;
@@ -59,6 +66,13 @@ constexpr int kOlympicAllSPGoldQueueId = 3;
 constexpr int kOlympicAllSPICPQueueId = 6;
 constexpr int kOlympicAllSPNCQueueId = 7;
 
+constexpr int kOlympicAllSPNCNFQueueId2 = 7;
+constexpr int kOlympicAllSPBronzeQueueId2 = 6;
+constexpr int kOlympicAllSPSilverQueueId2 = 5;
+constexpr int kOlympicAllSPGoldQueueId2 = 4;
+constexpr int kOlympicAllSPICPQueueId2 = 2;
+constexpr int kOlympicAllSPNCQueueId2 = 1;
+
 constexpr int kOlympicAllSPHighestSPQueueId = kOlympicAllSPNCQueueId;
 
 /* Queue config params */
@@ -72,6 +86,10 @@ constexpr int kQueueConfigAqmsWredDropProbability = 100;
 constexpr int kNetworkAIMonitoringQueueId = 0;
 constexpr int kNetworkAIRdmaQueueId = 6;
 constexpr int kNetworkAINCQueueId = 7;
+
+constexpr int kNetworkAIMonitoringQueueId2 = 7;
+constexpr int kNetworkAIRdmaQueueId2 = 2;
+constexpr int kNetworkAINCQueueId2 = 1;
 
 void addNetworkAIQueueConfig(
     cfg::SwitchConfig* config,
