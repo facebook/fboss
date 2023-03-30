@@ -2,10 +2,12 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import abc
+import csv
 import os
 import re
 import subprocess
 import sys
+import tempfile
 import time
 from argparse import ArgumentParser
 from datetime import datetime
@@ -32,98 +34,16 @@ from datetime import datetime
 #  ./run_test.py sai --config $confFile --skip-known-bad-tests $knownBadTestsFile # skip running known bad tests
 #
 #  ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig #  --mgmt-if eth0 # Using custom mgmt-if
+
+# ./run_test.py sai --config $confFile --coldboot_only --filter_file=$filter-file # fboss.git/fboss/oss/sai_known_good_tests/ for filter files
 #
 # Running non-OSS:
 #  ./run_test.py sai --config fuji.agent.materialized_JSON --filter HwVlanTest.VlanApplyConfig --sdk_logging /root/skhare/sai_replayer_logs --no-oss --sai-bin /root/skhare/sai_test-brcm-7.2.0.0_odp --mgmt-if eth0
 #
-# All tests matching the following filters pass on w400C in VOQ mode
-# VOQ tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchTest.*:-*sendPacketCpu*:*trapPktsOnPort*:*AclQualifier*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwVoqSwitchWithMultipleDsfNodesTest.*
-# ECMP Tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwEcmpTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=SaiNextHopGroupTest.*
-# Basic forwarding tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwLoopBackTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwL4PortBlackHolingTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwJumboFramesTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwRxReasonTests.*
-# Route programming tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwRouteTest/0.*:-*Mpls*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwRouteTest/1.*:-*Mpls*
-# Neighbor programming tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwNeighborTest/0.*:-*LookupClass
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwNeighborTest/2.*:-*LookupClass
-# ACL tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwAclCounterTest.*:-*Sport*:*BumpOn*Cpu*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=SaiAclTableRecreateTests.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwAclPriorityTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwAclMatchActionsTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwAclStatTest.*
-# Counter Tests
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwInDiscardsCounterTest.*
-# ./run_test.py sai --config wedge400c_voq.agent.materialized_JSON --filter=HwResourceStatsTest.aclStats
-#
-# All tests matching the following filters pass on w400C in fabric mode
-# ./run_test.py sai --config wedge400c_fabric.agent.materialized_JSON --filter=HwFabricSwitchTest.*
-
-# All tests matching following filters are expected to PASS on Meru400biu
-# Basic VOQ switch tests
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwVoqSwitchTest*
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwVoqSwitchWithFabriPortsTest.*
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwVoqSwitchWithMultipleDsfNodesTest.*
-# Basic forwarding tests
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwJumboFramesTest.*
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwLoopBackTest.*
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON  --filter=HwL4PortBlackHolingTest.*
-# Counter tests
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON  --filter=HwInPauseDiscardsCounterTest.*
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON  --filter=HwResourceStatsTest.l3Stats
-# ECMP Tests
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwEcmpTest.*:-*Ucmp*
-# Load Balancer Tests
-# UCMP support lacking in DNX
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwLoadBalancerTestV4.*:-*Ucmp*
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwLoadBalancerTestV6.*:-*Ucmp*
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwHashConsistencyTest.*:-*EcmpExpand*:*MemberOrder*
-# LB Tests with ROCE traffic
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON  --filter=HwLoadBalancerNegativeTestV6RoCE.*
-# Route programming tests
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAlpmStressTest.*
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=SaiNextHopGroupTest.*
-# Neighbor programming tests
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwNeighborTest/0.*:-*LookupClass
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwNeighborTest/2.*:-*LookupClass
-# V4 routes
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwRouteTest/0.*:-*Mpls*:*ClassId*:*ClassID*
-# V6 routes
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwRouteTest/1.*:-*Mpls*:*ClassId*:*ClassID*
-# ACLs
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclPriorityTest.*:-*AclsChanged*
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwAclCounterTest.*
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=SaiAclTableRecreateTests.*
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON
-# --filter=HwAclStatTest.*:-*AclStatCreate:*AclStatCreateShared:*AclStatCreateMultiple:*AclStatMultipleActions:*AclStatDeleteShared*:*AclStatDeleteSharedPostWarmBoot:*AclStatRename*:*AclStatModify:*AclStatShuffle:*StatNumberOfCounters:*AclStatChangeCounterType
-# ACLs + QoS Map tests
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwDscpQueueMappingTest.*
-# Packet send test
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwPacketSendTest.PortTxEnableTest
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwSendPacketToQueueTest.*
-# PFC tests
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwPfcTest.*:-*Watchdog*
-# PFC traffic tests
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwTrafficPfc*:-*Watchdog*:*Zero*
-# Qos  tests
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwOlympicQosTests.*
-# CoPP
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwRxReasonTests.*
-# ./run_test.py sai --config meru400biu.agent.materialized_JSON --filter=HwCoppTest/0.Ipv6LinkLocalMcastToMidPriQ:HwCoppTest/0.Ipv6LinkLocalMcastNetworkControlDscpToHighPriQ:HwCoppTest/0.L3MTUErrorToLowPriQ:HwCoppTest/0.UnresolvedRoutesToLowPriQueue
-# All tests matching following filter are expected to PASS on Meru400bfu
-# ./run_test.py sai --config meru400bfu.agent.materialized_JSON --filter=HwFabricSwitchTest*
 
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"
+OPT_ARG_FILTER_FILE = "--filter_file"
 OPT_ARG_LIST_TESTS = "--list_tests"
 OPT_ARG_CONFIG_FILE = "--config"
 OPT_ARG_SDK_LOGGING = "--sdk_logging"
@@ -231,7 +151,7 @@ class TestRunner(abc.ABC):
             test_summary.append(line)
         return test_summary
 
-    def _get_tests_to_run(self, args):
+    def _get_tests_to_run(self, regex):
         # GTEST filter syntax is -
         #   --gtest_filter=<include_regexes>-<exclude_regexes>
         #   in case of multiple regexes, each one should be separated by ':'
@@ -243,7 +163,7 @@ class TestRunner(abc.ABC):
         # Also, multiple '-' is allowed but all regexes following the first '-'
         # are part of exclude list. This means following code would still work
         # as expected even if user provides an exclude list in the args.filter.
-        filter = (args.filter + ":") if (args.filter is not None) else ""
+        filter = (regex + ":") if (regex is not None) else ""
         known_bad_tests_regex = self._get_known_bad_test_regex()
         filter = (
             (filter + "-" + known_bad_tests_regex)
@@ -416,8 +336,35 @@ class TestRunner(abc.ABC):
         for test_result in test_summary_count:
             print("  ", test_result, ":", test_summary_count[test_result])
 
+        self._write_results_to_csv(test_summaries)
+
+    def _write_results_to_csv(self, output):
+        output_csv = (
+            f"hwtest_results_{datetime.now().strftime('%Y_%b_%d-%I_%M_%S_%p')}.csv"
+        )
+
+        with open(output_csv, "w") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Test Name", "Result"])
+            for line in output:
+                test_result = line.split("]")[0].strip("[ ")
+                test_name = line.split("]")[1].split("(")[0].strip()
+                writer.writerow([test_name, test_result])
+
+        print(f"\nTest output stored at: {output_csv}")
+
     def run_test(self, args):
-        tests_to_run = self._get_tests_to_run(args)
+        if args.filter_file:
+            with open(args.filter_file) as file:
+                regexes = [
+                    line.strip() for line in file if not line.strip().startswith("#")
+                ]
+        elif args.filter:
+            regexes = [args.filter]
+
+        tests_to_run = []
+        for regex in regexes:
+            tests_to_run.extend(self._get_tests_to_run(regex))
 
         # Check if tests need to be run or only listed
         if args.list_tests is False:
@@ -482,6 +429,15 @@ if __name__ == "__main__":
             "only run tests that match the filter e.g. "
             + OPT_ARG_FILTER
             + "=*Route*V6*"
+        ),
+    )
+    ap.add_argument(
+        OPT_ARG_FILTER_FILE,
+        type=str,
+        help=(
+            "only run tests that match the filters in filter file e.g. "
+            + OPT_ARG_FILTER_FILE
+            + "=/fboss.git/fboss/oss/sai_known_good_tests//known-good_regexes-brcm-sai-9.0_ea_dnx_odp-jericho2"
         ),
     )
     ap.add_argument(
@@ -577,6 +533,11 @@ if __name__ == "__main__":
                 "FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'"
             )
             sys.exit(0)
+
+    if args.filter and args.filter_file:
+        raise ValueError(
+            f"Only one of the {OPT_ARG_FILTER} or {OPT_ARG_FILTER_FILE} can be specified at any time"
+        )
 
     try:
         func = args.func
