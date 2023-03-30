@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import argparse
+import glob
 import os
 import shutil
 import subprocess
@@ -44,9 +45,11 @@ class PackageFboss:
 
     NAME_TO_EXECUTABLES = {
         "fboss": (BIN, []),
-        "gflags": (LIB, ["libgflags.so.2.2"]),
-        "glog": (LIB64, ["libglog.so.0"]),
-        "libsodium": (LIB, ["libsodium.so.23"]),
+        "gflags": (LIB, []),
+        "glog": (LIB64, []),
+        "libevent": (LIB, []),
+        "libsodium": (LIB, []),
+        "python-ld": (LIB, []),
     }
 
     def __init__(self):
@@ -62,9 +65,13 @@ class PackageFboss:
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.DATA))
 
     def _get_install_dir_for(self, name):
-        get_install_dir_cmd = [PackageFboss.GETDEPS, "show-inst-dir", name]
         if self.scratch_path is not None:
-            get_install_dir_cmd += ["--scratch-path=" + self.scratch_path]
+            scratch_path = self.scratch_path
+            scratch_path_installed_dir = scratch_path + "/" + "installed/"
+            target_installed_dir = glob.glob(scratch_path_installed_dir + name + "*")
+            return target_installed_dir
+
+        get_install_dir_cmd = [PackageFboss.GETDEPS, "show-inst-dir", name]
         return (
             subprocess.check_output(get_install_dir_cmd)
             .decode("utf-8")
