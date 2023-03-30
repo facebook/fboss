@@ -35,7 +35,7 @@ from datetime import datetime
 #
 #  ./run_test.py sai --config $confFile --filter=HwVlanTest.VlanApplyConfig #  --mgmt-if eth0 # Using custom mgmt-if
 
-# ./run_test.py sai --config $confFile --coldboot_only --filter_file=$filter-file # fboss.git/fboss/oss/sai_known_good_tests/ for filter files
+# ./run_test.py sai --config $confFile --coldboot_only --filter_file=$filter-file # fboss.git/fboss/oss/hw_known_good_tests/ for filter files
 #
 # Running non-OSS:
 #  ./run_test.py sai --config fuji.agent.materialized_JSON --filter HwVlanTest.VlanApplyConfig --sdk_logging /root/skhare/sai_replayer_logs --no-oss --sai-bin /root/skhare/sai_test-brcm-7.2.0.0_odp --mgmt-if eth0
@@ -437,7 +437,7 @@ if __name__ == "__main__":
         help=(
             "only run tests that match the filters in filter file e.g. "
             + OPT_ARG_FILTER_FILE
-            + "=/fboss.git/fboss/oss/sai_known_good_tests//known-good_regexes-brcm-sai-9.0_ea_dnx_odp-jericho2"
+            + "=/fboss.git/fboss/oss/hw_known_good_tests//known-good_regexes-brcm-sai-9.0_ea_dnx_odp-jericho2"
         ),
     )
     ap.add_argument(
