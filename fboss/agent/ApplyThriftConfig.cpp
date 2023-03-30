@@ -783,6 +783,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
         *encapIdx = *encapIdx + 1;
       }
       neighbor.isLocal() = isLocal(node);
+      neighbor.type() = state::NeighborEntryType::STATIC_ENTRY;
       if (network.first.isV6()) {
         ndpTable.insert({*neighbor.ipaddress(), neighbor});
       } else {

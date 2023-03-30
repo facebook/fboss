@@ -627,7 +627,16 @@ void addRemoteNeighbors(
       CHECK(rif->getSystemPortID().has_value());
       nbrThrift.port() = static_cast<int32_t>(*rif->getSystemPortID());
       nbrThrift.vlanName() = "--";
-      nbrThrift.state() = "--";
+
+      switch (entry->getType()) {
+        case state::NeighborEntryType::STATIC_ENTRY:
+          nbrThrift.state() = "STATIC";
+          break;
+        case state::NeighborEntryType::DYNAMIC_ENTRY:
+          nbrThrift.state() = "DYNAMIC";
+          break;
+      }
+
       nbrThrift.isLocal() = false;
       const auto& sysPort =
           remoteSysPorts->getSystemPortIf(*rif->getSystemPortID());
@@ -661,7 +670,9 @@ void addRecylePortRifNeighbors(
     nbrThrift.mac() = entry->getMac().toString();
     nbrThrift.port() = kRecylePortId;
     nbrThrift.vlanName() = "--";
-    nbrThrift.state() = "--";
+    // Local recycle port for RIF, should always be STATIC
+    CHECK(entry->getType() == state::NeighborEntryType::STATIC_ENTRY);
+    nbrThrift.state() = "STATIC";
     nbrThrift.isLocal() = true;
     nbrThrift.switchId() =
         static_cast<int64_t>(*state->getSwitchSettings()->getSwitchId());
