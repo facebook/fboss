@@ -419,9 +419,6 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void getPortStatusImpl(
       std::map<int32_t, PortStatus>& statusMap,
       const std::unique_ptr<std::vector<int32_t>>& ports) const;
-  void addTeFlowsImpl(
-      std::shared_ptr<SwitchState>* state,
-      const std::vector<FlowEntry>& teFlowEntries) const;
 
   void ensureConfigured(folly::StringPiece function) const;
   void ensureConfigured() const {

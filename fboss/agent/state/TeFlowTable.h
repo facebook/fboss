@@ -50,27 +50,14 @@ class TeFlowTable : public ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits> {
     return getNodeIf(getTeFlowStr(id));
   }
 
-  TeFlowTable* addTeFlowEntry(
-      std::shared_ptr<SwitchState>* state,
-      const FlowEntry& entry);
-  TeFlowTable* removeTeFlowEntry(
-      std::shared_ptr<SwitchState>* state,
-      const TeFlow& id);
+  void addTeFlowEntry(const std::shared_ptr<TeFlowEntry>& teFlowEntry);
+  void changeTeFlowEntry(const std::shared_ptr<TeFlowEntry>& teFlowEntry);
+  void removeTeFlowEntry(const TeFlow& id);
   TeFlowTable* modify(std::shared_ptr<SwitchState>* state);
-  static bool isNexthopResolved(
-      NextHopThrift nexthop,
-      std::shared_ptr<SwitchState> state);
 
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
   friend class CloneAllocator;
-  void fillTeFlowEntry(
-      std::shared_ptr<TeFlowEntry>& teFlowEntry,
-      const FlowEntry& entry,
-      std::shared_ptr<SwitchState>* state);
-  std::shared_ptr<TeFlowEntry> createTeFlowEntry(
-      const FlowEntry& entry,
-      std::shared_ptr<SwitchState>* state);
 };
 } // namespace facebook::fboss

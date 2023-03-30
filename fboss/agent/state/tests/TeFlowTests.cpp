@@ -145,9 +145,15 @@ TEST_F(TeFlowTest, serDeserSwitchState) {
   state->modify(&state);
   auto flowTable = state->getTeFlowTable().get()->modify(&state);
   auto flowEntry1 = makeFlow("100::");
-  flowTable->addTeFlowEntry(&state, flowEntry1);
+  auto flowId1 = makeFlowKey("100::");
+  auto teFlowEntry1 = TeFlowEntry::createTeFlowEntry(flowEntry1);
+  teFlowEntry1->resolve(state);
+  flowTable->addTeFlowEntry(teFlowEntry1);
   auto flowEntry2 = makeFlow("101::");
-  flowTable->addTeFlowEntry(&state, flowEntry2);
+  auto flowId2 = makeFlowKey("101::");
+  auto teFlowEntry2 = TeFlowEntry::createTeFlowEntry(flowEntry2);
+  teFlowEntry2->resolve(state);
+  flowTable->addTeFlowEntry(teFlowEntry2);
   EXPECT_EQ(state->getTeFlowTable()->size(), 2);
   auto serialized = state->toThrift();
   auto stateBack = SwitchState::fromThrift(serialized);
@@ -162,23 +168,27 @@ TEST_F(TeFlowTest, AddDeleteTeFlow) {
 
   // No NDP entry should result in throw
   auto flowEntry = makeFlow("100::", kNhopAddrA, "fboss55");
-  EXPECT_THROW(flowTable->addTeFlowEntry(&state, flowEntry), FbossError);
+  auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
+  EXPECT_THROW(teFlowEntry->resolve(state), FbossError);
+  flowTable->addTeFlowEntry(teFlowEntry);
 
   // Valid nexthop should not throw
   flowEntry = makeFlow("100::");
-  EXPECT_NO_THROW(flowTable->addTeFlowEntry(&state, flowEntry));
-  auto tableEntry = flowTable->getTeFlowIf(flowId);
-  verifyFlowEntry(tableEntry);
+  teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
+  EXPECT_NO_THROW(teFlowEntry->resolve(state));
+  flowTable->changeTeFlowEntry(teFlowEntry);
+  verifyFlowEntry(teFlowEntry);
 
   // change flow entry
   flowEntry.nextHops()[0].address() = toBinaryAddress(IPAddress(kNhopAddrB));
   flowEntry.nextHops()[0].address()->ifName() = "fboss55";
   flowEntry.counterID() = "counter1";
-  EXPECT_NO_THROW(flowTable->addTeFlowEntry(&state, flowEntry));
-  tableEntry = flowTable->getTeFlowIf(flowId);
-  verifyFlowEntry(tableEntry, kNhopAddrB, "counter1", "fboss55");
+  teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
+  teFlowEntry->resolve(state);
+  EXPECT_NO_THROW(flowTable->changeTeFlowEntry(teFlowEntry));
+  verifyFlowEntry(teFlowEntry, kNhopAddrB, "counter1", "fboss55");
   // delete the entry
-  flowTable->removeTeFlowEntry(&state, flowId);
+  flowTable->removeTeFlowEntry(flowId);
   EXPECT_EQ(flowTable->getTeFlowIf(flowId), nullptr);
 }
 
@@ -190,7 +200,9 @@ TEST_F(TeFlowTest, NextHopResolution) {
   updateState("add te flow", [&](const auto& state) {
     auto newState = state->clone();
     auto flowTable = std::make_shared<TeFlowTable>();
-    flowTable->addTeFlowEntry(&newState, flowEntry);
+    auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
+    teFlowEntry->resolve(newState);
+    flowTable->addTeFlowEntry(teFlowEntry);
     newState->resetTeFlowTable(flowTable);
     return newState;
   });
@@ -237,7 +249,9 @@ TEST_F(TeFlowTest, TeFlowStats) {
     auto newState = state->clone();
     auto flowTable = std::make_shared<TeFlowTable>();
     for (const auto& flowEntry : flowEntries) {
-      flowTable->addTeFlowEntry(&newState, flowEntry);
+      auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
+      teFlowEntry->resolve(newState);
+      flowTable->addTeFlowEntry(teFlowEntry);
     }
     newState->resetTeFlowTable(flowTable);
     return newState;
@@ -276,7 +290,9 @@ TEST_F(TeFlowTest, TeFlowCounter) {
     auto newState = state->clone();
     auto flowTable = std::make_shared<TeFlowTable>();
     for (const auto& flowEntry : flowEntries) {
-      flowTable->addTeFlowEntry(&newState, flowEntry);
+      auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
+      teFlowEntry->resolve(newState);
+      flowTable->addTeFlowEntry(teFlowEntry);
     }
     newState->resetTeFlowTable(flowTable);
     return newState;

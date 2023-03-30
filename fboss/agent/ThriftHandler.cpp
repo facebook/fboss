@@ -2765,9 +2765,21 @@ void ThriftHandler::addTeFlows(
   auto numFlows = teFlowEntries->size();
   auto updateFn = [=, teFlows = std::move(*teFlowEntries)](
                       const std::shared_ptr<SwitchState>& state) {
+    auto dstIpPrefixLength = getDstIpPrefixLength(state);
     auto newState = state->clone();
+    auto teFlowTable = newState->getTeFlowTable()->modify(&newState);
+    for (const auto& flowEntry : teFlows) {
+      validateFlowEntry(flowEntry, dstIpPrefixLength);
+      auto oldTeFlowEntry = teFlowTable->getTeFlowIf(*flowEntry.flow());
+      auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
+      teFlowEntry->resolve(newState);
+      if (!oldTeFlowEntry) {
+        teFlowTable->addTeFlowEntry(teFlowEntry);
+      } else {
+        teFlowTable->changeTeFlowEntry(teFlowEntry);
+      }
+    }
 
-    addTeFlowsImpl(&newState, teFlows);
     if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
       throw FbossError("Invalid TE flow entries");
     }
@@ -2781,17 +2793,6 @@ void ThriftHandler::addTeFlows(
   XLOG(DBG2) << "addTeFlows Added : " << numFlows;
 }
 
-void ThriftHandler::addTeFlowsImpl(
-    std::shared_ptr<SwitchState>* state,
-    const std::vector<FlowEntry>& teFlowEntries) const {
-  auto dstIpPrefixLength = getDstIpPrefixLength(*state);
-  auto teFlowTable = (*state)->getTeFlowTable().get()->modify(state);
-  for (const auto& teFlowEntry : teFlowEntries) {
-    validateFlowEntry(teFlowEntry, dstIpPrefixLength);
-    teFlowTable = teFlowTable->addTeFlowEntry(state, teFlowEntry);
-  }
-}
-
 void ThriftHandler::deleteTeFlows(
     std::unique_ptr<std::vector<TeFlow>> teFlows) {
   auto log = LOG_THRIFT_CALL(DBG1);
@@ -2800,9 +2801,9 @@ void ThriftHandler::deleteTeFlows(
   auto updateFn = [=, flows = std::move(*teFlows)](
                       const std::shared_ptr<SwitchState>& state) {
     auto newState = state->clone();
-    auto teFlowTable = state->getTeFlowTable().get();
+    auto teFlowTable = newState->getTeFlowTable()->modify(&newState);
     for (const auto& flow : flows) {
-      teFlowTable = teFlowTable->removeTeFlowEntry(&newState, flow);
+      teFlowTable->removeTeFlowEntry(flow);
     }
     return newState;
   };
@@ -2829,20 +2830,20 @@ void ThriftHandler::syncTeFlows(
     for (const auto& flowEntry : teFlows) {
       validateFlowEntry(flowEntry, dstIpPrefixLength);
       TeFlow flow = *flowEntry.flow();
-      auto oldFlowEntry = teFlowTable->getTeFlowIf(flow);
+      auto oldTeFlowEntry = teFlowTable->getTeFlowIf(flow);
+      auto newTeFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
+      newTeFlowEntry->resolve(newState);
       // new entry add it
-      if (!oldFlowEntry) {
-        newTeFlowTable->addTeFlowEntry(&newState, flowEntry);
+      if (!oldTeFlowEntry) {
+        newTeFlowTable->addTeFlowEntry(newTeFlowEntry);
         tableChanged = true;
       } else {
-        newTeFlowTable->addTeFlowEntry(&newState, flowEntry);
-        auto newFlowEntry = newTeFlowTable->getTeFlowIf(flow);
-        // if entries are same remove the new entry and
-        // add the old entry to the new table
-        if (*oldFlowEntry == *newFlowEntry) {
-          newTeFlowTable->removeNode(newFlowEntry->getID());
-          newTeFlowTable->addNode(oldFlowEntry);
+        // if entries are same add the old entry to the new table
+        // else add the new entry to the new table
+        if (*oldTeFlowEntry == *newTeFlowEntry) {
+          newTeFlowTable->addNode(oldTeFlowEntry);
         } else {
+          newTeFlowTable->addNode(newTeFlowEntry);
           tableChanged = true;
         }
       }

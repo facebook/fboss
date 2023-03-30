@@ -79,7 +79,7 @@ bool TeFlowNexthopHandler::updateTeFlowEntry(
     // THRIFT_COPY: Investigate if next hop thrift structure can be generically
     // represented as facebook::fboss::NextHop
     auto nexthop = entry->toThrift();
-    if (TeFlowTable::isNexthopResolved(nexthop, newState)) {
+    if (TeFlowEntry::isNexthopResolved(nexthop, newState)) {
       resolvedNextHops.emplace_back(nexthop);
     }
   }

@@ -4,6 +4,7 @@
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
@@ -60,6 +61,18 @@ class TeFlowEntry
   std::string str() const;
 
   TeFlowDetails toDetails() const;
+
+  static std::shared_ptr<TeFlowEntry> createTeFlowEntry(const FlowEntry& entry);
+  void resolve(const std::shared_ptr<SwitchState>& state);
+  static bool isNexthopResolved(
+      NextHopThrift nexthop,
+      const std::shared_ptr<SwitchState>& state);
+
+  template <typename AddrT>
+  static std::optional<folly::MacAddress> getNeighborMac(
+      const std::shared_ptr<SwitchState>& state,
+      const std::shared_ptr<Interface>& interface,
+      AddrT ip);
 
  private:
   // Inherit the constructors required for clone()
