@@ -103,3 +103,15 @@ export GETDEPS_USE_WGET=1
 cd /var/FBOSS/fboss.git
 time ./build/fbcode_builder/getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss
 ```
+
+### Building a specific FBOSS target
+
+Instead of building all FBOSS OSS binaries, a specific binary can be built using "--cmake-target" option.
+
+For building the SAI HW test binary only, the following command can be used - 
+
+```
+time ./build/fbcode_builder/getdeps.py build --allow-system-packages --scratch-path /var/FBOSS/tmp_bld_dir fboss --cmake-target sai_test-sai_impl-1.11.0
+```
+
+NOTE: If "--cmake-target" option is used, then the binary will not be installed and hence will be available only in <scratch_patch>/build/fboss/ directory.
