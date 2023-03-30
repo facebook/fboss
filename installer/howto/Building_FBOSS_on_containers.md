@@ -88,7 +88,7 @@ From container running on VM -
 rm -rf /var/FBOSS/built-sai; mkdir -p /var/FBOSS/built-sai/experimental
 cp <asic_vendor_build_output>/libsai.a /var/FBOSS/built-sai/libsai_impl.a
 cp <asic_vendor_sdk>/include/experimental/*.* /var/FBOSS/built-sai/experimental
-cd /var/FBOSS/fboss.git/installer/centos-8-x64_64
+cd /var/FBOSS/fboss.git/fboss/oss/scripts
 ./build-helper.py /var/FBOSS/built-sai/libsai_impl.a /var/FBOSS/built-sai/experimental/ /var/FBOSS/sai_impl_output
 ```
 

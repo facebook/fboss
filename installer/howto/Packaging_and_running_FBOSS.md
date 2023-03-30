@@ -11,7 +11,7 @@ On container used for building FBOSS -
 
 ```
 cd /var/FBOSS/fboss.git
-./installer/centos-7-x86_64/package-fboss.py --scratch-path /var/FBOSS/tmp_bld_dir/
+./fboss/oss/scripts/package-fboss.py --scratch-path /var/FBOSS/tmp_bld_dir/
 ```
 
 This creates a package directory with prefix /var/FBOSS/tmp_bld_dir/fboss_bins and copies all the essential artifacts of the FBOSS build process (binaries, dependencies, config files, helper scripts, etc.) from various locations to it.
@@ -22,7 +22,7 @@ The package directory can be compressed to create a tarball ("fboss_bins.tar.gz"
 
 ```
 cd /var/FBOSS/fboss.git
-./installer/centos-7-x86_64/package-fboss.py --scratch-path /var/FBOSS/tmp_bld_dir/ --compress
+./fboss/oss/scripts/package-fboss.py --scratch-path /var/FBOSS/tmp_bld_dir/ --compress
 ```
 
 ## Copy the directory or tarball to the switch

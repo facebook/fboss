@@ -63,7 +63,7 @@ From container running on VM -
  - mkdir -p /var/FBOSS/built-sai/experimental
  - cp /var/FBOSS/bcm_sai/output/$OUTPUT_DIR/libraries/libsai.a /var/FBOSS/built-sai/libsai_impl.a
  - cp /var/FBOSS/bcm_sai/include/experimental/*.* /var/FBOSS/built-sai/experimental
- - cd /var/FBOSS/fboss.git/installer/centos-8-x64_64
+ - cd /var/FBOSS/fboss.git/fboss/oss/scripts
  - ./build-helper.py /var/FBOSS/built-sai/libsai_impl.a /var/FBOSS/built-sai/experimental/ /var/FBOSS/sai_impl_output
  - export SAI_BRCM_IMPL=1 // Optional
  - export GETDEPS_USE_WGET=1
@@ -105,7 +105,7 @@ From container running on VM -
  - mkdir -p /var/FBOSS/built-sai/experimental
  - cp /var/FBOSS/bcm_sai/output/$OUTPUT_DIR/libraries/libsai.a /var/FBOSS/built-sai/libsai_impl.a
  - cp /var/FBOSS/bcm_sai/include/experimental/*.* /var/FBOSS/built-sai/experimental
- - cd /var/FBOSS/fboss.git/installer/centos-8-x64_64
+ - cd /var/FBOSS/fboss.git/fboss/oss/scripts
  - ./build-helper.py /var/FBOSS/built-sai/libsai_impl.a /var/FBOSS/built-sai/experimental/ /var/FBOSS/sai_impl_output
  - export SAI_BRCM_IMPL=1 // Optional
  - export GETDEPS_USE_WGET=1
