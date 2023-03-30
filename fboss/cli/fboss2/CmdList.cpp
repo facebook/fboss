@@ -380,7 +380,7 @@ const CommandTree& kCommandTree() {
 
       {"get",
        "pcap",
-       "Show Packet Capture",
+       "Get Packet Capture",
        commandHandler<CmdGetPcap>,
        argTypeHandler<CmdGetPcapTraits>,
        localOptionsHandler<CmdGetPcapTraits>},
