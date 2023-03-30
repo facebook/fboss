@@ -2,6 +2,7 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 import argparse
+import glob
 import os
 import shutil
 import subprocess
@@ -16,9 +17,7 @@ OPT_ARG_SCRATCH_PATH = "--scratch-path"
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--rpm", help="Builds RPM", action="store_true")
 
-    parser.add_argument("--ko-path", type=str, help="Path to build kernel modules")
     parser.add_argument(
         OPT_ARG_SCRATCH_PATH,
         type=str,
@@ -36,19 +35,14 @@ def parse_args():
 
 class PackageFboss:
     FBOSS_BINS = "fboss_bins-1"
-    FBOSS_BINS_SPEC = FBOSS_BINS + ".spec"
     FBOSS_BIN_TAR = "fboss_bins.tar.gz"
 
-    HOME_DIR_ABS = os.path.expanduser("~")
-
     SCRIPT_DIR_ABS = os.path.dirname(os.path.realpath(__file__))
-    RPM_SPEC_ABS = os.path.join(SCRIPT_DIR_ABS, FBOSS_BINS_SPEC)
 
     BIN = "bin"
     LIB = "lib"
     LIB64 = "lib64"
     DATA = "share"
-    MODULES = "lib/modules"
 
     GETDEPS = "build/fbcode_builder/getdeps.py"
 
@@ -56,37 +50,35 @@ class PackageFboss:
 
     NAME_TO_EXECUTABLES = {
         "fboss": (BIN, []),
-        "gflags": (LIB, ["libgflags.so.2.2"]),
-        "glog": (LIB64, ["libglog.so.0"]),
-        "libsodium": (LIB, ["libsodium.so.23"]),
+        "gflags": (LIB, []),
+        "glog": (LIB64, []),
+        "libevent": (LIB, []),
+        "libsodium": (LIB, []),
+        "python-ld": (LIB, []),
     }
 
     def __init__(self):
 
         self.scratch_path = args.scratch_path
-        self.ko_path = args.ko_path
         self.tmp_dir_name = tempfile.mkdtemp(
             prefix=PackageFboss.FBOSS_BINS, dir=args.scratch_path
         )
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.BIN))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.LIB))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.LIB64))
-        os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.MODULES))
         os.makedirs(os.path.join(self.tmp_dir_name, PackageFboss.DATA))
 
-        self.rpm_dir_abs = os.path.join(PackageFboss.HOME_DIR_ABS, "rpmbuild")
-        self.rpm_src_dir_abs = os.path.join(self.rpm_dir_abs, "SOURCES")
-        self.rpm_spec_dir_abs = os.path.join(self.rpm_dir_abs, "SPECS")
-
-        self.rpm_src_fboss_dir_abs = os.path.join(
-            self.rpm_src_dir_abs, PackageFboss.FBOSS_BINS
-        )
-        self.rpm_src_fboss_tar_abs = self.rpm_src_fboss_dir_abs + ".tar.gz"
-
     def _get_install_dir_for(self, name):
-        get_install_dir_cmd = [PackageFboss.GETDEPS, "show-inst-dir", name]
+        # TODO: Getdeps' show-inst-dir has issues. This needs to be
+        # investigated and fixed. Until then, use a workaround using
+        # regex matching for the directory name.
         if self.scratch_path is not None:
-            get_install_dir_cmd += ["--scratch-path=" + self.scratch_path]
+            scratch_path = self.scratch_path
+            scratch_path_installed_dir = scratch_path + "/" + "installed/"
+            target_installed_dir = glob.glob(scratch_path_installed_dir + name + "*")
+            return target_installed_dir[0]
+
+        get_install_dir_cmd = [PackageFboss.GETDEPS, "show-inst-dir", name]
         return (
             subprocess.check_output(get_install_dir_cmd)
             .decode("utf-8")
@@ -118,10 +110,10 @@ class PackageFboss:
             shutil.copytree(full_file_name, full_config_name)
 
     def _copy_configs(self, tmp_dir_name):
-        bcm_sai_configs_path = os.path.join(
+        hw_test_configs_path = os.path.join(
             self._get_git_root(__file__), "fboss/oss/hw_test_configs"
         )
-        print(f"Copying {bcm_sai_configs_path} to {tmp_dir_name}")
+        print(f"Copying {hw_test_configs_path} to {tmp_dir_name}")
         shutil.copytree(
             "fboss/oss/hw_test_configs",
             os.path.join(tmp_dir_name, PackageFboss.DATA, "hw_test_configs"),
@@ -129,26 +121,23 @@ class PackageFboss:
 
     def _copy_known_bad_tests(self, tmp_dir_name):
         known_bad_tests_path = os.path.join(
-            self._get_git_root(__file__), "fboss/sai_known_bad_tests"
+            self._get_git_root(__file__), "fboss/oss/sai_known_bad_tests"
         )
         print(f"Copying {known_bad_tests_path} to {tmp_dir_name}")
         shutil.copytree(
-            "fboss/sai_known_bad_tests",
+            "fboss/oss/sai_known_bad_tests",
             os.path.join(tmp_dir_name, PackageFboss.DATA, "sai_known_bad_tests"),
         )
 
-    def _copy_kos(self, tmp_dir_name):
-        ko_path = ""
-        if self.ko_path:
-            ko_path = self.ko_path
-        if os.path.exists(ko_path):
-            linux_user_bde_path = os.path.join(ko_path, "linux-user-bde.ko")
-            linux_kernel_bde_path = os.path.join(ko_path, "linux-kernel-bde.ko")
-            ko_pkg_path = os.path.join(tmp_dir_name, PackageFboss.MODULES)
-            print(f"Copying {linux_user_bde_path} to {ko_pkg_path}")
-            shutil.copy(linux_user_bde_path, ko_pkg_path)
-            print(f"Copying {linux_kernel_bde_path} to {ko_pkg_path}")
-            shutil.copy(linux_kernel_bde_path, ko_pkg_path)
+    def _copy_known_good_tests(self, tmp_dir_name):
+        known_good_tests_path = os.path.join(
+            self._get_git_root(__file__), "fboss/oss/sai_known_good_tests"
+        )
+        print(f"Copying {known_good_tests_path} to {tmp_dir_name}")
+        shutil.copytree(
+            "fboss/oss/sai_known_good_tests",
+            os.path.join(tmp_dir_name, PackageFboss.DATA, "sai_known_good_tests"),
+        )
 
     def _copy_binaries(self, tmp_dir_name):
         print(f"Copying binaries...")
@@ -173,46 +162,7 @@ class PackageFboss:
         self._copy_run_configs(tmp_dir_name)
         self._copy_configs(tmp_dir_name)
         self._copy_known_bad_tests(tmp_dir_name)
-        self._copy_kos(tmp_dir_name)
-
-    def _setup_for_rpmbuild(self):
-        print(f"Setup for rpmbuild...")
-        if os.path.exists(self.rpm_dir_abs):
-            shutil.rmtree(self.rpm_dir_abs)
-        os.makedirs(self.rpm_dir_abs)
-        subprocess.run("rpmdev-setuptree")
-        os.makedirs(self.rpm_src_fboss_dir_abs)
-
-    def _prepare_for_build(self):
-        print(f"Preparing for build...")
-        with tarfile.open(self.rpm_src_fboss_tar_abs, "w:gz") as tar:
-            tar.add(
-                self.rpm_src_fboss_dir_abs,
-                arcname=os.path.basename(self.rpm_src_fboss_dir_abs),
-            )
-
-        # package .tar.gz, so this can be removed
-        shutil.rmtree(self.rpm_src_fboss_dir_abs)
-
-        # TODO use rpmdev-newspec $FBOSS_BINS to create spec and edit it.
-        # For now, copy pre-created SPEC file.
-        shutil.copy(PackageFboss.RPM_SPEC_ABS, self.rpm_spec_dir_abs)
-
-    def _build_rpm_helper(self):
-        print(f"Building rpm...")
-        env = dict(os.environ)
-        env["LD_LIBRARY_PATH"] = PackageFboss.DEVTOOLS_LIBRARY_PATH
-        subprocess.run(
-            ["rpmbuild", "-ba", PackageFboss.FBOSS_BINS_SPEC],
-            cwd=self.rpm_spec_dir_abs,
-            env=env,
-        )
-
-    def _build_rpm(self):
-        self._setup_for_rpmbuild()
-        self._copy_binaries(self.rpm_src_fboss_dir_abs)
-        self._prepare_for_build()
-        self._build_rpm_helper()
+        self._copy_known_good_tests(tmp_dir_name)
 
     def _compress_binaries(self):
         print(f"Compressing FBOSS Binaries...")
@@ -221,13 +171,9 @@ class PackageFboss:
         print(f"Compressed to {tar_path}")
 
     def run(self, args):
-        if args.rpm:
-            print(f"Building RPM...")
-            self._build_rpm()
-        else:
-            self._copy_binaries(self.tmp_dir_name)
-            if args.compress:
-                self._compress_binaries()
+        self._copy_binaries(self.tmp_dir_name)
+        if args.compress:
+            self._compress_binaries()
 
 
 if __name__ == "__main__":
