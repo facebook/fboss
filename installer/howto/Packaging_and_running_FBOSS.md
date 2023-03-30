@@ -18,12 +18,28 @@ This creates a package directory with prefix /var/FBOSS/tmp_bld_dir/fboss_bins a
 
 This package directory could then be copied over to the test switch for exercising FBOSS and associated tests.
 
-## Copy the directory to the switch
-
-From the host VM of the container, copy over the FBOSS package directory to the switch -
+The package directory can be compressed to create a tarball ("fboss_bins.tar.gz") using "--compress" option.
 
 ```
-scp -r /opt/app/FBOSS_DIR/tmp_bld_dir/fboss_bins-<pkg-id> root@$switchName:/opt/
+cd /var/FBOSS/fboss.git
+./installer/centos-7-x86_64/package-fboss.py --scratch-path /var/FBOSS/tmp_bld_dir/ --compress
+```
+
+## Copy the directory or tarball to the switch
+
+From the host VM of the container, copy over the FBOSS package directory or tarball to the switch -
+
+```
+scp -r /opt/app/FBOSS_DIR/tmp_bld_dir/fboss_bins-<pkg-id> root@$switchName:/opt/ # directory copy
+scp -r /opt/app/FBOSS_DIR/tmp_bld_dir/fboss_bins.tar.gz root@$switchName:/opt/ # tarball copy
+```
+
+On the switch, if tarball is copied, extract the tarball -
+
+```
+cd /opt/
+tar -xzvf fboss_bins.tar.gz
+```
 
 On the switch, point /opt/fboss to the new package before using
 
