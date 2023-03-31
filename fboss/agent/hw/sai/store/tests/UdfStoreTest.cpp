@@ -168,3 +168,49 @@ TEST_F(UdfStoreTest, toStrUdfGroupStore) {
   createUdfGroup(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength());
   verifyToStr<SaiUdfGroupTraits>();
 }
+
+TEST_F(UdfStoreTest, loadUdfMatch) {
+  auto udfMatchId0 = createUdfMatch(kL2Type(), kL3Type(), kL4DstPort());
+  auto udfMatchId1 = createUdfMatch(kL2Type2(), kL3Type2(), kL4DstPort2());
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiUdfMatchTraits>();
+
+  auto k0 = udfMatchAdapterHostKey(kL2Type(), kL3Type(), kL4DstPort());
+  auto k1 = udfMatchAdapterHostKey(kL2Type2(), kL3Type2(), kL4DstPort2());
+
+  EXPECT_EQ(store.get(k0)->adapterKey(), udfMatchId0);
+  EXPECT_EQ(store.get(k1)->adapterKey(), udfMatchId1);
+}
+
+TEST_F(UdfStoreTest, udfMatchCtor) {
+  auto udfMatchId = createUdfMatch(kL2Type(), kL3Type(), kL4DstPort());
+  auto obj = createObj<SaiUdfMatchTraits>(udfMatchId);
+  EXPECT_EQ(obj.adapterKey(), udfMatchId);
+}
+
+TEST_F(UdfStoreTest, udfMatchCreateCtor) {
+  SaiUdfMatchTraits::CreateAttributes c{kL2Type(), kL3Type(), kL4DstPort()};
+  auto k = udfMatchAdapterHostKey(kL2Type(), kL3Type(), kL4DstPort());
+  auto obj = createObj<SaiUdfMatchTraits>(k, c, 0);
+  EXPECT_EQ(
+      GET_ATTR(UdfMatch, L2Type, obj.attributes()),
+      AclEntryFieldU16(kL2Type()));
+  EXPECT_EQ(
+      GET_ATTR(UdfMatch, L3Type, obj.attributes()), AclEntryFieldU8(kL3Type()));
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  EXPECT_EQ(
+      GET_ATTR(UdfMatch, L4DstPortType, obj.attributes()),
+      AclEntryFieldU16(kL4DstPort()));
+#endif
+}
+
+TEST_F(UdfStoreTest, serDesUdfMatchStore) {
+  auto udfMatchId = createUdfMatch(kL2Type(), kL3Type(), kL4DstPort());
+  verifyAdapterKeySerDeser<SaiUdfMatchTraits>({udfMatchId});
+}
+
+TEST_F(UdfStoreTest, toStrUdfMatchStore) {
+  createUdfMatch(kL2Type(), kL3Type(), kL4DstPort());
+  verifyToStr<SaiUdfMatchTraits>();
+}
