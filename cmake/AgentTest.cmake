@@ -127,6 +127,14 @@ target_link_libraries(multinode_tests
   ${LIBGMOCK_LIBRARIES}
 )
 
+add_library(test_ensemble_if
+  fboss/agent/test/TestEnsembleIf.cpp
+)
+
+target_link_libraries(test_ensemble_if
+  state
+)
+
 add_library(agent_ensemble
   fboss/agent/test/AgentEnsemble.cpp
 )
@@ -136,6 +144,6 @@ target_link_libraries(agent_ensemble
   main
   fboss_agent
   config_factory
-  config_factory
   fboss_config_utils
+  test_ensemble_if
 )

@@ -40,8 +40,7 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
   const BcmSwitch* getHwSwitch() const override {
     return static_cast<const BcmSwitch*>(HwSwitchEnsemble::getHwSwitch());
   }
-  std::vector<PortID> masterLogicalPortIds(
-      const std::set<cfg::PortType>& filter = {}) const override;
+  std::vector<PortID> masterLogicalPortIds() const override;
   std::vector<PortID> getAllPortsInGroup(PortID portID) const override;
   std::vector<FlexPortMode> getSupportedFlexPortModes() const override;
   uint64_t getSdkSwitchId() const override;

@@ -6,8 +6,7 @@ namespace facebook::fboss {
 // the HwSwitchEnsemble class has lots of abstractions, so we need
 // to create a concrete class just to test it
 class TestHwSwitchEnsemble : HwSwitchEnsemble {
-  std::vector<PortID> masterLogicalPortIds(
-      const std::set<cfg::PortType>& filter) const override {
+  std::vector<PortID> masterLogicalPortIds() const override {
     return std::vector<PortID>();
   }
   std::vector<PortID> getAllPortsInGroup(PortID /* portID */) const override {

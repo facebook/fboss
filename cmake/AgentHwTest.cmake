@@ -140,6 +140,7 @@ target_link_libraries(hw_switch_ensemble
   core
   qsfp_cache
   hw_test_utils
+  test_ensemble_if
 )
 
 add_library(load_balancer_utils

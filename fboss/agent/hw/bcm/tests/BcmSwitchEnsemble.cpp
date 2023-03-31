@@ -153,9 +153,8 @@ BcmSwitchEnsemble::BcmSwitchEnsemble(
     const HwSwitchEnsemble::Features& featuresDesired)
     : HwSwitchEnsemble(featuresDesired) {}
 
-std::vector<PortID> BcmSwitchEnsemble::masterLogicalPortIds(
-    const std::set<cfg::PortType>& filter) const {
-  return filterByPortTypes(filter, getPlatform()->masterLogicalPortIds());
+std::vector<PortID> BcmSwitchEnsemble::masterLogicalPortIds() const {
+  return getPlatform()->masterLogicalPortIds();
 }
 
 std::vector<PortID> BcmSwitchEnsemble::getAllPortsInGroup(PortID portID) const {
