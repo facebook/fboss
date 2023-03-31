@@ -51,6 +51,7 @@ void FakeSai::clear() {
   fs->samplePacketManager.clear();
   fs->scheduleManager.clear();
   fs->switchManager.clear();
+  fs->udfManager.clear();
   fs->virtualRouteManager.clear();
   fs->vlanManager.clearWithMembers();
   fs->wredManager.clear();
@@ -224,6 +225,10 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
     case SAI_API_VIRTUAL_ROUTER:
       facebook::fboss::populate_virtual_router_api(
           (sai_virtual_router_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_API_UDF:
+      facebook::fboss::populate_udf_api((sai_udf_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_API_VLAN:
