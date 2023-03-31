@@ -53,6 +53,41 @@ SAI_ATTRIBUTE_NAME(Udf, UdfGroupId);
 SAI_ATTRIBUTE_NAME(Udf, Base);
 SAI_ATTRIBUTE_NAME(Udf, Offset);
 
+struct SaiUdfMatchTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_UDF_MATCH;
+  using SaiApiT = UdfApi;
+  struct Attributes {
+    using EnumType = sai_udf_match_attr_t;
+    using L2Type =
+        SaiAttribute<EnumType, SAI_UDF_MATCH_ATTR_L2_TYPE, AclEntryFieldU16>;
+    using L3Type =
+        SaiAttribute<EnumType, SAI_UDF_MATCH_ATTR_L3_TYPE, AclEntryFieldU8>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    using L4DstPortType = SaiAttribute<
+        EnumType,
+        SAI_UDF_MATCH_ATTR_L4_DST_PORT_TYPE,
+        AclEntryFieldU16>;
+#endif
+  };
+
+  using AdapterKey = UdfMatchSaiId;
+  using CreateAttributes = std::tuple<
+      Attributes::L2Type,
+      Attributes::L3Type
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      ,
+      Attributes::L4DstPortType
+#endif
+      >;
+  using AdapterHostKey = CreateAttributes;
+};
+
+SAI_ATTRIBUTE_NAME(UdfMatch, L2Type);
+SAI_ATTRIBUTE_NAME(UdfMatch, L3Type);
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+SAI_ATTRIBUTE_NAME(UdfMatch, L4DstPortType);
+#endif
+
 struct SaiUdfGroupTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_UDF_GROUP;
   using SaiApiT = UdfApi;
@@ -99,6 +134,27 @@ class UdfApi : public SaiApi<UdfApi> {
 
   sai_status_t _setAttribute(UdfSaiId id, const sai_attribute_t* attr) const {
     return api_->set_udf_attribute(id, attr);
+  }
+
+  sai_status_t _create(
+      UdfMatchSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_udf_match(rawSaiId(id), switch_id, count, attr_list);
+  }
+
+  sai_status_t _remove(UdfMatchSaiId id) const {
+    return api_->remove_udf_match(id);
+  }
+
+  sai_status_t _getAttribute(UdfMatchSaiId id, sai_attribute_t* attr) const {
+    return api_->get_udf_match_attribute(id, 1, attr);
+  }
+
+  sai_status_t _setAttribute(UdfMatchSaiId id, const sai_attribute_t* attr)
+      const {
+    return api_->set_udf_match_attribute(id, attr);
   }
 
   sai_status_t _create(
