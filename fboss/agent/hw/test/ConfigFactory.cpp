@@ -197,13 +197,43 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
       }
       throw FbossError("Can't find safe profiles for ports:", portSetStr);
     }
-    // Always pick the largest speed from the safe profiles
     auto bestSpeed = cfg::PortSpeed::DEFAULT;
+    if (platform->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_JERICHO2) {
+      // For J2c we always want to choose the following
+      // speeds since that's what we have in hw chip config
+      // and J2c does not support dynamic port speed change yet.
+      auto portId = group.first;
+      auto platPortItr = platform->getPlatformPorts().find(portId);
+      if (platPortItr == platform->getPlatformPorts().end()) {
+        throw FbossError("Can't find platform port for:", portId);
+      }
+      switch (*platPortItr->second.mapping()->portType()) {
+        case cfg::PortType::INTERFACE_PORT:
+          bestSpeed = cfg::PortSpeed::HUNDREDG;
+          break;
+        case cfg::PortType::FABRIC_PORT:
+          bestSpeed = cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG;
+          break;
+        case cfg::PortType::RECYCLE_PORT:
+          bestSpeed = cfg::PortSpeed::XG;
+          break;
+        case cfg::PortType::CPU_PORT:
+          break;
+      }
+    }
+
     auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
+    // If bestSpeed is default - pick the largest speed from the safe profiles
+    auto pickMaxSpeed = bestSpeed == cfg::PortSpeed::DEFAULT;
     for (auto profileID : safeProfiles) {
       auto speed = getSpeed(profileID);
-      if (static_cast<int>(bestSpeed) < static_cast<int>(speed)) {
-        bestSpeed = speed;
+      if (pickMaxSpeed) {
+        if (static_cast<int>(bestSpeed) < static_cast<int>(speed)) {
+          bestSpeed = speed;
+          bestProfile = profileID;
+        }
+      } else if (speed == bestSpeed) {
         bestProfile = profileID;
       }
     }
