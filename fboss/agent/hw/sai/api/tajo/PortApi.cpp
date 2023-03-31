@@ -11,6 +11,10 @@ extern "C" {
 namespace facebook::fboss {
 
 std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeTxLutModeIdWrapper::operator()() {
+  return SAI_PORT_SERDES_ATTR_EXT_TX_LUT_MODE;
+}
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxCtleCodeIdWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_RX_CTLE_CODE;
 }

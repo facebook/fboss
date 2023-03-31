@@ -78,21 +78,22 @@ class PortApiTest : public ::testing::Test {
       std::vector<sai_int32_t> rxAfeTrim,
       std::vector<sai_int32_t> rxAcCouplingByPass,
       std::vector<sai_int32_t> rxAfeAdaptiveEnable) const {
-    SaiPortSerdesTraits::CreateAttributes a {
-      portSaiId, preemphasis,
-          std::nullopt, // IDriver
-          txPre1,
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-          std::nullopt, // txPre2
-#endif
-          txMain, txPost1,
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-          std::nullopt, // txPost2
-          std::nullopt, // txPost3
-#endif
-          rxCtlCode, rxDspMode, rxAfeTrim, rxAcCouplingByPass,
-          rxAfeAdaptiveEnable
-    };
+    SaiPortSerdesTraits::CreateAttributes a{
+        portSaiId,
+        preemphasis,
+        std::nullopt, // IDriver
+        txPre1,
+        std::nullopt, // txPre2
+        txMain,
+        txPost1,
+        std::nullopt, // txPost2
+        std::nullopt, // txPost3
+        std::nullopt, // txLutMode
+        rxCtlCode,
+        rxDspMode,
+        rxAfeTrim,
+        rxAcCouplingByPass,
+        rxAfeAdaptiveEnable};
     return portApi->create<SaiPortSerdesTraits>(a, 0 /*switch id*/);
   }
 

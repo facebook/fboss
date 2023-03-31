@@ -268,4 +268,5 @@ void enableSixtapProgramming() {
   // Flag only needed for Sai
   return;
 };
+
 } // namespace facebook::fboss::utility

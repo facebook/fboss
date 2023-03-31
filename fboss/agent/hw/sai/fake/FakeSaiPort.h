@@ -98,6 +98,7 @@ struct FakePortSerdes {
   std::vector<uint32_t> txFirPost1;
   std::vector<uint32_t> txFirPost2;
   std::vector<uint32_t> txFirPost3;
+  std::vector<uint32_t> txLutMode;
   std::vector<int32_t> rxCtlCode;
   std::vector<int32_t> rxDspMode;
   std::vector<int32_t> rxAfeTrim;

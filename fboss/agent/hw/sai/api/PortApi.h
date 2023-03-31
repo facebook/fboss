@@ -506,6 +506,10 @@ struct SaiPortSerdesTraits {
         SaiU32ListDefault>;
 
     /* extension attributes */
+    struct AttributeTxLutModeIdWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+
     struct AttributeRxCtleCodeIdWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -525,6 +529,9 @@ struct SaiPortSerdesTraits {
     struct AttributeRxAfeAdaptiveEnableWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
+    using TxLutMode = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributeTxLutModeIdWrapper>;
     using RxCtleCode = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributeRxCtleCodeIdWrapper>;
@@ -548,15 +555,12 @@ struct SaiPortSerdesTraits {
       std::optional<Attributes::Preemphasis>,
       std::optional<Attributes::IDriver>,
       std::optional<Attributes::TxFirPre1>,
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       std::optional<Attributes::TxFirPre2>,
-#endif
       std::optional<Attributes::TxFirMain>,
       std::optional<Attributes::TxFirPost1>,
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
       std::optional<Attributes::TxFirPost2>,
       std::optional<Attributes::TxFirPost3>,
-#endif
+      std::optional<Attributes::TxLutMode>,
       std::optional<Attributes::RxCtleCode>,
       std::optional<Attributes::RxDspMode>,
       std::optional<Attributes::RxAfeTrim>,
@@ -573,6 +577,7 @@ SAI_ATTRIBUTE_NAME(PortSerdes, TxFirMain);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost1);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost2);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPost3);
+SAI_ATTRIBUTE_NAME(PortSerdes, TxLutMode);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxCtleCode);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxDspMode);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxAfeTrim);

@@ -28,7 +28,8 @@ typedef enum _sai_port_serdes_extensions_attr_t {
   SAI_PORT_SERDES_ATTR_EXT_TX_FFE_COEFF_3,
   SAI_PORT_SERDES_ATTR_EXT_TX_FFE_COEFF_4,
   SAI_PORT_SERDES_ATTR_EXT_TX_PARITY_ENCODER_EN,
-  SAI_PORT_SERDES_ATTR_EXT_TX_THP_EN
+  SAI_PORT_SERDES_ATTR_EXT_TX_THP_EN,
+  SAI_PORT_SERDES_ATTR_EXT_TX_LUT_MODE,
 } sai_port_serdes_extensions_attr_t;
 
 typedef enum _sai_switch_extensions_attr_t {

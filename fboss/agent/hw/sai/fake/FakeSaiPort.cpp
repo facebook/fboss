@@ -1035,6 +1035,16 @@ sai_status_t set_port_serdes_attribute_fn(
       }
       break;
 
+    case SAI_PORT_SERDES_ATTR_EXT_TX_LUT_MODE:
+      fillVec(
+          portSerdes.txLutMode,
+          attr->value.s32list.list,
+          attr->value.u32list.count);
+      if (!checkLanes(portSerdes.txLutMode)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
     case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_CTLE_CODE:
       fillVec(
           portSerdes.rxCtlCode,
@@ -1167,6 +1177,13 @@ sai_status_t get_port_serdes_attribute_fn(
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
         copyVecToList(portSerdes.txFirPost3, attr_list[i].value.u32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_TX_LUT_MODE:
+        if (!checkListSize(attr_list[i].value.s32list, portSerdes.txLutMode)) {
+          attr_list[i].value.s32list.count = portSerdes.txLutMode.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.txLutMode, attr_list[i].value.s32list);
         break;
       case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_CTLE_CODE:
         if (!checkListSize(attr_list[i].value.s32list, portSerdes.rxCtlCode)) {
