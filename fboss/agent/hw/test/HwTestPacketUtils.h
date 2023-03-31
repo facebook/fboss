@@ -249,7 +249,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeNeighborAdvertisement(
 std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
     const HwSwitch* hw,
     const folly::MacAddress srcMac,
-    VlanID vlanid,
+    std::optional<VlanID> vlanid,
     const std::string& systemdescr,
     const std::string& hostname,
     const std::string& portname,

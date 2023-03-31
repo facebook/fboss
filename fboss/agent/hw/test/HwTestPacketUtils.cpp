@@ -819,7 +819,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeNeighborAdvertisement(
 std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
     const HwSwitch* hw,
     const folly::MacAddress srcMac,
-    VlanID vlanid,
+    std::optional<VlanID> vlanid,
     const std::string& systemdescr,
     const std::string& hostname,
     const std::string& portname,
@@ -829,11 +829,13 @@ std::unique_ptr<facebook::fboss::TxPacket> makeLLDPPacket(
   uint32_t frameLen =
       LldpManager::LldpPktSize(hostname, portname, portdesc, systemdescr);
 
+  VlanID vlan(vlanid.value_or(VlanID(0)));
+
   auto pkt = hw->allocatePacket(frameLen);
   LldpManager::fillLldpTlv(
       pkt.get(),
       srcMac,
-      vlanid,
+      vlan,
       systemdescr,
       hostname,
       portname,
