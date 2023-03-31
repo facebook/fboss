@@ -25,7 +25,35 @@ class UdfApiTest : public ::testing::Test {
     udfApi = std::make_unique<UdfApi>();
   }
 
+  UdfGroupSaiId createUdfGroup() {
+    SaiUdfGroupTraits::Attributes::Type type{SAI_UDF_GROUP_TYPE_HASH};
+    SaiUdfGroupTraits::Attributes::Length length{kUdfGroupLength()};
+    return udfApi->create<SaiUdfGroupTraits>({type, length}, 0);
+  }
+
+  UdfMatchSaiId createUdfMatch() {
+    SaiUdfMatchTraits::Attributes::L2Type l2Type{AclEntryFieldU16(kL2Type())};
+    SaiUdfMatchTraits::Attributes::L3Type l3Type{AclEntryFieldU8(kL3Type())};
+    SaiUdfMatchTraits::Attributes::L4DstPortType l4DstPortType{
+        AclEntryFieldU16(kL4DstPort())};
+    return udfApi->create<SaiUdfMatchTraits>(
+        {l2Type, l3Type, l4DstPortType}, 0);
+  }
+
+  UdfSaiId createUdf(UdfMatchSaiId udfMatchId, UdfGroupSaiId udfGroupId) {
+    SaiUdfTraits::Attributes::UdfMatchId udfMatchIdAttr{udfMatchId};
+    SaiUdfTraits::Attributes::UdfGroupId udfGroupIdAttr{udfGroupId};
+    SaiUdfTraits::Attributes::Base baseAttr{SAI_UDF_BASE_L2};
+    SaiUdfTraits::Attributes::Offset offsetAttr{kUdfOffset()};
+    return udfApi->create<SaiUdfTraits>(
+        {udfMatchIdAttr, udfGroupIdAttr, baseAttr, offsetAttr}, 0);
+  }
+
   sai_uint16_t kUdfGroupLength() {
+    return 2;
+  }
+
+  sai_uint16_t kUdfOffset() {
     return 2;
   }
 
@@ -58,9 +86,7 @@ class UdfApiTest : public ::testing::Test {
 };
 
 TEST_F(UdfApiTest, createUdfGroup) {
-  SaiUdfGroupTraits::Attributes::Type type{SAI_UDF_GROUP_TYPE_HASH};
-  SaiUdfGroupTraits::Attributes::Length length{kUdfGroupLength()};
-  auto udfGroupId = udfApi->create<SaiUdfGroupTraits>({type, length}, 0);
+  auto udfGroupId = createUdfGroup();
 
   EXPECT_EQ(udfGroupId, fs->udfGroupManager.get(udfGroupId).id);
 
@@ -73,18 +99,14 @@ TEST_F(UdfApiTest, createUdfGroup) {
 }
 
 TEST_F(UdfApiTest, removeUdfGroup) {
-  SaiUdfGroupTraits::Attributes::Type type{SAI_UDF_GROUP_TYPE_HASH};
-  SaiUdfGroupTraits::Attributes::Length length{kUdfGroupLength()};
-  auto udfGroupId = udfApi->create<SaiUdfGroupTraits>({type, length}, 0);
+  auto udfGroupId = createUdfGroup();
 
   EXPECT_EQ(udfGroupId, fs->udfGroupManager.get(udfGroupId).id);
   udfApi->remove(udfGroupId);
 }
 
 TEST_F(UdfApiTest, setUdfGroupAttributes) {
-  SaiUdfGroupTraits::Attributes::Type type{SAI_UDF_GROUP_TYPE_HASH};
-  SaiUdfGroupTraits::Attributes::Length length{kUdfGroupLength()};
-  auto udfGroupId = udfApi->create<SaiUdfGroupTraits>({type, length}, 0);
+  auto udfGroupId = createUdfGroup();
 
   EXPECT_EQ(udfGroupId, fs->udfGroupManager.get(udfGroupId).id);
 
@@ -101,12 +123,7 @@ TEST_F(UdfApiTest, setUdfGroupAttributes) {
 }
 
 TEST_F(UdfApiTest, createUdfMatch) {
-  SaiUdfMatchTraits::Attributes::L2Type l2Type{AclEntryFieldU16(kL2Type())};
-  SaiUdfMatchTraits::Attributes::L3Type l3Type{AclEntryFieldU8(kL3Type())};
-  SaiUdfMatchTraits::Attributes::L4DstPortType l4DstPortType{
-      AclEntryFieldU16(kL4DstPort())};
-  auto udfMatchId =
-      udfApi->create<SaiUdfMatchTraits>({l2Type, l3Type, l4DstPortType}, 0);
+  auto udfMatchId = createUdfMatch();
 
   EXPECT_EQ(udfMatchId, fs->udfMatchManager.get(udfMatchId).id);
 
@@ -123,24 +140,14 @@ TEST_F(UdfApiTest, createUdfMatch) {
 }
 
 TEST_F(UdfApiTest, removeUdfMatch) {
-  SaiUdfMatchTraits::Attributes::L2Type l2Type{AclEntryFieldU16(kL2Type())};
-  SaiUdfMatchTraits::Attributes::L3Type l3Type{AclEntryFieldU8(kL3Type())};
-  SaiUdfMatchTraits::Attributes::L4DstPortType l4DstPortType{
-      AclEntryFieldU16(kL4DstPort())};
-  auto udfMatchId =
-      udfApi->create<SaiUdfMatchTraits>({l2Type, l3Type, l4DstPortType}, 0);
+  auto udfMatchId = createUdfMatch();
 
   EXPECT_EQ(udfMatchId, fs->udfMatchManager.get(udfMatchId).id);
   udfApi->remove(udfMatchId);
 }
 
 TEST_F(UdfApiTest, setUdfMatch) {
-  SaiUdfMatchTraits::Attributes::L2Type l2Type{AclEntryFieldU16(kL2Type())};
-  SaiUdfMatchTraits::Attributes::L3Type l3Type{AclEntryFieldU8(kL3Type())};
-  SaiUdfMatchTraits::Attributes::L4DstPortType l4DstPortType{
-      AclEntryFieldU16(kL4DstPort())};
-  auto udfMatchId =
-      udfApi->create<SaiUdfMatchTraits>({l2Type, l3Type, l4DstPortType}, 0);
+  auto udfMatchId = createUdfMatch();
 
   EXPECT_EQ(udfMatchId, fs->udfMatchManager.get(udfMatchId).id);
 
@@ -159,5 +166,62 @@ TEST_F(UdfApiTest, setUdfMatch) {
           udfMatchId,
           SaiUdfMatchTraits::Attributes::L4DstPortType{
               AclEntryFieldU16(kL4DstPort2())}),
+      SaiApiError);
+}
+
+TEST_F(UdfApiTest, createUdf) {
+  auto udfMatchId = createUdfMatch();
+  auto udfGroupId = createUdfGroup();
+  auto udfId = createUdf(udfMatchId, udfGroupId);
+
+  EXPECT_EQ(udfId, fs->udfMatchManager.get(udfId).id);
+
+  EXPECT_EQ(
+      udfApi->getAttribute(udfId, SaiUdfTraits::Attributes::UdfMatchId{}),
+      udfMatchId);
+  EXPECT_EQ(
+      udfApi->getAttribute(udfId, SaiUdfTraits::Attributes::UdfGroupId{}),
+      udfGroupId);
+  EXPECT_EQ(
+      udfApi->getAttribute(udfId, SaiUdfTraits::Attributes::Base{}),
+      SAI_UDF_BASE_L2);
+  EXPECT_EQ(
+      udfApi->getAttribute(udfId, SaiUdfTraits::Attributes::Offset{}),
+      kUdfOffset());
+}
+
+TEST_F(UdfApiTest, removeUdf) {
+  auto udfMatchId = createUdfMatch();
+  auto udfGroupId = createUdfGroup();
+  auto udfId = createUdf(udfMatchId, udfGroupId);
+
+  EXPECT_EQ(udfId, fs->udfMatchManager.get(udfId).id);
+  udfApi->remove(udfId);
+}
+
+TEST_F(UdfApiTest, setUdf) {
+  auto udfMatchId = createUdfMatch();
+  auto udfGroupId = createUdfGroup();
+  auto udfId = createUdf(udfMatchId, udfGroupId);
+
+  EXPECT_EQ(udfId, fs->udfMatchManager.get(udfId).id);
+
+  udfApi->setAttribute(udfId, SaiUdfTraits::Attributes::Base{SAI_UDF_BASE_L3});
+
+  EXPECT_EQ(
+      udfApi->getAttribute(udfId, SaiUdfTraits::Attributes::Base{}),
+      SAI_UDF_BASE_L3);
+
+  EXPECT_THROW(
+      udfApi->setAttribute(
+          udfId, SaiUdfTraits::Attributes::UdfMatchId{udfMatchId}),
+      SaiApiError);
+  EXPECT_THROW(
+      udfApi->setAttribute(
+          udfId, SaiUdfTraits::Attributes::UdfGroupId{udfGroupId}),
+      SaiApiError);
+  EXPECT_THROW(
+      udfApi->setAttribute(
+          udfId, SaiUdfTraits::Attributes::Offset{kUdfOffset()}),
       SaiApiError);
 }
