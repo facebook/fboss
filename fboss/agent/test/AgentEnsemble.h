@@ -84,7 +84,9 @@ class AgentEnsemble : public TestEnsembleIf {
       std::shared_ptr<SwitchState> state,
       bool transaction = false) override;
 
-  const std::vector<PortID>& masterLogicalPortIds() const;
+  std::vector<PortID> masterLogicalPortIds() const override;
+  const std::vector<PortID>& masterLogicalPortIds(
+      const std::set<cfg::PortType>& portTypes) const;
 
   void programRoutes(
       const RouterID& rid,

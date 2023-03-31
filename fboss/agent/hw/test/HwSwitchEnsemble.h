@@ -180,8 +180,11 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       const std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
           std::chrono::milliseconds(20));
 
+  std::vector<PortID> masterLogicalPortIds() const override {
+    return masterLogicalPortIds({});
+  }
   virtual std::vector<PortID> masterLogicalPortIds(
-      const std::set<cfg::PortType>& filter = {}) const = 0;
+      const std::set<cfg::PortType>& filter) const = 0;
   std::vector<SystemPortID> masterLogicalSysPortIds() const;
   virtual std::vector<PortID> getAllPortsInGroup(PortID portID) const = 0;
   virtual std::vector<FlexPortMode> getSupportedFlexPortModes() const = 0;

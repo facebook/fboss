@@ -143,7 +143,7 @@ void AgentEnsemble::applyNewConfig(
   }
 }
 
-const std::vector<PortID>& AgentEnsemble::masterLogicalPortIds() const {
+std::vector<PortID> AgentEnsemble::masterLogicalPortIds() const {
   return masterLogicalPortIds_;
 }
 
