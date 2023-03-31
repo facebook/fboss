@@ -29,6 +29,30 @@ class UdfApiTest : public ::testing::Test {
     return 2;
   }
 
+  std::pair<sai_uint16_t, sai_uint16_t> kL2Type() const {
+    return std::make_pair(0x800, 0xFFFF);
+  }
+
+  std::pair<sai_uint16_t, sai_uint16_t> kL2Type2() const {
+    return std::make_pair(0x801, 0xFFFF);
+  }
+
+  std::pair<sai_uint8_t, sai_uint8_t> kL3Type() const {
+    return std::make_pair(0x11, 0xFF);
+  }
+
+  std::pair<sai_uint8_t, sai_uint8_t> kL3Type2() const {
+    return std::make_pair(0x12, 0xFF);
+  }
+
+  std::pair<sai_uint16_t, sai_uint16_t> kL4DstPort() const {
+    return std::make_pair(9002, 0xFFFF);
+  }
+
+  std::pair<sai_uint16_t, sai_uint16_t> kL4DstPort2() const {
+    return std::make_pair(10002, 0xFFFF);
+  }
+
   std::shared_ptr<FakeSai> fs;
   std::unique_ptr<UdfApi> udfApi;
 };
@@ -73,5 +97,67 @@ TEST_F(UdfApiTest, setUdfGroupAttributes) {
       udfApi->setAttribute(
           udfGroupId,
           SaiUdfGroupTraits::Attributes::Length{kUdfGroupLength() + 1}),
+      SaiApiError);
+}
+
+TEST_F(UdfApiTest, createUdfMatch) {
+  SaiUdfMatchTraits::Attributes::L2Type l2Type{AclEntryFieldU16(kL2Type())};
+  SaiUdfMatchTraits::Attributes::L3Type l3Type{AclEntryFieldU8(kL3Type())};
+  SaiUdfMatchTraits::Attributes::L4DstPortType l4DstPortType{
+      AclEntryFieldU16(kL4DstPort())};
+  auto udfMatchId =
+      udfApi->create<SaiUdfMatchTraits>({l2Type, l3Type, l4DstPortType}, 0);
+
+  EXPECT_EQ(udfMatchId, fs->udfMatchManager.get(udfMatchId).id);
+
+  EXPECT_EQ(
+      udfApi->getAttribute(udfMatchId, SaiUdfMatchTraits::Attributes::L2Type{}),
+      AclEntryFieldU16(kL2Type()));
+  EXPECT_EQ(
+      udfApi->getAttribute(udfMatchId, SaiUdfMatchTraits::Attributes::L3Type{}),
+      AclEntryFieldU8(kL3Type()));
+  EXPECT_EQ(
+      udfApi->getAttribute(
+          udfMatchId, SaiUdfMatchTraits::Attributes::L4DstPortType{}),
+      AclEntryFieldU16(kL4DstPort()));
+}
+
+TEST_F(UdfApiTest, removeUdfMatch) {
+  SaiUdfMatchTraits::Attributes::L2Type l2Type{AclEntryFieldU16(kL2Type())};
+  SaiUdfMatchTraits::Attributes::L3Type l3Type{AclEntryFieldU8(kL3Type())};
+  SaiUdfMatchTraits::Attributes::L4DstPortType l4DstPortType{
+      AclEntryFieldU16(kL4DstPort())};
+  auto udfMatchId =
+      udfApi->create<SaiUdfMatchTraits>({l2Type, l3Type, l4DstPortType}, 0);
+
+  EXPECT_EQ(udfMatchId, fs->udfMatchManager.get(udfMatchId).id);
+  udfApi->remove(udfMatchId);
+}
+
+TEST_F(UdfApiTest, setUdfMatch) {
+  SaiUdfMatchTraits::Attributes::L2Type l2Type{AclEntryFieldU16(kL2Type())};
+  SaiUdfMatchTraits::Attributes::L3Type l3Type{AclEntryFieldU8(kL3Type())};
+  SaiUdfMatchTraits::Attributes::L4DstPortType l4DstPortType{
+      AclEntryFieldU16(kL4DstPort())};
+  auto udfMatchId =
+      udfApi->create<SaiUdfMatchTraits>({l2Type, l3Type, l4DstPortType}, 0);
+
+  EXPECT_EQ(udfMatchId, fs->udfMatchManager.get(udfMatchId).id);
+
+  EXPECT_THROW(
+      udfApi->setAttribute(
+          udfMatchId,
+          SaiUdfMatchTraits::Attributes::L2Type{AclEntryFieldU16(kL2Type2())}),
+      SaiApiError);
+  EXPECT_THROW(
+      udfApi->setAttribute(
+          udfMatchId,
+          SaiUdfMatchTraits::Attributes::L3Type{AclEntryFieldU8(kL3Type2())}),
+      SaiApiError);
+  EXPECT_THROW(
+      udfApi->setAttribute(
+          udfMatchId,
+          SaiUdfMatchTraits::Attributes::L4DstPortType{
+              AclEntryFieldU16(kL4DstPort2())}),
       SaiApiError);
 }
