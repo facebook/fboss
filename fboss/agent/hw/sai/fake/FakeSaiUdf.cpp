@@ -110,6 +110,89 @@ sai_status_t get_udf_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t set_udf_match_attribute_fn(
+    sai_object_id_t /* udf_match_id */,
+    const sai_attribute_t* /* attr */) {
+  // All attributes are create-only
+  return SAI_STATUS_INVALID_PARAMETER;
+}
+
+sai_status_t create_udf_match_fn(
+    sai_object_id_t* udf_match_id,
+    sai_object_id_t /*switch_id */,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+
+  *udf_match_id = fs->udfMatchManager.create();
+  auto& udfMatch = fs->udfMatchManager.get(*udf_match_id);
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_UDF_MATCH_ATTR_L2_TYPE:
+        udfMatch.l2TypeEnable = attr_list[i].value.aclfield.enable;
+        udfMatch.l2TypeData = attr_list[i].value.aclfield.data.u16;
+        udfMatch.l2TypeMask = attr_list[i].value.aclfield.mask.u16;
+        break;
+      case SAI_UDF_MATCH_ATTR_L3_TYPE:
+        udfMatch.l3TypeEnable = attr_list[i].value.aclfield.enable;
+        udfMatch.l3TypeData = attr_list[i].value.aclfield.data.u8;
+        udfMatch.l3TypeMask = attr_list[i].value.aclfield.mask.u8;
+        break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      case SAI_UDF_MATCH_ATTR_L4_DST_PORT_TYPE:
+        udfMatch.l4DstPortTypeEnable = attr_list[i].value.aclfield.enable;
+        udfMatch.l4DstPortTypeData = attr_list[i].value.aclfield.data.u16;
+        udfMatch.l4DstPortTypeMask = attr_list[i].value.aclfield.mask.u16;
+        break;
+#endif
+      default:
+        fs->udfMatchManager.remove(*udf_match_id);
+        *udf_match_id = SAI_NULL_OBJECT_ID;
+        return SAI_STATUS_INVALID_PARAMETER;
+        break;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_udf_match_fn(sai_object_id_t udf_match_id) {
+  auto fs = FakeSai::getInstance();
+  fs->udfMatchManager.remove(udf_match_id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_udf_match_attribute_fn(
+    sai_object_id_t udf_match_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  auto& udfMatch = fs->udfMatchManager.get(udf_match_id);
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_UDF_MATCH_ATTR_L2_TYPE:
+        attr_list[i].value.aclfield.enable = udfMatch.l2TypeEnable;
+        attr_list[i].value.aclfield.data.u16 = udfMatch.l2TypeData;
+        attr_list[i].value.aclfield.mask.u16 = udfMatch.l2TypeMask;
+        break;
+      case SAI_UDF_MATCH_ATTR_L3_TYPE:
+        attr_list[i].value.aclfield.enable = udfMatch.l3TypeEnable;
+        attr_list[i].value.aclfield.data.u8 = udfMatch.l3TypeData;
+        attr_list[i].value.aclfield.mask.u8 = udfMatch.l3TypeMask;
+        break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      case SAI_UDF_MATCH_ATTR_L4_DST_PORT_TYPE:
+        attr_list[i].value.aclfield.enable = udfMatch.l4DstPortTypeEnable;
+        attr_list[i].value.aclfield.data.u16 = udfMatch.l4DstPortTypeData;
+        attr_list[i].value.aclfield.mask.u16 = udfMatch.l4DstPortTypeMask;
+        break;
+#endif
+      default:
+        return SAI_STATUS_NOT_SUPPORTED;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_udf_api_t _udf_api;
@@ -119,6 +202,10 @@ void populate_udf_api(sai_udf_api_t** udf_api) {
   _udf_api.remove_udf = &remove_udf_fn;
   _udf_api.set_udf_attribute = &set_udf_attribute_fn;
   _udf_api.get_udf_attribute = &get_udf_attribute_fn;
+  _udf_api.create_udf_match = &create_udf_match_fn;
+  _udf_api.remove_udf_match = &remove_udf_match_fn;
+  _udf_api.set_udf_match_attribute = &set_udf_match_attribute_fn;
+  _udf_api.get_udf_match_attribute = &get_udf_match_attribute_fn;
   *udf_api = &_udf_api;
 }
 

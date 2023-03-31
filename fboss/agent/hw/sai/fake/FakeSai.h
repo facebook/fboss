@@ -84,6 +84,7 @@ struct FakeSai {
   FakeSchedulerManager scheduleManager;
   FakeSwitchManager switchManager;
   FakeUdfManager udfManager;
+  FakeUdfMatchManager udfMatchManager;
   FakeVirtualRouterManager virtualRouteManager;
   FakeVlanManager vlanManager;
   FakeWredManager wredManager;

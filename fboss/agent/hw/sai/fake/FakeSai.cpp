@@ -52,6 +52,7 @@ void FakeSai::clear() {
   fs->scheduleManager.clear();
   fs->switchManager.clear();
   fs->udfManager.clear();
+  fs->udfMatchManager.clear();
   fs->virtualRouteManager.clear();
   fs->vlanManager.clearWithMembers();
   fs->wredManager.clear();
