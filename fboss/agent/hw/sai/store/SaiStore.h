@@ -585,6 +585,11 @@ class SaiStore {
       SaiObjectStore<SaiDebugCounterTraits>,
       SaiObjectStore<SaiSystemPortTraits>,
       SaiObjectStore<SaiPortTraits>,
+#if !defined(TAJO_SDK)
+      SaiObjectStore<SaiUdfTraits>,
+      SaiObjectStore<SaiUdfGroupTraits>,
+      SaiObjectStore<SaiUdfMatchTraits>,
+#endif
       SaiObjectStore<SaiVlanTraits>,
       SaiObjectStore<SaiVlanMemberTraits>,
       SaiObjectStore<SaiRouteTraits>,

@@ -234,6 +234,12 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "macsec-flow";
     case SAI_OBJECT_TYPE_SYSTEM_PORT:
       return "system-port";
+    case SAI_OBJECT_TYPE_UDF:
+      return "udf";
+    case SAI_OBJECT_TYPE_UDF_GROUP:
+      return "udf-group";
+    case SAI_OBJECT_TYPE_UDF_MATCH:
+      return "udf-match";
     default:
       throw FbossError("object type invalid: ", objectType);
   }

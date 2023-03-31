@@ -194,6 +194,15 @@ sai_status_t sai_get_object_count(
       *count = fs->systemPortManager.map().size();
       break;
     }
+    case SAI_OBJECT_TYPE_UDF:
+      *count = fs->udfManager.map().size();
+      break;
+    case SAI_OBJECT_TYPE_UDF_GROUP:
+      *count = fs->udfGroupManager.map().size();
+      break;
+    case SAI_OBJECT_TYPE_UDF_MATCH:
+      *count = fs->udfMatchManager.map().size();
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -541,6 +550,24 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_SYSTEM_PORT: {
       for (const auto& s : fs->systemPortManager.map()) {
         object_list[i++].key.object_id = s.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_UDF: {
+      for (const auto& udf : fs->udfManager.map()) {
+        object_list[i++].key.object_id = udf.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_UDF_GROUP: {
+      for (const auto& udfGroup : fs->udfGroupManager.map()) {
+        object_list[i++].key.object_id = udfGroup.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_UDF_MATCH: {
+      for (const auto& udfMatch : fs->udfMatchManager.map()) {
+        object_list[i++].key.object_id = udfMatch.second.id;
       }
       break;
     }
