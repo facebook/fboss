@@ -35,6 +35,7 @@
 #include "fboss/agent/hw/sai/api/SystemPortApi.h"
 #include "fboss/agent/hw/sai/api/TamApi.h"
 #include "fboss/agent/hw/sai/api/TunnelApi.h"
+#include "fboss/agent/hw/sai/api/UdfApi.h"
 #include "fboss/agent/hw/sai/api/VirtualRouterApi.h"
 #include "fboss/agent/hw/sai/api/VlanApi.h"
 #include "fboss/agent/hw/sai/api/WredApi.h"
@@ -108,6 +109,10 @@ class SaiApiTable {
 
   const SystemPortApi& systemPortApi() const;
 
+#if !defined(TAJO_SDK)
+  const UdfApi& udfApi() const;
+#endif
+
   const VirtualRouterApi& virtualRouterApi() const;
 
   const VlanApi& vlanApi() const;
@@ -165,6 +170,9 @@ class SaiApiTable {
       std::unique_ptr<SchedulerApi>,
       std::unique_ptr<SwitchApi>,
       std::unique_ptr<SystemPortApi>,
+#if !defined(TAJO_SDK)
+      std::unique_ptr<UdfApi>,
+#endif
       std::unique_ptr<VirtualRouterApi>,
       std::unique_ptr<VlanApi>,
       std::unique_ptr<WredApi>,
