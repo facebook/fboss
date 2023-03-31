@@ -214,3 +214,57 @@ TEST_F(UdfStoreTest, toStrUdfMatchStore) {
   createUdfMatch(kL2Type(), kL3Type(), kL4DstPort());
   verifyToStr<SaiUdfMatchTraits>();
 }
+
+TEST_F(UdfStoreTest, loadUdf) {
+  auto udfMatchId0 = createUdfMatch(kL2Type(), kL3Type(), kL4DstPort());
+  auto udfMatchId1 = createUdfMatch(kL2Type2(), kL3Type2(), kL4DstPort2());
+  auto udfGroupId0 = createUdfGroup(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength());
+  auto udfGroupId1 =
+      createUdfGroup(SAI_UDF_GROUP_TYPE_GENERIC, kUdfGroupLength() + 1);
+  auto udfId0 = createUdf(udfMatchId0, udfGroupId0);
+  auto udfId1 = createUdf(udfMatchId1, udfGroupId1);
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiUdfTraits>();
+
+  auto k0 = udfAdapterHostKey(udfMatchId0, udfGroupId0);
+  auto k1 = udfAdapterHostKey(udfMatchId1, udfGroupId1);
+
+  EXPECT_EQ(store.get(k0)->adapterKey(), udfId0);
+  EXPECT_EQ(store.get(k1)->adapterKey(), udfId1);
+}
+
+TEST_F(UdfStoreTest, udfCtor) {
+  auto udfMatchId = createUdfMatch(kL2Type(), kL3Type(), kL4DstPort());
+  auto udfGroupId = createUdfGroup(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength());
+  auto udfId = createUdf(udfMatchId, udfGroupId);
+  auto obj = createObj<SaiUdfTraits>(udfId);
+  EXPECT_EQ(obj.adapterKey(), udfId);
+}
+
+TEST_F(UdfStoreTest, udfCreateCtor) {
+  auto udfMatchId = createUdfMatch(kL2Type(), kL3Type(), kL4DstPort());
+  auto udfGroupId = createUdfGroup(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength());
+  SaiUdfTraits::CreateAttributes c{
+      udfMatchId, udfGroupId, SAI_UDF_BASE_L2, kUdfOffset()};
+  auto k = udfAdapterHostKey(udfMatchId, udfGroupId);
+  auto obj = createObj<SaiUdfTraits>(k, c, 0);
+  EXPECT_EQ(GET_ATTR(Udf, UdfMatchId, obj.attributes()), udfMatchId);
+  EXPECT_EQ(GET_ATTR(Udf, UdfGroupId, obj.attributes()), udfGroupId);
+  EXPECT_EQ(GET_OPT_ATTR(Udf, Base, obj.attributes()), SAI_UDF_BASE_L2);
+  EXPECT_EQ(GET_ATTR(Udf, Offset, obj.attributes()), kUdfOffset());
+}
+
+TEST_F(UdfStoreTest, serDesUdfStore) {
+  auto udfMatchId = createUdfMatch(kL2Type(), kL3Type(), kL4DstPort());
+  auto udfGroupId = createUdfGroup(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength());
+  auto udfId = createUdf(udfMatchId, udfGroupId);
+  verifyAdapterKeySerDeser<SaiUdfTraits>({udfId});
+}
+
+TEST_F(UdfStoreTest, toStrUdfStore) {
+  auto udfMatchId = createUdfMatch(kL2Type(), kL3Type(), kL4DstPort());
+  auto udfGroupId = createUdfGroup(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength());
+  createUdf(udfMatchId, udfGroupId);
+  verifyToStr<SaiUdfTraits>();
+}
