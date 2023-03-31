@@ -57,6 +57,7 @@
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
+#include "fboss/cli/fboss2/commands/show/product/CmdShowProduct.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
@@ -384,6 +385,12 @@ const CommandTree& kCommandTree() {
        commandHandler<CmdGetPcap>,
        argTypeHandler<CmdGetPcapTraits>,
        localOptionsHandler<CmdGetPcapTraits>},
+
+      {"show",
+       "product",
+       "Show Product Information",
+       commandHandler<CmdShowProduct>,
+       argTypeHandler<CmdShowProductTraits>},
   };
   return root;
 }

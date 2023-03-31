@@ -81,6 +81,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_product_model
+  fboss/cli/fboss2/commands/show/product/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_aggregateport_model
   fboss/cli/fboss2/commands/show/aggregateport/model.thrift
   OPTIONS
@@ -264,6 +271,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h
   fboss/cli/fboss2/commands/show/port/CmdShowPort.h
   fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h
+  fboss/cli/fboss2/commands/show/product/CmdShowProduct.h
   fboss/cli/fboss2/commands/show/route/utils.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h
   fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h
@@ -336,6 +344,7 @@ target_link_libraries(fboss2
   show_mirror_model
   show_ndp_model
   show_port_model
+  show_product_model
   show_transceiver_model
   show_interface_flaps
   show_interface_errors
