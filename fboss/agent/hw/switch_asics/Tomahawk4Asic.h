@@ -25,11 +25,6 @@ class Tomahawk4Asic : public BroadcomXgsAsic {
         : AsicMode::ASIC_MODE_HW;
     return asicMode;
   }
-  bool isSimB0() const {
-    static const bool isSimB0 = getAsicMode() == AsicMode::ASIC_MODE_SIM &&
-        strcmp(std::getenv("BCM_SIM_PATH"), "tomahawk4b0") == 0;
-    return isSimB0;
-  }
   cfg::PortSpeed getMaxPortSpeed() const override {
     return cfg::PortSpeed::FOURHUNDREDG;
   }
