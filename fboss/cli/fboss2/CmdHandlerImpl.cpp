@@ -77,6 +77,7 @@
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/product/CmdShowProduct.h"
+#include "fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
@@ -121,6 +122,8 @@ template void CmdHandler<CmdShowNdp, CmdShowNdpTraits>::run();
 template void CmdHandler<CmdShowPort, CmdShowPortTraits>::run();
 template void CmdHandler<CmdShowPortQueue, CmdShowPortQueueTraits>::run();
 template void CmdHandler<CmdShowProduct, CmdShowProductTraits>::run();
+template void
+CmdHandler<CmdShowProductDetails, CmdShowProductDetailsTraits>::run();
 template void CmdHandler<CmdShowHost, CmdShowHostTraits>::run();
 template void CmdHandler<CmdShowHwObject, CmdShowHwObjectTraits>::run();
 template void CmdHandler<CmdShowInterface, CmdShowInterfaceTraits>::run();

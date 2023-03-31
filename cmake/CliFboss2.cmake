@@ -272,6 +272,7 @@ add_executable(fboss2
   fboss/cli/fboss2/commands/show/port/CmdShowPort.h
   fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h
   fboss/cli/fboss2/commands/show/product/CmdShowProduct.h
+  fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h
   fboss/cli/fboss2/commands/show/route/utils.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h
   fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h
