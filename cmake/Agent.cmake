@@ -153,6 +153,7 @@ add_library(core
   fboss/agent/TunIntf.cpp
   fboss/agent/TunManager.cpp
   fboss/agent/ndp/IPv6RouteAdvertiser.cpp
+  fboss/agent/oss/HwSwitch.cpp
   fboss/agent/oss/PacketLogger.cpp
   fboss/agent/oss/RouteUpdateLogger.cpp
   fboss/agent/oss/SwSwitch.cpp
@@ -256,6 +257,7 @@ target_link_libraries(platform_base
 
 add_library(hw_switch
   fboss/agent/HwSwitch.cpp
+  fboss/agent/oss/HwSwitch.cpp
 )
 
 target_link_libraries(hw_switch

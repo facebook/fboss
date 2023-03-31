@@ -188,9 +188,7 @@ class HwSwitch {
    *
    * @ret   The actual state that was applied in the hardware.
    */
-  std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) {
-    return stateChangedImpl(delta);
-  }
+  std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta);
 
   virtual std::shared_ptr<SwitchState> stateChangedImpl(
       const StateDelta& delta) = 0;
