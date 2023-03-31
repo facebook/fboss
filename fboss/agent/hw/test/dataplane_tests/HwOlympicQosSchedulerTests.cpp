@@ -309,8 +309,9 @@ void HwOlympicQosSchedulerTest::verifyWRR() {
         utility::kOlympicWRRQueueIds(getAsic()),
         utility::kOlympicQueueToDscp(getAsic()));
     EXPECT_TRUE(verifyWRRHelper(
-        utility::getMaxWeightWRRQueue(utility::kOlympicWRRQueueToWeight()),
-        utility::kOlympicWRRQueueToWeight()));
+        utility::getMaxWeightWRRQueue(
+            utility::kOlympicWRRQueueToWeight(getAsic())),
+        utility::kOlympicWRRQueueToWeight(getAsic())));
   };
 
   verifyAcrossWarmBoots(setup, verify);

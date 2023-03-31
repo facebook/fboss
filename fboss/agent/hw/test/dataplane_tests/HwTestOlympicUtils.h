@@ -114,14 +114,12 @@ std::string getOlympicCounterNameForDscp(uint8_t dscp);
 
 const std::map<int, std::vector<uint8_t>> kOlympicQueueToDscp(
     const HwAsic* hwAsic);
-const std::map<int, uint8_t>& kOlympicWRRQueueToWeight();
+const std::map<int, uint8_t> kOlympicWRRQueueToWeight(const HwAsic* hwAsic);
 
 const std::vector<int> kOlympicWRRQueueIds(const HwAsic* hwAsic);
 const std::vector<int> kOlympicSPQueueIds(const HwAsic* hwAsic);
 const std::vector<int> kOlympicWRRAndICPQueueIds(const HwAsic* hwAsic);
 const std::vector<int> kOlympicWRRAndNCQueueIds(const HwAsic* hwAsic);
-
-bool isOlympicWRRQueueId(int queueId);
 
 int getMaxWeightWRRQueue(const std::map<int, uint8_t>& queueToWeight);
 

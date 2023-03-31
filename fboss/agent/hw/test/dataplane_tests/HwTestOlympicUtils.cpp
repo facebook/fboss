@@ -425,12 +425,14 @@ const std::map<int, std::vector<uint8_t>> kOlympicAllSPQueueToDscp(
   return queueToDscp;
 }
 
-const std::map<int, uint8_t>& kOlympicWRRQueueToWeight() {
-  static const std::map<int, uint8_t> wrrQueueToWeight = {
-      {kOlympicSilverQueueId, kOlympicSilverWeight},
-      {kOlympicGoldQueueId, kOlympicGoldWeight},
-      {kOlympicEcn1QueueId, kOlympicEcn1Weight},
-      {kOlympicBronzeQueueId, kOlympicBronzeWeight},
+const std::map<int, uint8_t> kOlympicWRRQueueToWeight(const HwAsic* hwAsic) {
+  const std::map<int, uint8_t> wrrQueueToWeight = {
+      {getOlympicQueueId(hwAsic, OlympicQueueType::SILVER),
+       kOlympicSilverWeight},
+      {getOlympicQueueId(hwAsic, OlympicQueueType::GOLD), kOlympicGoldWeight},
+      {getOlympicQueueId(hwAsic, OlympicQueueType::ECN1), kOlympicEcn1Weight},
+      {getOlympicQueueId(hwAsic, OlympicQueueType::BRONZE),
+       kOlympicBronzeWeight},
   };
 
   return wrrQueueToWeight;
@@ -474,13 +476,8 @@ const std::vector<int> kOlympicWRRAndNCQueueIds(const HwAsic* hwAsic) {
   return wrrAndNCQueueIds;
 }
 
-bool isOlympicWRRQueueId(int queueId) {
-  return kOlympicWRRQueueToWeight().find(queueId) !=
-      kOlympicWRRQueueToWeight().end();
-}
-
 const std::vector<int> kOlympicAllSPQueueIds(const HwAsic* hwAsic) {
-  const std::vector<int> queueIds = {
+   const std::vector<int> queueIds = {
       getOlympicAllSPQueueId(hwAsic, AllSPOlympicQueueType::NCNF),
       getOlympicAllSPQueueId(hwAsic, AllSPOlympicQueueType::BRONZE),
       getOlympicAllSPQueueId(hwAsic, AllSPOlympicQueueType::SILVER),
