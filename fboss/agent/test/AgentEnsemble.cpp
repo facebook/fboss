@@ -6,6 +6,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/Utils.h"
 
+#include "fboss/agent/EncapIndexAllocator.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -190,6 +191,8 @@ std::shared_ptr<SwitchState> AgentEnsemble::applyNewState(
   if (!state) {
     return getSw()->getState();
   }
+  state = EncapIndexAllocator::updateEncapIndices(
+      StateDelta(getProgrammedState(), state), *getPlatform()->getAsic());
   transaction
       ? getSw()->updateStateWithHwFailureProtection(
             "apply new state with failure protection",
