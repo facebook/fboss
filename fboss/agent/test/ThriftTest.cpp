@@ -1298,13 +1298,13 @@ TEST_F(ThriftTest, syncFibIsHwProtected) {
   UnicastRoute nr1 =
       *makeUnicastRoute("aaaa::/64", "2401:db00:2110:3001::1").get();
   addRoutes->push_back(nr1);
-  EXPECT_HW_CALL(sw_, stateChanged(_));
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_));
   handler.addUnicastRoutes(10, std::move(addRoutes));
   auto newRoutes = std::make_unique<std::vector<UnicastRoute>>();
   UnicastRoute nr2 = *makeUnicastRoute("bbbb::/64", "42::42").get();
   newRoutes->push_back(nr2);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChanged(_))
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_))
       .Times(::testing::AtLeast(1))
       .WillOnce(Return(sw_->getState()));
   EXPECT_THROW(
@@ -1329,7 +1329,7 @@ TEST_F(ThriftTest, addUnicastRoutesIsHwProtected) {
   UnicastRoute nr1 = *makeUnicastRoute("aaaa::/64", "42::42").get();
   newRoutes->push_back(nr1);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChanged(_)).WillOnce(Return(sw_->getState()));
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_)).WillOnce(Return(sw_->getState()));
   EXPECT_THROW(
       {
         try {
@@ -1396,7 +1396,8 @@ TEST_F(ThriftTest, syncMplsFibIsHwProtected) {
   MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
   newRoutes->push_back(nr1);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChanged(_)).WillRepeatedly(Return(sw_->getState()));
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_))
+      .WillRepeatedly(Return(sw_->getState()));
   EXPECT_THROW(
       {
         try {
@@ -1417,7 +1418,8 @@ TEST_F(ThriftTest, addMplsRoutesIsHwProtected) {
   MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
   newRoutes->push_back(nr1);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChanged(_)).WillRepeatedly(Return(sw_->getState()));
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_))
+      .WillRepeatedly(Return(sw_->getState()));
   EXPECT_THROW(
       {
         try {
@@ -1438,7 +1440,7 @@ TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
       *makeUnicastRoute("aaaa::/64", "2401:db00:2110:3001::1").get();
   std::vector<UnicastRoute> routes;
   routes.push_back(nr1);
-  EXPECT_HW_CALL(sw_, stateChanged(_)).Times(2);
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_)).Times(2);
   handler.addUnicastRoutes(
       10, std::make_unique<std::vector<UnicastRoute>>(routes));
   auto oneRouteAddedState = sw_->getState();
@@ -1453,7 +1455,7 @@ TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
       *makeUnicastRoute("bbbb::/64", "2401:db00:2110:3001::1").get();
   routes.push_back(nr2);
   // Fail HW update by returning one route added state.
-  EXPECT_HW_CALL(sw_, stateChanged(_))
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_))
       .Times(::testing::AtLeast(1))
       .WillOnce(Return(oneRouteAddedState));
   EXPECT_THROW(
@@ -2432,7 +2434,7 @@ TEST_F(ThriftTeFlowTest, teFlowUpdateHwProtection) {
   waitForBackgroundThread(sw_);
   waitForStateUpdates(sw_);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChanged(_)).WillOnce(Return(sw_->getState()));
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_)).WillOnce(Return(sw_->getState()));
 
   EXPECT_THROW(
       {
@@ -2455,7 +2457,7 @@ TEST_F(ThriftTeFlowTest, teFlowSyncUpdateHwProtection) {
   auto flowEntry = makeFlow("100::1");
   teFlowEntries->emplace_back(flowEntry);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChanged(_)).WillOnce(Return(sw_->getState()));
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_)).WillOnce(Return(sw_->getState()));
 
   EXPECT_THROW(
       {

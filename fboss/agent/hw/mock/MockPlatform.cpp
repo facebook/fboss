@@ -51,7 +51,7 @@ MockPlatform::MockPlatform(
           getMockLocalMac()),
       tmpDir_("fboss_mock_state"),
       hw_(std::move(hw)) {
-  ON_CALL(*hw_, stateChanged(_))
+  ON_CALL(*hw_, stateChangedImpl(_))
       .WillByDefault(WithArg<0>(
           Invoke([=](const StateDelta& delta) { return delta.newState(); })));
   ON_CALL(*hw_, stateChangedTransaction(_))

@@ -458,7 +458,7 @@ TEST(DHCPv6HandlerTest, DHCPV6Request) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   // Construct the DHCPV6 packet structure to pass into the validator routine
   auto dhcp6RawPktBuf = PktUtil::parseHexData(
@@ -549,7 +549,7 @@ TEST(DHCPv6HandlerOverrideTest, DHCPV6Request) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   // Construct the DHCPV6 packet structure to pass into the validator routine
   auto dhcp6RawPktBuf = PktUtil::parseHexData(
@@ -642,7 +642,7 @@ TEST(DHCPv6HandlerRelaySrcTest, DHCPV6Request) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   // Construct the DHCPV6 packet structure to pass into the validator routine
   auto dhcp6RawPktBuf = PktUtil::parseHexData(
@@ -754,7 +754,7 @@ TEST(DHCPv6HandlerTest, DHCPV6RelayReply) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   // Construct the DHCPV6 reply packet structure to pass into the validator
   // routine
@@ -861,7 +861,7 @@ TEST(DHCPv6HandlerReplySrcTest, DHCPV6RelayReply) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   // Construct the DHCPV6 reply packet structure to pass into the validator
   // routine
@@ -972,7 +972,7 @@ TEST(DHCPv6HandlerTest, DHCPV6RelayForward) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   // Construct the DHCPV6 reply packet structure to pass into the validator
   // routine
@@ -1072,7 +1072,7 @@ TEST(DHCPv6HandlerTest, DHCPV6BadRequest) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   // Inject the test packet
   sendDHCPV6Packet(
@@ -1172,7 +1172,7 @@ TEST(DHCPv6HandlerTest, DHCPV6DropRelayReply) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   // Inject the test packet
   sendDHCPV6Packet(
@@ -1273,7 +1273,7 @@ TEST(DHCPv6HandlerTest, DHCPV6BadRelayForward) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   // Inject the test packet
   sendDHCPV6Packet(

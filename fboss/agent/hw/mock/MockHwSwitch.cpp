@@ -53,7 +53,7 @@ MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
             delete pkt;
             return true;
           }));
-  ON_CALL(*this, stateChanged(_))
+  ON_CALL(*this, stateChangedImpl(_))
       .WillByDefault(
           Invoke([](const StateDelta& delta) { return delta.newState(); }));
   ON_CALL(*this, stateChangedTransaction(_))

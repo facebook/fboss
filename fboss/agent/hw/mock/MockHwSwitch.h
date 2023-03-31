@@ -34,7 +34,7 @@ class MockHwSwitch : public HwSwitch {
       initImpl,
       HwInitResult(Callback*, bool, cfg::SwitchType, std::optional<int64_t>));
   MOCK_METHOD1(
-      stateChanged,
+      stateChangedImpl,
       std::shared_ptr<SwitchState>(const StateDelta& delta));
   MOCK_METHOD1(
       stateChangedTransaction,

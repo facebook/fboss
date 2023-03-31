@@ -1298,7 +1298,8 @@ void BcmSwitch::processMacTableChanges(const StateDelta& stateDelta) {
   }
 }
 
-std::shared_ptr<SwitchState> BcmSwitch::stateChanged(const StateDelta& delta) {
+std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
+    const StateDelta& delta) {
   // Take the lock before modifying any objects
   std::lock_guard<std::mutex> g(lock_);
   return stateChangedLocked(delta, g);

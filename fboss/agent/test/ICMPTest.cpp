@@ -368,7 +368,7 @@ TEST(ICMPTest, TTLExceededV4) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   // We should get a ICMPv4 TTL exceeded back
   EXPECT_SWITCHED_PKT(
@@ -442,7 +442,7 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
       // icmp padding for unused field
       "00 00 00 00" + ipHdr + udpHdr + payload);
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   // We should get a ICMPv4 TTL exceeded back
   EXPECT_SWITCHED_PKT(
@@ -556,7 +556,7 @@ TEST(ICMPTest, TTLExceededV4WithoutV4Interface) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   // We should get a ICMPv4 TTL exceeded back with src IP set to
   // VLAN55 IPv4 addres. Because VLAN 1 does not have an IPv4 address.
@@ -609,7 +609,7 @@ void runTTLExceededV6Test(size_t requestedPayloadSize) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   // We should get a ICMPv6 TTL exceeded back
   EXPECT_SWITCHED_PKT(
@@ -742,7 +742,7 @@ TEST(ICMPTest, PacketTooBigV6) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
   EXPECT_SWITCHED_PKT(
       sw,
       "ICMPv6 Packet Too Big",

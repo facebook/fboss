@@ -393,7 +393,7 @@ TEST(DHCPv4HandlerTest, DHCPRequest) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   EXPECT_SWITCHED_PKT(sw, "DHCP request", checkDHCPReq());
 
@@ -432,7 +432,7 @@ TEST(DHCPv4HandlerOverrideTest, DHCPRequest) {
   const string dhcpMsgTypeOpt = "35  01  01";
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   EXPECT_SWITCHED_PKT(sw, "DHCP request", checkDHCPReq(kDhcpOverride));
 
@@ -467,7 +467,7 @@ TEST(DHCPv4RelaySrcTest, DHCPRequest) {
   const string dhcpMsgTypeOpt = "35  01  01";
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   EXPECT_SWITCHED_PKT(
       sw, "DHCP request", checkDHCPReq(kDhcpOverride, kDhcpV4RelaySrc));
@@ -513,7 +513,7 @@ TEST(DHCPv4HandlerTest, DHCPReply) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   EXPECT_SWITCHED_PKT(sw, "DHCP reply", checkDHCPReply());
 
@@ -564,7 +564,7 @@ TEST(DHCPv4ReplySrcTest, DHCPReply) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
 
   // DHCP reply source is override to fboss55's address
   EXPECT_SWITCHED_PKT(
@@ -607,7 +607,7 @@ TEST(DHCPv4HandlerTest, DHCPBadRequest) {
   CounterCache counters(sw);
 
   // Sending an DHCP request should not trigger state update
-  EXPECT_HW_CALL(sw, stateChanged(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
 
   sendDHCPPacket(

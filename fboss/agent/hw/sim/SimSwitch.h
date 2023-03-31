@@ -27,7 +27,8 @@ class SimSwitch : public HwSwitch {
       bool failHwCallsOnWarmboot,
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId) override;
-  std::shared_ptr<SwitchState> stateChanged(const StateDelta& delta) override;
+  std::shared_ptr<SwitchState> stateChangedImpl(
+      const StateDelta& delta) override;
   std::shared_ptr<SwitchState> stateChangedTransaction(
       const StateDelta& delta) override {
     return stateChanged(delta);

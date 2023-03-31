@@ -55,7 +55,7 @@ class SwSwitchUpdateProcessingTest : public ::testing::TestWithParam<bool> {
       EXPECT_HW_CALL(sw, stateChangedTransaction(_))
           .WillRepeatedly(Return(state));
     } else {
-      EXPECT_HW_CALL(sw, stateChanged(_)).WillRepeatedly(Return(state));
+      EXPECT_HW_CALL(sw, stateChangedImpl(_)).WillRepeatedly(Return(state));
     }
   }
 
@@ -96,7 +96,7 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdateAtEnd) {
   nonHwFailureProtectedUpdateState->publish();
   auto protectedState = nonHwFailureProtectedUpdateState->clone();
   bool transactionsSupported = sw->getHw()->transactionsSupported();
-  EXPECT_HW_CALL(sw, stateChanged(_))
+  EXPECT_HW_CALL(sw, stateChangedImpl(_))
       .Times(1 + (transactionsSupported ? 0 : 1));
   if (transactionsSupported) {
     EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(1);
@@ -126,7 +126,7 @@ TEST_P(SwSwitchUpdateProcessingTest, BackToBackHwFailureProtectedUpdates) {
   if (sw->getHw()->transactionsSupported()) {
     EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(2);
   } else {
-    EXPECT_HW_CALL(sw, stateChanged(_)).Times(2);
+    EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(2);
   }
   auto protectedState1UpdateFn =
       [=](const std::shared_ptr<SwitchState>& state) {
@@ -152,7 +152,7 @@ TEST_P(SwSwitchUpdateProcessingTest, HwFailureProtectedUpdateAtStart) {
   protectedState->publish();
   auto nonHwFailureProtectedUpdatealState = protectedState->clone();
   bool transactionsSupported = sw->getHw()->transactionsSupported();
-  EXPECT_HW_CALL(sw, stateChanged(_))
+  EXPECT_HW_CALL(sw, stateChangedImpl(_))
       .Times(1 + (transactionsSupported ? 0 : 1));
   if (transactionsSupported) {
     EXPECT_HW_CALL(sw, stateChangedTransaction(_)).Times(1);
@@ -203,7 +203,7 @@ TEST_P(
     return delta.newState() == expectedDelta.newState() &&
         delta.oldState() == expectedDelta.oldState();
   };
-  EXPECT_HW_CALL(sw, stateChanged(testing::Truly(isEqual)));
+  EXPECT_HW_CALL(sw, stateChangedImpl(testing::Truly(isEqual)));
   sw->updateState("Accept update", stateUpdateFn2);
   waitForStateUpdates(sw);
 }
