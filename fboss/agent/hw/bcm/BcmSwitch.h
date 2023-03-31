@@ -785,7 +785,9 @@ class BcmSwitch : public BcmSwitchIf {
       const std::shared_ptr<UdfPacketMatcher>& udfPacketMatcher);
   void processRemovedUdfGroup(const std::shared_ptr<UdfGroup>& udfGroup);
 
-  std::shared_ptr<SwitchState> stateChangedImpl(const StateDelta& delta);
+  std::shared_ptr<SwitchState> stateChangedImplLocked(
+      const StateDelta& delta,
+      const std::lock_guard<std::mutex>& lock);
 
   void processSflowSamplingRateChanges(const StateDelta& delta);
   void processSflowCollectorChanges(const StateDelta& delta);

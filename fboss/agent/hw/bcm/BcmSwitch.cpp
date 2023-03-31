@@ -966,7 +966,8 @@ HwInitResult BcmSwitch::initImpl(
           ret.switchState->getFibs(),
           ret.switchState->getLabelForwardingInformationBase());
     }
-    stateChangedImpl(StateDelta(make_shared<SwitchState>(), ret.switchState));
+    stateChangedImplLocked(
+        StateDelta(make_shared<SwitchState>(), ret.switchState), g);
     hostTable_->warmBootHostEntriesSynced();
     // Done with warm boot, clear warm boot cache
     warmBootCache_->clear();
@@ -1305,8 +1306,8 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChanged(const StateDelta& delta) {
 
 std::shared_ptr<SwitchState> BcmSwitch::stateChangedLocked(
     const StateDelta& delta,
-    const std::lock_guard<std::mutex>& /*lock*/) {
-  auto appliedState = stateChangedImpl(delta);
+    const std::lock_guard<std::mutex>& lock) {
+  auto appliedState = stateChangedImplLocked(delta, lock);
   appliedState->publish();
   return appliedState;
 }
@@ -1317,8 +1318,9 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedTransaction(
   return nullptr;
 }
 
-std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
-    const StateDelta& delta) {
+std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
+    const StateDelta& delta,
+    const std::lock_guard<std::mutex>& /*lock*/) {
   // Sys ports not supported
   checkUnsupportedDelta(delta.getSystemPortsDelta(), *sysPortMgr_);
   checkUnsupportedDelta(delta.getRemoteSystemPortsDelta(), *sysPortMgr_);

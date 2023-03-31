@@ -453,7 +453,7 @@ void SaiSwitch::rollback(
         HwWriteBehavior::FAIL,
         &hwSwitchJson[kAdapterKeys],
         &hwSwitchJson[kAdapterKey2AdapterHostKey]);
-    stateChangedImpl(
+    stateChangedImplLocked(
         StateDelta(std::make_shared<SwitchState>(), knownGoodState),
         lockPolicy);
     saiStore_->printWarmbootHandles();
@@ -522,11 +522,11 @@ template <typename LockPolicyT>
 std::shared_ptr<SwitchState> SaiSwitch::stateChanged(
     const StateDelta& delta,
     const LockPolicyT& lockPolicy) {
-  return stateChangedImpl(delta, lockPolicy);
+  return stateChangedImplLocked(delta, lockPolicy);
 }
 
 template <typename LockPolicyT>
-std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
+std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
     const StateDelta& delta,
     const LockPolicyT& lockPolicy) {
   // Unsupported features

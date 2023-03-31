@@ -211,7 +211,7 @@ class SaiSwitch : public HwSwitch {
       state::WarmbootState& thriftSwitchState) override;
 
   template <typename LockPolicyT>
-  std::shared_ptr<SwitchState> stateChangedImpl(
+  std::shared_ptr<SwitchState> stateChangedImplLocked(
       const StateDelta& delta,
       const LockPolicyT& lk);
   friend class SaiRollbackTest;
