@@ -193,6 +193,76 @@ sai_status_t get_udf_match_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t set_udf_group_attribute_fn(
+    sai_object_id_t /* udf_group_id */,
+    const sai_attribute_t* /* attr */) {
+  // All attributes are create-only
+  return SAI_STATUS_INVALID_PARAMETER;
+}
+
+sai_status_t create_udf_group_fn(
+    sai_object_id_t* udf_group_id,
+    sai_object_id_t /*switch_id */,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+
+  std::optional<sai_int32_t> type;
+  std::optional<sai_uint16_t> length;
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_UDF_GROUP_ATTR_TYPE:
+        type = attr_list[i].value.s32;
+        break;
+      case SAI_UDF_GROUP_ATTR_LENGTH:
+        length = attr_list[i].value.u16;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+        break;
+    }
+  }
+  if (!length) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+
+  *udf_group_id = fs->udfGroupManager.create(*length);
+  auto& udfGroup = fs->udfGroupManager.get(*udf_group_id);
+  if (type) {
+    udfGroup.type = *type;
+  }
+
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_udf_group_fn(sai_object_id_t udf_group_id) {
+  auto fs = FakeSai::getInstance();
+  fs->udfGroupManager.remove(udf_group_id);
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_udf_group_attribute_fn(
+    sai_object_id_t udf_group_id,
+    uint32_t attr_count,
+    sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  auto& udfGroup = fs->udfGroupManager.get(udf_group_id);
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_UDF_GROUP_ATTR_TYPE:
+        attr_list[i].value.s32 = udfGroup.type;
+        break;
+      case SAI_UDF_GROUP_ATTR_LENGTH:
+        attr_list[i].value.u16 = udfGroup.length;
+        break;
+      default:
+        return SAI_STATUS_NOT_SUPPORTED;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_udf_api_t _udf_api;
@@ -206,6 +276,10 @@ void populate_udf_api(sai_udf_api_t** udf_api) {
   _udf_api.remove_udf_match = &remove_udf_match_fn;
   _udf_api.set_udf_match_attribute = &set_udf_match_attribute_fn;
   _udf_api.get_udf_match_attribute = &get_udf_match_attribute_fn;
+  _udf_api.create_udf_group = &create_udf_group_fn;
+  _udf_api.remove_udf_group = &remove_udf_group_fn;
+  _udf_api.set_udf_group_attribute = &set_udf_group_attribute_fn;
+  _udf_api.get_udf_group_attribute = &get_udf_group_attribute_fn;
   *udf_api = &_udf_api;
 }
 

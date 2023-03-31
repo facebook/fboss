@@ -57,8 +57,18 @@ class FakeUdfMatch {
   sai_object_id_t id;
 };
 
+class FakeUdfGroup {
+ public:
+  explicit FakeUdfGroup(sai_uint16_t length) : length(length) {}
+
+  sai_uint16_t length;
+  sai_int32_t type;
+  sai_object_id_t id;
+};
+
 using FakeUdfManager = FakeManager<sai_object_id_t, FakeUdf>;
 using FakeUdfMatchManager = FakeManager<sai_object_id_t, FakeUdfMatch>;
+using FakeUdfGroupManager = FakeManager<sai_object_id_t, FakeUdfGroup>;
 
 void populate_udf_api(sai_udf_api_t** udf_api);
 
