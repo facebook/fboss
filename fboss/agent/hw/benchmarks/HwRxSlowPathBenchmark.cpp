@@ -39,9 +39,7 @@ BENCHMARK(RxSlowPathBenchmark) {
   AgentEnsembleSwitchConfigFn initialConfig =
       [](HwSwitch* hwSwitch, const std::vector<PortID>& ports) {
         CHECK_GE(ports.size(), 1);
-        auto portUsed = ports[0];
-
-        auto config = utility::oneL3IntfConfig(hwSwitch, portUsed);
+        auto config = utility::onePortPerInterfaceConfig(hwSwitch, ports);
         // We don't want to set queue rate that limits the number of rx pkts
         utility::addCpuQueueConfig(
             config,
@@ -68,14 +66,15 @@ BENCHMARK(RxSlowPathBenchmark) {
           ensemble->getSw(), ensemble->getSw()->getRib()),
       kEcmpWidth);
   // Disable TTL decrements
-  utility::disableTTLDecrements(
+  utility::ttlDecrementHandlingForLoopbackTraffic(
       hwSwitch, ecmpHelper.getRouterId(), ecmpHelper.getNextHops()[0]);
 
   const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};
+  auto vlanId = utility::firstVlanID(ensemble->getProgrammedState());
   // Send packet
   auto txPacket = utility::makeUDPTxPacket(
       hwSwitch,
-      VlanID(*config.vlanPorts()[0].vlanID()),
+      vlanId,
       kSrcMac,
       dstMac,
       folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
