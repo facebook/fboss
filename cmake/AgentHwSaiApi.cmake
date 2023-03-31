@@ -76,6 +76,7 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/Traits.h
   fboss/agent/hw/sai/api/TunnelApi.h
   fboss/agent/hw/sai/api/Types.h
+  fboss/agent/hw/sai/api/UdfApi.h
   fboss/agent/hw/sai/api/VirtualRouterApi.h
   fboss/agent/hw/sai/api/VlanApi.h
   fboss/agent/hw/sai/api/WredApi.h
