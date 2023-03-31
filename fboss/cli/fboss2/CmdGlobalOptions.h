@@ -402,6 +402,10 @@ class CmdGlobalOptions {
     return bgpThriftPort_;
   }
 
+  int getSmcThriftPort() const {
+    return smcThriftPort_;
+  }
+
   int getFsdbThriftPort() const {
     return fsdbThriftPort_;
   }
@@ -463,6 +467,10 @@ class CmdGlobalOptions {
     bgpThriftPort_ = port;
   }
 
+  void setSmcThriftPort(int port) {
+    smcThriftPort_ = port;
+  }
+
   void setBgpStreamThriftPort(int port) {
     bgpStreamThriftPort_ = port;
   }
@@ -515,6 +523,7 @@ class CmdGlobalOptions {
   int agentThriftPort_{5909};
   int qsfpThriftPort_{5910};
   int bgpThriftPort_{6909};
+  int smcThriftPort_{1421};
   int bgpStreamThriftPort_{6910};
   int openrThriftPort_{2018};
   int coopThriftPort_{6969};
