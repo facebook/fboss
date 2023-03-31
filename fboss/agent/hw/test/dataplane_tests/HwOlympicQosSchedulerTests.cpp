@@ -335,7 +335,7 @@ void HwOlympicQosSchedulerTest::verifySP() {
         // SP queue with highest queueId
         // should starve other SP queues
         // altogether
-        utility::kOlympicHighestSPQueueId));
+        utility::getOlympicQueueId(getAsic(), utility::OlympicQueueType::NC)));
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -344,14 +344,17 @@ void HwOlympicQosSchedulerTest::verifySP() {
 void HwOlympicQosSchedulerTest::verifyWRRAndICP() {
   verifyWRRAndSP(
       utility::kOlympicWRRAndICPQueueIds(getAsic()),
-      utility::kOlympicICPQueueId); // SP should starve WRR queues
-                                    // altogether
+      utility::getOlympicQueueId(
+          getAsic(), utility::OlympicQueueType::ICP)); // SP should starve WRR
+                                                       // queues altogether
 }
 
 void HwOlympicQosSchedulerTest::verifyWRRAndNC() {
   verifyWRRAndSP(
       utility::kOlympicWRRAndNCQueueIds(getAsic()),
-      utility::kOlympicNCQueueId); // SP should starve WRR queues altogether
+      utility::getOlympicQueueId(
+          getAsic(), utility::OlympicQueueType::NC)); // SP should starve WRR
+                                                      // queues altogether
 }
 
 void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
