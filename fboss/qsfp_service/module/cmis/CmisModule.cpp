@@ -187,6 +187,10 @@ static QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::ACTIVE_CTRL_LANE_2, {CmisPages::PAGE11, 207, 1}},
     {CmisField::ACTIVE_CTRL_LANE_3, {CmisPages::PAGE11, 208, 1}},
     {CmisField::ACTIVE_CTRL_LANE_4, {CmisPages::PAGE11, 209, 1}},
+    {CmisField::ACTIVE_CTRL_LANE_5, {CmisPages::PAGE11, 210, 1}},
+    {CmisField::ACTIVE_CTRL_LANE_6, {CmisPages::PAGE11, 211, 1}},
+    {CmisField::ACTIVE_CTRL_LANE_7, {CmisPages::PAGE11, 212, 1}},
+    {CmisField::ACTIVE_CTRL_LANE_8, {CmisPages::PAGE11, 213, 1}},
     {CmisField::TX_CDR_CONTROL, {CmisPages::PAGE11, 221, 1}},
     {CmisField::RX_CDR_CONTROL, {CmisPages::PAGE11, 222, 1}},
     {CmisField::RX_OUT_PRE_CURSOR, {CmisPages::PAGE11, 223, 4}},
@@ -319,6 +323,17 @@ static std::unordered_map<int, CmisField> laneToAppSelField = {
     {5, CmisField::APP_SEL_LANE_6},
     {6, CmisField::APP_SEL_LANE_7},
     {7, CmisField::APP_SEL_LANE_8},
+};
+
+static std::unordered_map<int, CmisField> laneToActiveCtrlField = {
+    {0, CmisField::ACTIVE_CTRL_LANE_1},
+    {1, CmisField::ACTIVE_CTRL_LANE_2},
+    {2, CmisField::ACTIVE_CTRL_LANE_3},
+    {3, CmisField::ACTIVE_CTRL_LANE_4},
+    {4, CmisField::ACTIVE_CTRL_LANE_5},
+    {5, CmisField::ACTIVE_CTRL_LANE_6},
+    {6, CmisField::ACTIVE_CTRL_LANE_7},
+    {7, CmisField::ACTIVE_CTRL_LANE_8},
 };
 
 static CmisFieldMultiplier qsfpMultiplier = {
@@ -828,14 +843,18 @@ unsigned int CmisModule::numMediaLanes() const {
   return 4;
 }
 
-SMFMediaInterfaceCode CmisModule::getSmfMediaInterface() const {
+SMFMediaInterfaceCode CmisModule::getSmfMediaInterface(uint8_t lane) const {
+  if (lane >= 8) {
+    QSFP_LOG(ERR, this) << "Invalid lane number " << lane;
+    return SMFMediaInterfaceCode::UNKNOWN;
+  }
   // Pick the first application for flatMem modules. FlatMem modules don't
   // support page11h that contains the current operational app sel code
   uint8_t currentApplicationSel = flatMem_
       ? 1
-      : getSettingsValue(CmisField::ACTIVE_CTRL_LANE_1, APP_SEL_MASK);
+      : getSettingsValue(laneToActiveCtrlField[lane], APP_SEL_MASK);
   // The application sel code is at the higher four bits of the field.
-  currentApplicationSel = currentApplicationSel >> 4;
+  currentApplicationSel = currentApplicationSel >> APP_SEL_BITSHIFT;
 
   // Application select value 0 means application is not selected by module yet
   if (currentApplicationSel == 0) {
@@ -1700,10 +1719,10 @@ void CmisModule::setApplicationCodeLocked(
   // Currently we will have the same application across all the lanes. So here
   // we only take one of them to look at.
   uint8_t currentApplicationSel =
-      getSettingsValue(CmisField::ACTIVE_CTRL_LANE_1, APP_SEL_MASK);
+      getSettingsValue(laneToActiveCtrlField[startHostLane], APP_SEL_MASK);
 
   // The application sel code is at the higher four bits of the field.
-  currentApplicationSel = currentApplicationSel >> 4;
+  currentApplicationSel = currentApplicationSel >> APP_SEL_BITSHIFT;
 
   QSFP_LOG(INFO, this) << folly::sformat(
       "currentApplicationSel: {:#x}", currentApplicationSel);

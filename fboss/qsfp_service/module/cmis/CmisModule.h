@@ -275,7 +275,7 @@ class CmisModule : public QsfpModule {
   /*
    * Gets the Single Mode Fiber Interface codes from SFF-8024
    */
-  SMFMediaInterfaceCode getSmfMediaInterface() const;
+  SMFMediaInterfaceCode getSmfMediaInterface(uint8_t lane = 0) const;
   /*
    * Returns the firmware version
    * <Module firmware version, DSP version, Build revision>
