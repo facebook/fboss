@@ -1679,7 +1679,13 @@ void CmisModule::updateQsfpData(bool allPages) {
   }
 }
 
-void CmisModule::setApplicationCodeLocked(cfg::PortSpeed speed) {
+void CmisModule::setApplicationCodeLocked(
+    cfg::PortSpeed speed,
+    uint8_t startHostLane) {
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "Trying to set application code for speed {} on startHostLane {}",
+      apache::thrift::util::enumNameSafe(speed),
+      startHostLane);
   auto applicationIter = speedApplicationMapping.find(speed);
 
   if (applicationIter == speedApplicationMapping.end()) {
@@ -1960,7 +1966,7 @@ void CmisModule::customizeTransceiverLocked(TransceiverPortState& portState) {
     setPowerOverrideIfSupportedLocked(*settings.powerControl());
 
     if (speed != cfg::PortSpeed::DEFAULT) {
-      setApplicationCodeLocked(speed);
+      setApplicationCodeLocked(speed, startHostLane);
     }
 
     // For 200G-FR4 module operating in 2x50G mode, disable squelch on all lanes

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <sys/types.h>
 #include "fboss/qsfp_service/module/QsfpModule.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -155,7 +156,7 @@ class CmisModule : public QsfpModule {
   /*
    * Set appropriate application code for PortSpeed, if supported
    */
-  void setApplicationCodeLocked(cfg::PortSpeed speed);
+  void setApplicationCodeLocked(cfg::PortSpeed speed, uint8_t startHostLane);
   /*
    * returns individual sensor values after scaling
    */
