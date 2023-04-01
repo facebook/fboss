@@ -247,7 +247,8 @@ HwInitResult SaiSwitch::initImpl(
 
   {
     HwWriteBehaviorRAII writeBehavior{behavior};
-    stateChanged(StateDelta(std::make_shared<SwitchState>(), ret.switchState));
+    stateChangedImpl(
+        StateDelta(std::make_shared<SwitchState>(), ret.switchState));
     managerTable_->fdbManager().removeUnclaimedDynanicEntries();
     managerTable_->hashManager().removeUnclaimedDefaultHash();
 #if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \

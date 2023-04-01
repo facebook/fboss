@@ -48,6 +48,8 @@ void AgentEnsemble::setupEnsemble(
   // overriden by the application.
   gflags::ParseCommandLineFlags(&argc, &argv, false);
 
+  FLAGS_verify_apply_oper_delta = true;
+
   if (platformConfigFn) {
     auto agentConf =
         AgentConfig::fromFile(AgentEnsemble::getInputConfigFile())->thrift;

@@ -100,6 +100,7 @@ bool HwTest::hideFabricPorts() const {
 }
 
 void HwTest::SetUp() {
+  FLAGS_verify_apply_oper_delta = true;
   FLAGS_hide_fabric_ports = hideFabricPorts();
   // Reset any global state being tracked in singletons
   // Each test then sets up its own state as needed.
