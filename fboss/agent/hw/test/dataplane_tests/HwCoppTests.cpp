@@ -628,7 +628,7 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
     // Create a loop with specified destination packets.
     // We want to send atleast 2 traffic streams to ensure we dont run
     // into throughput limits with single flow and flow cache for TAJO.
-    for (auto i = 0; i <  minPktsForLineRate; ++i) {
+    for (auto i = 0; i < minPktsForLineRate; ++i) {
       for (auto j = 0; j < 2; ++j) {
         sendTcpPktsOnPort(
             port,
@@ -808,12 +808,7 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
 class HwCoppQueueStuckTest : public HwCoppQosTest {
  protected:
   cfg::SwitchConfig initialConfig() const override {
-    auto cfg = utility::twoL3IntfConfig(
-        getHwSwitch(),
-        masterLogicalInterfacePortIds()[0],
-        masterLogicalInterfacePortIds()[1],
-        getAsic()->desiredLoopbackMode());
-    utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
+    auto cfg = HwCoppQosTest::initialConfig();
     addCustomCpuQueueConfig(cfg, getAsic(), true /*addEcnConfig*/);
     return cfg;
   }
