@@ -52,7 +52,7 @@ class HwMPLSTest : public HwLinkStateDependentTest {
       bool isTajo = ensemble_->getPlatform()->getAsic()->getAsicVendor() ==
           HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
       if (isTajo) {
-#if !defined(TAJO_SDK_VERSION_1_58_0) && !defined(TAJO_SDK_VERSION_1_62_0)
+#if !defined(TAJO_SDK_VERSION_1_62_0)
         srcPortQualifierSupported = false;
 #endif
       }
