@@ -538,7 +538,7 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(getProgrammedState(), dstMac);
     resolveNeigborAndProgramRoutes(ecmpHelper, 1);
     auto& nextHop = ecmpHelper.getNextHops()[0];
-    utility::disableTTLDecrements(
+    utility::ttlDecrementHandlingForLoopbackTraffic(
         getHwSwitch(), ecmpHelper.getRouterId(), nextHop);
   }
 
