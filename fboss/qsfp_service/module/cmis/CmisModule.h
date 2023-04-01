@@ -412,7 +412,8 @@ class CmisModule : public QsfpModule {
 
   void resetDataPathWithFunc(
       std::optional<std::function<void()>> afterDataPathDeinitFunc =
-          std::nullopt);
+          std::nullopt,
+      uint8_t hostLaneMask = 0xFF);
 
   /*
    * Set the PRBS Generator and Checker on a module for the desired side (Line

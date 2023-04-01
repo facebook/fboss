@@ -1757,36 +1757,39 @@ void CmisModule::setApplicationCodeLocked(
       continue;
     }
 
-    auto setApplicationSelectCode = [this, &capability]() {
-      // Currently we will have only one data path and apply the default
-      // settings. So assume the lower four bits are all zero here.
-      // CMIS4.0-8.7.3
-      uint8_t newApSelCode = capability->ApSelCode << 4;
+    auto hostLanes = capability->hostLaneCount;
+    uint8_t hostLaneMask = (1 << hostLanes) - 1;
 
-      QSFP_LOG(INFO, this) << folly::sformat(
-          "newApSelCode: {:#x}", newApSelCode);
+    auto setApplicationSelectCode =
+        [this, &capability, startHostLane, hostLanes, hostLaneMask]() {
+          uint8_t dataPathId = startHostLane;
+          uint8_t explicitControl = 0; // Use application dependent settings
+          uint8_t newApSelCode = (capability->ApSelCode << 4) |
+              (dataPathId << 1) | explicitControl;
 
-      // We can't use numHostLanes() to get the hostLaneCount here since that
-      // function relies on the configured application select but at this point
-      // appSel hasn't been updated.
-      auto hostLanes = capability->hostLaneCount;
+          QSFP_LOG(INFO, this)
+              << folly::sformat("newApSelCode: {:#x}", newApSelCode);
 
-      for (int channel = 0; channel < hostLanes; channel++) {
-        // Assign ApSel code to each lane
-        writeCmisField(laneToAppSelField[channel], &newApSelCode);
-      }
-      uint8_t applySet0 = (hostLanes == 8) ? 0xff : 0x0f;
+          // We can't use numHostLanes() to get the hostLaneCount here since
+          // that function relies on the configured application select but at
+          // this point appSel hasn't been updated.
 
-      writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySet0);
+          for (int channel = startHostLane; channel < hostLanes; channel++) {
+            // Assign ApSel code to each lane
+            writeCmisField(laneToAppSelField[channel], &newApSelCode);
+          }
+          uint8_t applySet0 = hostLaneMask << startHostLane;
 
-      QSFP_LOG(INFO, this) << folly::sformat(
-          "set application to {:#x}", capability->moduleMediaInterface);
-    };
+          writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySet0);
+
+          QSFP_LOG(INFO, this) << folly::sformat(
+              "set application to {:#x}", capability->moduleMediaInterface);
+        };
 
     // In 400G-FR4 case we will have 8 host lanes instead of 4. Further more,
     // we need to deactivate all the lanes when we switch to an application with
     // a different lane count. CMIS4.0-8.8.4
-    resetDataPathWithFunc(setApplicationSelectCode);
+    resetDataPathWithFunc(setApplicationSelectCode, hostLaneMask);
 
     // Check if the config has been applied correctly or not
     if (!checkLaneConfigError()) {
@@ -2760,12 +2763,16 @@ void CmisModule::resetDataPath() {
 }
 
 void CmisModule::resetDataPathWithFunc(
-    std::optional<std::function<void()>> afterDataPathDeinitFunc) {
+    std::optional<std::function<void()>> afterDataPathDeinitFunc,
+    uint8_t hostLaneMask) {
   if (flatMem_) {
     return;
   }
+
+  uint8_t dataPathDeInitReg;
+  readCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInitReg);
   // First deactivate all the lanes
-  uint8_t dataPathDeInit = 0xff;
+  uint8_t dataPathDeInit = dataPathDeInitReg | hostLaneMask;
   writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
   /* sleep override */
   usleep(kUsecBetweenLaneInit);
@@ -2776,7 +2783,7 @@ void CmisModule::resetDataPathWithFunc(
   }
 
   // Release the lanes from DeInit.
-  dataPathDeInit = 0x0;
+  dataPathDeInit = dataPathDeInitReg & ~(hostLaneMask);
   writeCmisField(CmisField::DATA_PATH_DEINIT, &dataPathDeInit);
   /* sleep override */
   usleep(kUsecBetweenLaneInit);
