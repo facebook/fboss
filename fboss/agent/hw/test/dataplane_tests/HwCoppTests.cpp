@@ -619,29 +619,27 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
       PortID port,
       std::optional<VlanID> vlanId,
       const folly::IPAddress& dstIpAddress) {
+    // Some ASICs require extra pkts to be sent for line rate
+    // when its done in conjunction with copying the pkt to cpu
     auto minPktsForLineRate =
-        getHwSwitchEnsemble()->getMinPktsForLineRate(port);
+        getHwSwitchEnsemble()->getMinPktsForLineRate(port) * 2;
     auto dstMac = utility::getFirstInterfaceMac(initialConfig());
 
     // Create a loop with specified destination packets.
     // We want to send atleast 2 traffic streams to ensure we dont run
     // into throughput limits with single flow and flow cache for TAJO.
-    sendTcpPktsOnPort(
-        port,
-        vlanId,
-        minPktsForLineRate / 2,
-        dstIpAddress,
-        utility::kNonSpecialPort1,
-        utility::kNonSpecialPort2,
-        dstMac);
-    sendTcpPktsOnPort(
-        port,
-        vlanId,
-        minPktsForLineRate / 2,
-        dstIpAddress,
-        utility::kNonSpecialPort1 + 1,
-        utility::kNonSpecialPort2 + 1,
-        dstMac);
+    for (auto i = 0; i <  minPktsForLineRate; ++i) {
+      for (auto j = 0; j < 2; ++j) {
+        sendTcpPktsOnPort(
+            port,
+            vlanId,
+            1,
+            dstIpAddress,
+            utility::kNonSpecialPort1 + j,
+            utility::kNonSpecialPort2 + j,
+            dstMac);
+      }
+    }
     std::string vlanStr = (vlanId ? folly::to<std::string>(*vlanId) : "None");
     XLOG(DBG0) << "Sent " << minPktsForLineRate << " TCP packets on port "
                << (int)port << " / VLAN " << vlanStr;
