@@ -379,7 +379,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
       return;
     }
 
-    constexpr auto kQueueId{utility::kOlympicEcn1QueueId};
+    auto kQueueId =
+        utility::getOlympicQueueId(getAsic(), utility::OlympicQueueType::ECN1);
     // For VoQ switch, AQM stats are collected from queue!
     auto useQueueStatsForAqm =
         getPlatform()->getAsic()->getSwitchType() == cfg::SwitchType::VOQ;
@@ -541,7 +542,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
           void(cfg::SwitchConfig&, std::vector<int>, const int txPacketLen)>>
           setupFn = std::nullopt,
       int maxQueueFillLevel = 0) {
-    constexpr auto kQueueId{0};
+    auto kQueueId = utility::getOlympicQueueId(
+        getAsic(), utility::OlympicQueueType::SILVER);
     /*
      * Good to keep the payload size such that the whole packet with
      * headers can fit in a single buffer in ASIC to keep computation
@@ -707,7 +709,8 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
   void runPerQueueEcnMarkedStatsTest() {
     const auto portId = masterLogicalInterfacePortIds()[0];
-    const int queueId = utility::kOlympicSilverQueueId;
+    const int queueId = utility::getOlympicQueueId(
+        getAsic(), utility::OlympicQueueType::SILVER);
 
     auto setup = [=]() {
       auto config{initialConfig()};
@@ -779,9 +782,10 @@ class HwAqmTest : public HwLinkStateDependentTest {
 
   void runPerQueueWredDropStatsTest() {
     const std::vector<int> wredQueueIds = {
-        utility::kOlympicSilverQueueId,
-        utility::kOlympicGoldQueueId,
-        utility::kOlympicEcn1QueueId};
+        utility::getOlympicQueueId(
+            getAsic(), utility::OlympicQueueType::SILVER),
+        utility::getOlympicQueueId(getAsic(), utility::OlympicQueueType::GOLD),
+        utility::getOlympicQueueId(getAsic(), utility::OlympicQueueType::ECN1)};
 
     auto setup = [=]() {
       auto config{initialConfig()};
@@ -880,7 +884,6 @@ class HwAqmTest : public HwLinkStateDependentTest {
     // 12K limit of queue not dropping packets (only specific to tajo asic).
     auto numPacketsToSend = 12000;
     int kPayloadLength = 200;
-    auto queueId = utility::kOlympicSilverQueueId;
 
     auto setup = [=]() { applyNewConfig(multiplePortConfig()); };
     auto verify = [=]() {
@@ -897,9 +900,11 @@ class HwAqmTest : public HwLinkStateDependentTest {
       }
 
       // Send 12K packets to each port
+      auto queueId = utility::getOlympicQueueId(
+          getAsic(), utility::OlympicQueueType::SILVER);
       for (auto const& port : ports) {
         sendPkts(
-            utility::kOlympicQueueToDscp(getAsic()).at(0).front(),
+            utility::kOlympicQueueToDscp(getAsic()).at(queueId).front(),
             ecnVal,
             numPacketsToSend,
             kPayloadLength,
