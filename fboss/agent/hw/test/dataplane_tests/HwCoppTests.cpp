@@ -524,8 +524,8 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::twoL3IntfConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
-        masterLogicalPortIds()[1],
+        masterLogicalInterfacePortIds()[0],
+        masterLogicalInterfacePortIds()[1],
         getAsic()->desiredLoopbackMode());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     addCustomCpuQueueConfig(cfg, getAsic());
@@ -798,8 +798,8 @@ class HwCoppQueueStuckTest : public HwCoppQosTest {
   cfg::SwitchConfig initialConfig() const override {
     auto cfg = utility::twoL3IntfConfig(
         getHwSwitch(),
-        masterLogicalPortIds()[0],
-        masterLogicalPortIds()[1],
+        masterLogicalInterfacePortIds()[0],
+        masterLogicalInterfacePortIds()[1],
         getAsic()->desiredLoopbackMode());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
     addCustomCpuQueueConfig(cfg, getAsic(), true /*addEcnConfig*/);
@@ -1298,7 +1298,7 @@ TEST_F(HwCoppQueueStuckTest, CpuQueueHighRateTraffic) {
     // Create dataplane loop with lowerPriority traffic on port0
     auto baseVlan = utility::firstVlanID(initialConfig());
     createLineRateTrafficOnPort(
-        masterLogicalPortIds()[0], baseVlan, ipForLowPriorityQueue);
+        masterLogicalInterfacePortIds()[0], baseVlan, ipForLowPriorityQueue);
 
     bool lowPriorityTrafficMissing{false};
     uint64_t previousLowPriorityPacketCount{};
@@ -1370,11 +1370,12 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
 
     // Get initial packet count on port1 for high priority traffic
     auto initialHighPriorityPacketCount =
-        getLatestPortStats(masterLogicalPortIds()[1]).get_outUnicastPkts_();
+        getLatestPortStats(masterLogicalInterfacePortIds()[1])
+            .get_outUnicastPkts_();
 
     // Create dataplane loop with lowerPriority traffic on port0
     createLineRateTrafficOnPort(
-        masterLogicalPortIds()[0], baseVlan, ipForLowPriorityQueue);
+        masterLogicalInterfacePortIds()[0], baseVlan, ipForLowPriorityQueue);
     std::optional<VlanID> nextVlan;
     if (baseVlan) {
       nextVlan = *baseVlan + 1;
@@ -1382,7 +1383,7 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
 
     // Send a fixed number of high priority packets on port1
     sendPacketBursts(
-        masterLogicalPortIds()[1],
+        masterLogicalInterfacePortIds()[1],
         nextVlan,
         kHighPriorityPacketCount,
         packetsPerBurst,
@@ -1391,7 +1392,7 @@ TEST_F(HwCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
         utility::kBgpPort);
 
     auto allHighPriorityPacketsSent = [&](const auto& newStats) {
-      auto portStatsIter = newStats.find(masterLogicalPortIds()[1]);
+      auto portStatsIter = newStats.find(masterLogicalInterfacePortIds()[1]);
       auto outCount = (portStatsIter == newStats.end())
           ? 0
           : portStatsIter->second.get_outUnicastPkts_();
