@@ -528,6 +528,20 @@ class HwCoppQosTest : public HwLinkStateDependentTest {
         masterLogicalInterfacePortIds()[1],
         getAsic()->desiredLoopbackMode());
     utility::setDefaultCpuTrafficPolicyConfig(cfg, getAsic());
+    std::vector<cfg::PacketRxReasonToQueue> rxReasons;
+    // Exclude TTL_1 trap since on some devices we disable it
+    // to set up data plane loops
+    CHECK(cfg.cpuTrafficPolicy().has_value());
+    CHECK(cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList().has_value());
+    if (cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList()->size()) {
+      for (auto rxReasonAndQueue :
+           *cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList()) {
+        if (*rxReasonAndQueue.rxReason() != cfg::PacketRxReason::TTL_1) {
+          rxReasons.push_back(rxReasonAndQueue);
+        }
+      }
+    }
+    cfg.cpuTrafficPolicy()->rxReasonToQueueOrderedList() = rxReasons;
     addCustomCpuQueueConfig(cfg, getAsic());
     return cfg;
   }
