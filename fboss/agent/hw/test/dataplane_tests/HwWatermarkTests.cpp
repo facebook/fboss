@@ -312,11 +312,11 @@ class HwWatermarkTest : public HwLinkStateDependentTest {
 };
 
 TEST_F(HwWatermarkTest, VerifyDefaultQueue) {
-  runTest(utility::kOlympicSilverQueueId);
+  runTest(getOlympicQueueId(getAsic(), utility::OlympicQueueType::SILVER));
 }
 
 TEST_F(HwWatermarkTest, VerifyNonDefaultQueue) {
-  runTest(utility::kOlympicGoldQueueId);
+  runTest(getOlympicQueueId(getAsic(), utility::OlympicQueueType::GOLD));
 }
 
 // TODO - merge device watermark checking into the tests
@@ -356,13 +356,15 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
     // Sending traffic on 2 queues
     sendUdpPkts(
         utility::kOlympicQueueToDscp(getAsic())
-            .at(utility::kOlympicSilverQueueId)
+            .at(utility::getOlympicQueueId(
+                getAsic(), utility::OlympicQueueType::SILVER))
             .front(),
         kDestIp1(),
         minPktsForLineRate / 2);
     sendUdpPkts(
         utility::kOlympicQueueToDscp(getAsic())
-            .at(utility::kOlympicGoldQueueId)
+            .at(utility::getOlympicQueueId(
+                getAsic(), utility::OlympicQueueType::GOLD))
             .front(),
         kDestIp1(),
         minPktsForLineRate / 2);
@@ -373,11 +375,15 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
     if (!isSupported(HwAsic::Feature::L3_QOS)) {
       return;
     }
-
+    auto queueIdGold =
+        utility::getOlympicQueueId(getAsic(), utility::OlympicQueueType::GOLD);
+    auto queueIdSilver = utility::getOlympicQueueId(
+        getAsic(), utility::OlympicQueueType::SILVER);
     auto queueWatermarkNonZero =
-        [](std::map<int16_t, int64_t>& queueWaterMarks) {
-          if (queueWaterMarks.at(utility::kOlympicSilverQueueId) ||
-              queueWaterMarks.at(utility::kOlympicGoldQueueId)) {
+        [queueIdGold,
+         queueIdSilver](std::map<int16_t, int64_t>& queueWaterMarks) {
+          if (queueWaterMarks.at(queueIdSilver) ||
+              queueWaterMarks.at(queueIdGold)) {
             return true;
           }
           return false;
@@ -407,18 +413,18 @@ TEST_F(HwWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
     auto deviceWaterMark =
         getHwSwitchEnsemble()->getHwSwitch()->getDeviceWatermarkBytes();
     XLOG(DBG2) << "For port: " << masterLogicalInterfacePortIds()[0]
-               << ", Queue" << utility::kOlympicSilverQueueId << " watermark: "
-               << queueWaterMarks.at(utility::kOlympicSilverQueueId)
-               << ", Queue" << utility::kOlympicGoldQueueId << " watermark: "
-               << queueWaterMarks.at(utility::kOlympicGoldQueueId)
+               << ", Queue" << queueIdSilver
+               << " watermark: " << queueWaterMarks.at(queueIdSilver)
+               << ", Queue" << queueIdGold
+               << " watermark: " << queueWaterMarks.at(queueIdGold)
                << ", Device watermark: " << deviceWaterMark;
 
     // Make sure that device watermark is > highest queue watermark
     EXPECT_GT(
         deviceWaterMark,
         std::max(
-            queueWaterMarks.at(utility::kOlympicSilverQueueId),
-            queueWaterMarks.at(utility::kOlympicGoldQueueId)));
+            queueWaterMarks.at(queueIdSilver),
+            queueWaterMarks.at(queueIdGold)));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -445,7 +451,8 @@ TEST_F(HwWatermarkTest, VerifyQueueWatermarkAccuracy) {
      * the watermark reported is as expected by the computed watermark
      * based on the number of bytes we expect in the queue.
      */
-    constexpr auto kQueueId{0};
+    auto kQueueId = utility::getOlympicQueueId(
+        getAsic(), utility::OlympicQueueType::SILVER);
     constexpr auto kTxPacketPayloadLen{200};
     constexpr auto kNumberOfPacketsToSend{100};
     auto txPacketLen = kTxPacketPayloadLen + EthHdr::SIZE + IPv6Hdr::size() +
