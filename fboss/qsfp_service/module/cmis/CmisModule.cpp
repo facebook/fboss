@@ -898,9 +898,8 @@ bool CmisModule::getMediaInterfaceId(
   assert(mediaInterface.size() == numMediaLanes());
   MediaTypeEncodings encoding = getMediaTypeEncoding();
   if (encoding == MediaTypeEncodings::OPTICAL_SMF) {
-    // Currently setting the same media interface for all media lanes
-    auto smfMediaInterface = getSmfMediaInterface();
     for (int lane = 0; lane < mediaInterface.size(); lane++) {
+      auto smfMediaInterface = getSmfMediaInterface(lane);
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
       media.smfCode_ref() = smfMediaInterface;
