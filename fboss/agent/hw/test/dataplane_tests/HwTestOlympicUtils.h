@@ -44,6 +44,25 @@ constexpr int kOlympicBronzeQueueId = 4;
 constexpr int kOlympicICPQueueId = 6;
 constexpr int kOlympicNCQueueId = 7;
 
+/*
+ * Certain ASICs maps higher queue ID to higher priority.
+ * Hence queue ID 7 when configured as Strict priority
+ * will starve other queues. Certain ASICS (J2) maps in reverse
+ * where lower queue ID will be served with higher
+ * priority when configured as Strict priority.
+ * Defining newer set of queue IDs in the reverse order for:
+ * - Olympic Qos
+ * - Olympic SP Qos
+ * - Network AI QoS
+ *
+ * This will affect the DSCP to TC QoS map.
+ * Eg: For the current platforms, DSCP 48 will be mapped to TC 7
+ * and queue 7. Where as in J2 (Or on any DSF BCM platforms),
+ * DSCP 48 will be mapped to TC 0 and queue 0.
+ *
+ * TC -> Queue, TC -> PG, PFC -> PG and PFC -> queue will
+ * remain unchanged and will maintain 1 to 1 mapping.
+ */
 constexpr int kOlympicSilverQueueId2 = 7;
 constexpr int kOlympicGoldQueueId2 = 6;
 constexpr int kOlympicEcn1QueueId2 = 5;
