@@ -659,30 +659,60 @@ cfg::SwitchConfig twoL3IntfConfig(
     PortID port2,
     cfg::PortLoopbackMode lbMode) {
   std::map<PortID, VlanID> port2vlan;
-  std::vector<PortID> ports;
-  port2vlan[port1] = VlanID(kBaseVlanId);
-  port2vlan[port2] = VlanID(kBaseVlanId);
-  ports.push_back(port1);
-  ports.push_back(port2);
-  std::vector<VlanID> vlans = {VlanID(kBaseVlanId), VlanID(kBaseVlanId + 1)};
+  std::vector<PortID> ports{port1, port2};
+  std::vector<VlanID> vlans;
+  auto vlan = kBaseVlanId;
+  auto switchType = hwSwitch->getPlatform()->getAsic()->getSwitchType();
+  CHECK(
+      switchType == cfg::SwitchType::NPU || switchType == cfg::SwitchType::VOQ)
+      << "twoL3IntfConfig is only supported for VOQ or NPU switch types";
+  PortID kRecyclePort(1);
+  if (switchType == cfg::SwitchType::VOQ && port1 != kRecyclePort &&
+      port2 != kRecyclePort) {
+    ports.push_back(kRecyclePort);
+  }
+  for (auto port : ports) {
+    auto portType =
+        hwSwitch->getPlatform()->getPlatformPort(port)->getPortType();
+    CHECK(portType != cfg::PortType::FABRIC_PORT);
+    // For non NPU switch type vendor SAI impls don't support
+    // tagging packet at port ingress.
+    if (switchType == cfg::SwitchType::NPU) {
+      port2vlan[port] = VlanID(kBaseVlanId);
+      vlans.push_back(VlanID(vlan++));
+    } else {
+      port2vlan[port] = VlanID(0);
+    }
+  }
   auto config = genPortVlanCfg(hwSwitch, ports, port2vlan, vlans, lbMode);
 
-  config.interfaces()->resize(2);
-  *config.interfaces()[0].intfID() = kBaseVlanId;
-  *config.interfaces()[0].vlanID() = kBaseVlanId;
-  *config.interfaces()[0].routerID() = 0;
-  config.interfaces()[0].ipAddresses()->resize(2);
-  config.interfaces()[0].ipAddresses()[0] = "1.1.1.1/24";
-  config.interfaces()[0].ipAddresses()[1] = "1::1/64";
-  *config.interfaces()[1].intfID() = kBaseVlanId + 1;
-  *config.interfaces()[1].vlanID() = kBaseVlanId + 1;
-  *config.interfaces()[1].routerID() = 0;
-  config.interfaces()[1].ipAddresses()->resize(2);
-  config.interfaces()[1].ipAddresses()[0] = "2.2.2.2/24";
-  config.interfaces()[1].ipAddresses()[1] = "2::1/64";
-  for (auto& interface : *config.interfaces()) {
-    interface.mac() = getLocalCpuMacStr();
-    interface.mtu() = 9000;
+  auto computeIntfId = [&config, &ports, &switchType, &vlans](auto idx) {
+    if (switchType == cfg::SwitchType::NPU) {
+      return static_cast<int64_t>(vlans[idx]);
+    }
+    auto mySwitchId =
+        apache::thrift::can_throw(*config.switchSettings()->switchId());
+    auto sysportRangeBegin =
+        *config.dsfNodes()[mySwitchId].systemPortRange()->minimum();
+    return sysportRangeBegin + static_cast<int>(ports[idx]);
+  };
+  for (auto i = 0; i < ports.size(); ++i) {
+    cfg::Interface intf;
+    *intf.intfID() = computeIntfId(i);
+    *intf.vlanID() = switchType == cfg::SwitchType::NPU ? vlans[i] : 0;
+    *intf.routerID() = 0;
+    intf.ipAddresses()->resize(2);
+    auto ipOctet = i + 1;
+    intf.ipAddresses()[0] =
+        folly::sformat("{}.{}.{}.{}/24", ipOctet, ipOctet, ipOctet, ipOctet);
+    intf.ipAddresses()[1] = folly::sformat("{}::{}/64", ipOctet, ipOctet);
+    intf.mac() = getLocalCpuMacStr();
+    intf.mtu() = 9000;
+    intf.routerID() = 0;
+    intf.type() = switchType == cfg::SwitchType::NPU
+        ? cfg::InterfaceType::VLAN
+        : cfg::InterfaceType::SYSTEM_PORT;
+    config.interfaces()->push_back(intf);
   }
   return config;
 }
