@@ -321,3 +321,224 @@ TEST_F(TeFlowTest, TeFlowCounter) {
     EXPECT_EQ(*stat.second.bytes(), testByteCounterValue);
   }
 }
+
+TEST_F(TeFlowTest, addRemoveTeFlow) {
+  TeFlowSyncer teFlowSyncer;
+  auto state = sw_->getState();
+  auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
+  auto flowEntry = makeFlow("100::1");
+  teFlowEntries->emplace_back(flowEntry);
+  updateState("add te flow", [&](const auto& state) {
+    auto newState =
+        teFlowSyncer.programFlowEntries(state, *teFlowEntries, {}, false);
+    return newState;
+  });
+  state = sw_->getState();
+  auto teFlowTable = state->getTeFlowTable();
+  auto verifyEntry = [&teFlowTable](
+                         const auto& flow,
+                         const auto& nhop,
+                         const auto& counter,
+                         const auto& intf) {
+    EXPECT_EQ(teFlowTable->size(), 1);
+    auto tableEntry = teFlowTable->getTeFlowIf(flow);
+    EXPECT_NE(tableEntry, nullptr);
+    EXPECT_EQ(*tableEntry->getCounterID(), counter);
+    EXPECT_EQ(tableEntry->getNextHops()->size(), 1);
+    auto expectedNhop = toBinaryAddress(IPAddress(nhop));
+    expectedNhop.ifName() = intf;
+    auto nexthop = tableEntry->getNextHops()->cref(0)->toThrift();
+    EXPECT_EQ(*nexthop.address(), expectedNhop);
+    EXPECT_EQ(tableEntry->getResolvedNextHops()->size(), 1);
+    auto resolveNexthop =
+        tableEntry->getResolvedNextHops()->cref(0)->toThrift();
+    EXPECT_EQ(*resolveNexthop.address(), expectedNhop);
+  };
+  verifyEntry(*flowEntry.flow(), kNhopAddrA, "counter0", "fboss1");
+
+  // modify the entry
+  auto flowEntry2 = makeFlow("100::1", kNhopAddrB, "fboss55", "counter1");
+  auto newFlowEntries = std::make_unique<std::vector<FlowEntry>>();
+  newFlowEntries->emplace_back(flowEntry2);
+  updateState("modify te flow", [&](const auto& state) {
+    auto newState =
+        teFlowSyncer.programFlowEntries(state, *newFlowEntries, {}, false);
+    return newState;
+  });
+  state = sw_->getState();
+  teFlowTable = state->getTeFlowTable();
+  verifyEntry(*flowEntry.flow(), kNhopAddrB, "counter1", "fboss55");
+
+  auto teFlows = std::make_unique<std::vector<TeFlow>>();
+  teFlows->emplace_back(*flowEntry.flow());
+  updateState("delete te flow", [&](const auto& state) {
+    auto newState = teFlowSyncer.programFlowEntries(state, {}, *teFlows, false);
+    return newState;
+  });
+  state = sw_->getState();
+  teFlowTable = state->getTeFlowTable();
+  auto tableEntry = teFlowTable->getTeFlowIf(*flowEntry.flow());
+  EXPECT_EQ(tableEntry, nullptr);
+
+  // add flows in bulk
+  auto testPrefixes = {"100::1", "101::1", "102::1", "103::1"};
+  auto bulkEntries = std::make_unique<std::vector<FlowEntry>>();
+  for (const auto& prefix : testPrefixes) {
+    bulkEntries->emplace_back(makeFlow(prefix));
+  }
+  updateState("bulk add te flow", [&](const auto& state) {
+    auto newState =
+        teFlowSyncer.programFlowEntries(state, *bulkEntries, {}, false);
+    return newState;
+  });
+  state = sw_->getState();
+  teFlowTable = state->getTeFlowTable();
+  EXPECT_EQ(teFlowTable->size(), 4);
+
+  // bulk delete
+  auto flowsToDelete = {"100::1", "101::1"};
+  auto deletionFlows = std::make_unique<std::vector<TeFlow>>();
+  for (const auto& prefix : flowsToDelete) {
+    TeFlow flow;
+    flow.dstPrefix() = ipPrefix(prefix, 64);
+    flow.srcPort() = 100;
+    deletionFlows->emplace_back(flow);
+  }
+  updateState("bulk delete te flow", [&](const auto& state) {
+    auto newState =
+        teFlowSyncer.programFlowEntries(state, {}, *deletionFlows, false);
+    return newState;
+  });
+  state = sw_->getState();
+  teFlowTable = state->getTeFlowTable();
+  EXPECT_EQ(teFlowTable->size(), 2);
+  for (const auto& prefix : flowsToDelete) {
+    TeFlow flow;
+    flow.dstPrefix() = ipPrefix(prefix, 64);
+    flow.srcPort() = 100;
+    EXPECT_EQ(teFlowTable->getTeFlowIf(flow), nullptr);
+  }
+}
+
+TEST_F(TeFlowTest, syncTeFlows) {
+  TeFlowSyncer teFlowSyncer;
+  auto state = sw_->getState();
+  auto initalPrefixes = {"100::1", "101::1", "102::1", "103::1"};
+  auto flowEntries = std::make_unique<std::vector<FlowEntry>>();
+  for (const auto& prefix : initalPrefixes) {
+    auto flowEntry = makeFlow(prefix);
+    flowEntries->emplace_back(flowEntry);
+  }
+
+  updateState("add te flows", [&](const auto& state) {
+    auto newState = state->clone();
+    auto flowTable = std::make_shared<TeFlowTable>();
+    for (const auto& flowEntry : *flowEntries) {
+      auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
+      teFlowEntry->resolve(newState);
+      flowTable->addTeFlowEntry(teFlowEntry);
+    }
+    newState->resetTeFlowTable(flowTable);
+    return newState;
+  });
+
+  state = sw_->getState();
+  auto teFlowTable = state->getTeFlowTable();
+  EXPECT_EQ(teFlowTable->size(), 4);
+
+  // Ensure that all entries are created
+  for (const auto& prefix : initalPrefixes) {
+    TeFlow flow;
+    flow.dstPrefix() = ipPrefix(prefix, 64);
+    flow.srcPort() = 100;
+    auto tableEntry = teFlowTable->getTeFlowIf(flow);
+    EXPECT_NE(tableEntry, nullptr);
+  }
+
+  TeFlow teFlow;
+  teFlow.dstPrefix() = ipPrefix("100::1", 64);
+  teFlow.srcPort() = 100;
+  auto teflowEntryBeforeSync = teFlowTable->getTeFlowIf(teFlow);
+  auto syncPrefixes = {"100::1", "101::1", "104::1"};
+  auto syncFlowEntries = std::make_unique<std::vector<FlowEntry>>();
+  for (const auto& prefix : syncPrefixes) {
+    auto flowEntry = makeFlow(prefix);
+    syncFlowEntries->emplace_back(flowEntry);
+  }
+  // sync teflow
+  updateState("sync te flow", [&](const auto& state) {
+    auto newState =
+        teFlowSyncer.programFlowEntries(state, *syncFlowEntries, {}, true);
+    return newState;
+  });
+
+  state = sw_->getState();
+  teFlowTable = state->getTeFlowTable();
+  EXPECT_EQ(teFlowTable->size(), 3);
+  // Ensure that newly added entries are present
+  for (const auto& prefix : syncPrefixes) {
+    TeFlow flow;
+    flow.dstPrefix() = ipPrefix(prefix, 64);
+    flow.srcPort() = 100;
+    auto tableEntry = teFlowTable->getTeFlowIf(flow);
+    EXPECT_NE(tableEntry, nullptr);
+  }
+  // Ensure that missing entries are removed
+  for (const auto& prefix : {"102::1", "103::1"}) {
+    TeFlow flow;
+    flow.dstPrefix() = ipPrefix(prefix, 64);
+    flow.srcPort() = 100;
+    auto tableEntry = teFlowTable->getTeFlowIf(flow);
+    EXPECT_EQ(tableEntry, nullptr);
+  }
+  // Ensure that pointer to entries and contents are same
+  auto teflowEntryAfterSync = teFlowTable->getTeFlowIf(teFlow);
+  EXPECT_EQ(teflowEntryBeforeSync, teflowEntryAfterSync);
+  EXPECT_EQ(*teflowEntryBeforeSync, *teflowEntryAfterSync);
+  // Sync with no change in entries and verify table is same
+  auto syncFlowEntries2 = std::make_unique<std::vector<FlowEntry>>();
+  for (const auto& prefix : syncPrefixes) {
+    auto flowEntry = makeFlow(prefix);
+    syncFlowEntries2->emplace_back(flowEntry);
+  }
+  updateState("sync same te flow", [&](const auto& state) {
+    auto newState =
+        teFlowSyncer.programFlowEntries(state, *syncFlowEntries2, {}, true);
+    return newState;
+  });
+  state = sw_->getState();
+  auto teFlowTableAfterSync = state->getTeFlowTable();
+  // Ensure teflow table pointers and contents are same
+  EXPECT_EQ(teFlowTable, teFlowTableAfterSync);
+  EXPECT_EQ(*teFlowTable, *teFlowTableAfterSync);
+  // Update an entry and check the pointer and content changed
+  teFlow.dstPrefix() = ipPrefix("104::1", 64);
+  teFlow.srcPort() = 100;
+  teflowEntryBeforeSync = teFlowTable->getTeFlowIf(teFlow);
+  auto updateEntries = std::make_unique<std::vector<FlowEntry>>();
+  auto flowEntry1 = makeFlow("100::1");
+  auto flowEntry2 = makeFlow("104::1", kNhopAddrA, "fboss1", "counter1");
+  updateEntries->emplace_back(flowEntry1);
+  updateEntries->emplace_back(flowEntry2);
+  updateState("sync te flow for update", [&](const auto& state) {
+    auto newState =
+        teFlowSyncer.programFlowEntries(state, *updateEntries, {}, true);
+    return newState;
+  });
+  state = sw_->getState();
+  teFlowTable = state->getTeFlowTable();
+  teflowEntryAfterSync = teFlowTable->getTeFlowIf(teFlow);
+  // Ensure that pointer to entries and contents are different
+  EXPECT_NE(teflowEntryBeforeSync, teflowEntryAfterSync);
+  EXPECT_NE(*teflowEntryBeforeSync, *teflowEntryAfterSync);
+  // sync flows with no entries
+  auto nullFlowEntries = std::make_unique<std::vector<FlowEntry>>();
+  updateState("sync null flow", [&](const auto& state) {
+    auto newState =
+        teFlowSyncer.programFlowEntries(state, *nullFlowEntries, {}, true);
+    return newState;
+  });
+  state = sw_->getState();
+  teFlowTable = state->getTeFlowTable();
+  EXPECT_EQ(teFlowTable->size(), 0);
+}

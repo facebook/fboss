@@ -60,4 +60,26 @@ class TeFlowTable : public ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits> {
   using Base::Base;
   friend class CloneAllocator;
 };
+
+class TeFlowSyncer {
+ public:
+  std::shared_ptr<SwitchState> programFlowEntries(
+      const std::shared_ptr<SwitchState>& state,
+      const std::vector<FlowEntry>& addTeFlows,
+      const std::vector<TeFlow>& delTeFlows,
+      bool isSync);
+
+ private:
+  int getDstIpPrefixLength(const std::shared_ptr<SwitchState>& state);
+  void validateFlowEntry(
+      const FlowEntry& flowEntry,
+      const int& dstIpPrefixLength);
+  std::shared_ptr<SwitchState> addDelTeFlows(
+      const std::shared_ptr<SwitchState>& state,
+      const std::vector<FlowEntry>& entriesToAdd,
+      const std::vector<TeFlow>& entriesToDel);
+  std::shared_ptr<SwitchState> syncTeFlows(
+      const std::shared_ptr<SwitchState>& state,
+      const std::vector<FlowEntry>& flowEntries);
+};
 } // namespace facebook::fboss

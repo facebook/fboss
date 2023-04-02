@@ -53,6 +53,50 @@ TeFlow makeFlowKey(std::string dstIp, uint16_t srcPort) {
   return flow;
 }
 
+FlowEntry makeFlow(
+    const std::string& dstIp,
+    const std::string& nhop,
+    const std::string& ifname,
+    const uint16_t& srcPort,
+    const std::string& counterID,
+    const int& prefixLength) {
+  FlowEntry flowEntry;
+  flowEntry.flow()->srcPort() = srcPort;
+  flowEntry.flow()->dstPrefix() = ipPrefix(dstIp, prefixLength);
+  flowEntry.counterID() = counterID;
+  flowEntry.nextHops()->resize(1);
+  flowEntry.nextHops()[0].address() = toBinaryAddress(IPAddress(nhop));
+  flowEntry.nextHops()[0].address()->ifName() = ifname;
+  return flowEntry;
+}
+
+std::shared_ptr<std::vector<FlowEntry>> makeFlowEntries(
+    const std::vector<std::string>& flows,
+    const std::string& nhop,
+    const std::string& ifname,
+    const uint16_t& srcPort,
+    const std::string& counterID,
+    const int& prefixLength) {
+  auto flowEntries = std::make_shared<std::vector<FlowEntry>>();
+  for (const auto& prefix : flows) {
+    auto flowEntry =
+        makeFlow(prefix, nhop, ifname, srcPort, counterID, prefixLength);
+    flowEntries->emplace_back(flowEntry);
+  }
+  return flowEntries;
+}
+
+std::shared_ptr<std::vector<TeFlow>> makeTeFlows(
+    const std::vector<std::string>& flows,
+    const uint16_t& srcPort) {
+  auto teFlows = std::make_shared<std::vector<TeFlow>>();
+  for (const auto& prefix : flows) {
+    auto teFlow = makeFlowKey(prefix, srcPort);
+    teFlows->emplace_back(teFlow);
+  }
+  return teFlows;
+}
+
 std::shared_ptr<TeFlowEntry> makeFlowEntry(
     std::string dstIp,
     std::string nhopAdd,
@@ -150,6 +194,26 @@ void deleteFlowEntries(
   for (auto& flowEntry : flowEntries) {
     teFlows->removeNode(flowEntry);
   }
+}
+
+void addSyncFlowEntries(
+    HwSwitchEnsemble* hwEnsemble,
+    std::shared_ptr<std::vector<FlowEntry>>& flowEntries,
+    bool addSync) {
+  auto newState = hwEnsemble->getProgrammedState();
+  TeFlowSyncer teFlowSyncer;
+  newState =
+      teFlowSyncer.programFlowEntries(newState, *flowEntries, {}, addSync);
+  hwEnsemble->applyNewState(newState);
+}
+
+void deleteFlowEntries(
+    HwSwitchEnsemble* hwEnsemble,
+    std::shared_ptr<std::vector<TeFlow>>& teFlows) {
+  auto newState = hwEnsemble->getProgrammedState();
+  TeFlowSyncer teFlowSyncer;
+  newState = teFlowSyncer.programFlowEntries(newState, {}, *teFlows, false);
+  hwEnsemble->applyNewState(newState);
 }
 
 void modifyFlowEntry(
