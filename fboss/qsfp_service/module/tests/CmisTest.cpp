@@ -94,7 +94,7 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
       *info.status()->cmisStateChanged());
 
   utility::HwTransceiverUtils::verifyDiagsCapability(
-      info,
+      *info.tcvrState(),
       transceiverManager_->getDiagsCapability(xcvrID),
       false /* skipCheckingIndividualCapability */);
 
@@ -243,7 +243,7 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
       *info.status()->cmisStateChanged());
 
   utility::HwTransceiverUtils::verifyDiagsCapability(
-      info,
+      *info.tcvrState(),
       transceiverManager_->getDiagsCapability(xcvrID),
       false /* skipCheckingIndividualCapability */);
 

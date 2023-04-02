@@ -65,7 +65,7 @@ TEST_F(SffTest, cwdm4TransceiverInfoTest) {
   EXPECT_EQ(true, info.status().value_or({}).interruptL().value_or({}));
 
   utility::HwTransceiverUtils::verifyDiagsCapability(
-      info,
+      *info.tcvrState(),
       transceiverManager_->getDiagsCapability(xcvrID),
       false /* skipCheckingIndividualCapability */);
 
@@ -161,7 +161,7 @@ TEST_F(SffTest, dacTransceiverInfoTest) {
   }
 
   utility::HwTransceiverUtils::verifyDiagsCapability(
-      info,
+      *info.tcvrState(),
       transceiverManager_->getDiagsCapability(xcvrID),
       false /* skipCheckingIndividualCapability */);
 
@@ -197,7 +197,9 @@ TEST_F(SffTest, fr1TransceiverInfoTest) {
 
   auto diagsCap = transceiverManager_->getDiagsCapability(xcvrID);
   utility::HwTransceiverUtils::verifyDiagsCapability(
-      info, diagsCap, false /* skipCheckingIndividualCapability */);
+      *info.tcvrState(),
+      diagsCap,
+      false /* skipCheckingIndividualCapability */);
   EXPECT_TRUE(diagsCap.has_value());
   std::vector<prbs::PrbsPolynomial> expectedCapabilities = {
       prbs::PrbsPolynomial::PRBS31};
@@ -241,7 +243,7 @@ TEST_F(SffTest, miniphotonTransceiverInfoTest) {
   }
 
   utility::HwTransceiverUtils::verifyDiagsCapability(
-      info,
+      *info.tcvrState(),
       transceiverManager_->getDiagsCapability(xcvrID),
       false /* skipCheckingIndividualCapability */);
 
@@ -345,7 +347,7 @@ TEST_F(SfpTest, sfp10GTransceiverInfoTest) {
   }
 
   utility::HwTransceiverUtils::verifyDiagsCapability(
-      info,
+      *info.tcvrState(),
       transceiverManager_->getDiagsCapability(xcvrID),
       false /* skipCheckingIndividualCapability */);
 
@@ -397,7 +399,7 @@ TEST_F(SffTest, 200GCr4TransceiverInfoTest) {
   }
 
   utility::HwTransceiverUtils::verifyDiagsCapability(
-      info,
+      *info.tcvrState(),
       transceiverManager_->getDiagsCapability(xcvrID),
       false /* skipCheckingIndividualCapability */);
 

@@ -18,26 +18,26 @@ namespace facebook::fboss::utility {
 class HwTransceiverUtils {
  public:
   static void verifyTransceiverSettings(
-      const TransceiverInfo& transceiver,
+      const TcvrState& tcvrState,
       cfg::PortProfileID profile);
 
   // T114627923 Because some old firmware might not enable all capabilities
   // use `skipCheckingIndividualCapability` to skip checking individual
   // capability until we can make sure all modules have the latest firmware
   static void verifyDiagsCapability(
-      const TransceiverInfo& transceiver,
+      const TcvrState& tcvrState,
       std::optional<DiagsCapability> diagsCapability,
       bool skipCheckingIndividualCapability = true);
 
  private:
   static void verifyOpticsSettings(
-      const TransceiverInfo& transceiver,
+      const TcvrState& tcvrState,
       cfg::PortProfileID profile);
   static void verifyMediaInterfaceCompliance(
-      const TransceiverInfo& transceiver,
+      const TcvrState& tcvrState,
       cfg::PortProfileID profile);
   static void verify10gProfile(
-      const TransceiverInfo& transceiver,
+      const TcvrState& tcvrState,
       const TransceiverManagementInterface mgmtInterface,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
   static void verify100gProfile(
@@ -50,16 +50,16 @@ class HwTransceiverUtils {
       const TransceiverManagementInterface mgmtInterface,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
   static void verifyCopper100gProfile(
-      const TransceiverInfo& transceiver,
+      const TcvrState& tcvrState,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
   static void verifyCopper200gProfile(
-      const TransceiverInfo& transceiver,
+      const TcvrState& tcvrState,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
   static void verifyCopper53gProfile(
-      const TransceiverInfo& transceiver,
+      const TcvrState& tcvrState,
       const std::vector<MediaInterfaceId>& mediaInterfaces);
 
-  static void verifyDataPathEnabled(const TransceiverInfo& transceiver);
+  static void verifyDataPathEnabled(const TcvrState& tcvrState);
 };
 
 } // namespace facebook::fboss::utility

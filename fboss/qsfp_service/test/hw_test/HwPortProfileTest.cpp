@@ -61,7 +61,7 @@ class HwPortProfileTest : public HwTest {
                << transceivers.size() << " ports.";
     for (auto idAndTransceiver : transceivers) {
       utility::HwTransceiverUtils::verifyTransceiverSettings(
-          idAndTransceiver.second, Profile);
+          *idAndTransceiver.second.tcvrState(), Profile);
     }
   }
 

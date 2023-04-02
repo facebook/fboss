@@ -613,7 +613,7 @@ TEST_F(TransceiverStateMachineTest, readEeprom) {
         xcvr_->refresh();
         const auto& info = transceiverManager_->getTransceiverInfo(id_);
         utility::HwTransceiverUtils::verifyDiagsCapability(
-            info,
+            *info.tcvrState(),
             transceiverManager_->getDiagsCapability(id_),
             false /* skipCheckingIndividualCapability */);
       });

@@ -19,10 +19,10 @@
 namespace facebook::fboss::utility {
 
 void HwTransceiverUtils::verifyTransceiverSettings(
-    const TransceiverInfo& transceiver,
+    const TcvrState& tcvrState,
     cfg::PortProfileID profile) {
-  auto id = *transceiver.port();
-  if (!*transceiver.present()) {
+  auto id = *tcvrState.port();
+  if (!*tcvrState.present()) {
     XLOG(INFO) << " Skip verifying: " << id << ", not present";
     return;
   }
@@ -30,45 +30,44 @@ void HwTransceiverUtils::verifyTransceiverSettings(
   XLOG(INFO) << " Verifying: " << id;
   // Only testing QSFP and SFP transceivers right now
   EXPECT_TRUE(
-      *transceiver.transceiver() == TransceiverType::QSFP ||
-      *transceiver.transceiver() == TransceiverType::SFP);
+      *tcvrState.transceiver() == TransceiverType::QSFP ||
+      *tcvrState.transceiver() == TransceiverType::SFP);
 
   if (TransmitterTechnology::COPPER ==
-      *(transceiver.cable().value_or({}).transmitterTech())) {
-    XLOG(INFO) << " Skip verifying optics settings: " << *transceiver.port()
+      *(tcvrState.cable().value_or({}).transmitterTech())) {
+    XLOG(INFO) << " Skip verifying optics settings: " << *tcvrState.port()
                << ", for copper cable";
   } else {
-    verifyOpticsSettings(transceiver, profile);
+    verifyOpticsSettings(tcvrState, profile);
   }
 
-  verifyMediaInterfaceCompliance(transceiver, profile);
+  verifyMediaInterfaceCompliance(tcvrState, profile);
 
-  verifyDataPathEnabled(transceiver);
+  verifyDataPathEnabled(tcvrState);
 }
 
 void HwTransceiverUtils::verifyOpticsSettings(
-    const TransceiverInfo& transceiver,
+    const TcvrState& tcvrState,
     cfg::PortProfileID profile) {
-  auto settings = apache::thrift::can_throw(*transceiver.settings());
+  auto settings = apache::thrift::can_throw(*tcvrState.settings());
 
   for (auto& mediaLane :
        apache::thrift::can_throw(*settings.mediaLaneSettings())) {
     EXPECT_FALSE(*mediaLane.txDisable())
-        << "Transceiver:" << *transceiver.port()
-        << ", Lane=" << *mediaLane.lane()
+        << "Transceiver:" << *tcvrState.port() << ", Lane=" << *mediaLane.lane()
         << " txDisable doesn't match expected";
-    if (*transceiver.transceiver() == TransceiverType::QSFP) {
+    if (*tcvrState.transceiver() == TransceiverType::QSFP) {
       EXPECT_EQ(
           *mediaLane.txSquelch(),
           profile ==
               cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL)
-          << "Transceiver:" << *transceiver.port()
+          << "Transceiver:" << *tcvrState.port()
           << ", Lane=" << *mediaLane.lane()
           << " txSquelch doesn't match expected";
     }
   }
 
-  if (*transceiver.transceiver() == TransceiverType::QSFP) {
+  if (*tcvrState.transceiver() == TransceiverType::QSFP) {
     // Disable low power mode
     EXPECT_TRUE(
         *settings.powerControl() == PowerControlState::POWER_OVERRIDE ||
@@ -82,7 +81,7 @@ void HwTransceiverUtils::verifyOpticsSettings(
           *hostLane.rxSquelch(),
           profile ==
               cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL)
-          << "Transceiver:" << *transceiver.port()
+          << "Transceiver:" << *tcvrState.port()
           << ", Lane=" << *hostLane.lane()
           << " rxSquelch doesn't match expected";
     }
@@ -90,11 +89,11 @@ void HwTransceiverUtils::verifyOpticsSettings(
 }
 
 void HwTransceiverUtils::verifyMediaInterfaceCompliance(
-    const TransceiverInfo& transceiver,
+    const TcvrState& tcvrState,
     cfg::PortProfileID profile) {
-  auto settings = apache::thrift::can_throw(*transceiver.settings());
+  auto settings = apache::thrift::can_throw(*tcvrState.settings());
   auto mgmtInterface =
-      apache::thrift::can_throw(*transceiver.transceiverManagementInterface());
+      apache::thrift::can_throw(*tcvrState.transceiverManagementInterface());
   EXPECT_TRUE(
       mgmtInterface == TransceiverManagementInterface::SFF8472 ||
       mgmtInterface == TransceiverManagementInterface::SFF ||
@@ -103,7 +102,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
 
   switch (profile) {
     case cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL:
-      verify10gProfile(transceiver, mgmtInterface, mediaInterfaces);
+      verify10gProfile(tcvrState, mgmtInterface, mediaInterfaces);
       break;
 
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528:
@@ -128,14 +127,14 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
 
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_RS528_COPPER:
     case cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_COPPER:
-      verifyCopper100gProfile(transceiver, mediaInterfaces);
+      verifyCopper100gProfile(tcvrState, mediaInterfaces);
       break;
 
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_COPPER:
-      verifyCopper200gProfile(transceiver, mediaInterfaces);
+      verifyCopper200gProfile(tcvrState, mediaInterfaces);
       break;
     case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER:
-      verifyCopper53gProfile(transceiver, mediaInterfaces);
+      verifyCopper53gProfile(tcvrState, mediaInterfaces);
       break;
 
     default:
@@ -145,11 +144,11 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
 }
 
 void HwTransceiverUtils::verify10gProfile(
-    const TransceiverInfo& transceiver,
+    const TcvrState& tcvrState,
     const TransceiverManagementInterface mgmtInterface,
     const std::vector<MediaInterfaceId>& mediaInterfaces) {
   EXPECT_EQ(mgmtInterface, TransceiverManagementInterface::SFF8472);
-  EXPECT_EQ(*transceiver.transceiver(), TransceiverType::SFP);
+  EXPECT_EQ(*tcvrState.transceiver(), TransceiverType::SFP);
 
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_EQ(
@@ -210,11 +209,11 @@ void HwTransceiverUtils::verify400gProfile(
 }
 
 void HwTransceiverUtils::verifyCopper100gProfile(
-    const TransceiverInfo& transceiver,
+    const TcvrState& tcvrState,
     const std::vector<MediaInterfaceId>& mediaInterfaces) {
   EXPECT_EQ(
       TransmitterTechnology::COPPER,
-      *(transceiver.cable().value_or({}).transmitterTech()));
+      *(tcvrState.cable().value_or({}).transmitterTech()));
 
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR4_100G);
@@ -222,11 +221,11 @@ void HwTransceiverUtils::verifyCopper100gProfile(
 }
 
 void HwTransceiverUtils::verifyCopper200gProfile(
-    const TransceiverInfo& transceiver,
+    const TcvrState& tcvrState,
     const std::vector<MediaInterfaceId>& mediaInterfaces) {
   EXPECT_EQ(
       TransmitterTechnology::COPPER,
-      *(transceiver.cable().value_or({}).transmitterTech()));
+      *(tcvrState.cable().value_or({}).transmitterTech()));
 
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_TRUE(*mediaId.code() == MediaInterfaceCode::CR4_200G);
@@ -234,11 +233,11 @@ void HwTransceiverUtils::verifyCopper200gProfile(
 }
 
 void HwTransceiverUtils::verifyCopper53gProfile(
-    const TransceiverInfo& transceiver,
+    const TcvrState& tcvrState,
     const std::vector<MediaInterfaceId>& mediaInterfaces) {
   EXPECT_EQ(
       TransmitterTechnology::COPPER,
-      *(transceiver.cable().value_or({}).transmitterTech()));
+      *(tcvrState.cable().value_or({}).transmitterTech()));
 
   for (const auto& mediaId : mediaInterfaces) {
     EXPECT_TRUE(
@@ -247,56 +246,53 @@ void HwTransceiverUtils::verifyCopper53gProfile(
   }
 }
 
-void HwTransceiverUtils::verifyDataPathEnabled(
-    const TransceiverInfo& transceiver) {
-  auto mgmtInterface = transceiver.transceiverManagementInterface();
+void HwTransceiverUtils::verifyDataPathEnabled(const TcvrState& tcvrState) {
+  auto mgmtInterface = tcvrState.transceiverManagementInterface();
   if (!mgmtInterface) {
     throw FbossError(
         "Transceiver:",
-        *transceiver.port(),
+        *tcvrState.port(),
         " is missing transceiverManagementInterface");
   }
   // Right now, we only reset data path for CMIS module
   if (*mgmtInterface == TransceiverManagementInterface::CMIS) {
     // All lanes should have `false` Deinit
-    if (auto hostLaneSignals = transceiver.hostLaneSignals()) {
+    if (auto hostLaneSignals = tcvrState.hostLaneSignals()) {
       for (const auto& laneSignals : *hostLaneSignals) {
         EXPECT_TRUE(laneSignals.dataPathDeInit().has_value())
-            << "Transceiver:" << *transceiver.port()
+            << "Transceiver:" << *tcvrState.port()
             << ", Lane=" << *laneSignals.lane()
             << " is missing dataPathDeInit signal";
         EXPECT_FALSE(*laneSignals.dataPathDeInit())
-            << "Transceiver:" << *transceiver.port()
+            << "Transceiver:" << *tcvrState.port()
             << ", Lane=" << *laneSignals.lane()
             << " dataPathDeInit doesn't match expected";
       }
     } else {
       throw FbossError(
-          "Transceiver:", *transceiver.port(), " is missing hostLaneSignals");
+          "Transceiver:", *tcvrState.port(), " is missing hostLaneSignals");
     }
   }
 }
 
 void HwTransceiverUtils::verifyDiagsCapability(
-    const TransceiverInfo& transceiver,
+    const TcvrState& tcvrState,
     std::optional<DiagsCapability> diagsCapability,
     bool skipCheckingIndividualCapability) {
-  auto mgmtInterface = transceiver.transceiverManagementInterface();
+  auto mgmtInterface = tcvrState.transceiverManagementInterface();
   if (!mgmtInterface) {
     throw FbossError(
         "Transceiver:",
-        *transceiver.port(),
+        *tcvrState.port(),
         " is missing transceiverManagementInterface");
   }
-  auto mediaIntfCode = transceiver.moduleMediaInterface();
+  auto mediaIntfCode = tcvrState.moduleMediaInterface();
   if (!mediaIntfCode) {
     throw FbossError(
-        "Transceiver:",
-        *transceiver.port(),
-        " is missing moduleMediaInterface");
+        "Transceiver:", *tcvrState.port(), " is missing moduleMediaInterface");
   }
   XLOG(INFO) << "Verifying DiagsCapability for Transceiver="
-             << *transceiver.port() << ", mgmtInterface="
+             << *tcvrState.port() << ", mgmtInterface="
              << apache::thrift::util::enumNameSafe(*mgmtInterface)
              << ", moduleMediaInterface="
              << apache::thrift::util::enumNameSafe(*mediaIntfCode);
@@ -338,7 +334,7 @@ void HwTransceiverUtils::verifyDiagsCapability(
   }
   throw FbossError(
       "Transceiver:",
-      *transceiver.port(),
+      *tcvrState.port(),
       " is using unrecognized transceiverManagementInterface:",
       apache::thrift::util::enumNameSafe(*mgmtInterface));
 }
