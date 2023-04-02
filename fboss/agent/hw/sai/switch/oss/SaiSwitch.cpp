@@ -22,15 +22,4 @@ void SaiSwitch::parityErrorSwitchEventCallback(
   // noop;
 }
 
-template <typename LockPolicyT>
-std::shared_ptr<SwitchState> SaiSwitch::stateChangedWithOperDeltaLocked(
-    const StateDelta& legacyDelta,
-    const LockPolicyT& lockPolicy) {
-  return stateChanged(legacyDelta, lockPolicy);
-}
-
-template std::shared_ptr<SwitchState>
-SaiSwitch::stateChangedWithOperDeltaLocked<FineGrainedLockPolicy>(
-    const StateDelta& legacyDelta,
-    const FineGrainedLockPolicy& lockPolicy);
 } // namespace facebook::fboss

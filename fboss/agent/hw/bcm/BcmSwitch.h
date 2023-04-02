@@ -1071,10 +1071,6 @@ class BcmSwitch : public BcmSwitchIf {
       const StateDelta& delta,
       const std::lock_guard<std::mutex>& lock);
 
-  std::shared_ptr<SwitchState> stateChangedWithOperDeltaLocked(
-      const StateDelta& delta,
-      const std::lock_guard<std::mutex>& lock);
-
   /*
    * Member variables
    */
