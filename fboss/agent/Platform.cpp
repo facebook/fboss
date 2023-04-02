@@ -159,9 +159,9 @@ void Platform::getProductInfo(ProductInfo& info) {
   productInfo_->getInfo(info);
 }
 
-PlatformMode Platform::getMode() const {
+PlatformType Platform::getType() const {
   CHECK(productInfo_);
-  return productInfo_->getMode();
+  return productInfo_->getType();
 }
 
 void Platform::setOverrideTransceiverInfo(

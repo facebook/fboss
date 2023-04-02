@@ -18,7 +18,7 @@ namespace facebook {
 namespace fboss {
 class GalaxyManager : public WedgeManager {
  public:
-  explicit GalaxyManager(PlatformMode mode);
+  explicit GalaxyManager(PlatformType type);
   ~GalaxyManager() override {}
 
   // This is the front panel ports count

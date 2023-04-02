@@ -18,7 +18,7 @@ namespace facebook::fboss {
 
 class Platform;
 
-PlatformMode getPlatformMode();
+PlatformType getPlatformType();
 std::unique_ptr<Platform> createTestPlatform();
 
 } // namespace facebook::fboss

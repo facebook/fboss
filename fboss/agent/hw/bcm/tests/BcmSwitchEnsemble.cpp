@@ -219,8 +219,8 @@ void BcmSwitchEnsemble::init(
   std::unique_ptr<AgentConfig> agentConfig;
   BcmConfig::ConfigMap cfg;
   std::string yamlCfg;
-  auto platformMode = getPlatformMode();
-  if (platformMode == PlatformMode::FAKE_WEDGE) {
+  auto platformType = getPlatformType();
+  if (platformType == PlatformType::PLATFORM_FAKE_WEDGE) {
     FLAGS_flexports = true;
     for (int n = 1; n <= 125; n += 4) {
       addFlexPort(cfg, n, 40);
@@ -244,18 +244,18 @@ void BcmSwitchEnsemble::init(
   // Unfortunately we can't use ASIC for querying this capabilities, since
   // ASIC construction requires inputs from AgentConfig (switchType) during
   // construction.
-  std::unordered_set<PlatformMode> th3BcmPlatforms = {
-      PlatformMode::MINIPACK,
-      PlatformMode::YAMP,
-      PlatformMode::WEDGE400,
-      PlatformMode::DARWIN};
-  std::unordered_set<PlatformMode> th4BcmPlatforms = {
-      PlatformMode::FUJI, PlatformMode::ELBERT};
+  std::unordered_set<PlatformType> th3BcmPlatforms = {
+      PlatformType::PLATFORM_MINIPACK,
+      PlatformType::PLATFORM_YAMP,
+      PlatformType::PLATFORM_WEDGE400,
+      PlatformType::PLATFORM_DARWIN};
+  std::unordered_set<PlatformType> th4BcmPlatforms = {
+      PlatformType::PLATFORM_FUJI, PlatformType::PLATFORM_ELBERT};
   bool th3Platform = false;
   bool th4Platform = false;
-  if (th3BcmPlatforms.find(platformMode) != th3BcmPlatforms.end()) {
+  if (th3BcmPlatforms.find(platformType) != th3BcmPlatforms.end()) {
     th3Platform = true;
-  } else if (th4BcmPlatforms.find(platformMode) != th4BcmPlatforms.end()) {
+  } else if (th4BcmPlatforms.find(platformType) != th4BcmPlatforms.end()) {
     th4Platform = true;
   }
 
@@ -279,10 +279,12 @@ void BcmSwitchEnsemble::init(
       cfg["fpem_mem_entries"] = "0x10000";
     }
   }
-  std::unordered_set<PlatformMode> thBcmPlatforms = {
-      PlatformMode::WEDGE100, PlatformMode::GALAXY_LC, PlatformMode::GALAXY_FC};
+  std::unordered_set<PlatformType> thBcmPlatforms = {
+      PlatformType::PLATFORM_WEDGE100,
+      PlatformType::PLATFORM_GALAXY_LC,
+      PlatformType::PLATFORM_GALAXY_FC};
   if (FLAGS_load_qcm_fw &&
-      thBcmPlatforms.find(platformMode) != thBcmPlatforms.end()) {
+      thBcmPlatforms.find(platformType) != thBcmPlatforms.end()) {
     XLOG(DBG2) << "Modify bcm cfg as load_qcm_fw is enabled";
     modifyCfgForQcmTests(cfg);
   }

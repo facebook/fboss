@@ -27,8 +27,8 @@ TEST_F(HwOverflowTest, overflowRoutes) {
   utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;
   auto updater = getHwSwitchEnsemble()->getRouteUpdater();
   const RouterID kRid(0);
-  switch (getPlatform()->getMode()) {
-    case PlatformMode::WEDGE:
+  switch (getPlatform()->getType()) {
+    case PlatformType::PLATFORM_WEDGE:
       /*
        * On BRCM SAI TD2 scales better then TH in ALPM
        * mode. Hence we need 11K + Hgrid scale to actually
@@ -44,17 +44,17 @@ TEST_F(HwOverflowTest, overflowRoutes) {
                         .getThriftRoutes();
       break;
 
-    case PlatformMode::GALAXY_FC:
-    case PlatformMode::GALAXY_LC:
-    case PlatformMode::WEDGE100:
+    case PlatformType::PLATFORM_GALAXY_FC:
+    case PlatformType::PLATFORM_GALAXY_LC:
+    case PlatformType::PLATFORM_WEDGE100:
       routeChunks = utility::HgridUuRouteScaleGenerator(getProgrammedState())
                         .getThriftRoutes();
       break;
-    case PlatformMode::WEDGE400:
-    case PlatformMode::WEDGE400_GRANDTETON:
-    case PlatformMode::MINIPACK:
-    case PlatformMode::YAMP:
-    case PlatformMode::DARWIN:
+    case PlatformType::PLATFORM_WEDGE400:
+    case PlatformType::PLATFORM_WEDGE400_GRANDTETON:
+    case PlatformType::PLATFORM_MINIPACK:
+    case PlatformType::PLATFORM_YAMP:
+    case PlatformType::PLATFORM_DARWIN:
       /*
        * A route distribution 200,000 /128 does overflow the ASIC tables
        * but it takes 15min to generate, program and clean up such a
@@ -67,36 +67,36 @@ TEST_F(HwOverflowTest, overflowRoutes) {
        */
       break;
 
-    case PlatformMode::FAKE_WEDGE:
-    case PlatformMode::FAKE_WEDGE40:
+    case PlatformType::PLATFORM_FAKE_WEDGE:
+    case PlatformType::PLATFORM_FAKE_WEDGE40:
       // No limits to overflow for fakes
       break;
-    case PlatformMode::WEDGE400C:
-    case PlatformMode::WEDGE400C_SIM:
-    case PlatformMode::WEDGE400C_VOQ:
-    case PlatformMode::WEDGE400C_FABRIC:
-    case PlatformMode::WEDGE400C_GRANDTETON:
-    case PlatformMode::CLOUDRIPPER:
-    case PlatformMode::CLOUDRIPPER_VOQ:
-    case PlatformMode::CLOUDRIPPER_FABRIC:
-    case PlatformMode::LASSEN:
-    case PlatformMode::SANDIA:
+    case PlatformType::PLATFORM_WEDGE400C:
+    case PlatformType::PLATFORM_WEDGE400C_SIM:
+    case PlatformType::PLATFORM_WEDGE400C_VOQ:
+    case PlatformType::PLATFORM_WEDGE400C_FABRIC:
+    case PlatformType::PLATFORM_WEDGE400C_GRANDTETON:
+    case PlatformType::PLATFORM_CLOUDRIPPER:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
+    case PlatformType::PLATFORM_LASSEN:
+    case PlatformType::PLATFORM_SANDIA:
       XLOG(WARNING) << " No overflow test for 400C yet";
       break;
-    case PlatformMode::FUJI:
-    case PlatformMode::ELBERT:
+    case PlatformType::PLATFORM_FUJI:
+    case PlatformType::PLATFORM_ELBERT:
       // No overflow test for TH4 yet
       break;
-    case PlatformMode::MERU400BIU:
+    case PlatformType::PLATFORM_MERU400BIU:
       // No overflow test for MERU400BIU yet
       break;
-    case PlatformMode::MERU400BIA:
+    case PlatformType::PLATFORM_MERU400BIA:
       // No overflow test for MERU400BIA yet
       break;
-    case PlatformMode::MERU400BFU:
+    case PlatformType::PLATFORM_MERU400BFU:
       // No overflow test for MERU400BFU yet
       break;
-    case PlatformMode::MONTBLANC:
+    case PlatformType::PLATFORM_MONTBLANC:
       break;
   }
   if (routeChunks.size() == 0) {

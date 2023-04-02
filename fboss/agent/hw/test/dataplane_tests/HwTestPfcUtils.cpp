@@ -17,9 +17,9 @@
 namespace facebook::fboss::utility {
 
 std::vector<int> kLosslessPgs(const HwSwitch* hwSwitch) {
-  auto mode = hwSwitch->getPlatform()->getMode();
-  switch (mode) {
-    case PlatformMode::FUJI:
+  auto type = hwSwitch->getPlatform()->getType();
+  switch (type) {
+    case PlatformType::PLATFORM_FUJI:
       return {2};
     default:
       //  this is for fake bcm
@@ -28,9 +28,9 @@ std::vector<int> kLosslessPgs(const HwSwitch* hwSwitch) {
 }
 
 std::vector<int> kLossyPgs(const HwSwitch* hwSwitch) {
-  auto mode = hwSwitch->getPlatform()->getMode();
-  switch (mode) {
-    case PlatformMode::FUJI:
+  auto type = hwSwitch->getPlatform()->getType();
+  switch (type) {
+    case PlatformType::PLATFORM_FUJI:
       return {0, 6, 7};
     default:
       //  this is for fake bcm
@@ -43,15 +43,15 @@ int kPgMinLimitCells() {
 }
 
 int kGlobalSharedBufferCells(const HwSwitch* hwSwitch) {
-  auto mode = hwSwitch->getPlatform()->getMode();
-  switch (mode) {
-    case PlatformMode::WEDGE400:
-    case PlatformMode::WEDGE400_GRANDTETON:
-    case PlatformMode::MINIPACK:
-    case PlatformMode::YAMP:
+  auto type = hwSwitch->getPlatform()->getType();
+  switch (type) {
+    case PlatformType::PLATFORM_WEDGE400:
+    case PlatformType::PLATFORM_WEDGE400_GRANDTETON:
+    case PlatformType::PLATFORM_MINIPACK:
+    case PlatformType::PLATFORM_YAMP:
       return 117436;
     // Using default value for FUJI till Buffer tuning value is finalized.
-    case PlatformMode::FUJI:
+    case PlatformType::PLATFORM_FUJI:
       return 203834;
     default:
       //  this is for fake bcm
@@ -60,9 +60,9 @@ int kGlobalSharedBufferCells(const HwSwitch* hwSwitch) {
   }
 }
 int kGlobalHeadroomBufferCells(const HwSwitch* hwSwitch) {
-  auto mode = hwSwitch->getPlatform()->getMode();
-  switch (mode) {
-    case PlatformMode::FUJI:
+  auto type = hwSwitch->getPlatform()->getType();
+  switch (type) {
+    case PlatformType::PLATFORM_FUJI:
       return 25383;
     default:
       //  this is for fake bcm
@@ -70,9 +70,9 @@ int kGlobalHeadroomBufferCells(const HwSwitch* hwSwitch) {
   }
 }
 int kDownlinkPgHeadroomLimitCells(const HwSwitch* hwSwitch) {
-  auto mode = hwSwitch->getPlatform()->getMode();
-  switch (mode) {
-    case PlatformMode::FUJI:
+  auto type = hwSwitch->getPlatform()->getType();
+  switch (type) {
+    case PlatformType::PLATFORM_FUJI:
       return 2160;
     default:
       //  this is for fake bcm
@@ -80,9 +80,9 @@ int kDownlinkPgHeadroomLimitCells(const HwSwitch* hwSwitch) {
   }
 }
 int kUplinkPgHeadroomLimitCells(const HwSwitch* hwSwitch) {
-  auto mode = hwSwitch->getPlatform()->getMode();
-  switch (mode) {
-    case PlatformMode::FUJI:
+  auto type = hwSwitch->getPlatform()->getType();
+  switch (type) {
+    case PlatformType::PLATFORM_FUJI:
       return 3184;
     default:
       //  this is for fake bcm

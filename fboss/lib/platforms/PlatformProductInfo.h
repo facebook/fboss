@@ -26,8 +26,8 @@ class PlatformProductInfo {
   void getInfo(ProductInfo& info) {
     info = productInfo_;
   }
-  PlatformMode getMode() const {
-    return mode_;
+  PlatformType getType() const {
+    return type_;
   }
   void initialize();
   std::string getFabricLocation();
@@ -45,7 +45,7 @@ class PlatformProductInfo {
 
   ProductInfo productInfo_;
   folly::StringPiece path_;
-  PlatformMode mode_;
+  PlatformType type_;
 };
 
 /*

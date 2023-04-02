@@ -46,7 +46,7 @@ namespace facebook::fboss {
 
 namespace utility {
 
-std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformMode mode) {
+std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
   std::string platformMappingStr;
   if (!FLAGS_platform_mapping_override_path.empty()) {
     if (!folly::readFile(
@@ -56,33 +56,33 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformMode mode) {
     XLOG(INFO) << "Overriding platform mapping from "
                << FLAGS_platform_mapping_override_path;
   }
-  switch (mode) {
-    case PlatformMode::WEDGE:
+  switch (type) {
+    case PlatformType::PLATFORM_WEDGE:
       return platformMappingStr.empty()
           ? std::make_unique<Wedge40PlatformMapping>()
           : std::make_unique<Wedge40PlatformMapping>(platformMappingStr);
-    case PlatformMode::WEDGE100:
+    case PlatformType::PLATFORM_WEDGE100:
       return platformMappingStr.empty()
           ? std::make_unique<Wedge100PlatformMapping>()
           : std::make_unique<Wedge100PlatformMapping>(platformMappingStr);
-    case PlatformMode::GALAXY_LC:
+    case PlatformType::PLATFORM_GALAXY_LC:
       return std::make_unique<GalaxyLCPlatformMapping>(
           GalaxyLCPlatformMapping::getLinecardName());
-    case PlatformMode::GALAXY_FC:
+    case PlatformType::PLATFORM_GALAXY_FC:
       return std::make_unique<GalaxyFCPlatformMapping>(
           GalaxyFCPlatformMapping::getFabriccardName());
-    case PlatformMode::MINIPACK:
+    case PlatformType::PLATFORM_MINIPACK:
       return std::make_unique<MinipackPlatformMapping>(
           ExternalPhyVersion::MILN5_2, platformMappingStr);
-    case PlatformMode::YAMP:
+    case PlatformType::PLATFORM_YAMP:
       return std::make_unique<YampPlatformMapping>(platformMappingStr);
-    case PlatformMode::FUJI:
+    case PlatformType::PLATFORM_FUJI:
       return std::make_unique<FujiPlatformMapping>(platformMappingStr);
-    case PlatformMode::ELBERT:
+    case PlatformType::PLATFORM_ELBERT:
       return std::make_unique<ElbertPlatformMapping>(platformMappingStr);
-    case PlatformMode::WEDGE400:
-    case PlatformMode::WEDGE400_GRANDTETON:
-      if (mode == PlatformMode::WEDGE400_GRANDTETON ||
+    case PlatformType::PLATFORM_WEDGE400:
+    case PlatformType::PLATFORM_WEDGE400_GRANDTETON:
+      if (type == PlatformType::PLATFORM_WEDGE400_GRANDTETON ||
           utility::isWedge400PlatformRackTypeGrandTeton()) {
         return platformMappingStr.empty()
             ? std::make_unique<Wedge400GrandTetonPlatformMapping>()
@@ -93,9 +93,9 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformMode mode) {
             ? std::make_unique<Wedge400PlatformMapping>()
             : std::make_unique<Wedge400PlatformMapping>(platformMappingStr);
       }
-    case PlatformMode::WEDGE400C:
-    case PlatformMode::WEDGE400C_GRANDTETON:
-      if (mode == PlatformMode::WEDGE400C_GRANDTETON ||
+    case PlatformType::PLATFORM_WEDGE400C:
+    case PlatformType::PLATFORM_WEDGE400C_GRANDTETON:
+      if (type == PlatformType::PLATFORM_WEDGE400C_GRANDTETON ||
           utility::isWedge400CPlatformRackTypeGrandTeton()) {
         return platformMappingStr.empty()
             ? std::make_unique<Wedge400CGrandTetonPlatformMapping>()
@@ -106,60 +106,60 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformMode mode) {
             ? std::make_unique<Wedge400CPlatformMapping>()
             : std::make_unique<Wedge400CPlatformMapping>(platformMappingStr);
       }
-    case PlatformMode::WEDGE400C_VOQ:
+    case PlatformType::PLATFORM_WEDGE400C_VOQ:
       return platformMappingStr.empty()
           ? std::make_unique<Wedge400CVoqPlatformMapping>()
           : std::make_unique<Wedge400CVoqPlatformMapping>(platformMappingStr);
-    case PlatformMode::WEDGE400C_FABRIC:
+    case PlatformType::PLATFORM_WEDGE400C_FABRIC:
       return platformMappingStr.empty()
           ? std::make_unique<Wedge400CFabricPlatformMapping>()
           : std::make_unique<Wedge400CFabricPlatformMapping>(
                 platformMappingStr);
-    case PlatformMode::CLOUDRIPPER:
+    case PlatformType::PLATFORM_CLOUDRIPPER:
       return platformMappingStr.empty()
           ? std::make_unique<CloudRipperPlatformMapping>()
           : std::make_unique<CloudRipperPlatformMapping>(platformMappingStr);
-    case PlatformMode::CLOUDRIPPER_VOQ:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
       return platformMappingStr.empty()
           ? std::make_unique<CloudRipperVoqPlatformMapping>()
           : std::make_unique<CloudRipperVoqPlatformMapping>(platformMappingStr);
-    case PlatformMode::CLOUDRIPPER_FABRIC:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
       return platformMappingStr.empty()
           ? std::make_unique<CloudRipperFabricPlatformMapping>()
           : std::make_unique<CloudRipperFabricPlatformMapping>(
                 platformMappingStr);
-    case PlatformMode::DARWIN:
+    case PlatformType::PLATFORM_DARWIN:
       return platformMappingStr.empty()
           ? std::make_unique<DarwinPlatformMapping>()
           : std::make_unique<DarwinPlatformMapping>(platformMappingStr);
-    case PlatformMode::LASSEN:
+    case PlatformType::PLATFORM_LASSEN:
       return platformMappingStr.empty()
           ? std::make_unique<LassenPlatformMapping>()
           : std::make_unique<LassenPlatformMapping>(platformMappingStr);
-    case PlatformMode::SANDIA:
+    case PlatformType::PLATFORM_SANDIA:
       return std::make_unique<SandiaPlatformMapping>(platformMappingStr);
-    case PlatformMode::MONTBLANC:
+    case PlatformType::PLATFORM_MONTBLANC:
       return platformMappingStr.empty()
           ? std::make_unique<MontblancPlatformMapping>()
           : std::make_unique<MontblancPlatformMapping>(platformMappingStr);
-    case PlatformMode::FAKE_WEDGE:
-    case PlatformMode::FAKE_WEDGE40:
+    case PlatformType::PLATFORM_FAKE_WEDGE:
+    case PlatformType::PLATFORM_FAKE_WEDGE40:
       return platformMappingStr.empty()
           ? std::make_unique<Wedge40PlatformMapping>()
           : std::make_unique<Wedge40PlatformMapping>(platformMappingStr);
-    case PlatformMode::WEDGE400C_SIM:
+    case PlatformType::PLATFORM_WEDGE400C_SIM:
       return platformMappingStr.empty()
           ? std::make_unique<Wedge400CPlatformMapping>()
           : std::make_unique<Wedge400CPlatformMapping>(platformMappingStr);
-    case PlatformMode::MERU400BIU:
+    case PlatformType::PLATFORM_MERU400BIU:
       return platformMappingStr.empty()
           ? std::make_unique<Meru400biuPlatformMapping>()
           : std::make_unique<Meru400biuPlatformMapping>(platformMappingStr);
-    case PlatformMode::MERU400BFU:
+    case PlatformType::PLATFORM_MERU400BFU:
       return platformMappingStr.empty()
           ? std::make_unique<Meru400bfuPlatformMapping>()
           : std::make_unique<Meru400bfuPlatformMapping>(platformMappingStr);
-    case PlatformMode::MERU400BIA:
+    case PlatformType::PLATFORM_MERU400BIA:
       return platformMappingStr.empty()
           ? std::make_unique<Meru400biaPlatformMapping>()
           : std::make_unique<Meru400biaPlatformMapping>(platformMappingStr);

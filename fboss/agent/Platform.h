@@ -33,7 +33,6 @@ class HwAsic;
 class HwSwitchWarmBootHelper;
 class PlatformProductInfo;
 class QsfpCache;
-enum class PlatformMode : char;
 
 /*
  * Platform represents a specific switch/router platform.
@@ -134,9 +133,9 @@ class Platform {
   }
 
   /*
-   * Get the product mode
+   * Get the product type
    */
-  PlatformMode getMode() const;
+  PlatformType getType() const;
 
   /*
    * preHwInitialized() will be called before HwSwitch object has been

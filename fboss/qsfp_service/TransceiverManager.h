@@ -78,7 +78,7 @@ class TransceiverManager {
       std::map<int32_t, TransceiverInfo>& info,
       std::unique_ptr<std::map<int32_t, PortStatus>> ports) = 0;
 
-  virtual PlatformMode getPlatformMode() const = 0;
+  virtual PlatformType getPlatformType() const = 0;
 
   bool isValidTransceiver(int32_t id) {
     return id < getNumQsfpModules() && id >= 0;

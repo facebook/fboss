@@ -219,55 +219,55 @@ void SaiPlatform::initImpl(uint32_t hwFeaturesDesired) {
 }
 
 void SaiPlatform::initPorts() {
-  auto platformMode = getMode();
+  auto platformMode = getType();
   for (auto& port : getPlatformPorts()) {
     std::unique_ptr<SaiPlatformPort> saiPort;
     PortID portId(port.first);
-    if (platformMode == PlatformMode::WEDGE400C ||
-        platformMode == PlatformMode::WEDGE400C_VOQ ||
-        platformMode == PlatformMode::WEDGE400C_FABRIC) {
+    if (platformMode == PlatformType::PLATFORM_WEDGE400C ||
+        platformMode == PlatformType::PLATFORM_WEDGE400C_VOQ ||
+        platformMode == PlatformType::PLATFORM_WEDGE400C_FABRIC) {
       saiPort = std::make_unique<SaiWedge400CPlatformPort>(portId, this);
     } else if (
-        platformMode == PlatformMode::CLOUDRIPPER ||
-        platformMode == PlatformMode::CLOUDRIPPER_VOQ ||
-        platformMode == PlatformMode::CLOUDRIPPER_FABRIC) {
+        platformMode == PlatformType::PLATFORM_CLOUDRIPPER ||
+        platformMode == PlatformType::PLATFORM_CLOUDRIPPER_VOQ ||
+        platformMode == PlatformType::PLATFORM_CLOUDRIPPER_FABRIC) {
       saiPort = std::make_unique<SaiCloudRipperPlatformPort>(portId, this);
-    } else if (platformMode == PlatformMode::WEDGE) {
+    } else if (platformMode == PlatformType::PLATFORM_WEDGE) {
       saiPort = std::make_unique<SaiBcmWedge40PlatformPort>(portId, this);
-    } else if (platformMode == PlatformMode::WEDGE100) {
+    } else if (platformMode == PlatformType::PLATFORM_WEDGE100) {
       saiPort = std::make_unique<SaiBcmWedge100PlatformPort>(portId, this);
     } else if (
-        platformMode == PlatformMode::GALAXY_LC ||
-        platformMode == PlatformMode::GALAXY_FC) {
+        platformMode == PlatformType::PLATFORM_GALAXY_LC ||
+        platformMode == PlatformType::PLATFORM_GALAXY_FC) {
       saiPort = std::make_unique<SaiBcmGalaxyPlatformPort>(portId, this);
-    } else if (platformMode == PlatformMode::WEDGE400) {
+    } else if (platformMode == PlatformType::PLATFORM_WEDGE400) {
       saiPort = std::make_unique<SaiBcmWedge400PlatformPort>(portId, this);
-    } else if (platformMode == PlatformMode::DARWIN) {
+    } else if (platformMode == PlatformType::PLATFORM_DARWIN) {
       saiPort = std::make_unique<SaiBcmDarwinPlatformPort>(portId, this);
-    } else if (platformMode == PlatformMode::MINIPACK) {
+    } else if (platformMode == PlatformType::PLATFORM_MINIPACK) {
       saiPort = std::make_unique<SaiBcmMinipackPlatformPort>(portId, this);
-    } else if (platformMode == PlatformMode::YAMP) {
+    } else if (platformMode == PlatformType::PLATFORM_YAMP) {
       saiPort = std::make_unique<SaiBcmYampPlatformPort>(portId, this);
-    } else if (platformMode == PlatformMode::FUJI) {
+    } else if (platformMode == PlatformType::PLATFORM_FUJI) {
       saiPort = std::make_unique<SaiBcmFujiPlatformPort>(portId, this);
-    } else if (platformMode == PlatformMode::ELBERT) {
+    } else if (platformMode == PlatformType::PLATFORM_ELBERT) {
       if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
         saiPort = std::make_unique<SaiElbert8DDPhyPlatformPort>(portId, this);
       } else if (
           getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
         saiPort = std::make_unique<SaiBcmElbertPlatformPort>(portId, this);
       }
-    } else if (platformMode == PlatformMode::LASSEN) {
+    } else if (platformMode == PlatformType::PLATFORM_LASSEN) {
       saiPort = std::make_unique<SaiLassenPlatformPort>(portId, this);
-    } else if (platformMode == PlatformMode::SANDIA) {
+    } else if (platformMode == PlatformType::PLATFORM_SANDIA) {
       saiPort = std::make_unique<SaiSandiaPlatformPort>(portId, this);
-    } else if (platformMode == PlatformMode::MERU400BIU) {
+    } else if (platformMode == PlatformType::PLATFORM_MERU400BIU) {
       saiPort = std::make_unique<SaiMeru400biuPlatformPort>(portId, this);
-    } else if (platformMode == PlatformMode::MERU400BIA) {
+    } else if (platformMode == PlatformType::PLATFORM_MERU400BIA) {
       saiPort = std::make_unique<SaiMeru400biaPlatformPort>(portId, this);
-    } else if (platformMode == PlatformMode::MERU400BFU) {
+    } else if (platformMode == PlatformType::PLATFORM_MERU400BFU) {
       saiPort = std::make_unique<SaiMeru400bfuPlatformPort>(portId, this);
-    } else if (platformMode == PlatformMode::MONTBLANC) {
+    } else if (platformMode == PlatformType::PLATFORM_MONTBLANC) {
       saiPort = std::make_unique<SaiBcmMontblancPlatformPort>(portId, this);
     } else {
       saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
@@ -395,9 +395,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #if defined(SAI_VERSION_8_2_0_0_ODP) ||                                        \
     defined(SAI_VERSION_8_2_0_0_SIM_ODP) || defined(SAI_VERSION_9_0_EA_ODP) || \
     defined(SAI_VERSION_9_0_EA_SIM_ODP)
-  auto platformMode = getMode();
-  if (platformMode == PlatformMode::FUJI ||
-      platformMode == PlatformMode::ELBERT) {
+  auto platformMode = getType();
+  if (platformMode == PlatformType::PLATFORM_FUJI ||
+      platformMode == PlatformType::PLATFORM_ELBERT) {
     std::vector<int8_t> dllPathCharArray;
     std::copy(
         FLAGS_dll_path.c_str(),

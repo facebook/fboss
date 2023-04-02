@@ -82,23 +82,25 @@ phy::ExternalPhy* HwQsfpEnsemble::getExternalPhy(PortID port) {
 }
 
 bool HwQsfpEnsemble::isXphyPlatform() const {
-  static const std::set<PlatformMode> xphyPlatforms = {
-      PlatformMode::MINIPACK,
-      PlatformMode::YAMP,
-      PlatformMode::FUJI,
-      PlatformMode::ELBERT,
-      PlatformMode::CLOUDRIPPER,
-      PlatformMode::SANDIA};
+  static const std::set<PlatformType> xphyPlatforms = {
+      PlatformType::PLATFORM_MINIPACK,
+      PlatformType::PLATFORM_YAMP,
+      PlatformType::PLATFORM_FUJI,
+      PlatformType::PLATFORM_ELBERT,
+      PlatformType::PLATFORM_CLOUDRIPPER,
+      PlatformType::PLATFORM_SANDIA};
 
-  return xphyPlatforms.find(getWedgeManager()->getPlatformMode()) !=
+  return xphyPlatforms.find(getWedgeManager()->getPlatformType()) !=
       xphyPlatforms.end();
 }
 
 bool HwQsfpEnsemble::isSaiPlatform() const {
-  static const std::set<PlatformMode> saiPlatforms = {
-      PlatformMode::ELBERT, PlatformMode::CLOUDRIPPER, PlatformMode::SANDIA};
+  static const std::set<PlatformType> saiPlatforms = {
+      PlatformType::PLATFORM_ELBERT,
+      PlatformType::PLATFORM_CLOUDRIPPER,
+      PlatformType::PLATFORM_SANDIA};
 
-  return saiPlatforms.find(getWedgeManager()->getPlatformMode()) !=
+  return saiPlatforms.find(getWedgeManager()->getPlatformType()) !=
       saiPlatforms.end();
 }
 } // namespace facebook::fboss

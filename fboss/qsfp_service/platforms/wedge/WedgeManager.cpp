@@ -47,9 +47,9 @@ using LockedTransceiversPtr = folly::Synchronized<
 WedgeManager::WedgeManager(
     std::unique_ptr<TransceiverPlatformApi> api,
     std::unique_ptr<PlatformMapping> platformMapping,
-    PlatformMode mode)
+    PlatformType type)
     : TransceiverManager(std::move(api), std::move(platformMapping)),
-      platformMode_(mode) {
+      platformType_(type) {
   /* Constructor for WedgeManager class:
    * Get the TransceiverPlatformApi object from the creator of this object,
    * this object will be used for controlling the QSFP devices on board.

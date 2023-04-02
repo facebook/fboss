@@ -9,10 +9,10 @@
 namespace facebook {
 namespace fboss {
 
-GalaxyManager::GalaxyManager(PlatformMode mode)
+GalaxyManager::GalaxyManager(PlatformType mode)
     : WedgeManager(
           std::make_unique<TransceiverPlatformI2cApi>(new GalaxyI2CBus()),
-          (mode == PlatformMode::GALAXY_LC)
+          (mode == PlatformType::PLATFORM_GALAXY_LC)
               ? (std::unique_ptr<PlatformMapping>)
                     std::make_unique<GalaxyLCPlatformMapping>(
                         GalaxyLCPlatformMapping::getLinecardName())

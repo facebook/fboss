@@ -52,13 +52,13 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
   productInfo->initialize();
 
   auto mode = productInfo->getMode();
-  if (mode == PlatformMode::MERU400BFU) {
+  if (mode == PlatformType::PLATFORM_MERU400BFU) {
     auto systemContainer =
         BspGenericSystemContainer<Meru400bfuBspPlatformMapping>::getInstance()
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
-  } else if (mode == PlatformMode::MERU400BIU) {
+  } else if (mode == PlatformType::PLATFORM_MERU400BIU) {
     auto systemContainer =
         BspGenericSystemContainer<Meru400biuBspPlatformMapping>::getInstance()
             .get();
@@ -79,15 +79,15 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
  */
 std::pair<std::unique_ptr<TransceiverPlatformApi>, int>
 getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
-  PlatformMode mode = PlatformMode::FAKE_WEDGE;
+  PlatformType mode = PlatformType::PLATFORM_FAKE_WEDGE;
 
   if (FLAGS_platform.size()) {
     // If the platform is provided by user then use it to create the appropriate
     // Fpga object
     if (FLAGS_platform == "meru400bfu") {
-      mode = PlatformMode::MERU400BFU;
+      mode = PlatformType::PLATFORM_MERU400BFU;
     } else if (FLAGS_platform == "meru400biu") {
-      mode = PlatformMode::MERU400BIU;
+      mode = PlatformType::PLATFORM_MERU400BIU;
     }
   } else {
     // If the platform is not provided by the user then use current hardware's
@@ -99,13 +99,13 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
     mode = productInfo->getMode();
   }
 
-  if (mode == PlatformMode::MERU400BFU) {
+  if (mode == PlatformType::PLATFORM_MERU400BFU) {
     auto systemContainer =
         BspGenericSystemContainer<Meru400bfuBspPlatformMapping>::getInstance()
             .get();
     return std::make_pair(
         std::make_unique<BspTransceiverApi>(systemContainer), 0);
-  } else if (mode == PlatformMode::MERU400BIU) {
+  } else if (mode == PlatformType::PLATFORM_MERU400BIU) {
     auto systemContainer =
         BspGenericSystemContainer<Meru400biuBspPlatformMapping>::getInstance()
             .get();

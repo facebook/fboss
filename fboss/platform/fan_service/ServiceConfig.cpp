@@ -30,22 +30,22 @@ ServiceConfig::ServiceConfig() {
 // be acquired here.
 std::string ServiceConfig::getConfigContents() {
   std::string contents;
-  fboss::PlatformMode platformMode;
+  PlatformType platformType;
   XLOG(INFO) << "Detecting the platform type. FRUID File path : "
              << FLAGS_fruid_filepath;
   fboss::PlatformProductInfo productInfo(FLAGS_fruid_filepath);
   productInfo.initialize();
-  platformMode = productInfo.getMode();
+  platformType = productInfo.getType();
 
   XLOG(INFO) << "Trying to fetch the configuration for :  "
-             << toString(platformMode);
+             << toString(platformType);
 
   // Get the config string of this platform type
-  switch (platformMode) {
-    case PlatformMode::DARWIN:
+  switch (platformType) {
+    case PlatformType::PLATFORM_DARWIN:
       contents = getDarwinFSConfig();
       break;
-    case PlatformMode::FAKE_WEDGE:
+    case PlatformType::PLATFORM_FAKE_WEDGE:
       contents = getMokujinFSConfig();
       break;
     default:

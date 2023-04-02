@@ -231,7 +231,7 @@ SwSwitch::SwSwitch(std::unique_ptr<Platform> platform)
   try {
     platformProductInfo_->initialize();
     platformMapping_ =
-        utility::initPlatformMapping(platformProductInfo_->getMode());
+        utility::initPlatformMapping(platformProductInfo_->getType());
     auto existingMapping = platform_->getPlatformMapping();
     // TODO - remove this later
     CHECK(existingMapping->toThrift() == platformMapping_->toThrift());

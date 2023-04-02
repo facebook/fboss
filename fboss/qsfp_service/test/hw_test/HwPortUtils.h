@@ -37,7 +37,7 @@ void verifyPhyPortConfig(
     PortID portID,
     PhyManager* phyManager,
     const phy::PhyPortConfig& expectedConfig,
-    PlatformMode platformMode);
+    PlatformType platformType);
 
 void verifyPhyPortConnector(PortID portID, HwQsfpEnsemble* qsfpEnsemble);
 

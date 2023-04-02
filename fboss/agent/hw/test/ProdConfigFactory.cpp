@@ -102,26 +102,26 @@ void addMplsConfig(cfg::SwitchConfig& config) {
  * each platform.
  */
 uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch) {
-  auto mode = hwSwitch->getPlatform()->getMode();
-  using PM = PlatformMode;
+  auto mode = hwSwitch->getPlatform()->getType();
+  using PM = PlatformType;
   switch (mode) {
-    case PM::WEDGE:
-    case PM::WEDGE100:
-    case PM::WEDGE400C:
-    case PM::WEDGE400:
-    case PM::YAMP:
-    case PM::MINIPACK:
-    case PM::ELBERT:
-    case PM::FUJI:
-    case PM::CLOUDRIPPER:
-    case PM::GALAXY_LC:
-    case PM::GALAXY_FC:
-    case PM::DARWIN:
-    case PM::MONTBLANC:
+    case PM::PLATFORM_WEDGE:
+    case PM::PLATFORM_WEDGE100:
+    case PM::PLATFORM_WEDGE400C:
+    case PM::PLATFORM_WEDGE400:
+    case PM::PLATFORM_YAMP:
+    case PM::PLATFORM_MINIPACK:
+    case PM::PLATFORM_ELBERT:
+    case PM::PLATFORM_FUJI:
+    case PM::PLATFORM_CLOUDRIPPER:
+    case PM::PLATFORM_GALAXY_LC:
+    case PM::PLATFORM_GALAXY_FC:
+    case PM::PLATFORM_DARWIN:
+    case PM::PLATFORM_MONTBLANC:
       return 4;
     default:
       throw FbossError(
-          "provided PlatformMode: ",
+          "provided PlatformType: ",
           mode,
           " has not been defined for uplinksCountFromSwitch");
       break;
@@ -130,7 +130,7 @@ uint16_t uplinksCountFromSwitch(const HwSwitch* hwSwitch) {
 
 cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch) {
   auto hwAsicType = hwSwitch->getPlatform()->getAsic()->getAsicType();
-  auto platformMode = hwSwitch->getPlatform()->getMode();
+  auto platformType = hwSwitch->getPlatform()->getType();
   cfg::PortSpeed portSpeed = cfg::PortSpeed::DEFAULT;
 
   switch (hwAsicType) {
@@ -144,12 +144,12 @@ cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch) {
 
   // override speed for certain platforms based on the
   // mode of the asic
-  switch (platformMode) {
-    case PlatformMode::FUJI:
-    case PlatformMode::ELBERT:
+  switch (platformType) {
+    case PlatformType::PLATFORM_FUJI:
+    case PlatformType::PLATFORM_ELBERT:
       portSpeed = cfg::PortSpeed::TWOHUNDREDG;
       break;
-    case PlatformMode::MONTBLANC:
+    case PlatformType::PLATFORM_MONTBLANC:
       portSpeed = cfg::PortSpeed::FOURHUNDREDG;
       break;
     default:
@@ -161,7 +161,7 @@ cfg::PortSpeed getPortSpeed(const HwSwitch* hwSwitch) {
         "port speed not set for asic: ",
         hwAsicType,
         " platform mode: ",
-        platformMode);
+        platformType);
   }
   return portSpeed;
 }

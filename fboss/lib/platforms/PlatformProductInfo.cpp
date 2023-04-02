@@ -87,112 +87,112 @@ void PlatformProductInfo::initMode() {
   if (FLAGS_mode.empty()) {
     auto modelName = getProductName();
     if (modelName.find("MINIPACK2") == 0) {
-      mode_ = PlatformMode::FUJI;
+      type_ = PlatformType::PLATFORM_FUJI;
     } else if (
         modelName.find("Wedge100") == 0 || modelName.find("WEDGE100") == 0) {
       // Wedge100 comes from fruid.json, WEDGE100 comes from fbwhoami
-      mode_ = PlatformMode::WEDGE100;
+      type_ = PlatformType::PLATFORM_WEDGE100;
     } else if (
         modelName.find("Wedge400c") == 0 || modelName.find("WEDGE400C") == 0) {
-      mode_ = PlatformMode::WEDGE400C;
+      type_ = PlatformType::PLATFORM_WEDGE400C;
     } else if (
         modelName.find("Wedge400") == 0 || modelName.find("WEDGE400") == 0) {
-      mode_ = PlatformMode::WEDGE400;
+      type_ = PlatformType::PLATFORM_WEDGE400;
     } else if (
         modelName.find("Darwin") == 0 || modelName.find("DARWIN") == 0 ||
         modelName.find("DCS-7060") == 0 || modelName.find("Rackhawk") == 0) {
-      mode_ = PlatformMode::DARWIN;
+      type_ = PlatformType::PLATFORM_DARWIN;
     } else if (modelName.find("Wedge") == 0 || modelName.find("WEDGE") == 0) {
-      mode_ = PlatformMode::WEDGE;
+      type_ = PlatformType::PLATFORM_WEDGE;
     } else if (modelName.find("SCM-LC") == 0 || modelName.find("LC") == 0) {
       // TODO remove LC once fruid.json is fixed on Galaxy Linecards
-      mode_ = PlatformMode::GALAXY_LC;
+      type_ = PlatformType::PLATFORM_GALAXY_LC;
     } else if (
         modelName.find("SCM-FC") == 0 || modelName.find("SCM-FAB") == 0 ||
         modelName.find("FAB") == 0) {
       // TODO remove FAB once fruid.json is fixed on Galaxy fabric cards
-      mode_ = PlatformMode::GALAXY_FC;
+      type_ = PlatformType::PLATFORM_GALAXY_FC;
     } else if (
         modelName.find("MINIPACK") == 0 || modelName.find("MINIPHOTON") == 0) {
-      mode_ = PlatformMode::MINIPACK;
+      type_ = PlatformType::PLATFORM_MINIPACK;
     } else if (modelName.find("DCS-7368") == 0 || modelName.find("YAMP") == 0) {
-      mode_ = PlatformMode::YAMP;
+      type_ = PlatformType::PLATFORM_YAMP;
     } else if (
         modelName.find("DCS-7388") == 0 || modelName.find("ELBERT") == 0) {
-      mode_ = PlatformMode::ELBERT;
+      type_ = PlatformType::PLATFORM_ELBERT;
     } else if (modelName.find("fake_wedge40") == 0) {
-      mode_ = PlatformMode::FAKE_WEDGE40;
+      type_ = PlatformType::PLATFORM_FAKE_WEDGE40;
     } else if (modelName.find("fake_wedge") == 0) {
-      mode_ = PlatformMode::FAKE_WEDGE;
+      type_ = PlatformType::PLATFORM_FAKE_WEDGE;
     } else if (modelName.find("CLOUDRIPPER") == 0) {
-      mode_ = PlatformMode::CLOUDRIPPER;
+      type_ = PlatformType::PLATFORM_CLOUDRIPPER;
     } else if (modelName.find("Lassen") == 0 || modelName.find("LASSEN") == 0) {
-      mode_ = PlatformMode::LASSEN;
+      type_ = PlatformType::PLATFORM_LASSEN;
     } else if (
         modelName.find("Sandia") == 0 || modelName.find("SANDIA") == 0 ||
         modelName.find("8508-F-SYS-HV") == 0) {
-      mode_ = PlatformMode::SANDIA;
+      type_ = PlatformType::PLATFORM_SANDIA;
     } else if (
         modelName.find("Meru400biu") == 0 ||
         modelName.find("S9710-76D-BB12") == 0) {
-      mode_ = PlatformMode::MERU400BIU;
+      type_ = PlatformType::PLATFORM_MERU400BIU;
     } else if (modelName.find("Meru400bia") == 0) {
-      mode_ = PlatformMode::MERU400BIA;
+      type_ = PlatformType::PLATFORM_MERU400BIA;
     } else if (
         modelName.find("Meru400bfu") == 0 ||
         modelName.find("S9705-48D-4B4") == 0) {
-      mode_ = PlatformMode::MERU400BFU;
+      type_ = PlatformType::PLATFORM_MERU400BFU;
     } else if (
         modelName.find("Montblanc") == 0 || modelName.find("MONTBLANC") == 0) {
-      mode_ = PlatformMode::MONTBLANC;
+      type_ = PlatformType::PLATFORM_MONTBLANC;
     } else {
       throw std::runtime_error("invalid model name " + modelName);
     }
   } else {
     if (FLAGS_mode == "wedge") {
-      mode_ = PlatformMode::WEDGE;
+      type_ = PlatformType::PLATFORM_WEDGE;
     } else if (FLAGS_mode == "wedge100") {
-      mode_ = PlatformMode::WEDGE100;
+      type_ = PlatformType::PLATFORM_WEDGE100;
     } else if (FLAGS_mode == "galaxy_lc") {
-      mode_ = PlatformMode::GALAXY_LC;
+      type_ = PlatformType::PLATFORM_GALAXY_LC;
     } else if (FLAGS_mode == "galaxy_fc") {
-      mode_ = PlatformMode::GALAXY_FC;
+      type_ = PlatformType::PLATFORM_GALAXY_FC;
     } else if (FLAGS_mode == "minipack") {
-      mode_ = PlatformMode::MINIPACK;
+      type_ = PlatformType::PLATFORM_MINIPACK;
     } else if (FLAGS_mode == "yamp") {
-      mode_ = PlatformMode::YAMP;
+      type_ = PlatformType::PLATFORM_YAMP;
     } else if (FLAGS_mode == "fake_wedge40") {
-      mode_ = PlatformMode::FAKE_WEDGE40;
+      type_ = PlatformType::PLATFORM_FAKE_WEDGE40;
     } else if (FLAGS_mode == "wedge400") {
-      mode_ = PlatformMode::WEDGE400;
+      type_ = PlatformType::PLATFORM_WEDGE400;
     } else if (FLAGS_mode == "fuji") {
-      mode_ = PlatformMode::FUJI;
+      type_ = PlatformType::PLATFORM_FUJI;
     } else if (FLAGS_mode == "elbert") {
-      mode_ = PlatformMode::ELBERT;
+      type_ = PlatformType::PLATFORM_ELBERT;
     } else if (FLAGS_mode == "darwin") {
-      mode_ = PlatformMode::DARWIN;
+      type_ = PlatformType::PLATFORM_DARWIN;
     } else if (FLAGS_mode == "lassen") {
-      mode_ = PlatformMode::LASSEN;
+      type_ = PlatformType::PLATFORM_LASSEN;
     } else if (FLAGS_mode == "sandia") {
-      mode_ = PlatformMode::SANDIA;
+      type_ = PlatformType::PLATFORM_SANDIA;
     } else if (FLAGS_mode == "meru400biu") {
-      mode_ = PlatformMode::MERU400BIU;
+      type_ = PlatformType::PLATFORM_MERU400BIU;
     } else if (FLAGS_mode == "meru400bia") {
-      mode_ = PlatformMode::MERU400BIA;
+      type_ = PlatformType::PLATFORM_MERU400BIA;
     } else if (FLAGS_mode == "meru400bfu") {
-      mode_ = PlatformMode::MERU400BFU;
+      type_ = PlatformType::PLATFORM_MERU400BFU;
     } else if (FLAGS_mode == "wedge400c") {
-      mode_ = PlatformMode::WEDGE400C;
+      type_ = PlatformType::PLATFORM_WEDGE400C;
     } else if (FLAGS_mode == "wedge400c_voq") {
-      mode_ = PlatformMode::WEDGE400C_VOQ;
+      type_ = PlatformType::PLATFORM_WEDGE400C_VOQ;
     } else if (FLAGS_mode == "wedge400c_fabric") {
-      mode_ = PlatformMode::WEDGE400C_FABRIC;
+      type_ = PlatformType::PLATFORM_WEDGE400C_FABRIC;
     } else if (FLAGS_mode == "cloudripper_voq") {
-      mode_ = PlatformMode::CLOUDRIPPER_VOQ;
+      type_ = PlatformType::PLATFORM_CLOUDRIPPER_VOQ;
     } else if (FLAGS_mode == "cloudripper_fabric") {
-      mode_ = PlatformMode::CLOUDRIPPER_FABRIC;
+      type_ = PlatformType::PLATFORM_CLOUDRIPPER_FABRIC;
     } else if (FLAGS_mode == "montblanc") {
-      mode_ = PlatformMode::MONTBLANC;
+      type_ = PlatformType::PLATFORM_MONTBLANC;
     } else {
       throw std::runtime_error("invalid mode " + FLAGS_mode);
     }

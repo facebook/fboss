@@ -144,36 +144,36 @@ DiagShell::DiagShell(const SaiSwitch* hw) : hw_(hw) {
 }
 
 std::unique_ptr<Repl> DiagShell::makeRepl() const {
-  switch (hw_->getPlatform()->getMode()) {
-    case PlatformMode::WEDGE:
-    case PlatformMode::WEDGE100:
-    case PlatformMode::GALAXY_LC:
-    case PlatformMode::GALAXY_FC:
-    case PlatformMode::MINIPACK:
-    case PlatformMode::YAMP:
-    case PlatformMode::WEDGE400:
-    case PlatformMode::WEDGE400_GRANDTETON:
-    case PlatformMode::FUJI:
-    case PlatformMode::ELBERT:
-    case PlatformMode::DARWIN:
-    case PlatformMode::MERU400BIU:
-    case PlatformMode::MERU400BIA:
-    case PlatformMode::MERU400BFU:
-    case PlatformMode::MONTBLANC:
+  switch (hw_->getPlatform()->getType()) {
+    case PlatformType::PLATFORM_WEDGE:
+    case PlatformType::PLATFORM_WEDGE100:
+    case PlatformType::PLATFORM_GALAXY_LC:
+    case PlatformType::PLATFORM_GALAXY_FC:
+    case PlatformType::PLATFORM_MINIPACK:
+    case PlatformType::PLATFORM_YAMP:
+    case PlatformType::PLATFORM_WEDGE400:
+    case PlatformType::PLATFORM_WEDGE400_GRANDTETON:
+    case PlatformType::PLATFORM_FUJI:
+    case PlatformType::PLATFORM_ELBERT:
+    case PlatformType::PLATFORM_DARWIN:
+    case PlatformType::PLATFORM_MERU400BIU:
+    case PlatformType::PLATFORM_MERU400BIA:
+    case PlatformType::PLATFORM_MERU400BFU:
+    case PlatformType::PLATFORM_MONTBLANC:
       return std::make_unique<SaiRepl>(hw_->getSaiSwitchId());
-    case PlatformMode::WEDGE400C:
-    case PlatformMode::WEDGE400C_SIM:
-    case PlatformMode::WEDGE400C_VOQ:
-    case PlatformMode::WEDGE400C_FABRIC:
-    case PlatformMode::WEDGE400C_GRANDTETON:
-    case PlatformMode::CLOUDRIPPER:
-    case PlatformMode::CLOUDRIPPER_VOQ:
-    case PlatformMode::CLOUDRIPPER_FABRIC:
-    case PlatformMode::LASSEN:
-    case PlatformMode::SANDIA:
+    case PlatformType::PLATFORM_WEDGE400C:
+    case PlatformType::PLATFORM_WEDGE400C_SIM:
+    case PlatformType::PLATFORM_WEDGE400C_VOQ:
+    case PlatformType::PLATFORM_WEDGE400C_FABRIC:
+    case PlatformType::PLATFORM_WEDGE400C_GRANDTETON:
+    case PlatformType::PLATFORM_CLOUDRIPPER:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
+    case PlatformType::PLATFORM_LASSEN:
+    case PlatformType::PLATFORM_SANDIA:
       return std::make_unique<PythonRepl>(ptys_->file.fd());
-    case PlatformMode::FAKE_WEDGE:
-    case PlatformMode::FAKE_WEDGE40:
+    case PlatformType::PLATFORM_FAKE_WEDGE:
+    case PlatformType::PLATFORM_FAKE_WEDGE40:
       throw FbossError("Shell not supported for fake platforms");
   }
   CHECK(0) << " Should never get here";
@@ -368,36 +368,36 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
   /* Returns the command used for separating each diagCmd,
    * which varies between platform.
    */
-  switch (hw_->getPlatform()->getMode()) {
-    case PlatformMode::WEDGE:
-    case PlatformMode::WEDGE100:
-    case PlatformMode::GALAXY_LC:
-    case PlatformMode::GALAXY_FC:
-    case PlatformMode::MINIPACK:
-    case PlatformMode::YAMP:
-    case PlatformMode::WEDGE400:
-    case PlatformMode::WEDGE400_GRANDTETON:
-    case PlatformMode::FUJI:
-    case PlatformMode::ELBERT:
-    case PlatformMode::DARWIN:
-    case PlatformMode::MERU400BIU:
-    case PlatformMode::MERU400BIA:
-    case PlatformMode::MERU400BFU:
-    case PlatformMode::MONTBLANC:
+  switch (hw_->getPlatform()->getType()) {
+    case PlatformType::PLATFORM_WEDGE:
+    case PlatformType::PLATFORM_WEDGE100:
+    case PlatformType::PLATFORM_GALAXY_LC:
+    case PlatformType::PLATFORM_GALAXY_FC:
+    case PlatformType::PLATFORM_MINIPACK:
+    case PlatformType::PLATFORM_YAMP:
+    case PlatformType::PLATFORM_WEDGE400:
+    case PlatformType::PLATFORM_WEDGE400_GRANDTETON:
+    case PlatformType::PLATFORM_FUJI:
+    case PlatformType::PLATFORM_ELBERT:
+    case PlatformType::PLATFORM_DARWIN:
+    case PlatformType::PLATFORM_MERU400BIU:
+    case PlatformType::PLATFORM_MERU400BIA:
+    case PlatformType::PLATFORM_MERU400BFU:
+    case PlatformType::PLATFORM_MONTBLANC:
       return UUID + "\n";
-    case PlatformMode::WEDGE400C:
-    case PlatformMode::WEDGE400C_SIM:
-    case PlatformMode::WEDGE400C_VOQ:
-    case PlatformMode::WEDGE400C_FABRIC:
-    case PlatformMode::WEDGE400C_GRANDTETON:
-    case PlatformMode::CLOUDRIPPER:
-    case PlatformMode::CLOUDRIPPER_VOQ:
-    case PlatformMode::CLOUDRIPPER_FABRIC:
-    case PlatformMode::LASSEN:
-    case PlatformMode::SANDIA:
+    case PlatformType::PLATFORM_WEDGE400C:
+    case PlatformType::PLATFORM_WEDGE400C_SIM:
+    case PlatformType::PLATFORM_WEDGE400C_VOQ:
+    case PlatformType::PLATFORM_WEDGE400C_FABRIC:
+    case PlatformType::PLATFORM_WEDGE400C_GRANDTETON:
+    case PlatformType::PLATFORM_CLOUDRIPPER:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
+    case PlatformType::PLATFORM_LASSEN:
+    case PlatformType::PLATFORM_SANDIA:
       return folly::to<std::string>("print('", UUID, "')\n");
-    case PlatformMode::FAKE_WEDGE:
-    case PlatformMode::FAKE_WEDGE40:
+    case PlatformType::PLATFORM_FAKE_WEDGE:
+    case PlatformType::PLATFORM_FAKE_WEDGE40:
       throw FbossError("Shell not supported for fake platforms");
   }
   CHECK(0) << " Should never get here";
@@ -407,22 +407,22 @@ std::string DiagCmdServer::getDelimiterDiagCmd(const std::string& UUID) const {
 std::string& DiagCmdServer::cleanUpOutput(
     std::string& output,
     const std::string& input) {
-  switch (hw_->getPlatform()->getMode()) {
-    case PlatformMode::WEDGE:
-    case PlatformMode::WEDGE100:
-    case PlatformMode::GALAXY_LC:
-    case PlatformMode::GALAXY_FC:
-    case PlatformMode::MINIPACK:
-    case PlatformMode::YAMP:
-    case PlatformMode::WEDGE400:
-    case PlatformMode::WEDGE400_GRANDTETON:
-    case PlatformMode::FUJI:
-    case PlatformMode::ELBERT:
-    case PlatformMode::DARWIN:
-    case PlatformMode::MERU400BIU:
-    case PlatformMode::MERU400BIA:
-    case PlatformMode::MERU400BFU:
-    case PlatformMode::MONTBLANC:
+  switch (hw_->getPlatform()->getType()) {
+    case PlatformType::PLATFORM_WEDGE:
+    case PlatformType::PLATFORM_WEDGE100:
+    case PlatformType::PLATFORM_GALAXY_LC:
+    case PlatformType::PLATFORM_GALAXY_FC:
+    case PlatformType::PLATFORM_MINIPACK:
+    case PlatformType::PLATFORM_YAMP:
+    case PlatformType::PLATFORM_WEDGE400:
+    case PlatformType::PLATFORM_WEDGE400_GRANDTETON:
+    case PlatformType::PLATFORM_FUJI:
+    case PlatformType::PLATFORM_ELBERT:
+    case PlatformType::PLATFORM_DARWIN:
+    case PlatformType::PLATFORM_MERU400BIU:
+    case PlatformType::PLATFORM_MERU400BIA:
+    case PlatformType::PLATFORM_MERU400BFU:
+    case PlatformType::PLATFORM_MONTBLANC:
       // Clean up the back of the string
       if (!output.empty() && !input.empty()) {
         std::string shell = "drivshell>";
@@ -439,20 +439,20 @@ std::string& DiagCmdServer::cleanUpOutput(
         }
       }
       return output;
-    case PlatformMode::WEDGE400C:
-    case PlatformMode::WEDGE400C_SIM:
-    case PlatformMode::WEDGE400C_VOQ:
-    case PlatformMode::WEDGE400C_FABRIC:
-    case PlatformMode::WEDGE400C_GRANDTETON:
-    case PlatformMode::LASSEN:
-    case PlatformMode::SANDIA:
+    case PlatformType::PLATFORM_WEDGE400C:
+    case PlatformType::PLATFORM_WEDGE400C_GRANDTETON:
+    case PlatformType::PLATFORM_WEDGE400C_SIM:
+    case PlatformType::PLATFORM_WEDGE400C_VOQ:
+    case PlatformType::PLATFORM_WEDGE400C_FABRIC:
+    case PlatformType::PLATFORM_LASSEN:
+    case PlatformType::PLATFORM_SANDIA:
       return output;
-    case PlatformMode::CLOUDRIPPER:
-    case PlatformMode::CLOUDRIPPER_VOQ:
-    case PlatformMode::CLOUDRIPPER_FABRIC:
+    case PlatformType::PLATFORM_CLOUDRIPPER:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
       throw FbossError("Shell not supported for cloud ripper platform");
-    case PlatformMode::FAKE_WEDGE:
-    case PlatformMode::FAKE_WEDGE40:
+    case PlatformType::PLATFORM_FAKE_WEDGE:
+    case PlatformType::PLATFORM_FAKE_WEDGE40:
       throw FbossError("Shell not supported for fake platforms");
   }
   CHECK(0) << " Should never get here";

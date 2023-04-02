@@ -23,15 +23,15 @@ TEST_F(HwTest, publishStats) {
 }
 
 namespace {
-int getSleepSeconds(PlatformMode platformMode) {
+int getSleepSeconds(PlatformType platformMode) {
   // Minipack Xphy stats are relatively slow, one port xphy stat can take
   // about 3s. And because all ports from the same pim need to wait for
   // the pim EventBase, even though we can make the stats collection across
   // all 8 pims in parallel, we might still need about 3X16=48 seconds for
   // all ports. Therefore, use 1 min for all stats to be collected.
   int sleepSeconds = 5;
-  if (platformMode == PlatformMode::MINIPACK ||
-      platformMode == PlatformMode::FUJI) {
+  if (platformMode == PlatformType::PLATFORM_MINIPACK ||
+      platformMode == PlatformType::PLATFORM_FUJI) {
     sleepSeconds = 60;
   }
   return sleepSeconds;
@@ -61,7 +61,7 @@ class HwXphyPortStatsCollectionTest : public HwExternalPhyPortTest {
       getHwQsfpEnsemble()->getWedgeManager()->updateAllXphyPortsStats();
       /* sleep override */
       sleep(getSleepSeconds(
-          getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode()));
+          getHwQsfpEnsemble()->getWedgeManager()->getPlatformType()));
       // Now check the stats collection future job is done.
       for (const auto& [port, _] : availableXphyPorts) {
         EXPECT_TRUE(
@@ -105,7 +105,7 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
     auto verify = [&]() {
       /* sleep override */
       sleep(getSleepSeconds(
-          getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode()));
+          getHwQsfpEnsemble()->getWedgeManager()->getPlatformType()));
       for (const auto& [port, _] : availableXphyPorts) {
         // Assemble our own lane list
         std::vector<LaneID> sysLanes, lineLanes;
@@ -177,7 +177,7 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
 
     auto verify = [&]() {
       auto platformMode =
-          getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
+          getHwQsfpEnsemble()->getWedgeManager()->getPlatformType();
       int sleepSeconds = getSleepSeconds(platformMode);
 
       // The first update stats will set the prbs stats to lock and accumulated
@@ -203,8 +203,8 @@ class HwXphyPrbsStatsCollectionTest : public HwExternalPhyPortTest {
         // Since this is only qsfp_hw_test, it won't be able to trigger
         // asic prbs programming without using wedge_agent.
         // Skip the prbs stats check for Minipack family
-        if (platformMode == PlatformMode::MINIPACK ||
-            platformMode == PlatformMode::FUJI) {
+        if (platformMode == PlatformType::PLATFORM_MINIPACK ||
+            platformMode == PlatformType::PLATFORM_FUJI) {
           continue;
         }
 

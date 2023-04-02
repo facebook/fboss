@@ -25,11 +25,11 @@ class MockWedgeManager : public WedgeManager {
       : WedgeManager(
             std::make_unique<MockTransceiverPlatformApi>(),
             makeFakePlatformMappnig(numModules, numPortsPerModule),
-            PlatformMode::WEDGE),
+            PlatformType::PLATFORM_WEDGE),
         numModules_(numModules) {}
 
-  PlatformMode getPlatformMode() const override {
-    return PlatformMode::WEDGE;
+  PlatformType getPlatformType() const override {
+    return PlatformType::PLATFORM_WEDGE;
   }
 
   std::map<TransceiverID, MockSffModule*> mockTransceivers_;

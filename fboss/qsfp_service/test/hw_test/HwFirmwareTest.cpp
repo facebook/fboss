@@ -20,57 +20,57 @@
 namespace facebook::fboss {
 
 TEST_F(HwTest, CheckDefaultXphyFirmwareVersion) {
-  auto platformMode = getHwQsfpEnsemble()->getWedgeManager()->getPlatformMode();
+  auto platformType = getHwQsfpEnsemble()->getWedgeManager()->getPlatformType();
 
   phy::PhyFwVersion desiredFw;
-  switch (platformMode) {
-    case PlatformMode::WEDGE:
-    case PlatformMode::WEDGE100:
-    case PlatformMode::GALAXY_LC:
-    case PlatformMode::GALAXY_FC:
-    case PlatformMode::FAKE_WEDGE:
-    case PlatformMode::FAKE_WEDGE40:
-    case PlatformMode::WEDGE400C:
-    case PlatformMode::WEDGE400C_SIM:
-    case PlatformMode::WEDGE400C_VOQ:
-    case PlatformMode::WEDGE400C_FABRIC:
-    case PlatformMode::WEDGE400C_GRANDTETON:
-    case PlatformMode::WEDGE400:
-    case PlatformMode::WEDGE400_GRANDTETON:
-    case PlatformMode::DARWIN:
-    case PlatformMode::LASSEN:
-    case PlatformMode::MERU400BIU:
-    case PlatformMode::MERU400BIA:
-    case PlatformMode::MERU400BFU:
-    case PlatformMode::MONTBLANC:
+  switch (platformType) {
+    case PlatformType::PLATFORM_WEDGE:
+    case PlatformType::PLATFORM_WEDGE100:
+    case PlatformType::PLATFORM_GALAXY_LC:
+    case PlatformType::PLATFORM_GALAXY_FC:
+    case PlatformType::PLATFORM_FAKE_WEDGE:
+    case PlatformType::PLATFORM_FAKE_WEDGE40:
+    case PlatformType::PLATFORM_WEDGE400C:
+    case PlatformType::PLATFORM_WEDGE400C_SIM:
+    case PlatformType::PLATFORM_WEDGE400C_VOQ:
+    case PlatformType::PLATFORM_WEDGE400C_FABRIC:
+    case PlatformType::PLATFORM_WEDGE400C_GRANDTETON:
+    case PlatformType::PLATFORM_WEDGE400:
+    case PlatformType::PLATFORM_WEDGE400_GRANDTETON:
+    case PlatformType::PLATFORM_DARWIN:
+    case PlatformType::PLATFORM_LASSEN:
+    case PlatformType::PLATFORM_MERU400BIU:
+    case PlatformType::PLATFORM_MERU400BIA:
+    case PlatformType::PLATFORM_MERU400BFU:
+    case PlatformType::PLATFORM_MONTBLANC:
       throw FbossError("No xphys to check FW version on");
-    case PlatformMode::ELBERT:
+    case PlatformType::PLATFORM_ELBERT:
       desiredFw.version() = 1;
       desiredFw.versionStr() = "1.93";
       desiredFw.minorVersion() = 93;
       break;
-    case PlatformMode::FUJI:
+    case PlatformType::PLATFORM_FUJI:
       desiredFw.version() = 0xD008;
       desiredFw.crc() = 0x4dcf6a59;
       break;
-    case PlatformMode::CLOUDRIPPER:
-    case PlatformMode::CLOUDRIPPER_VOQ:
-    case PlatformMode::CLOUDRIPPER_FABRIC:
+    case PlatformType::PLATFORM_CLOUDRIPPER:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
       desiredFw.version() = 1;
       desiredFw.versionStr() = "1.92";
       desiredFw.minorVersion() = 92;
       break;
-    case PlatformMode::MINIPACK:
+    case PlatformType::PLATFORM_MINIPACK:
       desiredFw.version() = 0xD037;
       desiredFw.crc() = 0xbf86d423;
       break;
-    case PlatformMode::YAMP:
+    case PlatformType::PLATFORM_YAMP:
       desiredFw.version() = 0x3894F5;
       desiredFw.versionStr() = "2.18.2";
       desiredFw.crc() = 0x5B4C;
       desiredFw.dateCode() = 18423;
       break;
-    case PlatformMode::SANDIA:
+    case PlatformType::PLATFORM_SANDIA:
       desiredFw.version() = 0;
       desiredFw.versionStr() = "0.0";
       desiredFw.minorVersion() = 0;

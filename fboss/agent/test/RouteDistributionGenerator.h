@@ -16,7 +16,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/types.h"
-#include "fboss/lib/platforms/PlatformMode.h"
+#include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 #include <folly/IPAddress.h>
 #include <map>
@@ -94,7 +94,7 @@ class RouteDistributionGenerator {
     return chunkSize_;
   }
 
-  bool isSupported(PlatformMode /*mode*/) const {
+  bool isSupported(PlatformType /*type*/) const {
     return true;
   }
 

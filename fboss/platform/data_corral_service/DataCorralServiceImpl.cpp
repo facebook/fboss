@@ -34,13 +34,13 @@ void DataCorralServiceImpl::init() {
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
-  auto mode = productInfo->getMode();
-  if (mode == PlatformMode::DARWIN) {
+  auto type = productInfo->getType();
+  if (type == PlatformType::PLATFORM_DARWIN) {
     chassisManager_ =
         std::make_unique<DarwinChassisManager>(kRefreshIntervalInMs);
   } else {
     XLOG(WARN) << "Unable to instantiate ChassisManager for platform "
-               << toString(mode);
+               << toString(type);
   }
   chassisManager_->init();
 }

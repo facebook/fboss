@@ -44,7 +44,7 @@ void routeAddDelBenchmarker(bool measureAdd) {
   auto* sw = ensemble->getSw();
 
   auto routeGenerator = RouteScaleGeneratorT(sw->getState());
-  if (!routeGenerator.isSupported(ensemble->getPlatform()->getMode())) {
+  if (!routeGenerator.isSupported(ensemble->getPlatform()->getType())) {
     // skip if this is not supported for a platform
     return;
   }

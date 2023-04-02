@@ -37,7 +37,7 @@ void runBenchmark() {
   auto ensemble = createAgentEnsemble(initialConfig);
 
   utility::RouteDistributionGenerator::ThriftRouteChunks routeChunks;
-  if (ensemble->getPlatform()->getMode() == PlatformMode::WEDGE) {
+  if (ensemble->getPlatform()->getType() == PlatformType::PLATFORM_WEDGE) {
     routeChunks = utility::RouteDistributionGenerator(
                       ensemble->getProgrammedState(),
                       // Distribution taken from a random wedge in fleet

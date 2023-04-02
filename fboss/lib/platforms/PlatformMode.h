@@ -12,96 +12,67 @@
 #include <gflags/gflags.h>
 #include <stdexcept>
 #include <string>
+#include "fboss/lib/if/gen-cpp2/fboss_common_types.h"
 
 DECLARE_bool(use_bsp_helpers);
 
 namespace facebook::fboss {
 
-enum class PlatformMode : char {
-  WEDGE,
-  WEDGE100,
-  GALAXY_LC,
-  GALAXY_FC,
-  FAKE_WEDGE,
-  MINIPACK,
-  YAMP,
-  FAKE_WEDGE40,
-  WEDGE400C,
-  WEDGE400C_SIM,
-  WEDGE400,
-  WEDGE400_GRANDTETON,
-  FUJI,
-  ELBERT,
-  CLOUDRIPPER,
-  DARWIN,
-  LASSEN,
-  SANDIA,
-  MERU400BIU,
-  MERU400BIA,
-  MERU400BFU,
-  WEDGE400C_VOQ,
-  WEDGE400C_FABRIC,
-  WEDGE400C_GRANDTETON,
-  CLOUDRIPPER_VOQ,
-  CLOUDRIPPER_FABRIC,
-  MONTBLANC,
-};
-
-inline std::string toString(PlatformMode mode) {
+inline std::string toString(PlatformType mode) {
   switch (mode) {
-    case PlatformMode::WEDGE:
+    case PlatformType::PLATFORM_WEDGE:
       return "WEDGE";
-    case PlatformMode::WEDGE100:
+    case PlatformType::PLATFORM_WEDGE100:
       return "WEDGE100";
-    case PlatformMode::GALAXY_LC:
+    case PlatformType::PLATFORM_GALAXY_LC:
       return "GALAXY_LC";
-    case PlatformMode::GALAXY_FC:
+    case PlatformType::PLATFORM_GALAXY_FC:
       return "GALAXY_FC";
-    case PlatformMode::FAKE_WEDGE:
+    case PlatformType::PLATFORM_FAKE_WEDGE:
       return "FAKE_WEDGE";
-    case PlatformMode::MINIPACK:
+    case PlatformType::PLATFORM_MINIPACK:
       return "MINIPACK";
-    case PlatformMode::YAMP:
+    case PlatformType::PLATFORM_YAMP:
       return "YAMP";
-    case PlatformMode::FAKE_WEDGE40:
+    case PlatformType::PLATFORM_FAKE_WEDGE40:
       return "FAKE_WEDGE40";
-    case PlatformMode::WEDGE400C:
+    case PlatformType::PLATFORM_WEDGE400C:
       return "WEDGE400C";
-    case PlatformMode::WEDGE400C_SIM:
+    case PlatformType::PLATFORM_WEDGE400C_SIM:
       return "WEDGE400C_SIM";
-    case PlatformMode::WEDGE400:
+    case PlatformType::PLATFORM_WEDGE400:
       return "WEDGE400";
-    case PlatformMode::WEDGE400_GRANDTETON:
+    case PlatformType::PLATFORM_WEDGE400_GRANDTETON:
       return "WEDGE400_GRANDTETON";
-    case PlatformMode::FUJI:
+    case PlatformType::PLATFORM_FUJI:
       return "FUJI";
-    case PlatformMode::ELBERT:
+    case PlatformType::PLATFORM_ELBERT:
       return "ELBERT";
-    case PlatformMode::CLOUDRIPPER:
+    case PlatformType::PLATFORM_CLOUDRIPPER:
       return "CLOUDRIPPER";
-    case PlatformMode::DARWIN:
+    case PlatformType::PLATFORM_DARWIN:
       return "DARWIN";
-    case PlatformMode::LASSEN:
+    case PlatformType::PLATFORM_LASSEN:
       return "LASSEN";
-    case PlatformMode::SANDIA:
+    case PlatformType::PLATFORM_SANDIA:
       return "SANDIA";
-    case PlatformMode::MERU400BIU:
+    case PlatformType::PLATFORM_MERU400BIU:
       return "MERU400BIU";
-    case PlatformMode::MERU400BIA:
+    case PlatformType::PLATFORM_MERU400BIA:
       return "MERU400BIA";
-    case PlatformMode::MERU400BFU:
+    case PlatformType::PLATFORM_MERU400BFU:
       return "MERU400BFU";
-    case PlatformMode::WEDGE400C_VOQ:
+    case PlatformType::PLATFORM_WEDGE400C_VOQ:
       return "WEDGE400C_VOQ";
-    case PlatformMode::WEDGE400C_FABRIC:
+    case PlatformType::PLATFORM_WEDGE400C_FABRIC:
       return "WEDGE400C_FABRIC";
-    case PlatformMode::WEDGE400C_GRANDTETON:
+    case PlatformType::PLATFORM_WEDGE400C_GRANDTETON:
       return "WEDGE400C_GRANDTETON";
-    case PlatformMode::CLOUDRIPPER_VOQ:
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
       return "CLOUDRIPPER_VOQ";
-    case PlatformMode::CLOUDRIPPER_FABRIC:
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
       return "CLOUDRIPPER_FABRIC";
-    case PlatformMode::MONTBLANC:
+    case PlatformType::PLATFORM_MONTBLANC:
       return "MONTBLANC";
   }
   throw std::runtime_error("Unknown mode");

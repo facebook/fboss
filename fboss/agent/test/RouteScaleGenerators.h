@@ -106,7 +106,7 @@ class TurboFSWRouteScaleGenerator : public RouteDistributionGenerator {
       unsigned int ecmpWidth = 64,
       RouterID routerId = RouterID(0));
 
-  bool isSupported(PlatformMode mode) const;
+  bool isSupported(PlatformType type) const;
 
  private:
   const MaskLen2PrefixLabelDistribution v6PrefixLabelDistributionSpec_;

@@ -409,9 +409,11 @@ std::shared_ptr<SwitchState> TurboFSWRouteScaleGenerator::resolveNextHops(
   return nhopsResolvedState;
 }
 
-bool TurboFSWRouteScaleGenerator::isSupported(PlatformMode mode) const {
+bool TurboFSWRouteScaleGenerator::isSupported(PlatformType type) const {
   return (
-      mode == PlatformMode::MINIPACK || mode == PlatformMode::YAMP ||
-      mode == PlatformMode::FUJI || mode == PlatformMode::ELBERT);
+      type == PlatformType::PLATFORM_MINIPACK ||
+      type == PlatformType::PLATFORM_YAMP ||
+      type == PlatformType::PLATFORM_FUJI ||
+      type == PlatformType::PLATFORM_ELBERT);
 }
 } // namespace facebook::fboss::utility

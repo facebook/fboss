@@ -31,34 +31,37 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
   auto productInfo =
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
-  auto mode = productInfo->getMode();
+  auto mode = productInfo->getType();
 
   createDir(FLAGS_qsfp_service_volatile_dir);
-  if (mode == PlatformMode::WEDGE100) {
+  if (mode == PlatformType::PLATFORM_WEDGE100) {
     return std::make_unique<Wedge100Manager>();
   } else if (
-      mode == PlatformMode::GALAXY_LC || mode == PlatformMode::GALAXY_FC) {
+      mode == PlatformType::PLATFORM_GALAXY_LC ||
+      mode == PlatformType::PLATFORM_GALAXY_FC) {
     return std::make_unique<GalaxyManager>(mode);
-  } else if (mode == PlatformMode::YAMP) {
+  } else if (mode == PlatformType::PLATFORM_YAMP) {
     return createYampWedgeManager();
-  } else if (mode == PlatformMode::DARWIN) {
+  } else if (mode == PlatformType::PLATFORM_DARWIN) {
     return createDarwinWedgeManager();
-  } else if (mode == PlatformMode::LASSEN) {
+  } else if (mode == PlatformType::PLATFORM_LASSEN) {
     return createLassenWedgeManager();
-  } else if (mode == PlatformMode::ELBERT) {
+  } else if (mode == PlatformType::PLATFORM_ELBERT) {
     return createElbertWedgeManager();
-  } else if (mode == PlatformMode::SANDIA) {
+  } else if (mode == PlatformType::PLATFORM_SANDIA) {
     return createSandiaWedgeManager();
-  } else if (mode == PlatformMode::MERU400BFU) {
+  } else if (mode == PlatformType::PLATFORM_MERU400BFU) {
     return createMeru400bfuWedgeManager();
-  } else if (mode == PlatformMode::MERU400BIU) {
+  } else if (mode == PlatformType::PLATFORM_MERU400BIU) {
     return createMeru400biuWedgeManager();
-  } else if (mode == PlatformMode::MONTBLANC) {
+  } else if (mode == PlatformType::PLATFORM_MONTBLANC) {
     return createMontblancWedgeManager();
   } else if (
-      mode == PlatformMode::FUJI || mode == PlatformMode::MINIPACK ||
-      mode == PlatformMode::WEDGE400 || mode == PlatformMode::WEDGE400C ||
-      mode == PlatformMode::CLOUDRIPPER) {
+      mode == PlatformType::PLATFORM_FUJI ||
+      mode == PlatformType::PLATFORM_MINIPACK ||
+      mode == PlatformType::PLATFORM_WEDGE400 ||
+      mode == PlatformType::PLATFORM_WEDGE400C ||
+      mode == PlatformType::PLATFORM_CLOUDRIPPER) {
     return createFBWedgeManager(std::move(productInfo));
   }
   return std::make_unique<Wedge40Manager>();
@@ -72,7 +75,7 @@ std::unique_ptr<WedgeManager> createMeru400bfuWedgeManager() {
       systemContainer,
       std::make_unique<BspTransceiverApi>(systemContainer),
       std::make_unique<Meru400bfuPlatformMapping>(),
-      PlatformMode::MERU400BFU);
+      PlatformType::PLATFORM_MERU400BFU);
 }
 
 std::unique_ptr<WedgeManager> createMeru400biuWedgeManager() {
@@ -83,7 +86,7 @@ std::unique_ptr<WedgeManager> createMeru400biuWedgeManager() {
       systemContainer,
       std::make_unique<BspTransceiverApi>(systemContainer),
       std::make_unique<Meru400biuPlatformMapping>(),
-      PlatformMode::MERU400BIU);
+      PlatformType::PLATFORM_MERU400BIU);
 }
 
 std::unique_ptr<WedgeManager> createMontblancWedgeManager() {
@@ -94,7 +97,7 @@ std::unique_ptr<WedgeManager> createMontblancWedgeManager() {
       systemContainer,
       std::make_unique<BspTransceiverApi>(systemContainer),
       std::make_unique<MontblancPlatformMapping>(),
-      PlatformMode::MONTBLANC);
+      PlatformType::PLATFORM_MONTBLANC);
 }
 } // namespace fboss
 } // namespace facebook

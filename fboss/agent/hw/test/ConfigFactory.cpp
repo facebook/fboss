@@ -70,13 +70,13 @@ void removeSubsumedPorts(
   }
 }
 
-bool isRswPlatform(PlatformMode mode) {
+bool isRswPlatform(PlatformType type) {
   std::set rswPlatforms = {
-      PlatformMode::WEDGE,
-      PlatformMode::WEDGE100,
-      PlatformMode::WEDGE400,
-      PlatformMode::WEDGE400C};
-  return rswPlatforms.find(mode) != rswPlatforms.end();
+      PlatformType::PLATFORM_WEDGE,
+      PlatformType::PLATFORM_WEDGE100,
+      PlatformType::PLATFORM_WEDGE400,
+      PlatformType::PLATFORM_WEDGE400C};
+  return rswPlatforms.find(type) != rswPlatforms.end();
 }
 
 } // unnamed namespace
@@ -936,7 +936,7 @@ cfg::SwitchConfig createUplinkDownlinkConfig(
    * config factory utility to generate the config, update the port
    * speed and return the config.
    */
-  if (!isRswPlatform(platform->getMode())) {
+  if (!isRswPlatform(platform->getType())) {
     auto config = utility::onePortPerInterfaceConfig(
         hwSwitch,
         masterLogicalPortIds,
@@ -1138,7 +1138,7 @@ UplinkDownlinkPair getAllUplinkDownlinkPorts(
     const cfg::SwitchConfig& config,
     const int ecmpWidth,
     const bool mmu_lossless) {
-  auto platMode = hwSwitch->getPlatform()->getMode();
+  auto platMode = hwSwitch->getPlatform()->getType();
   if (mmu_lossless) {
     return getRtswUplinkDownlinkPorts(config, ecmpWidth);
   } else if (isRswPlatform(platMode)) {

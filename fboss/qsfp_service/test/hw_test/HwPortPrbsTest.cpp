@@ -19,14 +19,14 @@ namespace facebook::fboss {
 
 namespace {
 static const std::unordered_map<
-    PlatformMode,
+    PlatformType,
     std::unordered_map<phy::IpModulation, std::vector<int32_t>>>
     kSupportedPolynominal = {
-        {PlatformMode::MINIPACK,
+        {PlatformType::PLATFORM_MINIPACK,
          {{phy::IpModulation::NRZ, {7, 9, 10, 11, 13, 15, 20, 23, 31, 49, 58}},
           {phy::IpModulation::PAM4,
            {7, 9, 10, 11, 13, 15, 20, 23, 31, 49, 58}}}},
-        {PlatformMode::YAMP,
+        {PlatformType::PLATFORM_YAMP,
          {{{phy::IpModulation::NRZ, {9, 15, 23, 31}},
            {phy::IpModulation::PAM4, {9, 13, 15, 31}}}}}};
 }
@@ -70,12 +70,12 @@ class HwPortPrbsTest : public HwExternalPhyPortTest {
     const auto& availableXphyPorts = findAvailableXphyPorts();
 
     auto* wedgeManager = getHwQsfpEnsemble()->getWedgeManager();
-    auto platformMode = wedgeManager->getPlatformMode();
-    auto ipModToPolynominalListIt = kSupportedPolynominal.find(platformMode);
+    auto platformType = wedgeManager->getPlatformType();
+    auto ipModToPolynominalListIt = kSupportedPolynominal.find(platformType);
     if (ipModToPolynominalListIt == kSupportedPolynominal.end()) {
       throw FbossError(
           "Platform:",
-          platformMode,
+          platformType,
           " doesn't have supoorted polynominal list");
     }
 

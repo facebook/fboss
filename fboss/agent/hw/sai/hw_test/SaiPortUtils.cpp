@@ -304,23 +304,23 @@ void verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {
   SaiPlatformPort* platformPort = platform->getPort(port);
   uint32_t currentVal = platformPort->getCurrentLedState();
   uint32_t expectedVal = 0;
-  switch (platform->getMode()) {
-    case PlatformMode::WEDGE: {
+  switch (platform->getType()) {
+    case PlatformType::PLATFORM_WEDGE: {
       expectedVal =
           static_cast<uint32_t>(Wedge40LedUtils::getExpectedLEDState(up, up));
     } break;
-    case PlatformMode::WEDGE100: {
+    case PlatformType::PLATFORM_WEDGE100: {
       expectedVal = static_cast<uint32_t>(Wedge100LedUtils::getExpectedLEDState(
           platform->getLaneCount(platformPort->getCurrentProfile()), up, up));
     } break;
-    case PlatformMode::GALAXY_FC:
-    case PlatformMode::GALAXY_LC: {
+    case PlatformType::PLATFORM_GALAXY_FC:
+    case PlatformType::PLATFORM_GALAXY_LC: {
       expectedVal = GalaxyLedUtils::getExpectedLEDState(up, up);
     } break;
-    case PlatformMode::WEDGE400:
-    case PlatformMode::WEDGE400_GRANDTETON:
-    case PlatformMode::WEDGE400C:
-    case PlatformMode::WEDGE400C_GRANDTETON: {
+    case PlatformType::PLATFORM_WEDGE400:
+    case PlatformType::PLATFORM_WEDGE400_GRANDTETON:
+    case PlatformType::PLATFORM_WEDGE400C:
+    case PlatformType::PLATFORM_WEDGE400C_GRANDTETON: {
       expectedVal = static_cast<uint32_t>(Wedge400LedUtils::getLedState(
           platform->getLaneCount(platformPort->getCurrentProfile()), up, up));
     } break;
