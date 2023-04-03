@@ -144,9 +144,63 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVoq(Entry* entry) {
   auto updateFn = [this,
                    fields](const std::shared_ptr<SwitchState>& state) mutable
       -> std::shared_ptr<SwitchState> {
-    std::shared_ptr<SwitchState> newState{state};
+    auto asic = sw_->getPlatform()->getAsic();
+    if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
+      fields.encapIndex =
+          EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
+    }
 
-    // TODO
+    auto systemPortRange =
+        sw_->getState()->getSwitchSettings()->getSystemPortRange();
+    auto systemPortID = *systemPortRange->minimum() + fields.port.phyPortID();
+
+    auto newState = state->clone();
+    auto intfMap = newState->getInterfaces()->modify(&newState);
+    // interfaceID is same as the systemPortID
+    auto interfaceID = InterfaceID(systemPortID);
+    auto intf = intfMap->getInterface(interfaceID);
+    auto intfNew = intf->clone();
+
+    auto nbrTable = intf->getTable<NTable>();
+    auto updatedNbrTable = nbrTable->toThrift();
+    auto nbrEntry = state::NeighborEntryFields();
+    nbrEntry.ipaddress() = fields.ip.str();
+    nbrEntry.mac() = fields.mac.toString();
+    nbrEntry.portId() = PortDescriptor(SystemPortID(systemPortID)).toThrift();
+    nbrEntry.interfaceId() = static_cast<uint32_t>(interfaceID);
+    nbrEntry.state() = static_cast<state::NeighborState>(fields.state);
+    nbrEntry.encapIndex() = fields.encapIndex.value();
+    nbrEntry.isLocal() = fields.isLocal;
+    if (fields.classID.has_value()) {
+      nbrEntry.classID() = fields.classID.value();
+    }
+
+    auto node = nbrTable->getEntryIf(fields.ip);
+    if (!node) {
+      updatedNbrTable.insert({fields.ip.str(), nbrEntry});
+      XLOG(DBG2)
+          << "Adding entry for: "
+          << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                 nbrEntry);
+    } else {
+      if (node->getMac() == fields.mac && node->getPort().isSystemPort() &&
+          node->getPort().sysPortID() == systemPortID &&
+          node->getIntfID() == interfaceID &&
+          node->getState() == fields.state && !node->isPending() &&
+          node->getClassID() == fields.classID) {
+        return nullptr;
+      }
+      updatedNbrTable.erase(fields.ip.str());
+      updatedNbrTable.insert({fields.ip.str(), nbrEntry});
+      XLOG(DBG2)
+          << "Updating entry for: "
+          << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                 nbrEntry);
+    }
+
+    intfNew->setNdpTable(updatedNbrTable);
+    intfMap->updateNode(intfNew);
+
     return newState;
   };
 
