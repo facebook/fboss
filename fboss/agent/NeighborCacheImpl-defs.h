@@ -291,8 +291,61 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForVoq(
       return nullptr;
     }
 
-    // TODO
-    return nullptr;
+    // TODO: Handle aggregate ports for VOQ switches
+    CHECK(port.isPhysicalPort());
+
+    auto systemPortRange =
+        sw_->getState()->getSwitchSettings()->getSystemPortRange();
+    auto systemPortID = *systemPortRange->minimum() + port.phyPortID();
+
+    auto asic = sw_->getPlatform()->getAsic();
+    auto encapIndex =
+        EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
+
+    auto newState = state->clone();
+    auto intfMap = newState->getInterfaces()->modify(&newState);
+    // interfaceID is same as the systemPortID
+    auto interfaceID = InterfaceID(systemPortID);
+    auto intf = intfMap->getInterface(interfaceID);
+    auto intfNew = intf->clone();
+
+    auto nbrTable = intf->getTable<NTable>();
+    auto updatedNbrTable = nbrTable->toThrift();
+
+    auto node = nbrTable->getEntryIf(fields.ip);
+    if (node) {
+      if (!force) {
+        // don't replace an existing entry with a pending one unless
+        // explicitly allowed
+        return nullptr;
+      }
+
+      updatedNbrTable.erase(fields.ip.str());
+    }
+
+    auto nbrEntry = state::NeighborEntryFields();
+    nbrEntry.ipaddress() = fields.ip.str();
+    nbrEntry.mac() = fields.mac.toString();
+    nbrEntry.portId() = PortDescriptor(SystemPortID(systemPortID)).toThrift();
+    nbrEntry.interfaceId() = static_cast<uint32_t>(interfaceID);
+    nbrEntry.state() =
+        static_cast<state::NeighborState>(state::NeighborState::Pending);
+    nbrEntry.encapIndex() = encapIndex;
+    nbrEntry.isLocal() = fields.isLocal;
+    if (fields.classID.has_value()) {
+      nbrEntry.classID() = fields.classID.value();
+    }
+
+    XLOG(DBG2) << "Adding pending entry for " << fields.ip << " on interface "
+               << fields.interfaceID << " entry: "
+               << apache::thrift::SimpleJSONSerializer::serialize<std::string>(
+                      nbrEntry);
+
+    updatedNbrTable.insert({fields.ip.str(), nbrEntry});
+    intfNew->setNdpTable(updatedNbrTable);
+    intfMap->updateNode(intfNew);
+
+    return newState;
   };
 
   return updateFn;
