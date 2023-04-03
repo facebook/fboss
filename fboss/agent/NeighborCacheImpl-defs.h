@@ -284,7 +284,16 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForVoq(
   auto fields = entry->getFields();
   auto updateFn =
       [this, fields, port, force](const std::shared_ptr<SwitchState>& state)
-      -> std::shared_ptr<SwitchState> { return nullptr; };
+      -> std::shared_ptr<SwitchState> {
+    if (port.isPhysicalPort() && port.phyPortID() == PortID(0)) {
+      // If the entry is pointing to the CPU port, it is not programmed in the
+      // hardware, thus no-op.
+      return nullptr;
+    }
+
+    // TODO
+    return nullptr;
+  };
 
   return updateFn;
 }
