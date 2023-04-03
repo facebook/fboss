@@ -167,11 +167,9 @@ const SystemPortApi& SaiApiTable::systemPortApi() const {
   return getApi<SystemPortApi>();
 }
 
-#if !defined(TAJO_SDK)
 const UdfApi& SaiApiTable::udfApi() const {
   return getApi<UdfApi>();
 }
-#endif
 
 const VirtualRouterApi& SaiApiTable::virtualRouterApi() const {
   return getApi<VirtualRouterApi>();

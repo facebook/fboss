@@ -44,6 +44,8 @@ class SaiTajoPlatform : public SaiHwPlatform {
   }
   void initLEDs() override {}
 
+  const std::set<sai_api_t>& getSupportedApiList() const override;
+
   const std::unordered_map<std::string, std::string>
   getSaiProfileVendorExtensionValues() const override;
 };

@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/platforms/sai/SaiTajoPlatform.h"
+#include "fboss/agent/hw/sai/api/UdfApi.h"
 #include "fboss/agent/hw/switch_asics/TajoAsic.h"
 
 namespace facebook::fboss {
@@ -24,6 +25,12 @@ SaiTajoPlatform::SaiTajoPlatform(
 std::optional<SaiSwitchTraits::Attributes::AclFieldList>
 SaiTajoPlatform::getAclFieldList() const {
   return std::nullopt;
+}
+
+const std::set<sai_api_t>& SaiTajoPlatform::getSupportedApiList() const {
+  static auto apis = getDefaultSwitchAsicSupportedApis();
+  apis.erase(facebook::fboss::UdfApi::ApiType);
+  return apis;
 }
 
 SaiTajoPlatform::~SaiTajoPlatform() {}
