@@ -67,7 +67,7 @@ class NeighborCacheImpl {
         evb_(sw->getNeighborCacheEvb()) {}
 
   // Methods useful for subclasses
-  void setPendingEntry(AddressType ip, bool force = false);
+  void setPendingEntry(AddressType ip, PortDescriptor port, bool force = false);
 
   void setExistingEntry(
       AddressType ip,
@@ -129,16 +129,19 @@ class NeighborCacheImpl {
  private:
   // These are used to program entries into the SwitchState
   void programEntry(Entry* entry);
-  void programPendingEntry(Entry* entry, bool force = false);
+  void
+  programPendingEntry(Entry* entry, PortDescriptor port, bool force = false);
 
   SwSwitch::StateUpdateFn getUpdateFnToProgramEntryForNpu(Entry* entry);
   SwSwitch::StateUpdateFn getUpdateFnToProgramEntryForVoq(Entry* entry);
 
   SwSwitch::StateUpdateFn getUpdateFnToProgramPendingEntryForNpu(
       Entry* entry,
+      PortDescriptor port,
       bool force);
   SwSwitch::StateUpdateFn getUpdateFnToProgramPendingEntryForVoq(
       Entry* entry,
+      PortDescriptor port,
       bool force);
 
   void processEntry(AddressType ip);

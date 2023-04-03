@@ -125,9 +125,9 @@ class NeighborCache {
             intfID)) {}
 
   // Methods useful for subclasses
-  void setPendingEntry(AddressType ip) {
+  void setPendingEntry(AddressType ip, PortDescriptor port) {
     std::lock_guard<std::mutex> g(cacheLock_);
-    impl_->setPendingEntry(ip);
+    impl_->setPendingEntry(ip, port);
   }
 
   void setExistingEntry(

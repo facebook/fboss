@@ -208,15 +208,18 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVoq(Entry* entry) {
 }
 
 template <typename NTable>
-void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry, bool force) {
+void NeighborCacheImpl<NTable>::programPendingEntry(
+    Entry* entry,
+    PortDescriptor port,
+    bool force) {
   SwSwitch::StateUpdateFn updateFn;
 
   switch (sw_->getState()->getSwitchSettings()->getSwitchType()) {
     case cfg::SwitchType::NPU:
-      updateFn = getUpdateFnToProgramPendingEntryForNpu(entry, force);
+      updateFn = getUpdateFnToProgramPendingEntryForNpu(entry, port, force);
       break;
     case cfg::SwitchType::VOQ:
-      updateFn = getUpdateFnToProgramPendingEntryForVoq(entry, force);
+      updateFn = getUpdateFnToProgramPendingEntryForVoq(entry, port, force);
       break;
     case cfg::SwitchType::FABRIC:
     case cfg::SwitchType::PHY:
@@ -231,8 +234,11 @@ void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry, bool force) {
 }
 
 template <typename NTable>
-SwSwitch::StateUpdateFn NeighborCacheImpl<
-    NTable>::getUpdateFnToProgramPendingEntryForNpu(Entry* entry, bool force) {
+SwSwitch::StateUpdateFn
+NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForNpu(
+    Entry* entry,
+    PortDescriptor /*port*/,
+    bool force) {
   CHECK(entry->isPending());
 
   auto fields = entry->getFields();
@@ -270,11 +276,14 @@ SwSwitch::StateUpdateFn NeighborCacheImpl<
 }
 
 template <typename NTable>
-SwSwitch::StateUpdateFn NeighborCacheImpl<
-    NTable>::getUpdateFnToProgramPendingEntryForVoq(Entry* entry, bool force) {
+SwSwitch::StateUpdateFn
+NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntryForVoq(
+    Entry* entry,
+    PortDescriptor port,
+    bool force) {
   auto fields = entry->getFields();
   auto updateFn =
-      [this, fields, force](const std::shared_ptr<SwitchState>& state)
+      [this, fields, port, force](const std::shared_ptr<SwitchState>& state)
       -> std::shared_ptr<SwitchState> { return nullptr; };
 
   return updateFn;
@@ -396,7 +405,10 @@ NeighborCacheEntry<NTable>* NeighborCacheImpl<NTable>::setEntryInternal(
 }
 
 template <typename NTable>
-void NeighborCacheImpl<NTable>::setPendingEntry(AddressType ip, bool force) {
+void NeighborCacheImpl<NTable>::setPendingEntry(
+    AddressType ip,
+    PortDescriptor port,
+    bool force) {
   if (!force && getCacheEntry(ip)) {
     // only overwrite an existing entry with a pending entry if we say it is
     // ok with the 'force' parameter
@@ -408,7 +420,7 @@ void NeighborCacheImpl<NTable>::setPendingEntry(AddressType ip, bool force) {
       NeighborEntryState::INCOMPLETE,
       true);
   if (entry) {
-    programPendingEntry(entry, force);
+    programPendingEntry(entry, port, force);
   }
 }
 
@@ -531,7 +543,7 @@ void NeighborCacheImpl<NTable>::portDown(PortDescriptor port) {
     // programmed. Also we need to notify the HwSwitch for ECMP expand
     // when the port comes back up and changing an entry from pending
     // to reachable is how we currently do this.
-    setPendingEntry(item.second->getIP(), true);
+    setPendingEntry(item.second->getIP(), port, true);
   }
 }
 

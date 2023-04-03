@@ -34,7 +34,8 @@ ArpCache::ArpCache(
           state->getStaleEntryInterval()) {}
 
 void ArpCache::sentArpRequest(folly::IPAddressV4 ip) {
-  setPendingEntry(ip);
+  // Pending entry points to CPU port
+  setPendingEntry(ip, PortDescriptor(PortID(0)));
 }
 
 void ArpCache::receivedArpMine(
