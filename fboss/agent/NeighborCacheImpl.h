@@ -134,6 +134,13 @@ class NeighborCacheImpl {
   SwSwitch::StateUpdateFn getUpdateFnToProgramEntryForNpu(Entry* entry);
   SwSwitch::StateUpdateFn getUpdateFnToProgramEntryForVoq(Entry* entry);
 
+  SwSwitch::StateUpdateFn getUpdateFnToProgramPendingEntryForNpu(
+      Entry* entry,
+      bool force);
+  SwSwitch::StateUpdateFn getUpdateFnToProgramPendingEntryForVoq(
+      Entry* entry,
+      bool force);
+
   void processEntry(AddressType ip);
 
   // Pass in a non-null flushed if you care whether an entry

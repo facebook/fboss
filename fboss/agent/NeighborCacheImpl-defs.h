@@ -209,6 +209,30 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramEntryForVoq(Entry* entry) {
 
 template <typename NTable>
 void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry, bool force) {
+  SwSwitch::StateUpdateFn updateFn;
+
+  switch (sw_->getState()->getSwitchSettings()->getSwitchType()) {
+    case cfg::SwitchType::NPU:
+      updateFn = getUpdateFnToProgramPendingEntryForNpu(entry, force);
+      break;
+    case cfg::SwitchType::VOQ:
+      updateFn = getUpdateFnToProgramPendingEntryForVoq(entry, force);
+      break;
+    case cfg::SwitchType::FABRIC:
+    case cfg::SwitchType::PHY:
+      throw FbossError(
+          "Programming entry is not supported for switch type: ",
+          (sw_->getState()->getSwitchSettings()->getSwitchType()));
+  }
+
+  sw_->updateStateNoCoalescing(
+      folly::to<std::string>("add pending entry ", entry->getFields().ip),
+      std::move(updateFn));
+}
+
+template <typename NTable>
+SwSwitch::StateUpdateFn NeighborCacheImpl<
+    NTable>::getUpdateFnToProgramPendingEntryForNpu(Entry* entry, bool force) {
   CHECK(entry->isPending());
 
   auto fields = entry->getFields();
@@ -242,9 +266,18 @@ void NeighborCacheImpl<NTable>::programPendingEntry(Entry* entry, bool force) {
     return newState;
   };
 
-  sw_->updateStateNoCoalescing(
-      folly::to<std::string>("add pending entry ", fields.ip),
-      std::move(updateFn));
+  return updateFn;
+}
+
+template <typename NTable>
+SwSwitch::StateUpdateFn NeighborCacheImpl<
+    NTable>::getUpdateFnToProgramPendingEntryForVoq(Entry* entry, bool force) {
+  auto fields = entry->getFields();
+  auto updateFn =
+      [this, fields, force](const std::shared_ptr<SwitchState>& state)
+      -> std::shared_ptr<SwitchState> { return nullptr; };
+
+  return updateFn;
 }
 
 template <typename NTable>
