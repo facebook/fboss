@@ -398,16 +398,11 @@ void SaiSwitch::processLinkStateChangeDelta(
 }
 
 bool SaiSwitch::transactionsSupported() const {
-  // FIXME : Stoo skipping for Tajo once T79717530 resolved
-  return platform_->getAsic()->getAsicVendor() !=
-      HwAsic::AsicVendor::ASIC_VENDOR_TAJO;
+  return true;
 }
 
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedTransaction(
     const StateDelta& delta) {
-  CHECK(
-      platform_->getAsic()->getAsicVendor() !=
-      HwAsic::AsicVendor::ASIC_VENDOR_TAJO);
   try {
     return stateChanged(delta);
   } catch (const FbossError& e) {
