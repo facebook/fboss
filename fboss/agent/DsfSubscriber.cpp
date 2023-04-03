@@ -66,7 +66,17 @@ void DsfSubscriber::scheduleUpdate(
           // Also, link local only has significance for Servers directly
           // connected to Interface Node. Thus, skip programming remote link
           // local neighbors.
-          return nbrEntryIter->second->getIP().isLinkLocal();
+          if (nbrEntryIter->second->getIP().isLinkLocal()) {
+            return true;
+          }
+
+          // Only program neighbor entries that are REACHABLE on the DSF node
+          // that resolved it.
+          if (nbrEntryIter->second->getState() != NeighborState::REACHABLE) {
+            return true;
+          }
+
+          return false;
         };
 
         auto makeRemoteSysPort = [&](const auto& /*oldNode*/,
