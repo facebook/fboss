@@ -163,7 +163,9 @@ class HwSwitch {
       std::optional<int64_t> switchId = std::nullopt) {
     switchType_ = switchType;
     switchId_ = switchId;
-    return initImpl(callback, failHwCallsOnWarmboot, switchType, switchId);
+    auto ret = initImpl(callback, failHwCallsOnWarmboot, switchType, switchId);
+    setProgrammedState(ret.switchState);
+    return ret;
   }
 
   cfg::SwitchType getSwitchType() const {
@@ -394,6 +396,11 @@ class HwSwitch {
       LoadBalancerID loadBalancerID,
       folly::MacAddress mac) const = 0;
 
+  std::shared_ptr<SwitchState> getProgrammedState() const;
+
+ protected:
+  void setProgrammedState(const std::shared_ptr<SwitchState>& state);
+
  private:
   virtual HwInitResult initImpl(
       Callback* callback,
@@ -420,6 +427,8 @@ class HwSwitch {
   mutable folly::ThreadLocalPtr<HwSwitchStats> hwSwitchStats_;
   cfg::SwitchType switchType_{cfg::SwitchType::NPU};
   std::optional<int64_t> switchId_;
+
+  folly::Synchronized<std::shared_ptr<SwitchState>> programmedState_;
 };
 
 } // namespace facebook::fboss

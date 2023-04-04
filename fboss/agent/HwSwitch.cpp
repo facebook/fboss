@@ -93,13 +93,14 @@ std::shared_ptr<SwitchState> HwSwitch::stateChangedTransaction(
     throw FbossError("Transactions not supported on this switch");
   }
   try {
-    return stateChanged(delta);
+    setProgrammedState(stateChanged(delta));
   } catch (const FbossError& e) {
     XLOG(WARNING) << " Transaction failed with error : " << *e.message()
                   << " attempting rollback";
     this->rollback(delta.oldState());
+    setProgrammedState(delta.oldState());
   }
-  return delta.oldState();
+  return getProgrammedState();
 }
 
 void HwSwitch::rollback(
@@ -107,4 +108,15 @@ void HwSwitch::rollback(
   XLOG(FATAL)
       << "Transactions is supported but rollback is implemented on this switch";
 }
+
+std::shared_ptr<SwitchState> HwSwitch::getProgrammedState() const {
+  auto programmedState = programmedState_.rlock();
+  return *programmedState;
+}
+
+void HwSwitch::setProgrammedState(const std::shared_ptr<SwitchState>& state) {
+  auto programmedState = programmedState_.wlock();
+  *programmedState = state;
+}
+
 } // namespace facebook::fboss
