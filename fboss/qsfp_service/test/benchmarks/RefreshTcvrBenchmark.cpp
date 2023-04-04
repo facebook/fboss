@@ -27,7 +27,8 @@ std::size_t refreshTcvrs(MediaInterfaceCode mediaType) {
 
   for (int i = 0; i < wedgeMgr->getNumQsfpModules(); i++) {
     TransceiverID id(i);
-    auto interface = wedgeMgr->getTransceiverInfo(id).moduleMediaInterface();
+    auto interface =
+        wedgeMgr->getTransceiverInfo(id).tcvrState()->moduleMediaInterface();
 
     if (interface.has_value() && interface.value() == mediaType) {
       std::unordered_set<TransceiverID> tcvr{id};

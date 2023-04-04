@@ -59,7 +59,7 @@ TEST_F(HwTest, i2cUniqueSerialNumbers) {
   std::unordered_map<std::string, int32_t> snIds;
 
   for (auto tcvrId : transceivers) {
-    auto vendor = transceiverInfo[tcvrId].vendor();
+    auto vendor = transceiverInfo[tcvrId].tcvrState()->vendor();
     CHECK(vendor);
     auto vendorInfo = *vendor;
     auto sn = *(vendorInfo.serialNumber());
@@ -78,11 +78,11 @@ TEST_F(HwTest, i2cUniqueSerialNumbers) {
       EXPECT_EQ(cabledNames[tcvrId].second, cabledNames[neighborId].first);
 
       auto transmitterTech =
-          *(transceiverInfo[tcvrId].cable()->transmitterTech());
+          *(transceiverInfo[tcvrId].tcvrState()->cable()->transmitterTech());
       EXPECT_TRUE(TransmitterTechnology::COPPER == transmitterTech);
 
-      transmitterTech =
-          *(transceiverInfo[neighborId].cable()->transmitterTech());
+      transmitterTech = *(
+          transceiverInfo[neighborId].tcvrState()->cable()->transmitterTech());
       EXPECT_TRUE(TransmitterTechnology::COPPER == transmitterTech);
     }
   }
