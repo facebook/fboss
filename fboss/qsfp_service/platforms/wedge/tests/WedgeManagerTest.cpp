@@ -28,7 +28,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
     EXPECT_EQ((*synchronizedTransceivers).size(), transInfo.size());
   }
   for (const auto& info : transInfo) {
-    EXPECT_EQ(info.second.present(), true);
+    EXPECT_EQ(info.second.tcvrState()->present(), true);
   }
   auto cachedTransInfo = transInfo;
 
@@ -71,7 +71,9 @@ TEST_F(WedgeManagerTest, getTransceiverInfoBasic) {
   transceiverManager_->getTransceiversInfo(
       transInfo, std::make_unique<std::vector<int32_t>>());
   for (auto i = 0; i < transceiverManager_->getNumQsfpModules(); i++) {
-    EXPECT_EQ(*transInfo[i].present(), i != 4); // ID 5 was marked as absent
+    EXPECT_EQ(
+        *transInfo[i].tcvrState()->present(),
+        i != 4); // ID 5 was marked as absent
   }
 }
 
@@ -96,7 +98,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfoWithReadExceptions) {
     EXPECT_EQ(
         *info.second.timeCollected(),
         *cachedTransInfo[info.first].timeCollected());
-    EXPECT_EQ(*info.second.present(), true);
+    EXPECT_EQ(*info.second.tcvrState()->present(), true);
   }
 
   // Cause read exceptions while reading the management interface. In this case,
@@ -112,7 +114,7 @@ TEST_F(WedgeManagerTest, getTransceiverInfoWithReadExceptions) {
   transceiverManager_->getTransceiversInfo(
       transInfo, std::make_unique<std::vector<int32_t>>());
   for (const auto& info : transInfo) {
-    EXPECT_EQ(*info.second.present(), false);
+    EXPECT_EQ(*info.second.tcvrState()->present(), false);
     EXPECT_EQ(info.second.timeCollected().has_value(), true);
   }
 }
@@ -478,7 +480,8 @@ TEST_F(WedgeManagerTest, pauseRemediationTimerTest) {
     transceiverManager_->getTransceiversInfo(
         transInfo, std::make_unique<std::vector<int32_t>>(xcvrList));
     if (transInfo.find(xcvr) != transInfo.end()) {
-      auto remediateCount = transInfo[xcvr].remediationCounter().value();
+      auto remediateCount =
+          transInfo[xcvr].tcvrStats()->remediationCounter().value();
       XLOG(INFO) << "Module " << xcvr
                  << " remediate count = " << remediateCount;
       if (remediateCount > 0) {

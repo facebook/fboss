@@ -488,7 +488,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
     EXPECT_CALL(*mockXcvr, configureModule()).Times(callTimes).InSequence(s);
 
     const auto& info = transceiverManager_->getTransceiverInfo(id_);
-    if (auto settings = info.settings()) {
+    if (auto settings = info.tcvrState()->settings()) {
       if (auto hostLaneSettings = settings->hostLaneSettings()) {
         EXPECT_CALL(*mockXcvr, ensureRxOutputSquelchEnabled(*hostLaneSettings))
             .Times(callTimes)
@@ -869,7 +869,7 @@ TEST_F(TransceiverStateMachineTest, programTransceiverFailed) {
         // The rest functions are after customizeTransceiverLocked() and they
         // should only be called once at the second time
         const auto& info = transceiverManager_->getTransceiverInfo(id_);
-        if (auto settings = info.settings()) {
+        if (auto settings = info.tcvrState()->settings()) {
           if (auto hostLaneSettings = settings->hostLaneSettings()) {
             EXPECT_CALL(
                 *mockXcvr, ensureRxOutputSquelchEnabled(*hostLaneSettings))
@@ -1691,7 +1691,7 @@ TEST_F(TransceiverStateMachineTest, reseatTransceiver) {
     // 2) If it's a new transceiver inserted, a new transceiver will be detected
     transceiverManager_->refreshStateMachines();
     const auto& xcvrInfo = transceiverManager_->getTransceiverInfo(id_);
-    EXPECT_EQ(*xcvrInfo.present(), !isRemoval);
+    EXPECT_EQ(*xcvrInfo.tcvrState()->present(), !isRemoval);
     // verify that getTransceiverInfo properly returns a timestamp when
     // the transceiver isn't present
     if (isRemoval) {
