@@ -378,9 +378,6 @@ class BcmSwitch : public BcmSwitchIf {
     return controlPlane_.get();
   }
 
-  std::shared_ptr<SwitchState> stateChangedTransaction(
-      const StateDelta& delta) override;
-
   /*
    * BcmSwitch state as folly::dynamic
    * For now we only dump Host table.

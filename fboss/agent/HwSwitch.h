@@ -194,7 +194,10 @@ class HwSwitch {
       const StateDelta& delta) = 0;
 
   virtual std::shared_ptr<SwitchState> stateChangedTransaction(
-      const StateDelta& delta) = 0;
+      const StateDelta& delta);
+  virtual void rollback(
+      const std::shared_ptr<SwitchState>& knownGoodState) noexcept;
+
   virtual bool transactionsSupported() const {
     return false;
   }

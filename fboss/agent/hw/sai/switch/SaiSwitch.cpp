@@ -401,18 +401,6 @@ bool SaiSwitch::transactionsSupported() const {
   return true;
 }
 
-std::shared_ptr<SwitchState> SaiSwitch::stateChangedTransaction(
-    const StateDelta& delta) {
-  try {
-    return stateChanged(delta);
-  } catch (const FbossError& e) {
-    XLOG(WARNING) << " Transaction failed with error : " << *e.message()
-                  << " attempting rollback";
-    rollback(delta.oldState());
-  }
-  return delta.oldState();
-}
-
 void SaiSwitch::rollback(
     const std::shared_ptr<SwitchState>& knownGoodState) noexcept {
   auto curBootType = getBootType();

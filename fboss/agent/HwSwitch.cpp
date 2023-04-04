@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/HwSwitchStats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/normalization/Normalizer.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/TransceiverMap.h"
 
@@ -84,5 +85,26 @@ void HwSwitch::gracefulExit(
   if (getPlatform()->getAsic()->isSupported(HwAsic::Feature::WARMBOOT)) {
     gracefulExitImpl(follySwitchState, thriftSwitchState);
   }
+}
+
+std::shared_ptr<SwitchState> HwSwitch::stateChangedTransaction(
+    const StateDelta& delta) {
+  if (!transactionsSupported()) {
+    throw FbossError("Transactions not supported on this switch");
+  }
+  try {
+    return stateChanged(delta);
+  } catch (const FbossError& e) {
+    XLOG(WARNING) << " Transaction failed with error : " << *e.message()
+                  << " attempting rollback";
+    this->rollback(delta.oldState());
+  }
+  return delta.oldState();
+}
+
+void HwSwitch::rollback(
+    const std::shared_ptr<SwitchState>& /*knownGoodState*/) noexcept {
+  XLOG(FATAL)
+      << "Transactions is supported but rollback is implemented on this switch";
 }
 } // namespace facebook::fboss

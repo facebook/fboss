@@ -192,9 +192,6 @@ class SaiSwitch : public HwSwitch {
       const override;
   void dumpDebugState(const std::string& /*path*/) const override;
 
-  std::shared_ptr<SwitchState> stateChangedTransaction(
-      const StateDelta& delta) override;
-
   bool transactionsSupported() const override;
   bool l2LearningModeChangeProhibited() const;
 
@@ -217,7 +214,8 @@ class SaiSwitch : public HwSwitch {
       const StateDelta& delta,
       const LockPolicyT& lk);
   friend class SaiRollbackTest;
-  void rollback(const std::shared_ptr<SwitchState>& knownGoodState) noexcept;
+  void rollback(
+      const std::shared_ptr<SwitchState>& knownGoodState) noexcept override;
   std::string listObjectsLocked(
       const std::vector<sai_object_type_t>& objects,
       bool cached,

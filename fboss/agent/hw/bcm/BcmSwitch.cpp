@@ -1313,12 +1313,6 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedLocked(
   return appliedState;
 }
 
-std::shared_ptr<SwitchState> BcmSwitch::stateChangedTransaction(
-    const StateDelta& delta) {
-  throw FbossError("Transactions not supported on BcmSwitch");
-  return nullptr;
-}
-
 std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
     const StateDelta& delta,
     const std::lock_guard<std::mutex>& /*lock*/) {
