@@ -16,6 +16,7 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types_custom_protocol.h"
@@ -30,7 +31,10 @@ const std::vector<std::string> kRestartQsfpService = {
     "/bin/systemctl",
     "restart",
     "qsfp_service_for_testing"};
-}
+
+const std::string kForceColdbootQsfpSvcFileName =
+    "/dev/shm/fboss/qsfp_service/cold_boot_once_qsfp_service";
+} // namespace
 
 namespace facebook::fboss {
 
@@ -48,8 +52,14 @@ void LinkTest::SetUp() {
   XLOG(DBG2) << "Link Test setup ready";
 }
 
-void LinkTest::restartQsfpService() const {
-  XLOG(DBG2) << "Restarting QSFP Service";
+void LinkTest::restartQsfpService(bool coldboot) const {
+  if (coldboot) {
+    createFile(kForceColdbootQsfpSvcFileName);
+    XLOG(DBG2) << "Restarting QSFP Service in coldboot mode";
+  } else {
+    XLOG(DBG2) << "Restarting QSFP Service in warmboot mode";
+  }
+
   folly::Subprocess(kRestartQsfpService).waitChecked();
 }
 

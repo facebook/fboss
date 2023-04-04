@@ -95,7 +95,7 @@ TEST_F(LinkTest, qsfpWarmbootIsHitLess) {
   verifyAcrossWarmBoots(
       [this]() {
         createL3DataplaneFlood();
-        restartQsfpService();
+        restartQsfpService(false /* coldboot */);
         // Wait for all transceivers to converge to Active state
         EXPECT_NO_THROW(waitForAllTransceiverStates(
             true, 60 /* retries */, 5s /* retry interval */));
@@ -239,4 +239,19 @@ TEST_F(LinkTest, testOpticsRemediation) {
   };
 
   verifyAcrossWarmBoots([]() {}, verify);
+}
+
+TEST_F(LinkTest, qsfpColdbootAfterAgentUp) {
+  // Verifies that a qsfp cold boot after agent is up can still bringup the
+  // links and there is no dependency on which service starts first
+  verifyAcrossWarmBoots(
+      []() {},
+      [this]() {
+        restartQsfpService(true /* coldboot */);
+        /* sleep override */
+        sleep(5);
+        // Assert all cabled ports are up and transceivers have ACTIVE state
+        EXPECT_NO_THROW(waitForAllCabledPorts(true));
+        EXPECT_NO_THROW(waitForAllTransceiverStates(true, 60, 5s));
+      });
 }
