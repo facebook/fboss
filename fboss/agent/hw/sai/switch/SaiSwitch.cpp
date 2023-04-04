@@ -500,13 +500,6 @@ bool SaiSwitch::l2LearningModeChangeProhibited() const {
 std::shared_ptr<SwitchState> SaiSwitch::stateChangedImpl(
     const StateDelta& delta) {
   FineGrainedLockPolicy lockPolicy(saiSwitchMutex_);
-  return stateChanged(delta, lockPolicy);
-}
-
-template <typename LockPolicyT>
-std::shared_ptr<SwitchState> SaiSwitch::stateChanged(
-    const StateDelta& delta,
-    const LockPolicyT& lockPolicy) {
   return stateChangedImplLocked(delta, lockPolicy);
 }
 

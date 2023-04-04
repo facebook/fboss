@@ -1064,10 +1064,6 @@ class BcmSwitch : public BcmSwitchIf {
       std::optional<state::BufferPoolFields> oldBufferPoolCfgPtr,
       std::optional<state::BufferPoolFields> newBufferPoolCfgPtr);
 
-  std::shared_ptr<SwitchState> stateChangedLocked(
-      const StateDelta& delta,
-      const std::lock_guard<std::mutex>& lock);
-
   /*
    * Member variables
    */
