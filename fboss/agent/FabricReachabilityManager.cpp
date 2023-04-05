@@ -8,7 +8,10 @@
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
+#include "fboss/agent/platforms/common/cloud_ripper/CloudRipperFabricPlatformMapping.h"
+#include "fboss/agent/platforms/common/cloud_ripper/CloudRipperVoqPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CFabricPlatformMapping.h"
 #include "fboss/agent/platforms/common/wedge400c/Wedge400CVoqPlatformMapping.h"
@@ -82,29 +85,36 @@ void FabricReachabilityManager::stateUpdated(const StateDelta& delta) {
   updateDsfNodes(delta);
 }
 
-static PlatformMapping* FOLLY_NULLABLE getPlatformMappingForDsfNode(
+static const PlatformMapping* FOLLY_NULLABLE getPlatformMappingForDsfNode(
     const cfg::AsicType asicType,
-    const bool isSwitchTypeVoq,
+    const PlatformType platformType,
     int* remotePortOffset) {
   static Meru400biuPlatformMapping meru400biu;
+  static Meru400biaPlatformMapping meru400bia;
   static Meru400bfuPlatformMapping meru400bfu;
   static Wedge400CVoqPlatformMapping w400cVoq;
   static Wedge400CFabricPlatformMapping w400cFabric;
+  static CloudRipperFabricPlatformMapping cloudRipperFabric;
+  static CloudRipperVoqPlatformMapping cloudRipperVoq;
 
   *remotePortOffset = 0;
-  switch (asicType) {
-    case cfg::AsicType::ASIC_TYPE_EBRO:
-      if (isSwitchTypeVoq) {
-        return &w400cVoq;
-      } else {
-        return &w400cFabric;
-      }
-      break;
-    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+  switch (platformType) {
+    case PlatformType::PLATFORM_WEDGE400C_VOQ:
+      return &w400cVoq;
+    case PlatformType::PLATFORM_WEDGE400C_FABRIC:
+      return &w400cFabric;
+    case PlatformType::PLATFORM_CLOUDRIPPER_VOQ:
+      return &cloudRipperVoq;
+    case PlatformType::PLATFORM_CLOUDRIPPER_FABRIC:
+      return &cloudRipperFabric;
+    case PlatformType::PLATFORM_MERU400BIU:
       *remotePortOffset = 256;
       return &meru400biu;
+    case PlatformType::PLATFORM_MERU400BIA:
+      *remotePortOffset = 256;
+      return &meru400bia;
       break;
-    case cfg::AsicType::ASIC_TYPE_RAMON:
+    case PlatformType::PLATFORM_MERU400BFU:
       return &meru400bfu;
       break;
     default:
@@ -116,6 +126,7 @@ static PlatformMapping* FOLLY_NULLABLE getPlatformMappingForDsfNode(
 void FabricReachabilityManager::updateExpectedPortId(
     FabricEndpoint& endpoint,
     const cfg::AsicType asicType,
+    const PlatformType platformType,
     const cfg::DsfNodeType dsfNodeType) {
   int remotePortOffset = 0;
 
@@ -123,10 +134,8 @@ void FabricReachabilityManager::updateExpectedPortId(
       (dsfNodeType == cfg::DsfNodeType::FABRIC_NODE) ||
       (dsfNodeType == cfg::DsfNodeType::INTERFACE_NODE));
 
-  bool isSwitchTypeVoq =
-      dsfNodeType == cfg::DsfNodeType::INTERFACE_NODE ? true : false;
-  const auto platformMapping = getPlatformMappingForDsfNode(
-      asicType, isSwitchTypeVoq, &remotePortOffset);
+  const auto platformMapping =
+      getPlatformMappingForDsfNode(asicType, platformType, &remotePortOffset);
   if (!platformMapping) {
     // no reachability info
     XLOG(ERR) << "Unable to find platform mapping for neighboring port: "
@@ -143,12 +152,11 @@ void FabricReachabilityManager::updateExpectedPortId(
 
 void FabricReachabilityManager::updatePortName(
     FabricEndpoint& endpoint,
-    const cfg::AsicType asicType) {
+    const cfg::AsicType asicType,
+    const PlatformType platformType) {
   int remotePortOffset = 0;
-  bool isSwitchTypeVoq =
-      (*endpoint.switchType() == cfg::SwitchType::VOQ) ? true : false;
-  const auto platformMapping = getPlatformMappingForDsfNode(
-      asicType, isSwitchTypeVoq, &remotePortOffset);
+  const auto platformMapping =
+      getPlatformMappingForDsfNode(asicType, platformType, &remotePortOffset);
   if (!platformMapping) {
     // no reachability info
     XLOG(ERR) << "Unable to find platform mapping for neighboring port: "
@@ -188,6 +196,7 @@ void FabricReachabilityManager::updateExpectedFabricEndpointInfo(
     updateExpectedPortId(
         resEndpoint,
         dsfNodeIter->second->getAsicType(),
+        dsfNodeIter->second->getPlatformType(),
         dsfNodeIter->second->getType());
   }
 }
@@ -207,7 +216,10 @@ void FabricReachabilityManager::updateHwFabricEndpointInfo(
     }
     resEndpoint.switchName() = dsfSwitchIdToNodeIter->second->getName();
     // get asic type from dsfNode based on switchId from HW
-    updatePortName(resEndpoint, dsfSwitchIdToNodeIter->second->getAsicType());
+    updatePortName(
+        resEndpoint,
+        dsfSwitchIdToNodeIter->second->getAsicType(),
+        dsfSwitchIdToNodeIter->second->getPlatformType());
   }
 }
 

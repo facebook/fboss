@@ -38,10 +38,12 @@ class FabricReachabilityManagerTest : public ::testing::Test {
   std::shared_ptr<DsfNode> makeDsfNode(
       int64_t switchId,
       std::string name,
-      cfg::AsicType asicType = cfg::AsicType::ASIC_TYPE_RAMON) {
+      cfg::AsicType asicType = cfg::AsicType::ASIC_TYPE_RAMON,
+      PlatformType platformType = PlatformType::PLATFORM_MERU400BFU) {
     auto dsfNode = std::make_shared<DsfNode>(SwitchID(switchId));
     auto cfgDsfNode = makeDsfNodeCfg(switchId, name);
     cfgDsfNode.asicType() = asicType;
+    cfgDsfNode.platformType() = platformType;
     cfgDsfNode.type() = cfg::DsfNodeType::FABRIC_NODE;
     dsfNode->fromThrift(cfgDsfNode);
     return dsfNode;
@@ -90,7 +92,11 @@ TEST_F(FabricReachabilityManagerTest, validateRemoteOffset) {
   endpoint.isAttached() = true;
   hwReachabilityMap.emplace(swPort->getID(), endpoint);
 
-  auto dsfNode = makeDsfNode(10, "rdswA", cfg::AsicType::ASIC_TYPE_JERICHO2);
+  auto dsfNode = makeDsfNode(
+      10,
+      "rdswA",
+      cfg::AsicType::ASIC_TYPE_JERICHO2,
+      PlatformType::PLATFORM_MERU400BIU);
   auto dsfNodeMap = std::make_shared<DsfNodeMap>();
   dsfNodeMap->addNode(dsfNode);
   newState->resetDsfNodes(dsfNodeMap);

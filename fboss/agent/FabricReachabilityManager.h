@@ -36,8 +36,12 @@ class FabricReachabilityManager {
   void updateExpectedPortId(
       FabricEndpoint& endpoint,
       const cfg::AsicType asicType,
+      const PlatformType platformType,
       const cfg::DsfNodeType dsfNodeType);
-  void updatePortName(FabricEndpoint& endpoint, const cfg::AsicType asicType);
+  void updatePortName(
+      FabricEndpoint& endpoint,
+      const cfg::AsicType asicType,
+      PlatformType platformType);
   void updateHwFabricEndpointInfo(FabricEndpoint& resEndpoint);
   void updateExpectedFabricEndpointInfo(
       FabricEndpoint& resEndpoint,
