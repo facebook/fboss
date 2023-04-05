@@ -145,6 +145,8 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("Montblanc") == 0 || modelName.find("MONTBLANC") == 0) {
       type_ = PlatformType::PLATFORM_MONTBLANC;
+    } else if (modelName.find("Meru800bia") == 0) {
+      type_ = PlatformType::PLATFORM_MERU800BIA;
     } else {
       throw std::runtime_error("invalid model name " + modelName);
     }
@@ -177,6 +179,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_SANDIA;
     } else if (FLAGS_mode == "meru400biu") {
       type_ = PlatformType::PLATFORM_MERU400BIU;
+    } else if (FLAGS_mode == "meru800bia") {
+      type_ = PlatformType::PLATFORM_MERU800BIA;
     } else if (FLAGS_mode == "meru400bia") {
       type_ = PlatformType::PLATFORM_MERU400BIA;
     } else if (FLAGS_mode == "meru400bfu") {

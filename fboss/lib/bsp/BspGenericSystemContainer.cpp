@@ -3,6 +3,7 @@
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
+#include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 
 namespace facebook {
@@ -24,6 +25,15 @@ template <>
 std::shared_ptr<Meru400biuSystemContainer>
 Meru400biuSystemContainer::getInstance() {
   return _meru400biuSystemContainer.try_get();
+}
+
+using Meru800biaSystemContainer =
+    BspGenericSystemContainer<Meru800biaBspPlatformMapping>;
+folly::Singleton<Meru800biaSystemContainer> _meru800biaSystemContainer;
+template <>
+std::shared_ptr<Meru800biaSystemContainer>
+Meru800biaSystemContainer::getInstance() {
+  return _meru800biaSystemContainer.try_get();
 }
 
 using MontblancSystemContainer =

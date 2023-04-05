@@ -115,7 +115,8 @@ class HwAclQualifierTest : public HwTest {
   void configureAllHwQualifiers(cfg::AclEntry* acl, bool enable) {
     configureQualifier(
         acl->srcPort(), enable, masterLogicalInterfacePortIds()[0]);
-    if (getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO2) {
+    if ((getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO2) &&
+        (getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO3)) {
       // No out port support on J2. Out port not used in prod
       configureQualifier(
           acl->dstPort(), enable, masterLogicalInterfacePortIds()[1]);

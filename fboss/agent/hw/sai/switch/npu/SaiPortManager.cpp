@@ -47,8 +47,10 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
       };
       return counterIds;
     }
-    if (platform_->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_JERICHO2) {
+    if ((platform_->getAsic()->getAsicType() ==
+         cfg::AsicType::ASIC_TYPE_JERICHO2) ||
+        (platform_->getAsic()->getAsicType() ==
+         cfg::AsicType::ASIC_TYPE_JERICHO3)) {
       /*
        * TODO(skhare) JERICHO2 ASIC supports only a small set of stats today.
        * Remove this check once JERICHO2 ASIC supports querying all (most) of

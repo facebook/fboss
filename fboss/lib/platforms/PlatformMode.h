@@ -74,6 +74,8 @@ inline std::string toString(PlatformType mode) {
       return "CLOUDRIPPER_FABRIC";
     case PlatformType::PLATFORM_MONTBLANC:
       return "MONTBLANC";
+    case PlatformType::PLATFORM_MERU800BIA:
+      return "MERU800BIA";
   }
   throw std::runtime_error("Unknown mode");
   return "Unknown";

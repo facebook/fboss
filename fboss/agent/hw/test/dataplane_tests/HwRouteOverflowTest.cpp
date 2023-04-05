@@ -88,6 +88,7 @@ TEST_F(HwOverflowTest, overflowRoutes) {
       // No overflow test for TH4 yet
       break;
     case PlatformType::PLATFORM_MERU400BIU:
+    case PlatformType::PLATFORM_MERU800BIA:
       // No overflow test for MERU400BIU yet
       break;
     case PlatformType::PLATFORM_MERU400BIA:

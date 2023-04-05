@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
+#include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
@@ -34,6 +35,7 @@
 #include "fboss/agent/platforms/sai/SaiMeru400bfuPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMeru400biaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMeru400biuPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiMeru800biaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiSandiaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/state/Port.h"
@@ -263,6 +265,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiSandiaPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MERU400BIU) {
       saiPort = std::make_unique<SaiMeru400biuPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_MERU800BIA) {
+      saiPort = std::make_unique<SaiMeru800biaPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MERU400BIA) {
       saiPort = std::make_unique<SaiMeru400biaPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MERU400BFU) {
@@ -377,6 +381,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
         }
         switch (*dsfNode.asicType()) {
           case cfg::AsicType::ASIC_TYPE_JERICHO2:
+          case cfg::AsicType::ASIC_TYPE_JERICHO3:
             systemCores += indus.getNumCores();
             break;
           case cfg::AsicType::ASIC_TYPE_EBRO:

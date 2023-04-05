@@ -1180,6 +1180,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TRIDENT2;
   bool isJericho2 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2;
+  bool isJericho3 =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3;
 
   if (isTajo) {
     std::set<cfg::AclTableQualifier> tajoQualifiers = {
@@ -1213,7 +1215,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet()
     }
 #endif
     return tajoQualifiers;
-  } else if (isJericho2) {
+  } else if (isJericho2 || isJericho3) {
     // TODO(skhare)
     // Extend this list once the SAI implementation supports more qualifiers
     std::set<cfg::AclTableQualifier> indusQualifiers = {

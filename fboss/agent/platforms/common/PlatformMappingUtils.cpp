@@ -27,6 +27,7 @@
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/minipack/MinipackPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/agent/platforms/common/sandia/SandiaPlatformMapping.h"
@@ -155,6 +156,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Meru400biuPlatformMapping>()
           : std::make_unique<Meru400biuPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_MERU800BIA:
+      return platformMappingStr.empty()
+          ? std::make_unique<Meru800biaPlatformMapping>()
+          : std::make_unique<Meru800biaPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_MERU400BFU:
       return platformMappingStr.empty()
           ? std::make_unique<Meru400bfuPlatformMapping>()

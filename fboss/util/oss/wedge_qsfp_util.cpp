@@ -5,6 +5,7 @@
 #include "fboss/lib/bsp/BspTransceiverApi.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
+#include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/lib/usb/GalaxyI2CBus.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
@@ -41,6 +42,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
               .get();
       auto ioBus = std::make_unique<BspIOBus>(systemContainer);
       return std::make_pair(std::move(ioBus), 0);
+    } else if (FLAGS_platform == "meru800bia") {
+      auto systemContainer =
+          BspGenericSystemContainer<Meru800biaBspPlatformMapping>::getInstance()
+              .get();
+      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+      return std::make_pair(std::move(ioBus), 0);
     } else {
       fprintf(stderr, "Unknown platform %s\n", FLAGS_platform.c_str());
       return std::make_pair(nullptr, EX_USAGE);
@@ -51,7 +58,7 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
       std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
   productInfo->initialize();
 
-  auto mode = productInfo->getMode();
+  auto mode = productInfo->getType();
   if (mode == PlatformType::PLATFORM_MERU400BFU) {
     auto systemContainer =
         BspGenericSystemContainer<Meru400bfuBspPlatformMapping>::getInstance()
@@ -61,6 +68,12 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
   } else if (mode == PlatformType::PLATFORM_MERU400BIU) {
     auto systemContainer =
         BspGenericSystemContainer<Meru400biuBspPlatformMapping>::getInstance()
+            .get();
+    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
+    return std::make_pair(std::move(ioBus), 0);
+  } else if (mode == PlatformType::PLATFORM_MERU800BIU) {
+    auto systemContainer =
+        BspGenericSystemContainer<Meru800biaBspPlatformMapping>::getInstance()
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
@@ -96,7 +109,7 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
         std::make_unique<PlatformProductInfo>(FLAGS_fruid_filepath);
 
     productInfo->initialize();
-    mode = productInfo->getMode();
+    mode = productInfo->getType();
   }
 
   if (mode == PlatformType::PLATFORM_MERU400BFU) {

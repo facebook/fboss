@@ -11,10 +11,12 @@
 
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
+#include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
+#include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/qsfp_service/platforms/wedge/BspWedgeManager.h"
@@ -54,6 +56,8 @@ std::unique_ptr<WedgeManager> createWedgeManager() {
     return createMeru400bfuWedgeManager();
   } else if (mode == PlatformType::PLATFORM_MERU400BIU) {
     return createMeru400biuWedgeManager();
+  } else if (mode == PlatformType::PLATFORM_MERU800BIA) {
+    return createMeru800biaWedgeManager();
   } else if (mode == PlatformType::PLATFORM_MONTBLANC) {
     return createMontblancWedgeManager();
   } else if (
@@ -87,6 +91,17 @@ std::unique_ptr<WedgeManager> createMeru400biuWedgeManager() {
       std::make_unique<BspTransceiverApi>(systemContainer),
       std::make_unique<Meru400biuPlatformMapping>(),
       PlatformType::PLATFORM_MERU400BIU);
+}
+
+std::unique_ptr<WedgeManager> createMeru800biaWedgeManager() {
+  auto systemContainer =
+      BspGenericSystemContainer<Meru800biaBspPlatformMapping>::getInstance()
+          .get();
+  return std::make_unique<BspWedgeManager>(
+      systemContainer,
+      std::make_unique<BspTransceiverApi>(systemContainer),
+      std::make_unique<Meru800biaPlatformMapping>(),
+      PlatformType::PLATFORM_MERU800BIA);
 }
 
 std::unique_ptr<WedgeManager> createMontblancWedgeManager() {

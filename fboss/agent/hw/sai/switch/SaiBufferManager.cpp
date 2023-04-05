@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
+#include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
@@ -68,6 +69,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
       CHECK_EQ(maxEgressPoolSize, availableBuffer * 4);
       break;
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
@@ -85,6 +87,8 @@ SaiBufferManager::SaiBufferManager(
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
+  SaiSwitch* saiSwitch;
+  SwitchSaiId switchId;
   auto asic = platform->getAsic();
   switch (asic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
@@ -123,17 +127,17 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       return kCellsAvailable *
           static_cast<const Tomahawk5Asic*>(asic)->getMMUCellSize();
     }
-    case cfg::AsicType::ASIC_TYPE_JERICHO2: {
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
       /*
        * XXX: TODO: Need to check if there is a way to compute the
        * buffers available for use in Jericho2 without using the
        * egress buffer attribute.
        */
-      auto saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());
-      const auto switchId = saiSwitch->getSaiSwitchId();
+      saiSwitch = static_cast<SaiSwitch*>(platform->getHwSwitch());
+      switchId = saiSwitch->getSaiSwitchId();
       return SaiApiTable::getInstance()->switchApi().getAttribute(
           switchId, SaiSwitchTraits::Attributes::EgressPoolAvaialableSize{});
-    }
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_RAMON:
@@ -264,8 +268,10 @@ void SaiBufferManager::updateIngressBufferPoolStats() {
   if (!counterIdsToReadAndClear.size()) {
     // TODO: Request for per ITM buffer pool stats in SAI
     counterIdsToReadAndClear.push_back(SAI_BUFFER_POOL_STAT_WATERMARK_BYTES);
-    if (platform_->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_JERICHO2) {
+    if ((platform_->getAsic()->getAsicType() ==
+         cfg::AsicType::ASIC_TYPE_JERICHO2) ||
+        (platform_->getAsic()->getAsicType() ==
+         cfg::AsicType::ASIC_TYPE_JERICHO3)) {
       // TODO: Wait for the fix for CS00012274607 to enable this for all!
       counterIdsToReadAndClear.push_back(
           SAI_BUFFER_POOL_STAT_XOFF_ROOM_WATERMARK_BYTES);

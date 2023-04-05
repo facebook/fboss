@@ -578,7 +578,8 @@ TEST_P(HwTrafficPfcGenTest, verifyPfc) {
   const int trafficClass = kLosslessTrafficClass;
   const int pfcPriority = kLosslessPriority;
   TrafficTestParams trafficParams = GetParam();
-  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) {
+  if ((getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2) ||
+      (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3)) {
     // Keep low scaling factor so that headroom usage
     // is attempted for this ASIC.
     trafficParams.buffer.scalingFactor = cfg::MMUScalingFactor::ONE_32768TH;

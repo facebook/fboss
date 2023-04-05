@@ -31,6 +31,7 @@
 #include "fboss/agent/platforms/sai/SaiMeru400bfuPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMeru400biaPlatform.h"
 #include "fboss/agent/platforms/sai/SaiMeru400biuPlatform.h"
+#include "fboss/agent/platforms/sai/SaiMeru800biaPlatform.h"
 #include "fboss/agent/platforms/sai/SaiSandiaPlatform.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatform.h"
 
@@ -98,6 +99,9 @@ std::unique_ptr<SaiPlatform> chooseSaiPlatform(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_MERU400BIU) {
     return std::make_unique<SaiMeru400biuPlatform>(
+        std::move(productInfo), localMac, platformMappingStr);
+  } else if (productInfo->getType() == PlatformType::PLATFORM_MERU800BIA) {
+    return std::make_unique<SaiMeru800biaPlatform>(
         std::move(productInfo), localMac, platformMappingStr);
   } else if (productInfo->getType() == PlatformType::PLATFORM_MERU400BIA) {
     return std::make_unique<SaiMeru400biaPlatform>(
