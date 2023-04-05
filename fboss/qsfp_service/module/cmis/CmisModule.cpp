@@ -424,6 +424,10 @@ void getQsfpFieldAddress(
   length = info.length;
 }
 
+uint8_t laneMask(uint8_t startLane, uint8_t numLanes) {
+  return ((1 << numLanes) - 1) << startLane;
+}
+
 std::optional<CmisModule::ApplicationAdvertisingField>
 CmisModule::getApplicationField(uint8_t application) const {
   for (const auto& capability : moduleCapabilities_) {
@@ -1806,7 +1810,7 @@ void CmisModule::setApplicationCodeLocked(
     }
 
     auto hostLanes = capability->hostLaneCount;
-    uint8_t hostLaneMask = (1 << hostLanes) - 1;
+    uint8_t hostLaneMask = laneMask(startHostLane, hostLanes);
 
     auto setApplicationSelectCode =
         [this, &capability, startHostLane, hostLanes, hostLaneMask]() {
@@ -1826,7 +1830,7 @@ void CmisModule::setApplicationCodeLocked(
             // Assign ApSel code to each lane
             writeCmisField(laneToAppSelField[channel], &newApSelCode);
           }
-          uint8_t applySet0 = hostLaneMask << startHostLane;
+          uint8_t applySet0 = hostLaneMask;
 
           writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySet0);
 
