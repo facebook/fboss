@@ -280,9 +280,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   std::shared_ptr<const AclTableMap> getAclTablesForStage(
       cfg::AclStage aclStage) const;
 
-  const std::shared_ptr<SflowCollectorMap>& getSflowCollectors() const {
-    return cref<switch_state_tags::sflowCollectorMap>();
-  }
+  const std::shared_ptr<SflowCollectorMap>& getSflowCollectors() const;
 
   std::shared_ptr<QosPolicy> getQosPolicy(const std::string& name) const {
     return getQosPolicies()->getQosPolicyIf(name);

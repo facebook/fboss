@@ -110,6 +110,7 @@ SwitchState::SwitchState() {
   resetMirrors(std::make_shared<MirrorMap>());
   resetForwardingInformationBases(
       std::make_shared<ForwardingInformationBaseMap>());
+  resetSflowCollectors(std::make_shared<SflowCollectorMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -207,8 +208,16 @@ void SwitchState::resetAggregatePorts(
 }
 
 void SwitchState::resetSflowCollectors(
-    const std::shared_ptr<SflowCollectorMap>& collectors) {
-  ref<switch_state_tags::sflowCollectorMap>() = collectors;
+    const std::shared_ptr<SflowCollectorMap>& sflowCollectors) {
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  auto sflowCollectorMaps =
+      cref<switch_state_tags::sflowCollectorMaps>()->clone();
+  if (!sflowCollectorMaps->getNodeIf(matcher)) {
+    sflowCollectorMaps->addNode(matcher, sflowCollectors);
+  } else {
+    sflowCollectorMaps->updateNode(matcher, sflowCollectors);
+  }
+  ref<switch_state_tags::sflowCollectorMaps>() = sflowCollectorMaps;
 }
 
 void SwitchState::resetQosPolicies(std::shared_ptr<QosPolicyMap> qosPolicies) {
@@ -247,6 +256,12 @@ void SwitchState::resetMirrors(std::shared_ptr<MirrorMap> mirrors) {
     mirrorMaps->updateNode(matcher, mirrors);
   }
   ref<switch_state_tags::mirrorMaps>() = mirrorMaps;
+}
+
+const std::shared_ptr<SflowCollectorMap>& SwitchState::getSflowCollectors()
+    const {
+  return cref<switch_state_tags::sflowCollectorMaps>()->cref(
+      HwSwitchMatcher::defaultHwSwitchMatcherKey());
 }
 
 const std::shared_ptr<MirrorMap>& SwitchState::getMirrors() const {
@@ -480,7 +495,16 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     state->set<switch_state_tags::fibs>(
         std::map<int16_t, state::FibContainerFields>());
   }
-
+  auto& sflowCollectors = state->cref<switch_state_tags::sflowCollectorMap>();
+  auto& multiSflowCollectors =
+      state->cref<switch_state_tags::sflowCollectorMaps>();
+  if (multiSflowCollectors->empty() || state->getSflowCollectors()->empty()) {
+    // keep map for default npu
+    state->resetSflowCollectors(sflowCollectors);
+    // clear legacy sflowCollector map
+    state->set<switch_state_tags::sflowCollectorMap>(
+        std::map<std::string, state::SflowCollectorFields>());
+  }
   return state;
 }
 
@@ -621,6 +645,13 @@ state::SwitchState SwitchState::toThrift() const {
     auto key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
     if (auto fibs = cref<switch_state_tags::fibsMap>()->getNodeIf(key)) {
       data.fibs() = fibs->toThrift();
+    }
+  }
+  if (!cref<switch_state_tags::sflowCollectorMaps>()->empty()) {
+    auto key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+    if (auto sflowCollectors =
+            cref<switch_state_tags::sflowCollectorMaps>()->getNodeIf(key)) {
+      data.sflowCollectorMap() = sflowCollectors->toThrift();
     }
   }
   return data;
