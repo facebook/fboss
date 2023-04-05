@@ -37,6 +37,7 @@ class SflowCollectorMap
     : public ThriftMapNode<SflowCollectorMap, SflowCollectorMapTraits> {
  public:
   using Base = ThriftMapNode<SflowCollectorMap, SflowCollectorMapTraits>;
+  using Traits = SflowCollectorMapTraits;
   SflowCollectorMap() = default;
   ~SflowCollectorMap() override = default;
 
@@ -46,4 +47,36 @@ class SflowCollectorMap
   friend class CloneAllocator;
 };
 
+using MultiSflowCollectorMapTypeClass = apache::thrift::type_class::
+    map<apache::thrift::type_class::string, SflowCollectorMapTypeClass>;
+using MultiSflowCollectorMapThriftType =
+    std::map<std::string, SflowCollectorMapThriftType>;
+
+class MultiSflowCollectorMap;
+
+using MultiSflowCollectorMapTraits = ThriftMultiMapNodeTraits<
+    MultiSflowCollectorMap,
+    MultiSflowCollectorMapTypeClass,
+    MultiSflowCollectorMapThriftType,
+    SflowCollectorMap>;
+
+class HwSwitchMatcher;
+
+class MultiSflowCollectorMap : public ThriftMapNode<
+                                   MultiSflowCollectorMap,
+                                   MultiSflowCollectorMapTraits> {
+ public:
+  using Traits = MultiSflowCollectorMapTraits;
+  using BaseT =
+      ThriftMapNode<MultiSflowCollectorMap, MultiSflowCollectorMapTraits>;
+  using BaseT::modify;
+
+  MultiSflowCollectorMap() {}
+  virtual ~MultiSflowCollectorMap() {}
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
+  friend class CloneAllocator;
+};
 } // namespace facebook::fboss
