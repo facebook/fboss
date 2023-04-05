@@ -397,6 +397,8 @@ class HwSwitch {
       folly::MacAddress mac) const = 0;
 
   std::shared_ptr<SwitchState> getProgrammedState() const;
+  fsdb::OperDelta stateChanged(const fsdb::OperDelta& delta);
+  fsdb::OperDelta stateChangedTransaction(const fsdb::OperDelta& delta);
 
  protected:
   void setProgrammedState(const std::shared_ptr<SwitchState>& state);

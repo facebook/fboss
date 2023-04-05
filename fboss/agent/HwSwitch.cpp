@@ -89,6 +89,10 @@ void HwSwitch::gracefulExit(
 
 std::shared_ptr<SwitchState> HwSwitch::stateChangedTransaction(
     const StateDelta& delta) {
+  if (FLAGS_enable_state_oper_delta) {
+    stateChangedTransaction(delta.getOperDelta());
+    return getProgrammedState();
+  }
   if (!transactionsSupported()) {
     throw FbossError("Transactions not supported on this switch");
   }
@@ -117,6 +121,38 @@ std::shared_ptr<SwitchState> HwSwitch::getProgrammedState() const {
 void HwSwitch::setProgrammedState(const std::shared_ptr<SwitchState>& state) {
   auto programmedState = programmedState_.wlock();
   *programmedState = state;
+}
+
+fsdb::OperDelta HwSwitch::stateChanged(const fsdb::OperDelta& delta) {
+  auto stateDelta = StateDelta(getProgrammedState(), delta);
+  auto state = stateChangedImpl(stateDelta);
+  setProgrammedState(state);
+  if (getProgrammedState() == stateDelta.newState()) {
+    return fsdb::OperDelta{};
+  }
+  // return the delta between expected applied state and actually applied state
+  // caller can then can construct actually applied state from its expected new
+  // state from returning oper delta, and also know what was not applied from
+  // the state delta between expected applied state and applied state.
+  return StateDelta(stateDelta.newState(), getProgrammedState()).getOperDelta();
+}
+
+fsdb::OperDelta HwSwitch::stateChangedTransaction(
+    const fsdb::OperDelta& delta) {
+  if (!transactionsSupported()) {
+    throw FbossError("Transactions not supported on this switch");
+  }
+  auto goodKnownState = getProgrammedState();
+  try {
+    stateChanged(delta);
+  } catch (const FbossError& e) {
+    XLOG(WARNING) << " Transaction failed with error : " << *e.message()
+                  << " attempting rollback";
+    this->rollback(goodKnownState);
+    setProgrammedState(goodKnownState);
+    return delta;
+  }
+  return fsdb::OperDelta{};
 }
 
 } // namespace facebook::fboss
