@@ -136,8 +136,7 @@ class BaseEcmpSetupHelper {
 
   virtual void computeNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      std::optional<folly::MacAddress> mac,
-      bool forProdConfig) = 0;
+      std::optional<folly::MacAddress> mac) = 0;
 
   std::optional<VlanID> getVlan(
       const PortDescriptor& port,
@@ -182,7 +181,6 @@ class BaseEcmpSetupHelper {
   boost::container::flat_map<PortDescriptor, InterfaceID>
   computePortDesc2Interface(
       const std::shared_ptr<SwitchState>& inputState) const;
-  AddrT addrWithOffset(const AddrT& subnetIp, int& offset);
 
   std::vector<NextHopT> nhops_;
   boost::container::flat_map<PortDescriptor, InterfaceID> portDesc2Interface_;
@@ -199,22 +197,12 @@ class EcmpSetupTargetedPorts
   explicit EcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
       RouterID routerId = RouterID(0))
-      : EcmpSetupTargetedPorts(inputState, std::nullopt, routerId, false) {}
-
-  EcmpSetupTargetedPorts(
-      const std::shared_ptr<SwitchState>& inputState,
-      bool forProdConfig)
-      : EcmpSetupTargetedPorts(
-            inputState,
-            std::nullopt,
-            RouterID(0),
-            forProdConfig) {}
+      : EcmpSetupTargetedPorts(inputState, std::nullopt, routerId) {}
 
   EcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
       std::optional<folly::MacAddress> nextHopMac,
-      RouterID routerId = RouterID(0),
-      bool forProdConfig = false);
+      RouterID routerId = RouterID(0));
 
   virtual ~EcmpSetupTargetedPorts() override {}
   EcmpNextHopT nhop(PortDescriptor portDesc) const override;
@@ -254,8 +242,7 @@ class EcmpSetupTargetedPorts
  private:
   virtual void computeNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      std::optional<folly::MacAddress> mac = std::nullopt,
-      bool forProdConfig = false) override;
+      std::optional<folly::MacAddress> mac = std::nullopt) override;
   RouteNextHopSet setupMplsNexthops(
       const boost::container::flat_set<PortDescriptor>& portDescriptors,
       std::map<PortDescriptor, LabelForwardingAction::LabelStack>& stacks,
@@ -283,10 +270,9 @@ class MplsEcmpSetupTargetedPorts
   explicit MplsEcmpSetupTargetedPorts(
       const std::shared_ptr<SwitchState>& inputState,
       Label topLabel,
-      LabelForwardingAction::LabelForwardingType actionType,
-      bool forProdConfig = false)
+      LabelForwardingAction::LabelForwardingType actionType)
       : topLabel_(topLabel), actionType_(actionType) {
-    computeNextHops(inputState, std::nullopt, forProdConfig);
+    computeNextHops(inputState, std::nullopt);
   }
 
   virtual EcmpMplsNextHop<IPAddrT> nhop(PortDescriptor portDesc) const override;
@@ -303,8 +289,7 @@ class MplsEcmpSetupTargetedPorts
  private:
   virtual void computeNextHops(
       const std::shared_ptr<SwitchState>& inputState,
-      std::optional<folly::MacAddress> mac = std::nullopt,
-      bool forProdConfig = false) override;
+      std::optional<folly::MacAddress> mac = std::nullopt) override;
 
   Label topLabel_;
   LabelForwardingAction::LabelForwardingType actionType_;

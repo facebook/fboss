@@ -350,37 +350,19 @@ std::optional<VlanID> BaseEcmpSetupHelper<AddrT, NextHopT>::getVlan(
   return std::nullopt;
 }
 
-template <typename AddrT, typename NextHopT>
-AddrT BaseEcmpSetupHelper<AddrT, NextHopT>::addrWithOffset(
-    const AddrT& subnetIp,
-    int& offset) {
-  auto bytes = subnetIp.toByteArray();
-  // Add a offset to compute next in subnet next hop IP.
-  // Essentially for l3 intf with subnet X, we
-  // would compute next hops by incrementing last octet
-  // of subnet.
-  int lastOctet = (bytes[bytes.size() - 1] + (++offset)) % 255;
-  // Fail if we goto 255 at the last oct
-  CHECK_GT(255, lastOctet);
-  bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
-  return AddrT(bytes);
-}
-
 template <typename IPAddrT>
 EcmpSetupTargetedPorts<IPAddrT>::EcmpSetupTargetedPorts(
     const std::shared_ptr<SwitchState>& inputState,
     std::optional<folly::MacAddress> nextHopMac,
-    RouterID routerId,
-    bool forProdConfig)
+    RouterID routerId)
     : BaseEcmpSetupHelper<IPAddrT, EcmpNextHopT>(), routerId_(routerId) {
-  computeNextHops(inputState, nextHopMac, forProdConfig);
+  computeNextHops(inputState, nextHopMac);
 }
 
 template <typename IPAddrT>
 void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    std::optional<folly::MacAddress> nextHopMac,
-    bool forProdConfig) {
+    std::optional<folly::MacAddress> nextHopMac) {
   BaseEcmpSetupHelperT::portDesc2Interface_ =
       BaseEcmpSetupHelperT::computePortDesc2Interface(inputState);
   auto intf2Subnet =
@@ -397,12 +379,17 @@ void EcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
       continue;
     }
     auto subnetIp = IPAddrT(ipAddrStr);
-    auto nextHopIp = subnetIp;
-    if (!forProdConfig) {
-      nextHopIp = BaseEcmpSetupHelperT::addrWithOffset(subnetIp, offset);
-    }
+    auto bytes = subnetIp.toByteArray();
+    // Add a offset to compute next in subnet next hop IP.
+    // Essentially for l3 intf with subnet X, we
+    // would compute next hops by incrementing last octet
+    // of subnet.
+    int lastOctet = (bytes[bytes.size() - 1] + (++offset)) % 255;
+    // Fail if we goto 255 at the last oct
+    CHECK_GT(255, lastOctet);
+    bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
     BaseEcmpSetupHelperT::nhops_.push_back(EcmpNextHopT(
-        nextHopIp,
+        IPAddrT(bytes),
         portDescAndInterface.first,
         nextHopMac ? MacAddress::fromHBO(nextHopMac.value().u64HBO())
                    : MacAddress::fromHBO(baseMac + offset),
@@ -715,8 +702,7 @@ void MplsEcmpSetupTargetedPorts<IPAddrT>::setupECMPForwarding(
 template <typename IPAddrT>
 void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
     const std::shared_ptr<SwitchState>& inputState,
-    std::optional<folly::MacAddress> nextHopMac,
-    bool forProdConfig) {
+    std::optional<folly::MacAddress> nextHopMac) {
   BaseEcmpSetupHelperT::portDesc2Interface_ =
       BaseEcmpSetupHelperT::computePortDesc2Interface(inputState);
   auto intf2Subnet =
@@ -727,12 +713,17 @@ void MplsEcmpSetupTargetedPorts<IPAddrT>::computeNextHops(
        BaseEcmpSetupHelperT::portDesc2Interface_) {
     auto intf = portDescAndInterface.second;
     auto subnetIp = IPAddrT(intf2Subnet[intf].first.str());
-    auto nextHopIp = subnetIp;
-    if (!forProdConfig) {
-      nextHopIp = BaseEcmpSetupHelperT::addrWithOffset(subnetIp, offset);
-    }
+    auto bytes = subnetIp.toByteArray();
+    // Add a offset to compute next in subnet next hop IP.
+    // Essentially for l3 intf with subnet X, we
+    // would compute next hops by incrementing last octet
+    // of subnet.
+    int lastOctet = (bytes[bytes.size() - 1] + (++offset)) % 255;
+    // Fail if we goto 255 at the last oct
+    CHECK_GT(255, lastOctet);
+    bytes[bytes.size() - 1] = static_cast<uint8_t>(lastOctet);
     BaseEcmpSetupHelperT::nhops_.push_back(EcmpMplsNextHop<IPAddrT>(
-        nextHopIp,
+        IPAddrT(bytes),
         portDescAndInterface.first,
         nextHopMac ? MacAddress::fromHBO(nextHopMac.value().u64HBO())
                    : MacAddress::fromHBO(baseMac + offset),
