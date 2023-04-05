@@ -338,6 +338,14 @@ class CmisModule : public QsfpModule {
   std::optional<ApplicationAdvertisingField> getApplicationField(
       uint8_t application) const;
 
+  // Returns the list of host lanes configured in the same datapath as the
+  // provided hostLane
+  std::vector<uint8_t> configuredHostLanes(uint8_t hostLane) const override;
+
+  // Returns the list of media lanes configured in the same datapath as the
+  // provided hostLane
+  std::vector<uint8_t> configuredMediaLanes(uint8_t hostLane) const override;
+
  private:
   // no copy or assignment
   CmisModule(CmisModule const&) = delete;
@@ -435,6 +443,9 @@ class CmisModule : public QsfpModule {
   void updateCmisStateChanged(
       ModuleStatus& moduleStatus,
       std::optional<ModuleStatus> curModuleStatus = std::nullopt) override;
+
+  // Returns the currently configured mediaInterfaceCode on a host lane
+  uint8_t currentConfiguredMediaInterfaceCode(uint8_t hostLane) const;
 };
 
 } // namespace fboss

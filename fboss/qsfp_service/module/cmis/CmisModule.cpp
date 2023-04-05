@@ -815,32 +815,62 @@ bool CmisModule::getHostLaneSettings(
   return true;
 }
 
-unsigned int CmisModule::numHostLanes() const {
+// Returns the currently configured mediaInterfaceCode on a host lane
+uint8_t CmisModule::currentConfiguredMediaInterfaceCode(
+    uint8_t hostLane) const {
   auto mediaTypeEncoding = getMediaTypeEncoding();
   uint8_t application = 0;
   if (mediaTypeEncoding == MediaTypeEncodings::OPTICAL_SMF) {
-    application = static_cast<uint8_t>(getSmfMediaInterface());
+    application = static_cast<uint8_t>(getSmfMediaInterface(hostLane));
   } else if (mediaTypeEncoding == MediaTypeEncodings::PASSIVE_CU) {
     application = static_cast<uint8_t>(PassiveCuMediaInterfaceCode::COPPER);
   }
-  if (auto capability = getApplicationField(application)) {
-    return capability->hostLaneCount;
+  return application;
+}
+
+// Returns the list of host lanes configured in the same datapath as the
+// provided hostLane
+std::vector<uint8_t> CmisModule::configuredHostLanes(uint8_t hostLane) const {
+  std::vector<uint8_t> cfgLanes;
+  auto currentMediaInterface = currentConfiguredMediaInterfaceCode(hostLane);
+  if (auto applicationAdvertisingField =
+          getApplicationField(currentMediaInterface)) {
+    for (uint8_t lane = hostLane;
+         lane < hostLane + applicationAdvertisingField->hostLaneCount;
+         lane++) {
+      cfgLanes.push_back(lane);
+    }
   }
-  return 4;
+  return cfgLanes;
+}
+
+// Returns the list of media lanes configured in the same datapath as the
+// provided hostLane
+std::vector<uint8_t> CmisModule::configuredMediaLanes(uint8_t hostLane) const {
+  std::vector<uint8_t> cfgLanes;
+  auto currentMediaInterface = currentConfiguredMediaInterfaceCode(hostLane);
+  if (auto applicationAdvertisingField =
+          getApplicationField(currentMediaInterface)) {
+    // Assumes startMediaLane = hostLane
+    for (uint8_t start = hostLane;
+         start < hostLane + applicationAdvertisingField->mediaLaneCount;
+         start++) {
+      cfgLanes.push_back(start);
+    }
+  }
+  return cfgLanes;
+}
+
+unsigned int CmisModule::numHostLanes() const {
+  // For now assume only lane 0 is configured. This needs to be changed to
+  // account for multiple ports
+  return configuredHostLanes(0).size();
 }
 
 unsigned int CmisModule::numMediaLanes() const {
-  auto mediaTypeEncoding = getMediaTypeEncoding();
-  uint8_t application = 0;
-  if (mediaTypeEncoding == MediaTypeEncodings::OPTICAL_SMF) {
-    application = static_cast<uint8_t>(getSmfMediaInterface());
-  } else if (mediaTypeEncoding == MediaTypeEncodings::PASSIVE_CU) {
-    application = static_cast<uint8_t>(PassiveCuMediaInterfaceCode::COPPER);
-  }
-  if (auto capability = getApplicationField(application)) {
-    return capability->mediaLaneCount;
-  }
-  return 4;
+  // For now assume only lane 0 is configured. This needs to be changed to
+  // account for multiple ports
+  return configuredMediaLanes(0).size();
 }
 
 SMFMediaInterfaceCode CmisModule::getSmfMediaInterface(uint8_t lane) const {

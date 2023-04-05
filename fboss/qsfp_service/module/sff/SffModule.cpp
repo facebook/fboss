@@ -440,25 +440,27 @@ TransceiverSettings SffModule::getTransceiverSettingsInfo() {
   return settings;
 }
 
-unsigned int SffModule::numHostLanes() const {
-  // Always returns 4 for now. This should return the number of
-  // lanes based on the media type instead
-  return 4;
+std::vector<uint8_t> SffModule::configuredHostLanes(
+    uint8_t /* hostStartLane */) const {
+  return {0, 1, 2, 3};
 }
 
-unsigned int SffModule::numMediaLanes() const {
-  // This should return the number of lanes based on the media type
-  // Return 4 for all media types except FR1. When other media type support
-  // is added that have channel count different than 4, we need to
-  // change this function to reflect that.
-
+std::vector<uint8_t> SffModule::configuredMediaLanes(
+    uint8_t /* hostStartLane */) const {
   auto ext_comp_code = getExtendedSpecificationComplianceCode();
 
   if (ext_comp_code && *ext_comp_code == ExtendedSpecComplianceCode::FR1_100G) {
-    return 1;
-  } else {
-    return 4;
+    return {0};
   }
+  return {0, 1, 2, 3};
+}
+
+unsigned int SffModule::numHostLanes() const {
+  return configuredHostLanes(0).size();
+}
+
+unsigned int SffModule::numMediaLanes() const {
+  return configuredMediaLanes(0).size();
 }
 
 RateSelectSetting SffModule::getRateSelectSettingValue(RateSelectState state) {

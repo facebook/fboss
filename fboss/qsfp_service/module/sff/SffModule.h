@@ -268,6 +268,12 @@ class SffModule : public QsfpModule {
 
   void clearTransceiverPrbsStats(phy::Side side) override;
 
+  std::vector<uint8_t> configuredHostLanes(
+      uint8_t hostStartLane) const override;
+
+  std::vector<uint8_t> configuredMediaLanes(
+      uint8_t hostStartLane) const override;
+
  private:
   // no copy or assignment
   SffModule(SffModule const&) = delete;

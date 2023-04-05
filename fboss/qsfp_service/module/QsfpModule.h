@@ -246,6 +246,12 @@ class QsfpModule : public Transceiver {
       const uint8_t moduleId,
       const unsigned int oneBasedPort);
 
+  virtual std::vector<uint8_t> configuredHostLanes(
+      uint8_t hostStartLane) const = 0;
+
+  virtual std::vector<uint8_t> configuredMediaLanes(
+      uint8_t hostStartLane) const = 0;
+
  protected:
   /* Qsfp Internal Implementation */
   std::unique_ptr<TransceiverImpl> qsfpImpl_;
