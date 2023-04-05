@@ -23,7 +23,8 @@
 
 namespace {
 auto constexpr kRetries = 10;
-}
+auto constexpr kEcmpWidthForTest = 1;
+} // namespace
 namespace facebook::fboss {
 
 class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
@@ -75,7 +76,10 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
   }
 
   void sendUdpPkt(uint8_t dscpVal) {
-    getHwSwitch()->sendPacketSwitchedSync(createUdpPkt(dscpVal));
+    utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
+    getHwSwitch()->sendPacketOutOfPortAsync(
+        createUdpPkt(dscpVal),
+        ecmpHelper6.ecmpPortDescriptorAt(kEcmpWidthForTest).phyPortID());
   }
 
   /*
@@ -143,7 +147,6 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
   void _setup(
       const utility::EcmpSetupAnyNPorts6& ecmpHelper6,
       const std::vector<int>& queueIds) {
-    auto kEcmpWidthForTest = 1;
     resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     utility::ttlDecrementHandlingForLoopbackTraffic(
         getHwSwitch(), ecmpHelper6.getRouterId(), ecmpHelper6.nhop(0));
@@ -366,7 +369,6 @@ void HwOlympicQosSchedulerTest::verifyWRRToAllSPDscpToQueue() {
   utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState(), dstMac()};
 
   auto setup = [=]() {
-    auto kEcmpWidthForTest = 1;
     resolveNeigborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
   };
 
