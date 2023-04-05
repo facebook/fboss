@@ -152,6 +152,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::mirrorMaps,
     MultiMirrorMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::sflowCollectorMaps,
+    MultiSflowCollectorMap);
 
 /*
  * SwitchState stores the current switch configuration.
