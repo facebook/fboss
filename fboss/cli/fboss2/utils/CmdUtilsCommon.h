@@ -36,6 +36,7 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_COMMUNITY_LIST,
   OBJECT_ARG_TYPE_ID_IP_LIST, // IPv4 and/or IPv6
   OBJECT_ARG_TYPE_ID_IPV6_LIST,
+  OBJECT_ARG_TYPE_ID_CIDR_NETWORK,
   OBJECT_ARG_TYPE_ID_PORT_LIST,
   OBJECT_ARG_TYPE_ID_MESSAGE,
   OBJECT_ARG_TYPE_ID_PEERID_LIST, // BGP peer id
@@ -60,20 +61,20 @@ template <typename T>
 class BaseObjectArgType {
  public:
   BaseObjectArgType() {}
-  /* implicit */ BaseObjectArgType(std::vector<std::string> v) : data_(v) {}
-  using iterator = typename std::vector<std::string>::iterator;
-  using const_iterator = typename std::vector<std::string>::const_iterator;
-  using size_type = typename std::vector<std::string>::size_type;
+  /* implicit */ BaseObjectArgType(std::vector<T> v) : data_(v) {}
+  using iterator = typename std::vector<T>::iterator;
+  using const_iterator = typename std::vector<T>::const_iterator;
+  using size_type = typename std::vector<T>::size_type;
 
   const std::vector<T> data() const {
     return data_;
   }
 
-  std::string& operator[](int index) {
+  T& operator[](int index) {
     return data_[index];
   }
 
-  const std::string& operator[](int index) const {
+  const T& operator[](int index) const {
     return data_[index];
   }
   iterator begin() {

@@ -92,6 +92,11 @@ CLI::App* CmdSubcommands::addCommand(
           subCmd->add_option("ipAddrs", args, "IPv4 or IPv6 addr(s)");
           break;
         }
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_CIDR_NETWORK: {
+          subCmd->add_option(
+              "cidrNetwork", args, "CIDR network in the form <ip>/<mask>");
+          break;
+        }
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PEERID_LIST: {
           subCmd->add_option("peerID", args, "BGP remote peer ID (int)");
           break;

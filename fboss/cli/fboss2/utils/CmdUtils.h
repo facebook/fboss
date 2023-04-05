@@ -15,6 +15,7 @@
 #include <folly/String.h>
 #include <folly/gen/Base.h>
 #include <re2/re2.h>
+#include <stdexcept>
 #include <string>
 #include <variant>
 
@@ -43,6 +44,25 @@ class IPList : public BaseObjectArgType<std::string> {
   /* implicit */ IPList(std::vector<std::string> v) : BaseObjectArgType(v) {}
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_LIST;
+};
+
+class CIDRNetwork : public BaseObjectArgType<folly::CIDRNetwork> {
+ public:
+  /* implicit */ CIDRNetwork() : BaseObjectArgType() {}
+  /* implicit */ CIDRNetwork(std::vector<std::string> v) {
+    data_.reserve(v.size());
+    for (const auto& network : v) {
+      auto parsed = folly::IPAddress::tryCreateNetwork(network);
+      if (parsed.hasError()) {
+        throw std::runtime_error(
+            fmt::format("Unable to parse network {}", network));
+      }
+      data_.push_back(parsed.value());
+    }
+  }
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_ID_CIDR_NETWORK;
 };
 
 class IPV6List : public BaseObjectArgType<std::string> {
