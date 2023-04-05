@@ -10,16 +10,19 @@
 
 #pragma once
 
-#include "fboss/cli/fboss2/CmdHandler.h"
-
 #include <folly/IPAddress.h>
+#include <algorithm>
+
+#include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/clear/CmdClearUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 
 struct CmdClearNdpTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
-  using ObjectArgType = std::monostate;
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_CIDR_NETWORK;
+  using ObjectArgType = utils::CIDRNetwork;
   using RetType = std::string;
 };
 
@@ -27,25 +30,14 @@ class CmdClearNdp : public CmdHandler<CmdClearNdp, CmdClearNdpTraits> {
  public:
   using RetType = CmdClearNdpTraits::RetType;
 
-  RetType queryClient(const HostInfo& hostInfo) {
-    RetType retVal;
+  RetType queryClient(
+      const HostInfo& hostInfo,
+      const ObjectArgType& queriedNetworks) {
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-
     std::vector<facebook::fboss::NdpEntryThrift> ndpEntries;
     client->sync_getNdpTable(ndpEntries);
-
-    for (auto const& ndpEntry : ndpEntries) {
-      auto ip = folly::IPAddress::fromBinary(
-          folly::ByteRange(folly::StringPiece(ndpEntry.get_ip().get_addr())));
-      std::cout << "Deleting Ndp entry ip: " << ip.str()
-                << " vlanID: " << ndpEntry.get_vlanID() << std::endl;
-      client->sync_flushNeighborEntry(ndpEntry.get_ip(), ndpEntry.get_vlanID());
-    }
-
-    retVal = folly::to<std::string>("Flushed ", ndpEntries.size(), " entries");
-
-    return retVal;
+    return utils::flushNeighborEntries(client, ndpEntries, queriedNetworks);
   }
 
   void printOutput(const RetType& logMsg) {

@@ -10,16 +10,19 @@
 
 #pragma once
 
-#include "fboss/cli/fboss2/CmdHandler.h"
-
 #include <folly/IPAddress.h>
+#include <algorithm>
+
+#include "fboss/cli/fboss2/CmdHandler.h"
+#include "fboss/cli/fboss2/commands/clear/CmdClearUtils.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 
 struct CmdClearArpTraits : public BaseCommandTraits {
   static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
-  using ObjectArgType = std::monostate;
+      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_CIDR_NETWORK;
+  using ObjectArgType = utils::CIDRNetwork;
   using RetType = std::string;
 };
 
@@ -27,26 +30,14 @@ class CmdClearArp : public CmdHandler<CmdClearArp, CmdClearArpTraits> {
  public:
   using RetType = CmdClearArpTraits::RetType;
 
-  RetType queryClient(const HostInfo& hostInfo) {
-    RetType retVal;
-
+  RetType queryClient(
+      const HostInfo& hostInfo,
+      const ObjectArgType& queriedNetworks) {
     auto client =
         utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-
     std::vector<facebook::fboss::ArpEntryThrift> arpEntries;
     client->sync_getArpTable(arpEntries);
-
-    for (auto const& arpEntry : arpEntries) {
-      auto ip = folly::IPAddress::fromBinary(
-          folly::ByteRange(folly::StringPiece(arpEntry.get_ip().get_addr())));
-      std::cout << "Deleting Arp entry ip: " << ip.str()
-                << " vlanID: " << arpEntry.get_vlanID() << std::endl;
-      client->sync_flushNeighborEntry(arpEntry.get_ip(), arpEntry.get_vlanID());
-    }
-
-    retVal = folly::to<std::string>("Flushed ", arpEntries.size(), " entries");
-
-    return retVal;
+    return utils::flushNeighborEntries(client, arpEntries, queriedNetworks);
   }
 
   void printOutput(const RetType& logMsg) {
