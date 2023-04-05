@@ -111,6 +111,8 @@ SwitchState::SwitchState() {
   resetForwardingInformationBases(
       std::make_shared<ForwardingInformationBaseMap>());
   resetSflowCollectors(std::make_shared<SflowCollectorMap>());
+  resetLabelForwardingInformationBase(
+      std::make_shared<LabelForwardingInformationBase>());
 }
 
 SwitchState::~SwitchState() {}
@@ -275,9 +277,22 @@ const std::shared_ptr<ForwardingInformationBaseMap>& SwitchState::getFibs()
       HwSwitchMatcher::defaultHwSwitchMatcherKey());
 }
 
+const std::shared_ptr<LabelForwardingInformationBase>&
+SwitchState::getLabelForwardingInformationBase() const {
+  return cref<switch_state_tags::labelFibMap>()->cref(
+      HwSwitchMatcher::defaultHwSwitchMatcherKey());
+}
+
 void SwitchState::resetLabelForwardingInformationBase(
     std::shared_ptr<LabelForwardingInformationBase> labelFib) {
-  ref<switch_state_tags::labelFib>() = labelFib;
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  auto labelFibMap = cref<switch_state_tags::labelFibMap>()->clone();
+  if (!labelFibMap->getNodeIf(matcher)) {
+    labelFibMap->addNode(matcher, labelFib);
+  } else {
+    labelFibMap->updateNode(matcher, labelFib);
+  }
+  ref<switch_state_tags::labelFibMap>() = labelFibMap;
 }
 
 void SwitchState::resetForwardingInformationBases(
@@ -495,6 +510,16 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     state->set<switch_state_tags::fibs>(
         std::map<int16_t, state::FibContainerFields>());
   }
+  auto& labelFib = state->cref<switch_state_tags::labelFib>();
+  auto& multiLabelFibs = state->cref<switch_state_tags::labelFibMap>();
+  if (multiLabelFibs->empty() ||
+      state->getLabelForwardingInformationBase()->empty()) {
+    // keep fib for default npu
+    state->resetLabelForwardingInformationBase(labelFib);
+    // clear legacy labelFib
+    state->set<switch_state_tags::labelFib>(
+        std::map<int32_t, state::LabelForwardingEntryFields>());
+  }
   auto& sflowCollectors = state->cref<switch_state_tags::sflowCollectorMap>();
   auto& multiSflowCollectors =
       state->cref<switch_state_tags::sflowCollectorMaps>();
@@ -645,6 +670,12 @@ state::SwitchState SwitchState::toThrift() const {
     auto key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
     if (auto fibs = cref<switch_state_tags::fibsMap>()->getNodeIf(key)) {
       data.fibs() = fibs->toThrift();
+    }
+  }
+  if (!cref<switch_state_tags::labelFibMap>()->empty()) {
+    auto key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+    if (auto fibs = cref<switch_state_tags::labelFibMap>()->getNodeIf(key)) {
+      data.labelFib() = fibs->toThrift();
     }
   }
   if (!cref<switch_state_tags::sflowCollectorMaps>()->empty()) {
