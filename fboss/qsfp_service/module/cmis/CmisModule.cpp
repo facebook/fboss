@@ -2115,7 +2115,13 @@ void CmisModule::configureModule(uint8_t startHostLane) {
   }
 
   auto appCode = getSmfMediaInterface(startHostLane);
+  auto capability = getApplicationField(static_cast<uint8_t>(appCode));
 
+  if (!capability) {
+    QSFP_LOG(ERR, this) << "can't find the application capability for "
+                        << apache::thrift::util::enumNameSafe(appCode);
+    return;
+  }
   QSFP_LOG(INFO, this) << "configureModule for application "
                        << apache::thrift::util::enumNameSafe(appCode)
                        << " starting on host lane " << startHostLane;
@@ -2141,7 +2147,8 @@ void CmisModule::configureModule(uint8_t startHostLane) {
       // Check if this override factor requires overriding RxEqualizerSettings
       if (auto rxEqSetting =
               cmisRxEqualizerSettingOverride(*override.config())) {
-        setModuleRxEqualizerLocked(*rxEqSetting);
+        setModuleRxEqualizerLocked(
+            *rxEqSetting, startHostLane, capability->hostLaneCount);
         return;
       }
     }
@@ -2190,13 +2197,18 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() {
  * 5. Write P10h, B145-152 bit 0 = 1 to use Staged Set 0 values
  * 6. Write P10h, B144 = 0xFF to apply stage 0 control value immediately
  */
-void CmisModule::setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer) {
+void CmisModule::setModuleRxEqualizerLocked(
+    RxEqualizerSettings rxEqualizer,
+    uint8_t startHostLane,
+    uint8_t hostLaneCount) {
   uint8_t currPre[4], currPost[4], currMain[4];
   uint8_t desiredPre[4], desiredPost[4], desiredMain[4];
   bool changePre = false, changePost = false, changeMain = false;
   uint8_t numLanes = numHostLanes();
 
-  QSFP_LOG(INFO, this) << "setModuleRxEqualizerLocked called";
+  QSFP_LOG(INFO, this) << "setModuleRxEqualizerLocked called with startLane = "
+                       << startHostLane
+                       << ", hostLaneCount = " << hostLaneCount;
 
   for (int i = 0; i < 4; i++) {
     desiredPre[i] = ((*rxEqualizer.preCursor() & 0xf) << 4) |

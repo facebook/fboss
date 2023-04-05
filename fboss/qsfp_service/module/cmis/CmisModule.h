@@ -375,7 +375,10 @@ class CmisModule : public QsfpModule {
   /*
    * Set the optics Rx euqlizer pre/post/main values
    */
-  void setModuleRxEqualizerLocked(RxEqualizerSettings rxEqualizer);
+  void setModuleRxEqualizerLocked(
+      RxEqualizerSettings rxEqualizer,
+      uint8_t startHostLane,
+      uint8_t numLanes);
 
   /*
    * We found that some module did not enable Rx output squelch by default,
