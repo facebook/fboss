@@ -156,6 +156,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::sflowCollectorMaps,
     MultiSflowCollectorMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::labelFibMap,
+    MultiLabelForwardingInformationBase);
 
 /*
  * SwitchState stores the current switch configuration.
