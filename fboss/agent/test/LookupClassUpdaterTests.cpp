@@ -207,7 +207,7 @@ class LookupClassUpdaterTest : public ::testing::Test {
     }
   }
 
-  void resolveMac(MacAddress macAddress) {
+  void resolveMac(MacAddress macAddress, bool wait = true) {
     auto l2Entry = L2Entry(
         macAddress,
         this->kVlan(),
@@ -216,10 +216,11 @@ class LookupClassUpdaterTest : public ::testing::Test {
 
     this->sw_->l2LearningUpdateReceived(
         l2Entry, L2EntryUpdateType::L2_ENTRY_UPDATE_TYPE_ADD);
-
-    this->sw_->getNeighborUpdater()->waitForPendingUpdates();
-    waitForBackgroundThread(this->sw_);
-    waitForStateUpdates(this->sw_);
+    if (wait) {
+      this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+      waitForBackgroundThread(this->sw_);
+      waitForStateUpdates(this->sw_);
+    }
   }
 
   void unresolveMac(MacAddress macAddress) {
@@ -680,6 +681,55 @@ TYPED_TEST(
   this->resolve(this->getIpAddress(), this->kMacAddress());
   this->resolveLinkLocals(this->kMacAddress());
 
+  verifyClassIDs();
+}
+
+TYPED_TEST(LookupClassUpdaterNeighborTest, StressNeighborEntryFlap) {
+  auto verifyClassIDs = [this]() {
+    this->verifyStateUpdateAfterNeighborCachePropagation([=]() {
+      this->verifyClassIDHelper(
+          this->getIpAddress(),
+          this->kMacAddress(),
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0,
+          cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
+    });
+  };
+
+  this->resolve(this->getIpAddress(), this->kMacAddress());
+  verifyClassIDs();
+
+  // unresolve neighbor entry by moving it to pending state
+  this->sw_->getNeighborUpdater()->portDown(PortDescriptor(this->kPortID()));
+  this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+  waitForBackgroundThread(this->sw_);
+  waitForStateUpdates(this->sw_);
+
+  for (int i = 0; i < 1000; i++) {
+    // 1. resolve neighbor entry by moving it back to reachable state
+    // run neighbor entry state update
+    // lookupClassUpdater do refCnt++, schedule set neighbor entry class id
+    this->resolveNeighbor(this->getIpAddress(), this->kMacAddress(), false);
+
+    // 2. unresolve neighbor entry by moving it to pending
+    // run neighbor entry state update
+    // lookupClassUpdater do refCnt--, schedule unset neighbor entry class id
+    this->sw_->getNeighborUpdater()->portDown(PortDescriptor(this->kPortID()));
+
+    // 3. resolve neighbor entry by moving it back to reachable state
+    // run neighbor entry state update
+    // run set neighbor entry class id from step 1
+    // lookupClassUpdater do refCnt++, schedule set new neighbor entry class id
+    this->resolveNeighbor(this->getIpAddress(), this->kMacAddress(), false);
+
+    // 4. unresolve neighbor entry again by moving it to pending
+    // run neighbor entry state update
+    // run unset neighbor entry class id from 2
+    // lookupClassUpdater do refCnt--, schedule unset neighbor entry class id
+    this->sw_->getNeighborUpdater()->portDown(PortDescriptor(this->kPortID()));
+    /* sleep override */
+    usleep(100);
+  }
+  this->resolve(this->getIpAddress(), this->kMacAddress());
   verifyClassIDs();
 }
 

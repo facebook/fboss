@@ -275,6 +275,7 @@ void LookupClassUpdater::processAdded(
     const std::shared_ptr<AddedNeighborEntryT>& addedEntry) {
   CHECK(addedEntry);
   if (!shouldProcessNeighborEntry(addedEntry, true)) {
+    XLOG(DBG2) << "Skip processing added neighbor entry " << addedEntry;
     return;
   }
   CHECK(addedEntry->getPort().isPhysicalPort());
@@ -314,12 +315,24 @@ void LookupClassUpdater::processChanged(
     const std::shared_ptr<ChangedNeighborEntryT>& newEntry) {
   CHECK(oldEntry);
   CHECK(newEntry);
-  if (!(shouldProcessNeighborEntry(newEntry, false) &&
+  bool added;
+  if constexpr (std::is_same_v<ChangedNeighborEntryT, MacEntry>) {
+    // new mac entry created by mac move should also be processed
+    // as a newly created mac entry
+    added = oldEntry->getPort().phyPortID() != newEntry->getPort().phyPortID();
+  } else {
+    // pending to reachable state change should be processed as a newly
+    // added neighbor entry
+    added = !oldEntry->isReachable() && newEntry->isReachable();
+  }
+  if (!(shouldProcessNeighborEntry(newEntry, added) &&
         oldEntry->getPort().isPhysicalPort())) {
     // TODO - ideally we shouldn't care about whether
     // the old port was a non physical port (LAG) or not
     // but unfortunately our logic below assumes that both
     // previous and this new entry ports are physical ports.
+    XLOG(DBG2) << "Skipped processing changed neighbor entry from "
+               << oldEntry->str() << " to " << newEntry->str();
     return;
   }
   CHECK(oldEntry->getPort().isPhysicalPort());
@@ -640,6 +653,8 @@ void LookupClassUpdater::updateStateObserverLocalCacheForEntry(
                << ", classId: " << static_cast<int>(classID);
   } else {
     auto& [classID_, refCnt] = iter->second;
+    XLOG(DBG2) << "Neighbor entry already exists: " << newEntry->str()
+               << ", expected classID by LookupClassUpdater " << (int)classID_;
     CHECK(classID_ == classID);
     refCnt++;
   }
