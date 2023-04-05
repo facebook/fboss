@@ -659,6 +659,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
   SaiPortSerdesTraits::Attributes::TxFirPre2::ValueType txPre2;
   SaiPortSerdesTraits::Attributes::TxFirPost2::ValueType txPost2;
   SaiPortSerdesTraits::Attributes::TxFirPost3::ValueType txPost3;
+  SaiPortSerdesTraits::Attributes::TxLutMode::ValueType txLutMode;
 #endif
   SaiPortSerdesTraits::Attributes::RxCtleCode::ValueType rxCtleCode;
   SaiPortSerdesTraits::Attributes::RxDspMode::ValueType rxDspMode;
@@ -682,8 +683,15 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         txPost2.push_back(*tx->post2());
         txPost3.push_back(*tx->post3());
         txPre2.push_back(*tx->pre2());
+        if (platform_->getAsic()->getAsicVendor() ==
+            HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+          if (auto lutMode = tx->lutMode()) {
+            txLutMode.push_back(*lutMode);
+          }
+        }
       }
 #endif
+
       if (auto driveCurrent = tx->driveCurrent()) {
         txIDriver.push_back(driveCurrent.value());
       }
@@ -726,6 +734,11 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre2{}, txPre2);
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost2{}, txPost2);
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost3{}, txPost3);
+    if (platform_->getAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
+      setTxRxAttr(
+          attrs, SaiPortSerdesTraits::Attributes::TxLutMode{}, txLutMode);
+    }
   }
 #endif
 

@@ -231,7 +231,6 @@ void verifyTxSettting(
   EXPECT_EQ(pre, GET_OPT_ATTR(PortSerdes, TxFirPre1, expectedTx));
   EXPECT_EQ(main, GET_OPT_ATTR(PortSerdes, TxFirMain, expectedTx));
   EXPECT_EQ(post, GET_OPT_ATTR(PortSerdes, TxFirPost1, expectedTx));
-
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
   if (saiPlatform->getAsic()->isSupported(
           HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
@@ -241,7 +240,6 @@ void verifyTxSettting(
         serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost2{});
     post3 = portApi.getAttribute(
         serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost3{});
-
     EXPECT_EQ(pre2, GET_OPT_ATTR(PortSerdes, TxFirPre2, expectedTx));
     EXPECT_EQ(post2, GET_OPT_ATTR(PortSerdes, TxFirPost2, expectedTx));
     EXPECT_EQ(post3, GET_OPT_ATTR(PortSerdes, TxFirPost3, expectedTx));
@@ -264,6 +262,27 @@ void verifyTxSettting(
     }
 #endif
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  if (saiPlatform->getAsic()->isSupported(
+          HwAsic::Feature::SAI_CONFIGURE_SIX_TAP) &&
+      (saiPlatform->getAsic()->getAsicVendor() ==
+       HwAsic::AsicVendor::ASIC_VENDOR_TAJO)) {
+    SaiPortSerdesTraits::CreateAttributes expectedSerdes =
+        saiSwitch->managerTable()
+            ->portManager()
+            .serdesAttributesFromSwPinConfigs(
+                saiPortHandle->port->adapterKey(), expectedPinConfigs, serdes);
+
+    if (auto expectedTxLutMode =
+            std::get<std::optional<SaiPortSerdesTraits::Attributes::TxLutMode>>(
+                expectedSerdes)) {
+      auto txLutMode = portApi.getAttribute(
+          serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxLutMode{});
+      EXPECT_EQ(txLutMode, expectedTxLutMode->value());
+    }
+  }
+#endif
 
   if (auto expectedDriveCurrent =
           std::get<std::optional<SaiPortSerdesTraits::Attributes::IDriver>>(

@@ -3,7 +3,10 @@
 #include "fboss/agent/hw/sai/api/PortApi.h"
 
 namespace facebook::fboss {
-
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeTxLutModeIdWrapper::operator()() {
+  return std::nullopt;
+}
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxCtleCodeIdWrapper::operator()() {
   return std::nullopt;

@@ -79,6 +79,7 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::QUEUE_ECN_COUNTER:
     case HwAsic::Feature::TRAP_PRIORITY_LOWER_VAL_IS_LOWER_PRI:
     case HwAsic::Feature::SAI_CONFIGURE_SEVEN_TAP:
+    case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
       return true;
     // VOQ vs NPU mode dependent features
     case HwAsic::Feature::BRIDGE_PORT_8021Q:
@@ -135,7 +136,6 @@ bool EbroAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::DLB:
     case HwAsic::Feature::TC_TO_QUEUE_QOS_MAP_ON_SYSTEM_PORT:
-    case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
     case HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT:
     case HwAsic::Feature::QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI:

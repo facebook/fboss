@@ -36,6 +36,10 @@ SaiPortTraits::Attributes::AttributeDiagModeEnable::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeTxLutModeIdWrapper::operator()() {
+  return std::nullopt;
+}
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxCtleCodeIdWrapper::operator()() {
   return std::nullopt;
 }

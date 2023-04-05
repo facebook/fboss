@@ -89,6 +89,7 @@ class PortApiTest : public ::testing::Test {
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
           std::nullopt, // txPost2
           std::nullopt, // txPost3
+          std::nullopt, // txLutMode
 #endif
           rxCtlCode, rxDspMode, rxAfeTrim, rxAcCouplingByPass,
           rxAfeAdaptiveEnable

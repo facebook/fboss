@@ -9,7 +9,16 @@ extern "C" {
 }
 
 namespace facebook::fboss {
-
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeTxLutModeIdWrapper::operator()() {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+  return SAI_PORT_SERDES_ATTR_EXT_TX_LUT_MODE;
+#else
+  return std::nullopt;
+#endif
+}
+#endif
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxCtleCodeIdWrapper::operator()() {
   return SAI_PORT_SERDES_ATTR_EXT_RX_CTLE_CODE;
