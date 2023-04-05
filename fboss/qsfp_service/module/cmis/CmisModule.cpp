@@ -2108,16 +2108,17 @@ bool CmisModule::ensureTransceiverReadyLocked() {
  * is done only if current serdes setting is different from desired one and if
  * the setting is specified in the qsfp config
  */
-void CmisModule::configureModule() {
+void CmisModule::configureModule(uint8_t startHostLane) {
   if (getMediaTypeEncoding() == MediaTypeEncodings::PASSIVE_CU) {
     // Nothing to configure for passive copper modules
     return;
   }
 
-  auto appCode = getSmfMediaInterface();
+  auto appCode = getSmfMediaInterface(startHostLane);
 
   QSFP_LOG(INFO, this) << "configureModule for application "
-                       << apache::thrift::util::enumNameSafe(appCode);
+                       << apache::thrift::util::enumNameSafe(appCode)
+                       << " starting on host lane " << startHostLane;
 
   if (!getTransceiverManager()->getQsfpConfig()) {
     QSFP_LOG(ERR, this) << "qsfpConfig is NULL, skipping module configuration";

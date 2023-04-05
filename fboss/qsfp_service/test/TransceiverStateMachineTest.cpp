@@ -50,7 +50,7 @@ class MockSff8472Module : public Sff8472Module {
     return static_cast<MockSff8472TransceiverImpl*>(qsfpImpl_.get());
   }
 
-  MOCK_METHOD0(configureModule, void());
+  MOCK_METHOD1(configureModule, void(uint8_t));
   MOCK_METHOD1(customizeTransceiverLocked, void(TransceiverPortState&));
 
   MOCK_METHOD1(
@@ -93,7 +93,7 @@ class MockCmisModule : public CmisModule {
     return static_cast<MockCmisTransceiverImpl*>(qsfpImpl_.get());
   }
 
-  MOCK_METHOD0(configureModule, void());
+  MOCK_METHOD1(configureModule, void(uint8_t));
   MOCK_METHOD1(customizeTransceiverLocked, void(TransceiverPortState&));
 
   MOCK_METHOD1(
@@ -485,7 +485,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         .Times(callTimes)
         .InSequence(s);
     EXPECT_CALL(*mockXcvr, updateQsfpData(true)).Times(callTimes).InSequence(s);
-    EXPECT_CALL(*mockXcvr, configureModule()).Times(callTimes).InSequence(s);
+    EXPECT_CALL(*mockXcvr, configureModule(0)).Times(callTimes).InSequence(s);
 
     const auto& info = transceiverManager_->getTransceiverInfo(id_);
     if (auto settings = info.tcvrState()->settings()) {
@@ -864,7 +864,7 @@ TEST_F(TransceiverStateMachineTest, programTransceiverFailed) {
         EXPECT_CALL(*mockXcvr, customizeTransceiverLocked(state))
             .Times(2)
             .WillOnce(ThrowFbossError());
-        EXPECT_CALL(*mockXcvr, configureModule()).Times(1);
+        EXPECT_CALL(*mockXcvr, configureModule(0)).Times(1);
 
         // The rest functions are after customizeTransceiverLocked() and they
         // should only be called once at the second time

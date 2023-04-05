@@ -156,7 +156,7 @@ class QsfpModule : public Transceiver {
    */
   virtual unsigned int numMediaLanes() const = 0;
 
-  virtual void configureModule() {}
+  virtual void configureModule(uint8_t /* startHostLane */) {}
 
   bool isVdmSupported() const {
     auto diagsCapability = diagsCapability_.rlock();

@@ -90,7 +90,7 @@ class CmisModule : public QsfpModule {
    */
   unsigned int numMediaLanes() const override;
 
-  void configureModule() override;
+  void configureModule(uint8_t startHostLane) override;
 
   /*
    * This function veifies the Module eeprom register checksum for various

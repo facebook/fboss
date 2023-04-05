@@ -910,7 +910,10 @@ void QsfpModule::programTransceiver(
       updateQsfpData(true);
       // Current configureModule() actually assumes the locked is obtained.
       // See CmisModule::configureModule(). Need to clean it up in the future.
-      configureModule();
+      for (auto portIt : programTcvrState.ports) {
+        auto startHostLane = portIt.second.startHostLane;
+        configureModule(startHostLane);
+      }
 
       TransceiverSettings settings = getTransceiverSettingsInfo();
       // We found that some module did not enable Rx output squelch by default,
