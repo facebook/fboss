@@ -36,6 +36,7 @@ class LabelForwardingInformationBase
   using Base = ThriftMapNode<
       LabelForwardingInformationBase,
       LabelForwardingInformationBaseTraits>;
+  using Traits = LabelForwardingInformationBaseTraits;
   using Base::modify;
 
   LabelForwardingInformationBase();
@@ -93,6 +94,43 @@ class LabelForwardingInformationBase
   friend class CloneAllocator;
   static std::shared_ptr<LabelForwardingEntry> fromFollyDynamicOldFormat(
       folly::dynamic entry);
+};
+
+using MultiLabelForwardingInformationBaseTypeClass =
+    apache::thrift::type_class::map<
+        apache::thrift::type_class::string,
+        LabelForwardingInformationBaseTypeClass>;
+using MultiLabelForwardingInformationBaseThriftType =
+    std::map<std::string, LabelForwardingInformationBaseThriftType>;
+
+class MultiLabelForwardingInformationBase;
+
+using MultiLabelForwardingInformationBaseTraits = ThriftMultiMapNodeTraits<
+    MultiLabelForwardingInformationBase,
+    MultiLabelForwardingInformationBaseTypeClass,
+    MultiLabelForwardingInformationBaseThriftType,
+    LabelForwardingInformationBase>;
+
+class HwSwitchMatcher;
+
+class MultiLabelForwardingInformationBase
+    : public ThriftMapNode<
+          MultiLabelForwardingInformationBase,
+          MultiLabelForwardingInformationBaseTraits> {
+ public:
+  using Traits = MultiLabelForwardingInformationBaseTraits;
+  using BaseT = ThriftMapNode<
+      MultiLabelForwardingInformationBase,
+      MultiLabelForwardingInformationBaseTraits>;
+  using BaseT::modify;
+
+  MultiLabelForwardingInformationBase() {}
+  virtual ~MultiLabelForwardingInformationBase() {}
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
+  friend class CloneAllocator;
 };
 
 } // namespace facebook::fboss
