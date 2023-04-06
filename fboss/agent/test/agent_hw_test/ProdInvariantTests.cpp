@@ -94,14 +94,19 @@ cfg::SwitchConfig ProdInvariantTest::getConfigFromFlag() {
 }
 
 cfg::SwitchConfig ProdInvariantTest::initialConfig() {
+  if (useProdConfig_.has_value()) {
+    return *(platform()->config()->thrift.sw());
+  }
   cfg::SwitchConfig cfg;
   std::vector<PortID> ports;
   ports.reserve(0);
   if (checkBaseConfigPortsEmpty()) {
+    useProdConfig_ = false;
     ports = getAllPlatformPorts(platform()->getPlatformPorts());
     cfg = utility::createProdRswConfig(platform()->getHwSwitch(), ports);
     return cfg;
   } else {
+    useProdConfig_ = true;
     return getConfigFromFlag();
   }
 }
@@ -355,6 +360,10 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
     XLOG(DBG2) << "ProdInvariantTest setup done";
   }
   cfg::SwitchConfig initialConfig() override {
+    if (useProdConfig_.has_value()) {
+      return *(platform()->config()->thrift.sw());
+    }
+
     // TODO: Currently ProdInvariantTests only has support for BCM switches.
     // That's why we're passing false in the call below.
     if (checkBaseConfigPortsEmpty()) {
@@ -362,8 +371,10 @@ class ProdInvariantRswMhnicTest : public ProdInvariantTest {
           platform()->getHwSwitch(),
           getAllPlatformPorts(platform()->getPlatformPorts()),
           false /* isSai() */);
+      useProdConfig_ = false;
       return config;
     } else {
+      useProdConfig_ = true;
       return getConfigFromFlag();
     }
   }

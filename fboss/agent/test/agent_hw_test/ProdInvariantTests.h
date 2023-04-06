@@ -21,6 +21,9 @@ class ProdInvariantTest : public ProdAgentTests {
   bool checkBaseConfigPortsEmpty();
   cfg::SwitchConfig getConfigFromFlag();
 
+ protected:
+  std::optional<bool> useProdConfig_ = std::nullopt;
+
  private:
   std::vector<PortID> getEcmpPortIds();
   void sendTraffic();
