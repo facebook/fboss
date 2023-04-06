@@ -1829,13 +1829,24 @@ void CmisModule::setApplicationCodeLocked(
           // We can't use numHostLanes() to get the hostLaneCount here since
           // that function relies on the configured application select but at
           // this point appSel hasn't been updated.
+          uint8_t applySet0 = hostLaneMask;
 
+          // First release the lanes if they are already part of any datapath
+          for (int channel = startHostLane; channel < startHostLane + hostLanes;
+               channel++) {
+            uint8_t zeroApSelCode = 0;
+            // Assign ApSel code of 0 to each lane to indicate that the lane is
+            // not part of any datapath
+            writeCmisField(laneToAppSelField[channel], &zeroApSelCode);
+          }
+          writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySet0);
+
+          // Now assign the correct ApSel code to all relevant lanes
           for (int channel = startHostLane; channel < startHostLane + hostLanes;
                channel++) {
             // Assign ApSel code to each lane
             writeCmisField(laneToAppSelField[channel], &newApSelCode);
           }
-          uint8_t applySet0 = hostLaneMask;
 
           writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySet0);
 
