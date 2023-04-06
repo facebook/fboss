@@ -83,6 +83,10 @@ class SaiSwitchManager {
   bool isGlobalQoSMapSupported() const;
   bool isMplsQoSMapSupported() const;
 
+  void updateStats() {
+    // TODO;
+  }
+
  private:
   void programEcmpLoadBalancerParams(
       std::optional<sai_uint32_t> seed,

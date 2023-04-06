@@ -19,6 +19,7 @@
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiLagManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 
 namespace facebook::fboss {
@@ -84,6 +85,10 @@ void SaiSwitch::updateStatsImpl(SwitchStats* /* switchStats */) {
   {
     std::lock_guard<std::mutex> locked(saiSwitchMutex_);
     managerTable_->counterManager().updateStats();
+  }
+  {
+    std::lock_guard<std::mutex> locked(saiSwitchMutex_);
+    managerTable_->switchManager().updateStats();
   }
 }
 } // namespace facebook::fboss
