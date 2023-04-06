@@ -336,7 +336,8 @@ class CmisModule : public QsfpModule {
    * nullopt if it doesn't exist
    */
   std::optional<ApplicationAdvertisingField> getApplicationField(
-      uint8_t application) const;
+      uint8_t application,
+      uint8_t startHostLane) const;
 
   // Returns the list of host lanes configured in the same datapath as the
   // provided hostLane

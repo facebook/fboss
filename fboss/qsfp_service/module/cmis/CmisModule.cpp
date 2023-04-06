@@ -429,9 +429,12 @@ uint8_t laneMask(uint8_t startLane, uint8_t numLanes) {
 }
 
 std::optional<CmisModule::ApplicationAdvertisingField>
-CmisModule::getApplicationField(uint8_t application) const {
+CmisModule::getApplicationField(uint8_t application, uint8_t startHostLane)
+    const {
   for (const auto& capability : moduleCapabilities_) {
-    if (capability.moduleMediaInterface == application) {
+    if (capability.moduleMediaInterface == application &&
+        capability.hostStartLanes.find(startHostLane) !=
+            capability.hostStartLanes.end()) {
       return capability;
     }
   }
@@ -838,7 +841,7 @@ std::vector<uint8_t> CmisModule::configuredHostLanes(uint8_t hostLane) const {
   std::vector<uint8_t> cfgLanes;
   auto currentMediaInterface = currentConfiguredMediaInterfaceCode(hostLane);
   if (auto applicationAdvertisingField =
-          getApplicationField(currentMediaInterface)) {
+          getApplicationField(currentMediaInterface, hostLane)) {
     for (uint8_t lane = hostLane;
          lane < hostLane + applicationAdvertisingField->hostLaneCount;
          lane++) {
@@ -854,7 +857,7 @@ std::vector<uint8_t> CmisModule::configuredMediaLanes(uint8_t hostLane) const {
   std::vector<uint8_t> cfgLanes;
   auto currentMediaInterface = currentConfiguredMediaInterfaceCode(hostLane);
   if (auto applicationAdvertisingField =
-          getApplicationField(currentMediaInterface)) {
+          getApplicationField(currentMediaInterface, hostLane)) {
     // Assumes startMediaLane = hostLane
     for (uint8_t start = hostLane;
          start < hostLane + applicationAdvertisingField->mediaLaneCount;
@@ -1802,7 +1805,8 @@ void CmisModule::setApplicationCodeLocked(
       return;
     }
 
-    auto capability = getApplicationField(static_cast<uint8_t>(application));
+    auto capability =
+        getApplicationField(static_cast<uint8_t>(application), startHostLane);
 
     // Check if the module supports the application
     if (!capability) {
@@ -1826,7 +1830,8 @@ void CmisModule::setApplicationCodeLocked(
           // that function relies on the configured application select but at
           // this point appSel hasn't been updated.
 
-          for (int channel = startHostLane; channel < hostLanes; channel++) {
+          for (int channel = startHostLane; channel < startHostLane + hostLanes;
+               channel++) {
             // Assign ApSel code to each lane
             writeCmisField(laneToAppSelField[channel], &newApSelCode);
           }
@@ -2122,7 +2127,8 @@ void CmisModule::configureModule(uint8_t startHostLane) {
   }
 
   auto appCode = getSmfMediaInterface(startHostLane);
-  auto capability = getApplicationField(static_cast<uint8_t>(appCode));
+  auto capability =
+      getApplicationField(static_cast<uint8_t>(appCode), startHostLane);
 
   if (!capability) {
     QSFP_LOG(ERR, this) << "can't find the application capability for "

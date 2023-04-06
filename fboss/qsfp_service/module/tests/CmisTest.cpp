@@ -210,15 +210,22 @@ TEST_F(CmisTest, cmis200GTransceiverInfoTest) {
   for (auto unsupportedApplication :
        {SMFMediaInterfaceCode::LR4_10_400G, SMFMediaInterfaceCode::FR4_400G}) {
     EXPECT_EQ(
-        xcvr->getApplicationField(static_cast<uint8_t>(unsupportedApplication)),
+        xcvr->getApplicationField(
+            static_cast<uint8_t>(unsupportedApplication), 0),
         std::nullopt);
   }
   for (auto supportedApplication :
        {SMFMediaInterfaceCode::FR4_200G, SMFMediaInterfaceCode::CWDM4_100G}) {
-    auto applicationField =
-        xcvr->getApplicationField(static_cast<uint8_t>(supportedApplication));
+    auto applicationField = xcvr->getApplicationField(
+        static_cast<uint8_t>(supportedApplication), 0);
     EXPECT_NE(applicationField, std::nullopt);
     EXPECT_EQ(applicationField->hostStartLanes, std::unordered_set<int>{0});
+    for (uint8_t lane = 1; lane < 7; lane++) {
+      EXPECT_EQ(
+          xcvr->getApplicationField(
+              static_cast<uint8_t>(supportedApplication), lane),
+          std::nullopt);
+    }
   }
 }
 
@@ -319,15 +326,22 @@ TEST_F(CmisTest, cmis400GLr4TransceiverInfoTest) {
   for (auto unsupportedApplication :
        {SMFMediaInterfaceCode::CWDM4_100G, SMFMediaInterfaceCode::FR4_400G}) {
     EXPECT_EQ(
-        xcvr->getApplicationField(static_cast<uint8_t>(unsupportedApplication)),
+        xcvr->getApplicationField(
+            static_cast<uint8_t>(unsupportedApplication), 0),
         std::nullopt);
   }
   for (auto supportedApplication :
        {SMFMediaInterfaceCode::LR4_10_400G, SMFMediaInterfaceCode::FR4_200G}) {
-    auto applicationField =
-        xcvr->getApplicationField(static_cast<uint8_t>(supportedApplication));
+    auto applicationField = xcvr->getApplicationField(
+        static_cast<uint8_t>(supportedApplication), 0);
     EXPECT_NE(applicationField, std::nullopt);
     EXPECT_EQ(applicationField->hostStartLanes, std::unordered_set<int>{0});
+    for (uint8_t lane = 1; lane < 7; lane++) {
+      EXPECT_EQ(
+          xcvr->getApplicationField(
+              static_cast<uint8_t>(supportedApplication), lane),
+          std::nullopt);
+    }
   }
 }
 
@@ -409,17 +423,25 @@ TEST_F(CmisTest, cmis400GCr8TransceiverInfoTest) {
         SMFMediaInterfaceCode::FR4_400G,
         SMFMediaInterfaceCode::LR4_10_400G}) {
     EXPECT_EQ(
-        xcvr->getApplicationField(static_cast<uint8_t>(unsupportedApplication)),
+        xcvr->getApplicationField(
+            static_cast<uint8_t>(unsupportedApplication), 0),
         std::nullopt);
   }
   for (auto supportedApplication : {PassiveCuMediaInterfaceCode::COPPER}) {
     EXPECT_NE(
-        xcvr->getApplicationField(static_cast<uint8_t>(supportedApplication)),
+        xcvr->getApplicationField(
+            static_cast<uint8_t>(supportedApplication), 0),
         std::nullopt);
-    auto applicationField =
-        xcvr->getApplicationField(static_cast<uint8_t>(supportedApplication));
+    auto applicationField = xcvr->getApplicationField(
+        static_cast<uint8_t>(supportedApplication), 0);
     EXPECT_NE(applicationField, std::nullopt);
-    EXPECT_EQ(applicationField->hostStartLanes, std::unordered_set<int>{});
+    EXPECT_EQ(applicationField->hostStartLanes, std::unordered_set<int>{0});
+    for (uint8_t lane = 1; lane < 7; lane++) {
+      EXPECT_EQ(
+          xcvr->getApplicationField(
+              static_cast<uint8_t>(supportedApplication), lane),
+          std::nullopt);
+    }
   }
 }
 } // namespace facebook::fboss
