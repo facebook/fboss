@@ -2208,7 +2208,6 @@ void CmisModule::setModuleRxEqualizerLocked(
   uint8_t currPre[4], currPost[4], currMain[4];
   uint8_t desiredPre[4], desiredPost[4], desiredMain[4];
   bool changePre = false, changePost = false, changeMain = false;
-  uint8_t numLanes = numHostLanes();
 
   QSFP_LOG(INFO, this) << "setModuleRxEqualizerLocked called with startLane = "
                        << startHostLane
@@ -2223,13 +2222,14 @@ void CmisModule::setModuleRxEqualizerLocked(
         (*rxEqualizer.mainAmplitude() & 0xf);
   }
 
-  auto compareSettings = [numLanes](
+  auto compareSettings = [startHostLane, hostLaneCount](
                              uint8_t currSettings[],
                              uint8_t desiredSettings[],
                              int length,
                              bool& changeNeeded) {
     // Two lanes share the same byte so loop only until numLanes / 2
-    for (auto i = 0; i <= (numLanes - 1) / 2; i++) {
+    for (auto i = startHostLane; i <= (startHostLane + hostLaneCount - 1) / 2;
+         i++) {
       if (i < length && currSettings[i] != desiredSettings[i]) {
         // Some of the pre-cursor value needs to be changed so break from
         // here
@@ -2285,14 +2285,14 @@ void CmisModule::setModuleRxEqualizerLocked(
     // Apply the change using stage 0 control
     uint8_t stage0Control[8];
     readCmisField(CmisField::APP_SEL_ALL_LANES, stage0Control);
-    for (int i = 0; i < numLanes; i++) {
+    for (int i = startHostLane; i < startHostLane + hostLaneCount; i++) {
       stage0Control[i] |= 1;
       writeCmisField(
           laneToAppSelField[i], stage0Control, true /* skipPageChange */);
     }
 
     // Trigger the stage 0 control values to be operational in optics
-    uint8_t stage0ControlTrigger = (1 << numLanes) - 1;
+    uint8_t stage0ControlTrigger = laneMask(startHostLane, hostLaneCount);
     writeCmisField(CmisField::STAGE_CTRL_SET0_IMMEDIATE, &stage0ControlTrigger);
 
     // Check if the config has been applied correctly or not
