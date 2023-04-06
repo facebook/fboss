@@ -204,6 +204,8 @@ class SaiSwitch : public HwSwitch {
   phy::FecMode getPortFECMode(PortID port) const override;
   std::map<PortID, FabricEndpoint> getFabricReachability() const override;
 
+  void rollbackInTest(const std::shared_ptr<SwitchState>& knownGoodState);
+
  private:
   void gracefulExitImpl(
       folly::dynamic& switchState,
@@ -213,7 +215,6 @@ class SaiSwitch : public HwSwitch {
   std::shared_ptr<SwitchState> stateChangedImplLocked(
       const StateDelta& delta,
       const LockPolicyT& lk);
-  friend class SaiRollbackTest;
   void rollback(
       const std::shared_ptr<SwitchState>& knownGoodState) noexcept override;
   std::string listObjectsLocked(

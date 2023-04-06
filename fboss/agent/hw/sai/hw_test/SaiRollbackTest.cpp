@@ -30,7 +30,7 @@ void SaiRollbackTest::SetUp() {
 }
 
 void SaiRollbackTest::rollback(const std::shared_ptr<SwitchState>& state) {
-  static_cast<SaiSwitch*>(getHwSwitch())->rollback(state);
+  static_cast<SaiSwitch*>(getHwSwitch())->rollbackInTest(state);
   getHwSwitchEnsemble()->programmedState_ = state;
   getHwSwitchEnsemble()->programmedState_->publish();
 }

@@ -3002,4 +3002,10 @@ uint32_t SaiSwitch::generateDeterministicSeed(
 phy::FecMode SaiSwitch::getPortFECMode(PortID portId) const {
   return managerTable_->portManager().getFECMode(portId);
 }
+
+void SaiSwitch::rollbackInTest(
+    const std::shared_ptr<SwitchState>& knownGoodState) {
+  rollback(knownGoodState);
+  setProgrammedState(knownGoodState);
+}
 } // namespace facebook::fboss
