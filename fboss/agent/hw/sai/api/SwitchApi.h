@@ -570,6 +570,9 @@ SAI_ATTRIBUTE_NAME(Switch, ForceTrafficOverFabric)
 SAI_ATTRIBUTE_NAME(Switch, WarmBootTargetVersion)
 SAI_ATTRIBUTE_NAME(Switch, SwitchIsolate)
 
+template <>
+struct SaiObjectHasStats<SaiSwitchTraits> : public std::true_type {};
+
 class SwitchApi : public SaiApi<SwitchApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_SWITCH;
