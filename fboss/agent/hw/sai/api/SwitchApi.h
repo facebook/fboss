@@ -485,6 +485,7 @@ struct SaiSwitchTraits {
       SAI_SWITCH_STAT_REACHABILITY_DROP,
       SAI_SWITCH_STAT_GLOBAL_DROP,
   };
+  static constexpr std::array<sai_stat_id_t, 0> CounterIdsToReadAndClear = {};
 };
 
 SAI_ATTRIBUTE_NAME(Switch, InitSwitch)

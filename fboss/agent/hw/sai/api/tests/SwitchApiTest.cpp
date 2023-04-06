@@ -606,3 +606,15 @@ TEST_F(SwitchApiTest, testWriteFn) {
       switchId, SaiSwitchTraits::Attributes::RegisterWriteFn{});
   EXPECT_EQ(writeFunc, gotFn);
 }
+
+TEST_F(SwitchApiTest, getAllStats) {
+  auto stats =
+      switchApi->getStats<SaiSwitchTraits>(switchId, SAI_STATS_MODE_READ);
+  EXPECT_EQ(stats.size(), SaiSwitchTraits::CounterIdsToRead.size());
+}
+
+TEST_F(SwitchApiTest, getSomeStats) {
+  auto stats = switchApi->getStats<SaiSwitchTraits>(
+      switchId, {SAI_SWITCH_STAT_GLOBAL_DROP}, SAI_STATS_MODE_READ);
+  EXPECT_EQ(stats.size(), 1);
+}
