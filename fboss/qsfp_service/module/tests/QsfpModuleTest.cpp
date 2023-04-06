@@ -187,7 +187,7 @@ TEST_F(QsfpModuleTest, portsChangedAllDown25G) {
 
   // should customize w/ 25G
   EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::TWENTYFIVEG, _, _))
-      .Times(1);
+      .Times(4);
 
   triggerPortsChanged(
       {{kTcvrID,
@@ -204,7 +204,7 @@ TEST_F(QsfpModuleTest, portsChanged50G) {
   ON_CALL(*qsfp_, customizationSupported()).WillByDefault(Return(true));
 
   // should customize w/ 50G
-  EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::FIFTYG, _, _)).Times(1);
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::FIFTYG, _, _)).Times(2);
 
   // We only store enabled ports
   triggerPortsChanged(
@@ -234,8 +234,10 @@ TEST_F(QsfpModuleTest, portsChangedSpeedMismatch) {
   ON_CALL(*qsfp_, getTransceiverInfo()).WillByDefault(Return(qsfp_->fakeInfo_));
   ON_CALL(*qsfp_, customizationSupported()).WillByDefault(Return(true));
 
-  // should customize w/ first speed i.e 50G
+  // should customize twice since we support different speeds per transceiver
   EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::FIFTYG, _, _)).Times(1);
+  EXPECT_CALL(*qsfp_, setCdrIfSupported(cfg::PortSpeed::TWENTYFIVEG, _, _))
+      .Times(1);
 
   // We only store enabled ports
   triggerPortsChanged(
