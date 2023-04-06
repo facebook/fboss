@@ -49,52 +49,17 @@ class PtpTests : public LinkTest {
         ptpType);
   }
 
- protected:
-  void setCmdLineFlagOverrides() const override {
-    // disable other processes which generate pkts
-    FLAGS_enable_lldp = false;
-    // tunnel interface enable especially on fboss2000 results
-    FLAGS_tun_intf = false;
-    LinkTest::setCmdLineFlagOverrides();
-  }
-};
-
-// Purpose of this test is to validate Transparent clock (TC) for PTP
-// TC embeds timestamps in CF field for PTP event messages such as
-// Delay request, sync etc.
-// This test enables PTP, send PTP delay request pkt from CPU and externally
-// loopback to another port on the switch. (port B -> port A -> port B -> port A
-// ..) But PTP doesn't generate timestamps on first hop, its because we
-// originated pkt from CPU and  egress port can't detect meta data which it
-// needs to timestamp this pkt.  On ingress, timestamp is updated in meta
-// header. So subsequent loop of same pkt through the fwd pipeline generates
-// timestamp on egress. All these pkts are punted to CPU when they ingress again
-// on port A. So we send 1 pkt with TTL decrementing from 255 all the way to 0
-// We capture these pkts coming to CPU.
-// if (pkt == ptp {
-//    if (pkt_ttl == 255) EXPECT_EQ(CF_field, 0)
-//    else EXPECT_GT(CF_field, 0)
-// }
-TEST_F(PtpTests, verifyPtpTcDelayRequest) {
-  auto ecmpPorts = getVlanOwningCabledPorts();
-  auto localMac = sw()->getPlatform()->getLocalMac();
-  // create ACL to trap any packets to CPU coming with given dst IP
-  // Ideally we should have used the l4port (PTP_UDP_EVENT_PORT), but
-  // SAI doesn't support this qualifier yet
-  folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
-  auto entry = HwTestPacketTrapEntry(sw()->getHw(), dstPrefix);
-  HwAgentTestPacketSnooper snooper(sw()->getPacketObservers());
-  programDefaultRoute(ecmpPorts, sw()->getPlatform()->getLocalMac());
-  auto ptpType = PTPMessageType::PTP_DELAY_REQUEST;
-
-  for (const auto& portDescriptor : ecmpPorts) {
+  bool sendAndVerifyPtpPkts(
+      PTPMessageType ptpType,
+      const PortDescriptor& portDescriptor,
+      HwAgentTestPacketSnooper& snooper) {
     XLOG(DBG2) << "Validating PTP packet fields on Port "
                << portDescriptor.phyPortID();
-
+    auto localMac = sw()->getPlatform()->getLocalMac();
     // Send out PTP packet
     auto ptpPkt = createPtpPkt(ptpType);
     sw()->getHw()->sendPacketOutOfPortSync(
-        std::move(ptpPkt), (*ecmpPorts.begin()).phyPortID());
+        std::move(ptpPkt), portDescriptor.phyPortID());
 
     // Hop total should be equal to (kStartTtl + 1) * kStartTtl / 2
     // In edge cases packets can come out-of-order. Wait for hopTotal to reach
@@ -102,7 +67,9 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
     int hopTotal = 0;
     while (hopTotal != (kStartTtl + 1) * kStartTtl / 2) {
       auto pktBufOpt = snooper.waitForPacket(10 /* seconds */);
-      ASSERT_TRUE(pktBufOpt.has_value());
+      if (!pktBufOpt.has_value()) {
+        return true;
+      }
 
       auto pktBuf = *pktBufOpt.value().get();
       folly::io::Cursor pktCursor(&pktBuf);
@@ -162,5 +129,60 @@ TEST_F(PtpTests, verifyPtpTcDelayRequest) {
         EXPECT_EQ(dstMac, localMac);
       }
     }
+    return false;
+  }
+
+ protected:
+  void setCmdLineFlagOverrides() const override {
+    // disable other processes which generate pkts
+    FLAGS_enable_lldp = false;
+    // tunnel interface enable especially on fboss2000 results
+    FLAGS_tun_intf = false;
+    // disable neighbor updates
+    FLAGS_disable_neighbor_updates = true;
+    LinkTest::setCmdLineFlagOverrides();
+  }
+};
+
+// Purpose of this test is to validate Transparent clock (TC) for PTP
+// TC embeds timestamps in CF field for PTP event messages such as
+// Delay request, sync etc.
+// This test enables PTP, send PTP delay request pkt from CPU and externally
+// loopback to another port on the switch. (port B -> port A -> port B -> port A
+// ..) But PTP doesn't generate timestamps on first hop, its because we
+// originated pkt from CPU and  egress port can't detect meta data which it
+// needs to timestamp this pkt.  On ingress, timestamp is updated in meta
+// header. So subsequent loop of same pkt through the fwd pipeline generates
+// timestamp on egress. All these pkts are punted to CPU when they ingress again
+// on port A. So we send 1 pkt with TTL decrementing from 255 all the way to 0
+// We capture these pkts coming to CPU.
+// if (pkt == ptp {
+//    if (pkt_ttl == 255) EXPECT_EQ(CF_field, 0)
+//    else EXPECT_GT(CF_field, 0)
+// }
+TEST_F(PtpTests, verifyPtpTcDelayRequest) {
+  auto ecmpPorts = getVlanOwningCabledPorts();
+  // create ACL to trap any packets to CPU coming with given dst IP
+  // Ideally we should have used the l4port (PTP_UDP_EVENT_PORT), but
+  // SAI doesn't support this qualifier yet
+  folly::CIDRNetwork dstPrefix = folly::CIDRNetwork{kIPv6Dst, 128};
+  auto entry = HwTestPacketTrapEntry(sw()->getHw(), dstPrefix);
+  HwAgentTestPacketSnooper snooper(sw()->getPacketObservers());
+  programDefaultRoute(ecmpPorts, sw()->getPlatform()->getLocalMac());
+  auto ptpType = PTPMessageType::PTP_DELAY_REQUEST;
+
+  for (const auto& portDescriptor : ecmpPorts) {
+    // There are cases where a burst of other packets could occupy the CPU queue
+    // (e.g. NDP etc.) and force PTP packets to be dropped. In this case, retry
+    // 3 times on the same port.
+    int retries = 3;
+    bool retryable = true;
+    while (retries > 0 && retryable) {
+      retryable = sendAndVerifyPtpPkts(ptpType, portDescriptor, snooper);
+      retries--;
+    }
+    EXPECT_FALSE(retryable)
+        << "Failed to capture PTP packets on port "
+        << portDescriptor.phyPortID() << " after multiple retries";
   }
 }
