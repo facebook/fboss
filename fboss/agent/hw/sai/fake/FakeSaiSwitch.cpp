@@ -509,6 +509,44 @@ sai_status_t get_switch_attribute_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t get_switch_stats_fn(
+    sai_object_id_t /*switchId*/,
+    uint32_t num_of_counters,
+    const sai_stat_id_t* /*counter_ids*/,
+    uint64_t* counters) {
+  for (auto i = 0; i < num_of_counters; ++i) {
+    counters[i] = 0;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+/*
+ * In fake sai there isn't a dataplane, so all stats
+ * stay at 0. Leverage the corresponding non _ext
+ * stats fn to get the stats. If stats are always 0,
+ * modes (READ, READ_AND_CLEAR) don't matter
+ */
+sai_status_t get_switch_stats_ext_fn(
+    sai_object_id_t switchId,
+    uint32_t num_of_counters,
+    const sai_stat_id_t* counter_ids,
+    sai_stats_mode_t /*mode*/,
+    uint64_t* counters) {
+  return get_switch_stats_fn(switchId, num_of_counters, counter_ids, counters);
+}
+
+/*
+ *  noop clear stats API. Since fake doesnt have a
+ *  dataplane stats are always set to 0, so
+ *  no need to clear them
+ */
+sai_status_t clear_switch_stats_fn(
+    sai_object_id_t /*switch_id*/,
+    uint32_t /*number_of_counters*/,
+    const sai_stat_id_t* /*counter_ids*/) {
+  return SAI_STATUS_SUCCESS;
+}
+
 namespace facebook::fboss {
 
 static sai_switch_api_t _switch_api;
@@ -518,6 +556,9 @@ void populate_switch_api(sai_switch_api_t** switch_api) {
   _switch_api.remove_switch = &remove_switch_fn;
   _switch_api.set_switch_attribute = &set_switch_attribute_fn;
   _switch_api.get_switch_attribute = &get_switch_attribute_fn;
+  _switch_api.get_switch_stats = &get_switch_stats_fn;
+  _switch_api.get_switch_stats_ext = &get_switch_stats_ext_fn;
+  _switch_api.clear_switch_stats = &clear_switch_stats_fn;
   *switch_api = &_switch_api;
 }
 
