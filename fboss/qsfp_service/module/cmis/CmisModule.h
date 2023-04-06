@@ -393,7 +393,7 @@ class CmisModule : public QsfpModule {
    * ApSel or other settings like RxEqualizer setting. In case of config
    * rejection the function returns false
    */
-  bool checkLaneConfigError();
+  bool checkLaneConfigError(uint8_t startHostLane, uint8_t hostLaneCount);
 
   /*
    * This function veifies the Module eeprom register checksum for a given page

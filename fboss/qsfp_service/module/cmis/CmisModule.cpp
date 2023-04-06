@@ -1844,7 +1844,7 @@ void CmisModule::setApplicationCodeLocked(
     resetDataPathWithFunc(setApplicationSelectCode, hostLaneMask);
 
     // Check if the config has been applied correctly or not
-    if (!checkLaneConfigError()) {
+    if (!checkLaneConfigError(startHostLane, hostLanes)) {
       QSFP_LOG(ERR, this) << folly::sformat(
           "application {:#x} could not be set",
           capability->moduleMediaInterface);
@@ -1866,7 +1866,9 @@ void CmisModule::setApplicationCodeLocked(
  * rejected. This function should be run after ApSel setting or any other
  * lane configuration like Rx Equalizer setting etc
  */
-bool CmisModule::checkLaneConfigError() {
+bool CmisModule::checkLaneConfigError(
+    uint8_t startHostLane,
+    uint8_t hostLaneCount) {
   bool success;
 
   uint8_t configErrors[4];
@@ -1881,7 +1883,8 @@ bool CmisModule::checkLaneConfigError() {
     bool allStatusAvailable = true;
     success = true;
 
-    for (int channel = 0; channel < numHostLanes(); channel++) {
+    for (int channel = startHostLane; channel < startHostLane + hostLaneCount;
+         channel++) {
       uint8_t byte = channel / 2;
       uint8_t cfgErr = configErrors[byte] >> ((channel % 2) * 4);
       cfgErr &= 0x0f;
@@ -2296,7 +2299,7 @@ void CmisModule::setModuleRxEqualizerLocked(
     writeCmisField(CmisField::STAGE_CTRL_SET0_IMMEDIATE, &stage0ControlTrigger);
 
     // Check if the config has been applied correctly or not
-    if (!checkLaneConfigError()) {
+    if (!checkLaneConfigError(startHostLane, hostLaneCount)) {
       QSFP_LOG(ERR, this) << "customization config rejected";
     }
   }
