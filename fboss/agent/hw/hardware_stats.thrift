@@ -224,3 +224,8 @@ struct CpuPortStats {
   2: map<i32, i64> queueDiscardPackets_;
   3: map<i32, string> queueToName_;
 }
+
+struct HwSwitchDropStats {
+  1: optional i64 globalDrops;
+  2: optional i64 globalReachabilityDrops;
+}
