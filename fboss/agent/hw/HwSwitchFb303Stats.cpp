@@ -76,6 +76,16 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           map,
           SwitchStats::kCounterPrefix + vendor + ".asic.error",
           SUM,
+          RATE),
+      globalDrops_(
+          map,
+          SwitchStats::kCounterPrefix + ".global_drops",
+          SUM,
+          RATE),
+      globalReachDrops_(
+          map,
+          SwitchStats::kCounterPrefix + "global_reachability_drops",
+          SUM,
           RATE) {}
 
 HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {

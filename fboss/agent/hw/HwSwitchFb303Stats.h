@@ -118,6 +118,9 @@ class HwSwitchFb303Stats {
 
   // Other ASIC errors
   TLTimeseries asicErrors_;
+  // Drops
+  TLTimeseries globalDrops_;
+  TLTimeseries globalReachDrops_;
 };
 
 } // namespace facebook::fboss
