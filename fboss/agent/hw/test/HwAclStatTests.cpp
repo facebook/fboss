@@ -447,7 +447,14 @@ TEST_F(HwAclStatTest, AclStatCreateSameTwice) {
   utility::addAclStat(&newCfg, "acl0", "stat0");
   applyNewConfig(newCfg);
   StateDelta delta(state, getProgrammedState());
-  EXPECT_THROW(getHwSwitch()->stateChanged(delta), FbossError);
+
+  if (FLAGS_enable_state_oper_delta) {
+    // adding same ACL twice with oper delta and state maintained in HW switch
+    // leads to process change. not process added.
+    EXPECT_NO_THROW(getHwSwitch()->stateChanged(delta));
+  } else {
+    EXPECT_THROW(getHwSwitch()->stateChanged(delta), FbossError);
+  }
 }
 
 TEST_F(HwAclStatTest, AclStatDeleteNonExistent) {
