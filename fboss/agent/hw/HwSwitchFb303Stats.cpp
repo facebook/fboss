@@ -88,6 +88,15 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           SUM,
           RATE) {}
 
+void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
+  if (dropStats.globalDrops().has_value()) {
+    globalDrops_.addValue(*dropStats.globalDrops());
+  }
+  if (dropStats.globalReachabilityDrops().has_value()) {
+    globalReachDrops_.addValue(*dropStats.globalReachabilityDrops());
+  }
+}
+
 HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   HwAsicErrors asicErrors;
   asicErrors.parityErrors() = getCumulativeValue(parityErrors_);

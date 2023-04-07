@@ -58,6 +58,7 @@ class HwSwitchFb303Stats {
     asicErrors_.addValue(1);
   }
 
+  void update(const HwSwitchDropStats& dropStats);
   // TODO: FSDB needs to support count() method on stats
 
   int64_t getTxPktAllocCount() {
