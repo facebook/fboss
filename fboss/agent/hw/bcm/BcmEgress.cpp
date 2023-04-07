@@ -422,6 +422,11 @@ void BcmEcmpEgress::program() {
       }
       ret = bcm_l3_ecmp_create(
           hw_->getUnit(), option, &obj, idx, ecmpMemberArray);
+      if (ret == BCM_E_RESOURCE) {
+        XLOG(DBG2)
+            << "Got BCM_E_RESOURCE when programming ecmp, replace it by BCM_E_FULL to trigger graceful error handling";
+        ret = BCM_E_FULL;
+      }
     } else {
       // check whether WideECMP is needed
       if (numPaths > kMaxNonWeightedEcmpPaths) {
@@ -801,6 +806,11 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
             &existing,
             totalMembersInHw,
             membersInHw);
+        if (ret == BCM_E_RESOURCE) {
+          XLOG(DBG2)
+              << "Got BCM_E_RESOURCE when programming ecmp, replace it by BCM_E_FULL to trigger graceful error handling";
+          ret = BCM_E_FULL;
+        }
         bcmCheckError(
             ret,
             "Error updating weight of member ",
@@ -814,6 +824,11 @@ bool BcmEcmpEgress::addEgressIdHwLocked(
         member.egress_if = toAdd;
         member.weight = countInSw;
         ret = bcm_l3_ecmp_member_add(unit, ecmpId, &member);
+        if (ret == BCM_E_RESOURCE) {
+          XLOG(DBG2)
+              << "Got BCM_E_RESOURCE when adding ecmp member, replace it by BCM_E_FULL to trigger graceful error handling";
+          ret = BCM_E_FULL;
+        }
         bcmCheckError(
             ret, "Error adding member ", toAdd, " to ecmp entry ", ecmpId);
       }
