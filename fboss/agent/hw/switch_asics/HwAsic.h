@@ -137,6 +137,7 @@ class HwAsic {
     CPU_TX_VIA_RECYCLE_PORT,
     QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI,
     SAI_CONFIGURE_SEVEN_TAP,
+    SWITCH_DROP_STATS,
   };
 
   enum class AsicMode {

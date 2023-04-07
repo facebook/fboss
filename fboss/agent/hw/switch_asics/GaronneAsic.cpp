@@ -140,6 +140,7 @@ bool GaronneAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::QUEUE_ECN_COUNTER:
     case HwAsic::Feature::CPU_TX_VIA_RECYCLE_PORT:
     case HwAsic::Feature::QUEUE_PRIORITY_LOWER_VAL_IS_HIGH_PRI:
+    case HwAsic::Feature::SWITCH_DROP_STATS:
       return false;
   }
   return false;

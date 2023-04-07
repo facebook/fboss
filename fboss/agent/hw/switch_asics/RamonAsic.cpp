@@ -18,6 +18,7 @@ bool RamonAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_CORRECTED_BITS:
     case HwAsic::Feature::PORT_FABRIC_ISOLATE:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
+    case HwAsic::Feature::SWITCH_DROP_STATS:
       return true;
     default:
       return false;
