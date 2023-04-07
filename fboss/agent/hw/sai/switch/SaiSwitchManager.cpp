@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/sai/api/AdapterKeySerializers.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
@@ -59,6 +60,24 @@ sai_hash_algorithm_t toSaiHashAlgo(cfg::HashingAlgorithm algo) {
     case cfg::HashingAlgorithm::CRC32_KOOPMAN_HI:
     default:
       throw FbossError("Unsupported hash algorithm :", algo);
+  }
+}
+
+void fillHwSwitchDropStats(
+    const folly::F14FastMap<sai_stat_id_t, uint64_t>& counterId2Value,
+    HwSwitchDropStats& hwSwitchDropStats) {
+  for (auto counterIdAndValue : counterId2Value) {
+    auto [counterId, value] = counterIdAndValue;
+    switch (counterId) {
+      case SAI_SWITCH_STAT_REACHABILITY_DROP:
+        hwSwitchDropStats.globalReachabilityDrops() = value;
+        break;
+      case SAI_SWITCH_STAT_GLOBAL_DROP:
+        hwSwitchDropStats.globalDrops() = value;
+        break;
+      default:
+        throw FbossError("Got unexpected switch counter id: ", counterId);
+    }
   }
 }
 } // namespace
@@ -563,5 +582,14 @@ bool SaiSwitchManager::isMplsQoSMapSupported() const {
   return false;
 #endif
   return platform_->getAsic()->isSupported(HwAsic::Feature::SAI_MPLS_QOS);
+}
+
+void SaiSwitchManager::updateStats() {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SWITCH_DROP_STATS)) {
+    HwSwitchDropStats dropStats;
+    switch_->updateStats();
+    fillHwSwitchDropStats(switch_->getStats(), dropStats);
+    platform_->getHwSwitch()->getSwitchStats()->update(dropStats);
+  }
 }
 } // namespace facebook::fboss

@@ -79,7 +79,7 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           RATE),
       globalDrops_(
           map,
-          SwitchStats::kCounterPrefix + ".global_drops",
+          SwitchStats::kCounterPrefix + "global_drops",
           SUM,
           RATE),
       globalReachDrops_(
