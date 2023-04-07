@@ -479,6 +479,10 @@ class CmdGlobalOptions {
     openrThriftPort_ = port;
   }
 
+  void setCoopThriftPort(int port) {
+    coopThriftPort_ = port;
+  }
+
   void setVipThriftPort(int port) {
     vipInjectorThriftPort_ = port;
   }
