@@ -63,6 +63,7 @@
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
 #include "fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h"
+#include "fboss/cli/fboss2/commands/show/state/CmdShowState.h"
 #include "fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h"
 #include "fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h"
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
@@ -101,6 +102,12 @@ const CommandTree& kCommandTree() {
        commandHandler<CmdShowArp>,
        validFilterHandler<CmdShowArp>,
        argTypeHandler<CmdShowArpTraits>},
+
+      {"show",
+       "state",
+       "Show switch state information",
+       commandHandler<CmdShowState>,
+       argTypeHandler<CmdShowStateTraits>},
 
       {"show",
        "fabric",
