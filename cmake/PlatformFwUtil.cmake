@@ -9,6 +9,8 @@ add_executable(fw_util
   fboss/platform/fw_util/darwinFwUtil/UpgradeBinaryDarwin.cpp
   fboss/platform/fw_util/firmware_helpers/FirmwareUpgradeHelper.cpp
   fboss/platform/fw_util/oss/FirmwareUpgradeHelper.cpp
+  fboss/platform/fw_util/minipack3FwUtil/FirmwareUpgradeMinipack3.cpp
+  fboss/platform/fw_util/minipack3FwUtil/UpgradeBinaryMinipack3.cpp
 )
 
 target_link_libraries(fw_util

@@ -9,7 +9,7 @@
 #include <glog/logging.h>
 
 #include "fboss/platform/fw_util/FirmwareUpgradeInterface.h"
-#include "fboss/platform/fw_util/darwinFwUtil/FirmwareUpgradeDarwin.h"
+#include "fboss/platform/fw_util/minipack3FwUtil/FirmwareUpgradeMinipack3.h"
 #include "fboss/platform/helpers/Utils.h"
 
 using namespace facebook::fboss::platform::fw_util;
@@ -20,8 +20,8 @@ std::unique_ptr<FirmwareUpgradeInterface> get_plat_type(
   // TODO: will check platform information (maybe fboss whoami) to
   // to figure out which platform we are dealing with
   upgradable_components =
-      "cpu_cpld, sc_scd, sc_cpld, sc_sat_cpld0, sc_sat_cpld1, fan_cpld, bios";
-  return std::make_unique<FirmwareUpgradeDarwin>();
+      "iob_fpga, dom_fpga_1, dom_fpga_2, scm_cpld, mcb_cpld, smb_cpld, nic_i210, th5_bcm7800, bios";
+  return std::make_unique<FirmwareUpgradeMinipack3>();
 
   // TODO: add else logic for other platforms
 }

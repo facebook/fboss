@@ -120,6 +120,14 @@ void xappUpgrade(std::string fpga, std::string action, std::string fpgaFile) {
   }
 }
 
+void flashromSpiUpgrade(std::string path, std::string file) {
+  const std::string cmd = folly::to<std::string>(
+      "flashrom -p linux_mtd:dev=", path, " -w", file);
+  int ret = runCmd(cmd);
+  if (ret < 0) {
+    throw std::runtime_error(folly::to<std::string>("Error running ", cmd));
+  }
+
 void flashromBiosUpgrade(
     std::string action,
     std::string biosFile,
