@@ -11,7 +11,7 @@
 #include "fboss/agent/hw/test/HwTest.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/agent/hw/HwSwitchStats.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/types.h"

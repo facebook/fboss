@@ -22,8 +22,8 @@ target_link_libraries(diag_cmd_filter
   Folly::folly
 )
 
-add_library(hw_switch_stats
-  fboss/agent/hw/HwSwitchStats.cpp
+add_library(hw_switch_fb303_stats
+  fboss/agent/hw/HwSwitchFb303Stats.cpp
 )
 
 add_library(hw_fb303_stats
@@ -64,7 +64,7 @@ target_link_libraries(hw_switch_warmboot_helper
   Folly::folly
 )
 
-target_link_libraries(hw_switch_stats
+target_link_libraries(hw_switch_fb303_stats
   stats
   fb303::fb303
   Folly::folly

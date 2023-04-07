@@ -8,7 +8,7 @@
  *
  */
 
-#include "fboss/agent/hw/HwSwitchStats.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/lib/CommonUtils.h"
@@ -18,7 +18,7 @@ using facebook::fb303::SUM;
 
 namespace facebook::fboss {
 
-HwSwitchStats::HwSwitchStats(
+HwSwitchFb303Stats::HwSwitchFb303Stats(
     ThreadLocalStatsMap* map,
     const std::string& vendor)
     : txPktAlloc_(
@@ -78,7 +78,7 @@ HwSwitchStats::HwSwitchStats(
           SUM,
           RATE) {}
 
-HwAsicErrors HwSwitchStats::getHwAsicErrors() const {
+HwAsicErrors HwSwitchFb303Stats::getHwAsicErrors() const {
   HwAsicErrors asicErrors;
   asicErrors.parityErrors() = getCumulativeValue(parityErrors_);
   asicErrors.correctedParityErrors() = getCumulativeValue(corrParityErrors_);

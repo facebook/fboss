@@ -38,7 +38,7 @@ class StateDelta;
 class RxPacket;
 class TxPacket;
 class L2Entry;
-class HwSwitchStats;
+class HwSwitchFb303Stats;
 
 enum class L2EntryUpdateType : uint8_t;
 
@@ -388,7 +388,7 @@ class HwSwitch {
       const std::vector<HwObjectType>& types,
       bool cached) const = 0;
 
-  HwSwitchStats* getSwitchStats() const;
+  HwSwitchFb303Stats* getSwitchStats() const;
 
   uint32_t generateDeterministicSeed(LoadBalancerID loadBalancerID);
 
@@ -426,7 +426,7 @@ class HwSwitch {
   // mutable to allow for lazy init from getter. This is needed to
   // create the var in the thread local storage (TLS) of the calling
   // thread and cannot be created up front.
-  mutable folly::ThreadLocalPtr<HwSwitchStats> hwSwitchStats_;
+  mutable folly::ThreadLocalPtr<HwSwitchFb303Stats> hwSwitchStats_;
   cfg::SwitchType switchType_{cfg::SwitchType::NPU};
   std::optional<int64_t> switchId_;
 

@@ -78,7 +78,7 @@ target_link_libraries(sai_switch
   # allow unresolved-symbols here.
   -Wl,--unresolved-symbols=ignore-all
   core
-  hw_switch_stats
+  hw_switch_fb303_stats
   hw_trunk_counters
   hw_fb303_stats
   hw_cpu_fb303_stats

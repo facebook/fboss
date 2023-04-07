@@ -35,7 +35,7 @@ target_link_libraries(switch_test
     sai_store
     sai_switch
     fake_sai
-    hw_switch_stats
+    hw_switch_fb303_stats
     manager_test_base
     ${GTEST}
     ${LIBGMOCK_LIBRARIES}

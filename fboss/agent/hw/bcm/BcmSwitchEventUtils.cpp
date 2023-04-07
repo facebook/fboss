@@ -10,7 +10,7 @@
 #include "fboss/agent/hw/bcm/BcmSwitchEventUtils.h"
 
 #include <folly/logging/xlog.h>
-#include "fboss/agent/hw/HwSwitchStats.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/bcm/BcmSwitchEventCallback.h"

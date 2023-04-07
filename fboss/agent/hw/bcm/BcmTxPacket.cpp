@@ -12,7 +12,7 @@
 
 #include "fboss/agent/hw/bcm/BcmTxPacket.h"
 
-#include "fboss/agent/hw/HwSwitchStats.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/packet/EthHdr.h"
 #include "fboss/agent/packet/PktUtil.h"

@@ -11,7 +11,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Utils.h"
-#include "fboss/agent/hw/HwSwitchStats.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/normalization/Normalizer.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -47,9 +47,9 @@ std::string HwSwitch::getDebugDump() const {
   return out;
 }
 
-HwSwitchStats* HwSwitch::getSwitchStats() const {
+HwSwitchFb303Stats* HwSwitch::getSwitchStats() const {
   if (!hwSwitchStats_) {
-    hwSwitchStats_.reset(new HwSwitchStats(
+    hwSwitchStats_.reset(new HwSwitchFb303Stats(
         fb303::ThreadCachedServiceData::get()->getThreadStats(),
         getPlatform()->getAsic()->getVendor()));
   }

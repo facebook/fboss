@@ -2,7 +2,7 @@
 
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 
-#include "fboss/agent/hw/HwSwitchStats.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestTamUtils.h"
 
