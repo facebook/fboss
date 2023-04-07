@@ -263,6 +263,14 @@ class HwSwitchEnsemble : public TestEnsembleIf {
       const std::shared_ptr<SwitchState>& newState,
       bool transaction,
       bool disableAppliedStateVerification = false);
+  bool applyUpdate(
+      const StateDelta& delta,
+      const std::lock_guard<std::mutex>& lock,
+      bool transaction);
+  bool applyUpdate(
+      const fsdb::OperDelta& operDelta,
+      const std::lock_guard<std::mutex>& lock,
+      bool transaction);
   virtual std::unique_ptr<std::thread> setupThrift() = 0;
 
   void addOrUpdateCounter(const PortID& port, const bool deadlock);
