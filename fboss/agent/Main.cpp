@@ -64,6 +64,9 @@ using std::chrono::seconds;
 using namespace std::chrono;
 
 DEFINE_int32(port, 5909, "The thrift server port");
+// current default 5909 is in conflict with VNC ports, need to
+// eventually migrate to 5959
+DEFINE_int32(migrated_port, 5959, "New thrift server port migrate to");
 DEFINE_int32(
     stat_publish_interval_ms,
     1000,
@@ -281,7 +284,11 @@ int AgentInitializer::initAgent(HwSwitch::Callback* callback) {
 
   // Start the thrift server
   server_ = setupThriftServer(
-      *eventBase_, handler, {FLAGS_port}, true /*isDuplex*/, true /*setupSSL*/);
+      *eventBase_,
+      handler,
+      {FLAGS_port, FLAGS_migrated_port},
+      true /*isDuplex*/,
+      true /*setupSSL*/);
 
   handler->setSSLPolicy(server_->getSSLPolicy());
 
@@ -301,7 +308,8 @@ int AgentInitializer::initAgent(HwSwitch::Callback* callback) {
   SignalHandler signalHandler(
       eventBase_, sw_.get(), [this]() { stopServices(); });
 
-  XLOG(DBG2) << "serving on localhost on port " << FLAGS_port;
+  XLOG(DBG2) << "serving on localhost on port " << FLAGS_port << " and "
+             << FLAGS_migrated_port;
   server_->serve();
   return 0;
 }
