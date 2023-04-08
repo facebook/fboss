@@ -160,7 +160,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::labelFibMap,
     MultiLabelForwardingInformationBase);
-
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::qosPolicyMaps,
+    MultiQosPolicyMap);
 /*
  * SwitchState stores the current switch configuration.
  *
