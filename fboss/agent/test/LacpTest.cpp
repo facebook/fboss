@@ -260,7 +260,7 @@ TEST_F(LacpTest, nonAggregatablePortTransmitsIndividualBit) {
   // that of the default actor information because otherwise the
   // ReceiveMachine would not drive NeedToTransmit.
   ParticipantInfo actorInfo;
-  actorInfo.state = LacpState::ACTIVE | LacpState::AGGREGATABLE;
+  actorInfo.state = LacpState::LACP_ACTIVE | LacpState::AGGREGATABLE;
   ParticipantInfo partnerInfo = ParticipantInfo::defaultParticipantInfo();
   controllerPtr->received(LACPDU(actorInfo, partnerInfo));
 
@@ -347,8 +347,9 @@ void DUColdBootReconvergenceWithESWHelper(
 
   // Some bits in LacpState are derived from configuration. To avoid having to
   // repreat them, they are factored out into the following variables
-  LacpState eswActorStateBase = LacpState::AGGREGATABLE | LacpState::ACTIVE;
-  LacpState duActorStateBase = LacpState::AGGREGATABLE | LacpState::ACTIVE;
+  LacpState eswActorStateBase =
+      LacpState::AGGREGATABLE | LacpState::LACP_ACTIVE;
+  LacpState duActorStateBase = LacpState::AGGREGATABLE | LacpState::LACP_ACTIVE;
 
   if (rate == cfg::LacpPortRate::FAST) {
     eswActorStateBase |= LacpState::SHORT_TIMEOUT;
@@ -585,8 +586,8 @@ void UUColdBootReconvergenceWithDRHelper(
 
   // Some bits in LacpState are derived from configuration. To avoid having to
   // repreat them, they are factored out into the following variables
-  LacpState uuActorStateBase = LacpState::AGGREGATABLE | LacpState::ACTIVE;
-  LacpState drActorStateBase = LacpState::AGGREGATABLE | LacpState::ACTIVE;
+  LacpState uuActorStateBase = LacpState::AGGREGATABLE | LacpState::LACP_ACTIVE;
+  LacpState drActorStateBase = LacpState::AGGREGATABLE | LacpState::LACP_ACTIVE;
   if (rate == cfg::LacpPortRate::FAST) {
     uuActorStateBase |= LacpState::SHORT_TIMEOUT;
     drActorStateBase |= LacpState::SHORT_TIMEOUT;
@@ -940,7 +941,7 @@ void selfInteroperabilityHelper(
   // TODO(samank): check this is a no-op on the UU endpoint
   uuControllerPtr->received(duTransmission);
 
-  auto state = LacpState::AGGREGATABLE | LacpState::ACTIVE |
+  auto state = LacpState::AGGREGATABLE | LacpState::LACP_ACTIVE |
       LacpState::IN_SYNC | LacpState::COLLECTING | LacpState::DISTRIBUTING;
   if (rate == cfg::LacpPortRate::FAST) {
     state |= LacpState::SHORT_TIMEOUT;
@@ -1008,7 +1009,7 @@ void selfInteroperabilityAfterWarmbootHelper(
     pInfo.key = port;
     pInfo.portPriority = 32768;
     pInfo.port = port;
-    pInfo.state = LacpState::ACTIVE | LacpState::AGGREGATABLE |
+    pInfo.state = LacpState::LACP_ACTIVE | LacpState::AGGREGATABLE |
         LacpState::COLLECTING | LacpState::DISTRIBUTING | LacpState::IN_SYNC;
     if (rate == cfg::LacpPortRate::FAST) {
       pInfo.state |= LacpState::SHORT_TIMEOUT;
@@ -1066,7 +1067,7 @@ void selfInteroperabilityAfterWarmbootHelper(
   duTransmission = duEventInterceptor.lastLacpduTransmitted(duPort);
   uuController->received(duTransmission);
 
-  auto state = LacpState::AGGREGATABLE | LacpState::ACTIVE |
+  auto state = LacpState::AGGREGATABLE | LacpState::LACP_ACTIVE |
       LacpState::IN_SYNC | LacpState::COLLECTING | LacpState::DISTRIBUTING;
   if (rate == cfg::LacpPortRate::FAST) {
     state |= LacpState::SHORT_TIMEOUT;
@@ -1111,7 +1112,7 @@ TEST_F(LacpTest, lacpPortFlapAfterSync) {
     pInfo.key = key;
     pInfo.portPriority = 32768;
     pInfo.port = port;
-    pInfo.state = LacpState::ACTIVE | LacpState::AGGREGATABLE |
+    pInfo.state = LacpState::LACP_ACTIVE | LacpState::AGGREGATABLE |
         LacpState::COLLECTING | LacpState::DISTRIBUTING | LacpState::IN_SYNC;
     if (rate == cfg::LacpPortRate::FAST) {
       pInfo.state |= LacpState::SHORT_TIMEOUT;
@@ -1182,7 +1183,7 @@ TEST_F(LacpTest, lacpPortFlapAfterSync) {
   ASSERT_EQ(duEventInterceptor.isForwarding(duPort2), false);
 
   uuTransmission.actorInfo.state =
-      LacpState::ACTIVE | LacpState::AGGREGATABLE | LacpState::IN_SYNC;
+      LacpState::LACP_ACTIVE | LacpState::AGGREGATABLE | LacpState::IN_SYNC;
   // A PDU is received on UP port
   duController2->received(uuTransmission);
   // the port should stay down
@@ -1215,7 +1216,7 @@ TEST_F(LacpTest, lacpDownCounters) {
     pInfo.key = key;
     pInfo.portPriority = 32768;
     pInfo.port = port;
-    pInfo.state = LacpState::ACTIVE | LacpState::AGGREGATABLE |
+    pInfo.state = LacpState::LACP_ACTIVE | LacpState::AGGREGATABLE |
         LacpState::COLLECTING | LacpState::DISTRIBUTING | LacpState::IN_SYNC |
         LacpState::SHORT_TIMEOUT;
     return pInfo;
@@ -1273,7 +1274,8 @@ TEST_F(LacpTest, lacpDownCounters) {
   ASSERT_EQ(uuEventInterceptor.isForwarding(uuPort2), true);
 
   auto uuTransmission = uuEventInterceptor.lastLacpduTransmitted(uuPort2);
-  uuTransmission.actorInfo.state = LacpState::ACTIVE | LacpState::AGGREGATABLE;
+  uuTransmission.actorInfo.state =
+      LacpState::LACP_ACTIVE | LacpState::AGGREGATABLE;
   // Cache the current stats
   CounterCache counters(sw);
   // A mismatched PDU is received on port which transitions it to down

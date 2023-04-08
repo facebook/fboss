@@ -280,8 +280,8 @@ void ReceiveMachine::current(LACPDU lacpdu) {
 
   bool ntt = updateNTT(lacpdu);
 
-  bool activityChanged = (lacpdu.actorInfo.state & LacpState::ACTIVE) !=
-      (partnerInfo_.state & LacpState::ACTIVE);
+  bool activityChanged = (lacpdu.actorInfo.state & LacpState::LACP_ACTIVE) !=
+      (partnerInfo_.state & LacpState::LACP_ACTIVE);
 
   recordPDU(lacpdu);
 
@@ -483,8 +483,8 @@ PeriodicTransmissionMachine::determineTransmissionRate() {
   auto actorInfo = controller_.actorInfo();
   auto partnerInfo = controller_.partnerInfo();
 
-  if ((actorInfo.state & LacpState::ACTIVE) == 0 &&
-      (partnerInfo.state & LacpState::ACTIVE) == 0) {
+  if ((actorInfo.state & LacpState::LACP_ACTIVE) == 0 &&
+      (partnerInfo.state & LacpState::LACP_ACTIVE) == 0) {
     return PeriodicState::NONE;
   }
 

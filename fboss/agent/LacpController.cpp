@@ -69,7 +69,7 @@ LacpController::LacpController(
     actorState_ |= LacpState::SHORT_TIMEOUT;
   }
   if (activity == cfg::LacpPortActivity::ACTIVE) {
-    actorState_ |= LacpState::ACTIVE;
+    actorState_ |= LacpState::LACP_ACTIVE;
   }
 }
 

@@ -139,6 +139,7 @@ SwitchState::SwitchState() {
   resetQosPolicies(std::make_shared<QosPolicyMap>());
   resetTunnels(std::make_shared<IpTunnelMap>());
   resetTeFlowTable(std::make_shared<TeFlowTable>());
+  resetAggregatePorts(std::make_shared<AggregatePortMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -232,7 +233,12 @@ void SwitchState::resetAclTableGroups(
 
 void SwitchState::resetAggregatePorts(
     std::shared_ptr<AggregatePortMap> aggPorts) {
-  ref<switch_state_tags::aggregatePortMap>() = aggPorts;
+  resetDefaultMap<switch_state_tags::aggregatePortMaps>(aggPorts);
+}
+
+const std::shared_ptr<AggregatePortMap>& SwitchState::getAggregatePorts()
+    const {
+  return getDefaultMap<switch_state_tags::aggregatePortMaps>();
 }
 
 void SwitchState::resetSflowCollectors(
@@ -557,6 +563,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::teFlowTables,
       switch_state_tags::teFlowTable>();
+  state->fromThrift<
+      switch_state_tags::aggregatePortMaps,
+      switch_state_tags::aggregatePortMap>();
   return state;
 }
 
@@ -725,7 +734,9 @@ state::SwitchState SwitchState::toThrift() const {
   if (auto obj = toThrift(cref<switch_state_tags::teFlowTables>())) {
     data.teFlowTable() = *obj;
   }
-
+  if (auto obj = toThrift(cref<switch_state_tags::aggregatePortMaps>())) {
+    data.aggregatePortMap() = *obj;
+  }
   return data;
 }
 

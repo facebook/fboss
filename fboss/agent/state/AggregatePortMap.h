@@ -10,6 +10,7 @@
 #pragma once
 
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/NodeMap.h"
 #include "fboss/agent/state/Thrifty.h"
 
@@ -40,6 +41,7 @@ class AggregatePortMap
     : public ThriftMapNode<AggregatePortMap, AggregatePortMapTraits> {
  public:
   using Base = ThriftMapNode<AggregatePortMap, AggregatePortMapTraits>;
+  using Traits = AggregatePortMapTraits;
   using Base::modify;
   using ThriftType = std::map<int16_t, state::AggregatePortFields>;
 
@@ -69,6 +71,38 @@ class AggregatePortMap
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
+  friend class CloneAllocator;
+};
+
+using MultiAggregatePortMapTypeClass = apache::thrift::type_class::
+    map<apache::thrift::type_class::string, AggregatePortMapTypeClass>;
+using MultiAggregatePortMapThriftType =
+    std::map<std::string, AggregatePortMapThriftType>;
+
+class MultiAggregatePortMap;
+
+using MultiAggregatePortMapTraits = ThriftMultiMapNodeTraits<
+    MultiAggregatePortMap,
+    MultiAggregatePortMapTypeClass,
+    MultiAggregatePortMapThriftType,
+    AggregatePortMap>;
+
+class HwSwitchMatcher;
+
+class MultiAggregatePortMap
+    : public ThriftMapNode<MultiAggregatePortMap, MultiAggregatePortMapTraits> {
+ public:
+  using Traits = MultiAggregatePortMapTraits;
+  using BaseT =
+      ThriftMapNode<MultiAggregatePortMap, MultiAggregatePortMapTraits>;
+  using BaseT::modify;
+
+  MultiAggregatePortMap() {}
+  virtual ~MultiAggregatePortMap() {}
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 

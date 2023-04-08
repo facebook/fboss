@@ -73,7 +73,7 @@ void ParticipantInfo::populate(LacpEndpoint& endpoint) const {
   *endpoint.portPriority() = static_cast<int32_t>(portPriority);
   *endpoint.port() = static_cast<int32_t>(port);
 
-  *endpoint.state()->active() = state & LacpState::ACTIVE;
+  *endpoint.state()->active() = state & LacpState::LACP_ACTIVE;
   *endpoint.state()->shortTimeout() = state & LacpState::SHORT_TIMEOUT;
   *endpoint.state()->aggregatable() = state & LacpState::AGGREGATABLE;
   *endpoint.state()->inSync() = state & LacpState::IN_SYNC;
