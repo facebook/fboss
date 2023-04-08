@@ -37,6 +37,7 @@ class QosPolicyMap : public ThriftMapNode<QosPolicyMap, QosPolicyMapTraits> {
  public:
   using BaseT = ThriftMapNode<QosPolicyMap, QosPolicyMapTraits>;
   using BaseT::modify;
+  using Traits = QosPolicyMapTraits;
   QosPolicyMap();
   ~QosPolicyMap() override;
 
@@ -53,5 +54,36 @@ class QosPolicyMap : public ThriftMapNode<QosPolicyMap, QosPolicyMapTraits> {
 };
 
 using QosPolicyMapDelta = thrift_cow::ThriftMapDelta<QosPolicyMap>;
+
+using MultiQosPolicyMapTypeClass = apache::thrift::type_class::
+    map<apache::thrift::type_class::string, QosPolicyMapTypeClass>;
+using MultiQosPolicyMapThriftType =
+    std::map<std::string, QosPolicyMapThriftType>;
+
+class MultiQosPolicyMap;
+
+using MultiQosPolicyMapTraits = ThriftMultiMapNodeTraits<
+    MultiQosPolicyMap,
+    MultiQosPolicyMapTypeClass,
+    MultiQosPolicyMapThriftType,
+    QosPolicyMap>;
+
+class HwSwitchMatcher;
+
+class MultiQosPolicyMap
+    : public ThriftMapNode<MultiQosPolicyMap, MultiQosPolicyMapTraits> {
+ public:
+  using Traits = MultiQosPolicyMapTraits;
+  using BaseT = ThriftMapNode<MultiQosPolicyMap, MultiQosPolicyMapTraits>;
+  using BaseT::modify;
+
+  MultiQosPolicyMap() {}
+  virtual ~MultiQosPolicyMap() {}
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
+  friend class CloneAllocator;
+};
 
 } // namespace facebook::fboss
