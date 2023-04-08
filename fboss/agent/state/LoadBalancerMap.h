@@ -40,6 +40,7 @@ class LoadBalancerMap
     : public ThriftMapNode<LoadBalancerMap, LoadBalancerMapTraits> {
  public:
   using Base = ThriftMapNode<LoadBalancerMap, LoadBalancerMapTraits>;
+  using Traits = LoadBalancerMapTraits;
 
   using Base::Base;
 
@@ -52,6 +53,37 @@ class LoadBalancerMap
 
  private:
   // Inherit the constructors required for clone()
+  friend class CloneAllocator;
+};
+
+using MultiLoadBalancerMapTypeClass = apache::thrift::type_class::
+    map<apache::thrift::type_class::string, LoadBalancerMapTypeClass>;
+using MultiLoadBalancerMapThriftType =
+    std::map<std::string, LoadBalancerMapThriftType>;
+
+class MultiLoadBalancerMap;
+
+using MultiLoadBalancerMapTraits = ThriftMultiMapNodeTraits<
+    MultiLoadBalancerMap,
+    MultiLoadBalancerMapTypeClass,
+    MultiLoadBalancerMapThriftType,
+    LoadBalancerMap>;
+
+class HwSwitchMatcher;
+
+class MultiLoadBalancerMap
+    : public ThriftMapNode<MultiLoadBalancerMap, MultiLoadBalancerMapTraits> {
+ public:
+  using Traits = MultiLoadBalancerMapTraits;
+  using BaseT = ThriftMapNode<MultiLoadBalancerMap, MultiLoadBalancerMapTraits>;
+  using BaseT::modify;
+
+  MultiLoadBalancerMap() {}
+  virtual ~MultiLoadBalancerMap() {}
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 

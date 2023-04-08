@@ -176,6 +176,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::aggregatePortMaps,
     MultiAggregatePortMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::loadBalancerMaps,
+    MultiLoadBalancerMap);
 /*
  * SwitchState stores the current switch configuration.
  *

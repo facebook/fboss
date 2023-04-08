@@ -140,6 +140,7 @@ SwitchState::SwitchState() {
   resetTunnels(std::make_shared<IpTunnelMap>());
   resetTeFlowTable(std::make_shared<TeFlowTable>());
   resetAggregatePorts(std::make_shared<AggregatePortMap>());
+  resetLoadBalancers(std::make_shared<LoadBalancerMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -265,7 +266,7 @@ void SwitchState::resetControlPlane(
 
 void SwitchState::resetLoadBalancers(
     std::shared_ptr<LoadBalancerMap> loadBalancers) {
-  ref<switch_state_tags::loadBalancerMap>() = loadBalancers;
+  resetDefaultMap<switch_state_tags::loadBalancerMaps>(loadBalancers);
 }
 
 void SwitchState::resetSwitchSettings(
@@ -278,7 +279,7 @@ void SwitchState::resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs) {
 }
 
 const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {
-  return cref<switch_state_tags::loadBalancerMap>();
+  return getDefaultMap<switch_state_tags::loadBalancerMaps>();
 }
 
 void SwitchState::resetMirrors(std::shared_ptr<MirrorMap> mirrors) {
@@ -566,6 +567,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::aggregatePortMaps,
       switch_state_tags::aggregatePortMap>();
+  state->fromThrift<
+      switch_state_tags::loadBalancerMaps,
+      switch_state_tags::loadBalancerMap>();
   return state;
 }
 
@@ -736,6 +740,9 @@ state::SwitchState SwitchState::toThrift() const {
   }
   if (auto obj = toThrift(cref<switch_state_tags::aggregatePortMaps>())) {
     data.aggregatePortMap() = *obj;
+  }
+  if (auto obj = toThrift(cref<switch_state_tags::loadBalancerMaps>())) {
+    data.loadBalancerMap() = *obj;
   }
   return data;
 }
