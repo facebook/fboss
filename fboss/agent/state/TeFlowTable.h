@@ -37,6 +37,7 @@ using TeFlowTableThriftTraits = ThriftMapNodeTraits<
 class TeFlowTable : public ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits> {
  public:
   using Base = ThriftMapNode<TeFlowTable, TeFlowTableThriftTraits>;
+  using Traits = TeFlowTableThriftTraits;
   using Base::modify;
 
   TeFlowTable();
@@ -82,4 +83,35 @@ class TeFlowSyncer {
       const std::shared_ptr<SwitchState>& state,
       const std::vector<FlowEntry>& flowEntries);
 };
+
+using MultiTeFlowTableTypeClass = apache::thrift::type_class::
+    map<apache::thrift::type_class::string, TeFlowTableTypeClass>;
+using MultiTeFlowTableThriftType = std::map<std::string, TeFlowTableThriftType>;
+
+class MultiTeFlowTable;
+
+using MultiTeFlowTableTraits = ThriftMultiMapNodeTraits<
+    MultiTeFlowTable,
+    MultiTeFlowTableTypeClass,
+    MultiTeFlowTableThriftType,
+    TeFlowTable>;
+
+class HwSwitchMatcher;
+
+class MultiTeFlowTable
+    : public ThriftMapNode<MultiTeFlowTable, MultiTeFlowTableTraits> {
+ public:
+  using Traits = MultiTeFlowTableTraits;
+  using BaseT = ThriftMapNode<MultiTeFlowTable, MultiTeFlowTableTraits>;
+  using BaseT::modify;
+
+  MultiTeFlowTable() {}
+  virtual ~MultiTeFlowTable() {}
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
+  friend class CloneAllocator;
+};
+
 } // namespace facebook::fboss

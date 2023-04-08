@@ -138,6 +138,7 @@ SwitchState::SwitchState() {
       std::make_shared<LabelForwardingInformationBase>());
   resetQosPolicies(std::make_shared<QosPolicyMap>());
   resetTunnels(std::make_shared<IpTunnelMap>());
+  resetTeFlowTable(std::make_shared<TeFlowTable>());
 }
 
 SwitchState::~SwitchState() {}
@@ -361,7 +362,11 @@ const std::shared_ptr<IpTunnelMap>& SwitchState::getTunnels() const {
 }
 
 void SwitchState::resetTeFlowTable(std::shared_ptr<TeFlowTable> flowTable) {
-  ref<switch_state_tags::teFlowTable>() = flowTable;
+  resetDefaultMap<switch_state_tags::teFlowTables>(flowTable);
+}
+
+const std::shared_ptr<TeFlowTable>& SwitchState::getTeFlowTable() const {
+  return getDefaultMap<switch_state_tags::teFlowTables>();
 }
 
 void SwitchState::resetDsfNodes(std::shared_ptr<DsfNodeMap> dsfNodes) {
@@ -549,6 +554,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::ipTunnelMaps,
       switch_state_tags::ipTunnelMap>();
+  state->fromThrift<
+      switch_state_tags::teFlowTables,
+      switch_state_tags::teFlowTable>();
   return state;
 }
 
@@ -713,6 +721,9 @@ state::SwitchState SwitchState::toThrift() const {
   }
   if (auto obj = toThrift(cref<switch_state_tags::ipTunnelMaps>())) {
     data.ipTunnelMap() = *obj;
+  }
+  if (auto obj = toThrift(cref<switch_state_tags::teFlowTables>())) {
+    data.teFlowTable() = *obj;
   }
 
   return data;

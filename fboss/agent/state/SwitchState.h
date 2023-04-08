@@ -168,6 +168,11 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::ipTunnelMaps,
     MultiIpTunnelMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::teFlowTables,
+    MultiTeFlowTable);
+
 /*
  * SwitchState stores the current switch configuration.
  *
@@ -428,9 +433,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     return cref<switch_state_tags::systemPortMap>();
   }
   const std::shared_ptr<IpTunnelMap>& getTunnels() const;
-  const std::shared_ptr<TeFlowTable>& getTeFlowTable() const {
-    return cref<switch_state_tags::teFlowTable>();
-  }
+  const std::shared_ptr<TeFlowTable>& getTeFlowTable() const;
 
   const std::shared_ptr<DsfNodeMap>& getDsfNodes() const {
     return cref<switch_state_tags::dsfNodes>();
