@@ -199,6 +199,8 @@ RESOLVE_STRUCT_MEMBER(
 class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
  public:
   using BaseT = ThriftStructNode<SwitchState, state::SwitchState>;
+  template <typename T>
+  using TypeFor = typename BaseT::Fields::TypeFor<T>;
   using BaseT::modify;
   /*
    * Create a new, empty state.
@@ -522,6 +524,30 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   }
 
  private:
+  template <
+      typename MultiMapType,
+      typename ThriftType = typename MultiMapType::Node::ThriftType>
+  std::optional<ThriftType> toThrift(
+      const std::shared_ptr<MultiMapType>& multiMap) const;
+
+  template <typename MultiMapName, typename MapName>
+  void fromThrift();
+
+  template <
+      typename MultiMapName,
+      typename Map = typename InnerMap<MultiMapName, TypeFor>::type>
+  void resetDefaultMap(std::shared_ptr<Map> map);
+
+  template <
+      typename MultiMapName,
+      typename Map = typename InnerMap<MultiMapName, TypeFor>::type>
+  const std::shared_ptr<Map>& getDefaultMap() const;
+
+  template <
+      typename MultiMapName,
+      typename Map = typename InnerMap<MultiMapName, TypeFor>::type>
+  std::shared_ptr<Map>& getDefaultMap();
+
   bool isLocalSwitchId(SwitchID switchId) const;
   // Inherit the constructor required for clone()
   using BaseT::BaseT;

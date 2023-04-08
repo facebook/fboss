@@ -334,6 +334,7 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
   using Base = thrift_cow::ThriftMapNode<Traits, Resolver>;
   using Node = typename Base::mapped_type::element_type;
   using KeyType = typename Traits::KeyType;
+  using ThriftType = typename Base::ThriftType;
   using Base::Base;
   using NodeContainer = typename Base::Fields::StorageType;
 
@@ -404,5 +405,11 @@ struct ThriftMapNode : public thrift_cow::ThriftMapNode<Traits, Resolver> {
   struct thrift_cow::ResolveMemberType<NODE, MEMBER_NAME> : std::true_type { \
     using type = MEMBER_TYPE;                                                \
   };
+
+template <typename MultiMapName, template <typename> typename TypeFor>
+struct InnerMap {
+  using type =
+      typename TypeFor<MultiMapName>::element_type::mapped_type::element_type;
+};
 
 } // namespace facebook::fboss

@@ -94,6 +94,29 @@ DEFINE_bool(
 
 namespace facebook::fboss {
 
+template <typename MultiMapName, typename Map>
+void SwitchState::resetDefaultMap(std::shared_ptr<Map> map) {
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  auto multiMap = cref<MultiMapName>()->clone();
+  if (!multiMap->getNodeIf(matcher)) {
+    multiMap->addNode(matcher, map);
+  } else {
+    multiMap->updateNode(matcher, map);
+  }
+  ref<MultiMapName>() = multiMap;
+}
+
+template <typename MultiMapName, typename Map>
+const std::shared_ptr<Map>& SwitchState::getDefaultMap() const {
+  return cref<MultiMapName>()->cref(
+      HwSwitchMatcher::defaultHwSwitchMatcherKey());
+}
+
+template <typename MultiMapName, typename Map>
+std::shared_ptr<Map>& SwitchState::getDefaultMap() {
+  return ref<MultiMapName>()->ref(HwSwitchMatcher::defaultHwSwitchMatcherKey());
+}
+
 SwitchState::SwitchState() {
   set<switch_state_tags::dhcpV4RelaySrc>(
       network::toBinaryAddress(folly::IPAddress("0.0.0.0")));
@@ -212,15 +235,7 @@ void SwitchState::resetAggregatePorts(
 
 void SwitchState::resetSflowCollectors(
     const std::shared_ptr<SflowCollectorMap>& sflowCollectors) {
-  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-  auto sflowCollectorMaps =
-      cref<switch_state_tags::sflowCollectorMaps>()->clone();
-  if (!sflowCollectorMaps->getNodeIf(matcher)) {
-    sflowCollectorMaps->addNode(matcher, sflowCollectors);
-  } else {
-    sflowCollectorMaps->updateNode(matcher, sflowCollectors);
-  }
-  ref<switch_state_tags::sflowCollectorMaps>() = sflowCollectorMaps;
+  resetDefaultMap<switch_state_tags::sflowCollectorMaps>(sflowCollectors);
 }
 
 void SwitchState::resetQosPolicies(
@@ -259,25 +274,16 @@ const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {
 }
 
 void SwitchState::resetMirrors(std::shared_ptr<MirrorMap> mirrors) {
-  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-  auto mirrorMaps = cref<switch_state_tags::mirrorMaps>()->clone();
-  if (!mirrorMaps->getNodeIf(matcher)) {
-    mirrorMaps->addNode(matcher, mirrors);
-  } else {
-    mirrorMaps->updateNode(matcher, mirrors);
-  }
-  ref<switch_state_tags::mirrorMaps>() = mirrorMaps;
+  resetDefaultMap<switch_state_tags::mirrorMaps>(mirrors);
 }
 
 const std::shared_ptr<SflowCollectorMap>& SwitchState::getSflowCollectors()
     const {
-  return cref<switch_state_tags::sflowCollectorMaps>()->cref(
-      HwSwitchMatcher::defaultHwSwitchMatcherKey());
+  return getDefaultMap<switch_state_tags::sflowCollectorMaps>();
 }
 
 const std::shared_ptr<MirrorMap>& SwitchState::getMirrors() const {
-  return cref<switch_state_tags::mirrorMaps>()->cref(
-      HwSwitchMatcher::defaultHwSwitchMatcherKey());
+  return getDefaultMap<switch_state_tags::mirrorMaps>();
 }
 
 const std::shared_ptr<QosPolicyMap>& SwitchState::getQosPolicies() const {
@@ -287,38 +293,22 @@ const std::shared_ptr<QosPolicyMap>& SwitchState::getQosPolicies() const {
 
 const std::shared_ptr<ForwardingInformationBaseMap>& SwitchState::getFibs()
     const {
-  return cref<switch_state_tags::fibsMap>()->cref(
-      HwSwitchMatcher::defaultHwSwitchMatcherKey());
+  return getDefaultMap<switch_state_tags::fibsMap>();
 }
 
 const std::shared_ptr<LabelForwardingInformationBase>&
 SwitchState::getLabelForwardingInformationBase() const {
-  return cref<switch_state_tags::labelFibMap>()->cref(
-      HwSwitchMatcher::defaultHwSwitchMatcherKey());
+  return getDefaultMap<switch_state_tags::labelFibMap>();
 }
 
 void SwitchState::resetLabelForwardingInformationBase(
     std::shared_ptr<LabelForwardingInformationBase> labelFib) {
-  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-  auto labelFibMap = cref<switch_state_tags::labelFibMap>()->clone();
-  if (!labelFibMap->getNodeIf(matcher)) {
-    labelFibMap->addNode(matcher, labelFib);
-  } else {
-    labelFibMap->updateNode(matcher, labelFib);
-  }
-  ref<switch_state_tags::labelFibMap>() = labelFibMap;
+  resetDefaultMap<switch_state_tags::labelFibMap>(labelFib);
 }
 
 void SwitchState::resetForwardingInformationBases(
     std::shared_ptr<ForwardingInformationBaseMap> fibs) {
-  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-  auto fibsMap = cref<switch_state_tags::fibsMap>()->clone();
-  if (!fibsMap->getNodeIf(matcher)) {
-    fibsMap->addNode(matcher, fibs);
-  } else {
-    fibsMap->updateNode(matcher, fibs);
-  }
-  ref<switch_state_tags::fibsMap>() = fibsMap;
+  resetDefaultMap<switch_state_tags::fibsMap>(fibs);
 }
 
 void SwitchState::addTransceiver(
@@ -485,6 +475,32 @@ void SwitchState::revertNewTeFlowEntry(
   }
 }
 
+/*
+ * if a multi map is empty or has no node for default key matcher or default key
+ * matcher is empty, populate it from corresponding map.
+ *
+ * if multi map has non empty and default key matcher map and corresponding map
+ * is not empty then confirm they are same.
+ */
+template <typename MultiMapName, typename MapName>
+void SwitchState::fromThrift() {
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  auto& map = this->ref<MapName>();
+  auto& multiMap = this->ref<MultiMapName>();
+  if (multiMap->empty() || !multiMap->getNodeIf(matcher)) {
+    multiMap->addNode(matcher, map->clone());
+  } else if (auto matchedNode = multiMap->getNodeIf(matcher)) {
+    if (matchedNode->empty()) {
+      multiMap->updateNode(matcher, map->clone());
+    } else if (!map->empty()) {
+      // THRIFT_COPY
+      CHECK(map->toThrift() == matchedNode->toThrift())
+          << "different default matcher maps exist in state";
+    }
+  }
+  map->fromThrift({});
+}
+
 std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     const state::SwitchState& switchState) {
   auto state = std::make_unique<SwitchState>();
@@ -506,44 +522,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     }
   }
   /* forward compatibility */
-  auto& mirrors = state->cref<switch_state_tags::mirrorMap>();
-  auto& multiMirrors = state->cref<switch_state_tags::mirrorMaps>();
-  if (multiMirrors->empty() || state->getMirrors()->empty()) {
-    // keep map for default npu
-    state->resetMirrors(mirrors);
-    // clear legacy mirror map
-    state->set<switch_state_tags::mirrorMap>(
-        std::map<std::string, state::MirrorFields>());
-  }
-  auto& fibs = state->cref<switch_state_tags::fibs>();
-  auto& multiFibs = state->cref<switch_state_tags::fibsMap>();
-  if (multiFibs->empty() || state->getFibs()->empty()) {
-    // keep fib for default npu
-    state->resetForwardingInformationBases(fibs);
-    // clear legacy fibs
-    state->set<switch_state_tags::fibs>(
-        std::map<int16_t, state::FibContainerFields>());
-  }
-  auto& labelFib = state->cref<switch_state_tags::labelFib>();
-  auto& multiLabelFibs = state->cref<switch_state_tags::labelFibMap>();
-  if (multiLabelFibs->empty() ||
-      state->getLabelForwardingInformationBase()->empty()) {
-    // keep fib for default npu
-    state->resetLabelForwardingInformationBase(labelFib);
-    // clear legacy labelFib
-    state->set<switch_state_tags::labelFib>(
-        std::map<int32_t, state::LabelForwardingEntryFields>());
-  }
-  auto& sflowCollectors = state->cref<switch_state_tags::sflowCollectorMap>();
-  auto& multiSflowCollectors =
-      state->cref<switch_state_tags::sflowCollectorMaps>();
-  if (multiSflowCollectors->empty() || state->getSflowCollectors()->empty()) {
-    // keep map for default npu
-    state->resetSflowCollectors(sflowCollectors);
-    // clear legacy sflowCollector map
-    state->set<switch_state_tags::sflowCollectorMap>(
-        std::map<std::string, state::SflowCollectorFields>());
-  }
   auto& qosPolicyMap = state->cref<switch_state_tags::qosPolicyMap>();
   auto& multiQosPolicyMap = state->cref<switch_state_tags::qosPolicyMaps>();
   if (multiQosPolicyMap->empty() || state->getQosPolicies()->empty()) {
@@ -553,6 +531,16 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     state->set<switch_state_tags::qosPolicyMap>(
         std::map<std::string, state::QosPolicyFields>());
   }
+  state->fromThrift<
+      switch_state_tags::labelFibMap,
+      switch_state_tags::labelFib>();
+  state->fromThrift<
+      switch_state_tags::sflowCollectorMaps,
+      switch_state_tags::sflowCollectorMap>();
+  state->fromThrift<
+      switch_state_tags::mirrorMaps,
+      switch_state_tags::mirrorMap>();
+  state->fromThrift<switch_state_tags::fibsMap, switch_state_tags::fibs>();
   return state;
 }
 
@@ -569,6 +557,19 @@ std::shared_ptr<SwitchState> SwitchState::fromThrift(
   auto uniqState = uniquePtrFromThrift(data);
   std::shared_ptr<SwitchState> state = std::move(uniqState);
   return state;
+}
+
+template <typename MultiMapType, typename ThriftType>
+std::optional<ThriftType> SwitchState::toThrift(
+    const std::shared_ptr<MultiMapType>& multiMap) const {
+  if (!multiMap || multiMap->empty()) {
+    return std::nullopt;
+  }
+  const auto& key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  if (auto map = multiMap->getNodeIf(key)) {
+    return map->toThrift();
+  }
+  return std::nullopt;
 }
 
 state::SwitchState SwitchState::toThrift() const {
@@ -683,30 +684,17 @@ state::SwitchState SwitchState::toThrift() const {
         data.flowletSwitchingConfig().value();
   }
   /* backward compatibility */
-  if (!cref<switch_state_tags::mirrorMaps>()->empty()) {
-    auto key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-    if (auto mirrors = cref<switch_state_tags::mirrorMaps>()->getNodeIf(key)) {
-      data.mirrorMap() = mirrors->toThrift();
-    }
+  if (auto obj = toThrift(cref<switch_state_tags::mirrorMaps>())) {
+    data.mirrorMap() = *obj;
   }
-  if (!cref<switch_state_tags::fibsMap>()->empty()) {
-    auto key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-    if (auto fibs = cref<switch_state_tags::fibsMap>()->getNodeIf(key)) {
-      data.fibs() = fibs->toThrift();
-    }
+  if (auto obj = toThrift(cref<switch_state_tags::fibsMap>())) {
+    data.fibs() = *obj;
   }
-  if (!cref<switch_state_tags::labelFibMap>()->empty()) {
-    auto key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-    if (auto fibs = cref<switch_state_tags::labelFibMap>()->getNodeIf(key)) {
-      data.labelFib() = fibs->toThrift();
-    }
+  if (auto obj = toThrift(cref<switch_state_tags::labelFibMap>())) {
+    data.labelFib() = *obj;
   }
-  if (!cref<switch_state_tags::sflowCollectorMaps>()->empty()) {
-    auto key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-    if (auto sflowCollectors =
-            cref<switch_state_tags::sflowCollectorMaps>()->getNodeIf(key)) {
-      data.sflowCollectorMap() = sflowCollectors->toThrift();
-    }
+  if (auto obj = toThrift(cref<switch_state_tags::sflowCollectorMaps>())) {
+    data.sflowCollectorMap() = *obj;
   }
   if (!cref<switch_state_tags::qosPolicyMaps>()->empty()) {
     auto key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
