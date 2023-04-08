@@ -14,6 +14,16 @@
 
 namespace facebook::fboss {
 
+SaiUdfGroupTraits::CreateAttributes SaiUdfManager::udfGroupAttr(
+    const std::shared_ptr<UdfGroup> swUdfGroup) const {
+  // Type
+  auto typeAttr = SaiUdfGroupTraits::Attributes::Type{SAI_UDF_GROUP_TYPE_HASH};
+  // Length
+  auto lengthAttr =
+      SaiUdfGroupTraits::Attributes::Length{swUdfGroup->getFieldSizeInBytes()};
+  return SaiUdfGroupTraits::CreateAttributes{typeAttr, lengthAttr};
+}
+
 SaiUdfMatchTraits::CreateAttributes SaiUdfManager::udfMatchAttr(
     const std::shared_ptr<UdfPacketMatcher> swUdfMatch) const {
   // L2 Match Type - match l3 protocol
