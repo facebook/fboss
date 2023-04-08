@@ -113,6 +113,7 @@ SwitchState::SwitchState() {
   resetSflowCollectors(std::make_shared<SflowCollectorMap>());
   resetLabelForwardingInformationBase(
       std::make_shared<LabelForwardingInformationBase>());
+  resetQosPolicies(std::make_shared<QosPolicyMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -222,8 +223,16 @@ void SwitchState::resetSflowCollectors(
   ref<switch_state_tags::sflowCollectorMaps>() = sflowCollectorMaps;
 }
 
-void SwitchState::resetQosPolicies(std::shared_ptr<QosPolicyMap> qosPolicies) {
-  ref<switch_state_tags::qosPolicyMap>() = qosPolicies;
+void SwitchState::resetQosPolicies(
+    const std::shared_ptr<QosPolicyMap>& qosPolicies) {
+  const auto& matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  auto qosPolicyMaps = cref<switch_state_tags::qosPolicyMaps>()->clone();
+  if (!qosPolicyMaps->getNodeIf(matcher)) {
+    qosPolicyMaps->addNode(matcher, qosPolicies);
+  } else {
+    qosPolicyMaps->updateNode(matcher, qosPolicies);
+  }
+  ref<switch_state_tags::qosPolicyMaps>() = qosPolicyMaps;
 }
 
 void SwitchState::resetControlPlane(
@@ -268,6 +277,11 @@ const std::shared_ptr<SflowCollectorMap>& SwitchState::getSflowCollectors()
 
 const std::shared_ptr<MirrorMap>& SwitchState::getMirrors() const {
   return cref<switch_state_tags::mirrorMaps>()->cref(
+      HwSwitchMatcher::defaultHwSwitchMatcherKey());
+}
+
+const std::shared_ptr<QosPolicyMap>& SwitchState::getQosPolicies() const {
+  return cref<switch_state_tags::qosPolicyMaps>()->cref(
       HwSwitchMatcher::defaultHwSwitchMatcherKey());
 }
 
@@ -530,6 +544,15 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     state->set<switch_state_tags::sflowCollectorMap>(
         std::map<std::string, state::SflowCollectorFields>());
   }
+  auto& qosPolicyMap = state->cref<switch_state_tags::qosPolicyMap>();
+  auto& multiQosPolicyMap = state->cref<switch_state_tags::qosPolicyMaps>();
+  if (multiQosPolicyMap->empty() || state->getQosPolicies()->empty()) {
+    // keep map for default npu
+    state->resetQosPolicies(qosPolicyMap);
+    // clear legacy mirror map
+    state->set<switch_state_tags::qosPolicyMap>(
+        std::map<std::string, state::QosPolicyFields>());
+  }
   return state;
 }
 
@@ -683,6 +706,13 @@ state::SwitchState SwitchState::toThrift() const {
     if (auto sflowCollectors =
             cref<switch_state_tags::sflowCollectorMaps>()->getNodeIf(key)) {
       data.sflowCollectorMap() = sflowCollectors->toThrift();
+    }
+  }
+  if (!cref<switch_state_tags::qosPolicyMaps>()->empty()) {
+    auto key = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+    if (auto qosPolicys =
+            cref<switch_state_tags::qosPolicyMaps>()->getNodeIf(key)) {
+      data.qosPolicyMap() = qosPolicys->toThrift();
     }
   }
   return data;

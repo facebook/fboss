@@ -292,10 +292,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   std::shared_ptr<QosPolicy> getQosPolicy(const std::string& name) const {
     return getQosPolicies()->getQosPolicyIf(name);
   }
-
-  const std::shared_ptr<QosPolicyMap>& getQosPolicies() const {
-    return cref<switch_state_tags::qosPolicyMap>();
-  }
+  const std::shared_ptr<QosPolicyMap>& getQosPolicies() const;
 
   const std::shared_ptr<ControlPlane>& getControlPlane() const {
     return cref<switch_state_tags::controlPlane>();
@@ -491,7 +488,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetAclTableGroups(std::shared_ptr<AclTableGroupMap> aclTableGroups);
   void resetSflowCollectors(
       const std::shared_ptr<SflowCollectorMap>& collectors);
-  void resetQosPolicies(std::shared_ptr<QosPolicyMap> qosPolicyMap);
+  void resetQosPolicies(const std::shared_ptr<QosPolicyMap>& qosPolicyMap);
   void resetControlPlane(std::shared_ptr<ControlPlane> cpu);
   void resetLoadBalancers(std::shared_ptr<LoadBalancerMap> loadBalancers);
   void resetMirrors(std::shared_ptr<MirrorMap> mirrors);
