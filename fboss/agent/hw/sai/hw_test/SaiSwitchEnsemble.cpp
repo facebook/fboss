@@ -83,7 +83,7 @@ std::unique_ptr<std::thread> SaiSwitchEnsemble::createThriftThread(
     auto server = setupThriftServer(
         *eventBase,
         handler,
-        FLAGS_thrift_port,
+        {FLAGS_thrift_port},
         false /* isDuplex */,
         true /* setupSSL*/);
     SignalHandler signalHandler(eventBase);

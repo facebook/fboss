@@ -281,7 +281,7 @@ int AgentInitializer::initAgent(HwSwitch::Callback* callback) {
 
   // Start the thrift server
   server_ = setupThriftServer(
-      *eventBase_, handler, FLAGS_port, true /*isDuplex*/, true /*setupSSL*/);
+      *eventBase_, handler, {FLAGS_port}, true /*isDuplex*/, true /*setupSSL*/);
 
   handler->setSSLPolicy(server_->getSSLPolicy());
 

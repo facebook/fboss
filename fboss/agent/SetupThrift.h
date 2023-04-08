@@ -30,7 +30,7 @@ template <typename THRIFT_HANDLER>
 std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     folly::EventBase& eventBase,
     std::shared_ptr<THRIFT_HANDLER>& handler,
-    int port,
+    std::vector<int> ports,
     bool isDuplex,
     bool setupSSL) {
   // Start the thrift server
@@ -56,10 +56,13 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
   // When a thrift connection closes, we need to clean up the associated
   // callbacks.
   server->setServerEventHandler(handler);
-
-  folly::SocketAddress address;
-  address.setFromLocalPort(port);
-  server->setAddress(address);
+  std::vector<folly::SocketAddress> addresses;
+  for (auto port : ports) {
+    folly::SocketAddress address;
+    address.setFromLocalPort(port);
+    addresses.push_back(address);
+  }
+  server->setAddresses(addresses);
   server->setIdleTimeout(std::chrono::seconds(FLAGS_thrift_idle_timeout));
   return server;
 }
