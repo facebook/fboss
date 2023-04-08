@@ -12,6 +12,7 @@
 
 #include "fboss/agent/hw/sai/api/UdfApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/state/UdfPacketMatcher.h"
 
 #include <memory>
 
@@ -29,7 +30,16 @@ class SaiUdfManager {
   SaiUdfManager(SaiManagerTable* managerTable, const SaiPlatform* platform)
       : managerTable_(managerTable), platform_(platform) {}
 
+  static auto constexpr kMaskDontCare = 0;
+  static auto constexpr kL4PortMask = 0xFFFF;
+
+  SaiUdfMatchTraits::CreateAttributes udfMatchAttr(
+      const std::shared_ptr<UdfPacketMatcher> swUdfMatch) const;
+
  private:
+  uint8_t cfgL4MatchTypeToSai(cfg::UdfMatchL4Type cfgType) const;
+  uint16_t cfgL3MatchTypeToSai(cfg::UdfMatchL3Type cfgType) const;
+
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 };
