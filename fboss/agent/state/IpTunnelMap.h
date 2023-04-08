@@ -34,6 +34,7 @@ using IpTunnelMapTraits = ThriftMapNodeTraits<
 class IpTunnelMap : public ThriftMapNode<IpTunnelMap, IpTunnelMapTraits> {
  public:
   using Base = ThriftMapNode<IpTunnelMap, IpTunnelMapTraits>;
+  using Traits = IpTunnelMapTraits;
   IpTunnelMap();
   ~IpTunnelMap() override;
 
@@ -51,6 +52,36 @@ class IpTunnelMap : public ThriftMapNode<IpTunnelMap, IpTunnelMapTraits> {
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
+  friend class CloneAllocator;
+};
+
+using MultiIpTunnelMapTypeClass = apache::thrift::type_class::
+    map<apache::thrift::type_class::string, IpTunnelMapClass>;
+using MultiIpTunnelMapThriftType = std::map<std::string, IpTunnelMapThriftType>;
+
+class MultiIpTunnelMap;
+
+using MultiIpTunnelMapTraits = ThriftMultiMapNodeTraits<
+    MultiIpTunnelMap,
+    MultiIpTunnelMapTypeClass,
+    MultiIpTunnelMapThriftType,
+    IpTunnelMap>;
+
+class HwSwitchMatcher;
+
+class MultiIpTunnelMap
+    : public ThriftMapNode<MultiIpTunnelMap, MultiIpTunnelMapTraits> {
+ public:
+  using Traits = MultiIpTunnelMapTraits;
+  using BaseT = ThriftMapNode<MultiIpTunnelMap, MultiIpTunnelMapTraits>;
+  using BaseT::modify;
+
+  MultiIpTunnelMap() {}
+  virtual ~MultiIpTunnelMap() {}
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 } // namespace facebook::fboss

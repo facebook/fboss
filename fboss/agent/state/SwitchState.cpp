@@ -137,6 +137,7 @@ SwitchState::SwitchState() {
   resetLabelForwardingInformationBase(
       std::make_shared<LabelForwardingInformationBase>());
   resetQosPolicies(std::make_shared<QosPolicyMap>());
+  resetTunnels(std::make_shared<IpTunnelMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -344,15 +345,19 @@ void SwitchState::resetSystemPorts(std::shared_ptr<SystemPortMap> systemPorts) {
 void SwitchState::addTunnel(const std::shared_ptr<IpTunnel>& tunnel) {
   // For ease-of-use, automatically clone the TunnelMap if we are still
   // pointing to a published map.
-  if (cref<switch_state_tags::ipTunnelMap>()->isPublished()) {
-    auto ipTunnelMap = cref<switch_state_tags::ipTunnelMap>()->clone();
-    ref<switch_state_tags::ipTunnelMap>() = ipTunnelMap;
+  if (getTunnels()->isPublished()) {
+    auto ipTunnelMap = getTunnels()->clone();
+    resetTunnels(ipTunnelMap);
   }
-  ref<switch_state_tags::ipTunnelMap>()->addTunnel(tunnel);
+  getDefaultMap<switch_state_tags::ipTunnelMaps>()->addTunnel(tunnel);
 }
 
 void SwitchState::resetTunnels(std::shared_ptr<IpTunnelMap> tunnels) {
-  ref<switch_state_tags::ipTunnelMap>() = tunnels;
+  resetDefaultMap<switch_state_tags::ipTunnelMaps>(tunnels);
+}
+
+const std::shared_ptr<IpTunnelMap>& SwitchState::getTunnels() const {
+  return getDefaultMap<switch_state_tags::ipTunnelMaps>();
 }
 
 void SwitchState::resetTeFlowTable(std::shared_ptr<TeFlowTable> flowTable) {
@@ -541,6 +546,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       switch_state_tags::mirrorMaps,
       switch_state_tags::mirrorMap>();
   state->fromThrift<switch_state_tags::fibsMap, switch_state_tags::fibs>();
+  state->fromThrift<
+      switch_state_tags::ipTunnelMaps,
+      switch_state_tags::ipTunnelMap>();
   return state;
 }
 
@@ -703,6 +711,10 @@ state::SwitchState SwitchState::toThrift() const {
       data.qosPolicyMap() = qosPolicys->toThrift();
     }
   }
+  if (auto obj = toThrift(cref<switch_state_tags::ipTunnelMaps>())) {
+    data.ipTunnelMap() = *obj;
+  }
+
   return data;
 }
 
