@@ -14,6 +14,20 @@
 
 namespace facebook::fboss {
 
+SaiUdfTraits::CreateAttributes SaiUdfManager::udfAttr(
+    const std::shared_ptr<UdfGroup> swUdfGroup,
+    const sai_object_id_t saiUdfGroupId,
+    const sai_object_id_t saiUdfMatchId) const {
+  auto udfMatchIdAttr = SaiUdfTraits::Attributes::UdfMatchId{saiUdfMatchId};
+  auto udfGroupIdAttr = SaiUdfTraits::Attributes::UdfGroupId{saiUdfGroupId};
+  std::optional<SaiUdfTraits::Attributes::Base> baseAttr;
+  baseAttr = cfgBaseToSai(swUdfGroup->getUdfBaseHeader());
+  auto offsetAttr =
+      SaiUdfTraits::Attributes::Offset{swUdfGroup->getStartOffsetInBytes()};
+  return SaiUdfTraits::CreateAttributes{
+      udfMatchIdAttr, udfGroupIdAttr, baseAttr, offsetAttr};
+}
+
 SaiUdfGroupTraits::CreateAttributes SaiUdfManager::udfGroupAttr(
     const std::shared_ptr<UdfGroup> swUdfGroup) const {
   // Type
@@ -74,5 +88,18 @@ uint16_t SaiUdfManager::cfgL3MatchTypeToSai(cfg::UdfMatchL3Type cfgType) const {
       return static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6);
   }
   throw FbossError("Invalid udf l3 match type: ", cfgType);
+}
+
+sai_udf_base_t SaiUdfManager::cfgBaseToSai(
+    cfg::UdfBaseHeaderType cfgType) const {
+  switch (cfgType) {
+    case cfg::UdfBaseHeaderType::UDF_L2_HEADER:
+      return SAI_UDF_BASE_L2;
+    case cfg::UdfBaseHeaderType::UDF_L3_HEADER:
+      return SAI_UDF_BASE_L3;
+    case cfg::UdfBaseHeaderType::UDF_L4_HEADER:
+      return SAI_UDF_BASE_L4;
+  }
+  throw FbossError("Invalid udf base header type: ", cfgType);
 }
 } // namespace facebook::fboss

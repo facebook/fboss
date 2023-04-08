@@ -34,6 +34,11 @@ class SaiUdfManager {
   static auto constexpr kMaskDontCare = 0;
   static auto constexpr kL4PortMask = 0xFFFF;
 
+  SaiUdfTraits::CreateAttributes udfAttr(
+      const std::shared_ptr<UdfGroup> swUdfGroup,
+      const sai_object_id_t saiUdfGroupId,
+      const sai_object_id_t saiUdfMatchId) const;
+
   SaiUdfGroupTraits::CreateAttributes udfGroupAttr(
       const std::shared_ptr<UdfGroup> swUdfGroup) const;
 
@@ -43,6 +48,7 @@ class SaiUdfManager {
  private:
   uint8_t cfgL4MatchTypeToSai(cfg::UdfMatchL4Type cfgType) const;
   uint16_t cfgL3MatchTypeToSai(cfg::UdfMatchL3Type cfgType) const;
+  sai_udf_base_t cfgBaseToSai(cfg::UdfBaseHeaderType cfgType) const;
 
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
