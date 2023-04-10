@@ -477,7 +477,7 @@ const std::vector<int> kOlympicWRRAndNCQueueIds(const HwAsic* hwAsic) {
 }
 
 const std::vector<int> kOlympicAllSPQueueIds(const HwAsic* hwAsic) {
-   const std::vector<int> queueIds = {
+  const std::vector<int> queueIds = {
       getOlympicAllSPQueueId(hwAsic, AllSPOlympicQueueType::NCNF),
       getOlympicAllSPQueueId(hwAsic, AllSPOlympicQueueType::BRONZE),
       getOlympicAllSPQueueId(hwAsic, AllSPOlympicQueueType::SILVER),
