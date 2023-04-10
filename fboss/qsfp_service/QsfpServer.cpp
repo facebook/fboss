@@ -8,6 +8,9 @@
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
 DEFINE_int32(port, 5910, "Port for the thrift service");
+// current default 5910 is in conflict with VNC ports, need to
+// eventually migrate to 5960
+DEFINE_int32(migrated_port, 5960, "New thrift server port migrate to");
 
 namespace facebook::fboss {
 
@@ -26,7 +29,14 @@ setupThriftServer(std::unique_ptr<WedgeManager> transceiverManager) {
   // set queue timeouts
   server->setQueueTimeout(std::chrono::milliseconds(0));
   server->setSocketQueueTimeout(std::chrono::milliseconds(0));
-  server->setPort(FLAGS_port);
+
+  std::vector<folly::SocketAddress> addresses;
+  for (auto port : {FLAGS_port, FLAGS_migrated_port}) {
+    folly::SocketAddress address;
+    address.setFromLocalPort(port);
+    addresses.push_back(address);
+  }
+  server->setAddresses(addresses);
   server->setInterface(handler);
   return std::make_pair(server, handler);
 }
