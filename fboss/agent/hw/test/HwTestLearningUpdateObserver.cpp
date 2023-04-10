@@ -76,13 +76,16 @@ HwTestLearningUpdateObserver::waitForLearningUpdates(
     int numUpdates,
     std::optional<int> secondsToWait) {
   std::unique_lock<std::mutex> lock(mtx_);
+  // wait for at least numUpdates, call reset before waiting for accurate
+  // waiting
+  auto predicate = [this, numUpdates] { return data_.size() >= numUpdates; };
+  if (predicate()) {
+    return data_;
+  }
   if (secondsToWait) {
-    cv_.wait_for(
-        lock, std::chrono::seconds(secondsToWait.value()), [this, numUpdates] {
-          return data_.size() == numUpdates;
-        });
+    cv_.wait_for(lock, std::chrono::seconds(secondsToWait.value()), predicate);
   } else {
-    cv_.wait(lock, [this, numUpdates] { return data_.size() == numUpdates; });
+    cv_.wait(lock, predicate);
   }
   return data_;
 }

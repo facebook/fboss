@@ -189,7 +189,7 @@ std::shared_ptr<SwitchState> HwSwitchEnsemble::applyNewStateImpl(
     appliedState = programmedState_;
   }
   StaticL2ForNeighborHwSwitchUpdater updater(this);
-  updater.stateUpdated(StateDelta(delta.oldState(), appliedState));
+  updater.stateUpdated(delta);
   if (!disableAppliedStateVerification && !applyUpdateSuccess) {
     throw FbossHwUpdateError(toApply, appliedState);
   }

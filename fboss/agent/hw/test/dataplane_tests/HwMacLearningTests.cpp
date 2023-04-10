@@ -580,11 +580,18 @@ class HwMacLearningAndMyStationInteractionTest : public HwMacLearningTest {
           getRouteUpdater(), {PortDescriptor(masterLogicalPortIds()[0])});
     };
     auto verify = [this]() {
+      if (getHwSwitch()->getBootType() == BootType::WARM_BOOT) {
+        // Let mac age out learned during prior run
+        utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), kMinAgeInSecs());
+        // @lint-ignore CLANGTIDY
+        sleep(kMinAgeInSecs() * 3);
+      }
       utility::setMacAgeTimerSeconds(getHwSwitchEnsemble(), 0);
       auto induceMacLearning = [this]() {
         // Send gratuitous ARPs so intf/router MAC is learnt on all VLANs
         // and ports
         for (const auto& port : masterLogicalPortIds()) {
+          l2LearningObserver_.reset();
           auto vlanID = getProgrammedState()
                             ->getPorts()
                             ->getPort(port)
@@ -610,6 +617,7 @@ class HwMacLearningAndMyStationInteractionTest : public HwMacLearningTest {
                 ARP_OPER::ARP_OPER_REQUEST,
                 folly::MacAddress::BROADCAST);
             getHwSwitch()->sendPacketOutOfPortSync(std::move(arpPacket), port);
+            l2LearningObserver_.waitForLearningUpdates(1, 1);
           }
         }
         l2LearningObserver_.waitForStateUpdate();
