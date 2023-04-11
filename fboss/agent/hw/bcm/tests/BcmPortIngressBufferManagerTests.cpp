@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/bcm/BcmPortIngressBufferManager.h"
 //#include "fboss/agent/hw/bcm/BcmPortTable.h"
 #include "fboss/agent/hw/bcm/tests/BcmTest.h"
+#include "fboss/agent/hw/test/HwTestPfcUtils.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 #include "fboss/agent/types.h"
 
@@ -183,65 +184,6 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
     EXPECT_EQ(bcmPort->getProgrammedPfcStatusInPg(0), 0);
   }
 
-  // routine to validate if the SW and HW match for the PG cfg
-  void checkSwHwPgCfgMatch(bool pfcEnable = true) {
-    PortPgConfigs portPgsHw;
-
-    auto bcmPort = getHwSwitch()->getPortTable()->getBcmPort(
-        PortID(masterLogicalPortIds()[0]));
-
-    portPgsHw = bcmPort->getCurrentProgrammedPgSettings();
-    const auto bufferPoolHwPtr = bcmPort->getCurrentIngressPoolSettings();
-
-    auto swPort =
-        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0]));
-    auto swPgConfig = swPort->getPortPgConfigs();
-
-    EXPECT_EQ(swPort->getPortPgConfigs()->size(), portPgsHw.size());
-
-    int i = 0;
-    // both vectors are sorted to start with lowest pg id
-    for (const auto& pgConfig : std::as_const(*swPgConfig)) {
-      auto id = pgConfig->cref<switch_state_tags::id>()->cref();
-      EXPECT_EQ(id, portPgsHw[i]->getID());
-
-      cfg::MMUScalingFactor scalingFactor;
-      if (auto scalingFactorStr =
-              pgConfig->cref<switch_state_tags::scalingFactor>()) {
-        scalingFactor =
-            nameToEnum<cfg::MMUScalingFactor>(scalingFactorStr->cref());
-        EXPECT_EQ(scalingFactor, *portPgsHw[i]->getScalingFactor());
-      } else {
-        EXPECT_EQ(std::nullopt, portPgsHw[i]->getScalingFactor());
-      }
-      EXPECT_EQ(
-          pgConfig->cref<switch_state_tags::resumeOffsetBytes>()->cref(),
-          portPgsHw[i]->getResumeOffsetBytes().value());
-      EXPECT_EQ(
-          pgConfig->cref<switch_state_tags::minLimitBytes>()->cref(),
-          portPgsHw[i]->getMinLimitBytes());
-
-      int pgHeadroom = 0;
-      // for pgs with headroom, lossless mode + pfc should be enabled
-      if (auto pgHdrmOpt =
-              pgConfig->cref<switch_state_tags::headroomLimitBytes>()) {
-        pgHeadroom = pgHdrmOpt->cref();
-      }
-      EXPECT_EQ(pgHeadroom, portPgsHw[i]->getHeadroomLimitBytes());
-      const auto bufferPool =
-          pgConfig->cref<switch_state_tags::bufferPoolConfig>();
-      EXPECT_EQ(
-          bufferPool->cref<switch_state_tags::sharedBytes>()->cref(),
-          (*bufferPoolHwPtr).getSharedBytes());
-      EXPECT_EQ(
-          bufferPool->cref<switch_state_tags::headroomBytes>()->cref(),
-          (*bufferPoolHwPtr).getHeadroomBytes());
-      // we are in lossless mode if headroom > 0, else lossless mode = 0
-      EXPECT_EQ(bcmPort->getProgrammedPgLosslessMode(id), pgHeadroom ? 1 : 0);
-      EXPECT_EQ(bcmPort->getProgrammedPfcStatusInPg(id), pfcEnable ? 1 : 0);
-      i++;
-    }
-  }
   cfg::SwitchConfig cfg_;
 };
 
@@ -251,7 +193,12 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
 TEST_F(BcmPortIngressBufferManagerTest, validateConfig) {
   auto setup = [=]() { setupHelper(); };
 
-  auto verify = [&]() { checkSwHwPgCfgMatch(); };
+  auto verify = [&]() {
+    utility::checkSwHwPgCfgMatch(
+        getHwSwitch(),
+        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        true /*pfcEnable*/);
+  };
 
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -288,7 +235,12 @@ TEST_F(BcmPortIngressBufferManagerTest, validateIngressPoolParamChange) {
     applyNewConfig(cfg_);
   };
 
-  auto verify = [&]() { checkSwHwPgCfgMatch(); };
+  auto verify = [&]() {
+    utility::checkSwHwPgCfgMatch(
+        getHwSwitch(),
+        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        true /*pfcEnable*/);
+  };
 
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -306,7 +258,12 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGParamChange) {
     applyNewConfig(cfg_);
   };
 
-  auto verify = [&]() { checkSwHwPgCfgMatch(); };
+  auto verify = [&]() {
+    utility::checkSwHwPgCfgMatch(
+        getHwSwitch(),
+        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        true /*pfcEnable*/);
+  };
 
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -325,7 +282,10 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGQueueChanges) {
   };
 
   auto verify = [&]() {
-    checkSwHwPgCfgMatch();
+    utility::checkSwHwPgCfgMatch(
+        getHwSwitch(),
+        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        true /*pfcEnable*/);
     // retrive the PG list thats explicitly programmed
     auto bcmPort = getHwSwitch()->getPortTable()->getBcmPort(
         PortID(masterLogicalPortIds()[0]));
@@ -343,7 +303,12 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGQueueChanges) {
 TEST_F(BcmPortIngressBufferManagerTest, validateLossyMode) {
   auto setup = [&]() { setupHelper(false /* enable headroom */); };
 
-  auto verify = [&]() { checkSwHwPgCfgMatch(); };
+  auto verify = [&]() {
+    utility::checkSwHwPgCfgMatch(
+        getHwSwitch(),
+        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        true /*pfcEnable*/);
+  };
 
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -356,7 +321,12 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePgNoPfc) {
   auto setup = [&]() {
     setupHelper(true /* enable headroom */, false /* pfc */);
   };
-  auto verify = [&]() { checkSwHwPgCfgMatch(false /* pfc*/); };
+  auto verify = [&]() {
+    utility::checkSwHwPgCfgMatch(
+        getHwSwitch(),
+        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        false /*pfcEnable*/);
+  };
 
   verifyAcrossWarmBoots(setup, verify);
 }
@@ -368,7 +338,12 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePgNoPfc) {
 // programmed first to workaround the sdk error
 TEST_F(BcmPortIngressBufferManagerTest, validateHighBufferValues) {
   auto setup = [&]() { setupHelperWithHighBufferValues(); };
-  auto verify = [&]() { checkSwHwPgCfgMatch(); };
+  auto verify = [&]() {
+    utility::checkSwHwPgCfgMatch(
+        getHwSwitch(),
+        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        true /*pfcEnable*/);
+  };
   verifyAcrossWarmBoots(setup, verify);
 }
 

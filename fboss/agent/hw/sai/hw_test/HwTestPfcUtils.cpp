@@ -98,4 +98,10 @@ int pfcWatchdogRecoveryAction(cfg::PfcWatchdogRecoveryAction /* unused */) {
   return 0;
 }
 
+void checkSwHwPgCfgMatch(
+    const HwSwitch* /*hw*/,
+    const std::shared_ptr<Port>& /*swPort*/,
+    bool /*pfcEnable*/) {
+  // XXX: To be implemented!
+}
 } // namespace facebook::fboss::utility
