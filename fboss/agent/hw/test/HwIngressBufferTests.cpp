@@ -158,4 +158,31 @@ TEST_F(HwIngressBufferTest, validateConfig) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// Create PG, Ingress pool config, associate with PFC config.
+// Modify the ingress pool params only and ensure that it is
+// getting re-programmed
+TEST_F(HwIngressBufferTest, validateIngressPoolParamChange) {
+  auto setup = [&]() {
+    setupHelper();
+    // setup bufferPool
+    std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
+    bufferPoolCfgMap.insert(make_pair(
+        static_cast<std::string>(kBufferPoolName),
+        getBufferPoolConfig(
+            getPlatform()->getAsic()->getPacketBufferUnitSize(), 1)));
+    cfg_.bufferPoolConfigs() = bufferPoolCfgMap;
+    // update one PG, and see ifs reflected in the HW
+    applyNewConfig(cfg_);
+  };
+
+  auto verify = [&]() {
+    utility::checkSwHwPgCfgMatch(
+        getHwSwitch(),
+        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        true /*pfcEnable*/);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

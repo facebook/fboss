@@ -81,6 +81,7 @@ class SaiBufferManager {
       std::shared_ptr<SaiBufferProfile> bufferProfile);
   SaiIngressPriorityGroupHandles loadIngressPriorityGroups(
       const std::vector<IngressPriorityGroupSaiId>& ingressPriorityGroupSaiIds);
+  SaiBufferPoolHandle* getIngressBufferPoolHandle() const;
 
  private:
   void publishDeviceWatermark(uint64_t peakBytes) const;
@@ -104,7 +105,6 @@ class SaiBufferManager {
   void setupIngressEgressBufferPool(
       const std::optional<state::BufferPoolFields> ingressPgCfg);
   SaiBufferPoolHandle* getEgressBufferPoolHandle() const;
-  SaiBufferPoolHandle* getIngressBufferPoolHandle() const;
 
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;

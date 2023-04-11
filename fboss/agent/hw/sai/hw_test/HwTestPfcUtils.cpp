@@ -144,6 +144,23 @@ void checkSwHwPgCfgMatch(
               SaiBufferProfileTraits::Attributes::XoffTh{}));
     }
 
+    // Buffer pool configs
+    const auto bufferPool =
+        pgConfig->cref<switch_state_tags::bufferPoolConfig>();
+    EXPECT_EQ(
+        bufferPool->cref<switch_state_tags::headroomBytes>()->cref() *
+            static_cast<const SaiSwitch*>(hw)
+                ->getPlatform()
+                ->getAsic()
+                ->getNumMemoryBuffers(),
+        SaiApiTable::getInstance()->bufferApi().getAttribute(
+            static_cast<const SaiSwitch*>(hw)
+                ->managerTable()
+                ->bufferManager()
+                .getIngressBufferPoolHandle()
+                ->bufferPool->adapterKey(),
+            SaiBufferPoolTraits::Attributes::XoffSize{}));
+
     // Port PFC configurations
     if (SaiApiTable::getInstance()->portApi().getAttribute(
             portHandle->port->adapterKey(),
