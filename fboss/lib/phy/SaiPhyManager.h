@@ -242,10 +242,10 @@ void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
 
       XLOG(DBG2) << "About to initialize phy of global phyId:" << phy.first;
       steady_clock::time_point begin = steady_clock::now();
-      // Create CredoF104 sai switch
-      auto credoF104 = static_cast<xphychipT*>(getExternalPhy(phy.first));
-      // Set CredoF104's customized switch attributes before calling init
-      saiPlatform->setSwitchAttributes(credoF104->getSwitchAttributes());
+      // Create xphy sai switch
+      auto xphy = static_cast<xphychipT*>(getExternalPhy(phy.first));
+      // Set xphy's customized switch attributes before calling init
+      saiPlatform->setSwitchAttributes(xphy->getSwitchAttributes());
       cfg::AgentConfig config;
       config.sw()->switchSettings()->switchType() = cfg::SwitchType::PHY;
       saiPlatform->init(
@@ -254,9 +254,9 @@ void SaiPhyManager::initializeSlotPhysImpl(PimID pimID) {
 
       // Now call HwSwitch to create the switch object in hardware
       auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
-      saiSwitch->init(credoF104, true /* failHwCallsOnWarmboot */);
-      credoF104->setSwitchId(saiSwitch->getSaiSwitchId());
-      credoF104->dump();
+      saiSwitch->init(xphy, true /* failHwCallsOnWarmboot */);
+      xphy->setSwitchId(saiSwitch->getSaiSwitchId());
+      xphy->dump();
       XLOG(DBG2)
           << "Finished initializing phy of global phyId:" << phy.first
           << ", switchId:" << saiSwitch->getSaiSwitchId() << " took "
