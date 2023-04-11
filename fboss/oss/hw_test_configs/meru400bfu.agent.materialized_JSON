@@ -101,7 +101,17 @@
       "switchId": 0,
       "exactMatchTableConfigs": [
         
-      ]
+      ],
+      "switchIdToSwitchType": {
+        
+      },
+      "switchDrainState": 0,
+      "switchIdToSwitchInfo": {
+        "0": {
+            "switchType": 3,
+            "asicType": 12
+        }
+      }
     },
     "dsfNodes": {
       
@@ -1404,7 +1414,6 @@
           "sai_pkt_rx_cfg_ppc": "16",
           "sai_pkt_rx_custom_cfg": "1",
           "sai_pkt_rx_pkt_size": "16512",
-          "sai_trigger_linkscan_remote_local_faults": "0",
           "sai_uncached_port_stats": "0x1",
           "sai_vfp_smac_drop_filter_disable": "1",
           "schan_intr_enable.BCM8879X": "0",

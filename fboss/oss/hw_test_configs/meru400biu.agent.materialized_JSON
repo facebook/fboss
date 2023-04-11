@@ -18,7 +18,18 @@
     ],
     "defaultVlan": 0,
     "interfaces": [
-      
+      {
+        "intfID": 101,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2
+      }
     ],
     "arpTimeoutSeconds": 60,
     "arpRefreshSeconds": 20,
@@ -101,7 +112,17 @@
       "switchId": 0,
       "exactMatchTableConfigs": [
         
-      ]
+      ],
+      "switchIdToSwitchType": {
+        
+      },
+      "switchDrainState": 0,
+      "switchIdToSwitchInfo": {
+        "0": {
+            "switchType": 2,
+            "asicType": 11
+        }
+      }
     },
     "dsfNodes": {
       "0": {
@@ -116,7 +137,8 @@
             "maximum": 120
           },
           "nodeMac": "02:00:00:00:0F:0B",
-          "asicType": 11
+          "asicType": 11,
+          "platformType": 18
       }
     }
   },
@@ -1168,7 +1190,7 @@
           "phy_rx_polarity_flip_fabric23.1": "1",
           "phy_rx_polarity_flip_fabric24.0": "0",
           "phy_rx_polarity_flip_fabric24.1": "0",
-          "phy_rx_polarity_flip_fabric25.0": "0",
+          "phy_rx_polarity_flip_fabric25.0": "1",
           "phy_rx_polarity_flip_fabric25.1": "1",
           "phy_rx_polarity_flip_fabric26.0": "0",
           "phy_rx_polarity_flip_fabric26.1": "0",
@@ -1758,7 +1780,7 @@
           "phy_tx_polarity_flip_fabric158.1": "0",
           "phy_tx_polarity_flip_fabric159.0": "0",
           "phy_tx_polarity_flip_fabric159.1": "0",
-          "phy_tx_polarity_flip_fabric16.0": "0",
+          "phy_tx_polarity_flip_fabric16.0": "1",
           "phy_tx_polarity_flip_fabric16.1": "1",
           "phy_tx_polarity_flip_fabric160.0": "0",
           "phy_tx_polarity_flip_fabric160.1": "0",
@@ -1780,7 +1802,7 @@
           "phy_tx_polarity_flip_fabric168.1": "0",
           "phy_tx_polarity_flip_fabric169.0": "1",
           "phy_tx_polarity_flip_fabric169.1": "1",
-          "phy_tx_polarity_flip_fabric17.0": "1",
+          "phy_tx_polarity_flip_fabric17.0": "0",
           "phy_tx_polarity_flip_fabric17.1": "0",
           "phy_tx_polarity_flip_fabric170.0": "0",
           "phy_tx_polarity_flip_fabric170.1": "0",
@@ -1802,7 +1824,7 @@
           "phy_tx_polarity_flip_fabric178.1": "0",
           "phy_tx_polarity_flip_fabric179.0": "0",
           "phy_tx_polarity_flip_fabric179.1": "0",
-          "phy_tx_polarity_flip_fabric18.0": "0",
+          "phy_tx_polarity_flip_fabric18.0": "1",
           "phy_tx_polarity_flip_fabric18.1": "1",
           "phy_tx_polarity_flip_fabric180.0": "0",
           "phy_tx_polarity_flip_fabric180.1": "0",
@@ -1810,7 +1832,7 @@
           "phy_tx_polarity_flip_fabric181.1": "0",
           "phy_tx_polarity_flip_fabric182.0": "0",
           "phy_tx_polarity_flip_fabric182.1": "0",
-          "phy_tx_polarity_flip_fabric183.0": "0",
+          "phy_tx_polarity_flip_fabric183.0": "1",
           "phy_tx_polarity_flip_fabric183.1": "1",
           "phy_tx_polarity_flip_fabric184.0": "1",
           "phy_tx_polarity_flip_fabric184.1": "1",
@@ -1824,7 +1846,7 @@
           "phy_tx_polarity_flip_fabric188.1": "1",
           "phy_tx_polarity_flip_fabric189.0": "1",
           "phy_tx_polarity_flip_fabric189.1": "1",
-          "phy_tx_polarity_flip_fabric19.0": "1",
+          "phy_tx_polarity_flip_fabric19.0": "0",
           "phy_tx_polarity_flip_fabric19.1": "0",
           "phy_tx_polarity_flip_fabric190.0": "1",
           "phy_tx_polarity_flip_fabric190.1": "1",
@@ -1866,13 +1888,13 @@
           "phy_tx_polarity_flip_fabric34.1": "0",
           "phy_tx_polarity_flip_fabric35.0": "1",
           "phy_tx_polarity_flip_fabric35.1": "1",
-          "phy_tx_polarity_flip_fabric36.0": "0",
+          "phy_tx_polarity_flip_fabric36.0": "1",
           "phy_tx_polarity_flip_fabric36.1": "1",
-          "phy_tx_polarity_flip_fabric37.0": "1",
+          "phy_tx_polarity_flip_fabric37.0": "0",
           "phy_tx_polarity_flip_fabric37.1": "0",
-          "phy_tx_polarity_flip_fabric38.0": "0",
+          "phy_tx_polarity_flip_fabric38.0": "1",
           "phy_tx_polarity_flip_fabric38.1": "1",
-          "phy_tx_polarity_flip_fabric39.0": "1",
+          "phy_tx_polarity_flip_fabric39.0": "0",
           "phy_tx_polarity_flip_fabric39.1": "0",
           "phy_tx_polarity_flip_fabric4.0": "1",
           "phy_tx_polarity_flip_fabric4.1": "0",
@@ -2338,7 +2360,6 @@
           "sai_pkt_rx_custom_cfg": "1",
           "sai_pkt_rx_pkt_size": "16512",
           "sai_recycle_port_lane_base": "220",
-          "sai_trigger_linkscan_remote_local_faults": "0",
           "sai_uncached_port_stats": "0x1",
           "sai_vfp_smac_drop_filter_disable": "1",
           "sat_enable.BCM8885X": "1",

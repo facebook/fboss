@@ -99,7 +99,17 @@
       "switchType": 0,
       "exactMatchTableConfigs": [
         
-      ]
+      ],
+      "switchIdToSwitchType": {
+        
+      },
+      "switchDrainState": 0,
+      "switchIdToSwitchInfo": {
+        "0": {
+            "switchType": 0,
+            "asicType": 5
+        }
+      }
     },
     "dsfNodes": {
       
