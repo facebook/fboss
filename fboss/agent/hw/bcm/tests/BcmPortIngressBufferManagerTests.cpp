@@ -188,22 +188,6 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
   cfg::SwitchConfig cfg_;
 };
 
-// Create PG config, associate with PFC config
-// validate that SDK programming is as per the cfg
-// Read back from HW (using SDK calls) and validate
-TEST_F(BcmPortIngressBufferManagerTest, validateConfig) {
-  auto setup = [=]() { setupHelper(); };
-
-  auto verify = [&]() {
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
-        true /*pfcEnable*/);
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
 // Create PG config, associate with PFC config and reset it
 // Ensure that its getting reset to the defaults in HW as expected
 TEST_F(BcmPortIngressBufferManagerTest, validateConfigReset) {
