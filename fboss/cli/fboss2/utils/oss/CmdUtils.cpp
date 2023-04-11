@@ -25,4 +25,8 @@ const std::string getOobNameFromHost(const std::string& /* host */) {
 
 void logUsage(const CmdLogInfo& /*Cmd Log Info*/) {}
 
+std::vector<std::string> getBgpDrainedInterafces(Const HostInfo& /*hostInfo*/) {
+  return {};
+}
+
 } // namespace facebook::fboss::utils
