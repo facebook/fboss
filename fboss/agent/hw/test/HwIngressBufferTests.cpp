@@ -23,6 +23,12 @@ constexpr int kPgMinLimitCells = 6;
 constexpr int kPgHeadroomLimitCells = 2;
 constexpr int kPoolHeadroomLimitCells = 10;
 constexpr int kPoolSharedCells = 78;
+/*
+ * SDK has the expectation that pool_total_size - delta <= shared size,
+ * where delta is the difference between old and new pool limits, if
+ * not, its considered an error.
+ */
+constexpr int kPoolSharedSizeBytesHighValue = 113091;
 constexpr std::string_view kBufferPoolName = "fooBuffer";
 
 // util to construct per PG params
@@ -57,7 +63,7 @@ std::vector<cfg::PortPgConfig> getPortPgConfig(
 cfg::BufferPoolConfig getBufferPoolHighDefaultConfig(int mmuBytesInCell) {
   cfg::BufferPoolConfig tmpCfg;
   tmpCfg.headroomBytes() = 12432 * mmuBytesInCell;
-  tmpCfg.sharedBytes() = 119044 * mmuBytesInCell;
+  tmpCfg.sharedBytes() = kPoolSharedSizeBytesHighValue * mmuBytesInCell;
   return tmpCfg;
 }
 
