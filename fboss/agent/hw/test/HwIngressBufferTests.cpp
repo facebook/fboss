@@ -86,7 +86,8 @@ namespace facebook::fboss {
 class HwIngressBufferTest : public HwTest {
  protected:
   cfg::SwitchConfig initialConfig() const {
-    return utility::oneL3IntfConfig(getHwSwitch(), masterLogicalPortIds()[0]);
+    return utility::onePortPerInterfaceConfig(
+        getHwSwitch(), masterLogicalPortIds());
   }
 
   void setupGlobalBuffer(cfg::SwitchConfig& cfg, bool useLargeHwValues) {
@@ -132,7 +133,7 @@ class HwIngressBufferTest : public HwTest {
     auto cfg = initialConfig();
 
     // setup PFC
-    setupPfc(cfg, masterLogicalPortIds()[0], pfcEnable);
+    setupPfc(cfg, masterLogicalInterfacePortIds()[0], pfcEnable);
     // setup pgConfig
     setupPgBuffers(cfg, enableHeadroom);
     // setup bufferPool
@@ -157,7 +158,8 @@ TEST_F(HwIngressBufferTest, validateConfig) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        getProgrammedState()->getPort(
+            PortID(masterLogicalInterfacePortIds()[0])),
         true /*pfcEnable*/);
   };
 
@@ -184,7 +186,8 @@ TEST_F(HwIngressBufferTest, validateIngressPoolParamChange) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        getProgrammedState()->getPort(
+            PortID(masterLogicalInterfacePortIds()[0])),
         true /*pfcEnable*/);
   };
 
@@ -207,7 +210,8 @@ TEST_F(HwIngressBufferTest, validatePGParamChange) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        getProgrammedState()->getPort(
+            PortID(masterLogicalInterfacePortIds()[0])),
         true /*pfcEnable*/);
   };
 
@@ -224,7 +228,8 @@ TEST_F(HwIngressBufferTest, validatePgNoPfc) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        getProgrammedState()->getPort(
+            PortID(masterLogicalInterfacePortIds()[0])),
         false /*pfcEnable*/);
   };
 
@@ -241,7 +246,8 @@ TEST_F(HwIngressBufferTest, validateHighBufferValues) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        getProgrammedState()->getPort(
+            PortID(masterLogicalInterfacePortIds()[0])),
         true /*pfcEnable*/);
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -256,7 +262,8 @@ TEST_F(HwIngressBufferTest, validateLossyMode) {
   auto verify = [&]() {
     utility::checkSwHwPgCfgMatch(
         getHwSwitch(),
-        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
+        getProgrammedState()->getPort(
+            PortID(masterLogicalInterfacePortIds()[0])),
         true /*pfcEnable*/);
   };
 
