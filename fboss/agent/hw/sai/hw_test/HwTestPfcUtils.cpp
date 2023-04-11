@@ -99,9 +99,72 @@ int pfcWatchdogRecoveryAction(cfg::PfcWatchdogRecoveryAction /* unused */) {
 }
 
 void checkSwHwPgCfgMatch(
-    const HwSwitch* /*hw*/,
-    const std::shared_ptr<Port>& /*swPort*/,
-    bool /*pfcEnable*/) {
-  // XXX: To be implemented!
+    const HwSwitch* hw,
+    const std::shared_ptr<Port>& swPort,
+    bool pfcEnable) {
+  auto swPgConfig = swPort->getPortPgConfigs();
+
+  auto portHandle = static_cast<const SaiSwitch*>(hw)
+                        ->managerTable()
+                        ->portManager()
+                        .getPortHandle(PortID(swPort->getID()));
+  for (const auto& pgConfig : std::as_const(*swPgConfig)) {
+    auto id = pgConfig->cref<switch_state_tags::id>()->cref();
+    auto iter = portHandle->configuredIngressPriorityGroups.find(
+        static_cast<IngressPriorityGroupID>(id));
+    if (iter == portHandle->configuredIngressPriorityGroups.end()) {
+      throw FbossError(
+          "Priority group config canot be found for PG id ",
+          id,
+          " on port ",
+          swPort->getName());
+    }
+    auto bufferProfile = iter->second.bufferProfile;
+    EXPECT_EQ(
+        pgConfig->cref<switch_state_tags::resumeOffsetBytes>()->cref(),
+        SaiApiTable::getInstance()->bufferApi().getAttribute(
+            bufferProfile->adapterKey(),
+            SaiBufferProfileTraits::Attributes::XonOffsetTh{}));
+    EXPECT_EQ(
+        pgConfig->cref<switch_state_tags::minLimitBytes>()->cref(),
+        SaiApiTable::getInstance()->bufferApi().getAttribute(
+            bufferProfile->adapterKey(),
+            SaiBufferProfileTraits::Attributes::ReservedBytes{}));
+    EXPECT_EQ(
+        pgConfig->cref<switch_state_tags::minLimitBytes>()->cref(),
+        SaiApiTable::getInstance()->bufferApi().getAttribute(
+            bufferProfile->adapterKey(),
+            SaiBufferProfileTraits::Attributes::ReservedBytes{}));
+    if (auto pgHdrmOpt =
+            pgConfig->cref<switch_state_tags::headroomLimitBytes>()) {
+      EXPECT_EQ(
+          pgHdrmOpt->cref(),
+          SaiApiTable::getInstance()->bufferApi().getAttribute(
+              bufferProfile->adapterKey(),
+              SaiBufferProfileTraits::Attributes::XoffTh{}));
+    }
+
+    // Port PFC configurations
+    if (SaiApiTable::getInstance()->portApi().getAttribute(
+            portHandle->port->adapterKey(),
+            SaiPortTraits::Attributes::PriorityFlowControlMode{}) ==
+        SAI_PORT_PRIORITY_FLOW_CONTROL_MODE_COMBINED) {
+      EXPECT_EQ(
+          SaiApiTable::getInstance()->portApi().getAttribute(
+              portHandle->port->adapterKey(),
+              SaiPortTraits::Attributes::PriorityFlowControl{}) != 0,
+          pfcEnable);
+    } else {
+#if !defined(TAJO_SDK)
+      EXPECT_EQ(
+          SaiApiTable::getInstance()->portApi().getAttribute(
+              portHandle->port->adapterKey(),
+              SaiPortTraits::Attributes::PriorityFlowControlTx{}) != 0,
+          pfcEnable);
+#else
+      throw FbossError("Flow control mode SEPARATE unsupported!");
+#endif
+    }
+  }
 }
 } // namespace facebook::fboss::utility
