@@ -35,7 +35,7 @@ constexpr std::string_view kBufferPoolName = "fooBuffer";
 // pass in number of queues and use queueId, deltaValue to differ
 // PG params
 std::vector<cfg::PortPgConfig> getPortPgConfig(
-    int mmuCellByes,
+    int mmuCellBytes,
     const std::vector<int>& queues,
     int deltaValue = 0,
     const bool enableHeadroom = true) {
@@ -47,12 +47,12 @@ std::vector<cfg::PortPgConfig> getPortPgConfig(
     // use queueId value to assign different values for each param/queue
     if (enableHeadroom) {
       pgConfig.headroomLimitBytes() =
-          (kPgHeadroomLimitCells + queueId + deltaValue) * mmuCellByes;
+          (kPgHeadroomLimitCells + queueId + deltaValue) * mmuCellBytes;
     }
     pgConfig.minLimitBytes() =
-        (kPgMinLimitCells + queueId + deltaValue) * mmuCellByes;
+        (kPgMinLimitCells + queueId + deltaValue) * mmuCellBytes;
     pgConfig.resumeOffsetBytes() =
-        (kPgResumeOffsetCells + queueId + deltaValue) * mmuCellByes;
+        (kPgResumeOffsetCells + queueId + deltaValue) * mmuCellBytes;
     pgConfig.scalingFactor() = cfg::MMUScalingFactor::EIGHT;
     pgConfig.bufferPoolName() = kBufferPoolName;
     portPgConfigs.emplace_back(pgConfig);
@@ -93,10 +93,11 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
     std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
     cfg::BufferPoolConfig bufferPoolConfig;
     if (useLargeHwValues) {
-      bufferPoolConfig =
-          getBufferPoolHighDefaultConfig(getPlatform()->getMMUCellBytes());
+      bufferPoolConfig = getBufferPoolHighDefaultConfig(
+          getPlatform()->getAsic()->getPacketBufferUnitSize());
     } else {
-      bufferPoolConfig = getBufferPoolConfig(getPlatform()->getMMUCellBytes());
+      bufferPoolConfig = getBufferPoolConfig(
+          getPlatform()->getAsic()->getPacketBufferUnitSize());
     }
 
     bufferPoolCfgMap.insert(
@@ -107,7 +108,7 @@ class BcmPortIngressBufferManagerTest : public BcmTest {
   void setupPgBuffers(cfg::SwitchConfig& cfg, const bool enableHeadroom) {
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
     portPgConfigMap["foo"] = getPortPgConfig(
-        getPlatform()->getMMUCellBytes(),
+        getPlatform()->getAsic()->getPacketBufferUnitSize(),
         {0, 1},
         0 /* delta value */,
         enableHeadroom);
@@ -229,7 +230,8 @@ TEST_F(BcmPortIngressBufferManagerTest, validateIngressPoolParamChange) {
     std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap;
     bufferPoolCfgMap.insert(make_pair(
         static_cast<std::string>(kBufferPoolName),
-        getBufferPoolConfig(getPlatform()->getMMUCellBytes(), 1)));
+        getBufferPoolConfig(
+            getPlatform()->getAsic()->getPacketBufferUnitSize(), 1)));
     cfg_.bufferPoolConfigs() = bufferPoolCfgMap;
     // update one PG, and see ifs reflected in the HW
     applyNewConfig(cfg_);
@@ -252,8 +254,8 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGParamChange) {
     setupHelper();
     // update one PG, and see ifs reflected in the HW
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-    portPgConfigMap["foo"] =
-        getPortPgConfig(getPlatform()->getMMUCellBytes(), {0, 1}, 1);
+    portPgConfigMap["foo"] = getPortPgConfig(
+        getPlatform()->getAsic()->getPacketBufferUnitSize(), {0, 1}, 1);
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
   };
@@ -275,8 +277,8 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGQueueChanges) {
     setupHelper();
     // update one PG, and see ifs reflected in the HW
     std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-    portPgConfigMap["foo"] =
-        getPortPgConfig(getPlatform()->getMMUCellBytes(), {1});
+    portPgConfigMap["foo"] = getPortPgConfig(
+        getPlatform()->getAsic()->getPacketBufferUnitSize(), {1});
     cfg_.portPgConfigs() = portPgConfigMap;
     applyNewConfig(cfg_);
   };

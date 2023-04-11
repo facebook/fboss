@@ -121,7 +121,8 @@ class FakeAsic : public HwAsic {
     return std::nullopt;
   }
   uint32_t getPacketBufferUnitSize() const override {
-    return 0;
+    // Mimicking TH
+    return 208;
   }
   uint32_t getPacketBufferDescriptorSize() const override {
     return 0;
