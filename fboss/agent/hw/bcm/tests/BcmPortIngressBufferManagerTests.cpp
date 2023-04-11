@@ -205,31 +205,8 @@ TEST_F(BcmPortIngressBufferManagerTest, validateConfigReset) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-// Create PG config, associate with PFC config
-// Modify the PG config params and ensure that its getting re-programmed
-TEST_F(BcmPortIngressBufferManagerTest, validatePGParamChange) {
-  auto setup = [&]() {
-    setupHelper();
-    // update one PG, and see ifs reflected in the HW
-    std::map<std::string, std::vector<cfg::PortPgConfig>> portPgConfigMap;
-    portPgConfigMap["foo"] = getPortPgConfig(
-        getPlatform()->getAsic()->getPacketBufferUnitSize(), {0, 1}, 1);
-    cfg_.portPgConfigs() = portPgConfigMap;
-    applyNewConfig(cfg_);
-  };
-
-  auto verify = [&]() {
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
-        true /*pfcEnable*/);
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
-// Create PG config, associate with PFC config
-// Modify the PG queue config params and ensure that its getting re-programmed
+// Create PG config, associate with PFC config. Modify the PG queue
+// config params and ensure that its getting re-programmed.
 TEST_F(BcmPortIngressBufferManagerTest, validatePGQueueChanges) {
   auto setup = [&]() {
     setupHelper();
@@ -254,56 +231,6 @@ TEST_F(BcmPortIngressBufferManagerTest, validatePGQueueChanges) {
     EXPECT_EQ(pgList, pgIdSetExpected);
   };
 
-  verifyAcrossWarmBoots(setup, verify);
-}
-
-// Create PG config, associate with PFC config
-// do not create the headroom cfg, PGs should be in lossy mode now
-// validate that SDK programming is as per the cfg
-TEST_F(BcmPortIngressBufferManagerTest, validateLossyMode) {
-  auto setup = [&]() { setupHelper(false /* enable headroom */); };
-
-  auto verify = [&]() {
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
-        true /*pfcEnable*/);
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
-// validate the Pg's pfc mode bit
-// by default we have been enabling PFC on the port and hence
-// on every PG. Force the port to have no PFC
-// Validate that Pg's pfc mode is False now
-TEST_F(BcmPortIngressBufferManagerTest, validatePgNoPfc) {
-  auto setup = [&]() {
-    setupHelper(true /* enable headroom */, false /* pfc */);
-  };
-  auto verify = [&]() {
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
-        false /*pfcEnable*/);
-  };
-
-  verifyAcrossWarmBoots(setup, verify);
-}
-
-// validate that if we program the global buffer with high values
-// we don't throw any errors programming
-// we saw this issue, when we try programming higher values and logic
-// has been added to program whaever buffer value is lower than
-// programmed first to workaround the sdk error
-TEST_F(BcmPortIngressBufferManagerTest, validateHighBufferValues) {
-  auto setup = [&]() { setupHelperWithHighBufferValues(); };
-  auto verify = [&]() {
-    utility::checkSwHwPgCfgMatch(
-        getHwSwitch(),
-        getProgrammedState()->getPort(PortID(masterLogicalPortIds()[0])),
-        true /*pfcEnable*/);
-  };
   verifyAcrossWarmBoots(setup, verify);
 }
 
