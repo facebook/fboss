@@ -38,6 +38,7 @@ using InterfaceMapTraits = ThriftMapNodeTraits<
 class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
  public:
   using ThriftType = InterfaceMapThriftType;
+  using Traits = InterfaceMapTraits;
   using Base = ThriftMapNode<InterfaceMap, InterfaceMapTraits>;
   using Base::modify;
 
@@ -117,4 +118,34 @@ class InterfaceMap : public ThriftMapNode<InterfaceMap, InterfaceMapTraits> {
   friend class CloneAllocator;
 };
 
+using MultiInterfaceMapTypeClass = apache::thrift::type_class::
+    map<apache::thrift::type_class::string, InterfaceMapTypeClass>;
+using MultiInterfaceMapThriftType =
+    std::map<std::string, InterfaceMapThriftType>;
+
+class MultiInterfaceMap;
+
+using MultiInterfaceMapTraits = ThriftMultiMapNodeTraits<
+    MultiInterfaceMap,
+    MultiInterfaceMapTypeClass,
+    MultiInterfaceMapThriftType,
+    InterfaceMap>;
+
+class HwSwitchMatcher;
+
+class MultiInterfaceMap
+    : public ThriftMapNode<MultiInterfaceMap, MultiInterfaceMapTraits> {
+ public:
+  using Traits = MultiInterfaceMapTraits;
+  using BaseT = ThriftMapNode<MultiInterfaceMap, MultiInterfaceMapTraits>;
+  using BaseT::modify;
+
+  MultiInterfaceMap() {}
+  virtual ~MultiInterfaceMap() {}
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
+  friend class CloneAllocator;
+};
 } // namespace facebook::fboss

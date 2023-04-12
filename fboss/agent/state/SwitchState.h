@@ -190,6 +190,10 @@ RESOLVE_STRUCT_MEMBER(
     MultiBufferPoolCfgMap);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::vlanMaps, MultiVlanMap);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::portMaps, MultiPortMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::interfaceMaps,
+    MultiInterfaceMap);
 
 /*
  * SwitchState stores the current switch configuration.
@@ -280,10 +284,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     return cref<switch_state_tags::defaultDataPlaneQosPolicy>();
   }
 
-  const std::shared_ptr<InterfaceMap>& getInterfaces() const {
-    return cref<switch_state_tags::interfaceMap>();
-  }
-
+  const std::shared_ptr<InterfaceMap>& getInterfaces() const;
   std::shared_ptr<AclEntry> getAcl(const std::string& name) const;
 
   const std::shared_ptr<AclMap>& getAcls() const {

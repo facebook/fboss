@@ -2,9 +2,11 @@
 
 #include "fboss/agent/DsfSubscriber.h"
 #include <fb303/ServiceData.h>
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/state/DsfNode.h"
+#include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
@@ -25,7 +27,6 @@ using ThriftMapTypeClass = apache::thrift::type_class::map<
     apache::thrift::type_class::integral,
     apache::thrift::type_class::structure>;
 using SysPortMapThriftType = std::map<int64_t, state::SystemPortFields>;
-using InterfaceMapThriftType = std::map<int32_t, state::InterfaceFields>;
 
 DsfSubscriber::DsfSubscriber(SwSwitch* sw) : sw_(sw) {
   sw_->registerStateObserver(this, "DSFSubscriber");
@@ -37,7 +38,7 @@ DsfSubscriber::~DsfSubscriber() {
 
 void DsfSubscriber::scheduleUpdate(
     const std::shared_ptr<SystemPortMap>& newSysPorts,
-    const std::shared_ptr<InterfaceMap>& newRifs,
+    const std::shared_ptr<MultiInterfaceMap>& newRifs,
     const std::string& nodeName,
     SwitchID nodeSwitchId) {
   XLOG(DBG2) << " For , switchId: " << static_cast<int64_t>(nodeSwitchId)
@@ -148,7 +149,15 @@ void DsfSubscriber::scheduleUpdate(
         }
         if (newRifs) {
           auto origRifs = out->getInterfaces(nodeSwitchId);
-          InterfaceMapDelta delta(origRifs.get(), newRifs.get());
+          auto getDefaultInterfaces = [](auto interfaceMaps) -> InterfaceMap* {
+            CHECK(interfaceMaps);
+            auto interfaceMap = interfaceMaps->getNodeIf(
+                HwSwitchMatcher::defaultHwSwitchMatcherKey());
+            CHECK(interfaceMap);
+            return interfaceMap.get();
+          };
+          InterfaceMapDelta delta(
+              origRifs.get(), getDefaultInterfaces(newRifs));
           auto remoteRifs = out->getRemoteInterfaces()->modify(&out);
           processDelta(delta, remoteRifs, makeRemoteRif);
         }
@@ -236,7 +245,7 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
         },
         [this, nodeName, nodeSwitchId](fsdb::OperSubPathUnit&& operStateUnit) {
           std::shared_ptr<SystemPortMap> newSysPorts;
-          std::shared_ptr<InterfaceMap> newRifs;
+          std::shared_ptr<MultiInterfaceMap> newRifs;
           for (const auto& change : *operStateUnit.changes()) {
             if (change.path()->path() == getSystemPortsPath()) {
               XLOG(DBG2) << " Got sys port update from : " << nodeName;
@@ -248,12 +257,11 @@ void DsfSubscriber::stateUpdated(const StateDelta& stateDelta) {
                           *change.state()->contents()));
             } else if (change.path()->path() == getInterfacesPath()) {
               XLOG(DBG2) << " Got rif update from : " << nodeName;
-              newRifs = std::make_shared<InterfaceMap>();
-              newRifs->fromThrift(
-                  thrift_cow::
-                      deserialize<ThriftMapTypeClass, InterfaceMapThriftType>(
-                          fsdb::OperProtocol::BINARY,
-                          *change.state()->contents()));
+              newRifs = std::make_shared<MultiInterfaceMap>();
+              newRifs->fromThrift(thrift_cow::deserialize<
+                                  MultiInterfaceMapTypeClass,
+                                  MultiInterfaceMapThriftType>(
+                  fsdb::OperProtocol::BINARY, *change.state()->contents()));
             } else {
               throw FbossError(
                   " Got unexpected state update for : ",

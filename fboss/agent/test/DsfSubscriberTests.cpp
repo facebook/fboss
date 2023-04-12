@@ -17,6 +17,8 @@
 #include <gtest/gtest.h>
 #include <optional>
 
+#include "fboss/agent/HwSwitchMatcher.h"
+
 using namespace facebook::fboss;
 
 namespace {
@@ -30,7 +32,8 @@ std::shared_ptr<SystemPortMap> makeSysPorts() {
   }
   return sysPorts;
 }
-std::shared_ptr<InterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
+std::shared_ptr<MultiInterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
+  auto multiRifs = std::make_shared<MultiInterfaceMap>();
   auto rifs = std::make_shared<InterfaceMap>();
   for (const auto& [id, sysPort] : *sysPorts) {
     auto rif = std::make_shared<Interface>(
@@ -45,7 +48,8 @@ std::shared_ptr<InterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
         cfg::InterfaceType::SYSTEM_PORT);
     rifs->addNode(rif);
   }
-  return rifs;
+  multiRifs->addNode(HwSwitchMatcher::defaultHwSwitchMatcherKey(), rifs);
+  return multiRifs;
 }
 } // namespace
 
@@ -79,7 +83,8 @@ TEST_F(DsfSubscriberTest, scheduleUpdate) {
 TEST_F(DsfSubscriberTest, setupNeighbors) {
   auto updateAndCompareTables = [this](
                                     const auto& sysPorts,
-                                    const auto& rifs,
+                                    const std::shared_ptr<MultiInterfaceMap>&
+                                        rifs,
                                     bool publishState,
                                     bool noNeighbors = false) {
     if (publishState) {
@@ -88,7 +93,8 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
 
     // dsfSubscriber_->scheduleUpdate is expected to set isLocal to False,
     // and rest of the structure should remain the same.
-    auto expectedRifs = InterfaceMap(rifs->toThrift());
+    auto expectedRifs = InterfaceMap(
+        rifs->cref(HwSwitchMatcher::defaultHwSwitchMatcherKey())->toThrift());
     for (auto intfIter : expectedRifs) {
       auto& intf = intfIter.second;
       for (auto& ndpEntry : *intf->getNdpTable()) {
@@ -115,7 +121,7 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
     // for unpublished state, the passed state would be modified, and thus,
     // programmed vs actually programmed state would be equal.
     EXPECT_TRUE(
-        rifs->toThrift() !=
+        rifs->cref(HwSwitchMatcher::defaultHwSwitchMatcherKey())->toThrift() !=
             sw_->getState()->getRemoteInterfaces()->toThrift() ||
         noNeighbors || !publishState);
   };
@@ -162,8 +168,12 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
       auto rifs = makeRifs(sysPorts.get());
       auto firstRif = kSysPortRangeMin + 1;
       auto [ndpTable, arpTable] = makeNbrs();
-      (*rifs)[firstRif]->setNdpTable(ndpTable);
-      (*rifs)[firstRif]->setArpTable(arpTable);
+      rifs->ref(HwSwitchMatcher::defaultHwSwitchMatcherKey())
+          ->ref(firstRif)
+          ->setNdpTable(ndpTable);
+      rifs->ref(HwSwitchMatcher::defaultHwSwitchMatcherKey())
+          ->ref(firstRif)
+          ->setArpTable(arpTable);
       updateAndCompareTables(sysPorts, rifs, publishState);
     }
     {
@@ -174,8 +184,12 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
       auto [ndpTable, arpTable] = makeNbrs();
       ndpTable.begin()->second.mac() = "06:05:04:03:02:01";
       arpTable.begin()->second.mac() = "06:05:04:03:02:01";
-      (*rifs)[firstRif]->setNdpTable(ndpTable);
-      (*rifs)[firstRif]->setArpTable(arpTable);
+      rifs->ref(HwSwitchMatcher::defaultHwSwitchMatcherKey())
+          ->ref(firstRif)
+          ->setNdpTable(ndpTable);
+      rifs->ref(HwSwitchMatcher::defaultHwSwitchMatcherKey())
+          ->ref(firstRif)
+          ->setArpTable(arpTable);
       updateAndCompareTables(sysPorts, rifs, publishState);
     }
     {
@@ -186,8 +200,12 @@ TEST_F(DsfSubscriberTest, setupNeighbors) {
       auto [ndpTable, arpTable] = makeNbrs();
       ndpTable.erase(ndpTable.begin());
       arpTable.erase(arpTable.begin());
-      (*rifs)[firstRif]->setNdpTable(ndpTable);
-      (*rifs)[firstRif]->setArpTable(arpTable);
+      rifs->ref(HwSwitchMatcher::defaultHwSwitchMatcherKey())
+          ->ref(firstRif)
+          ->setNdpTable(ndpTable);
+      rifs->ref(HwSwitchMatcher::defaultHwSwitchMatcherKey())
+          ->ref(firstRif)
+          ->setArpTable(arpTable);
       updateAndCompareTables(sysPorts, rifs, publishState);
     }
     {

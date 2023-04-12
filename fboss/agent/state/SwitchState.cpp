@@ -145,6 +145,7 @@ SwitchState::SwitchState() {
   resetBufferPoolCfgs(std::make_shared<BufferPoolCfgMap>());
   resetVlans(std::make_shared<VlanMap>());
   resetPorts(std::make_shared<PortMap>());
+  resetIntfs(std::make_shared<InterfaceMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -200,17 +201,21 @@ void SwitchState::addVlan(const std::shared_ptr<Vlan>& vlan) {
 }
 
 void SwitchState::addIntf(const std::shared_ptr<Interface>& intf) {
-  if (cref<switch_state_tags::interfaceMap>()->isPublished()) {
+  if (getInterfaces()->isPublished()) {
     // For ease-of-use, automatically clone the InterfaceMap if we are still
     // pointing to a published map.
-    auto intfs = cref<switch_state_tags::interfaceMap>()->clone();
-    ref<switch_state_tags::interfaceMap>() = intfs;
+    auto intfs = getInterfaces()->clone();
+    resetIntfs(intfs);
   }
-  ref<switch_state_tags::interfaceMap>()->addInterface(intf);
+  getDefaultMap<switch_state_tags::interfaceMaps>()->addInterface(intf);
 }
 
 void SwitchState::resetIntfs(std::shared_ptr<InterfaceMap> intfs) {
-  ref<switch_state_tags::interfaceMap>() = intfs;
+  resetDefaultMap<switch_state_tags::interfaceMaps>(intfs);
+}
+
+const std::shared_ptr<InterfaceMap>& SwitchState::getInterfaces() const {
+  return getDefaultMap<switch_state_tags::interfaceMaps>();
 }
 
 void SwitchState::resetRemoteIntfs(std::shared_ptr<InterfaceMap> intfs) {
@@ -600,6 +605,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       switch_state_tags::bufferPoolCfgMap>();
   state->fromThrift<switch_state_tags::vlanMaps, switch_state_tags::vlanMap>();
   state->fromThrift<switch_state_tags::portMaps, switch_state_tags::portMap>();
+  state->fromThrift<
+      switch_state_tags::interfaceMaps,
+      switch_state_tags::interfaceMap>();
   return state;
 }
 
@@ -785,6 +793,9 @@ state::SwitchState SwitchState::toThrift() const {
   }
   if (auto obj = toThrift(cref<switch_state_tags::portMaps>())) {
     data.portMap() = *obj;
+  }
+  if (auto obj = toThrift(cref<switch_state_tags::interfaceMaps>())) {
+    data.interfaceMap() = *obj;
   }
   return data;
 }
