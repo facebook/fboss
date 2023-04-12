@@ -189,6 +189,8 @@ RESOLVE_STRUCT_MEMBER(
     switch_state_tags::bufferPoolCfgMaps,
     MultiBufferPoolCfgMap);
 RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::vlanMaps, MultiVlanMap);
+RESOLVE_STRUCT_MEMBER(SwitchState, switch_state_tags::portMaps, MultiPortMap);
+
 /*
  * SwitchState stores the current switch configuration.
  *
@@ -262,9 +264,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const std::shared_ptr<TeFlowEntry>& oldFlowEntry,
       std::shared_ptr<SwitchState>* appliedState);
 
-  const std::shared_ptr<PortMap>& getPorts() const {
-    return cref<switch_state_tags::portMap>();
-  }
+  const std::shared_ptr<PortMap>& getPorts() const;
   std::shared_ptr<Port> getPort(PortID id) const;
 
   const std::shared_ptr<AggregatePortMap>& getAggregatePorts() const;

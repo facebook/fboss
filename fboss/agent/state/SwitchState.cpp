@@ -144,6 +144,7 @@ SwitchState::SwitchState() {
   resetTransceivers(std::make_shared<TransceiverMap>());
   resetBufferPoolCfgs(std::make_shared<BufferPoolCfgMap>());
   resetVlans(std::make_shared<VlanMap>());
+  resetPorts(std::make_shared<PortMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -163,15 +164,20 @@ void SwitchState::registerPort(
     PortID id,
     const std::string& name,
     cfg::PortType portType) {
-  ref<switch_state_tags::portMap>()->registerPort(id, name, portType);
+  getDefaultMap<switch_state_tags::portMaps>()->registerPort(
+      id, name, portType);
 }
 
 void SwitchState::addPort(const std::shared_ptr<Port>& port) {
-  ref<switch_state_tags::portMap>()->addPort(port);
+  getDefaultMap<switch_state_tags::portMaps>()->addPort(port);
 }
 
 void SwitchState::resetPorts(std::shared_ptr<PortMap> ports) {
-  ref<switch_state_tags::portMap>() = ports;
+  resetDefaultMap<switch_state_tags::portMaps>(ports);
+}
+
+const std::shared_ptr<PortMap>& SwitchState::getPorts() const {
+  return getDefaultMap<switch_state_tags::portMaps>();
 }
 
 void SwitchState::resetVlans(std::shared_ptr<VlanMap> vlans) {
@@ -593,6 +599,7 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       switch_state_tags::bufferPoolCfgMaps,
       switch_state_tags::bufferPoolCfgMap>();
   state->fromThrift<switch_state_tags::vlanMaps, switch_state_tags::vlanMap>();
+  state->fromThrift<switch_state_tags::portMaps, switch_state_tags::portMap>();
   return state;
 }
 
@@ -775,6 +782,9 @@ state::SwitchState SwitchState::toThrift() const {
   }
   if (auto obj = toThrift(cref<switch_state_tags::vlanMaps>())) {
     data.vlanMap() = *obj;
+  }
+  if (auto obj = toThrift(cref<switch_state_tags::portMaps>())) {
+    data.portMap() = *obj;
   }
   return data;
 }

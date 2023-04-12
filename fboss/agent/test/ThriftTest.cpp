@@ -2162,14 +2162,14 @@ TEST_F(ThriftTest, applySpeedAndProfileMismatchConfig) {
 TEST_F(ThriftTest, getCurrentStateJSON) {
   ThriftHandler handler(sw_);
   std::string out;
-  std::string in = "portMap/1";
+  std::string in = "portMaps/id=0/1";
   handler.getCurrentStateJSON(out, std::make_unique<std::string>(in));
   auto dyn = folly::parseJson(out);
   EXPECT_EQ(dyn["portId"], 1);
   EXPECT_EQ(dyn["portName"], "port1");
   EXPECT_EQ(dyn["portState"], "ENABLED");
 
-  in = "portMap/1/portOperState";
+  in = "portMaps/id=0/1/portOperState";
   handler.getCurrentStateJSON(out, std::make_unique<std::string>(in));
   EXPECT_EQ(out, "false");
 
