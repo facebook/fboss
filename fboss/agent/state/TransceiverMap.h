@@ -42,6 +42,7 @@ class TransceiverMap
     : public ThriftMapNode<TransceiverMap, TransceiverMapTraits> {
  public:
   using Base = ThriftMapNode<TransceiverMap, TransceiverMapTraits>;
+  using Traits = TransceiverMapTraits;
   using Base::modify;
   using LegacyTraits = TransceiverMapLegacyTraits;
   TransceiverMap();
@@ -66,4 +67,36 @@ class TransceiverMap
   using Base::Base;
   friend class CloneAllocator;
 };
+
+using MultiTransceiverMapTypeClass = apache::thrift::type_class::
+    map<apache::thrift::type_class::string, TransceiverMapTypeClass>;
+using MultiTransceiverMapThriftType =
+    std::map<std::string, TransceiverMapThriftType>;
+
+class MultiTransceiverMap;
+
+using MultiTransceiverMapTraits = ThriftMultiMapNodeTraits<
+    MultiTransceiverMap,
+    MultiTransceiverMapTypeClass,
+    MultiTransceiverMapThriftType,
+    TransceiverMap>;
+
+class HwSwitchMatcher;
+
+class MultiTransceiverMap
+    : public ThriftMapNode<MultiTransceiverMap, MultiTransceiverMapTraits> {
+ public:
+  using Traits = MultiTransceiverMapTraits;
+  using BaseT = ThriftMapNode<MultiTransceiverMap, MultiTransceiverMapTraits>;
+  using BaseT::modify;
+
+  MultiTransceiverMap() {}
+  virtual ~MultiTransceiverMap() {}
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
+  friend class CloneAllocator;
+};
+
 } // namespace facebook::fboss

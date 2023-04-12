@@ -180,6 +180,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::loadBalancerMaps,
     MultiLoadBalancerMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::transceiverMaps,
+    MultiTransceiverMap);
 /*
  * SwitchState stores the current switch configuration.
  *
@@ -431,9 +435,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<LabelForwardingInformationBase>&
   getLabelForwardingInformationBase() const;
 
-  const std::shared_ptr<TransceiverMap>& getTransceivers() const {
-    return cref<switch_state_tags::transceiverMap>();
-  }
+  const std::shared_ptr<TransceiverMap>& getTransceivers() const;
   const std::shared_ptr<SystemPortMap>& getSystemPorts() const {
     return cref<switch_state_tags::systemPortMap>();
   }

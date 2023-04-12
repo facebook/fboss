@@ -141,6 +141,7 @@ SwitchState::SwitchState() {
   resetTeFlowTable(std::make_shared<TeFlowTable>());
   resetAggregatePorts(std::make_shared<AggregatePortMap>());
   resetLoadBalancers(std::make_shared<LoadBalancerMap>());
+  resetTransceivers(std::make_shared<TransceiverMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -324,16 +325,21 @@ void SwitchState::addTransceiver(
     const std::shared_ptr<TransceiverSpec>& transceiver) {
   // For ease-of-use, automatically clone the TransceiverMap if we are still
   // pointing to a published map.
-  if (cref<switch_state_tags::transceiverMap>()->isPublished()) {
-    auto xcvrs = cref<switch_state_tags::transceiverMap>()->clone();
-    ref<switch_state_tags::transceiverMap>() = xcvrs;
+  if (getTransceivers()->isPublished()) {
+    auto xcvrs = getTransceivers()->clone();
+    resetTransceivers(xcvrs);
   }
-  ref<switch_state_tags::transceiverMap>()->addTransceiver(transceiver);
+  getDefaultMap<switch_state_tags::transceiverMaps>()->addTransceiver(
+      transceiver);
 }
 
 void SwitchState::resetTransceivers(
     std::shared_ptr<TransceiverMap> transceivers) {
-  ref<switch_state_tags::transceiverMap>() = transceivers;
+  resetDefaultMap<switch_state_tags::transceiverMaps>(transceivers);
+}
+
+const std::shared_ptr<TransceiverMap>& SwitchState::getTransceivers() const {
+  return getDefaultMap<switch_state_tags::transceiverMaps>();
 }
 
 void SwitchState::addSystemPort(const std::shared_ptr<SystemPort>& systemPort) {
@@ -570,6 +576,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::loadBalancerMaps,
       switch_state_tags::loadBalancerMap>();
+  state->fromThrift<
+      switch_state_tags::transceiverMaps,
+      switch_state_tags::transceiverMap>();
   return state;
 }
 
@@ -743,6 +752,9 @@ state::SwitchState SwitchState::toThrift() const {
   }
   if (auto obj = toThrift(cref<switch_state_tags::loadBalancerMaps>())) {
     data.loadBalancerMap() = *obj;
+  }
+  if (auto obj = toThrift(cref<switch_state_tags::transceiverMaps>())) {
+    data.transceiverMap() = *obj;
   }
   return data;
 }
