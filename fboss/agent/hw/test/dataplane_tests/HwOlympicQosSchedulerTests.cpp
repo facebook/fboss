@@ -75,11 +75,15 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
         std::vector<uint8_t>(1200, 0xff));
   }
 
-  void sendUdpPkt(uint8_t dscpVal) {
+  void sendUdpPkt(uint8_t dscpVal, bool frontPanel = true) {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6{getProgrammedState()};
-    getHwSwitch()->sendPacketOutOfPortAsync(
-        createUdpPkt(dscpVal),
-        ecmpHelper6.ecmpPortDescriptorAt(kEcmpWidthForTest).phyPortID());
+    if (frontPanel) {
+      getHwSwitch()->sendPacketOutOfPortAsync(
+          createUdpPkt(dscpVal),
+          ecmpHelper6.ecmpPortDescriptorAt(kEcmpWidthForTest).phyPortID());
+    } else {
+      getHwSwitch()->sendPacketSwitchedSync(createUdpPkt(dscpVal));
+    }
   }
 
   /*
@@ -122,9 +126,9 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
    *  risk of test being flaky, we choose 2 * 50 number of packets for the
    *  test.
    */
-  void sendUdpPkts(uint8_t dscpVal, int cnt) {
+  void sendUdpPkts(uint8_t dscpVal, int cnt, bool frontPanel = true) {
     for (int i = 0; i < cnt; i++) {
-      sendUdpPkt(dscpVal);
+      sendUdpPkt(dscpVal, frontPanel);
     }
   }
 
@@ -136,11 +140,12 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
    */
   void sendUdpPktsForAllQueues(
       const std::vector<int>& queueIds,
-      const std::map<int, std::vector<uint8_t>>& queueToDscp) {
+      const std::map<int, std::vector<uint8_t>>& queueToDscp,
+      bool frontPanel = true) {
     // Higher speed ports need more packets to reach line rate
     auto pktsToSend = getHwSwitchEnsemble()->getMinPktsForLineRate(outPort());
     for (const auto& queueId : queueIds) {
-      sendUdpPkts(queueToDscp.at(queueId).front(), pktsToSend);
+      sendUdpPkts(queueToDscp.at(queueId).front(), pktsToSend, frontPanel);
     }
   }
 
@@ -185,7 +190,7 @@ class HwOlympicQosSchedulerTest : public HwLinkStateDependentTest {
 
  protected:
   void verifyWRR();
-  void verifySP();
+  void verifySP(bool frontPanelTraffic = true);
   void verifyWRRAndICP();
   void verifyWRRAndNC();
 
@@ -320,7 +325,7 @@ void HwOlympicQosSchedulerTest::verifyWRR() {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-void HwOlympicQosSchedulerTest::verifySP() {
+void HwOlympicQosSchedulerTest::verifySP(bool frontPanelTraffic) {
   if (!isSupported(HwAsic::Feature::L3_QOS)) {
     return;
   }
@@ -334,7 +339,8 @@ void HwOlympicQosSchedulerTest::verifySP() {
   auto verify = [=]() {
     sendUdpPktsForAllQueues(
         utility::kOlympicSPQueueIds(getAsic()),
-        utility::kOlympicQueueToDscp(getAsic()));
+        utility::kOlympicQueueToDscp(getAsic()),
+        frontPanelTraffic);
     EXPECT_TRUE(verifySPHelper(
         // SP queue with highest queueId
         // should starve other SP queues
