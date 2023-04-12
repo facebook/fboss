@@ -67,6 +67,9 @@ class SaiUdfManager {
   SaiUdfMatchTraits::CreateAttributes udfMatchAttr(
       const std::shared_ptr<UdfPacketMatcher> swUdfMatch) const;
 
+  UdfMatchSaiId addUdfMatch(
+      const std::shared_ptr<UdfPacketMatcher>& swUdfMatch);
+
  private:
   uint8_t cfgL4MatchTypeToSai(cfg::UdfMatchL4Type cfgType) const;
   uint16_t cfgL3MatchTypeToSai(cfg::UdfMatchL3Type cfgType) const;

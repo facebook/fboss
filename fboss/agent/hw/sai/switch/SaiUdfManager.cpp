@@ -67,6 +67,20 @@ SaiUdfMatchTraits::CreateAttributes SaiUdfManager::udfMatchAttr(
   };
 }
 
+UdfMatchSaiId SaiUdfManager::addUdfMatch(
+    const std::shared_ptr<UdfPacketMatcher>& swUdfMatch) {
+  auto createAttributes = udfMatchAttr(swUdfMatch);
+  auto& udfMatchStore = saiStore_->get<SaiUdfMatchTraits>();
+  auto saiUdfMatch =
+      udfMatchStore.setObject(createAttributes, createAttributes);
+
+  auto handle = std::make_unique<SaiUdfMatchHandle>();
+  handle->udfMatch = saiUdfMatch;
+  udfMatchHandles_[swUdfMatch->getName()] = std::move(handle);
+
+  return saiUdfMatch->adapterKey();
+}
+
 uint8_t SaiUdfManager::cfgL4MatchTypeToSai(cfg::UdfMatchL4Type cfgType) const {
   switch (cfgType) {
     case cfg::UdfMatchL4Type::UDF_L4_PKT_TYPE_ANY:
