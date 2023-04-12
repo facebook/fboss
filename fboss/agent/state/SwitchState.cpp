@@ -146,6 +146,7 @@ SwitchState::SwitchState() {
   resetVlans(std::make_shared<VlanMap>());
   resetPorts(std::make_shared<PortMap>());
   resetIntfs(std::make_shared<InterfaceMap>());
+  resetAclTableGroups(std::make_shared<AclTableGroupMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -247,7 +248,12 @@ void SwitchState::resetAcls(std::shared_ptr<AclMap> acls) {
 
 void SwitchState::resetAclTableGroups(
     std::shared_ptr<AclTableGroupMap> aclTableGroups) {
-  ref<switch_state_tags::aclTableGroupMap>() = aclTableGroups;
+  resetDefaultMap<switch_state_tags::aclTableGroupMaps>(aclTableGroups);
+}
+
+const std::shared_ptr<AclTableGroupMap>& SwitchState::getAclTableGroups()
+    const {
+  return getDefaultMap<switch_state_tags::aclTableGroupMaps>();
 }
 
 void SwitchState::resetAggregatePorts(
@@ -563,6 +569,12 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
       state->ref<switch_state_tags::aclMap>() =
           AclTableGroupMap::getDefaultAclTableGroupMap(*aclTableGroupMap);
       state->ref<switch_state_tags::aclTableGroupMap>()->clear();
+    } else if (
+        auto aclMap =
+            state->cref<switch_state_tags::aclTableGroupMaps>()->getAclMap()) {
+      state->ref<switch_state_tags::aclMap>() = aclMap;
+      // multi-acl table support is disabled, so clear the group map
+      state->cref<switch_state_tags::aclTableGroupMaps>()->clear();
     }
   }
   /* forward compatibility */
@@ -608,6 +620,12 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::interfaceMaps,
       switch_state_tags::interfaceMap>();
+  if (switchState.aclTableGroupMap()) {
+    // set multi map if acl table group map exists
+    state->fromThrift<
+        switch_state_tags::aclTableGroupMaps,
+        switch_state_tags::aclTableGroupMap>();
+  }
   return state;
 }
 
@@ -658,6 +676,11 @@ state::SwitchState SwitchState::toThrift() const {
         aclMap = aclMapPtr->toThrift();
       }
       aclTableGroupMap->clear();
+    } else if (
+        auto aclMapPtr =
+            cref<switch_state_tags::aclTableGroupMaps>()->getAclMap()) {
+      aclMap = aclMapPtr->toThrift();
+      data.aclTableGroupMaps()->clear();
     }
   }
   // Write defaultVlan to switchSettings and old fields for transition
@@ -797,6 +820,10 @@ state::SwitchState SwitchState::toThrift() const {
   if (auto obj = toThrift(cref<switch_state_tags::interfaceMaps>())) {
     data.interfaceMap() = *obj;
   }
+  if (auto obj = toThrift(cref<switch_state_tags::aclTableGroupMaps>())) {
+    data.aclTableGroupMap() = *obj;
+  }
+
   return data;
 }
 

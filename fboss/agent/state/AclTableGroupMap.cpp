@@ -11,6 +11,7 @@
 
 #include "fboss/agent/state/NodeMap-defs.h"
 
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
@@ -38,6 +39,26 @@ std::shared_ptr<AclMap> AclTableGroupMap::getDefaultAclTableGroupMap(
     XLOG(ERR) << "AclTableGroupMap missing from warmboot state file";
     return nullptr;
   }
+}
+
+std::shared_ptr<AclMap> MultiAclTableGroupMap::getAclMap() const {
+  auto iter = find(HwSwitchMatcher::defaultHwSwitchMatcherKey());
+  if (iter == cend()) {
+    return nullptr;
+  }
+  // THRIFT_COPY
+  return AclTableGroupMap::getDefaultAclTableGroupMap(iter->second->toThrift());
+}
+
+std::shared_ptr<MultiAclTableGroupMap> MultiAclTableGroupMap::fromAclMap(
+    const std::map<std::string, state::AclEntryFields>& aclMap) {
+  auto aclTableGroupMap =
+      AclTableGroupMap::createDefaultAclTableGroupMapFromThrift(aclMap);
+  auto multiAclTableGroupMap = std::make_shared<MultiAclTableGroupMap>();
+  multiAclTableGroupMap->addNode(
+      HwSwitchMatcher::defaultHwSwitchMatcherKey(),
+      std::move(aclTableGroupMap));
+  return multiAclTableGroupMap;
 }
 
 template class ThriftMapNode<AclTableGroupMap, AclTableGroupMapTraits>;

@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <memory>
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclTableGroup.h"
@@ -39,6 +40,7 @@ class AclTableGroupMap
     : public ThriftMapNode<AclTableGroupMap, AclTableGroupMapTraits> {
  public:
   using BaseT = ThriftMapNode<AclTableGroupMap, AclTableGroupMapTraits>;
+  using Traits = AclTableGroupMapTraits;
   using BaseT::modify;
 
   AclTableGroupMap();
@@ -83,4 +85,41 @@ class AclTableGroupMap
   friend class CloneAllocator;
 };
 
+using MultiAclTableGroupMapTypeClass = apache::thrift::type_class::
+    map<apache::thrift::type_class::string, AclTableGroupMapTypeClass>;
+using MultiAclTableGroupMapThriftType =
+    std::map<std::string, AclTableGroupMapThriftType>;
+
+class MultiAclTableGroupMap;
+
+using MultiAclTableGroupMapTraits = ThriftMultiMapNodeTraits<
+    MultiAclTableGroupMap,
+    MultiAclTableGroupMapTypeClass,
+    MultiAclTableGroupMapThriftType,
+    AclTableGroupMap>;
+
+class HwSwitchMatcher;
+
+class MultiAclTableGroupMap
+    : public ThriftMapNode<MultiAclTableGroupMap, MultiAclTableGroupMapTraits> {
+ public:
+  using Traits = MultiAclTableGroupMapTraits;
+  using BaseT =
+      ThriftMapNode<MultiAclTableGroupMap, MultiAclTableGroupMapTraits>;
+  using BaseT::modify;
+
+  MultiAclTableGroupMap() {}
+  virtual ~MultiAclTableGroupMap() {}
+
+  // ACL map in absence of multi-acl-table support
+  std::shared_ptr<AclMap> getAclMap() const;
+  // from legacy ACL map thrift
+  std::shared_ptr<MultiAclTableGroupMap> fromAclMap(
+      const std::map<std::string, state::AclEntryFields>& aclMap);
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
+  friend class CloneAllocator;
+};
 } // namespace facebook::fboss

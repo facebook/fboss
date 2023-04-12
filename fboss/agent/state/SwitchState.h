@@ -194,7 +194,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::interfaceMaps,
     MultiInterfaceMap);
-
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::aclTableGroupMaps,
+    MultiAclTableGroupMap);
 /*
  * SwitchState stores the current switch configuration.
  *
@@ -291,9 +294,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     return cref<switch_state_tags::aclMap>();
   }
 
-  const std::shared_ptr<AclTableGroupMap>& getAclTableGroups() const {
-    return cref<switch_state_tags::aclTableGroupMap>();
-  }
+  const std::shared_ptr<AclTableGroupMap>& getAclTableGroups() const;
 
   std::chrono::seconds getArpTimeout() const {
     auto arpTimeoutSwSettings = getSwitchSettings()->getArpTimeout();

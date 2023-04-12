@@ -97,7 +97,15 @@ void verifyMultiAclSerialization(
   auto thriftyIntr = thriftIntrStateBack->toThrift();
   FLAGS_enable_acl_table_group = !FLAGS_enable_acl_table_group;
   auto thriftStateBack = SwitchState::fromThrift(thriftyIntr);
-  EXPECT_EQ(state, *thriftStateBack);
+  if (!enableMultiAcl) {
+    EXPECT_EQ(
+        state.getAcls()->toThrift(), thriftStateBack->getAcls()->toThrift());
+  } else {
+    EXPECT_EQ(
+        state.cref<switch_state_tags::aclTableGroupMaps>()->toThrift(),
+        thriftStateBack->cref<switch_state_tags::aclTableGroupMaps>()
+            ->toThrift());
+  }
 }
 
 void verifyAclHelper(
