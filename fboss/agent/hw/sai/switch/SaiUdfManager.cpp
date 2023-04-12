@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/IPProto.h"
 

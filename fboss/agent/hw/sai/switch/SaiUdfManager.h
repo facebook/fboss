@@ -21,15 +21,37 @@ namespace facebook::fboss {
 
 class SaiManagerTable;
 class SaiPlatform;
+class SaiStore;
 
 using SaiUdf = SaiObject<SaiUdfTraits>;
 using SaiUdfGroup = SaiObject<SaiUdfGroupTraits>;
 using SaiUdfMatch = SaiObject<SaiUdfMatchTraits>;
 
+struct SaiUdfHandle;
+
+struct SaiUdfGroupHandle {
+  std::shared_ptr<SaiUdfGroup> udfGroup;
+  std::unordered_map<std::string, std::unique_ptr<SaiUdfHandle>> udfs;
+};
+
+struct SaiUdfMatchHandle {
+  std::shared_ptr<SaiUdfMatch> udfMatch;
+  std::vector<SaiUdfHandle*> udfs;
+};
+
+struct SaiUdfHandle {
+  std::shared_ptr<SaiUdf> udf;
+  SaiUdfMatchHandle* udfMatch;
+  SaiUdfGroupHandle* udfGroup;
+};
+
 class SaiUdfManager {
  public:
-  SaiUdfManager(SaiManagerTable* managerTable, const SaiPlatform* platform)
-      : managerTable_(managerTable), platform_(platform) {}
+  SaiUdfManager(
+      SaiStore* saiStore,
+      SaiManagerTable* managerTable,
+      const SaiPlatform* platform)
+      : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
   static auto constexpr kMaskDontCare = 0;
   static auto constexpr kL4PortMask = 0xFFFF;
@@ -50,6 +72,11 @@ class SaiUdfManager {
   uint16_t cfgL3MatchTypeToSai(cfg::UdfMatchL3Type cfgType) const;
   sai_udf_base_t cfgBaseToSai(cfg::UdfBaseHeaderType cfgType) const;
 
+  std::unordered_map<std::string, std::unique_ptr<SaiUdfMatchHandle>>
+      udfMatchHandles_;
+  std::unordered_map<std::string, std::unique_ptr<SaiUdfGroupHandle>>
+      udfGroupHandles_;
+  SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;
 };
