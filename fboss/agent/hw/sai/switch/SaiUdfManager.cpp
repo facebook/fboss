@@ -23,8 +23,8 @@ SaiUdfTraits::CreateAttributes SaiUdfManager::udfAttr(
   auto udfGroupIdAttr = SaiUdfTraits::Attributes::UdfGroupId{saiUdfGroupId};
   std::optional<SaiUdfTraits::Attributes::Base> baseAttr;
   baseAttr = cfgBaseToSai(swUdfGroup->getUdfBaseHeader());
-  auto offsetAttr =
-      SaiUdfTraits::Attributes::Offset{swUdfGroup->getStartOffsetInBytes()};
+  auto offsetAttr = SaiUdfTraits::Attributes::Offset{
+      static_cast<sai_uint16_t>(swUdfGroup->getStartOffsetInBytes())};
   return SaiUdfTraits::CreateAttributes{
       udfMatchIdAttr, udfGroupIdAttr, baseAttr, offsetAttr};
 }
@@ -34,8 +34,8 @@ SaiUdfGroupTraits::CreateAttributes SaiUdfManager::udfGroupAttr(
   // Type
   auto typeAttr = SaiUdfGroupTraits::Attributes::Type{SAI_UDF_GROUP_TYPE_HASH};
   // Length
-  auto lengthAttr =
-      SaiUdfGroupTraits::Attributes::Length{swUdfGroup->getFieldSizeInBytes()};
+  auto lengthAttr = SaiUdfGroupTraits::Attributes::Length{
+      static_cast<sai_uint16_t>(swUdfGroup->getFieldSizeInBytes())};
   return SaiUdfGroupTraits::CreateAttributes{typeAttr, lengthAttr};
 }
 
