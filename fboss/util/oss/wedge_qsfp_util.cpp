@@ -6,6 +6,7 @@
 #include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
+#include "fboss/lib/platforms/PlatformMode.h"
 #include "fboss/lib/platforms/PlatformProductInfo.h"
 #include "fboss/lib/usb/GalaxyI2CBus.h"
 #include "fboss/lib/usb/Wedge100I2CBus.h"
@@ -71,7 +72,7 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
             .get();
     auto ioBus = std::make_unique<BspIOBus>(systemContainer);
     return std::make_pair(std::move(ioBus), 0);
-  } else if (mode == PlatformType::PLATFORM_MERU800BIU) {
+  } else if (mode == PlatformType::PLATFORM_MERU800BIA) {
     auto systemContainer =
         BspGenericSystemContainer<Meru800biaBspPlatformMapping>::getInstance()
             .get();
