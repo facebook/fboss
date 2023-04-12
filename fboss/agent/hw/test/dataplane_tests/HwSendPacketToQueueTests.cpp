@@ -39,10 +39,6 @@ class HwSendPacketToQueueTest : public HwLinkStateDependentTest {
 void HwSendPacketToQueueTest::checkSendPacket(
     std::optional<uint8_t> ucQueue,
     bool isOutOfPort) {
-  if (!isSupported(HwAsic::Feature::L3_QOS)) {
-    return;
-  }
-
   auto setup = [=]() {
     if (!isOutOfPort) {
       // need to set up ecmp for switching

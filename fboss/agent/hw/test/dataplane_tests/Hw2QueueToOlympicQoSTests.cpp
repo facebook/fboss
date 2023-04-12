@@ -87,10 +87,6 @@ class Hw2QueueToOlympicQoSTest : public HwLinkStateDependentTest {
 
  protected:
   void runTest(bool frontPanel) {
-    if (!isSupported(HwAsic::Feature::L3_QOS)) {
-      return;
-    }
-
     auto setup = [=]() {
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
       auto newCfg{initialConfig()};

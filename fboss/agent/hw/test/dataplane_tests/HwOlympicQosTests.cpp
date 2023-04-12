@@ -34,10 +34,6 @@ class HwOlympicQosTests : public HwLinkStateDependentTest {
   }
 
   void verifyDscpQueueMapping(bool frontPanel) {
-    if (!isSupported(HwAsic::Feature::L3_QOS)) {
-      return;
-    }
-
     auto setup = [=]() {
       resolveNeigborAndProgramRoutes(*helper_, kEcmpWidth);
 

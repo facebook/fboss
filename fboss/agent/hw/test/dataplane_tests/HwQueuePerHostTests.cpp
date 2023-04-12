@@ -286,10 +286,6 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
   void verifyHostToQueueMappingClassIDsAfterResolveHelper(
       bool frontPanel,
       bool blockNeighbor) {
-    if (!isSupported(HwAsic::Feature::L3_QOS)) {
-      return;
-    }
-
     auto setup = [this, blockNeighbor]() {
       this->classIDAfterNeighborResolveHelper(blockNeighbor);
     };
@@ -303,10 +299,6 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
   void verifyHostToQueueMappingClassIDsWithResolveHelper(
       bool frontPanel,
       bool blockNeighbor) {
-    if (!isSupported(HwAsic::Feature::L3_QOS)) {
-      return;
-    }
-
     auto setup = [this, blockNeighbor]() {
       this->classIDWithResolveHelper(blockNeighbor);
     };
@@ -318,10 +310,6 @@ class HwQueuePerHostTest : public HwLinkStateDependentTest {
   }
 
   void verifyTtldCounter(bool frontPanel) {
-    if (!isSupported(HwAsic::Feature::L3_QOS)) {
-      return;
-    }
-
     auto setup = [this]() {
       this->_setupHelper();
 
