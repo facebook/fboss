@@ -28,8 +28,9 @@ class AgentEnsemble : public TestEnsembleIf {
  public:
   AgentEnsemble() {}
   explicit AgentEnsemble(const std::string& configFileName);
-
   ~AgentEnsemble();
+  using TestEnsembleIf::masterLogicalPortIds;
+
   void setupEnsemble(
       int argc,
       char** argv,
@@ -85,8 +86,6 @@ class AgentEnsemble : public TestEnsembleIf {
       bool transaction = false) override;
 
   std::vector<PortID> masterLogicalPortIds() const override;
-  const std::vector<PortID>& masterLogicalPortIds(
-      const std::set<cfg::PortType>& portTypes) const;
 
   void programRoutes(
       const RouterID& rid,
