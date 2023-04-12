@@ -37,12 +37,45 @@ class BufferPoolCfgMap
     : public ThriftMapNode<BufferPoolCfgMap, BufferPoolCfgMapTraits> {
  public:
   using Base = ThriftMapNode<BufferPoolCfgMap, BufferPoolCfgMapTraits>;
+  using Traits = BufferPoolCfgMapTraits;
   BufferPoolCfgMap() = default;
   virtual ~BufferPoolCfgMap() override = default;
 
  private:
   // Inherit the constructors required for clone()
   using Base::Base;
+  friend class CloneAllocator;
+};
+
+using MultiBufferPoolCfgMapTypeClass = apache::thrift::type_class::
+    map<apache::thrift::type_class::string, BufferPoolCfgMapTypeClass>;
+using MultiBufferPoolCfgMapThriftType =
+    std::map<std::string, BufferPoolCfgMapThriftType>;
+
+class MultiBufferPoolCfgMap;
+
+using MultiBufferPoolCfgMapTraits = ThriftMultiMapNodeTraits<
+    MultiBufferPoolCfgMap,
+    MultiBufferPoolCfgMapTypeClass,
+    MultiBufferPoolCfgMapThriftType,
+    BufferPoolCfgMap>;
+
+class HwSwitchMatcher;
+
+class MultiBufferPoolCfgMap
+    : public ThriftMapNode<MultiBufferPoolCfgMap, MultiBufferPoolCfgMapTraits> {
+ public:
+  using Traits = MultiBufferPoolCfgMapTraits;
+  using BaseT =
+      ThriftMapNode<MultiBufferPoolCfgMap, MultiBufferPoolCfgMapTraits>;
+  using BaseT::modify;
+
+  MultiBufferPoolCfgMap() {}
+  virtual ~MultiBufferPoolCfgMap() {}
+
+ private:
+  // Inherit the constructors required for clone()
+  using BaseT::BaseT;
   friend class CloneAllocator;
 };
 

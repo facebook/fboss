@@ -142,6 +142,7 @@ SwitchState::SwitchState() {
   resetAggregatePorts(std::make_shared<AggregatePortMap>());
   resetLoadBalancers(std::make_shared<LoadBalancerMap>());
   resetTransceivers(std::make_shared<TransceiverMap>());
+  resetBufferPoolCfgs(std::make_shared<BufferPoolCfgMap>());
 }
 
 SwitchState::~SwitchState() {}
@@ -276,7 +277,11 @@ void SwitchState::resetSwitchSettings(
 }
 
 void SwitchState::resetBufferPoolCfgs(std::shared_ptr<BufferPoolCfgMap> cfgs) {
-  ref<switch_state_tags::bufferPoolCfgMap>() = cfgs;
+  resetDefaultMap<switch_state_tags::bufferPoolCfgMaps>(cfgs);
+}
+
+const std::shared_ptr<BufferPoolCfgMap> SwitchState::getBufferPoolCfgs() const {
+  return getDefaultMap<switch_state_tags::bufferPoolCfgMaps>();
 }
 
 const std::shared_ptr<LoadBalancerMap>& SwitchState::getLoadBalancers() const {
@@ -579,6 +584,9 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   state->fromThrift<
       switch_state_tags::transceiverMaps,
       switch_state_tags::transceiverMap>();
+  state->fromThrift<
+      switch_state_tags::bufferPoolCfgMaps,
+      switch_state_tags::bufferPoolCfgMap>();
   return state;
 }
 
@@ -755,6 +763,9 @@ state::SwitchState SwitchState::toThrift() const {
   }
   if (auto obj = toThrift(cref<switch_state_tags::transceiverMaps>())) {
     data.transceiverMap() = *obj;
+  }
+  if (auto obj = toThrift(cref<switch_state_tags::bufferPoolCfgMaps>())) {
+    data.bufferPoolCfgMap() = *obj;
   }
   return data;
 }

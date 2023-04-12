@@ -184,6 +184,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::transceiverMaps,
     MultiTransceiverMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::bufferPoolCfgMaps,
+    MultiBufferPoolCfgMap);
 /*
  * SwitchState stores the current switch configuration.
  *
@@ -329,9 +333,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
     return cref<switch_state_tags::qcmCfg>();
   }
 
-  const std::shared_ptr<BufferPoolCfgMap> getBufferPoolCfgs() const {
-    return cref<switch_state_tags::bufferPoolCfgMap>();
-  }
+  const std::shared_ptr<BufferPoolCfgMap> getBufferPoolCfgs() const;
 
   std::chrono::seconds getNdpTimeout() const {
     auto ndpTimeoutSwSettings = getSwitchSettings()->getNdpTimeout();
