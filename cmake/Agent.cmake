@@ -19,6 +19,7 @@ add_library(fboss_init
 
 target_link_libraries(fboss_init
   Folly::folly
+  fboss_common_cpp2
 )
 
 # TODO (rsunkad) re-enable this library for use with linking with libmain

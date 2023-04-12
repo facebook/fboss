@@ -108,6 +108,7 @@ target_link_libraries(qsfp_bsp_core
   Folly::folly
   meru400bfu_bsp
   meru400biu_bsp
+  meru800bia_bsp
   montblanc_bsp
   device_mdio
   fpga_device

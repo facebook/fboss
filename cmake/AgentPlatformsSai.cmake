@@ -37,7 +37,6 @@ add_library(sai_platform
   fboss/agent/platforms/sai/SaiMeru800biaPlatform.cpp
   fboss/agent/platforms/sai/SaiMeru400biaPlatform.cpp
   fboss/agent/platforms/sai/SaiMeru400biaPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiMeru800biaPlatformPort.cpp
   fboss/agent/platforms/sai/SaiMeru400bfuPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMontblancPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.cpp
@@ -99,6 +98,7 @@ target_link_libraries(sai_platform
   meru400biu_platform_mapping
   meru400bia_platform_mapping
   meru400bfu_platform_mapping
+  meru800bia_platform_mapping
   montblanc_platform_mapping
 )
 

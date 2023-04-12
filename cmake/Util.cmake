@@ -21,6 +21,7 @@ target_link_libraries(wedge_qsfp_util
   phy_management_base
   transceiver_manager
   qsfp_platforms_wedge
+  fboss_common_cpp2
 )
 
 install(TARGETS wedge_qsfp_util)
