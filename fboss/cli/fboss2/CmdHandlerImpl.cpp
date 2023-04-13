@@ -83,7 +83,6 @@
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteSummary.h"
 #include "fboss/cli/fboss2/commands/show/route/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h"
-#include "fboss/cli/fboss2/commands/show/state/CmdShowState.h"
 #include "fboss/cli/fboss2/commands/show/systemport/CmdShowSystemPort.h"
 #include "fboss/cli/fboss2/commands/show/systemport/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h"
@@ -108,7 +107,6 @@ namespace facebook::fboss {
 template void CmdHandler<CmdGetPcap, CmdGetPcapTraits>::run();
 template void CmdHandler<CmdShowAcl, CmdShowAclTraits>::run();
 template void CmdHandler<CmdShowAgentSsl, CmdShowAgentSslTraits>::run();
-template void CmdHandler<CmdShowState, CmdShowStateTraits>::run();
 template void
 CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::run();
 template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
