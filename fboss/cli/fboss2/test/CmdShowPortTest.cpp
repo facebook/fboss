@@ -190,7 +190,7 @@ cli::ShowPortModel createPortModel() {
   entry1.numUnicastQueues() = 0;
   // when pfc exists, pause shouldn't
   entry1.pfc() = "TX RX WD";
-  entry1.isDrained() = "No";
+  entry1.isDrained() = "Yes";
 
   entry2.id() = 2;
   entry2.hwLogicalPortId() = 2;
@@ -255,7 +255,7 @@ cli::ShowPortModel createPortModel() {
   entry6.tcvrPresent() = "Present";
   entry6.numUnicastQueues() = 0;
   entry6.pause() = "";
-  entry6.isDrained() = "No";
+  entry6.isDrained() = "Yes";
 
   // sorted by name
   model.portEntries() = {entry6, entry1, entry2, entry3, entry5, entry4};
@@ -263,16 +263,14 @@ cli::ShowPortModel createPortModel() {
 }
 
 std::vector<std::string> createDrainedInterfaces() {
-  std::vector<std::string> drainedInterfaces;
-  // To be populated in next diff
+  std::vector<std::string> drainedInterfaces{"eth1/4/1", "eth1/5/1"};
   return drainedInterfaces;
 }
 
 std::string createMockedBgpConfig() {
   std::string bgpConfigStr;
   bgp::thrift::BgpConfig bgpConfig;
-  std::vector<std::string> drainedInterfaces;
-  // To be populated in next diff
+  std::vector<std::string> drainedInterfaces = createDrainedInterfaces();
   bgpConfig.drained_interfaces() = std::move(drainedInterfaces);
   apache::thrift::SimpleJSONSerializer::serialize(bgpConfig, &bgpConfigStr);
   return bgpConfigStr;
@@ -357,8 +355,8 @@ TEST_F(CmdShowPortTestFixture, printOutput) {
   std::string expectOutput =
       " ID  Name        AdminState  LinkState  Transceiver  TcvrID  Speed  ProfileID                        HwLogicalPortId  Drained \n"
       "-----------------------------------------------------------------------------------------------------------------------------------------\n"
-      " 9   eth1/4/1    Enabled     Up         Present      5       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL  9                No      \n"
-      " 1   eth1/5/1    Enabled     Down       Present      0       100G   PROFILE_100G_4_NRZ_CL91_COPPER   1                No      \n"
+      " 9   eth1/4/1    Enabled     Up         Present      5       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL  9                Yes     \n"
+      " 1   eth1/5/1    Enabled     Down       Present      0       100G   PROFILE_100G_4_NRZ_CL91_COPPER   1                Yes     \n"
       " 2   eth1/5/2    Disabled    Down       Present      1       25G    PROFILE_25G_1_NRZ_CL74_COPPER    2                No      \n"
       " 3   eth1/5/3    Enabled     Up         Absent       2       100G   PROFILE_100G_4_NRZ_CL91_COPPER   3                No      \n"
       " 7   eth1/10/2   Enabled     Up         Present      4       100G   PROFILE_100G_4_NRZ_CL91_OPTICAL  7                No      \n"
