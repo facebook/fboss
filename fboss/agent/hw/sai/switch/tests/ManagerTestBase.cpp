@@ -68,7 +68,7 @@ void ManagerTestBase::setupSaiPlatform() {
       std::move(agentConfig),
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED));
-  saiPlatform->getHwSwitch()->init(nullptr, false);
+  auto ret = saiPlatform->getHwSwitch()->init(nullptr, false);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
   saiPlatform->initPorts();
   saiSwitch->switchRunStateChanged(SwitchRunState::INITIALIZED);
@@ -76,7 +76,7 @@ void ManagerTestBase::setupSaiPlatform() {
   saiStore = saiSwitch->getSaiStore();
   saiManagerTable = saiSwitch->managerTable();
 
-  auto setupState = std::make_shared<SwitchState>();
+  auto setupState = ret.switchState->clone();
   for (int i = 0; i < testInterfaces.size(); ++i) {
     if (i == 0) {
       testInterfaces[i] = TestInterface{i, 4};
@@ -86,34 +86,38 @@ void ManagerTestBase::setupSaiPlatform() {
   }
 
   if (setupStage & SetupStage::PORT) {
+    auto* ports = setupState->getPorts()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
       for (const auto& remoteHost : testInterface.remoteHosts) {
         auto swPort = makePort(remoteHost.port);
-        setupState->getPorts()->addPort(swPort);
+        ports->addPort(swPort);
       }
     }
   }
   if (setupStage & SetupStage::SYSTEM_PORT) {
+    auto* ports = setupState->getSystemPorts()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
       auto swPort =
           makeSystemPort(std::nullopt, kSysPortOffset + testInterface.id);
-      setupState->getSystemPorts()->addSystemPort(swPort);
+      ports->addSystemPort(swPort);
     }
   }
   if (setupStage & SetupStage::VLAN) {
+    auto* vlans = setupState->getVlans()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
       auto swVlan = makeVlan(testInterface);
-      setupState->getVlans()->addVlan(swVlan);
+      vlans->addVlan(swVlan);
     }
   }
   if (setupStage & SetupStage::INTERFACE) {
+    auto* interfaces = setupState->getInterfaces()->modify(&setupState);
     for (const auto& testInterface : testInterfaces) {
       auto swInterface = makeInterface(testInterface);
-      setupState->getInterfaces()->addInterface(swInterface);
+      interfaces->addInterface(swInterface);
       if (setupStage & SetupStage::SYSTEM_PORT) {
         auto swPortInterface =
             makeInterface(testInterface, cfg::InterfaceType::SYSTEM_PORT);
-        setupState->getInterfaces()->addInterface(swPortInterface);
+        interfaces->addInterface(swPortInterface);
       }
     }
   }
@@ -121,8 +125,10 @@ void ManagerTestBase::setupSaiPlatform() {
     for (const auto& testInterface : testInterfaces) {
       for (const auto& remoteHost : testInterface.remoteHosts) {
         auto swNeighbor = makeArpEntry(testInterface.id, remoteHost);
-        auto vlan = setupState->getVlans()->getVlan(VlanID(testInterface.id));
-        auto arpTable = vlan->getArpTable();
+        auto* vlan = setupState->getVlans()
+                         ->getVlan(VlanID(testInterface.id))
+                         ->modify(&setupState);
+        auto arpTable = vlan->getArpTable()->modify(&vlan, &setupState);
         PortDescriptor portDesc(PortID(remoteHost.port.id));
         arpTable->addEntry(
             remoteHost.ip.asV4(),
