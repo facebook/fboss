@@ -446,6 +446,16 @@ TEST_F(HwOlympicQosSchedulerTest, VerifySP) {
   verifySP();
 }
 
+/*
+ * This test asserts that CPU injected traffic from a higher priority
+ * queue will preempt traffic from a lower priority queue. We only
+ * test for CPU traffic explicitly as VerifySP above already
+ * tests front panel traffic.
+ */
+TEST_F(HwOlympicQosSchedulerTest, VerifySPPreemptionCPUTraffic) {
+  verifySP(false /*frontPanelTraffic*/);
+}
+
 TEST_F(HwOlympicQosSchedulerTest, VerifyWRRAndICP) {
   verifyWRRAndICP();
 }
