@@ -72,7 +72,7 @@
 namespace facebook::fboss {
 
 const CommandTree& kCommandTree() {
-  const static CommandTree root = {
+  static CommandTree root = {
       {"show",
        "acl",
        "Show ACL information",
@@ -397,6 +397,7 @@ const CommandTree& kCommandTree() {
          commandHandler<CmdShowProductDetails>,
          argTypeHandler<CmdShowProductDetailsTraits>}}},
   };
+  sort(root.begin(), root.end());
   return root;
 }
 

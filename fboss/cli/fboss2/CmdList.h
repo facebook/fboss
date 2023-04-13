@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <functional>
 #include <string>
 #include <vector>
@@ -42,7 +43,9 @@ struct Command {
         help{help},
         commandHandler{commandHandler},
         argTypeHandler{argTypeHandler},
-        subcommands{subcommands} {}
+        subcommands{subcommands} {
+    sort(this->subcommands.begin(), this->subcommands.end());
+  }
 
   Command(
       const std::string& name,
@@ -56,7 +59,9 @@ struct Command {
         commandHandler{commandHandler},
         validFilterHandler{validFilterHandler},
         argTypeHandler{argTypeHandler},
-        subcommands{subcommands} {}
+        subcommands{subcommands} {
+    sort(this->subcommands.begin(), this->subcommands.end());
+  }
 
   Command(
       const std::string& name,
@@ -70,7 +75,9 @@ struct Command {
         commandHandler{commandHandler},
         argTypeHandler{argTypeHandler},
         localOptionsHandler{localOptionsHandler},
-        subcommands{subcommands} {}
+        subcommands{subcommands} {
+    sort(this->subcommands.begin(), this->subcommands.end());
+  }
 
   Command(
       const std::string& name,
@@ -86,22 +93,30 @@ struct Command {
         validFilterHandler{validFilterHandler},
         argTypeHandler{argTypeHandler},
         localOptionsHandler{localOptionsHandler},
-        subcommands{subcommands} {}
+        subcommands{subcommands} {
+    sort(this->subcommands.begin(), this->subcommands.end());
+  }
 
   // Some commands don't have handlers and only have more subcommands
   Command(
       const std::string& name,
       const std::string& help,
       const std::vector<Command>& subcommands)
-      : name{name}, help{help}, subcommands{subcommands} {}
+      : name{name}, help{help}, subcommands{subcommands} {
+    sort(this->subcommands.begin(), this->subcommands.end());
+  }
 
-  const std::string name;
-  const std::string help;
-  const std::optional<CommandHandlerFn> commandHandler;
-  const std::optional<ValidFilterHandlerFn> validFilterHandler;
-  const std::optional<ArgTypeHandlerFn> argTypeHandler;
-  const std::optional<LocalOptionsHandlerFn> localOptionsHandler;
-  const std::vector<Command> subcommands;
+  bool operator<(const Command& other) const {
+    return name.compare(other.name) < 0;
+  }
+
+  std::string name;
+  std::string help;
+  std::optional<CommandHandlerFn> commandHandler;
+  std::optional<ValidFilterHandlerFn> validFilterHandler;
+  std::optional<ArgTypeHandlerFn> argTypeHandler;
+  std::optional<LocalOptionsHandlerFn> localOptionsHandler;
+  std::vector<Command> subcommands;
 };
 
 struct RootCommand : public Command {
@@ -174,6 +189,10 @@ struct RootCommand : public Command {
       const std::string& help,
       const std::vector<Command>& subcommands)
       : Command(name, help, subcommands), verb{verb} {}
+
+  bool operator<(const RootCommand& other) const {
+    return name.compare(other.name) < 0;
+  }
 
   std::string verb;
 };
