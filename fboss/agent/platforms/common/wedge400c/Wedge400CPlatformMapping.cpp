@@ -28,7 +28,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/1",
-                  "lane": 0
+                  "lane": 1
                 }
               }
             },
@@ -40,7 +40,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/1",
-                  "lane": 1
+                  "lane": 0
                 }
               }
             },
@@ -52,7 +52,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/1",
-                  "lane": 2
+                  "lane": 3
                 }
               }
             },
@@ -64,7 +64,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/1",
-                  "lane": 3
+                  "lane": 2
                 }
               }
             },
@@ -76,7 +76,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/1",
-                  "lane": 4
+                  "lane": 6
                 }
               }
             },
@@ -88,7 +88,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/1",
-                  "lane": 5
+                  "lane": 7
                 }
               }
             },
@@ -100,7 +100,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/1",
-                  "lane": 6
+                  "lane": 4
                 }
               }
             },
@@ -112,7 +112,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/1",
-                  "lane": 7
+                  "lane": 5
                 }
               }
             }
@@ -208,25 +208,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/1",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/1",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/1",
-                      "lane": 2
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/1",
                       "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/1",
+                      "lane": 2
                     }
                   }
                 ]
@@ -320,25 +320,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/1",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/1",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/1",
-                      "lane": 2
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/1",
                       "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/1",
+                      "lane": 2
                     }
                   }
                 ]
@@ -432,25 +432,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/1",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/1",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/1",
-                      "lane": 2
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/1",
                       "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/1",
+                      "lane": 2
                     }
                   }
                 ]
@@ -624,19 +624,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/1",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/1",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/1",
-                      "lane": 2
+                      "lane": 0
                     }
                   },
                   {
@@ -648,13 +642,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/1",
-                      "lane": 5
+                      "lane": 2
                     }
                   },
                   {
@@ -667,6 +655,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/1",
                       "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/1",
+                      "lane": 5
                     }
                   }
                 ]
@@ -736,7 +736,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/2",
-                  "lane": 4
+                  "lane": 5
                 }
               }
             },
@@ -748,7 +748,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/2",
-                  "lane": 5
+                  "lane": 4
                 }
               }
             },
@@ -1308,13 +1308,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/2",
-                      "lane": 4
+                      "lane": 5
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/2",
-                      "lane": 5
+                      "lane": 4
                     }
                   },
                   {
@@ -2008,7 +2008,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/4",
-                  "lane": 0
+                  "lane": 4
                 }
               }
             },
@@ -2020,7 +2020,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/4",
-                  "lane": 1
+                  "lane": 5
                 }
               }
             },
@@ -2032,7 +2032,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/4",
-                  "lane": 2
+                  "lane": 6
                 }
               }
             },
@@ -2044,7 +2044,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/4",
-                  "lane": 3
+                  "lane": 7
                 }
               }
             },
@@ -2056,7 +2056,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/4",
-                  "lane": 4
+                  "lane": 2
                 }
               }
             },
@@ -2068,7 +2068,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/4",
-                  "lane": 5
+                  "lane": 3
                 }
               }
             },
@@ -2080,7 +2080,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/4",
-                  "lane": 6
+                  "lane": 0
                 }
               }
             },
@@ -2092,7 +2092,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/4",
-                  "lane": 7
+                  "lane": 1
                 }
               }
             }
@@ -2106,7 +2106,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 8
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 0,
@@ -2126,7 +2126,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 9
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 0,
@@ -2146,7 +2146,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 10
+                      "lane": 14
                     },
                     "tx": {
                       "pre": 0,
@@ -2166,7 +2166,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG8",
-                      "lane": 11
+                      "lane": 15
                     },
                     "tx": {
                       "pre": 0,
@@ -2188,18 +2188,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
                       "lane": 2
                     }
                   },
@@ -2207,6 +2195,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/4",
                       "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 1
                     }
                   }
                 ]
@@ -2300,25 +2300,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/4",
-                      "lane": 4
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/4",
-                      "lane": 5
+                      "lane": 3
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/4",
-                      "lane": 6
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/4",
-                      "lane": 7
+                      "lane": 1
                     }
                   }
                 ]
@@ -2412,25 +2412,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/4",
-                      "lane": 4
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/4",
-                      "lane": 5
+                      "lane": 3
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/4",
-                      "lane": 6
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/4",
-                      "lane": 7
+                      "lane": 1
                     }
                   }
                 ]
@@ -2604,30 +2604,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/4",
                       "lane": 4
                     }
                   },
@@ -2647,6 +2623,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/4",
                       "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/4",
+                      "lane": 1
                     }
                   }
                 ]
@@ -2716,7 +2716,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/5",
-                  "lane": 4
+                  "lane": 5
                 }
               }
             },
@@ -2728,7 +2728,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/5",
-                  "lane": 5
+                  "lane": 4
                 }
               }
             },
@@ -3288,13 +3288,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/5",
-                      "lane": 4
+                      "lane": 5
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/5",
-                      "lane": 5
+                      "lane": 4
                     }
                   },
                   {
@@ -3328,7 +3328,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/6",
-                  "lane": 0
+                  "lane": 4
                 }
               }
             },
@@ -3340,7 +3340,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/6",
-                  "lane": 1
+                  "lane": 5
                 }
               }
             },
@@ -3352,7 +3352,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/6",
-                  "lane": 2
+                  "lane": 7
                 }
               }
             },
@@ -3364,7 +3364,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/6",
-                  "lane": 3
+                  "lane": 6
                 }
               }
             },
@@ -3376,7 +3376,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/6",
-                  "lane": 4
+                  "lane": 0
                 }
               }
             },
@@ -3388,7 +3388,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/6",
-                  "lane": 5
+                  "lane": 1
                 }
               }
             },
@@ -3400,7 +3400,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/6",
-                  "lane": 6
+                  "lane": 2
                 }
               }
             },
@@ -3412,7 +3412,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/6",
-                  "lane": 7
+                  "lane": 3
                 }
               }
             }
@@ -3426,7 +3426,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 16
+                      "lane": 20
                     },
                     "tx": {
                       "pre": 0,
@@ -3446,7 +3446,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 17
+                      "lane": 21
                     },
                     "tx": {
                       "pre": 0,
@@ -3466,7 +3466,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 18
+                      "lane": 22
                     },
                     "tx": {
                       "pre": 0,
@@ -3486,7 +3486,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG11",
-                      "lane": 19
+                      "lane": 23
                     },
                     "tx": {
                       "pre": 0,
@@ -3620,25 +3620,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/6",
-                      "lane": 4
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/6",
-                      "lane": 5
+                      "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/6",
-                      "lane": 6
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/6",
-                      "lane": 7
+                      "lane": 3
                     }
                   }
                 ]
@@ -3732,25 +3732,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/6",
-                      "lane": 4
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/6",
-                      "lane": 5
+                      "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/6",
-                      "lane": 6
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/6",
-                      "lane": 7
+                      "lane": 3
                     }
                   }
                 ]
@@ -3924,6 +3924,30 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/6",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/6",
                       "lane": 0
                     }
                   },
@@ -3943,30 +3967,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/6",
                       "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/6",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/6",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/6",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/6",
-                      "lane": 7
                     }
                   }
                 ]
@@ -4036,7 +4036,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/7",
-                  "lane": 4
+                  "lane": 5
                 }
               }
             },
@@ -4048,7 +4048,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/7",
-                  "lane": 5
+                  "lane": 4
                 }
               }
             },
@@ -4608,13 +4608,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/7",
-                      "lane": 4
+                      "lane": 5
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/7",
-                      "lane": 5
+                      "lane": 4
                     }
                   },
                   {
@@ -5308,7 +5308,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/9",
-                  "lane": 0
+                  "lane": 6
                 }
               }
             },
@@ -5320,7 +5320,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/9",
-                  "lane": 1
+                  "lane": 7
                 }
               }
             },
@@ -5332,7 +5332,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/9",
-                  "lane": 2
+                  "lane": 5
                 }
               }
             },
@@ -5344,7 +5344,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/9",
-                  "lane": 3
+                  "lane": 4
                 }
               }
             },
@@ -5356,7 +5356,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/9",
-                  "lane": 4
+                  "lane": 2
                 }
               }
             },
@@ -5368,7 +5368,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/9",
-                  "lane": 5
+                  "lane": 3
                 }
               }
             },
@@ -5380,7 +5380,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/9",
-                  "lane": 6
+                  "lane": 0
                 }
               }
             },
@@ -5392,7 +5392,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/9",
-                  "lane": 7
+                  "lane": 1
                 }
               }
             }
@@ -5406,7 +5406,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 16
+                      "lane": 20
                     },
                     "tx": {
                       "pre": 0,
@@ -5426,7 +5426,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 17
+                      "lane": 21
                     },
                     "tx": {
                       "pre": 0,
@@ -5446,7 +5446,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 18
+                      "lane": 22
                     },
                     "tx": {
                       "pre": 0,
@@ -5466,7 +5466,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 19
+                      "lane": 23
                     },
                     "tx": {
                       "pre": 0,
@@ -5488,18 +5488,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/9",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/9",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/9",
                       "lane": 2
                     }
                   },
@@ -5507,6 +5495,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/9",
                       "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 1
                     }
                   }
                 ]
@@ -5600,25 +5600,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/9",
-                      "lane": 4
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/9",
-                      "lane": 5
+                      "lane": 3
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/9",
-                      "lane": 6
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/9",
-                      "lane": 7
+                      "lane": 1
                     }
                   }
                 ]
@@ -5712,25 +5712,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/9",
-                      "lane": 4
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/9",
-                      "lane": 5
+                      "lane": 3
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/9",
-                      "lane": 6
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/9",
-                      "lane": 7
+                      "lane": 1
                     }
                   }
                 ]
@@ -5904,13 +5904,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/9",
-                      "lane": 0
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/9",
-                      "lane": 1
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/9",
+                      "lane": 4
                     }
                   },
                   {
@@ -5928,25 +5940,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/9",
-                      "lane": 4
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/9",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/9",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/9",
-                      "lane": 7
+                      "lane": 1
                     }
                   }
                 ]
@@ -5968,7 +5968,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/10",
-                  "lane": 0
+                  "lane": 7
                 }
               }
             },
@@ -5980,7 +5980,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/10",
-                  "lane": 1
+                  "lane": 6
                 }
               }
             },
@@ -5992,7 +5992,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/10",
-                  "lane": 2
+                  "lane": 4
                 }
               }
             },
@@ -6004,7 +6004,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/10",
-                  "lane": 3
+                  "lane": 5
                 }
               }
             },
@@ -6016,7 +6016,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/10",
-                  "lane": 4
+                  "lane": 2
                 }
               }
             },
@@ -6028,7 +6028,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/10",
-                  "lane": 5
+                  "lane": 3
                 }
               }
             },
@@ -6040,7 +6040,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/10",
-                  "lane": 6
+                  "lane": 0
                 }
               }
             },
@@ -6052,7 +6052,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/10",
-                  "lane": 7
+                  "lane": 1
                 }
               }
             }
@@ -6066,7 +6066,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 0
+                      "lane": 4
                     },
                     "tx": {
                       "pre": 0,
@@ -6086,7 +6086,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 1
+                      "lane": 5
                     },
                     "tx": {
                       "pre": 0,
@@ -6106,7 +6106,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 2
+                      "lane": 6
                     },
                     "tx": {
                       "pre": 0,
@@ -6126,7 +6126,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG5",
-                      "lane": 3
+                      "lane": 7
                     },
                     "tx": {
                       "pre": 0,
@@ -6148,18 +6148,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/10",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/10",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/10",
                       "lane": 2
                     }
                   },
@@ -6167,6 +6155,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/10",
                       "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 1
                     }
                   }
                 ]
@@ -6260,25 +6260,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/10",
-                      "lane": 4
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/10",
-                      "lane": 5
+                      "lane": 3
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/10",
-                      "lane": 6
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/10",
-                      "lane": 7
+                      "lane": 1
                     }
                   }
                 ]
@@ -6372,25 +6372,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/10",
-                      "lane": 4
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/10",
-                      "lane": 5
+                      "lane": 3
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/10",
-                      "lane": 6
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/10",
-                      "lane": 7
+                      "lane": 1
                     }
                   }
                 ]
@@ -6564,25 +6564,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/10",
-                      "lane": 0
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/10",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/10",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/10",
-                      "lane": 3
+                      "lane": 6
                     }
                   },
                   {
@@ -6600,13 +6588,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/10",
-                      "lane": 6
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/10",
-                      "lane": 7
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/10",
+                      "lane": 1
                     }
                   }
                 ]
@@ -6628,7 +6628,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/11",
-                  "lane": 0
+                  "lane": 6
                 }
               }
             },
@@ -6640,7 +6640,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/11",
-                  "lane": 1
+                  "lane": 7
                 }
               }
             },
@@ -6652,7 +6652,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/11",
-                  "lane": 2
+                  "lane": 5
                 }
               }
             },
@@ -6664,7 +6664,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/11",
-                  "lane": 3
+                  "lane": 4
                 }
               }
             },
@@ -6676,7 +6676,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/11",
-                  "lane": 4
+                  "lane": 3
                 }
               }
             },
@@ -6688,7 +6688,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/11",
-                  "lane": 5
+                  "lane": 2
                 }
               }
             },
@@ -6700,7 +6700,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/11",
-                  "lane": 6
+                  "lane": 0
                 }
               }
             },
@@ -6712,7 +6712,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/11",
-                  "lane": 7
+                  "lane": 1
                 }
               }
             }
@@ -6726,7 +6726,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 16
+                      "lane": 20
                     },
                     "tx": {
                       "pre": 0,
@@ -6746,7 +6746,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 17
+                      "lane": 21
                     },
                     "tx": {
                       "pre": 0,
@@ -6766,7 +6766,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 18
+                      "lane": 22
                     },
                     "tx": {
                       "pre": 0,
@@ -6786,7 +6786,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 19
+                      "lane": 23
                     },
                     "tx": {
                       "pre": 0,
@@ -6808,13 +6808,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/11",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/11",
-                      "lane": 1
+                      "lane": 3
                     }
                   },
                   {
@@ -6826,7 +6820,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/11",
-                      "lane": 3
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 1
                     }
                   }
                 ]
@@ -6920,25 +6920,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/11",
-                      "lane": 4
+                      "lane": 3
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/11",
-                      "lane": 5
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/11",
-                      "lane": 6
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/11",
-                      "lane": 7
+                      "lane": 1
                     }
                   }
                 ]
@@ -7032,25 +7032,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/11",
-                      "lane": 4
+                      "lane": 3
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/11",
-                      "lane": 5
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/11",
-                      "lane": 6
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/11",
-                      "lane": 7
+                      "lane": 1
                     }
                   }
                 ]
@@ -7224,31 +7224,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/11",
-                      "lane": 0
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/11",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/11",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/11",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/11",
-                      "lane": 4
+                      "lane": 7
                     }
                   },
                   {
@@ -7260,13 +7242,31 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/11",
-                      "lane": 6
+                      "lane": 4
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/11",
-                      "lane": 7
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/11",
+                      "lane": 1
                     }
                   }
                 ]
@@ -7288,7 +7288,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/12",
-                  "lane": 0
+                  "lane": 6
                 }
               }
             },
@@ -7300,7 +7300,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/12",
-                  "lane": 1
+                  "lane": 7
                 }
               }
             },
@@ -7312,7 +7312,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/12",
-                  "lane": 2
+                  "lane": 4
                 }
               }
             },
@@ -7324,7 +7324,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/12",
-                  "lane": 3
+                  "lane": 5
                 }
               }
             },
@@ -7336,7 +7336,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/12",
-                  "lane": 4
+                  "lane": 2
                 }
               }
             },
@@ -7348,7 +7348,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/12",
-                  "lane": 5
+                  "lane": 3
                 }
               }
             },
@@ -7360,7 +7360,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/12",
-                  "lane": 6
+                  "lane": 0
                 }
               }
             },
@@ -7372,7 +7372,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/12",
-                  "lane": 7
+                  "lane": 1
                 }
               }
             }
@@ -7386,7 +7386,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 8
+                      "lane": 12
                     },
                     "tx": {
                       "pre": 0,
@@ -7406,7 +7406,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 9
+                      "lane": 13
                     },
                     "tx": {
                       "pre": 0,
@@ -7426,7 +7426,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 10
+                      "lane": 14
                     },
                     "tx": {
                       "pre": 0,
@@ -7446,7 +7446,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG0",
-                      "lane": 11
+                      "lane": 15
                     },
                     "tx": {
                       "pre": 0,
@@ -7468,18 +7468,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/12",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/12",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/12",
                       "lane": 2
                     }
                   },
@@ -7487,6 +7475,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/12",
                       "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 1
                     }
                   }
                 ]
@@ -7580,25 +7580,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/12",
-                      "lane": 4
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/12",
-                      "lane": 5
+                      "lane": 3
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/12",
-                      "lane": 6
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/12",
-                      "lane": 7
+                      "lane": 1
                     }
                   }
                 ]
@@ -7692,25 +7692,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/12",
-                      "lane": 4
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/12",
-                      "lane": 5
+                      "lane": 3
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/12",
-                      "lane": 6
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/12",
-                      "lane": 7
+                      "lane": 1
                     }
                   }
                 ]
@@ -7884,25 +7884,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/12",
-                      "lane": 0
+                      "lane": 6
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/12",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/12",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/12",
-                      "lane": 3
+                      "lane": 7
                     }
                   },
                   {
@@ -7920,13 +7908,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/12",
-                      "lane": 6
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/12",
-                      "lane": 7
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/12",
+                      "lane": 1
                     }
                   }
                 ]
@@ -7996,7 +7996,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/13",
-                  "lane": 4
+                  "lane": 5
                 }
               }
             },
@@ -8008,7 +8008,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/13",
-                  "lane": 5
+                  "lane": 4
                 }
               }
             },
@@ -8568,13 +8568,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/13",
-                      "lane": 4
+                      "lane": 5
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/13",
-                      "lane": 5
+                      "lane": 4
                     }
                   },
                   {
@@ -8608,7 +8608,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/14",
-                  "lane": 0
+                  "lane": 7
                 }
               }
             },
@@ -8620,7 +8620,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/14",
-                  "lane": 1
+                  "lane": 6
                 }
               }
             },
@@ -8632,7 +8632,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/14",
-                  "lane": 2
+                  "lane": 4
                 }
               }
             },
@@ -8644,7 +8644,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/14",
-                  "lane": 3
+                  "lane": 5
                 }
               }
             },
@@ -8656,7 +8656,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/14",
-                  "lane": 4
+                  "lane": 2
                 }
               }
             },
@@ -8668,7 +8668,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/14",
-                  "lane": 5
+                  "lane": 3
                 }
               }
             },
@@ -8680,7 +8680,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/14",
-                  "lane": 6
+                  "lane": 1
                 }
               }
             },
@@ -8692,7 +8692,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/14",
-                  "lane": 7
+                  "lane": 0
                 }
               }
             }
@@ -8706,7 +8706,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 16
+                      "lane": 20
                     },
                     "tx": {
                       "pre": 0,
@@ -8726,7 +8726,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 17
+                      "lane": 21
                     },
                     "tx": {
                       "pre": 0,
@@ -8746,7 +8746,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 18
+                      "lane": 22
                     },
                     "tx": {
                       "pre": 0,
@@ -8766,7 +8766,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG2",
-                      "lane": 19
+                      "lane": 23
                     },
                     "tx": {
                       "pre": 0,
@@ -8788,7 +8788,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/14",
-                      "lane": 0
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 3
                     }
                   },
                   {
@@ -8800,13 +8806,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/14",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/14",
-                      "lane": 3
+                      "lane": 0
                     }
                   }
                 ]
@@ -8900,25 +8900,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/14",
-                      "lane": 4
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/14",
-                      "lane": 5
+                      "lane": 3
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/14",
-                      "lane": 6
+                      "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/14",
-                      "lane": 7
+                      "lane": 0
                     }
                   }
                 ]
@@ -9012,25 +9012,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/14",
-                      "lane": 4
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/14",
-                      "lane": 5
+                      "lane": 3
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/14",
-                      "lane": 6
+                      "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/14",
-                      "lane": 7
+                      "lane": 0
                     }
                   }
                 ]
@@ -9204,25 +9204,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/14",
-                      "lane": 0
+                      "lane": 7
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/14",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/14",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/14",
-                      "lane": 3
+                      "lane": 6
                     }
                   },
                   {
@@ -9240,13 +9228,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/14",
-                      "lane": 6
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/14",
-                      "lane": 7
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/14",
+                      "lane": 0
                     }
                   }
                 ]
@@ -9268,7 +9268,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/15",
-                  "lane": 0
+                  "lane": 7
                 }
               }
             },
@@ -9280,7 +9280,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/15",
-                  "lane": 1
+                  "lane": 6
                 }
               }
             },
@@ -9292,7 +9292,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/15",
-                  "lane": 2
+                  "lane": 5
                 }
               }
             },
@@ -9304,7 +9304,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/15",
-                  "lane": 3
+                  "lane": 4
                 }
               }
             },
@@ -9316,7 +9316,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/15",
-                  "lane": 4
+                  "lane": 1
                 }
               }
             },
@@ -9328,7 +9328,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/15",
-                  "lane": 5
+                  "lane": 0
                 }
               }
             },
@@ -9340,7 +9340,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/15",
-                  "lane": 6
+                  "lane": 2
                 }
               }
             },
@@ -9352,7 +9352,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/15",
-                  "lane": 7
+                  "lane": 3
                 }
               }
             }
@@ -9366,7 +9366,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 16
+                      "lane": 20
                     },
                     "tx": {
                       "pre": 0,
@@ -9386,7 +9386,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 17
+                      "lane": 21
                     },
                     "tx": {
                       "pre": 0,
@@ -9406,7 +9406,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 18
+                      "lane": 22
                     },
                     "tx": {
                       "pre": 0,
@@ -9426,7 +9426,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "IFG1",
-                      "lane": 19
+                      "lane": 23
                     },
                     "tx": {
                       "pre": 0,
@@ -9448,13 +9448,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/15",
-                      "lane": 0
+                      "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/15",
-                      "lane": 1
+                      "lane": 0
                     }
                   },
                   {
@@ -9560,25 +9560,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/15",
-                      "lane": 4
+                      "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/15",
-                      "lane": 5
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/15",
-                      "lane": 6
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/15",
-                      "lane": 7
+                      "lane": 3
                     }
                   }
                 ]
@@ -9672,25 +9672,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/15",
-                      "lane": 4
+                      "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/15",
-                      "lane": 5
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/15",
-                      "lane": 6
+                      "lane": 2
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/15",
-                      "lane": 7
+                      "lane": 3
                     }
                   }
                 ]
@@ -9864,13 +9864,37 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/15",
-                      "lane": 0
+                      "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 4
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/15",
                       "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/15",
+                      "lane": 0
                     }
                   },
                   {
@@ -9883,30 +9907,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/15",
                       "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/15",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/15",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/15",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/15",
-                      "lane": 7
                     }
                   }
                 ]
@@ -9928,7 +9928,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/16",
-                  "lane": 0
+                  "lane": 1
                 }
               }
             },
@@ -9940,7 +9940,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/16",
-                  "lane": 1
+                  "lane": 0
                 }
               }
             },
@@ -9952,7 +9952,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/16",
-                  "lane": 2
+                  "lane": 3
                 }
               }
             },
@@ -9964,7 +9964,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/16",
-                  "lane": 3
+                  "lane": 2
                 }
               }
             },
@@ -9976,7 +9976,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/16",
-                  "lane": 4
+                  "lane": 6
                 }
               }
             },
@@ -9988,7 +9988,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/16",
-                  "lane": 5
+                  "lane": 7
                 }
               }
             },
@@ -10000,7 +10000,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/16",
-                  "lane": 6
+                  "lane": 4
                 }
               }
             },
@@ -10012,7 +10012,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
               "z": {
                 "end": {
                   "chip": "eth1/16",
-                  "lane": 7
+                  "lane": 5
                 }
               }
             }
@@ -10108,25 +10108,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/16",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/16",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/16",
-                      "lane": 2
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/16",
                       "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 2
                     }
                   }
                 ]
@@ -10220,25 +10220,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/16",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/16",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/16",
-                      "lane": 2
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/16",
                       "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 2
                     }
                   }
                 ]
@@ -10332,25 +10332,25 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/16",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/16",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/16",
-                      "lane": 2
+                      "lane": 0
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/16",
                       "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 2
                     }
                   }
                 ]
@@ -10524,19 +10524,13 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/16",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/16",
                       "lane": 1
                     }
                   },
                   {
                     "id": {
                       "chip": "eth1/16",
-                      "lane": 2
+                      "lane": 0
                     }
                   },
                   {
@@ -10548,13 +10542,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   {
                     "id": {
                       "chip": "eth1/16",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "eth1/16",
-                      "lane": 5
+                      "lane": 2
                     }
                   },
                   {
@@ -10567,6 +10555,18 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "eth1/16",
                       "lane": 7
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "eth1/16",
+                      "lane": 5
                     }
                   }
                 ]
